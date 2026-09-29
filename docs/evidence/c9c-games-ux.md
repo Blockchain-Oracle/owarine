@@ -89,9 +89,10 @@ This first run then stopped before its season step, so the season payout and the
 
 ## Gates
 
-- Targeted runs are green: `services/ops/src/{runtime,actors/arena-desk,actors/game-room,actors/duel-projector}`, `packages/{markets/src/games,core/src/games}`, the feeder, and the games and status features. That is 186 tests plus the others listed.
-- `pnpm typecheck` passed after the lane's code changes, except for the last duel-UI line.
-- The full `pnpm typecheck && pnpm invariants && pnpm test` was not re-run after the disk stop.
+- `pnpm typecheck && pnpm invariants && pnpm test` passes after the disk stop, on the final tree.
+  - Typecheck: clean.
+  - Invariants: 0 errors, 0 warnings.
+  - Tests: 227 files and 1929 tests passed; 4 files and 18 tests skipped, as on main.
 - No Daml was touched.
 
 ## Open
