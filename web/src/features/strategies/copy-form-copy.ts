@@ -3,10 +3,10 @@ export const COPY_FORM = {
   notANumber: "Enter an amount like 25 or 12.50",
   aboveStrategy: (max: string) => `Above this strategy's ${max} per trade`,
   aboveBudget: "More than your total budget",
-  walletShort: (held: string, needs: string) => `Your wallet holds ${held}; this setup needs ${needs}`,
+  walletShort: (held: string, needs: string) => `Your seat holds ${held}; this setup needs ${needs}`,
   blocked: {
-    busy: "Finish the wallet action in progress first.",
-    cannotSign: "Connect a wallet that can sign.",
+    busy: "Finish the seat action in progress first.",
+    cannotSign: "Take a seat to sign.",
     checking: "Your current permission is still being checked.",
     otherPending: (id: string) => `Finish or release the unfinished copy of strategy #${id} first.`,
     releasePending: "A permission release is still being checked.",
@@ -16,10 +16,10 @@ export const COPY_FORM = {
   },
   max: "Max",
   strip: {
-    wallet: "Wallet",
+    wallet: "Seat",
     vault: "Trading Balance",
     pulls: "This setup takes",
-    pullsDetail: (fee: string | null) => (fee ? `from your wallet, fee ${fee} included` : "from your wallet"),
+    pullsDetail: (fee: string | null) => (fee ? `from your seat, fee ${fee} included` : "from your seat"),
   },
   addFunds: {
     toggle: "Add credits to your Trading Balance",
@@ -31,5 +31,5 @@ export const COPY_FORM = {
   copying: "You are copying this strategy",
   fading: "You are fading this strategy",
   runner: "The runner",
-  replaced: "Copying another strategy replaced this one's permission. A wallet holds one strategy permission at a time.",
+  replaced: "Copying another strategy replaced this one's permission. A seat holds one strategy permission at a time.",
 } as const;

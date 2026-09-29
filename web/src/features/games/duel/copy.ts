@@ -17,7 +17,7 @@ export const DUEL = {
       "This deployment has no duel room. The arena, the room server and the matchmaker are separate things, and at least one of them is not configured here.",
     /** No prompt: the browser's own key signs the room in, and the entry transaction is what names it on chain. */
     openingTitle: "Opening the room",
-    openingBody: "This browser's key vouches for your seat — no wallet prompt. The one signature a duel asks of your wallet is the entry.",
+    openingBody: "This browser's key vouches for your seat — no wallet prompt. The one signature a duel asks of your seat is the entry.",
     refused: "The room refused this browser's key.",
     retry: "Try again",
     /**
@@ -31,17 +31,17 @@ export const DUEL = {
     inMatch: (n: number) => (n === 1 ? "1 duel is being set up right now." : `${n} duels are being set up right now.`),
     nobody: "Nobody is searching right now. Signing puts you first in the queue.",
     roomDown: "The duel room is not answering, so no match can be found at the moment.",
-    connectTitle: "Connect a wallet to duel",
-    connectBody: "A duel escrows against your address and places orders you own. There is nothing to show until there is a wallet.",
+    connectTitle: "Take a seat to duel",
+    connectBody: "A duel escrows against your address and places orders you own. There is nothing to show until you take a seat.",
   },
 
   /** The room refused this browser's key for a seat the wallet holds: the entry named another one. */
   rekey: {
     title: "This seat named another key",
-    body: "Your wallet is in this match, but the entry named the key of another browser — the one you entered from, or one whose storage is gone. That browser can keep playing. To play from this one, name this browser's key for the seat.",
+    body: "Your seat is in this match, but the entry named the key of another browser — the one you entered from, or one whose storage is gone. That browser can keep playing. To play from this one, name this browser's key for the seat.",
     cta: "Name this browser's key",
     naming: "Naming…",
-    note: "One transaction from your wallet, and it replaces the other key for this match only. Nothing about the pot or your picks changes.",
+    note: "One command from your seat, and it replaces the other key for this match only. Nothing about the pot or your picks changes.",
     noSigner: "This browser has no signing session, so it cannot send that transaction.",
   },
 
@@ -79,7 +79,7 @@ export const DUEL = {
     tierDisabled: "That stake is not enabled on the deployed arena.",
     notDeployed: "No GameArena is deployed on this network.",
     balance: "Your balance",
-    balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${need} ${symbol} and this wallet holds ${have}.`,
+    balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${need} ${symbol} and this seat holds ${have}.`,
     gasNeeded: "Picks are your own calls; Canton charges no network fee for them.",
     /**
      * Said before the search, not at the first transaction.
@@ -90,7 +90,7 @@ export const DUEL = {
      */
     gasShort: "Every step of a duel — opening the match, joining it, each pick — is a call your seat places; Canton charges no network fee for any of them.",
     gasShortSponsored: "Every step of a duel — opening the match, joining it, each pick — is a call your seat places; Canton charges no network fee for any of them.",
-    gasCheck: "Checking this wallet can pay for its own transactions…",
+    gasCheck: "Checking this seat is ready…",
     gasRecheck: "I have funded it — check again",
   },
 
@@ -134,7 +134,7 @@ export const DUEL = {
       pot === "0" ? "The match is on chain and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on chain and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
     /** Said under the entry's own sentence once this browser holds a key: what else the one signature does. */
     oneSignature: "This is the only signature the match asks of your seat: it also names the key this browser holds to place your picks. Canton charges no network fee.",
-    oneSignatureSponsored: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks. The sponsor pays their network fees.",
+    oneSignatureSponsored: "This is the only signature the match asks of your seat: it also names the key this browser holds to place your picks. Canton charges no network fee.",
     sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the fees its picks need." : `Your key needs nothing for its picks: Canton charges no network fee (${amount}).`),
     sponsorDeclined: (why: string) => `The venue could not ready your key: ${why}. Your picks wait until it can — the stage offers a way.`,
     waitingCreate: "Waiting for the other player to put the match on chain.",
@@ -200,13 +200,13 @@ export const DUEL = {
     lockCta: "Close the window",
     locking: "Closing…",
     /** The key's own state, while it is the thing placing picks. */
-    keySwipes: "Your key places each pick — no wallet prompt.",
+    keySwipes: "Your key places each pick — no prompt.",
     keyGasShort: "Your key is not ready for this pick yet, so nothing will fill until it is.",
     keyGasShortWhy: "The entry funds a key for one deck's picks and a retry each; a longer run of retries spends that.",
-    askSponsor: "Ask the sponsor to fund it",
-    asking: "Asking the sponsor…",
+    askSponsor: "Ask the venue to ready it",
+    asking: "Asking the venue…",
     fundKey: (amount: string) => `Ready it from your seat (${amount})`,
-    funding: "Waiting for your wallet…",
+    funding: "Waiting for your seat…",
     keyFunded: "Your key is ready again.",
     /** Flicky's auto-swipe: at a card's own deadline the favoured side is played rather than the card forfeited. */
     autoPlayed: "played for you at the deadline",
@@ -287,7 +287,7 @@ export const DUEL = {
     claim: "Claim",
     claiming: "Claiming…",
     claimed: "Claimed",
-    nothingToClaim: "The arena is holding nothing for this wallet.",
+    nothingToClaim: "The arena is holding nothing for this seat.",
     claimNote: "One transaction, and it pays the player named on it — never the caller. The credit does not expire.",
     cards: "Cards",
     cost: "Cost",

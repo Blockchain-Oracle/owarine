@@ -7,7 +7,7 @@ export const QUOTE: FrameQuote = {
   stakeBase: 5_000_000n,
   balanceBase: 1_000_000_000n,
   decimals: 6,
-  symbol: "tUSDC",
+  symbol: "credits",
   cells: { cost: "4.96", ret: "8.06", loss: "5.00" },
   chancePct: 62,
 };

@@ -29,5 +29,5 @@ export const DECISION = {
     tx: "Transaction ↗",
   },
   pending: "Not settled yet",
-  explorer: "View on Solana Explorer ↗",
+  explorer: "Open on the proof page ↗",
 } as const;

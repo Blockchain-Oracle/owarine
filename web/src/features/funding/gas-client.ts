@@ -37,7 +37,7 @@ export interface FundsRequestInput { wallet: string; status: FaucetStatus; sign:
  */
 export function fundsRequest(input: FundsRequestInput) {
   const { wallet, current, stage } = input;
-  const guard = () => { if (!current()) throw new Error("Wallet changed. Open test funds again for the connected wallet."); };
+  const guard = () => { if (!current()) throw new Error("Seat changed. Open test funds again for this seat."); };
   let signed = savedRequest(wallet);
   if (!signed || ![claimOf(input.status, "sol"), claimOf(input.status, "tusdc")].some((c) => c?.status === "prepared" && c.id === signed?.id)) signed = null;
   const unresolved = new Set<FaucetAsset>();

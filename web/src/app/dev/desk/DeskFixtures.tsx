@@ -18,7 +18,7 @@ const DEV = {
   intro: "Every state from fixtures (plan §5.11): the studio at each step, the desk page in practice and live, paused, stopped by the loss limit, has not checked in, a frozen name, an approval waiting and one expired, practice progress 4 of 6, the record with a folded quiet run, a decision of each outcome, Check it passing and failing on a tampered byte, the money sheet's receipts, and the shared read-only view. No wallet, no index, no mainnet; nothing here signs or sends.",
   studio: "Studio — 01 the basket, 02 how strict, 03 the test read (the first decision arrived), 04 create",
   practice: "Desk page — practice, 4 of 6 checks, the record not opened, Go live locked",
-  live: "Desk page — live on Solana mainnet, asking first; an approval waiting and one expired unanswered",
+  live: "Desk page — live (planned on Canton), asking first; an approval waiting and one expired unanswered",
   paused: "Desk page — paused by the owner",
   stopped: "Desk page — stopped by the loss limit",
   late: "Desk page — has not checked in for three hours",

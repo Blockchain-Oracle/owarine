@@ -8,9 +8,9 @@ import type { ArcadeGame } from "@agari/core/games/arcade";
  * Pips's, in our words; the control hints say what this build actually listens to.
  */
 export const ARCADE = {
-  eyebrow: "Arcade · no stake · not on-chain",
+  eyebrow: "Arcade · no stake · not on the ledger",
   /** The board's label, verbatim from doc 06: what a score here is and is not. */
-  honesty: "arcade score · server-checked · not on-chain",
+  honesty: "arcade score · server-checked · not on the ledger",
 
   games: {
     "line-rider": {
@@ -51,9 +51,9 @@ export const ARCADE = {
     refused: (why: string) => `Not recorded — ${why}`,
     /** Why a run stayed local, by the reason the stage already knew before it started. */
     local: {
-      signedOut: "Connect a wallet to post to the board",
+      signedOut: "Take a seat to post to the board",
       noStore: "This deployment keeps no scores, so nothing is posted",
-      unavailable: "No room to vouch for a wallet here, so nothing is posted",
+      unavailable: "No room to vouch for a seat here, so nothing is posted",
     },
     again: "Play again",
     seed: (seed: string) => `seed ${seed}`,
@@ -68,9 +68,9 @@ export const ARCADE = {
     loading: "Reading the board…",
     unreachable: "The board did not answer. Play goes on; the score stays on this screen.",
     noStore: "This deployment keeps no scores, so there is no board to read here.",
-    unavailable: "No duel room is configured here, so there is nothing to vouch for a wallet and scores stay local.",
+    unavailable: "No duel room is configured here, so there is nothing to vouch for a seat and scores stay local.",
     yours: (score: string, rank: number | null) => (rank === null ? `Your best ${score}` : `Your best ${score} · #${rank}`),
-    connect: "Connect a wallet to post — play is open without one.",
+    connect: "Take a seat to post — play is open without one.",
   },
 
   calm: {

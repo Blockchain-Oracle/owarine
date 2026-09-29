@@ -36,7 +36,7 @@ export async function completeCopySetup(input: CopySetupInput, ports: CopySetupP
         ports.save(null);
         return { ok: true, ...(progress.subscribeTx ? { txHash: progress.subscribeTx } : {}) };
       }
-      if (!progress.subscribeTx) return { ok: false, reason: "The subscription result is unknown. Check your wallet activity before another subscription; it has not been resent.", stage: "subscribe" };
+      if (!progress.subscribeTx) return { ok: false, reason: "The subscription result is unknown. Check your seat's activity before another subscription; it has not been resent.", stage: "subscribe" };
       const receipt = await ports.receipt(progress.subscribeTx);
       if (receipt !== "reverted") return { ok: false, reason: "The subscription is still being reconciled. It has not been resent.", stage: "subscribe" };
       progress = { ...progress, stage: "subscribe-ready", subscribeTx: null };

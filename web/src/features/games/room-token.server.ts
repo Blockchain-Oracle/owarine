@@ -114,7 +114,7 @@ export type TokenWallet = { ok: true; wallet: Address } | { ok: false; status: n
  */
 export async function walletFromRoomToken(token: string, nowMs: number): Promise<TokenWallet> {
   const target = await roomArena();
-  if (!target) return { ok: false, status: 503, error: "No duel arena is deployed on this network, so no key can vouch for a wallet here." };
+  if (!target) return { ok: false, status: 503, error: "No duel arena is deployed on this network, so no key can vouch for a seat here." };
   const verdict = verifyRoomToken(token, { chainId: target.chainId, arena: target.arena }, nowMs, macMatches);
   if (!verdict.ok) return { ok: false, status: verdict.code === "forbidden" ? 403 : 401, error: `That room token is not accepted: ${verdict.why}.` };
   return { ok: true, wallet: verdict.claims.wallet };

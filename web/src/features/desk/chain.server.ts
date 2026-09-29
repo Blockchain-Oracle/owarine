@@ -8,7 +8,7 @@ import type { ChainStateWire } from "./protocol";
  * and the seal a transaction carries. The Helius key is read here and spent upstream; a deployment without it
  * answers `chain: null, chainError` and every surface says the chain was not read, never a guessed figure.
  */
-const CHAIN_NOT_CONFIGURED = "mainnet reads are not configured on this deployment";
+const CHAIN_NOT_CONFIGURED = "live desk reads are not configured on this deployment";
 /** Core's branded `Address`/`Signature` and Kit's are the same base58 text under different brands; the web never imports Kit's. */
 type KitAddress = Parameters<typeof readDeskState>[1];
 type KitSignature = Parameters<typeof readSealsOf>[1];

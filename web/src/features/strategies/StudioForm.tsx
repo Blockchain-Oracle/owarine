@@ -13,7 +13,7 @@ const APPROACH_BODY = {
   agent: "An AI reads the opening price, recent move and order books, then explains its call. Hard limits still decide what it may trade.",
   momentum: "A fixed rule follows the current EMA price away from each Window’s opening print. No AI model is used.",
   reversion: "A fixed rule bets against the current EMA move away from each Window’s opening print, expecting it to pull back. No AI model is used.",
-  mirror: "One named wallet is the signal. When it takes a side on a Window and is still net on it, this takes the same side — after their order landed, at the book’s price then. No AI model is used.",
+  mirror: "One named seat is the signal. When it takes a side on a Window and is still net on it, this takes the same side — after their order landed, at the book’s price then. No AI model is used.",
 } as const;
 
 import { StudioMirrorFields } from "./StudioMirrorFields";
@@ -81,7 +81,7 @@ export function StudioForm({ form, setForm, symbol, asset, decimals, houseRunner
         <div className="grid gap-3 sm:grid-cols-2">
           {(["house", "self"] as const).map((hosting) => <button key={hosting} type="button" disabled={hosting === "house" && !houseRunner} aria-pressed={form.hosting === hosting} onClick={() => setForm((f) => ({ ...f, hosting }))} className={cn("strat-choice group", form.hosting === hosting && "strat-choice--on")}><span className="strat-choice-title text-ink">{hosting === "house" ? "Let Agari run it" : "Run your own bot"}</span><p className="strat-choice-body">{hosting === "house" ? houseRunner ? "The hosted runner discovers your published strategy. A follower’s funded permission enables trading." : "A house runner is not configured on this deployment." : "Publish with the address of your own running bot. You operate its process and model credentials."}</p></button>)}
         </div>
-        {form.hosting === "self" && <div className="mt-4"><Field label="Runner wallet"><input value={form.agent} onChange={(e) => setForm((f) => ({ ...f, agent: e.target.value }))} placeholder="0x…" className="strat-input text-ink" /></Field></div>}
+        {form.hosting === "self" && <div className="mt-4"><Field label="Runner party"><input value={form.agent} onChange={(e) => setForm((f) => ({ ...f, agent: e.target.value }))} placeholder="0x…" className="strat-input text-ink" /></Field></div>}
       </div>
       <Field label={`Subscription fee (${symbol})`}><input inputMode="decimal" value={form.subFee} onChange={(e) => setForm((f) => ({ ...f, subFee: e.target.value }))} className="strat-input text-ink" /></Field>
       <p className="strat-choice-body">The registry charges this fee to a follower on every subscription, including a resume or a limits change. Set 0 for free subscriptions.</p>

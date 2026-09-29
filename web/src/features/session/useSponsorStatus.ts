@@ -19,7 +19,7 @@ export interface SponsorWire {
 const SPONSOR_KEY = ["agari", "session", "sponsor"] as const;
 /** The breaker and the balance move slowly; an open sheet re-asks at most this often. */
 const SPONSOR_STALE_MS = 60_000;
-const UNREACHABLE: SponsorStatus = { configured: false, sponsor: null, balanceLamports: null, allowlist: [], reason: "the sponsor could not be reached" };
+const UNREACHABLE: SponsorStatus = { configured: false, sponsor: null, balanceLamports: null, allowlist: [], reason: "the venue could not be reached" };
 
 async function fetchSponsor(): Promise<SponsorStatus> {
   try {

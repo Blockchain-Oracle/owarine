@@ -6,7 +6,7 @@ export const ENTRY = {
   start: "Create your desk",
   yours: "Your desk",
   see: "See a shared desk",
-  noWallet: "No wallet needed until the last step.",
+  noWallet: "No seat needed until the last step.",
   stepsAria: "How a desk works",
   steps: [
     { title: "Pick a basket", body: "Five ready-made groups, or your own mix." },

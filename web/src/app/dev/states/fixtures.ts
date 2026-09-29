@@ -14,7 +14,7 @@ export const TX_URL = txUrl(TX_HASH);
 export const ORACLE_URL = TX_URL;
 
 export const DIAGNOSES: readonly Diagnosis[] = [
-  diagnosis("out-of-gas", "SendTransactionError: insufficient lamports for the fee (fee payer has 0 SOL)"),
+  diagnosis("out-of-gas", "COMMAND_REJECTED: the seat key is not ready (no network fee is due on Canton)"),
   diagnosis("market-not-trading", "custom program error: 0x17d4 (MarketNotTrading)", { errorName: "MarketNotTrading" }),
   diagnosis("indexer-down", "IndexerError: request failed — /api/index/windows"),
 ];

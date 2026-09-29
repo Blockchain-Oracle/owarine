@@ -58,7 +58,7 @@ export function useDeskWrites() {
     try { setPending(storageKey ? parseCopyProgress(localStorage.getItem(storageKey)) : null); } catch { setPending(null); }
   }, [storageKey]);
   const remember = useCallback((progress: CopyProgress | null) => {
-    if (!storageKey) throw new Error("Connect your wallet before setting up a copy.");
+    if (!storageKey) throw new Error("Take a seat before setting up a copy.");
     // Persist before requesting a signature. If storage is blocked, never start a flow we cannot recover.
     if (progress) localStorage.setItem(storageKey, JSON.stringify(progress));
     else localStorage.removeItem(storageKey);
@@ -69,7 +69,7 @@ export function useDeskWrites() {
   // no-session arm this used to call has no signer and can only refuse.
   const registry = useCallback(
     async (intent: StrategyIntent): Promise<DeskWriteResult> => {
-      if (!submitter || !address) return { ok: false, reason: "connect a wallet first" };
+      if (!submitter || !address) return { ok: false, reason: "take a seat first" };
       return failed(await submitter.submitTx(intent));
     },
     [submitter, address],
@@ -82,13 +82,13 @@ export function useDeskWrites() {
 
   const run = useCallback(
     async (kind: DeskBusy, body: () => Promise<DeskWriteResult>): Promise<DeskWriteResult> => {
-      if (executing.current) return { ok: false, reason: "Finish the current wallet action first." };
+      if (executing.current) return { ok: false, reason: "Finish the current seat action first." };
       executing.current = true;
       setBusy(kind);
       try {
         return await body();
       } catch (error) {
-        return { ok: false, reason: error instanceof Error ? error.message : "The wallet action needs checking." };
+        return { ok: false, reason: error instanceof Error ? error.message : "The seat action needs checking." };
       } finally {
         executing.current = false;
         setBusy(null);
@@ -124,12 +124,12 @@ export function useDeskWrites() {
 
   /** Fund + limits (one vault call), then consent on the registry. */
   const join = useCallback((input: CopySetupInput) => run("join", async () => {
-    if (!submitter || !address) return { ok: false, reason: "connect a wallet first" };
+    if (!submitter || !address) return { ok: false, reason: "take a seat first" };
     const result = await completeCopySetup(input, {
       load: () => {
         const raw = storageKey ? localStorage.getItem(storageKey) : null;
         const saved = parseCopyProgress(raw);
-        if (raw && !saved) throw new Error("Saved copy progress could not be read. Check your wallet activity before starting another setup.");
+        if (raw && !saved) throw new Error("Saved copy progress could not be read. Check your seat's activity before starting another setup.");
         return saved;
       },
       save: remember,
@@ -153,7 +153,7 @@ export function useDeskWrites() {
   const pause = useCallback(
     (strategyId: bigint, grantId: bigint, fade = false) =>
       run("pause", async (): Promise<DeskWriteResult> => {
-        if (!submitter) return { ok: false, reason: "connect a wallet first" };
+        if (!submitter) return { ok: false, reason: "take a seat first" };
         const fresh = address ? await getVaultSnapshot(address) : null;
         if (!fresh || !isOk(fresh) || fresh.stale) return { ok: false, reason: "Your current permission could not be checked." };
         if (fresh.value?.grants.strategy?.grantId === grantId && !fresh.value.grants.strategy.revoked) {
@@ -169,7 +169,7 @@ export function useDeskWrites() {
   const addMoney = useCallback(
     (grantId: bigint, amountBase: bigint) =>
       run("add", async (): Promise<DeskWriteResult> => {
-        if (!submitter) return { ok: false, reason: "connect a wallet first" };
+        if (!submitter) return { ok: false, reason: "take a seat first" };
         const deposited = await submitter.submitTx({ kind: "vault-deposit", amountBase });
         if (deposited.status !== "confirmed") return failed(deposited);
         return failed(await submitter.submitTx({ kind: "vault-fund-grant", grantId, amountBase }));
@@ -179,7 +179,7 @@ export function useDeskWrites() {
 
   /** Existing vault funds can top up the current grant without another subscription fee. */
   const fundBudget = useCallback((grantId: bigint, amountBase: bigint) => run("add", async () => {
-    if (!submitter || !address) return { ok: false, reason: "connect a wallet first" };
+    if (!submitter || !address) return { ok: false, reason: "take a seat first" };
     const fresh = await getVaultSnapshot(address);
     if (!isOk(fresh) || fresh.stale || !fresh.value) return { ok: false, reason: "Your vault funds and permission could not be checked." };
     const grant = fresh.value.grants.strategy;
@@ -192,7 +192,7 @@ export function useDeskWrites() {
   const withdraw = useCallback(
     (grantId: bigint | null, amountBase: bigint) =>
       run("withdraw", async (): Promise<DeskWriteResult> => {
-        if (!submitter) return { ok: false, reason: "connect a wallet first" };
+        if (!submitter) return { ok: false, reason: "take a seat first" };
         if (grantId !== null) {
           const revoked = await submitter.submitTx({ kind: "vault-revoke", grantId });
           if (revoked.status !== "confirmed") return failed(revoked);

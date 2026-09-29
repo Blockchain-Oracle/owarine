@@ -236,7 +236,7 @@ export function deskModeText(i: { owner: string; mode: (typeof DESK_MODES)[numbe
   return [
     `${SIGNED_MESSAGE_BRAND} desk mode`,
     "",
-    i.attach ? `My desk on Solana mainnet is ${i.attach.address}, with ${i.attach.operator} as its operator. Its mode is: ${MODE_WORDS[i.mode]}.` : `Set my desk's mode to: ${MODE_WORDS[i.mode]}.`,
+    i.attach ? `My desk on Canton is ${i.attach.address}, with ${i.attach.operator} as its operator. Its mode is: ${MODE_WORDS[i.mode]}.` : `Set my desk's mode to: ${MODE_WORDS[i.mode]}.`,
     "This does not approve any single trade and does not move any money.",
     "",
     `Owner: ${i.owner}`,
@@ -246,6 +246,6 @@ export function deskModeText(i: { owner: string; mode: (typeof DESK_MODES)[numbe
 }
 
 export function deskOwnerActionText(i: { owner: string; kind: OwnerActionKind; signedAtIso: string }): string {
-  const ask = i.kind === "sell_all" ? "Sell every holding in my desk to USDC at its next check. Nothing leaves my desk's account." : "Close my desk: sell every holding, send everything to my own wallet, and stop the checks. The record stays readable.";
+  const ask = i.kind === "sell_all" ? "Sell every holding in my desk to USDC at its next check. Nothing leaves my desk's account." : "Close my desk: sell every holding, send everything to my own seat, and stop the checks. The record stays readable.";
   return [`${SIGNED_MESSAGE_BRAND} desk request`, "", ask, "", `Owner: ${i.owner}`, `Signed at: ${i.signedAtIso}`, networkLine(DESK_CLUSTER)].join("\n");
 }

@@ -34,8 +34,8 @@ export const VIEWS: readonly PartyView[] = [
     request: REQUEST,
     query: queryBody(ALICE),
     positions: [
-      { contractId: contractId("a1c3"), market: "TSLA · 5m Window", side: "up", stakeText: "5.00 tUSDC", priceCents: 62 },
-      { contractId: contractId("a1c4"), market: "NVDA · 1h Window", side: "down", stakeText: "12.50 tUSDC", priceCents: 41 },
+      { contractId: contractId("a1c3"), market: "TSLA · 5m Window", side: "up", stakeText: "5.00 credits", priceCents: 62 },
+      { contractId: contractId("a1c4"), market: "NVDA · 1h Window", side: "down", stakeText: "12.50 credits", priceCents: 41 },
     ],
   },
   {
@@ -44,7 +44,7 @@ export const VIEWS: readonly PartyView[] = [
     party: BOB,
     request: REQUEST,
     query: queryBody(BOB),
-    positions: [{ contractId: contractId("b0b1"), market: "TSLA · 5m Window", side: "down", stakeText: "3.00 tUSDC", priceCents: 38 }],
+    positions: [{ contractId: contractId("b0b1"), market: "TSLA · 5m Window", side: "down", stakeText: "3.00 credits", priceCents: 38 }],
   },
   { value: "outsider", label: "Outsider", party: OUTSIDER, request: REQUEST, query: queryBody(OUTSIDER), positions: [] },
 ];

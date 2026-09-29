@@ -6,9 +6,9 @@ import { PRIVACY, ViewSwitcher, WhoCanSee, type SeenKind } from "@/features/cant
 import { VIEWS } from "./fixtures";
 
 const CHIPS: ReadonlyArray<{ kind: SeenKind; label: string; line: string; open?: boolean }> = [
-  { kind: "position", label: "Chip — your position (details open)", line: "TSLA · 5m Window · UP · 5.00 tUSDC at 62¢", open: true },
+  { kind: "position", label: "Chip — your position (details open)", line: "TSLA · 5m Window · UP · 5.00 credits at 62¢", open: true },
   { kind: "quote", label: "Chip — a firm quote", line: "Price held for you: 62¢ for 20 s" },
-  { kind: "receipt", label: "Chip — a settled receipt", line: "Won · paid 8.06 tUSDC · settled 14:40:00 UTC" },
+  { kind: "receipt", label: "Chip — a settled receipt", line: "Won · paid 8.06 credits · settled 14:40:00 UTC" },
 ];
 
 /** `/dev/canton-privacy`: the chip in its three places and the Alice / Bob / Outsider switcher, from canned ledger answers. */

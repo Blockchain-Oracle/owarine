@@ -21,8 +21,8 @@ export const DESK_ERRORS = {
   mandateVersion: "the mandate changed since you loaded it; reload and sign again",
   mandateProblems: "the mandate does not hold together",
   approvalGone: "that request is no longer waiting",
-  practiceOnly: "a practice desk has no on-chain mode; go live first",
-  chainMismatch: "the desk on mainnet does not match what you signed",
+  practiceOnly: "a practice desk has no ledger mode; go live first",
+  chainMismatch: "the desk on the ledger does not match what you signed",
   notSupported: "this desk index does not carry that request yet",
 } as const;
 

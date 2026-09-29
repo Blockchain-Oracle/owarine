@@ -9,12 +9,12 @@ export const PROFILE = {
   eyebrow: "Trader profile",
   eyebrowYou: "Your profile",
   headingJp: "取引者の記録。",
-  intro: "A wallet's record on Agari, read from the chain's own index: every settled Window, the badges it earned and the calls still running.",
+  intro: "A seat's record on Agari, read from the venue's ledger projection: every settled Window, the badges it earned and the calls still running.",
   x: "On X",
   xVerified: "verified link",
   /** A-3b: copy this wallet's calls as a strategy. */
   copyTrader: "Copy this trader",
-  explorer: "Explorer ↗",
+  explorer: "Proof page ↗",
   copy: "Copy address",
   copied: "Copied",
   dash: "—",
@@ -28,6 +28,6 @@ export const PROFILE = {
     none: "The edge report fills in once Windows settle.",
   },
   calls: { number: "03", title: "Open calls", desc: "Positions on Windows still running, marked to the book.", none: "No calls running right now." },
-  takes: { number: "04", title: "Takes", desc: "Signed calls this wallet posted, newest first.", none: "No takes posted yet." },
+  takes: { number: "04", title: "Takes", desc: "Signed calls this seat posted, newest first.", none: "No takes posted yet." },
   failed: "This part of the profile couldn't be read just now. It retries on its own.",
 } as const;

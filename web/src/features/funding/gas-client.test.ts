@@ -30,7 +30,7 @@ describe("gas funding browser recovery", () => {
     const fetch = vi.fn(async () => response({ id: claim.id, message: "Verify" })); vi.stubGlobal("fetch", fetch);
     const run = input(); let current = true; run.current = () => current;
     run.sign.mockImplementation(async () => { current = false; return SIG; });
-    await expect(requestGas(run)).rejects.toThrow("Wallet changed");
+    await expect(requestGas(run)).rejects.toThrow("Seat changed");
     expect(fetch).toHaveBeenCalledTimes(1); expect(stored.size).toBe(0);
   });
 

@@ -42,7 +42,7 @@ export const STUDIO = {
     },
     moneyTitle: "Money limits",
     shapeTitle: "Shape and safety",
-    program: "Enforced on-chain",
+    program: "Enforced on the ledger",
     code: "Enforced by the desk",
   },
   read: {
@@ -52,7 +52,7 @@ export const STUDIO = {
     steps: [
       "Sign the mandate",
       "Read PreStocks prices for every company",
-      "Quote each trade on Jupiter at your size, PreStocks' 1% fee counted",
+      "Quote each trade at your size, PreStocks' 1% fee counted",
       "Ask the one timing question",
       "Write the decision down and fingerprint it",
     ],
