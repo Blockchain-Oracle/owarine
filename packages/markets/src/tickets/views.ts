@@ -2,8 +2,8 @@
  * The ticket routes' answers in the reference's shapes (C8c), so every screen that read the Solana programs reads
  * these unchanged. What Canton does not carry is stated, never invented:
  *
- *   - a ticket leaves the seat's list when it settles (the ledger archives it; a settlement receipt for tickets is
- *     K-029's "later engine version"), so every listed ticket is `live`, or decided-but-unsettled by its resolution;
+ *   - a live ticket here is `live`, or decided-but-unsettled by its resolution; once it ends the ledger archives it and
+ *     its `SettlementReceipt` carries it in history (`./receipt-views.ts`, K-087);
  *   - `openedAtSec` is not on the contract: 0;
  *   - a provider's lifetime supplied/withdrawn counters are not on the ledger: supplied reads as today's worth, so
  *     no yield is claimed that the ledger cannot show.

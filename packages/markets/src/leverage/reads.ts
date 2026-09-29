@@ -9,6 +9,7 @@ import { err, ok, type Reading } from "@agari/core/schemas";
 import { diagnosis, type Address } from "@agari/core/types";
 import { registeredSeatAddress } from "../provider/ledger-api";
 import { readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";
+import { endedBoosts } from "../tickets/receipt-views";
 import { leveragePositionOf, leverageReserveOf, sharesOf } from "../tickets/views";
 
 export async function getLeverageReserveState(): Promise<Reading<LeverageReserveState | null>> {
@@ -18,14 +19,16 @@ export async function getLeverageReserveState(): Promise<Reading<LeverageReserve
 
 export async function listLeveragePositionsOf(wallet: Address): Promise<Reading<LeveragePosition[]>> {
   const mine = await readTicketsMine();
-  return mine.ok ? ok(mine.value.positions.map((p) => leveragePositionOf(p, wallet)), mine.asOfMs) : mine;
+  // Live positions, then the ended ones (settled, cashed out, knocked out) from their receipts, newest first.
+  return mine.ok ? ok([...mine.value.positions.map((p) => leveragePositionOf(p, wallet)), ...endedBoosts(mine.value.receipts, wallet)], mine.asOfMs) : mine;
 }
 
 export async function getLeveragePosition(positionId: bigint): Promise<Reading<LeveragePosition | null>> {
   const mine = await readTicketsMine();
   if (!mine.ok) return mine;
+  const owner = registeredSeatAddress() ?? ("" as Address);
   const p = mine.value.positions.find((x) => ticketIdOf(x.cid) === positionId);
-  return ok(p ? leveragePositionOf(p, registeredSeatAddress() ?? ("" as Address)) : null, mine.asOfMs);
+  return ok(p ? leveragePositionOf(p, owner) : (endedBoosts(mine.value.receipts, owner).find((x) => x.positionId === positionId) ?? null), mine.asOfMs);
 }
 
 /** Every open boost is only the venue's to see (each is bilateral): a seat lists its own. */

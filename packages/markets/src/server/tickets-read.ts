@@ -11,11 +11,13 @@ import {
   type BoostExitQuoteC, type BoostPositionC, type BoostQuoteC, type LpShareC, type ParlayQuoteC, type ParlayTicketC, type RangeQuoteC, type RangeRoundC,
   type SupplyQuoteC, type WithdrawQuoteC,
 } from "../ops/tickets/decode";
+import { decodeSettlementReceipt, isTicketReceiptProduct, type SettlementReceiptC } from "../ops/tickets/receipt";
 
 const T = TICKET_TEMPLATE_IDS;
 export const SEAT_TICKET_TEMPLATES = [
   T.RangeQuote, T.RangeRound, T.ParlayQuote, T.ParlayTicket, T.BoostQuote, T.BoostPosition, T.BoostExitQuote,
   TEMPLATE_IDS.LpShare, TEMPLATE_IDS.SupplyQuote, TEMPLATE_IDS.WithdrawQuote, TEMPLATE_IDS.VenueCash,
+  TEMPLATE_IDS.SettlementReceipt,
 ];
 
 export interface Row<X> {
@@ -37,6 +39,8 @@ export interface TicketSeatSnapshot {
   lpShares: Row<LpShareC>[];
   supplyQuotes: Row<SupplyQuoteC>[];
   withdrawQuotes: Row<WithdrawQuoteC>[];
+  /** The seat's ticket receipts (a pair leg's receipt has no product and is not listed here). */
+  receipts: Array<Row<SettlementReceiptC> & { createdAtSec: number }>;
 }
 
 export interface WindowFacts {
@@ -48,7 +52,7 @@ export interface WindowFacts {
 }
 
 export function toTicketSnapshot(party: Party, events: readonly CreatedEvent[], offset: number): TicketSeatSnapshot {
-  const s: TicketSeatSnapshot = { party, offset, cash: [], rangeQuotes: [], rounds: [], parlayQuotes: [], tickets: [], boostQuotes: [], positions: [], exitQuotes: [], lpShares: [], supplyQuotes: [], withdrawQuotes: [] };
+  const s: TicketSeatSnapshot = { party, offset, cash: [], rangeQuotes: [], rounds: [], parlayQuotes: [], tickets: [], boostQuotes: [], positions: [], exitQuotes: [], lpShares: [], supplyQuotes: [], withdrawQuotes: [], receipts: [] };
   const is = (e: CreatedEvent, templateId: string) => templateSuffix(e.templateId) === templateSuffix(templateId);
   for (const e of events) {
     const cid = e.contractId;
@@ -84,6 +88,9 @@ export function toTicketSnapshot(party: Party, events: readonly CreatedEvent[], 
     } else if (is(e, TEMPLATE_IDS.SupplyQuote)) {
       const q = decodeSupplyQuote(v);
       if (q.provider === party) s.supplyQuotes.push({ cid, data: q });
+    } else if (is(e, TEMPLATE_IDS.SettlementReceipt)) {
+      const r = decodeSettlementReceipt(v);
+      if (r.owner === party && isTicketReceiptProduct(r.product) && r.detail) s.receipts.push({ cid, data: r, createdAtSec: Math.floor(Date.parse(e.createdAt) / 1000) || 0 });
     } else if (is(e, TEMPLATE_IDS.WithdrawQuote)) {
       const q = decodeWithdrawQuote(v);
       if (q.provider === party) s.withdrawQuotes.push({ cid, data: q });

@@ -15,6 +15,8 @@ import { diagnosis, type Diagnosis, type Signature } from "@agari/core/types";
 import { decodeOpenPrint, decodeResolution, templateSuffix } from "../ops/canton/decode";
 import * as tcmd from "../ops/tickets/commands";
 import { decodeNavStatement, nextParlayLeg } from "../ops/tickets/decode";
+import { createMarketReader } from "./reads";
+import { receiptViews, type MarketFacts } from "./tickets-receipts";
 import { createdEvents, SEAT_TICKET_TEMPLATES, ticketOutcome, toTicketSnapshot, type TicketSeatSnapshot, type WindowFacts } from "./tickets-read";
 import { isTicketReserve, type TicketReserveId } from "../tickets/params";
 import type { TicketProduct, TicketsMine, TicketWriteReply } from "../provider/ticket-wire";
@@ -40,7 +42,8 @@ const sideOf = (s: "SideUp" | "SideDown"): "up" | "down" => (s === "SideUp" ? "u
 export function createTicketSeat(cfg: TicketSeatConfig) {
   const { client, journal } = cfg;
   const now = cfg.now ?? Date.now;
-  let facts: { at: number; value: Promise<{ resolutions: Map<string, WindowFacts>; opens: Map<string, bigint> }> } | null = null;
+  let facts: { at: number; value: Promise<{ resolutions: Map<string, WindowFacts>; byMarket: Map<string, MarketFacts>; opens: Map<string, bigint> }> } | null = null;
+  const markets = createMarketReader(client, cfg.venueParty, { now });
 
   async function read(party: Party): Promise<TicketSeatSnapshot> {
     const r = await client.activeContracts({ parties: [party], templateIds: [...SEAT_TICKET_TEMPLATES] });
@@ -52,21 +55,24 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
     if (facts && now() - facts.at < FACTS_CACHE_MS) return facts.value;
     const value = client.activeContracts({ parties: [cfg.venueParty], templateIds: [TEMPLATE_IDS.Resolution, TEMPLATE_IDS.OpenPrint], includeCreatedEventBlob: true }).then((r) => {
       const resolutions = new Map<string, WindowFacts>();
+      const byMarket = new Map<string, MarketFacts>();
       const opens = new Map<string, bigint>();
       for (const c of r.contracts) {
         const e = c.createdEvent;
         if (templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.Resolution)) {
           const x = decodeResolution(e.createArgument);
-          resolutions.set(x.termsCid, {
+          const f: WindowFacts = {
             resolutionCid: e.contractId, outcome: x.outcome, openE8: x.openPriceE8, closeE8: x.closePriceE8,
             disclosure: e.createdEventBlob ? { createdEventBlob: e.createdEventBlob, templateId: e.templateId, contractId: e.contractId, synchronizerId: c.synchronizerId } : null,
-          });
+          };
+          resolutions.set(x.termsCid, f);
+          byMarket.set(x.marketId, { ...f, termsCid: x.termsCid });
         } else if (templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.OpenPrint)) {
           const o = decodeOpenPrint(e.createArgument);
           opens.set(o.termsCid, o.openPriceE8);
         }
       }
-      return { resolutions, opens };
+      return { resolutions, byMarket, opens };
     });
     const entry = { at: now(), value };
     facts = entry;
@@ -116,7 +122,11 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
       return { reserveId, shares: n, worthBase: nav && nav.shares > 0n ? (n * nav.assets) / nav.shares : 0n };
     });
     const deadlines = [...snap.rounds.map((r) => r.data.refundAfterSec), ...snap.tickets.map((t) => t.data.voidAfterSec), ...snap.positions.map((p) => p.data.refundAfterSec)];
-    return { value: { rounds, parlays, positions, shares }, offset: snap.offset, busyUntilMs: deadlines.length ? Math.max(...deadlines) * 1000 : 0 };
+    const receipts = await receiptViews(snap.receipts, f.byMarket, async (termsCid) => {
+      const t = await markets.terms(termsCid);
+      return t ? Math.floor(t.expiryMs / 1000) : null;
+    });
+    return { value: { rounds, parlays, positions, shares, receipts }, offset: snap.offset, busyUntilMs: deadlines.length ? Math.max(...deadlines) * 1000 : 0 };
   }
 
   /** The live statement of each ticket reserve (venue-signed, auditor-visible), read as the venue. */

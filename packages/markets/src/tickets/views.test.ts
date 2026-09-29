@@ -33,7 +33,7 @@ describe("ticket views", () => {
     expect(t("void", "pending").status).toBe("void");
   });
   it("claims no yield the ledger cannot show", () => {
-    expect(sharesOf({ rounds: [], parlays: [], positions: [], shares: [{ reserveId: "range", shares: 10n, worthBase: 12n }] }, "range")).toEqual({ shares: 10n, worthBase: 12n, suppliedBase: 12n, withdrawnBase: 0n });
-    expect(sharesOf({ rounds: [], parlays: [], positions: [], shares: [] }, "boost").shares).toBe(0n);
+    expect(sharesOf({ rounds: [], parlays: [], positions: [], receipts: [], shares: [{ reserveId: "range", shares: 10n, worthBase: 12n }] }, "range")).toEqual({ shares: 10n, worthBase: 12n, suppliedBase: 12n, withdrawnBase: 0n });
+    expect(sharesOf({ rounds: [], parlays: [], positions: [], receipts: [], shares: [] }, "boost").shares).toBe(0n);
   });
 });
