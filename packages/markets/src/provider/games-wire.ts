@@ -60,6 +60,7 @@ export const arenaMatchWire = z.object({
   createdAtSec: z.number().int(),
   joinedAtSec: z.number().int(),
   revealedAtSec: z.number().int(),
+  refundReason: z.enum(["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete", "stale-settlement"]).optional(),
   pickDeadlineSec: z.number().int(),
   potBase: baseUnits,
   perCardCapBase: baseUnits,

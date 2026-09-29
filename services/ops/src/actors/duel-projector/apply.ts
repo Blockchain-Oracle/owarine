@@ -102,7 +102,7 @@ export async function applyEvent(deps: ApplyDeps, entry: ArenaEventLog): Promise
     case "revealed":
       await recordMatchProgress(matchId, { status: "picking", cards: event.cards, policyVersion: event.policyVersion });
       // The one event a delta cannot carry: a card is a Window, and the log holds only its id.
-      if (deps.room) await resnapshotRoom(deps.room, event.matchId);
+      if (deps.room) deps.log(`${event.matchId}: revealed; re-snapshot sent to ${await resnapshotRoom(deps.room, event.matchId)} connection(s)`);
       return;
 
     case "picked": {

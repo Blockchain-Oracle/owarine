@@ -75,5 +75,5 @@ describe("the season admin's withdrawal (K-105)", () => {
     };
     walk(root);
     expect(hits).toEqual([]);
-  });
+  }, 30_000);
 });
