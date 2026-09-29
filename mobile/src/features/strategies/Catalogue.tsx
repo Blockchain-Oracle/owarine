@@ -53,7 +53,7 @@ export function Catalogue({ payload, writes, view, onCreate, requested }: {
       {view === "yours" && !writes.address ? (
         <View style={[empty, styles.mt30]}>
           <Text style={[ST.h2, styles.center, styles.mb12, { color: color.ink }]}>Your strategies, in one place.</Text>
-          <Text style={[styles.body, styles.center, styles.mb20, { color: color.inkSecondary }]}>Connect the wallet that created or copied them.</Text>
+          <Text style={[styles.body, styles.center, styles.mb20, { color: color.inkSecondary }]}>Take the seat that created or copied them.</Text>
           <ConnectButton style={styles.selfCenter} />
         </View>
       ) : (
@@ -64,12 +64,12 @@ export function Catalogue({ payload, writes, view, onCreate, requested }: {
           {view === "yours" && selected ? <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} /> : null}
           {writes.pending ? <PrimaryButton label={`Review unfinished copy of #${writes.pending.strategyId} →`} onPress={() => setDrawerId(writes.pending!.strategyId)} style={styles.mt20} /> : null}
           {view === "yours" && !desk.readable ? (
-            <Text style={[warn, styles.progressText, { color: color.ink }]}>Your subscriptions and permissions have not been verified yet. Reconnect your wallet and retry if this continues.</Text>
+            <Text style={[warn, styles.progressText, { color: color.ink }]}>Your subscriptions and permissions have not been verified yet. Renew your seat and retry if this continues.</Text>
           ) : null}
           {view === "yours" && desk.readable && own.length === 0 ? (
             <View style={[empty, styles.mt30]}>
               <Text style={[ST.h2, styles.center, { color: color.ink }]}>No strategies here yet.</Text>
-              <Text style={[styles.body, styles.center, styles.my12, { color: color.inkSecondary }]}>Publish a strategy, or copy one with this wallet.</Text>
+              <Text style={[styles.body, styles.center, styles.my12, { color: color.inkSecondary }]}>Publish a strategy, or copy one with this seat.</Text>
               <PrimaryButton label="Create your first strategy →" onPress={onCreate} style={styles.selfCenter} />
             </View>
           ) : null}

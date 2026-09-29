@@ -28,13 +28,13 @@ describe("checkCopyForm (S23 copy drawer)", () => {
 
   it("names a wallet that cannot cover the top-up and fee", () => {
     const r = check({ walletBase: 40_000_000n, feeBase: 1_000_000n, reusableBase: 10_000_000n });
-    expect(r.budgetError).toBe("Your wallet holds 40.00 credits; this setup needs 91.00 credits");
+    expect(r.budgetError).toBe("Your seat holds 40.00 credits; this setup needs 91.00 credits");
     expect(r.maxBudgetBase).toBe(49_000_000n);
   });
 
   it("orders session reasons before field reasons", () => {
-    expect(check({ busy: true, perTradeText: "10" }).blockedBy).toBe("Finish the wallet action in progress first.");
-    expect(check({ canSign: false }).blockedBy).toBe("Connect a wallet that can sign.");
+    expect(check({ busy: true, perTradeText: "10" }).blockedBy).toBe("Finish the seat action in progress first.");
+    expect(check({ canSign: false }).blockedBy).toBe("Take a seat to sign.");
     expect(check({ readable: false }).blockedBy).toBe("Your current permission is still being checked.");
     expect(check({ otherPendingId: "7" }).blockedBy).toBe("Finish or release the unfinished copy of strategy #7 first.");
     expect(check({ releasePending: true }).blockedBy).toBe("A permission release is still being checked.");

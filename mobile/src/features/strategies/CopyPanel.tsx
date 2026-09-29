@@ -54,7 +54,7 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
   const box = [styles.progress, { borderColor: t.vermilion }];
   const errorBox = [styles.errorBox, { borderLeftColor: t.vermilion }];
   const summary = [ST.meta, { color: color.ink }];
-  const confirmLabel = writes.busy === "join" ? "Checking wallet steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : s.fade ? "Fund permission and fade" : "Fund permission and copy";
+  const confirmLabel = writes.busy === "join" ? "Checking seat steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : s.fade ? "Fund permission and fade" : "Fund permission and copy";
   const caps = s.caps;
 
   return (
@@ -85,7 +85,7 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
             {writes.busy ? "Copy setup in progress." : pending.stage === "subscribe-ready" ? "Permission saved. Subscription remains." : "An interrupted step needs checking."}
           </Text>
           <Text style={[styles.progressP, { color: color.ink }]}>
-            {writes.busy ? "Waiting for wallet and chain confirmations. Your progress is saved." : "We will check this setup before continuing. The deposit will not be repeated."}
+            {writes.busy ? "Waiting for your seat and the ledger. Your progress is saved." : "We will check this setup before continuing. The deposit will not be repeated."}
           </Text>
           {pending.grantTx ? <TxLink label="Permission transaction ↗" hash={pending.grantTx} /> : null}
           {pending.subscribeTx ? <TxLink label="Subscription transaction ↗" hash={pending.subscribeTx} /> : null}
@@ -149,7 +149,7 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
                 {grant && !grant.revoked && (!sub || sub.grantId !== grant.grantId) ? (
                   <Text style={[errorBox, styles.errorText, { color: color.ink }]}>This replaces your current strategy permission and stops its future copies. Its unspent budget becomes available for this setup.</Text>
                 ) : null}
-                <Text style={body}>The wallet requests permission first, then subscription consent. Token approval may add a wallet prompt. Losses are possible within your limits.</Text>
+                <Text style={body}>Your seat requests permission first, then subscription consent. Losses are possible within your limits.</Text>
               </CopyFormFields>
             </View>
           ) : null}
@@ -183,7 +183,7 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
             </Text>
             <Text style={[ST.fieldLabel, { color: color.inkMuted }]}>Amount · {symbol}</Text>
             <StratInput keyboardType="decimal-pad" value={withdrawAmount} onChangeText={setWithdrawAmount} style={styles.mt2} />
-            <DeskPill label="Withdraw to wallet" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onPress={() => void s.perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))} style={styles.mt12} />
+            <DeskPill label="Withdraw to seat" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onPress={() => void s.perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))} style={styles.mt12} />
           </Details>
         </View>
       )}

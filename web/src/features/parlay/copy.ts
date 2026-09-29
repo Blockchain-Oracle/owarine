@@ -38,9 +38,9 @@ export const PARLAY = {
     dependency: "the parlay reserve program (planned after the hackathon deadline)",
   },
   connect: {
-    title: "Connect your wallet to build a parlay",
+    title: "Take a seat to build a parlay",
     /** The reference: "Any Sui wallet. Test funds are free". */
-    sub: "Any Solana wallet, or sign in with email. Test funds are free",
+    sub: "No wallet app and no network fee. Demo credits are free",
   },
   builder: {
     yourLegs: "Your legs",
@@ -77,7 +77,7 @@ export const PARLAY = {
     setPayout: "Set payout",
     youPay: "You pay",
     youWin: "You win",
-    wallet: (balance: string, symbol: string) => `Wallet: ${balance} ${symbol}`,
+    wallet: (balance: string, symbol: string) => `Seat: ${balance} ${symbol}`,
     ifLands: "If every leg lands",
     profit: (amount: string, symbol: string) => `${amount} ${symbol} profit if you sweep`,
     /** The reference: "A leg can't be priced (market inactive or settled). Retry". Ours names the reserve's reason. */
@@ -89,13 +89,13 @@ export const PARLAY = {
     insufficient: (symbol: string) => `Insufficient ${symbol}`,
     place: (stake: string, symbol: string) => `Place · ${stake} ${symbol}`,
     build: "Build your parlay",
-    footnote: "The full payout is set aside up front. No account setup. Your stake leaves your wallet, and the rest is covered for you.",
+    footnote: "The full payout is set aside up front. No account setup. Your stake leaves your seat, and the rest is covered for you.",
     /** Additive: the reserve that sets the payout aside, so "set aside up front" is a figure, not a promise. */
     reserve: (liquid: string, symbol: string, utilizationPct: string) => `Reserve: ${liquid} ${symbol} liquid · ${utilizationPct}% in play`,
     reservePaused: "The reserve is paused: no new tickets until it reopens. Settlement and claims still run.",
     tryAgain: "Try again",
     technical: "technical details",
-    viewTx: "View on Solana Explorer",
+    viewTx: "Open on the proof page",
     trophy: "Every leg must settle in the money. The instant one leg settles against you, the ticket is dead, and your stake is the most you can lose.",
     toast: (n: number, stake: string, payout: string, symbol: string) => `Parlay placed. ${n} legs, ${stake} to ${payout} ${symbol} if every leg lands.`,
     thinBook: (leg: number, filled: string, depth: string) => `Leg ${leg}'s book is thin — ${filled} of ${depth} contracts resting. Wait for the maker to lay more, or pick another Window.`,
@@ -118,8 +118,8 @@ export const PARLAY = {
     claimed: (amount: string, symbol: string, hash: string) => `Claimed ${amount} ${symbol} · ${hash}…`,
     settled: "Leg settled.",
     lost: "One leg settled against you. The ticket is dead, stake lost.",
-    voidedNote: "The venue voided a Window, so the ticket is void. Your stake is back in your wallet.",
-    paidNote: "Paid out to your wallet.",
+    voidedNote: "The venue voided a Window, so the ticket is void. Your stake is back in your seat.",
+    paidNote: "Paid out to your seat.",
     emptyConnected: "No open tickets yet. Build a streak above",
     emptyDisconnected: "Connect to see your tickets",
   },

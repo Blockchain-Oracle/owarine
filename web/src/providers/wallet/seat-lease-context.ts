@@ -45,6 +45,16 @@ export function leasedOf(view: SeatLeaseView | null): LeasedSeat | null {
 }
 
 /**
+ * `address` only while this browser holds a lease on that seat, else null (C4c.2). A seat's own index rows
+ * (`/api/index/wallet/<address>/…`) answer 403 without a lease, so a read of them waits for one instead of polling a
+ * refusal: a key restored from storage with an expired lease is not a seat yet.
+ */
+export function leasedAddressOf<A extends string>(view: SeatLeaseView | null, address: A | null): A | null {
+  const leased = leasedOf(view);
+  return leased !== null && address !== null && leased.address === address ? address : null;
+}
+
+/**
  * The seat's number from its party hint (`seat-3::1220…` → 3), or null when the hint carries none. The number is a
  * label for the menu; the party id beside it is the fact.
  */

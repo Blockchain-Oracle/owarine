@@ -33,7 +33,7 @@ describe("X account linking availability", () => {
   });
   it("keeps an established wallet binding visible even when new sign-in is unavailable", () => {
     const html = render({ status: { ...status, configured: false, binding: { authorId: "99", handle: "caller", wallet: encodeBase58(new Uint8Array(32).fill(0xab)), since: 1 } } });
-    expect(html).toContain("@caller routes to this wallet");
+    expect(html).toContain("@caller routes to this seat");
     expect(html).not.toContain("unavailable");
   });
 });

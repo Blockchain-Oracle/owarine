@@ -110,7 +110,7 @@ export function fixtureActions(): DeskActions & StudioActions {
     recordMode: done,
     requestAction: done,
     signMandate: done,
-    tx: async () => ({ ok: false as const, reason: "Fixtures send nothing to Solana.", status: null }),
+    tx: async () => ({ ok: false as const, reason: "Fixtures send nothing to the ledger.", status: null }),
     reset: () => undefined,
   };
 }

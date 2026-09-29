@@ -1,23 +1,23 @@
 ---
 title: "Price sources and signed prints"
-description: "Equity, token, PreStocks, basket and valuation lanes use different source policies."
+description: "Three oracle parties post each boundary price; a quorum resolves the Window, and every print can be checked on the proof page."
 ---
 
-A Window settles from its opening and closing **boundary prints**. The on-chain program checks the configured source and timestamp; the web app does not pick a winner from a latest-price tile. Policy versions are registered ahead of time, so a Window retains the policy it started with.
+A Window settles from its opening and closing **boundary prints**. The web app never picks a winner from a latest-price tile: the resolver party resolves the Window on the ledger, from the oracle parties' signed quotes, under the terms the Window opened with.
 
-<Architecture name="prints" />
-
-| Lane | Boundary source and limit |
+| Step | What happens |
 | --- | --- |
-| TSLA, QQQ, VOO equity | Pyth pull update for the exact boundary second, verified in the program. TSLA also cross-checks RedStone within 25 bps. This policy covers Windows through the NYSE close on 25 September 2026; after it TSLA settles on RedStone and QQQ and VOO pause until a new policy is registered. |
-| Other equity names | RedStone signatures under the configured signer threshold. |
-| Tokenized stock lane | Switchboard On-Demand signatures from a pinned queue. An upstream gateway outage can pause this lane without pausing equities. |
-| PreStocks name | Agari's price attestor signs a PreStocks catalogue **token price**. The catalogue itself is unsigned and supplies no independent oracle proof. |
-| PreStocks basket | Agari computes equal-weight index points from all members in one catalogue read and signs that index. Missing members prevent a print. |
-| Pyth pre-IPO valuation lane | Pyth's OpenAI or Anthropic valuation index, only when the venue key is entitled. The trial key was denied at review, so no valuation Window was listed. |
+| Oracle quotes | Three oracle parties — one each for Coinbase, Kraken and Bitstamp — post the close of their exchange's 1-minute candle at each boundary as a `PriceQuote`. Each quote is signed by its oracle party. |
+| Evidence | The exchange's raw response is archived byte for byte, and its hash is written on the quote, so anyone can re-derive the price from the archive or from the exchange. |
+| Quorum | The Window resolves only when at least 2 of its 3 oracles have a valid quote for the boundary. Fewer, and it voids. |
+| Agreement | If the quotes differ by more than the Series' deviation limit (1% today), the Window voids instead of paying anyone. |
+| Once | The resolution chain is single-use, so a Window resolves or voids exactly once. A void returns every stake plus its fee. |
+| Tie | A close equal to the open pays Up. |
 
-The token price and Pyth's company valuation index are **different measures**. Agari does not treat the latter as a cross-check for a token-price Window. The desk can optionally require a fresh verified Pyth index for a buy, but that leg also needs the separate entitlement. [Baskets](/trading/baskets) explains the points index; [halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints.
+Policy versions are append-only on the Series, and a Window keeps the policy it opened under.
 
-[PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers the Pyth verification rules, the proof replay and every PreStocks surface in detail. For a current source read, use <AppLink href="/status">Status</AppLink>. The [source map](/builders/source-map) identifies the config, relay and program boundaries.
+These are three feeders the venue runs itself. They give an honest, re-derivable price from three independent exchanges, but they are not independent oracles; the page says so rather than claim more.
 
-The [proof walkthrough](/trading/proof) shows how the recorded boundaries appear in the app.
+**Planned:** stock, xStock, PreStocks basket and Pyth-valued lanes. Their prices would be fetched off the ledger and posted onto the same attested path by the oracle parties, with the original source named on every receipt. Until then those lanes do not settle on Canton. [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) has the plan.
+
+The [proof walkthrough](/trading/proof) shows how each print, its oracle and its evidence appear in the app, and <AppLink href="/status">Status</AppLink> shows whether the feeders are posting now. [Halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints.

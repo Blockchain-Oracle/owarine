@@ -107,7 +107,7 @@ export function TradeFromXScreen() {
           </Step>
           <Step n="2" title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 2 ? "active" : "idle"} spine={{ from: 2, cur: step }}>
             {regionHeld && <RegionNote className="xt-step-lede" />}
-            {!address && <p className="xt-step-lede">Connect your wallet to check your X balance and permission.</p>}
+            {!address && <p className="xt-step-lede">Take a seat to check your X balance and permission.</p>}
             {address && (grant.grant || grant.pendingUpdate || !["ready", "unfunded"].includes(permission)) && <div className="xw">
               {grant.balanceBase !== null && <p className="xt-step-lede">X balance · <strong>{formatBaseUnits(grant.balanceBase, grant.decimals)} {symbol}</strong></p>}
               <XPermissionPanel grant={grant} executor={link.status?.executor ?? null} symbol={symbol} disabled={link.walletMismatch || Boolean(link.busy)} />

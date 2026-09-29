@@ -107,7 +107,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
 
   const perform = async (operation: () => Promise<DeskWriteResult>) => {
     setResult(null);
-    try { setResult(await operation()); } catch (error) { setResult({ ok: false, reason: error instanceof Error ? error.message : "The wallet action needs checking." }); }
+    try { setResult(await operation()); } catch (error) { setResult({ ok: false, reason: error instanceof Error ? error.message : "The seat action needs checking." }); }
     currentFee.refresh();
   };
   const confirm = () => {
@@ -118,7 +118,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
     <button type="button" className="strat-drawer-scrim" aria-label="Close strategy" tabIndex={-1} onClick={onClose} />
     <div ref={panel} tabIndex={-1} className="strat-drawer" role="dialog" aria-modal="true" aria-labelledby="copy-strategy-title">
       <button type="button" onClick={onClose} aria-label="Close strategy" className="strat-drawer-close"><XIcon aria-hidden="true" /></button>
-      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on Solana ↗</a></div></div>
+      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on the proof page ↗</a></div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>
       <RecordCard record={card.record} decimals={decimals} symbol={symbol} />
       {tabs.length > 1 && <div className="strat-drawer-tabs mt-5" role="tablist" aria-label={name}>{tabs.map((key) => <button key={key} type="button" role="tab" id={`strat-tab-${key}`} aria-controls={`strat-panel-${key}`} aria-selected={tab === key} onClick={() => setTab(key)}>{key === "decisions" ? `${T.decisions} · ${card.agent?.decisions.length ?? 0}` : key === "playbook" ? T.playbook : sub ? T.manage : T.copy}</button>)}</div>}
@@ -155,7 +155,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
           {valid && <p className="strat-drawer-body">Your permission: {money(caps.maxStakePerTradeBase, decimals, symbol)} per trade, {money(caps.maxDailySpendBase, decimals, symbol)} per day, {caps.maxOpenPositions} open position{caps.maxOpenPositions === 1 ? "" : "s"}, {caps.maxPriceRaw === 0n ? "without an entry-price ceiling" : `with a maximum entry price of ${money(caps.maxPriceRaw, decimals, symbol)} per share`}.</p>}
           <div className="copy-progress"><p><strong>Subscription fee: {currentFee.fee === null ? "checking…" : money(currentFee.fee, decimals, symbol)}</strong></p><p>This fee is charged each time you subscribe, including a resume or a change to your limits. The vault budget is separate.</p>{currentFee.error && <p role="alert">{currentFee.error}</p>}<button type="button" className="desk-pill mt-2" disabled={Boolean(writes.busy)} onClick={currentFee.refresh}>Refresh fee</button></div>
           {grant && !grant.revoked && (!sub || sub.grantId !== grant.grantId) && <p className="agent-builder-error">This replaces your current strategy permission and stops its future copies. Its unspent budget becomes available for this setup.</p>}
-          <p className="strat-drawer-body">The wallet requests permission first, then subscription consent. Token approval may add a wallet prompt. Losses are possible within your limits.</p>
+          <p className="strat-drawer-body">Your seat requests permission first, then subscription consent. Losses are possible within your limits.</p>
           </CopyFormFields>
         </div>}
         {sub?.active && <button className="strat-pause mt-5" disabled={disabled || Boolean(pending)} onClick={() => void perform(() => writes.pause(BigInt(card.strategyId), sub.grantId, sub.fade))}>{sub.fade ? "Pause this fade" : "Pause future copies"}</button>}

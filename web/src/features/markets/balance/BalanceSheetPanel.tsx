@@ -1,4 +1,3 @@
-import { FEE_RESERVE_LAMPORTS } from "@agari/core/constants";
 import type { BalanceSheet } from "@agari/core/types";
 import { KeepCase, Money } from "@/components/data";
 import { StaleTick, type ReadingMeta } from "@/components/states";
@@ -8,8 +7,8 @@ import { BALANCE } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { PoolRow } from "./PoolRow";
 
-/** The cluster's native currency: SOL, 9 decimals (1 SOL = 10⁹ lamports). */
-const NATIVE = { symbol: "SOL", decimals: 9 } as const;
+/** The reference's native fee currency row: kept in place, but Canton has no fee token, so it carries no symbol and says so. */
+const NATIVE = { decimals: 9 } as const;
 const GAS_DP = 4;
 
 interface BalanceSheetPanelProps {
@@ -25,8 +24,6 @@ interface BalanceSheetPanelProps {
 /** The headline is wallet-spendable collateral only; every other pool is a labeled row beneath it, never summed (FR-5). */
 export function BalanceSheetPanel({ sheet, symbol, stale, panels, className }: BalanceSheetPanelProps) {
   const collateral = symbol ?? undefined;
-  // Below the fee reserve a self-paying wallet's next write is refused before any popup (sponsored sends need none).
-  const gasLow = sheet.nativeLamports < FEE_RESERVE_LAMPORTS;
 
   return (
     <div className={cn("flex flex-col gap-3 rounded-(--balance-plate-radius) bg-(--balance-plate-surface) p-4", className)}>
@@ -52,10 +49,8 @@ export function BalanceSheetPanel({ sheet, symbol, stale, panels, className }: B
           label={BALANCE.rows.gas}
           value={sheet.nativeLamports}
           decimals={NATIVE.decimals}
-          symbol={NATIVE.symbol}
           maxDp={GAS_DP}
-          warning={gasLow}
-          note={gasLow ? BALANCE.gasLow : undefined}
+          note={BALANCE.gasLow}
         />
       </div>
 

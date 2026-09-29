@@ -38,7 +38,7 @@ export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> })
   const t = tradeXTokens(name);
   const { address } = useWalletSession();
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const link = useXLink();
   const grant = useXGrant();
   const receipts = useXReceipts(address ?? null);
@@ -84,7 +84,7 @@ export function TradeFromX({ onRefresh }: { onRefresh: () => Promise<unknown> })
             )}
           </Step>
           <Step n="2" title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 2 ? "active" : "idle"} spine={{ from: 2, cur: step }}>
-            {!address ? <Text style={[styles.lede, { color: t.gray400 }]}>Connect your wallet to check your X balance and permission.</Text> : null}
+            {!address ? <Text style={[styles.lede, { color: t.gray400 }]}>Take a seat to check your X balance and permission.</Text> : null}
             {address && (grant.grant || grant.pendingUpdate || !["ready", "unfunded"].includes(permission)) ? (
               <View>
                 {grant.balanceBase !== null ? (

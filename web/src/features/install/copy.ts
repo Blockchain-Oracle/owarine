@@ -21,7 +21,7 @@ export const INSTALL = {
   eyebrow: "Agari on your phone",
   titleLead: "Call it in ",
   titleEm: "ten seconds.",
-  line: "Will the stock close this Window higher or lower? Pick a side, pick a stake, and the payout is yours to collect the moment it settles. Test funds on Solana devnet, real settlement, and only you can cash out.",
+  line: "Will the stock close this Window higher or lower? Pick a side, pick a stake, and the payout is yours to collect the moment it settles. Demo credits on the Canton test network, real settlement, and only your seat can cash out.",
   cta: {
     prompt: "Install Agari",
     installing: "Opening the install sheet…",
@@ -34,7 +34,7 @@ export const INSTALL = {
   meta: [
     { label: "Android", note: "the APK, signed, from our GitHub release" },
     { label: "iPhone", note: "Join the public TestFlight beta · the web app installs too" },
-    { label: "Solana devnet", note: "practice money, real mechanics" },
+    { label: "Canton test network", note: "demo credits, real mechanics" },
   ],
   film: { label: "The launch film", poster: "/media/agari-launch-poster.jpg", src: "/media/agari-launch.mp4" },
   android: {
@@ -43,7 +43,7 @@ export const INSTALL = {
     scan: "Scan with your phone's camera",
     cta: "Download the APK",
     size: (mb: number, v: string) => `Version ${v} · ${mb} MB`,
-    steps: ["Download on your Android phone", "Open the file and allow installs from this source when Android asks", "Open Agari and connect a wallet, or practise first"],
+    steps: ["Download on your Android phone", "Open the file and allow installs from this source when Android asks", "Open Agari and take a seat, or practise first"],
     shaLabel: "SHA-256",
     copy: "Copy",
     copied: "Copied",
@@ -57,10 +57,10 @@ export const INSTALL = {
     cta: "Join the TestFlight beta",
   },
   points: [
-    { title: "Connect and go", body: "Any Solana wallet that speaks the Wallet Standard. The faucet hands you demo credits, and a little SOL for fees if you are short. There is nothing else to install." },
+    { title: "Take a seat and go", body: "Take a seat and the venue gives it a Canton party and demo credits. No wallet app, no network fee. There is nothing else to install." },
     { title: "Open after the bell", body: "Stock Windows every few minutes while US markets trade, a weekend Window from Friday's close to Monday's open, and 24/7 Windows on tokenised stock. When the exchange is shut, rest a call at your price for the open." },
     { title: "Paid on the close", body: "Settlement reads the signed price for the closing second, the same feed you watched. Win and it is yours to claim — nobody else can." },
   ],
-  foot: "Agari runs on Solana devnet while it is in beta, so you are playing with practice funds. Everything else is real: real order books, real signed prices, real settlement, real code.",
+  foot: "Agari runs on the Canton test network while it is in beta, so you are playing with demo credits. Everything else is real: real quotes, real signed prices, real settlement, real code.",
   shotAlt: "Agari on a phone after the close: the stock's last price, the next session on the clock, and a call that can be scheduled for the open.",
 } as const;

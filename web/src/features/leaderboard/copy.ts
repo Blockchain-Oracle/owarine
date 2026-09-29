@@ -49,7 +49,7 @@ export const LEADERBOARD = {
       `${n.toLocaleString()} closed calls${ticker ? ` · ${ticker}` : ""} · ${coverage(span, complete)}`,
     counting: "counting recent closes",
   },
-  loading: "Reading on-chain trade data…",
+  loading: "Reading trade data from the ledger…",
   refreshing: "Showing the last computed board while rankings refresh.",
   refreshFailed: "The update could not be read. These are the last computed rankings; we'll retry automatically.",
   updated: (atMs: number) => `Computed ${new Date(atMs).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`,
@@ -87,10 +87,10 @@ export const LEADERBOARD = {
   activity: {
     number: "03",
     title: "Live activity",
-    desc: "The latest calls and cash-outs on Agari. Click any row → Solana Explorer.",
+    desc: "The latest calls and cash-outs on Agari. Click any row → the proof page.",
     updated: (ago: string) => `updated ${ago}`,
-    reading: "reading the chain…",
-    unreachable: "couldn't reach the chain, retrying…",
+    reading: "reading the ledger…",
+    unreachable: "couldn't reach the ledger, retrying…",
   },
   you: {
     rank: "Your rank",

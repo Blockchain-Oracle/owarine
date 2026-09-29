@@ -51,9 +51,9 @@ export const SHORT = {
     title: "Size the short",
     amount: "Your stake",
     max: "Max",
-    wallet: (amount: string, symbol: string) => `${amount} ${symbol} in your wallet`,
+    wallet: (amount: string, symbol: string) => `${amount} ${symbol} in your seat`,
     walletPending: "reading your balance…",
-    connect: "Connect a wallet to open a short.",
+    connect: "Take a seat to open a short.",
     multiple: "Multiple",
     /** `owner_open` requires `leverage_bps > LEVERAGE_ONE_BPS`, so 1× is not a short the reserve will hold. */
     multipleHint: (premiumPct: string) => `The reserve fronts the rest of the position and charges ${premiumPct} on what it fronts. Your loss is still capped at your stake.`,
@@ -69,7 +69,7 @@ export const SHORT = {
     pricing: "Pricing against the book…",
     refused: "The reserve refused this short — see why above.",
     /** The chain sizes to the venue's lot, so the charge can be under the typed stake. */
-    sized: (charged: string, symbol: string) => `Sized to the venue's lot: ${charged} ${symbol} is charged, the rest stays in your wallet.`,
+    sized: (charged: string, symbol: string) => `Sized to the venue's lot: ${charged} ${symbol} is charged, the rest stays in your seat.`,
     requote: (contracts: string) => `The book moved — your stake now buys ${contracts} contracts. Confirm again at the new size.`,
     paused: "The reserve is paused: no new shorts. Live ones still settle, close and knock out.",
     cells: { contracts: "Contracts", entry: "Entry", back: "Back if it falls" },
@@ -81,7 +81,7 @@ export const SHORT = {
   },
 
   positions: {
-    connect: "Connect a wallet to see your shorts.",
+    connect: "Take a seat to see your shorts.",
     empty: "No short open.",
     emptyBody: "Open one above and it appears here, marked against the book.",
     totals: (priced: number, live: number) => (priced === live ? `${live} open` : `${live} open · ${priced} priced`),
@@ -108,7 +108,7 @@ export const SHORT = {
     result: { closed: "Closed", knockedOut: "Knocked out", won: "Won", lost: "Lost", settled: "Settled" },
     back: (amount: string, symbol: string) => `${amount} ${symbol} back`,
     nothingBack: "Nothing back",
-    closedToast: (amount: string, symbol: string) => `Closed: ${amount} ${symbol} back to your wallet.`,
+    closedToast: (amount: string, symbol: string) => `Closed: ${amount} ${symbol} back to your seat.`,
   },
 
   /** The three cards under §03. The premium and the line are the reserve's parameters, so they are passed in. */

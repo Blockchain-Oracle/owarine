@@ -179,9 +179,11 @@ export function DemoPage() {
                 {icon}
                 <div className="demo-card-title">{card.title}</div>
                 <div className="demo-card-body">{card.body}</div>
-                <div className="demo-card-proof">
-                  <ProofLink href={txProofHref(proof) ?? ""} label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} />
-                </div>
+                {proof ? (
+                  <div className="demo-card-proof">
+                    <ProofLink href={txProofHref(proof) ?? ""} label={`${S.depth.proven} · ${txProofLabel(proof)}`} reference={proof.hash} />
+                  </div>
+                ) : null}
               </div>
             </Reveal>
           ))}

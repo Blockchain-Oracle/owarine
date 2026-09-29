@@ -16,7 +16,7 @@ export const MAINNET_RPC_PATH = `${SITE_URL}/api/rpc/mainnet`;
 
 export type { MainnetWalletSession };
 
-const WHY = "This phone's wallet session is connected on Solana devnet, so it cannot sign the desk's Solana mainnet transactions. Signed messages still work: practice, approvals, Check now and sharing.";
+const WHY = "The desk's live leg on Canton is planned, not live yet. Practice desks, approvals, Check now and sharing still work.";
 
 export function useMainnetWalletSession(): MainnetWalletSession {
   const shell = useWalletShell();

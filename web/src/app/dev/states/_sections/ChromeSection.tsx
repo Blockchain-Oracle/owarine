@@ -13,8 +13,8 @@ export function ChromeSection() {
         <Ticker entries={TICKER_ENTRIES} className="rounded-md border" />
       </Fixture>
       <Fixture label="Wrong-network banner — names the fix, carries the switch">
-        <WrongNetworkBanner chainName="Solana devnet" onSwitch={() => notify.neutral("Switch requested")} />
-        <WrongNetworkBanner chainName="Solana devnet" onSwitch={() => undefined} switching />
+        <WrongNetworkBanner chainName="Canton test network" onSwitch={() => notify.neutral("Switch requested")} />
+        <WrongNetworkBanner chainName="Canton test network" onSwitch={() => undefined} switching />
       </Fixture>
       <Fixture label="Section header — index · title · eyebrow">
         <SectionHeader index="02" title="The window" eyebrow="live now" />

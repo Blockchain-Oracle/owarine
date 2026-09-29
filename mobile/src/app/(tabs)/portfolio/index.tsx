@@ -61,7 +61,7 @@ export default function PortfolioScreen() {
   const { address } = useWalletSession();
   const queryClient = useQueryClient();
   const venue = useVenue();
-  const symbol = venue.boot && isOk(venue.boot) ? venue.boot.value.collateral.symbol : "tUSDC";
+  const symbol = venue.boot && isOk(venue.boot) ? venue.boot.value.collateral.symbol : "credits";
   const money = useMoney();
   const positions = usePositions(address);
   const vaultBets = useVaultOpenBets(address);

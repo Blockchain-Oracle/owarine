@@ -106,7 +106,7 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
   const enable = useCallback(
     async (form: CapsForm): Promise<EnableOutcome> => {
       const submitter = userSession?.submitter;
-      if (!submitter || !value) return { outcome: refusedTx("connect a wallet first"), topUpHash: null, topUpError: null };
+      if (!submitter || !value) return { outcome: refusedTx("take a seat first"), topUpHash: null, topUpError: null };
       setBusy("enabling");
       try {
         const fresh = await ensureKey();

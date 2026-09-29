@@ -23,7 +23,7 @@ const TRADE_FROM_X = "/trade-from-x";
  * the balance and Cash out, the permission, and Fund. `compact` sits inside the plate's X row with the heading and the
  * balance dropped (the row already says both); standalone it is the heading over its own `.ledger-plate`.
  */
-export function XWalletCard({ compact = false, symbol = "tUSDC" }: { compact?: boolean; symbol?: string }) {
+export function XWalletCard({ compact = false, symbol = "credits" }: { compact?: boolean; symbol?: string }) {
   const x = useXInk(!compact);
   const { address } = useWalletSession();
   const link = useXStatus();

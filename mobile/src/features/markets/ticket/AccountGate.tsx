@@ -45,7 +45,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
   const short = connected && availableBase !== null && (availableBase === 0n || (stakeBase > 0n && requiredBase > availableBase));
   const needBase = availableBase !== null && requiredBase > availableBase ? requiredBase - availableBase : null;
   const wallet = balanceSource === "wallet";
-  const balanceLabel = wallet ? "Wallet" : balanceSource === "private" ? "Private balance" : "Trading Balance";
+  const balanceLabel = wallet ? "Seat" : balanceSource === "private" ? "Private balance" : "Trading Balance";
   const openFunds = () => router.push("/funds");
   const tail = wallet
     ? needBase !== null
@@ -53,7 +53,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
       : ` ${TICKET.gate.empty}`
     : balanceSource === "private"
       ? " Fund and authorize your private balance on Portfolio before placing a private bet."
-      : " Add funds to your Trading Balance on Portfolio, or switch to Wallet.";
+      : " Add funds to your Trading Balance on Portfolio, or switch to Seat.";
 
   return (
     <>

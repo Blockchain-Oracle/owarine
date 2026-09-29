@@ -20,7 +20,7 @@ const KEY = "agari.appstrip.dismissed";
 const ROTATE_MS = 7000;
 
 // Statements, not slogans. Each is a fact that survives being read twice.
-const LINES = [`${BRAND.name} installs as a web app`, "Solana devnet — test funds only"];
+const LINES = [`${BRAND.name} installs as a web app`, "Canton test network — demo credits only"];
 
 export default function AppStrip() {
   const pathname = usePathname();

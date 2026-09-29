@@ -51,7 +51,7 @@ export function TradingBalancePanel() {
   }
 
   const { decimals, account: vault } = reading.value;
-  const symbol = account.symbol ?? "tUSDC";
+  const symbol = account.symbol ?? "credits";
   const wallet = account.walletSpendableBase;
   const grants = liveGrants(reading.value);
   const budget = grantsBudgetBase(reading.value);

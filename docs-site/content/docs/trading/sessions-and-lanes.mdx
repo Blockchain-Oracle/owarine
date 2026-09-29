@@ -3,6 +3,8 @@ title: "Sessions and lanes"
 description: "Regular NYSE-hours Windows, the Monday Gap, and the lanes that trade around the clock."
 ---
 
+> **On Canton today** the lanes are crypto Windows (BTC and ETH), trading around the clock. The stock, Monday Gap, xStock, PreStocks and basket lanes below are **planned**: their prices will be posted by the same oracle parties once those feeds are wired.
+
 Agari lists Windows in different lanes, because a stock doesn't trade the same way around the clock.
 
 ## Regular (NYSE hours)
@@ -20,8 +22,8 @@ Three kinds of one-hour Window trade around the clock, including weekend evening
 | Lane | Names | Price source |
 | --- | --- | --- |
 | Tokenized stocks (xStocks) | TSLAx, NVDAx, SPYx, QQQx | Switchboard On-Demand quotes, not the NYSE tape |
-| PreStocks | OpenAI (`OPENAI-60m`) | The PreStocks token price, signed by Agari's attestor |
-| Baskets | AI Labs, Frontier AI, Prediction Markets, Defense & Space, All PreStocks | An index in points from one PreStocks read, signed by Agari's attestor |
+| PreStocks | OpenAI (`OPENAI-60m`) | The PreStocks token price, to be posted by the oracle parties |
+| Baskets | AI Labs, Frontier AI, Prediction Markets, Defense & Space, All PreStocks | An index in points from one PreStocks read, to be posted by the oracle parties |
 
 Cards on these lanes carry a **24/7** chip (for example "24/7 · pre-IPO" or "24/7 · basket"). [Baskets](/trading/baskets) explains the index, and [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers the PreStocks lanes.
 
@@ -32,7 +34,7 @@ Cards on these lanes carry a **24/7** chip (for example "24/7 · pre-IPO" or "24
 - **24/7 Windows** keep trading, grouped by how soon they close. A Window nobody is quoting says **No quotes yet** rather than waiting on an empty book, and its ticket names the next Window.
 - **Stock Windows listed before their bell** sit under **Schedule a call**, one card per company. Pick the Window length, then **Call Up** or **Call Down** opens the pre-open ticket. These cards have no closing countdown and no Yes/No prices, because there is no book to trade against yet. See [Pre-open calls](/trading/pre-open-calls).
 
-A Window whose opening print is more than two minutes late (a paused xStock, or a Window that will void) drops off the board and the pickers instead of waiting there. Its own lifecycle is unchanged: it still settles or voids by the program's rules.
+A Window whose opening print is more than two minutes late (a paused xStock, or a Window that will void) drops off the board and the pickers instead of waiting there. Its own lifecycle is unchanged: it still settles or voids by its rules.
 
 ## Windows exist before the bell
 

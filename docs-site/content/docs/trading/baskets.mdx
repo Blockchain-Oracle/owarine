@@ -15,7 +15,7 @@ description: "Five PreStocks groups, one-hour Up/Down Windows, and three differe
 
 <GuideCapture name="baskets" caption="The public basket cards show the index in points and three actions. The number and Window state can change after this capture, which predates the cards' logo stacks and weekly line." />
 
-<GuideCapture name="basketsConnected" caption="The connected catalogue has live 24/7 Windows. Cover is unavailable for this wallet because it does not hold enough members; Predict can still open a devnet ticket." />
+<GuideCapture name="basketsConnected" caption="The catalogue with live 24/7 Windows. Cover is unavailable because the viewer holds too few members; Predict can still open a ticket." />
 
 Each card keeps the same rows whatever loads or rolls: the members as a stack of logos with their count ("2 companies · equal weight"), the index in points with its recent range and its move this week, and the live Window with its countdown and Up and Down prices in cents. A Window nobody is quoting says **No quotes yet**. Basket Windows trade 24/7, so a card never shows the stock market's session.
 
@@ -23,11 +23,11 @@ Each card keeps the same rows whatever loads or rolls: the members as a stack of
 
 | Action on the card | Where it goes | Money and network |
 | --- | --- | --- |
-| **Predict** | The basket's one-hour Up/Down Window, or its ticker page if none is trading | tUSDC test money on Solana devnet |
-| **Cover** | A Down call against a basket when the connected wallet holds at least two of its members; one member uses its own name | tUSDC test money on Solana devnet |
-| **Hold** | The [desk studio](/agents/desk) with that basket preselected | Starts as a paper practice desk; a later Go live flow would use real USDC and PreStocks on Solana mainnet |
+| **Predict** | The basket's one-hour Up/Down Window, or its ticker page if none is trading | Demo credits; basket lanes are **planned** on Canton |
+| **Cover** | A Down call against a basket when you hold at least two of its members; one member uses its own name | **Planned**: a seat holds no outside tokens until Canton Coin and CIP-56 holdings are wired |
+| **Hold** | The [desk studio](/agents/desk) with that basket preselected | A paper practice desk; a live desk is **planned** |
 
-The basket Window settles on the change in **points** between two signed boundary prints. The venue's price attestor signs an index built from the one catalogue read. That is a venue-attested PreStocks value, not an independent Pyth check. Agari's first five basket Windows printed both boundaries and settled on devnet on 22 September 2026; the [source map](/builders/source-map) points to the implementation and evidence.
+The basket Window settles on the change in **points** between two signed boundary prints. On Canton the plan is for the oracle parties to sign an index built from the one catalogue read. That is a venue-attested PreStocks value, not an independent check; see [PreStocks and Pyth](/architecture/prestocks-and-pyth). The [source map](/builders/source-map) points to the index code.
 
 If the card says **No Window trading right now**, you can still inspect its members and draft a desk. A Predict or Cover order needs a live Window and a quote.
 
@@ -35,4 +35,4 @@ If the card says **No Window trading right now**, you can still inspect its memb
 
 <ConnectedWalkthrough name="basket" />
 
-<GuideCapture name="basketQuote" caption="The AI Labs Down ticket has 5 tUSDC entered. The price, return and maximum loss were visible before Buy; no order was placed." />
+<GuideCapture name="basketQuote" caption="The AI Labs Down ticket has 5 credits entered. The price, return and maximum loss were visible before Buy; no order was placed." />

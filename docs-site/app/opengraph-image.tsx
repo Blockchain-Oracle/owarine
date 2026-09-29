@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Agari Docs — step-by-step guides to the Solana devnet build';
+export const alt = 'Agari Docs — step-by-step guides to the Canton test network build';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -21,7 +21,7 @@ export default function OpenGraphImage() {
       <div style={{ display:'flex',flexDirection:'column',marginTop:52 }}>
         <span style={{ fontSize:74,fontWeight:700,letterSpacing:-3,lineHeight:1.08 }}>Agari,</span>
         <span style={{ fontSize:74,fontWeight:700,letterSpacing:-3,lineHeight:1.08,color:'#D93E1F' }}>explained simply.</span>
-        <span style={{ fontSize:25,lineHeight:1.5,color:'#655B4D',marginTop:24 }}>Step-by-step guides to a Solana devnet stock Up/Down market.</span>
+        <span style={{ fontSize:25,lineHeight:1.5,color:'#655B4D',marginTop:24 }}>Step-by-step guides to an Up/Down prediction market on Canton.</span>
       </div>
       <div style={{ display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:'auto',paddingTop:28,borderTop:'1px solid #D6CBB7' }}>
         <div style={{ display:'flex',gap:12 }}>

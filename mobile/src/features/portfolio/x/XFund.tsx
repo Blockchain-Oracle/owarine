@@ -47,7 +47,7 @@ export function XFund({ amount, setAmount, source, setSource, availableBase, dec
         <View style={styles.source}>
           <Text style={[styles.legend, { color: x.mute }]}>Fund from</Text>
           <View style={styles.options}>
-            {option("wallet", "Connected wallet", "Add wallet funds")}
+            {option("wallet", "Your seat", "Add seat funds")}
             {option("trading-balance", "Trading Balance", `${formatBaseUnits(availableBase, decimals)} ${symbol} available`)}
           </View>
         </View>

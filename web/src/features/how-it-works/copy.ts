@@ -5,7 +5,7 @@
  */
 export const HOW_IT_WORKS = {
   title: "How It Works",
-  lead: "Call where a stock closes its Window. Trade UP or DOWN with credits. Settle on a signed price, on-chain.",
+  lead: "Call where a stock closes its Window. Trade UP or DOWN with credits. Settle on a signed price, on the ledger.",
   back: "Back to Markets",
   sections: {
     steps: "Getting Started",
@@ -16,22 +16,22 @@ export const HOW_IT_WORKS = {
     fees: "Fee Structure",
     settlement: "Settlement Process",
     asides: "Halts, Voids & Your Money",
-    architecture: "On-Chain Architecture",
+    architecture: "Ledger Architecture",
     baskets: "Baskets",
     desk: "How the Desk Decides",
     faq: "FAQ",
   },
   /** S21 (D-126): the desk is the one place real money moves, so the page says how it decides, step by step. */
   deskLead:
-    "A desk is an account on Solana that holds a basket of PreStocks tokens for you while an assistant looks after it. You decide what to own and sign every owner call with your wallet; the desk decides only when; the program enforces the money limits whatever it decides. Here is the order it works in, and which step is the one question a model answers.",
+    "A desk holds a basket for you while an assistant looks after it. You decide what to own and sign every owner call with your seat; the desk decides only when; on Canton the money limits are planned as Daml choices that refuse anything past them. Practice desks run today as paper ledgers. Here is the order it works in, and which step is the one question a model answers.",
   deskKinds: {
     arithmetic: "Arithmetic",
     ai: "The one AI question",
-    program: "The program on Solana",
+    program: "The rules on the ledger",
   } as const,
-  deskEnforcesTitle: "What the program enforces",
+  deskEnforcesTitle: "What the rules enforce",
   deskNeverTitle: "What the desk never does",
-  deskNetwork: "Practice moves no money. A live desk is real money on Solana mainnet, and every desk surface says so.",
+  deskNetwork: "Practice moves no money. A live desk is planned: it will trade this venue's own markets once the Canton Coin rail lands.",
   /** The lead of the Agari-only section: stocks have a clock, and the clock is the product. */
   sessionsLead:
     "A stock exchange keeps hours, so the venue does too. Windows are listed in three lanes on the NYSE clock, and which lanes are on the board right now depends on the hour you are reading this.",
@@ -58,7 +58,7 @@ export const HOW_IT_WORKS = {
   },
   cta: {
     title: "Ready to predict?",
-    body: "Get demo credits, pick a side, and see if you can beat the book.",
+    body: "Get demo credits, pick a side, and see if you can beat the venue.",
     action: "Go to Markets",
   },
 } as const;

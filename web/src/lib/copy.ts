@@ -62,13 +62,13 @@ export const BANNER = {
 
 export const FAUCET = {
   title: "Fuel up",
-  intro: (amountText: string) => `Start with SOL for fees, then get ${amountText} demo credits for trading. One free signature covers both, and no starting balance is needed while funding is available.`,
-  cta: (_amountText: string) => "Get test funds",
+  intro: (amountText: string) => `Get ${amountText} demo credits for trading. Canton charges no network fee, so there is nothing else to fund, and no starting balance is needed.`,
+  cta: (_amountText: string) => "Get demo credits",
   minted: "Minted — your balance updates on its own",
   minting: "Adding demo credits…",
-  gasTitle: "Get SOL for fees first",
+  gasTitle: "No network fee to fund",
   yourAddress: "Your address:",
-  recheck: "I've got SOL — check again",
+  recheck: "Check again",
 } as const;
 
 export const WALLET_DEV = {
@@ -77,10 +77,10 @@ export const WALLET_DEV = {
   faucet: "Faucet",
   signCheckTitle: "Signature check",
   signCheck: {
-    connectFirst: "Connect a wallet to sign a check message.",
-    intro: (cluster: string) => `Signs a short text naming this wallet and ${cluster}, then asks the server to verify it with ed25519.`,
+    connectFirst: "Take a seat to sign a check message.",
+    intro: (cluster: string) => `Signs a short text naming this seat and ${cluster}, then asks the server to verify it with ed25519.`,
     run: "Sign and verify",
-    signing: "Waiting for your wallet…",
+    signing: "Your seat is signing…",
     exact: "exact text",
     tampered: "one byte changed",
     verified: "verified by the server",
@@ -96,9 +96,9 @@ export const WALLET_DEV = {
   signer: "signer",
   signerBound: "bound to the markets session",
   noSigner: "not bound",
-  connectFirst: "Connect a wallet to read balances.",
+  connectFirst: "Take a seat to read balances.",
   spendable: "Spendable credits",
-  native: "SOL for fees",
+  native: "Network fee (none on Canton)",
   escrow: "Order escrow",
   credit: "Venue payout credit",
 } as const;
@@ -289,21 +289,21 @@ export const BALANCE = {
   spendable: "Spendable",
   headlineNote: "what you can bet right now — nothing else is added in",
   poolsLabel: "Other pools of your money",
-  rows: { escrow: "Order escrow", credit: "Venue payout credit", gas: "SOL for fees" },
+  rows: { escrow: "Order escrow", credit: "Venue payout credit", gas: "Network fee (none on Canton)" },
   escrowNote: "locked in your resting orders until they fill or you cancel",
   creditFirst: "spent first on your next buy in its window",
   creditFirstHint: "of venue credit is spent first on your next buy",
-  gasLow: "below the fee reserve — the next write needs more SOL",
-  connect: { why: "Connect a wallet to see your money: one spendable number, every other pool labeled beneath it." },
+  gasLow: "Canton charges no network fee, so nothing here needs funding",
+  connect: { why: "Take a seat to see your money: one spendable number, every other pool labeled beneath it." },
   devTitle: "Balance plate",
   fixtures: {
-    zero: "Zero wallet",
-    funded: "Funded wallet",
+    zero: "Empty seat",
+    funded: "Funded seat",
     pools: "Escrow + venue credit",
     stale: "Stale — last good kept, as-of tick",
     error: "First read failed",
     loading: "Nothing known yet",
-    live: "Live — connected wallet",
+    live: "Live — your seat",
   },
 } as const;
 

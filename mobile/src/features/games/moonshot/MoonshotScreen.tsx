@@ -17,7 +17,7 @@ export function MoonshotScreen() {
   const reading = useRangeReserve();
   const { boot } = useVenue();
   const refresh = useReserveRefresh();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const { sections, notDeployed } = MOONSHOT;
   useGameScreen("moonshot");
 

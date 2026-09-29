@@ -29,9 +29,9 @@ export const LUCKY = {
     spinning: "Spinning…",
     dealing: "Dealing…",
     again: "Spin again",
-    connect: "Connect a wallet to spin",
-    wrongChain: "Switch to Solana devnet to spin",
-    noSigner: "Waiting for the wallet…",
+    connect: "Take a seat to spin",
+    wrongChain: "Take a new seat to spin",
+    noSigner: "Waiting for your seat…",
     noStore: "This deployment has no games store, so a draw has nowhere to keep its seed.",
     failed: (why: string) => `The spin did not deal: ${why}`,
     /** `label` is the session chip's own words ("Opens Mon 09:30 ET"); `live` names what still trades. */
@@ -92,9 +92,9 @@ export const LUCKY = {
     /** The key stays `gas` (the reference's); the words are Solana's: a network fee, paid in SOL. */
     gas: {
       label: "Network fee",
-      wallet: "You sign once from your wallet and pay the network fee in SOL.",
-      key: "Your session key places it with no prompt; the sponsor pays the network fee.",
-      fallback: (why: string) => `${why} You sign from your wallet and pay the network fee in SOL.`,
+      wallet: "You sign once with your seat. Canton charges no network fee.",
+      key: "Your session key places it with no prompt. Canton charges no network fee.",
+      fallback: (why: string) => `${why} You sign with your seat. Canton charges no network fee.`,
     },
     place: (side: string) => `Place ${side} ·`,
     skip: "Skip this deal",
@@ -143,7 +143,7 @@ export const LUCKY = {
 
   history: {
     title: "Your spins",
-    connect: "Connect a wallet to see the spins it has made.",
+    connect: "Take a seat to see the spins it has made.",
     loading: "Reading your spins…",
     notConfigured: "This deployment has no games store, so there is no spin history to read here. Every placed order is still on chain.",
     empty: "No spins yet.",

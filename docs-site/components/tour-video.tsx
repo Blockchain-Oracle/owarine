@@ -5,7 +5,7 @@ import { Download, Play } from 'lucide-react';
 import { Brand } from './brand';
 
 const chapters = [
-  { at: 0, title: 'Browse baskets', text: 'Five PreStocks groups offer Predict and Cover with devnet test money. Hold opens a desk draft.' },
+  { at: 0, title: 'Browse baskets', text: 'Five PreStocks groups offer Predict and Cover with test money. Recorded before the Canton port. Hold opens a desk draft.' },
   { at: 4, title: 'Choose holdings', text: 'Pick a preset and adjust member weights and the cash sleeve without connecting a wallet.' },
   { at: 8, title: 'Set limits', text: 'The studio separates limits written on-chain for a future live desk from checks enforced by the desk runner.' },
   { at: 12, title: 'See the test read', text: 'Practice uses paper cash. A wallet message is needed before the app runs the read.' },

@@ -17,14 +17,14 @@ import type { VenueUsage } from "./useVenueUsage";
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
-/** The engine and the Trading Balance are Daml templates with no address to show; honest until C10 points them at the proof page. */
-const EVENTS_PROGRAM = "not deployed";
-const VAULT_PROGRAM = "not deployed";
+/** A Daml package has no address to show: the engine row names its version (abu-pm-main 0.2.0), the privacy row its unit. */
+const EVENTS_PROGRAM = "0.2.0";
+const VAULT_PROGRAM = "each seat";
 
 const A = PITCH.agents;
 const U = PITCH.demand;
 const R = PITCH.revenue;
-const W = PITCH.whySolana;
+const W = PITCH.whyCanton;
 const T = PITCH.team;
 const RM = PITCH.roadmap;
 const CL = PITCH.close;
@@ -111,9 +111,9 @@ export function slidesB(usage: VenueUsage): Slide[] {
       ),
     },
 
-    // 12 · TECHNICAL + WHY SOLANA
+    // 12 · TECHNICAL + WHY CANTON
     {
-      id: "why-solana",
+      id: "why-canton",
       section: W.section,
       paper: 2,
       render: () => (

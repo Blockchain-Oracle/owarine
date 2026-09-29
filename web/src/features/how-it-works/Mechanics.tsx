@@ -59,9 +59,9 @@ export function Mechanics() {
             ))}
           </dl>
           <p className="hiw-foot">
-            Every quote is read off the live book for your exact stake, so the cost you see is the cost the book would
-            charge now. Orders go in immediate-or-cancel at a protective limit: what crosses fills, the rest is cancelled,
-            and the escrow locked at that limit is the most a fill can ever cost.
+            Every quote is priced off the venue&apos;s live ladder for your exact stake, so the cost you see is the cost
+            you would pay now. The quote is firm while you take it: it fills at that price or not at all, and the price
+            you confirmed is the most a fill can ever cost.
           </p>
         </div>
       </section>

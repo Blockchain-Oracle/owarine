@@ -69,7 +69,7 @@ export function useGameSponsor(): GameSponsor {
         body: JSON.stringify({ matchId, player, agent }),
       });
       const body = (await response.json().catch(() => ({}))) as { hash?: Signature | null; amountWei?: string; why?: string; error?: string };
-      if (!response.ok) return { ok: false, error: body.error ?? `the sponsor answered ${response.status}` };
+      if (!response.ok) return { ok: false, error: body.error ?? `the venue answered ${response.status}` };
       return { ok: true, hash: body.hash ?? null, amountWei: BigInt(body.amountWei ?? "0"), why: body.why ?? "" };
     } catch (error) {
       return { ok: false, error: error instanceof Error ? error.message : String(error) };

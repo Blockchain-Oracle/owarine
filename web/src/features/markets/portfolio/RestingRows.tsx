@@ -5,6 +5,7 @@ import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
 import { useRestingOrders } from "@agari/markets/react";
+import { leasedAddressOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import Link from "next/link";
 import { Money } from "@/components/data";
 import { formatCadence, PREOPEN } from "@/lib/copy";
@@ -103,7 +104,9 @@ function RestingRow({ view, symbol }: { view: RestingOrderView; symbol: string |
  * filled call is a position and appears there instead; a cancelled one has left the index's open set.
  */
 export function useRestingItems(symbol: string | undefined): { items: ListItem[]; pending: boolean } {
-  const { address } = useWalletSession();
+  const { address: held } = useWalletSession();
+  // No lease, no read: the seat's rows answer 403 until it holds one (C4c.2).
+  const address = leasedAddressOf(useSeatLeaseState().view, held);
   const reading = useRestingOrders(address);
   if (!reading) return { items: [], pending: address !== null };
   if (!isOk(reading)) return { items: [], pending: false };

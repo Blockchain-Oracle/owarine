@@ -15,7 +15,7 @@ export const ROOM = {
   join: "Join the room",
   joining: "Joining…",
   bet: "Place a bet to join",
-  connect: "Connect wallet",
+  connect: "Take a seat",
   empty: "No one has said anything yet. Go first.",
   remaining: (left: number) => `${left}`,
 
@@ -26,15 +26,15 @@ export const ROOM = {
     },
     connect: {
       title: "The Room is for people with a position.",
-      body: "Connect your wallet and we'll check whether you're in this Window.",
+      body: "Take a seat and we'll check whether you're in this Window.",
     },
     locked: {
       title: "You need a position in this Window.",
-      body: "The Room is bettors only, and the check is on-chain — not a setting we can wave. Take a side and it opens.",
+      body: "The Room is bettors only, and the check is on the ledger — not a setting we can wave. Take a side and it opens.",
     },
     joinable: {
       title: "You're in this Window.",
-      body: "Sign once to prove the wallet is yours. It moves no funds and costs nothing.",
+      body: "Sign once to prove the seat is yours. It moves no funds and costs nothing.",
     },
   },
 
@@ -48,11 +48,11 @@ export const ROOM = {
     open: (symbol: string) => `$${symbol} Room`,
     locked: {
       title: (symbol: string) => `You need a position in a ${symbol} Window.`,
-      body: "The Room is bettors only, and the check is on-chain — not a setting we can wave. Trade any Window of this stock and it opens.",
+      body: "The Room is bettors only, and the check is on the ledger — not a setting we can wave. Trade any Window of this stock and it opens.",
     },
     joinable: {
       title: (symbol: string) => `You've traded ${symbol}.`,
-      body: "Sign once to prove the wallet is yours. It moves no funds and costs nothing.",
+      body: "Sign once to prove the seat is yours. It moves no funds and costs nothing.",
     },
   },
 } as const;
@@ -62,9 +62,9 @@ export const ROOM_ERRORS = {
   unavailable: "The Room isn't connected yet — the social store isn't configured on this deployment.",
   badRequest: "That request didn't make sense.",
   staleSignature: "That signature has expired. Try joining again.",
-  badSignature: "That signature doesn't match the wallet.",
-  noPosition: "No position on this Window for that wallet. The Room is bettors only.",
-  noTickerPosition: "That wallet hasn't traded a Window of this stock. The Room is bettors only.",
+  badSignature: "That signature doesn't match the seat.",
+  noPosition: "No position on this Window for that seat. The Room is bettors only.",
+  noTickerPosition: "That seat hasn't traded a Window of this stock. The Room is bettors only.",
   gateUnreadable: "Couldn't read your position from the chain just now, so the Room stayed shut. Try again in a moment.",
   notJoined: "Your Room session has expired. Join again to keep reading.",
   postFailed: "That didn't post. Try again.",

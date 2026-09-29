@@ -40,7 +40,17 @@ const rowSchema = z.object({
 // Rows parse one by one: a token this build does not know yet is dropped alone, instead of hiding every holding.
 const bodySchema = z.object({ holdings: z.array(z.unknown()) });
 
+/**
+ * Canton (plan 00-plan "Holdings-dependent UX before C7b"; C4c.2): a seat is a leased Canton party that holds demo credits
+ * and nothing else, so it has no outside stock tokens to read until the Canton Coin rail (C7b) brings CIP-56 holdings.
+ * The route read Solana mainnet through Helius and answered a seat with 503, which the card showed as "Couldn't read
+ * your wallet". Until C7b the read answers the truth — no holdings — and the cards show the reference's own
+ * "no holdings" state. Flip this when the rail lands; the route and parser below are kept for it.
+ */
+const SEAT_HOLDINGS_RAIL = false;
+
 async function readHoldings(owner: Address): Promise<Reading<HoldingView[]>> {
+  if (!SEAT_HOLDINGS_RAIL) return ok([], Date.now());
   const response = await fetch(`/api/holdings?owner=${encodeURIComponent(owner)}`, { cache: "no-store" });
   if (!response.ok) return err(diagnosis("unknown", `holdings route answered ${response.status}`));
   const parsed = bodySchema.safeParse(await response.json());
@@ -49,7 +59,7 @@ async function readHoldings(owner: Address): Promise<Reading<HoldingView[]>> {
   return ok(rows, Date.now());
 }
 
-/** The connected wallet's mainnet share tokens, read-only; never persisted (the read cache's allowlist refuses account data). */
+/** The seat's share tokens (none until C7b), read-only; never persisted (the read cache's allowlist refuses account data). */
 export function useHoldings(owner: Address | null): Reading<HoldingView[]> | null {
   return useReadingQuery(holdingsKey(owner), () => readHoldings(owner as Address), { pollMs: POLL_MS, enabled: owner !== null, needs: [] });
 }

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     address = config?.chain.address ?? null;
     const status = config?.enabled ? await createFaucetService(config.chain).status(wallet?.success ? wallet.data : null) : unavailableFaucetStatus(address);
     return Response.json(status, { headers: { "Cache-Control": "no-store" } });
-  } catch { return Response.json(unavailableFaucetStatus(address, "Balances could not be checked. Please retry or use an external SOL faucet."), { status: 503, headers: { "Cache-Control": "no-store" } }); }
+  } catch { return Response.json(unavailableFaucetStatus(address, "Balances could not be checked. Please retry."), { status: 503, headers: { "Cache-Control": "no-store" } }); }
 }
 
 export async function POST(request: Request) {

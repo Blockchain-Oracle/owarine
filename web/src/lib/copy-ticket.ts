@@ -64,10 +64,10 @@ export const TICKET = {
     connect: "Calls are placed from your seat and winnings land back in it. Take a seat to place one.",
     topUp: "Top up to place this",
     holds: (have: string, symbol: string, source: string) => `${source} holds ${have} ${symbol}.`,
-    need: (need: string, symbol: string) => `Add ${need} ${symbol} more to place this — grab test funds from the faucet if you're short.`,
+    need: (need: string, symbol: string) => `Add ${need} ${symbol} more to place this — a fresh seat comes with new demo credits if you're short.`,
     /** The top-up line when the shortfall is only the refundable seat deposit. */
-    needWithDeposit: (need: string, symbol: string, bond: string) => `Add ${need} ${symbol} more to place this, counting the ${bond} ${symbol} seat deposit — grab test funds from the faucet if you're short.`,
-    empty: "Grab test funds from the faucet to place one.",
+    needWithDeposit: (need: string, symbol: string, bond: string) => `Add ${need} ${symbol} more to place this, counting the ${bond} ${symbol} seat deposit — a fresh seat comes with new demo credits if you're short.`,
+    empty: "Your seat has no demo credits left. A fresh seat comes with new ones.",
     addMoney: "Add money",
   },
   sheetCta: (side: string) => `Your call · ${side}`,

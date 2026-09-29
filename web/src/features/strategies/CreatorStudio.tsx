@@ -80,8 +80,8 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
   if (published) return (
     <section className="agent-builder agent-published" aria-live="polite">
       <AgentPortrait seed={form.portraitSeed} name={name} />
-      <div><p className="strat-micro text-vermilion">{published.ok ? "Published on Solana" : "Publication needs checking"}</p><h2 className="strat-h2 mt-2 text-ink">{name}</h2></div>
-      <p className="strat-choice-body">{published.ok ? "Your strategy is registered. Publishing has not deposited money or enabled trades from your wallet." : "The transaction result is uncertain. Check the receipt and Your strategies before publishing again."}</p>
+      <div><p className="strat-micro text-vermilion">{published.ok ? "Published on Canton" : "Publication needs checking"}</p><h2 className="strat-h2 mt-2 text-ink">{name}</h2></div>
+      <p className="strat-choice-body">{published.ok ? "Your strategy is registered. Publishing has not deposited money or enabled trades from your seat." : "The transaction result is uncertain. Check the receipt and Your strategies before publishing again."}</p>
       {published.txHash && <a className="strat-sensei" href={txUrl(published.txHash)} target="_blank" rel="noopener noreferrer">View publication transaction ↗</a>}
       <ol className="agent-next-steps"><li>Open Your strategies and select this agent.</li><li>Choose a copy budget, review the fee and approve its bounded permission.</li><li>Wait for the runner’s first real decision. A held call is a valid result; a fill has its own transaction.</li></ol>
       <button type="button" className="strat-confirm strat-confirm--live" onClick={onPublished}>View your strategies →</button>

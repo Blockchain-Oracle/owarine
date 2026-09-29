@@ -14,9 +14,10 @@ import { proofHref } from "@/lib/routes";
 
 const basket = BASKETS.AILABS;
 
+/** Illustrations of how a settled row reads, shown only until this venue's own proof feed has rows; each opens /proof. */
 const recordedExamples = [
-  { asset: "AILABS", name: "AI Labs", cadence: "1h · PreStocks", prices: "1,267.38 → 1,110.43 pts", outcome: "Down won", href: "https://explorer.solana.com/tx/5xkJKmS47fZBYRNyeJ83iffHTxzpE2vMr9SGBMvKb3eeN6wNh1xC3WeWYpknWAynR1mAjmKF2ZpVEWwRU3RuZm3f?cluster=devnet" },
-  { asset: "DEFSPACE", name: "Defense & Space", cadence: "1h · PreStocks", prices: "980.93 → 988.06 pts", outcome: "Up won", href: "https://explorer.solana.com/tx/YnwMzy8g1Fp6KkRrFTF3XHTEWhF7JgK4Y3FGAidnzR2B2uzYwgpe8SmPPafQqNcqUgvp9yjf721qghLrsznBdP4?cluster=devnet" },
+  { asset: "AILABS", name: "AI Labs", cadence: "1h · PreStocks", prices: "1,267.38 → 1,110.43 pts", outcome: "Down won", href: "/proof" },
+  { asset: "DEFSPACE", name: "Defense & Space", cadence: "1h · PreStocks", prices: "980.93 → 988.06 pts", outcome: "Up won", href: "/proof" },
 ] as const;
 
 /** Real HTML product surfaces, using the same price and proof reads as the basket and Proof pages. */
@@ -55,9 +56,9 @@ export function LandingHeroShowcase() {
           <p>Every settled Window, with the prints that decided it.</p>
           <div className="lp-preview-filters" aria-hidden="true"><span>All</span><span>PreStocks</span><span>Pyth</span></div>
           <div className="lp-preview-proof-table">
-            <div className="lp-preview-table-label">{recentRows.length > 0 ? "Recent settlements" : "Verified examples · 22 Sep"}</div>
+            <div className="lp-preview-table-label">{recentRows.length > 0 ? "Recent settlements" : "Examples · how a settlement reads"}</div>
             {proofRows.map((row) => (
-              <a key={row.href} href={row.href} target={row.href.startsWith("https:") ? "_blank" : undefined} rel={row.href.startsWith("https:") ? "noreferrer" : undefined} className="lp-preview-proof-row" data-cursor="hover">
+              <a key={`${row.asset}:${row.href}`} href={row.href} target={row.href.startsWith("https:") ? "_blank" : undefined} rel={row.href.startsWith("https:") ? "noreferrer" : undefined} className="lp-preview-proof-row" data-cursor="hover">
                 <AssetDisc asset={row.asset} className="lp-preview-row-mark" />
                 <span className="lp-preview-row-name"><strong>{row.name}</strong><small>{row.cadence}</small></span>
                 <span className="lp-preview-row-prices numbers">{row.prices}</span>

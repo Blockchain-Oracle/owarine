@@ -50,7 +50,7 @@ function Page({ reserve }: { reserve: LeverageReserveState }) {
   const { color, name } = useTheme();
   const t = basketsShortTokens(name);
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const nowMs = useChainNowMs();
   const { stocks, loading } = useShortWindows(nowMs);
   const { address } = useWalletSession();

@@ -1,22 +1,20 @@
 ---
-title: "tUSDC and Trading Balance"
-description: "What your test collateral is, and what the Trading Balance vault adds on top of it."
+title: "Demo credits and your balance"
+description: "What your test money is, where it sits, and what happens to it when a seat is released."
 ---
 
-## tUSDC is devnet test collateral
+## Demo credits are test money
 
-Every stake, ticket and pre-open order on Agari is sized in **tUSDC**: a 6-decimal SPL token minted by a faucet authority with no freeze authority. It has no market value — it exists only so devnet trading has a consistent unit. Get some from **Get test funds** in the header or Portfolio; see [Wallet and devnet funds](/start/wallet) for the exact flow.
+Every stake and ticket on Agari is sized in **demo credits**: the venue's test money on a Canton test network. They have no market value and cannot be moved off the venue. A new seat is funded with them when you take it; see [Your seat and demo credits](/start/wallet).
 
-An ordinary wallet order escrows tUSDC straight from your wallet's token account for the life of the order, and returns it to your wallet (or pays out the settled result there) once the position closes.
+## Where your credits sit
 
-## Trading Balance
+Your credits are cash contracts signed by the venue and your seat's party, so only the two of you can see them. Accepting a quote spends from them: the stake and the fee move into your position, and any change comes back as a new cash contract. When a Window settles, the venue pays the result back into your cash. There is no separate vault to deposit into, and no network fee to keep a balance for.
 
-Trading Balance is a separate pool of tUSDC held in `agari-vault`, Agari's Trading Balance and bounded-grants program, rather than sitting directly in your wallet's token account. Depositing into it is one signature; withdrawing back to your wallet is another. Its purpose is [tap-trading](/trading/tap-trading): once funded and once you've granted a session key, further orders don't need a new wallet popup for every trade.
+Nothing about where the money sits changes how a position settles: Up if the close is at or above the open, and a void returns your stake and your fee.
 
-<GuideCapture name="portfolioBalance" caption="This connected panel shows wallet funds, vault funds and the amount committed to grants. The buttons were inspected without moving funds." />
+## When a seat is released
 
-Nothing about Trading Balance changes how a position settles — the settlement rule (Up if close ≥ open, void 0.5/0.5 if a print never arrived or two sources disagreed) is identical whether the stake came from your wallet directly or from this balance. It only changes where the money sits before and after a trade, and who can sign an order against it (you, or a session key your wallet granted, capped and revocable).
+Before a released seat is reused, its open positions close at what they cost and its cash is swept back to the venue, so the next visitor starts empty. Your balance does not follow you to a new seat; a new seat starts from fresh demo credits.
 
-## Depositing and withdrawing
-
-Deposit moves tUSDC from your wallet into the vault account; withdraw moves it back. The Trading Balance panel in <AppLink href="/portfolio">Portfolio</AppLink> gives **Deposit** and **Withdraw** equal weight, with one amount field and a **Max** button. The field says in red when the amount is not a number or is more than your wallet holds, and its starting amount never asks for more than the wallet has. If the wallet is short of devnet SOL for the fee, the panel re-checks on its own every 12 seconds and clears the warning once the fee is covered. The Private balance uses the same controls. Withdrawal only pays to a token account you own — nothing here can redirect your funds elsewhere. See [Portfolio](/trading/portfolio) for where a Trading Balance position shows up once it settles.
+**Planned:** a Private balance and a real-money rail on Canton Coin are not on Canton yet. See [Portfolio](/trading/portfolio) for where a settled position shows up.

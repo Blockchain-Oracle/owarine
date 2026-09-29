@@ -23,6 +23,7 @@ import { join } from "node:path";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { mobileShimPaths } from "./lib/mobile-shim-paths.mjs";
 import { noSolana } from "./lib/no-solana.mjs";
+import { noSolanaCopy } from "./lib/no-solana-copy.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
 import { venueIdentity } from "./lib/venue-identity.mjs";
 
@@ -203,5 +204,6 @@ export const rules = [
     check: sessionKeyNonExtractable,
   },
   { id: "venue-identity", description: "no reference asset, brand or chain (BTC, ETH, Masayume, Somnia…) in live code or copy; comments and tests may name them", check: venueIdentity },
+  { id: "no-solana-copy", description: "the product never claims Solana: no Solana, devnet SOL, lamport, Phantom, Solflare or tUSDC in user-visible copy (apps, shared copy, docs); lineage lines allowlisted with a reason", check: noSolanaCopy },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];

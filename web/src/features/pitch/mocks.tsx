@@ -76,7 +76,7 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
               <div className="pitch-phone-stamp">上がり</div>
               <div className="pitch-phone-won-label">AGARI · IT CAME IN</div>
               <div className="pitch-phone-won-figure">+14.60</div>
-              <div className="pitch-phone-won-sub">paid to your wallet · settlement receipt ↗</div>
+              <div className="pitch-phone-won-sub">paid to your seat · settlement receipt ↗</div>
               <div className="pitch-phone-cta">Collect</div>
             </div>
           ) : (
@@ -141,7 +141,7 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
           </div>
           <div className="pitch-xcard-receipt">
             <span className="dot" />
-            POSITION OPENED · tx 5n12bZ…
+            POSITION OPENED · only you + venue
           </div>
         </span>
       </div>

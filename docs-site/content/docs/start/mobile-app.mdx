@@ -1,54 +1,21 @@
 ---
 title: "Get the app"
-description: "Agari on Android and iPhone: the APK, TestFlight, and what the phone app does differently."
+description: "Agari on your phone: the web app today, and the native app that is planned for Canton."
 ---
 
-Agari has a native app for Android and iPhone. It is the same product as the website, on the same Solana devnet
-Windows, laid out for a phone.
+Agari runs on a phone in the browser today: open the site in Safari or Chrome and add it to your Home Screen. It is the same product as the website, on the same Canton test network, with the same demo credits.
 
-## Android
+## The native app (planned)
 
-<img src="/captures/agari-android-qr.svg" alt="QR code that downloads the Agari APK" width="180" height="180" />
+A native app for iPhone and Android is being ported to Canton. It will be offered through a public TestFlight link and a downloadable APK once it is ready; until then there is no Canton build to install, and earlier builds of the app do not work with this venue.
 
-Scan the code with your phone's camera, or download the APK directly:
-[agari-0.1.1.apk](https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.1/agari-0.1.1.apk)
-(version 0.1.1, 59.1 MB, for arm64 Android phones, from the [GitHub release](https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.1)).
+## Your seat on a phone
 
-1. Download the file on your Android phone.
-2. Open it, and allow installs from this source when Android asks.
-3. Open Agari and connect a wallet, or practise first.
+There is no wallet app to open. **Take a seat** works the same way as on the web: the phone makes a signing key and keeps it in its secure storage, for this device only (never synced or restored onto another phone), and the venue leases a Canton party for it. [Your seat](/start/wallet) explains what that means. There is no network fee.
 
-To check the file, compare its SHA-256 with:
+## What the native app does differently
 
-```
-7a3d4f2711f0a4dbe4aa6f68fecfe5a8f2de5798a548f8acccaea5434d28901f
-```
-
-Run `sha256sum agari-0.1.1.apk` on Linux, `shasum -a 256 agari-0.1.1.apk` on a Mac, or
-`certutil -hashfile agari-0.1.1.apk SHA256` on Windows.
-
-## iPhone
-
-Join the [public Agari TestFlight beta](https://testflight.apple.com/join/g3MnDrr7) on your iPhone to install the native app.
-You can also open [useagari.xyz](https://useagari.xyz) in Safari and add it to your Home Screen.
-
-## Connecting a wallet
-
-| Choice | How it works |
-| --- | --- |
-| Phantom, Solflare | The app opens the wallet to approve, then returns to Agari. |
-| Android wallet | Android's Mobile Wallet Adapter lets you choose any installed Solana wallet. |
-| Practice wallet | A devnet-only key created on this phone and kept in its secure storage. It never leaves the device and is not restored from a backup onto another phone. |
-
-Set your wallet to Solana devnet first; [Wallet](/start/wallet) explains why and how.
-
-## What is different on a phone
-
-- **A first-run walkthrough.** Four short screens explain a Window, how it settles, the games and test funds.
-- **Bottom drawers.** The Up/Down ticket, Add funds and your account rise from the bottom of the screen, and the
-  ticket shows its receipt in place.
-- **One-tap trading.** Arm tap trading once with a wallet signature, and the app signs calls within your limits from a
-  key kept on the phone. [Tap trading](/trading/tap-trading) covers the limits.
-- **Notifications.** Turn them on from Activity to hear about fills, results and payouts, with a Live Activity for a
-  Window you are in.
-- **Pull to refresh** on every page, and full-screen, sideways arcade runs.
+- **A first-run walkthrough.** Short screens explain a Window, how it settles and demo credits.
+- **Bottom drawers.** The Up/Down ticket and your account rise from the bottom of the screen, and the ticket shows its receipt in place.
+- **One tap.** A seat already places a call with one tap; there is no separate session key to arm.
+- **Pull to refresh** on every page.

@@ -12,7 +12,7 @@ const APPROACH_BODY = {
   agent: "An AI reads the opening price, recent move and order books, then explains its call. Hard limits still decide what it may trade.",
   momentum: "A fixed rule follows the current EMA price away from each Window’s opening print. No AI model is used.",
   reversion: "A fixed rule bets against the current EMA move away from each Window’s opening print, expecting it to pull back. No AI model is used.",
-  mirror: "One named wallet is the signal. When it takes a side on a Window and is still net on it, this takes the same side — after their order landed, at the book’s price then. No AI model is used.",
+  mirror: "One named seat is the signal. When it takes a side on a Window and is still net on it, this takes the same side — after their order landed, at the book’s price then. No AI model is used.",
 } as const;
 
 const S = STRATEGIES.studio;
@@ -101,7 +101,7 @@ export function StudioForm({ form, setForm, symbol, asset, houseRunner, step }: 
         </View>
         {form.hosting === "self" ? (
           <View style={styles.mt16}>
-            <Field label="Runner wallet">
+            <Field label="Runner party">
               <StratInput value={form.agent} autoCapitalize="none" autoCorrect={false} onChangeText={(agent) => setForm((f) => ({ ...f, agent }))} placeholder="0x…" />
             </Field>
           </View>

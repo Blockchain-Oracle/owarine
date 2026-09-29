@@ -1,0 +1,8 @@
+{
+  "_doc": [
+    "no-solana-copy allowlist (Canton port, C4c). Each entry is a line of copy that names Solana ON PURPOSE: the product's",
+    "lineage, credited honestly. `match` is a substring of that line; `why` says why it stays.",
+    "The rule fails on an entry that no longer matches anything, so the list cannot rot."
+  ],
+  "entries": []
+}

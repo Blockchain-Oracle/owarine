@@ -24,7 +24,7 @@ export function Published({ published, seed, name, onPublished, onAnother }: { p
       </View>
       <Body>
         {published.ok
-          ? "Your strategy is registered. Publishing has not deposited money or enabled trades from your wallet."
+          ? "Your strategy is registered. Publishing has not deposited money or enabled trades from your seat."
           : "The transaction result is uncertain. Check the receipt and Your strategies before publishing again."}
       </Body>
       {published.txHash ? <Sensei label="View publication transaction ↗" onPress={() => void openLedgerLink("tx", published.txHash!)} /> : null}

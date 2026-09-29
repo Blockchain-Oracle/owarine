@@ -23,7 +23,7 @@ export const COCKPIT = {
   check: {
     title: "Next check",
     practice: "Practice checks",
-    live: "On Solana mainnet",
+    live: "Live on Canton",
   },
   overview: {
     latest: "Latest check",
@@ -53,7 +53,7 @@ export const COCKPIT = {
   },
   rules: {
     title: "Rules",
-    program: "Enforced on-chain",
+    program: "Enforced on the ledger",
     code: "Enforced by the desk",
     basket: "The basket",
     promise: "The promise",

@@ -26,7 +26,7 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
     expect(line).toContain("12.5 TSLAx (Tesla, xStocks).");
     expect(line).toContain("DOWN Window on that name is cover with test funds");
     expect(line).toContain("Never advise on the tokens themselves");
-    expect(holdingsLine([])).toBe("Their wallet holds no stock tokens (real tokens, read-only).");
+    expect(holdingsLine([])).toBe("Their seat holds no stock tokens (a seat holds none until the Canton Coin rail).");
     // The tripwire is unchanged by the summary: a question about the real tokens still trips on "shares/stocks", and a cover question does not.
     expect(asksForAdvice([user("should I sell my OpenAI stock now?")])).toBe(true);
     expect(asksForAdvice([user("can I cover my OpenAI with a Down Window?")])).toBe(false);

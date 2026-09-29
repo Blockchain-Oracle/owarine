@@ -33,7 +33,7 @@ export function ErrorState({ diagnosis, retry, backHref, variant = "inline", cla
       </div>
       {(offerRetry || backHref || diagnosis.kind === "out-of-gas") && (
         <div className="flex flex-wrap gap-2">
-          {diagnosis.kind === "out-of-gas" && <Button size="sm" onClick={openFunds}>Get test funds</Button>}
+          {diagnosis.kind === "out-of-gas" && <Button size="sm" onClick={openFunds}>Get demo credits</Button>}
           {offerRetry && (
             <Button variant="secondary" size="sm" onClick={retry}>
               {ERROR_BOUNDARY.retry}

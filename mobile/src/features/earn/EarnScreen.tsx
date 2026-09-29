@@ -21,7 +21,7 @@ export function EarnScreen() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<ReserveKind>("maker");
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const tabs = <ReserveTabs active={tab} onSelect={setTab} />;
   return (
     <Screen title={EARN.devTitle} onRefresh={() => queryClient.invalidateQueries()} contentStyle={styles.page}>

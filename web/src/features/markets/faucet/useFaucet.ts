@@ -50,7 +50,7 @@ export function useFaucet() {
     setState((s) => ({ ...s, checkingGas: true }));
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const gas = await Promise.race([submitter.checkGas("faucet"), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("The SOL balance check timed out. Please retry or use an external SOL faucet.")), 15_000); })]);
+      const gas = await Promise.race([submitter.checkGas("faucet"), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("The seat check timed out. Please retry.")), 15_000); })]);
       if (currentBinding.current === binding) setState((s) => ({ ...s, checkingGas: false, diagnosis: gas.ok ? null : gas.diagnosis, gasShort: !gas.ok && gas.diagnosis.kind === "out-of-gas" }));
       return gas.ok;
     } finally { clearTimeout(timer); if (currentBinding.current === binding) setState((s) => ({ ...s, checkingGas: false })); }
@@ -59,7 +59,7 @@ export function useFaucet() {
   /** One run: a free signature, the SOL top-up when eligible, then the server-sent tUSDC mint. No transaction popup. */
   const mint = useCallback(async () => {
     if (!address || !wallet.isRightChain || wallet.address !== address || running.has(address)) return;
-    if (!submitter) { setState((s) => ({ ...s, error: "Your wallet connection is still getting ready. Please retry." })); return; }
+    if (!submitter) { setState((s) => ({ ...s, error: "Your seat is still getting ready. Please retry." })); return; }
     running.add(address);
     const current = () => currentBinding.current === binding;
     const stage = (stage: FundingStage) => { if (current()) setState((s) => ({ ...s, stage })); };
@@ -81,11 +81,11 @@ export function useFaucet() {
       if (!current()) return;
       if (!funding?.configured) {
         await checkFundingGas(funding).catch(() => false);
-        throw new Error(funding?.message ?? "In-app test funds are unavailable. Use an external SOL faucet below.");
+        throw new Error(funding?.message ?? "Demo credits are unavailable just now. Please try again later.");
       }
       let enoughGas = await checkFundingGas(funding);
       if (!current()) return;
-      request = fundsRequest({ wallet: address, status: funding, current, stage, sign: (message) => { if (!owner || owner.address !== address) throw new Error("Wallet changed. Open test funds again for the connected wallet."); return signText(owner, message); } });
+      request = fundsRequest({ wallet: address, status: funding, current, stage, sign: (message) => { if (!owner || owner.address !== address) throw new Error("Seat changed. Open test funds again for this seat."); return signText(owner, message); } });
       const low = funding.walletBalanceLamports != null && BigInt(funding.walletBalanceLamports) < BigInt(funding.thresholdLamports);
       const cooling = funding.claim && funding.claim.nextClaimAtMs > Date.now() && funding.claim.status !== "prepared";
       let gasError: unknown = null;
@@ -128,7 +128,7 @@ export function useFaucet() {
   const resetCompleted = useCallback(() => setState((s) => s.phase === "confirmed" ? IDLE : s), []);
   const retryGas = useCallback(async () => {
     try { return await recheckGas(); } catch (error) {
-      if (currentBinding.current === binding) setState((s) => ({ ...s, error: error instanceof Error ? error.message : "The SOL balance could not be checked." }));
+      if (currentBinding.current === binding) setState((s) => ({ ...s, error: error instanceof Error ? error.message : "The seat balance could not be checked." }));
       return false;
     }
   }, [recheckGas, binding]);

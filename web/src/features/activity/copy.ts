@@ -15,7 +15,7 @@ export const ACTIVITY = {
   tabs: { inbox: "Inbox" },
   notifications: { enable: "Turn on notifications", on: "Notifications on", blocked: "Notifications blocked" },
   connect: {
-    title: "Connect a wallet to see its activity.",
+    title: "Take a seat to see its activity.",
     body: "The inbox reads your fills and settlements from the index. It needs no signature.",
     cta: "Connect",
   },
@@ -69,7 +69,7 @@ export const LIFECYCLE = {
   loss: (window: string, money: string | null) => ({ title: `${window} settled: you lost`, body: money ? `Net ${money}.` : "The Window settled the other way." }),
   voided: (window: string, money: string | null) => ({ title: `${window} was voided`, body: money ? `${money} comes back to you.` : "Your stake comes back to you." }),
   claimable: (window: string, money: string | null) => ({ title: `${money ?? "Winnings"} to claim`, body: `${window} settled. Claim it in Portfolio.` }),
-  paid: (window: string, money: string | null) => ({ title: "Paid automatically", body: `${money ? `${money} from ` : ""}${window} reached your wallet.` }),
+  paid: (window: string, money: string | null) => ({ title: "Paid automatically", body: `${money ? `${money} from ` : ""}${window} reached your seat.` }),
   copied: (window: string) => ({ title: `Copied on ${window}`, body: "A copy of your call was filled." }),
   more: (n: number) => ({ title: `${n} more ${n === 1 ? "update" : "updates"}`, body: "See them all in Activity." }),
 } as const;

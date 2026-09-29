@@ -36,7 +36,7 @@ export function StrategiesScreen({ houseRunner }: { houseRunner: string | null }
   }, []);
   const payload = reading && isOk(reading) ? reading.value : null;
   return <div className="container pt-7 pb-12">
-    <div className="strat-nameplate"><div><p className="strat-meta mb-3 text-vermilion">AGENTS · SOLANA DEVNET</p><h1 className="strat-h1">Give your strategy a life.</h1></div></div>
+    <div className="strat-nameplate"><div><p className="strat-meta mb-3 text-vermilion">AGENTS · CANTON TEST NETWORK</p><h1 className="strat-h1">Give your strategy a life.</h1></div></div>
     <p className="mb-7 max-w-2xl text-sm text-ink-secondary">Build an AI agent, a momentum or reversion rule, or a strategy that copies one trader's calls; test its thinking, and set the limits before it can trade.</p>
     <nav className="agent-entry" aria-label="Strategy workspace">
       {([["create", "Create"], ["copy", "Copy a strategy"], ["yours", "Your strategies"]] as const).map(([key, label]) => <button key={key} type="button" aria-pressed={view === key} onClick={() => setView(key)}>{label}</button>)}
@@ -67,11 +67,11 @@ function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPay
     if (requested && strategies.some((card) => card.strategyId === requested)) { setSelected(requested); setDrawerId(requested); }
   }, []);
   return <>
-    {view === "yours" && !writes.address ? <div className="strat-empty"><h2 className="strat-h2 mb-3">Your strategies, in one place.</h2><p className="mb-5 text-ink-secondary">Connect the wallet that created or copied them.</p><ConnectButton /></div> : <>
+    {view === "yours" && !writes.address ? <div className="strat-empty"><h2 className="strat-h2 mb-3">Your strategies, in one place.</h2><p className="mb-5 text-ink-secondary">Take the seat that created or copied them.</p><ConnectButton /></div> : <>
       {view === "yours" && own.length > 0 && <StrategyPicker strategies={own} selected={selected} onSelect={setSelected} subscriptionOf={desk.subscriptionOf} wallet={writes.address} pendingId={writes.pending?.strategyId ?? null} />}
       {view === "yours" && selected && <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} />}
       {writes.pending && <button type="button" className="desk-btn-primary mt-5" onClick={() => setDrawerId(writes.pending!.strategyId)}>Review unfinished copy of #{writes.pending.strategyId} →</button>}
-      {view === "yours" && !desk.readable && <p className="copy-progress">Your subscriptions and permissions have not been verified yet. Reconnect your wallet and retry if this continues.</p>}
+      {view === "yours" && !desk.readable && <p className="copy-progress">Your subscriptions and permissions have not been verified yet. Renew your seat and retry if this continues.</p>}
       {view === "yours" && desk.readable && own.length === 0 && <div className="strat-empty"><h2 className="strat-h2">No strategies here yet.</h2><p className="my-3 text-ink-secondary">Publish a strategy, or copy one with this wallet.</p><button type="button" className="desk-btn-primary" onClick={onCreate}>Create your first strategy →</button></div>}
       <StrategyGrid strategies={visible} subscriptionOf={desk.subscriptionOf} decimals={decimals} symbol={symbol} asset={STRATEGY_MARKETS} loadError={false} onOpen={(card) => { setSelected(card.strategyId); setDrawerId(card.strategyId); }} />
     </>}

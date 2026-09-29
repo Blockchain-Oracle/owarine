@@ -103,7 +103,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, in
       <View>
         <Text style={[ST.micro, { color: color.accent }]}>Creator studio</Text>
         <Text style={[ST.h2, styles.mt8, { color: color.ink }]}>Give your agent a way to think.</Text>
-        <Body style={styles.mt15}>Build your brief, try a read, then publish. Connect your wallet when you are ready to sign.</Body>
+        <Body style={styles.mt15}>Build your brief, try a read, then publish. Take a seat when you are ready to sign.</Body>
       </View>
       <View style={[styles.steps, { borderBottomColor: color.hairline }]} accessibilityLabel="Creation progress">
         {STEPS.map((label, index) => {

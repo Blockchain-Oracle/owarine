@@ -82,7 +82,7 @@ export function useCopySetup({ card, sub, grant, readable, writes, availableBase
     try {
       setResult(await operation());
     } catch (error) {
-      setResult({ ok: false, reason: error instanceof Error ? error.message : "The wallet action needs checking." });
+      setResult({ ok: false, reason: error instanceof Error ? error.message : "The seat action needs checking." });
     }
     currentFee.refresh();
   };
