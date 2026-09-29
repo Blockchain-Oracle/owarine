@@ -29,13 +29,13 @@ export const openWindow = (seriesCid: ContractId, index: number): Command =>
  */
 export const openWindowSpan = (seriesCid: ContractId, w: { index: number; tradingStartSec: number; lockAtSec: number; expirySec: number }): Command =>
   exercise(TEMPLATE_IDS.Series, seriesCid, "Series_OpenWindowSpan", {
-    index: int(w.index), tradingStart: isoOfSec(w.tradingStartSec), lockAt: isoOfSec(w.lockAtSec), expiry: isoOfSec(w.expirySec),
+    index: int(w.index), "tradingStart": isoOfSec(w.tradingStartSec), lockAt: isoOfSec(w.lockAtSec), "expiry": isoOfSec(w.expirySec),
   } satisfies Wire<PM.Series.Series_OpenWindowSpan>);
 
 /** 0.4.0: a committee yes/no event as the Series' next Window (`MarketTerms` + `EventTerms` + `EventState`, no `WindowState`). */
 export const openEvent = (seriesCid: ContractId, e: { index: number; question: string; tradingStartSec: number; lockAtSec: number; closeTimeSec: number }): Command =>
   exercise(TEMPLATE_IDS.Series, seriesCid, "Series_OpenEvent", {
-    index: int(e.index), question: e.question, tradingStart: isoOfSec(e.tradingStartSec), lockAt: isoOfSec(e.lockAtSec), closeTime: isoOfSec(e.closeTimeSec),
+    index: int(e.index), question: e.question, "tradingStart": isoOfSec(e.tradingStartSec), lockAt: isoOfSec(e.lockAtSec), closeTime: isoOfSec(e.closeTimeSec),
   } satisfies Wire<PM.Series.Series_OpenEvent>);
 
 export const skipTo = (seriesCid: ContractId, toIndex: number): Command =>

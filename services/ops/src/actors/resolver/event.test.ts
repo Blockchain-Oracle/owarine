@@ -15,7 +15,7 @@ describe("resolver: committee events (engine 0.4.0)", () => {
     const counted = eventEvidence(e, [
       att("a", true, 1_010), att("a", false, 1_020), // later second answer ignored
       att("b", true, 999), // before the close: ignored
-      att("c", true, 4_601), // past the deadline: ignored
+      att("c", true, 4_601), // after closeDeadlineSec: ignored
       att("x", true, 1_010), // not a member
       att("b", true, 1_030, { marketId: "EVT-OTHER:0" }),
       att("b", true, 1_040, { venue: "other" }),

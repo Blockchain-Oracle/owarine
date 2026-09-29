@@ -36,7 +36,7 @@ function fakeClient(series: Record<string, unknown>, submit: (commands: Command[
     synchronizerId: "sync",
     createdEvent: {
       offset: 1, nodeId: 0, contractId: "series-cid", templateId: "pkg:PM.Series:Series", packageName: "abu-pm-main", createArgument: series,
-      witnessParties: [VENUE], signatories: [VENUE], createdAt: "2026-09-16T00:00:00Z",
+      witnessParties: [VENUE], signatories: [VENUE], "createdAt": "2026-09-16T00:00:00Z",
     },
   };
   return {
@@ -81,7 +81,7 @@ describe("window-roller on a Gap Series (engine 0.4.0 span open)", () => {
     const ex = (sent[0]![0] as { ExerciseCommand: { choice: string; contractId: string; choiceArgument: Record<string, string> } }).ExerciseCommand;
     expect(ex.choice).toBe("Series_OpenWindowSpan");
     expect(ex.contractId).toBe("series-cid");
-    expect(ex.choiceArgument).toEqual({ index: "0", tradingStart: "2026-09-18T20:00:00Z", lockAt: "2026-09-21T00:00:00Z", expiry: "2026-09-21T13:30:00Z" });
+    expect(ex.choiceArgument).toEqual({ index: "0", "tradingStart": "2026-09-18T20:00:00Z", lockAt: "2026-09-21T00:00:00Z", "expiry": "2026-09-21T13:30:00Z" });
     expect((out.detail as { lanes: Record<string, string> }).lanes["TSLA-gap"]).toMatch(/^open #0 09-18 20:00Z–09-21 13:30Z v1/);
     expect(s.counters.opened).toBe(1);
   });
@@ -97,7 +97,7 @@ describe("window-roller on a Gap Series (engine 0.4.0 span open)", () => {
     await rollerPass(state(client), deps(calendarAt(utc("2026-09-24T20:00:00Z"))));
     const ex = (sent[0]![0] as { ExerciseCommand: { choice: string; choiceArgument: Record<string, string> } }).ExerciseCommand;
     expect(ex.choice).toBe("Series_OpenWindowSpan");
-    expect(ex.choiceArgument).toMatchObject({ index: "1", tradingStart: "2026-09-25T20:00:00Z", expiry: "2026-09-28T13:30:00Z" });
+    expect(ex.choiceArgument).toMatchObject({ index: "1", "tradingStart": "2026-09-25T20:00:00Z", "expiry": "2026-09-28T13:30:00Z" });
   });
 
   it("names the engine's span refusals on the lane instead of counting a failure", async () => {

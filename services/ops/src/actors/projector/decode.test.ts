@@ -127,7 +127,7 @@ describe("decodeTransaction on engine 0.4.0 templates", () => {
   const created = (template: string, contractId: string, createArgument: unknown) => ({
     CreatedEvent: {
       offset: 9, nodeId: node++, contractId, templateId: `pkg:${template}`, packageName: "abu-pm-main", createArgument, witnessParties: ["venue::1220"],
-      signatories: ["venue::1220"], createdAt: "2026-09-29T12:00:00Z",
+      signatories: ["venue::1220"], "createdAt": "2026-09-29T12:00:00Z",
     },
   });
   const exercised = (template: string, contractId: string, choice: string, consuming: boolean, lastDescendantNodeId: number) => ({
@@ -145,7 +145,7 @@ describe("decodeTransaction on engine 0.4.0 templates", () => {
       exercised("PM.Series:Series", "series-0", "Series_OpenEvent", true, 4),
       created("PM.Market:MarketTerms", "terms-1", {
         venue: "venue::1220", resolver: "resolver::1220", seriesKey: "EVT-DEMO-1", marketId: "EVT-DEMO-1:0", index: "0", symbol: "EVT-DEMO-1", cashUnit: "1000",
-        tradingStart: "2026-09-29T12:00:00Z", lockAt: "2026-09-29T12:04:30Z", expiry: "2026-09-29T12:05:00Z", openDeadline: "2026-09-29T12:04:30Z",
+        "tradingStart": "2026-09-29T12:00:00Z", lockAt: "2026-09-29T12:04:30Z", "expiry": "2026-09-29T12:05:00Z", openDeadline: "2026-09-29T12:04:30Z",
         closeDeadline: "2026-09-29T13:05:00Z", refundAfter: "2026-09-29T13:10:00Z", policyVersion: "1", printSource: "attested:committee:DEMO-1", minDelaySec: "0",
         barLenSec: "1", tieUp: true, oracles: ["o1::1220", "o2::1220", "o3::1220"], quorum: "2", maxDeviationBps: "0", closeAdmissionSec: "3600",
       }),
