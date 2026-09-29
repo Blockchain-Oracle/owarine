@@ -1,15 +1,13 @@
 import { diagnosisCopy, formatCadence } from "@agari/core/copy";
 import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@agari/core/types";
 import { formatBaseUnits, formatUtc, secToMs, shortHex } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { itemKey, legWords, progressCounts } from "@/features/markets/claims/claim-run";
 import type { ClaimItem, ClaimRun } from "@/features/markets/claims/types";
 import { useVoidWords } from "@/features/markets/claims/void-line";
 import { CLAIM } from "@/lib/copy";
 import { ErrorState } from "~/components/portfolio/web";
-import { openExternal } from "~/lib/external";
-import { marketsEnv } from "~/lib/env";
+import { openLedgerLink } from "~/lib/external";
 import { useTheme } from "~/theme";
 import { WEB_TYPE } from "~/theme/web/portfolio";
 
@@ -19,7 +17,7 @@ const money = (base: bigint, decimals: number, maxDp?: number) => formatBaseUnit
 function TxHash({ hash }: { hash: string }) {
   const { color } = useTheme();
   return (
-    <Pressable onPress={() => void openExternal(txUrl(hash as Parameters<typeof txUrl>[0], marketsEnv.cluster))} accessibilityRole="link" hitSlop={6}>
+    <Pressable onPress={() => void openLedgerLink("tx", hash)} accessibilityRole="link" hitSlop={6}>
       <Text style={[WEB_TYPE.caption, WEB_TYPE.numbers, styles.hash, { color: color.ink }]}>{shortHex(hash)}</Text>
     </Pressable>
   );

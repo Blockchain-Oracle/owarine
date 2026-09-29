@@ -1,6 +1,4 @@
 import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
-import { addressUrl } from "@agari/core/urls";
 import type { VaultGrant } from "@agari/core/vault";
 import { BlurView } from "expo-blur";
 import { X } from "lucide-react-native";
@@ -12,7 +10,7 @@ import { STRATEGIES } from "@/features/strategies/copy";
 import { strategyIdentity } from "@/features/strategies/identity";
 import type { StrategyWire } from "@/features/strategies/protocol";
 import { useStrategyHealth } from "@/features/strategies/useStrategies";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { AgentMemory } from "./AgentMemory";
 import { AgentPortrait } from "./AgentPortrait";
@@ -64,8 +62,8 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
                 <Text numberOfLines={1} style={[styles.name, { color: color.ink }]} accessibilityRole="header">
                   {name}
                 </Text>
-                <Pressable accessibilityRole="link" onPress={() => void openExternal(addressUrl(card.runner as Address))}>
-                  <Text style={[ST.meta, { color: color.inkMuted }]}>Runner on Solana ↗</Text>
+                <Pressable accessibilityRole="link" onPress={() => void openLedgerLink("address", card.runner)}>
+                  <Text style={[ST.meta, { color: color.inkMuted }]}>Runner's seat ↗</Text>
                 </Pressable>
               </View>
             </View>

@@ -1,8 +1,6 @@
 import { formatCadence } from "@agari/core/copy";
 import { assetTicker } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
-import { addressUrl } from "@agari/core/urls";
 import { router } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -12,7 +10,7 @@ import { captionParts } from "@/features/takes/cashtags";
 import { TAKES } from "@/features/takes/copy";
 import type { FeedTake } from "@/features/takes/protocol";
 import { addressHue } from "@/lib/address-hue";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { FONT } from "~/theme";
 import { takeAvatar } from "~/theme/web/reels";
@@ -87,7 +85,7 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: { take: 
       <View style={takeStyles.foot}>
         <View style={styles.prov}>
           <Text style={[styles.provText, { color: t.ink40 }]}>{TAKES.signed}</Text>
-          <Text style={[styles.provText, { color: t.ink40 }]} onPress={() => void openExternal(addressUrl(take.author as Address))} accessibilityRole="link">
+          <Text style={[styles.provText, { color: t.ink40 }]} onPress={() => void openLedgerLink("address", take.author)} accessibilityRole="link">
             {TAKES.verify}
           </Text>
           <Text style={[styles.provText, styles.room, { color: t.ink30 }]} onPress={() => toWindow(take.marketId)} accessibilityRole="link">

@@ -1,10 +1,8 @@
 import { formatBaseUnits, formatUtc } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X_CARD } from "@/features/x/copy";
 import type { XGrantState } from "@/features/x/useXGrant";
-import { openExternal } from "~/lib/external";
-import { marketsEnv } from "~/lib/env";
+import { openLedgerLink } from "~/lib/external";
 import { useXInk, xs } from "./ink";
 
 /** web `XPermissionPanel`'s title and sentence for the grant's state, word for word. */
@@ -63,7 +61,7 @@ export function XPermission({ grant, executor, symbol, disabled }: { grant: XGra
       ) : null}
       {pending?.txHash ? (
         <Pressable
-          onPress={() => void openExternal(txUrl(pending.txHash as Parameters<typeof txUrl>[0], marketsEnv.cluster))}
+          onPress={() => void openLedgerLink("tx", pending.txHash!)}
           accessibilityRole="link"
           style={[xs.btnInk, styles.gap, { borderColor: x.line }]}
         >

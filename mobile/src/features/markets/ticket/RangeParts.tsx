@@ -4,7 +4,7 @@ import type { TicketComposer } from "@/features/markets/ticket/useTicketComposer
 import { RANGE } from "@/features/range/copy";
 import { usdBand } from "@/features/range/format";
 import { BandControl } from "~/features/games/range/BandControl";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { useTk } from "./tk";
 import { useDrawerClose } from "~/components/drawer/BottomDrawer";
@@ -40,7 +40,7 @@ export function RangePlaced({ placed, onAnother }: { placed: { txHash: string; b
   return (
     <View style={styles.stack} accessibilityLiveRegion="polite">
       <Text style={[styles.body, { color: tk.ink }]}>{RANGE.cta.placed(placed.band)}</Text>
-      <Text style={[styles.link, { color: tk.inkSecondary }]} accessibilityRole="link" onPress={() => void openExternal(explorerUrl("tx", placed.txHash))}>
+      <Text style={[styles.link, { color: tk.inkSecondary }]} accessibilityRole="link" onPress={() => void openLedgerLink("tx", placed.txHash)}>
         {RANGE.ticket.viewTx}
       </Text>
       <View style={styles.row}>

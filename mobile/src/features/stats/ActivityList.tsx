@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ago, STATS } from "@/features/stats/copy";
 import type { TractionEvent } from "@/features/stats/protocol";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { exploreTokens } from "~/theme/web/explore";
 import { statsTokens } from "~/theme/web/explore/stats";
@@ -17,7 +17,7 @@ interface Props {
 
 /**
  * web's `ActivityList` (features/stats/StatsSections.tsx, stats.css .stats-activity): dot, kind · side · asset, the
- * wallet, the stake, the age and ↗ in one wrapping mono row; the row opens its transaction on Solana Explorer and the
+ * wallet, the stake, the age and ↗ in one wrapping mono row; the row opens its update's proof and the
  * wallet opens its account. `/stats` and the leaderboard's Live activity both draw it.
  */
 export function ActivityList({ events, decimals, symbol, nowMs }: Props) {
@@ -58,14 +58,14 @@ function Row({ event, decimals, symbol, nowMs, first }: { event: TractionEvent; 
   const wallet = shortHex(event.wallet, 6, 4);
   return (
     <Pressable
-      onPress={() => void openExternal(explorerUrl("tx", event.txHash))}
+      onPress={() => void openLedgerLink("tx", event.txHash)}
       accessibilityRole="link"
-      accessibilityLabel={`${kind}, ${wallet}, ${ago(event.atMs, nowMs)}. Open on Solana Explorer`}
+      accessibilityLabel={`${kind}, ${wallet}, ${ago(event.atMs, nowMs)}. Open its proof`}
       style={({ pressed }) => [styles.row, !first && { borderTopWidth: 1, borderTopColor: t.divider }, pressed && { backgroundColor: t.rowPressed }]}
     >
       <View style={[styles.dot, { backgroundColor: call ? accent : color.inkMuted, shadowColor: call ? accent : color.inkMuted }]} />
       <Text style={[styles.mono12, { color: gray300 }]}>{kind}</Text>
-      <Pressable onPress={() => void openExternal(explorerUrl("address", event.wallet))} hitSlop={6} accessibilityRole="link" accessibilityLabel={`Wallet ${wallet} on Solana Explorer`}>
+      <Pressable onPress={() => void openLedgerLink("address", event.wallet)} hitSlop={6} accessibilityRole="link" accessibilityLabel={`Seat ${wallet}`}>
         <Text style={[styles.mono12, { color: color.inkMuted }]}>{wallet}</Text>
       </Pressable>
       <View style={styles.spacer} />

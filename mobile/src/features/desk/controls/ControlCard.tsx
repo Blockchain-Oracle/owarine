@@ -1,11 +1,10 @@
 import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { CONTROLS, MONEY } from "@/features/desk/copy-controls";
 import { stamp } from "@/features/desk/format";
 import type { DeskPhase } from "@/features/desk/useDeskWrites";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { DkControl, DT, useDeskTheme } from "../kit";
 
@@ -75,7 +74,7 @@ export function ControlCard(p: ControlCardProps) {
         <Text style={[DT.body, { color: color.ink }]} accessibilityLiveRegion="polite">
           {p.done ?? C.done}{" "}
           {p.signature ? (
-            <Text style={{ color: color.accent }} accessibilityRole="link" onPress={() => void openExternal(txUrl(p.signature as Signature, "mainnet-beta"))}>
+            <Text style={{ color: color.accent }} accessibilityRole="link" onPress={() => void openLedgerLink("tx", p.signature!)}>
               {C.doneTx}
             </Text>
           ) : null}

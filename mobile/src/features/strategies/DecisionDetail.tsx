@@ -1,6 +1,4 @@
 import { formatCadence } from "@agari/core/copy";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import { BlurView } from "expo-blur";
 import { X } from "lucide-react-native";
 import type { ReactNode } from "react";
@@ -14,7 +12,7 @@ import { fillPriceCents, when, windowSpan } from "@/features/strategies/decision
 import { money } from "@/features/strategies/format";
 import { shortAddress } from "@/features/strategies/names";
 import type { DecisionWire, FillWire } from "@/features/strategies/protocol";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { ST, useStrat } from "./ui";
 
@@ -43,7 +41,7 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
 function Link({ label, hash }: { label: string; hash: string }) {
   const { color } = useStrat();
   return (
-    <Pressable accessibilityRole="link" onPress={() => void openExternal(txUrl(hash as Signature))}>
+    <Pressable accessibilityRole="link" onPress={() => void openLedgerLink("tx", hash)}>
       <Text style={[styles.link, { color: color.accent }]}>{label}</Text>
     </Pressable>
   );

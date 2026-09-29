@@ -6,7 +6,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { printSourceText } from "@/features/markets/verdict/print-source";
 import { buildTradeTweetText, type TradeCard } from "@/features/share/trade-card";
 import { MARKETS, VERDICT_UI } from "@/lib/copy";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { oraclePriceText } from "../parts/format";
 import { ClaimWinnings } from "./ClaimWinnings";
@@ -67,7 +67,7 @@ export function VerdictCard({ verdict, market, resolution, symbol }: Props) {
           <ReceiptRow
             label={VERDICT_UI.settlementTx}
             value={settlementTx ? shortHex(settlementTx, 10, 4) : "—"}
-            onPress={settlementTx ? () => void openExternal(explorerUrl("tx", settlementTx)) : null}
+            onPress={settlementTx ? () => void openLedgerLink("tx", settlementTx) : null}
             degradedLabel={VERDICT_UI.pendingTx}
           />
           <ReceiptRow

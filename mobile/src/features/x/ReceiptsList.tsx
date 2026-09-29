@@ -3,7 +3,7 @@ import { xReceiptRecovery, xRefusalCopy, type XReceipt } from "@agari/core/x";
 import { StyleSheet, Text, View } from "react-native";
 import { TRADE_FROM_X } from "@/features/x/copy";
 import { receiptDisplay } from "@/features/x/receipt-display";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { tradeXTokens, type TradeXTokens } from "~/theme/web/products/trade-x";
 
@@ -41,7 +41,7 @@ export function ReceiptsList({ receipts, configured, decimals, symbol, onRecover
                 {txHash ? (
                   <>
                     {display.summary ? " · " : ""}
-                    <Text style={{ color: t.v }} accessibilityRole="link" onPress={() => void openExternal(explorerUrl("tx", txHash))}>{shortHex(txHash)}</Text>
+                    <Text style={{ color: t.v }} accessibilityRole="link" onPress={() => void openLedgerLink("tx", txHash)}>{shortHex(txHash)}</Text>
                   </>
                 ) : null}
               </Text>

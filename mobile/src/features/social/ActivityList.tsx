@@ -9,7 +9,7 @@ import type { ActivityFeed, ActivityItem } from "@/features/activity/protocol";
 import { timeAgo } from "@/features/markets/history/time-ago";
 import type { FeedTake } from "@/features/takes/protocol";
 import { haptic } from "~/components/kit";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, TYPE, useTheme } from "~/theme";
 import { HueAvatar } from "./HueAvatar";
 
@@ -33,7 +33,7 @@ function openItem(item: ActivityItem): void {
   }
   const txFirst = item.kind === "fill" || item.kind === "resting-filled" || item.kind === "paid-automatically" || item.kind === "copied";
   if (txFirst && item.signature) {
-    void openExternal(explorerUrl("tx", item.signature as Signature));
+    void openLedgerLink("tx", item.signature as Signature);
     return;
   }
   if (item.marketId) router.push(`/markets/${item.marketId}`);
