@@ -20,18 +20,18 @@ describe("retired documentation bookmarks", () => {
     expect(getRedirectUrl(response)).toBe("https://docs.example.com/");
   });
 
-  it("sends bookmarks to the Agari docs site while no other host is configured", async () => {
+  it("keeps bookmarks inside the app, on its explainer, while no docs host is configured", async () => {
     vi.stubEnv("NEXT_PUBLIC_DOCS_URL", undefined);
     vi.resetModules();
     const { default: nextConfig } = await import("../../next.config");
     const routes = await nextConfig.redirects?.();
-    expect(routes?.find((route) => route.source === "/docs")?.destination).toBe("https://docs.useagari.xyz");
+    expect(routes?.find((route) => route.source === "/docs")?.destination).toBe("/how-it-works");
   });
 
-  it("lands a nested guide bookmark on the same guide of the docs site", async () => {
+  it("lands a nested guide bookmark on the in-app explainer while no docs host is configured", async () => {
     const response = await responseFor("/docs/start/wallet");
     expect(response.status).toBe(307);
-    expect(getRedirectUrl(response)).toBe("https://docs.useagari.xyz/start/wallet");
+    expect(getRedirectUrl(response)).toBe("https://agari.app/how-it-works");
   });
 
   it("preserves nested guides and their query on a configured docs origin", async () => {

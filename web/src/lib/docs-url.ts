@@ -1,15 +1,17 @@
 /**
- * Where "Docs" points: the Agari docs site (`docs-site/`, served at docs.useagari.xyz since S25.1). The documentation is
- * a separate application, so a deployment may point elsewhere with `NEXT_PUBLIC_DOCS_URL`; every `/docs/*` bookmark
- * lands on the same path there.
+ * Where "Docs" points. The documentation is a separate application (`docs-site/`, ported for Canton in C10), so a
+ * deployment names its host with `NEXT_PUBLIC_DOCS_URL`, and every `/docs/*` bookmark lands on the same path there.
+ * With no host configured the link stays inside the app, on its own explainer, rather than pointing at another
+ * product's domain.
  */
-const DOCS_ORIGIN = "https://docs.useagari.xyz";
+const IN_APP_DOCS = "/how-it-works";
 
 const configured = process.env.NEXT_PUBLIC_DOCS_URL?.trim().replace(/\/+$/, "") || null;
 
-export const DOCS_URL = configured ?? DOCS_ORIGIN;
+export const DOCS_URL = configured ?? IN_APP_DOCS;
 
-/** Resolve a documentation page beneath the docs site, including any base path. */
+/** Resolve a documentation page beneath the docs site, including any base path; the in-app explainer has one page. */
 export function docsUrl(path = ""): string {
-  return path ? `${DOCS_URL}/${path.replace(/^\/+/, "")}` : DOCS_URL;
+  if (!configured) return IN_APP_DOCS;
+  return path ? `${configured}/${path.replace(/^\/+/, "")}` : configured;
 }

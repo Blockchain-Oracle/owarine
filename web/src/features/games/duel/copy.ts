@@ -66,8 +66,8 @@ export const DUEL = {
     costNoPot: "No side-pot is escrowed.",
     costCards: (cap: string, symbol: string) =>
       `Up to ${cap} ${symbol} per card, spent as a real order on that Window. You keep what those positions pay, win or lose the pot.`,
-    costGas: "One signature. Entering names a key this browser holds to place your picks and sends it the SOL their network fees need; nothing else is asked of your wallet. There is no sponsor ready on this deployment, so that SOL is yours.",
-    costGasSponsored: "One signature. Entering names a key this browser holds to place your picks; this deployment's sponsor sends that key the SOL their network fees need. Your wallet pays only for the entry itself.",
+    costGas: "One signature. Entering names a key this browser holds to place your picks. Canton charges no network fee, so nothing else is asked of your seat.",
+    costGasSponsored: "One signature. Entering names a key this browser holds to place your picks. Canton charges no network fee, so nothing else is asked of your seat.",
     /** The chosen stake's own queue, so "nobody is here" is never said about the wrong one. */
     queueHere: (n: number) => (n === 0 ? "Nobody is waiting at this stake" : n === 1 ? "1 player waiting at this stake" : `${n} players waiting at this stake`),
     find: "Find a match",
@@ -80,7 +80,7 @@ export const DUEL = {
     notDeployed: "No GameArena is deployed on this network.",
     balance: "Your balance",
     balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${need} ${symbol} and this wallet holds ${have}.`,
-    gasNeeded: "Picks are your own transactions, so this wallet also needs SOL for network fees.",
+    gasNeeded: "Picks are your own calls; Canton charges no network fee for them.",
     /**
      * Said before the search, not at the first transaction.
      *
@@ -88,8 +88,8 @@ export const DUEL = {
      * "open the match" button costs the other player the whole pairing. On 2026-09-04 both browsers in a
      * live session held 0 STT and the entry let them queue anyway.
      */
-    gasShort: "This wallet holds no SOL, and every step of a duel — opening the match, joining it, each pick — is a transaction you sign and pay for yourself.",
-    gasShortSponsored: "This wallet holds no SOL. Your picks' fees are the sponsor's, but opening or joining a match is a transaction your wallet pays for itself.",
+    gasShort: "Every step of a duel — opening the match, joining it, each pick — is a call your seat places; Canton charges no network fee for any of them.",
+    gasShortSponsored: "Every step of a duel — opening the match, joining it, each pick — is a call your seat places; Canton charges no network fee for any of them.",
     gasCheck: "Checking this wallet can pay for its own transactions…",
     gasRecheck: "I have funded it — check again",
   },
@@ -133,10 +133,10 @@ export const DUEL = {
     joinBody: (pot: string, symbol: string) =>
       pot === "0" ? "The match is on chain and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on chain and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
     /** Said under the entry's own sentence once this browser holds a key: what else the one signature does. */
-    oneSignature: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks, and sends it the SOL their network fees need.",
+    oneSignature: "This is the only signature the match asks of your seat: it also names the key this browser holds to place your picks. Canton charges no network fee.",
     oneSignatureSponsored: "This is the only signature the match asks of your wallet: it also names the key this browser holds to place your picks. The sponsor pays their network fees.",
-    sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the fees its picks need." : `The sponsor sent your key ${amount} SOL for its picks.`),
-    sponsorDeclined: (why: string) => `The sponsor declined to fund your key: ${why}. Your picks will wait until it holds SOL for fees — the stage offers a way.`,
+    sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the fees its picks need." : `Your key needs nothing for its picks: Canton charges no network fee (${amount}).`),
+    sponsorDeclined: (why: string) => `The venue could not ready your key: ${why}. Your picks wait until it can — the stage offers a way.`,
     waitingCreate: "Waiting for the other player to put the match on chain.",
     opening: "Opening…",
     joining: "Joining…",
@@ -201,13 +201,13 @@ export const DUEL = {
     locking: "Closing…",
     /** The key's own state, while it is the thing placing picks. */
     keySwipes: "Your key places each pick — no wallet prompt.",
-    keyGasShort: "Your key holds no SOL for this pick's network fee, so nothing will fill until it does.",
+    keyGasShort: "Your key is not ready for this pick yet, so nothing will fill until it is.",
     keyGasShortWhy: "The entry funds a key for one deck's picks and a retry each; a longer run of retries spends that.",
     askSponsor: "Ask the sponsor to fund it",
     asking: "Asking the sponsor…",
-    fundKey: (amount: string) => `Fund it from your wallet (${amount} SOL)`,
+    fundKey: (amount: string) => `Ready it from your seat (${amount})`,
     funding: "Waiting for your wallet…",
-    keyFunded: "Your key holds SOL for fees again.",
+    keyFunded: "Your key is ready again.",
     /** Flicky's auto-swipe: at a card's own deadline the favoured side is played rather than the card forfeited. */
     autoPlayed: "played for you at the deadline",
     autoNote: (side: string) => `Time ran out on that card, so your key played the favoured side — ${side}.`,
@@ -262,7 +262,7 @@ export const DUEL = {
       sharing: "Rendering…",
       copy: "Copy link",
       copied: "Copied!",
-      verifyLine: "Verify on Solana Explorer",
+      verifyLine: "Verify on the proof page",
       footerKind: "DUEL",
       reopen: "See the result",
       shareText: (verdict: "won" | "lost" | "tied", ret: string | null, url: string) =>

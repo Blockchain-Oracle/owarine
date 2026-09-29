@@ -1,7 +1,10 @@
 import { DOCS_URL } from "@/lib/docs-url";
 
-/** S25: where the prices come from, in one factual line; every print is checked by the program before a Window settles. */
-const CREDIT = "Prices from PreStocks, Pyth, RedStone and Switchboard · every print verified on Solana";
+/**
+ * S25: where the prices come from, in one factual line. On Canton the venue's oracle parties sign every print, and each
+ * one is re-checkable on the proof page; the upstream sources are named neutrally, as data, not as a chain.
+ */
+const CREDIT = "Prices signed by the venue's oracle parties from exchange, PreStocks, Pyth, RedStone and Switchboard data · every print checkable on the proof page";
 
 export default function Footer() {
   return (

@@ -23,7 +23,7 @@ export const TICKET = {
   creditNote: (creditText: string) => `${creditText} comes from your venue payout credit first.`,
   /** agari-events holds a seat bond on a wallet's first order in a Window and returns it at redeem. */
   seatDeposit: (bondText: string) => `${bondText} refundable seat deposit on your first order in a Window.`,
-  approvalNote: "Two signatures this first time: approve tUSDC, then your order.",
+  approvalNote: "Two signatures this first time: approve credits, then your order.",
   advanced: (fromCadence: string, toCadence: string) =>
     `That ${fromCadence} Window closed for entries — moved you to the next ${toCadence} Window. Side and stake kept.`,
   buy: (side: string) => `Buy ${side} for`,
@@ -61,7 +61,7 @@ export const TICKET = {
   private: "Private",
   /** The account gates (L1124–1173). */
   gate: {
-    connect: "Bets are placed from your wallet and winnings land back in it. Connect to place one.",
+    connect: "Calls are placed from your seat and winnings land back in it. Take a seat to place one.",
     topUp: "Top up to place this",
     holds: (have: string, symbol: string, source: string) => `${source} holds ${have} ${symbol}.`,
     need: (need: string, symbol: string) => `Add ${need} ${symbol} more to place this — grab test funds from the faucet if you're short.`,
