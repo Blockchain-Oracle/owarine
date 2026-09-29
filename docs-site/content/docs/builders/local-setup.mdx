@@ -1,22 +1,24 @@
 ---
 title: "Run Agari locally"
-description: "Install, check and build the application from its integration checkout."
+description: "Install, check and build the app, the Daml package and a local Canton sandbox."
 ---
 
-Run these commands from the repository root, **not** from `docs-site/`. The branch reviewed here is `integration/w1` at `b98d1e40`. Check the current source and public evidence before changing behavior.
+Run these commands from the repository root, **not** from `docs-site/`. Check the current source and evidence before changing behavior.
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm typecheck && pnpm invariants
+pnpm typecheck && pnpm invariants && pnpm test
 pnpm build
 ```
 
-The program build is separate:
+The Daml package is built and tested with `dpm` (Daml SDK 3.5):
 
 ```sh
-NO_DNA=1 anchor build --arch v0
+cd daml && dpm build --all && (cd pm-tests && dpm test)
 ```
 
-Anchor 1.2 otherwise defaults to an SBPF architecture the deployment does not use. The app's `.env.example` files list configuration names; keep provider keys on the server and Solana keypairs under `~/.config/agari/`. Running a local app does not start the production actors or fund a wallet. See the application's README for the exact service and environment prerequisites.
+After a change to the Daml package, regenerate the TypeScript bindings with `pnpm codegen:daml`; the generated files are never edited by hand.
 
-The docs site has its own lockfile in `docs-site/` and needs only Node 22+ and pnpm 11.24: from that folder, `pnpm install --frozen-lockfile`, then `pnpm check`. It renders without wallets, a database or provider credentials, and its check reads the app source from the parent directory.
+To run the venue end to end, start a local Canton sandbox with the built DAR (`dpm sandbox --json-api-port 7575 --dar …`), then run `scripts/bootstrap-local.ts` once. It uploads the package, allocates the venue, resolver, three oracle and seat parties, creates the venue's cash and the demo Series, and writes the parties file ops reads. `pnpm ops:start` then runs the venue actors, and `pnpm dev` the web app. The `.env.example` files list the configuration names; keep keys on the server. A local run uses its own parties and its own database, and touches no shared network.
+
+The docs site has its own lockfile in `docs-site/` and needs only Node 22+ and pnpm 11.24: from that folder, `pnpm install --frozen-lockfile`, then `pnpm check`. It renders without a seat, a ledger or provider credentials, and its check reads the app source from the parent directory.

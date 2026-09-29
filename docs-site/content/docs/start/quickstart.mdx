@@ -1,46 +1,40 @@
 ---
 title: "Make your first call"
-description: "Go from browsing to a settled result with devnet test funds."
+description: "Go from browsing to a settled result with demo credits."
 ---
 
-A call is a prediction about a listed price during a **Window**: one asset, one open, one close, one cadence (5m, 15m or 60m for stocks during NYSE hours; one hour around the clock for tokenized stocks, PreStocks names and baskets; the whole weekend for the Monday Gap). Choose Up or Down, pay the amount shown, then wait for the closing print to settle it.
+A call is a prediction about a listed price during a **Window**: one asset, one open, one close, one cadence. Choose Up or Down, pay the amount shown, then wait for the closing print to settle it.
 
-Agari runs on **Solana devnet**. Trading collateral is **tUSDC**, a devnet test token with no market value. You can browse <AppLink href="/markets">Markets</AppLink> and read every price without a wallet.
-
-<GuideCapture name="markets" caption="TSLA is shown after hours with the next Window listed. Prices and countdowns change; this capture does not show a placed call." />
+Agari runs on a **Canton test network**. The money is **demo credits**, worth nothing anywhere else. You can browse <AppLink href="/markets">Markets</AppLink> and read every price without a seat.
 
 <Steps>
 <Step>
-### Connect your wallet
+### Take a seat
 
-Open <AppLink href="/markets">Markets</AppLink> and choose **Connect**. Agari uses the Wallet Standard, so Phantom, Solflare and Backpack all work the same way — approve the connection in your wallet. If the app shows the wrong network, switch to **Solana devnet**.
+Open <AppLink href="/markets">Markets</AppLink> and choose **Take a seat**. This browser makes a signing key that cannot leave it, and the venue leases you a Canton party of your own. There is no wallet to install and no network to switch. [Your seat](/start/wallet) explains what that means.
 
-Connecting lets the app see your address. It does not place an order.
+Taking a seat does not place a call.
 </Step>
 <Step>
-### Get devnet funds
+### Your demo credits
 
-Open **Get test funds** in the header or Portfolio. The faucet mints devnet SOL (for network fees) and tUSDC (for trading) to your wallet in one flow — the app's own faucet route posted both a SOL top-up and a 10,000-tUSDC mint in a single confirmed devnet transaction during testing, with no separate external faucet needed. [Wallet setup](/start/wallet) covers what to do if a claim is rate-limited.
+A new seat starts with demo credits. Canton charges no network fee, so there is nothing else to top up.
 </Step>
 <Step>
 ### Choose a Window and a side
 
-Pick a ticker and a live Window. **Up** wins when the settlement print is at or above the opening print; **Down** wins otherwise (a tie goes to Up — stocks tick to the cent, so exact ties happen more than they would on a continuous price).
-
-Start with an ordinary wallet order at 1× before trying a pre-open call or a longer Window.
+Pick a ticker and a live Window. **Up** wins when the closing print is at or above the opening print; **Down** wins otherwise (a tie goes to Up).
 </Step>
 <Step>
 ### Review and place
 
-Enter your stake and side. Depending on what's resting on the book, your order fills one of four ways: it trades directly against an opposite order at that order's price, or it mints or burns a complete Yes/No pair against a matching taker on the other side. All four pay out exactly the same way at settlement — the fill path only changes who's on the other side of your trade, never the payout rule.
-
-A **Normal** order rests if it doesn't fully fill; **IOC** and **FOK** never rest; **PostOnly** never takes — useful for a pre-open call, covered in [Pre-open calls](/trading/pre-open-calls).
+Enter your stake and side. The venue gives you a **firm quote**: one price, valid for a few seconds. The ticket shows the exact cost, fee included, before you accept. Accepting creates your position, which only your seat and the venue can see.
 </Step>
 <Step>
 ### Watch and collect
 
-Open <AppLink href="/portfolio">Portfolio</AppLink> to watch the Window. When it closes, the venue records a signed price print, verifies it on-chain, and settles the Window — or voids it honestly (0.5/0.5 back) if a print never arrived or two price sources disagreed past the allowed divergence. Either way, claim your result from Portfolio; nothing pays out automatically into your wallet.
+Open <AppLink href="/portfolio">Portfolio</AppLink> to watch the Window. When it closes, the resolver settles it from the oracle parties' signed prints — or voids it if too few prints arrived or they disagreed too much, and a void returns your stake and your fee. The venue pays settled positions to your seat; each result's evidence opens on the proof page.
 </Step>
 </Steps>
 
-[Your first call, in full](/trading/first-trade) covers partial fills, resting orders and what a void actually looks like. [What is available](/help/availability) explains which parts of the app need a wallet, a deployed program, or a running service — and which are read-only right now.
+[Your first call, in full](/trading/first-trade) covers what a void looks like. [What is available](/help/availability) explains which parts of the app are running now and which are planned.

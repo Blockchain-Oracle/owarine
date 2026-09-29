@@ -1,24 +1,34 @@
 ---
-title: "Ops and the indexer"
-description: "The off-chain actors that operate the venue's clock and price feed."
+title: "Ops and the projector"
+description: "The off-chain actors that run the venue's clock, prices and settlement, and the projector the app reads from."
 ---
 
-Nothing in `services/ops` holds a user's funds. Its actors operate the venue's clock and its price feed, as separate roles each with their own key, run from one process (a single writer per role, so two processes never race to sign with the same key).
+Nothing in `services/ops` holds a visitor's key. Its actors act as the venue's own parties — the venue, the resolver and the three oracles — each a single writer, run from one process. Every command carries a fixed id (`open:<series>:<index>`, `print:<oracle>:<T>`, `resolve:<terms>`), so a retry never does the same thing twice.
 
 | Actor | What it does |
 | --- | --- |
-| Window-roller | Lists and rolls Windows on the calendar cadence (5m/15m/60m during NYSE hours, the Monday Gap, and the one-hour 24/7 lanes for xStocks, OpenAI's PreStocks token and the five baskets). It pre-lists the first Window of the next session at the prior close, so a [pre-open call](/trading/pre-open-calls) has somewhere to rest overnight. |
-| Price-relay | Posts boundary prints. The program checks signatures, timestamps and the configured policy. For PreStocks, the venue signs a value from the unsigned catalogue; that attests the venue's read, not an independent oracle. |
-| Settler / halt-watch | Cranks settlement and voids once a Window's conditions are met, and watches for a halt signal. Settlement and voiding are permissionless instructions in `agari-events` — anyone can call them once the on-chain conditions hold; the settler just does it promptly. |
-| Market-maker | Seeds both sides of a Window's order book with a small, capped quote, so a Window isn't empty the instant it opens. When fair value sits near an edge, the far side is pinned at the edge of the price range rather than dropped, so a lopsided Window still offers both Up and Down. |
-| Indexer | Reads the chain and serves it back to the web app: prices, books, a wallet's positions, the proof feed. Read-only, no signing key. |
-| Strategy runner | Places copy and fade calls for [published strategies](/agents/copy-strategies) inside each copier's grant. It trades stock Windows only; while none is trading it rests, checking every five minutes with no model call. |
-| Desk runner | Runs practice checks and, after a separate mainnet deployment, would propose buys or sells inside an owner's on-chain limits. It has no withdrawal authority. |
+| Roller | Opens each Window on its Series' cadence with `Series_OpenWindow`. Today's lanes are BTC and ETH Windows on a 5-minute cadence and a 1-minute demo cadence. |
+| Oracle feeders | Three oracle parties, one per exchange (Coinbase, Kraken, Bitstamp). At each minute boundary each posts the close of its exchange's 1-minute candle as a `PriceQuote`. The raw response is archived byte for byte, and its hash goes on the quote. |
+| Resolver | Records the opening print and, after the close, resolves or voids the Window from the oracle quotes (a quorum of 2 of the 3 oracles; quotes more than 1% apart void the Window). |
+| Pricer | Publishes the venue's price ladder for each Window. It writes nothing to the ledger. |
+| Issuer | Turns a seat's request into a firm `Quote` at a ladder price, from one of the venue's cash shards. |
+| Sweeper and rebalancer | Expire quotes nobody accepted and keep the venue's cash shards the right size. |
+| Netting and settler | Merge the venue's matching positions, then settle each resolved Window's legs in batches with `Desk_SettleBatch`. |
+| Seat funding and drain | Fund a newly leased seat with demo credits; when a seat is released, withdraw its open quotes, close its open legs at cost and sweep its cash. |
+| Reserve reporter | Reports what the venue holds against what it owes. |
+
+## The projector
+
+The app does not read the ledger row by row. The **projector** follows the venue's stream of ledger updates and writes them into database tables: Windows, prints, quotes, positions, resolutions. The web app's `/api/index` routes read those tables. It is the venue's view as counterparty, and the screens say so. A rebuild replays the ledger into a fresh database and must match the live one. Leaderboards and takes read only calls their owners chose to publish.
+
+Your own positions and cash are read from the ledger **as your seat's party**, so the app shows you exactly what Canton lets your party see.
 
 ## Always on, even when the market is closed
 
-When NYSE is closed, `/markets` still shows the last price, the last session's chart, the session with the next open in the reader's clock, the 24/7 Windows still trading, and stock Windows to schedule a call on — never a blank screen or a stale "loading" label. A last known reading, correctly labeled with its age, is more honest than hiding the page. [Sessions and lanes](/trading/sessions-and-lanes) describes the closed board.
+`/markets` never goes blank: the crypto Windows trade around the clock, and a last known reading is shown with its age rather than hidden. [Sessions and lanes](/trading/sessions-and-lanes) describes the board.
 
 ## What this buys you, and what it doesn't
 
-An ops role key can post a price, roll a Window, or crank a settlement — none of that spends a user's devnet tUSDC or SOL. The user's wallet or a session key under a bounded `agari-vault` grant signs an order. If an ops process is down, a stalled roller lists no new Windows; a stalled price-relay leaves a Window waiting and eventually voiding. The [desk](/architecture/desk) has a separate mainnet operator and attestor trust boundary. [Status](/help/status) shows the running actors.
+An ops actor can open a Window, post a print or settle — it cannot spend your credits, accept a quote for you or resolve a Window alone: resolution needs the resolver's choice and an oracle quorum, and the tests prove the venue cannot confiscate a position. If ops is down, no new Windows open; a Window whose prints never arrive voids, and after its refund time you can take your stake back yourself. [Status](/help/status) shows the running actors.
+
+**Planned:** the stock, xStock, PreStocks and Pyth-valued lanes (their prices posted by the same oracle parties), the strategy and desk runners, and the game actors are not wired onto Canton yet.

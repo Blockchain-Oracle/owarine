@@ -1,24 +1,28 @@
 ---
 title: "How Agari fits together"
-description: "Devnet prediction Windows and the separate PreStocks desk share an app but use different money paths."
+description: "A prediction market on Canton Network: Daml contracts hold the money rules, parties hold the privacy, and demo credits are the only money."
 ---
 
-Agari is a Solana app for short stock-price calls, holder cover and verifiable results. Its core venue is an **Anchor order book**. It lists Windows, matches Up and Down orders, records signed opening and closing prints, settles, and lets owners claim. The PreStocks desk is a separate program designed to hold tokens on mainnet; its paper practice flow is available while its mainnet deploy is pending.
-
-<Architecture name="venue" />
+Agari is a prediction market on **Canton Network** for short price calls: will a price close its Window up or down. The money rules live in a **Daml package** (`abu-pm-main`), not in the web app. The venue lists Windows and quotes a firm price for each side; you accept a quote from your seat; three oracle parties sign the prices; a separate resolver party settles each Window exactly once. Everything runs on a Canton test network with **demo credits** that are worth nothing anywhere else.
 
 | Layer | Responsibility |
 | --- | --- |
-| Web app | Shows markets, baskets, tickets, desk decisions and receipts. It does not hold a user's private key. |
-| `packages/core` | Pure registry, market and desk rules; integer money arithmetic. |
-| `packages/markets` | Only Solana integration and transaction boundary. It builds instructions and reads the chain. |
-| Anchor programs | Nine devnet programs cover the venue, vault, reserves, strategies, Private and Duel; `agari-desk` was rehearsed on a mainnet fork and awaits its mainnet deploy. See [the program map](/architecture/programs). |
-| Ops and indexer | Roll Windows, relay prices, settle, quote, run paper desks and serve reads. These role keys do not replace the owner's wallet. |
+| Web app and phone app | Show markets, the ticket, positions, receipts and proof. Your seat's signing key lives in the browser (or the phone) and cannot be exported. |
+| `packages/core` | Pure market, registry and money rules; integer arithmetic. |
+| `packages/markets`, `packages/ledger` | The only code that talks to the Canton ledger: it builds Daml commands and reads contracts through the JSON Ledger API. |
+| Daml package `abu-pm-main` | The contracts: Series, Window terms, oracle prints, quotes, positions (legs), cash and the resolution chain. See [The Daml engine](/architecture/programs). |
+| Ops and the projector | Open Windows, post oracle prints, price and issue quotes, resolve, settle and fund seats; the projector turns the venue's ledger view into the tables the app reads. See [Ops and the projector](/architecture/ops-and-indexer). |
 
-## Two money paths
+## Who can see what
 
-**Predict and Cover:** tUSDC with no market value on Solana devnet. A normal order is wallet-signed. A funded Trading Balance can use a bounded grant for tap-trading. The resulting Window settles from signed prints and the on-chain program, not a browser decision.
+Canton shows a contract only to the parties on it. A position (a `Leg`) is signed by the venue and its owner, so **only your seat's party and the venue can see it**. Another visitor, an oracle or the resolver does not. Prices and Window terms are shared with the parties that need them. The app's **Who can see this** notes and the view switcher on a market page show the same rule on screen.
 
-**Hold through a desk:** a paper ledger during practice. A future Go live step would use real USDC and PreStocks on Solana mainnet. The owner chooses assets and limits; a runner chooses timing; `agari-desk` checks every operator action and the owner alone may withdraw. [How the desk decides](/architecture/desk) records the trust boundary.
+## Seats instead of wallets
 
-A read-only visitor can browse markets, basket marks, desk shares and proof without signing. A displayed screen is not a confirmed transaction. Use [Programs](/architecture/programs), [Price sources](/architecture/price-sources) and <AppLink href="/status">live status</AppLink> to see which path is ready. [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) follows the two outside price sources that decide money through the product.
+There is no wallet app to install. **Take a seat** makes a signing key in your browser that cannot leave it, and the venue leases you a Canton party of your own, funded with demo credits. A seat is released after it has been idle and has no open positions; before it is reused, its positions settle and its cash is swept, so the next visitor starts from an empty party. Canton charges no network fee, so there is no gas to buy. [Your seat](/start/wallet) has the details.
+
+## One money path today
+
+**Predict:** demo credits on a Canton test network. You accept a firm quote; the stake and a fee are locked in your position; the Window settles from the oracle parties' signed prints. A void returns the stake and the fee.
+
+**Planned:** the desk's live leg, holder cover that reads real holdings, and the other products (Range, Boost, Parlay, Earn, games) are being ported onto the same contracts. Until each one lands, its screens say so. A read-only visitor can browse markets and proof without a seat. Use <AppLink href="/status">Status</AppLink> to see what is running now, and [Price sources](/architecture/price-sources) for how a price becomes a settlement.

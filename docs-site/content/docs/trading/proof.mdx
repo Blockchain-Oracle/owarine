@@ -1,16 +1,16 @@
 ---
 title: "Read a Window's proof"
-description: "Trace its opening and closing prints, policy source, and on-chain recording transactions."
+description: "Trace its opening and closing prints, the oracle parties that signed them, and the evidence behind each."
 ---
 
-<AppLink href="/proof">Proof</AppLink> lists settled Windows. Start with a ticker or filter by source, then open a row. The page shows the **opening** and **closing** boundary values, their recording transactions and the policy used to accept them. The program settles from these recorded values, not the latest display price.
+<AppLink href="/proof">Proof</AppLink> lists settled Windows. Open a row to see that Window's **proof page**: the opening and closing boundary values, each oracle party's quote at the close, the median the resolver took, and the outcome or the void reason. The resolver settles from these recorded quotes, not from the latest display price.
 
-<GuideCapture name="proofFeed" caption="The connected-session proof feed is public data. Its rows show closed Windows and their policy sources." />
+## The resolution timeline
 
-## Check the units and source
+Each proof page walks through the Window's life in order: opened, opening print recorded, closing quotes posted by each oracle, resolved or voided. Beside it, the trust boundary says who could have done what: the oracles post prices, the resolver decides, and the venue alone cannot resolve.
 
-Equity and individual PreStocks token prints are prices; a basket print is an **index in points**. In this AI Labs example, the PreStocks catalogue supplied both members in one read and **Agari's attestor** signed the calculated index. That is different from a Pyth-signed update.
+## Check the evidence
 
-<GuideCapture name="basketProof" caption="The AI Labs detail names its PreStocks source, index points and recording transactions. A recording link is evidence of an instruction; verify the transaction's actual effect if you need to audit it." />
+Each oracle quote carries the hash of the raw exchange response it was read from, and that response is archived byte for byte. Anyone can hash the archived payload, compare it with the quote, and read the candle's close from it. An absent archived payload should be treated as unavailable evidence even if the quote itself is on the ledger.
 
-Use the [price-source map](/architecture/price-sources) to see each verification path. An absent archived source package should be treated as unavailable evidence even if the on-chain print and recording transaction are present.
+Use the [price-source page](/architecture/price-sources) for the quorum and agreement rules.

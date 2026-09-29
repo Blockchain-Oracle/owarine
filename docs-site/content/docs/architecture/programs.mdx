@@ -1,29 +1,31 @@
 ---
-title: "The Solana programs"
-description: "What is deployed on devnet, what was rehearsed on a mainnet fork, and what each program enforces."
+title: "The Daml engine"
+description: "The contracts in abu-pm-main, who signs each one, and what they enforce."
 ---
 
-| Program | Address | Observed state at the 23 September 2026 review |
+Agari's rules are one Daml package, `abu-pm-main` (Daml SDK 3.5), with its tests in `pm-tests`. Every contract names the parties that sign it and the parties that may see it; the ledger enforces both.
+
+| Contract | Signed by · seen by | What it holds |
 | --- | --- | --- |
-| `agari-events` | `cDcHZiQ1WYAHbSjxMoju86fbC8azrtQg7dzrWKynANH` | Deployed on devnet, upgraded in place; on-chain IDL and confirmed order/settlement transactions. |
-| `agari-vault` | `84puRVxGcjs7JNcPCVAEkkK6ZFXneEC8yky8RTMzhPi9` | Deployed and initialized on devnet; Trading Balance and bounded grants have devnet evidence. |
-| `agari-maker` | `442oD4u4fHnAwPjSqdQvkgGeDaGVEZ9YHHaLny98nEaN` | Deployed on devnet; maker inventory and provider shares back [Earn](/trading/earn). |
-| `agari-range` | `GfsAzxPeNp2cbUTrXehHBjLjAMX6Cf69gz2zJYkGM7ha` | Deployed on devnet; prefunded Range and Moonshot outcomes. |
-| `agari-leverage` | `2yMrhq686tL6uAUFHfKGsPZAWSGoQoRW9HxNvnAZJeQb` | Deployed on devnet; funded Boost positions and knock-out rules. |
-| `agari-parlay` | `H4gdpoPirbtHP6hNdiQRLwfifjshdgDamYuvrGxj2ZCC` | Deployed on devnet; multi-Window tickets and their reserve. |
-| `agari-private` | `6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j` | Deployed on devnet; separate Private balance and claim path. |
-| `agari-strategy` | `2yiPYmuNQxpfC3nCk66KzkW72uCbkT6hHwLRSHpYDskQ` | Deployed on devnet; creator registry, subscriptions and bounded copy permissions. |
-| `agari-arena` | `CakGVH2CaM2YAF9edgMTrCv1HCFf5tgbTcinN24JWvR3` | Deployed on devnet; Duel match and pot accounting. Arcade scores remain off-chain. |
-| `agari-desk` | `4gAfiRauANHVajpErqCey7iWGbKkyuSsnXLRbApVaWak` | Deployed and exercised **on a Surfpool fork of mainnet only**. Mainnet deploy awaits the owner-funded C7 step. |
+| `Series` | venue · resolver, auditor | A lane's cadence, the oracle list, the quorum, the deviation limit and its append-only price-policy versions. `Series_OpenWindow` opens the next Window. |
+| `MarketTerms` | venue · resolver | One Window's immutable terms: trading start, lock, expiry, deadlines, and the oracle list and quorum copied from its Series. |
+| `WindowState` → `OpenPrint` → `Resolution` | resolver and venue | The single-use resolution chain. Each step consumes the one before, so a Window resolves or voids **exactly once**. |
+| `PriceQuote` | an oracle · venue, resolver | One oracle's close price for a symbol at a boundary, with a hash of the raw source payload. |
+| `VenueDesk`, `Quote` | venue · the quoted seat | The venue's firm offer for one side of one Window at one price, valid until a set time. |
+| `Leg` | venue and owner | A position. Accepting a quote creates a pair: your leg and the venue's opposite leg. Your fee is held in your leg. |
+| `VenueAccount`, `VenueCash` | venue and owner | A seat's account and its demo credits. |
+| `Publication` | venue and owner | An opt-in public record of a call, used by leaderboards and takes. |
 
-The `agari-events` and `agari-vault` IDLs were published through Program Metadata. Their on-chain dumped bytes matched the local host builds checked during the development review; a separate verifiable-image build produced different bytes because its toolchain differed. The [public evidence ledger](https://github.com/Blockchain-Oracle/agari/blob/main/docs/evidence/acceptance.md) lists selected devnet transactions. No external audit is claimed.
+## How a call works
 
-## Event book
+1. The venue's roller opens a Window with `Series_OpenWindow`.
+2. Your seat asks for a quote; the venue's desk issues a `Quote` (`Desk_IssueQuote`) at a price on its published ladder, locking its own stake.
+3. You accept it with `Quote_Accept`. Your cash must cover the stake plus the fee. Two `Leg`s are created; only you and the venue can see yours.
+4. The resolver records the opening print (`Terms_RecordOpen`) and, after the close, resolves the Window (`Terms_Resolve`) from the oracle quotes, or voids it (`Terms_Void`) if the quorum is missing or the oracles disagree too much.
+5. The venue's settler pays the Window's legs in batches with `Desk_SettleBatch`. A won leg pays its full quantity; a void returns stake plus fee. If the venue never settles, you can take your stake back yourself after the refund time (`Leg_RefundStale`).
 
-Every order is `BUY_YES`, `SELL_YES`, `BUY_NO` or `SELL_NO`, priced in YES ticks. The book supports a direct Yes or No trade, minting a complete Yes/No pair when both sides buy, and burning a pair when both sell. PostOnly can rest before a Window opens; a taker cannot fill it until trading starts. IOC takes available size and cancels the rest; FOK requires a complete fill.
+## What the tests prove
 
-A Window moves Listed → Trading → Locked → Resolved or Voided. The closing signed print at or above the opening print pays Up, including ties. A void returns the stake as credit rather than guessing an outcome. [First call](/trading/first-trade) covers the user journey.
+The `pm-tests` package checks, among others: money is conserved after every step of seeded random sequences; the venue cannot resolve a Window, confiscate a position or accept a quote for you; the resolver cannot resolve without the oracle quorum; a Window resolves or voids exactly once; an outsider sees nothing and a user sees only their own positions. No external audit is claimed.
 
-## Trading Balance and desk
-
-`agari-vault` holds devnet tUSDC and enforces a user's session grant with spending, daily and open-position limits. `agari-desk` is a different program: a mainnet desk PDA would hold USDC and PreStocks under allowed-name, cap, reference, premium, output-floor and withdrawal checks. Its [rehearsal and current limit](/architecture/desk) must not be confused with a live mainnet deployment.
+**Planned:** further packages for the other products (Range, Boost, Parlay, Earn, strategies, games and the desk mandate) join the same workspace as they are ported. They are not on the ledger yet.

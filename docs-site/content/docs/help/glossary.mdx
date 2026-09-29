@@ -5,21 +5,22 @@ description: "A plain explanation of the words Agari uses."
 
 | Term | Meaning |
 | --- | --- |
-| **Window** | One tradeable period on one ticker: an opening print, a closing print, one cadence (5m/15m/60m, the Monday Gap, or 24/7 token). |
-| **Series** | A ticker + cadence pair (for example TSLA-5m). Owns the price policy and the order books its Windows use. |
-| **Book** | The order book for one Window — bids and asks, matched price-time. Recycled between Windows on the same Series. |
-| **Ledger** | The seat registry for one Window: who's in, their escrowed cash and outcome balances. |
-| **Seat** | One trader's slot in a Window's Ledger. A small refundable bond holds a seat open; it returns when you leave. |
-| **Print** | A signed price value for one boundary (open or close) of a Window, verified on-chain. See [price sources](/architecture/price-sources). |
-| **Policy version** | A Series' price-source rule for a date range (which source, thresholds, admission window). Registered in advance; never edited once written. |
-| **PostOnly / IOC / FOK / Normal** | Order types. PostOnly only rests, never takes. IOC takes what it can, cancels the rest. FOK reverts unless it fills completely. Normal rests if it doesn't fully fill. |
-| **Mint-pair / burn-pair** | A fill where a complete Yes/No pair is created or destroyed, because both sides of the trade are buyers (mint) or both are sellers (burn). |
-| **Void** | A Window that pays 0.5/0.5 instead of settling, because a required print never arrived (`MissingPrint`) or two price sources disagreed too much (`CrossCheckDivergence`, TSLA only). Stake returns as credit. |
-| **tUSDC** | Agari's devnet test collateral, a 6-decimal SPL token with no market value. |
-| **Trading Balance** | A balance held in `agari-vault`, used for tap-trading instead of a wallet-signed order each time. |
-| **Session key / grant** | A separate signing key your wallet authorizes with spending caps (per trade, per day, open positions) — never your wallet's own private key, and it never leaves your browser. |
-| **24/7 lane** | One-hour Windows that trade around the clock: xStocks on Switchboard, OpenAI's PreStocks token and the five baskets on attested PreStocks prices. |
-| **Cover** | A Down call a holder takes as insurance on tokens the connected wallet holds (xStocks, Ondo or PreStocks tokens, or two or more members of a basket). |
-| **Schedule a call** | A post-only call rested on a stock Window before its bell; see [pre-open calls](/trading/pre-open-calls). |
-| **Short** | A Down position the Boost reserve holds and marks against the book, with an exit at any time and a knock-out line; see [Short a fall](/trading/shorts). |
+| **Canton** | Canton Network, the ledger Agari runs on. A contract there is visible only to the parties on it. |
+| **Party** | An identity on Canton. The venue, the resolver and each oracle are parties; so is each seat. |
+| **Seat** | Your place at the venue: a signing key in your browser that cannot leave it, and a Canton party the venue leases to you. See [your seat](/start/wallet). |
+| **Demo credits** | The venue's test money on a Canton test network. Worth nothing anywhere else. |
+| **Window** | One tradeable period on one ticker: an opening print, a closing print, one cadence. |
+| **Series** | A ticker + cadence pair (for example BTC-5m). Holds the oracle list, the quorum and the price policy its Windows use. |
+| **Quote** | The venue's firm offer: one side of one Window at one price, valid for a few seconds. Accepting it opens your position. |
+| **Position (leg)** | Your side of a call. Only your seat's party and the venue can see it. |
+| **Print** | A price for one boundary (open or close) of a Window, posted and signed by an oracle party. See [price sources](/architecture/price-sources). |
+| **Oracle party** | One of three parties that post prices, one per exchange. A Window needs a quorum of 2. |
+| **Resolver** | The party that settles or voids each Window, exactly once, from the oracle prints. |
+| **Policy version** | A Series' price-source rule for a date range. Registered in advance; never edited once written. |
+| **Void** | A Window that settles no winner, because too few prints arrived or they disagreed too much. Your stake and your fee return. |
+| **Proof page** | `/proof`: every settled Window with its prints, the oracle that signed each, and the evidence behind them. |
+| **24/7 lane** | Windows that trade around the clock. Today these are the crypto lanes. |
+| **Cover** | A Down call a holder takes as insurance on tokens they hold. **Planned** on Canton: a seat holds no outside tokens yet. |
+| **Schedule a call** | A call rested on a Window before it opens; see [pre-open calls](/trading/pre-open-calls). |
+| **Short** | A Down position with an exit at any time and a knock-out line; see [Short a fall](/trading/shorts). **Planned** on Canton. |
 | **Halt** | A wide or issuer-level trading halt signal. Shown as "Trading halted." A merely stale price print is shown as "Signed price stale" instead — a different, more common state. |

@@ -1,8 +1,8 @@
 ---
 title: "For builders"
-description: "Start from the integration checkout, follow the package boundaries, and verify a claim against source and evidence."
+description: "Follow the package boundaries from the Daml engine to the app, and verify a claim against source and evidence."
 ---
 
-This documentation site lives in the Agari application repository at `docs-site/`. These guides were reviewed against app commit `b98d1e40` (23 September 2026) on `integration/w1`, the branch that deploys. The public app is at <AppLink href="/markets">useagari.xyz</AppLink>; the GitHub repository is private for now. Connected captures record the live app as observed that day; its deployed commit was not independently identified.
+This documentation site lives in the Agari application repository at `docs-site/`. The app is a prediction market on Canton Network: the rules are a Daml package in `daml/`, the venue's actors are in `services/ops/`, and the web and phone apps read and write through `packages/markets` and `packages/ledger`.
 
-Use [Local setup](/builders/local-setup) for the actual commands, [Source map](/builders/source-map) to locate each system, [Programs](/architecture/programs) for network-specific deployments, and [Price sources](/architecture/price-sources) for the oracle and attestation paths. The devnet acceptance ledger and the S21 desk rehearsal are different kinds of evidence; a local test does not prove a mainnet deploy.
+Use [Local setup](/builders/local-setup) for the actual commands, [Source map](/builders/source-map) to locate each system, [The Daml engine](/architecture/programs) for the contracts, and [Price sources](/architecture/price-sources) for the oracle path. A local sandbox run and a test-network run are different kinds of evidence; the acceptance ledger in `docs/evidence/` says which one each row is.

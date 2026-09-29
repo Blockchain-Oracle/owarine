@@ -3,7 +3,9 @@ title: "Short a fall"
 description: "A Down position the Boost reserve holds for you, marked against the book, with an exit at any time and a knock-out line."
 ---
 
-<AppLink href="/short">Short</AppLink> opens a **Down position the reserve holds for you**. It is marked against the Window's book every second, you can close it at any time without waiting for the bell, and the most you can lose is your stake. It uses the same `agari-leverage` reserve as [Boost](/trading/boost-parlay-private), with **devnet tUSDC** test money.
+> **Planned on Canton.** This page describes how Short works in Agari. Its Daml contracts are not on the ledger yet, so on the Canton test network it cannot take a stake yet.
+
+<AppLink href="/short">Short</AppLink> opens a **Down position the reserve holds for you**. It is marked against the Window's book every second, you can close it at any time without waiting for the bell, and the most you can lose is your stake. It uses the same reserve as [Boost](/trading/boost-parlay-private), with **demo credits**.
 
 ## Pick what to short
 
@@ -23,7 +25,7 @@ A Window that has not opened yet cannot hold a short. Its card says when it open
 
 Each open short shows its stake, what it is worth now, its entry and current price, its size, and how far its mark may fall before it reaches its **knock-out line**. The reserve is repaid before you are, so once the book would pay less than the reserve's maintenance share of what it fronted, anyone may close the position. When no bids can mark it, the card says there is no honest mark and no exit rather than showing a number.
 
-- **Close** sells the position back into the book and returns what it is worth to your wallet.
+- **Close** sells the position back and returns what it is worth to your seat.
 - After the Window ends, use **Settle** and **Claim** to collect what is owed.
 - A void pays every contract half its face, so a short opened above 50¢ comes back short of its stake.
 

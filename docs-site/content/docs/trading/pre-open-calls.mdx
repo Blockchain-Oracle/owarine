@@ -3,6 +3,8 @@ title: "Pre-open calls"
 description: "Rest a call on a Window before it opens for trading; taker orders are refused until the bell."
 ---
 
+> **Planned on Canton.** This page describes how a pre-open call works in Agari. On Canton it becomes a resting call between you and the venue, filled at the open; that contract is not on the ledger yet, and the stock Windows it serves are planned too.
+
 Because Windows are prelisted ahead of time (see [Sessions and lanes](/trading/sessions-and-lanes)), you can place a call before the market — or the Monday Gap, or a Window's own trading start — actually opens. This is a **resting**, post-only call, not an instant trade: nothing fills before the Window's trading start, by design.
 
 ## Where to schedule one
@@ -22,6 +24,6 @@ Once the Window opens for trading, resting pre-open calls become ordinary restin
 
 ## What's guaranteed and what isn't
 
-- Nothing fills before the open boundary — that's enforced by the program, not just the UI.
+- Nothing fills before the open boundary — that's enforced by the venue's rules, not just the UI.
 - No fill is promised. A pre-open call is an offer at your price; it fills only if the book comes to it.
-- If the Window voids for any reason, an unfilled pre-open call loses nothing — cancel it any time before it fills, and the escrow (plus the seat bond) comes straight back.
+- If the Window voids for any reason, an unfilled pre-open call loses nothing — cancel it any time before it fills, and the escrow comes straight back.
