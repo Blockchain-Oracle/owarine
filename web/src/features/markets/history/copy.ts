@@ -19,6 +19,23 @@ export const HISTORY = {
   collectLink: "collect →",
   receipt: "Receipt",
   receiptTitle: "Settlement receipt",
+  /** 0.4.0: the ledger's SettlementReceipt behind a round (pair leg or ticket). */
+  ledger: {
+    title: "On the ledger",
+    product: { pair: "Call", range: "Range", moonshot: "Moonshot", boost: "Boost", short: "Short", parlay: "Parlay" } as Record<string, string>,
+    cost: "Paid in",
+    payout: "Paid out",
+    fee: "Fee recognised",
+    pick: "Pick",
+    stake: "Stake",
+    toReserve: "Back to the reserve",
+    reserve: "Reserve",
+    markets: (n: number) => (n === 1 ? "Window" : `${n} Windows`),
+    result: { won: "Won", lost: "Lost", void: "Void" } as Record<string, string>,
+    receipts: (n: number) => (n === 1 ? "1 settlement receipt" : `${n} settlement receipts`),
+  },
+  /** A committee event's round (C6): the answer, never Up/Down. */
+  event: { yes: "YES", no: "NO" },
   entryTx: "entry tx",
   shorted: "sold short — you were handed the other side",
   showAll: (n: number) => `Show all ${n}`,

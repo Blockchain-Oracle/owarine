@@ -7,20 +7,22 @@ import { usePublications, usePublishCall, type PublishSource } from "./usePublic
 interface PublishCallProps {
   marketId: string;
   address: string | null;
-  /** `leg` for a live position; `receipt` for a settled one (publishable once settlements leave a receipt). */
+  /** `leg` for a live position; `receipt` for a settled one (from its `SettlementReceipt`, engine 0.4.0). */
   source: PublishSource;
+  /** A settled ticket: its receipt and product (its publication carries the product; a pair leg's does not). */
+  ticket?: { receiptId: string; product: string };
 }
 
 /**
  * The opt-in "Publish this call" control, in the cash-out link's grammar (`type-caption text-accent underline`). A
  * published call says so and can be retracted; a settled one that was never published says why it cannot be now.
  */
-export function PublishCall({ marketId, address, source }: PublishCallProps) {
+export function PublishCall({ marketId, address, source, ticket }: PublishCallProps) {
   const list = usePublications(address);
   const { publish, retract } = usePublishCall(address);
   const [note, setNote] = useState<string | null>(null);
   if (!address || !list.data) return null;
-  const mine = list.data.value.filter((p) => p.marketId === marketId);
+  const mine = list.data.value.filter((p) => p.marketId === marketId && (p.product ?? null) === (ticket?.product ?? null));
 
   if (mine.length > 0) {
     return (
@@ -40,7 +42,7 @@ export function PublishCall({ marketId, address, source }: PublishCallProps) {
   const go = () => {
     setNote(null);
     publish.mutate(
-      { marketId, source },
+      { marketId, source, ...(ticket ? { receiptId: ticket.receiptId } : {}) },
       {
         onSuccess: (r) => r.kind === "refused" && setNote(PUBLISH.refused[r.code]),
         onError: () => setNote(PUBLISH.failed),

@@ -19,7 +19,12 @@
  *   Leg exits                       → Leg_Settle 'settled' (by crank), Leg_Claim 'claimed', Leg_RefundStale
  *                                     'refunded_stale', Leg_CloseOut 'closed_out', Leg_Merge / archive-in-merge 'merged';
  *                                     result won / lost / void from the Window's Resolution
- *   Publication created / archived  → idx_publications insert / delete
+ *   Publication created / archived  → idx_publications insert / delete (0.4.0: with its ticket `product`)
+ *   EventTerms created              → the Window's event columns (question, committee); never archived
+ *   EventState created / consumed   → event_state_cid set / cleared
+ *   EventAttestation created / retired → idx_event_attestations insert / retired
+ *   EventVerdict created            → event_verdict_cid, event_answer (NULL = void) and the attestations counted
+ *   SettlementReceipt created / dismissed → idx_receipts insert / dismissed (pair legs and tickets alike)
  */
 import type postgres from "postgres";
 import { LANE_BASES } from "@agari/core/types";
@@ -277,11 +282,28 @@ async function publication(c: Ctx, f: Fact<"publication">): Promise<void> {
   const market = marketIdOfKey(f.marketKey);
   const [m] = await c.tx<{ cash_unit: string }[]>`SELECT cash_unit::text FROM idx_markets WHERE market = ${market}`;
   const row = {
-    publication_cid: f.contractId, owner_party: f.owner, handle: f.handle, market, market_key: f.marketKey, pair_id: f.pairId, outcome: f.outcome,
+    publication_cid: f.contractId, owner_party: f.owner, handle: f.handle, market, market_key: f.marketKey, pair_id: f.pairId, outcome: f.outcome, product: f.product,
     lots: f.lots, backing_share: f.backingShare, price_ticks: m ? sideTicksOf(f.backingShare, f.lots, m.cash_unit) : null,
     created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec,
   };
   await c.tx`INSERT INTO idx_publications ${c.tx(row)} ON CONFLICT (publication_cid) DO NOTHING`;
+}
+
+async function receipt(c: Ctx, f: Fact<"receipt">): Promise<void> {
+  const row = {
+    receipt_cid: f.contractId, owner_party: f.owner, market: marketIdOfKey(f.marketKey), market_key: f.marketKey, pair_id: f.pairId, outcome: f.outcome,
+    resolved: f.resolved, lots: f.lots, cash_unit: f.cashUnit, backing_share: f.backingShare, cost: f.cost, payout: f.payout, fee: f.fee, product: f.product,
+    detail: f.detail === null ? null : c.tx.json(f.detail as unknown as postgres.JSONValue),
+    created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec,
+  };
+  await c.tx`INSERT INTO idx_receipts ${c.tx(row)} ON CONFLICT (receipt_cid) DO NOTHING`;
+}
+
+async function eventVerdict(c: Ctx, f: Fact<"event-verdict">): Promise<void> {
+  await c.tx`
+    UPDATE idx_markets SET event_verdict_cid = ${f.contractId}, event_answer = ${f.answer},
+      event_verdict = ${c.tx.json({ voidDetail: f.voidDetail, attestations: f.attestations } as unknown as postgres.JSONValue)}
+    WHERE terms_cid = ${f.termsCid}`;
 }
 
 async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
@@ -314,6 +336,31 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
     case "publication": return publication(c, f);
     case "publication-archived":
       await c.tx`DELETE FROM idx_publications WHERE publication_cid = ${f.contractId}`;
+      return;
+    case "event-terms":
+      await c.tx`
+        UPDATE idx_markets SET event_terms_cid = ${f.contractId}, event_question = ${f.question}, event_attestors = ${c.tx.json(f.attestors)}, event_quorum = ${f.quorum}
+        WHERE terms_cid = ${f.termsCid}`;
+      return;
+    case "event-state":
+      if (f.live) await c.tx`UPDATE idx_markets SET event_state_cid = ${f.contractId} WHERE terms_cid = ${f.termsCid}`;
+      else await c.tx`UPDATE idx_markets SET event_state_cid = NULL WHERE event_state_cid = ${f.contractId}`;
+      return;
+    case "event-attestation": {
+      const row = {
+        contract_id: f.contractId, market_key: f.marketKey, attestor: f.attestor, answer: f.answer, attested_at_sec: f.attestedAtSec, statement_hash: f.statementHash,
+        created_update_id: c.u.updateId, created_offset: c.u.offset,
+      };
+      await c.tx`INSERT INTO idx_event_attestations ${c.tx(row)} ON CONFLICT (contract_id) DO NOTHING`;
+      return;
+    }
+    case "event-attestation-retired":
+      await c.tx`UPDATE idx_event_attestations SET retired = true WHERE contract_id = ${f.contractId}`;
+      return;
+    case "event-verdict": return eventVerdict(c, f);
+    case "receipt": return receipt(c, f);
+    case "receipt-dismissed":
+      await c.tx`UPDATE idx_receipts SET dismissed = true WHERE receipt_cid = ${f.contractId}`;
       return;
   }
 }

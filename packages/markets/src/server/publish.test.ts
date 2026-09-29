@@ -62,6 +62,25 @@ describe("publications", () => {
     expect(done.submitted.length + settled.submitted.length).toBe(0);
   });
 
+  it("publishes a settled call from this lease's receipts only, each pair once; a ticket by its receipt id", async () => {
+    const receipt = (cid: string, pairId: string, offset: number, product: string | null = null) => ({
+      createdEvent: {
+        contractId: cid, offset, templateId: TEMPLATE_IDS.SettlementReceipt,
+        createArgument: {
+          venue: "venue::1220", owner: SEAT, marketId: M, pairId, outcome: "SideUp", resolved: "SideUp", lots: "3", cashUnit: "1000", backingShare: "186000",
+          cost: "190000", payout: "3000000", fee: "4000", product, detail: null,
+        },
+      },
+    });
+    const f = fakes({ published: [receipt("r-old", "z", 5), receipt("r1", "a", 20), receipt("r2", "b", 21), receipt("t1", "", 22, "range"), publication("p1", SEAT, "SeatAddr1", "a")] as never, legPairs: [] });
+    const lease = { ...actor, fromOffset: 10 };
+    expect((await publishCall(f, lease, { marketId: MID, source: "receipt" })).kind).toBe("published");
+    expect(f.submitted[0]!.commands).toEqual([{ ExerciseCommand: { templateId: TEMPLATE_IDS.SettlementReceipt, contractId: "r2", choice: "Receipt_Publish", choiceArgument: { handle: "SeatAddr1" } } }]);
+    expect((await publishCall(f, lease, { marketId: MID, source: "receipt", receiptId: "t1" })).kind).toBe("published");
+    expect(f.submitted[1]!.commands).toEqual([{ ExerciseCommand: { templateId: TEMPLATE_IDS.SettlementReceipt, contractId: "t1", choice: "Receipt_Publish", choiceArgument: { handle: "SeatAddr1" } } }]);
+    expect(await publishCall(f, lease, { marketId: MID, source: "receipt", receiptId: "r-old" })).toMatchObject({ kind: "refused", code: "receipt-unavailable" });
+  });
+
   it("treats a duplicate command as the earlier publish having landed", async () => {
     const f = fakes({ published: [], legPairs: ["a"], submit: async () => { throw new LedgerError({ kind: "duplicate", status: 409, path: "/v2/commands", message: "DUPLICATE_COMMAND" }); } });
     expect((await publishCall(f, actor, { marketId: MID, source: "leg" })).kind).toBe("published");

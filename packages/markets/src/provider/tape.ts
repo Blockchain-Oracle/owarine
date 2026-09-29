@@ -2,14 +2,14 @@
  * The venue board and traction (S5, from the indexer's venue-wide tape); a wallet's own fills live in `history.ts`.
  * The shapes are Masayume's, so the surfaces that render them don't change; `byTicker` is additive (proof-analytics.md §2.3).
  */
-import { buildLedgers, ledgerHasActivity, rankTraders, settleRound, type LedgerFill, type MarketLedger, type RoundMarket, type SettledRound, type TraderRanking } from "@agari/core/projection";
+import { buildLedgers, ledgerHasActivity, rankTraders, settleRound, withReceipts, type LedgerFill, type MarketLedger, type RoundMarket, type SettledRound, type TraderRanking } from "@agari/core/projection";
 import type { Reading } from "@agari/core/schemas";
 import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 import type { Address, EventMarket, MarketId } from "@agari/core/types";
 import { loadCollateral } from "../collateral";
 import { sec, type MarketRow } from "./index-api";
 import { forgetReading, withReading } from "./reading";
-import { outcomeOf } from "./rows";
+import { outcomeOf, receiptFacts } from "./rows";
 import { scanTape, walletTapes } from "./tape-scan";
 import { deriveTraction } from "./tape-traction";
 
@@ -129,6 +129,15 @@ export async function readVenueBoard(scope: BoardScope): Promise<Reading<VenueBo
       }
       if (rounds.length > 0) byWallet.set(wallet, rounds);
     }
+    // The product branch (0.4.0): a published ticket ranks on its receipt's settled figures, beside the wallet's pair legs.
+    const ticketsBy = new Map<Address, ReturnType<typeof receiptFacts>[]>();
+    for (const t of scan.tickets) {
+      if (operators.has(t.wallet)) continue;
+      const list = ticketsBy.get(t.wallet as Address) ?? [];
+      list.push(receiptFacts(t));
+      ticketsBy.set(t.wallet as Address, list);
+    }
+    for (const [wallet, receipts] of ticketsBy) byWallet.set(wallet, withReceipts(byWallet.get(wallet) ?? [], receipts, collateral.decimals));
 
     const venue = sliceOf(byWallet, scope);
     const byTicker: Partial<Record<TickerSymbol, BoardSlice>> = {};

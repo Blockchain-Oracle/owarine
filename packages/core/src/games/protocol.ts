@@ -227,7 +227,7 @@ export const serverMessageSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("match.refunded"),
     matchId: matchIdSchema,
-    reason: z.enum(["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete"]),
+    reason: z.enum(["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete", "stale-settlement"]),
   }),
   z.object({
     type: z.literal("presence"),

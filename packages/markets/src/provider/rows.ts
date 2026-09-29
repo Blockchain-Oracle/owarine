@@ -3,11 +3,11 @@
  * and decimals from `readVenue`, and a not-yet-printed Window's primary source from its Series policy.
  */
 import type { SettledMarket } from "@agari/core/claims";
-import type { RoundMarket } from "@agari/core/projection";
+import type { ReceiptFacts, RoundMarket } from "@agari/core/projection";
 import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
 import type { Address, EventMarket, IndexedStatus, LaneBasis, MarketId, OutcomeIdx, PrintSource, Resolution, Signature, VoidReason } from "@agari/core/types";
 import type { SeriesFacts, VenueFacts } from "../runtime/accounts";
-import { big, bigOrNull, sec, type MarketRow, type PositionRow } from "./index-api";
+import { big, bigOrNull, sec, type MarketRow, type PositionRow, type ReceiptRow } from "./index-api";
 
 const BASIS: Record<number, LaneBasis> = { 0: "regular", 1: "gap", 2: "token" };
 const SOURCE: Record<number, PrintSource> = { 1: "pyth", 2: "redstone", 3: "switchboard", 4: "attested" };
@@ -44,7 +44,8 @@ export function toEventMarket(row: MarketRow, venue: VenueFacts, series: SeriesF
     venueId: venue.config as string as Address,
     asset,
     lane: BASIS[row.basis ?? 0] ?? "regular",
-    question: `Will ${asset} close at or above its opening print?`,
+    // 0.4.0: a committee event asks its own question (`EventTerms`); a price Window asks the lane's.
+    question: row.event_question ?? `Will ${asset} close at or above its opening print?`,
     intervalSec: row.cadence_sec ?? 0,
     tradingStartSec,
     lockAtSec,
@@ -108,5 +109,34 @@ export function heldAtSettlement(row: PositionRow): { upLots: bigint; downLots: 
   return {
     upLots: big(row.bought_yes_lots) - big(row.sold_yes_lots) + sets,
     downLots: big(row.bought_no_lots) - big(row.sold_no_lots) + sets,
+  };
+}
+
+/** A receipt row as the history projection reads it (core `withReceipts`). */
+export function receiptFacts(row: ReceiptRow): ReceiptFacts {
+  const side = (v: number | null): OutcomeIdx | null => (v === 0 || v === 1 ? v : null);
+  return {
+    receiptId: row.receipt_cid,
+    marketId: row.market as MarketId,
+    product: row.product,
+    outcomeIdx: side(row.outcome) ?? 0,
+    resolvedIdx: side(row.resolved),
+    lots: big(row.lots),
+    cashUnit: big(row.cash_unit),
+    costBase: big(row.cost),
+    payoutBase: big(row.payout),
+    feeBase: big(row.fee),
+    detail: row.detail
+      ? { reserveId: row.detail.reserveId, marketIds: row.detail.marketIds, pick: row.detail.pick, stakeBase: big(row.detail.stake), toReserveBase: big(row.detail.toReserve), result: row.detail.result }
+      : null,
+    atMs: sec(row.ts_sec) * 1000,
+    txHash: row.signature as Signature,
+    market: {
+      asset: row.symbol ?? row.market_key.split(":")[0] ?? "",
+      intervalSec: row.cadence_sec ?? 0,
+      expirySec: sec(row.expiry_sec),
+      resolvedAtMs: row.resolved_ts_sec === null ? null : sec(row.resolved_ts_sec) * 1000,
+      question: row.event_question,
+    },
   };
 }

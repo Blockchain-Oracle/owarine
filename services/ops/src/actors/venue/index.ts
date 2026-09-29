@@ -20,6 +20,8 @@
  *   reserve    (no writes)                 /reserve
  *   tickets    Book_Issue*, Nav_IssueSupply, Earn_IssueWithdraw, Boost_OfferExit   POST /internal/tickets/*
  *              Round_Settle, Ticket_ResolveLeg, Boost_Settle, Boost_KnockOut, *_Expire, Book_Prune, Earn_PublishNav (C8c)
+ *   games      Duel_Reveal, Duel_Lock, Duel_Score, Duel_Finalize, the three duel refunds, Season_Distribute
+ *                                          duel:<step>:<digest>, season:<step>:<digest>   POST /internal/games/* (C9b)
  */
 import type { SpotFeed } from "../../prices/spot";
 import type { VenueDeps } from "../../runtime/deps";
@@ -38,11 +40,12 @@ import { createSeatFunding } from "../seat-funding";
 import { startSeatDrain } from "../seat-funding/drain";
 import { startSettler } from "../settler";
 import { startTicketDesk } from "../ticket-desk";
+import { startArenaDesk } from "../arena-desk";
 import { startWindowRoller } from "../window-roller";
 import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 
-export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets"] as const;
+export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
 
 export interface CantonVenue {
@@ -81,7 +84,7 @@ export async function startCantonVenue(input: {
   // C6: the crypto lanes are priced only on a measured realised σ (24/7 clock), re-measured every 30 min.
   const vol = on("pricer") && session ? startVolMeter(input.log("vol-meter")) : null;
   if (vol) stops.push(vol.stop);
-  if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings, vol }).stop);
+  if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings, vol, halts: () => input.deps.halts.board() }).stop);
   const draining = new Set<string>();
   const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining }) : null;
   if (issuer) stops.push(issuer.stop);
@@ -97,9 +100,12 @@ export async function startCantonVenue(input: {
 
   const tickets = on("tickets") ? await startTicketDesk({ venue, board, pool, log: input.log("ticket-desk"), draining }) : null;
   if (tickets) stops.push(tickets.stop);
+  const games = on("games") ? await startArenaDesk({ venue, board, log: input.log("arena-desk") }) : null;
+  if (games) stops.push(games.stop);
 
   const routes: InternalRoutes["routes"] = {};
   if (tickets) Object.assign(routes, tickets.routes);
+  if (games) Object.assign(routes, games.routes);
   if (issuer) routes["/internal/quotes"] = issuer.handle;
   if (issuer) routes["/internal/exit-quotes"] = issuer.handleExit;
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);

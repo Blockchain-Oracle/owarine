@@ -1,7 +1,9 @@
 import "server-only";
 import { getDb } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
-import { createOpsClient, createSeatLedger, createTicketSeat, type OpsClient, type SeatLedger, type TicketSeat } from "@agari/markets/server";
+import { err, ok } from "@agari/core/schemas";
+import { registerArenaSource } from "@agari/markets/games";
+import { createGamesSeat, createOpsClient, createSeatLedger, createTicketSeat, type GamesSeat, type OpsClient, type SeatLedger, type TicketSeat } from "@agari/markets/server";
 import { checkWebServerEnv, seatParties, type SeatParties, type WebServerEnv } from "./server-env";
 import { createSeatStore, type SeatStore } from "./seat-store.server";
 
@@ -16,6 +18,8 @@ export interface SeatServer {
   ledger: SeatLedger;
   /** The seat's side of the ticket products (C8c): its own tickets, accepts, claims and refunds. */
   tickets: TicketSeat;
+  /** The seat's side of the duel (C9b): open, join, pick, cancel and the player's cranks. */
+  games: GamesSeat;
   ops: OpsClient;
   store: SeatStore;
   parties: SeatParties;
@@ -41,7 +45,24 @@ export function seatServer(): SeatServerState {
   const ops = createOpsClient({ baseUrl: env.OPS_INTERNAL_URL!, secret: env.OPS_INTERNAL_SECRET! });
   const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands, marks: () => ops.ladderMarks() });
   const tickets = createTicketSeat({ client, venueParty: parties.venue!, journal: store.commands, fairTicks: () => ops.fairTicks() });
-  state = { ok: true, server: { client, ledger, tickets, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
+  const games = createGamesSeat({ client, venueParty: parties.venue!, journal: store.commands, ledger, ops });
+  // The web server's own `@agari/markets/games` reads (the season page, the room token, the sponsor) go to ops' arena
+  // desk over the signed internal call, never to our own routes over loopback.
+  registerArenaSource({
+    state: async () => {
+      const r = await ops.gameState();
+      return r.ok ? ok(r.value, Date.now()) : err(r.diagnosis);
+    },
+    match: async (matchId) => {
+      const r = await ops.gameMatch(matchId);
+      return r.ok ? ok(r.value.view, Date.now()) : err(r.diagnosis);
+    },
+    season: async (seasonId) => {
+      const r = await ops.gameSeason(seasonId);
+      return r.ok ? ok(r.value.pool, Date.now()) : err(r.diagnosis);
+    },
+  });
+  state = { ok: true, server: { client, ledger, tickets, games, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
   return state;
 }
 

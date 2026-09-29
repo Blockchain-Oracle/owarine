@@ -3,7 +3,16 @@ import { ensureMarkets } from "@agari/markets";
 import { NextResponse, type NextRequest } from "next/server";
 import { seatCaller } from "@/lib/auth/seat-caller.server";
 import { webEnv } from "@/lib/env";
-import { BadRequest, resolveIndexQuery } from "./queries";
+import { seatServer } from "@/lib/ledger.server";
+import { BadRequest, resolveIndexQuery, type SeatLeaseScope } from "./queries";
+
+/** The seat's current lease for a lease-scoped read; null when the seat tier is off or the address holds no lease. */
+async function leaseOf(address: string): Promise<SeatLeaseScope | null> {
+  const tier = seatServer();
+  if (!tier.ok) return null;
+  const lease = await tier.server.store.byAddress(address).catch(() => null);
+  return lease ? { party: lease.party, fromOffset: lease.startOffset } : null;
+}
 
 /**
  * The projection's read API (first-call.md §5): lists, Window rows with prints, a seat's fills, positions and actions,
@@ -45,7 +54,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pat
   reader ??= indexReader(db);
 
   try {
-    const rows = await resolved.run(reader, db);
+    const lease = resolved.scope === "wallet" && resolved.seatLease && resolved.owner ? await leaseOf(resolved.owner) : null;
+    const rows = await resolved.run(reader, db, lease);
     const cache = resolved.scope === "wallet" ? PRIVATE_CACHE : (resolved.cacheControl ?? PUBLIC_CACHE);
     return NextResponse.json({ rows }, { headers: { "cache-control": cache } });
   } catch {

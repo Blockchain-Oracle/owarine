@@ -51,6 +51,42 @@ export interface MarketRow {
   cash_unit: Dec | null;
   /** Keyed by `which`: 0 open, 1 close, 2 check open, 3 check close. */
   prints: Record<string, PrintJson> | null;
+  /** 0.4.0: a committee event's question (`EventTerms`); null/absent on a price Window. */
+  event_question?: string | null;
+  /** 0.4.0: the committee's answer (`EventVerdict`); null while open or on a void. */
+  event_answer?: boolean | null;
+}
+
+/** One `SettlementReceipt` (0.4.0) with its Window's facts: `wallet/<address>/receipts`. */
+export interface ReceiptRow {
+  receipt_cid: string;
+  market: string;
+  market_key: string;
+  pair_id: string;
+  outcome: number;
+  resolved: number | null;
+  lots: Dec;
+  cash_unit: Dec;
+  backing_share: Dec;
+  cost: Dec;
+  payout: Dec;
+  fee: Dec;
+  product: string | null;
+  detail: { reserveId: string; marketIds: string[]; pick: string; stake: Dec; toReserve: Dec; result: string } | null;
+  signature: string;
+  seq: Dec;
+  ts_sec: Dec;
+  symbol: string | null;
+  cadence_sec: number | null;
+  basis: number | null;
+  expiry_sec: Dec | null;
+  state: "open" | "resolved" | "voided" | null;
+  winner: number | null;
+  void_reason: number | null;
+  void_detail: string | null;
+  resolved_ts_sec: Dec | null;
+  event_question: string | null;
+  event_answer: boolean | null;
 }
 
 export interface PositionRow {

@@ -26,6 +26,11 @@ export interface ProjectorConfig {
   WebSocket?: WebSocketCtor;
   /** Wait between a fatal stream error and the next attempt. */
   restartMs?: number;
+  /**
+   * Called once per transaction the writer applied, after it is written (C9b: the duel projection rides here). A
+   * failure is logged and never stops the stream: the rows the index keeps are already committed.
+   */
+  onApplied?: (tx: JsTransaction) => Promise<void>;
 }
 
 export interface ProjectorStats {
@@ -70,6 +75,7 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
     const result = await writer.applyUpdate(stream, cfg.party, u);
     if (result === "applied") stats.applied += 1;
     else stats.skipped += 1;
+    if (result === "applied" && cfg.onApplied) await cfg.onApplied(tx).catch((e: unknown) => cfg.log(`after-apply hook failed at offset ${u.offset}: ${String(e)}`));
     if (u.recordTimeMs !== null) {
       stats.lastLagSec = Math.max(0, Math.round((Date.now() - u.recordTimeMs) / 100) / 10);
       stats.maxLagSec = Math.max(stats.maxLagSec, stats.lastLagSec);

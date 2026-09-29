@@ -4,8 +4,8 @@
  * Two claims here have to stay exactly true, because they are the ones a player would be angriest to
  * find wrong. **Free is not free of money**: a Free duel escrows no side-pot, but every pick is a real
  * capped market order on the venue, and the player keeps that position's economics either way. And
- * **nobody pays the gas but the player** — there is no sponsor on this deployment, so every pick is a
- * transaction they sign and fund themselves (`06-game-architecture.md` §Actors, keys, gas and security).
+ * **nobody pays a network fee** — on Canton the venue submits every ledger write a duel makes, so a pick costs its
+ * stake and fee on the Window and nothing else (`06-game-architecture.md` §Actors, keys, gas and security).
  */
 export const DUEL = {
   eyebrow: "Head to head on live Windows",
@@ -15,9 +15,9 @@ export const DUEL = {
   auth: {
     unavailable:
       "This deployment has no duel room. The arena, the room server and the matchmaker are separate things, and at least one of them is not configured here.",
-    /** No prompt: the browser's own key signs the room in, and the entry transaction is what names it on chain. */
+    /** No prompt: the seat key signs the room in, silently, as it signs every call. */
     openingTitle: "Opening the room",
-    openingBody: "This browser's key vouches for your seat — no wallet prompt. The one signature a duel asks of your seat is the entry.",
+    openingBody: "Your seat's key vouches for you — no prompt. Every step after it is a call your seat places, with no network fee.",
     refused: "The room refused this browser's key.",
     retry: "Try again",
     /**
@@ -66,8 +66,8 @@ export const DUEL = {
     costNoPot: "No side-pot is escrowed.",
     costCards: (cap: string, symbol: string) =>
       `Up to ${cap} ${symbol} per card, spent as a real order on that Window. You keep what those positions pay, win or lose the pot.`,
-    costGas: "One signature. Entering names a key this browser holds to place your picks. Canton charges no network fee, so nothing else is asked of your seat.",
-    costGasSponsored: "One signature. Entering names a key this browser holds to place your picks. Canton charges no network fee, so nothing else is asked of your seat.",
+    /** Who pays for the duel's writes, said before anything is asked of the seat (doc 04: show the payer first). */
+    costFee: "No network fee: the venue submits every ledger write this duel makes, and your seat signs no per-card prompt.",
     /** The chosen stake's own queue, so "nobody is here" is never said about the wrong one. */
     queueHere: (n: number) => (n === 0 ? "Nobody is waiting at this stake" : n === 1 ? "1 player waiting at this stake" : `${n} players waiting at this stake`),
     find: "Find a match",
@@ -80,18 +80,6 @@ export const DUEL = {
     notDeployed: "No GameArena is deployed on this network.",
     balance: "Your balance",
     balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${need} ${symbol} and this seat holds ${have}.`,
-    gasNeeded: "Picks are your own calls; Canton charges no network fee for them.",
-    /**
-     * Said before the search, not at the first transaction.
-     *
-     * A duel with no gas is a duel that cannot be opened, joined or played, and finding that out at the
-     * "open the match" button costs the other player the whole pairing. On 2026-09-04 both browsers in a
-     * live session held 0 STT and the entry let them queue anyway.
-     */
-    gasShort: "Every step of a duel — opening the match, joining it, each pick — is a call your seat places; Canton charges no network fee for any of them.",
-    gasShortSponsored: "Every step of a duel — opening the match, joining it, each pick — is a call your seat places; Canton charges no network fee for any of them.",
-    gasCheck: "Checking this seat is ready…",
-    gasRecheck: "I have funded it — check again",
   },
 
   queue: {
@@ -132,11 +120,6 @@ export const DUEL = {
     joinCta: "Join the match",
     joinBody: (pot: string, symbol: string) =>
       pot === "0" ? "The match is on chain and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on chain and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
-    /** Said under the entry's own sentence once this browser holds a key: what else the one signature does. */
-    oneSignature: "This is the only signature the match asks of your seat: it also names the key this browser holds to place your picks. Canton charges no network fee.",
-    oneSignatureSponsored: "This is the only signature the match asks of your seat: it also names the key this browser holds to place your picks. Canton charges no network fee.",
-    sponsorFunded: (amount: string) => (amount === "0" ? "Your key already holds the fees its picks need." : `Your key needs nothing for its picks: Canton charges no network fee (${amount}).`),
-    sponsorDeclined: (why: string) => `The venue could not ready your key: ${why}. Your picks wait until it can — the stage offers a way.`,
     waitingCreate: "Waiting for the other player to put the match on chain.",
     opening: "Opening…",
     joining: "Joining…",
@@ -199,18 +182,11 @@ export const DUEL = {
     deadNote: "Anyone may close it — the settler will if nobody does — and nothing about who is paid depends on who presses.",
     lockCta: "Close the window",
     locking: "Closing…",
-    /** The key's own state, while it is the thing placing picks. */
-    keySwipes: "Your key places each pick — no prompt.",
-    keyGasShort: "Your key is not ready for this pick yet, so nothing will fill until it is.",
-    keyGasShortWhy: "The entry funds a key for one deck's picks and a retry each; a longer run of retries spends that.",
-    askSponsor: "Ask the venue to ready it",
-    asking: "Asking the venue…",
-    fundKey: (amount: string) => `Ready it from your seat (${amount})`,
-    funding: "Waiting for your seat…",
-    keyFunded: "Your key is ready again.",
+    /** The seat's own route places each pick, with no prompt. */
+    keySwipes: "Your seat places each pick — no prompt.",
     /** Flicky's auto-swipe: at a card's own deadline the favoured side is played rather than the card forfeited. */
     autoPlayed: "played for you at the deadline",
-    autoNote: (side: string) => `Time ran out on that card, so your key played the favoured side — ${side}.`,
+    autoNote: (side: string) => `Time ran out on that card, so your seat played the favoured side — ${side}.`,
     yourPicks: "Your picks",
     filled: (size: string, cost: string, symbol: string) => `${size} for ${cost} ${symbol}`,
   },
@@ -316,6 +292,7 @@ export const DUEL = {
       "join-timeout": "Nobody joined in time. The pot was returned.",
       "reveal-unavailable": "The deck could not be opened, so both pots were returned. No card was ever played.",
       "both-incomplete": "Neither player finished their picks, so both pots were returned.",
+      "stale-settlement": "A card was never settled before its refund deadline, so both pots were returned.",
     },
     again: "Find another match",
   },

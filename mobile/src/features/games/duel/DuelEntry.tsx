@@ -4,15 +4,12 @@ import { formatBaseUnits } from "@agari/core/units";
 import { useArenaState, useBalanceSheet } from "@agari/markets/react";
 import { StyleSheet, Text, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
-import { useArenaGas } from "@/features/games/duel/useArenaGas";
-import { useGameSponsor } from "@/features/games/duel/useGameSponsor";
 import { waitingIn, type RoomOccupancy } from "@/features/games/duel/useRoomOccupancy";
 import { useVenue } from "@/features/markets/useVenue";
 import { useWalletSession } from "@/lib/wallet-session";
 import { haptic } from "~/components/kit";
 import { Cta, Press } from "~/features/games/frame";
 import { FONT } from "~/theme";
-import { GasRoutes } from "./DuelWaiting";
 import { Blurb, Body, Foot, Key, onPhone, Plate, Refusal, useDuelTokens } from "./parts";
 
 export interface DuelEntryProps {
@@ -26,8 +23,8 @@ export interface DuelEntryProps {
 
 /**
  * web's `DuelEntry.tsx`: choosing a stake, with what it costs said before anything is signed. The amounts are the
- * arena's own (`useArenaState`), the wallet's balance is compared to the pot, and the gas line names the payer —
- * the sponsor when it is ready, the player otherwise. A gas refusal from the write lane still blocks the search (a seat pays no fees, so it should not come).
+ * arena's own (`useArenaState`), the seat's balance is compared to the pot, and the payer line says what Canton
+ * charges for the duel's writes: no network fee, because the venue submits every one.
  */
 export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelEntryProps) {
   const { d, color } = useDuelTokens();
@@ -35,8 +32,6 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
   const { boot } = useVenue();
   const arena = useArenaState();
   const sheet = useBalanceSheet(address);
-  const { gas, recheck } = useArenaGas();
-  const sponsor = useGameSponsor();
 
   const tier = stakeTier(tierId);
   const state = arena && isOk(arena) ? arena.value : null;
@@ -54,8 +49,7 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
   const spendable = sheet && isOk(sheet) ? sheet.value.spendableBase : null;
   const short = potBase !== null && potBase > 0n && spendable !== null && spendable < potBase;
   const money = (base: bigint | null) => (base === null || decimals === null ? "—" : formatBaseUnits(base, decimals, { maxDp: 2, minDp: 0 }));
-  const gasShort = gas.kind === "short";
-  const blocked = paused || notDeployed || !enabled || short || !roomOpen || gasShort;
+  const blocked = paused || notDeployed || !enabled || short || !roomOpen;
 
   return (
     <Plate>
@@ -95,7 +89,7 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
         {[
           tier.potUnits === 0 ? DUEL.entry.costNoPot : DUEL.entry.costPot(money(potBase), symbol),
           DUEL.entry.costCards(money(capBase), symbol),
-          sponsor.ready ? DUEL.entry.costGasSponsored : DUEL.entry.costGas,
+          DUEL.entry.costFee,
         ].map((line) => (
           <Text key={line} style={[styles.costLine, { color: color.inkSecondary }]}>
             {onPhone(line)}
@@ -108,12 +102,6 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
       {paused ? <Refusal>{DUEL.entry.paused}</Refusal> : null}
       {!paused && !notDeployed && !enabled ? <Refusal>{DUEL.entry.tierDisabled}</Refusal> : null}
       {short ? <Refusal>{DUEL.entry.balanceShort(money(potBase), money(spendable), symbol)}</Refusal> : null}
-      {gasShort ? (
-        <Refusal>
-          <Body>{sponsor.ready ? DUEL.entry.gasShortSponsored : DUEL.entry.gasShort}</Body>
-          <GasRoutes onRecheck={() => void recheck()} />
-        </Refusal>
-      ) : null}
       <Cta label={roomOpen ? DUEL.entry.find : DUEL.entry.waitingRoom} disabled={blocked} onPress={() => onFind(tier.mode, tierId)} />
     </Plate>
   );
