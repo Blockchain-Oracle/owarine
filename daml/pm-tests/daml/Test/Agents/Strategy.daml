@@ -1,0 +1,352 @@
+-- | The strategy registry's money gate: the spec seal, the creator's
+-- lifecycle (update with version, set runner, deactivate), subscriptions of
+-- every kind against the subscriber's own grant and the envelope, the
+-- runner acting only through that grant, fees paid to the creator in
+-- aggregate, conservation of the fee, and visibility (a creator never sees
+-- who subscribes; an outsider sees nothing).
+module Test.Agents.Strategy where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.Text (sha256)
+import PM.Agents.Strategy
+import PM.Grant
+import PM.Leg (Leg)
+import PM.Money
+import PM.Types
+import Test.Setup
+
+data S = S with
+  w : World
+  win : Win
+  creator : Party
+  runner : Party
+  license : ContractId CreatorLicense
+  strategy : ContractId Strategy
+  listing : ContractId StrategyListing
+
+env : Envelope
+env = Envelope with maxStakePerTrade = 700; maxDailySpend = 1000; maxOpenPositions = 9; maxPriceTicks = 650
+
+inEnv : GrantCaps
+inEnv = GrantCaps with maxStakePerTrade = 700; maxDailySpend = 1000; maxPriceTicks = 650; maxOpenPositions = 9
+
+spec0 : Text
+spec0 = "{\"preset\":\"momentum\",\"lookbackWindows\":3}"
+
+spec1 : Text
+spec1 = "{\"preset\":\"momentum\",\"lookbackWindows\":5}"
+
+fee0 : Int
+fee0 = 50
+
+grantExpiry : Time
+grantExpiry = plus t0 (2 * 86400)
+
+-- A 3-day BTC window (quotes stay issuable across days), a creator with a
+-- licence and one published strategy run by `runner`.
+setupS : Script S
+setupS = do
+  w <- mkWorld
+  s <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "BTC-3d"; cadenceSec = 3 * 86400
+  (_, win) <- openWin w s 0
+  creator <- allocateParty "creator"
+  runner <- allocateParty "runner"
+  lic <- submit w.venue do createCmd CreatorLicense with venue = w.venue; creator; nextIndex = 0
+  (license, strategy, listing) <- submit creator do
+    exerciseCmd lic License_Publish with
+      runner; envelope = env; fee = fee0; spec = spec0; specHash = sha256 spec0
+  pure S with ..
+
+openGrant : S -> Party -> Party -> GrantCaps -> Script (ContractId AgentGrant)
+openGrant s owner agent caps = do
+  offer <- submit s.w.venue do createCmd GrantOffer with venue = s.w.venue; owner
+  c <- fund s.w owner 2000
+  submit owner do
+    exerciseCmd offer GrantOffer_Open with
+      agent; caps; expiresAt = grantExpiry; dayZero = t0; budget = 2000; cash = [c]
+
+openBook : S -> Party -> Script (ContractId SubscriberBook)
+openBook s p = do
+  inv <- submit s.w.venue do createCmd SubscriberInvite with venue = s.w.venue; subscriber = p
+  submit p do exerciseCmd inv Invite_OpenBook
+
+type SubResult = (ContractId SubscriberBook, ContractId Subscription, Optional (ContractId VenueCash))
+
+-- Subscribe with the listing disclosed by the venue (the app's path).
+subscribeWith : S -> Party -> ContractId SubscriberBook -> ContractId StrategyListing -> ContractId AgentGrant
+  -> SubKind -> Int -> Int -> [ContractId VenueCash] -> Script (Either SubmitError SubResult)
+subscribeWith s p book listing grant kind maxFee version cash = do
+  d <- disclosureOf s.w.venue listing
+  trySubmit (actAs p <> disclose d) do
+    exerciseCmd book Subscriber_Subscribe with
+      listingCid = listing; grantCid = grant; kind; maxFee; expectVersion = version; cash
+
+-- The usual path: fund exactly the fee, current version, max fee = fee.
+subscribe : S -> Party -> ContractId SubscriberBook -> ContractId AgentGrant -> SubKind -> Script (Either SubmitError SubResult)
+subscribe s p book grant kind = do
+  c <- fund s.w p fee0
+  subscribeWith s p book s.listing grant kind fee0 0 [c]
+
+-- The runner accepts one of `owner`'s quotes through `owner`'s grant.
+runnerBuys : S -> Party -> ContractId AgentGrant -> Int -> Int -> Script (Either SubmitError (ContractId AgentGrant, ContractId Leg))
+runnerBuys s owner grant ticks lots = do
+  now <- getTime
+  q <- issue s.w s.win owner SideUp ticks lots 0 (plus now 20) "r"
+  d <- disclosureOf s.w.venue q
+  trySubmit (actAs s.runner <> disclose d) do
+    exerciseCmd grant Grant_AcceptQuote with quoteCid = q; limitTicks = ticks; asOf = now
+
+listingOfCid : S -> ContractId StrategyListing -> Script StrategyListing
+listingOfCid s cid = do
+  Some l <- queryContractId s.w.venue cid
+  pure l
+
+-- ---------------------------------------------------------------------------
+
+-- The seal is an invariant: a spec that does not hash to its declared hash
+-- is refused at publish and at update; every revision bumps the version
+-- and the listing follows the creator's own choices.
+testStrategySealAndLifecycle = script do
+  s <- setupS
+  refusedWith (refusal "spec-hash-mismatch") =<< trySubmit s.creator do
+    exerciseCmd s.license License_Publish with
+      runner = s.runner; envelope = env; fee = 0; spec = spec0; specHash = sha256 spec1
+  refusedWith (refusal "bad-envelope") =<< trySubmit s.creator do
+    exerciseCmd s.license License_Publish with
+      runner = s.runner; envelope = (env with maxDailySpend = 0); fee = 0; spec = spec0; specHash = sha256 spec0
+  l0 <- listingOfCid s s.listing
+  l0.version === 0
+  l0.specHash === sha256 spec0
+  l0.strategyId === partyToText s.creator <> "/0"
+  -- update: wrong hash refused, right hash bumps the version
+  refusedWith (refusal "spec-hash-mismatch") =<< trySubmit s.creator do
+    exerciseCmd s.strategy Strategy_Update with
+      newSpec = spec1; newSpecHash = sha256 spec0; newFee = 60; listingCid = s.listing
+  (st1, li1) <- submit s.creator do
+    exerciseCmd s.strategy Strategy_Update with
+      newSpec = spec1; newSpecHash = sha256 spec1; newFee = 60; listingCid = s.listing
+  l1 <- listingOfCid s li1
+  (l1.version, l1.fee, l1.specHash, l1.envelope) === (1, 60, sha256 spec1, env)
+  -- the old listing is gone
+  None <- queryContractId s.w.venue s.listing
+  -- set runner
+  runner2 <- allocateParty "runner2"
+  (st2, li2) <- submit s.creator do exerciseCmd st1 Strategy_SetRunner with newRunner = runner2; listingCid = li1
+  l2 <- listingOfCid s li2
+  l2.runner === runner2
+  -- nobody but the creator edits: not the venue, not the runner
+  fails =<< trySubmit s.w.venue do exerciseCmd st2 Strategy_Deactivate with listingCid = li2
+  fails =<< trySubmit s.runner do exerciseCmd st2 Strategy_Deactivate with listingCid = li2
+  -- a listing only ever copies a live creator-signed Strategy
+  fails =<< trySubmit s.creator do exerciseCmd li2 Listing_Sync with strategyCid = st1
+  -- deactivate: final, and no further revisions
+  (st3, li3) <- submit s.creator do exerciseCmd st2 Strategy_Deactivate with listingCid = li2
+  l3 <- listingOfCid s li3
+  l3.active === False
+  refusedWith (refusal "strategy-inactive") =<< trySubmit s.creator do
+    exerciseCmd st3 Strategy_Update with newSpec = spec0; newSpecHash = sha256 spec0; newFee = 0; listingCid = li3
+  -- the second publish takes the next id
+  (_, _, li4) <- submit s.creator do
+    exerciseCmd s.license License_Publish with
+      runner = s.runner; envelope = env; fee = 0; spec = spec0; specHash = sha256 spec0
+  l4 <- listingOfCid s li4
+  l4.strategyId === partyToText s.creator <> "/1"
+
+-- Copy, fade and mirror each rest on the subscriber's own grant to the
+-- runner. The runner then acts only through that grant: inside its caps,
+-- only for its owner, and not after revoke.
+testSubscribeKindsAndRunnerThroughGrant = script do
+  s <- setupS
+  ga <- openGrant s s.w.alice s.runner inEnv
+  gb <- openGrant s s.w.bob s.runner inEnv
+  ba <- openBook s s.w.alice
+  bb <- openBook s s.w.bob
+  (_, subA, change) <- succeeded =<< subscribe s s.w.alice ba ga SubCopy
+  change === None
+  (bb0, subB, _) <- succeeded =<< subscribe s s.w.bob bb gb SubMirror
+  Some a <- queryContractId s.w.alice subA
+  (a.kind, a.version, a.specHash, a.feePaid) === (SubCopy, 0, sha256 spec0, fee0)
+  (a.grantCid, a.creator) === (ga, s.creator)
+  Some b <- queryContractId s.w.bob subB
+  b.kind === SubMirror
+  -- the runner trades for Alice inside her grant's caps
+  (ga1, leg) <- succeeded =<< runnerBuys s s.w.alice ga 600 1
+  Some l <- queryContractId s.w.alice leg
+  l.owner === s.w.alice
+  -- and never beyond them
+  refusedWith (refusal "over-stake-cap") =<< runnerBuys s s.w.alice ga1 360 2
+  refusedWith (refusal "over-price-cap") =<< runnerBuys s s.w.alice ga1 651 1
+  refusedWith (refusal "over-daily-cap") =<< runnerBuys s s.w.alice ga1 401 1
+  -- a quote for Bob cannot be spent through Alice's grant
+  now <- getTime
+  qb <- issue s.w s.win s.w.bob SideUp 500 1 0 (plus now 20) "x"
+  d <- disclosureOf s.w.venue qb
+  refusedWith (refusal "wrong-quote") =<< trySubmit (actAs s.runner <> disclose d) do
+    exerciseCmd ga1 Grant_AcceptQuote with quoteCid = qb; limitTicks = 500; asOf = now
+  -- Alice revokes: the runner is stopped at once, the budget comes back
+  _ <- submit s.w.alice do exerciseCmd ga1 Grant_Revoke
+  fails =<< runnerBuys s s.w.alice ga1 100 1
+  -- fade: Bob unsubscribes from mirror, then fades
+  bb1 <- submit s.w.bob do exerciseCmd bb0 Subscriber_Unsubscribe with subscriptionCid = subB
+  None <- queryContractId s.w.bob subB
+  c <- fund s.w s.w.bob fee0
+  (_, subF, _) <- succeeded =<< subscribeWith s s.w.bob bb1 s.listing gb SubFade fee0 0 [c]
+  Some f <- queryContractId s.w.bob subF
+  f.kind === SubFade
+
+-- Every refusal on the way in, in the reference's terms.
+testSubscribeRefusals = script do
+  s <- setupS
+  other <- allocateParty "other-runner"
+  ba <- openBook s s.w.alice
+  ga <- openGrant s s.w.alice s.runner inEnv
+  -- a grant to a different runner
+  gOther <- openGrant s s.w.alice other inEnv
+  refusedWith (refusal "wrong-runner") =<< subscribe s s.w.alice ba gOther SubCopy
+  -- a grant wider than the envelope, one ceiling at a time
+  gWide <- openGrant s s.w.alice s.runner inEnv with maxDailySpend = 1001
+  refusedWith (refusal "caps-outside-envelope") =<< subscribe s s.w.alice ba gWide SubCopy
+  gNoPrice <- openGrant s s.w.alice s.runner inEnv with maxPriceTicks = 0
+  refusedWith (refusal "caps-outside-envelope") =<< subscribe s s.w.alice ba gNoPrice SubCopy
+  gPos <- openGrant s s.w.alice s.runner inEnv with maxOpenPositions = 10
+  refusedWith (refusal "caps-outside-envelope") =<< subscribe s s.w.alice ba gPos SubCopy
+  -- a narrower grant is inside
+  gNarrow <- openGrant s s.w.alice s.runner inEnv with maxStakePerTrade = 100; maxPriceTicks = 500
+  -- Bob's grant is not Alice's to pledge (she cannot even see it)
+  gb <- openGrant s s.w.bob s.runner inEnv
+  fails =<< subscribe s s.w.alice ba gb SubCopy
+  -- the fee rose after it was shown
+  c1 <- fund s.w s.w.alice fee0
+  refusedWith (refusal "fee-above-max") =<< subscribeWith s s.w.alice ba s.listing ga SubCopy (fee0 - 1) 0 [c1]
+  -- the spec changed after it was shown
+  (st1, li1) <- submit s.creator do
+    exerciseCmd s.strategy Strategy_Update with
+      newSpec = spec1; newSpecHash = sha256 spec1; newFee = fee0; listingCid = s.listing
+  refusedWith (refusal "version-changed") =<< subscribeWith s s.w.alice ba li1 ga SubCopy fee0 0 [c1]
+  -- not enough cash for the fee
+  c2 <- fund s.w s.w.alice (fee0 - 1)
+  refusedWith (refusal "insufficient-cash") =<< subscribeWith s s.w.alice ba li1 ga SubCopy fee0 1 [c2]
+  -- follow once; fading the same strategy is refused until unsubscribed
+  (ba1, sub, Some change) <- succeeded =<< subscribeWith s s.w.alice ba li1 gNarrow SubCopy fee0 1 [c1, c2]
+  Some ch <- queryContractId s.w.alice change
+  ch.amount === fee0 - 1
+  c3 <- fund s.w s.w.alice fee0
+  refusedWith (refusal "already-subscribed") =<< subscribeWith s s.w.alice ba1 li1 ga SubFade fee0 1 [c3]
+  -- deactivated strategies take no one
+  (_, li2) <- submit s.creator do exerciseCmd st1 Strategy_Deactivate with listingCid = li1
+  ba2 <- submit s.w.alice do exerciseCmd ba1 Subscriber_Unsubscribe with subscriptionCid = sub
+  refusedWith (refusal "strategy-inactive") =<< subscribeWith s s.w.alice ba2 li2 ga SubCopy fee0 1 [c3]
+  -- a free strategy takes no cash
+  (_, _, liFree) <- submit s.creator do
+    exerciseCmd s.license License_Publish with
+      runner = s.runner; envelope = env; fee = 0; spec = spec0; specHash = sha256 spec0
+  refusedWith (refusal "no-fee-due") =<< subscribeWith s s.w.alice ba2 liFree ga SubCopy 0 0 [c3]
+  (_, _, None) <- succeeded =<< subscribeWith s s.w.alice ba2 liFree ga SubCopy 0 0 []
+  pure ()
+
+-- A grant is live for subscribing at T - 1 and at T (the grant's own rule
+-- admits at expiresAt), and refused at T + 1.
+testSubscribeAtGrantExpiry = script do
+  s <- setupS
+  carol <- allocateParty "carol"
+  ready <- forA [s.w.alice, s.w.bob, carol] \p -> do
+    b <- openBook s p
+    g <- openGrant s p s.runner inEnv
+    c <- fund s.w p fee0
+    pure (p, b, g, c)
+  results <- forA (zip [-1, 0, 1] ready) \(dt, (p, b, g, c)) -> do
+    at (plus grantExpiry dt)
+    subscribeWith s p b s.listing g SubCopy fee0 0 [c]
+  case results of
+    [r1, r2, r3] -> do
+      _ <- succeeded r1
+      _ <- succeeded r2
+      refusedWith deadlineExceeded r3
+    _ -> abort "three attempts"
+
+-- A creator never learns who subscribes: no Subscription, SubscriberBook or
+-- StrategyFee is visible to the creator (or the runner), only the
+-- aggregate payout. Subscribers do not see each other; an outsider sees
+-- nothing of any registry template.
+testCreatorNeverSeesSubscribers = script do
+  s <- setupS
+  ga <- openGrant s s.w.alice s.runner inEnv
+  gb <- openGrant s s.w.bob s.runner inEnv
+  ba <- openBook s s.w.alice
+  bb <- openBook s s.w.bob
+  _ <- succeeded =<< subscribe s s.w.alice ba ga SubCopy
+  _ <- succeeded =<< subscribe s s.w.bob bb gb SubFade
+  forA_ [s.creator, s.runner] \p -> do
+    registryCounts p >>= \cs -> [(n, c) | (n, c) <- cs, n `elem` ["Subscription", "SubscriberBook", "StrategyFee", "SubscriberInvite"]]
+      === [("SubscriberInvite", 0), ("SubscriberBook", 0), ("Subscription", 0), ("StrategyFee", 0)]
+  registryCounts s.w.outsider >>= \cs -> all (\(_, c) -> c == 0) cs === True
+  -- each subscriber sees only their own consent
+  (length <$> query @Subscription s.w.alice) >>= (=== 1)
+  (length <$> query @Subscription s.w.bob) >>= (=== 1)
+  -- the creator sees the aggregate, with no subscriber in it
+  fees <- query @StrategyFee s.w.venue
+  p <- submit s.w.venue do exerciseCmd s.license License_Payout with feeCids = map fst fees; period = 1
+  Some po <- queryContractId s.creator p
+  (po.feeCount, po.amount, po.creator) === (2, 2 * fee0, s.creator)
+  registryCounts s.creator >>= \cs -> [(n, c) | (n, c) <- cs, n `elem` ["Strategy", "StrategyListing", "CreatorPayout"]]
+    === [("Strategy", 1), ("StrategyListing", 1), ("CreatorPayout", 1)]
+
+registryCounts : Party -> Script [(Text, Int)]
+registryCounts p = do
+  a <- length <$> query @CreatorLicense p
+  b <- length <$> query @Strategy p
+  c <- length <$> query @StrategyListing p
+  d <- length <$> query @SubscriberInvite p
+  e <- length <$> query @SubscriberBook p
+  f <- length <$> query @Subscription p
+  g <- length <$> query @StrategyFee p
+  h <- length <$> query @CreatorPayout p
+  pure [ ("CreatorLicense", a), ("Strategy", b), ("StrategyListing", c), ("SubscriberInvite", d)
+       , ("SubscriberBook", e), ("Subscription", f), ("StrategyFee", g), ("CreatorPayout", h) ]
+
+-- The fee is conserved: subscriber cash -> venue-held fee -> aggregate
+-- payout -> creator cash, with nothing created or lost on the way, and a
+-- payout only ever aggregates this creator's fees, once.
+testFeeConservation = script do
+  s <- setupS
+  otherCreator <- allocateParty "other-creator"
+  ga <- openGrant s s.w.alice s.runner inEnv
+  gb <- openGrant s s.w.bob s.runner inEnv
+  ba <- openBook s s.w.alice
+  bb <- openBook s s.w.bob
+  let total = do
+        cs <- query @VenueCash s.w.venue
+        gs <- query @AgentGrant s.w.venue
+        fs <- query @StrategyFee s.w.venue
+        ps <- query @CreatorPayout s.w.venue
+        pure (sum [c.amount | (_, c) <- cs, c.owner /= s.w.venue] + sum [g.budget | (_, g) <- gs]
+              + sum [f.amount | (_, f) <- fs] + sum [p.amount | (_, p) <- ps])
+  base <- total
+  -- funding the fee is a credit
+  c1 <- fund s.w s.w.alice (fee0 + 30)
+  c2 <- fund s.w s.w.bob fee0
+  total >>= (=== base + 2 * fee0 + 30)
+  (_, _, Some ch) <- succeeded =<< subscribeWith s s.w.alice ba s.listing ga SubCopy fee0 0 [c1]
+  Some chv <- queryContractId s.w.alice ch
+  chv.amount === 30
+  _ <- succeeded =<< subscribeWith s s.w.bob bb s.listing gb SubCopy fee0 0 [c2]
+  total >>= (=== base + 2 * fee0 + 30)
+  fees <- query @StrategyFee s.w.venue
+  -- another creator's licence cannot pay these fees out
+  lic2 <- submit s.w.venue do createCmd CreatorLicense with venue = s.w.venue; creator = otherCreator; nextIndex = 0
+  refusedWith (refusal "foreign-fee") =<< trySubmit s.w.venue do
+    exerciseCmd lic2 License_Payout with feeCids = map fst fees; period = 1
+  refusedWith (refusal "duplicate-fee") =<< trySubmit s.w.venue do
+    exerciseCmd s.license License_Payout with feeCids = map fst fees ++ map fst fees; period = 1
+  -- the creator cannot pay itself
+  fails =<< trySubmit s.creator do exerciseCmd s.license License_Payout with feeCids = map fst fees; period = 1
+  p <- submit s.w.venue do exerciseCmd s.license License_Payout with feeCids = map fst fees; period = 1
+  total >>= (=== base + 2 * fee0 + 30)
+  _ <- submit s.creator do exerciseCmd p Payout_Claim
+  total >>= (=== base + 2 * fee0 + 30)
+  cashOf s.creator >>= (=== 2 * fee0)
+  -- paid once: the fees are gone
+  fails =<< trySubmit s.w.venue do exerciseCmd s.license License_Payout with feeCids = map fst fees; period = 2

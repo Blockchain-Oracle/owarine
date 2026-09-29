@@ -1,0 +1,340 @@
+-- | The strategy registry (the reference's `agari-strategy`): who may trade
+-- for whom, under which ceilings, for what fee. The registry holds no
+-- custody and moves nothing but the fee; execution and every ceiling live on
+-- the subscriber's own `AgentGrant` (`PM.Grant`), so the runner can only
+-- ever open positions the subscriber owns, inside the grant's caps.
+--
+-- Parties and visibility:
+--   Strategy          creator (signatory), venue (observer). Disclosed to
+--                     viewers by the app (createdEventBlob).
+--   StrategyListing   venue (signatory), creator (observer). The venue's
+--                     mirror of the creator's terms, kept in step by the
+--                     creator's own choices. Subscribers fetch THIS, never
+--                     the creator-signed `Strategy`: a fetch informs the
+--                     fetched contract's signatories, so fetching the
+--                     Strategy would tell the creator who subscribes.
+--   SubscriberBook,
+--   Subscription      subscriber + venue only. A creator never learns who
+--                     subscribes (the design's bilateral rule).
+--   StrategyFee       venue only: a subscriber's fee held for the creator.
+--   CreatorPayout     venue (signatory), creator (observer): the per-period
+--                     aggregate the creator claims. The creator sees totals
+--                     and a count, never a subscriber.
+--
+-- The reference writes a strategy's words in chunks and seals them against a
+-- hash declared up front. A Daml create carries the whole text, so the seal
+-- is an `ensure`: `sha256 spec == specHash` holds for every Strategy that
+-- exists, and a strategy is never visible half-written.
+module PM.Agents.Strategy where
+
+import DA.List (delete, unique)
+import DA.Assert (assertWithinDeadline)
+import DA.Text (sha256)
+import DA.Time (addRelTime, seconds)
+import PM.Grant
+import PM.Money
+import PM.Types
+
+-- | The ceilings a creator publishes and never changes: subscribers agreed
+-- to them. Mirrors `GrantCaps`.
+data Envelope = Envelope
+  with
+    maxStakePerTrade : Int
+    maxDailySpend : Int
+    maxOpenPositions : Int
+    maxPriceTicks : Int
+      -- ^ side terms; 0 = the strategy sets no price ceiling
+  deriving (Eq, Show)
+
+envelopeOk : Envelope -> Bool
+envelopeOk e =
+  e.maxStakePerTrade > 0 && e.maxDailySpend > 0 && e.maxOpenPositions > 0
+    && e.maxPriceTicks >= 0 && e.maxPriceTicks <= 999
+
+-- | A grant sits inside the envelope when every ceiling it carries is at or
+-- under the envelope's. A price ceiling works the other way about: 0 means
+-- none, so an envelope that sets one refuses a grant that sets none.
+admits : Envelope -> GrantCaps -> Bool
+admits e g =
+  g.maxStakePerTrade <= e.maxStakePerTrade
+    && g.maxDailySpend <= e.maxDailySpend
+    && g.maxOpenPositions <= e.maxOpenPositions
+    && (e.maxPriceTicks == 0 || (g.maxPriceTicks /= 0 && g.maxPriceTicks <= e.maxPriceTicks))
+
+-- | What the runner does with a subscriber's grant. Copy follows the
+-- strategy's decisions, Fade places the opposite side of the same Window
+-- (the reference's A-1c), Mirror follows the named trader of a mirror spec.
+-- One active consent per (subscriber, strategy), whichever kind.
+data SubKind = SubCopy | SubFade | SubMirror
+  deriving (Eq, Show)
+
+-- | The venue's standing licence for one creator. Publishing runs here so
+-- the new Strategy (creator-signed) and its listing (venue-signed) are
+-- created together, with both authorities.
+template CreatorLicense
+  with
+    venue : Party
+    creator : Party
+    nextIndex : Int
+  where
+    signatory venue
+    observer creator
+    ensure nextIndex >= 0 && creator /= venue
+
+    choice License_Publish : (ContractId CreatorLicense, ContractId Strategy, ContractId StrategyListing)
+      with
+        runner : Party
+        envelope : Envelope
+        fee : Int
+        spec : Text
+        specHash : Text
+      controller creator
+      do
+        require "bad-envelope" "an envelope needs a stake, a daily and a position ceiling" (envelopeOk envelope)
+        require "bad-fee" "the fee must not be negative" (fee >= 0)
+        require "bad-runner" "the runner cannot be the venue" (runner /= venue)
+        require "spec-hash-mismatch" "the spec does not hash to the declared hash" (sha256 spec == specHash)
+        let strategyId = partyToText creator <> "/" <> show nextIndex
+        let strategy = Strategy with
+              venue; creator; strategyId; runner; envelope; fee; spec; specHash; version = 0; active = True
+        s <- create strategy
+        l <- create (listingOf s strategy)
+        lic <- create this with nextIndex = nextIndex + 1
+        pure (lic, s, l)
+
+    -- The venue pays a creator's fees in aggregate: every fee passed must be
+    -- this creator's; the payout carries the total and a count only.
+    nonconsuming choice License_Payout : ContractId CreatorPayout
+      with
+        feeCids : [ContractId StrategyFee]
+        period : Int
+      controller venue
+      do
+        require "empty-payout" "a payout aggregates at least one fee" (not (null feeCids))
+        require "duplicate-fee" "the same fee was passed twice" (unique feeCids)
+        amounts <- forA feeCids \c -> do
+          f <- fetch c
+          require "foreign-fee" "fee belongs to another creator or venue" (f.venue == venue && f.creator == creator)
+          archive c
+          pure f.amount
+        create CreatorPayout with venue; creator; period; feeCount = length amounts; amount = sum amounts
+
+template Strategy
+  with
+    venue : Party
+    creator : Party
+    strategyId : Text
+    runner : Party
+    envelope : Envelope
+    fee : Int
+    spec : Text
+    specHash : Text
+    version : Int
+    active : Bool
+  where
+    signatory creator
+    observer venue
+    ensure sha256 spec == specHash && envelopeOk envelope && fee >= 0 && version >= 0
+      && creator /= venue && runner /= venue
+
+    -- Rotate the runner. Existing grants name the old runner, so subscribers
+    -- re-grant to follow (as in the reference).
+    choice Strategy_SetRunner : (ContractId Strategy, ContractId StrategyListing)
+      with
+        newRunner : Party
+        listingCid : ContractId StrategyListing
+      controller creator
+      do
+        require "bad-runner" "the runner cannot be the venue" (newRunner /= venue)
+        s <- create this with runner = newRunner
+        l <- exercise listingCid Listing_Sync with strategyCid = s
+        pure (s, l)
+
+    -- A new spec revision or fee. The envelope does not change, and neither
+    -- do the subscriptions already on record.
+    choice Strategy_Update : (ContractId Strategy, ContractId StrategyListing)
+      with
+        newSpec : Text
+        newSpecHash : Text
+        newFee : Int
+        listingCid : ContractId StrategyListing
+      controller creator
+      do
+        require "strategy-inactive" "a deactivated strategy cannot be revised" active
+        require "spec-hash-mismatch" "the spec does not hash to the declared hash" (sha256 newSpec == newSpecHash)
+        require "bad-fee" "the fee must not be negative" (newFee >= 0)
+        s <- create this with spec = newSpec; specHash = newSpecHash; fee = newFee; version = version + 1
+        l <- exercise listingCid Listing_Sync with strategyCid = s
+        pure (s, l)
+
+    choice Strategy_Deactivate : (ContractId Strategy, ContractId StrategyListing)
+      with
+        listingCid : ContractId StrategyListing
+      controller creator
+      do
+        require "strategy-inactive" "the strategy is already inactive" active
+        s <- create this with active = False
+        l <- exercise listingCid Listing_Sync with strategyCid = s
+        pure (s, l)
+
+-- | The listing a Strategy's current terms produce.
+listingOf : ContractId Strategy -> Strategy -> StrategyListing
+listingOf cid s = StrategyListing with
+  venue = s.venue; creator = s.creator; strategyId = s.strategyId; strategyCid = cid
+  runner = s.runner; envelope = s.envelope; fee = s.fee; specHash = s.specHash
+  version = s.version; active = s.active
+
+template StrategyListing
+  with
+    venue : Party
+    creator : Party
+    strategyId : Text
+    strategyCid : ContractId Strategy
+    runner : Party
+    envelope : Envelope
+    fee : Int
+    specHash : Text
+    version : Int
+    active : Bool
+  where
+    signatory venue
+    observer creator
+
+    -- Copies the creator's current Strategy, whatever it is: the listing can
+    -- only ever say what a live creator-signed Strategy says.
+    choice Listing_Sync : ContractId StrategyListing
+      with
+        strategyCid : ContractId Strategy
+      controller creator
+      do
+        s <- fetch strategyCid
+        require "wrong-strategy" "that strategy is not this listing's"
+          (s.venue == venue && s.creator == creator && s.strategyId == strategyId && s.envelope == envelope)
+        create (listingOf strategyCid s)
+
+-- | The venue's invitation to follow strategies.
+template SubscriberInvite
+  with
+    venue : Party
+    subscriber : Party
+  where
+    signatory venue
+    observer subscriber
+
+    choice Invite_OpenBook : ContractId SubscriberBook
+      controller subscriber
+      do create SubscriberBook with venue; subscriber; following = []
+
+-- | A subscriber's consents, one per strategy (the reference's rule that a
+-- wallet may not follow and fade the same strategy at once). Without
+-- contract keys, the book is what makes that checkable.
+template SubscriberBook
+  with
+    venue : Party
+    subscriber : Party
+    following : [Text]
+      -- ^ strategy ids with an active Subscription of any kind
+  where
+    signatory venue, subscriber
+    ensure unique following && subscriber /= venue
+
+    -- Consent to be traded for: the subscriber's live grant to the
+    -- strategy's runner, inside the envelope, and the fee the subscriber was
+    -- shown (a fee raised between read and signature is refused, not paid).
+    choice Subscriber_Subscribe : (ContractId SubscriberBook, ContractId Subscription, Optional (ContractId VenueCash))
+      with
+        listingCid : ContractId StrategyListing
+        grantCid : ContractId AgentGrant
+        kind : SubKind
+        maxFee : Int
+        expectVersion : Int
+        cash : [ContractId VenueCash]
+      controller subscriber
+      do
+        l <- fetch listingCid
+        require "wrong-venue" "listing belongs to another venue" (l.venue == venue)
+        require "strategy-inactive" "the strategy is not taking subscribers" l.active
+        require "version-changed" "the strategy's spec changed since it was shown" (l.version == expectVersion)
+        require "already-subscribed" "this subscriber already follows or fades this strategy"
+          (l.strategyId `notElem` following)
+        g <- fetch grantCid
+        require "not-grant-owner" "that grant belongs to a different owner" (g.owner == subscriber && g.venue == venue)
+        require "wrong-runner" "that grant names a different runner" (g.agent == l.runner)
+        -- live by the grant's own rule: admitted up to and at expiresAt
+        assertWithinDeadline "grant-expiry" (addRelTime g.expiresAt (seconds 1))
+        require "caps-outside-envelope" "the grant's ceilings are wider than the envelope" (admits l.envelope g.caps)
+        require "fee-above-max" "the fee is above what the subscriber agreed to pay" (l.fee <= maxFee)
+        change <- if l.fee > 0
+          then do
+            total <- sumOwnedCash venue subscriber cash
+            require "insufficient-cash" "cash does not cover the fee" (total >= l.fee)
+            _ <- create StrategyFee with venue; creator = l.creator; strategyId = l.strategyId; amount = l.fee
+            payIfPositive venue subscriber (total - l.fee) "change"
+          else do
+            require "no-fee-due" "this strategy charges no fee" (null cash)
+            pure None
+        sub <- create Subscription with
+          venue; subscriber; creator = l.creator; strategyId = l.strategyId; runner = l.runner
+          kind; version = l.version; specHash = l.specHash; grantCid; feePaid = l.fee
+        book <- create this with following = l.strategyId :: following
+        pure (book, sub, change)
+
+    -- Ends a consent. Revoking the grant is what actually stops the runner;
+    -- this keeps the book honest either way, and works on an inactive
+    -- strategy too.
+    choice Subscriber_Unsubscribe : ContractId SubscriberBook
+      with
+        subscriptionCid : ContractId Subscription
+      controller subscriber
+      do
+        s <- fetch subscriptionCid
+        require "not-subscribed" "that subscription is not this subscriber's"
+          (s.subscriber == subscriber && s.venue == venue && s.strategyId `elem` following)
+        archive subscriptionCid
+        create this with following = delete s.strategyId following
+
+-- | One consent, bilateral: the creator is named but is not a stakeholder.
+template Subscription
+  with
+    venue : Party
+    subscriber : Party
+    creator : Party
+    strategyId : Text
+    runner : Party
+    kind : SubKind
+    version : Int
+    specHash : Text
+    grantCid : ContractId AgentGrant
+    feePaid : Int
+  where
+    signatory venue, subscriber
+    ensure feePaid >= 0
+
+-- | A subscriber's fee, held by the venue for the creator until the
+-- period's aggregate payout. Venue-only, so the creator never sees one.
+template StrategyFee
+  with
+    venue : Party
+    creator : Party
+    strategyId : Text
+    amount : Int
+  where
+    signatory venue
+    ensure amount > 0
+
+-- | A period's fees for one creator, in aggregate.
+template CreatorPayout
+  with
+    venue : Party
+    creator : Party
+    period : Int
+    feeCount : Int
+    amount : Int
+  where
+    signatory venue
+    observer creator
+    ensure amount > 0 && feeCount > 0
+
+    choice Payout_Claim : ContractId VenueCash
+      controller creator
+      do create VenueCash with venue; owner = creator; amount; bucket = "creator-fee"
