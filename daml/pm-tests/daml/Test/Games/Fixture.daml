@@ -7,14 +7,15 @@
 -- records window 0's open, so the clock stands at t0+10.
 --
 -- Conservation for games: `gamesTotal` is the engine's `ledgerTotal` plus
--- every escrowed side pot (one on a DuelOpen, two on a DuelMatch). It
--- changes only when cash is minted.
+-- every escrowed side pot (one on a DuelOpen, two on a DuelMatch) plus
+-- every season pool. It changes only when cash is minted.
 module Test.Games.Fixture where
 
 import Daml.Script
 import DA.Assert ((===))
 import PM.Games.Arena
 import PM.Games.Deck
+import PM.Games.Season
 import PM.Leg (Leg)
 import PM.Market
 import PM.Money
@@ -157,8 +158,10 @@ gamesTotal w = do
   base <- ledgerTotal w
   opens <- query @DuelOpen w.venue
   matches <- query @DuelMatch w.venue
+  pools <- query @SeasonPool w.venue
   pure (base + sum [o.tier.potEach | (_, o) <- opens]
-    + sum [2 * m.tier.potEach | (_, m) <- matches])
+    + sum [2 * m.tier.potEach | (_, m) <- matches]
+    + sum [p.amount | (_, p) <- pools])
 
 -- | Run a step and check the total moved by exactly what it minted.
 step : World -> Int -> Script a -> Script a
