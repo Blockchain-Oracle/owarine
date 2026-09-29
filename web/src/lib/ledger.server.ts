@@ -1,7 +1,7 @@
 import "server-only";
 import { getDb } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
-import { createOpsClient, createSeatLedger, createTicketSeat, type OpsClient, type SeatLedger, type TicketSeat } from "@agari/markets/server";
+import { createAgentsSeat, createDeskSeat, createOpsClient, createSeatLedger, createTicketSeat, type AgentsSeat, type DeskSeat, type OpsClient, type SeatLedger, type TicketSeat } from "@agari/markets/server";
 import { checkWebServerEnv, seatParties, type SeatParties, type WebServerEnv } from "./server-env";
 import { createSeatStore, type SeatStore } from "./seat-store.server";
 
@@ -16,6 +16,10 @@ export interface SeatServer {
   ledger: SeatLedger;
   /** The seat's side of the ticket products (C8c): its own tickets, accepts, claims and refunds. */
   tickets: TicketSeat;
+  /** The seat's grants and strategy registry side (C8f). */
+  agents: AgentsSeat;
+  /** The owner's side of the live desk (C8f). */
+  desk: DeskSeat;
   ops: OpsClient;
   store: SeatStore;
   parties: SeatParties;
@@ -41,7 +45,9 @@ export function seatServer(): SeatServerState {
   const ops = createOpsClient({ baseUrl: env.OPS_INTERNAL_URL!, secret: env.OPS_INTERNAL_SECRET! });
   const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands, marks: () => ops.ladderMarks() });
   const tickets = createTicketSeat({ client, venueParty: parties.venue!, journal: store.commands, fairTicks: () => ops.fairTicks() });
-  state = { ok: true, server: { client, ledger, tickets, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
+  const agents = createAgentsSeat({ client, venueParty: parties.venue!, agentRunner: parties.agentRunner, journal: store.commands, ops });
+  const desk = createDeskSeat({ client, venueParty: parties.venue!, operator: parties.agentRunner, attestors: parties.oracles, journal: store.commands, ops });
+  state = { ok: true, server: { client, ledger, tickets, agents, desk, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
   return state;
 }
 

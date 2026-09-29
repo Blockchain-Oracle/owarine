@@ -287,6 +287,9 @@ importers:
 
   packages/daml-clients:
     dependencies:
+      '@daml.js/abu-pm-agents':
+        specifier: link:./generated/abu-pm-agents
+        version: link:generated/abu-pm-agents
       '@daml.js/abu-pm-main':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main

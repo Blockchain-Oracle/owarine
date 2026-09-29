@@ -20,6 +20,8 @@
  *   reserve    (no writes)                 /reserve
  *   tickets    Book_Issue*, Nav_IssueSupply, Earn_IssueWithdraw, Boost_OfferExit   POST /internal/tickets/*
  *              Round_Settle, Ticket_ResolveLeg, Boost_Settle, Boost_KnockOut, *_Expire, Book_Prune, Earn_PublishNav (C8c)
+ *   agents     GrantDesk, DeskOffer, SubscriberInvite, CreatorLicense   POST /internal/agents/enrol
+ *              License_Payout (creators' aggregate fees) (C8f)
  */
 import type { SpotFeed } from "../../prices/spot";
 import type { VenueDeps } from "../../runtime/deps";
@@ -39,10 +41,11 @@ import { startSeatDrain } from "../seat-funding/drain";
 import { startSettler } from "../settler";
 import { startTicketDesk } from "../ticket-desk";
 import { startWindowRoller } from "../window-roller";
+import { startAgentsVenue } from "../agents";
 import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 
-export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets"] as const;
+export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "agents"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
 
 export interface CantonVenue {
@@ -98,8 +101,12 @@ export async function startCantonVenue(input: {
   const tickets = on("tickets") ? await startTicketDesk({ venue, board, pool, log: input.log("ticket-desk"), draining }) : null;
   if (tickets) stops.push(tickets.stop);
 
+  const agents = on("agents") ? await startAgentsVenue({ venue, log: input.log("agents") }) : null;
+  if (agents) stops.push(agents.stop);
+
   const routes: InternalRoutes["routes"] = {};
   if (tickets) Object.assign(routes, tickets.routes);
+  if (agents) Object.assign(routes, agents.routes);
   if (issuer) routes["/internal/quotes"] = issuer.handle;
   if (issuer) routes["/internal/exit-quotes"] = issuer.handleExit;
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);
