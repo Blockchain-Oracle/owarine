@@ -17,6 +17,7 @@ import { errorText } from "../../runtime/env";
 import { ORACLE_ROLES, type OracleRole } from "../../runtime/keys";
 import { fetchCandle, type Candle, type Exchange, type Fetch } from "../../prices/candles";
 import { oracleName, type VenueContext } from "../venue/context";
+import { emitVenueEvent } from "../venue/events";
 
 /** K-025: every exchange served the closed candle by T + 5 s at 59 of 60 boundaries; feeders post at T + 10 s. */
 export const POST_DELAY_SEC = 10;
@@ -108,6 +109,7 @@ async function post(state: FeederState, boundarySec: number, candles: Candle[], 
   if (out.kind === "dry") return `${out.note}: ${prices}`;
   if (out.recovered) state.counters.recovered++;
   else state.counters.posted++;
+  emitVenueEvent({ kind: "printed", oracle: state.exchange, boundarySec, symbols: candles.map((c) => c.symbol), atMs: Date.now() });
   return `posted @${new Date(boundarySec * 1000).toISOString().slice(11, 16)}Z T+${nowSec - boundarySec}s ${prices} (${out.ms} ms, ${archived})${out.recovered ? " · already posted" : ""}`;
 }
 

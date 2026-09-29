@@ -17,6 +17,7 @@ import type { VenueDeps } from "../../runtime/deps";
 import { spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { planByBasis } from "./plan-basis";
 import { describeVersion, type VersionWindow } from "./versions";
+import { emitVenueEvent } from "../venue/events";
 
 export interface RollerSettings {
   leadSec: number;
@@ -112,6 +113,7 @@ async function open(state: RollerState, series: Active<SeriesC>, plan: Extract<S
     }
     const terms = opened.created.find((e) => e.templateId.endsWith(":PM.Market:MarketTerms"));
     state.counters.opened++;
+    if (terms) emitVenueEvent({ kind: "opened", marketId: `${s.seriesKey}:${index}`, termsCid: terms.contractId, atMs: Date.now() });
     const line = `opened ${s.seriesKey} #${index} ${spanOf(plan.window)} ${version}${opened.recovered ? " (recovered)" : ""} in ${opened.ms} ms`;
     notes.push(`${line}${terms ? ` terms ${terms.contractId.slice(0, 12)}…` : ""}`);
     state.last.set(s.seriesKey, `open #${index} ${spanOf(plan.window)} ${version}`);
