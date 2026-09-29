@@ -25,7 +25,8 @@ export const ANY_SEAT = 0xffff;
 
 /** A throwaway drive identity (never persisted): a fresh WebCrypto Ed25519 key's address. */
 export async function newSigner(): Promise<KeyPairSigner> {
-  const pair = (await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as CryptoKeyPair;
+  const pair = await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"]);
+  if (!("publicKey" in pair)) throw new Error("Ed25519 key generation returned no key pair");
   return { address: toAddress(encodeBase58(new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey)))) };
 }
 

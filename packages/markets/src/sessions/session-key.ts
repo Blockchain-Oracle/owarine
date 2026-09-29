@@ -4,6 +4,7 @@ import type { MarketsEnv } from "../env";
 import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
 import type { WriteRpc } from "../submitter/write-rpc";
 import type { SponsorCosigner } from "../vault";
+import type { WebCryptoKeyPair } from "./ed25519";
 import type { SubmitterSession } from "./submitter-session";
 
 /**
@@ -14,7 +15,7 @@ import type { SubmitterSession } from "./submitter-session";
 export interface SessionKey {
   address: Address;
   /** WebCrypto's `CryptoKeyPair`. */
-  keyPair: CryptoKeyPair;
+  keyPair: WebCryptoKeyPair;
 }
 
 const NOT_NEEDED = cantonNotLive("session keys (a seat already trades in one tap)");

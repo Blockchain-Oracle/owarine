@@ -12,14 +12,22 @@ const PKCS8_ED25519_PREFIX = [0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x
 const ED25519 = { name: "Ed25519" } as const;
 const PROBE = new TextEncoder().encode("seat key check");
 
-const subtle = (): SubtleCrypto => {
+/** WebCrypto's types, named through the global so this compiles with the DOM lib (web) or Node's types (ops). */
+type Subtle = typeof globalThis.crypto.subtle;
+export type WebCryptoKey = Awaited<ReturnType<Subtle["importKey"]>>;
+export interface WebCryptoKeyPair {
+  publicKey: WebCryptoKey;
+  privateKey: WebCryptoKey;
+}
+
+const subtle = (): Subtle => {
   const s = globalThis.crypto?.subtle;
   if (!s) throw new Error("WebCrypto is not available in this runtime");
   return s;
 };
 
 /** A private key's signer: the 64 signature bytes over exactly `message`. */
-function signerOf(address: Address, privateKey: CryptoKey): SeatSigner {
+function signerOf(address: Address, privateKey: WebCryptoKey): SeatSigner {
   return { address, signMessage: async (message) => new Uint8Array(await subtle().sign(ED25519, privateKey, Uint8Array.from(message))) };
 }
 
@@ -39,6 +47,6 @@ export async function signerFromSecretKey(secretKey: Uint8Array): Promise<SeatSi
 }
 
 /** A WebCrypto key pair the caller already holds (the web's non-extractable IndexedDB key), under its known address. */
-export function signerFromKeyPair(address: Address, keyPair: { privateKey: CryptoKey }): SeatSigner {
+export function signerFromKeyPair(address: Address, keyPair: { privateKey: WebCryptoKey }): SeatSigner {
   return signerOf(address, keyPair.privateKey);
 }
