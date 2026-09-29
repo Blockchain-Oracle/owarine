@@ -2,7 +2,7 @@ import type { EventMarket, LaneSet } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { fixtureAddress, fixtureMarketId } from "@/app/dev/fixture-ids";
 import { fixtureWindow } from "@/app/dev/fixture-window";
-import { nextListedWindow } from "./next-window";
+import { nextListedWindow, pausedInLane, standInLaneKeys } from "./next-window";
 
 const NOW = 1_789_473_600; // Tue 09-15 08:00 ET
 const OPEN = NOW + 5_400; // 09:30 ET
@@ -35,5 +35,15 @@ describe("nextListedWindow", () => {
     expect(nextListedWindow(lanes(tsla5), "TSLA", OPEN)).toBeNull();
     expect(nextListedWindow(lanes(tslaGap, nvda5), "TSLA", NOW)).toBeNull();
     expect(nextListedWindow(null, "TSLA", NOW)).toBeNull();
+  });
+});
+
+describe("C6: 24/7 pauses show without a calendar", () => {
+  const states = { "TSLAx-5m": "paused: no signed source (Switchboard Surge TSLAX/USD: crossbar HTTP 503)", "BTC-5m": "open #3 11:00–11:05Z v1 attested", "TSLA-5m": "closed: no calendar" };
+  it("reads the token lane's pauses from the roller's states when the session is unknown, never a Regular lane's", () => {
+    expect([...pausedInLane(null, states, { basis: "token", intervalSec: 300 })]).toEqual([["TSLA", states["TSLAx-5m"]]]);
+    expect(pausedInLane(null, { "TSLA-5m": "paused: no signed source" }, { basis: "regular", intervalSec: 300 }).size).toBe(0);
+    expect(standInLaneKeys(null, states)).toEqual(["token:300"]);
+    expect(standInLaneKeys(null, null)).toEqual([]);
   });
 });

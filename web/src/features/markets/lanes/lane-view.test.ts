@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { assetPairUnit, assetPriceLine, assetPriceParts, assetSpotLine, pointsLine } from "../hero/units";
-import { priceSourceLine } from "./lane-view";
+import { pausedCopy, priceSourceLine } from "./lane-view";
 
-const window = (asset: "TSLA" | "OPENAI" | "AILABS", lane: "regular" | "token") => ({ asset, lane, tradingStartSec: 1_790_000_000, expirySec: 1_790_003_600 }) as const;
+const window = (asset: "TSLA" | "OPENAI" | "AILABS" | "BTC", lane: "regular" | "token") => ({ asset, lane, tradingStartSec: 1_790_000_000, expirySec: 1_790_003_600 }) as const;
 
 describe("priceSourceLine (S19: the source is the asset's kind, not the lane)", () => {
   it("names Switchboard only for an xStock, the PreStocks read for a pre-IPO name, and the index for a basket", () => {
@@ -15,6 +15,23 @@ describe("priceSourceLine (S19: the source is the asset's kind, not the lane)", 
     expect(ailabs).toContain("OpenAI, Anthropic");
     expect(ailabs).not.toContain("Switchboard");
     expect(priceSourceLine(window("TSLA", "regular"))).not.toContain("Switchboard");
+  });
+
+  it("C6: every lane names its attested source; crypto names the three exchanges", () => {
+    expect(priceSourceLine(window("BTC", "token"))).toContain("Coinbase, Kraken and Bitstamp");
+    expect(priceSourceLine(window("BTC", "token"))).not.toContain("Switchboard");
+    for (const a of ["TSLA", "OPENAI", "AILABS"] as const) expect(priceSourceLine(window(a, "token"))).toContain("attested by three oracle parties");
+    expect(priceSourceLine(window("OPENAI", "token"))).not.toContain("signed by Agari");
+  });
+});
+
+describe("pausedCopy (C6: the paused state says why)", () => {
+  it("adds the roller's source reason under the line, and keeps the plain state plain", () => {
+    const withWhy = pausedCopy("paused: no signed source (Switchboard Surge TSLAX/USD: crossbar HTTP 503)", "TSLAx", "token", 300);
+    expect(withWhy.headline).toBe("Paused: no signed price source");
+    expect(withWhy.why).toBe("No 5m TSLAx Window opens until a signed print can settle it. The other tickers keep rolling. Source check: Switchboard Surge TSLAX/USD: crossbar HTTP 503.");
+    expect(pausedCopy("paused: no signed source", "QQQ", "regular", 300).why).not.toContain("Source check");
+    expect(pausedCopy("paused: corporate action (split)", "TSLA", "regular", 300).why).not.toContain("Source check");
   });
 });
 

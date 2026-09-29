@@ -1,5 +1,5 @@
 import { phase as phaseOf, type MarketPhase } from "@agari/core/lifecycle";
-import { formatCadence, isTickerSymbol, TICKERS } from "@agari/core/market";
+import { formatCadence, isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@agari/core/market";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -73,6 +73,8 @@ export function MarketCard({ market, nowMs, selected = false, onSelect = openTic
   const [roomOpen, setRoomOpen] = useState(false);
   const current = nowMs > 0 ? phaseOf(market, nowMs) : null;
   if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
+  // C6: a 4 h or 1 d 24/7 Window listed a cadence ahead says when it opens.
+  if (current === "upcoming" && (LONG_CADENCES_SEC as readonly number[]).includes(market.intervalSec)) return <ListedCard market={market} selected={selected} onSelect={onSelect} schedulable={false} />;
 
   const points = series?.ok ? series.value.points : [];
   const latestRaw = series?.ok ? (series.value.latest?.valueRaw ?? null) : null;

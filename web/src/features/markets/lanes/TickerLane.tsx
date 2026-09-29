@@ -6,7 +6,8 @@ import { Pager } from "@/components/chrome";
 import { EmptyState } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { usePager } from "@/lib/use-pager";
-import { laneState, type MarketSession } from "../session";
+import type { MarketSession } from "../session";
+import { pausedInLane } from "./next-window";
 import { laneAssetLabel, laneCadenceLabel } from "./lane-view";
 import { LaneRows } from "./LaneRows";
 import { TickerPicker } from "./TickerPicker";
@@ -24,25 +25,14 @@ interface TickerLaneProps {
   selectedMarketId: MarketId | null;
   onSelect: (marketId: MarketId, side?: Side) => void;
   onOpenRoom: (market: EventMarket) => void;
+  /** C6: the roller's lane states without a calendar (`useLaneStates`), for the 24/7 and Gap pauses. */
+  laneStates?: Readonly<Record<string, string>> | null;
 }
 
-/**
- * The roller's paused tickers in one lane, with the state it reported. A Regular lane says nothing while the session is
- * closed (every ticker is closed, not paused); the Gap and token lanes don't follow the NYSE session.
- */
-function pausedIn(session: MarketSession | null, lane: Lane): Map<TickerSymbol, string> {
-  const paused = new Map<TickerSymbol, string>();
-  if (!session || (lane.basis === "regular" && !session.open)) return paused;
-  for (const symbol of TICKER_SYMBOLS) {
-    const state = laneState(session, symbol, lane.basis, lane.intervalSec);
-    if (state?.startsWith("paused")) paused.set(symbol, state);
-  }
-  return paused;
-}
 
 /** One lane's rail, narrowed by the ticker picker and paged. */
-export function TickerLane({ lane, ticker, onPick, session, nowMs, selectedMarketId, onSelect, onOpenRoom }: TickerLaneProps) {
-  const pausedStates = pausedIn(session, lane);
+export function TickerLane({ lane, ticker, onPick, session, laneStates = null, nowMs, selectedMarketId, onSelect, onOpenRoom }: TickerLaneProps) {
+  const pausedStates = pausedInLane(session, laneStates, lane);
   const listed = laneTickers(lane);
   const tickers = TICKER_SYMBOLS.filter((symbol) => listed.includes(symbol) || pausedStates.has(symbol) || symbol === ticker);
   const markets = tickerMarkets(lane, ticker);

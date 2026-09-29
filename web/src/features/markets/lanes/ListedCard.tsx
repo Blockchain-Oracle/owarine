@@ -10,6 +10,8 @@ interface ListedCardProps {
   market: EventMarket;
   selected: boolean;
   onSelect: (marketId: MarketId) => void;
+  /** False for a long 24/7 Window listed a cadence ahead (C6): it names its open and has no scheduled-call strip. */
+  schedulable?: boolean;
 }
 
 /**
@@ -19,7 +21,7 @@ interface ListedCardProps {
  * which print settles it) and gains the same strip. The strip is Masayume's Room strip, reused for the one action the
  * card has.
  */
-export function ListedCard({ market, selected, onSelect }: ListedCardProps) {
+export function ListedCard({ market, selected, onSelect, schedulable = true }: ListedCardProps) {
   const when = useWhen();
   const gap = market.lane === "gap";
   const asset = laneAssetLabel(market.asset, market.lane);
@@ -57,10 +59,18 @@ export function ListedCard({ market, selected, onSelect }: ListedCardProps) {
       <div className="mc-pending">
         <span className="mc-pending-dot" aria-hidden />
         <p className="mc-pending-copy">
-          <strong>{gap ? LANE_STATE.gap.listed(opens) : PREOPEN.card.headline(opens)}.</strong> {gap ? LANE_STATE.gap.listedWhy(when(market.lockAtSec), when(market.expirySec, { seconds: true })) : PREOPEN.card.why}
+          {schedulable ? (
+            <>
+              <strong>{gap ? LANE_STATE.gap.listed(opens) : PREOPEN.card.headline(opens)}.</strong> {gap ? LANE_STATE.gap.listedWhy(when(market.lockAtSec), when(market.expirySec, { seconds: true })) : PREOPEN.card.why}
+            </>
+          ) : (
+            <>
+              <strong>{LANE_STATE.longListed.headline(opens)}.</strong> {LANE_STATE.longListed.why(when(market.expirySec))}
+            </>
+          )}
         </p>
       </div>
-      <button
+      {schedulable && <button
         type="button"
         className="mc-room"
         data-cursor="hover"
@@ -71,7 +81,7 @@ export function ListedCard({ market, selected, onSelect }: ListedCardProps) {
       >
         <span className="mc-room-label">{PREOPEN.card.cta}</span>
         <span className="mc-room-hint">{PREOPEN.card.hint}</span>
-      </button>
+      </button>}
     </article>
   );
 }

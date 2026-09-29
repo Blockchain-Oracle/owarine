@@ -8,10 +8,10 @@ import { ReadingBoundary } from "@/components/states";
 import { MARKETS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { BetweenRounds } from "./BetweenRounds";
-import { useMarketSession, type MarketSession } from "../session";
+import { useLaneStates, useMarketSession, type MarketSession } from "../session";
 import { laneTabParts, type LaneTabKey } from "./lane-view";
 import { LaneTabs } from "./LaneTabs";
-import { configuredLaneKeys, configuredTickers } from "./next-window";
+import { configuredTickers, standInLaneKeys } from "./next-window";
 import { NextWindowRail } from "./NextWindowRail";
 import { TickerLane } from "./TickerLane";
 import type { LanesState } from "./useLanes";
@@ -40,9 +40,11 @@ function listsNext(session: MarketSession | null, key: LaneTabKey | null): sessi
 
 export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, onSelect, onOpenRoom }: CadenceLanesProps) {
   const session = useMarketSession();
+  const laneStates = useLaneStates();
   const phrase = useSessionPhrase();
-  // The lanes ops configures stand in for live Windows while none exist, so the tabs and the rail never empty.
-  const configured = useMemo(() => configuredLaneKeys(session), [session]);
+  // The lanes ops configures stand in for live Windows while none exist, so the tabs and the rail never empty. With no
+  // agreed calendar (C6) only the 24/7 lanes stand in: a Regular lane's hours are unknown, so it says nothing.
+  const configured = useMemo(() => standInLaneKeys(session, laneStates), [session, laneStates]);
   const activeKey = state.activeKey ?? configured[0] ?? null;
   const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
   const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(phrase(session.status, nowSec)), nextAction: { label: SESSION_COPY.ticket.readWire, href: "/news" } } : null;
@@ -67,6 +69,7 @@ export function CadenceLanes({ state, boot, venueId, nowMs, selectedMarketId, on
               ticker={state.ticker}
               onPick={state.pinTicker}
               session={session}
+              laneStates={laneStates}
               nowMs={nowMs}
               selectedMarketId={selectedMarketId}
               onSelect={onSelect}

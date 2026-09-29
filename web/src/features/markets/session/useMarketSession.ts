@@ -125,6 +125,16 @@ export function toMarketSession(body: SessionLaneInputs, calendar: SessionCalend
 }
 
 /**
+ * C6: the roller's lane states on their own, whether or not a calendar is agreed. A 24/7 or Gap lane's `paused: …` is a
+ * fact about its source, not the NYSE clock, so it is shown even while the session itself is unknown (no calendar).
+ * Null before the first answer or while ops is unreachable. Same query as `useMarketSession`, so no extra read.
+ */
+export function useLaneStates(): Readonly<Record<string, string>> | null {
+  const reading = useReadingQuery(SESSION_KEY, readSession, { pollMs: sessionPollMs, staleTimeMs: SESSION_POLL_MS, needs: [] });
+  return reading?.ok ? reading.value.lanes : null;
+}
+
+/**
  * The NYSE session as ops agrees it (Alpaca calendar cross-checked, S3), for the chip and the closed copy. With an
  * `asset` (a ticker, or the xStock of a token Window) the session carries that asset's halt.
  * Null while unknown: before the first answer, when ops is unreachable, or when the calendar disputes today —

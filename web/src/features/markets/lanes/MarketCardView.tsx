@@ -1,7 +1,7 @@
 "use client";
 
 import { phase, type MarketPhase } from "@agari/core/lifecycle";
-import { isTickerSymbol, TICKERS } from "@agari/core/market";
+import { isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@agari/core/market";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD, LANE_CARD, LANE_STATE, MARKETS } from "@/lib/copy";
@@ -88,6 +88,8 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
   const betAgainst = useBetAgainst();
   const current = nowMs > 0 ? phase(market, nowMs) : null;
   if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
+  // C6: a 4 h or 1 d 24/7 Window lists a whole cadence ahead; before its open it says when it opens, with nothing to schedule.
+  if (current === "upcoming" && (LONG_CADENCES_SEC as readonly number[]).includes(market.intervalSec)) return <ListedCard market={market} selected={selected} onSelect={onSelect} schedulable={false} />;
 
   const openingRaw = market.openingPriceRaw;
   // A 24/7 Window says what it is (S23): pre-IPO, basket or xStock, not a stock that happens to trade at night.

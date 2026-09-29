@@ -15,7 +15,7 @@ import { CardHead, Pending, RoomStrip } from "./CardParts";
  * (`.market-card-pending`) as a button, "Schedule a call · opens 14:30 (09:30 ET)." and why, and the Room strip's slot
  * carrying the one action it has. A Gap keeps its own words (when calls open, when it locks, which print settles it).
  */
-export function ListedCard({ market, selected = false, onSelect }: { market: EventMarket; selected?: boolean; onSelect: (marketId: MarketId) => void }) {
+export function ListedCard({ market, selected = false, onSelect, schedulable = true }: { market: EventMarket; selected?: boolean; onSelect: (marketId: MarketId) => void; schedulable?: boolean }) {
   const { name } = useTheme();
   const t = lanesTokens(name);
   const when = useWhen();
@@ -26,6 +26,15 @@ export function ListedCard({ market, selected = false, onSelect }: { market: Eve
     haptic.tap();
     onSelect(market.marketId);
   };
+  if (!schedulable) {
+    // C6: a 4 h or 1 d 24/7 Window listed a cadence ahead: it names its open, with nothing to schedule.
+    return (
+      <View style={[card.article, { backgroundColor: t.pendingBg, borderColor: t.pendingBorder }]}>
+        <CardHead asset={market.asset} ticker={asset} cadence={laneCadenceLabel(market.lane, market.intervalSec)} clockTone="quiet" clock={PREOPEN.card.clock} />
+        <Pending strong={`${LANE_STATE.longListed.headline(opens)}.`} rest={` ${LANE_STATE.longListed.why(when(market.expirySec))}`} />
+      </View>
+    );
+  }
   return (
     <Pressable
       onPress={open}

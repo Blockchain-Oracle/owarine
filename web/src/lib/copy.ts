@@ -158,7 +158,7 @@ export const HERO = {
   noLivePrice: "No live price right now.",
   needs: { before: "needs", after: (side: string) => `for ${side}` },
   leading: (side: string) => `${side} is winning right now`,
-  source: "Settles on signed Pyth/RedStone prints at open and close · chart follows spot",
+  source: "Settles on RedStone (or Pyth) prints at open and close, attested by three oracle parties · chart follows spot",
   depthTitle: "Top of book",
   buyUp: "Buy UP",
   buyDown: "Buy DOWN",

@@ -6,9 +6,9 @@ import { marketsProvider } from "@agari/markets";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";
-import { configuredLaneKeys, configuredTickers } from "@/features/markets/lanes/next-window";
+import { configuredTickers, standInLaneKeys } from "@/features/markets/lanes/next-window";
 import { useLaneNextStart, type LanesState } from "@/features/markets/lanes/useLanes";
-import { useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
+import { useLaneStates, useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
 import { useVenue } from "@/features/markets/useVenue";
 import { betweenRoundsLine, MARKETS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
@@ -51,8 +51,10 @@ export function LaneBoard({ state, boot: bootProp, venueId: venueProp, nowMs, se
   const boot = bootProp === undefined ? venue.boot : bootProp;
   const venueId = venueProp === undefined ? venue.venueId : venueProp;
   const session = useMarketSession();
+  // C6: the 24/7 lanes' states (and their pauses) show even while no calendar is agreed.
+  const laneStates = useLaneStates();
   const phrase = useSessionPhrase();
-  const configured = useMemo(() => configuredLaneKeys(session), [session]);
+  const configured = useMemo(() => standInLaneKeys(session, laneStates), [session, laneStates]);
   const activeKey = state.activeKey ?? configured[0] ?? null;
   const nowSec = Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000);
   const closedEmpty = session && !session.open ? { why: SESSION_COPY.lanes.closed(phrase(session.status, nowSec)) } : null;
@@ -69,7 +71,7 @@ export function LaneBoard({ state, boot: bootProp, venueId: venueProp, nowMs, se
         <View style={styles.stack}>
           <LaneTabs lanes={laneSet.lanes} activeKey={activeKey} pinnedMissingKey={state.pinnedMissing ? state.activeKey : null} extraKeys={configured} onPin={state.pin} />
           {live && state.activeLane ? (
-            <TickerLane lane={state.activeLane} ticker={state.ticker} onPick={state.pinTicker} session={session} nowMs={nowMs} selectedMarketId={selectedMarketId} onSelect={onSelect} onOpenRoom={onOpenRoom} />
+            <TickerLane lane={state.activeLane} ticker={state.ticker} onPick={state.pinTicker} session={session} laneStates={laneStates} nowMs={nowMs} selectedMarketId={selectedMarketId} onSelect={onSelect} onOpenRoom={onOpenRoom} />
           ) : listsNext(session, activeKey) ? (
             <NextWindowRail laneKey={activeKey as LaneTabKey} session={session} nowSec={nowSec} ticker={state.ticker} onPick={state.pinTicker} onSelect={onSelect} />
           ) : (
