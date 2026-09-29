@@ -1,22 +1,22 @@
 /**
- * One roller pass (venue-ops.md §5): read the registry Series of every known basis and their unreleased Markets on the
- * chain clock, recycle Books of locked or terminal Windows, grow crowded Ledgers, then open each Series' planned Window
- * (Regular, Gap and token plans by basis, session-lanes.md §6). Every send is preceded by a fresh read; "already done"
- * engine codes are treated as done.
+ * One roller pass on Canton (plan "Venue operations": `execute.ts` → `Series_OpenWindow`): read the venue's `Series`
+ * contracts, plan each lane with the unchanged pure planners (`plan.ts`, `plan-token.ts`, `plan-gap.ts` by basis), and
+ * open the planned Window. After downtime the planned Window can lie past `nextIndex`: the roller first moves the index
+ * forward with `Series_SkipTo` (it can never move back), then opens.
+ *
+ * There are no Books or Ledgers on Canton, so the Solana recycle, sweep, release and grow steps are gone, and "no free
+ * book" can never block a lane. Idempotence is the ledger's: `open:<series>:<index>` and `skip:<series>:<index>` are
+ * deduplicated, and a retry against the new Series fails `abu-pm/bad-window-index`, which reads as "already opened".
  */
-import {
-  chainNowSec, ENGINE_ERROR, fetchMarkets, fetchSeries, listMarketsOfSeries, listSeries, MARKET_FLAG, marketStatus, OpsSendError, windowAddresses,
-  seriesBasis, seriesLaneKey, type MarketView, type OpsClient, type SeriesView,
-} from "@agari/markets/ops";
-import { fetchBookHeaders, fetchLedgerHeaders, growLedger, openWindow, releaseBook, sweepBook, type VenueConfig } from "@agari/markets/ops/roller";
-import { laneListable } from "@agari/core/market";
+import { isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
+import type { LaneBasis } from "@agari/core/types";
+import { TEMPLATE_IDS } from "@agari/daml";
+import { cmd, decodeSeries, failureText, isInactive, openWindowCommandId, pick, readActive, refusalId, skipToCommandId, submit, type Active, type RoleSession, type SeriesC } from "@agari/markets/ops/canton";
 import type { PassResult } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
-import { errorText } from "../../runtime/env";
-import { spanOf, type PlanClock, type SeriesPlan } from "./plan";
+import { spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { planByBasis } from "./plan-basis";
-import { gapSpanOf } from "./plan-gap";
-import { describeVersion, versionWindow } from "./versions";
+import { describeVersion, type VersionWindow } from "./versions";
 
 export interface RollerSettings {
   leadSec: number;
@@ -25,220 +25,140 @@ export interface RollerSettings {
   /** Prelist the next session's first Regular Window at the previous close (D-089). */
   prelist: boolean;
   prelistCadencesSec: readonly number[];
-  /** Optional `TSLA-5m,TSLA-gap,TSLAx-5m` filter (dev runs); empty = every Series of a registry ticker. */
+  /** Optional `BTC-1m,ETH-5m` filter (dev runs); empty = every Series of a registry ticker. */
   only: readonly string[];
 }
 
 export interface RollerState {
-  client: OpsClient;
-  config: VenueConfig;
+  venue: RoleSession;
   settings: RollerSettings;
-  dryRun: boolean;
-  series: SeriesView[];
-  seriesListedMs: number;
-  /** Per Series: the lowest index whose Book may still be bound. */
-  lowIndex: Map<string, bigint>;
-  counters: { opened: number; swept: number; released: number; grown: number; failed: number };
+  counters: { opened: number; skipped: number; failed: number };
+  /** What was last opened per lane, for the heartbeat. */
+  last: Map<string, string>;
 }
 
-const SERIES_LIST_MS = 5 * 60_000;
-const GROW_HEADROOM = 8;
-const GROW_SEATS = 96;
-const LEDGER_MAX_SEATS = 1_024;
-const SWEEPS_PER_BOOK = 8;
+/** `PrintPolicy.source` 4: an attested print (`versions.ts` SOURCE_NAME). */
+const SOURCE_ATTESTED = 4;
+/** `ADMIT_UNTIL_LOCK` in the planner's numbering; the engine writes it as a negative `openAdmissionSec`. */
+const ADMIT_UNTIL_LOCK = 0xffff_ffff;
+/** The token planner has no horizon on Canton (`Series_OpenWindow` checks none); the Regular prelist margin needs one. */
+const MAX_LEAD_SEC = 7 * 86_400;
+/** There are no Books on Canton; the planners' "free book" slot is always filled. */
+const NO_BOOK = ["-"];
 
-export const seriesKey = seriesLaneKey;
-/** A Gap spans days, so its log span carries dates (`09-18 20:00Z–09-21 13:30Z`). */
-const spanFor = (s: SeriesView, w: { tradingStartSec: number; expirySec: number }) => (seriesBasis(s) === "gap" ? gapSpanOf(w) : spanOf(w));
-/** Lamports as an exact SOL string with three decimals (display only). */
-
-async function refreshSeries(state: RollerState): Promise<void> {
-  if (Date.now() - state.seriesListedMs >= SERIES_LIST_MS) {
-    // D-103: a pre-IPO name lists only on the 24/7 lane; its drive-only Regular Series must never roll on the NYSE clock.
-    const listed = (await listSeries(state.client)).filter((s) => s.symbol !== null && seriesBasis(s) !== null && laneListable(s.symbol, seriesBasis(s)!));
-    state.series = state.settings.only.length ? listed.filter((s) => state.settings.only.includes(seriesKey(s))) : listed;
-    state.seriesListedMs = Date.now();
-    for (const s of state.series) {
-      if (state.lowIndex.has(s.address)) continue;
-      const markets = await listMarketsOfSeries(state.client, s.address);
-      const bound = markets.find((m) => (m.data.flags & MARKET_FLAG.bookReleased) === 0);
-      state.lowIndex.set(s.address, bound ? bound.data.index : s.data.nextIndex);
-    }
-    return;
-  }
-  const fresh = await fetchSeries(state.client, state.series.map((s) => s.address));
-  state.series = fresh.filter((s): s is SeriesView => s !== null);
-}
-
-type Bound = { series: SeriesView; market: MarketView };
-
-/** Every Market in `[lowIndex, nextIndex)` of every Series, one batched read. Advances `lowIndex` past released or closed ones. */
-async function readUnreleased(state: RollerState): Promise<Bound[]> {
-  const wanted: Array<{ series: SeriesView; address: string; index: bigint }> = [];
-  for (const s of state.series) {
-    for (let i = state.lowIndex.get(s.address) ?? s.data.nextIndex; i < s.data.nextIndex; i++) {
-      wanted.push({ series: s, address: (await windowAddresses(s.address, i)).market, index: i });
-    }
-  }
-  const markets = await fetchMarkets(state.client, wanted.map((w) => w.address as never));
-  const out: Bound[] = [];
-  const advancing = new Set(state.series.map((s) => s.address));
-  wanted.forEach((w, i) => {
-    const market = markets[i];
-    const done = !market || (market.data.flags & MARKET_FLAG.bookReleased) !== 0;
-    if (done && advancing.has(w.series.address)) state.lowIndex.set(w.series.address, w.index + 1n);
-    else advancing.delete(w.series.address);
-    if (market && !done) out.push({ series: w.series, market });
-  });
-  return out;
-}
-
-const isCode = (error: unknown, ...codes: number[]) => error instanceof OpsSendError && error.code !== null && codes.includes(error.code);
-
-/** Sweep then release every Book whose Window is locked or terminal. */
-async function recycle(state: RollerState, bound: Bound[], nowSec: number, notes: string[]): Promise<number> {
-  const due = bound.filter((b) => ["locked", "resolved", "voided"].includes(marketStatus(b.market.data, nowSec)));
-  let released = 0;
-  for (const { series, market } of due) {
-    const ref = { series: series.address, market: market.address, book: market.data.book, ledger: market.data.ledger };
-    const label = `${seriesKey(series)} #${market.data.index}`;
-    if (state.dryRun) {
-      notes.push(`DRY public_release_book ${label}`);
-      continue;
-    }
-    try {
-      for (let n = 0; n < SWEEPS_PER_BOOK; n++) {
-        const [header] = await fetchBookHeaders(state.client, [market.data.book]);
-        if (!header || header.market !== market.address || header.orderCount === 0) break;
-        const signature = await sweepBook(state.client, ref);
-        state.counters.swept++;
-        notes.push(`swept ${label} (${header.orderCount} orders) ${signature}`);
-      }
-      await releaseBook(state.client, ref);
-      state.counters.released++;
-      released++;
-      notes.push(`released ${label}`);
-    } catch (error) {
-      if (isCode(error, ENGINE_ERROR.bookMarketMismatch)) continue;
-      state.counters.failed++;
-      notes.push(`recycle ${label} failed: ${errorText(error)}`);
-    }
-  }
-  return released;
-}
-
-/** PD-8: grow a listed or trading Market's Ledger when fewer than 8 seats remain (a prelisted Window takes calls too). */
-async function grow(state: RollerState, bound: Bound[], nowSec: number, notes: string[]): Promise<void> {
-  const trading = bound.filter((b) => ["listed", "trading"].includes(marketStatus(b.market.data, nowSec)));
-  if (trading.length === 0) return;
-  const headers = await fetchLedgerHeaders(state.client, trading.map((b) => b.market.data.ledger));
-  for (const [i, header] of headers.entries()) {
-    if (!header || header.seatsUsed < header.capacity - GROW_HEADROOM || header.capacity + GROW_SEATS > LEDGER_MAX_SEATS) continue;
-    const { series, market } = trading[i]!;
-    const label = `${seriesKey(series)} #${market.data.index} ledger ${header.seatsUsed}/${header.capacity}`;
-    if (state.dryRun) {
-      notes.push(`DRY public_grow_ledger ${label}`);
-      continue;
-    }
-    try {
-      await growLedger(state.client, { market: market.address, ledger: header.address, extraSeats: GROW_SEATS });
-      state.counters.grown++;
-      notes.push(`grew ${label}`);
-    } catch (error) {
-      state.counters.failed++;
-      notes.push(`grow ${label} failed: ${errorText(error)}`);
-    }
-  }
-}
-
-function planFor(s: SeriesView, clock: PlanClock): SeriesPlan {
-  const versions = s.data.policyVersions.slice(0, s.data.versionCount).map(versionWindow);
-  const freeBooks = s.data.freeBooks.slice(0, s.data.freeBookCount);
-  const series = {
-    key: seriesKey(s), symbol: s.symbol!, cadenceSec: s.data.cadenceSec, maxLeadSec: s.data.maxLeadSec, nextIndex: s.data.nextIndex,
-    lastExpirySec: Number(s.data.lastExpiry), versions, freeBooks,
+export function versionWindowOf(pv: SeriesC["policyVersions"][number]): VersionWindow {
+  return {
+    validFromSec: pv.effectiveFromSec,
+    validUntilSec: pv.validUntilSec,
+    primarySource: SOURCE_ATTESTED,
+    checkSource: 0,
+    openAdmissionSec: pv.openAdmissionSec < 0 ? ADMIT_UNTIL_LOCK : pv.openAdmissionSec,
+    checkAdmissionSec: 0,
+    primaryFeedIdHex: "",
   };
-  return planByBasis(seriesBasis(s)!, series, clock);
 }
 
-/** Re-reads the Series, re-plans, and opens. Returns the lane state to report. */
-async function open(state: RollerState, s: SeriesView, clock: PlanClock, notes: string[]): Promise<string> {
-  const [fresh] = await fetchSeries(state.client, [s.address]);
-  if (!fresh) return "series missing";
-  const plan = planFor(fresh, clock);
-  if (plan.kind !== "open") return plan.state;
-  const key = seriesKey(fresh);
-  if (state.dryRun) {
-    notes.push(`DRY roller_open_window ${key} ${plan.state}`);
-    return `DRY ${plan.state}`;
-  }
+/** The lane basis of a Series: a crypto, pre-IPO, basket or valuation symbol trades 24/7 (token lane); a stock is Regular. */
+export function basisOf(symbol: string): LaneBasis | null {
+  const t = (TICKERS as Record<string, (typeof TICKERS)[TickerSymbol] | undefined>)[symbol];
+  if (!t) return null;
+  return isTokenOnlyKind(t.kind) ? "token" : "regular";
+}
+
+export function planSeriesOf(s: SeriesC): PlanSeries {
+  return {
+    key: s.seriesKey, symbol: s.symbol, cadenceSec: s.cadenceSec, maxLeadSec: MAX_LEAD_SEC, nextIndex: BigInt(s.nextIndex),
+    lastExpirySec: s.anchorSec + s.nextIndex * s.cadenceSec, versions: s.policyVersions.map(versionWindowOf), freeBooks: NO_BOOK,
+  };
+}
+
+/** The Window index a planned trading start is, or null when it does not sit on the Series' grid. */
+export function indexOf(s: SeriesC, tradingStartSec: number): number | null {
+  const offset = tradingStartSec - s.anchorSec;
+  return offset >= 0 && offset % s.cadenceSec === 0 ? offset / s.cadenceSec : null;
+}
+
+async function readSeries(state: RollerState): Promise<Active<SeriesC>[]> {
+  const all = pick(await readActive(state.venue, [TEMPLATE_IDS.Series]), TEMPLATE_IDS.Series, decodeSeries);
+  const mine = all.filter((s) => s.data.venue === state.venue.party);
+  return state.settings.only.length ? mine.filter((s) => state.settings.only.includes(s.data.seriesKey)) : mine;
+}
+
+/** Skip forward if needed, then open. Returns the lane state to report. */
+async function open(state: RollerState, series: Active<SeriesC>, plan: Extract<SeriesPlan, { kind: "open" }>, notes: string[]): Promise<string> {
+  const s = series.data;
+  const index = indexOf(s, plan.window.tradingStartSec);
+  if (index === null) return `off grid: ${spanOf(plan.window)}`;
+  if (index < s.nextIndex) return "already opened: re-reading";
+  let seriesCid = series.cid;
   try {
-    const w = plan.window;
-    const opened = await openWindow(state.client, {
-      series: fresh.address, index: plan.index, book: plan.book as never, collateralMint: state.config.collateralMint,
-      tradingStartSec: w.tradingStartSec, lockAtSec: w.lockAtSec, expirySec: w.expirySec,
-      policyVersion: plan.policyVersion, openKind: plan.openKind, closeKind: plan.closeKind,
-    });
+    if (index > s.nextIndex) {
+      const skipped = await submit(state.venue, { commandId: skipToCommandId(s.seriesKey, index), commands: [cmd.skipTo(seriesCid, index)] });
+      if (skipped.kind === "dry") {
+        notes.push(`DRY skip ${s.seriesKey} ${s.nextIndex} → ${index}`);
+        return `DRY skip to #${index}`;
+      }
+      const next = skipped.created.find((e) => e.templateId.endsWith(":PM.Series:Series"));
+      if (!next) return "skip landed earlier: re-reading";
+      seriesCid = next.contractId;
+      state.counters.skipped++;
+      notes.push(`skipped ${s.seriesKey} ${s.nextIndex} → ${index}`);
+    }
+    const opened = await submit(state.venue, { commandId: openWindowCommandId(s.seriesKey, index), commands: [cmd.openWindow(seriesCid, index)] });
+    const version = describeVersion(plan.policyVersion, versionWindowOf(s.policyVersions[plan.policyVersion]!));
+    if (opened.kind === "dry") {
+      notes.push(`DRY Series_OpenWindow ${s.seriesKey} #${index} ${spanOf(plan.window)}`);
+      return `DRY ${plan.state}`;
+    }
+    const terms = opened.created.find((e) => e.templateId.endsWith(":PM.Market:MarketTerms"));
     state.counters.opened++;
-    const version = describeVersion(plan.policyVersion, versionWindow(fresh.data.policyVersions[plan.policyVersion]!));
-    // A prelisted Window says so until it starts trading: it holds SOL float from the previous close (D-089).
-    const verb = plan.state.startsWith("prelisting") ? "prelisted" : "opened";
-    notes.push(`${verb} ${key} #${plan.index} ${spanFor(fresh, w)} ${version} ${opened.signature}`);
-    return `${verb === "prelisted" ? "prelisted" : "open"} #${plan.index} ${spanFor(fresh, w)} ${version}`;
+    const line = `opened ${s.seriesKey} #${index} ${spanOf(plan.window)} ${version}${opened.recovered ? " (recovered)" : ""} in ${opened.ms} ms`;
+    notes.push(`${line}${terms ? ` terms ${terms.contractId.slice(0, 12)}…` : ""}`);
+    state.last.set(s.seriesKey, `open #${index} ${spanOf(plan.window)} ${version}`);
+    return state.last.get(s.seriesKey)!;
   } catch (error) {
-    if (isCode(error, ENGINE_ERROR.badWindowIndex, ENGINE_ERROR.windowOverlap)) return "already opened: re-reading";
+    if (refusalId(error) === "abu-pm/bad-window-index" || isInactive(error)) return "already opened: re-reading";
     state.counters.failed++;
-    notes.push(`open ${key} #${plan.index} failed: ${errorText(error)}`);
-    return `open failed: ${errorText(error).split("\n")[0]}`;
+    notes.push(`open ${s.seriesKey} #${index} failed: ${failureText(error)}`);
+    return `open failed: ${failureText(error).split("\n")[0]}`;
   }
-}
-
-function currentState(s: SeriesView, bound: Bound[], nowSec: number): string | null {
-  const live = bound.filter((b) => b.series.address === s.address && ["listed", "trading"].includes(marketStatus(b.market.data, nowSec)));
-  const m = live.at(-1)?.market.data;
-  if (!m) return null;
-  const version = describeVersion(m.policyVersion, versionWindow(s.data.policyVersions[m.policyVersion]!));
-  return `open #${m.index} ${spanFor(s, { tradingStartSec: Number(m.tradingStartSec), expirySec: Number(m.expirySec) })} ${version}`;
 }
 
 export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<PassResult> {
-  const calendarNote = await deps.sessions.refresh();
-  await refreshSeries(state);
-  const nowSec = await chainNowSec(state.client);
-  const notes: string[] = calendarNote === "calendar fresh" ? [] : [calendarNote];
-  let bound = await readUnreleased(state);
-  if ((await recycle(state, bound, nowSec, notes)) > 0) {
-    await refreshSeries(state);
-    bound = await readUnreleased(state);
+  const series = await readSeries(state);
+  const notes: string[] = [];
+  const regular = series.some((s) => basisOf(s.data.symbol) === "regular");
+  if (regular) {
+    const calendarNote = await deps.sessions.refresh();
+    if (calendarNote !== "calendar fresh") notes.push(calendarNote);
   }
-  await grow(state, bound, nowSec, notes);
-
+  const nowSec = Math.floor(Date.now() / 1000);
   const clock: PlanClock = {
     calendar: deps.sessions.calendar(), nowSec, leadSec: state.settings.leadSec, gapLeadSec: state.settings.gapLeadSec,
-    minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(),
-    multipliers: deps.events.multipliers(), halts: deps.halts.board(),
+    minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(), multipliers: deps.events.multipliers(), halts: deps.halts.board(),
     prelist: state.settings.prelist, prelistCadencesSec: state.settings.prelistCadencesSec,
-    // S20: a Pyth version lists only on a feed the key may read; trial feeds always, a valuation index while entitled.
+    // Attested versions are always usable; the Pyth entitlement gate (S20) only ever judges a Pyth version.
     pythUsable: (feedIdHex) => deps.pythIndex.usable(feedIdHex),
   };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;
-  for (const s of state.series) {
-    const plan = planFor(s, clock);
-    const current = currentState(s, bound, nowSec);
-    if (plan.kind === "open") lanes[seriesKey(s)] = await open(state, s, clock, notes);
-    else lanes[seriesKey(s)] = plan.kind === "wait" && current ? current : plan.state;
+  for (const s of series) {
+    const basis = basisOf(s.data.symbol);
+    if (!basis) {
+      lanes[s.data.seriesKey] = "not a registry ticker";
+      continue;
+    }
+    const plan = planByBasis(basis, planSeriesOf(s.data), clock);
+    if (plan.kind === "open") lanes[s.data.seriesKey] = await open(state, s, plan, notes);
+    else lanes[s.data.seriesKey] = plan.kind === "wait" && state.last.get(s.data.seriesKey) ? state.last.get(s.data.seriesKey)! : plan.state;
     if ((plan.kind === "wait" || plan.kind === "paused") && plan.wakeSec < wakeSec) wakeSec = plan.wakeSec;
-    // Wake at the next lock so the Book recycles promptly; an already-locked Book that failed waits for the normal cadence.
-    for (const b of bound) if (b.series.address === s.address && Number(b.market.data.lockAtSec) > nowSec) wakeSec = Math.min(wakeSec, Number(b.market.data.lockAtSec));
+    if (plan.kind === "open") wakeSec = nowSec;
   }
-  // The reference reported the roller's SOL float beside prelisting lanes; Canton charges no network fee, so there is none.
   const counts = Object.values(lanes).reduce<Record<string, number>>((acc, v) => ((acc[v.split(/[: #]/)[0]!] = (acc[v.split(/[: #]/)[0]!] ?? 0) + 1), acc), {});
   const summary = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(", ");
-  const why = [`${state.series.length} series (${summary || "none"})`, ...notes].join(" · ");
   return {
-    why,
-    detail: { lanes, counters: { ...state.counters }, chainNowSec: nowSec, calendar: deps.sessions.calendar() ? "agreed" : "none" },
-    nextDelayMs: Math.min(15_000, Math.max(2_000, (wakeSec - nowSec) * 1000)),
+    why: [`${series.length} series (${summary || "none"})`, ...notes].join(" · "),
+    detail: { lanes, counters: { ...state.counters }, nowSec },
+    nextDelayMs: Math.min(15_000, Math.max(1_000, (wakeSec - nowSec) * 1000)),
   };
 }

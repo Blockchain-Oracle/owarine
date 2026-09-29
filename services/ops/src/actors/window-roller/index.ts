@@ -1,14 +1,12 @@
 /**
- * window-roller (plan §4, venue-ops.md §5): lists Regular Windows back-to-back per the agreed session calendar on the
- * highest covering policy version, recycles Books and grows Ledgers; Gap and token Series plan by basis (S6). One
- * writer: the `roller` key. Dry-run by default. Corporate skips come from `deps.events` (re-read when the file changes).
+ * window-roller (plan §4, "Venue operations"): lists Windows back-to-back on every venue `Series` by the unchanged pure
+ * planners (Regular on the agreed session calendar, 24/7 token and crypto lanes by clock), opening each through the
+ * consuming `Series_OpenWindow`. One writer: the venue party. Dry-run by default (prepare-only); no venue party means
+ * scan-and-report.
  */
-import { generateKeyPairSync } from "node:crypto";
-import { createOpsClient } from "@agari/markets/ops";
-import { readVenueConfig } from "@agari/markets/ops/roller";
 import { runActor } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
-import { roleSecret } from "../../runtime/keys";
+import { createVenueContext, type VenueContext } from "../venue/context";
 import { rollerPass, type RollerSettings, type RollerState } from "./execute";
 import { DEFAULT_GAP_LEAD_SEC, DEFAULT_LEAD_SEC, DEFAULT_MIN_TRADABLE_SEC, DEFAULT_PRELIST, DEFAULT_PRELIST_CADENCES_SEC } from "./plan";
 
@@ -32,33 +30,15 @@ export function readRollerSettings(env: NodeJS.ProcessEnv = process.env): Roller
   };
 }
 
-/** A throwaway identity for scan-and-report: it never signs, because the actor is forced dry. */
-function readOnlyIdentity(): Uint8Array {
-  const { privateKey, publicKey } = generateKeyPairSync("ed25519");
-  const d = Buffer.from(privateKey.export({ format: "jwk" }).d!, "base64url");
-  const x = Buffer.from(publicKey.export({ format: "jwk" }).x!, "base64url");
-  return Uint8Array.from([...d, ...x]);
-}
-
-export async function startWindowRoller(deps: VenueDeps): Promise<{ stop: () => void }> {
-  const secret = roleSecret("roller");
-  const client = await createOpsClient({ rpcUrl: deps.env.rpcUrl, rpcSubscriptionsUrl: deps.env.rpcSubscriptionsUrl, payerSecret: secret ?? readOnlyIdentity() });
-  const config = await readVenueConfig(client);
-  let dryRun = deps.env.dryRun;
-  if (!secret) {
-    deps.log("ROLLER_PRIVATE_KEY / roller.json missing: scanning and reporting only");
-    dryRun = true;
-  } else if (!config.rollers.includes(client.payer.address)) {
-    deps.log(`roller key ${client.payer.address} is not in GlobalConfig.rollers: scanning and reporting only`);
-    dryRun = true;
+export async function startWindowRoller(deps: VenueDeps, venue: VenueContext = createVenueContext()): Promise<{ stop: () => void }> {
+  const session = venue.session("venue");
+  if (!session) {
+    deps.log("VENUE_PARTY and the parties file are missing: the roller has nothing to act as");
+    return runActor({ name: "window-roller", log: deps.log, dryRun: true, everyMs: 60_000, pass: async () => ({ why: "no venue party: scanning and reporting only" }) });
   }
   const settings = readRollerSettings();
-  const state: RollerState = {
-    client, config, settings, dryRun, series: [], seriesListedMs: 0, lowIndex: new Map(),
-    counters: { opened: 0, swept: 0, released: 0, grown: 0, failed: 0 },
-  };
-  const prelist = settings.prelist ? `prelist ${settings.prelistCadencesSec.map((c) => `${c / 60}m`).join("/")}` : "prelist off";
-  deps.log(`roller ${client.payer.address}, lead ${settings.leadSec} s, gap lead ${settings.gapLeadSec} s, min tradable ${settings.minTradableSec} s, ${prelist}${settings.only.length ? `, only ${settings.only.join(",")}` : ""}`);
-  const { stop } = runActor({ name: "window-roller", log: deps.log, dryRun, everyMs: 5_000, pass: () => rollerPass(state, deps) });
+  const state: RollerState = { venue: session, settings, counters: { opened: 0, skipped: 0, failed: 0 }, last: new Map() };
+  deps.log(`roller as ${session.party.split("::")[0]}, lead ${settings.leadSec} s, min tradable ${settings.minTradableSec} s${settings.only.length ? `, only ${settings.only.join(",")}` : ""} · ${venue.summary}`);
+  const { stop } = runActor({ name: "window-roller", log: deps.log, dryRun: session.dryRun, everyMs: 5_000, pass: () => rollerPass(state, deps) });
   return { stop };
 }
