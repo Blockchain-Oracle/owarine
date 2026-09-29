@@ -1,6 +1,6 @@
 /**
  * `/proof/<market>` reads (C5): one Window's terms and Resolution as the projection holds them, every oracle's posted
- * quote at its open and close boundaries (`idx_prints`, one row per oracle, symbol and boundary), and the archived
+ * quote at its open and close boundaries (`idx_prints`, the chosen row per oracle, symbol and boundary), and the archived
  * exchange responses behind them (`print_archive`, source `attested`, feed `<exchange>:<symbol>`). Market-level facts
  * only: nothing here is a user's. Integers stay decimal strings.
  */
@@ -84,7 +84,7 @@ export async function proofPrints(sql: Sql, symbol: string, boundaries: readonly
   if (boundaries.length === 0) return [];
   return sql<ProofPrintRow[]>`
     SELECT oracle, boundary_sec::text, price_e8::text, fetched_at_sec::text, payload_hash, recorded_ts_sec::text, update_id, contract_id, retired, duplicates
-    FROM idx_prints WHERE symbol = ${symbol} AND boundary_sec = ANY(${boundaries.map(String)}::bigint[])
+    FROM idx_prints WHERE symbol = ${symbol} AND boundary_sec = ANY(${boundaries.map(String)}::bigint[]) AND chosen
     ORDER BY boundary_sec, oracle`;
 }
 

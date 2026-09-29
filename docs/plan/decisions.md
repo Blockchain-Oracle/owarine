@@ -138,6 +138,19 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - Leaderboards: pair-leg publications (`product` null) keep the reference's fill replay, and every pair-leg read now filters on `product IS NULL`. A published ticket ranks on its receipt's settled figures (`tape/tickets`), beside the wallet's pair legs.
 - **Approval:** default; overrulable.
 
+### K-070 — Stock lanes with keys, two new attested sources, events on the board, one row per print (C6 block)
+- **Date / owner:** 2026-09-29 · C6e lane
+- **Evidence:** `services/ops/src/runtime/load-env.ts`, `services/ops/src/prices/attested-read.ts` (+ `attested-read.test.ts`), `services/ops/config/price-sources.json` `cantonVersions`, `packages/db/src/idx/prints.it.test.ts`, `packages/markets/src/server/publish.test.ts`, `web/src/features/markets/events/`, `mobile/src/features/markets/events/`, `docs/evidence/c6e-stocks-events.md`.
+- **Rule:**
+  - **Env.** Ops loads `services/ops/.env.local`, then the root `.env.local` (the reference's `ops:start`), as its first import in `main.ts`, `runner-main.ts` and `scripts/drive/ops-local.ts`. A variable already set is never overridden; `OPS_ENV_FILES=0` turns it off; only names are logged.
+  - **QQQ and VOO** settle on `attested:alpaca:<T>`: the last IEX trade in `[T − 300 s, T]` from Alpaca market data with the ops keys (headers only), read from T + 5 s, admitted 900 s. It is appended as version 2 from 2026-09-29 (Regular and Gap) in the Canton-only `cantonVersions` block; the spot feed polls the same source for the pricer. The reference's own QQQ/VOO source was the Pyth trial, which ended 09-25.
+  - **xStocks** settle on `attested:jupiter:<xStock>`: the median of Jupiter Price v3 samples at T − 40, T − 20 and T, the reference's own token-lane fallback (`jupiter-attest.ts`). It is appended as version 2 from 2026-09-29 because the ledger always takes the highest covering version and Switchboard Surge answers "IPFS fetch temporarily unavailable". A missing sample misses the print, and the Window voids. When Surge signs again, a Switchboard version is appended the same way (`Series_AddPolicyVersion`).
+  - **Events on the board.** `LaneSet.events` carries live committee events beside the lanes, from the same market stream. `EventMarket.kind = "event"` trades from its start without an opening print (core `phase`) and reads 24/7. The board's §03 "Events" lists them as the reference's word card (`wq-*`), with Yes/No selecting the event into the hero and ticket. `/markets/<id>` shows an event hero (question, clock to the lock, how it settles), and the ticket reads Yes/No with no range band, leverage or chart. The phone's markets tab has the same §03 and event hero.
+  - **Prints.** `idx_prints` keeps one row per `PriceQuote` contract. Per (oracle, symbol, boundary), `chosen` marks the quote an OpenPrint or Resolution cited (`evidence`), else the resolver's rule (earliest fetch, then lowest price, then contract id). The chart, proof and resolution-evidence reads take the chosen row, and `verify-projection` compares every contract.
+  - **Retract** is per product: `{ marketId, product? }`, where null means the pair legs. A pair-leg retract never takes a ticket's publication on the same Window, and a ticket retract never takes the pair legs'.
+- **User-visible:** the stock, QQQ/VOO, xStock and Gap lanes list on a keyed ops; QQQ/VOO receipts name "Alpaca (last IEX trade)" and the xStock receipts "Jupiter Price v3 (median of three samples)". Events have their own board section and page.
+- **Approval:** default; overrulable.
+
 ### K-085 — The Canton desk's live leg trades our own markets (C8 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; the live leg trades this venue's markets with venue cash and is gated on C7b.

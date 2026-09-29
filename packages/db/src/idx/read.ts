@@ -164,7 +164,7 @@ export function indexReader(sql: Sql) {
       return sql`
         SELECT boundary_sec::text AS source_ts_sec, 4 AS source, (percentile_disc(0.5) WITHIN GROUP (ORDER BY price_e8))::text AS price, -8 AS expo,
           count(*)::int AS signers
-        FROM idx_prints WHERE symbol = ${symbol} AND boundary_sec BETWEEN ${fromSec} AND ${toSec}
+        FROM idx_prints WHERE symbol = ${symbol} AND boundary_sec BETWEEN ${fromSec} AND ${toSec} AND chosen
         GROUP BY boundary_sec ORDER BY boundary_sec LIMIT ${clamp(limit, 500)}`;
     },
 

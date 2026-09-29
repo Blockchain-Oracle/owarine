@@ -66,10 +66,15 @@ export const etWeekday = (sec: number): string => ET_WEEKDAY_SHORT[weekdayOfDate
  * signs (D-101), a basket on its index (S19). Before this every token-basis Window, `OPENAI-60m` included, was given
  * the Switchboard line.
  */
+/** C6e (K-070): what settles a committee event. */
+export const EVENT_SOURCE_LINE = "Settles on the oracle committee's signed answers";
+
 export function priceSourceLine(market: Pick<EventMarket, "asset" | "lane" | "tradingStartSec" | "expirySec">): string {
   if (market.lane === "gap") return LANE_STATE.source.gap(etWhen(market.tradingStartSec, true), etWhen(market.expirySec, true));
   if (market.lane === "token") {
-    const ticker = TICKERS[market.asset];
+    const ticker = (TICKERS as Partial<Record<string, (typeof TICKERS)[TickerSymbol]>>)[market.asset];
+    // C6e: a committee event is 24/7 but prices nothing; its committee's signed answers settle it.
+    if (!ticker) return EVENT_SOURCE_LINE;
     const basket = basketOf(market.asset);
     if (basket) return LANE_STATE.source.basket(basket.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "));
     if (ticker.kind === "valuation") return LANE_STATE.source.valuation(TICKERS[ticker.valuationOf!].name);

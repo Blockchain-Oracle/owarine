@@ -13,6 +13,8 @@ export const SECTIONS = {
   ticket: { index: "03", title: "Your call" },
   /** The reference's own §02 header, verbatim (app/markets/page.tsx L879). */
   words: { index: "02", title: "Just ask", desc: "No chart to read. Will it be up? Just answer yes or no." },
+  /** C6e (K-070): committee events, beside the price questions. */
+  events: { index: "03", title: "Events", desc: "Yes or no on something that happens. The oracle committee answers after the close." },
 } as const;
 
 /** The §01 rail card — `Market624Card` in the reference. */

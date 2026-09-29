@@ -1,7 +1,7 @@
 "use client";
 
 import { isRestable } from "@agari/core/lifecycle";
-import { LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
+import { isCommitteeMarket, LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
@@ -9,6 +9,7 @@ import { mark } from "@agari/markets/perf";
 import type { ReactNode } from "react";
 import { ErrorState, LoadingState } from "@/components/states";
 import { HeroAssetChart } from "./hero/HeroAssetChart";
+import { EventHero } from "./events";
 import { HeroChart } from "./hero/HeroChart";
 import type { LanesState } from "./lanes";
 import { nextListedWindow } from "./lanes/next-window";
@@ -58,7 +59,7 @@ function HeroPlaceholder({ lanes }: { lanes: LanesState }) {
  * the index's own status stands in, so the page never flashes the live hero on a Window with no print.
  */
 function isListedSelection(market: EventMarket | null, phase: ReturnType<typeof useWindowPhase>): market is EventMarket {
-  if (!market || market.lane === "token") return false;
+  if (!market || market.lane === "token" || isCommitteeMarket(market)) return false;
   return phase ? isRestable(phase) : market.status === "Listed";
 }
 
@@ -88,7 +89,9 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom, renderTick
 
       <div className="container">
         <div className="hero-grid hero-grid-mini">
-          {listed ? (
+          {market && isCommitteeMarket(market) ? (
+            <EventHero market={market} nowMs={selection.nowMs} onSelect={onSelect} />
+          ) : listed ? (
             <HeroAssetChart asset={market.asset} tickers={listedTickers} onPickAsset={pickListed} window={market} source={windowSourceLabel(market)} />
           ) : market ? (
             <HeroChart

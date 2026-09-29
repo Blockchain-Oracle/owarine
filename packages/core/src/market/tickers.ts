@@ -318,26 +318,26 @@ export const SHARE_TOKENS: readonly ShareToken[] = [
  * The ops lane key (roller heartbeat, `/session.lanes`): `TSLA-5m` Regular, `TSLA-gap` Gap, `TSLAx-5m` token. Cadences
  * count minutes (`TSLA-60m`), not `formatCadence`'s `1h`, because the soak and web already key Regular lanes that way.
  */
+const tickerOf = (symbol: string) => (TICKERS as Partial<Record<string, (typeof TICKERS)[TickerSymbol]>>)[symbol]; // C6e: undefined off-registry (an `EVT-…` event)
 /**
  * Whether a ticker may be listed on a lane at all (D-103). A pre-IPO name has no exchange session, so only the 24/7
  * token lane exists for it: the roller, the maker and the lane keys all refuse it on Regular and Gap. The drive-only
  * Series 910 (OPENAI, basis Regular) is what this guards against — rolled on the NYSE clock it would void every Window.
  */
-export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => !isTokenOnlyKind(TICKERS[symbol].kind) || basis === "token";
-
+export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => (tickerOf(symbol) ? !isTokenOnlyKind(TICKERS[symbol].kind) || basis === "token" : false);
 /** The asset a 24/7 Window prices (D-103): the xStock of a listed ticker, the PreStocks token of a pre-IPO name, the basket or valuation lane itself, else null. */
 export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | BasketSymbol | ValuationSymbol | CryptoSymbol | null {
-  const t = TICKERS[symbol];
+  const t = tickerOf(symbol);
   // A valuation lane is its own asset (`OPENAIV-60m`), so it never shares a key or a halt with the token lane it shadows.
-  if (t.kind === "valuation" || t.kind === "crypto") return t.symbol as ValuationSymbol | CryptoSymbol; // crypto too: `BTC-5m`
-  return t.xstock?.symbol ?? t.preIpo?.symbol ?? t.basket ?? null;
+  if (t?.kind === "valuation" || t?.kind === "crypto") return t.symbol as ValuationSymbol | CryptoSymbol; // crypto too: `BTC-5m`
+  return t?.xstock?.symbol ?? t?.preIpo?.symbol ?? t?.basket ?? null;
 }
 
 /** A symbol the spot feed publishes: a ticker's own price, or an xStock's token price (`/prices/latest` keys both). */
 export type SpotSymbol = TickerSymbol | XStockSymbol;
 
 /** The spot a Window settles on: a listed ticker's 24/7 Window follows its xStock; a pre-IPO name, basket or stock lane its ticker. */
-export const spotSymbolOf = (symbol: TickerSymbol, basis: LaneBasis): SpotSymbol => (basis === "token" ? (TICKERS[symbol].xstock?.symbol ?? symbol) : symbol);
+export const spotSymbolOf = (symbol: TickerSymbol, basis: LaneBasis): SpotSymbol => (basis === "token" ? (tickerOf(symbol)?.xstock?.symbol ?? symbol) : symbol);
 
 export function laneKey(symbol: TickerSymbol, basis: LaneBasis, cadenceSec: number): string {
   // An off-lane key names no lane: `parseLaneKey` returns null for it, so no clock is ever derived from it.

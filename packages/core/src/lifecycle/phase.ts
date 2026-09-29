@@ -25,6 +25,8 @@ export interface PhaseInput {
   finalized: boolean | null;
   /** Head-fresh on-chain status when known; it overrides the lagging indexer status. */
   onchainStatus?: number | null;
+  /** C6e: a committee event has no opening print; it trades from its start until its lock. */
+  kind?: "price" | "event";
 }
 
 const ENTERABLE: ReadonlySet<MarketPhase> = new Set<MarketPhase>(["trading"]);
@@ -33,7 +35,7 @@ function timePhase(m: PhaseInput, nowSec: number): MarketPhase {
   if (nowSec >= m.lockAtSec) return "locked";
   if (nowSec >= noEntryCutoffSec(m)) return "noEntryBuffer";
   if (nowSec < m.tradingStartSec) return "upcoming";
-  if (m.openingPriceRaw === null) return "pendingOpeningPrint";
+  if (m.openingPriceRaw === null && m.kind !== "event") return "pendingOpeningPrint";
   return "trading";
 }
 

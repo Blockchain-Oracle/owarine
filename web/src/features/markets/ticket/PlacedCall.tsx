@@ -1,6 +1,7 @@
 "use client";
 
 import type { BookedOrder } from "@agari/core/ports";
+import { isCommitteeMarket } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
 import { useOpeningPrice } from "@agari/markets/react";
 import { txUrl } from "@agari/core/urls";
@@ -54,6 +55,7 @@ export function PlacedCall({ booked, market, nowMs, decimals, symbol, boost, onA
     txHash: booked.txHash,
     placedAtMs,
     leverage: boost,
+    eventQuestion: isCommitteeMarket(placedIn) ? placedIn.question : null,
   };
 
   return (

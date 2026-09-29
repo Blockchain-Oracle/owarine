@@ -2,7 +2,7 @@ import { TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type LedgerClient } from "@agari/ledger";
 import { describe, expect, it } from "vitest";
 import { appMarketId } from "./ids";
-import { publishCall, publishCommandId, readPublications } from "./publish";
+import { publishCall, publishCommandId, readPublications, retractCall } from "./publish";
 import type { SeatReader, SeatSnapshot } from "./reads";
 
 const SEAT = "seat-1::1220aa";
@@ -10,11 +10,11 @@ const OTHER = "seat-2::1220bb";
 const M = "BTC-1m:42";
 const MID = appMarketId(M);
 
-const publication = (cid: string, owner: string, handle: string, pairId: string) => ({
+const publication = (cid: string, owner: string, handle: string, pairId: string, product: string | null = null) => ({
   createdEvent: {
     contractId: cid,
     templateId: TEMPLATE_IDS.Publication,
-    createArgument: { venue: "venue::1220", owner, handle, marketId: M, pairId, outcome: "SideUp", lots: "3", backingShare: "186000" },
+    createArgument: { venue: "venue::1220", owner, handle, marketId: M, pairId, outcome: "SideUp", lots: "3", backingShare: "186000", product },
   },
 });
 
@@ -79,6 +79,26 @@ describe("publications", () => {
     expect((await publishCall(f, lease, { marketId: MID, source: "receipt", receiptId: "t1" })).kind).toBe("published");
     expect(f.submitted[1]!.commands).toEqual([{ ExerciseCommand: { templateId: TEMPLATE_IDS.SettlementReceipt, contractId: "t1", choice: "Receipt_Publish", choiceArgument: { handle: "SeatAddr1" } } }]);
     expect(await publishCall(f, lease, { marketId: MID, source: "receipt", receiptId: "r-old" })).toMatchObject({ kind: "refused", code: "receipt-unavailable" });
+  });
+
+  it("retracts one product on a Window: a pair leg's retract keeps the ticket's publication and vice versa (C6e)", async () => {
+    const both = () => fakes({ published: [publication("p-leg", SEAT, "SeatAddr1", "a"), publication("p-range", SEAT, "SeatAddr1", "", "range"), publication("p-old", SEAT, "OldVisitor", "b")], legPairs: [] });
+    const retracted = (f: ReturnType<typeof fakes>) => f.submitted.flatMap((s) => (s.commands as Array<{ ExerciseCommand: { contractId: string; choice: string } }>).map((c) => `${c.ExerciseCommand.choice} ${c.ExerciseCommand.contractId}`));
+
+    const legOnly = both();
+    expect(await retractCall(legOnly, actor, { marketId: MID })).toEqual({ retracted: 1 });
+    expect(retracted(legOnly)).toEqual(["Publication_Retract p-leg"]);
+    expect(legOnly.submitted[0]!.actAs).toEqual([SEAT]);
+
+    const ticketOnly = both();
+    expect(await retractCall(ticketOnly, actor, { marketId: MID, product: "range" })).toEqual({ retracted: 1 });
+    expect(retracted(ticketOnly)).toEqual(["Publication_Retract p-range"]);
+
+    // Another product, or another Window, retracts nothing and sends no command.
+    const none = both();
+    expect(await retractCall(none, actor, { marketId: MID, product: "boost" })).toEqual({ retracted: 0 });
+    expect(await retractCall(none, actor, { marketId: appMarketId("BTC-1m:43") })).toEqual({ retracted: 0 });
+    expect(none.submitted).toHaveLength(0);
   });
 
   it("treats a duplicate command as the earlier publish having landed", async () => {

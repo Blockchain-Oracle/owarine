@@ -53,7 +53,8 @@ export function usePublishCall(address: string | null) {
     onSettled: settle,
   });
   const retract = useMutation({
-    mutationFn: async (o: { marketId: string }) => {
+    /** C6e: `product` names the ticket whose publication goes; omitted or null retracts the pair legs only. */
+    mutationFn: async (o: { marketId: string; product?: string | null }) => {
       const r = await ledgerRequest("/publications", { method: "DELETE", body: o, wire: z.object({ retracted: z.number() }) });
       if (!r.ok) throw new Error(r.diagnosis.technical || r.diagnosis.kind);
       return r.value;

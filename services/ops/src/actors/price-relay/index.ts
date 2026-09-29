@@ -18,15 +18,27 @@ import { startOracleFeeders } from "./oracle-feeder";
 import { startLaneFeeders } from "./lane-feeder";
 import { loadRelaySources, loadSwitchboardFeeds, type RelaySources } from "./sources";
 import { currentPreStocksSpot } from "../../prices/prestocks-spot";
+import { currentXStockSpot } from "../../prices/xstock-spot";
 import type { AttestedReaderDeps } from "../../prices/attested-read";
 
 export { startOracleFeeders } from "./oracle-feeder";
 export { startLaneFeeders } from "./lane-feeder";
 
-/** What each oracle party's lane reader needs (C6): the reference's RedStone set, the Pyth key, the entitlement store, the pinned Surge feeds, the PreStocks feed. */
+/** C6e: the Alpaca market-data keys (the same pair the session calendar reads), or null. */
+export function alpacaKeys(env: NodeJS.ProcessEnv = process.env): AttestedReaderDeps["alpaca"] {
+  const keyId = env.ALPACA_KEY_ID?.trim();
+  const secretKey = env.ALPACA_SECRET_KEY?.trim();
+  return keyId && secretKey ? { keyId, secretKey, ...(env.ALPACA_DATA_ENDPOINT ? { dataUrl: env.ALPACA_DATA_ENDPOINT } : {}) } : null;
+}
+
+/**
+ * What each oracle party's lane reader needs (C6): the reference's RedStone set, the Pyth key, the entitlement store, the
+ * pinned Surge feeds, the PreStocks feed; C6e adds the Alpaca keys and the Jupiter xStock samples (K-070).
+ */
 export function laneReaderDeps(deps: Pick<VenueDeps, "pythIndex">, sources: RelaySources = loadRelaySources()): AttestedReaderDeps {
   return {
     sources, pythKey: process.env.PYTH_API_KEY || undefined, pythIndex: deps.pythIndex, switchboardFeeds: loadSwitchboardFeeds(), prestocks: currentPreStocksSpot,
+    alpaca: alpacaKeys(), xstock: currentXStockSpot,
   };
 }
 
@@ -42,7 +54,7 @@ export async function startPriceRelay(deps: VenueDeps, venue: VenueContext = cre
   const pythKey = process.env.PYTH_API_KEY || undefined;
   // S20: the valuation indices' entitlement guards every index fetch; a 403 there is recorded, never latched.
   const cache = new BoundaryCache(sources, pythKey, deps.pythIndex);
-  const equity = createSpotFeed({ sources, pythKey, log: (why) => log(`[spot] ${why}`) });
+  const equity = createSpotFeed({ sources, pythKey, alpaca: alpacaKeys(), log: (why) => log(`[spot] ${why}`) });
   equity.start();
   const crypto = createCryptoSpotFeed({ log: (why) => log(`[crypto-spot] ${why}`) });
   crypto.start();

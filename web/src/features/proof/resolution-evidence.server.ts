@@ -7,7 +7,7 @@ import type { OracleQuote, ResolutionEvidence } from "@/features/canton-ux/proof
 /**
  * A Window's resolution evidence for `/proof/<market>` (C-ADD-09), read server-side from the projection: the Resolution
  * itself through `resolutionsByMarket` (outcome, void reason, when), and around it the projected open print, each
- * listed oracle's quote at the close boundary (`idx_prints`, one row per oracle, symbol and boundary) and the median the
+ * listed oracle's quote at the close boundary (`idx_prints`, the chosen row per oracle, symbol and boundary) and the median the
  * resolver took. Null when the database is not configured, the Window is unknown, or it has no Resolution yet: the page
  * then shows no timeline rather than a half-decided one.
  */
@@ -64,7 +64,7 @@ export async function readResolutionEvidence(marketId: MarketId): Promise<Resolu
     const prints = m.symbol
       ? await sql<PrintRow[]>`
           SELECT oracle, price_e8::text, recorded_ts_sec::text, update_id FROM idx_prints
-          WHERE symbol = ${m.symbol} AND boundary_sec = ${m.expiry_sec} AND oracle = ANY(${oracles}::text[]) AND NOT retired`
+          WHERE symbol = ${m.symbol} AND boundary_sec = ${m.expiry_sec} AND oracle = ANY(${oracles}::text[]) AND NOT retired AND chosen`
       : [];
     const byOracle = new Map(prints.map((p) => [p.oracle, p]));
     const quotes: OracleQuote[] = oracles.map((party) => {

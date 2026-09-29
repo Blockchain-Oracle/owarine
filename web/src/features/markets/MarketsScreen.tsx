@@ -1,7 +1,7 @@
 "use client";
 
 import type { EventMarket } from "@agari/core/types";
-import { formatCadence } from "@agari/core/market";
+import { formatCadence, isCommitteeMarket } from "@agari/core/market";
 import { useCallback, useState, type ReactNode } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { LiveHedgeCard } from "@/features/hedge";
@@ -16,9 +16,11 @@ import { useMarketsSelection, type MarketsSelection } from "./useMarketsSelectio
 import { SenseiDock } from "@/features/sensei";
 import { useVenue } from "./useVenue";
 import { WordMarketBoard } from "./word-board";
+import { EventBoard } from "./events";
 
 /** The Room's header line: the question it is about, and which Window that was. */
 function roomCallLabel(market: EventMarket): string {
+  if (isCommitteeMarket(market)) return market.question;
   const cadence = formatCadence(market.intervalSec);
   if (market.openingPriceRaw === null) return `${market.asset} · ${cadence}`;
   return `${HERO_HEAD.holdsAbove(market.asset)} ${assetPriceLine(market.asset, market.openingPriceRaw)}? · ${cadence}`;
@@ -79,6 +81,12 @@ export function MarketsScreen({ renderTicket, renderVerdict, renderLedgerView }:
           <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.words.title}>
             <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
             <WordMarketBoard laneSet={lanes.laneSet} failure={lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure} ticker={lanes.ticker} nowMs={nowMs} />
+          </section>
+
+          {/* §03 (C6e, K-070): committee events, from the same market stream; a tap selects the event into the hero and ticket. */}
+          <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.events.title} id="events">
+            <SectionHeader index={SECTIONS.events.index} title={SECTIONS.events.title} desc={SECTIONS.events.desc} />
+            <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} nowMs={nowMs} onSelect={setSelection} />
           </section>
 
           {renderLedgerView?.(selection)}

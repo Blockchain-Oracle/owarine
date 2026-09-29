@@ -16,6 +16,7 @@ import { CHROME } from "~/theme/chrome";
 import { LaneBoard } from "./board/LaneBoard";
 import { roomCallLabel } from "./board/MarketCard";
 import { WordBoard } from "./board/WordBoard";
+import { EventBoard } from "./events/EventBoard";
 import { MarketsHero } from "./hero/MarketsHero";
 import { useHeroSelection } from "./hero/useHeroSelection";
 import { openWindow, selectWindow } from "./openWindow";
@@ -26,7 +27,8 @@ import { LiveVerdict } from "./verdict/LiveVerdict";
 /**
  * web's MarketsScreen at phone width — the market you are betting on is the page. The hero carries the question, the
  * chart and the call together; below it, the cover banner when this wallet holds a stock token, the hero Window's
- * verdict once it has one, §01 the lanes that change the hero, §02 the same Windows in plain words. The Sensei dock
+ * verdict once it has one, §01 the lanes that change the hero, §02 the same Windows in plain words, §03 the committee
+ * events (C6e). The Sensei dock
  * rides above the page and the Room opens over it. `/markets/<id>` is this page with that Window in the hero, as on web.
  */
 export function MarketsScreen() {
@@ -79,6 +81,11 @@ export function MarketsScreen() {
           <View style={styles.section} accessibilityLabel={SECTIONS.words.title}>
             <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
             <WordBoard laneSet={lanes.laneSet} failure={failure} ticker={lanes.ticker} nowMs={nowMs} />
+          </View>
+          {/* §03 (C6e, K-070): committee events, from the same lane set; Yes/No opens the ticket drawer on the event. */}
+          <View style={styles.section} accessibilityLabel={SECTIONS.events.title}>
+            <SectionHeader index={SECTIONS.events.index} title={SECTIONS.events.title} desc={SECTIONS.events.desc} />
+            <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} nowMs={nowMs} />
           </View>
         </View>
       </ScrollView>

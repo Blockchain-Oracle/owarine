@@ -12,7 +12,8 @@ export interface SpotQuote {
   /** `"prestocks"`: the catalogue's `tokenPrice` for a pre-IPO name (plan Step 1); display and quoting only. */
   /** `"switchboard"`: a token-lane xStock's Surge value, read unsigned for display beside its 24/7 Windows. */
   /** `"exchange"`: a crypto asset's last trade on the oracle feeders' exchanges (Coinbase ticker), for the pricer and display. */
-  source: "pyth" | "redstone" | "jupiter" | "prestocks" | "switchboard" | "exchange";
+  /** `"alpaca"` (C6e): the last IEX trade of a ticker RedStone does not carry (QQQ, VOO), for the pricer and display. */
+  source: "pyth" | "redstone" | "jupiter" | "prestocks" | "switchboard" | "exchange" | "alpaca";
 }
 
 export interface SpotFeed {

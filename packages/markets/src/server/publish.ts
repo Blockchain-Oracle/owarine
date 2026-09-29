@@ -137,9 +137,18 @@ export async function publishCall(
   return { kind: "published", publications: after, updateId };
 }
 
-/** Takes this lease's calls on a Window back off every public read (`Publication_Retract`, the owner's own choice). */
-export async function retractCall(deps: { client: LedgerClient }, actor: { party: Party; leaseId: string; handle: string }, o: { marketId: MarketId }): Promise<{ retracted: number }> {
-  const mine = (await readPublications(deps.client, actor.party, actor.handle)).filter((p) => p.marketId === o.marketId);
+/**
+ * Takes this lease's calls on a Window back off every public read (`Publication_Retract`, the owner's own choice), for one
+ * product only (C6e, K-070): `product` null (the default) retracts the pair-leg publications, a ticket product retracts
+ * that product's. A pair leg and a ticket on the same Window are separate calls, so retracting one never takes the other.
+ */
+export async function retractCall(
+  deps: { client: LedgerClient },
+  actor: { party: Party; leaseId: string; handle: string },
+  o: { marketId: MarketId; product?: string | null },
+): Promise<{ retracted: number }> {
+  const product = o.product ?? null;
+  const mine = (await readPublications(deps.client, actor.party, actor.handle)).filter((p) => p.marketId === o.marketId && p.product === product);
   if (mine.length === 0) return { retracted: 0 };
   const commands: Command[] = mine.map((p) => ({ ExerciseCommand: { templateId: TEMPLATE_IDS.Publication, contractId: p.cid, choice: "Publication_Retract", choiceArgument: {} } }));
   try {

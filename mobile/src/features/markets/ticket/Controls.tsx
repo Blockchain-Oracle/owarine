@@ -39,7 +39,7 @@ export function BetModes({ mode, onChange, rangeAvailable }: { mode: BetMode; on
 }
 
 /** web's SideSegments: the two sides as one 52 px outline control, the chosen one in its wash; DOWN first while betting against. */
-export function SideSegments({ side, onSelect }: { side: Side | null; onSelect: (side: Side) => void }) {
+export function SideSegments({ side, onSelect, words = SIDE_WORD }: { side: Side | null; onSelect: (side: Side) => void; words?: Readonly<Record<Side, string>> }) {
   const tk = useTk();
   const betAgainst = useBetAgainst();
   return (
@@ -58,7 +58,7 @@ export function SideSegments({ side, onSelect }: { side: Side | null; onSelect: 
             accessibilityState={{ checked: on }}
             style={({ pressed }) => [styles.side, { borderColor: tk.sideBorder, backgroundColor: fill }, pressed && styles.nudge]}
           >
-            <Text style={[styles.sideWord, { color: option === "up" ? tk.up : tk.down }]}>{SIDE_WORD[option]}</Text>
+            <Text style={[styles.sideWord, { color: option === "up" ? tk.up : tk.down }]}>{words[option]}</Text>
           </Pressable>
         );
       })}

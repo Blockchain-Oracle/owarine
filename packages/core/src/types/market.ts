@@ -52,6 +52,11 @@ export type VoidReason =
 /** One Window: the `Market` PDA, its Series and the recycled Book it trades on. */
 export interface EventMarket {
   marketId: MarketId;
+  /**
+   * C6e (K-070): "event" for a committee event (`EVT-…`, engine 0.4.0), which has no opening print and trades from its
+   * start; absent or "price" for a price Window, which settles against its opening print.
+   */
+  kind?: "price" | "event";
   /** The agari-events `GlobalConfig` the Window belongs to. */
   venueId: Address | null;
   asset: TickerSymbol;
@@ -122,4 +127,10 @@ export interface Lane {
 export interface LaneSet {
   venueId: Address;
   lanes: Lane[];
+  /**
+   * C6e (K-070): live committee events (`EVT-…` Series, engine 0.4.0 `Series_OpenEvent`), soonest close first. They sit
+   * beside the cadence lanes, not in them: an event asks its own question and has no ticker, cadence or print. Absent
+   * from a reader that predates events.
+   */
+  events?: EventMarket[];
 }

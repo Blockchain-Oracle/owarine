@@ -42,6 +42,10 @@ export const SHARE = {
     under: (asset: string, line: string) => `${asset} UNDER ${line}`,
     noLine: (asset: string) => `${asset} VS THE OPENING PRINT`,
     winsIf: (asset: string, side: "up" | "down") => `Wins if ${asset} closes ${side === "up" ? "at or above" : "below"} the line.`,
+    /** C6e: a committee event's call. */
+    yes: "▲ CALLING YES",
+    no: "▼ CALLING NO",
+    winsIfEvent: (side: "up" | "down") => `Wins if the committee attests ${side === "up" ? "YES" : "NO"}.`,
     youStake: "You stake",
     winIfLands: "Win if it lands",
     afterFee: "after the settlement fee",

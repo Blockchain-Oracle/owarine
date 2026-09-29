@@ -41,7 +41,8 @@ export function corporateActionFor(
   const skip = skips.find((k) => k.symbol === input.symbol && skipApplies(k, input.window, input.lane));
   if (skip) return { why: skip.why };
   if (input.lane !== "token") return null;
-  const xstock = TICKERS[input.symbol].xstock?.symbol;
+  const xstock = (TICKERS as Partial<Record<string, (typeof TICKERS)[TickerSymbol]>>)[input.symbol]?.xstock?.symbol;
+  if (!xstock) return null;
   const change = multipliers.find((m) => m.xstock === xstock && multiplierApplies(m, input.window));
   return change ? { why: change.why } : null;
 }

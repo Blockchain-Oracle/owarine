@@ -51,3 +51,9 @@ export function loadSwitchboardFeeds(): Map<string, string> {
   return out;
 }
 
+
+/** C6e: the token lane's verified xStock mints (price-sources.json `tokenLane.tickers`), for the Jupiter source probe. */
+export function loadXStockMints(): string[] {
+  const raw = JSON.parse(readFileSync(CONFIG_URL, "utf8")) as { tokenLane?: { tickers?: Record<string, { mint?: string }> } };
+  return Object.values(raw.tokenLane?.tickers ?? {}).flatMap((t) => (t.mint ? [t.mint] : []));
+}

@@ -16,15 +16,17 @@ interface TicketCtaProps {
   decimals: number;
   symbol: string;
   onClick: () => void;
+  /** The side words: UP/DOWN, or Yes/No on a committee event (C6e). */
+  words?: Readonly<Record<Side, string>>;
 }
 
 /** The 52px CTA: armed it carries the side wash and the exact max cost; blocked, its label is the blocker (UX-DR4). */
-export function TicketCta({ blocker, ctx, side, costBase, decimals, symbol, onClick }: TicketCtaProps) {
+export function TicketCta({ blocker, ctx, side, costBase, decimals, symbol, onClick, words = SIDE_WORD }: TicketCtaProps) {
   return (
     <BlockedButton blocker={blocker} ctx={ctx} tone={side ?? "primary"} size="lg" className="w-full" onClick={onClick}>
       {side && costBase !== null ? (
         <>
-          {TICKET.buy(SIDE_WORD[side])} <Money value={costBase} decimals={decimals} symbol={symbol} />
+          {TICKET.buy(words[side])} <Money value={costBase} decimals={decimals} symbol={symbol} />
         </>
       ) : (
         TICKET.buyPlain
