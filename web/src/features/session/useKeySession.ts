@@ -3,6 +3,7 @@
 import type { Address } from "@agari/core/types";
 import type { VaultDeployment } from "@agari/core/vault";
 import { createLocalStorageJournal, createSponsorTransport, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
+import { signerFromKeyPair } from "@agari/markets/sessions";
 import { useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
 import { deviceId, type StoredSessionKey } from "./store";
@@ -59,8 +60,8 @@ export function useKeySession({ armed, sessionKey, deployment, sponsorConfigured
     // One transport per session: it dies with the key's authority, never outliving a revoke or a re-key.
     const sponsor = sponsorConfigured ? createSponsorTransport({ endpoint: SPONSOR_ENDPOINT, device: deviceId() }) : null;
     setRefusal(() => () => sponsor?.lastRefusal() ?? null);
-    // The non-extractable pair signs through Kit's createSignerFromKeyPair inside markets (D-066).
-    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { keyPair: sessionKey.keyPair }, journal: createLocalStorageJournal(nowMs), nowMs, ...(sponsor ? { sponsor } : {}) })
+    // The non-extractable pair signs through WebCrypto inside markets (D-066).
+    void createSubmitterSession({ env: webEnv.markets, authority: "session-key", signer: { seat: signerFromKeyPair(sessionKey.address, sessionKey.keyPair) }, journal: createLocalStorageJournal(nowMs), nowMs, ...(sponsor ? { sponsor } : {}) })
       .then((next) => {
         created = next;
         if (cancelled) return next.dispose();

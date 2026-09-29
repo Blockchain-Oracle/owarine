@@ -21,18 +21,18 @@ export function valuationQuote(input: LaneQuoteInput, feed: PythIndexSpotFeed | 
   const halt = haltOf(input.halts, input.symbol);
   if (halt) return pull(`halted (${halt.reason})`);
   const m = input.market.data;
-  if (input.nowSec >= Number(m.lockAt) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
+  if (input.nowSec >= Number(m.lockAtSec) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
   if (!feed) return pull("no Pyth index feed running");
   const spot = feed.latest(name, input.env.spotMaxAgeSec);
   if (!spot) return pull(`${name} Pyth index stale`);
   if (m.open.source === 0) return { phase: "quote", fairTicks: null, maxCashPerWindow: cap, why: "waiting for the open print" };
-  const startSec = Number(m.tradingStart);
+  const startSec = Number(m.tradingStartSec);
   const reference = feed.at(name, startSec + START_WINDOW_SEC, START_WINDOW_SEC + 5);
   if (!reference) return pull(`no ${name} Pyth index sample near the Window's start`);
   const fairTicks = fairYesTicks({
     spotE8: spot.indexE8,
     openE8: reference.indexE8,
-    secondsLeft: tradingSecondsOf(Number(m.expiry) - input.nowSec),
+    secondsLeft: tradingSecondsOf(Number(m.expirySec) - input.nowSec),
     sigmaBps: input.env.sigmaBps(input.symbol),
     minTick: input.env.minTick,
   });

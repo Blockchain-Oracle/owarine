@@ -9,7 +9,6 @@
  * A source that the ticker cannot have (Pyth on a name with no Pyth feed, Switchboard off the token lane), or no source at
  * all (a Series whose policy was not read), yields no line rather than a wrong one.
  */
-import { SOLANA_EXPLORER_URL } from "@agari/core/constants";
 import { basketOf, TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet, PrintSource } from "@agari/core/types";
 
@@ -19,15 +18,12 @@ export interface SourceLabel {
   provider: SourceProvider;
   /** "Settles on Pyth · TSLA/USD" */
   text: string;
-  /** The feed's own page (Pyth Terminal) or the mint on Solana Explorer; null where no public page is pinned. */
+  /** The feed's own page (Pyth Terminal); null where no public page is pinned. */
   href: string | null;
 }
 
 /** Pyth Terminal's feed page; `/` is `%2F` (`Equity.US.TSLA%2FUSD`), the form Pyth's own links use. */
 export const pythFeedUrl = (pythSymbol: string): string => `https://app.pyth.com/explore/${encodeURIComponent(pythSymbol)}`;
-
-/** A mainnet mint on Solana Explorer: PreStocks tokens live on mainnet whatever cluster the venue runs on. */
-export const mainnetAddressUrl = (address: string): string => `${SOLANA_EXPLORER_URL}/address/${address}`;
 
 const shortMint = (mint: string): string => `${mint.slice(0, 4)}…${mint.slice(-4)}`;
 
@@ -44,7 +40,7 @@ function kindLabel(asset: TickerSymbol): SourceLabel | null {
   if (basket) return { provider: "prestocks", text: SOURCE_COPY.basket(basket.members.length), href: null };
   if (ticker.kind === "preIpo" && ticker.preIpo) {
     const mint = ticker.preIpo.mint;
-    return { provider: "prestocks", text: SOURCE_COPY.preIpo(shortMint(mint)), href: mainnetAddressUrl(mint) };
+    return { provider: "prestocks", text: SOURCE_COPY.preIpo(shortMint(mint)), href: null };
   }
   if (ticker.kind === "valuation" && ticker.valuationOf && ticker.pythIndexFeedId) {
     const feed = `Equity.Index.${ticker.valuationOf}/USD`;

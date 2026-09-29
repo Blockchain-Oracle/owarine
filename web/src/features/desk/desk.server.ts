@@ -108,7 +108,7 @@ export const toSnapshot = (s: DbSnapshot): SnapshotWire => ({
 export async function findDesk(store: DeskQueries, key: string, isAddress: boolean): Promise<DbDesk | null> {
   return isAddress ? store.getDeskByOwner(DESK_CLUSTER_ID, key) : store.getDeskById(key);
 }
-const DESK_CLUSTER_ID = "mainnet-beta";
+const DESK_CLUSTER_ID = "mainnet";
 
 /** Approvals still waiting, plus the ones that expired unanswered in the last day (the page says so). */
 async function approvalsFor(store: DeskQueries, deskId: string, nowSec: number): Promise<ApprovalWire[]> {

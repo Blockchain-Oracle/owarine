@@ -14,7 +14,8 @@ import { decisionSchema, deskViewSchema, feedSchema, recordsPageSchema, type Dec
 /**
  * TanStack Query over the desk's routes (plan §5.7): one key family, decimal strings parsed by zod at the edge, the
  * desk page polled every half minute while open (the desk wakes hourly; a poll only ever catches an approval or a
- * fresh check sooner). The mainnet balances read for the money sheet goes through `/api/rpc/mainnet` (D-121).
+ * fresh check sooner). The live-leg balances read for the money sheet goes through the desk reader, which is not live
+ * until C7b (the reference's `/api/rpc/mainnet` proxy, D-121, is gone with Solana).
  */
 export const DESK_POLL_MS = 30_000;
 const BALANCES_POLL_MS = 20_000;

@@ -37,7 +37,9 @@ const num = (raw: string | undefined, fallback: number, min: number) => {
  * than any one of them, and no basket has traded long enough to measure; override per symbol once it has.
  */
 /** A valuation lane (S20) follows a company's valuation index, which moves like a single name. */
-export const DEFAULT_SIGMA_BPS = { stock: 4_500, etf: 2_000, preIpo: 4_500, basket: 3_000, valuation: 4_500 } as const;
+// crypto: a 60 % annualised placeholder for BTC and ETH until C6 re-measures their realised volatility, which it
+// does before any crypto fair value goes live (plan C6); `MM_SIGMA_BPS` overrides it per symbol meanwhile.
+export const DEFAULT_SIGMA_BPS = { stock: 4_500, etf: 2_000, preIpo: 4_500, basket: 3_000, valuation: 4_500, crypto: 6_000 } as const;
 
 function sigmaTable(raw: string | undefined): (symbol: TickerSymbol) => number {
   const perSymbol = new Map<string, number>();

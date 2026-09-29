@@ -6,14 +6,6 @@
     "An entry ending in / covers a directory prefix (a tree deleted whole)."
   ],
   "files": [
-    "web/src/providers/wallet/WalletShellProvider.tsx",
-    "web/src/providers/wallet/kit-wallet.ts",
-    "web/src/providers/wallet/mainnet-signer.ts",
-    "web/src/providers/wallet/useWalletChoices.ts",
-    "web/package.json#@solana/kit",
-    "web/package.json#@solana/kit-plugin-wallet",
-    "web/package.json#@solana/react",
-    "web/package.json#@solana/wallet-account-signer",
     "packages/clients/"
   ]
 }

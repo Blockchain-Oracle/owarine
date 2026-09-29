@@ -40,14 +40,14 @@ export const VERDICT_UI = {
     foot: "Collect it with one signature now, or the venue pays it to your wallet automatically a few minutes after settlement.",
     /** Q-S6-7: a void is not "You won" — the reference's trophy branch is only a loss's opposite (M `ClaimWinnings.tsx:50-57`). */
     returned: "Returned",
-    voidFoot: "Collect the returned 0.5 per contract with one signature now, or the venue pays it to your wallet a few minutes after settlement.",
+    voidFoot: "Collect your stake and fee back with one signature now, or the venue pays it to your seat a few minutes after settlement.",
   },
   devTitle: "Verdict moment",
   devEyebrow: "?m=<marketId> stamps a live window for the connected wallet",
   fixtures: {
     win: "Win — 正夢 in vermilion; the P&L figure is the only green",
     loss: "Loss — 逆夢 in neutral ink; a fact, not a scare",
-    void: "Void — 無効; no reliable print, both sides pay 0.5",
+    void: "Void — 無効; no reliable print, both sides get their stake and fee back",
     both: "Both sides held — one card, net P&L, both legs listed",
   },
 } as const;
@@ -67,8 +67,9 @@ export const CLAIM = {
   settled: "settled",
   kind: {
     win: "Win",
-    void: "Void — no reliable print, both sides pay 0.5",
+    void: "Void — no reliable print, both sides get their stake and fee back",
     "vault-credit": "Vault credit — withdrawal",
+    "stale-refund": "Refund — never resolved, your stake and fee come back",
   },
   leg: { up: "UP leg", down: "DOWN leg" },
 

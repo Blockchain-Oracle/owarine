@@ -28,11 +28,12 @@ function AddressCell({ label, address }: { label: string; address: Address | und
  * The addresses render on the server; only the settled list is a client island.
  */
 export function LandingProof() {
-  const { eventsProgramId, venueId } = webEnv.markets;
+  const { venueId } = webEnv.markets;
   return (
     <div className="lp-proof">
       <dl className="lp-proof-ids">
-        <AddressCell label={LANDING.proof.program} address={eventsProgramId} />
+        {/* A Daml package has no address to link; the cell says "unset" until C10 points it at the package's proof. */}
+        <AddressCell label={LANDING.proof.program} address={undefined} />
         <AddressCell label={LANDING.proof.venue} address={venueId} />
         <div className="lp-proof-cell">
           <dt className="lp-proof-label">{LANDING.proof.clusterLabel}</dt>

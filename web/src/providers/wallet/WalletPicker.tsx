@@ -3,7 +3,7 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { WALLET_MODAL, type KnownWallet } from "./copy";
+import { SEAT_CONNECTOR, WALLET_MODAL, type KnownWallet } from "./copy";
 import { useWalletChoices, type DiscoveredWallet, type WalletChoices } from "./useWalletChoices";
 import { BackButton, CloseButton, usePhoneLayout, WalletDialog, WalletIcon } from "./wallet-modal-parts";
 import { WalletPickerPhone } from "./WalletPickerPhone";
@@ -19,20 +19,31 @@ type Step =
   | { kind: "install"; wallet: KnownWallet };
 
 /**
- * The connect modal (D-023 behaviour, Masayume's look): RainbowKit's compact modal as Masayume configured it, listing
- * the Wallet Standard wallets this browser has. It unmounts on close, so every open starts at the list.
+ * The seat modal (Masayume's look): RainbowKit's compact modal as Masayume configured it, listing the ways to be
+ * seated (the guest seat today; plan §F). It unmounts on close, so every open starts at the list.
  */
-export function WalletPicker({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function WalletPicker({
+  open,
+  onOpenChange,
+  takeSeat,
+  held,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  takeSeat: () => Promise<boolean>;
+  /** A seat is already held: the modal has nothing to do and stays shut. */
+  held: boolean;
+}) {
   return (
-    <WalletDialog open={open} onOpenChange={onOpenChange} compact>
-      <PickerBody close={() => onOpenChange(false)} />
+    <WalletDialog open={open && !held} onOpenChange={onOpenChange} compact>
+      <PickerBody close={() => onOpenChange(false)} takeSeat={takeSeat} />
     </WalletDialog>
   );
 }
 
-function PickerBody({ close }: { close: () => void }) {
+function PickerBody({ close, takeSeat }: { close: () => void; takeSeat: () => Promise<boolean> }) {
   const phone = usePhoneLayout();
-  const choices = useWalletChoices();
+  const choices = useWalletChoices(takeSeat);
   return phone ? <WalletPickerPhone choices={choices} close={close} /> : <CompactOptions choices={choices} close={close} />;
 }
 
@@ -74,7 +85,7 @@ function CompactOptions({ choices, close }: { choices: WalletChoices; close: () 
         </div>
         <div className="wm-step-body">
           <div className="wm-step-inner">
-            {step.kind === "learn" && <IntroStep onGetWallet={() => setStep({ kind: "get" })} />}
+            {step.kind === "learn" && <IntroStep onGetWallet={() => void choose(SEAT_CONNECTOR)} />}
             {step.kind === "get" && <GetStep />}
             {step.kind === "connect" && (
               <ConnectStep
@@ -122,7 +133,7 @@ function WalletList({
         {choices.installed.length > 0 && (
           <Group name={T.groups.installed} accent>
             {choices.installed.map(({ wallet, recent }) => (
-              <WalletRow key={wallet.name} icon={wallet.icon} name={wallet.name} recent={recent} onClick={() => onChoose(wallet)} />
+              <WalletRow key={wallet.id} icon={wallet.icon} name={wallet.name} recent={recent} onClick={() => onChoose(wallet)} />
             ))}
           </Group>
         )}

@@ -3,15 +3,18 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { WALLET_MODAL } from "./copy";
+import { SEAT_LEASE } from "./seat-client";
 import { emojiAvatarFor, formatAccountAddress } from "./emoji-avatar";
 import { CloseButton, usePhoneLayout, WalletDialog } from "./wallet-modal-parts";
 
 const COPIED_MS = 1_500;
 const T = WALLET_MODAL.profile;
+const S = WALLET_MODAL.seat;
 
 /**
- * RainbowKit's `AccountModal` as Masayume's `ConnectButton` opened it: the emoji avatar, the short address, and Copy
- * Address / Disconnect. The native balance line RainbowKit shows under the address waits on a SOL balance read.
+ * RainbowKit's `AccountModal` as Masayume's `ConnectButton` opened it: the emoji avatar, the seat's short address, and
+ * Copy Address / Reset Seat. Under the address, where RainbowKit showed a native balance, the seat's Canton party: a
+ * truthful "not leased yet" until the lease routes land (C4), never an invented party id.
  */
 export function AccountModal({
   open,
@@ -55,6 +58,9 @@ function ProfileDetails({ address, close, onDisconnect }: { address: string; clo
         <Dialog.Title render={<h1 />} className="wm-t18 wm-profile-name" title={address}>
           {formatAccountAddress(address)}
         </Dialog.Title>
+        <Dialog.Description className="wm-t14m wm-group-muted" title={SEAT_LEASE.reason}>
+          {S.party}: {S.leaseNotLive}
+        </Dialog.Description>
       </div>
       <div className="wm-profile-actions">
         <ProfileAction

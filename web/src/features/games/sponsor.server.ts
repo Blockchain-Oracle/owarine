@@ -60,7 +60,7 @@ async function boot(): Promise<{ config: SponsorConfig | null; deployment: Await
 async function sponsorBalanceLamports(config: SponsorConfig | null): Promise<bigint | null> {
   if (!config) return null;
   try {
-    return await createSponsorRpc(process.env.SPONSOR_RPC_URL || DEVNET_DEFAULTS.rpcHttpUrls[0]).getBalance(config.sponsor as unknown as Parameters<SponsorRpc["getBalance"]>[0]);
+    return await createSponsorRpc(DEVNET_DEFAULTS.ledgerApiPath).getBalance(config.sponsor as unknown as Parameters<SponsorRpc["getBalance"]>[0]);
   } catch {
     return null;
   }

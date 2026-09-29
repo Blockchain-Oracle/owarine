@@ -26,8 +26,9 @@ export async function getDesk(): Promise<DeskClient | null> {
   desk = secretKey
     ? await createDeskClient({
         secretKey,
-        rpcUrl: process.env.PRIVATE_DESK_RPC_URL || (webEnv.markets.rpcHttpUrls[0] as string),
-        rpcSubscriptionsUrl: process.env.PRIVATE_DESK_WS_URL || (webEnv.markets.rpcWsUrls[0] as string),
+        // Kept for the config's shape: the Canton desk reaches the ledger through the venue (C8), never a public endpoint.
+        rpcUrl: webEnv.markets.ledgerApiPath,
+        rpcSubscriptionsUrl: webEnv.markets.ledgerApiPath,
       })
     : null;
   return desk;

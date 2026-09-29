@@ -43,7 +43,8 @@ export function sponsorConfig(env: MarketsEnv): SponsorConfig | null {
   const limits = sponsorLimitsFrom(process.env);
   return {
     secretKey,
-    rpcUrl: process.env.SPONSOR_RPC_URL || (env.rpcHttpUrls[0] as string),
+    // Kept for the config's shape: Canton charges no network fee, so the sponsor reads nothing from a chain endpoint.
+    rpcUrl: env.ledgerApiPath,
     sponsor: keypairAddress(secretKey),
     maxPerAddressPerHour: limits.signerPerHour,
     maxPerDevicePerHour: limits.devicePerHour,

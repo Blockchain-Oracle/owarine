@@ -25,12 +25,12 @@ describe("windowSourceLabel (S25: the line follows the Window's policy source)",
     expect(windowSourceLabel(w("TSLA", "regular", null))).toBeNull();
   });
 
-  it("gives the xStock token lane Switchboard, a pre-IPO name its PreStocks mint on mainnet, a basket its member count", () => {
+  it("gives the xStock token lane Switchboard, a pre-IPO name its PreStocks mint (named, not linked: it lives on another chain's explorer), a basket its member count", () => {
     expect(windowSourceLabel(w("TSLA", "token", "switchboard"))?.text).toBe("Settles on Switchboard · TSLAx");
     expect(windowSourceLabel(w("OPENAI", "token", "attested"))).toEqual({
       provider: "prestocks",
       text: "Prices from PreStocks · mint Prew…rpgF",
-      href: "https://explorer.solana.com/address/PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF",
+      href: null,
     });
     expect(windowSourceLabel(w("AILABS", "token", "attested"))).toEqual({ provider: "prestocks", text: "Index of 2 PreStocks prices", href: null });
     expect(windowSourceLabel(w("PREALL", "token", "attested"))?.text).toBe("Index of 8 PreStocks prices");

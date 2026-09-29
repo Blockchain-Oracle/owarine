@@ -1,8 +1,9 @@
 /** The share cards' words — ported from the reference's two card renderers and `BetPlacedCard.tsx`. */
+import { VOID_SHARE_WORD } from "@agari/core/market";
 import type { VoidReason } from "@agari/core/types";
 
-/** The signed source and void reason as the settled card prints them (proof-analytics.md §2.8). */
-const VOID_WORD: Record<VoidReason, string> = { "missing-print": "VOID · MISSING PRINT", "cross-check-divergence": "VOID · CROSS-CHECK DIVERGENCE" };
+/** The signed source and void reason as the settled card prints them (proof-analytics.md §2.8): core's one stamp per reason. */
+const VOID_WORD: Readonly<Record<VoidReason, string>> = VOID_SHARE_WORD;
 
 /**
  * The brand as the owner gave it (2026-09-02): the public home and the X handle. The handle is the one

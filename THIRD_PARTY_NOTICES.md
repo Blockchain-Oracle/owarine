@@ -54,7 +54,6 @@ The original filenames and encoding information are recorded in [`web/public/sou
 Agari's connect and account modals (`web/src/providers/wallet/`) replicate the RainbowKit 2.2.11 modals that Masayume shipped, without the package:
 
 - **RainbowKit** ([rainbow-me/rainbowkit](https://github.com/rainbow-me/rainbowkit), MIT, Copyright (c) 2024 Rainbow): the close, back, copy, copied and disconnect glyph paths, the spinner outline, the emoji avatar palette, and the two "What is a Wallet?" illustrations (`web/public/wallet/assets.svg`, `login.svg`). Its English strings are reused with "Ethereum" replaced by "Solana".
-- **Solana Wallet Adapter** ([anza-xyz/wallet-adapter](https://github.com/anza-xyz/wallet-adapter), Apache-2.0): the Phantom, Solflare and Backpack icons (`web/public/wallet/phantom.svg`, `solflare.svg`, `backpack.png`), taken from the adapters' `icon` data. The names and marks belong to those wallets and identify them only.
 
 ## Asset marks
 
@@ -68,6 +67,7 @@ The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-0
 | Amazon | simple-icons **14.15.0**, the last release to carry `amazon.svg` | CC0 1.0 at publication. The maintainers removed the Amazon and AWS icons in 15.0.0 ([PR #13056](https://github.com/simple-icons/simple-icons/pull/13056)) pending permission, not on a request from Amazon. |
 | Microsoft | Own geometry: four rectangles drawn in `paths.ts`; no third-party artwork | simple-icons removed its Microsoft icons in 13.0.0 on Microsoft's trademark terms ([PR #10019](https://github.com/simple-icons/simple-icons/pull/10019)), so none is vendored. |
 | Invesco QQQ, Vanguard S&P 500, SPDR S&P 500 | None: the registry monogram typed on the fund house's colour | — |
+| Bitcoin, Ethereum | Masayume's own `BitcoinMark` (the ₿ path on the orange disc) and `EthereumMark` (the diamond), reimplemented from the reference as single white glyphs on the asset's published colour (`#F7931A`, `#627EEA`) | The marks identify the traded assets; no endorsement implied. |
 
 The brand colours in `packages/core/src/market/tickers.ts` (`Ticker.brand`) and `web/src/styles/icons.css` are the issuers' published mark colours (simple-icons `hex` for the vendored marks, near-black for Apple). Two vendored marks take the issuer's own published colour rather than simple-icons' near-black, so two discs do not go black and need rings: Anthropic's clay `#D97757` (simple-icons records `#191919`) and SpaceX's blue `#005288` (simple-icons records `#000000`).
 

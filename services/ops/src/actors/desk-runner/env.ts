@@ -1,7 +1,7 @@
 /**
- * The desk runner's environment (S21 C4, plan §8), read once at boot. The desk is a mainnet product: its RPC is its
- * own (`DESK_RPC_URL`, else Helius mainnet from `HELIUS_API_KEY`), never the venue's devnet endpoint. A missing key
- * means read-and-record only for live desks; practice desks need no key at all.
+ * The desk runner's environment (S21 C4, plan §8), read once at boot. On Canton the live desk is a Canton desk whose
+ * live leg is gated on C7b (plan "Adapted rows"), so there is no chain endpoint to default to: `DESK_RPC_URL` is kept
+ * for the reader's shape and the C1 desk reader refuses with its not-live reason. Practice desks need nothing.
  */
 import type { DeskCluster } from "@agari/db";
 import { roleSecret } from "../../runtime/keys";
@@ -39,15 +39,13 @@ function intEnv(env: NodeJS.ProcessEnv, name: string, fallback: number, min: num
   return Number.isFinite(value) && value >= min ? Math.floor(value) : fallback;
 }
 
-/** `DESK_CLUSTER=localnet` runs the desk against a Surfpool mainnet fork (the C6 rehearsal); mainnet otherwise. */
+/** `DESK_CLUSTER=localnet` runs the desk against LocalNet (the rehearsal); Canton MainNet otherwise. */
 function clusterOf(env: NodeJS.ProcessEnv): DeskCluster {
-  return env.DESK_CLUSTER === "localnet" ? "localnet" : env.DESK_CLUSTER === "devnet" ? "devnet" : "mainnet-beta";
+  return env.DESK_CLUSTER === "localnet" ? "localnet" : env.DESK_CLUSTER === "devnet" ? "devnet" : "mainnet";
 }
 
 export function deskRpcUrl(env: NodeJS.ProcessEnv = process.env): string {
-  if (env.DESK_RPC_URL) return env.DESK_RPC_URL;
-  if (clusterOf(env) === "localnet") return `http://127.0.0.1:${env.SURFPOOL_PORT ?? 8899}`;
-  return env.HELIUS_API_KEY ? `https://mainnet.helius-rpc.com/?api-key=${env.HELIUS_API_KEY}` : "https://api.mainnet-beta.solana.com";
+  return env.DESK_RPC_URL ?? "";
 }
 
 export function readDeskRunnerEnv(env: NodeJS.ProcessEnv = process.env): DeskRunnerEnv {

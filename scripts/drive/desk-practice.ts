@@ -18,7 +18,7 @@ import { createRunnerContext } from "../../services/ops/src/actors/desk-runner";
 import { feedWarm } from "../../services/ops/src/actors/desk-runner/value";
 import { wakeDesk } from "../../services/ops/src/actors/desk-runner/wake";
 import { createPreStocksSpotFeed } from "../../services/ops/src/prices/prestocks-spot";
-import { arg } from "../deploy/ops-cluster";
+import { arg } from "./cli";
 
 const presetId = arg("--preset", "ailabs");
 const ownerArg = arg("--owner", "");

@@ -74,6 +74,18 @@ export const MARK_GLYPHS: Partial<Record<BrandSlug, MarkGlyph>> = {
     span: 0.54, dx: 0, dy: 0,
   },
   microsoft: { d: "M0 0h11.4v11.4H0zM12.6 0H24v11.4H12.6zM0 12.6h11.4V24H0zM12.6 12.6H24V24H12.6z", span: 0.56, dx: 0, dy: 0 },
+  // Masayume's own two marks (its `AssetMarks.tsx`: `BitcoinMark`, `EthereumMark`), brought back for the crypto lanes.
+  // The ₿ path is in Masayume's 32-unit disc space, so it sits at scale 1 on the disc (span 0.75, nudged back by the
+  // 4-unit centring). The diamond is in a 24-box around a radius-11 disc, so it scales by 32/22; its six faces are one
+  // white path here (Masayume shaded four of them with opacities, which a single-fill glyph cannot carry).
+  bitcoin: {
+    d: "M22.5 14.2c.3-2-1.2-3.1-3.3-3.8l.7-2.7-1.7-.4-.7 2.6c-.4-.1-.9-.2-1.3-.3l.7-2.7-1.7-.4-.7 2.7c-.4-.1-.7-.2-1-.2l-2.3-.6-.4 1.8s1.2.3 1.2.3c.7.2.8.6.8 1l-.8 3.2c0 0 .1 0 .1 0l-.1 0-1.1 4.5c-.1.2-.3.5-.7.4 0 0-1.2-.3-1.2-.3l-.8 1.9 2.2.5c.4.1.8.2 1.2.3l-.7 2.8 1.7.4.7-2.7c.5.1.9.2 1.3.3l-.7 2.7 1.7.4.7-2.8c2.9.5 5.1.3 6-2.3.7-2.1 0-3.3-1.6-4.1 1.1-.3 2-1 2.2-2.6zm-3.9 5.5c-.5 2.1-4.1 1-5.3.7l.9-3.8c1.2.3 4.9.9 4.4 3.1zm.5-5.5c-.5 1.9-3.5.9-4.4.7l.8-3.4c1 .2 4.1.7 3.6 2.7z",
+    span: 0.75, dx: -4, dy: -4,
+  },
+  ethereum: {
+    d: "M12 4.5v5.55l4.7 2.1L12 4.5ZM12 4.5 7.3 12.15l4.7-2.1V4.5ZM12 15.98v3.53l4.7-6.5-4.7 2.97ZM12 19.51v-3.53L7.3 13.01l4.7 6.5ZM12 15.1l4.7-2.95-4.7-2.1v5.05ZM7.3 12.15 12 15.1v-5.05l-4.7 2.1Z",
+    span: 24 / 22, dx: 0, dy: 0,
+  },
 };
 
 export interface GlyphBox {

@@ -8,7 +8,7 @@ const hhmm = (sec: number) => new Date(sec * 1000).toISOString().slice(11, 16);
 export const seriesLabel = seriesLaneKey;
 
 export const marketLabel = (s: SeriesView | undefined, m: MarketView) =>
-  `${s ? seriesLabel(s) : m.data.series.slice(0, 6)} #${m.data.index} ${hhmm(Number(m.data.tradingStart))}–${hhmm(Number(m.data.expiry))}Z`;
+  `${s ? seriesLabel(s) : m.data.series.slice(0, 6)} #${m.data.index} ${hhmm(Number(m.data.tradingStartSec))}–${hhmm(Number(m.data.expirySec))}Z`;
 
 const present = (p: { source: number }) => p.source !== 0;
 
@@ -23,7 +23,7 @@ export function settleInput(
   return {
     nowSec: ctx.nowSec,
     state: d.state,
-    expirySec: Number(d.expiry),
+    expirySec: Number(d.expirySec),
     openDeadlineSec: Number(d.openDeadline),
     closeDeadlineSec: Number(d.closeDeadline),
     prints: { open: present(d.open), close: present(d.close), checkOpen: present(d.checkOpen), checkClose: present(d.checkClose) },

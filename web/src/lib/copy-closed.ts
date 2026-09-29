@@ -9,7 +9,7 @@ export const CLOSED = {
   /** The listed group's heading: "Schedule a call · opens Wed 09:30 ET". */
   listed: (opens: string) => `Schedule a call · opens ${opens}`,
   /** A 24/7 card's kind chip. */
-  kind: { preIpo: "24/7 · pre-IPO", basket: "24/7 · basket", valuation: "24/7 · valuation", stock: "24/7 · xStock", etf: "24/7 · xStock" },
+  kind: { preIpo: "24/7 · pre-IPO", basket: "24/7 · basket", valuation: "24/7 · valuation", stock: "24/7 · xStock", etf: "24/7 · xStock", crypto: "24/7 · crypto" },
   noQuotes: "No quotes yet",
   noQuotesLine: "Nobody is quoting this Window right now.",
   nextWindow: (clock: string) => `Next Window ${clock}`,

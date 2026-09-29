@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { webEnv } from "@/lib/env";
 import { PITCH } from "./copy";
 import { LogoCard, SolanaMark } from "./marks";
 import { FrozenPhone, PhoneMock, XBetCard } from "./mocks";
@@ -16,8 +15,8 @@ import type { Slide } from "./types";
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
-/** The one program every Window runs on; the deck says so honestly until it is deployed (S2 devnet, S15 story pass). */
-const EVENTS_PROGRAM = webEnv.markets.eventsProgramId ?? "not deployed";
+/** The engine is a Daml package with no address to show; the deck says so honestly until C10 points it at the proof page. */
+const EVENTS_PROGRAM = "not deployed";
 
 const C = PITCH.cover;
 const E = PITCH.engine;

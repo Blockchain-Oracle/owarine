@@ -1,55 +1,62 @@
 /**
- * The wallet modals' words: RainbowKit 2.2.11's `en_US` strings as Masayume showed them, with "Ethereum" made
- * "Solana" wherever the sentence names the chain. Nothing else is reworded, so the modal reads as it did there.
+ * The seat modals' words. The frame and every key are RainbowKit 2.2.11's `en_US` strings as Masayume showed them; on
+ * Canton the connected account is a guest seat (plan §2, §4), so the sentences say "seat" where they said "wallet".
+ * The keys stay, because the phone's sheets read the same object.
  */
 export const WALLET_MODAL = {
-  title: "Connect a Wallet",
+  title: "Take a Seat",
   close: "Close",
   back: "Back",
-  groups: { installed: "Installed", browser: "Browser" },
+  groups: { installed: "Canton DevNet", browser: "More ways in" },
   recent: "Recent",
-  newTo: "New to Solana wallets?",
+  newTo: "New to Canton seats?",
   learnMore: "Learn More",
-  learnMoreUrl: "https://solana.com/learn/what-is-a-wallet",
+  learnMoreUrl: "https://docs.digitalasset.com/overview/3.4/explanations/canton/parties-users.html",
   intro: {
-    title: "What is a Wallet?",
+    title: "What is a Seat?",
     description:
-      "A wallet is used to send, receive, store, and display digital assets. It's also a new way to log in, without needing to create new accounts and passwords on every website.",
-    assetsTitle: "A Home for your Digital Assets",
-    assetsBody: "Wallets are used to send, receive, store, and display digital assets like SOL and NFTs.",
-    loginTitle: "A New Way to Log In",
-    loginBody: "Instead of creating new accounts and passwords on every website, just connect your wallet.",
-    get: "Get a Wallet",
+      "A seat is your place at the venue. This browser makes a signing key for it, and the venue gives it a Canton party to trade as. No extension, no seed phrase, no account to create.",
+    assetsTitle: "Your Own Party on Canton",
+    assetsBody: "Your calls, cash and positions are contracts only your seat's party and the venue can see.",
+    loginTitle: "A Key That Stays Here",
+    loginBody: "The key is made in this browser and cannot be exported. Reset the seat and it is gone for good.",
+    get: "Take a Seat",
   },
   get: {
-    title: "Get a Wallet",
-    action: "GET",
+    title: "Take a Seat",
+    action: "TAKE",
     lookingTitle: "Not what you're looking for?",
-    lookingBody: "Select a wallet on the main screen to get started with a different wallet provider.",
+    lookingBody: "A Canton wallet connector joins the guest seat here once it is live.",
   },
   status: {
-    opening: (wallet: string) => `Opening ${wallet}...`,
-    notInstalled: (wallet: string) => `${wallet} is not installed`,
-    confirm: "Confirm connection in the extension",
+    opening: (wallet: string) => `Taking a ${wallet.toLowerCase()}...`,
+    notInstalled: (wallet: string) => `${wallet} is not available here`,
+    confirm: "Making this browser's seat key",
     retry: "RETRY",
-    install: "INSTALL",
+    install: "LEARN MORE",
     loading: "Loading",
   },
-  profile: { copy: "Copy Address", copied: "Copied!", disconnect: "Disconnect" },
+  profile: { copy: "Copy Address", copied: "Copied!", disconnect: "Reset Seat" },
+  seat: {
+    party: "Canton party",
+    leaseNotLive: "Not leased yet: the venue's seat lease is not live (C1 stub)",
+  },
 } as const;
 
 export interface KnownWallet {
-  /** The Wallet Standard name the wallet registers under, which is how an installed one is recognised. */
+  /** The connector's name, which is how an available one is recognised. */
   name: string;
   icon: string;
-  /** RainbowKit's `get.*.description` for what the download offers. */
+  /** What the connector offers (RainbowKit's `get.*.description`). */
   kind: string;
   href: string;
 }
 
-/** Offered when not installed, in RainbowKit's "Browser" group and on "Get a Wallet" (D-023's three). */
-export const KNOWN_WALLETS: readonly KnownWallet[] = [
-  { name: "Phantom", icon: "/wallet/phantom.svg", kind: "Browser Extension", href: "https://phantom.com/download" },
-  { name: "Solflare", icon: "/wallet/solflare.svg", kind: "Browser Extension", href: "https://solflare.com/download" },
-  { name: "Backpack", icon: "/wallet/backpack.png", kind: "Browser Extension", href: "https://backpack.app/download" },
-];
+/**
+ * Connectors offered when not available here, in RainbowKit's "Browser" group and on the Get step. Empty until the
+ * Grofty connector lands (plan §F); the guest seat needs nothing installed.
+ */
+export const KNOWN_WALLETS: readonly KnownWallet[] = [];
+
+/** The guest seat, the one connector live today. */
+export const SEAT_CONNECTOR = { id: "guest-seat", name: "Guest Seat", icon: "/wallet/seat.svg" } as const;

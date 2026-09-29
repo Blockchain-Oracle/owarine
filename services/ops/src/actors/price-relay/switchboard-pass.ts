@@ -20,9 +20,8 @@
 import { readFileSync } from "node:fs";
 import {
   copyOpenSlot, fetchTokenQuote, inBatches, quoteHasFeed, readSwitchboardVenue, recordSwitchboardSlot, SWITCHBOARD_ERROR,
-  type PrintSlot, type SlotOutcome, type SwitchboardVenue,
+  type PrintSlot, type SlotOutcome, type SwitchboardQuote, type SwitchboardVenue,
 } from "@agari/markets/ops/prints";
-import type { SwitchboardQuote } from "@agari/markets/prices/legacy";
 import type { XStockSymbol } from "@agari/core/market";
 import { createOpsClient, type OpsClient } from "@agari/markets/ops";
 import { errorText, readOpsEnv } from "../../runtime/env";

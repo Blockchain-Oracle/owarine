@@ -10,12 +10,8 @@ import { readOpsEnv } from "./env";
  * live subscriber, and reported "no indexer configured" with the indexer configured. With nothing set this returns
  * exactly what that call returned, so an actor that worked keeps working.
  *
- * An actor is not a browser: `NEXT_PUBLIC_AGARI_INDEXER_URL` has to be absolute here (`http://host/api/index`).
- *
- * With no `NEXT_PUBLIC_SOLANA_RPC_URL` the runtime used to fall back to the public devnet endpoint while the rest of
- * the process spoke to the keyed one. The leverage keeper's first live cycles took 11 s to mark one position that
- * way, on a job where seconds are the point. An actor now reads through the endpoints the ops process itself uses
- * (`readOpsEnv`); the key stays in this server process, as it always has for the venue's own actors.
+ * An actor is not a browser: `NEXT_PUBLIC_AGARI_INDEXER_URL` has to be absolute here (`http://host/api/index`). The
+ * ledger itself is reached through `@agari/ledger` with this process's own credential, never through these fields.
  *
  * The price feed is this process's own `/prices/latest`. With no `NEXT_PUBLIC_PRICE_FEED_URL` on the ops container
  * every `getAssetPrice` answered null, so the strategy runner skipped every Window as "no fresh price" (S23).
@@ -25,8 +21,6 @@ export function opsMarketsEnv(venueId?: string): MarketsEnv {
   const ops = readOpsEnv();
   return parseMarketsEnv({
     ...input,
-    rpcHttpUrls: input.rpcHttpUrls ?? ops.rpcUrl,
-    rpcWsUrls: input.rpcWsUrls ?? ops.rpcSubscriptionsUrl,
     priceFeedUrl: input.priceFeedUrl ?? `http://127.0.0.1:${ops.httpPort}`,
     ...(venueId ? { venueId } : {}),
   });

@@ -11,7 +11,7 @@ export interface VerdictStrings {
 const VERDICTS: Record<VerdictOutcome, VerdictStrings> = {
   win: { kanji: "上がり", romaji: "agari", translation: "it came in", line: "agari — it came in." },
   loss: { kanji: "放銃", romaji: "hōjū", translation: "dealt in", line: "hōjū — it dealt in." },
-  void: { kanji: "無効", romaji: "mukō", translation: "void", line: "no reliable print — both sides pay 0.5" },
+  void: { kanji: "無効", romaji: "mukō", translation: "void", line: "no reliable print — both sides get their stake and fee back" },
 };
 
 export function verdictStrings(outcome: VerdictOutcome): VerdictStrings {
@@ -26,6 +26,6 @@ export function verdictAnnouncement(outcome: VerdictOutcome, pnlText: string): s
     case "loss":
       return `Hōjū — it dealt in. Lost ${pnlText}.`;
     case "void":
-      return `Void — no reliable print, both sides pay 0.5. Returned ${pnlText}.`;
+      return `Void — no reliable print, both sides get their stake and fee back. Returned ${pnlText}.`;
   }
 }

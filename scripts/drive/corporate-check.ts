@@ -12,7 +12,7 @@
 import { readFileSync } from "node:fs";
 import { addDays, etDateOf, TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 import type { CorporateSkip, MultiplierChange } from "@agari/core/types";
-import { arg, flag } from "../deploy/ops-cluster";
+import { arg, flag } from "./cli";
 
 const FILE = new URL("../../services/ops/config/corporate-actions.json", import.meta.url);
 const XSTOCKS = "https://api.xstocks.fi/api/v2/public/assets";

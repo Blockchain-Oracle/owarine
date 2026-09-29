@@ -8,20 +8,20 @@ import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 export interface WalletSession {
   address: Address | null;
   isConnected: boolean;
-  /** A remembered wallet is silently reconnecting (at most 3 s after hydration). False on the server, during hydration and for a browser with nothing remembered. */
+  /** A held seat is being read back from IndexedDB after hydration. False on the server, during hydration and for a browser with no seat. */
   isConnecting: boolean;
   /**
-   * Always equal to `isConnected` on Solana. The cluster is the app's, not the wallet's: nothing in a Solana wallet can
-   * sit on the "wrong chain" for a signature, so there is no switch to offer (the EVM-era `switchToShannon` is gone).
+   * Always equal to `isConnected`. The network is the app's participant, not the seat's: a seat key cannot sit on the
+   * "wrong chain" for a signature, so there is no switch to offer (D-120's reasoning, carried to Canton).
    */
   isRightChain: boolean;
-  /** Kept for the surfaces that disable a control while a switch runs; there is never a switch on Solana. */
+  /** Kept for the surfaces that disable a control while a switch runs; there is never a switch on Canton. */
   switching: false;
-  /** A user-initiated connection is in flight. */
+  /** A user-initiated "Take a seat" is in flight. */
   connecting: boolean;
-  /** Opens the connect modal (Wallet Standard wallets installed in this browser, D-023). */
+  /** Opens the seat modal ("Take a seat": the guest seat, plan §F). */
   connect(): void;
-  /** Opens the account modal (avatar, address, Copy Address, Disconnect): Masayume's RainbowKit `openAccountModal`. */
+  /** Opens the account modal (avatar, seat address, Copy Address, Reset Seat): Masayume's RainbowKit `openAccountModal`. */
   openAccount(): void;
   disconnect(): Promise<void>;
 }
@@ -43,7 +43,7 @@ export function useWalletSession(): WalletSession {
   };
 }
 
-/** The connected owner's wallet (the D-014 seam), or null: what owner-signed flows (session-key funding, signed texts) use. */
+/** The held seat (the D-014 seam), or null: what owner-signed flows (signed texts) use. */
 export function useOwnerWallet(): MarketsWalletSession | null {
   const shell = useWalletShell();
   return shell.status === "ready" ? shell.wallet : null;
@@ -51,7 +51,7 @@ export function useOwnerWallet(): MarketsWalletSession | null {
 
 /**
  * Signs one of Agari's texts (`@agari/core` builders: faucet, X link, duel room, private desk) and returns the base58
- * signature the server verifies with `verifySignedMessage`. The wallet signs exactly the UTF-8 bytes (D-012).
+ * signature the server verifies with `verifySignedMessage`. The seat key signs exactly the UTF-8 bytes (D-012).
  */
 export async function signText(wallet: MarketsWalletSession, text: string): Promise<Signature> {
   return toSignature(encodeBase58(await wallet.signMessage(messageBytes(text))));

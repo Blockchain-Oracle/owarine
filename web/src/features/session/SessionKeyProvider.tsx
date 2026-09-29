@@ -3,7 +3,7 @@
 import { MARKETS_POLL_MS } from "@agari/core/constants";
 import type { TxOutcome } from "@agari/core/ports";
 import { diagnosis, type Address, type Signature } from "@agari/core/types";
-import { generateSessionKey, loadAccount, type SubmitterSession } from "@agari/markets";
+import { generateSessionKey, type SubmitterSession } from "@agari/markets";
 import { keys, useUserSession, useVaultSnapshot } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
@@ -77,11 +77,12 @@ export function SessionKeyProvider({ children }: { children: ReactNode }) {
 
   const { session, sponsorRefusal } = useKeySession({ armed, sessionKey: key, deployment: deployment ?? null, sponsorConfigured: sponsor?.configured ?? false });
 
-  // The key's own SOL, read every poll while it is armed: what it can pay when no sponsor will (tap-trading.md §1.1).
+  // What the key can pay when no sponsor will (tap-trading.md §1.1). Canton charges no network fee, so there is no
+  // balance to read and the answer is a truthful zero; a session key is never armed on Canton anyway (a seat trades in one tap).
   const keyAddress = key?.address ?? null;
   const keyBalance = useQuery({
     queryKey: keyLamportsKey(keyAddress),
-    queryFn: async () => (await loadAccount(keyAddress as string as Parameters<typeof loadAccount>[0])).lamports,
+    queryFn: async () => 0n,
     enabled: armed && keyAddress !== null,
     refetchInterval: MARKETS_POLL_MS,
   });
