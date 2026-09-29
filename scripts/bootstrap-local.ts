@@ -12,12 +12,14 @@
  *      (`--reserve-seed` credits in 4 supplies, then the first `Earn_PublishNav`),
  *   5. (C9b) uploads abu-pm-games and creates the duel arena (`ArenaTerms`, the reference's stake tiers) and a funded
  *      season prize pool (`bootstrap-games.ts`; `--no-games` skips it),
- *   6. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
+ *   6. (C8f) uploads abu-pm-agents (grants' desk, the strategy registry, the agent desk); the venue's per-seat offers
+ *      are created on demand by ops (`/internal/agents/enrol`), so nothing else is bootstrapped for it,
+ *   7. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
  *
  *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
- *     [--reserve-seed 10000] [--no-tickets] [--no-games] [--fresh]
+ *     [--reserve-seed 10000] [--no-tickets] [--no-games] [--agents-dar path] [--no-agents] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -39,6 +41,7 @@ if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs again
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
 const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.4.0.dar"));
+const AGENTS_DAR = resolve(import.meta.dirname, "..", arg("--agents-dar", "daml/abu-pm-agents/.daml/dist/abu-pm-agents-0.2.0.dar"));
 const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.2.dar"));
 /** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
 const RESERVE_SEED_BASE = BigInt(arg("--reserve-seed", "10000")) * 1_000_000n;
@@ -256,6 +259,11 @@ async function main(): Promise<void> {
   }
 
   if (!flag("--no-tickets")) await bootstrapTickets(venue, parties.auditor!, parties.lp!);
+  if (!flag("--no-agents")) {
+    if (!existsSync(AGENTS_DAR)) throw new Error(`${AGENTS_DAR} is missing: run \`dpm build --all\` in daml/ first`);
+    await client.uploadDar(readFileSync(AGENTS_DAR));
+    log(`uploaded ${AGENTS_DAR.split("/").slice(-1)[0]}`);
+  }
   if (!flag("--no-games")) await bootstrapGames({ client, venue: vs, run, log });
 
   const file: PartiesFile = { network: "local", createdAtMs: Date.now(), parties, users, policyVersion: POLICY_VERSION };

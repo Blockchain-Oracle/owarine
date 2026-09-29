@@ -1,4 +1,4 @@
--- | abu-pm-tickets 0.1.2 (K-088): every way a ticket ends leaves its owner
+-- | abu-pm-tickets 0.1.2 (K-093): every way a ticket ends leaves its owner
 -- a `SettlementReceipt`, not only a settle or claim. A boost knocked out or
 -- sold back to the venue, and a stale refund or void of any ticket, keep
 -- the ticket in the owner's history with the money it moved.

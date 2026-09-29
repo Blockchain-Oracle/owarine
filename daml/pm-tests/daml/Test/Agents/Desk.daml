@@ -10,6 +10,7 @@ import Daml.Script
 import DA.Assert ((===))
 import DA.Foldable (forA_)
 import DA.List (sortOn)
+import DA.Optional (fromOptional)
 import DA.Text (sha256)
 import PM.Agents.Desk
 import PM.Grant
@@ -431,3 +432,165 @@ testDeskConservation = script do
   -- and nothing was conjured beyond the credits
   final <- money d
   final === m0 + 100 + venueStakeOf 1 300 1 + venueStakeOf 1 450 1 + venueStakeOf 2 400 1 + venueStakeOf 1 700 1
+
+-- ---------------------------------------------------------------------------
+-- 0.2.0: the desk's holdings and Mandate_Sell (K-088)
+
+-- The venue's buy-back of `lots` of a leg at `ticks`, from a fresh shard.
+buyBack : D -> ContractId Leg -> Int -> Int -> Script (ContractId BuyQuote)
+buyBack d leg ticks lots = do
+  Some l <- queryContractId d.w.venue leg
+  sh <- shard d.w (userStakeOf lots ticks l.cashUnit)
+  now <- getTime
+  (bq, _) <- submit d.w.venue do
+    exerciseCmd d.w.desk Desk_IssueBuyQuote with
+      shardCid = sh; legCid = leg; priceTicks = ticks; validUntil = plus now 20; sellLots = Some lots
+  pure bq
+
+-- The operator sells on a buy-back quote, the quote, its leg and the marks
+-- disclosed by the venue (the app's path).
+sellQ : D -> ContractId DeskMandate -> ContractId BuyQuote -> [ContractId DeskMark] -> Text
+  -> Script (Either SubmitError (ContractId DeskMandate, ContractId DeskDecision))
+sellQ d cid bq marks dh = do
+  prev <- headOf d cid
+  now <- getTime
+  Some b <- queryContractId d.w.venue bq
+  dq <- disclosureOf d.w.venue bq
+  dl <- disclosureOf d.w.venue b.legCid
+  dms <- mapA (disclosureOf d.w.venue) marks
+  trySubmit (foldl (<>) (actAs d.operator <> disclose dq <> disclose dl) (map disclose dms)) do
+    exerciseCmd cid Mandate_Sell with
+      actor = d.operator; buyQuoteCid = bq; asOf = now; markCids = marks
+      prevHead = prev; decisionHash = dh; note = "sell"
+
+-- Sell `lots` of `leg` at `ticks` with two marks at `ref`.
+sellAt : D -> ContractId DeskMandate -> ContractId Leg -> Int -> Int -> Int -> Text
+  -> Script (Either SubmitError (ContractId DeskMandate, ContractId DeskDecision))
+sellAt d cid leg ticks lots ref dh = do
+  bq <- buyBack d leg ticks lots
+  ms <- marks2 d d.win SideUp ref
+  sellQ d cid bq ms dh
+
+heldOf : D -> ContractId DeskMandate -> Script [DeskHolding]
+heldOf d cid = (\m -> fromOptional [] m.holdings) <$> mandateOf d cid
+
+-- A buy records a holding; a sale inside the mandate sells part of it back,
+-- counts the larger of proceeds and attested value against the caps, and
+-- returns the proceeds to the budget; the last lot frees the position.
+testDeskSellWithinMandate = script do
+  d <- setupD
+  (m1, leg, _) <- succeeded =<< trade1 d d.mandate 300 2 (h 1)
+  heldOf d m1 >>= (=== [DeskHolding with marketId = d.win.t.marketId; side = SideUp; lots = 2; refundAfter = d.win.t.refundAfter])
+  (m2, dec) <- succeeded =<< sellAt d m1 leg 290 1 300 (h 2)
+  Some r <- queryContractId d.w.alice dec
+  r.action === DeskSell with
+    marketId = d.win.t.marketId; side = SideUp; lots = 1; priceTicks = 290; referenceTicks = 300; proceeds = 290; counted = 300
+  (r.seq, r.prevHead) === (2, nextHead genesisHead 1 (h 1))
+  m <- mandateOf d m2
+  (m.grant.budget, m.grant.spentToday, length m.grant.positions, m.seq) === (2000 - 600 + 290, 900, 1, 2)
+  heldOf d m2 >>= (\hs -> map (\x -> x.lots) hs === [1])
+  -- Alice keeps the other lot; the proceeds never reached her cash
+  legs <- query @Leg d.w.alice
+  [l.lots | (_, l) <- legs, l.owner == d.w.alice] === [1]
+  cashOf d.w.alice >>= (=== 500)
+  -- the last lot counts 300 more: 1200 is over today's 1000
+  [(leg2, _)] <- filter (\(_, l) -> l.owner == d.w.alice) <$> query @Leg d.w.alice
+  refusedWith (refusal "over-daily-cap") =<< sellAt d m2 leg2 300 1 300 (h 3)
+  -- the next day it sells, and the fully sold position frees its slot
+  at (plus t0 86400)
+  (m3, _) <- succeeded =<< sellAt d m2 leg2 300 1 300 (h 3)
+  mm <- mandateOf d m3
+  (mm.grant.budget, mm.grant.spentToday, mm.grant.day, length mm.grant.positions) === (1990, 300, 1, 0)
+  heldOf d m3 >>= (=== [])
+
+-- The operator can never sell what the desk did not buy, below the floor,
+-- over a cap, on another owner's quote, on a thin reference, paused or in
+-- shadow mode; every refusal leaves the budget, holdings and record alone.
+testDeskSellRefusals = script do
+  d <- setupD
+  -- Alice's own leg: the desk holds none of it
+  (own, _) <- trade d.w d.win d.w.alice SideUp 300 1 0 "own"
+  refusedWith (refusal "not-held") =<< sellAt d d.mandate own 300 1 300 (h 1)
+  (m1, leg, _) <- succeeded =<< trade1 d d.mandate 300 2 (h 1)
+  let untouched = do
+        m <- mandateOf d m1
+        (m.grant.budget, m.seq, map (\x -> x.lots) (fromOptional [] m.holdings)) === (1400, 1, [2])
+  -- 270 of an attested 300 is under the 92 % floor
+  refusedWith (refusal "below-floor") =<< sellAt d m1 leg 270 1 300 (h 2)
+  untouched
+  -- two lots attested at 360 count 720: over the 700 per-action cap
+  refusedWith (refusal "over-stake-cap") =<< sellAt d m1 leg 340 2 360 (h 2)
+  untouched
+  -- one mark is under the quorum of two
+  bq <- buyBack d leg 300 1
+  now <- getTime
+  one <- markAt d d.w.o1 d.win SideUp 300 now
+  refusedWith (refusal "reference-quorum") =<< sellQ d m1 bq [one] (h 2)
+  untouched
+  -- a mark for the other side is not a reference for this one
+  wrongSide <- marks2 d d.win SideDown 300
+  refusedWith (refusal "wrong-reference") =<< sellQ d m1 bq wrongSide (h 2)
+  -- Bob's leg on the same market: not this desk's owner's quote
+  (bobLeg, _) <- trade d.w d.win d.w.bob SideUp 300 1 0 "bob"
+  bqBob <- buyBack d bobLeg 300 1
+  ms <- marks2 d d.win SideUp 300
+  refusedWith (refusal "wrong-quote") =<< sellQ d m1 bqBob ms (h 2)
+  -- a zero hash, a forked head, another operator
+  refusedWith (refusal "zero-hash") =<< sellQ d m1 bq ms genesisHead
+  prev <- headOf d m1
+  dq <- disclosureOf d.w.venue bq
+  dl <- disclosureOf d.w.venue leg
+  refusedWith (refusal "head-mismatch") =<< trySubmit (actAs d.operator <> disclose dq <> disclose dl) do
+    exerciseCmd m1 Mandate_Sell with
+      actor = d.operator; buyQuoteCid = bq; asOf = now; markCids = ms; prevHead = genesisHead; decisionHash = h 2; note = "fork"
+  fails =<< trySubmit (actAs d.w.alice <> disclose dq) do
+    exerciseCmd m1 Mandate_Sell with
+      actor = d.w.alice; buyQuoteCid = bq; asOf = now; markCids = ms; prevHead = prev; decisionHash = h 2; note = "owner"
+  untouched
+  -- paused, then shadow mode: nothing is sold
+  mp <- submit d.w.alice do exerciseCmd m1 Mandate_Pause with actor = d.w.alice
+  refusedWith (refusal "desk-paused") =<< sellQ d mp bq ms (h 2)
+  mu <- submit d.w.alice do exerciseCmd mp Mandate_Unpause
+  msh <- submit d.w.alice do exerciseCmd mu Mandate_SetMode with newMode = DeskShadow
+  refusedWith (refusal "shadow-mode") =<< sellQ d msh bq ms (h 2)
+  ml <- submit d.w.alice do exerciseCmd msh Mandate_SetMode with newMode = DeskLive
+  -- and on the live desk the same quote sells
+  (_, _) <- succeeded =<< sellQ d ml bq ms (h 2)
+  pure ()
+
+-- A revoked operator cannot sell; holdings past refundAfter are gone.
+testDeskSellRevokedAndExpiredHoldings = script do
+  d <- setupD
+  (m1, leg, _) <- succeeded =<< trade1 d d.mandate 300 1 (h 1)
+  bq <- buyBack d leg 300 1
+  ms <- marks2 d d.win SideUp 300
+  mr <- submit d.w.alice do exerciseCmd m1 Mandate_RevokeOperator
+  fails =<< sellQ d mr bq ms (h 2)
+  -- past the market's refundAfter the desk holds nothing to sell
+  mo <- submit d.w.alice do exerciseCmd mr Mandate_SetOperator with newOperator = d.operator
+  mu <- submit d.w.alice do exerciseCmd mo Mandate_Unpause
+  at d.win.t.refundAfter
+  bq2 <- buyBack d leg 300 1
+  ms2 <- marks2 d d.win SideUp 300
+  r <- sellQ d mu bq2 ms2 (h 2)
+  fails r
+
+-- Conservation through a sale: the buy-back's lock and the leg's backing
+-- become the desk's budget, the venue's leg and the fee; nothing is made.
+testDeskSellConservation = script do
+  d <- setupD
+  let total = do
+        base <- money d
+        bqs <- query @BuyQuote d.w.venue
+        pure (base + sum [b.locked | (_, b) <- bqs])
+  (m1, leg, _) <- succeeded =<< trade1 d d.mandate 300 2 (h 1)
+  bq <- buyBack d leg 290 1
+  ms <- marks2 d d.win SideUp 300
+  before <- total
+  (m2, _) <- succeeded =<< sellQ d m1 bq ms (h 2)
+  total >>= (=== before)
+  -- close returns the whole budget, proceeds included, to Alice's cash
+  Some back <- submit d.w.alice do exerciseCmd m2 Mandate_Close
+  Some c <- queryContractId d.w.alice back
+  c.amount === 1400 + 290
+  total >>= (=== before)

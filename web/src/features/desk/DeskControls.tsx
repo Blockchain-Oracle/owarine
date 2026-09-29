@@ -16,7 +16,7 @@ import type { DeskActions } from "./useDeskWrites";
 import type { DeskView } from "./view";
 
 export type ControlKind = "addMoney" | "withdraw" | "sellAll" | "pause" | "resume" | "mode" | "checkNow" | "share" | "close";
-/** A card is good for ten minutes; a Solana blockhash is good for about a minute, so the wallet asks again after that anyway. */
+/** A card is good for ten minutes; the seat signs each command fresh anyway. */
 const CARD_TTL_SEC = 600;
 
 interface DialogProps {

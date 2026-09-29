@@ -1,6 +1,8 @@
 import type { PhaseListener, TxOutcome, VaultIntent } from "@agari/core/ports";
 import { formatBaseUnits } from "@agari/core/units";
 import { refusedFor } from "../stub/product";
+import { agentsVaultLane } from "../submitter/agents-lane";
+import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { VAULT_NOT_LIVE } from "./deployment";
 
 /** The journal's one line (Masayume `summarizeVault`), written for the person who reads it back after a timeout. */
@@ -32,7 +34,14 @@ export function summarizeVault(intent: VaultIntent, decimals: number): string {
   }
 }
 
-/** `submitTx` for every `vault-*` intent refuses before anything is journaled or signed until `VenueCash` lands (C7a). */
-export async function submitVaultTx(_ctx: unknown, _intent: VaultIntent, _onPhase?: PhaseListener): Promise<TxOutcome> {
-  return refusedFor(VAULT_NOT_LIVE);
+const isLane = (ctx: unknown): ctx is SeatLaneDeps =>
+  typeof ctx === "object" && ctx !== null && "journal" in ctx && "wallet" in ctx && "nowMs" in ctx && "stopGate" in ctx;
+
+/**
+ * `submitTx` for every `vault-*` intent (C8f): grants open, top up and revoke through the seat's journaled agents lane
+ * (`agents-lane.ts`); a call without the seat's lane refuses before anything is journaled or sent.
+ */
+export async function submitVaultTx(ctx: unknown, intent: VaultIntent, onPhase?: PhaseListener): Promise<TxOutcome> {
+  if (!isLane(ctx)) return refusedFor(VAULT_NOT_LIVE);
+  return agentsVaultLane(ctx, intent, onPhase);
 }

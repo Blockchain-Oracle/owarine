@@ -2,19 +2,19 @@
  * Commits what `consider` decided (Shijima `commit.ts`): the record and every row that must exist with it in ONE
  * transaction, then the action itself. Writing first is the point: whatever happens to the process, the database
  * already knows what was intended. A practice desk moves its paper ledger at the quote net of the fee. A live desk
- * posts a fresh reference when the on-chain one is older than five minutes, sends the buy or sell with the record's
- * hash as `decision_hash`, and trusts its own record only once `chainHead(prev, seq, hash)` equals the sealed head.
+ * (C8f, K-090) sends the buy or sell through the owner's `DeskMandate` with the record's hash as the decision hash
+ * (the operator client posts the attestors' marks at the Window's fair price right before it), and trusts its own
+ * record only once the mandate's `nextHead(prev, seq, hash)` equals the sealed head.
  */
-import { buildDecisionBody, chainHead, deskCopy, GENESIS_SLOT, hashRecord, MAX_ROUTE_ACCOUNTS, nameOf, netOfFee, paperFeeBpsFor, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@agari/core/desk";
+import { buildDecisionBody, deskCopy, GENESIS_SLOT, hashRecord, nameOf, netOfFee, paperFeeBpsFor, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@agari/core/desk";
 import { CLUSTER_ID } from "@agari/core/constants";
 import type { Hash32 } from "@agari/core/types";
-import { buy, DeskSendError, DeskSendUnknownError, postReference, sell, swapAccountsOf, swapInstructions } from "@agari/markets/desk";
+import { buy, cantonChainHead, DeskSendError, DeskSendUnknownError, sell } from "@agari/markets/desk";
 import { errorText } from "../../runtime/env";
 import { APPROVAL_TTL_SEC, DEADLINE_SEC, type Considered } from "./consider";
 import { REFERENCE_REFRESH_SEC } from "./market";
 import { loadPaper, paperFill, savePaper } from "./paper";
 import type { RunnerContext, WakeFrame, WakeRecord } from "./types";
-import { multiplierOf } from "./value";
 
 export { REFERENCE_REFRESH_SEC };
 const DEFERRAL_REVISIT_SEC = 24 * 3600;
@@ -125,24 +125,10 @@ async function sendLive(ctx: RunnerContext, frame: WakeFrame, k: Considered, bas
     return { ...base, moved: false, note: `FAILED: ${why}` };
   };
   try {
-    // The reference the program measures against: the on-chain one, re-posted from the feed's latest read (with the
-    // mint's own multiplier) when it was never posted or is getting old. Without an attestor there is nothing to
-    // measure against, and the action is refused here rather than by the chain.
-    const chainRef = chain.refs[c.mint] ?? null;
-    if (!chainRef || chainRef.fetchedAtSec <= 0 || frame.nowSec - chainRef.fetchedAtSec > REFERENCE_REFRESH_SEC) {
-      const latest = ctx.feed.history(c.symbol).at(-1);
-      const multiplierE12 = multiplierOf(ctx.mints, c.symbol);
-      if (!ctx.attestor || !latest || multiplierE12 === null || multiplierE12 <= 0n) return failed("refused", null, deskCopy.blocker.referenceUnavailable(nameOf(c.symbol)));
-      const posted = await postReference(client, { attestor: ctx.attestor, mint: c.mint as never, tokenPriceE8: latest.tokenPriceE8, markPriceE8: latest.markPriceE8, multiplierE12, fetchedAtSec: latest.fetchedAtSec });
-      await ctx.q.insertAction({ deskId: desk.id, recordSeq: base.seq, kind: "post_ref", state: "confirmed", signature: posted.signature, symbol: c.symbol, amountIn: null, expectedOut: null, minOut: null, countedE6: null, deadlineSec: null, sentAtSec: frame.nowSec });
-      frame.say(`  reference for ${c.symbol} posted in ${posted.signature}`);
-    }
-    const accounts = await swapAccountsOf(chain.address, c.mint as never);
-    const route = await swapInstructions({ quote: k.quote, desk: chain.address, destinationTokenAccount: c.side === "buy" ? accounts.deskToken : accounts.deskUsdc, payer: client.address, ...(ctx.env.jupiterApiKey ? { apiKey: ctx.env.jupiterApiKey } : {}) });
-    if (route.accountCount > MAX_ROUTE_ACCOUNTS) return failed("refused", null, deskCopy.blocker.routeTooLarge(c.symbol, route.accountCount, MAX_ROUTE_ACCOUNTS));
-    const action = { owner: desk.owner as never, mint: c.mint as never, amountIn: k.preview.amountIn, minOut: k.gate.minOut, deadlineSec: k.preview.deadlineSec ?? frame.nowSec + DEADLINE_SEC, decisionHash: base.hash, route };
+    // The desk's own address names its mandate; the operator client finds it, quotes, posts the marks and seals.
+    const action = { owner: (desk.address ?? desk.owner) as never, mint: c.mint as never, amountIn: k.preview.amountIn, minOut: k.gate.minOut, deadlineSec: k.preview.deadlineSec ?? frame.nowSec + DEADLINE_SEC, decisionHash: base.hash, quote: k.quote, note: `${c.side} ${nameOf(c.symbol)} (record ${base.seq})` };
     const sent = c.side === "buy" ? await buy(client, action) : await sell(client, action);
-    const expectedHead = chainHead(chain.head, sent.sealed.seq, base.hash);
+    const expectedHead = cantonChainHead(chain.head, sent.sealed.seq, base.hash);
     const sealedOk = sent.sealed.decisionHash.toLowerCase() === base.hash.toLowerCase() && sent.sealed.head.toLowerCase() === expectedHead.toLowerCase() && sent.sealed.seq === chain.seq + 1n;
     const out = sent.events.flatMap((e) => (e.name === "Bought" ? [e.data.tokenOut] : e.name === "Sold" ? [e.data.usdcOut] : []))[0] ?? null;
     await ctx.q.resolveAction({ id: actionId, state: "confirmed", signature: sent.signature, chainSeq: Number(sent.sealed.seq), amountOut: out?.toString() ?? null, nowSec: frame.nowSec });

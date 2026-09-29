@@ -3,7 +3,8 @@ import { parseStrategyMetadata, type StrategyRecord } from "@agari/core/strategi
 import type { Address } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { interruptStrategyDecisions, isDbConfigured, listAttemptedStrategyIds, markDecisionExecution, recordHeartbeat } from "@agari/db";
-import { createMemoryJournal, createSubmitterSession, ensureMarkets, marketsProvider, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import { ensureMarkets, marketsProvider, resolveVenueId } from "@agari/markets";
+import type { OpsRoute } from "@agari/markets/ops/agents";
 import { getStrategy, listLiveSubscribers, listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
 import { agentBootLine, createAgentState, scanVenueWithAgent, warmAgentState, type AgentState } from "./agent";
 import { scanVenue, type Scan } from "./decide";
@@ -12,6 +13,9 @@ import { readRunnerEnv, type RunnerEnv } from "./env";
 import { executeForSubscriber } from "./execute";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
 import { opsMarketsEnv } from "../../runtime/markets-env";
+import { agentSessionFrom } from "../agents/from-env";
+import type { AgentSession } from "../agents/session";
+import type { VenueContext } from "../venue/context";
 import { REST_CHECK_MS, tradingWindows } from "./trading-windows";
 
 /** The heartbeat while no Window trades on any lane; `activity.ts` on the web reads it as "Resting". */
@@ -21,7 +25,7 @@ type Log = (why: string) => void;
 
 interface Runner {
   env: RunnerEnv;
-  session: SubmitterSession | null;
+  session: AgentSession | null;
   venueId: Address;
   agent: AgentState;
   log: Log;
@@ -62,7 +66,7 @@ async function cycle(runner: Runner, strategyId: bigint, nowMs: number): Promise
   if (runner.session) await settleStrategyPositions(runner.session, strategyId, runner.env.dryRun, runner.log);
   if (!strategy.active) return heartbeat(runner, strategyId, "strategy deactivated by its creator; idle", 0, null);
   if (runner.session && strategy.runner !== runner.session.address) {
-    return heartbeat(runner, strategyId, `this key is ${runner.session.address}, the strategy names ${strategy.runner}; not trading it`, 0, null);
+    return heartbeat(runner, strategyId, `this runner is ${runner.session.address}, the strategy names ${strategy.runner}; not trading it`, 0, null);
   }
   const meta = parseStrategyMetadata(strategy.metadata);
   if (!meta) return heartbeat(runner, strategyId, "metadata carries no readable spec; idle", 0, null);
@@ -75,7 +79,7 @@ async function cycle(runner: Runner, strategyId: bigint, nowMs: number): Promise
   if (scanned.candidates.length === 0 || live.length === 0) {
     return heartbeat(runner, strategyId, `${scanned.why}; ${live.length} live subscriber${live.length === 1 ? "" : "s"}`, scanned.scanned, scanned.closestBps);
   }
-  if (!runner.session) return heartbeat(runner, strategyId, `${scanned.why}; no runner key configured, so nothing sent`, scanned.scanned, scanned.closestBps);
+  if (!runner.session) return heartbeat(runner, strategyId, `${scanned.why}; no runner party configured, so nothing sent`, scanned.scanned, scanned.closestBps);
 
   let filled = 0;
   let skipped = 0;
@@ -105,28 +109,33 @@ async function cycle(runner: Runner, strategyId: bigint, nowMs: number): Promise
 }
 
 /**
- * The house runner (Story 6.5): a single writer over one key, trading each live subscriber's own
- * grant, whether the spec is the oracle-follow model or an agent whose calls a language model
- * makes and a fixed gate rules on. Idle cycles emit heartbeats — never liveness theater.
+ * The house runner (Story 6.5), on Canton (C8f): a single writer acting as one agent party, trading each live
+ * subscriber's own `AgentGrant` through `Grant_AcceptQuote`, whether the spec is the oracle-follow model or an agent
+ * whose calls a language model makes and a fixed gate rules on. Idle cycles emit heartbeats — never liveness theater.
+ * The agent is the parties file's `agent-runner` (the house), or `RUNNER_PARTY` (a creator's own seat, self-hosted).
  */
-export async function startStrategyRunner(log: Log): Promise<void> {
+export async function startStrategyRunner(log: Log, o: { venue?: VenueContext; routes?: { quotes: OpsRoute; exitQuotes: OpsRoute } | null } = {}): Promise<void> {
   const env = readRunnerEnv();
-  // With no STRATEGY_IDS the runner takes the registry's word: every active strategy that names its key.
-  // A creator who launches on the house runner from the studio is then run without anyone editing a
-  // secret (the owner, 2026-09-04) — the registry already says whose key each strategy is bound to.
-  if (env.strategyIds.length === 0 && !env.privateKey) return log("not configured: no STRATEGY_IDS and no RUNNER_PRIVATE_KEY to discover them by; idle");
-  if (!resolveRegistryDeployment()) return log("StrategyRegistry is not deployed on this network; idle");
+  if (!resolveRegistryDeployment()) return log("the strategy registry (abu-pm-agents) is not on this network; idle");
   const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
   const venue = await resolveVenueId(marketsEnv.venueId);
   if (!isOk(venue) || !venue.value.venueId) return log(`no venue to scan: ${isOk(venue) ? "none live" : venue.error.technical}; idle`);
 
-  let session: SubmitterSession | null = null;
-  if (env.privateKey) {
-    session = await createSubmitterSession({ env: marketsEnv, authority: "strategy-runner", signer: { secretKey: env.privateKey }, journal: createMemoryJournal() });
-    log(`runner key ${session.address}${env.dryRun ? " (dry run: nothing is sent)" : ""}`);
+  // With no STRATEGY_IDS the runner takes the registry's word: every active strategy that names its party. A creator
+  // who launches on the house runner from the studio is then run without anyone editing a secret (the owner,
+  // 2026-09-04) — the registry already says whose party each strategy is bound to.
+  const made = agentSessionFrom({ authority: "strategy-runner", partyEnv: "RUNNER_PARTY", ...(o.venue ? { venue: o.venue } : {}), routes: o.routes ?? null });
+  let session: AgentSession | null = null;
+  if (!made.ok) {
+    if (env.strategyIds.length === 0) return log(`not configured: ${made.why}; idle`);
+    log(`${made.why}: scanning and reporting only, nothing can be sent`);
+  } else if (!env.canSend) {
+    if (env.strategyIds.length === 0) return log("RUNNER_ENABLED=0 and no STRATEGY_IDS to scan; idle");
+    log(`RUNNER_ENABLED=0: scanning and reporting only as ${made.session.address.split("::")[0]}, nothing is sent`);
   } else {
-    log("RUNNER_PRIVATE_KEY is not set: scanning and reporting only, nothing can be sent");
+    session = made.session;
+    log(`runner party ${session.address}${env.dryRun ? " (dry run: nothing is sent)" : ""}`);
   }
   if (!isDbConfigured()) log("DATABASE_URL is not set: execution and risk memory unavailable; new trades held");
 

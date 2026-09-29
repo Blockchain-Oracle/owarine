@@ -8,7 +8,6 @@ module Test.Agents.Strategy where
 
 import Daml.Script
 import DA.Assert ((===))
-import DA.Foldable (forA_)
 import DA.Text (sha256)
 import PM.Agents.Strategy
 import PM.Grant
@@ -268,9 +267,11 @@ testSubscribeAtGrantExpiry = script do
     _ -> abort "three attempts"
 
 -- A creator never learns who subscribes: no Subscription, SubscriberBook or
--- StrategyFee is visible to the creator (or the runner), only the
--- aggregate payout. Subscribers do not see each other; an outsider sees
--- nothing of any registry template.
+-- StrategyFee is visible to the creator, only the aggregate payout. The
+-- runner (K-089) observes each consent naming it, so it knows who follows
+-- and who fades, and nothing else of the registry's books or fees.
+-- Subscribers do not see each other; an outsider sees nothing of any
+-- registry template.
 testCreatorNeverSeesSubscribers = script do
   s <- setupS
   ga <- openGrant s s.w.alice s.runner inEnv
@@ -279,9 +280,15 @@ testCreatorNeverSeesSubscribers = script do
   bb <- openBook s s.w.bob
   _ <- succeeded =<< subscribe s s.w.alice ba ga SubCopy
   _ <- succeeded =<< subscribe s s.w.bob bb gb SubFade
-  forA_ [s.creator, s.runner] \p -> do
-    registryCounts p >>= \cs -> [(n, c) | (n, c) <- cs, n `elem` ["Subscription", "SubscriberBook", "StrategyFee", "SubscriberInvite"]]
-      === [("SubscriberInvite", 0), ("SubscriberBook", 0), ("Subscription", 0), ("StrategyFee", 0)]
+  registryCounts s.creator >>= \cs -> [(n, c) | (n, c) <- cs, n `elem` ["Subscription", "SubscriberBook", "StrategyFee", "SubscriberInvite"]]
+    === [("SubscriberInvite", 0), ("SubscriberBook", 0), ("Subscription", 0), ("StrategyFee", 0)]
+  registryCounts s.runner >>= \cs -> [(n, c) | (n, c) <- cs, n `elem` ["Subscription", "SubscriberBook", "StrategyFee", "SubscriberInvite"]]
+    === [("SubscriberInvite", 0), ("SubscriberBook", 0), ("Subscription", 2), ("StrategyFee", 0)]
+  kinds <- map (\(_, x) -> (x.subscriber, x.kind)) <$> query @Subscription s.runner
+  (length kinds, (s.w.alice, SubCopy) `elem` kinds, (s.w.bob, SubFade) `elem` kinds) === (2, True, True)
+  -- another strategy's runner sees none of these consents
+  other <- allocateParty "other-runner"
+  (length <$> query @Subscription other) >>= (=== 0)
   registryCounts s.w.outsider >>= \cs -> all (\(_, c) -> c == 0) cs === True
   -- each subscriber sees only their own consent
   (length <$> query @Subscription s.w.alice) >>= (=== 1)
@@ -350,3 +357,18 @@ testFeeConservation = script do
   cashOf s.creator >>= (=== 2 * fee0)
   -- paid once: the fees are gone
   fails =<< trySubmit s.w.venue do exerciseCmd s.license License_Payout with feeCids = map fst fees; period = 2
+
+-- 0.2.0: publishing stamps the ledger time; revisions and runner changes
+-- keep it, and the listing carries it.
+testPublishedAtKept = script do
+  s <- setupS
+  Some st <- queryContractId s.creator s.strategy
+  Some li <- queryContractId s.creator s.listing
+  st.publishedAt === Some t0
+  li.publishedAt === Some t0
+  at (plus t0 60)
+  (st1, li1) <- submit s.creator do
+    exerciseCmd s.strategy Strategy_Update with newSpec = spec1; newSpecHash = sha256 spec1; newFee = 0; listingCid = s.listing
+  Some x <- queryContractId s.creator st1
+  Some y <- queryContractId s.creator li1
+  (x.publishedAt, y.publishedAt, x.version) === (Some t0, Some t0, 1)

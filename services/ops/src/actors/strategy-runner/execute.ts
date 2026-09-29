@@ -3,7 +3,11 @@ import { dailyHeadroomBase, type VaultGrant } from "@agari/core/vault";
 import { sideForSubscriber, type Decision, type StrategyFill, type StrategySubscription } from "@agari/core/strategies";
 import { toMarketId, type EventMarket, type MarketId } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
-import { marketsProvider, type SubmitterSession, readRecoveryCursor } from "@agari/markets";
+import { marketsProvider, readRecoveryCursor } from "@agari/markets";
+import type { AgentSession } from "../agents/session";
+
+/** What an actor needs of its agent session (tests pass a stand-in). */
+type AgentSessionLike = Pick<AgentSession, "address" | "submitter"> & Partial<Pick<AgentSession, "recoveryCursor">>;
 import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, recordAttemptFill } from "@agari/db";
 
 export type ExecutionResult =
@@ -43,7 +47,7 @@ async function readGrant(owner: StrategySubscription["subscriber"], grantId: big
  * already holding this Window is left alone (one entry per Window, the reference's rule).
  */
 export async function executeForSubscriber(input: {
-  session: SubmitterSession;
+  session: AgentSessionLike;
   sub: StrategySubscription;
   market: EventMarket;
   decision: Decision;
@@ -81,8 +85,9 @@ export async function executeForSubscriber(input: {
   const target = { marketId: market.marketId, poolAddress: market.poolAddress, decimals: market.decimals, intervalSec: market.intervalSec };
   const quote = await marketsProvider.freshQuoteStake(target, side, stakeBase);
   if (!isOk(quote) || quote.stale || !quote.value) return { status: "skipped", reason: "nothing freshly quoted at this size; holding" };
-  // The recovery cursor is the slot before the send; Solana has no account nonce, so the stored nonce is 0 (S9 reshapes the row).
-  const cursor = await readRecoveryCursor();
+  // The recovery cursor is the ledger offset before the send: the grant order's command id is derived from it, so a
+  // lost reply is found again by that id (C8f). The stored nonce stays 0.
+  const cursor = session.recoveryCursor ? await session.recoveryCursor() : await readRecoveryCursor();
   if (!isOk(cursor)) return { status: "skipped", reason: `recovery cursor unreadable: ${cursor.error.technical}; holding` };
   const acquired = await beginStrategyAttempt({ ...key, runner: session.address, grantId: sub.grantId.toString(), side, stakeBase: stakeBase.toString(), fromBlock: cursor.value.fromSlot.toString(), nonce: 0 });
   if (!acquired) return { status: "skipped", reason: "another attempt already reserved this Window; not resending" };
@@ -94,6 +99,7 @@ export async function executeForSubscriber(input: {
       displayedQuote: quote.value,
       wallet: session.address,
       route: { kind: "vault-grant", grantId: sub.grantId },
+      fromOffset: cursor.value.fromSlot,
     });
     if (outcome.status === "confirmed") {
       const fill: StrategyFill = {

@@ -1,7 +1,11 @@
 import { isOk } from "@agari/core/schemas";
 import { isSignature, toMarketId, type Address } from "@agari/core/types";
 import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, listStrategyFills, listStrategyOwners, listUnresolvedStrategyAttempts, recordAttemptFill, type StrategyFillRecord } from "@agari/db";
-import { marketsProvider, readRecoveryCursor, type SubmitterSession } from "@agari/markets";
+import { marketsProvider, readRecoveryCursor } from "@agari/markets";
+import type { AgentSession } from "../agents/session";
+
+/** What an actor needs of its agent session (tests pass a stand-in). */
+type AgentSessionLike = Pick<AgentSession, "address" | "submitter"> & Partial<Pick<AgentSession, "recoveryCursor">>;
 import { listStrategySubscribers } from "@agari/markets/strategies";
 import { getVaultGrant, listVaultTallies, recoverVaultExecution } from "@agari/markets/vault";
 
@@ -16,7 +20,7 @@ async function provedNothingHeld(attempt: { owner: string; marketId: string }): 
 }
 
 /** Unknown sends are recovered from receipts/events. They are never submitted again. */
-export async function reconcileRunnerAttempts(session: SubmitterSession, log: (why: string) => void): Promise<Set<string>> {
+export async function reconcileRunnerAttempts(session: AgentSessionLike, log: (why: string) => void): Promise<Set<string>> {
   const unresolved = new Set<string>();
   for (const attempt of await listUnresolvedStrategyAttempts(session.address)) {
     try {
@@ -61,7 +65,7 @@ export async function reconcileRunnerAttempts(session: SubmitterSession, log: (w
 }
 
 /** Clean up old grants too. Proceeds always remain in the owner's available balance. */
-export async function settleStrategyPositions(session: SubmitterSession, strategyId: bigint, dryRun: boolean, log: (why: string) => void): Promise<number> {
+export async function settleStrategyPositions(session: AgentSessionLike, strategyId: bigint, dryRun: boolean, log: (why: string) => void): Promise<number> {
   const [subscribers, recorded] = await Promise.all([listStrategySubscribers(strategyId), listStrategyOwners(strategyId.toString())]);
   const owners = [...new Set([...subscribers, ...recorded].map((owner) => owner as Address))];
   let fills: StrategyFillRecord[] | undefined;
@@ -103,7 +107,7 @@ export async function settleStrategyPositions(session: SubmitterSession, strateg
       const key = { strategyId: originStrategyId, marketId: tally.marketId, owner, kind: "settle" as const };
       const previous = await getStrategyAttempt(key);
       if (previous) throw new Error(`settlement ${previous.state}: prior attempt not repeated; inspect the receipt or settle from Portfolio`);
-      const cursor = await readRecoveryCursor();
+      const cursor = session.recoveryCursor ? await session.recoveryCursor() : await readRecoveryCursor();
       if (!isOk(cursor)) throw new Error(`recovery cursor unreadable: ${cursor.error.technical}; not settling`);
       if (!await beginStrategyAttempt({ ...key, runner: session.address, grantId: (grants[0] ?? 0n).toString(), side: h.upRaw > 0n ? "up" : "down", stakeBase: "0", fromBlock: cursor.value.fromSlot.toString(), nonce: 0 })) throw new Error("settlement unknown: an existing reservation prevents resubmission");
       const result = await session.submitter.submitTx({ kind: "vault-crank-settle", owner, marketId: tally.marketId }).catch(async (error) => {

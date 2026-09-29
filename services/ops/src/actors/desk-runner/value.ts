@@ -1,12 +1,13 @@
 /**
- * What the desk is worth (desk.md §8): holdings valued on the 30-minute mean of the in-process PreStocks history,
- * never on one instant, with at least three samples or the name is unpriced. Multipliers come from the mints
- * themselves (`readDeskMints`, refreshed every ten minutes): the catalogue prices a UI token, the ledger holds raw.
- * The runner never fetches PreStocks itself; it reads the feed the process already runs.
+ * What the desk is worth (desk.md §8). A practice desk's paper units are valued on the 30-minute mean of the
+ * in-process PreStocks history, never on one instant, with at least three samples or the name is unpriced, at
+ * multiplier 1 (K-091: `readDeskMints` answers 9 dp and 1 for every name on Canton). A live desk's holdings are lots of
+ * the names' hourly Windows (K-090), valued at each Window's fair price on the venue's ladder (`reconcile` reads them);
+ * a Window the venue no longer quotes is unpriced until it settles into the owner's seat.
  */
 import { valueDesk, type DeskHoldingInput, type DeskMandate, type DeskValuation } from "@agari/core/desk";
 import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { DESK_MINTS, readDeskMints } from "@agari/markets/desk";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, readDeskMints } from "@agari/markets/desk";
 import { errorText } from "../../runtime/env";
 import type { PreStocksSample, PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import type { DeskStanding, MintCache, RunnerContext } from "./types";
@@ -66,10 +67,19 @@ export function holdingInputs(ctx: RunnerContext, standing: DeskStanding, mandat
   for (const held of Object.keys(standing.positions)) if ((PRE_IPO_SYMBOLS as readonly string[]).includes(held)) symbols.add(held as PreIpoSymbol);
   return [...symbols].map((symbol) => {
     const raw = standing.positions[symbol] ?? 0n;
+    if (standing.kind === "live") {
+      const priced = standing.prices[symbol] ?? { priceE8: null, why: "no Window of this company is quoting" };
+      return {
+        symbol, mint: DESK_MINTS[symbol] as string, raw, multiplierE12: DESK_LOT_MULTIPLIER_E12,
+        priceE8: priced.priceE8, spotE8: priced.priceE8, markE8: priced.priceE8,
+        ...(priced.priceE8 === null ? { unpricedWhy: priced.why ?? "its Window is closed and settling" } : {}),
+        paused: false, frozen: standing.frozen[symbol] ?? false,
+      };
+    }
     const view = priceView(ctx.feed, symbol, nowSec);
     const multiplierE12 = multiplierOf(ctx.mints, symbol);
     const paused = pausedOf(ctx.mints, symbol);
-    const frozen = standing.kind === "live" ? (standing.frozen[symbol] ?? false) : false;
+    const frozen = false;
     const why = !view ? "no PreStocks read yet" : view.meanE8 === null ? `only ${view.samples} reads in the last half hour` : multiplierE12 === null ? "the token's multiplier could not be read" : undefined;
     return {
       symbol,

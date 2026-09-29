@@ -1,19 +1,27 @@
 /**
- * desk-runner (S21 C4, plan §8): the actor that looks after every desk on this cluster. A 60 s tick; per desk, a
- * wake when its top of the hour is unclaimed or an event fired (money arrived, a held name moved 3 % within the hour,
- * the owner pressed Check now); the daily checkpoint at 00:05 UTC for live desks; grades for records a day old; and
- * the hourly PreStocks marks for all eight names. One operator key, one sender, one desk at a time. The runner reads
- * the process's PreStocks feed and never fetches the catalogue itself.
+ * desk-runner (S21 C4, plan §8; Canton C8f): the actor that looks after every desk on this cluster. A 60 s tick; per
+ * desk, a wake when its top of the hour is unclaimed or an event fired (money arrived, a held name moved 3 % within the
+ * hour, the owner pressed Check now); the daily checkpoint at 00:05 UTC for live desks; grades for records a day old;
+ * and the hourly PreStocks marks for all eight names (`/api/desk/marks`). One operator party (the agent-runner, K-087),
+ * one sender, one desk at a time. The runner reads the process's PreStocks feed and never fetches the catalogue
+ * itself; a live desk trades the venue's own markets through its `DeskMandate` (K-090).
  */
 import { missingDeskCredentialHint, resolveDeskModel } from "@agari/brain";
 import { PRE_IPO_SYMBOLS } from "@agari/core/market";
 import { deskQueries, getDb, type DeskRow, type WakeTrigger } from "@agari/db";
-import { keypairSigner } from "@agari/markets/deploy";
-import { createDeskOperatorClient, createDeskRpc } from "@agari/markets/desk";
+import { createDeskLedgerRpc, createDeskOperatorClient } from "@agari/markets/desk";
+import { opsQuoteSource, routeQuoteSource, type QuoteSource } from "@agari/markets/ops/agents";
+import { ORACLE_ROLES } from "../../runtime/keys";
+import { parseLadder, type Ladder } from "@agari/markets/runtime";
+import { createOpsClient } from "@agari/markets/server";
+import type { InternalRoutes } from "../../http/internal";
+import { ladderLatestBody } from "../../http/ladder-sse";
+import type { LadderBoard } from "../market-maker/seat/ladder-board";
+import type { VenueContext } from "../venue/context";
 import { CLUSTER_ID } from "@agari/core/constants";
 import type { PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import { runActor, type Log } from "../../runtime/actor";
-import { errorText, redact } from "../../runtime/env";
+import { errorText } from "../../runtime/env";
 import { daySlotSec, inCheckpointWindow } from "./checkpoint";
 import { callsThisHour, warmCallBudget } from "./decide";
 import { discoverDesks } from "./discover";
@@ -29,6 +37,38 @@ export interface DeskRunnerDeps {
   /** The in-process PreStocks feed (`main.ts` starts it before this actor). */
   prestocks: PreStocksSpotFeed | null;
   env?: DeskRunnerEnv;
+  /** The process's ledger sessions (the venue read-only, the operator, the oracle attestors). */
+  venue?: VenueContext | null;
+  /** The venue's ladder board when the venue runs in this process. */
+  board?: LadderBoard | null;
+  /** The issuer's in-process routes when the venue runs in this process. */
+  internal?: InternalRoutes | null;
+}
+
+const json = (v: unknown): unknown => JSON.parse(JSON.stringify(v, (_k, x: unknown) => (typeof x === "bigint" ? x.toString() : x)));
+
+/** The venue's ladders: the in-process board, or ops' public `/ladders/latest`. */
+function ladderSource(deps: DeskRunnerDeps, env: DeskRunnerEnv): () => Promise<readonly Ladder[]> {
+  const board = deps.board;
+  if (board) return async () => (json(ladderLatestBody(board)) as { ladders: unknown[] }).ladders.map(parseLadder).filter((l): l is Ladder => l !== null);
+  const base = env.opsUrl?.replace(/\/$/, "");
+  if (!base) return async () => [];
+  return async () => {
+    const res = await fetch(`${base}/ladders/latest`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(3_000) });
+    if (!res.ok) throw new Error(`ladders ${res.status}`);
+    const body = (await res.json()) as { ladders?: unknown[] };
+    return (body.ladders ?? []).map(parseLadder).filter((l): l is Ladder => l !== null);
+  };
+}
+
+/** The venue's firm quotes for the owner: the issuer in process, or ops over its signed route. */
+function quoteSource(deps: DeskRunnerDeps, env: DeskRunnerEnv): QuoteSource | null {
+  const routes = deps.internal?.routes;
+  const quotes = routes?.["/internal/quotes"];
+  const exitQuotes = routes?.["/internal/exit-quotes"];
+  if (quotes && exitQuotes) return routeQuoteSource({ quotes, exitQuotes });
+  if (env.opsUrl && env.opsSecret) return opsQuoteSource(createOpsClient({ baseUrl: env.opsUrl, secret: env.opsSecret }));
+  return null;
 }
 
 /** The runner's context from its environment: the queries, the RPC, the operator client when there is a key, the brain. */
@@ -43,12 +83,25 @@ export async function createRunnerContext(deps: DeskRunnerDeps): Promise<RunnerC
     deps.log("no PreStocks feed in this process (start with the http or maker actor); idle");
     return null;
   }
-  const rpc = createDeskRpc(env.rpcUrl);
-  const operator = env.operatorSecret && !env.dryRun ? await createDeskOperatorClient({ secretKey: env.operatorSecret, rpcUrl: env.rpcUrl, clusterTag: CLUSTER_ID[env.cluster] }) : null;
-  const attestor = env.attestorSecret ? await keypairSigner(env.attestorSecret) : null;
+  const venue = deps.venue ?? null;
+  const venueSession = venue?.session("venue") ?? null;
+  const operatorSession = venue?.session("agent-runner") ?? null;
+  const attestors = venue ? ORACLE_ROLES.map((r) => venue.session(r)).filter((s): s is NonNullable<typeof s> => s !== null) : [];
+  const rpc = venue && venueSession ? createDeskLedgerRpc({ client: venue.client, venue: venueSession.party, readAs: [venueSession.party], operator: operatorSession?.party ?? null }) : null;
+  const ladders = ladderSource(deps, env);
+  const quotes = quoteSource(deps, env);
+  const canTrade = Boolean(rpc && venueSession && operatorSession && quotes && attestors.length >= 2 && !env.dryRun);
+  const operator = canTrade
+    ? await createDeskOperatorClient({ clusterTag: CLUSTER_ID[env.cluster], operator: operatorSession!, venue: venueSession!, attestors, quotes: quotes!, ladders, rpc: rpc! })
+    : null;
   const brain = resolveDeskModel();
-  const ctx: RunnerContext = { env, q: deskQueries(db), feed: deps.prestocks, rpc, operator, attestor, brain, brainMissing: missingDeskCredentialHint(), callsAtMs: [], mints: null, holding: new Set(), log: deps.log };
-  deps.log(`desk runner on ${env.cluster} via ${redact(env.rpcUrl).replace(/api-key=.*$/, "api-key=<HELIUS_API_KEY>")}${operator ? `, operator ${operator.address}` : env.operatorSecret ? " (DRY RUN: the operator key is not used)" : " (no DESK_RUNNER_PRIVATE_KEY: practice desks only; live desks are read and recorded, never traded)"}${attestor ? "" : "; no PRICE_ATTESTOR_PRIVATE_KEY, references are never refreshed here"}`);
+  const ctx: RunnerContext = { env, q: deskQueries(db), feed: deps.prestocks, rpc, operator, ladders, brain, brainMissing: missingDeskCredentialHint(), callsAtMs: [], mints: null, holding: new Set(), log: deps.log };
+  const why = operator
+    ? `, operator ${operator.address.split("::")[0]}`
+    : env.dryRun && operatorSession
+      ? " (DRY RUN: live desks are read and recorded, never traded)"
+      : ` (${!venueSession ? "no venue party" : !operatorSession ? "no agent-runner party" : !quotes ? "no quote source (the venue here, or OPS_INTERNAL_URL + OPS_INTERNAL_SECRET)" : "fewer than two oracle parties"}: practice desks only; live desks are read and recorded, never traded)`;
+  deps.log(`desk runner on ${env.cluster}${rpc ? " over the ledger" : " without a ledger reader"}${why}`);
   deps.log(brain ? `desk brain: ${brain.providerName}/${brain.modelId} via ${brain.via}` : `desk brain not configured: set ${ctx.brainMissing}`);
   return ctx;
 }

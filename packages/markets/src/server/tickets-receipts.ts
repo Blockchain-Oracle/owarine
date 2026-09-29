@@ -1,5 +1,5 @@
 /**
- * The seat's ended tickets, from its `SettlementReceipt`s (K-088): each receipt becomes the wire's
+ * The seat's ended tickets, from its `SettlementReceipt`s (K-093): each receipt becomes the wire's
  * `TicketReceiptView`, with what the receipt does not carry read beside it — the Window's prints (its Resolution, by
  * Daml market id), its expiry (its terms), and a parlay's per-leg outcomes. Pure apart from the terms lookup.
  */

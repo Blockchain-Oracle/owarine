@@ -38,18 +38,18 @@ export const CONTROLS = {
   mode: { title: "How much the desk does on its own", body: "The mode is written into your desk's contract, so the ledger refuses what the mode forbids.", now: (mode: string) => `Mode: ${mode}`, after: (mode: string) => `Mode: ${mode}`, practiceLocked: "A practice desk has one mode. Go live to choose Ask me first or On its own." },
   checkNow: { title: "Look at everything now", body: "The desk checks now and decides as it always does. It may still choose to wait. Once every ten minutes.", after: "A check within the minute", throttled: (until: string) => `It checked a moment ago. It can look again at ${until}.` },
   share: { title: "A read-only link", body: "Anyone with the link sees the desk's holdings and record, never your notes. Turn it off at any time.", on: "Sharing is on", off: "Sharing is off", link: "Copy the link", copied: "Copied" },
-  sellAll: { title: "Turn every holding into cash", body: "Every PreStocks token the desk holds is sold to USDC inside the desk at its next check, PreStocks' 1% fee included. Nothing leaves your account.", after: "Every holding sold to USDC at the next check" },
+  sellAll: { title: "Turn every holding into cash", body: "Every position the desk holds is sold back to the venue at its next check, and the cash stays in the desk. Nothing leaves your account.", after: "Every holding sold to USDC at the next check" },
   close: { title: "Close this desk for good", body: "The desk sells every holding, sends everything to your own seat and stops the checks. The record stays readable. Two signatures: the request, then the operator is revoked from your account.", after: "Desk closed; everything on its way to your seat" },
   editMandate: { title: "Change the mandate", body: "A new version, signed by you. Waiting approvals are cancelled and the change applies from the next check." },
 } as const;
 
 export const MONEY = {
   sheetTitle: "Put money in",
-  eyebrow: "LIVE DESK · PLANNED",
+  eyebrow: "LIVE DESK",
   intro: "Money goes straight to the desk's own account, never through Agari. Only you can take it out.",
   network: "Your seat signs one Canton command. No network fee.",
-  usdc: { title: "Cash from your seat", amount: "Amount in USDC", have: (amount: string) => `Your seat holds ${amount} USDC.`, none: "Your seat holds no USDC. The Canton Coin rail is planned." },
-  tokens: { title: "Move PreStocks tokens you already hold", none: "Your seat holds none of the basket's companies.", row: (tokens: string, name: string) => `${tokens} ${name}`, all: "all" },
+  usdc: { title: "Cash from your seat", amount: "Amount in USDC", have: (amount: string) => `Your seat holds ${amount} USDC.`, none: "Your seat holds no USDC yet. Add demo credits to your seat first." },
+  tokens: { title: "Companies come in by the desk buying them", none: "A company comes into the desk only when the desk buys it, and leaves when it sells or its hourly Window settles into your seat.", row: (tokens: string, name: string) => `${tokens} ${name}`, all: "all" },
   receipt: { send: "You send", receive: "Your desk receives", fee: "PreStocks' 1% transfer fee", networkFee: "Network fee", networkFeeValue: "none on Canton", takes: "Takes", seconds: "seconds", leaves: (amount: string, symbol: string) => `${amount} ${symbol} leaves`, arrives: (amount: string, symbol: string) => `${amount} ${symbol} arrives` },
   tooSmall: (min: string) => `Under ${min} is too small: the fixed fees of each trade take too large a share.`,
   noSol: { line: "Canton charges no network fee: opening a desk and each action cost nothing to send.", link: "How seats work ↗" },
@@ -77,13 +77,13 @@ export const MONEY = {
 
 export const GO_LIVE = {
   title: "Go live",
-  eyebrow: "LIVE DESK · PLANNED",
+  eyebrow: "LIVE DESK",
   body: "Four steps, each one command your seat signs on Canton. Every step can be resumed if you close the page.",
   steps: {
     open: { title: "Open the desk on Canton", body: (perAction: string, daily: string, premium: string) => `Creates your account with the program's limits: ${perAction} per action, ${daily} a day, buys at most ${premium} above the mark.`, button: "Open the live desk" },
-    allow: { title: "Allow the basket's companies", body: (names: string) => `Tells the program which tokens the desk may hold: ${names}.`, button: "Allow the companies" },
+    allow: { title: "Allow the basket's companies", body: (names: string) => `Tells the desk's contract which companies' hourly Windows it may buy: ${names}.`, button: "Allow the companies" },
     attach: { title: "Link the desk to its record", body: "One signed message, no transaction: your practice record continues as the live desk's.", button: "Sign the link" },
-    deposit: { title: "Put money in", body: "Cash from your seat, or PreStocks tokens you already hold.", button: "Open the money sheet" },
+    deposit: { title: "Put money in", body: "Cash from your seat. The desk buys the companies itself.", button: "Open the money sheet" },
   },
   mode: "It goes live in",
   resume: (step: string) => `Resuming at: ${step}`,

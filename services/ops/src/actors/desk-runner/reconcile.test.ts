@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from "vitest";
 import type { PreStocksSample } from "../../prices/prestocks-spot";
-import { findOutsideChanges, netFlowE6, scaledBaseline } from "./reconcile";
+import { findOutsideChanges, lotPrices, netFlowE6, scaledBaseline } from "./reconcile";
 import { heldMoveBps, meanPriceE8 } from "./value";
 
 const E6 = 1_000_000n;
@@ -53,5 +53,20 @@ describe("the half-hour mean and the move that wakes a desk", () => {
     const feed = { history: (symbol: string) => (symbol === "OPENAI" ? [sample(9_000, 100n), sample(9_500, 104n)] : [sample(9_000, 100n), sample(9_500, 90n)]) };
     expect(heldMoveBps(feed as never, { OPENAI: 1n, ANTHROPIC: 0n }, 10_000)).toEqual({ symbol: "OPENAI", bps: 400 });
     expect(heldMoveBps(feed as never, { OPENAI: 1n, ANTHROPIC: 1n }, 10_000)).toEqual({ symbol: "ANTHROPIC", bps: -1000 });
+  });
+});
+
+describe("a live desk's lot prices (C8f, K-090)", () => {
+  const ladder = (damlMarketId: string, seriesKey: string, fairTicks: number | null, state = "quoting", expirySec = 10_000) =>
+    ({ marketId: damlMarketId, damlMarketId, seriesId: "", termsCid: "", seriesKey, symbol: null, index: 0, tradingStartSec: 0, lockAtSec: 0, expirySec, quotingUntilSec: 0, cashUnit: 1000n, feeRateBps: 0, fairTicks, up: [], down: [], asOfMs: 0, state }) as never;
+  const m = (holdings: { marketId: string; lots: bigint; refundAfterSec: number }[]) => ({ holdings: holdings.map((h) => ({ ...h, side: "SideUp" as const })) }) as never;
+
+  it("weights held Windows by lots, prices an unheld name at its current Window, and leaves a settling one unpriced", () => {
+    const prices = lotPrices(m([{ marketId: "SPACEX-60m:1", lots: 1n, refundAfterSec: 9_999 }, { marketId: "SPACEX-60m:2", lots: 3n, refundAfterSec: 9_999 }, { marketId: "OPENAI-60m:1", lots: 2n, refundAfterSec: 9_999 }]),
+      [ladder("SPACEX-60m:1", "SPACEX-60m", 400), ladder("SPACEX-60m:2", "SPACEX-60m", 600), ladder("ANTHROPIC-60m:5", "ANTHROPIC-60m", 250), ladder("OPENAI-60m:1", "OPENAI-60m", 500, "closed")], 100);
+    expect(prices.SPACEX?.priceE8).toBe(((1n * 400n + 3n * 600n) * 1000n * 100n) / 4n);
+    expect(prices.ANTHROPIC?.priceE8).toBe(250n * 1000n * 100n);
+    expect(prices.OPENAI?.priceE8).toBeNull();
+    expect(prices.KALSHI?.priceE8).toBeNull();
   });
 });

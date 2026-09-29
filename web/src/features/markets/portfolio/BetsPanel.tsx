@@ -56,7 +56,7 @@ function TabButton({ tab, current, count, label, onPick }: { tab: Tab; current: 
  * as the other side (verified against chain balances). A settled row therefore never depends on the
  * open-position engine, and the two cannot disagree about a Window that has closed.
  */
-/** Boost and short receipts are shown once, in the reference's boost rows below the Windows, not again as rounds (K-088). */
+/** Boost and short receipts are shown once, in the reference's boost rows below the Windows, not again as rounds (K-093). */
 const BOOST_PRODUCTS: ReadonlySet<string> = new Set(["boost", "short"]);
 
 function withoutBoostRounds(history: HistoryReading): HistoryReading {

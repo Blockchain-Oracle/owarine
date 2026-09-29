@@ -180,7 +180,7 @@ template BoostPosition
       do
         assertDeadlineExceeded "refund-after" refundAfter
         paid <- exitWith this (costOf this + premium) 0 "refund"
-        -- 0.1.2: a stale refund leaves the same receipt as a void (K-088)
+        -- 0.1.2: a stale refund leaves the same receipt as a void (K-093)
         recordReceipt $ boostReceipt this None (costOf this + premium) 0 "void"
         pure paid
 
@@ -216,7 +216,7 @@ template BoostPosition
         require "still-healthy" "the quorum's print is not beyond the barrier" beyond
         change <- lockFromShard venue shardCid knockOutProceeds
         paid <- exitWith this knockOutProceeds premium "knock-out"
-        -- 0.1.2: the knock-out leaves its receipt (K-088)
+        -- 0.1.2: the knock-out leaves its receipt (K-093)
         recordReceipt $ boostReceipt this None knockOutProceeds premium "knocked-out"
         leg <- create (houseTakesSide this)
         pure (paid, leg, change)
@@ -262,7 +262,7 @@ template BoostExitQuote
           (p.owner == user && p.venue == venue && p.pairId == pairId)
         archive positionCid
         paid <- exitWith p proceeds p.premium "sale"
-        -- 0.1.2: the sale back to the venue leaves its receipt (K-088)
+        -- 0.1.2: the sale back to the venue leaves its receipt (K-093)
         recordReceipt $ boostReceipt p None proceeds p.premium "sold"
         leg <- create (houseTakesSide p)
         pure (paid, leg)

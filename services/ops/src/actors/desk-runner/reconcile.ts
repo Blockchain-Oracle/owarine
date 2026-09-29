@@ -1,15 +1,21 @@
 /**
- * Is this still our desk, and does the chain agree with the database? (Shijima `wake.ts` step 1 + `reconcile.ts`.)
- * Live: the desk is read; an unknown send is settled by its signature or by the sealed hash in the desk's history;
+ * Is this still our desk, and does the ledger agree with the database? (Shijima `wake.ts` step 1 + `reconcile.ts`.)
+ * Live (C8f, K-090): the `DeskMandate` is read; its holdings are priced at each Window's fair price on the venue's
+ * ladder; an unknown send is settled by its update id or by the sealed hash in the desk's decisions (found by the
+ * operator's deterministic command id); a Window that settled paid the owner's seat, so its lots leave the desk as an
+ * outside change;
  * a chain ahead of the record is explained by sealed actions the record knows, or the desk stops for attention; a
  * held name whose account is frozen or whose mint is paused stops it too. Then balances are compared with the last
  * snapshot plus the desk's own confirmed actions: anything left over came from outside (the owner adding or taking
  * money) and moves the loss-limit baseline, never the loss. Practice: the paper ledger is the state.
  */
 import { MIN_TRADE_E6 } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import { isUpdateId } from "@agari/core/types";
 import type { DeskRow } from "@agari/db";
-import { readDeskEventsOf, readDeskHistory, readDeskState, sealedActionsOf, signatureOutcome } from "@agari/markets/desk";
+import { deskStateOf, findMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@agari/markets/desk";
+import type { DeskMandateC } from "@agari/markets/ops/agents";
+import type { Ladder } from "@agari/markets/runtime";
 import { errorText } from "../../runtime/env";
 import { loadPaper, paperPositions } from "./paper";
 import type { DeskStanding, RunnerContext } from "./types";
@@ -96,7 +102,7 @@ async function settleUnresolved(ctx: RunnerContext, desk: DeskRow, address: stri
       note.push(`record ${a.recordSeq} landed in ${signature.slice(0, 8)}`);
     };
     try {
-      if (a.signature) {
+      if (a.signature && isUpdateId(a.signature)) {
         const fate = await signatureOutcome(rpc, a.signature);
         if (fate.kind === "confirmed") {
           const sealed = sealedActionsOf(await readDeskEventsOf(rpc, a.signature as never)).find((s) => hash && s.decisionHash.toLowerCase() === hash.toLowerCase());
@@ -131,10 +137,43 @@ async function settleUnresolved(ctx: RunnerContext, desk: DeskRow, address: stri
   return { stillUnknown, note };
 }
 
+/**
+ * Each name's lot price: the value-weighted fair price of the Windows the desk holds (every one must be quoting), or
+ * the current Window's fair price when it holds none (the needs size with it).
+ */
+export function lotPrices(m: DeskMandateC, ladders: readonly Ladder[], nowSec: number): Record<string, { priceE8: bigint | null; why?: string }> {
+  const byMarket = new Map(ladders.filter((l) => l.state === "quoting").map((l) => [l.damlMarketId, l]));
+  const out: Record<string, { priceE8: bigint | null; why?: string }> = {};
+  for (const symbol of PRE_IPO_SYMBOLS) {
+    const held = m.holdings.filter((h) => h.side === "SideUp" && h.refundAfterSec > nowSec && symbolOfMarket(h.marketId) === symbol);
+    if (held.length === 0) {
+      const w = quotingWindow(ladders, symbol);
+      out[symbol] = w && w.fairTicks ? { priceE8: lotPriceE8(w.fairTicks, w.cashUnit) } : { priceE8: null, why: "no Window of this company is quoting" };
+      continue;
+    }
+    let lots = 0n;
+    let valueE8 = 0n;
+    let closed = false;
+    for (const h of held) {
+      const l = byMarket.get(h.marketId);
+      if (!l || !l.fairTicks) {
+        closed = true;
+        break;
+      }
+      lots += h.lots;
+      valueE8 += h.lots * lotPriceE8(l.fairTicks, l.cashUnit);
+    }
+    out[symbol] = closed || lots === 0n ? { priceE8: null, why: "its Window is closed and settling into your seat" } : { priceE8: valueE8 / lots };
+  }
+  return out;
+}
+
 async function reconcileLive(ctx: RunnerContext, desk: DeskRow, nowSec: number, say: (line: string) => void): Promise<Reconciled> {
-  if (!ctx.rpc || !desk.address) throw new Error("no RPC to read the desk with");
-  const chain = await readDeskState(ctx.rpc, desk.owner as never, nowSec);
-  if (!chain) throw new Error("the desk account was not found on chain");
+  if (!ctx.rpc?.ledger || !desk.address) throw new Error("no ledger reader to read the desk with");
+  const found = await findMandate(ctx.rpc.ledger, desk.address);
+  if (!found) throw new Error("the desk's mandate was not found on the ledger (closed, or never opened)");
+  const indexMode = desk.mode === "ask_first" || desk.mode === "on_its_own" ? desk.mode : null;
+  const chain = deskStateOf({ mandate: found.data, offset: found.offset, nowSec, mintOf, marks: found.marks.filter((mk) => mk.venue === found.data.venue), indexMode });
   const positions: Record<string, bigint> = {};
   const frozen: Record<string, boolean> = {};
   for (const t of chain.tokens) {
@@ -142,7 +181,8 @@ async function reconcileLive(ctx: RunnerContext, desk: DeskRow, nowSec: number, 
     positions[t.symbol] = t.raw;
     frozen[t.symbol] = t.frozen;
   }
-  const standing: DeskStanding = { kind: "live", chain, positions, frozen, cashE6: chain.usdc.raw };
+  const ladders = await ctx.ladders().catch(() => [] as readonly Ladder[]);
+  const standing: DeskStanding = { kind: "live", chain, positions, frozen, cashE6: chain.usdc.raw, prices: lotPrices(found.data, ladders, nowSec) };
   const settled = await settleUnresolved(ctx, desk, desk.address, nowSec);
   for (const line of settled.note) say(line);
   if (settled.stillUnknown === 0) ctx.holding.delete(desk.id);
@@ -150,6 +190,7 @@ async function reconcileLive(ctx: RunnerContext, desk: DeskRow, nowSec: number, 
 
   let trouble: string | null = null;
   if (ctx.operator && chain.operator !== ctx.operator.address) trouble = chain.operator ? "the desk names a different operator" : "you revoked the operator";
+  if (!trouble && !ctx.operator && !chain.operator) trouble = "you revoked the operator";
   const known = (await ctx.q.getDeskById(desk.id))?.chainSeq ?? desk.chainSeq;
   const chainSeq = Number(chain.seq);
   if (!trouble && chainSeq > known) {
@@ -166,10 +207,6 @@ async function reconcileLive(ctx: RunnerContext, desk: DeskRow, nowSec: number, 
       say(`chain at ${chainSeq}, record caught up from ${known}`);
     } else trouble = `the chain is at ${chainSeq} and the record at ${known}: ${chainSeq - known} action(s) this desk cannot explain`;
   } else if (!trouble && chainSeq < known) trouble = `the chain is at ${chainSeq}, behind the record at ${known}`;
-  if (!trouble) {
-    const stuck = chain.tokens.find((t) => t.symbol && t.raw > 0n && (t.frozen || ctx.mints?.byMint[t.mint as string]?.paused === true));
-    if (stuck) trouble = stuck.frozen ? `the desk's ${stuck.symbol} account is frozen by the issuer` : `PreStocks has paused transfers of ${stuck.symbol}`;
-  }
   return { standing, trouble, ...(await outsideChanges(ctx, desk, standing, nowSec)) };
 }
 

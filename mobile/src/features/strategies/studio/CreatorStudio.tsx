@@ -51,7 +51,8 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, in
   const daily = parseDecimalToBaseUnits(form.maxDaily, decimals);
   const fee = parseDecimalToBaseUnits(form.subFee, decimals);
   const behaviorValid = isSpec(spec) && perTrade !== null && perTrade > 0n && daily !== null && daily >= perTrade;
-  const runnerValid = isAddress(runner);
+  // C8f: the house runner is a party; a self-hosted bot is named by its seat address or its party (L-55).
+  const runnerValid = isAddress(runner) || /^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/.test(runner ?? "");
   const summary =
     spec.preset === "agent" || spec.preset === "mirror"
       ? describeSpec(spec, asset)

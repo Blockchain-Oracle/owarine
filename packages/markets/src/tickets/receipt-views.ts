@@ -1,5 +1,5 @@
 /**
- * Ended tickets in the reference's shapes, from the seat's `SettlementReceipt`s (K-088). A ticket's contract is
+ * Ended tickets in the reference's shapes, from the seat's `SettlementReceipt`s (K-093). A ticket's contract is
  * archived when it ends; its receipt stays with the owner, so history reads the receipt:
  *
  *   range, moonshot, parlay   won → "claimed" (the ledger pays out on settle; there is nothing left to claim),

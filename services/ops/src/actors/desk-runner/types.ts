@@ -1,18 +1,17 @@
 /**
- * What every step of the desk runner shares (S21 C4): the environment, the desk queries, the in-process PreStocks
- * feed, the mainnet read RPC and the operator client when there is a key, the brain, the sliding-hour call budget
- * and the mint cache. Built once in `index.ts`; the drive builds the same shape for one wake.
+ * What every step of the desk runner shares (S21 C4, on Canton C8f): the environment, the desk queries, the
+ * in-process PreStocks feed (the names' prices, practice fills and marks), the ledger reader, the operator client when
+ * the agent-runner party can act, the venue's ladders (the live leg's prices), the brain, the sliding-hour call budget
+ * and the mint cache (every name 9 dp, multiplier 1 on Canton). Built once in `index.ts`.
  */
 import type { ResolvedModel } from "@agari/brain";
 import type { DeskMandate, DeskValuation, PlannedOutcome } from "@agari/core/desk";
 import type { DeskQueries, DeskRow, MandateRow, WakeTrigger } from "@agari/db";
-import type { keypairSigner } from "@agari/markets/deploy";
 import type { DeskMintState, DeskOperatorClient, DeskRpc, DeskState } from "@agari/markets/desk";
+import type { Ladder } from "@agari/markets/runtime";
 import type { PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import type { Log } from "../../runtime/actor";
 import type { DeskRunnerEnv } from "./env";
-
-export type AttestorSigner = Awaited<ReturnType<typeof keypairSigner>>;
 
 /** The mint flags every desk needs, read once per refresh for all eight names. */
 export interface MintCache {
@@ -24,9 +23,12 @@ export interface RunnerContext {
   env: DeskRunnerEnv;
   q: DeskQueries;
   feed: PreStocksSpotFeed;
+  /** The ledger reader (as the venue, read-only). */
   rpc: DeskRpc | null;
+  /** The operator client (the agent-runner party); null = live desks are read and recorded, never traded. */
   operator: DeskOperatorClient | null;
-  attestor: AttestorSigner | null;
+  /** The venue's published ladders: the live leg's prices and Windows. */
+  ladders: () => Promise<readonly Ladder[]>;
   brain: ResolvedModel | null;
   /** Why the brain is off, named for the record and the heartbeat; never a key. */
   brainMissing: string;
@@ -40,7 +42,7 @@ export interface RunnerContext {
 
 /** A live desk's chain state as reconcile read it, or a practice desk's paper ledger standing in for it. */
 export type DeskStanding =
-  | { kind: "live"; chain: DeskState; positions: Record<string, bigint>; frozen: Record<string, boolean>; cashE6: bigint }
+  | { kind: "live"; chain: DeskState; positions: Record<string, bigint>; frozen: Record<string, boolean>; cashE6: bigint; prices: Record<string, { priceE8: bigint | null; why?: string }> }
   | { kind: "practice"; positions: Record<string, bigint>; cashE6: bigint };
 
 export interface WakeInput {

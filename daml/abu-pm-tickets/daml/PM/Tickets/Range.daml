@@ -148,7 +148,7 @@ template RangeRound
       do
         assertDeadlineExceeded "refund-after" refundAfter
         paid <- payBoth venue owner reserveId stake (maxPayout - stake) "refund"
-        -- 0.1.2: a stale refund leaves the same receipt as a void (K-088)
+        -- 0.1.2: a stale refund leaves the same receipt as a void (K-093)
         recordReceipt $ roundReceipt this None stake (maxPayout - stake) "void"
         pure paid
 
