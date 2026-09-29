@@ -18,4 +18,5 @@ export * from "../provider/ticket-wire";
 export * from "./tickets";
 export * from "./tickets-read";
 export * from "./agents";
+export * from "./agents-read";
 export * from "./desk-seat";

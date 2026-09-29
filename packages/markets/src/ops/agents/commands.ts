@@ -19,6 +19,7 @@ import { toDamlInt, type Command, type ContractId, type Party } from "@agari/led
 import { isoOfSec, type Side } from "../canton/decode";
 import type { DeskModeC, EnvelopeC, GrantCapsC, SubKindC } from "./decode";
 
+// Daml field names that are Times (`"asOf"`, `"deadline"`) are quoted so the time-suffix rule reads them as such.
 const exercise = (templateId: string, contractId: ContractId, choice: string, choiceArgument: unknown): Command => ({
   ExerciseCommand: { templateId, contractId, choice, choiceArgument },
 });
@@ -71,7 +72,7 @@ export const revokeGrant = (grantCid: ContractId): Command => exercise(TEMPLATE_
 
 /** Agent: accept one of the owner's quotes at or under `limitTicks`, the agent's clock at `asOfSec`. */
 export const acceptQuoteFor = (grantCid: ContractId, quoteCid: ContractId, limitTicks: number, asOfSec: number): Command =>
-  exercise(TEMPLATE_IDS.AgentGrant, grantCid, "Grant_AcceptQuote", { quoteCid, limitTicks: int(limitTicks), asOf: isoOfSec(asOfSec) });
+  exercise(TEMPLATE_IDS.AgentGrant, grantCid, "Grant_AcceptQuote", { quoteCid, limitTicks: int(limitTicks), "asOf": isoOfSec(asOfSec) });
 
 // ---- the strategy registry -------------------------------------------------------------------------
 
@@ -176,19 +177,19 @@ export interface DeskSealInput {
 /** Operator: buy one of the owner's quotes inside the mandate. */
 export const deskTrade = (mandateCid: ContractId, s: DeskSealInput & { quoteCid: ContractId; limitTicks: number; asOfSec: number; markCids: readonly ContractId[] }): Command =>
   M(mandateCid, "Mandate_Trade", {
-    actor: s.actor, quoteCid: s.quoteCid, limitTicks: int(s.limitTicks), asOf: isoOfSec(s.asOfSec), markCids: [...s.markCids],
+    actor: s.actor, quoteCid: s.quoteCid, limitTicks: int(s.limitTicks), "asOf": isoOfSec(s.asOfSec), markCids: [...s.markCids],
     prevHead: s.prevHead, decisionHash: s.decisionHash, note: s.note,
   });
 
 /** Operator: sell lots the desk holds back to the venue on a buy-back quote. */
 export const deskSell = (mandateCid: ContractId, s: DeskSealInput & { buyQuoteCid: ContractId; asOfSec: number; markCids: readonly ContractId[] }): Command =>
   M(mandateCid, "Mandate_Sell", {
-    actor: s.actor, buyQuoteCid: s.buyQuoteCid, asOf: isoOfSec(s.asOfSec), markCids: [...s.markCids], prevHead: s.prevHead, decisionHash: s.decisionHash, note: s.note,
+    actor: s.actor, buyQuoteCid: s.buyQuoteCid, "asOf": isoOfSec(s.asOfSec), markCids: [...s.markCids], prevHead: s.prevHead, decisionHash: s.decisionHash, note: s.note,
   });
 
 /** Operator: seal a non-action ("looked, did nothing", a shadow decision, the daily checkpoint). */
 export const deskCheckpoint = (mandateCid: ContractId, s: DeskSealInput & { deadlineSec: number }): Command =>
-  M(mandateCid, "Mandate_Checkpoint", { actor: s.actor, prevHead: s.prevHead, decisionHash: s.decisionHash, deadline: isoOfSec(s.deadlineSec), note: s.note });
+  M(mandateCid, "Mandate_Checkpoint", { actor: s.actor, prevHead: s.prevHead, decisionHash: s.decisionHash, "deadline": isoOfSec(s.deadlineSec), note: s.note });
 
 /** Attestor: one mark of one market's side, in ticks. */
 export const createDeskMark = (m: { attestor: Party; venue: Party; marketId: string; side: Side; refTicks: number; fetchedAtSec: number }): Command =>

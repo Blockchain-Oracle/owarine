@@ -3,7 +3,8 @@ import type { ArenaIntent } from "@agari/core/games";
 import type { LeverageIntent } from "@agari/core/leverage";
 import type { ParlayIntent } from "@agari/core/parlay";
 import type { RangeIntent } from "@agari/core/range";
-import type { TxOutcome } from "@agari/core/ports";
+import type { StrategyIntent } from "@agari/core/strategies";
+import type { TxOutcome, VaultIntent } from "@agari/core/ports";
 import { diagnosis, type Address, type MarketId } from "@agari/core/types";
 import type { ArenaPickOutcome } from "../games";
 import type { LeverageOpenOutcome } from "../leverage";
@@ -26,6 +27,7 @@ import { chainReconcilerWith, type Reconciler } from "./recovery";
 import { submitSeatCashOut, type HeldExitListener } from "./cash-out";
 import { commandVerdict, submitLegExit, submitSeatOrder } from "./seat-lane";
 import { allowAllStopGate } from "./stop-gate";
+import { agentsStrategyLane, agentsVaultLane } from "./agents-lane";
 import type { WriteRpc } from "./write-rpc";
 
 export interface SubmitterDeps {
@@ -68,9 +70,9 @@ export interface MarketsSubmitter extends Submitter {
 
 /** Product lanes without a Canton package yet (the maker vault, the arena) stay refused; the ticket products are live (C8c). */
 const PRODUCTS_NOT_LIVE = cantonNotLive("product writes");
-/** A resting call (D-088) becomes a bilateral `RestingCall` in C6; the vault route is C7a. */
+const GRANT_ROUTE_IS_AN_AGENTS = "an order through a grant is placed by the grant's agent (ops), not from a seat's session";
+/** A resting call (D-088) becomes a bilateral `RestingCall` in C6. */
 const REST_NOT_LIVE = cantonNotLive("resting calls");
-const VAULT_ROUTE_NOT_LIVE = cantonNotLive("trading balance orders");
 
 /**
  * Binds every write lane to ONE seat. Orders go through the seat lane (`seat-lane.ts`: firm quote, journal, accept
@@ -106,12 +108,17 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
         if (intent.kind.startsWith("range-")) return rangeTxLane(lane, intent as RangeIntent, onPhase);
         if (intent.kind.startsWith("parlay-")) return parlayTxLane(lane, intent as ParlayIntent, onPhase);
         if (intent.kind.startsWith("leverage-")) return leverageTxLane(lane, intent as LeverageIntent, onPhase);
+        // C8f: grants (open, top up, revoke) and the strategy registry, through the seat's journaled agents lane.
+        if (intent.kind.startsWith("vault-")) return agentsVaultLane(lane, intent as VaultIntent, onPhase);
+        if (intent.kind.startsWith("strategy-")) return agentsStrategyLane(lane, intent as StrategyIntent, onPhase);
         return { status: "refused" as const, diagnosis: notDeployed(PRODUCTS_NOT_LIVE) };
       }),
     submitOrder: (request, onPhase) => {
-      if (request.route && request.route.kind !== "wallet") return refuse(VAULT_ROUTE_NOT_LIVE);
+      // C8f: the seat's cash IS the trading balance, so the `vault` route is the seat's own order; a `vault-grant`
+      // route is an agent's, which acts through the owner's grant from ops, never from a seat's session.
+      if (request.route?.kind === "vault-grant") return enqueue(async () => ({ status: "refused" as const, diagnosis: diagnosis("grant-refused", GRANT_ROUTE_IS_AN_AGENTS) }));
       if (request.entry === "rest") return refuse(REST_NOT_LIVE);
-      return enqueue(() => submitSeatOrder(lane, request, onPhase));
+      return enqueue(() => submitSeatOrder(lane, { ...request, route: { kind: "wallet" } }, onPhase));
     },
     exitLegs: (o, onPhase) => enqueue(() => submitLegExit(lane, o, onPhase)),
     submitCashOut: (request, onPhase, onHeld) => enqueue(() => submitSeatCashOut(lane, request, onPhase, onHeld)),

@@ -3,9 +3,11 @@ import { encodeSpec, encodeStrategyMetadata, type StrategyIntent, type StrategyM
 import { diagnosis } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { refusedFor } from "../stub/product";
+import { agentsStrategyLane } from "../submitter/agents-lane";
+import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { STRATEGIES_NOT_LIVE } from "./reads";
 
-/** The metadata a strategy holds (the reference program's `MAX_METADATA_LEN`; the Canton `Strategy` keeps the cap, C8). */
+/** The metadata a strategy holds (the reference program's `MAX_METADATA_LEN`; the Canton route keeps the cap, C8f). */
 export const STRATEGY_METADATA_MAX_BYTES = 2_048;
 /**
  * How much of the metadata rides in each transaction. A publish carries the runner, two hashes, the envelope and six
@@ -45,7 +47,15 @@ export async function planRevision(spec: StrategySpec, metadata: StrategyMetadat
   };
 }
 
-/** Every registry write refuses before anything is journaled or signed until the strategy package lands (C8). */
-export async function submitStrategyLane(_ctx: unknown, _intent: StrategyIntent, _onPhase?: PhaseListener): Promise<TxOutcome> {
-  return refusedFor(STRATEGIES_NOT_LIVE);
+const isLane = (ctx: unknown): ctx is SeatLaneDeps =>
+  typeof ctx === "object" && ctx !== null && "journal" in ctx && "wallet" in ctx && "nowMs" in ctx && "stopGate" in ctx;
+
+/**
+ * A registry write through the seat's journaled agents lane (C8f): the whole published text is one create on Canton,
+ * sealed by its SHA-256 (`planRevision`'s chunks were Solana's transaction size, and are kept only as a pure helper).
+ * Without the seat's lane the write refuses before anything is journaled.
+ */
+export async function submitStrategyLane(ctx: unknown, intent: StrategyIntent, onPhase?: PhaseListener): Promise<TxOutcome> {
+  if (!isLane(ctx)) return refusedFor(STRATEGIES_NOT_LIVE);
+  return agentsStrategyLane(ctx, intent, onPhase);
 }
