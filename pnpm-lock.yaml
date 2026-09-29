@@ -396,6 +396,9 @@ importers:
       '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
