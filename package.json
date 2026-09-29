@@ -19,6 +19,7 @@
     "drive:events": "tsx --env-file-if-exists=.env.local scripts/drive/events-cycle.ts",
     "anchor:build": "cd anchor && NO_DNA=1 anchor build --arch v0",
     "codegen": "node scripts/codegen.mjs",
+    "codegen:daml": "node packages/daml-clients/scripts/codegen.mjs",
     "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",
     "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "contracts:export": "node contracts/export.mjs",

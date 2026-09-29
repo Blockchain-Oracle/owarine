@@ -295,3 +295,31 @@ testPolicyCoverage = script do
   -- the already-open window keeps its frozen version
   Some t0' <- queryContractId w.venue win0.terms
   t0'.policyVersion === 1
+
+-- The frozen version is the highest that covers BOTH boundaries: a
+-- version ending before a window's close does not cover it (the lower one
+-- does), expiry == validUntil still covers, and a window nothing covers
+-- is not opened at all.
+testPolicyCoverageBothBoundaries = script do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, win0) <- openWin w s 0
+  let v2 = policy1 with version = 2; effectiveFrom = plus t0 300; validUntil = Some (plus t0 700); minDelaySec = 7
+      v3 = policy1 with version = 3; effectiveFrom = plus t0 900; validUntil = Some (plus t0 1200); minDelaySec = 9
+  refusedWith (refusal "bad-policy") =<< trySubmit w.venue do
+    exerciseCmd s1 Series_AddPolicyVersion with pv = v2 with validUntil = Some (plus t0 300)
+  s2 <- submit w.venue do exerciseCmd s1 Series_AddPolicyVersion with pv = v2
+  s3 <- submit w.venue do exerciseCmd s2 Series_AddPolicyVersion with pv = v3
+  (s4, win1) <- openWin w s3 1          -- [300, 600]: v2 covers both
+  (s5, win2) <- openWin w s4 2          -- [600, 900]: v2 ends at 700, so v1
+  (s6, win3) <- openWin w s5 3          -- [900, 1200]: v3, close on its last instant
+  (_, win4) <- openWin w s6 4           -- [1200, 1500]: v3 ended, v1
+  map (\x -> (x.t.policyVersion, x.t.minDelaySec)) [win0, win1, win2, win3, win4]
+    === [(1, 5), (2, 7), (1, 5), (3, 9), (1, 5)]
+  -- a series whose only version ends mid-window lists nothing there
+  w2 <- mkWorld
+  t <- submit w2.venue do
+    createCmd (seriesFor w2) with policyVersions = [policy1 with validUntil = Some (plus t0 450)]
+  (t1, _) <- openWin w2 t 0
+  refusedWith (refusal "no-policy") =<< trySubmit w2.venue do
+    exerciseCmd t1 Series_OpenWindow with index = 1

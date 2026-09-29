@@ -1,0 +1,227 @@
+-- | The shared liquidity reserve (the reference's vault / maker / leverage
+-- LP books, one shape for all four).
+--
+--   NavStatement  venue-signed, auditor observer: the reserve's claimed
+--                 assets and outstanding shares at `asOf`, one live per
+--                 reserve (each `Nav_Publish` consumes the last, seq + 1).
+--   LpShare       bilateral (venue, provider): `shares` of one reserve.
+--   SupplyQuote / WithdrawQuote
+--                 firm per-provider quotes the venue issues FROM the live
+--                 statement, so the ledger computes the price; the provider
+--                 alone accepts, fetching only their own cash or share.
+--
+-- Pricing at NAV = assets / shares, integer only, both directions rounded
+-- down, i.e. in the venue's (the remaining holders') favour:
+--   supply    sharesOut = floor(cashIn  * shares / assets)   (cashIn 1:1 while shares == 0)
+--   withdraw  cashOut   = floor(sharesIn * assets / shares)
+-- So a supply or withdraw at the stated NAV never lowers NAV per share for
+-- the holders who stay; the rounding dust stays in the reserve.
+--
+-- What the ledger does not enforce: that `assets` is true. On DevNet the
+-- venue mints its own demo cash, so the statement is the venue's claim and
+-- the auditor (observer of every statement) checks it against the reserve
+-- bucket, as with overall solvency.
+module PM.Reserve where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Time (addRelTime, seconds)
+import PM.Money
+import PM.Quote (expireSlackSec, lockFromShard)
+import PM.Types
+
+-- | Bound on assets, shares and every flow, so products stay below 10^30
+-- (Numeric 0 holds 38 digits) and results fit Int64.
+maxReserveUnits : Int
+maxReserveUnits = 1000000000000000
+
+reserveBucket : Text -> Text
+reserveBucket reserveId = "reserve:" <> reserveId
+
+-- | floor (a * b / c) for 0 <= a, b <= maxReserveUnits and c > 0, exact.
+mulDivFloor : Int -> Int -> Int -> Int
+mulDivFloor a b c =
+  let p : Numeric 0 = intToNumeric a * intToNumeric b
+      n : Numeric 0 = intToNumeric c
+      q0 = truncate (p / n)          -- (/) rounds; correct by at most one
+      fits q = intToNumeric q * n <= p
+  in if not (fits q0) then q0 - 1 else if fits (q0 + 1) then q0 + 1 else q0
+
+unitsOk : Int -> Bool
+unitsOk x = x >= 0 && x <= maxReserveUnits
+
+-- | Shares a supply of `cashIn` buys at this statement's NAV.
+sharesFor : NavStatement -> Int -> Int
+sharesFor nav cashIn =
+  if nav.shares == 0 then cashIn else mulDivFloor cashIn nav.shares nav.assets
+
+-- | Cash `sharesIn` redeem for at this statement's NAV.
+cashFor : NavStatement -> Int -> Int
+cashFor nav sharesIn =
+  if nav.shares == 0 then 0 else mulDivFloor sharesIn nav.assets nav.shares
+
+template NavStatement
+  with
+    venue : Party
+    auditor : Party
+    reserveId : Text
+    seq : Int
+    asOf : Time
+    assets : Int
+    shares : Int
+  where
+    signatory venue
+    observer auditor
+    ensure seq >= 0 && unitsOk assets && unitsOk shares && reserveId /= ""
+      -- outstanding shares need assets behind them
+      && (shares == 0 || assets > 0) && auditor /= venue
+
+    -- The next statement; the previous one is consumed, so quotes are only
+    -- ever issued from the live NAV.
+    choice Nav_Publish : ContractId NavStatement
+      with
+        newAsOf : Time
+        newAssets : Int
+        newShares : Int
+      controller venue
+      do
+        require "stale-nav" "a statement cannot go back in time" (newAsOf >= asOf)
+        create this with seq = seq + 1; asOf = newAsOf; assets = newAssets; shares = newShares
+
+    nonconsuming choice Nav_IssueSupply : ContractId SupplyQuote
+      with
+        provider : Party
+        cashIn : Int
+        validUntil : Time
+      controller venue
+      do
+        require "bad-amount" "supply must be positive and within bounds" (cashIn > 0 && unitsOk cashIn)
+        let sharesOut = sharesFor this cashIn
+        require "below-one-share" "supply buys no whole share at this NAV" (sharesOut > 0)
+        create SupplyQuote with
+          venue; provider; reserveId; navSeq = seq; cashIn; sharesOut; validUntil
+
+    nonconsuming choice Nav_IssueWithdraw : (ContractId WithdrawQuote, Optional (ContractId VenueCash))
+      with
+        provider : Party
+        lpShareCid : ContractId LpShare
+        sharesIn : Int
+        shardCid : ContractId VenueCash
+        validUntil : Time
+      controller venue
+      do
+        lp <- fetch lpShareCid
+        require "wrong-share" "share belongs to another provider or reserve"
+          (lp.venue == venue && lp.provider == provider && lp.reserveId == reserveId)
+        require "bad-amount" "withdraw must be positive and within the holding"
+          (sharesIn > 0 && sharesIn <= lp.shares)
+        let cashOut = cashFor this sharesIn
+        require "below-one-unit" "these shares redeem for nothing at this NAV" (cashOut > 0)
+        change <- lockFromShard venue shardCid cashOut
+        q <- create WithdrawQuote with
+          venue; provider; reserveId; navSeq = seq; lpShareCid; sharesIn; cashOut; validUntil
+        pure (q, change)
+
+template LpShare
+  with
+    venue : Party
+    provider : Party
+    reserveId : Text
+    shares : Int
+  where
+    signatory venue, provider
+    ensure shares > 0 && unitsOk shares && venue /= provider
+
+    choice LpShare_Merge : ContractId LpShare
+      with
+        otherCid : ContractId LpShare
+      controller provider
+      do
+        o <- fetch otherCid
+        require "merge-mismatch" "shares must be the same provider's in the same reserve"
+          (o.venue == venue && o.provider == provider && o.reserveId == reserveId)
+        archive otherCid
+        create this with shares = shares + o.shares
+
+-- | The venue's firm offer: `cashIn` buys `sharesOut` (priced from
+-- statement `navSeq`). Nothing is locked; the venue's side is new shares.
+template SupplyQuote
+  with
+    venue : Party
+    provider : Party
+    reserveId : Text
+    navSeq : Int
+    cashIn : Int
+    sharesOut : Int
+    validUntil : Time
+  where
+    signatory venue
+    observer provider
+    ensure cashIn > 0 && sharesOut > 0 && provider /= venue
+
+    choice Supply_Accept : (ContractId LpShare, ContractId VenueCash, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+      controller provider
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        total <- sumOwnedCash venue provider cash
+        require "insufficient-cash" "cash does not cover the supply" (total >= cashIn)
+        change <- payIfPositive venue provider (total - cashIn) "change"
+        pooled <- create VenueCash with venue; owner = venue; amount = cashIn; bucket = reserveBucket reserveId
+        lp <- create LpShare with venue; provider; reserveId; shares = sharesOut
+        pure (lp, pooled, change)
+
+    choice Supply_Expire : ()
+      controller venue
+      do assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+
+    choice Supply_Withdraw : ()
+      with
+        reason : Text
+      controller venue
+      do require "no-reason" "a withdrawal names its reason" (reason /= "")
+
+-- | The venue's firm offer to redeem `sharesIn` of one LpShare for
+-- `cashOut`, locked from a venue shard at issue.
+template WithdrawQuote
+  with
+    venue : Party
+    provider : Party
+    reserveId : Text
+    navSeq : Int
+    lpShareCid : ContractId LpShare
+    sharesIn : Int
+    cashOut : Int
+    validUntil : Time
+  where
+    signatory venue
+    observer provider
+    ensure sharesIn > 0 && cashOut > 0 && provider /= venue
+
+    choice Withdraw_Accept : (ContractId VenueCash, Optional (ContractId LpShare))
+      controller provider
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        lp <- fetch lpShareCid
+        require "share-mismatch" "the share changed since the quote"
+          (lp.provider == provider && lp.venue == venue && lp.reserveId == reserveId && lp.shares >= sharesIn)
+        archive lpShareCid
+        rest <- if lp.shares > sharesIn
+          then Some <$> create lp with shares = lp.shares - sharesIn
+          else pure None
+        paid <- create VenueCash with venue; owner = provider; amount = cashOut; bucket = "reserve-withdraw"
+        pure (paid, rest)
+
+    choice Withdraw_Expire : ContractId VenueCash
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        create VenueCash with venue; owner = venue; amount = cashOut; bucket = reserveBucket reserveId
+
+    choice Withdraw_Withdraw : ContractId VenueCash
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        create VenueCash with venue; owner = venue; amount = cashOut; bucket = reserveBucket reserveId

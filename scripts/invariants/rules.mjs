@@ -21,8 +21,11 @@ import { venueIdentity } from "./lib/venue-identity.mjs";
 const TS = [".ts", ".tsx"];
 const OUTSIDE_MARKETS = ["web", "mobile", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 const MAX_FILE_LINES = 400;
-/** Codama output is regenerated, never edited (`pnpm codegen && git diff --exit-code packages/clients`), so the cap skips it. */
-const GENERATED = /^packages\/clients\/[^/]+\/src\/generated\//;
+/**
+ * Codama output (`pnpm codegen && git diff --exit-code packages/clients`) and the Daml bindings
+ * (`pnpm codegen:daml && git diff --exit-code packages/daml-clients`) are regenerated, never edited, so the cap skips them.
+ */
+const GENERATED = /^packages\/(clients\/[^/]+\/src\/generated|daml-clients\/generated)\//;
 
 function fileLength(rule, ctx) {
   const findings = [];

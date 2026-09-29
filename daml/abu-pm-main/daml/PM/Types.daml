@@ -40,12 +40,15 @@ data VoidReason
   deriving (Eq, Show)
 
 -- | One dated, immutable price-policy version (the reference's
--- `price-sources.json` versions). A Window freezes the version covering its
--- trading start.
+-- `price-sources.json` versions). A Window freezes the highest version that
+-- covers BOTH its boundaries: effectiveFrom <= tradingStart and, when the
+-- version ends, expiry <= validUntil (the reference's `covers`).
 data PolicyVersion = PolicyVersion
   with
     version : Int
     effectiveFrom : Time
+    validUntil : Optional Time
+      -- ^ None = open-ended; a window whose expiry is later is not covered
     printSource : Text
     minDelaySec : Int
       -- ^ earliest admission of a print is boundary + minDelaySec
@@ -62,6 +65,11 @@ policyVersionOk : PolicyVersion -> Bool
 policyVersionOk p =
   p.version >= 0 && p.minDelaySec >= 0 && p.barLenSec > 0
     && p.closeAdmissionSec >= 0 && p.printSource /= ""
+    && optional True (> p.effectiveFrom) p.validUntil
+
+-- | Whether a version covers a window's open and close boundaries.
+covers : Time -> Time -> PolicyVersion -> Bool
+covers start expiry v = v.effectiveFrom <= start && optional True (expiry <=) v.validUntil
 
 -- ---------------------------------------------------------------------------
 -- The integer money grid

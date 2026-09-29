@@ -172,8 +172,9 @@ acceptQuote w st (qc, q) = do
   case [g | (g, x) <- grants, x.owner == q.user] of
     (g :: _) | viaGrant == 0 -> do
       d <- disclosureOf w.venue qc
+      now <- getTime
       r <- trySubmit (actAs st1.agent <> disclose d) do
-        exerciseCmd g Grant_AcceptQuote with quoteCid = qc; today = 0
+        exerciseCmd g Grant_AcceptQuote with quoteCid = qc; limitTicks = q.priceTicks; asOf = now
       attempt "grant-accept" st1 r
     _ -> do
       let cost = userStakeOf q.lots q.priceTicks q.cashUnit + q.fee
@@ -341,7 +342,7 @@ step w st0 = do
           case offers of
             (o, _) :: _ -> attempt "grant-open" st1 =<< trySubmit w.alice do
               exerciseCmd o GrantOffer_Open with
-                agent = st1.agent; caps = GrantCaps with maxStakePerTrade = 4000; maxDailySpend = 10000; maxPriceTicks = 0
+                agent = st1.agent; caps = GrantCaps with maxStakePerTrade = 4000; maxDailySpend = 10000; maxPriceTicks = 0; maxOpenPositions = 1000
                 expiresAt = plus t0 86400; dayZero = t0; budget = 5000; cash = [c]
             [] -> pure st1
     _ -> do -- the roller opens the next window

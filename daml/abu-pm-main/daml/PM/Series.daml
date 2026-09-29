@@ -51,7 +51,7 @@ template Series
         let tradingStart = addRelTime anchor (seconds (index * cadenceSec))
             expiry = addRelTime tradingStart (seconds cadenceSec)
             lockAt = addRelTime expiry (seconds (negate lockLeadSec))
-        pv <- case covering tradingStart policyVersions of
+        pv <- case covering tradingStart expiry policyVersions of
           Some v -> pure v
           None -> refuse "no-policy" "no price-policy version covers this window"
         let openDeadline = if pv.openAdmissionSec < 0 then lockAt
@@ -98,9 +98,10 @@ increasing : [PolicyVersion] -> Bool
 increasing (a :: b :: rest) = a.version < b.version && a.effectiveFrom < b.effectiveFrom && increasing (b :: rest)
 increasing _ = True
 
--- | The highest version whose effectiveFrom is at or before the window start.
-covering : Time -> [PolicyVersion] -> Optional PolicyVersion
-covering t vs = case filter (\v -> v.effectiveFrom <= t) vs of
+-- | The highest version covering both of the window's boundaries (the
+-- reference's `highestCoveringVersion`).
+covering : Time -> Time -> [PolicyVersion] -> Optional PolicyVersion
+covering start expiry vs = case filter (covers start expiry) vs of
   [] -> None
   ok -> Some (last ok)
 
