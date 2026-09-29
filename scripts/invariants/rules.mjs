@@ -103,6 +103,14 @@ export const rules = [
     pattern: /\b(writeContract|sendTransaction|sendRawTransaction|sendAndConfirmTransaction|signAndSendTransaction)\s*\(/,
   },
   {
+    // Plan §3 (research 05 §G): a seat route acts and reads only as the party its lease row names.
+    id: "no-party-from-request",
+    description: "seat and ledger routes never take a party, actAs or readAs from the request body, query or params (plan §3)",
+    scopes: ["web/src/app/api/ledger", "web/src/app/api/seat", "web/src/app/api/view"],
+    exts: TS,
+    pattern: /\b(body|query|searchParams|params|data|json)\b[\w.?!\[\]"'()]*\b(party|parties|actAs|readAs)\b/,
+  },
+  {
     id: "design-literals",
     description: "no raw hex colors or px literals in component code — use theme.css / tokens.css (AD-12)",
     scopes: ["web/src/app", "web/src/components", "web/src/features", "web/src/providers"],
