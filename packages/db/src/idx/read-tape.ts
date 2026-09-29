@@ -49,9 +49,28 @@ export async function tapeFills(sql: Sql, q: TapeRangeQuery): Promise<IdxRow[]> 
   return sql`
     SELECT ${fillCols(sql, sql`COALESCE(p.owner_address, p.handle)`)}, p.handle
     FROM idx_publications p
-      JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2)
+      JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2) AND p.product IS NULL
     WHERE f.ts_sec >= ${q.sinceSec} AND f.ts_sec < ${q.untilSec}
     ORDER BY f.ts_sec, f.ledger_offset, f.node_id, p.publication_cid LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
+}
+
+/**
+ * Published ticket results (0.4.0, the board's product branch): each opt-in `Publication` with a `product`, joined to
+ * the `SettlementReceipt` it was published from (same owner, market, pair, side, product, lots and backing), with that
+ * receipt's settled figures. Only a settled ticket has a receipt, so every row is a closed call. Oldest first.
+ */
+export async function tapeTickets(sql: Sql, q: TapeRangeQuery): Promise<IdxRow[]> {
+  return sql`
+    SELECT DISTINCT ON (p.publication_cid) COALESCE(p.owner_address, p.handle) AS wallet, p.handle, p.publication_cid, r.receipt_cid, r.market, r.market_key,
+      r.pair_id, r.outcome, r.resolved, r.lots::text, r.cash_unit::text, r.backing_share::text, r.cost::text, r.payout::text, r.fee::text, r.product,
+      r.detail, r.created_update_id AS signature, r.created_offset::text AS seq, r.created_ts_sec::text AS ts_sec, m.symbol, m.cadence_sec, m.basis,
+      m.expiry_sec::text, m.state, m.winner, m.void_reason, m.void_detail, m.resolved_ts_sec::text, m.event_question, m.event_answer
+    FROM idx_publications p
+      JOIN idx_receipts r ON r.owner_party = p.owner_party AND r.market_key = p.market_key AND r.pair_id = p.pair_id AND r.product = p.product
+        AND r.outcome = p.outcome AND r.lots = p.lots AND r.backing_share = p.backing_share
+      LEFT JOIN idx_markets m ON m.market = r.market
+    WHERE p.product IS NOT NULL AND r.created_ts_sec >= ${q.sinceSec} AND r.created_ts_sec < ${q.untilSec}
+    ORDER BY p.publication_cid, r.created_offset LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
 }
 
 /** Complete-set mints and merges: none exist on Canton (a pair is minted inside the accept), so the scan is empty. */

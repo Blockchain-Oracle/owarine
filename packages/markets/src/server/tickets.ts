@@ -159,7 +159,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   }
 
   /** One seat command, journaled first, recovered by its id: the shape `writes.ts` gives accepts and claims. */
-  async function runCommand(actor: { party: Party; leaseId: string }, intent: SeatIntent, journalId: string, plan: (snap: TicketSeatSnapshot) => Plan | Promise<Plan>): Promise<TicketWriteReply> {
+  async function runCommand(actor: { party: Party; leaseId: string }, intent: Exclude<SeatIntent, "duel">, journalId: string, plan: (snap: TicketSeatSnapshot) => Plan | Promise<Plan>): Promise<TicketWriteReply> {
     const commandId = seatCommandId(intent, journalId);
     let ctx: RejectionContext = { step: intent === "agent" ? "accept" : intent };
     try {

@@ -10,7 +10,7 @@
  * Daml-LF JSON: Int arrives as a decimal string, Time as ISO-8601 (microseconds), an enum as its constructor name, a
  * variant as `{tag, value}`, an Optional as null or the value, a tuple as `{_1, _2, …}`.
  */
-import type { IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxUpdate } from "@agari/db";
+import type { IdxAttestationEvidence, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxReceiptDetail, IdxUpdate } from "@agari/db";
 import type { CreatedEvent, Event, ExercisedEvent, JsTransaction } from "@agari/ledger";
 
 type Rec = Record<string, unknown>;
@@ -86,6 +86,23 @@ function voidDetail(v: unknown): string | null {
   const r = v as { tag?: string; value?: { slot?: string } };
   return `${r.tag ?? "Void"}:${r.value?.slot ?? "?"}`;
 }
+
+function attestationEvidence(v: unknown): IdxAttestationEvidence[] {
+  return (Array.isArray(v) ? v : []).map((e: Rec) => ({
+    attestor: str(e.attestor), answer: e.answer === true, attestedAtSec: isoSec(e.attestedAt), statementHash: str(e.statementHash), attestationCid: str(e.attestationCid),
+  }));
+}
+
+function receiptDetail(v: unknown): IdxReceiptDetail | null {
+  if (v === null || v === undefined) return null;
+  const d = v as Rec;
+  return {
+    reserveId: str(d.reserveId), marketIds: Array.isArray(d.marketIds) ? d.marketIds.map(str) : [], pick: str(d.pick), stake: str(d.stake),
+    toReserve: str(d.toReserve), result: str(d.result),
+  };
+}
+
+const optText = (v: unknown): string | null => (v === null || v === undefined ? null : str(v));
 
 type Node = { nodeId: number; created?: CreatedEvent; exercised?: ExercisedEvent; archived?: { contractId: string; templateId: string; packageName: string } };
 
@@ -237,7 +254,27 @@ function createdFacts(
     case "PM.Publication:Publication":
       return [{
         kind: "publication", contractId: cid, owner: str(a.owner), handle: str(a.handle), marketKey: str(a.marketId), pairId: str(a.pairId),
-        outcome: side(a.outcome), lots: str(a.lots), backingShare: str(a.backingShare),
+        outcome: side(a.outcome), lots: str(a.lots), backingShare: str(a.backingShare), product: optText(a.product),
+      }];
+    case "PM.Publication:SettlementReceipt":
+      return [{
+        kind: "receipt", contractId: cid, owner: str(a.owner), marketKey: str(a.marketId), pairId: str(a.pairId), outcome: side(a.outcome),
+        resolved: a.resolved === null || a.resolved === undefined ? null : side(a.resolved), lots: str(a.lots), cashUnit: str(a.cashUnit),
+        backingShare: str(a.backingShare), cost: str(a.cost), payout: str(a.payout), fee: str(a.fee), product: optText(a.product), detail: receiptDetail(a.detail),
+      }];
+    case "PM.Event:EventTerms":
+      return [{ kind: "event-terms", contractId: cid, termsCid: str(a.termsCid), question: str(a.question), attestors: parties(a.attestors), quorum: int(a.quorum) }];
+    case "PM.Event:EventState":
+      return [{ kind: "event-state", contractId: cid, termsCid: str(a.termsCid), live: true }];
+    case "PM.Event:EventAttestation":
+      return [{
+        kind: "event-attestation", contractId: cid, marketKey: str(a.marketId), attestor: str(a.attestor), answer: a.answer === true,
+        attestedAtSec: isoSec(a.attestedAt), statementHash: str(a.statementHash),
+      }];
+    case "PM.Event:EventVerdict":
+      return [{
+        kind: "event-verdict", contractId: cid, termsCid: str(a.termsCid), answer: a.answer === null || a.answer === undefined ? null : a.answer === true,
+        voidDetail: voidDetail(a.voidReason), attestations: attestationEvidence(a.attestations),
       }];
     default:
       void cashBy;
@@ -276,6 +313,12 @@ function exercisedFacts(
       return x.consuming ? [{ kind: "price-retired", contractId: cid }] : [];
     case "PM.Publication:Publication":
       return x.consuming ? [{ kind: "publication-archived", contractId: cid }] : [];
+    case "PM.Publication:SettlementReceipt":
+      return x.consuming ? [{ kind: "receipt-dismissed", contractId: cid }] : [];
+    case "PM.Event:EventState":
+      return x.consuming ? [{ kind: "event-state", contractId: cid, termsCid: "", live: false }] : [];
+    case "PM.Event:EventAttestation":
+      return x.consuming ? [{ kind: "event-attestation-retired", contractId: cid }] : [];
     case "PM.Quote:Quote":
     case "PM.Quote:BuyQuote": {
       if (!x.consuming) return [];

@@ -18,6 +18,6 @@ export async function startSeedMaker(deps: VenueDeps, board: LadderBoard = creat
     deps.log("VENUE_PARTY and the parties file are missing: the pricer has no venue to read");
     return { stop: () => {}, board };
   }
-  const { stop } = startPricer({ venue: session, spot: deps.spot, board, log: deps.log, settings: readPricerSettings() });
+  const { stop } = startPricer({ venue: session, spot: deps.spot, board, log: deps.log, settings: readPricerSettings(), halts: () => deps.halts.board() });
   return { stop, board };
 }

@@ -11,6 +11,7 @@
 import { PM, packageId } from "@daml.js/abu-pm-main";
 import * as Tickets from "@daml.js/abu-pm-tickets";
 import * as Agents from "@daml.js/abu-pm-agents";
+import * as Games from "@daml.js/abu-pm-games";
 
 export { PM, packageId };
 
@@ -79,8 +80,8 @@ export const TICKET_TEMPLATE_IDS = {
 export type TicketTemplateName = keyof typeof TICKET_TEMPLATE_IDS;
 
 /**
- * The abu-pm-agents package (C8f): grants' desk, the strategy registry and the agent desk. A third namespace beside
- * `PM` and `Tickets`, since it too declares modules under `PM.*`.
+ * The abu-pm-agents package (C8f): grants' desk, the strategy registry and the agent desk. A fourth namespace beside
+ * `PM`, `Tickets` and `Games`, since it too declares modules under `PM.*`.
  *
  *   import { Agents, AGENT_TEMPLATE_IDS } from "@agari/daml";
  *   Agents.PM.Agents.Desk.DeskMandate.templateId  // "#abu-pm-agents:PM.Agents.Desk:DeskMandate"
@@ -109,3 +110,27 @@ export const AGENT_TEMPLATE_IDS = {
 } as const;
 
 export type AgentTemplateName = keyof typeof AGENT_TEMPLATE_IDS;
+
+/**
+ * The abu-pm-games package (C9): the duel arena (commit-reveal checked on the ledger with `DA.Text.sha256`), the
+ * match's record of each seat's call, and the season prize pool. A third namespace beside `PM` and `Tickets`.
+ *
+ *   import { Games, GAMES_TEMPLATE_IDS } from "@agari/daml";
+ *   Games.PM.Games.Arena.DuelMatch.templateId  // "#abu-pm-games:PM.Games.Arena:DuelMatch"
+ */
+export { Games };
+
+export const GAMES_PACKAGE_NAME = "abu-pm-games";
+
+const G = Games.PM.Games;
+
+/** Package-name template ids of abu-pm-games, kept apart from `TEMPLATE_IDS` so nothing that walks those changes. */
+export const GAMES_TEMPLATE_IDS = {
+  ArenaTerms: G.Arena.ArenaTerms.templateId,
+  DuelOpen: G.Arena.DuelOpen.templateId,
+  DuelMatch: G.Arena.DuelMatch.templateId,
+  DuelResult: G.Arena.DuelResult.templateId,
+  SeasonPool: G.Season.SeasonPool.templateId,
+} as const;
+
+export type GamesTemplateName = keyof typeof GAMES_TEMPLATE_IDS;

@@ -216,6 +216,10 @@ function Match({
 /**
  * The way back into a seat from a browser whose key the entry did not name.
  *
+ * On Canton the room never asks for it: the seat key is the only key, and no agent is named, so the room admits the
+ * seat's own socket. The screen stays for the reference's `wrong-key` answer, and its one action is refused by the
+ * write lane with that reason.
+ *
  * The arena admits one agent per seat per match, and the room now checks a socket's key against it. So a
  * player on a second device, or one whose IndexedDB was cleared mid-duel, is not locked out: their wallet
  * names this browser's key with `authorizeAgent` — one transaction, this match only — and the room is asked
@@ -252,7 +256,7 @@ function Rekey({ matchId, room, wallet }: { matchId: Hash32; room: ReturnType<ty
         </button>
       )}
       <p className="du-foot">{words.note}</p>
-      {refusal && <RefusalPlate diagnosis={refusal.diagnosis} gasShort={refusal.gasShort} wallet={wallet as Address | null} />}
+      {refusal && <RefusalPlate diagnosis={refusal.diagnosis} />}
     </div>
   );
 }

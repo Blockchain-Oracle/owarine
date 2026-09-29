@@ -82,7 +82,7 @@ export const wireMatchStateSchema = z.discriminatedUnion("phase", [
   z.object({ phase: z.literal("finalized"), ...identity, outcome: wireOutcomeSchema, receipts: z.array(wireReceiptSchema).max(10) }),
   z.object({ phase: z.literal("cancelled"), ...entry }),
   z.object({ phase: z.literal("expired"), ...entry }),
-  z.object({ phase: z.literal("refunded"), ...identity, reason: z.enum(["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete"]) }),
+  z.object({ phase: z.literal("refunded"), ...identity, reason: z.enum(["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete", "stale-settlement"]) }),
   z.object({ phase: z.literal("forfeited"), ...identity, incomplete: z.array(addressSchema).max(2) }),
 ]);
 

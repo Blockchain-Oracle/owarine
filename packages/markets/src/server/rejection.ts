@@ -98,6 +98,27 @@ const BY_ERROR_ID: Record<string, DiagnosisKind> = {
   "abu-pm/bad-config": "invalid-price",
   "abu-pm/bad-operator": "grant-refused",
   "abu-pm/grant-expiry": "grant-refused",
+  // C9b: the duel arena (abu-pm-games).
+  "abu-pm/stake-above-cap": "reserve-cap",
+  "abu-pm/unknown-tier": "contract-revert",
+  "abu-pm/self-duel": "contract-revert",
+  "abu-pm/bad-match-id": "contract-revert",
+  "abu-pm/bad-deck-size": "contract-revert",
+  "abu-pm/bad-commitment": "contract-revert",
+  "abu-pm/bad-seeds": "contract-revert",
+  "abu-pm/not-a-party": "contract-revert",
+  "abu-pm/not-a-player": "contract-revert",
+  "abu-pm/not-your-card": "contract-revert",
+  "abu-pm/foreign-leg": "contract-revert",
+  "abu-pm/deck-mismatch": "contract-revert",
+  "abu-pm/duplicate-card": "contract-revert",
+  "abu-pm/bad-card": "invalid-price",
+  "abu-pm/wrong-status": "market-not-trading",
+  "abu-pm/card-too-late": "market-not-trading",
+  "abu-pm/already-picked": "already-claimed",
+  "abu-pm/already-scored": "already-claimed",
+  "abu-pm/cards-outstanding": "not-settled",
+  "abu-pm/no-pick": "not-settled",
 };
 
 const NOT_DEPLOYED_CODES = new Set(["PACKAGE_NAMES_NOT_FOUND", "PACKAGE_NOT_FOUND", "TEMPLATES_OR_INTERFACES_NOT_FOUND", "NO_TEMPLATES_OR_INTERFACES_FOR_PACKAGE_NAME"]);

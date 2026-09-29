@@ -10,14 +10,16 @@
  *   4. (C8c) uploads abu-pm-tickets and creates the ticket reserves: per reserve (range, parlay, boost) a
  *      `NavStatement` (auditor-visible) and a `RiskBook`, one `EarnDesk`, and seeds each reserve from the LP party
  *      (`--reserve-seed` credits in 4 supplies, then the first `Earn_PublishNav`),
- *   5. (C8f) uploads abu-pm-agents (grants' desk, the strategy registry, the agent desk); the venue's per-seat offers
+ *   5. (C9b) uploads abu-pm-games and creates the duel arena (`ArenaTerms`, the reference's stake tiers) and a funded
+ *      season prize pool (`bootstrap-games.ts`; `--no-games` skips it),
+ *   6. (C8f) uploads abu-pm-agents (grants' desk, the strategy registry, the agent desk); the venue's per-seat offers
  *      are created on demand by ops (`/internal/agents/enrol`), so nothing else is bootstrapped for it,
- *   6. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
+ *   7. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
  *
  *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
- *     [--reserve-seed 10000] [--no-tickets] [--agents-dar path] [--no-agents] [--fresh]
+ *     [--reserve-seed 10000] [--no-tickets] [--no-games] [--agents-dar path] [--no-agents] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -27,10 +29,12 @@ import {
   attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
   SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS, type AttestedSource,
 } from "@agari/core/market";
+import { GAP_CADENCE_SEC } from "@agari/core/types";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
 import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
+import { bootstrapGames } from "./bootstrap-games";
 
 const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs against an unauthenticated local sandbox only");
@@ -148,7 +152,11 @@ const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
  *   basket    the five PreStocks baskets, 60 m, on their index (S19)
  *   valuation Pyth valuation indices (S20): only with `--lanes valuation`, like the reference's init script, which
  *             refuses to register while the key is not entitled ("no dead lane is ever shown")
- * The Monday Gap is not bootstrapped yet: engine 0.4.0 lists it through `Series_OpenWindowSpan` (K-030), once the roller opens Gap lanes with it.
+ *   gap       the Monday Gap (C6d, engine 0.4.0): LAUNCH_TICKERS × one `<T>-gap` Series each (the reference's nine, key
+ *             `TSLA-gap`), on the same dated versions as the ticker's Regular lanes with the Gap rule of the reference's
+ *             `policyVersions(…, "gap")`: the Friday print is admitted until the Sunday lock (`openAdmissionSec` −1). The
+ *             cadence is a week (`GAP_CADENCE_SEC`) and only names the lane: the roller opens each Window through
+ *             `Series_OpenWindowSpan` with its own Friday close, Sunday 20:00 ET lock and Monday open (`gapWindows`).
  */
 function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
   const out: LaneSpec[] = [];
@@ -168,6 +176,17 @@ function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
       const xstock = TICKERS[symbol].xstock!;
       const from = isoSec(SOURCES.tokenLane.versions[0]!.validFrom);
       for (const cadenceSec of REGULAR_CADENCES_SEC) lane(xstock.symbol, laneKey(symbol, "token", cadenceSec), cadenceSec, [attested("switchboard", xstock.surgeSymbol, from, null)]);
+    }
+  }
+  if (families.has("gap")) {
+    for (const symbol of LAUNCH_TICKERS) {
+      const row = SOURCES.tickers[symbol];
+      if (!row) continue;
+      const versions = row.versions.map((v) => ({
+        ...attested(v.primary, v.primary === "pyth" ? row.pythFeedId! : row.redstoneFeedId!, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null),
+        openAdmissionSec: -1,
+      }));
+      out.push({ seriesKey: laneKey(symbol, "gap", GAP_CADENCE_SEC), symbol, cadenceSec: GAP_CADENCE_SEC, lockLeadSec: 0, versions });
     }
   }
   if (families.has("preipo")) for (const symbol of PRE_IPO_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("prestocks", symbol, PRESTOCKS_FROM_SEC, null)]);
@@ -221,8 +240,8 @@ async function main(): Promise<void> {
   }
   const haveSeries = new Set(pick(acs, TEMPLATE_IDS.Series, decodeSeries).map((s) => s.data.seriesKey));
   const nowSec = Math.floor(Date.now() / 1000);
-  // `--lanes crypto,regular,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
-  const families = new Set(arg("--lanes", "crypto,regular,token,preipo,basket").split(",").map((s) => s.trim()));
+  // `--lanes crypto,regular,gap,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
+  const families = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
   const lanes = [...(families.has("crypto") ? cryptoLanes(nowSec) : []), ...equityLanes(families)];
   for (const lane of lanes) {
     if (haveSeries.has(lane.seriesKey)) continue;
@@ -245,6 +264,7 @@ async function main(): Promise<void> {
     await client.uploadDar(readFileSync(AGENTS_DAR));
     log(`uploaded ${AGENTS_DAR.split("/").slice(-1)[0]}`);
   }
+  if (!flag("--no-games")) await bootstrapGames({ client, venue: vs, run, log });
 
   const file: PartiesFile = { network: "local", createdAtMs: Date.now(), parties, users, policyVersion: POLICY_VERSION };
   mkdirSync(dirname(path), { recursive: true });

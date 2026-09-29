@@ -187,7 +187,8 @@ export function createSeatWriter(deps: SeatWriteDeps) {
     return state === "unknown" ? { kind: "unknown" as const, diagnosis: d } : { kind: "refused" as const, diagnosis: d };
   }
 
-  async function accept(actor: SeatActor, o: { journalId: string; quoteCid: string }): Promise<AcceptResult> {
+  /** `beneficiaryRef` tags the leg (a duel pick's `duel:<arena>:<match>`, C9b); an ordinary call carries none. */
+  async function accept(actor: SeatActor, o: { journalId: string; quoteCid: string; beneficiaryRef?: string }): Promise<AcceptResult> {
     const commandId = seatCommandId("accept", o.journalId);
     try {
       const prior = await owned(commandId, actor);
@@ -208,7 +209,7 @@ export function createSeatWriter(deps: SeatWriteDeps) {
       const acceptWith = async (cash: readonly { cid: string; amount: bigint }[]) => {
         const cashCids = selectCash(cash, cost);
         if (!cashCids) throw refuse("insufficient-collateral", `the seat holds ${cash.reduce((s, c) => s + c.amount, 0n)} and the call costs ${cost}`);
-        const command: Command = { ExerciseCommand: { templateId: TEMPLATE_IDS.Quote, contractId: quote.cid, choice: "Quote_Accept", choiceArgument: { cash: cashCids, beneficiaryRef: null } } };
+        const command: Command = { ExerciseCommand: { templateId: TEMPLATE_IDS.Quote, contractId: quote.cid, choice: "Quote_Accept", choiceArgument: { cash: cashCids, beneficiaryRef: o.beneficiaryRef ?? null } } };
         return submit(actor, commandId, [command], [], { step: "accept", quoteCid: quote.cid, cashCids });
       };
       let result = await acceptWith(snap.cash);

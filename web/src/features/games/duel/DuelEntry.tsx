@@ -4,12 +4,9 @@ import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@agari/
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { useArenaState, useBalanceSheet } from "@agari/markets/react";
-import { SOL_FAUCETS } from "@agari/core/constants";
 import { useVenue } from "@/features/markets";
 import { useWalletSession } from "@/lib/wallet-session";
 import { DUEL } from "./copy";
-import { useArenaGas } from "./useArenaGas";
-import { useGameSponsor } from "./useGameSponsor";
 import { waitingIn, type RoomOccupancy } from "./useRoomOccupancy";
 
 export interface DuelEntryProps {
@@ -37,17 +34,14 @@ export interface DuelEntryProps {
  * actually prices, and the amounts quoted here are **the contract's**, not the table's — the table in
  * core says what was asked for, the arena says what it will take, and a screen has to quote the
  * second. The wallet's own balance is compared to that pot, so "not enough" is answered here rather
- * than by a revert. And the gas line names the payer as a fact of this deployment, read before the
- * prompt: the sponsor when one is configured and funded, the player's own STT otherwise.
+ * than by a refusal. And the payer is named before anything is asked of the seat: on Canton there is no network fee
+ * at all, because the venue submits every ledger write the duel makes.
  */
 export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelEntryProps) {
   const { address } = useWalletSession();
   const { boot } = useVenue();
   const arena = useArenaState();
   const sheet = useBalanceSheet(address);
-  const { gas, recheck } = useArenaGas();
-  // Who pays the picks' gas, read before anything is signed — doc 04's "show payer before asking for a signature".
-  const sponsor = useGameSponsor();
 
   const tier = stakeTier(tierId);
   const state = arena && isOk(arena) ? arena.value : null;
@@ -71,15 +65,8 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
   /** Never a guessed decimals: without the boot fact an amount is a dash, not a wrong number. */
   const money = (base: bigint | null) => (base === null || decimals === null ? "—" : formatBaseUnits(base, decimals, { maxDp: 2, minDp: 0 }));
 
-  /**
-   * An empty gas tank blocks the search itself.
-   *
-   * Not a warning beside an enabled button: every step of a duel — the creation, the join, each pick —
-   * is a transaction this wallet signs and funds, so a player with no STT cannot complete one, and
-   * letting them queue costs a real opponent a real pairing.
-   */
-  const gasShort = gas.kind === "short";
-  const blocked = paused || notDeployed || !enabled || short || !roomOpen || gasShort;
+  // A pot the seat cannot cover blocks the search itself: letting it queue would cost a real opponent a real pairing.
+  const blocked = paused || notDeployed || !enabled || short || !roomOpen;
 
   return (
     <section className="du-entry" aria-label={DUEL.entry.tier}>
@@ -110,7 +97,7 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
         <ul className="du-cost-list">
           <li>{tier.potUnits === 0 ? DUEL.entry.costNoPot : DUEL.entry.costPot(money(potBase), symbol)}</li>
           <li>{DUEL.entry.costCards(money(capBase), symbol)}</li>
-          <li>{sponsor.ready ? DUEL.entry.costGasSponsored : DUEL.entry.costGas}</li>
+          <li>{DUEL.entry.costFee}</li>
         </ul>
       </div>
 
@@ -118,24 +105,6 @@ export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelE
       {paused && <p className="du-refusal">{DUEL.entry.paused}</p>}
       {!paused && !notDeployed && !enabled && <p className="du-refusal">{DUEL.entry.tierDisabled}</p>}
       {short && <p className="du-refusal">{DUEL.entry.balanceShort(money(potBase), money(spendable), symbol)}</p>}
-      {gasShort && (
-        <div className="du-refusal" role="status">
-          <p className="du-body">{sponsor.ready ? DUEL.entry.gasShortSponsored : DUEL.entry.gasShort}</p>
-          <ul className="du-faucets">
-            {SOL_FAUCETS.map((faucet) => (
-              <li key={faucet.url}>
-                <a href={faucet.url} target="_blank" rel="noreferrer">
-                  {faucet.name} →
-                </a>
-              </li>
-            ))}
-          </ul>
-          <button type="button" className="du-quiet" onClick={() => void recheck()}>
-            {DUEL.entry.gasRecheck}
-          </button>
-        </div>
-      )}
-
       <button type="button" className="du-cta" disabled={blocked} onClick={() => onFind(tier.mode, tierId)}>
         {roomOpen ? DUEL.entry.find : DUEL.entry.waitingRoom}
       </button>

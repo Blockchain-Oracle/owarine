@@ -15,6 +15,7 @@ import { isSignature, type Address } from "@agari/core/types";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
 import { resolveArenaDeployment } from "@agari/markets/games";
+import { seatServer } from "@/lib/ledger.server";
 
 /**
  * Minting the duel room's credential — server only. Nothing here may be imported by a component.
@@ -62,8 +63,10 @@ function grant(claims: RoomTokenClaims): RoomTokenGrant {
 /** The arena this deployment's rooms are about, or null where none is deployed. */
 export async function roomArena(): Promise<{ chainId: number; arena: Address } | null> {
   const env = parseMarketsEnv();
-  // The deployment is a PDA whose existence is a chain read, so the markets runtime has to be up before it is asked.
   ensureMarkets(env);
+  // The arena is ops' desk's read of `ArenaTerms`; the seat tier registers that source when it is built, so it is
+  // built first (without it the read falls back to our own routes, which this server cannot call over loopback).
+  seatServer();
   const deployment = await resolveArenaDeployment(env);
   return deployment ? { chainId: deployment.chainId, arena: deployment.gameArena } : null;
 }

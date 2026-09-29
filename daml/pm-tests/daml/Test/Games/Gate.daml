@@ -1,0 +1,144 @@
+-- | The duel money gate, second half (C9b): what the ops settler and the
+-- seat routes rely on when they drive `abu-pm-games` on a real ledger.
+--
+--   * settle once: a pick is scored once, a pot is awarded once, and a
+--     decided match cannot be refunded or re-decided;
+--   * a mismatched reveal changes nothing, and the operator's failure to
+--     reveal refunds both players in full (nobody forfeits to the venue);
+--   * a free duel (no side pot) runs end to end with no cash escrowed;
+--   * a pick must be the player's own leg on that card, tagged for this
+--     match, within the tier's per-card cap, once per card.
+--
+-- Every money step runs under `step`, so value is conserved throughout.
+module Test.Games.Gate where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Games.Arena
+import PM.Quote
+import PM.Types
+import Test.Games.Fixture
+import Test.Setup
+
+-- Scored once, finalized once; the decided match is gone, so neither a
+-- second finalize nor a refund can touch the pot again.
+testSettleOnce = script do
+  g <- mkGames
+  let w = g.w
+  o <- step w pot (openDuel g "once" [g.win0])
+  m <- step w pot (joinDuel g o)
+  m <- step w 0 (reveal g m [g.win0])
+  (m, a0) <- step w 1000 (pick g "once" m w.alice 0 g.win0 SideUp 400)
+  (m, b0) <- step w 1000 (pick g "once" m w.bob 0 g.win0 SideDown 600)
+  r0 <- step w 0 (resolveAt w g.win0 g.open0 (px + 1))
+  step w 0 (settleLegs g [a0, b0] r0)
+  -- alice scores her own pick; nobody scores it again
+  d0 <- disclosureOf w.venue r0
+  m <- step w 0 (submit (actAs w.alice <> disclose d0) do exerciseCmd m Duel_Score with actor = w.alice; items = [ScoreItem with seat = 0; cardIndex = 0; resolutionCid = r0])
+  trySubmit w.venue (exerciseCmd m Duel_Score with actor = w.venue; items = [ScoreItem with seat = 0; cardIndex = 0; resolutionCid = r0])
+    >>= refusedWith (refusal "already-scored")
+  -- nor finalizes before bob's pick is scored
+  trySubmit w.venue (exerciseCmd m Duel_Finalize with actor = w.venue) >>= refusedWith (refusal "cards-outstanding")
+  m <- step w 0 (score g m [(1, 0, r0)])
+  r <- step w 0 (submit w.venue do exerciseCmd m Duel_Finalize with actor = w.venue)
+  Some res <- queryContractId w.venue r
+  res.outcome === Won w.alice
+  (res.toCreator, res.toChallenger) === (2 * pot, 0)
+  aliceAfter <- cashOf w.alice
+  bobAfter <- cashOf w.bob
+  -- the match is consumed: a second finalize, a stale refund and a lock all fail
+  trySubmit w.venue (exerciseCmd m Duel_Finalize with actor = w.venue) >>= fails
+  at (plus g.win0.t.refundAfter 1)
+  trySubmit w.bob (exerciseCmd m Duel_RefundStale with actor = w.bob) >>= fails
+  trySubmit w.bob (exerciseCmd m Duel_Lock with actor = w.bob) >>= fails
+  cashOf w.alice >>= (=== aliceAfter)
+  cashOf w.bob >>= (=== bobAfter)
+  query @DuelMatch w.venue >>= (=== []) . map fst
+
+-- A reveal that does not reproduce the commitment is refused and leaves
+-- the match exactly as it was; when the operator never opens the deck,
+-- both players get their whole pot back and neither is marked absent.
+testRevealMismatchRefunds = script do
+  g <- mkGames
+  let w = g.w
+  aliceStart <- cashOf w.alice
+  bobStart <- cashOf w.bob
+  o <- step w pot (openDuel g "mm" [g.win0, g.win1])
+  m <- step w pot (joinDuel g o)
+  Some before <- queryContractId w.venue m
+  let pd = plus t0 250
+  tryReveal g m "not-the-seed" [g.win0, g.win1] pd >>= refusedWith (refusal "deck-mismatch")
+  tryReveal g m theSeed [g.win1, g.win0] pd >>= refusedWith (refusal "deck-mismatch")
+  tryReveal g m theSeed [g.win0, g.win2] pd >>= refusedWith (refusal "deck-mismatch")
+  Some after <- queryContractId w.venue m
+  after === before
+  after.status === Unrevealed
+  -- the players cannot pick an unopened deck
+  leg <- buyLeg g "mm" w.alice g.win0 SideUp 400 1 "mm-a"
+  tryRecord g m w.alice 0 leg >>= refusedWith (refusal "wrong-status")
+  at (plus before.revealDeadline 1)
+  rc <- step w 0 (submit w.bob do exerciseCmd m Duel_RefundUnrevealed with actor = w.bob)
+  Some res <- queryContractId w.bob rc
+  res.outcome === Refunded RevealUnavailable
+  (res.toCreator, res.toChallenger) === (pot, pot)
+  -- each got back exactly the pot they put in (alice also still holds her leg's cost as a leg)
+  cashOf w.alice >>= (=== aliceStart + pot)
+  cashOf w.bob >>= (=== bobStart + pot)
+  bucketOf w.alice "duel-refund" >>= (=== pot)
+  bucketOf w.bob "duel-refund" >>= (=== pot)
+
+-- The free tier escrows nothing: open and join take no cash, the match
+-- plays and finalizes, and no pot bucket is ever paid.
+testFreeDuel = script do
+  g <- mkGames
+  let w = g.w
+  o <- step w 0 (openDuelWith g "free" free (commitFor "free" [g.win0]) 1 60)
+  now <- getTime
+  (m, change) <- step w 0 (submit w.bob do exerciseCmd o Open_Join with cash = []; revealDeadline = plus now 60)
+  change === None
+  m <- step w 0 (reveal g m [g.win0])
+  (m, a0) <- step w 1000 (pick g "free" m w.alice 0 g.win0 SideUp 300)
+  (m, b0) <- step w 1000 (pick g "free" m w.bob 0 g.win0 SideDown 700)
+  r0 <- step w 0 (resolveAt w g.win0 g.open0 (px - 1))
+  step w 0 (settleLegs g [a0, b0] r0)
+  m <- step w 0 (score g m [(0, 0, r0), (1, 0, r0)])
+  res <- step w 0 (finalize g m)
+  res.outcome === Won w.bob
+  res.ranked === False
+  (res.toCreator, res.toChallenger) === (0, 0)
+  bucketOf w.alice "duel-pot" >>= (=== 0)
+  bucketOf w.bob "duel-pot" >>= (=== 0)
+
+-- A pick is the player's own leg on the card, tagged for this match, at
+-- most the tier's per-card cap, once per card per seat.
+testPickRules = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "rules" [g.win0, g.win1]
+  m <- joinDuel g o
+  m <- reveal g m [g.win0, g.win1]
+  -- untagged: an ordinary trade is not a duel pick
+  now <- getTime
+  q <- issue w g.win0 w.alice SideUp 400 1 0 (plus now 20) "plain"
+  c <- fund w w.alice (userStakeOf 1 400 g.win0.t.cashUnit)
+  (plain, _, _) <- submit w.alice do exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = None
+  tryRecord g m w.alice 0 plain >>= refusedWith (refusal "foreign-leg")
+  -- tagged for another match
+  other <- buyLeg g "elsewhere" w.alice g.win0 SideUp 400 1 "other"
+  tryRecord g m w.alice 0 other >>= refusedWith (refusal "foreign-leg")
+  -- the right tag on the wrong card
+  wrongCard <- buyLeg g "rules" w.alice g.win1 SideUp 400 1 "wrong-card"
+  tryRecord g m w.alice 0 wrongCard >>= refusedWith (refusal "foreign-leg")
+  -- bob cannot record alice's leg (he cannot even see it)
+  mine <- buyLeg g "rules" w.alice g.win0 SideUp 400 1 "mine"
+  tryRecord g m w.bob 0 mine >>= fails
+  -- above the tier's per-card cap (1000): 3 lots at 400 cost 1200
+  big <- buyLeg g "rules" w.alice g.win0 SideUp 400 3 "big"
+  tryRecord g m w.alice 0 big >>= refusedWith (refusal "stake-above-cap")
+  m <- tryRecord g m w.alice 0 mine >>= succeeded
+  again <- buyLeg g "rules" w.alice g.win0 SideDown 400 1 "again"
+  tryRecord g m w.alice 0 again >>= refusedWith (refusal "already-picked")
+  tryRecord g m w.alice 2 again >>= refusedWith (refusal "bad-card")
+  Some v <- queryContractId w.venue m
+  length v.picks === 1
+  v.status === Picking

@@ -290,6 +290,9 @@ importers:
       '@daml.js/abu-pm-agents':
         specifier: link:./generated/abu-pm-agents
         version: link:generated/abu-pm-agents
+      '@daml.js/abu-pm-games':
+        specifier: link:./generated/abu-pm-games
+        version: link:generated/abu-pm-games
       '@daml.js/abu-pm-main':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main

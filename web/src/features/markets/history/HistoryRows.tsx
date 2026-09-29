@@ -47,14 +47,23 @@ export function HistoryRows({ history, symbol }: HistoryRowsProps) {
           <ul className="bets-list">
             {pager.slice.map((round) => (
               <HistoryRow
-                key={`${round.source}:${round.marketId}`}
+                key={`${round.source}:${round.marketId}:${round.receipt?.product ? round.receipt.receiptIds[0] : ""}`}
                 round={round}
                 symbol={symbol}
                 nowMs={nowMs}
                 onReceipt={setReceiptFor}
                 onCrank={crank}
                 cranking={vaultWrite.busy === "vault-crank-settle"}
-                publish={round.source === "vault" ? undefined : <PublishCall marketId={round.marketId} address={address} source="receipt" />}
+                publish={
+                  round.source === "vault" ? undefined : (
+                    <PublishCall
+                      marketId={round.marketId}
+                      address={address}
+                      source="receipt"
+                      {...(round.receipt?.product ? { ticket: { receiptId: round.receipt.receiptIds[0]!, product: round.receipt.product } } : {})}
+                    />
+                  )
+                }
               />
             ))}
           </ul>

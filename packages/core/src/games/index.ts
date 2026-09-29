@@ -2,6 +2,7 @@ export * from "./achievements";
 export * from "./arena";
 export * from "./commitment";
 export * from "./deck";
+export * from "./duel-deck";
 export * from "./lifecycle";
 export * from "./limits";
 export * from "./lucky";

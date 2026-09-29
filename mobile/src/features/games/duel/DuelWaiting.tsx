@@ -3,7 +3,7 @@ import { useNowMs } from "@/components/data/useNowMs";
 import { DUEL } from "@/features/games/duel/copy";
 import type { DealingView } from "@/features/games/duel/useDuelRoom";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
-import { Body, DeckLine, Foot, Quiet, Refusal } from "./parts";
+import { Body, DeckLine, Foot, Refusal } from "./parts";
 
 /**
  * web's `DuelWaiting.tsx`: the two things a duel used to do silently — wait, and refuse. The countdown runs off the
@@ -38,15 +38,7 @@ export function DealingPlate({ dealing }: { dealing: DealingView }) {
   );
 }
 
-/**
- * Where web's `.du-faucets` sat: only the recheck, where the entry offers it. A seat pays no network fees, so there
- * is no faucet to send anyone to.
- */
-export function GasRoutes({ onRecheck }: { onRecheck?: () => void }) {
-  return onRecheck ? <Quiet label={DUEL.entry.gasRecheck} onPress={onRecheck} /> : null;
-}
-
-/** A refusal, with the write lane's own diagnosis. */
+/** A refusal, with the write lane's own diagnosis. The seat pays no network fee, so there is no faucet to offer. */
 export function RefusalPlate({ diagnosis }: { diagnosis: Diagnosis }) {
   return (
     <Refusal>

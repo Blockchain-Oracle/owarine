@@ -15,6 +15,8 @@ import { deckSupply } from "./deckmaster";
 import type { Address, Hash32 } from "@agari/core/types";
 import { readRatings } from "@agari/db";
 import { getArenaState } from "@agari/markets/games";
+import { toLedgerCommitment } from "@agari/core/games";
+import { currentArenaDesk } from "../arena-desk";
 import { WebSocket } from "ws";
 import type { RoomConnection } from "../game-room/hub";
 import type { Matchmaker, RoomContext } from "../game-room/handlers";
@@ -36,15 +38,10 @@ import { dealDeck, newMatchId, seedCommitment } from "./deckmaster";
  * A commitment is the first thing either player can act on, so nothing is published until the seeds are
  * in and the reveal is safe. Neither player, and not the server, can choose a seed after seeing another.
  *
- * **A queue entry is the client's, and only the client's.** The room used to put a player back in the
- * queue itself when a pairing failed, which read as a kindness and was three bugs. It re-queued the
- * player whose socket was in the middle of closing, so a ghost with no browser behind it was paired,
- * failed the seed window fifteen seconds later, and was paired again on the same tick — a loop the live
- * opponent could not escape (measured in `ops.log`, 2026-09-04, four pairings in thirty seconds). It
- * re-queued with the seed commitment the player had *already revealed*, so the server knew the next
- * match's seed before the ceremony began. And it moved a client's queue state without telling it, which
- * is the desync the whole screen was built to avoid. Now a dissolve is announced and nothing more: the
- * browser decides whether to search again, with a fresh seed, and the room learns of it the usual way.
+ * **A queue entry is the client's, and only the client's.** Re-queueing a player on a failed pairing was three
+ * bugs (a closing socket paired as a ghost, a seed already revealed reused, a client's queue state moved without
+ * telling it; `ops.log`, 2026-09-04). Now a dissolve is announced and nothing more: the browser decides whether to
+ * search again, with a fresh seed.
  */
 
 /** How long a paired player has to reveal the seed they committed to before the pairing is dissolved. */
@@ -52,10 +49,8 @@ const SEED_WINDOW_MS = 15_000;
 /**
  * How long a paired match waits for the venue to have dealable Windows.
  *
- * It needs one because Shannon's cadences lock together on aligned boundaries: for the last couple of
- * minutes of a cycle there is no deck to deal, and the honest answer to two players who have already
- * been matched is "the next Windows open shortly", not "the queue failed". Three minutes covers a 15m
- * boundary with room to spare; past that, something else is wrong and they should be told so.
+ * Cadences lock together on aligned boundaries, so for a couple of minutes a cycle has no deck to deal: two paired
+ * players are told "the next Windows open shortly", not "the queue failed". Past three minutes something else is wrong.
  */
 const DEAL_WINDOW_MS = 3 * 60_000;
 /** How often a queued player is told where their search has got to. */
@@ -76,14 +71,7 @@ interface Pairing {
   dealingSinceMs: number | null;
   /** The sweeper retries every tick; a deal that is still in flight must not be started twice. */
   dealing: boolean;
-  /**
-   * Set the moment this pairing is dissolved.
-   *
-   * A deal can be in flight for minutes while it waits on the venue, and it holds its own reference to
-   * the pairing. Without this flag a pairing killed at T+0 still committed its deck at T+29s and sent
-   * `deck.committed` to a browser that had moved on — which is how one player ended up looking at "open
-   * the match" for a match the other had never been told about.
-   */
+  /** Set the moment this pairing is dissolved: a deal still in flight must not commit a deck to a pairing that is gone. */
   cancelled: boolean;
   /** The supply reading the last hold was told about, so the lobby can count down rather than spin. */
   nextDeckInSec: number | null | undefined;
@@ -152,11 +140,16 @@ export function createMatchmaker(ctx: RoomContext): Matchmaker {
     if (gone(pairing)) return;
     if (!isOk(state) || !state.value) return dissolve(pairing, "the arena is unreadable right now");
 
+    const desk = currentArenaDesk();
+    const arena = desk ? await desk.state().catch(() => null) : null;
+    if (gone(pairing)) return;
+    if (!desk || !arena?.deployed) return dissolve(pairing, "the arena is not on this ledger");
     const seeds = pairing.players.map((player) => pairing.seeds.get(player.connection.id) as Hash32);
     const dealt = await dealDeck({
       matchId: pairing.matchId,
       chainId: ctx.chainId,
-      arena: ctx.arena,
+      arenaId: arena.arenaId,
+      policyVersion: arena.policyVersion,
       clientSeeds: seeds,
       params: state.value.params,
     }, ctx.log);
@@ -175,6 +168,11 @@ export function createMatchmaker(ctx: RoomContext): Matchmaker {
     for (const entry of pairing.players) pairingOf.delete(entry.connection.id);
     const commitment = { hash: dealt.deck.deckHash, size: dealt.deck.cards.length, policyVersion: dealt.deck.policyVersion };
     const players = { creator: creator.wallet, challenger: challenger.wallet };
+    // The desk holds what the creator's open needs (the seat route asks for it by match id, as the creator's lease).
+    desk.hold({
+      matchId: pairing.matchId, creator: creator.wallet, challenger: challenger.wallet, tierId: creator.tier, arenaId: arena.arenaId,
+      deckHash: toLedgerCommitment(dealt.deck.deckHash), deckSize: dealt.deck.cards.length, clientSeeds: seeds,
+    });
     pending.hold({ matchId: pairing.matchId, players, mode: stakeTier(creator.tier).mode, tier: creator.tier, commitment });
     for (const player of pairing.players) tell(player, { type: "deck.committed", matchId: pairing.matchId, commitment });
     ctx.log(`${pairing.matchId}: ${creator.wallet} vs ${challenger.wallet} · ${dealt.deck.cards.length} cards from the ${dealt.deck.lane} lane`);

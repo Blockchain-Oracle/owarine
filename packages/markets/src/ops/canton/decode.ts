@@ -83,6 +83,8 @@ export interface SeriesC {
   quorum: number;
   maxDeviationBps: number;
   policyVersions: PolicyVersionC[];
+  /** 0.4.0: the last opened Window's expiry; null on a Series that has opened none since 0.4.0 (the grid start of `nextIndex` then). */
+  lastExpirySec: number | null;
 }
 
 export interface TermsC {
@@ -252,8 +254,13 @@ export function decodeSeries(v: unknown): SeriesC {
     cadenceSec: small(r, "cadenceSec"), lockLeadSec: small(r, "lockLeadSec"), settleGraceSec: small(r, "settleGraceSec"),
     cashUnit: big(r, "cashUnit"), nextIndex: small(r, "nextIndex"), oracles: parties(r.oracles, "oracles"),
     quorum: small(r, "quorum"), maxDeviationBps: small(r, "maxDeviationBps"), policyVersions: versions.map(policyVersion),
+    lastExpirySec: optional(r.lastExpiry, (x) => timeSec(x, "lastExpiry")),
   };
 }
+
+/** Where the Series' next Window may start at the earliest (the engine's `openFloor`): the last expiry, else the grid start of `nextIndex`. */
+export const seriesOpenFloorSec = (s: Pick<SeriesC, "lastExpirySec" | "anchorSec" | "nextIndex" | "cadenceSec">): number =>
+  s.lastExpirySec ?? s.anchorSec + s.nextIndex * s.cadenceSec;
 
 export function decodeTerms(v: unknown): TermsC {
   const r = obj(v, "MarketTerms");
@@ -370,3 +377,6 @@ export const templateSuffix = (templateId: string): string => templateId.slice(t
 export function activeOf<T>(e: CreatedEvent, decode: (v: unknown) => T): Active<T> {
   return { cid: e.contractId, data: decode(e.createArgument), ...(e.createdEventBlob ? { createdEventBlob: e.createdEventBlob } : {}) };
 }
+
+/** The field readers, for `decode-event.ts` (0.4.0 `PM.Event`), which lives apart to keep this file short. */
+export const decodeParts = { obj, text, small, sec, optional, parties, voidReason };

@@ -10,7 +10,8 @@ import { replyWith, refusal, seatFromRequest } from "@/lib/seat.server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const INTENTS: SeatIntent[] = ["accept", "claim", "refund", "sell", "agent"];
+// A duel pick journals its accept and its record under one id: the record ("duel") is asked first, it is the later step.
+const INTENTS: SeatIntent[] = ["duel", "accept", "claim", "refund", "sell", "agent"];
 
 export async function GET(request: NextRequest, context: { params: Promise<{ commandId: string }> }) {
   const { commandId } = await context.params;

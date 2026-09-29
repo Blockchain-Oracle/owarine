@@ -1,7 +1,12 @@
 import "server-only";
 import { getDb } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
-import { createAgentsSeat, createDeskSeat, createOpsClient, createSeatLedger, createTicketSeat, type AgentsSeat, type DeskSeat, type OpsClient, type SeatLedger, type TicketSeat } from "@agari/markets/server";
+import { err, ok } from "@agari/core/schemas";
+import { registerArenaSource } from "@agari/markets/games";
+import {
+  createAgentsSeat, createDeskSeat, createGamesSeat, createOpsClient, createSeatLedger, createTicketSeat,
+  type AgentsSeat, type DeskSeat, type GamesSeat, type OpsClient, type SeatLedger, type TicketSeat,
+} from "@agari/markets/server";
 import { checkWebServerEnv, seatParties, type SeatParties, type WebServerEnv } from "./server-env";
 import { createSeatStore, type SeatStore } from "./seat-store.server";
 
@@ -20,6 +25,8 @@ export interface SeatServer {
   agents: AgentsSeat;
   /** The owner's side of the live desk (C8f). */
   desk: DeskSeat;
+  /** The seat's side of the duel (C9b): open, join, pick, cancel and the player's cranks. */
+  games: GamesSeat;
   ops: OpsClient;
   store: SeatStore;
   parties: SeatParties;
@@ -47,7 +54,24 @@ export function seatServer(): SeatServerState {
   const tickets = createTicketSeat({ client, venueParty: parties.venue!, journal: store.commands, fairTicks: () => ops.fairTicks() });
   const agents = createAgentsSeat({ client, venueParty: parties.venue!, agentRunner: parties.agentRunner, journal: store.commands, ops });
   const desk = createDeskSeat({ client, venueParty: parties.venue!, operator: parties.agentRunner, attestors: parties.oracles, journal: store.commands, ops });
-  state = { ok: true, server: { client, ledger, tickets, agents, desk, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
+  const games = createGamesSeat({ client, venueParty: parties.venue!, journal: store.commands, ledger, ops });
+  // The web server's own `@agari/markets/games` reads (the season page, the room token, the sponsor) go to ops' arena
+  // desk over the signed internal call, never to our own routes over loopback.
+  registerArenaSource({
+    state: async () => {
+      const r = await ops.gameState();
+      return r.ok ? ok(r.value, Date.now()) : err(r.diagnosis);
+    },
+    match: async (matchId) => {
+      const r = await ops.gameMatch(matchId);
+      return r.ok ? ok(r.value.view, Date.now()) : err(r.diagnosis);
+    },
+    season: async (seasonId) => {
+      const r = await ops.gameSeason(seasonId);
+      return r.ok ? ok(r.value.pool, Date.now()) : err(r.diagnosis);
+    },
+  });
+  state = { ok: true, server: { client, ledger, tickets, games, agents, desk, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
   return state;
 }
 

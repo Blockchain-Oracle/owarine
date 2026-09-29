@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
  * `pnpm codegen:daml`: rebuild the Daml workspace and regenerate the TypeScript bindings for abu-pm-main,
- * abu-pm-tickets (C8c) and abu-pm-agents (C8f) into packages/daml-clients/generated/. The output is committed; CI-style check:
+ * abu-pm-tickets (C8c), abu-pm-games (C9b) and abu-pm-agents (C8f) into packages/daml-clients/generated/. The output
+ * is committed; CI-style check:
  *
  *   pnpm codegen:daml && git diff --exit-code packages/daml-clients
  *
- * Steps: `dpm build --all` in daml/ -> `dpm codegen-js` on abu-pm-tickets' and abu-pm-agents' DARs (each carries
- * abu-pm-main as a data-dependency, same package id) into a temp dir -> keep only the packages the bindings import
- * (their `file:` dependency closure; codegen emits every stdlib module) -> rename `<name>-<version>` to a version-free
- * `<name>` (package name `@daml.js/<name>`) so a daml.yaml version bump never changes an import path. Nothing else in
- * the generated files is edited: abu-pm-tickets' and abu-pm-agents' own modules still
- * `require("@daml.js/abu-pm-main-<version>")`, which packages/daml-clients/package.json aliases to the same
- * generated/abu-pm-main directory.
+ * Steps: `dpm build --all` in daml/ -> `dpm codegen-js` on the abu-pm-tickets, abu-pm-games and abu-pm-agents DARs (each
+ * carries abu-pm-main as a data-dependency, same package id) into a temp dir -> keep only the packages the bindings
+ * import (their `file:` dependency closure; codegen emits every stdlib module) -> rename `<name>-<version>` to a
+ * version-free `<name>` (package name `@daml.js/<name>`) so a daml.yaml version bump never changes an import path.
+ * Nothing else in the generated files is edited: their own modules still `require("@daml.js/abu-pm-main-<version>")`,
+ * which packages/daml-clients/package.json aliases to the same generated/abu-pm-main directory.
  *
  * Needs dpm (~/.dpm/bin) and a JDK 21 (JAVA_HOME; defaults to Homebrew's openjdk@21 when unset).
  */
@@ -27,10 +27,11 @@ const damlDir = join(repo, "daml");
 const outDir = join(pkgDir, "generated");
 const MAIN = "abu-pm-main";
 const TICKETS = "abu-pm-tickets";
+const GAMES = "abu-pm-games";
 const AGENTS = "abu-pm-agents";
-/** The packages generated from their own DARs; abu-pm-main comes along as their data-dependency. */
-const TOPS = [TICKETS, AGENTS];
-const RENAMED = [MAIN, ...TOPS];
+/** The packages whose bindings the app imports; each carries abu-pm-main as a data-dependency (same package id). */
+const ROOTS = [TICKETS, GAMES, AGENTS];
+const RENAMED = [MAIN, ...ROOTS];
 
 const env = { ...process.env, PATH: `${join(homedir(), ".dpm/bin")}:${process.env.PATH ?? ""}` };
 const brewJdk = "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home";
@@ -48,7 +49,7 @@ const versions = Object.fromEntries(RENAMED.map((n) => [n, versionOf(n)]));
 const versioned = (name) => `${name}-${versions[name]}`;
 
 run(["build", "--all"], damlDir);
-const dars = TOPS.map((name) => join(damlDir, name, ".daml/dist", `${versioned(name)}.dar`));
+const dars = ROOTS.map((name) => join(damlDir, name, ".daml/dist", `${versioned(name)}.dar`));
 const tmp = mkdtempSync(join(tmpdir(), "daml-codegen-"));
 try {
   run(["codegen-js", ...dars, "-o", tmp], join(damlDir, TICKETS));
@@ -61,12 +62,8 @@ try {
     const deps = JSON.parse(readFileSync(join(tmp, dir, "package.json"), "utf8")).dependencies ?? {};
     for (const spec of Object.values(deps)) if (spec.startsWith("file:../")) visit(spec.slice("file:../".length));
   };
-  for (const top of TOPS) {
-    const before = keep.size;
-    visit(versioned(top));
-    if (keep.size === before) throw new Error(`codegen produced no ${versioned(top)}`);
-  }
-  if (!keep.has(versioned(MAIN))) throw new Error(`${TOPS.map(versioned).join(", ")} do not depend on ${versioned(MAIN)}`);
+  for (const root of ROOTS) visit(versioned(root));
+  if (!keep.has(versioned(MAIN))) throw new Error(`${ROOTS.map(versioned).join(", ")} do not depend on ${versioned(MAIN)}`);
 
   rmSync(outDir, { recursive: true, force: true });
   for (const dir of readdirSync(tmp).filter((d) => keep.has(d)).sort()) {

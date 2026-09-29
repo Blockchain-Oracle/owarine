@@ -13,7 +13,9 @@ import {
   type LuckyDrawRow,
 } from "@agari/db";
 import { ensureMarkets, listWalletFills, marketsProvider } from "@agari/markets";
+import { bookedFrom } from "@agari/markets/server";
 import { marketsEnvFromProcess } from "@/features/session/sponsor.server";
+import { seatServer } from "@/lib/ledger.server";
 import type { LuckyBoardWire, LuckyHistoryWire, LuckyPlacedStatus, LuckyPlacedWire, LuckyRowWire } from "./lucky-wire";
 
 /**
@@ -42,9 +44,32 @@ function heldOn(ledger: MarketLedger, side: "up" | "down"): bigint {
   return side === "up" ? ledger.heldUpRaw : ledger.heldDownRaw;
 }
 
-/** What the wallet's fills for one transaction on one Window add up to, or null when the tape has none yet. */
+/**
+ * The placement as the ledger recorded it (C9b, parity L-66): the lane's `txHash` is a Canton update id, so the server
+ * reads that transaction as the seat's own party (the lease the draw's address holds) and books it from the created
+ * `Leg`, the same way the accept route does. Null when the seat tier is not configured or the lease has moved on.
+ */
+async function measureOnLedger(row: LuckyDrawRow, market: EventMarket, hash: string): Promise<Measured | null> {
+  const state = seatServer();
+  if (!state.ok) return null;
+  const lease = await state.server.store.byAddress(row.wallet).catch(() => null);
+  if (!lease) return null;
+  const filter = { filtersByParty: { [lease.party]: { cumulative: [{ identifierFilter: { WildcardFilter: { value: {} } } }] } }, verbose: true };
+  const tx = await state.server.client.updateById(hash, { transactionShape: "TRANSACTION_SHAPE_ACS_DELTA", eventFormat: filter }).catch(() => null);
+  if (!tx) return null;
+  try {
+    const booked = bookedFrom(tx, lease.party);
+    return booked.marketId === market.marketId && booked.side === row.side ? { costBase: booked.costBase, quantityRaw: booked.contractsRaw } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** What the wallet's fills for one transaction on one Window add up to, or null when neither the ledger nor the tape has it yet. */
 async function measureFill(row: LuckyDrawRow, market: EventMarket): Promise<Measured | null> {
   if (!row.txHash || !row.side) return null;
+  const onLedger = await measureOnLedger(row, market, row.txHash);
+  if (onLedger) return onLedger;
   const since = Math.floor((row.placedAtMs ?? row.createdAtMs) / 1_000) - FILL_LOOKBACK_SEC;
   const fills = await listWalletFills(row.wallet as Address, { pool: market.poolAddress, sinceSec: since });
   if (!isOk(fills)) return null;
@@ -134,9 +159,10 @@ export async function reconcileDraws(wallet: Address): Promise<void> {
       continue;
     }
 
+    // A seat's own rows are private (read only with its signed header), so the server may not see the tape: then no
+    // cash-out is known, and the verdict still comes from the Window's own settlement.
     const ledger = await ledgerOn(row, market);
-    if (!ledger) continue;
-    const cashedOut = heldOn(ledger, row.side) === 0n && ledger.proceedsBase > 0n;
+    const cashedOut = ledger !== null && heldOn(ledger, row.side) === 0n && ledger.proceedsBase > 0n;
     if (cashedOut) {
       await recordLuckyResult(row.drawId, "cashed-out");
       continue;

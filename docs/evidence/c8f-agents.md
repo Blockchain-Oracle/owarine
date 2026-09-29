@@ -20,6 +20,8 @@ Date: 2026-09-29 · lane C8f (`slice/C8f-agents-wire`) · decisions K-087 – K-
 - `dpm upgrade-check --both` abu-pm-agents 0.1.0 → 0.2.0: **passes**, two warnings (Subscription observers, DeskMandate precondition). 0.1.0 was never uploaded.
 - `pnpm typecheck` (markets, ops, web, mobile): clean. `pnpm invariants`: 0 errors, 1 warning (`Number(priceE8` in `desk/canton.ts`, ticks from a lot price). `pnpm test`: 228 files passed, 1,943 tests.
 
+After merging main (`dadd823`, games + Gap/events): `pnpm codegen:daml` regenerates all four packages with no diff; `dpm test` **170 scripts ok, 0 failed**; typecheck (daml, markets, ops, web, mobile) clean; invariants 0 errors; `pnpm test` 232 files passed, 1,971 tests.
+
 ## Drive: grant → runner places → settle → revoke returns budget
 
 Local sandbox (Canton 3.5.17, JSON API :7565), `bootstrap-local.ts --seats 2 --lanes crypto`, `drive/ops-local.ts` live on :8767, then

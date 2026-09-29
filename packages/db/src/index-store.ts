@@ -2,11 +2,11 @@
 export { applyFacts } from "./idx/apply";
 export { marketIdOfKey, seriesIdOfKey } from "./idx/ids";
 export { indexReader, type IdxFillQuery, type IdxMarketQuery, type IdxRow, type IndexReader } from "./idx/read";
-export type { IdxCursor, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxUpdate } from "./idx/types";
+export type { IdxAttestationEvidence, IdxCursor, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxReceiptDetail, IdxUpdate } from "./idx/types";
 export { indexWriter, offsetOf, type ApplyResult, type IndexWriter } from "./idx/write";
 export { resolutionsByMarket, type ProjectedResolution } from "./idx/read-resolutions";
 export { projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type VerifiedTemplate } from "./idx/read-verify";
-export { tapeActions, tapeFills, tapeMarkets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";
+export { tapeActions, tapeFills, tapeMarkets, tapeTickets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";
 export { proofArchives, proofPrints, proofWindow, type ProofArchiveRow, type ProofPrintRow, type ProofWindowRow } from "./idx/read-proof";
 export { publishedOn } from "./idx/read-publications";
 export { venueStats, type VenueStatsRow } from "./idx/read-venue-stats";

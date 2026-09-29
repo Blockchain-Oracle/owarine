@@ -16,8 +16,9 @@ export function appMarketId(damlMarketId: string): MarketId {
 /** A client journal id (a UUID) as the ledger `commandId` of one logical action: `<intent>:<uuid>`. */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** `agent`: the seat's own grant, registry and desk writes (C8f). */
-export type SeatIntent = "accept" | "sell" | "claim" | "refund" | "agent";
+/** `duel`: a seat's own choice on a duel (open, join, record a pick, a crank), C9b. `agent`: the seat's own grant,
+ * registry and desk writes (C8f). */
+export type SeatIntent = "accept" | "sell" | "claim" | "refund" | "duel" | "agent";
 
 export function isJournalId(value: unknown): value is string {
   return typeof value === "string" && UUID_RE.test(value);

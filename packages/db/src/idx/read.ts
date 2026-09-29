@@ -62,7 +62,8 @@ export function marketCols(sql: Sql) {
     (CASE WHEN m.participants >= ${k} THEN m.trade_count ELSE 0 END)::text AS trade_count,
     (CASE WHEN m.participants >= ${k} THEN m.last_price_ticks END) AS last_price_ticks,
     (CASE WHEN m.participants >= ${k} THEN m.last_trade_sec END)::text AS last_trade_sec,
-    s.lot_base::text, s.tick_base::text, COALESCE(s.cash_unit, m.cash_unit)::text AS cash_unit`;
+    s.lot_base::text, s.tick_base::text, COALESCE(s.cash_unit, m.cash_unit)::text AS cash_unit,
+    m.event_question, m.event_answer, m.event_verdict`;
 }
 
 /** `FillRow` columns over `idx_fills f` (the maker is the venue: a mint's counter-leg, or the buyer of a sale). */
@@ -93,7 +94,7 @@ export function indexReader(sql: Sql) {
     async fills(q: IdxFillQuery): Promise<IdxRow[]> {
       return sql`
         SELECT ${fillCols(sql, sql`COALESCE(p.owner_address, p.handle)`)}, p.handle FROM idx_publications p
-          JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2)
+          JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2) AND p.product IS NULL
         WHERE true ${q.market ? sql`AND p.market = ${q.market}` : sql``} ${q.book ? sql`AND f.terms_cid = ${q.book}` : sql``}
           ${q.sinceSec !== undefined ? sql`AND f.ts_sec >= ${q.sinceSec}` : sql``}
         ORDER BY f.ts_sec DESC, f.ledger_offset DESC LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
@@ -108,6 +109,24 @@ export function indexReader(sql: Sql) {
         FROM idx_legs l
         WHERE ${ownerIs(sql, "l", wallet)} AND NOT l.is_venue AND l.status IN ('settled', 'claimed', 'refunded_stale', 'closed_out')
         ORDER BY l.closed_offset DESC, l.leg_cid LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
+    },
+
+    /**
+     * A seat's settlement receipts (0.4.0, K-028/K-030): pair legs and tickets alike, newest first, with the Window's
+     * facts. `owner` matches the bound address or the party; `lease` (the web's seat lease) adds that party's receipts
+     * from the lease's start offset on, so a new visitor never sees the last one's (plan §4).
+     */
+    async walletReceipts(owner: string, q: { lease?: { party: string; fromOffset: number } | null; limit?: number } = {}): Promise<IdxRow[]> {
+      const lease = q.lease ?? null;
+      return sql`
+        SELECT r.receipt_cid, r.market, r.market_key, r.pair_id, r.outcome, r.resolved, r.lots::text, r.cash_unit::text, r.backing_share::text,
+          r.cost::text, r.payout::text, r.fee::text, r.product, r.detail, r.created_update_id AS signature, r.created_offset::text AS seq,
+          r.created_ts_sec::text AS ts_sec, m.symbol, m.cadence_sec, m.basis, m.expiry_sec::text, m.state, m.winner, m.void_reason, m.void_detail,
+          m.resolved_ts_sec::text, m.event_question, m.event_answer
+        FROM idx_receipts r LEFT JOIN idx_markets m ON m.market = r.market
+        WHERE NOT r.dismissed AND (${ownerIs(sql, "r", owner)}
+          ${lease ? sql`OR (r.owner_party = ${lease.party} AND r.created_offset >= ${lease.fromOffset})` : sql``})
+        ORDER BY r.created_offset DESC, r.receipt_cid LIMIT ${clamp(q.limit)}`;
     },
 
     /** Windows with their Series facts and prints (Masayume `listLive/PastBinaryMarkets`, `getBinaryMarket`). */
