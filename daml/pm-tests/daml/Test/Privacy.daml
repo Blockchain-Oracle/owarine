@@ -11,6 +11,7 @@ import PM.Money
 import PM.Oracle
 import PM.Publication
 import PM.Quote
+import PM.Reserve
 import PM.Series
 import PM.Types
 import Test.Setup
@@ -37,10 +38,15 @@ visibleCounts p = do
   n <- length <$> query @Publication p
   o <- length <$> query @AgentGrant p
   q <- length <$> query @GrantOffer p
+  r <- length <$> query @NavStatement p
+  s <- length <$> query @LpShare p
+  t <- length <$> query @SupplyQuote p
+  u <- length <$> query @WithdrawQuote p
   pure [ ("Series", a), ("MarketTerms", b), ("WindowState", c), ("OpenPrint", d)
        , ("Resolution", e), ("PriceQuote", f), ("VenueCash", g), ("VenueAccount", h)
        , ("VenueDesk", i), ("Quote", j), ("BuyQuote", k), ("Leg", l)
-       , ("NettedResidual", m), ("Publication", n), ("AgentGrant", o), ("GrantOffer", q) ]
+       , ("NettedResidual", m), ("Publication", n), ("AgentGrant", o), ("GrantOffer", q)
+       , ("NavStatement", r), ("LpShare", s), ("SupplyQuote", t), ("WithdrawQuote", u) ]
 
 -- A populated market with every template in play.
 populated : Script (World, ContractId Resolution)
@@ -67,6 +73,23 @@ populated = do
     exerciseCmd offer GrantOffer_Open with
       agent = w.auditor; caps = GrantCaps with maxStakePerTrade = 500; maxDailySpend = 500; maxPriceTicks = 0; maxOpenPositions = 5
       expiresAt = plus t0 86400; dayZero = t0; budget = 900; cash = [gc]
+  -- the reserve: Alice holds shares, Bob has an open supply quote, Alice
+  -- an open withdraw quote
+  nav0 <- submit w.venue do
+    createCmd NavStatement with
+      venue = w.venue; auditor = w.auditor; reserveId = "R"; seq = 0; asOf = t0; assets = 0; shares = 0
+  sq <- submit w.venue do
+    exerciseCmd nav0 Nav_IssueSupply with provider = w.alice; cashIn = 100; validUntil = plus now 20
+  sc <- fund w w.alice 100
+  (lp, _, _) <- submit w.alice do exerciseCmd sq Supply_Accept with cash = [sc]
+  nav1 <- submit w.venue do
+    exerciseCmd nav0 Nav_Publish with newAsOf = now; newAssets = 100; newShares = 100
+  _ <- submit w.venue do
+    exerciseCmd nav1 Nav_IssueSupply with provider = w.bob; cashIn = 50; validUntil = plus now 20
+  wsh <- shard w 40
+  _ <- submit w.venue do
+    exerciseCmd nav1 Nav_IssueWithdraw with
+      provider = w.alice; lpShareCid = lp; sharesIn = 40; shardCid = wsh; validUntil = plus now 20
   res <- resolveAt w win op px
   pure (w, res)
 
@@ -93,6 +116,10 @@ testUserSeesOnlyOwn = script do
   lookup "BuyQuote" aliceCounts === Some 1
   lookup "Publication" aliceCounts === Some 1
   lookup "VenueAccount" aliceCounts === Some 1
+  lookup "NavStatement" aliceCounts === Some 0
+  lookup "LpShare" aliceCounts === Some 1
+  lookup "SupplyQuote" aliceCounts === Some 0          -- Bob's open supply quote is invisible
+  lookup "WithdrawQuote" aliceCounts === Some 1
   legs <- query @Leg w.alice
   map (\(_, l) -> l.owner) legs === [w.alice]
   cash <- query @VenueCash w.alice
@@ -107,5 +134,15 @@ testUserSeesOnlyOwn = script do
   lookup "BuyQuote" bobCounts === Some 0
   lookup "VenueAccount" bobCounts === Some 0
   lookup "AgentGrant" bobCounts === Some 1
+  lookup "LpShare" bobCounts === Some 0
+  lookup "WithdrawQuote" bobCounts === Some 0
+  lookup "SupplyQuote" bobCounts === Some 1
+  lookup "NavStatement" bobCounts === Some 0
+  -- the auditor sees the reserve's statement, never a provider's position
+  auditorCounts <- visibleCounts w.auditor
+  lookup "NavStatement" auditorCounts === Some 1
+  lookup "LpShare" auditorCounts === Some 0
+  lookup "SupplyQuote" auditorCounts === Some 0
+  lookup "WithdrawQuote" auditorCounts === Some 0
   bobCash <- query @VenueCash w.bob
   all (\(_, c) -> c.owner == w.bob) bobCash === True
