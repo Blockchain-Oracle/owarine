@@ -1,165 +1,111 @@
 /**
- * The indexer's writer (plan §4 indexer steps 5–9): idempotent inserts keyed `(signature, outer_ix, inner_ix)`,
- * projections and the cursor in one DB transaction, `(market, seq)` gap reads, finality promotion, dropped-transaction
- * removal and Market rebuilds.
+ * The projector's writer: one DB transaction per ledger update holding the raw events, the projected rows and the
+ * cursor (plan: "the cursor advances in the same DB transaction as the writes"). An update at or below the cursor, or
+ * one already in `idx_updates`, is skipped whole, so a replay after a crash or a reconnect never duplicates a row.
  */
 import type postgres from "postgres";
 import { INDEX_TABLES } from "../schema-index";
-import { applyEvent } from "./apply";
-import type { IdxCommitment, IdxCursor, IdxEvent, IdxSeries, IdxTransaction } from "./types";
+import { applyFacts } from "./apply";
+import { marketIdOfKey } from "./ids";
+import type { IdxCursor, IdxUpdate } from "./types";
 
 type Sql = postgres.Sql;
 type Tx = postgres.TransactionSql;
-type EventRow = { signature: string; outer_ix: number; inner_ix: number; slot: string; block_time_sec: string | null; name: string; market: string | null; seq: string | null; data: Record<string, unknown> };
 
-const PROJECTIONS = ["idx_candles", "idx_positions", "idx_fills", "idx_orders", "idx_prints", "idx_markets"] as const;
+/** `pg_advisory_xact_lock` class for the projector: one writer per stream at a time, across processes. */
+const PROJECTOR_LOCK = 761_403_915_284_201n;
 
-const eventOf = (r: EventRow): IdxEvent => ({
-  signature: r.signature,
-  slot: Number(r.slot),
-  blockTimeSec: r.block_time_sec === null ? null : Number(r.block_time_sec),
-  outerIx: r.outer_ix,
-  innerIx: r.inner_ix,
-  name: r.name,
-  market: r.market,
-  seq: r.seq,
-  data: r.data,
+/** Offsets are int64 on the wire and in Postgres; the ledger client keeps them as safe JS integers. */
+export function offsetOf(value: string | number | bigint): number {
+  const n = Number(value);
+  if (!Number.isSafeInteger(n) || n < 0) throw new Error(`offset out of range: ${String(value)}`);
+  return n;
+}
+
+type CursorRow = { party: string; ledger_offset: string; update_id: string | null; bootstrap: "replay" | "acs"; history_from_offset: string };
+
+const cursorOf = (stream: string, r: CursorRow): IdxCursor => ({
+  stream,
+  party: r.party,
+  offset: offsetOf(r.ledger_offset),
+  updateId: r.update_id,
+  bootstrap: r.bootstrap,
+  historyFromOffset: offsetOf(r.history_from_offset),
 });
 
-const bySeq = (a: IdxEvent, b: IdxEvent) => Number(BigInt(a.seq ?? "0") - BigInt(b.seq ?? "0")) || a.outerIx - b.outerIx || a.innerIx - b.innerIx;
-
-/** Deletes one Market's projections and replays its stored events in `seq` order. */
-async function rebuildMarketTx(tx: Tx, market: string): Promise<void> {
-  for (const table of PROJECTIONS) await tx`DELETE FROM ${tx(table)} WHERE market = ${market}`;
-  const rows = await tx<EventRow[]>`SELECT * FROM idx_events WHERE market = ${market} ORDER BY seq, signature, outer_ix, inner_ix`;
-  for (const row of rows) await applyEvent(tx, eventOf(row));
+async function lockedCursor(tx: Tx, stream: string): Promise<IdxCursor | null> {
+  await tx`SELECT pg_advisory_xact_lock(${PROJECTOR_LOCK.toString()}::bigint)`;
+  const [row] = await tx<CursorRow[]>`
+    SELECT party, ledger_offset::text, update_id, bootstrap, history_from_offset::text FROM idx_cursor WHERE stream = ${stream} FOR UPDATE`;
+  return row ? cursorOf(stream, row) : null;
 }
 
-async function advanceCursor(tx: Tx, cursor: IdxCursor): Promise<void> {
+async function advance(tx: Tx, stream: string, party: string, offset: number, updateId: string | null, recordTimeMs: number | null): Promise<void> {
   await tx`
-    INSERT INTO idx_cursor (program, slot, signature, updated_at_ms) VALUES (${cursor.program}, ${cursor.slot}, ${cursor.signature}, ${Date.now()})
-    ON CONFLICT (program) DO UPDATE SET slot = EXCLUDED.slot, signature = EXCLUDED.signature, updated_at_ms = EXCLUDED.updated_at_ms
-    WHERE idx_cursor.slot <= EXCLUDED.slot`;
+    INSERT INTO idx_cursor (stream, party, ledger_offset, update_id, updated_at_ms, record_time_ms)
+    VALUES (${stream}, ${party}, ${offset}::bigint, ${updateId}, ${Date.now()}, ${recordTimeMs})
+    ON CONFLICT (stream) DO UPDATE SET ledger_offset = EXCLUDED.ledger_offset, update_id = COALESCE(EXCLUDED.update_id, idx_cursor.update_id),
+      updated_at_ms = EXCLUDED.updated_at_ms, record_time_ms = COALESCE(EXCLUDED.record_time_ms, idx_cursor.record_time_ms)
+    WHERE idx_cursor.ledger_offset < EXCLUDED.ledger_offset`;
 }
 
-export type WriteResult = { inserted: boolean; markets: string[]; rebuilt: string[] };
+export type ApplyResult = "applied" | "skipped";
 
 export function indexWriter(sql: Sql) {
   return {
-    async cursor(program: string): Promise<IdxCursor | null> {
-      const [row] = await sql<{ slot: string; signature: string }[]>`SELECT slot, signature FROM idx_cursor WHERE program = ${program}`;
-      return row ? { program, slot: Number(row.slot), signature: row.signature } : null;
+    async cursor(stream: string): Promise<IdxCursor | null> {
+      const [row] = await sql<CursorRow[]>`
+        SELECT party, ledger_offset::text, update_id, bootstrap, history_from_offset::text FROM idx_cursor WHERE stream = ${stream}`;
+      return row ? cursorOf(stream, row) : null;
     },
 
-    /** Commitment of each already-indexed signature. */
-    async known(signatures: readonly string[]): Promise<Map<string, IdxCommitment>> {
-      if (signatures.length === 0) return new Map();
-      const rows = await sql<{ signature: string; commitment: IdxCommitment }[]>`SELECT signature, commitment FROM idx_txs WHERE signature = ANY(${signatures as string[]}::text[])`;
-      return new Map(rows.map((r) => [r.signature, r.commitment]));
-    },
-
-    async knownSeries(series: readonly string[]): Promise<Set<string>> {
-      if (series.length === 0) return new Set();
-      const rows = await sql<{ series: string }[]>`SELECT series FROM idx_series WHERE series = ANY(${series as string[]}::text[])`;
-      return new Set(rows.map((r) => r.series));
-    },
-
-    async upsertSeries(rows: readonly IdxSeries[]): Promise<void> {
-      for (const s of rows) {
-        await sql`
-          INSERT INTO idx_series (series, ticker, symbol, cadence_sec, basis, lot_base, tick_base, cash_unit)
-          VALUES (${s.series}, ${s.ticker}, ${s.symbol}, ${s.cadenceSec}, ${s.basis}, ${s.lotBase}::numeric, ${s.tickBase}::numeric, ${s.cashUnit}::numeric)
-          ON CONFLICT (series) DO NOTHING`;
-      }
-    },
-
-    /**
-     * One transaction with its events and projections, atomically, plus the cursor when given. A transaction already
-     * indexed is not re-applied (its commitment and the cursor still advance). An event older than one already applied
-     * to its Market makes that Market rebuild from stored events inside the same DB transaction.
-     */
-    async writeTransaction(t: IdxTransaction, options: { commitment: IdxCommitment; cursor?: IdxCursor }): Promise<WriteResult> {
+    /** Writes one update's events and rows and advances the cursor, all or nothing. */
+    async applyUpdate(stream: string, party: string, u: IdxUpdate): Promise<ApplyResult> {
       return sql.begin(async (tx) => {
+        const cursor = await lockedCursor(tx, stream);
+        if (cursor && cursor.party !== party) throw new Error(`stream ${stream} projects ${cursor.party}, not ${party}: rebuild into a fresh database`);
+        if (cursor && cursor.offset >= u.offset) return "skipped" as const;
         const inserted = await tx`
-          INSERT INTO idx_txs (signature, slot, block_time_sec, failed, events, commitment, indexed_at_ms)
-          VALUES (${t.signature}, ${t.slot}, ${t.blockTimeSec}, ${t.failed}, ${t.events.length}, ${options.commitment}, ${Date.now()})
-          ON CONFLICT (signature) DO NOTHING RETURNING signature`;
+          INSERT INTO idx_updates (update_id, ledger_offset, record_time_ms, effective_at_ms, command_id, workflow_id, events, indexed_at_ms)
+          VALUES (${u.updateId}, ${u.offset}::bigint, ${u.recordTimeMs}, ${u.effectiveAtMs}, ${u.commandId}, ${u.workflowId}, ${u.events.length}, ${Date.now()})
+          ON CONFLICT DO NOTHING RETURNING 1`;
         if (inserted.length === 0) {
-          if (options.commitment === "finalized") await tx`UPDATE idx_txs SET commitment = 'finalized' WHERE signature = ${t.signature}`;
-          if (options.cursor) await advanceCursor(tx, options.cursor);
-          return { inserted: false, markets: [], rebuilt: [] };
+          await advance(tx, stream, party, u.offset, u.updateId, u.recordTimeMs);
+          return "skipped" as const;
         }
-        const markets = [...new Set(t.events.map((e) => e.market).filter((m): m is string => m !== null))];
-        const lastSeq = new Map<string, bigint>();
-        if (markets.length > 0) {
-          // Serializes writers per Market (live and backfill can race on the same Window's first events).
-          for (const market of [...markets].sort()) await tx`SELECT pg_advisory_xact_lock(hashtext(${market}))`;
-          const rows = await tx<{ market: string; last_seq: string }[]>`SELECT market, last_seq FROM idx_markets WHERE market = ANY(${markets}::text[])`;
-          for (const r of rows) lastSeq.set(r.market, BigInt(r.last_seq));
+        if (u.events.length > 0) {
+          const tsSec = Math.floor(u.effectiveAtMs / 1000);
+          const rows = u.events.map((e) => ({
+            update_id: u.updateId, node_id: e.nodeId, ledger_offset: u.offset, kind: e.kind, template: e.template, package_name: e.packageName,
+            contract_id: e.contractId, choice: e.choice, consuming: e.consuming, last_descendant: e.lastDescendant,
+            market: e.marketKey ? marketIdOfKey(e.marketKey) : null, effective_at_sec: tsSec, data: tx.json((e.data ?? null) as postgres.JSONValue),
+          }));
+          for (let i = 0; i < rows.length; i += 500) await tx`INSERT INTO idx_events ${tx(rows.slice(i, i + 500))}`;
         }
-        const rebuild = new Set<string>();
-        for (const e of [...t.events].sort(bySeq)) {
-          await tx`
-            INSERT INTO idx_events (signature, outer_ix, inner_ix, slot, block_time_sec, name, market, seq, data)
-            VALUES (${e.signature}, ${e.outerIx}, ${e.innerIx}, ${e.slot}, ${e.blockTimeSec}, ${e.name}, ${e.market}, ${e.seq}::bigint, ${tx.json(e.data as postgres.JSONValue)})
-            ON CONFLICT DO NOTHING`;
-          if (!e.market || e.seq === null) continue;
-          const seq = BigInt(e.seq);
-          if (rebuild.has(e.market) || seq <= (lastSeq.get(e.market) ?? 0n)) {
-            rebuild.add(e.market);
-            continue;
-          }
-          await applyEvent(tx, e);
-          lastSeq.set(e.market, seq);
-        }
-        for (const market of rebuild) await rebuildMarketTx(tx, market);
-        if (options.cursor) await advanceCursor(tx, options.cursor);
-        return { inserted: true, markets, rebuilt: [...rebuild] };
+        await applyFacts(tx, u, party);
+        await advance(tx, stream, party, u.offset, u.updateId, u.recordTimeMs);
+        return "applied" as const;
       });
     },
 
-    /** Marks already-indexed transactions finalized and advances the cursor, in one DB transaction. */
-    async promote(signatures: readonly string[], cursor: IdxCursor | null): Promise<void> {
+    /** An `OffsetCheckpoint`: nothing to write, but the cursor moves so a restart does not re-read an idle stretch. */
+    async applyCheckpoint(stream: string, party: string, offset: number, recordTimeMs: number | null): Promise<void> {
       await sql.begin(async (tx) => {
-        if (signatures.length > 0) await tx`UPDATE idx_txs SET commitment = 'finalized' WHERE signature = ANY(${signatures as string[]}::text[]) AND commitment = 'confirmed'`;
-        if (cursor) await advanceCursor(tx, cursor);
+        const cursor = await lockedCursor(tx, stream);
+        if (cursor && cursor.party !== party) throw new Error(`stream ${stream} projects ${cursor.party}, not ${party}`);
+        await advance(tx, stream, party, offset, null, recordTimeMs);
       });
     },
 
-    /** Confirmed (not yet finalized) transactions in `(afterSlot, throughSlot]`. */
-    async confirmedBetween(afterSlot: number, throughSlot: number): Promise<Array<{ signature: string; slot: number }>> {
-      const rows = await sql<{ signature: string; slot: string }[]>`
-        SELECT signature, slot FROM idx_txs WHERE commitment = 'confirmed' AND slot > ${afterSlot} AND slot <= ${throughSlot}`;
-      return rows.map((r) => ({ signature: r.signature, slot: Number(r.slot) }));
+    /** Marks the stream as bootstrapped from an ACS snapshot at `offset` (pruned participant): history before it is not indexed. */
+    async markAcsBootstrap(stream: string, party: string, offset: number): Promise<void> {
+      await sql`
+        INSERT INTO idx_cursor (stream, party, ledger_offset, updated_at_ms, bootstrap, history_from_offset)
+        VALUES (${stream}, ${party}, ${offset}::bigint, ${Date.now()}, 'acs', ${offset}::bigint)
+        ON CONFLICT (stream) DO UPDATE SET bootstrap = 'acs', history_from_offset = EXCLUDED.history_from_offset`;
     },
 
-    /** Removes transactions the cluster dropped and rebuilds every Market they touched. Returns those Markets. */
-    async dropTransactions(signatures: readonly string[]): Promise<string[]> {
-      if (signatures.length === 0) return [];
-      return sql.begin(async (tx) => {
-        const rows = await tx<{ market: string }[]>`SELECT DISTINCT market FROM idx_events WHERE signature = ANY(${signatures as string[]}::text[]) AND market IS NOT NULL`;
-        await tx`DELETE FROM idx_txs WHERE signature = ANY(${signatures as string[]}::text[])`;
-        for (const r of rows) await rebuildMarketTx(tx, r.market);
-        return rows.map((r) => r.market);
-      });
-    },
-
-    async rebuildMarkets(markets: readonly string[]): Promise<void> {
-      await sql.begin(async (tx) => {
-        for (const market of markets) await rebuildMarketTx(tx, market);
-      });
-    },
-
-    /** Markets whose stored `seq` values have holes: fewer distinct seqs than the highest seq. */
-    async gaps(markets: readonly string[]): Promise<Array<{ market: string; have: number; maxSeq: number }>> {
-      if (markets.length === 0) return [];
-      const rows = await sql<{ market: string; have: number; max_seq: string }[]>`
-        SELECT market, count(DISTINCT seq)::int AS have, max(seq)::text AS max_seq FROM idx_events
-        WHERE market = ANY(${markets as string[]}::text[]) GROUP BY market HAVING count(DISTINCT seq) < max(seq)`;
-      return rows.map((r) => ({ market: r.market, have: r.have, maxSeq: Number(r.max_seq) }));
-    },
-
-    /** Full rebuild (plan §4 indexer step 9): every idx_ table, cursor included. */
+    /** Empties every projection table (a full rebuild replays from the ledger). */
     async truncate(): Promise<void> {
       await sql.unsafe(`TRUNCATE ${INDEX_TABLES.join(", ")}`);
     },

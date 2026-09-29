@@ -1,22 +1,21 @@
 /**
- * Read-only index queries for S13's activity feeds (social-assistant.md §1.6): a wallet's inbox, the following feed and
- * a ticker hub. Nothing here writes `idx_*`. Integers leave Postgres as decimal strings; the web maps these rows to
- * `ActivityItem`s and derives each settlement's verdict with core's settlement rule.
+ * Read-only projection queries for S13's activity feeds (social-assistant.md §1.6): a wallet's inbox, the following feed
+ * and a ticker hub. On Canton every row here comes from an opt-in `Publication` (privacy-thesis.md §5): a user who never
+ * published has no public activity, and a retraction removes it from every later read. Integers leave Postgres as
+ * decimal strings; the web maps these rows to `ActivityItem`s and derives each settlement's verdict with core's rule.
  *
- * Two row shapes, one per source table:
- * - a fill row is one wallet's side of one `FillRecord` (`idx_fills`), with its own leg's notional already in base units;
- * - a settlement row is one wallet's seat on a terminal Window (`idx_positions` × `idx_markets`), carrying what was held
- *   at settlement, what it cost and returned, and whether and how the seat was redeemed.
+ * Two row shapes:
+ * - a fill row is one published leg with the trade that opened it (`idx_publications` ⋈ `idx_fills`);
+ * - a settlement row is one published leg on a terminal Window (⋈ `idx_legs` for how it ended).
  *
- * Drive-only Series (no registry symbol) never list, so they are nobody's activity, exactly as in wallet history.
+ * `wallet` matches the seat address the web bound to the publisher, or else the publication's handle.
  */
 import type postgres from "postgres";
+import { K_ANON_FLOOR } from "../schema-index";
 
 type Sql = postgres.Sql;
 
 const LIMIT_MAX = 200;
-/** A Window's pair pays 1,000 ticks (apply.ts `PAIR_TICKS`): a NO leg's price is 1,000 − the maker's YES price. */
-const PAIR_TICKS = 1000;
 const clamp = (limit: number | undefined, fallback = 50) => Math.max(1, Math.min(LIMIT_MAX, Math.floor(limit ?? fallback)));
 
 export interface SocialFillRow {
@@ -70,78 +69,82 @@ export interface SocialActivityQuery {
 }
 
 export function socialActivityReader(sql: Sql) {
-  const fillCols = (seat: "taker" | "maker") => sql`
-    f.signature, f.outer_ix, f.inner_ix, f.fill_ix, f.market, f.${sql(seat)} AS wallet, f.${sql(`${seat}_kind`)} AS kind, ${seat}::text AS seat, m.symbol, m.cadence_sec,
-    f.lots::text AS lots,
-    (CASE WHEN f.${sql(`${seat}_kind`)} IN (0, 1) THEN f.price_ticks * f.lots * s.cash_unit
-          ELSE (${PAIR_TICKS} - f.price_ticks) * f.lots * s.cash_unit END)::text AS amount_base,
-    f.ts_sec::text AS ts_sec`;
+  const who = sql`COALESCE(p.owner_address, p.handle)`;
+  const fillCols = sql`
+    f.update_id AS signature, 0 AS outer_ix, f.node_id AS inner_ix, 0 AS fill_ix, p.market, ${who} AS wallet, f.kind, 'taker' AS seat,
+    m.symbol, m.cadence_sec, p.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit)::text AS amount_base, f.ts_sec::text AS ts_sec`;
+  const published = sql`
+    idx_publications p JOIN idx_markets m ON m.market = p.market
+      JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2)`;
 
   const settlementCols = sql`
-    p.market, p.owner, m.symbol, m.cadence_sec, m.state, m.winner, m.resolved_ts_sec::text, m.expiry_sec::text,
-    GREATEST(p.bought_yes_lots - p.sold_yes_lots + p.minted_lots - p.merged_lots, 0)::text AS held_yes_lots,
-    GREATEST(p.bought_no_lots - p.sold_no_lots + p.minted_lots - p.merged_lots, 0)::text AS held_no_lots,
-    s.lot_base::text AS lot_base,
-    (p.paid_ticklots * s.cash_unit + p.set_paid_base)::text AS cost_base,
-    (p.received_ticklots * s.cash_unit + p.set_received_base)::text AS proceeds_base,
-    p.redeemed, p.redeemed_by_crank, p.payout_base::text, p.last_signature, p.last_ts_sec::text`;
+    p.market, ${who} AS owner, m.symbol, m.cadence_sec, m.state, m.winner, m.resolved_ts_sec::text, m.expiry_sec::text,
+    (CASE WHEN p.outcome = 0 THEN p.lots ELSE 0 END)::text AS held_yes_lots, (CASE WHEN p.outcome = 1 THEN p.lots ELSE 0 END)::text AS held_no_lots,
+    (m.cash_unit * 1000)::text AS lot_base, (p.backing_share + COALESCE(l.fee_paid, 0))::text AS cost_base, '0' AS proceeds_base,
+    (l.status IS NOT NULL AND l.status <> 'open') AS redeemed, COALESCE(l.status = 'settled', false) AS redeemed_by_crank,
+    COALESCE(l.payout_base, 0)::text AS payout_base, l.closed_update_id AS last_signature, l.closed_ts_sec::text AS last_ts_sec`;
+  const settled = sql`
+    idx_publications p JOIN idx_markets m ON m.market = p.market
+      LEFT JOIN idx_legs l ON l.owner_party = p.owner_party AND l.pair_id = p.pair_id AND l.market = p.market AND NOT l.is_venue`;
 
   const since = (column: postgres.PendingQuery<postgres.Row[]>, sinceSec: number | undefined) =>
     sinceSec === undefined ? sql`` : sql`AND ${column} >= ${sinceSec}`;
 
   return {
-    /**
-     * Fills of any of these wallets, newest first. Both seats by default (a maker's fill is still their activity);
-     * `takerOnly` keeps just the calls — the side that crossed the book.
-     */
+    /** Published trades of any of these wallets, newest first (`takerOnly` is kept for the signature: every row is the publisher's own call). */
     async walletFills(wallets: readonly string[], q: SocialActivityQuery & { takerOnly?: boolean } = {}): Promise<SocialFillRow[]> {
       if (wallets.length === 0) return [];
-      const limit = clamp(q.limit);
-      const list = wallets as string[];
-      const seat = (side: "taker" | "maker") => sql`
-        (SELECT ${fillCols(side)} FROM idx_fills f JOIN idx_markets m ON m.market = f.market LEFT JOIN idx_series s ON s.series = m.series
-         WHERE f.${sql(side)} = ANY(${list}::text[]) AND m.symbol IS NOT NULL ${since(sql`f.ts_sec`, q.sinceSec)}
-         ORDER BY f.ts_sec DESC, f.seq DESC, f.fill_ix DESC LIMIT ${limit})`;
       return sql<SocialFillRow[]>`
-        SELECT * FROM (${seat("taker")} ${q.takerOnly ? sql`` : sql`UNION ALL ${seat("maker")}`}) a
-        ORDER BY ts_sec::bigint DESC LIMIT ${limit}`;
+        SELECT ${fillCols} FROM ${published}
+        WHERE ${who} = ANY(${wallets as string[]}::text[]) AND m.symbol IS NOT NULL ${since(sql`f.ts_sec`, q.sinceSec)}
+        ORDER BY f.ts_sec DESC, f.ledger_offset DESC LIMIT ${clamp(q.limit)}`;
     },
 
-    /**
-     * Seats of any of these wallets on terminal Windows, newest settlement first. A seat that never bet (a bond-only
-     * seat: no fill and no mint) is left out. `sinceSec` matches a settlement or a crank redemption at or after it.
-     */
+    /** Published legs of any of these wallets on terminal Windows, newest settlement first. */
     async walletSettlements(wallets: readonly string[], q: SocialActivityQuery = {}): Promise<SocialSettlementRow[]> {
       if (wallets.length === 0) return [];
-      const window =
-        q.sinceSec === undefined ? sql`` : sql`AND (m.resolved_ts_sec >= ${q.sinceSec} OR (p.redeemed_by_crank AND p.last_ts_sec >= ${q.sinceSec}))`;
       return sql<SocialSettlementRow[]>`
-        SELECT ${settlementCols}
-        FROM idx_positions p JOIN idx_markets m ON m.market = p.market LEFT JOIN idx_series s ON s.series = m.series
-        WHERE p.owner = ANY(${wallets as string[]}::text[]) AND m.state <> 'open' AND m.symbol IS NOT NULL
-          AND (p.fills > 0 OR p.minted_lots > 0) ${window}
+        SELECT ${settlementCols} FROM ${settled}
+        WHERE ${who} = ANY(${wallets as string[]}::text[]) AND m.state <> 'open' AND m.symbol IS NOT NULL ${since(sql`m.resolved_ts_sec`, q.sinceSec)}
         ORDER BY m.resolved_ts_sec DESC NULLS LAST LIMIT ${clamp(q.limit)}`;
     },
 
-    /** The calls on one ticker's Windows (taker seats only, so the house's resting quotes are not everyone's call). */
+    /** The published calls on one ticker's Windows. */
     async tickerFills(symbol: string, q: SocialActivityQuery = {}): Promise<SocialFillRow[]> {
       return sql<SocialFillRow[]>`
-        SELECT ${fillCols("taker")} FROM idx_fills f JOIN idx_markets m ON m.market = f.market LEFT JOIN idx_series s ON s.series = m.series
+        SELECT ${fillCols} FROM ${published}
         WHERE m.symbol = ${symbol} ${since(sql`f.ts_sec`, q.sinceSec)}
-        ORDER BY f.ts_sec DESC, f.seq DESC, f.fill_ix DESC LIMIT ${clamp(q.limit)}`;
+        ORDER BY f.ts_sec DESC, f.ledger_offset DESC LIMIT ${clamp(q.limit)}`;
     },
 
-    /** Verdicts on one ticker's Windows for the wallets that called them (crossed the book at least once there). */
+    /** Verdicts on one ticker's Windows for the published legs there. */
     async tickerSettlements(symbol: string, q: SocialActivityQuery = {}): Promise<SocialSettlementRow[]> {
       return sql<SocialSettlementRow[]>`
-        SELECT ${settlementCols}
-        FROM idx_markets m JOIN idx_positions p ON p.market = m.market LEFT JOIN idx_series s ON s.series = m.series
-        WHERE m.symbol = ${symbol} AND m.state <> 'open' AND (p.fills > 0 OR p.minted_lots > 0)
-          ${since(sql`m.resolved_ts_sec`, q.sinceSec)}
-          AND EXISTS (SELECT 1 FROM idx_fills f WHERE f.market = p.market AND f.taker = p.owner)
+        SELECT ${settlementCols} FROM ${settled}
+        WHERE m.symbol = ${symbol} AND m.state <> 'open' ${since(sql`m.resolved_ts_sec`, q.sinceSec)}
         ORDER BY m.expiry_sec DESC LIMIT ${clamp(q.limit)}`;
     },
   };
 }
 
 export type SocialActivityReader = ReturnType<typeof socialActivityReader>;
+
+/** The last `windowSec` of published flow for the sentiment marquee: lots per side and how many publications. */
+export interface CrowdFlowRow {
+  fills: number;
+  up_lots: string;
+  down_lots: string;
+}
+
+/**
+ * Crowd flow from opt-in publications only (plan "Every remaining capability": `/api/sentiment` with the k = 5 floor):
+ * null below `K_ANON_FLOOR` distinct publishers, so a reading never describes one or two people.
+ */
+export async function crowdFlow(sql: Sql, sinceSec: number): Promise<CrowdFlowRow | null> {
+  const [row] = await sql<(CrowdFlowRow & { publishers: number })[]>`
+    SELECT count(*)::int AS fills, count(DISTINCT owner_party)::int AS publishers,
+      COALESCE(sum(lots) FILTER (WHERE outcome = 0), 0)::text AS up_lots, COALESCE(sum(lots) FILTER (WHERE outcome = 1), 0)::text AS down_lots
+    FROM idx_publications WHERE created_ts_sec >= ${sinceSec}`;
+  if (!row || row.publishers < K_ANON_FLOOR) return null;
+  return { fills: row.fills, up_lots: row.up_lots, down_lots: row.down_lots };
+}

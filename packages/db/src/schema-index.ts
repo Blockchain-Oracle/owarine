@@ -1,230 +1,324 @@
 /**
- * The chain indexer's raw rows, projections and cursor (plan §4 indexer; venue-ops.md §9). Owned by S3 lane 3d.
+ * The projector's rows: the venue party's view of the ledger, mirrored into Postgres (plan "Venue operations and the
+ * projector"; research 04-review §C5). Owned by C3a.
  *
- * Unlike the social tables, everything here is derived from chain and rebuildable: truncate and replay from the deploy
- * slot. Amounts are exact integers: `NUMERIC` for u64 quantities, never floats. Two cash units appear, and each column
- * names its unit: `*_base` is collateral base units as the chain moved them (CompleteSet, Redeemed), and `*_ticklots`
- * is lots × price ticks, which becomes base units × the Series `cash_unit` (engine §1; 1 on the launch grid).
+ * Everything here is derived from `/v2/updates` and rebuildable: truncate and replay from offset 0 (or from the ACS
+ * bootstrap offset on a pruned participant, recorded in `idx_cursor.history_from_offset`). Canton updates are final and
+ * totally ordered per participant, so the Solana-era commitment column, finality promotion, dropped-transaction deletion
+ * and `(market, seq)` gap backfill are gone. Offsets are BIGINT (int64 on the wire); the column is `ledger_offset`
+ * because `offset` is a reserved word in SQL.
  *
- * Ordering: projections assume a Market's events apply in `seq` order. The writer detects an event older than one
- * already applied and rebuilds that Market's projections from `idx_events` in the same DB transaction.
+ * Amounts are exact integers (NUMERIC), never floats. `*_base` is venue cash units as the ledger moved them;
+ * `*_ticklots` is lots × price ticks, which becomes base units × the Series `cash_unit`.
+ *
+ * Privacy (privacy-thesis.md §4–5): these rows are the venue's own view as counterparty. Per-user rows are served only to
+ * that user's seat; leaderboards, activity and sentiment read `idx_publications` (opt-in) only; market aggregates are
+ * shown only with at least k = 5 participants; unaccepted quote rows are deleted when they expire or are withdrawn and
+ * only per-market counters survive.
  */
-export const INDEX_SCHEMA_SQL = `
+
+/** The Solana-era tables had a `program` cursor; their shapes cannot be altered in place, so they are dropped once. */
+const DROP_SOLANA_SHAPE = `
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'idx_cursor' AND column_name = 'program') THEN
+    DROP VIEW IF EXISTS idx_market_prints;
+    DROP TABLE IF EXISTS idx_candles, idx_positions, idx_fills, idx_orders, idx_prints, idx_markets, idx_series, idx_events, idx_txs, idx_cursor CASCADE;
+  END IF;
+END $$;
+`;
+
+export const INDEX_SCHEMA_SQL = `${DROP_SOLANA_SHAPE}
+-- One row per stream (the venue party's view). Advances in the same transaction as the rows it covers.
 CREATE TABLE IF NOT EXISTS idx_cursor (
-  program        TEXT   PRIMARY KEY,
-  -- The newest transaction such that every program transaction at or before it is indexed and finalized.
-  slot           BIGINT NOT NULL,
-  signature      TEXT   NOT NULL,
-  updated_at_ms  BIGINT NOT NULL
+  stream               TEXT    PRIMARY KEY,
+  party                TEXT    NOT NULL,
+  ledger_offset        BIGINT  NOT NULL,
+  -- The last transaction applied; a checkpoint advances the offset and keeps this.
+  update_id            TEXT,
+  updated_at_ms        BIGINT  NOT NULL,
+  -- 'replay' (from offset 0) or 'acs' (pruned participant: history before history_from_offset is not indexed).
+  bootstrap            TEXT    NOT NULL DEFAULT 'replay' CHECK (bootstrap IN ('replay', 'acs')),
+  history_from_offset  BIGINT  NOT NULL DEFAULT 0,
+  record_time_ms       BIGINT
 );
 
--- Every transaction that mentions the program, failed ones included (no events), so a walk never refetches it.
-CREATE TABLE IF NOT EXISTS idx_txs (
-  signature       TEXT     PRIMARY KEY,
-  slot            BIGINT   NOT NULL,
-  block_time_sec  BIGINT,
-  failed          BOOLEAN  NOT NULL,
-  events          SMALLINT NOT NULL,
-  commitment      TEXT     NOT NULL CHECK (commitment IN ('confirmed', 'finalized')),
-  indexed_at_ms   BIGINT   NOT NULL
+CREATE TABLE IF NOT EXISTS idx_updates (
+  update_id        TEXT     PRIMARY KEY,
+  ledger_offset    BIGINT   NOT NULL UNIQUE,
+  record_time_ms   BIGINT,
+  effective_at_ms  BIGINT   NOT NULL,
+  command_id       TEXT,
+  workflow_id      TEXT,
+  events           INTEGER  NOT NULL,
+  indexed_at_ms    BIGINT   NOT NULL
 );
-CREATE INDEX IF NOT EXISTS idx_txs_slot_idx ON idx_txs (slot DESC);
-CREATE INDEX IF NOT EXISTS idx_txs_confirmed_idx ON idx_txs (slot) WHERE commitment = 'confirmed';
 
--- Decoded emit_cpi! events, JSON-safe (bigints as decimal strings), keyed by position in the transaction.
+-- Every event the venue witnessed, raw (JSON-safe as the API sent it), keyed by its node in the update.
 CREATE TABLE IF NOT EXISTS idx_events (
-  signature       TEXT     NOT NULL REFERENCES idx_txs (signature) ON DELETE CASCADE,
-  outer_ix        SMALLINT NOT NULL,
-  inner_ix        SMALLINT NOT NULL,
-  slot            BIGINT   NOT NULL,
-  block_time_sec  BIGINT,
-  name            TEXT     NOT NULL,
-  market          TEXT,
-  seq             BIGINT,
-  data            JSONB    NOT NULL,
-  PRIMARY KEY (signature, outer_ix, inner_ix)
+  update_id         TEXT     NOT NULL REFERENCES idx_updates (update_id) ON DELETE CASCADE,
+  node_id           INTEGER  NOT NULL,
+  ledger_offset     BIGINT   NOT NULL,
+  kind              TEXT     NOT NULL CHECK (kind IN ('created', 'exercised', 'archived')),
+  -- 'Module:Entity' (package id stripped); package_name says whose.
+  template          TEXT     NOT NULL,
+  package_name      TEXT,
+  contract_id       TEXT     NOT NULL,
+  choice            TEXT,
+  consuming         BOOLEAN,
+  last_descendant   INTEGER,
+  market            TEXT,
+  effective_at_sec  BIGINT   NOT NULL,
+  data              JSONB    NOT NULL,
+  PRIMARY KEY (update_id, node_id)
 );
-CREATE INDEX IF NOT EXISTS idx_events_market_seq_idx ON idx_events (market, seq);
-CREATE INDEX IF NOT EXISTS idx_events_name_idx ON idx_events (name, slot DESC);
-CREATE INDEX IF NOT EXISTS idx_events_owner_idx ON idx_events ((data->>'owner'), slot DESC) WHERE name IN ('CompleteSet', 'Redeemed', 'CreditWithdrawn');
+CREATE INDEX IF NOT EXISTS idx_events_template_idx ON idx_events (template, ledger_offset DESC);
+CREATE INDEX IF NOT EXISTS idx_events_market_idx ON idx_events (market, ledger_offset) WHERE market IS NOT NULL;
 
--- Series facts read from the account the first time a Window of it is seen (SeriesRegistered is a log, D-019).
+-- One row per cadence lane. The roller consumes the Series every window; the newest contract wins.
 CREATE TABLE IF NOT EXISTS idx_series (
-  series       TEXT     PRIMARY KEY,
-  ticker       INTEGER  NOT NULL,
-  symbol       TEXT,
-  cadence_sec  INTEGER  NOT NULL,
-  basis        SMALLINT NOT NULL,
-  lot_base     NUMERIC  NOT NULL,
-  tick_base    NUMERIC  NOT NULL,
-  cash_unit    NUMERIC  NOT NULL
+  series             TEXT     PRIMARY KEY,
+  series_key         TEXT     NOT NULL UNIQUE,
+  symbol             TEXT,
+  cadence_sec        INTEGER  NOT NULL,
+  basis              SMALLINT NOT NULL DEFAULT 0,
+  cash_unit          NUMERIC  NOT NULL,
+  lot_base           NUMERIC  GENERATED ALWAYS AS (cash_unit * 1000) STORED,
+  tick_base          NUMERIC  GENERATED ALWAYS AS (cash_unit) STORED,
+  contract_id        TEXT     NOT NULL,
+  next_index         BIGINT   NOT NULL,
+  anchor_sec         BIGINT   NOT NULL,
+  lock_lead_sec      INTEGER  NOT NULL,
+  settle_grace_sec   INTEGER  NOT NULL,
+  quorum             SMALLINT NOT NULL,
+  oracles            JSONB    NOT NULL,
+  max_deviation_bps  INTEGER  NOT NULL,
+  resolver           TEXT     NOT NULL,
+  policy_versions    JSONB    NOT NULL,
+  updated_offset     BIGINT   NOT NULL
 );
 
--- One row per Window (MarketId = the Market address). Created by WindowOpened; later events only update it.
+-- One row per Window: MarketTerms created by Series_OpenWindow. market = base58(sha256(marketId text)).
 CREATE TABLE IF NOT EXISTS idx_markets (
-  market              TEXT     PRIMARY KEY,
-  series              TEXT,
-  symbol              TEXT,
-  cadence_sec         INTEGER,
-  basis               SMALLINT,
-  market_index        BIGINT,
-  trading_start_sec   BIGINT,
-  lock_at_sec         BIGINT,
-  expiry_sec          BIGINT,
-  open_deadline_sec   BIGINT,
-  close_deadline_sec  BIGINT,
-  policy_version      SMALLINT,
-  open_kind           SMALLINT,
-  close_kind          SMALLINT,
-  book                TEXT,
-  ledger              TEXT,
-  mvault              TEXT,
-  generation          BIGINT,
-  opened_signature    TEXT,
-  opened_block_time_sec BIGINT,
-  state               TEXT     NOT NULL DEFAULT 'open' CHECK (state IN ('open', 'resolved', 'voided')),
+  market                TEXT     PRIMARY KEY,
+  market_key            TEXT     NOT NULL UNIQUE,
+  terms_cid             TEXT     NOT NULL UNIQUE,
+  series                TEXT,
+  series_key            TEXT     NOT NULL,
+  symbol                TEXT,
+  cadence_sec           INTEGER,
+  basis                 SMALLINT NOT NULL DEFAULT 0,
+  market_index          BIGINT   NOT NULL,
+  cash_unit             NUMERIC  NOT NULL,
+  trading_start_sec     BIGINT   NOT NULL,
+  lock_at_sec           BIGINT   NOT NULL,
+  expiry_sec            BIGINT   NOT NULL,
+  open_deadline_sec     BIGINT   NOT NULL,
+  close_deadline_sec    BIGINT   NOT NULL,
+  refund_after_sec      BIGINT   NOT NULL,
+  policy_version        SMALLINT NOT NULL,
+  print_source          TEXT,
+  min_delay_sec         INTEGER,
+  bar_len_sec           INTEGER,
+  tie_up                BOOLEAN,
+  quorum                SMALLINT NOT NULL,
+  oracles               JSONB    NOT NULL,
+  max_deviation_bps     INTEGER  NOT NULL,
+  resolver              TEXT     NOT NULL,
+  opened_update_id      TEXT     NOT NULL,
+  opened_offset         BIGINT   NOT NULL,
+  opened_ts_sec         BIGINT   NOT NULL,
+  window_state_cid      TEXT,
+  open_print_cid        TEXT,
+  open_price_e8         NUMERIC,
+  open_signers          SMALLINT,
+  open_evidence         JSONB,
+  open_recorded_ts_sec  BIGINT,
+  open_update_id        TEXT,
+  state                 TEXT     NOT NULL DEFAULT 'open' CHECK (state IN ('open', 'resolved', 'voided')),
   -- 0 Yes (Up), 1 No (Down), 2 Void.
-  winner              SMALLINT,
-  payout_yes          BIGINT,
-  payout_no           BIGINT,
-  void_reason         SMALLINT,
-  single_source       BOOLEAN,
-  resolved_ts_sec     BIGINT,
-  resolved_signature  TEXT,
-  backing_lots        NUMERIC  NOT NULL DEFAULT 0,
-  volume_lots         NUMERIC  NOT NULL DEFAULT 0,
-  volume_ticklots     NUMERIC  NOT NULL DEFAULT 0,
-  trade_count         BIGINT   NOT NULL DEFAULT 0,
-  last_price_ticks    SMALLINT,
-  last_trade_sec      BIGINT,
-  ledger_capacity     INTEGER,
-  dependents          INTEGER  NOT NULL DEFAULT 0,
-  book_released       BOOLEAN  NOT NULL DEFAULT false,
-  ledger_closed       BOOLEAN  NOT NULL DEFAULT false,
-  ledger_residue_base NUMERIC,
-  closed              BOOLEAN  NOT NULL DEFAULT false,
-  last_seq            BIGINT   NOT NULL DEFAULT 0,
-  last_slot           BIGINT   NOT NULL DEFAULT 0
+  winner                SMALLINT,
+  -- The reference's two values: 1 missing print (MissingPrint, QuorumNotMet, ResolverAbsent), 2 source disagreement.
+  void_reason           SMALLINT,
+  void_detail           TEXT,
+  close_price_e8        NUMERIC,
+  close_signers         SMALLINT,
+  close_evidence        JSONB,
+  signers               SMALLINT,
+  single_source         BOOLEAN,
+  resolution_cid        TEXT     UNIQUE,
+  resolved_ts_sec       BIGINT,
+  resolved_update_id    TEXT,
+  -- Market-level aggregates: served only while participants >= 5 (k-anonymity floor).
+  participants          INTEGER  NOT NULL DEFAULT 0,
+  backing_lots          NUMERIC  NOT NULL DEFAULT 0,
+  volume_lots           NUMERIC  NOT NULL DEFAULT 0,
+  volume_ticklots       NUMERIC  NOT NULL DEFAULT 0,
+  trade_count           BIGINT   NOT NULL DEFAULT 0,
+  last_price_ticks      SMALLINT,
+  last_trade_sec        BIGINT,
+  quotes_issued         INTEGER  NOT NULL DEFAULT 0,
+  quotes_accepted       INTEGER  NOT NULL DEFAULT 0,
+  quotes_expired        INTEGER  NOT NULL DEFAULT 0,
+  quotes_withdrawn      INTEGER  NOT NULL DEFAULT 0,
+  legs_open             INTEGER  NOT NULL DEFAULT 0,
+  legs_settled          INTEGER  NOT NULL DEFAULT 0,
+  legs_claimed          INTEGER  NOT NULL DEFAULT 0,
+  legs_refunded_stale   INTEGER  NOT NULL DEFAULT 0,
+  legs_sold             INTEGER  NOT NULL DEFAULT 0,
+  legs_closed_out       INTEGER  NOT NULL DEFAULT 0,
+  legs_merged           INTEGER  NOT NULL DEFAULT 0,
+  fees_recognized_base  NUMERIC  NOT NULL DEFAULT 0,
+  payouts_base          NUMERIC  NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_markets_series_idx ON idx_markets (series, market_index DESC);
 CREATE INDEX IF NOT EXISTS idx_markets_expiry_idx ON idx_markets (expiry_sec DESC);
-CREATE INDEX IF NOT EXISTS idx_markets_book_idx ON idx_markets (book);
 
--- Recorded prints, normalized to expo -8 on chain. which: 0 open, 1 close, 2 check open, 3 check close.
+-- Oracle prints: one PriceQuote per (oracle, symbol, boundary). A second post by the same oracle keeps the earliest
+-- fetch (then the lowest price), the rule the Daml's collectEvidence applies; 'duplicates' counts the others.
 CREATE TABLE IF NOT EXISTS idx_prints (
-  market           TEXT     NOT NULL,
-  which            SMALLINT NOT NULL,
-  source           SMALLINT NOT NULL,
-  price            NUMERIC  NOT NULL,
-  expo             INTEGER  NOT NULL,
-  source_ts_sec    BIGINT   NOT NULL,
-  signers          SMALLINT NOT NULL,
-  copied           BOOLEAN  NOT NULL,
+  oracle           TEXT     NOT NULL,
+  symbol           TEXT     NOT NULL,
+  boundary_sec     BIGINT   NOT NULL,
+  contract_id      TEXT     NOT NULL,
+  price_e8         NUMERIC  NOT NULL,
+  bar_start_sec    BIGINT   NOT NULL,
+  bar_len_sec      INTEGER  NOT NULL,
+  fetched_at_sec   BIGINT   NOT NULL,
+  payload_hash     TEXT     NOT NULL,
+  policy_version   SMALLINT NOT NULL,
   recorded_ts_sec  BIGINT   NOT NULL,
-  signature        TEXT     NOT NULL,
-  PRIMARY KEY (market, which)
+  update_id        TEXT     NOT NULL,
+  retired          BOOLEAN  NOT NULL DEFAULT false,
+  duplicates       INTEGER  NOT NULL DEFAULT 0,
+  PRIMARY KEY (oracle, symbol, boundary_sec)
 );
+CREATE INDEX IF NOT EXISTS idx_prints_symbol_idx ON idx_prints (symbol, boundary_sec);
+CREATE INDEX IF NOT EXISTS idx_prints_cid_idx ON idx_prints (contract_id);
 
--- One row per placement (OrderExecuted). A resting remainder is tracked by its handle until filled, cancelled or expired.
-CREATE TABLE IF NOT EXISTS idx_orders (
-  signature        TEXT     NOT NULL,
-  outer_ix         SMALLINT NOT NULL,
-  inner_ix         SMALLINT NOT NULL,
-  market           TEXT     NOT NULL,
-  seq              BIGINT   NOT NULL,
-  ts_sec           BIGINT   NOT NULL,
-  owner            TEXT     NOT NULL,
-  seat             INTEGER  NOT NULL,
-  -- 0 BUY_YES, 1 SELL_YES, 2 BUY_NO, 3 SELL_NO; order_type 0 Normal, 1 FOK, 2 IOC, 3 PostOnly.
-  kind             SMALLINT NOT NULL,
-  order_type       SMALLINT NOT NULL,
-  limit_price      SMALLINT NOT NULL,
-  lots             NUMERIC  NOT NULL,
-  expire_ts_sec    BIGINT   NOT NULL,
-  client_id        NUMERIC  NOT NULL,
-  filled_lots      NUMERIC  NOT NULL,
-  cash_spent_base  NUMERIC  NOT NULL,
-  cash_received_base NUMERIC NOT NULL,
-  cancelled_lots   NUMERIC  NOT NULL,
-  stop_reason      SMALLINT NOT NULL,
-  rested_node      BIGINT,
-  rested_seq       NUMERIC,
-  rested_lots      NUMERIC  NOT NULL,
-  remaining_lots   NUMERIC  NOT NULL,
-  status           TEXT     NOT NULL CHECK (status IN ('done', 'open', 'filled', 'cancelled', 'expired')),
-  -- RemoveReason when cancelled or expired: 0 Expired, 1 SelfMatch, 2 UserCancel, 3 CancelAll, 4 Sweep.
-  removed_reason   SMALLINT,
-  updated_seq      BIGINT   NOT NULL,
-  PRIMARY KEY (signature, outer_ix, inner_ix)
+-- Venue quotes to one user. Only live and accepted quotes keep a row: an expired or withdrawn quote is a record of
+-- intent the ledger no longer holds, so its row is deleted and only idx_markets.quotes_* counts it.
+CREATE TABLE IF NOT EXISTS idx_quotes (
+  quote_cid         TEXT     PRIMARY KEY,
+  kind              TEXT     NOT NULL CHECK (kind IN ('quote', 'buy')),
+  market            TEXT     NOT NULL,
+  terms_cid         TEXT     NOT NULL,
+  user_party        TEXT     NOT NULL,
+  user_address      TEXT,
+  pair_id           TEXT     NOT NULL,
+  -- The user's side: 0 Up, 1 Down; price_ticks is that side's price.
+  side              SMALLINT NOT NULL,
+  price_ticks       SMALLINT NOT NULL,
+  lots              NUMERIC  NOT NULL,
+  cash_unit         NUMERIC  NOT NULL,
+  fee               NUMERIC  NOT NULL DEFAULT 0,
+  leg_cid           TEXT,
+  valid_until_sec   BIGINT   NOT NULL,
+  issued_update_id  TEXT     NOT NULL,
+  issued_offset     BIGINT   NOT NULL,
+  issued_ts_sec     BIGINT   NOT NULL,
+  status            TEXT     NOT NULL CHECK (status IN ('issued', 'accepted', 'expired', 'withdrawn')),
+  closed_update_id  TEXT,
+  closed_ts_sec     BIGINT
 );
-CREATE INDEX IF NOT EXISTS idx_orders_handle_idx ON idx_orders (market, rested_node, rested_seq) WHERE rested_node IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_orders_owner_idx ON idx_orders (owner, ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_quotes_user_idx ON idx_quotes (user_party, issued_ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_quotes_address_idx ON idx_quotes (user_address, issued_ts_sec DESC) WHERE user_address IS NOT NULL;
 
--- One row per FillRecord. price_ticks is the maker's price in YES terms; a NO leg's price is 1000 - price_ticks.
+-- Every Leg the venue is party to (users' and the venue's own), with how it ended.
+CREATE TABLE IF NOT EXISTS idx_legs (
+  leg_cid              TEXT     PRIMARY KEY,
+  market               TEXT     NOT NULL,
+  terms_cid            TEXT     NOT NULL,
+  owner_party          TEXT     NOT NULL,
+  owner_address        TEXT,
+  is_venue             BOOLEAN  NOT NULL,
+  pair_id              TEXT     NOT NULL,
+  outcome              SMALLINT NOT NULL,
+  lots                 NUMERIC  NOT NULL,
+  cash_unit            NUMERIC  NOT NULL,
+  backing_share        NUMERIC  NOT NULL,
+  fee_paid             NUMERIC  NOT NULL,
+  refund_after_sec     BIGINT   NOT NULL,
+  origin               TEXT     NOT NULL CHECK (origin IN ('accept', 'buyback', 'closeout', 'snapshot', 'other')),
+  created_update_id    TEXT     NOT NULL,
+  created_offset       BIGINT   NOT NULL,
+  created_ts_sec       BIGINT   NOT NULL,
+  status               TEXT     NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'settled', 'claimed', 'refunded_stale', 'sold', 'closed_out', 'merged', 'archived')),
+  result               TEXT     CHECK (result IN ('won', 'lost', 'void')),
+  payout_base          NUMERIC,
+  fee_recognized_base  NUMERIC,
+  closed_update_id     TEXT,
+  closed_offset        BIGINT,
+  closed_ts_sec        BIGINT
+);
+CREATE INDEX IF NOT EXISTS idx_legs_owner_idx ON idx_legs (owner_party, created_ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_legs_market_idx ON idx_legs (market, status);
+
+-- One row per trade: a user Leg created by Quote_Accept (path 2 MINT: the pair is minted), or a user leg sold back by
+-- BuyQuote_Accept (path 0/1 DIRECT). Keyed by the accept's exercise node. price_ticks is YES (Up) terms.
 CREATE TABLE IF NOT EXISTS idx_fills (
-  signature        TEXT     NOT NULL,
-  outer_ix         SMALLINT NOT NULL,
-  inner_ix         SMALLINT NOT NULL,
-  fill_ix          SMALLINT NOT NULL,
-  market           TEXT     NOT NULL,
-  book             TEXT,
-  seq              BIGINT   NOT NULL,
-  slot             BIGINT   NOT NULL,
-  ts_sec           BIGINT   NOT NULL,
-  taker            TEXT     NOT NULL,
-  taker_seat       INTEGER  NOT NULL,
-  taker_kind       SMALLINT NOT NULL,
-  maker            TEXT     NOT NULL,
-  maker_seat       INTEGER  NOT NULL,
-  maker_kind       SMALLINT NOT NULL,
-  maker_node       BIGINT   NOT NULL,
-  maker_order_seq  NUMERIC  NOT NULL,
-  -- 0 DIRECT_YES, 1 DIRECT_NO, 2 MINT_PAIR, 3 BURN_PAIR.
-  path             SMALLINT NOT NULL,
-  price_ticks      SMALLINT NOT NULL,
-  lots             NUMERIC  NOT NULL,
-  maker_remaining  NUMERIC  NOT NULL,
-  PRIMARY KEY (signature, outer_ix, inner_ix, fill_ix)
+  update_id      TEXT     NOT NULL,
+  node_id        INTEGER  NOT NULL,
+  ledger_offset  BIGINT   NOT NULL,
+  market         TEXT     NOT NULL,
+  terms_cid      TEXT     NOT NULL,
+  quote_cid      TEXT     NOT NULL,
+  leg_cid        TEXT     NOT NULL,
+  pair_id        TEXT     NOT NULL,
+  owner_party    TEXT     NOT NULL,
+  owner_address  TEXT,
+  venue_party    TEXT     NOT NULL,
+  -- The user's side 0 Up, 1 Down; kind 0 BUY_YES, 1 SELL_YES, 2 BUY_NO, 3 SELL_NO; path 0 DIRECT_YES, 1 DIRECT_NO, 2 MINT_PAIR.
+  side           SMALLINT NOT NULL,
+  kind           SMALLINT NOT NULL,
+  path           SMALLINT NOT NULL,
+  price_ticks    SMALLINT NOT NULL,
+  side_ticks     SMALLINT NOT NULL,
+  lots           NUMERIC  NOT NULL,
+  fee            NUMERIC  NOT NULL,
+  cash_unit      NUMERIC  NOT NULL,
+  ts_sec         BIGINT   NOT NULL,
+  PRIMARY KEY (update_id, node_id)
 );
-CREATE INDEX IF NOT EXISTS idx_fills_market_idx ON idx_fills (market, seq DESC, fill_ix DESC);
-CREATE INDEX IF NOT EXISTS idx_fills_book_idx ON idx_fills (book, ts_sec DESC);
-CREATE INDEX IF NOT EXISTS idx_fills_taker_idx ON idx_fills (taker, ts_sec DESC);
-CREATE INDEX IF NOT EXISTS idx_fills_maker_idx ON idx_fills (maker, ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_fills_market_idx ON idx_fills (market, ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_fills_owner_idx ON idx_fills (owner_party, ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_fills_address_idx ON idx_fills (owner_address, ts_sec DESC) WHERE owner_address IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_fills_ts_idx ON idx_fills (ts_sec DESC);
 
--- What each wallet holds and moved in one Window: fills (both seats), complete sets, redemption.
+-- What each user holds and moved in one Window. The venue's own legs are not positions.
 CREATE TABLE IF NOT EXISTS idx_positions (
-  market              TEXT    NOT NULL,
-  owner               TEXT    NOT NULL,
-  seat                INTEGER,
-  yes_lots            NUMERIC NOT NULL DEFAULT 0,
-  no_lots             NUMERIC NOT NULL DEFAULT 0,
-  bought_yes_lots     NUMERIC NOT NULL DEFAULT 0,
-  sold_yes_lots       NUMERIC NOT NULL DEFAULT 0,
-  bought_no_lots      NUMERIC NOT NULL DEFAULT 0,
-  sold_no_lots        NUMERIC NOT NULL DEFAULT 0,
-  paid_ticklots       NUMERIC NOT NULL DEFAULT 0,
-  received_ticklots   NUMERIC NOT NULL DEFAULT 0,
-  minted_lots         NUMERIC NOT NULL DEFAULT 0,
-  merged_lots         NUMERIC NOT NULL DEFAULT 0,
-  set_paid_base       NUMERIC NOT NULL DEFAULT 0,
-  set_received_base   NUMERIC NOT NULL DEFAULT 0,
-  withdrawn_base      NUMERIC NOT NULL DEFAULT 0,
-  redeemed_base       NUMERIC NOT NULL DEFAULT 0,
-  payout_base         NUMERIC NOT NULL DEFAULT 0,
-  bond_refund_base    NUMERIC NOT NULL DEFAULT 0,
-  redeemed            BOOLEAN NOT NULL DEFAULT false,
-  redeemed_by_crank   BOOLEAN NOT NULL DEFAULT false,
-  fills               INTEGER NOT NULL DEFAULT 0,
-  first_ts_sec        BIGINT,
-  last_ts_sec         BIGINT,
-  entry_signature     TEXT,
-  last_signature      TEXT,
-  PRIMARY KEY (market, owner)
+  market             TEXT    NOT NULL,
+  owner_party        TEXT    NOT NULL,
+  owner_address      TEXT,
+  yes_lots           NUMERIC NOT NULL DEFAULT 0,
+  no_lots            NUMERIC NOT NULL DEFAULT 0,
+  bought_yes_lots    NUMERIC NOT NULL DEFAULT 0,
+  sold_yes_lots      NUMERIC NOT NULL DEFAULT 0,
+  bought_no_lots     NUMERIC NOT NULL DEFAULT 0,
+  sold_no_lots       NUMERIC NOT NULL DEFAULT 0,
+  paid_ticklots      NUMERIC NOT NULL DEFAULT 0,
+  received_ticklots  NUMERIC NOT NULL DEFAULT 0,
+  fees_paid_base     NUMERIC NOT NULL DEFAULT 0,
+  payout_base        NUMERIC NOT NULL DEFAULT 0,
+  refunded_base      NUMERIC NOT NULL DEFAULT 0,
+  open_legs          INTEGER NOT NULL DEFAULT 0,
+  -- Every leg ended (settled, claimed, refunded, sold or closed out).
+  redeemed           BOOLEAN NOT NULL DEFAULT false,
+  -- The venue's Leg_Settle paid it (the reference's crank), not the owner's Leg_Claim.
+  redeemed_by_crank  BOOLEAN NOT NULL DEFAULT false,
+  refunded_stale     BOOLEAN NOT NULL DEFAULT false,
+  closed_out         BOOLEAN NOT NULL DEFAULT false,
+  fills              INTEGER NOT NULL DEFAULT 0,
+  first_ts_sec       BIGINT,
+  last_ts_sec        BIGINT,
+  entry_update_id    TEXT,
+  last_update_id     TEXT,
+  PRIMARY KEY (market, owner_party)
 );
-CREATE INDEX IF NOT EXISTS idx_positions_owner_idx ON idx_positions (owner, last_ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_positions_owner_idx ON idx_positions (owner_party, last_ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_positions_address_idx ON idx_positions (owner_address, last_ts_sec DESC) WHERE owner_address IS NOT NULL;
 
--- 1-minute candles per Window from fills, YES-terms ticks.
+-- 1-minute candles per Window from fills, YES-terms ticks. Served only above the k = 5 floor.
 CREATE TABLE IF NOT EXISTS idx_candles (
   market        TEXT     NOT NULL,
   bucket_sec    BIGINT   NOT NULL,
@@ -236,7 +330,55 @@ CREATE TABLE IF NOT EXISTS idx_candles (
   trades        INTEGER  NOT NULL,
   PRIMARY KEY (market, bucket_sec)
 );
+
+-- Opt-in publications (PM.Publication, created by Leg_Publish). The only source of leaderboards, activity and
+-- sentiment. A retraction deletes the row, so it drops out of every later read.
+CREATE TABLE IF NOT EXISTS idx_publications (
+  publication_cid    TEXT     PRIMARY KEY,
+  owner_party        TEXT     NOT NULL,
+  owner_address      TEXT,
+  handle             TEXT     NOT NULL,
+  market             TEXT     NOT NULL,
+  market_key         TEXT     NOT NULL,
+  pair_id            TEXT     NOT NULL,
+  outcome            SMALLINT NOT NULL,
+  lots               NUMERIC  NOT NULL,
+  backing_share      NUMERIC  NOT NULL,
+  -- The owner's side price, from the ledger's own figures: backing_share / (lots × cash_unit); null before the Window is known.
+  price_ticks        SMALLINT,
+  created_update_id  TEXT     NOT NULL,
+  created_offset     BIGINT   NOT NULL,
+  created_ts_sec     BIGINT   NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_publications_ts_idx ON idx_publications (created_ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_publications_owner_idx ON idx_publications (owner_party, created_ts_sec DESC);
+CREATE INDEX IF NOT EXISTS idx_publications_market_idx ON idx_publications (market);
+
+-- The reference's per-Window print slots (which 0 open, 1 close) over the recorded quorum medians; source 4 = attested.
+CREATE OR REPLACE VIEW idx_market_prints AS
+  SELECT market, 0::smallint AS which, 4::smallint AS source, open_price_e8 AS price, -8 AS expo, trading_start_sec AS source_ts_sec,
+    open_signers AS signers, false AS copied, open_recorded_ts_sec AS recorded_ts_sec, open_update_id AS signature
+  FROM idx_markets WHERE open_price_e8 IS NOT NULL
+  UNION ALL
+  SELECT market, 1::smallint, 4::smallint, close_price_e8, -8, expiry_sec, close_signers, false, resolved_ts_sec, resolved_update_id
+  FROM idx_markets WHERE close_price_e8 IS NOT NULL;
 `;
 
-/** Every projection table, in the order a full rebuild truncates them. */
-export const INDEX_TABLES = ["idx_candles", "idx_positions", "idx_fills", "idx_orders", "idx_prints", "idx_markets", "idx_series", "idx_events", "idx_txs", "idx_cursor"] as const;
+/** Every projection table, in the order a full rebuild truncates them (the view reads idx_markets and survives). */
+export const INDEX_TABLES = [
+  "idx_publications",
+  "idx_candles",
+  "idx_positions",
+  "idx_fills",
+  "idx_legs",
+  "idx_quotes",
+  "idx_prints",
+  "idx_markets",
+  "idx_series",
+  "idx_events",
+  "idx_updates",
+  "idx_cursor",
+] as const;
+
+/** k-anonymity floor for market-level aggregates (privacy-thesis.md §5). */
+export const K_ANON_FLOOR = 5;

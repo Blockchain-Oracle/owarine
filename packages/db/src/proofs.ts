@@ -37,7 +37,7 @@ export function proofStore(sql: Sql) {
       await ensureSchema();
       const [row] = await sql<Array<{ source: number; symbol: string | null; price: string; source_ts_sec: string; signature: string }>>`
         SELECT p.source, m.symbol, p.price::text, p.source_ts_sec::text, p.signature
-        FROM idx_prints p JOIN idx_markets m ON m.market = p.market WHERE p.market = ${market} AND p.which = ${which}`;
+        FROM idx_market_prints p JOIN idx_markets m ON m.market = p.market WHERE p.market = ${market} AND p.which = ${which}`;
       return row ? { market, which, source: row.source, symbol: row.symbol, price: row.price, sourceTsSec: Number(row.source_ts_sec), signature: row.signature } : null;
     },
 
@@ -132,7 +132,7 @@ export async function proofRows(sql: Sql, market: string, pythFeeds: Readonly<Re
       pr.prev_publish_time_sec::text AS proof_prev_publish_time_sec, pr.posted_slot::text AS proof_posted_slot, pr.post_signatures AS proof_post_signatures,
       pr.close_signature AS proof_close_signature, pr.payer AS proof_payer, pr.error AS proof_error, pr.posted_at_ms::text AS proof_posted_at_ms,
       pr.closed_at_ms::text AS proof_closed_at_ms
-    FROM idx_prints p
+    FROM idx_market_prints p
     JOIN idx_markets m ON m.market = p.market
     LEFT JOIN print_archive a ON a.boundary_sec = p.source_ts_sec AND (
       (p.source = 1 AND a.source = 'pyth' AND a.feed = (${sql.json({ ...pythFeeds })}::jsonb ->> m.symbol)) OR

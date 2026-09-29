@@ -1,10 +1,11 @@
 /**
- * The venue-wide tape (proof-analytics.md §1, lane 5b): three paged scans that replace Masayume's per-pool fill pages and
- * per-wallet router pages. Each orders on a total key, so offset paging under a fixed upper bound never skips or repeats
- * a row. Integers stay decimal strings, as in `idx/read.ts`.
+ * The venue-wide tape (proof-analytics.md §1, lane 5b): three paged scans the leaderboard and traction read. On Canton
+ * these are publication-only (privacy-thesis.md §5): `tape/fills` lists opt-in `Publication`s joined to their fill,
+ * `tape/markets` carries market aggregates only above the k = 5 floor, and `tape/actions` is empty (no complete sets).
+ * Each orders on a total key, so offset paging under a fixed upper bound never skips or repeats a row.
  */
 import type postgres from "postgres";
-import type { IdxRow } from "./read";
+import { fillCols, marketCols, type IdxRow } from "./read";
 
 type Sql = postgres.Sql;
 
@@ -23,44 +24,37 @@ export interface TapeMarketsQuery {
 }
 
 export interface TapeRangeQuery {
-  /** `[sinceSec, untilSec)` on the fill's chain clock (`ts_sec`) or the action's block time. */
+  /** `[sinceSec, untilSec)` on the fill's ledger effective time. */
   sinceSec: number;
   untilSec: number;
   limit?: number;
   offset?: number;
 }
 
-/**
- * Windows in a board's scope with their Series grid (Masayume `scan.ts:40-45`); `MarketRow` shape without prints. A Window
- * expires after it starts trading, so `expiry_sec >= lookback` is implied; it is spelled out to range-scan the expiry index.
- */
+/** Windows in a board's scope with their Series grid; `MarketRow` shape without prints. */
 export async function tapeMarkets(sql: Sql, q: TapeMarketsQuery): Promise<IdxRow[]> {
   return sql`
-    SELECT m.market, m.series, m.symbol, m.cadence_sec, m.basis, m.market_index::text, m.trading_start_sec::text, m.lock_at_sec::text,
-      m.expiry_sec::text, m.policy_version, m.book, m.ledger, m.state, m.winner, m.payout_yes::text, m.payout_no::text, m.void_reason,
-      m.single_source, m.resolved_ts_sec::text, m.resolved_signature, m.backing_lots::text, m.volume_ticklots::text, m.trade_count::text,
-      m.last_price_ticks, s.lot_base::text, s.tick_base::text, s.cash_unit::text, NULL AS prints
+    SELECT ${marketCols(sql)}, NULL AS prints
     FROM idx_markets m LEFT JOIN idx_series s ON s.series = m.series
-    WHERE m.opened_signature IS NOT NULL AND m.expiry_sec >= ${q.lookbackSec} AND m.trading_start_sec >= ${q.lookbackSec}
+    WHERE m.expiry_sec >= ${q.lookbackSec} AND m.trading_start_sec >= ${q.lookbackSec}
       AND (m.expiry_sec >= ${q.fromSec} OR (m.resolved_ts_sec >= ${q.fromSec} AND m.resolved_ts_sec < ${q.toSec}))
     ORDER BY m.expiry_sec, m.market LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
 }
 
-/** Every fill on the venue in a time range, oldest first (`idx_fills_ts_idx`). */
+/**
+ * Every published trade in a time range, oldest first: the fill that opened a published leg, identified by the seat
+ * address the web bound or else the publication's handle. A retracted publication is gone from this read.
+ */
 export async function tapeFills(sql: Sql, q: TapeRangeQuery): Promise<IdxRow[]> {
   return sql`
-    SELECT f.signature, f.outer_ix, f.inner_ix, f.fill_ix, f.market, f.book, f.seq::text, f.slot::text, f.ts_sec::text, f.taker, f.taker_seat,
-      f.taker_kind, f.maker, f.maker_seat, f.maker_kind, f.path, f.price_ticks, f.lots::text
-    FROM idx_fills f
+    SELECT ${fillCols(sql, sql`COALESCE(p.owner_address, p.handle)`)}, p.handle
+    FROM idx_publications p
+      JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2)
     WHERE f.ts_sec >= ${q.sinceSec} AND f.ts_sec < ${q.untilSec}
-    ORDER BY f.ts_sec, f.seq, f.fill_ix, f.signature, f.outer_ix, f.inner_ix LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
+    ORDER BY f.ts_sec, f.ledger_offset, f.node_id, p.publication_cid LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
 }
 
-/** Complete-set mints and merges on the venue in a time range, oldest first, with their owner (`idx_events_name_idx`). */
-export async function tapeActions(sql: Sql, q: TapeRangeQuery): Promise<IdxRow[]> {
-  return sql`
-    SELECT e.signature, e.name, e.market, e.seq::text, e.block_time_sec::text, e.data, e.data->>'owner' AS owner
-    FROM idx_events e
-    WHERE e.name = 'CompleteSet' AND e.block_time_sec >= ${q.sinceSec} AND e.block_time_sec < ${q.untilSec}
-    ORDER BY e.block_time_sec, e.slot, e.signature, e.outer_ix, e.inner_ix LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
+/** Complete-set mints and merges: none exist on Canton (a pair is minted inside the accept), so the scan is empty. */
+export async function tapeActions(_sql: Sql, _q: TapeRangeQuery): Promise<IdxRow[]> {
+  return [];
 }

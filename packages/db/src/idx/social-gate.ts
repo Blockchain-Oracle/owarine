@@ -2,9 +2,10 @@
  * The Room's index reads (social-assistant.md §1.2): "ever bet" and the fill that proves a registry write. Read
  * straight from the indexer's tables with no HTTP hop, and read-only — S13 never writes `idx_*`.
  *
- * "Ever bet" is an `idx_positions` row with a fill on either seat or minted lots. It stays true after the
- * wallet sells out and after the Window settles, which is what the Room owes a bettor: the thread outlives the
- * position. Every query leads with the owner, so `idx_positions_owner_idx` and the `idx_fills` PK carry them.
+ * "Ever bet" is an `idx_positions` row with at least one fill (a leg taken from a venue quote). It stays true after the
+ * seat sells out and after the Window settles, which is what the Room owes a bettor: the thread outlives the position.
+ * These are the calling seat's own rows (the Room gate asks about its own caller); `owner` matches the seat address the
+ * web bound to the party (`owner_address`) or the party id itself.
  */
 import type postgres from "postgres";
 
@@ -22,7 +23,7 @@ export function socialGateReader(sql: Sql) {
     async everBet(market: string, owner: string): Promise<boolean> {
       const rows = await sql<{ one: number }[]>`
         SELECT 1 AS one FROM idx_positions
-        WHERE owner = ${owner} AND market = ${market} AND (fills > 0 OR minted_lots > 0)
+        WHERE (owner_address = ${owner} OR owner_party = ${owner}) AND market = ${market} AND fills > 0
         LIMIT 1`;
       return rows.length > 0;
     },
@@ -31,17 +32,16 @@ export function socialGateReader(sql: Sql) {
     async everBetOnSymbol(symbol: string, owner: string): Promise<boolean> {
       const rows = await sql<{ one: number }[]>`
         SELECT 1 AS one FROM idx_positions p JOIN idx_markets m ON m.market = p.market
-        WHERE p.owner = ${owner} AND m.symbol = ${symbol} AND (p.fills > 0 OR p.minted_lots > 0)
+        WHERE (p.owner_address = ${owner} OR p.owner_party = ${owner}) AND m.symbol = ${symbol} AND p.fills > 0
         LIMIT 1`;
       return rows.length > 0;
     },
 
-    /** A confirmed fill in transaction `signature` on this Window with `wallet` on either seat. */
+    /** A fill in ledger update `signature` (an update id; Canton updates are final) on this Window for `wallet`. */
     async fillBy(signature: string, market: string, wallet: string): Promise<boolean> {
       const rows = await sql<{ one: number }[]>`
-        SELECT 1 AS one FROM idx_fills f JOIN idx_txs t USING (signature)
-        WHERE f.signature = ${signature} AND f.market = ${market} AND (f.taker = ${wallet} OR f.maker = ${wallet})
-          AND NOT t.failed AND t.commitment IN ('confirmed', 'finalized')
+        SELECT 1 AS one FROM idx_fills f
+        WHERE f.update_id = ${signature} AND f.market = ${market} AND (f.owner_address = ${wallet} OR f.owner_party = ${wallet})
         LIMIT 1`;
       return rows.length > 0;
     },
