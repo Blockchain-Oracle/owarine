@@ -105,4 +105,49 @@ describe("seat drain recycles (C9d)", () => {
     await pass();
     expect(s.fake.submitted).toHaveLength(0);
   });
+
+  it("a failed cash sweep leaves the seat draining (it is tried again next pass), and a dry run never frees", async () => {
+    const s = setup();
+    const venue = fakeVenue(s.fake);
+    (venue.client as unknown as { submitAndWaitForTransaction: () => Promise<never> }).submitAndWaitForTransaction = async () => {
+      throw new Error("sequencer busy");
+    };
+    const recycle = fakePool(s.states);
+    const guarded = async (party: string, now: number, work: () => Promise<RecycleCheck>) => {
+      try {
+        return await recycle(party, now, work);
+      } catch (error) {
+        return { kind: "held" as const, why: String(error) };
+      }
+    };
+    await createSeatDrainPass({ venue, pool: null, log: () => undefined, seats: async () => [SEAT], db: null, recycle: guarded })();
+    expect(s.states.get(SEAT)).toBe("draining");
+
+    const d = setup();
+    const dry = { ...fakeVenue(d.fake), dryRun: true };
+    const r = await createSeatDrainPass({ venue: dry, pool: null, log: () => undefined, seats: async () => [SEAT], db: null, recycle: fakePool(d.states) })();
+    expect(d.states.get(SEAT)).toBe("draining");
+    expect(r.why).toContain("DRY RUN");
+  });
+
+  it("offers the seat's Earn shares to the redeemer, and frees it once they are redeemed", async () => {
+    const share = { templateId: TEMPLATE_IDS.LpShare, cid: "lp-1", arg: { venue: VENUE, provider: SEAT, reserveId: "range", shares: "42" }, stakeholders: [VENUE, SEAT] };
+    const s = setup([share]);
+    const asked: unknown[] = [];
+    const pass = createSeatDrainPass({
+      venue: fakeVenue(s.fake), pool: null, log: () => undefined, seats: async () => (s.states.get(SEAT) === "draining" ? [SEAT] : []), db: null, recycle: fakePool(s.states),
+      redeemShares: () => async (seat, shares) => {
+        asked.push({ seat, shares });
+        s.fake.contracts = s.fake.contracts.filter((c) => c.cid !== "lp-1");
+        return ["redeemed"];
+      },
+    });
+    await pass();
+    expect(asked).toEqual([{ seat: SEAT, shares: [{ cid: "lp-1", reserveId: "range", shares: 42n }] }]);
+    // The read that found the share holds this pass; the next pass sees it gone and frees.
+    expect(s.states.get(SEAT)).toBe("draining");
+    await pass();
+    expect(s.states.get(SEAT)).toBe("free");
+  });
 });
+
