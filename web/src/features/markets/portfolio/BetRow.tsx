@@ -10,7 +10,7 @@ import { formatCadence, PORTFOLIO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { AssetDisc } from "../hero/asset-mark";
 import { SIDE_WORD } from "../side-styles";
-import { CASH_OUT, useCashOut, type CashOutTarget } from "./useCashOut";
+import { CashOutLink, CashOutLinkView, type CashOutState } from "./CashOut";
 
 interface BetRowProps {
   position: OpenPosition;
@@ -38,32 +38,7 @@ export function heldSide(upRaw: bigint, downRaw: bigint): Side | null {
   return null;
 }
 
-export interface CashOutState {
-  busy: boolean;
-  note: string | null;
-}
-
-/** `LeverageBetRow`'s cash-out link (`type-caption text-accent underline`), with its refusal as a sentence beside it. */
-export function CashOutLinkView({ busy, note, onCashOut }: CashOutState & { onCashOut: () => void }) {
-  return (
-    <>
-      <button type="button" className="type-caption text-accent underline" disabled={busy} onClick={onCashOut} data-cursor="hover">
-        {busy ? CASH_OUT.cashingOut : CASH_OUT.cashOut}
-      </button>
-      {note && (
-        <span className="type-caption basis-full text-left text-warning sm:text-right" role="status">
-          {note}
-        </span>
-      )}
-    </>
-  );
-}
-
-/** The live link: shown only where a wallet can sign the sell. */
-export function CashOutLink(target: CashOutTarget) {
-  const { canSign, busy, note, cashOut } = useCashOut(target);
-  return canSign ? <CashOutLinkView busy={busy} note={note} onCashOut={() => void cashOut()} /> : null;
-}
+export { CashOutLink, CashOutLinkView, type CashOutState } from "./CashOut";
 
 /**
  * One open bet.

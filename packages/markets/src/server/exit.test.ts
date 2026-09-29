@@ -36,8 +36,9 @@ describe("positions at the ladder mid (C7a)", () => {
 });
 
 describe("a sale's booking and rejections (C7a)", () => {
+  const createdAt = new Date(T).toISOString();
   const created = (contractId: string, entity: string, createArgument: Record<string, unknown>) => ({
-    CreatedEvent: { contractId, templateId: `pkg:${entity}`, createArgument, offset: 9, nodeId: 1, packageName: "abu-pm-main", witnessParties: [SEAT], signatories: [V], createdAt: new Date(T).toISOString() },
+    CreatedEvent: { contractId, templateId: `pkg:${entity}`, createArgument, offset: 9, nodeId: 1, packageName: "abu-pm-main", witnessParties: [SEAT], signatories: [V], createdAt },
   });
   const legArg = (owner: string, lots: string) => ({
     venue: V, owner, termsCid: "00terms", marketId: DAML_ID, pairId: "p1", outcome: "SideUp", lots, cashUnit: "10", backingShare: "310000", feePaid: "0",

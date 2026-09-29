@@ -48,7 +48,7 @@ export async function requestFirmQuote(request: Pick<OrderRequest, "market" | "s
   return r.value;
 }
 
-async function pollCommand(journalId: string, deps: SeatLaneDeps): Promise<CommandStatus | null> {
+export async function pollCommand(journalId: string, deps: SeatLaneDeps): Promise<CommandStatus | null> {
   const sleep = deps.sleep ?? defaultSleep;
   const cap = deps.nowMs() + (deps.confirmCapMs ?? CONFIRM_CAP_MS);
   for (;;) {
