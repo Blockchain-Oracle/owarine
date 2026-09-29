@@ -27,6 +27,8 @@ import qualified DA.Map as Map
 import PM.Market
 import PM.Money
 import PM.Reserve
+import PM.Quote (lockFromShard)
+import PM.Tickets.Boost
 import PM.Tickets.Common
 import PM.Tickets.Range
 import PM.Types
@@ -89,6 +91,46 @@ template RiskBook
           lowE8; highE8; stake; maxPayout; validUntil
           lockAt = terms.lockAt; expiry = terms.expiry; refundAfter = terms.refundAfter
         pure (book, q, change)
+
+    -- A boost (or short, side Down) on one Window's pair: the front is
+    -- locked from a reserve shard and booked against the Window's expiry;
+    -- the house stake of the pair comes from a venue shard, as a Quote's.
+    choice Book_IssueBoost : (ContractId RiskBook, ContractId BoostQuote, Paid)
+      with
+        navCid : ContractId NavStatement
+        reserveShardCid : ContractId VenueCash
+        houseShardCid : ContractId VenueCash
+        user : Party
+        termsCid : ContractId MarketTerms
+        pairId : Text
+        side : Side
+        priceTicks : Int
+        lots : Int
+        leverageBps : Int
+        stake : Int
+        fronted : Int
+        premium : Int
+        barrierE8 : Int
+        knockOutProceeds : Int
+        validUntil : Time
+      controller venue
+      do
+        require "wrong-product" "this book issues another product" (product == BoostProduct)
+        require "bad-leverage" "leverage must be 1x..the book's maximum"
+          (leverageBps >= oneX && leverageBps <= params.maxLeverageBps)
+        terms <- fetchTerms venue termsCid
+        require "bad-grid" "ticks must be 1..999 and lots within the grid"
+          (ticksOk priceTicks && gridOk lots terms.cashUnit)
+        require "bad-terms" "stake + fronted - premium must equal the cost, within the boost's bounds"
+          (boostTermsOk priceTicks lots terms.cashUnit leverageBps stake fronted premium barrierE8 knockOutProceeds)
+        book <- takeRisk this navCid terms.expiry fronted fronted
+        reserveChange <- if fronted > 0 then lockFromReserve venue reserveId reserveShardCid fronted else pure None
+        houseChange <- lockFromShard venue houseShardCid (venueStakeOf lots priceTicks terms.cashUnit)
+        q <- create BoostQuote with
+          venue; user; reserveId; termsCid; marketId = terms.marketId; pairId; side; priceTicks; lots
+          cashUnit = terms.cashUnit; leverageBps; stake; fronted; premium; barrierE8; knockOutProceeds
+          validUntil; lockAt = terms.lockAt; expiry = terms.expiry; refundAfter = terms.refundAfter
+        pure (book, q, Paid with toOwner = houseChange; toReserve = reserveChange)
 
     -- Release the locks of boundaries that have passed: their tickets are
     -- decided by a recorded print, no longer by the market.

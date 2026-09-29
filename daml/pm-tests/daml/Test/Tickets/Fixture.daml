@@ -14,10 +14,13 @@ module Test.Tickets.Fixture where
 import Daml.Script
 import DA.Assert ((===))
 import qualified DA.Map as Map
+import PM.Leg (Leg)
 import PM.Market
 import PM.Money
 import PM.Reserve
+import PM.Types
 import PM.Tickets.Book
+import PM.Tickets.Boost
 import PM.Tickets.Range
 import Test.Conservation (ledgerTotal)
 import Test.Setup
@@ -95,7 +98,22 @@ ticketsTotal w = do
   rq <- query @RangeQuote w.venue
   rr <- query @RangeRound w.venue
   wq <- query @WithdrawQuote w.venue
+  bq <- query @BoostQuote w.venue
+  bp <- query @BoostPosition w.venue
+  bx <- query @BoostExitQuote w.venue
+  ress <- query @Resolution w.venue
+  let resFor tc = case [r | (_, r) <- ress, r.termsCid == tc] of
+        (r :: _) -> Some r
+        [] -> None
+      -- a position's value is its escrow until its market resolves, then
+      -- what the resolution pays out of it (proceeds plus the premium)
+      boostValue p = case resFor p.termsCid of
+        None -> costOf p + p.premium
+        Some r -> let (proceeds, fee) = boostPayout p r in proceeds + fee
   pure (base
+    + sum [venueStakeOf q.lots q.priceTicks q.cashUnit + q.fronted | (_, q) <- bq]
+    + sum (map (boostValue . snd) bp)
+    + sum [x.proceeds | (_, x) <- bx]
     + sum [q.maxPayout - q.stake | (_, q) <- rq]
     + sum [r.maxPayout | (_, r) <- rr]
     + sum [q.cashOut | (_, q) <- wq])
@@ -127,3 +145,22 @@ acceptRange w user q stake = do
 -- | Resolution for the window with a close at `close`; the open was px.
 closeAt : TW -> ContractId OpenPrint -> Int -> Script (ContractId Resolution)
 closeAt tw op close = resolveAt tw.w tw.win op close
+
+-- | Issue a boost (or short) quote: the front from the reserve's cash, the
+-- house stake from a fresh venue shard.
+issueBoost : TW -> ContractId RiskBook -> Party -> Side -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Time -> Text
+  -> Script (ContractId RiskBook, ContractId BoostQuote)
+issueBoost tw book user side ticks lots leverageBps stake fronted premium barrierE8 knockOutProceeds validUntil pairId = do
+  rs <- reserveAll tw.w
+  hs <- shard tw.w (venueStakeOf lots ticks 1)
+  (b, q, _) <- submit tw.w.venue do
+    exerciseCmd book Book_IssueBoost with
+      navCid = tw.nav; reserveShardCid = rs; houseShardCid = hs; user; termsCid = tw.win.terms; pairId; side
+      priceTicks = ticks; lots; leverageBps; stake; fronted; premium; barrierE8; knockOutProceeds; validUntil
+  pure (b, q)
+
+acceptBoost : World -> Party -> ContractId BoostQuote -> Int -> Script (ContractId BoostPosition, ContractId Leg)
+acceptBoost w user q stake = do
+  c <- fund w user stake
+  (p, l, _) <- submit user do exerciseCmd q BoostQuote_Accept with cash = [c]
+  pure (p, l)

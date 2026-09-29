@@ -1,0 +1,545 @@
+-- | Boost and Short money gate: conservation after every step, the owner
+-- loses at most the stake, stake + fronted - premium == cost, reclaimed +
+-- returned == proceeds, void returns the stake, settle once, claim equals
+-- settle, the oracle-quorum knock-out (and everything that cannot knock
+-- out), the exit, deadline races, caps, the venue cannot confiscate, the
+-- outsider sees nothing, and a seeded random sequence.
+--
+-- The standard 2x boost: 4 lots Up at 500 ticks, cost 2000 = stake 1026 +
+-- fronted 1025 - premium 51; barrier 0.5% under the open, knock-out
+-- proceeds 1100. The standard 1x short: 5 lots Down at 400, stake 2000.
+module Test.Tickets.Boost where
+
+import Daml.Script
+import DA.Action (foldlA, void)
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List ((!!))
+import DA.Optional (isSome)
+import PM.Leg
+import PM.Market
+import PM.Oracle
+import PM.Tickets.Book
+import PM.Tickets.Boost
+import PM.Tickets.Common
+import PM.Types
+import Test.Setup
+import Test.Tickets.Fixture
+
+barrier : Int
+barrier = px - px / 200
+
+boostUp : TW -> ContractId RiskBook -> Party -> Text -> Script (ContractId RiskBook, ContractId BoostQuote)
+boostUp tw book user pairId = issueBoost tw book user SideUp 500 4 20000 1026 1025 51 barrier 1100 (plus t0 40) pairId
+
+shortDown : TW -> ContractId RiskBook -> Party -> Text -> Script (ContractId RiskBook, ContractId BoostQuote)
+shortDown tw book user pairId = issueBoost tw book user SideDown 400 5 10000 2000 0 0 0 0 (plus t0 40) pairId
+
+-- A boost and a short on one Window; Up wins. Each step conserves, the
+-- boost pays quantity less the front, the reserve gets front + premium.
+testBoostSettleConservation = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  op <- recordOpen w tw.win px
+  total0 <- ticketsTotal w
+  (book, qa) <- boostUp tw book w.alice "b1"
+  conserved w total0 2000                      -- the house stake's shard
+  reserveCash w >>= (=== seedAssets - 1025)
+  (_, qb) <- shortDown tw book w.bob "s1"
+  conserved w total0 (2000 + 3000)
+  (pa, la) <- acceptBoost w w.alice qa 1026
+  (pb, lb) <- acceptBoost w w.bob qb 2000
+  conserved w total0 (5000 + 1026 + 2000)
+  res <- closeAt tw op (px + 10)
+  conserved w total0 8026
+  paidA <- submit w.venue do exerciseCmd pa Boost_Settle with resolutionCid = res
+  assertMsg "the boost paid its owner and the reserve" (isSome paidA.toOwner && isSome paidA.toReserve)
+  conserved w total0 8026
+  paidB <- submit w.venue do exerciseCmd pb Boost_Settle with resolutionCid = res
+  paidB === Paid with toOwner = None; toReserve = None
+  conserved w total0 8026
+  forA_ [la, lb] \l -> submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+  conserved w total0 8026
+  cashOf w.alice >>= (=== 4000 - 1025)         -- quantity less the front
+  cashOf w.bob >>= (=== 0)                     -- the short lost its stake, no more
+  reserveCash w >>= (=== seedAssets + 51)      -- front back plus the premium
+
+-- The owner loses at most the stake: on a loss the owner is paid nothing
+-- and owes nothing; the reserve keeps only the premium.
+testBoostLossBoundedByStake = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  op <- recordOpen w tw.win px
+  (_, q) <- boostUp tw book w.alice "b1"
+  (p, l) <- acceptBoost w w.alice q 1026
+  total0 <- ticketsTotal w
+  res <- closeAt tw op (px - 10)
+  paid <- submit w.venue do exerciseCmd p Boost_Settle with resolutionCid = res
+  paid.toOwner === None
+  assertMsg "the reserve kept the premium" (isSome paid.toReserve)
+  _ <- submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+  conserved w total0 0
+  cashOf w.alice >>= (=== 0)
+  (length <$> query @BoostPosition w.alice) >>= (=== 0)
+  reserveCash w >>= (=== seedAssets - 1025 + 51)
+
+-- The ledger's own arithmetic: stake + fronted - premium == cost, the front
+-- repaid first in every split.
+testBoostTermsArithmetic = script do
+  let ok = boostTermsOk 500 4 1 20000
+  ok 1026 1025 51 barrier 1100 === True
+  ok 1027 1025 51 barrier 1100 === False       -- the sum is off by one
+  ok 1026 1025 51 0 1100 === False             -- a fronted boost needs a barrier
+  ok 1026 1025 51 barrier 1000 === False       -- knock-out must repay the front
+  ok 51 1025 51 barrier 1100 === False         -- the stake must exceed the premium
+  boostTermsOk 500 4 1 15000 1026 1025 51 barrier 1100 === False   -- front above (L - 1) x stake
+  boostTermsOk 500 4 1 10000 2000 0 0 0 0 === True                 -- 1x
+  boostTermsOk 990 4 1 10000 3960 0 0 0 0 === True
+  boostTermsOk 999 4 1 30000 1400 2600 4 barrier 3000 === False    -- cannot beat its stake when right
+
+-- Void returns the stake (premium included) to the owner and the front to
+-- the reserve, by settle, claim and the stale refund alike.
+testBoostVoidReturnsStake = script do
+  forA_ [0, 1, 2] \how -> do
+    tw <- mkTickets
+    let w = tw.w
+    book <- mkBook tw BoostProduct
+    op <- recordOpen w tw.win px
+    (_, q) <- boostUp tw book w.alice "b1"
+    (p, l) <- acceptBoost w w.alice q 1026
+    total0 <- ticketsTotal w
+    res <- voidClose w tw.win op
+    case how of
+      0 -> void $ submit w.venue do exerciseCmd p Boost_Settle with resolutionCid = res
+      1 -> do
+        d <- disclosureOf w.venue res
+        void $ submit (actAs w.alice <> disclose d) do exerciseCmd p Boost_Claim with resolutionCid = res
+      _ -> do
+        at tw.win.t.refundAfter
+        void $ submit w.alice do exerciseCmd p Boost_RefundStale
+    -- the house leg is the venue's own: settled, or refunded once stale
+    if how == 2 then void $ submit w.venue do exerciseCmd l Leg_RefundStale
+    else void $ submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+    conserved w total0 0
+    cashOf w.alice >>= (=== 1026)
+    reserveCash w >>= (=== seedAssets)
+
+testBoostSettleOnceClaimEqualsSettle = script do
+  forA_ [("win", Some (px + 5)), ("loss", Some (px - 5)), ("void", None)] \(label, close) -> do
+    tw <- mkTickets
+    let w = tw.w
+    book <- mkBook tw BoostProduct
+    op <- recordOpen w tw.win px
+    (book, qa) <- boostUp tw book w.alice "b1"
+    (_, qb) <- boostUp tw book w.bob "b2"
+    (pa, _) <- acceptBoost w w.alice qa 1026
+    (pb, _) <- acceptBoost w w.bob qb 1026
+    res <- case close of
+      Some c -> closeAt tw op c
+      None -> voidClose w tw.win op
+    fails =<< trySubmit w.alice do exerciseCmd pa Boost_Claim with resolutionCid = res
+    d <- disclosureOf w.venue res
+    _ <- submit (actAs w.alice <> disclose d) do exerciseCmd pa Boost_Claim with resolutionCid = res
+    _ <- submit w.venue do exerciseCmd pb Boost_Settle with resolutionCid = res
+    ca <- cashOf w.alice
+    cb <- cashOf w.bob
+    debug (label <> ": claim " <> show ca <> ", settle " <> show cb)
+    ca === cb
+    fails =<< trySubmit w.venue do exerciseCmd pb Boost_Settle with resolutionCid = res
+    fails =<< trySubmit (actAs w.alice <> disclose d) do exerciseCmd pa Boost_Claim with resolutionCid = res
+
+-- Prints at one boundary from the given oracles.
+printsFrom : World -> [Party] -> Time -> [Int] -> Script [ContractId PriceQuote]
+printsFrom w os boundary ps = mapA (\(o, p) -> postPrintAt w o boundary p 10) (zip os ps)
+
+-- The knock-out needs the Window's oracle quorum at or beyond the barrier,
+-- from a boundary inside the position's life, while the Window trades;
+-- it repays the front, recognises the premium, pays the owner the rest,
+-- and hands the user's side to the venue so the pair nets.
+testBoostKnockOut = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (book, q) <- boostUp tw book w.alice "b1"
+  (_, qs) <- shortDown tw book w.bob "s1"
+  (p, houseLeg) <- acceptBoost w w.alice q 1026
+  (ps, _) <- acceptBoost w w.bob qs 2000
+  let b = plus t0 60
+      below = barrier - 1
+  at (plus b 10)
+  total0 <- ticketsTotal w
+  let ko obs quotes = do
+        sh <- shard w 1100
+        trySubmit w.venue do exerciseCmd p Boost_KnockOut with observedAt = obs; quoteCids = quotes; shardCid = sh
+  -- one oracle is not a quorum
+  q1 <- printsFrom w [w.o1] b [below]
+  refusedWith (refusal "quorum-not-met") =<< ko b q1
+  -- a quorum above the barrier is healthy
+  healthy <- printsFrom w [w.o2, w.o3] b [barrier + 1, barrier + 2]
+  refusedWith (refusal "still-healthy") =<< ko b (q1 ++ healthy)
+  -- quotes from parties outside the Window's oracle list do not count
+  fakes <- forA [w.venue, w.outsider] \o -> postPrintAt w o b below 10
+  refusedWith (refusal "quorum-not-met") =<< ko b (q1 ++ fakes)
+  -- a quorum that disagrees beyond 50 bps is refused
+  wild <- printsFrom w [w.o2] b [below - below / 50]
+  refusedWith (refusal "source-disagreement") =<< ko b (q1 ++ wild)
+  -- a print from before the position's life does not count
+  let early = plus t0 30
+  olds <- printsFrom w [w.o1, w.o2, w.o3] early [below, below, below]
+  refusedWith (refusal "knockout-window") =<< ko early olds
+  -- a 1x short has no barrier
+  shB <- shard w 10
+  refusedWith (refusal "unfronted") =<< trySubmit w.venue do
+    exerciseCmd ps Boost_KnockOut with observedAt = b; quoteCids = q1; shardCid = shB
+  -- the owner cannot be knocked out by anyone but the venue's choice
+  shA <- shard w 1100
+  fails =<< trySubmit w.alice do exerciseCmd p Boost_KnockOut with observedAt = b; quoteCids = q1; shardCid = shA
+  conserved w total0 (6 * 1100 + 10)       -- the shards minted for the refused attempts
+  -- the quorum at the barrier knocks it out
+  q23 <- printsFrom w [w.o2, w.o3] b [below, below + 1]
+  sh <- shard w 1100
+  (paid, userSide, _) <- submit w.venue do
+    exerciseCmd p Boost_KnockOut with observedAt = b; quoteCids = q1 ++ q23; shardCid = sh
+  conserved w total0 (7 * 1100 + 10)
+  Some o <- pure paid.toOwner
+  Some r <- pure paid.toReserve
+  Some oc <- queryContractId w.alice o
+  oc.amount === 1100 - 1025
+  Some rc <- queryContractId w.venue r
+  rc.amount === 1025 + 51
+  -- the venue now holds both sides of the pair and nets them in full
+  (Some net, None) <- submit w.venue do exerciseCmd userSide Leg_Merge with otherCid = houseLeg
+  Some nc <- queryContractId w.venue net
+  nc.amount === 4000
+  conserved w total0 (7 * 1100 + 10)
+
+-- The knock-out is refused once the Window has locked.
+testBoostKnockOutLockRace = script do
+  forA_ [(-1, True), (0, False), (1, False)] \(offset, ok) -> do
+    tw <- mkTickets
+    let w = tw.w
+    book <- mkBook tw BoostProduct
+    _ <- recordOpen w tw.win px
+    (_, q) <- boostUp tw book w.alice "b1"
+    (p, _) <- acceptBoost w w.alice q 1026
+    let b = plus t0 240
+    at (plus b 10)
+    qs <- printsFrom w [w.o1, w.o2, w.o3] b [barrier, barrier, barrier]
+    at (plus tw.win.t.lockAt offset)
+    sh <- shard w 1100
+    r <- trySubmit w.venue do exerciseCmd p Boost_KnockOut with observedAt = b; quoteCids = qs; shardCid = sh
+    if ok then void (succeeded r) else refusedWith deadlineExceeded r
+
+-- The owner's exit at the venue's firm price: front first, the premium
+-- recognised, the rest to the owner; the exit and the knock-out race on
+-- the position and exactly one wins.
+testBoostExit = script do
+  forA_ [True, False] \exitFirst -> do
+    tw <- mkTickets
+    let w = tw.w
+    book <- mkBook tw BoostProduct
+    _ <- recordOpen w tw.win px
+    (_, q) <- boostUp tw book w.alice "b1"
+    (p, _) <- acceptBoost w w.alice q 1026
+    sh <- shard w 2400
+    (xq, _) <- submit w.venue do exerciseCmd p Boost_OfferExit with shardCid = sh; exitTicks = 600; validUntil = plus t0 60
+    let b = plus t0 60
+    at (plus b 10)
+    qs <- printsFrom w [w.o1, w.o2, w.o3] b [barrier, barrier, barrier]
+    total0 <- ticketsTotal w
+    ks <- shard w 1100
+    unauthorized =<< trySubmit w.venue do exerciseCmd xq BoostExit_Accept
+    fails =<< trySubmit w.bob do exerciseCmd xq BoostExit_Accept
+    let exitIt = trySubmit w.alice do exerciseCmd xq BoostExit_Accept
+        koIt = trySubmit w.venue do exerciseCmd p Boost_KnockOut with observedAt = b; quoteCids = qs; shardCid = ks
+    (e, k) <- if exitFirst
+      then do e <- exitIt; k <- koIt; pure (e, k)
+      else do k <- koIt; e <- exitIt; pure (e, k)
+    case (e, k) of
+      (Right _, Left _) -> cashOf w.alice >>= (=== 2400 - 1025)
+      (Left _, Right _) -> cashOf w.alice >>= (=== 1100 - 1025)
+      _ -> abort "exactly one of exit and knock-out must win"
+    conserved w total0 1100
+    reserveCash w >>= (=== seedAssets + 51)
+    (length <$> query @BoostPosition w.venue) >>= (=== 0)
+
+data Winner = FirstWins | SecondWins | Neither
+  deriving (Eq, Show)
+
+verdict : Either SubmitError a -> Either SubmitError b -> Winner
+verdict (Right _) (Left _) = FirstWins
+verdict (Left _) (Right _) = SecondWins
+verdict (Left _) (Left _) = Neither
+verdict _ _ = error "both consumed the contract"
+
+raceAccept : Int -> Bool -> Script Winner
+raceAccept offset acceptFirst = do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- boostUp tw book w.alice "b1"
+  c <- fund w w.alice 1026
+  at (plus t0 offset)
+  let acceptIt = trySubmit w.alice do exerciseCmd q BoostQuote_Accept with cash = [c]
+      expireIt = trySubmit w.venue do exerciseCmd q BoostQuote_Expire
+  if acceptFirst
+    then do a <- acceptIt; e <- expireIt; pure (verdict a e)
+    else do e <- expireIt; a <- acceptIt; pure (verdict a e)
+
+raceSettle : Int -> Bool -> Script Winner
+raceSettle offset settleFirst = do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  op <- recordOpen w tw.win px
+  (_, q) <- boostUp tw book w.alice "b1"
+  (p, _) <- acceptBoost w w.alice q 1026
+  res <- closeAt tw op (px + 1)
+  at (plus tw.win.t.refundAfter offset)
+  let settleIt = trySubmit w.venue do exerciseCmd p Boost_Settle with resolutionCid = res
+      refundIt = trySubmit w.alice do exerciseCmd p Boost_RefundStale
+  v <- if settleFirst
+    then do s <- settleIt; f <- refundIt; pure (verdict s f)
+    else do f <- refundIt; s <- settleIt; pure (verdict s f)
+  cashOf w.alice >>= (=== (if v == FirstWins then 4000 - 1025 else 1026))
+  pure v
+
+testBoostDeadlineRaces = script do
+  forA_ [True, False] \first -> do
+    raceAccept 39 first >>= (=== FirstWins)
+    raceAccept 40 first >>= (=== Neither)
+    raceAccept 41 first >>= (=== Neither)
+    raceAccept 45 first >>= (=== SecondWins)
+    raceSettle (-1) first >>= (=== FirstWins)
+    raceSettle 0 first >>= (=== SecondWins)
+    raceSettle 1 first >>= (=== SecondWins)
+
+testBoostCaps = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  let v = plus t0 40
+      issueTry b lev stake fronted premium ticks lots = do
+        rs <- reserveAll w
+        hs <- shard w 1000000
+        trySubmit w.venue do
+          exerciseCmd b Book_IssueBoost with
+            navCid = tw.nav; reserveShardCid = rs; houseShardCid = hs; user = w.alice; termsCid = tw.win.terms
+            pairId = "x"; side = SideUp; priceTicks = ticks; lots; leverageBps = lev; stake; fronted; premium
+            barrierE8 = barrier; knockOutProceeds = fronted + 1; validUntil = v
+  refusedWith (refusal "bad-leverage") =<< issueTry book 30001 1026 1025 51 500 4
+  refusedWith (refusal "bad-leverage") =<< issueTry book 9999 1026 1025 51 500 4
+  refusedWith (refusal "bad-terms") =<< issueTry book 20000 1027 1025 51 500 4
+  refusedWith (refusal "bad-grid") =<< issueTry book 20000 1026 1025 51 1000 4
+  -- 3x at 100 ticks, 700 lots: cost 70000 = 23334 + 46666 - 0 (front > 20000)
+  refusedWith (refusal "over-ticket-cap") =<< issueTry book 30000 23334 46666 0 100 700
+  range <- mkBook tw RangeProduct
+  refusedWith (refusal "wrong-product") =<< issueTry range 20000 1026 1025 51 500 4
+  -- per Window: 20000 + 10001 > 30000
+  (book, _, _) <- issueTry book 30000 10000 20000 0 100 300 >>= succeeded
+  refusedWith (refusal "over-expiry-cap") =<< issueTry book 30000 5334 10667 1 250 64
+
+testBoostVenueCannotConfiscate = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  op <- recordOpen w tw.win px
+  (book, q) <- boostUp tw book w.alice "b1"
+  (_, q2) <- boostUp tw book w.alice "b2"
+  ca <- fund w w.alice 1026
+  unauthorized =<< trySubmit w.venue do exerciseCmd q2 BoostQuote_Accept with cash = [ca]
+  cb <- fund w w.bob 1026
+  fails =<< trySubmit w.bob do exerciseCmd q2 BoostQuote_Accept with cash = [cb]
+  (p, _) <- acceptBoost w w.alice q 1026
+  unauthorized =<< trySubmit w.venue do archiveCmd p
+  unauthorized =<< trySubmit w.venue do exerciseCmd p Boost_RefundStale
+  -- another Window's resolution cannot settle it
+  at (plus tw.win1.t.tradingStart 10)
+  qs1 <- prints w tw.win1.t.tradingStart [px, px, px]
+  Right op1 <- submit w.resolver do
+    exerciseCmd tw.win1.terms Terms_RecordOpen with stateCid = tw.win1.state; quoteCids = qs1
+  res0 <- closeAt tw op (px + 5)
+  at (plus tw.win1.t.expiry 10)
+  qs2 <- prints w tw.win1.t.expiry [px - 5, px - 5, px - 5]
+  res1 <- submit w.resolver do exerciseCmd tw.win1.terms Terms_Resolve with openCid = op1; quoteCids = qs2
+  refusedWith (refusal "wrong-resolution") =<< trySubmit w.venue do exerciseCmd p Boost_Settle with resolutionCid = res1
+  -- the knock-out is closed after the lock, so a known winner cannot be cut short
+  sh <- shard w 1100
+  qsLate <- printsFrom w [w.o1, w.o2, w.o3] (plus t0 240) [barrier, barrier, barrier]
+  refusedWith deadlineExceeded =<< trySubmit w.venue do
+    exerciseCmd p Boost_KnockOut with observedAt = plus t0 240; quoteCids = qsLate; shardCid = sh
+  at tw.win.t.refundAfter
+  refusedWith deadlineExceeded =<< trySubmit w.venue do exerciseCmd p Boost_Settle with resolutionCid = res0
+  d <- disclosureOf w.venue res0
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd p Boost_Claim with resolutionCid = res0
+  cashOf w.alice >>= (=== 4000 - 1025 + 1026)   -- the payout plus the unspent top-up
+
+testBoostOutsiderSeesNothing = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (book, qa) <- boostUp tw book w.alice "b1"
+  (_, qb) <- shortDown tw book w.bob "s1"
+  (p, _) <- acceptBoost w w.alice qa 1026
+  sh <- shard w 2400
+  _ <- submit w.venue do exerciseCmd p Boost_OfferExit with shardCid = sh; exitTicks = 600; validUntil = plus t0 60
+  forA_ [w.outsider, w.auditor, tw.lp, w.resolver] \x -> do
+    (length <$> query @BoostQuote x) >>= (=== 0)
+    (length <$> query @BoostPosition x) >>= (=== 0)
+    (length <$> query @BoostExitQuote x) >>= (=== 0)
+    (length <$> query @Leg x) >>= (=== 0)
+  (length <$> query @BoostPosition w.alice) >>= (=== 1)
+  (length <$> query @BoostExitQuote w.alice) >>= (=== 1)
+  (length <$> query @Leg w.alice) >>= (=== 0)      -- the house leg is the venue's alone
+  (length <$> query @BoostPosition w.bob) >>= (=== 0)
+  (length <$> query @BoostExitQuote w.bob) >>= (=== 0)
+  bq <- query @BoostQuote w.bob
+  map fst bq === [qb]
+
+-- ---------------------------------------------------------------------------
+-- Seeded random sequence: boosts and shorts issued, accepted, expired,
+-- offered an exit, exited, knocked out (quorum prints drawn at random, so
+-- many attempts are refused), then resolve or void and every position and
+-- house leg ends. Conservation after every step.
+
+lcgNext : Int -> Int
+lcgNext s = (s * 1103515245 + 12345) % 2147483648
+
+draw : Int -> Int -> (Int, Int)
+draw n s = let s' = lcgNext s in ((s' / 65536) % n, s')
+
+data BS = BS
+  with
+    seed : Int
+    book : ContractId RiskBook
+    credits : Int
+    pairNo : Int
+    accepted : Int
+    boundary : Time
+
+randomBoostStep : TW -> Int -> BS -> Int -> Script BS
+randomBoostStep tw total0 st _ = do
+  let w = tw.w
+  now <- getTime
+  let (k0, s1) = draw 10 st.seed
+      k = [0, 0, 1, 1, 2, 3, 4, 5, 6, 6] !! k0
+      (u, s2) = draw 2 s1
+      user = [w.alice, w.bob] !! u
+  st' <- case k of
+    0 -> do -- issue a boost (2x or 3x) or a 1x short
+      let (kind, s3) = draw 3 s2
+          (lotsN, s4) = draw 5 s3
+          lots = lotsN + 2
+          vu = min (plus now 20) tw.win.t.lockAt
+          pairId = "p" <> show st.pairNo
+          (side, ticks, lev) = case kind of
+            0 -> (SideUp, 500, 20000)
+            1 -> (SideDown, 450, 30000)
+            _ -> (SideDown, 400, 10000)
+          cost = lots * ticks
+          -- stake = nominal, fronted = (L - 1) x nominal less rounding, premium 5% of the front
+          fronted = if lev == 10000 then 0 else max 0 ((cost * (lev - 10000)) / (lev - (lev - 10000) / 20) - 2)
+          premium = fronted / 20
+          stake = cost - fronted + premium
+          bar = if side == SideUp then barrier else px + px / 200
+          ko = if fronted == 0 then 0 else fronted + lots * 10
+      rs <- reserveAll w
+      hs <- shard w (venueStakeOf lots ticks 1)
+      r <- trySubmit w.venue do
+        exerciseCmd st.book Book_IssueBoost with
+          navCid = tw.nav; reserveShardCid = rs; houseShardCid = hs; user; termsCid = tw.win.terms; pairId; side
+          priceTicks = ticks; lots; leverageBps = lev; stake; fronted; premium; barrierE8 = bar
+          knockOutProceeds = ko; validUntil = vu
+      let book' = either (const st.book) (\(b, _, _) -> b) r
+      pure st with seed = s4; pairNo = st.pairNo + 1; credits = st.credits + venueStakeOf lots ticks 1; book = book'
+    1 -> do -- accept a live quote
+      qs <- query @BoostQuote user
+      case [x | x@(_, q) <- qs, q.validUntil > now] of
+        [] -> pure st with seed = s2
+        ((q, x) :: _) -> do
+          c <- fund w user x.stake
+          _ <- submit user do exerciseCmd q BoostQuote_Accept with cash = [c]
+          pure st with seed = s2; credits = st.credits + x.stake; accepted = st.accepted + 1
+    2 -> do -- sweep expired quotes and exit offers
+      qs <- query @BoostQuote w.venue
+      forA_ qs \(q, _) -> trySubmit w.venue do exerciseCmd q BoostQuote_Expire
+      xs <- query @BoostExitQuote w.venue
+      forA_ xs \(q, _) -> trySubmit w.venue do exerciseCmd q BoostExit_Expire
+      pure st with seed = s2
+    3 -> do -- offer an exit on a position, and maybe take it
+      ps <- query @BoostPosition user
+      case ps of
+        [] -> pure st with seed = s2
+        ((p, x) :: _) -> do
+          let (t, s3) = draw 900 s2
+              (takeIt, s4) = draw 2 s3
+              proceeds = userStakeOf x.lots (t + 50) x.cashUnit
+          sh <- shard w proceeds
+          (xq, _) <- submit w.venue do exerciseCmd p Boost_OfferExit with shardCid = sh; exitTicks = t + 50; validUntil = plus now 10
+          if takeIt == 0 then void $ trySubmit user do exerciseCmd xq BoostExit_Accept else pure ()
+          pure st with seed = s4; credits = st.credits + proceeds
+    4 -> do -- oracles print a boundary around the barriers
+      let (d, s3) = draw 3 s2
+          b = st.boundary
+          p = [px, barrier - 1, px + px / 200 + 1] !! d
+      if plus b 10 <= now && b < tw.win.t.lockAt
+        then do _ <- prints w b [p, p, p + 1]; pure st with seed = s3; boundary = plus b 60
+        else pure st with seed = s3
+    5 -> do -- try a knock-out of any position on the latest printed boundary
+      ps <- query @BoostPosition w.venue
+      quotes <- query @PriceQuote w.venue
+      let b = plus st.boundary (-60)
+          qs = [q | (q, x) <- quotes, x.boundaryT == b]
+      case ps of
+        [] -> pure st with seed = s2
+        ((p, x) :: _) -> do
+          sh <- shard w (x.knockOutProceeds + 1)
+          _ <- trySubmit w.venue do exerciseCmd p Boost_KnockOut with observedAt = b; quoteCids = qs; shardCid = sh
+          pure st with seed = s2; credits = st.credits + x.knockOutProceeds + 1
+    _ -> do -- pass time, never past the lock
+      let (dt, s3) = draw 15 s2
+      if plus now (dt + 1) < tw.win.t.lockAt then at (plus now (dt + 1)) else pure ()
+      pure st with seed = s3
+  conserved w total0 st'.credits
+  pure st'
+
+testBoostRandomSequence = script do
+  forA_ [11, 20261001, 987654] \seed0 -> do
+    tw <- mkTickets
+    let w = tw.w
+    book0 <- mkBook tw BoostProduct
+    op <- recordOpen w tw.win px
+    total0 <- ticketsTotal w
+    st <- foldlA (randomBoostStep tw total0)
+      (BS with seed = seed0; book = book0; credits = 0; pairNo = 0; accepted = 0; boundary = plus t0 60) [1 .. 90]
+    let credits = st.credits
+        (endK, seed2) = draw 4 st.seed
+    res <- if endK == 0 then voidClose w tw.win op
+           else closeAt tw op ([px - 7, px, px + 7] !! (seed2 % 3))
+    conserved w total0 credits
+    at (plus tw.win.t.closeDeadline 6)
+    qs <- query @BoostQuote w.venue
+    forA_ qs \(q, _) -> submit w.venue do exerciseCmd q BoostQuote_Expire
+    xs <- query @BoostExitQuote w.venue
+    forA_ xs \(q, _) -> submit w.venue do exerciseCmd q BoostExit_Expire
+    conserved w total0 credits
+    ps <- query @BoostPosition w.venue
+    assertMsg "the sequence opened positions" (st.accepted >= 3)
+    d <- disclosureOf w.venue res
+    forA_ (zip [0 .. length ps] ps) \(i, (p, x)) -> do
+      if i % 2 == 0
+        then void $ submit w.venue do exerciseCmd p Boost_Settle with resolutionCid = res
+        else void $ submit (actAs x.owner <> disclose d) do exerciseCmd p Boost_Claim with resolutionCid = res
+      conserved w total0 credits
+    legs <- query @Leg w.venue
+    forA_ legs \(l, _) -> do
+      _ <- submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+      conserved w total0 credits
+    (length <$> query @BoostPosition w.venue) >>= (=== 0)
+    (length <$> query @Leg w.venue) >>= (=== 0)

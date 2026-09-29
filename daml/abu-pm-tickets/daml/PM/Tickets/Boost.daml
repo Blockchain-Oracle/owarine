@@ -1,0 +1,304 @@
+-- | Boost (leverage) and Short: a capped, prefunded leveraged position on
+-- one Window's pair (the reference's `agari-leverage`, `/short` is the Down
+-- side, 1x included).
+--
+-- At issue the venue quotes a pair position of `lots` at `priceTicks`, whose
+-- cost `C = lots * priceTicks * cashUnit` is paid as
+--     stake + fronted - premium == C                 (reference math/tests.rs)
+-- The owner puts in `stake` (premium included), the reserve fronts
+-- `fronted` from a reserve shard, and `premium` is the reserve's fee, held
+-- in escrow and recognised only when the position ends other than by void
+-- (as the engine's `feePaid`, K-022). The house takes the other side of the
+-- pair exactly as a `Quote` would: a venue-owned `Leg` of the opposite
+-- outcome backed by `lots * (1000 - priceTicks) * cashUnit`.
+--
+-- `BoostPosition` (venue + owner) escrows C + premium (= stake + fronted).
+-- Whatever the position fetches (`proceeds`) repays the reserve first:
+--     reclaimed = min(proceeds, fronted), returned = proceeds - reclaimed
+-- (reclaimed + returned == proceeds, reference state/random.rs), so the
+-- owner never loses more than the stake and never owes anything.
+--   won        proceeds = quantity         reserve: fronted + premium
+--   lost       proceeds = 0                reserve: premium
+--   void       proceeds = C + premium      reserve: fronted; owner: stake
+--   stale      as void, from refundAfter
+--   exit       proceeds = the venue's firm buy-back price (BoostExitQuote)
+--   knock-out  proceeds = knockOutProceeds (>= fronted), pinned at issue
+--
+-- Knock-out is Adapted: there is no book mark on Canton, so the quote pins
+-- a barrier on the underlying (`barrierE8`), and the venue can knock out
+-- only with an oracle quorum (the Window's own oracles, quorum and deviation
+-- rule) whose median print is at or beyond it, while the Window trades. The
+-- venue cannot knock out unilaterally, and a 1x position has no barrier.
+-- After an exit or knock-out the user's side passes to the venue as a
+-- `Leg`, so the pair stays whole and nets with `Leg_Merge`.
+module PM.Tickets.Boost where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Time (addRelTime, seconds, subTime)
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Oracle
+import PM.Quote (expireSlackSec, lockFromShard)
+import PM.Reserve (mulDivFloor)
+import PM.Tickets.Common
+import PM.Types
+
+oneX : Int
+oneX = 10000
+
+-- | The ledger's checks on a boost's terms (the pricer computes them).
+boostTermsOk : Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Bool
+boostTermsOk priceTicks lots cashUnit leverageBps stake fronted premium barrierE8 knockOutProceeds =
+  ticksOk priceTicks && gridOk lots cashUnit
+    && leverageBps >= oneX && leverageBps <= 10 * oneX
+    && ticketUnitsOk stake && ticketUnitsOk fronted
+    && premium >= 0 && premium <= fronted && stake > premium
+    && stake + fronted - premium == userStakeOf lots priceTicks cashUnit
+    -- the front is at most (leverage - 1) x the stake
+    && fronted <= mulDivFloor stake (leverageBps - oneX) oneX
+    -- a boost that cannot beat its stake even when right is a fee
+    && quantityOf lots cashUnit - fronted > stake
+    -- a fronted position has a barrier and repays its front at knock-out
+    && (fronted == 0 || (barrierE8 > 0 && knockOutProceeds >= fronted))
+    && knockOutProceeds >= 0 && knockOutProceeds <= quantityOf lots cashUnit
+
+template BoostQuote
+  with
+    venue : Party
+    user : Party
+    reserveId : Text
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    pairId : Text
+    side : Side
+    priceTicks : Int
+    lots : Int
+    cashUnit : Int
+    leverageBps : Int
+    stake : Int
+    fronted : Int
+    premium : Int
+    barrierE8 : Int
+    knockOutProceeds : Int
+    validUntil : Time
+    lockAt : Time
+    expiry : Time
+    refundAfter : Time
+  where
+    signatory venue
+    observer user
+    ensure boostTermsOk priceTicks lots cashUnit leverageBps stake fronted premium barrierE8 knockOutProceeds
+      && validUntil <= lockAt && lockAt <= expiry && expiry < refundAfter && user /= venue
+
+    choice BoostQuote_Accept : (ContractId BoostPosition, ContractId Leg, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+      controller user
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        total <- sumOwnedCash venue user cash
+        require "insufficient-cash" "cash does not cover the stake" (total >= stake)
+        change <- payIfPositive venue user (total - stake) "change"
+        pos <- create BoostPosition with
+          venue; owner = user; reserveId; termsCid; marketId; pairId; side; priceTicks; lots; cashUnit
+          leverageBps; stake; fronted; premium; barrierE8; barrierFrom = validUntil; knockOutProceeds
+          lockAt; expiry; refundAfter
+        houseLeg <- create Leg with
+          venue; owner = venue; termsCid; marketId; pairId; outcome = opposite side; lots; cashUnit
+          backingShare = venueStakeOf lots priceTicks cashUnit; feePaid = 0
+          refundAfter; beneficiaryRef = None
+        pure (pos, houseLeg, change)
+
+    choice BoostQuote_Expire : Paid
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        releaseQuote this
+
+    choice BoostQuote_Withdraw : Paid
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        releaseQuote this
+
+-- | An unaccepted quote returns the house stake to the venue and the front
+-- to the reserve (`toOwner` here is the venue's house shard).
+releaseQuote : BoostQuote -> Update Paid
+releaseQuote q = do
+  house <- payIfPositive q.venue q.venue (venueStakeOf q.lots q.priceTicks q.cashUnit) "shard"
+  r <- payReserve q.venue q.reserveId q.fronted
+  pure Paid with toOwner = house; toReserve = r
+
+template BoostPosition
+  with
+    venue : Party
+    owner : Party
+    reserveId : Text
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    pairId : Text
+    side : Side
+    priceTicks : Int
+    lots : Int
+    cashUnit : Int
+    leverageBps : Int
+    stake : Int
+    fronted : Int
+    premium : Int
+    barrierE8 : Int
+    barrierFrom : Time
+      -- ^ only prints at boundaries from here (the quote's validUntil) count
+    knockOutProceeds : Int
+    lockAt : Time
+    expiry : Time
+    refundAfter : Time
+  where
+    signatory venue, owner
+    ensure boostTermsOk priceTicks lots cashUnit leverageBps stake fronted premium barrierE8 knockOutProceeds
+      && owner /= venue
+
+    choice Boost_Settle : Paid
+      with
+        resolutionCid : ContractId Resolution
+      controller venue
+      do
+        assertWithinDeadline "refund-after" refundAfter
+        settleBoost this resolutionCid
+
+    choice Boost_Claim : Paid
+      with
+        resolutionCid : ContractId Resolution
+      controller owner
+      do settleBoost this resolutionCid
+
+    choice Boost_RefundStale : Paid
+      controller owner
+      do
+        assertDeadlineExceeded "refund-after" refundAfter
+        exitWith this (costOf this + premium) 0 "refund"
+
+    -- The oracle-quorum knock-out. `observedAt` is the print boundary the
+    -- quotes attest; the quotes must count under the Window's own rule
+    -- (oracles, bar, policy, admission) for that boundary.
+    choice Boost_KnockOut : (Paid, ContractId Leg, Optional (ContractId VenueCash))
+      with
+        observedAt : Time
+        quoteCids : [ContractId PriceQuote]
+        shardCid : ContractId VenueCash
+      controller venue
+      do
+        require "unfronted" "a position with no front has no barrier" (fronted > 0)
+        assertWithinDeadline "knockout-lock" lockAt
+        require "knockout-window" "the print must be from the position's life, before the Window's close"
+          (observedAt >= barrierFrom && observedAt < expiry)
+        terms <- fetch termsCid
+        require "wrong-terms" "terms changed venue" (terms.venue == venue)
+        let admission = subTime terms.closeDeadline terms.expiry
+            rule = PrintRule with
+              symbol = terms.symbol; boundary = observedAt; oracles = terms.oracles
+              barLenSec = terms.barLenSec; policyVersion = terms.policyVersion
+              earliest = addRelTime observedAt (seconds terms.minDelaySec)
+              deadline = addRelTime observedAt admission
+        ev <- collectEvidence rule quoteCids
+        require "quorum-not-met" "fewer distinct valid oracle quotes than the quorum" (length ev >= terms.quorum)
+        require "source-disagreement" "the quorum disagrees beyond the Window's deviation limit"
+          (not (disagrees terms.maxDeviationBps ev))
+        let mark = medianOf ev
+            beyond = if side == SideUp then mark <= barrierE8 else mark >= barrierE8
+        require "still-healthy" "the quorum's print is not beyond the barrier" beyond
+        change <- lockFromShard venue shardCid knockOutProceeds
+        paid <- exitWith this knockOutProceeds premium "knock-out"
+        leg <- create (houseTakesSide this)
+        pure (paid, leg, change)
+
+    -- A firm buy-back offer at `priceTicks` of the position's side, locked
+    -- from a venue shard; only the owner can accept it.
+    nonconsuming choice Boost_OfferExit : (ContractId BoostExitQuote, Optional (ContractId VenueCash))
+      with
+        shardCid : ContractId VenueCash
+        exitTicks : Int
+        validUntil : Time
+      controller venue
+      do
+        require "bad-grid" "ticks must be 1..999" (ticksOk exitTicks)
+        let proceeds = userStakeOf lots exitTicks cashUnit
+        change <- lockFromShard venue shardCid proceeds
+        q <- create BoostExitQuote with
+          venue; user = owner; positionCid = self; pairId; exitTicks; proceeds; validUntil
+        pure (q, change)
+
+-- | The owner's exit on the venue's firm price: the reserve is repaid
+-- first, the premium is recognised, the owner takes the rest.
+template BoostExitQuote
+  with
+    venue : Party
+    user : Party
+    positionCid : ContractId BoostPosition
+    pairId : Text
+    exitTicks : Int
+    proceeds : Int
+    validUntil : Time
+  where
+    signatory venue
+    observer user
+    ensure proceeds > 0 && user /= venue
+
+    choice BoostExit_Accept : (Paid, ContractId Leg)
+      controller user
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        p <- fetch positionCid
+        require "position-mismatch" "the position changed since the quote"
+          (p.owner == user && p.venue == venue && p.pairId == pairId)
+        archive positionCid
+        paid <- exitWith p proceeds p.premium "sale"
+        leg <- create (houseTakesSide p)
+        pure (paid, leg)
+
+    choice BoostExit_Expire : ContractId VenueCash
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        create VenueCash with venue; owner = venue; amount = proceeds; bucket = "shard"
+
+    choice BoostExit_Withdraw : ContractId VenueCash
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        create VenueCash with venue; owner = venue; amount = proceeds; bucket = "shard"
+
+costOf : BoostPosition -> Int
+costOf p = userStakeOf p.lots p.priceTicks p.cashUnit
+
+-- | (proceeds, recognised premium) of a position under a resolution.
+boostPayout : BoostPosition -> Resolution -> (Int, Int)
+boostPayout p r = case r.outcome of
+  None -> (costOf p + p.premium, 0)
+  Some w -> (if w == p.side then quantityOf p.lots p.cashUnit else 0, p.premium)
+
+-- | Split `proceeds` (front first) and pay the owner and the reserve; the
+-- reserve also takes `fee`.
+exitWith : BoostPosition -> Int -> Int -> Text -> Update Paid
+exitWith p proceeds fee bucket = do
+  let reclaimed = min proceeds p.fronted
+      returned = proceeds - reclaimed
+  payBoth p.venue p.owner p.reserveId returned (reclaimed + fee) bucket
+
+settleBoost : BoostPosition -> ContractId Resolution -> Update Paid
+settleBoost p resolutionCid = do
+  r <- fetchResolutionFor p.venue p.termsCid resolutionCid
+  let (proceeds, fee) = boostPayout p r
+  exitWith p proceeds fee "payout"
+
+-- | The user's side of the pair, now held by the venue at its backing, so
+-- the pair stays whole.
+houseTakesSide : BoostPosition -> Leg
+houseTakesSide p = Leg with
+  venue = p.venue; owner = p.venue; termsCid = p.termsCid; marketId = p.marketId; pairId = p.pairId
+  outcome = p.side; lots = p.lots; cashUnit = p.cashUnit; backingShare = costOf p; feePaid = 0
+  refundAfter = p.refundAfter; beneficiaryRef = None
