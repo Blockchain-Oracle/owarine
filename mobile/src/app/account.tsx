@@ -11,6 +11,7 @@ import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
 import { AVATAR_COLORS, FONT, useTheme } from "~/theme";
 import { SEAT } from "~/wallet/seat-copy";
 import { useSeat } from "~/wallet/SeatProvider";
+import type { SeatLeaseView } from "@agari/markets";
 
 const COPIED_MS = 1_500;
 const T = SEAT.account;
@@ -51,7 +52,9 @@ export default function AccountSheet() {
             <Text style={[styles.name, { color: color.ink }]} accessibilityRole="header" accessibilityLabel={address}>
               {formatAccountAddress(address)}
             </Text>
-            {seat.lease.status === "not-live" ? <Text style={[styles.note, { color: color.inkSecondary }]}>{T.leaseNotLive}</Text> : null}
+            <Text style={[styles.note, { color: color.inkSecondary }]} accessibilityLabel={leaseLine(seat.lease.view, true)}>
+              {leaseLine(seat.lease.view, false)}
+            </Text>
           </View>
           {confirming ? (
             <>
@@ -72,6 +75,9 @@ export default function AccountSheet() {
                   void Clipboard.setStringAsync(address).then(() => setCopied(true));
                 }}
               />
+              {seat.lease.view && seat.lease.view.kind !== "leased" && seat.lease.view.kind !== "pool-full" ? (
+                <Action label={seat.lease.leasing ? T.leasing : T.lease} icon={<CopiedIcon color={color.ink} />} onPress={() => void seat.lease.lease()} />
+              ) : null}
               <Action label={T.reset} icon={<DisconnectIcon color={color.ink} />} onPress={() => setConfirming(true)} />
             </View>
           )}
@@ -79,6 +85,25 @@ export default function AccountSheet() {
       ) : null}
     </WalletSheet>
   );
+}
+
+/** The lease under the seat ID: the leased party (hint and fingerprint head), or its honest state. */
+function leaseLine(view: SeatLeaseView | null, spoken: boolean): string {
+  if (view === null) return T.leaseReading;
+  switch (view.kind) {
+    case "leased": {
+      const lead = view.party.indexOf("::") + 6;
+      return `${T.party}: ${spoken ? view.party : `${view.party.slice(0, lead)}…${view.party.slice(-4)}`}`;
+    }
+    case "pool-full":
+      return T.leasePoolFull;
+    case "not-live":
+      return T.leaseNotLive;
+    case "refused":
+      return T.leaseRefused;
+    case "none":
+      return T.leaseNone;
+  }
 }
 
 function Action({ label, icon, onPress }: { label: string; icon: ReactNode; onPress: () => void }) {

@@ -73,6 +73,8 @@ export interface LedgerRequestOptions<W extends z.ZodType> {
   /** Under the API root (`/api/seat`, `/api/view`) rather than `/api/ledger`. */
   root?: boolean;
   query?: Record<string, string>;
+  /** Non-2xx statuses whose body is still an answer in `wire` (`/api/seat` answers pool-full with 409). */
+  okStatuses?: readonly number[];
 }
 
 /** One call to our routes. Never throws: an unreachable server is `rpc-down`, a missing seat `signer-required`. */
@@ -99,7 +101,7 @@ export async function ledgerRequest<W extends z.ZodType>(path: string, o: Ledger
     return { ok: false, status: null, diagnosis: diagnosis("rpc-down", `ledger routes unreachable: ${error instanceof Error ? error.message : String(error)}`) };
   }
   const json: unknown = await res.json().catch(() => null);
-  if (!res.ok) {
+  if (!res.ok && !o.okStatuses?.includes(res.status)) {
     const parsed = failureBody.safeParse(json);
     if (parsed.success) return { ok: false, status: res.status, diagnosis: parsed.data.diagnosis };
     const kind = res.status === 401 || res.status === 403 ? "signer-required" : "rpc-down";

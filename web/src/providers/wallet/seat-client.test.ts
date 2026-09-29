@@ -2,7 +2,8 @@ import { messageBytes } from "@agari/core/auth";
 import { decodeBase58, encodeBase58, toSignature } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
-import { SEAT_LEASE, seatSigner, takeSeat } from "./seat-client";
+import { seatSigner, takeSeat } from "./seat-client";
+import { leasedOf, seatNumberOf } from "./seat-lease-context";
 
 // Node has no IndexedDB or window: the seat still works for the page, which is the storage-blocked path.
 describe("seat key", () => {
@@ -26,7 +27,10 @@ describe("seat key", () => {
     await expect(verifyWalletMessage({ text, signature, signer: other.address })).resolves.toBe(false);
   });
 
-  it("states the lease honestly until the lease routes land", () => {
-    expect(SEAT_LEASE).toEqual({ kind: "not-live", reason: "seat lease: Canton adapter not live yet (C1 stub)" });
+  it("labels a leased party by its hint's number, and never invents one", () => {
+    expect(seatNumberOf("seat-3::1220abcd")).toBe(3);
+    expect(seatNumberOf("seat-a-lk2::1220abcd")).toBeNull();
+    expect(leasedOf({ kind: "none" })).toBeNull();
+    expect(leasedOf(null)).toBeNull();
   });
 });

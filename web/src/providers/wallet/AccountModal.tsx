@@ -3,7 +3,8 @@
 import { Dialog } from "@base-ui/react/dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { WALLET_MODAL } from "./copy";
-import { SEAT_LEASE } from "./seat-client";
+import { leasedOf, useSeatLeaseState } from "./seat-lease-context";
+import { Hash } from "@/components/data/Hash";
 import { emojiAvatarFor, formatAccountAddress } from "./emoji-avatar";
 import { CloseButton, usePhoneLayout, WalletDialog } from "./wallet-modal-parts";
 
@@ -13,8 +14,8 @@ const S = WALLET_MODAL.seat;
 
 /**
  * RainbowKit's `AccountModal` as Masayume's `ConnectButton` opened it: the emoji avatar, the seat's short address, and
- * Copy Address / Reset Seat. Under the address, where RainbowKit showed a native balance, the seat's Canton party: a
- * truthful "not leased yet" until the lease routes land (C4), never an invented party id.
+ * Copy Address / Reset Seat. Under the address, where RainbowKit showed a native balance, the seat's Canton party as
+ * `/api/seat` leased it, or the lease's honest state (reading, none, not live), never an invented party id.
  */
 export function AccountModal({
   open,
@@ -58,9 +59,7 @@ function ProfileDetails({ address, close, onDisconnect }: { address: string; clo
         <Dialog.Title render={<h1 />} className="wm-t18 wm-profile-name" title={address}>
           {formatAccountAddress(address)}
         </Dialog.Title>
-        <Dialog.Description className="wm-t14m wm-group-muted" title={SEAT_LEASE.reason}>
-          {S.party}: {S.leaseNotLive}
-        </Dialog.Description>
+        <LeaseLine />
       </div>
       <div className="wm-profile-actions">
         <ProfileAction
@@ -80,6 +79,25 @@ function ProfileDetails({ address, close, onDisconnect }: { address: string; clo
         />
       </div>
     </div>
+  );
+}
+
+function LeaseLine() {
+  const { view } = useSeatLeaseState();
+  const leased = leasedOf(view);
+  if (leased) {
+    return (
+      <Dialog.Description className="wm-t14m wm-group-muted" title={leased.party}>
+        {S.party}: <Hash value={leased.party} lead={leased.party.indexOf("::") + 6} tail={4} />
+      </Dialog.Description>
+    );
+  }
+  const text =
+    view === null ? S.reading : view.kind === "not-live" ? S.notLive : view.kind === "refused" ? S.refused : view.kind === "pool-full" ? S.poolFull : S.noLease;
+  return (
+    <Dialog.Description className="wm-t14m wm-group-muted" title={view?.kind === "not-live" ? view.reason : view?.kind === "refused" ? view.diagnosis.technical : undefined}>
+      {S.party}: {text}
+    </Dialog.Description>
   );
 }
 

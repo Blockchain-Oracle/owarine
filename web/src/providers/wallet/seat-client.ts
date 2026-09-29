@@ -1,7 +1,6 @@
 "use client";
 
 import { encodeBase58, isAddress, toAddress, type Address } from "@agari/core/types";
-import { NOT_DEPLOYED_TECHNICAL } from "@agari/markets";
 import { signerFromKeyPair, type SeatSigner } from "@agari/markets/sessions";
 import { del, get, set } from "idb-keyval";
 
@@ -93,11 +92,3 @@ export async function resetSeat(): Promise<void> {
 export function seatSigner(seat: StoredSeat): SeatSigner {
   return signerFromKeyPair(seat.address, seat.keyPair);
 }
-
-/**
- * The seat's lease on a Canton party (plan §4). The lease routes (`/api/seat`) land in C4; until then the seat is a key
- * and an address only, and the account modal says so instead of inventing a party id.
- */
-export type SeatLease = { kind: "not-live"; reason: string };
-
-export const SEAT_LEASE: SeatLease = { kind: "not-live", reason: `seat lease: ${NOT_DEPLOYED_TECHNICAL}` };

@@ -1,30 +1,29 @@
 "use client";
 
 import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import Link from "next/link";
-import { useRef, useState, type RefObject } from "react";
+import { formatBaseUnits } from "@agari/core/units";
+import { diagnosisCopy } from "@agari/core/copy";
+import { SeatAccountMenu } from "@/features/canton-ux/seat";
 import { useBalancePlate } from "@/features/markets/balance";
-import { ACCOUNT_MENU, CONNECT } from "@/lib/copy";
+import { CONNECT } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
-import { useFloatingMenus } from "./useFloatingMenus";
+import { WALLET_MODAL } from "@/providers/wallet/copy";
+import { leasedOf, seatNumberOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 
 const AMOUNT_DP = 2;
+/** The idle lease the countdown is drawn against (`AGARI_SEAT_IDLE_TTL_SEC`'s default). */
+const LEASE_SPAN_SEC = 900;
 
 /**
- * The address pill and its menu — the reference's (`Header.tsx` L322–364), whole: the `addr-dot` avatar
- * and the short address; a menu of exactly two balance rows (Trading account, Wallet), Portfolio, and
- * Disconnect (the Wallet Standard disconnect). The links to Claims, Add funds and X recovery that had grown in here are gone: the money
- * pill beside this opens Add money, claiming is on the Window's own result, and X recovery is reached
- * from `/trade-from-x` as in the reference. A balance that has not been read yet shows an em dash.
+ * The address pill and its menu — the reference's (`Header.tsx` L322–364): the `addr-dot` avatar and the short
+ * address, opening the guest seat's menu (L-02, `SeatAccountMenu`): the seat, its leased party (`Hash`), the lease time
+ * left (`Countdown`), the demo cash, Portfolio and Reset seat. A seat with no party (a lapsed or refused lease) says
+ * so and offers to lease one; a balance that has not been read yet shows an em dash.
  */
 export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const session = useWalletSession();
   const balance = useBalancePlate();
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const refs = useRef<ReadonlyArray<RefObject<HTMLElement | null>>>([menuRef]);
-  useFloatingMenus(refs.current, () => setOpen(false));
+  const lease = useSeatLeaseState();
 
   const reading = balance.kind === "connected" ? balance.reading : null;
   const sheet = reading && isOk(reading) ? reading.value : null;
@@ -42,52 +41,25 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
     );
   }
 
+  const leased = leasedOf(lease.view);
+  const state = leased ? "leased" : "unleased";
+  const reason = lease.view?.kind === "refused" ? diagnosisCopy(lease.view.diagnosis.kind).headline : lease.view?.kind === "not-live" ? WALLET_MODAL.seat.notLive : null;
   return (
-    <div className="relative" ref={menuRef} data-cursor="hover">
-      <button
-        type="button"
-        className="wallet-pill"
-        aria-label={ACCOUNT_MENU.open}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => {
-          setOpen((prev) => !prev);
-          onOpenMenu?.();
-        }}
-      >
-        <span className="addr-dot" />
-        {/* Base58 is shown exactly as written, never re-cased (D-010). */}
-        <span title={session.address}>{shortHex(session.address, 4, 4)}</span>
-      </button>
-
-      {open && (
-        <div className="header-account-menu" role="menu">
-          <div className="header-account-pools">
-            <div className="header-account-row">
-              <span>{ACCOUNT_MENU.tradingAccount}</span>
-              <span className="val">{amount(sheet?.vaultBase ?? null)}</span>
-            </div>
-            <div className="header-account-row">
-              <span>{ACCOUNT_MENU.wallet}</span>
-              <span className="val val--soft">{amount(sheet?.spendableBase ?? null)}</span>
-            </div>
-          </div>
-          <Link href="/portfolio" className="header-account-link" role="menuitem" onClick={() => setOpen(false)}>
-            {ACCOUNT_MENU.portfolio}
-          </Link>
-          <button
-            type="button"
-            className="header-account-link header-account-link--danger"
-            role="menuitem"
-            onClick={() => {
-              void session.disconnect();
-              setOpen(false);
-            }}
-          >
-            {CONNECT.disconnect}
-          </button>
-        </div>
-      )}
+    <div data-cursor="hover">
+      <SeatAccountMenu
+        seatNumber={leased ? seatNumberOf(leased.party) : null}
+        address={session.address}
+        party={leased?.party ?? null}
+        state={lease.view === null ? "leased" : state}
+        leaseExpirySec={leased ? Math.floor(leased.idleExpiresAtMs / 1000) : null}
+        leaseSpanSec={LEASE_SPAN_SEC}
+        cashText={amount(sheet?.spendableBase ?? null)}
+        onReset={() => void session.disconnect()}
+        onLease={() => void lease.lease()}
+        leasing={lease.leasing}
+        unleasedReason={reason}
+        onOpenMenu={onOpenMenu}
+      />
     </div>
   );
 }

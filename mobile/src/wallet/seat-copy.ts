@@ -29,8 +29,15 @@ export const SEAT = {
     resetConfirm: "Reset for good",
     resetCancel: "Keep this seat",
     resetWarning: "Resetting forgets this seat's key. Its calls and credits stay with the old seat, and this phone cannot get them back.",
-    /** The lease is the server's half (a ledger party for this key); it opens with the Canton adapter. */
-    leaseNotLive: "The key is on this phone. Seats join the ledger when trading opens; until then nothing is placed.",
+    /** The lease is the server's half: a ledger party for this key, leased over a signed request. */
+    party: "Canton party",
+    leaseReading: "Reading this seat's lease…",
+    leasePoolFull: "Every seat is taken. This phone is in line and takes the next free one by itself.",
+    leaseNotLive: "The key is on this phone. This network is not taking seats right now, so nothing can be placed.",
+    leaseRefused: "The venue did not lease a party to this seat. Reset the seat or try again later.",
+    leaseNone: "No party is leased to this seat right now, so it cannot trade. Leasing one takes a second.",
+    lease: "Lease a party",
+    leasing: "Leasing…",
   },
   menu: { seat: "Your seat" },
   /** The funds sheet: the demo-credits grant, through a signed route once it is live; no faucet, no network fees. */

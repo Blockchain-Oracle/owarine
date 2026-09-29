@@ -2,30 +2,32 @@ import type { WalletSession } from "@agari/markets/react";
 import { seatSession } from "@agari/markets/sessions/mobile";
 import { router } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { SeatLeaseContext, type SeatLeaseState } from "@/providers/wallet/seat-lease-context";
+import { useSeatLeaseController } from "@/providers/wallet/useSeatLeaseController";
 import { WalletShellContext, type WalletShell, type WalletShellState } from "@/providers/wallet/wallet-shell-context";
+import { marketsEnv } from "~/lib/env";
 import { DEMO_TERMS_KEY } from "~/lib/keys";
 import { storage } from "~/lib/storage";
 import { createSeatKey, loadSeatKey, resetSeatKey } from "./seat-key-store";
 
 /**
- * The server's half of a seat: a ledger party leased to this key over a signed canonical text. Not live yet (the
- * Canton adapter lands in C4), so the phone says so instead of pretending a lease exists.
+ * The server's half of a seat: a ledger party leased to this key over a signed canonical text (`/api/seat`, proven by
+ * the signed seat header, since the phone has no cookie). Web's lease controller, shared as is.
  */
-export type SeatLease = { status: "not-live" };
+export type SeatLease = SeatLeaseState;
 
 export interface SeatActions {
   /** The demo-credits terms were accepted on this install (the gate every seat passes). */
   termsAccepted: boolean;
   acceptTerms(): void;
-  /** Loads this phone's seat key, or creates one; refuses until the terms are accepted. */
+  /** Loads this phone's seat key, or creates one, and leases it a party; refuses until the terms are accepted. */
   takeSeat(): Promise<void>;
-  /** Forgets the seat key for good; the next seat is a new key. */
+  /** Lets the lease go (the server drains the party), then forgets the seat key for good; the next seat is a new key. */
   resetSeat(): Promise<void>;
   lease: SeatLease;
 }
 
 const READY_EMPTY: WalletShellState = { status: "ready", connecting: false, address: null, wallet: null };
-const LEASE: SeatLease = { status: "not-live" };
 
 const SeatContext = createContext<SeatActions | null>(null);
 
@@ -55,6 +57,8 @@ export function SeatProvider({ children }: { children: ReactNode }) {
   const [termsAccepted, setTermsAccepted] = useState(() => storage.getBoolean(DEMO_TERMS_KEY) === true);
   const [state, setState] = useState<WalletShellState>(() => (termsAccepted ? { ...READY_EMPTY, status: "restoring" } : READY_EMPTY));
   const inFlight = useRef<Promise<void> | null>(null);
+  const lease = useSeatLeaseController({ signer: state.wallet?.signer ?? null, cluster: marketsEnv.cluster });
+  const { leaseWith, release } = lease;
 
   useEffect(() => {
     if (!termsAccepted) return;
@@ -85,7 +89,11 @@ export function SeatProvider({ children }: { children: ReactNode }) {
     const run = (async () => {
       try {
         const wallet = await sessionOf((await loadSeatKey()) ?? (await createSeatKey()));
+        // The lease is asked for on this explicit tap only; a full pool keeps asking by itself (the controller).
+        const view = await leaseWith(wallet.signer ?? { address: wallet.address, signMessage: wallet.signMessage });
         setState({ status: "ready", connecting: false, address: wallet.address, wallet });
+        if (view?.kind === "refused") throw new Error(view.diagnosis.technical);
+        if (view?.kind === "not-live") throw new Error(view.reason);
       } catch (error) {
         setState((s) => ({ ...s, status: "ready", connecting: false }));
         throw error;
@@ -95,12 +103,13 @@ export function SeatProvider({ children }: { children: ReactNode }) {
     })();
     inFlight.current = run;
     return run;
-  }, []);
+  }, [leaseWith]);
 
   const resetSeat = useCallback(async () => {
+    await release();
     await resetSeatKey();
     setState(READY_EMPTY);
-  }, []);
+  }, [release]);
 
   const shell = useMemo<WalletShell>(
     () => ({
@@ -112,11 +121,13 @@ export function SeatProvider({ children }: { children: ReactNode }) {
     }),
     [state, resetSeat],
   );
-  const seat = useMemo<SeatActions>(() => ({ termsAccepted, acceptTerms, takeSeat, resetSeat, lease: LEASE }), [termsAccepted, acceptTerms, takeSeat, resetSeat]);
+  const seat = useMemo<SeatActions>(() => ({ termsAccepted, acceptTerms, takeSeat, resetSeat, lease }), [termsAccepted, acceptTerms, takeSeat, resetSeat, lease]);
 
   return (
     <WalletShellContext.Provider value={shell}>
-      <SeatContext.Provider value={seat}>{children}</SeatContext.Provider>
+      <SeatLeaseContext.Provider value={lease}>
+        <SeatContext.Provider value={seat}>{children}</SeatContext.Provider>
+      </SeatLeaseContext.Provider>
     </WalletShellContext.Provider>
   );
 }

@@ -15,20 +15,29 @@ const M = SEAT.menu;
 const COPIED_MS = 1_500;
 
 export interface SeatMenuProps {
-  seatNumber: number;
+  /** From the party hint (`seat-3::…`); null when it carries no number. */
+  seatNumber: number | null;
   /** The seat key's address (base58, shown exactly as written, D-010). */
   address: string;
-  /** The leased party the ledger knows this seat as. */
-  party: string;
-  state: "leased" | "draining";
+  /** The leased party the ledger knows this seat as; null while the seat holds no lease. */
+  party: string | null;
+  /** `unleased`: a key with no party (a lapsed lease, a refused one); the menu offers to lease one. */
+  state: "leased" | "draining" | "unleased";
   /** When the idle lease runs out; ticks locally. */
   leaseExpirySec: number | null;
   leaseSpanSec: number;
   cashText: string;
   /** Fixtures only: open on first paint. */
   defaultOpen?: boolean;
-  onLink: () => void;
+  /** "Use on another device"; the item is left out when there is no link flow. */
+  onLink?: () => void;
   onReset: () => void;
+  /** Unleased only: ask for a party again (an explicit click, as the lease rule requires). */
+  onLease?: () => void;
+  leasing?: boolean;
+  /** Why the last lease did not land, in words (unleased only). */
+  unleasedReason?: string | null;
+  onOpenMenu?: () => void;
 }
 
 /** A party id keeps its readable hint and the fingerprint's first four characters. */
@@ -40,7 +49,22 @@ const partyLead = (party: string) => party.indexOf("::") + 6;
  * (the reference `Countdown`), and "Reset seat" where the wallet's Disconnect was. Draining, the lease row gives way to
  * a desk-kit `StatusDot` and the one sentence that says nothing is lost.
  */
-export function SeatAccountMenu({ seatNumber, address, party, state, leaseExpirySec, leaseSpanSec, cashText, defaultOpen = false, onLink, onReset }: SeatMenuProps) {
+export function SeatAccountMenu({
+  seatNumber,
+  address,
+  party,
+  state,
+  leaseExpirySec,
+  leaseSpanSec,
+  cashText,
+  defaultOpen = false,
+  onLink,
+  onReset,
+  onLease,
+  leasing = false,
+  unleasedReason,
+  onOpenMenu,
+}: SeatMenuProps) {
   const [open, setOpen] = useState(defaultOpen);
   const [copied, setCopied] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -55,9 +79,20 @@ export function SeatAccountMenu({ seatNumber, address, party, state, leaseExpiry
   }, [copied]);
 
   const draining = state === "draining";
+  const unleased = state === "unleased";
   return (
     <div className="relative cx-seat-anchor" ref={menuRef}>
-      <button type="button" className="wallet-pill" aria-label={M.open} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+      <button
+        type="button"
+        className="wallet-pill"
+        aria-label={M.open}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => {
+          setOpen((v) => !v);
+          onOpenMenu?.();
+        }}
+      >
         <span className="addr-dot" />
         <span title={address}>{shortHex(address, 4, 4)}</span>
       </button>
@@ -66,25 +101,32 @@ export function SeatAccountMenu({ seatNumber, address, party, state, leaseExpiry
           <div className="header-account-pools cx-seat-head">
             <div className="cx-seat-title">
               <span className="cx-seat-name">{M.seat(seatNumber)}</span>
-              <StatusDot tone={draining ? "warn" : "live"}>{draining ? M.draining : M.leased}</StatusDot>
+              <StatusDot tone={draining || unleased ? "warn" : "live"}>{draining ? M.draining : unleased ? M.unleased : M.leased}</StatusDot>
             </div>
-            <div className="header-account-row">
-              <span>{M.party}</span>
-              <span className="cx-seat-party">
-                <Hash value={party} lead={partyLead(party)} tail={4} className="val" />
-                <button
-                  type="button"
-                  className="cx-seat-copy"
-                  aria-label={copied ? M.copied : M.copyParty}
-                  onClick={() => void navigator.clipboard?.writeText(party).then(() => setCopied(true), () => undefined)}
-                >
-                  {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
-                </button>
-              </span>
-            </div>
-            {!draining && leaseExpirySec !== null && (
+            {party !== null && (
               <div className="header-account-row">
-                <span>{M.lease}</span>
+                <span>{M.party}</span>
+                <span className="cx-seat-party">
+                  <Hash value={party} lead={partyLead(party)} tail={4} className="val" />
+                  <button
+                    type="button"
+                    className="cx-seat-copy"
+                    aria-label={copied ? M.copied : M.copyParty}
+                    onClick={() =>
+                      void navigator.clipboard?.writeText(party).then(
+                        () => setCopied(true),
+                        () => undefined,
+                      )
+                    }
+                  >
+                    {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
+                  </button>
+                </span>
+              </div>
+            )}
+            {state === "leased" && leaseExpirySec !== null && (
+              <div className="header-account-row">
+                <span>{M.leaseLeft}</span>
                 <Countdown expirySec={leaseExpirySec} intervalSec={leaseSpanSec} className="val" />
               </div>
             )}
@@ -92,17 +134,30 @@ export function SeatAccountMenu({ seatNumber, address, party, state, leaseExpiry
               <span>{M.tradingAccount}</span>
               <span className="val">{cashText}</span>
             </div>
-            <p className="cx-seat-note">{draining ? M.drainingNote : M.leaseNote}</p>
+            <p className="cx-seat-note">{draining ? M.drainingNote : unleased ? (unleasedReason ?? M.unleasedNote) : M.leaseNote}</p>
           </div>
-          <Link href="/portfolio" className="header-account-link" role="menuitem">
+          {unleased && onLease && (
+            <button type="button" className="header-account-link cx-seat-item" role="menuitem" disabled={leasing} aria-busy={leasing} onClick={onLease}>
+              {leasing ? M.leasing : M.lease}
+            </button>
+          )}
+          <Link href="/portfolio" className="header-account-link" role="menuitem" onClick={close}>
             {M.portfolio}
           </Link>
-          {!draining && (
+          {state === "leased" && onLink && (
             <button type="button" className="header-account-link cx-seat-item" role="menuitem" onClick={onLink}>
               {M.link}
             </button>
           )}
-          <button type="button" className="header-account-link header-account-link--danger" role="menuitem" onClick={onReset}>
+          <button
+            type="button"
+            className="header-account-link header-account-link--danger"
+            role="menuitem"
+            onClick={() => {
+              close();
+              onReset();
+            }}
+          >
             {M.reset}
           </button>
         </div>

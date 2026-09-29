@@ -39,7 +39,20 @@ export const WALLET_MODAL = {
   profile: { copy: "Copy Address", copied: "Copied!", disconnect: "Reset Seat" },
   seat: {
     party: "Canton party",
-    leaseNotLive: "Not leased yet: the venue's seat lease is not live (C1 stub)",
+    leaseLeft: "Lease left",
+    reading: "Reading the seat's lease…",
+    noLease: "No party leased: take the seat again from the menu",
+    notLive: "The venue's seats are not open on this network",
+    refused: "The venue did not lease a party to this seat",
+    poolFull: "every seat is taken; this page is in line for the next one",
+  },
+  lease: {
+    title: "Your seat",
+    refusedTitle: "The seat has no party yet",
+    notLiveBody: "This network is not taking seats right now. Prices and markets stay readable; nothing can be placed.",
+    retry: "Try again",
+    close: "Close",
+    wait: "Keep waiting",
   },
 } as const;
 

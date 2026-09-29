@@ -17,13 +17,13 @@ import { createQueryClient } from "./query-client";
 import { UserSessionProvider } from "./UserSessionProvider";
 import { WalletShellProvider } from "./wallet/WalletShellProvider";
 
-/** Client composition root: wallet shell (Wallet Standard via the Kit wallet plugin) → query cache → shared read runtime → isolated signing session → boot gate → session key. */
+/** Client composition root: query cache → seat shell (the seat key and its lease, which reads through the cache) → shared read runtime → isolated signing session → boot gate → session key. */
 export function AppProviders({ children }: { children: ReactNode }) {
   const [queryClient] = useState(createQueryClient);
   usePersistedReadCache(queryClient);
   return (
-    <WalletShellProvider>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <WalletShellProvider>
         {/* Measures the read path and publishes it for a measurement run; it changes nothing. */}
         <PerfProbe />
         <MarketsProvider env={webEnv.markets}>
@@ -46,7 +46,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
             </MarketsBoot>
           </UserSessionProvider>
         </MarketsProvider>
-      </QueryClientProvider>
-    </WalletShellProvider>
+      </WalletShellProvider>
+    </QueryClientProvider>
   );
 }

@@ -56,7 +56,7 @@ export type SeatLeaseView = z.output<typeof seatLeaseWire>;
 /** Take or renew the seat's lease: the seat key signs a fresh lease text; the answer sets the HttpOnly seat cookie. */
 export async function leaseSeat(signer: SeatSigner, cluster: Cluster, nowMs: number = Date.now()): Promise<LedgerCallResult<SeatLeaseView>> {
   const signature = encodeBase58(await signer.signMessage(messageBytes(seatLeaseText(signer.address, nowMs, cluster))));
-  return ledgerRequest("/seat", { method: "POST", body: { address: signer.address, issuedAtMs: nowMs, signature }, wire: seatLeaseWire, seat: false, root: true });
+  return ledgerRequest("/seat", { method: "POST", body: { address: signer.address, issuedAtMs: nowMs, signature }, wire: seatLeaseWire, seat: false, root: true, okStatuses: [409] });
 }
 
 /** The lease this browser (cookie) or this seat key (signed header) holds now. */
