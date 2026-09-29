@@ -8,7 +8,8 @@
  *              Terms_Resolve / Terms_Void  resolve:<termsCid>
  *   pricer     (no writes)                 ladder per Window → /ladders/*
  *   issuer     Desk_IssueQuote             quote:<requestId>        POST /internal/quotes
- *   sweeper    Quote_Expire                expire:<quoteCid>
+ *              Desk_IssueBuyQuote          exitquote:<requestId>    POST /internal/exit-quotes
+ *   sweeper    Quote_Expire, BuyQuote_Expire   expire:<quoteCid>, expirebuy:<cid>
  *   rebalancer VenueCash_Merge / _Split    merge:<digest>, split:<cid>
  *   netting    Leg_Merge                   net:<digest>
  *   settler    Desk_SettleBatch            settle:<digest>, residual:<cid>
@@ -87,6 +88,7 @@ export async function startCantonVenue(input: {
 
   const routes: InternalRoutes["routes"] = {};
   if (issuer) routes["/internal/quotes"] = issuer.handle;
+  if (issuer) routes["/internal/exit-quotes"] = issuer.handleExit;
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);
   return {
     venue, board, pool,

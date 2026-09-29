@@ -14,7 +14,8 @@
  *   Quote(_)Accept                  → 'accepted'; Expire / Withdraw → row deleted, quotes_expired / _withdrawn + 1
  *   Leg created                     → idx_legs; a user leg from Quote_Accept also writes the fill (MINT), the position,
  *                                     the candle and the market's volume
- *   BuyQuote_Accept                 → a SELL fill (DIRECT) for the user; the archived user leg closes as 'sold'
+ *   BuyQuote_Accept                 → a SELL fill (DIRECT) for the sold lots; the archived user leg closes as 'sold' and a
+ *                                     partial sale's remainder opens as a new user leg (origin 'buyback')
  *   Leg exits                       → Leg_Settle 'settled' (by crank), Leg_Claim 'claimed', Leg_RefundStale
  *                                     'refunded_stale', Leg_CloseOut 'closed_out', Leg_Merge / archive-in-merge 'merged';
  *                                     result won / lost / void from the Window's Resolution
@@ -225,7 +226,7 @@ async function sale(c: Ctx, f: Fact<"sale">): Promise<void> {
   if (!l) return;
   await trade(c, {
     market: l.market, termsCid: l.terms_cid, quoteCid: f.buyQuoteCid, legCid: f.legCid, pairId: l.pair_id, owner: l.owner_party,
-    side: l.outcome === 0 ? 0 : 1, buy: false, sideTicks: f.priceTicks, lots: l.lots, fee: "0", cashUnit: l.cash_unit, nodeId: f.nodeId,
+    side: l.outcome === 0 ? 0 : 1, buy: false, sideTicks: f.priceTicks, lots: f.lots ?? l.lots, fee: "0", cashUnit: l.cash_unit, nodeId: f.nodeId,
   });
 }
 

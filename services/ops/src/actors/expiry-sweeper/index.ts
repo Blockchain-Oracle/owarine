@@ -1,10 +1,11 @@
 /**
- * The expiry sweeper (review B5): archives every firm quote nobody accepted, `Quote_Expire` once `validUntil + 5 s` has
+ * The expiry sweeper (review B5): archives every firm quote nobody accepted (`Quote_Expire`, and `BuyQuote_Expire` for
+ * the C7a exits) once `validUntil + 5 s` has
  * passed (the ledger's own slack, so accept and expire are exact complements and exactly one wins). The locked venue
  * stake comes back as a shard and joins the pool. An inactive quote was accepted first: that is done, not a failure.
  */
 import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, decodeQuote, expireCommandId, failureText, isInactive, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
+import { cmd, decodeBuyQuote, decodeQuote, expireBuyCommandId, expireCommandId, failureText, isInactive, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { venueCashCreated } from "../quote-issuer/pooled-submit";
@@ -18,16 +19,23 @@ export function startExpirySweeper(input: { venue: RoleSession; pool: ShardPool 
   const counters = { expired: 0, alreadyAccepted: 0, failed: 0 };
   const pass = async (): Promise<PassResult> => {
     const nowSec = Math.floor(Date.now() / 1000);
-    const quotes = pick(await readActive(input.venue, [TEMPLATE_IDS.Quote]), TEMPLATE_IDS.Quote, decodeQuote).filter((q) => q.data.venue === input.venue.party);
-    const due = quotes.filter((q) => q.data.validUntilSec + EXPIRE_AFTER_SEC <= nowSec).slice(0, PER_PASS);
+    const acs = await readActive(input.venue, [TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote]);
+    // Buy quotes and buy-backs (C7a exits) alike: both lock venue stake until accepted or swept.
+    const quotes = [
+      ...pick(acs, TEMPLATE_IDS.Quote, decodeQuote).map((q) => ({ cid: q.cid, venue: q.data.venue, validUntilSec: q.data.validUntilSec, marketId: q.data.marketId, buy: false })),
+      ...pick(acs, TEMPLATE_IDS.BuyQuote, decodeBuyQuote).map((q) => ({ cid: q.cid, venue: q.data.venue, validUntilSec: q.data.validUntilSec, marketId: q.data.termsCid, buy: true })),
+    ].filter((q) => q.venue === input.venue.party);
+    const due = quotes.filter((q) => q.validUntilSec + EXPIRE_AFTER_SEC <= nowSec).slice(0, PER_PASS);
     const notes = await Promise.all(
       due.map(async (q) => {
         try {
-          const out = await submit(input.venue, { commandId: expireCommandId(q.cid), commands: [cmd.expireQuote(q.cid)] });
+          const out = await submit(input.venue, q.buy
+            ? { commandId: expireBuyCommandId(q.cid), commands: [cmd.expireBuyQuote(q.cid)] }
+            : { commandId: expireCommandId(q.cid), commands: [cmd.expireQuote(q.cid)] });
           if (out.kind === "dry") return out.note;
           input.pool?.complete([], new Set(), venueCashCreated(out));
           counters.expired++;
-          emitVenueEvent({ kind: "expired", marketId: q.data.marketId, quoteCid: q.cid, atMs: Date.now() });
+          if (!q.buy) emitVenueEvent({ kind: "expired", marketId: q.marketId, quoteCid: q.cid, atMs: Date.now() });
           return null;
         } catch (error) {
           if (isInactive(error)) {

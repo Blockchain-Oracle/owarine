@@ -164,6 +164,8 @@ export type IdxFact =
       legCid: string;
       priceTicks: number;
       saleBase: string;
+      /** Lots sold (the venue's slice); absent on a pre-0.3.0 whole-leg sale, which sold the leg's lots. */
+      lots?: string;
     }
   | {
       kind: "leg-closed";

@@ -79,7 +79,7 @@ export function quoteOf(req: QuoteRequest, w: WalkedQuote, cashUnit: bigint, now
 }
 
 /** Takes `lots` off the front of a ladder side in place, so the next request before the pricer's pass sees less depth. */
-function consume(entry: LadderEntry, side: "up" | "down", lots: bigint): void {
+export function consume(entry: LadderEntry, side: "up" | "down", lots: bigint): void {
   const levels = side === "up" ? entry.up : entry.down;
   let left = lots;
   while (left > 0n && levels.length > 0) {

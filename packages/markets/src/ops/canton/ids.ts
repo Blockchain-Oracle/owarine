@@ -60,3 +60,8 @@ export const closeOutCommandId = (legCid: string) => assertCommandId(`closeout:$
 
 /** `withdraw:<quoteCid>`: `Quote_Withdraw` of a draining seat's live quote. */
 export const withdrawCommandId = (quoteCid: string) => assertCommandId(`withdraw:${safe(quoteCid, "quoteCid")}`);
+
+/** A buy-back (exit) quote issue: one per web request. */
+export const exitQuoteCommandId = (requestId: string) => assertCommandId(`exitquote:${safe(requestId, "requestId")}`);
+/** Sweeping an unaccepted buy-back quote. */
+export const expireBuyCommandId = (buyQuoteCid: string) => assertCommandId(`expirebuy:${safe(buyQuoteCid, "buyQuoteCid")}`);

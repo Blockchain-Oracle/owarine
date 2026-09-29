@@ -127,6 +127,30 @@ export const issueQuote = (deskCid: ContractId, q: IssueQuoteInput): Command =>
     priceTicks: int(q.priceTicks), lots: int(q.lots), fee: int(q.fee), validUntil: isoOfSec(q.validUntilSec),
   } satisfies Wire<PM.Quote.Desk_IssueQuote>);
 
+export interface IssueBuyQuoteInput {
+  shardCid: ContractId;
+  legCid: ContractId;
+  priceTicks: number;
+  validUntilSec: number;
+  /** Lots of the leg to buy back; null buys the whole leg. */
+  sellLots: bigint | null;
+}
+
+/** The venue's firm offer to buy back part or all of a user's leg (C7a exit), locking the price from a shard. */
+export const issueBuyQuote = (deskCid: ContractId, q: IssueBuyQuoteInput): Command =>
+  exercise(TEMPLATE_IDS.VenueDesk, deskCid, "Desk_IssueBuyQuote", {
+    shardCid: q.shardCid, legCid: q.legCid, priceTicks: int(q.priceTicks), validUntil: isoOfSec(q.validUntilSec),
+    sellLots: q.sellLots === null ? null : int(q.sellLots),
+  } satisfies Wire<PM.Quote.Desk_IssueBuyQuote>);
+
+export const expireBuyQuote = (buyQuoteCid: ContractId): Command => exercise(TEMPLATE_IDS.BuyQuote, buyQuoteCid, "BuyQuote_Expire", {});
+
+export const withdrawBuyQuote = (buyQuoteCid: ContractId, reason: string): Command =>
+  exercise(TEMPLATE_IDS.BuyQuote, buyQuoteCid, "BuyQuote_Withdraw", { reason } satisfies Wire<PM.Quote.BuyQuote_Withdraw>);
+
+/** The user's own accept of a buy-back. Built for drive scripts and the web's server half; ops never submits it. */
+export const acceptBuyQuote = (buyQuoteCid: ContractId): Command => exercise(TEMPLATE_IDS.BuyQuote, buyQuoteCid, "BuyQuote_Accept", {});
+
 export const settleBatch = (deskCid: ContractId, resolutionCid: ContractId, legCids: readonly ContractId[]): Command =>
   exercise(TEMPLATE_IDS.VenueDesk, deskCid, "Desk_SettleBatch", { legCids: [...legCids], resolutionCid } satisfies Wire<PM.Quote.Desk_SettleBatch>);
 
