@@ -13,6 +13,7 @@ export * from "./baskets";
 export * from "./crypto";
 export * from "./print-source";
 export * from "./realised-vol";
+export * from "./committee-event";
 export * from "./premium";
 // S6 lane 6c (session-lanes.md §3): halts, void reasons, earnings flags, corporate actions.
 export * from "./halts";
