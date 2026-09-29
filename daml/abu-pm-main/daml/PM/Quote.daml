@@ -12,6 +12,7 @@
 module PM.Quote where
 
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.List (unique)
 import DA.Time (addRelTime, seconds)
 import PM.Leg
 import PM.Market
@@ -95,6 +96,28 @@ template VenueDesk
         sellQ <- create (mk sellPairId SideDown downTicks sellFee)
         pure (buyQ, sellQ, change)
 
+    -- Venue-only batched settlement of one market's legs against its
+    -- Resolution: each leg runs `Leg_Settle` (winners paid, losers
+    -- archived, fees recognised, voids refunded). Atomic: if any leg is
+    -- already gone (claimed, refunded, settled) the whole batch fails with
+    -- CONTRACT_NOT_FOUND naming that cid, and the settler retries without it.
+    -- Users are not stakeholders of the desk; each sees only the sub-action
+    -- on their own leg.
+    nonconsuming choice Desk_SettleBatch : SettleBatchResult
+      with
+        legCids : [ContractId Leg]
+        resolutionCid : ContractId Resolution
+      controller venue
+      do
+        require "empty-batch" "a batch settles at least one leg" (not (null legCids))
+        require "duplicate-leg" "the same leg was passed twice" (unique legCids)
+        results <- forA legCids \c -> exercise c Leg_Settle with resolutionCid
+        -- one fee contract per batch instead of one per leg
+        fees <- case [f | (_, Some f) <- results] of
+          [] -> pure None
+          (f :: others) -> Some <$> (if null others then pure f else exercise f VenueCash_Merge with others)
+        pure SettleBatchResult with payouts = map fst results; fees
+
     nonconsuming choice Desk_IssueBuyQuote : (ContractId BuyQuote, Optional (ContractId VenueCash))
       with
         shardCid : ContractId VenueCash
@@ -113,6 +136,14 @@ template VenueDesk
           outcome = leg.outcome; lots = leg.lots; cashUnit = leg.cashUnit; priceTicks
           locked; validUntil
         pure (bq, change)
+
+-- | Per leg (in input order) the owner's payout, if any, and the batch's
+-- recognised fees merged into one venue contract.
+data SettleBatchResult = SettleBatchResult
+  with
+    payouts : [Optional (ContractId VenueCash)]
+    fees : Optional (ContractId VenueCash)
+  deriving (Eq, Show)
 
 lockFromShard : Party -> ContractId VenueCash -> Int -> Update (Optional (ContractId VenueCash))
 lockFromShard venue shardCid stake = do

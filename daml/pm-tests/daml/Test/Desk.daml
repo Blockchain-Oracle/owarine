@@ -1,10 +1,15 @@
 -- | The venue desk's batch operations: a two-way quote issued from one
--- shard in one transaction.
+-- shard in one transaction, and the settler's atomic `Desk_SettleBatch`.
 module Test.Desk where
 
 import Daml.Script
 import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List ((!!))
+import qualified DA.NonEmpty as NE
 import DA.Optional (fromSomeNote)
+import PM.Leg
+import PM.Market
 import PM.Money
 import PM.Quote
 import PM.Types
@@ -67,3 +72,125 @@ testTwoWayRefusals = script do
   (length <$> query @Quote w.alice) >>= (=== 2)
   -- the user alone accepts; Bob cannot see or take Alice's quotes
   (length <$> query @Quote w.bob) >>= (=== 0)
+
+-- ---------------------------------------------------------------------------
+-- Desk_SettleBatch
+
+-- | `n` trades on window 0 alternating Alice Up / Bob Down at 400 + i ticks,
+-- 1 lot, fee i; resolved with `closePx`. Returns the user legs in trade
+-- order, the venue legs, the resolution and the ledger total before settle.
+batchSetup : Int -> Int -> Script (World, Win, [(ContractId Leg, Leg)], [ContractId Leg], ContractId Resolution)
+batchSetup n closePx = do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  pairs <- forA [1 .. n] \i -> do
+    let (user, side) = if i % 2 == 1 then (w.alice, SideUp) else (w.bob, SideDown)
+    (u, v) <- trade w win user side (400 + i) 1 i ("b" <> show i)
+    Some l <- queryContractId w.venue u
+    pure ((u, l), v)
+  res <- resolveAt w win op closePx
+  pure (w, win, map fst pairs, map snd pairs, res)
+
+-- Everything the venue can see, in cash terms, for the batch tests: all
+-- cash plus every unsettled leg valued at its payout under `res`.
+settledTotal : World -> Resolution -> Script Int
+settledTotal w r = do
+  cash <- query @VenueCash w.venue
+  legs <- query @Leg w.venue
+  pure (sum [c.amount | (_, c) <- cash] + sum [let (o, f) = legPayout l r in o + f | (_, l) <- legs])
+
+cidText : ContractId a -> Text
+cidText c = show c
+
+-- A batch of 25 user legs and then their 25 venue legs. Winners are paid the
+-- pair quantity, losers archived with nothing, all 25 fees land in one
+-- venue contract, nothing is created or lost.
+testSettleBatch25 = script do
+  (w, _, userLegs, venueLegs, resCid) <- batchSetup 25 (px + 1000)   -- Up wins
+  Some r <- queryContractId w.venue resCid
+  before <- settledTotal w r
+  aliceBefore <- cashOf w.alice
+  bobBefore <- cashOf w.bob
+  res <- submit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids = map fst userLegs; resolutionCid = resCid
+  length res.payouts === 25
+  -- Alice (odd i, Up) won 13 legs of 1000; Bob's 12 Down legs lost
+  cashOf w.alice >>= (=== aliceBefore + 13 * 1000)
+  cashOf w.bob >>= (=== bobBefore)
+  length [p | (p, (_, l)) <- zip res.payouts userLegs, l.owner == w.bob, p /= None] === 0
+  Some fee <- queryContractId w.venue (fromSomeNote "fees" res.fees)
+  fee.amount === sum [1 .. 25]
+  fee.bucket === "fee"
+  -- the venue's opposite legs settle in a second batch
+  res2 <- submit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids = venueLegs; resolutionCid = resCid
+  res2.fees === None                      -- venue legs carry no fee
+  (length <$> query @Leg w.venue) >>= (=== 0)
+  settledTotal w r >>= (=== before)
+
+-- One leg disappears (the owner claimed it) before the batch lands: the
+-- whole batch fails naming that cid and settles nothing; the settler drops
+-- the named cid and the retry settles the rest.
+testSettleBatchFailThenRetry = script do
+  (w, _, userLegs, _, resCid) <- batchSetup 6 (px - 1000)       -- Down wins
+  let legCids = map fst userLegs
+      gone = legCids !! 2
+  d <- disclosureOf w.venue resCid
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd gone Leg_Claim with resolutionCid = resCid
+  r <- trySubmit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids; resolutionCid = resCid
+  named <- case r of
+    Left (ContractNotFound ids _) -> pure (NE.toList ids)
+    Left e -> abort ("expected CONTRACT_NOT_FOUND, got " <> show e)
+    Right _ -> abort "the batch should have failed"
+  named === [cidText gone]
+  -- atomic: every other leg is still there
+  forA_ [c | c <- legCids, c /= gone] \c -> do
+    x <- queryContractId w.venue c
+    assertMsg "leg survived the failed batch" (x /= None)
+  let retry = [c | c <- legCids, cidText c `notElem` named]
+  res <- submit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids = retry; resolutionCid = resCid
+  length res.payouts === 5
+  (length . filter (\(_, l) -> l.owner /= w.venue) <$> query @Leg w.venue) >>= (=== 0)
+
+-- A void batch refunds backing plus fee on every leg and recognises no fee.
+testSettleBatchVoid = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (a, _) <- trade w win w.alice SideUp 620 2 7 "v1"
+  (b, _) <- trade w win w.bob SideDown 300 1 3 "v2"
+  aliceBefore <- cashOf w.alice
+  bobBefore <- cashOf w.bob
+  resCid <- voidClose w win op
+  res <- submit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids = [a, b]; resolutionCid = resCid
+  res.fees === None
+  cashOf w.alice >>= (=== aliceBefore + 2 * 620 + 7)
+  cashOf w.bob >>= (=== bobBefore + 300 + 3)
+
+-- Only the venue batches; empty, duplicate and foreign-resolution batches
+-- are refused.
+testSettleBatchRefusals = script do
+  w <- mkWorld
+  s0 <- mkSeries w
+  (s1, win0) <- openWin w s0 0
+  (_, win1) <- openWin w s1 1
+  op0 <- recordOpen w win0 px
+  (a, _) <- trade w win0 w.alice SideUp 500 1 0 "r1"
+  (b, _) <- trade w win0 w.bob SideDown 500 1 0 "r2"
+  res0 <- resolveAt w win0 op0 px
+  op1 <- recordOpen w win1 px          -- window 1 opens at window 0's expiry
+  res1 <- resolveAt w win1 op1 px
+  let legCids = [a, b]
+  fails =<< trySubmit w.alice do
+    exerciseCmd w.desk Desk_SettleBatch with legCids; resolutionCid = res0
+  refusedWith (refusal "empty-batch") =<< trySubmit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids = []; resolutionCid = res0
+  refusedWith (refusal "duplicate-leg") =<< trySubmit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids = [a, b, a]; resolutionCid = res0
+  -- window 1's resolution cannot settle window 0's legs
+  refusedWith (refusal "wrong-resolution") =<< trySubmit w.venue do
+    exerciseCmd w.desk Desk_SettleBatch with legCids; resolutionCid = res1
+  _ <- submit w.venue do exerciseCmd w.desk Desk_SettleBatch with legCids; resolutionCid = res0
+  pure ()
