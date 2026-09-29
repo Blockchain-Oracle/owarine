@@ -1,0 +1,92 @@
+-- | The season prize pool (the reference's `SeasonPool` and its four calls:
+-- admin_create_season, deposit, admin_distribute_season,
+-- admin_withdraw_season_remainder).
+--
+-- A season's prize as money that already sits on the ledger, not a promise
+-- on a page. Standings and eligibility live off the ledger (the rating
+-- ladder is an ops projection of `DuelResult`s); this is only the payout
+-- rail. Money leaves the pool through ONE distribution to a ranked list
+-- (sum <= pool) or, once that has run, the venue's withdrawal of what is
+-- left, so the pool can be neither replayed nor over-spent, and nothing is
+-- ever stuck. Signed by the venue alone; players read it by disclosure.
+--
+-- Payouts credit each winner through their `VenueAccount` (the standing
+-- consent to be credited, never debited), like every venue credit.
+module PM.Games.Season where
+
+import DA.Assert (assertDeadlineExceeded)
+import DA.List (unique)
+import PM.Money
+import PM.Types
+
+-- | The reference's MAX_SEASON_WINNERS.
+maxSeasonWinners : Int
+maxSeasonWinners = 16
+
+seasonBucket : Text -> Text
+seasonBucket seasonId = "season:" <> seasonId
+
+data Payout = Payout
+  with
+    account : ContractId VenueAccount
+    amount : Int
+  deriving (Eq, Show)
+
+template SeasonPool
+  with
+    venue : Party
+    seasonId : Text
+    endsAt : Time
+    amount : Int
+      -- ^ what the pool holds now
+    deposited : Int
+      -- ^ everything ever funded, so a page can say how the pool was built
+    distributed : Bool
+  where
+    signatory venue
+    ensure seasonId /= "" && amount >= 0 && deposited >= amount && amount <= maxLotCash
+
+    -- The venue funds the pool from its own cash. Allowed until the
+    -- distribution (afterwards only the remainder withdrawal remains).
+    choice Season_Fund : ContractId SeasonPool
+      with
+        cash : [ContractId VenueCash]
+      controller venue
+      do
+        require "season-closed" "the pool has been distributed" (not distributed)
+        total <- sumOwnedCash venue venue cash
+        require "bad-amount" "funding must be positive" (total > 0)
+        create this with amount = amount + total; deposited = deposited + total
+
+    -- Pays the ranked list once, after the season ends. The ranking is
+    -- computed off the ledger by ops; the ledger enforces once-only, the
+    -- sum bound, one payout per winner, and that every account is this
+    -- venue's. An empty list closes a cancelled season with no winners.
+    choice Season_Distribute : (ContractId SeasonPool, [ContractId VenueCash])
+      with
+        payouts : [Payout]
+      controller venue
+      do
+        require "already-distributed" "a season pays out once" (not distributed)
+        assertDeadlineExceeded "season-ends" endsAt
+        require "bad-winners" "at most 16 winners, each amount positive"
+          (length payouts <= maxSeasonWinners && all (\p -> p.amount > 0 && p.amount <= maxLotCash) payouts)
+        let total = sum (map (.amount) payouts)
+        require "insufficient-pool" "the distribution exceeds the pool" (total <= amount)
+        accounts <- forA payouts \p -> do
+          a <- fetch p.account
+          require "foreign-account" "account belongs to another venue" (a.venue == venue && a.owner /= venue)
+          pure a.owner
+        require "duplicate-winner" "one payout per winner" (unique accounts)
+        paid <- forA payouts \p ->
+          exercise p.account VenueAccount_Credit with amount = p.amount; bucket = seasonBucket seasonId
+        pool <- create this with amount = amount - total; distributed = True
+        pure (pool, paid)
+
+    -- Recover what is left once the season has paid out: dust, an
+    -- over-funded pool, or a cancelled season. The pool closes.
+    choice Season_WithdrawRemainder : Optional (ContractId VenueCash)
+      controller venue
+      do
+        require "not-distributed" "the remainder is withdrawn only after the distribution" distributed
+        payIfPositive venue venue amount "shard"

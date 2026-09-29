@@ -1,0 +1,102 @@
+-- | The season pool's money gate: funded by the venue, distributed once
+-- to a ranked list whose sum is bounded by the pool, the remainder
+-- withdrawn only after; conservation throughout; nobody else sees it.
+module Test.Games.Season where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Games.Season
+import PM.Money
+import Test.Games.Fixture
+import Test.Setup
+
+sid : Text
+sid = "S1"
+
+seasonEnd : Time
+seasonEnd = plus t0 3600
+
+openAccount : World -> Party -> Script (ContractId VenueAccount)
+openAccount w owner = submit (actAs [w.venue, owner]) do
+  createCmd VenueAccount with venue = w.venue; owner; label = "season"
+
+mkPool : World -> Script (ContractId SeasonPool)
+mkPool w = submit w.venue do
+  createCmd SeasonPool with
+    venue = w.venue; seasonId = sid; endsAt = seasonEnd; amount = 0; deposited = 0; distributed = False
+
+fundPool : World -> ContractId SeasonPool -> Int -> Script (ContractId SeasonPool)
+fundPool w p amount = do
+  c <- shard w amount
+  submit w.venue do exerciseCmd p Season_Fund with cash = [c]
+
+distribute : World -> ContractId SeasonPool -> [(ContractId VenueAccount, Int)] -> Script (Either SubmitError (ContractId SeasonPool, [ContractId VenueCash]))
+distribute w p xs = trySubmit w.venue do
+  exerciseCmd p Season_Distribute with payouts = [Payout with account; amount | (account, amount) <- xs]
+
+-- Funded twice, distributed once at the season's end (not a second before),
+-- never again; no funding after; the remainder only after the distribution.
+-- Every step conserves value.
+testSeasonDistributeOnce = script do
+  w <- mkWorld
+  aAcc <- openAccount w w.alice
+  bAcc <- openAccount w w.bob
+  p <- step w 0 (mkPool w)
+  p <- step w 600 (fundPool w p 600)
+  p <- step w 400 (fundPool w p 400)
+  Some pool <- queryContractId w.venue p
+  (pool.amount, pool.deposited) === (1000, 1000)
+  trySubmit w.venue (exerciseCmd p Season_WithdrawRemainder) >>= refusedWith (refusal "not-distributed")
+  at (plus seasonEnd (-1))
+  distribute w p [(aAcc, 600), (bAcc, 300)] >>= refusedWith deadlineNotExceeded
+  at seasonEnd
+  (p, paid) <- step w 0 (distribute w p [(aAcc, 600), (bAcc, 300)] >>= succeeded)
+  length paid === 2
+  bucketOf w.alice (seasonBucket sid) >>= (=== 600)
+  bucketOf w.bob (seasonBucket sid) >>= (=== 300)
+  Some pool <- queryContractId w.venue p
+  (pool.amount, pool.deposited, pool.distributed) === (100, 1000, True)
+  -- once only, and closed to funding
+  distribute w p [(aAcc, 50)] >>= refusedWith (refusal "already-distributed")
+  c <- shard w 10
+  trySubmit w.venue (exerciseCmd p Season_Fund with cash = [c]) >>= refusedWith (refusal "season-closed")
+  venueBefore <- cashOf w.venue
+  Some rest <- step w 0 (submit w.venue do exerciseCmd p Season_WithdrawRemainder)
+  cashOf w.venue >>= (=== venueBefore + 100)
+  Some r <- queryContractId w.venue rest
+  r.amount === 100
+  query @SeasonPool w.venue >>= (=== []) . map fst
+
+-- The distribution is bounded by the pool, pays each winner once, at most
+-- sixteen, each a positive amount, never the venue itself; exactly the
+-- pool is allowed and leaves nothing to withdraw. Players cannot run it
+-- and nobody but the venue sees the pool.
+testSeasonSumBound = script do
+  w <- mkWorld
+  aAcc <- openAccount w w.alice
+  bAcc <- openAccount w w.bob
+  vAcc <- submit w.venue do createCmd VenueAccount with venue = w.venue; owner = w.venue; label = "self"
+  p <- mkPool w
+  p <- fundPool w p 1000
+  query @SeasonPool w.outsider >>= (=== []) . map fst
+  query @SeasonPool w.alice >>= (=== []) . map fst
+  trySubmit w.alice (exerciseCmd p Season_Distribute with payouts = [Payout with account = aAcc; amount = 1000]) >>= fails
+  at seasonEnd
+  distribute w p [(aAcc, 700), (bAcc, 301)] >>= refusedWith (refusal "insufficient-pool")
+  distribute w p [(aAcc, 500), (aAcc, 500)] >>= refusedWith (refusal "duplicate-winner")
+  distribute w p (replicate 17 (aAcc, 1)) >>= refusedWith (refusal "bad-winners")
+  distribute w p [(aAcc, 1000), (bAcc, 0)] >>= refusedWith (refusal "bad-winners")
+  distribute w p [(vAcc, 10)] >>= refusedWith (refusal "foreign-account")
+  (p, _) <- step w 0 (distribute w p [(aAcc, 700), (bAcc, 300)] >>= succeeded)
+  cashOf w.alice >>= (=== 700)
+  cashOf w.bob >>= (=== 300)
+  r <- submit w.venue do exerciseCmd p Season_WithdrawRemainder
+  r === None
+  -- a cancelled season closes with no winners and returns everything
+  p2 <- mkPool w
+  p2 <- fundPool w p2 250
+  (p2, paid) <- distribute w p2 [] >>= succeeded
+  paid === []
+  Some back <- submit w.venue do exerciseCmd p2 Season_WithdrawRemainder
+  Some b <- queryContractId w.venue back
+  b.amount === 250

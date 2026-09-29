@@ -9,4 +9,5 @@ dependencies:
 data-dependencies:
   - ../abu-pm-main/.daml/dist/abu-pm-main-0.3.0.dar
   - ../abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.0.dar
+  - ../abu-pm-games/.daml/dist/abu-pm-games-0.1.0.dar
   - ../abu-pm-agents/.daml/dist/abu-pm-agents-0.1.0.dar
