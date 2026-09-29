@@ -108,19 +108,19 @@ export const DUEL = {
     rating: (rating: number) => `Rating ${rating}`,
     committing: "Sealing the deck…",
     committingBody:
-      "The deck is chosen and hashed before either of you sees a card. The hash goes on chain first, so the cards cannot be changed once they are known.",
+      "The deck is chosen and hashed before either of you sees a card. The hash goes on the ledger first, so the cards cannot be changed once they are known.",
     committed: "Deck sealed",
     committedBody: "This is the commitment the arena will check the revealed deck against.",
     /** The creator's own transaction, named as one: it escrows and puts the deck's hash on chain. */
     openCta: "Open the match",
     openBody: (pot: string, symbol: string) =>
       pot === "0"
-        ? "You opened this search, so the match is yours to put on chain. This transaction escrows nothing and publishes the sealed deck's hash."
-        : `You opened this search, so the match is yours to put on chain. This transaction escrows your ${pot} ${symbol} and publishes the sealed deck's hash.`,
+        ? "You opened this search, so the match is yours to put on the ledger. This transaction escrows nothing and publishes the sealed deck's hash."
+        : `You opened this search, so the match is yours to put on the ledger. This transaction escrows your ${pot} ${symbol} and publishes the sealed deck's hash.`,
     joinCta: "Join the match",
     joinBody: (pot: string, symbol: string) =>
-      pot === "0" ? "The match is on chain and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on chain and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
-    waitingCreate: "Waiting for the other player to put the match on chain.",
+      pot === "0" ? "The match is on the ledger and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on the ledger and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
+    waitingCreate: "Waiting for the other player to put the match on the ledger.",
     opening: "Opening…",
     joining: "Joining…",
     noSigner: "This browser has no signing session, so it cannot send the transaction this match needs.",
@@ -128,7 +128,7 @@ export const DUEL = {
     cards: (n: number) => `${n} cards`,
     revealing: "Opening the deck…",
     revealed: "Deck open",
-    waitingPot: "Waiting for both side-pots to land on chain.",
+    waitingPot: "Waiting for both side-pots to land on the ledger.",
     seatCreator: "You opened this match",
     seatChallenger: "You were matched into this one",
 
@@ -141,8 +141,8 @@ export const DUEL = {
     deckNone: "Nothing dealable within the hour.",
     givesUp: (sec: number) => `This pairing is given up on in ${sec}s`,
     /** The pre-chain deadline: a sealed deck nobody pays for is released rather than left on screen. */
-    createBy: (sec: number) => `${sec}s left to put this match on chain`,
-    createLapsed: "The window to put this match on chain has passed.",
+    createBy: (sec: number) => `${sec}s left to put this match on the ledger`,
+    createLapsed: "The window to put this match on the ledger has passed.",
 
     /** A pairing that ended before anything reached the chain. Never an error plate: it is a state. */
     dissolvedTitle: "That pairing fell through",
@@ -201,7 +201,7 @@ export const DUEL = {
     /** Doc 04's recovery requirement: the operator's settler is not the only way this finishes. */
     crankTitle: "Nothing has to wait for the operator",
     crankBody:
-      "Settling a card and awarding the pot are permissionless. If the operator's settler is not running, you can send either yourself — neither can send the money anywhere the arena has not already recorded.",
+      "Scoring a card and awarding the pot are not the venue's alone: either player may send them. If the operator's settler is not running, you can send either yourself — neither can send the money anywhere the arena has not already recorded.",
     settleCard: (asset: string) => `Settle ${asset}`,
     settling: "Settling…",
     finalize: "Award the pot",
@@ -263,8 +263,8 @@ export const DUEL = {
     claim: "Claim",
     claiming: "Claiming…",
     claimed: "Claimed",
-    nothingToClaim: "The arena is holding nothing for this seat.",
-    claimNote: "One transaction, and it pays the player named on it — never the caller. The credit does not expire.",
+    nothingToClaim: "The arena is holding nothing for this seat: every card payout and the pot are paid straight into your cash.",
+    claimNote: "On this venue there is nothing to claim: the ledger pays the player named on each card and pot as it settles — never the caller.",
     cards: "Cards",
     cost: "Cost",
     payout: "Payout",
@@ -276,7 +276,7 @@ export const DUEL = {
   beyond: {
     title: "This match is past what this build can show",
     /** Still running: the cranks that finish it need nobody watching. */
-    live: "Every pick is in and the match is settling on chain. Nothing is lost: settlement, the pot and every payout are permissionless cranks that run without this screen.",
+    live: "Every pick is in and the match is settling on the ledger. Nothing is lost: the venue's settler scores every card and awards the pot, either player may do the same, and none of it needs this screen.",
     /** Already decided: the arena holds the result and the credit, and neither expires. */
     done: "The arena has decided this match and holds whatever it owes you as credit. The result and the claim are the next slice; the credit does not expire while you wait for it.",
     match: "Match",

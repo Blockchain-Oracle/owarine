@@ -109,7 +109,7 @@ export const LUCKY = {
     declined: "You skipped this deal. Nothing was placed.",
     laneRefused: "The order lane refused it before anything was sent. Nothing was taken.",
     nothingFilled: "The order landed but crossed nothing — the book moved first. Your stake was never taken.",
-    reverted: "The transaction reverted. Nothing was taken.",
+    reverted: "The ledger refused the order. Nothing was taken.",
     gone: "The Window closed before the order could be placed. Nothing was taken.",
   },
 
@@ -145,7 +145,7 @@ export const LUCKY = {
     title: "Your spins",
     connect: "Take a seat to see the spins it has made.",
     loading: "Reading your spins…",
-    notConfigured: "This deployment has no games store, so there is no spin history to read here. Every placed order is still on chain.",
+    notConfigured: "This deployment has no games store, so there is no spin history to read here. Every placed order is still on the ledger.",
     empty: "No spins yet.",
     /** One word per state, in the row's verdict slot. Nothing here is a verdict the chain has not given. */
     results: {
@@ -181,7 +181,7 @@ export const LUCKY = {
 
   board: {
     title: "Streaks",
-    intro: "Settled spins only. A streak moves when the chain decides a Window, never before.",
+    intro: "Settled spins only. A streak moves when the ledger resolves a Window, never before.",
     loading: "Reading the ladder…",
     empty: "Nobody has a settled spin yet.",
     notConfigured: "No games store here, so no ladder.",

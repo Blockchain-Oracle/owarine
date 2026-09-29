@@ -9,7 +9,7 @@ import { PRACTICE_WATCH_SEC } from "@agari/core/games";
  * (`04-game-system.md` §Practice and arcade state).
  */
 export const PRACTICE = {
-  eyebrow: "No stake · no position · no chain",
+  eyebrow: "No stake · no position · nothing on the ledger",
   title: "Practice",
   intro: "The duel's motion, on the venue's real Windows, with nothing at risk. Swipe each card the way you think the price is going.",
 
