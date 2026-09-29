@@ -29,6 +29,8 @@ export interface MarketsScreenProps {
   renderTicket: (selection: MarketsSelection) => ReactNode;
   /** The result of the Window in the hero, once it has one. */
   renderVerdict: (selection: MarketsSelection) => ReactNode;
+  /** `/markets/<id>` only: who sees what on the ledger for this Window (the Alice/Bob/Outsider switcher). */
+  renderLedgerView?: (selection: MarketsSelection) => ReactNode;
 }
 
 /**
@@ -39,7 +41,7 @@ export interface MarketsScreenProps {
  * 02 the window → 03 your call), where reading a market and acting on it were
  * three scroll positions apart.
  */
-export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProps) {
+export function MarketsScreen({ renderTicket, renderVerdict, renderLedgerView }: MarketsScreenProps) {
   const venue = useVenue();
   const nowMs = useChainNowMs();
   const lanes = useLanesState(venue.venueId);
@@ -78,6 +80,8 @@ export function MarketsScreen({ renderTicket, renderVerdict }: MarketsScreenProp
             <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
             <WordMarketBoard laneSet={lanes.laneSet} failure={lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure} ticker={lanes.ticker} nowMs={nowMs} />
           </section>
+
+          {renderLedgerView?.(selection)}
         </div>
       </div>
 

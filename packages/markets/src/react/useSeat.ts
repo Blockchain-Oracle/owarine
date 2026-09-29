@@ -3,7 +3,9 @@
 import { MARKETS_POLL_MS } from "@agari/core/constants";
 import type { Reading } from "@agari/core/schemas";
 import type { Address } from "@agari/core/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
+import { z } from "zod";
+import { ledgerRequest } from "../provider/ledger-api";
 import type { OpenQuote } from "../provider/ledger-wire";
 import { readSeatLease, type SeatLeaseView } from "../provider/seat";
 import { listOpenQuotes } from "../provider/wallet";
@@ -30,5 +32,42 @@ export function useSeatLease(enabled = true) {
       const r = await readSeatLease();
       return r.ok ? r.value : { kind: "refused", diagnosis: r.diagnosis };
     },
+  });
+}
+
+/** Whose view of the ledger `/api/view` reads: the caller's own leased seat, or a reserved demo persona. */
+export type LedgerViewAs = "me" | "alice" | "bob" | "outsider";
+
+/** `/api/view`'s answer: the rows the participant returned for that party, and the literal request body it was sent. */
+export const ledgerViewWire = z.object({
+  as: z.string(),
+  party: z.string(),
+  /** The literal `POST /v2/state/active-contracts-page` body (minus paging), party id and all. */
+  request: z.object({ eventFormat: z.unknown() }),
+  activeAtOffset: z.number(),
+  rows: z.array(z.object({ template: z.string(), contractId: z.string(), signatories: z.array(z.string()), observers: z.array(z.string()), payload: z.unknown() })),
+  total: z.number(),
+  note: z.string(),
+});
+export type LedgerView = z.output<typeof ledgerViewWire>;
+export type LedgerViewResult = { ok: true; value: LedgerView } | { ok: false; technical: string; kind: string };
+
+const VIEW_STALE_MS = 5_000;
+
+/**
+ * The per-party view switcher's reads (plan §5): one live active-contracts query per party, at the same moment. Never
+ * polled: a tab's panel is the ledger's answer at the time it was asked, and "Ask again" refetches.
+ */
+export function useLedgerViews(parties: readonly LedgerViewAs[]) {
+  return useQueries({
+    queries: parties.map((as) => ({
+      queryKey: [...keys.seatLease(), "view", as] as const,
+      staleTime: VIEW_STALE_MS,
+      retry: 0,
+      queryFn: async (): Promise<LedgerViewResult> => {
+        const r = await ledgerRequest("/view", { method: "GET", root: true, query: { as }, wire: ledgerViewWire });
+        return r.ok ? { ok: true, value: r.value } : { ok: false, technical: r.diagnosis.technical, kind: r.diagnosis.kind };
+      },
+    })),
   });
 }

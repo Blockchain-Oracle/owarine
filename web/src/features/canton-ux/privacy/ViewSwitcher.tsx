@@ -18,7 +18,10 @@ export interface PartyPosition {
   market: string;
   side: Side;
   stakeText: string;
-  priceCents: number;
+  /** The price paid, when the row carries one. */
+  priceCents: number | null;
+  /** The row is on the Window the page is showing. */
+  here?: boolean;
 }
 
 export interface PartyView {
@@ -32,12 +35,30 @@ export interface PartyView {
   request: string;
   /** The literal body sent, party id included. */
   query: string;
+  /** Live reads only: still asking, or the ledger (or our route) refused; the panel says which, never an empty list. */
+  status?: { kind: "loading" } | { kind: "error"; text: string };
+  /** The route's own sentence about what the participant filtered (shown under the query). */
+  note?: string;
 }
 
 /** A party id keeps its readable hint and the fingerprint's first four characters: `alice::1220…9f3b`. */
 export const partyLead = (party: string) => party.indexOf("::") + 6;
 
 function Positions({ view }: { view: PartyView }) {
+  if (view.status?.kind === "loading") {
+    return (
+      <p className="cx-switcher-status" role="status" aria-busy="true">
+        {S.asking}
+      </p>
+    );
+  }
+  if (view.status?.kind === "error") {
+    return (
+      <p className="cx-switcher-status" role="alert" data-error="">
+        {S.failed} <span className="cx-muted">{view.status.text}</span>
+      </p>
+    );
+  }
   if (view.positions.length === 0) {
     return <EmptyState icon={<UserX />} title={S.emptyTitle} body={S.emptyBody} />;
   }
@@ -45,12 +66,15 @@ function Positions({ view }: { view: PartyView }) {
     <ul className="cx-positions" aria-label={S.returned(view.positions.length)}>
       {view.positions.map((p) => (
         <li key={p.contractId} className="cx-position">
-          <span className="cx-position-market">{p.market}</span>
+          <span className="cx-position-market">
+            {p.market}
+            {p.here && <span className="cx-position-here">{S.here}</span>}
+          </span>
           <span className="cx-position-side" data-side={p.side}>
             {SIDE_WORD[p.side]}
           </span>
           <span className="cx-position-stake">
-            {p.stakeText} <span className="cx-muted">{S.at(p.priceCents)}</span>
+            {p.stakeText} {p.priceCents !== null && <span className="cx-muted">{S.at(p.priceCents)}</span>}
           </span>
           <span className="cx-position-cid">
             <span className="cx-muted">{S.contract}</span> <Hash value={p.contractId} lead={6} tail={4} />
@@ -69,24 +93,29 @@ function Positions({ view }: { view: PartyView }) {
  * not a radiogroup, because each one drives a panel), each panel the positions that party's query returned and the
  * query itself in the Code Block, party id and all.
  */
-export function ViewSwitcher({ views, initial }: { views: readonly PartyView[]; initial?: string }) {
+export function ViewSwitcher({ views, initial, onSelect }: { views: readonly PartyView[]; initial?: string; onSelect?: (value: string) => void }) {
   const [value, setValue] = useState(initial ?? views[0]?.value ?? "");
-  const items = views.map((v) => ({ value: v.value, label: v.label, count: v.positions.length }));
+  const select = (next: string) => {
+    setValue(next);
+    onSelect?.(next);
+  };
+  const items = views.map((v) => ({ value: v.value, label: v.label, count: v.status ? undefined : v.positions.length }));
   return (
     <div className="cx-switcher">
       <p className="cx-switcher-intro">{S.intro}</p>
-      <UnderlineTabs value={value} onChange={setValue} items={items} label={S.label}>
+      <UnderlineTabs value={value} onChange={select} items={items} label={S.label}>
         {views.map((view) => (
           <TabsPanel key={view.value} value={view.value} className="cx-switcher-panel">
             <div className="cx-switcher-head">
               <span className="cx-muted">{S.asParty}</span>
               <Hash value={view.party} lead={partyLead(view.party)} tail={4} className="cx-party" />
-              <span className="cx-switcher-count">{S.returned(view.positions.length)}</span>
+              {!view.status && <span className="cx-switcher-count">{S.returned(view.positions.length)}</span>}
             </div>
             <Positions view={view} />
             <div className="cx-switcher-query">
               <span className="cx-label">{S.query}</span>
               <CodeBlock filename={view.request} code={view.query} hashes={[{ value: view.party, lead: partyLead(view.party), tail: 4 }]} label={S.queryLabel(view.label)} />
+              {view.note && <p className="cx-switcher-note">{view.note}</p>}
             </div>
           </TabsPanel>
         ))}

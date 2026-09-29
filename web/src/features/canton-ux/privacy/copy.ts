@@ -31,5 +31,11 @@ export const PRIVACY = {
     queryLabel: (who: string) => `The ledger query sent as ${who}`,
     at: (cents: number) => `at ${cents}¢`,
     contract: "Contract",
+    here: "This Window",
+    asking: "Asking the ledger as this party…",
+    failed: "The ledger did not answer for this party.",
+    again: "Ask again",
+    live: "Live from the ledger",
+    title: "Who sees what on the ledger",
   },
 } as const;

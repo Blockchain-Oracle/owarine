@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { AssetDisc } from "../hero/asset-mark";
 import { SIDE_WORD } from "../side-styles";
 import { CASH_OUT, useCashOut, type CashOutTarget } from "./useCashOut";
+import { WhoCanSee } from "@/features/canton-ux/privacy";
 
 interface BetRowProps {
   position: OpenPosition;
@@ -96,6 +97,8 @@ export function BetRow({ position, symbol, nowMs, cashOutPreview }: BetRowProps)
         {position.asset} {sideLabel(position)}
       </Link>
       <span className="type-label-micro text-ink-muted">{formatCadence(position.intervalSec)}</span>
+      {/* C-ADD-01: a position is a contract between the seat and the venue; the chip says so. */}
+      <WhoCanSee kind="position" />
 
       {!settling && (
         <span className="type-caption text-ink-secondary">

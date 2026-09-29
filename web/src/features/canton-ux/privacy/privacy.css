@@ -44,3 +44,11 @@
   .cx-position { grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "market side stake cid seen"; }
   .cx-position-side { justify-self: start; }
 }
+
+/* ── the live switcher on /markets/[id] ── */
+.cx-switcher-status { padding: 14px; border: 1px solid var(--color-hairline); border-radius: var(--market-card-radius); font-size: 13px; line-height: 1.5; color: var(--color-ink-secondary); }
+.cx-switcher-status[data-error] { color: var(--color-loss); }
+.cx-switcher-note { font-family: var(--font-mono); font-size: 11px; line-height: 1.5; color: var(--color-ink-muted); overflow-wrap: anywhere; }
+.cx-position-here { margin-left: 8px; font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-accent); }
+.cx-live-view { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+.cx-live-view-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }

@@ -37,7 +37,7 @@ export default async function MarketRoute({ params }: { params: Promise<{ id: st
   if (!isMarketId(id)) redirect("/markets");
   return (
     <Suspense fallback={<LoadingState shape="plate" className="px-gutter py-6" />}>
-      <MarketsPage />
+      <MarketsPage ledgerView />
     </Suspense>
   );
 }
