@@ -1,0 +1,330 @@
+-- | Earn money gate: the NAV is computed on ledger from the reserve's cash,
+-- live ticket locks, pending withdrawals and outstanding shares; product
+-- PnL (gains and losses) reaches providers through it; withdrawals come
+-- only from liquid reserve cash; conservation across supply, products,
+-- publish and withdraw; foreign or duplicate inputs are refused; the
+-- auditor sees statements only and the outsider nothing.
+module Test.Tickets.Earn where
+
+import Daml.Script
+import DA.Action (foldlA)
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List ((!!))
+import PM.Money
+import PM.Reserve
+import PM.Tickets.Boost
+import PM.Tickets.Book
+import PM.Tickets.Earn
+import PM.Tickets.Parlay
+import PM.Tickets.Range
+import PM.Types
+import Test.Setup
+import Test.Tickets.Fixture
+
+lo, hi : Int
+lo = px - px / 100
+hi = px + px / 100
+
+-- | Every input of reserve `rid` the venue can see.
+allInputs : World -> Script NavInputs
+allInputs w = do
+  cash <- query @VenueCash w.venue
+  lps <- query @LpShare w.venue
+  wqs <- query @WithdrawQuote w.venue
+  rqs <- query @RangeQuote w.venue
+  rrs <- query @RangeRound w.venue
+  pqs <- query @ParlayQuote w.venue
+  pts <- query @ParlayTicket w.venue
+  bqs <- query @BoostQuote w.venue
+  bps <- query @BoostPosition w.venue
+  pure NavInputs with
+    cash = [c | (c, x) <- cash, x.owner == w.venue, x.bucket == reserveBucket rid]
+    lpShares = [c | (c, x) <- lps, x.reserveId == rid]
+    withdrawQuotes = [c | (c, x) <- wqs, x.reserveId == rid]
+    rangeQuotes = [c | (c, x) <- rqs, x.reserveId == rid]
+    rounds = [c | (c, x) <- rrs, x.reserveId == rid]
+    parlayQuotes = [c | (c, x) <- pqs, x.reserveId == rid]
+    tickets = [c | (c, x) <- pts, x.reserveId == rid]
+    boostQuotes = [c | (c, x) <- bqs, x.reserveId == rid]
+    positions = [c | (c, x) <- bps, x.reserveId == rid]
+
+publish : TW -> ContractId EarnDesk -> ContractId NavStatement -> Script (ContractId NavStatement, NavStatement)
+publish tw desk nav = do
+  now <- getTime
+  i <- allInputs tw.w
+  n <- submit tw.w.venue do exerciseCmd desk Earn_PublishNav with navCid = nav; asOf = now; inputs = i
+  Some s <- queryContractId tw.w.venue n
+  pure (n, s)
+
+withdrawAll : TW -> ContractId EarnDesk -> ContractId NavStatement -> Party -> ContractId LpShare -> Int
+  -> Script (Either SubmitError (ContractId WithdrawQuote, Optional (ContractId VenueCash)))
+withdrawAll tw desk nav who lp n = do
+  now <- getTime
+  sh <- reserveAll tw.w
+  trySubmit tw.w.venue do
+    exerciseCmd desk Earn_IssueWithdraw with
+      navCid = nav; provider = who; lpShareCid = lp; sharesIn = n; shardCid = sh; validUntil = plus now 20
+
+mkDesk : World -> Script (ContractId EarnDesk)
+mkDesk w = submit w.venue do createCmd EarnDesk with venue = w.venue
+
+-- Live tickets of every product count at cost: with no outcome yet the
+-- ledger-computed NAV is exactly the seed, and a new provider supplies 1:1.
+testEarnNavCountsLiveTickets = script do
+  tw <- mkTickets
+  let w = tw.w
+  desk <- mkDesk w
+  range <- mkBook tw RangeProduct
+  parlay <- mkBook tw ParlayProduct
+  boost <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (range, rq) <- issueRange tw range w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  (_, _) <- issueRange tw range w.bob RangeTicket Outside lo hi 300 1000 (plus t0 40)
+  _ <- acceptRange w w.alice rq 400
+  (_, pq) <- issueParlay tw parlay w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)] 200 1500 (plus t0 40)
+  _ <- acceptParlay w w.alice pq 200
+  (_, bq) <- issueBoost tw boost w.bob SideUp 500 4 20000 1026 1025 51 (px - px / 200) 1100 (plus t0 40) "b1"
+  _ <- acceptBoost w w.bob bq 1026
+  reserveCash w >>= (=== seedAssets - 600 - 700 - 1300 - 1025)
+  (nav, s) <- publish tw desk tw.nav
+  s.assets === seedAssets
+  s.shares === seedAssets
+  s.seq === 2
+  -- a new provider supplies at NAV 1
+  now <- getTime
+  q <- submit w.venue do exerciseCmd nav Nav_IssueSupply with provider = w.bob; cashIn = 5000; validUntil = plus now 20
+  Some sq <- queryContractId w.bob q
+  sq.sharesOut === 5000
+
+-- The products' settled PnL is in the next statement: a close inside the
+-- band nets the reserve +200 (NAV 1.002), a close inside the Moonshot band
+-- nets it -800 (NAV 0.992); the provider redeems at that NAV.
+testEarnPnLFlowsToNav = script do
+  forA_ [(px + 1, 100200, 50100), (px + 3 * px / 100, 99200, 49600)] \(close, assets, cashOut) -> do
+    tw <- mkTickets
+    let w = tw.w
+    desk <- mkDesk w
+    range <- mkBook tw RangeProduct
+    op <- recordOpen w tw.win px
+    (range, qa) <- issueRange tw range w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+    (range, qb) <- issueRange tw range w.bob RangeTicket Outside lo hi 700 1000 (plus t0 40)
+    (_, qm) <- issueRange tw range w.alice Moonshot Inside (px + px / 50) (4 * px) 100 1000 (plus t0 40)
+    rs <- forA [(qa, w.alice, 400), (qb, w.bob, 700), (qm, w.alice, 100)] \(q, u, s) -> acceptRange w u q s
+    res <- closeAt tw op close
+    forA_ rs \r -> submit w.venue do exerciseCmd r Round_Settle with resolutionCid = res
+    total0 <- ticketsTotal w
+    (nav, s) <- publish tw desk tw.nav
+    s.assets === assets
+    s.shares === seedAssets
+    Right (wq, _) <- withdrawAll tw desk nav tw.lp tw.lpShare 50000
+    Some x <- queryContractId tw.lp wq
+    x.cashOut === cashOut
+    (_, Some rest) <- submit tw.lp do exerciseCmd wq Withdraw_Accept
+    cashOf tw.lp >>= (=== cashOut)
+    conserved w total0 0
+    -- the next statement: half the shares, the rest of the assets, same NAV per share
+    (_, s2) <- publish tw desk nav
+    s2.shares === seedAssets - 50000
+    s2.assets === assets - cashOut
+    Some r <- queryContractId tw.lp rest
+    r.shares === 50000
+
+-- A reserve that lost: Alice's inside round wins 19,000 of provider
+-- capital, so a provider redeems below 1 per share.
+testEarnLossFlowsToNav = script do
+  tw <- mkTickets
+  let w = tw.w
+  desk <- mkDesk w
+  range <- mkBook tw RangeProduct
+  op <- recordOpen w tw.win px
+  (_, q) <- issueRange tw range w.alice RangeTicket Inside lo hi 1000 20000 (plus t0 40)
+  r <- acceptRange w w.alice q 1000
+  res <- closeAt tw op px
+  _ <- submit w.venue do exerciseCmd r Round_Settle with resolutionCid = res
+  (nav, s) <- publish tw desk tw.nav
+  s.assets === seedAssets - 19000
+  Right (wq, _) <- withdrawAll tw desk nav tw.lp tw.lpShare 10000
+  Some x <- queryContractId tw.lp wq
+  x.cashOut === 8100
+
+-- Providers are paid from liquid reserve cash only: capital locked in live
+-- tickets, and venue cash outside the reserve's bucket, cannot pay them.
+testEarnWithdrawFromLiquidOnly = script do
+  tw <- mkTickets
+  let w = tw.w
+  desk <- mkDesk w
+  range <- mkBook tw RangeProduct
+  _ <- recordOpen w tw.win px
+  range <- submit w.venue do
+    exerciseCmd range Book_SetParams with newParams = riskParams with maxExposureBps = 10000; maxPerExpiry = seedAssets; maxPerTicket = seedAssets
+  (_, q) <- issueRange tw range w.alice RangeTicket Inside lo hi 1000 91000 (plus t0 40)   -- locks 90,000
+  _ <- acceptRange w w.alice q 1000
+  (nav, s) <- publish tw desk tw.nav
+  s.assets === seedAssets
+  -- 20,000 shares redeem for 20,000, but only 10,000 is liquid
+  refusedWith (refusal "shard-too-small") =<< withdrawAll tw desk nav tw.lp tw.lpShare 20000
+  big <- shard w 50000
+  now <- getTime
+  refusedWith (refusal "bad-shard") =<< trySubmit w.venue do
+    exerciseCmd desk Earn_IssueWithdraw with
+      navCid = nav; provider = tw.lp; lpShareCid = tw.lpShare; sharesIn = 20000; shardCid = big; validUntil = plus now 20
+  Right _ <- withdrawAll tw desk nav tw.lp tw.lpShare 10000
+  reserveCash w >>= (=== 0)
+
+-- Foreign and duplicate inputs are refused, so the venue cannot count one
+-- contract twice or another reserve's money into this NAV.
+testEarnPublishRefusals = script do
+  tw <- mkTickets
+  let w = tw.w
+  desk <- mkDesk w
+  now <- getTime
+  i <- allInputs w
+  let pub inputs = trySubmit w.venue do exerciseCmd desk Earn_PublishNav with navCid = tw.nav; asOf = now; inputs
+  refusedWith (refusal "duplicate") =<< pub i with cash = i.cash ++ i.cash
+  refusedWith (refusal "duplicate") =<< pub i with lpShares = i.lpShares ++ i.lpShares
+  other <- shard w 777
+  refusedWith (refusal "wrong-reserve") =<< pub i with cash = other :: i.cash
+  aliceCash <- fund w w.alice 5
+  refusedWith (refusal "wrong-reserve") =<< pub i with cash = aliceCash :: i.cash
+  -- a share of another reserve
+  nav2 <- submit w.venue do
+    createCmd NavStatement with
+      venue = w.venue; auditor = w.auditor; reserveId = "T2"; seq = 0; asOf = t0; assets = 0; shares = 0
+  sq <- submit w.venue do exerciseCmd nav2 Nav_IssueSupply with provider = w.bob; cashIn = 10; validUntil = plus now 20
+  cb <- fund w w.bob 10
+  (lp2, _, _) <- submit w.bob do exerciseCmd sq Supply_Accept with cash = [cb]
+  refusedWith (refusal "wrong-reserve") =<< pub i with lpShares = lp2 :: i.lpShares
+  -- the venue alone publishes; nobody else can
+  fails =<< trySubmit w.auditor do exerciseCmd desk Earn_PublishNav with navCid = tw.nav; asOf = now; inputs = i
+  _ <- succeeded =<< pub i
+  pure ()
+
+-- The auditor sees every statement and nothing else; the outsider nothing.
+testEarnVisibility = script do
+  tw <- mkTickets
+  let w = tw.w
+  desk <- mkDesk w
+  range <- mkBook tw RangeProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- issueRange tw range w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  _ <- acceptRange w w.alice q 400
+  (nav, _) <- publish tw desk tw.nav
+  (length <$> query @NavStatement w.auditor) >>= (=== 1)
+  forA_ [w.auditor, w.outsider, w.alice] \p -> do
+    (length <$> query @EarnDesk p) >>= (=== 0)
+    (length <$> query @LpShare p) >>= (=== 0)
+  (length <$> query @RangeRound w.auditor) >>= (=== 0)
+  forA_ [w.outsider, w.alice, w.bob] \p -> (length <$> query @NavStatement p) >>= (=== 0)
+  (length <$> query @LpShare tw.lp) >>= (=== 1)
+  Some _ <- queryContractId w.auditor nav
+  pure ()
+
+-- ---------------------------------------------------------------------------
+-- Seeded random sequence: supplies and withdrawals by three providers at the
+-- live NAV (each followed by a ledger-computed statement), interleaved with
+-- range rounds that lock reserve capital; then the Window resolves, the
+-- rounds settle and a last statement is published. Checked after every
+-- step: conservation; the statement's shares equal the LpShares held; and,
+-- until a product settles, NAV per share never falls (supply and withdraw
+-- round in the remaining holders' favour).
+
+lcgNext : Int -> Int
+lcgNext s = (s * 1103515245 + 12345) % 2147483648
+
+draw : Int -> Int -> (Int, Int)
+draw n s = let s' = lcgNext s in ((s' / 65536) % n, s')
+
+data ES = ES
+  with
+    seed : Int
+    nav : ContractId NavStatement
+    book : ContractId RiskBook
+    credits : Int
+    moves : Int
+
+navNotLower : NavStatement -> NavStatement -> Bool
+navNotLower a b = b.shares == 0 || a.shares == 0 || b.assets * a.shares >= a.assets * b.shares
+
+-- Publish and check the statement against the ledger.
+republish : TW -> ContractId EarnDesk -> Int -> ES -> Bool -> Script ES
+republish tw desk total0 st checkNav = do
+  Some before <- queryContractId tw.w.venue st.nav
+  (nav', after) <- publish tw desk st.nav
+  lps <- query @LpShare tw.w.venue
+  after.shares === sum [l.shares | (_, l) <- lps, l.reserveId == rid]
+  if checkNav then assertMsg "NAV per share fell" (navNotLower before after) else pure ()
+  conserved tw.w total0 st.credits
+  pure st with nav = nav'; moves = st.moves + 1
+
+earnStep : TW -> ContractId EarnDesk -> Int -> ES -> Int -> Script ES
+earnStep tw desk total0 st _ = do
+  let w = tw.w
+  now <- getTime
+  let (k0, s1) = draw 8 st.seed
+      k = [0, 0, 1, 1, 2, 3, 3, 4] !! k0
+      (u, s2) = draw 3 s1
+      who = [w.alice, w.bob, tw.lp] !! u
+  st' <- case k of
+    0 -> do -- supply 1..5000 at the live NAV
+      let (amt, s3) = draw 5000 s2
+      r <- trySubmit w.venue do exerciseCmd st.nav Nav_IssueSupply with provider = who; cashIn = amt + 1; validUntil = plus now 20
+      case r of
+        Left _ -> pure st with seed = s3
+        Right q -> do
+          c <- fund w who (amt + 1)
+          _ <- submit who do exerciseCmd q Supply_Accept with cash = [c]
+          republish tw desk total0 (st with seed = s3; credits = st.credits + amt + 1) True
+    1 -> do -- withdraw part of one holding, from liquid cash
+      lps <- query @LpShare who
+      case lps of
+        [] -> pure st with seed = s2
+        ((lp, x) :: _) -> do
+          let (part, s3) = draw x.shares s2
+          r <- withdrawAll tw desk st.nav who lp (part + 1)
+          case r of
+            Left _ -> pure st with seed = s3
+            Right (wq, _) -> do
+              _ <- submit who do exerciseCmd wq Withdraw_Accept
+              republish tw desk total0 (st with seed = s3) True
+    2 -> do -- a range round locks reserve capital
+      let (stake, s3) = draw 900 s2
+          user = if u == 0 then w.alice else w.bob
+      sh <- reserveAll w
+      r <- trySubmit w.venue do
+        exerciseCmd st.book Book_IssueRange with
+          navCid = st.nav; shardCid = sh; user; termsCid = tw.win.terms; kind = RangeTicket
+          side = if stake % 2 == 0 then Inside else Outside; lowE8 = lo; highE8 = hi
+          stake = stake + 1; maxPayout = 1000; validUntil = plus now 10
+      case r of
+        Left _ -> pure st with seed = s3
+        Right (b, q, _) -> do
+          c <- fund w user (stake + 1)
+          _ <- submit user do exerciseCmd q RangeQuote_Accept with cash = [c]
+          republish tw desk total0 (st with seed = s3; book = b; credits = st.credits + stake + 1) True
+    _ -> do
+      let (dt, s3) = draw 10 s2
+      if plus now (dt + 1) < tw.win.t.lockAt then at (plus now (dt + 1)) else pure ()
+      pure st with seed = s3
+  conserved w total0 st'.credits
+  pure st'
+
+testEarnRandomSequence = script do
+  forA_ [5, 20261003, 31337] \seed0 -> do
+    tw <- mkTickets
+    let w = tw.w
+    desk <- mkDesk w
+    book0 <- mkBook tw RangeProduct
+    op <- recordOpen w tw.win px
+    total0 <- ticketsTotal w
+    st <- foldlA (earnStep tw desk total0) (ES with seed = seed0; nav = tw.nav; book = book0; credits = 0; moves = 0) [1 .. 70]
+    assertMsg "the sequence moved the reserve" (st.moves >= 5)
+    res <- closeAt tw op ([lo - 1, px, hi + 1] !! (st.seed % 3))
+    rounds <- query @RangeRound w.venue
+    forA_ rounds \(r, _) -> do
+      _ <- submit w.venue do exerciseCmd r Round_Settle with resolutionCid = res
+      conserved w total0 st.credits
+    st2 <- republish tw desk total0 st False
+    -- after settlement the reserve holds only cash, and the statement says so
+    Some s <- queryContractId w.venue st2.nav
+    reserveCash w >>= (=== s.assets)

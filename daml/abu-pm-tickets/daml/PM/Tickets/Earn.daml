@@ -1,0 +1,139 @@
+-- | Earn: provider supply and withdraw on each ticket reserve, with the
+-- reserve's PnL from the products flowing into its NAV (the reference's
+-- `agari-maker` / `provider_supply` / `provider_withdraw`, repeated in the
+-- range, parlay and leverage programs; built once on `PM.Reserve`).
+--
+-- `PM.Reserve` already gives the bilateral `LpShare`, the auditor-visible
+-- `NavStatement` and firm supply/withdraw quotes priced from it. What the
+-- ticket reserves add here:
+--
+--   Earn_PublishNav   the next statement computed ON LEDGER from the
+--                     contracts the venue passes: the reserve's bucket cash,
+--                     every live ticket's reserve lock (at cost), cash locked
+--                     in unaccepted withdraw quotes, and the outstanding
+--                     LpShares. Each is fetched, checked to be this reserve's
+--                     and counted once. Losses and gains the products have
+--                     settled are therefore in the NAV by construction.
+--   Earn_IssueWithdraw a withdraw quote that locks only the reserve's own
+--                     liquid cash (a reserve-bucket shard), so a provider can
+--                     never be paid out of capital backing live tickets or
+--                     out of other venue money.
+--
+-- What the ledger still cannot prove is completeness: without contract
+-- keys it cannot tell that the venue passed EVERY live ticket and LpShare.
+-- The statement stays venue-signed and auditor-visible, and the auditor
+-- checks it against the reserve bucket, as for PM.Reserve.
+module PM.Tickets.Earn where
+
+import DA.List (unique)
+import PM.Money
+import PM.Reserve
+import PM.Tickets.Boost
+import PM.Tickets.Parlay
+import PM.Tickets.Range
+import PM.Types
+
+-- | Everything that makes up one reserve's statement.
+data NavInputs = NavInputs
+  with
+    cash : [ContractId VenueCash]
+    lpShares : [ContractId LpShare]
+    withdrawQuotes : [ContractId WithdrawQuote]
+    rangeQuotes : [ContractId RangeQuote]
+    rounds : [ContractId RangeRound]
+    parlayQuotes : [ContractId ParlayQuote]
+    tickets : [ContractId ParlayTicket]
+    boostQuotes : [ContractId BoostQuote]
+    positions : [ContractId BoostPosition]
+  deriving (Eq, Show)
+
+emptyInputs : NavInputs
+emptyInputs = NavInputs with
+  cash = []; lpShares = []; withdrawQuotes = []; rangeQuotes = []; rounds = []
+  parlayQuotes = []; tickets = []; boostQuotes = []; positions = []
+
+-- | The venue's Earn desk (venue-only, like `VenueDesk`: nonconsuming, so
+-- it never contends and has no observer to leak to).
+template EarnDesk
+  with
+    venue : Party
+  where
+    signatory venue
+
+    nonconsuming choice Earn_PublishNav : ContractId NavStatement
+      with
+        navCid : ContractId NavStatement
+        asOf : Time
+        inputs : NavInputs
+      controller venue
+      do
+        nav <- fetch navCid
+        require "wrong-venue" "statement belongs to another venue" (nav.venue == venue)
+        let rid = nav.reserveId
+            mine what ok = require "wrong-reserve" (what <> " is not this reserve's") ok
+            distinct what xs = require "duplicate" ("the same " <> what <> " was passed twice") (unique xs)
+            i = inputs
+        distinct "cash" i.cash
+        distinct "share" i.lpShares
+        distinct "withdraw quote" i.withdrawQuotes
+        distinct "range quote" i.rangeQuotes
+        distinct "round" i.rounds
+        distinct "parlay quote" i.parlayQuotes
+        distinct "ticket" i.tickets
+        distinct "boost quote" i.boostQuotes
+        distinct "position" i.positions
+        cash <- forA i.cash \c -> do
+          x <- fetch c
+          mine "cash" (x.venue == venue && x.owner == venue && x.bucket == reserveBucket rid)
+          pure x.amount
+        shares <- forA i.lpShares \c -> do
+          x <- fetch c
+          mine "share" (x.venue == venue && x.reserveId == rid)
+          pure x.shares
+        wq <- forA i.withdrawQuotes \c -> do
+          x <- fetch c
+          mine "withdraw quote" (x.venue == venue && x.reserveId == rid)
+          pure x.cashOut
+        rq <- forA i.rangeQuotes \c -> do
+          x <- fetch c
+          mine "range quote" (x.venue == venue && x.reserveId == rid)
+          pure (x.maxPayout - x.stake)
+        rr <- forA i.rounds \c -> do
+          x <- fetch c
+          mine "round" (x.venue == venue && x.reserveId == rid)
+          pure (x.maxPayout - x.stake)
+        pq <- forA i.parlayQuotes \c -> do
+          x <- fetch c
+          mine "parlay quote" (x.venue == venue && x.reserveId == rid)
+          pure (x.maxPayout - x.stake)
+        pt <- forA i.tickets \c -> do
+          x <- fetch c
+          mine "ticket" (x.venue == venue && x.reserveId == rid)
+          pure (x.maxPayout - x.stake)
+        bq <- forA i.boostQuotes \c -> do
+          x <- fetch c
+          mine "boost quote" (x.venue == venue && x.reserveId == rid)
+          pure x.fronted
+        bp <- forA i.positions \c -> do
+          x <- fetch c
+          mine "position" (x.venue == venue && x.reserveId == rid)
+          pure x.fronted
+        let assets = sum cash + sum wq + sum rq + sum rr + sum pq + sum pt + sum bq + sum bp
+        exercise navCid Nav_Publish with newAsOf = asOf; newAssets = assets; newShares = sum shares
+
+    -- Withdraw only from liquid reserve cash.
+    nonconsuming choice Earn_IssueWithdraw : (ContractId WithdrawQuote, Optional (ContractId VenueCash))
+      with
+        navCid : ContractId NavStatement
+        provider : Party
+        lpShareCid : ContractId LpShare
+        sharesIn : Int
+        shardCid : ContractId VenueCash
+        validUntil : Time
+      controller venue
+      do
+        nav <- fetch navCid
+        shard <- fetch shardCid
+        require "bad-shard" "a withdrawal is paid from the reserve's liquid cash only"
+          (shard.owner == venue && shard.venue == venue && shard.bucket == reserveBucket nav.reserveId)
+        exercise navCid Nav_IssueWithdraw with provider; lpShareCid; sharesIn; shardCid; validUntil
