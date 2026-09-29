@@ -45,6 +45,20 @@ export interface QuoteView {
   refundAfterMs: number;
 }
 
+/** A firm buy-back of (part of) one of the seat's legs (C7a exit): `lots` at `priceTicks` pays `locked`. */
+export interface BuyQuoteView {
+  cid: string;
+  legCid: string;
+  termsCid: string;
+  pairId: string;
+  side: Side;
+  lots: bigint;
+  cashUnit: bigint;
+  priceTicks: bigint;
+  locked: bigint;
+  validUntilMs: number;
+}
+
 export interface TermsView {
   cid: string;
   damlMarketId: string;
@@ -76,6 +90,7 @@ const ENTITY = {
   VenueCash: entityOf(TEMPLATE_IDS.VenueCash),
   Leg: entityOf(TEMPLATE_IDS.Leg),
   Quote: entityOf(TEMPLATE_IDS.Quote),
+  BuyQuote: entityOf(TEMPLATE_IDS.BuyQuote),
   MarketTerms: entityOf(TEMPLATE_IDS.MarketTerms),
   Resolution: entityOf(TEMPLATE_IDS.Resolution),
 } as const;
@@ -130,6 +145,23 @@ export function quoteView(e: CreatedEvent): QuoteView & { user: string } {
     validUntilMs: ms(q.validUntil, "Quote.validUntil"),
     lockAtMs: ms(q.lockAt, "Quote.lockAt"),
     refundAfterMs: ms(q.refundAfter, "Quote.refundAfter"),
+  };
+}
+
+export function buyQuoteView(e: CreatedEvent): BuyQuoteView & { user: string } {
+  const q = PM.Quote.BuyQuote.decoder.runWithException(e.createArgument);
+  return {
+    cid: e.contractId,
+    user: q.user,
+    legCid: q.legCid,
+    termsCid: q.termsCid,
+    pairId: q.pairId,
+    side: sideOf(q.outcome),
+    lots: fromDamlInt(q.lots, "BuyQuote.lots"),
+    cashUnit: fromDamlInt(q.cashUnit, "BuyQuote.cashUnit"),
+    priceTicks: fromDamlInt(q.priceTicks, "BuyQuote.priceTicks"),
+    locked: fromDamlInt(q.locked, "BuyQuote.locked"),
+    validUntilMs: ms(q.validUntil, "BuyQuote.validUntil"),
   };
 }
 

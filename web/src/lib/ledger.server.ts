@@ -36,8 +36,8 @@ export function seatServer(): SeatServerState {
   const client = ledgerClientFromEnv(parseLedgerEnv(process.env));
   const parties = seatParties(env);
   const store = createSeatStore(db, parties.seats);
-  const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands });
   const ops = createOpsClient({ baseUrl: env.OPS_INTERNAL_URL!, secret: env.OPS_INTERNAL_SECRET! });
+  const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands, marks: () => ops.ladderMarks() });
   state = { ok: true, server: { client, ledger, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
   return state;
 }

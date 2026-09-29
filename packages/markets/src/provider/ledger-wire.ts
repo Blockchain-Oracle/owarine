@@ -8,6 +8,7 @@ import {
   isMarketId,
   type BalanceSheet,
   type ClaimableRow,
+  type ExitQuote,
   type MarketId,
   type OpenPosition,
   type Quote,
@@ -62,6 +63,36 @@ export const quoteReplyWire = z.discriminatedUnion("kind", [
 ]);
 export type QuoteReply = z.output<typeof quoteReplyWire>;
 
+// ---- /api/ledger/exit-quotes (and ops /internal/exit-quotes): a firm buy-back of a held side (C7a) --------
+
+export const exitQuoteWire = z.object({
+  contractsRaw: baseUnits,
+  limitPriceRaw: baseUnits,
+  expectedProceedsBase: baseUnits,
+  minProceedsBase: baseUnits,
+  avgPriceBps: z.number().int(),
+}) satisfies z.ZodType<ExitQuote, unknown>;
+
+/** Sell `contractsRaw` of `side` on a Window; the floor is what the seat confirmed (a fresh price below it is a requote). */
+export const exitQuoteRequestWire = z.strictObject({
+  marketId,
+  side,
+  contractsRaw: baseUnits,
+  displayedMinProceedsBase: baseUnits,
+});
+export type ExitQuoteRequest = z.output<typeof exitQuoteRequestWire>;
+
+export const exitQuoteReplyWire = z.discriminatedUnion("kind", [
+  /** One `BuyQuote` per leg the sale takes (largest first, the last one partial); the accept takes them all at once. */
+  z.object({ kind: z.literal("quote"), quoteCids: z.array(z.string().min(1)).min(1), exit: exitQuoteWire, validUntilMs: z.number() }),
+  z.object({ kind: z.literal("requote"), exit: exitQuoteWire }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+]);
+export type ExitQuoteReply = z.output<typeof exitQuoteReplyWire>;
+
+/** The path names the first `BuyQuote`; `with` names the rest of the same exit quote. */
+export const exitAcceptRequestWire = z.strictObject({ commandId: z.uuid(), with: z.array(z.string().regex(/^[0-9a-f]{40,400}$/)).max(7).default([]) });
+
 // ---- accept / claim / refund ------------------------------------------------------------------------
 
 export const bookedWire = z.object({
@@ -85,6 +116,14 @@ export const acceptReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("unknown"), diagnosis: diagnosisSchema }),
 ]);
 export type AcceptReply = z.output<typeof acceptReplyWire>;
+
+export const exitAcceptReplyWire = z.discriminatedUnion("kind", [
+  /** `booked` is the sale: `costBase` 0, `proceedsBase` the `VenueCash` the accept paid the seat (tap-trading.md §1.4). */
+  z.object({ kind: z.literal("confirmed"), booked: bookedWire.extend({ proceedsBase: baseUnits }), updateId: txHash, recovered: z.boolean() }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+  z.object({ kind: z.literal("unknown"), diagnosis: diagnosisSchema }),
+]);
+export type ExitAcceptReply = z.output<typeof exitAcceptReplyWire>;
 
 export const legsReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("confirmed"), updateId: txHash, payoutBase: baseUnits, legs: z.number().int(), recovered: z.boolean() }),

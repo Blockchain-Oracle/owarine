@@ -9,7 +9,7 @@
  */
 import { TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type ActiveContract, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
-import { cashView, isEntity, legView, quoteView, resolutionView, termsView, type CashView, type LegView, type QuoteView, type ResolutionView, type TermsView } from "./contracts";
+import { buyQuoteView, cashView, isEntity, legView, quoteView, resolutionView, termsView, type BuyQuoteView, type CashView, type LegView, type QuoteView, type ResolutionView, type TermsView } from "./contracts";
 
 export interface SeatSnapshot {
   party: Party;
@@ -18,10 +18,12 @@ export interface SeatSnapshot {
   cash: CashView[];
   legs: LegView[];
   quotes: QuoteView[];
+  /** Live buy-backs of the seat's legs (C7a exits). Optional so hand-built snapshots in tests stay valid. */
+  buyQuotes?: BuyQuoteView[];
 }
 
 export const SEAT_CACHE_MS = 1_500;
-const SEAT_TEMPLATES = [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote];
+const SEAT_TEMPLATES = [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote];
 
 export interface SeatReader {
   read(party: Party, o?: { fresh?: boolean }): Promise<SeatSnapshot>;
@@ -30,7 +32,7 @@ export interface SeatReader {
 }
 
 export function toSnapshot(party: Party, contracts: readonly ActiveContract[], offset: number): SeatSnapshot {
-  const snap: SeatSnapshot = { party, offset, cash: [], legs: [], quotes: [] };
+  const snap: SeatSnapshot = { party, offset, cash: [], legs: [], quotes: [], buyQuotes: [] };
   for (const { createdEvent: e } of contracts) {
     if (isEntity(e, "VenueCash")) {
       // A seat also witnesses nothing else's cash, but the filter is stated anyway: only the party's own money counts.
@@ -42,6 +44,9 @@ export function toSnapshot(party: Party, contracts: readonly ActiveContract[], o
     } else if (isEntity(e, "Quote")) {
       const quote = quoteView(e);
       if (quote.user === party) snap.quotes.push(stripUser(quote));
+    } else if (isEntity(e, "BuyQuote")) {
+      const { user, ...bq } = buyQuoteView(e);
+      if (user === party) snap.buyQuotes!.push(bq);
     }
   }
   return snap;
