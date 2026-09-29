@@ -316,6 +316,7 @@ export const DUEL = {
       "join-timeout": "Nobody joined in time. The pot was returned.",
       "reveal-unavailable": "The deck could not be opened, so both pots were returned. No card was ever played.",
       "both-incomplete": "Neither player finished their picks, so both pots were returned.",
+      "stale-settlement": "A card was never settled before its refund deadline, so both pots were returned.",
     },
     again: "Find another match",
   },
