@@ -83,3 +83,6 @@ scripts/drive/last-run.*.json
 
 # the README with every asset on its raw GitHub URL, for pasting outside the repo; generated locally
 /README.raw.md
+
+# Canton sandbox logs (dpm sandbox writes log/ in its working directory)
+log/

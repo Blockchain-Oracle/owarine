@@ -7,21 +7,21 @@
  * what runs: the default is the venue set; `all` adds the Masayume-era actors, which idle until their stages deploy
  * the programs they drive. DRY_RUN stays on unless `DRY_RUN=0` (nothing signs by default).
  */
+import "./actors/venue/quiet-codegen";
 import { startDuelProjector } from "./actors/duel-projector";
 import { startDeskRunner } from "./actors/desk-runner";
 import { startDuelSettler } from "./actors/duel-settler";
 import { startPushClock } from "./actors/push-clock";
 import { startGameRoom } from "./actors/game-room";
 import { startHaltWatch } from "./actors/halt-watch";
-import { startIndexer } from "./actors/indexer";
+import { startProjector } from "./actors/projector";
+import { CANTON_ACTORS, startCantonVenue } from "./actors/venue";
+import { createVenueContext } from "./actors/venue/context";
 import { startLeverageKeeper } from "./actors/leverage-keeper";
 import { startMarketMaker } from "./actors/market-maker";
-import { startSeedMaker } from "./actors/market-maker/seat";
 import { startPriceRelay } from "./actors/price-relay";
 import { startPythEntitlement } from "./actors/pyth-entitlement";
-import { startSettler } from "./actors/settler";
 import { startStrategyRunner } from "./actors/strategy-runner";
-import { startWindowRoller } from "./actors/window-roller";
 import { startXRelay } from "./actors/x-relay";
 import { startEarnings } from "./calendar/earnings";
 import { createSessionService } from "./calendar/session-service";
@@ -36,8 +36,10 @@ import { createHaltBoard, createPythEntitlementStore, createSessionEvents, error
 const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
-const VENUE_ACTORS = ["relay", "roller", "settler", "maker", "indexer", "http", "halts", "earnings"] as const;
-const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler", "push-clock"] as const;
+/** Canton (C3): "venue" runs the roller, resolver, pricer, issuer, sweeper, rebalancer, netting, settler, seat funding and
+ * drain, and the reserve reporter; "relay" runs the three oracle feeders; "projector" replaces the Solana indexer. */
+const VENUE_ACTORS = ["relay", "venue", "projector", "http", "halts", "earnings", "push-clock"] as const;
+const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler"] as const;
 /** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126). */
 const OPT_IN_ACTORS = ["desk-runner"] as const;
 
@@ -82,17 +84,19 @@ const events = createSessionEvents();
 // S20 (D-125): one entitlement store per process; `pyth-entitlement` writes it, the relay, roller, maker and `/session` read it.
 const pythIndex = createPythEntitlementStore({ key: process.env.PYTH_API_KEY || undefined, log: log("pyth-entitlement") });
 const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot, halts, events, pythIndex });
-if (actors.has("relay") || actors.has("roller")) void boot("pyth-entitlement", () => startPythEntitlement(deps("pyth-entitlement")));
+if (actors.has("relay") || actors.has("venue")) void boot("pyth-entitlement", () => startPythEntitlement(deps("pyth-entitlement")));
 
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.
-const relay = actors.has("relay") ? await boot("price-relay", () => startPriceRelay(deps("price-relay"))) : null;
+// One venue context for the whole process: the relay's oracle feeders and the venue actors share its ledger sessions.
+const venueCtx = createVenueContext();
+const relay = actors.has("relay") ? await boot("price-relay", () => startPriceRelay(deps("price-relay"), venueCtx)) : null;
 const spot = relay?.spot ?? null;
 // S6 token lane (session-lanes.md §2.4): the Jupiter xStock spot runs only for the maker and HTTP, joined under the xStock
 // symbols; halt-watch keeps the relay's own feed. Keyless lite-api (0.5 RPS) serves the 5 s poll when no key is set.
 let marketSpot: SpotFeed | null = spot;
 let prestocksSpot: PreStocksSpotHandle | null = null;
 let pythIndexSpot: PythIndexSpotHandle | null = null;
-if (actors.has("maker") || actors.has("http") || actors.has("desk-runner")) {
+if (actors.has("venue") || actors.has("http") || actors.has("desk-runner")) {
   if (!process.env.JUPITER_API_KEY) log("xstock-spot")("JUPITER_API_KEY not set: polling keyless lite-api.jup.ag; the token maker pulls while Jupiter fails");
   const xstockSpot = createXStockSpotFeed({ log: log("xstock-spot"), apiKey: process.env.JUPITER_API_KEY || undefined });
   xstockSpot.start();
@@ -112,16 +116,42 @@ if (actors.has("http")) {
   switchboardSpot.start();
   displaySpot = joinSwitchboardSpot(marketSpot, switchboardSpot);
 }
-if (actors.has("http")) void boot("http", () => startOpsHttp({ port: env.httpPort, spot: displaySpot, prestocks: prestocksSpot, pythIndex: { store: pythIndex, spot: pythIndexSpot }, sessions, halts, events, env, log: log("http") }));
+const canton = actors.has("venue")
+  ? await boot("canton-venue", () =>
+      startCantonVenue({
+        deps: deps("venue", marketSpot),
+        spot: marketSpot,
+        log,
+        venue: venueCtx,
+        // The relay runs the oracle feeders when it is on; the venue runs them only in a process without it.
+        actors: new Set(CANTON_ACTORS.filter((a) => a !== "oracles" || !actors.has("relay"))),
+        internalSecret: process.env.OPS_INTERNAL_SECRET || null,
+      }),
+    )
+  : null;
+if (actors.has("http"))
+  void boot("http", () =>
+    startOpsHttp({
+      port: env.httpPort,
+      spot: displaySpot,
+      prestocks: prestocksSpot,
+      pythIndex: { store: pythIndex, spot: pythIndexSpot },
+      sessions,
+      halts,
+      events,
+      env,
+      log: log("http"),
+      ladders: canton?.board ?? null,
+      internal: canton?.internal ?? null,
+      reserve: canton?.reserve ?? null,
+    }),
+  );
 if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
 if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
-if (actors.has("roller")) void boot("window-roller", () => startWindowRoller(deps("window-roller")));
-if (actors.has("settler")) void boot("settler", () => startSettler(deps("settler")));
-if (actors.has("indexer")) void boot("indexer", () => startIndexer(deps("indexer")));
-if (actors.has("maker")) {
-  if (process.env.MAKER_MODE === "vault") void boot("market-maker", () => startMarketMaker(log("market-maker")));
-  else void boot("seed-maker", () => startSeedMaker(deps("seed-maker", marketSpot)));
-}
+// "indexer" is the pre-Canton name for the projector; either starts it.
+if (actors.has("projector") || actors.has("indexer")) void boot("projector", () => startProjector(deps("projector")));
+// The earn vault's market maker (MAKER_MODE=vault) is a C8 product; the venue's own pricer lives in "venue".
+if (actors.has("maker") && process.env.MAKER_MODE === "vault") void boot("market-maker", () => startMarketMaker(log("market-maker")));
 
 // S21 (D-126): the desk reads the in-process PreStocks feed, so it starts after the feed; its RPC is its own (mainnet).
 if (actors.has("desk-runner")) void boot(OPT_IN_ACTORS[0], () => startDeskRunner({ log: log("desk-runner"), prestocks: prestocksSpot }));
