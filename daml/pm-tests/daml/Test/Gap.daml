@@ -1,0 +1,142 @@
+-- | 0.4.0 Gap windows (K-030): `Series_OpenWindowSpan` opens a Window on its
+-- own boundaries, the Monday Gap from Friday's close to Monday's open,
+-- locking Sunday 20:00 ET, with the same index, overlap and policy checks
+-- as the grid open. A Gap Window resolves and settles like any other.
+module Test.Gap where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Date (Month(..), date)
+import DA.Optional (fromSome, isSome)
+import DA.Time (time)
+import PM.Leg
+import PM.Series
+import PM.Types
+import Test.Setup
+
+-- Friday 2026-10-02 16:00 EDT, Sunday 20:00 EDT, Monday 09:30 EDT (UTC).
+friClose, sunLock, monOpen : Time
+friClose = time (date 2026 Oct 2) 20 0 0
+sunLock = time (date 2026 Oct 5) 0 0 0
+monOpen = time (date 2026 Oct 5) 13 30 0
+
+-- The next weekend (2026-10-09 → 2026-10-12).
+friClose2, sunLock2, monOpen2 : Time
+friClose2 = time (date 2026 Oct 9) 20 0 0
+sunLock2 = time (date 2026 Oct 12) 0 0 0
+monOpen2 = time (date 2026 Oct 12) 13 30 0
+
+gapSeries : World -> Series
+gapSeries w = (seriesFor w) with
+  seriesKey = "BTC-gap"; anchor = friClose; cadenceSec = 7 * 86400; lockLeadSec = 0
+
+mkGap : World -> Script (ContractId Series)
+mkGap w = submit w.venue do createCmd (gapSeries w)
+
+openSpan : World -> ContractId Series -> Int -> Time -> Time -> Time -> Script (ContractId Series, Win)
+openSpan w s i start lock expiry = do
+  (s', terms, state) <- submit w.venue do
+    exerciseCmd s Series_OpenWindowSpan with index = i; tradingStart = start; lockAt = lock; expiry
+  Some t <- queryContractId w.venue terms
+  pure (s', Win with terms; state; t)
+
+-- The Friday → Monday span lists with its own boundaries and the frozen
+-- policy's deadlines, and the Series records its expiry.
+testGapSpanOpens = script do
+  w <- mkWorld
+  s0 <- mkGap w
+  (s1, win) <- openSpan w s0 0 friClose sunLock monOpen
+  win.t.marketId === "BTC-gap:0"
+  win.t.tradingStart === friClose
+  win.t.lockAt === sunLock
+  win.t.expiry === monOpen
+  win.t.openDeadline === plus friClose 120
+  win.t.closeDeadline === plus monOpen 120
+  win.t.refundAfter === plus monOpen 720
+  win.t.policyVersion === 1
+  Some s <- queryContractId w.venue s1
+  s.nextIndex === 1
+  s.lastExpiry === Some monOpen
+  -- the next weekend opens as #1
+  (s2, win2) <- openSpan w s1 1 friClose2 sunLock2 monOpen2
+  win2.t.marketId === "BTC-gap:1"
+  Some s' <- queryContractId w.venue s2
+  s'.lastExpiry === Some monOpen2
+
+-- A Gap Window trades until Sunday's lock, resolves on Friday's close and
+-- Monday's open, and its Legs settle unchanged.
+testGapResolvesAndSettles = script do
+  w <- mkWorld
+  s0 <- mkGap w
+  (_, win) <- openSpan w s0 0 friClose sunLock monOpen
+  op <- recordOpen w win 100
+  at (plus friClose 3600)
+  (u, v) <- trade w win w.alice SideUp 600 10 5 "gap-p1"
+  res <- resolveAt w win op 101
+  Some r <- queryContractId w.resolver res
+  r.outcome === Some SideUp
+  aliceBefore <- cashOf w.alice
+  (paid, fee) <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  aliceAfter <- cashOf w.alice
+  aliceAfter - aliceBefore === quantityOf 10 1
+  (paidV, _) <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  paidV === None
+  assert (isSome fee && isSome paid)
+
+testGapSpanRefusals = script do
+  w <- mkWorld
+  s0 <- mkGap w
+  let spanAt s i a b c = trySubmit w.venue do
+        exerciseCmd s Series_OpenWindowSpan with index = i; tradingStart = a; lockAt = b; expiry = c
+  -- not the next index
+  refusedWith (refusal "bad-window-index") =<< spanAt s0 1 friClose sunLock monOpen
+  -- lock after expiry; start at or after lock
+  refusedWith (refusal "bad-span") =<< spanAt s0 0 friClose monOpen sunLock
+  refusedWith (refusal "bad-span") =<< spanAt s0 0 sunLock sunLock monOpen
+  -- more than four days (Thursday close to Tuesday open)
+  refusedWith (refusal "span-too-long") =<< spanAt s0 0 (plus friClose (-86400)) sunLock (plus monOpen 86400)
+  -- exactly four days is allowed
+  _ <- succeeded =<< spanAt s0 0 friClose sunLock (plus friClose (4 * 86400))
+  -- a new Series: start before the grid floor (the anchor)
+  s1 <- mkGap w
+  refusedWith (refusal "window-overlap") =<< spanAt s1 0 (plus friClose (-60)) sunLock monOpen
+  (s2, _) <- openSpan w s1 0 friClose sunLock monOpen
+  -- the next Window may not start before Monday's open
+  refusedWith (refusal "window-overlap") =<< spanAt s2 1 (plus monOpen (-1)) (plus monOpen 3600) (plus monOpen 7200)
+  _ <- succeeded =<< spanAt s2 1 monOpen (plus monOpen 3600) (plus monOpen 7200)
+  -- a policy that ends before Monday's open covers no Gap
+  s3 <- submit w.venue do
+    createCmd (gapSeries w) with policyVersions = [policy1 with validUntil = Some (plus monOpen (-1))]
+  refusedWith (refusal "no-policy") =<< spanAt s3 0 friClose sunLock monOpen
+  -- only the venue opens
+  unauthorized =<< trySubmit w.resolver do
+    exerciseCmd s3 Series_OpenWindowSpan with index = 0; tradingStart = friClose; lockAt = sunLock; expiry = monOpen
+
+-- Grid and span Windows on one Series never overlap, and a policy version
+-- added after a span cannot reach back into it.
+testGridAndSpanMix = script do
+  w <- mkWorld
+  s0 <- mkSeries w
+  (s1, win0) <- openWin w s0 0
+  win0.t.expiry === plus t0 300
+  Some s1d <- queryContractId w.venue s1
+  s1d.lastExpiry === Some (plus t0 300)
+  -- a span may start at the grid Window's expiry, not before
+  refusedWith (refusal "window-overlap") =<< trySubmit w.venue do
+    exerciseCmd s1 Series_OpenWindowSpan with index = 1; tradingStart = plus t0 299; lockAt = plus t0 900; expiry = plus t0 1000
+  (s2, _, _) <- submit w.venue do
+    exerciseCmd s1 Series_OpenWindowSpan with index = 1; tradingStart = plus t0 300; lockAt = plus t0 900; expiry = plus t0 1000
+  -- grid Window 2 would start at t0 + 600, inside the span
+  refusedWith (refusal "window-overlap") =<< trySubmit w.venue do exerciseCmd s2 Series_OpenWindow with index = 2
+  -- skip to the first grid Window after the span: 4 starts at t0 + 1200
+  s3 <- submit w.venue do exerciseCmd s2 Series_SkipTo with toIndex = 4
+  (s4, _, _) <- submit w.venue do exerciseCmd s3 Series_OpenWindow with index = 4
+  Some s4d <- queryContractId w.venue s4
+  s4d.nextIndex === 5
+  s4d.lastExpiry === Some (plus t0 1500)
+  -- a new version cannot take effect before the last Window's expiry
+  let pv2 = policy1 with version = 2; effectiveFrom = plus t0 1499
+  refusedWith (refusal "bad-policy") =<< trySubmit w.venue do exerciseCmd s4 Series_AddPolicyVersion with pv = pv2
+  s5 <- submit w.venue do exerciseCmd s4 Series_AddPolicyVersion with pv = pv2 with effectiveFrom = plus t0 1500
+  Some s5d <- queryContractId w.venue s5
+  fromSome (s5d.lastExpiry) === plus t0 1500

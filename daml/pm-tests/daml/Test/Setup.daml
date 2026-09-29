@@ -76,7 +76,7 @@ seriesFor w = Series with
   seriesKey = "BTC-300"; symbol = "BTC"; anchor = t0; cadenceSec = 300
   lockLeadSec = 30; settleGraceSec = 600; cashUnit = 1; nextIndex = 0
   oracles = [w.o1, w.o2, w.o3]; quorum = 2; maxDeviationBps = 50
-  policyVersions = [policy1]
+  policyVersions = [policy1]; lastExpiry = None
 
 mkSeries : World -> Script (ContractId Series)
 mkSeries w = submit w.venue do createCmd (seriesFor w)
