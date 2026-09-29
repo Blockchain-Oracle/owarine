@@ -38,7 +38,7 @@ export const LANES: readonly Lane[] = [
   {
     name: "Token",
     clock: "24/7 · xStocks",
-    body: "Tokenised stock on Solana — TSLAx, NVDAx, SPYx, QQQx — keeps trading when the exchange does not, so these Windows run every hour of every day on the same 5m, 15m and 60m cadences. They settle on the token's own signed quote, not the exchange's print.",
+    body: "Tokenised stock — TSLAx, NVDAx, SPYx, QQQx — keeps trading when the exchange does not, so these Windows run every hour of every day on the same 5m, 15m and 60m cadences. They settle on the token's quote as signed by the oracle parties (planned on Canton), not the exchange's print.",
     icon: CalendarClockIcon,
   },
 ];
@@ -56,11 +56,11 @@ export const SESSION_WORDS: readonly [string, string][] = [
 /** D-088, the promise in the product's own words (`web/src/lib/copy-preopen.ts`). Nothing here is softened. */
 export const PRE_OPEN = {
   title: "Calls before the bell",
-  body: "The venue lists tomorrow's first Windows at tonight's close, so a call can be made while the market is shut. It rests post-only at your price: nothing fills before the open boundary, and if the book comes to you in the first minute after the bell, it fills at the price you set.",
+  body: "The venue lists tomorrow's first Windows at tonight's close, so a call can be made while the market is shut. It rests at your price: nothing fills before the open boundary, and if the venue's quote reaches your price in the first minute after the bell, it fills at the price you set.",
   points: [
-    "Your wallet signs. The stake is held from the moment it rests until it fills, you cancel, or it expires.",
+    "Your seat signs. The stake is held from the moment it rests until it fills, you cancel, or it expires.",
     "An unfilled call expires 90 seconds after the bell by default and the stake returns as venue credit. Resting until the Window locks is opt-in.",
-    "No fill is promised. The venue's maker, or any trader, may take a resting call at your price.",
+    "No fill is promised. The venue may take a resting call at your price, or let it expire.",
     "The 0.25 credits seat bond comes back once the Window settles, and an unfilled call loses nothing if the Window voids.",
   ],
 } as const;
@@ -72,9 +72,9 @@ export interface BasisRow {
 
 /** `price-sources.json`: which signed source each Window settles on, and what the program checks before it counts. */
 export const BASIS_ROWS: readonly BasisRow[] = [
-  { source: "Pyth", detail: "a pull price for TSLA, QQQ and VOO, admitted at the boundary second with a confidence no wider than 50 bps" },
-  { source: "RedStone", detail: "signed packages for the seven single names, counted only when at least 3 of the 5 configured signers agree" },
-  { source: "Switchboard", detail: "the token lane's Surge quote, signed by at least 3 distinct oracles and no more than 20 slots old" },
+  { source: "Pyth", detail: "planned on Canton, signed by the oracle parties: a price for TSLA, QQQ and VOO, admitted at the boundary second with a confidence no wider than 50 bps" },
+  { source: "RedStone", detail: "planned on Canton, signed by the oracle parties: the seven single names, the source named on every receipt" },
+  { source: "Switchboard", detail: "planned on Canton, signed by the oracle parties: the token lane's quote, the source named on every receipt" },
   { source: "Cross-check", detail: "where a policy names a second source, both boundaries are compared; more than 25 bps apart and the Window voids" },
 ];
 
@@ -88,7 +88,7 @@ export interface Aside {
 export const ASIDES: readonly Aside[] = [
   {
     title: "Halts",
-    body: "There is no licensed halt feed here, so a lane is halted when the signed price it settles on stops being printable. A Pyth tick wider than 50 bps, or an xStock the issuer has flagged, says “Trading halted”. A feed that has simply stopped — no Pyth tick for 15 s, a RedStone package older than 60 s, three failed token quotes — says “Signed price stale”. Either way the venue lists nothing new and the maker pulls its quotes. A halt never touches the chain, and it is never given as the reason a Window resolved.",
+    body: "There is no licensed halt feed here, so a lane is halted when the signed price it settles on stops being printable. A Pyth tick wider than 50 bps, or an xStock the issuer has flagged, says “Trading halted”. A feed that has simply stopped — no Pyth tick for 15 s, a RedStone package older than 60 s, three failed token quotes — says “Signed price stale”. Either way the venue lists nothing new and the maker pulls its quotes. A halt never touches the ledger, and it is never given as the reason a Window resolved.",
     icon: OctagonAlertIcon,
   },
   {
@@ -98,7 +98,7 @@ export const ASIDES: readonly Aside[] = [
   },
   {
     title: "Your money",
-    body: "Everything here is credits on Solana devnet, minted by the venue's faucet — it is worth nothing anywhere else. A deposit into your Trading Balance lets a browser key tap inside caps you set, so a call costs a tap instead of a wallet prompt; that key can never withdraw, only your wallet can. Nothing on the server ever holds a key of yours.",
+    body: "Everything here is demo credits on the Canton test network, issued by the venue — it is worth nothing anywhere else. Your seat's key is made in this browser and cannot leave it, so a call costs one tap and no network fee. Only your seat's party and the venue can see your cash and positions. Nothing on the server ever holds a key of yours.",
     icon: WalletIcon,
   },
 ];

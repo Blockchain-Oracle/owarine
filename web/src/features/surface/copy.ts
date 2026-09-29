@@ -13,7 +13,7 @@ export const SURFACE = {
   title: "Market Surface",
   intro: {
     lead: "Every Agari Window is priced by a ",
-    em: "live order book on Solana",
+    em: "live venue price ladder",
     rest: " — resting bids and asks, not a volatility model. The ticket uses one number, the top of that book; here you can read the whole structure back: how deep each side is, what a bigger stake would really pay, and how every live expiry of the asset is priced right now. Every figure is the chain's own book; nothing is estimated.",
   },
   chips: {

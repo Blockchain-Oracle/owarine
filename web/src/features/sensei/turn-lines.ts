@@ -66,7 +66,7 @@ const ISSUER = { xstocks: "xStocks", ondo: "Ondo", prestocks: "PreStocks" } as c
  * funds. The token itself stays behind the advice line in the system prompt; this line only reminds the model of it.
  */
 export function holdingsLine(holdings: readonly SenseiHolding[]): string {
-  if (holdings.length === 0) return "Their wallet holds no stock tokens (real tokens, read-only).";
+  if (holdings.length === 0) return "Their seat holds no stock tokens (a seat holds none until the Canton Coin rail).";
   const rows = holdings.map((h) => `${h.tokens} ${h.symbol} (${h.name}, ${ISSUER[h.issuer]})${h.valueCents === null ? "" : ` about ${centsText(h.valueCents)}`}`);
   return `Their wallet holds, real tokens read-only, not test funds: ${rows.join("; ")}. A DOWN Window on that name is cover with test funds; UP adds to it.${basketCoverLine(holdings)} Never advise on the tokens themselves.`;
 }
@@ -93,7 +93,7 @@ export function deskLine(desk: SenseiDesk): string {
   const worth = desk.valueCents === null ? "not valued yet" : `worth ${centsText(desk.valueCents)}`;
   const last = desk.lastDecision === null ? "no decision yet" : `last decision ${desk.lastDecisionAgoMin === null ? "" : `${desk.lastDecisionAgoMin} min ago: `}"${desk.lastDecision}"`;
   const waiting = desk.waiting === null ? "Nothing is waiting for their answer." : `Waiting for their answer: "${desk.waiting}".`;
-  return `Their desk (real PreStocks tokens on Solana mainnet, ${DESK_MODE[desk.mode]}, ${desk.state}, ${desk.practiceChecks} practice checks): ${worth}; ${last}. ${waiting} Explain the desk only from that record; you cannot act on it, and any change is a card they confirm themselves on the desk page.`;
+  return `Their desk (a PreStocks basket, no real money on Canton yet, ${DESK_MODE[desk.mode]}, ${desk.state}, ${desk.practiceChecks} practice checks): ${worth}; ${last}. ${waiting} Explain the desk only from that record; you cannot act on it, and any change is a card they confirm themselves on the desk page.`;
 }
 
 function reportDay(dateEt: string): string {

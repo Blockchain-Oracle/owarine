@@ -75,7 +75,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ mar
 
   const body: unknown = await request.json().catch(() => null);
   const account = addressSchema.safeParse((body as { account?: unknown } | null)?.account);
-  if (!account.success) return fail("Connect a wallet to make this call.", 400);
+  if (!account.success) return fail("Take a seat to make this call.", 400);
 
   const built = await buildWindowActionTransaction({ marketId: marketId.data, wallet: account.data, side, stakeBase: stake });
   if (!built.ok) return fail(built.message, 400);

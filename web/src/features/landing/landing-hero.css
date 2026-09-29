@@ -37,7 +37,6 @@
   letter-spacing: 0.42em;
   text-transform: uppercase;
 }
-.lp-solana-mark { display: block; width: 20px; height: auto; flex: none; }
 .lp-wordmark { display: flex; align-items: baseline; gap: 9px; color: var(--lp-ink); }
 .lp-wordmark-mark { display: inline-flex; width: clamp(28px, 2.8vw, 44px); height: clamp(28px, 2.8vw, 44px); flex-shrink: 0; }
 .lp-wordmark-mark svg { width: 100%; height: 100%; display: block; overflow: visible; }

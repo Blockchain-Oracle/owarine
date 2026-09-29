@@ -22,13 +22,12 @@ export const LogoCard = ({ s = 22 }: { s?: number }) => (
 );
 
 /**
- * A Solana mark of our own drawing: three slanted bars in a ring, the shape the chain is
- * known by, drawn here in ink rather than copied. Not the network's logo — a stand-in that
- * names it without reproducing a trademark.
+ * A ledger mark of our own drawing: three level bars in a ring, a stand-in for "the ledger" drawn here in ink. Not
+ * Canton's logo — no third-party mark is reproduced; the chain is named in words beside it.
  */
-export const SolanaMark = ({ s = 19 }: { s?: number }) => (
+export const LedgerMark = ({ s = 19 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 40 40" className="pitch-mark-stroke" aria-hidden>
     <circle cx="20" cy="20" r="17" strokeWidth="2.6" fill="none" />
-    <path d="M13 14.6h13.2l-3 3.2H10zM13 18.4h13.2l-3 3.2H10zM13 22.2h13.2l-3 3.2H10z" strokeWidth="0" className="pitch-mark-fill" />
+    <path d="M11 14.6h18v3H11zM11 18.5h18v3H11zM11 22.4h18v3H11z" strokeWidth="0" className="pitch-mark-fill" />
   </svg>
 );

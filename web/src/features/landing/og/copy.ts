@@ -5,11 +5,11 @@
  */
 export const OG_COPY = {
   site: {
-    alt: "Agari: call whether a US stock closes a Window up or down, settled on Solana from the signed price print.",
-    eyebrow: "Stock Windows on Solana",
+    alt: "Agari: call whether a US stock closes a Window up or down, settled on Canton from the signed price print.",
+    eyebrow: "Stock Windows on Canton",
     line: "Settled on the signed price print.",
   },
-  honesty: "Solana devnet · demo credits",
+  honesty: "Canton test network · demo credits",
   ticker: {
     /** The route's static `alt`: one image route serves every ticker, so the line names none. */
     routeAlt: "A stock on Agari: its mark, its name and its last close.",

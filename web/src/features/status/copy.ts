@@ -22,8 +22,8 @@ export const STATUS = {
   lastChecked: (clock: string) => `Last checked: ${clock} · Auto-refreshes every 30s`,
 
   pipelines: {
-    rpc: "Solana RPC · chain head",
-    slotLag: "Indexer · slots behind head",
+    rpc: "Ledger API · head",
+    slotLag: "Projector · offsets behind head",
     indexer: "Projector · live lag",
     relay: { pyth: "Price relay · Pyth freshness", redstone: "Price relay · RedStone freshness" },
     mix: (cadence: string) => `Print sources · ${cadence} Windows`,
@@ -33,7 +33,7 @@ export const STATUS = {
     switchboard: "Switchboard · quote success",
     crossCheck: "Cross-check · agreement",
     paused: "Lanes · paused",
-    faucet: "Faucet budget · SOL and credits",
+    faucet: "Demo credits budget",
     sponsor: "Sponsor budget",
     ops: (actor: string) => `Ops · ${actor}`,
     price: (asset: string) => `Price feed · ${asset}`,
@@ -109,10 +109,10 @@ export const STATUS = {
     spot: (why: string) => `spot: ${why}`,
 
     switchboard: "arrives with the token lane (S6)",
-    sponsorOff: "no sponsor key on this deployment · seat keys pay their own fee",
-    sponsorUnread: "the sponsor's balance could not be read · seats fund themselves until it can",
-    /** "0.29 SOL · a deck needs 0.02 SOL · ready" — the sponsor's balance against the widest deck's envelope. */
-    sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} SOL · a deck needs ${envelope} SOL · ${ready ? "ready" : "below two decks, seats fund themselves"}`,
+    sponsorOff: "no sponsor on Canton · there is no network fee to pay",
+    sponsorUnread: "the sponsor could not be read · Canton charges no network fee either way",
+    /** "0.29 · a deck needs 0.02 · ready" — the sponsor's balance against the widest deck's envelope (no fee token on Canton). */
+    sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} · a deck needs ${envelope} · ${ready ? "ready" : "below two decks, seats need nothing either way"}`,
 
     crossCheck: (symbols: string, pairs: number, maxBps: string) => `${symbols} · ${plural(pairs, "pair")} · max ${maxBps} bps`,
     singleSource: "single source · no cross-checked print",
@@ -121,7 +121,8 @@ export const STATUS = {
     noLanes: "the roller reports no lanes",
 
     faucetOff: "not set up on this deployment",
-    faucet: (sol: string, solLeft: string, tusdcLeft: string | null) =>
-      `${sol} SOL · ${solLeft} SOL left today · ${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
+    /** Canton has no fee token, so only the credits side is said; the first two arguments stay for the probe's call shape. */
+    faucet: (_sol: string, _solLeft: string, tusdcLeft: string | null) =>
+      `${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
   },
 } as const;

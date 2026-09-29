@@ -5,8 +5,8 @@ export const PLATE = {
   elsewhere: "elsewhere",
   addMoney: "Add money",
   /** "Get test DUSDC" — the collateral is tUSDC here. */
-  getTest: "Get test funds",
-  inWallet: "In your wallet",
+  getTest: "Get demo credits",
+  inWallet: "In your seat",
   /** The reference's betting account is the Trading Balance here, and every other surface calls it that. */
   inAccount: "In your Trading Balance",
   open: "open",
@@ -20,7 +20,7 @@ export const PLATE = {
       manage: "Manage",
       update: "Update X trading",
       updateNote: "Your existing permission needs an update. Open this row to use your funded X balance.",
-      mismatch: (wallet: string) => `This X account bets from ${wallet}. Connect that wallet to use this balance.`,
+      mismatch: (wallet: string) => `This X account bets from ${wallet}. Take that seat to use this balance.`,
       unlinked: "Link your X account and you can bet by replying to a card.",
     },
     private: {
@@ -31,8 +31,8 @@ export const PLATE = {
     },
   },
   connect: {
-    title: "Connect Wallet",
+    title: "Take a Seat",
     /** "New to Sui? Test funds are free →" */
-    newHere: "New to Solana? Test funds are free →",
+    newHere: "New here? Demo credits are free →",
   },
 } as const;

@@ -6,11 +6,11 @@ import { ADVICE_COPY } from "@agari/core/copy";
  */
 export const LANDING = {
   meta: {
-    title: "Agari · Stock prediction markets on Solana",
-    description: "Predict whether a stock price will rise or fall, cover PreStocks you hold, and inspect the signed price print behind every settlement on Solana.",
+    title: "Agari · Stock prediction markets on Canton",
+    description: "Predict whether a stock price will rise or fall, and inspect the signed price print behind every settlement on the proof page. Canton test network, demo credits.",
   },
   hero: {
-    eyebrow: "Solana stock markets",
+    eyebrow: "Canton prediction markets",
     titleLead: "Predict stock",
     titleEm: "price moves.",
     line: "Choose a stock. Predict whether its price will rise or fall. See the price print that settled the market.",
@@ -19,7 +19,7 @@ export const LANDING = {
     docs: "Read the docs →",
     paths: "Predict  ·  Cover  ·  Hold",
     folioLeft: "Agari / Prediction exchange",
-    folioRight: "Solana stock markets",
+    folioRight: "Canton prediction markets",
   },
   /** S25: the band under the hero, naming the two data sources the venue settles on, each with its own count and proof. */
   builtOn: {
@@ -33,13 +33,13 @@ export const LANDING = {
       figure: "Windows settled on PreStocks prices",
       what: (names: string, baskets: number) => {
         const groups = baskets > 0 ? `${baskets} basket${baskets === 1 ? "" : "s"}` : "";
-        return `${[names, groups].filter(Boolean).join(" and ")}, 24/7. Each price read from PreStocks, signed by Agari and verified on chain.`;
+        return `${[names, groups].filter(Boolean).join(" and ")}, 24/7. Each price read from PreStocks and signed by the venue's oracle parties (planned on Canton).`;
       },
     },
     pyth: {
       name: "Pyth",
       figure: "Windows settled on Pyth prices",
-      what: (names: string) => `${names}. Each Pyth update verified on chain before the print is recorded.`,
+      what: (names: string) => `${names}. Each Pyth value signed by the oracle parties before the print is recorded (planned on Canton).`,
     },
   },
   steps: {
@@ -54,13 +54,13 @@ export const LANDING = {
       {
         kicker: "Call",
         title: "Make the call",
-        body: "Up or Down, and a stake in demo credits. The price is the book's, and the fill lands on Solana.",
+        body: "Up or Down, and a stake in demo credits. The price is a firm quote from the venue, and your seat takes it.",
         art: [{ word: "Up", tone: "up" }, { word: "Down", tone: "down" }],
       },
       {
         kicker: "Settle",
         title: "See it settle",
-        body: "At the close the program records the signed print and checks it against the open. The receipt links to both.",
+        body: "At the close the oracle parties sign the print and the resolver checks it against the open. The receipt links to both.",
         art: [{ word: "open print" }, { word: "close print" }, { word: "settled", tone: "accent" }],
       },
     ],
@@ -69,7 +69,7 @@ export const LANDING = {
     section: { index: "02", title: "Three lanes", desc: "Each lane runs on its own clock." },
     reading: "Reading the session…",
     unknown: "The session is unreachable. The lanes list again when it answers.",
-    notListed: "Not listed on devnet yet.",
+    notListed: "Not listed on the test network yet.",
     names: (n: number) => `${n} name${n === 1 ? "" : "s"}`,
     regular: {
       name: "Regular",
@@ -95,12 +95,12 @@ export const LANDING = {
   cover: {
     section: { index: "03", title: "Cover what you hold", desc: "Own a stock token? Protect it without selling it." },
     paragraphs: [
-      "Tokenized stocks trade on Solana around the clock: Tesla and Nvidia as xStocks, and private companies like OpenAI, Anthropic and SpaceX as PreStocks. Until now, a holder who feared a drop had two choices: sell, or hope.",
-      "Agari adds a third. Connect the wallet the tokens sit in and Agari reads it, only reads it, and offers a Down bet on that name as cover. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
+      "Tokenized stocks trade around the clock on other networks: Tesla and Nvidia as xStocks, and private companies like OpenAI, Anthropic and SpaceX as PreStocks. Until now, a holder who feared a drop had two choices: sell, or hope.",
+      "Agari adds a third: a Down bet on that name as cover. A seat holds no outside tokens until the Canton Coin rail lands, so today this shows how cover works. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
       "Hold two or more of the same basket, a small group of companies bet on together such as OpenAI and Anthropic, and one Down bet on the basket covers them at once.",
     ],
     story: "In May 2026 the OpenAI token fell 39% in a week after OpenAI and Anthropic disputed the tokens, and there was too little liquidity for everyone to sell. A holder with a Down bet would have been paid as it fell.",
-    note: "On devnet with test money, so this shows how the cover works rather than protecting real money. Not investment advice. Every token you hold is listed on your",
+    note: "On the Canton test network with demo credits, so this shows how the cover works rather than protecting real money. Not investment advice. Every token you hold is listed on your",
     portfolio: "Portfolio page →",
     cta: "See it on Markets",
   },
@@ -108,36 +108,36 @@ export const LANDING = {
   desk: {
     section: { index: "04", title: "Let a desk hold it", desc: "You decide what to own. The desk decides only when." },
     paragraphs: [
-      "A basket is a small group of companies you follow together. Predict it with test money, cover the members you hold, or let a desk hold it for you with real money on Solana mainnet, inside limits you set.",
-      "The desk wakes every hour, on the hour, around the clock. It reads real PreStocks prices and real Jupiter quotes, asks one AI question about timing, and writes down what it did, including every time it did nothing. The program on Solana enforces the money limits whatever it decides.",
-      "It starts in practice: everything real except spending money. Six practice checks and the record opened, then Go live is one mainnet transaction, and money goes straight to an account only you can withdraw from.",
+      "A basket is a small group of companies you follow together. Predict it with test money, cover the members you hold, or let a desk hold it for you inside limits you set. Practice desks run today; live desks are planned.",
+      "The desk wakes every hour, on the hour, around the clock. It reads PreStocks prices, asks one AI question about timing, and writes down what it did, including every time it did nothing. On Canton the limits are planned as Daml choices that refuse anything past them.",
+      "It starts in practice: a paper ledger, everything real except spending money. A live desk is planned: its live leg will trade this venue's own markets once the Canton Coin rail lands.",
     ],
-    story: "Every decision has a Check it button: your browser recomputes the record's fingerprint and compares it with the one Solana holds, in the same transaction as the trade.",
-    note: "Practice desks need no tokens, no mainnet and no eligibility.",
+    story: "Every decision has a Check it button: your browser recomputes the record's fingerprint and compares it with the one the ledger holds for that action.",
+    note: "Practice desks need no tokens, no real money and no eligibility.",
     open: "Open your desk →",
     fixtures: "Every state, from fixtures →",
     promise: [
-      "It is your account: only you can withdraw, and only to your wallet.",
-      "It stays inside your limits, and the program itself enforces the money limits.",
+      "It is your account: only you can withdraw, and only to your seat.",
+      "It stays inside your limits, and the ledger itself is to enforce the money limits.",
       "It always explains itself, including every time it does nothing.",
-      "The record cannot be quietly changed: its fingerprint is on Solana in the same transaction as the trade.",
+      "The record cannot be quietly changed: its fingerprint is on the ledger with the action it describes.",
       "You can stop it at any moment: Pause, Withdraw, Close.",
     ],
     worstCase: "Worst case, in one sentence: if the desk's key were ever stolen, the thief could only make bad trades, at most your daily limit a day, until you pause.",
   },
   proof: {
-    section: { index: "05", title: "Proof", desc: "Every address and every settled Window below opens on Solana Explorer." },
-    program: "Program",
+    section: { index: "05", title: "Proof", desc: "Every party below opens its own page, and every settled Window opens on the proof page." },
+    program: "Package",
     venue: "Venue config",
-    clusterLabel: "Cluster",
-    cluster: "Solana devnet",
+    clusterLabel: "Network",
+    cluster: "Canton test network",
     settled: "Last settled Windows",
     reading: "Reading the index…",
     none: "No settled Window indexed yet. The first one lands at the next close.",
     outcome: { up: "Up won", down: "Down won", void: "Void" },
     closed: (when: string) => `closed ${when} ET`,
-    explorer: "Explorer",
-    explorerAria: (what: string) => `${what} on Solana Explorer`,
+    explorer: "Proof",
+    explorerAria: (what: string) => `Open ${what}`,
     printProof: "Print proof",
     unset: "not configured",
   },

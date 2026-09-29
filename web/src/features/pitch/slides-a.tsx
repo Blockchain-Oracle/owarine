@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { PITCH } from "./copy";
-import { LogoCard, SolanaMark } from "./marks";
+import { LogoCard, LedgerMark } from "./marks";
 import { FrozenPhone, PhoneMock, XBetCard } from "./mocks";
 import { CountUp, Emph, Glance, Kicker, Mono, Pill, Rise, SpecPanel } from "./primitives";
 import type { Slide } from "./types";
@@ -15,8 +15,8 @@ import type { Slide } from "./types";
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
-/** The engine is a Daml package with no address to show; the deck says so honestly until C10 points it at the proof page. */
-const EVENTS_PROGRAM = "not deployed";
+/** The engine is a Daml package with no address to show, so the deck names its version (abu-pm-main 0.2.0). */
+const EVENTS_PROGRAM = "0.2.0";
 
 const C = PITCH.cover;
 const E = PITCH.engine;
@@ -65,7 +65,7 @@ export const SLIDES_A: Slide[] = [
             [
               C.rows.builtOn,
               <span key="bo" className="pitch-glance-marks">
-                <SolanaMark s={20} />
+                <LedgerMark s={20} />
                 <span className="pitch-glance-val">{C.rows.chain}</span>
               </span>,
             ],
@@ -208,7 +208,7 @@ export const SLIDES_A: Slide[] = [
               {P.leftLabel}
             </Mono>
             <div className="pitch-proof-figure">
-              <CountUp to={137} /> <span className="pitch-proof-unit">on devnet</span>
+              <CountUp to={126} /> <span className="pitch-proof-unit">on the sandbox</span>
             </div>
             <div className="pitch-proof-sub">{P.leftSub}</div>
           </Rise>
