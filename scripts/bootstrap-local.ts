@@ -17,7 +17,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
 import { TEMPLATE_IDS } from "@agari/daml";
-import { CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, laneKey } from "@agari/core/market";
+import {
+  attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
+  SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS, type AttestedSource,
+} from "@agari/core/market";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
@@ -104,6 +107,66 @@ function cryptoLanes(nowSec: number): LaneSpec[] {
   );
 }
 
+/** The reference's price-source matrix (D-003): each Regular ticker's dated versions and the token lane's pinned Surge feeds. */
+type Sources = {
+  tickers: Record<string, { pythFeedId?: string; redstoneFeedId?: string; surgeSymbol?: string; versions: Array<{ validFrom: string; validUntil: string | null; primary: "pyth" | "redstone" }> }>;
+  tokenLane: { versions: Array<{ validFrom: string }>; tickers: Record<string, { surgeSymbol: string }> };
+};
+const SOURCES = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "services/ops/config/price-sources.json"), "utf8")) as Sources;
+const isoSec = (iso: string) => Math.floor(Date.parse(iso) / 1000);
+
+/** One attested version: the source's bar, delay and admission (core `SOURCE_TIMING`), from `fromSec` until `untilSec`. */
+function attested(source: Exclude<AttestedSource, "exchanges">, feed: string, fromSec: number, untilSec: number | null): LaneSpec["versions"][number] {
+  const t = SOURCE_TIMING[source];
+  return { effectiveFromSec: fromSec, validUntilSec: untilSec, printSource: attestedPrintSource(source, feed), minDelaySec: t.minDelaySec, barLenSec: BAR_LEN_SEC[source], openAdmissionSec: t.admissionSec, closeAdmissionSec: t.admissionSec };
+}
+
+/** The reference's Regular, token, pre-IPO and basket cadences (session-lanes.md §2; D-100, S19): 5/15/60 m, and 60 m for the PreStocks lanes. */
+const REGULAR_CADENCES_SEC = [300, 900, 3_600];
+const LOCK_LEAD_SEC: Record<number, number> = { 300: 30, 900: 60, 3_600: 120 };
+/** D-100 (pre-IPO mints verified) and S19 (basket bases) dates: the attested PreStocks versions start there. */
+const PRESTOCKS_FROM_SEC = isoSec("2026-09-19T00:00:00Z");
+const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
+
+/**
+ * The equity families (C6): every reference lane on the attested path, each version naming its original source.
+ *   regular   LAUNCH_TICKERS × 5/15/60 m; the dated Pyth/RedStone versions of price-sources.json (TSLA: Pyth until the
+ *             trial's last close, then RedStone; QQQ and VOO end with the trial and pause: no signed source)
+ *   token     the four xStocks × 5/15/60 m on their pinned Switchboard Surge jobs; the Series prints the xStock (`TSLAx`)
+ *   preipo    the eight PreStocks names, 60 m, on the catalogue read (D-100/D-101)
+ *   basket    the five PreStocks baskets, 60 m, on their index (S19)
+ *   valuation Pyth valuation indices (S20): only with `--lanes valuation`, like the reference's init script, which
+ *             refuses to register while the key is not entitled ("no dead lane is ever shown")
+ * The Monday Gap is not bootstrapped: engine 0.3.0 fixes `expiry = start + cadence`, and a Gap spans Fri close → Mon open.
+ */
+function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
+  const out: LaneSpec[] = [];
+  const lane = (symbol: string, key: string, cadenceSec: number, versions: LaneSpec["versions"]) =>
+    out.push({ seriesKey: key, symbol, cadenceSec, lockLeadSec: LOCK_LEAD_SEC[cadenceSec] ?? 120, versions });
+  if (families.has("regular")) {
+    for (const symbol of LAUNCH_TICKERS) {
+      const row = SOURCES.tickers[symbol];
+      if (!row) continue;
+      const versions = row.versions.map((v) =>
+        attested(v.primary, v.primary === "pyth" ? row.pythFeedId! : row.redstoneFeedId!, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null));
+      for (const cadenceSec of REGULAR_CADENCES_SEC) lane(symbol, laneKey(symbol, "regular", cadenceSec), cadenceSec, versions);
+    }
+  }
+  if (families.has("token")) {
+    for (const symbol of TOKEN_LANE_TICKERS) {
+      const xstock = TICKERS[symbol].xstock!;
+      const from = isoSec(SOURCES.tokenLane.versions[0]!.validFrom);
+      for (const cadenceSec of REGULAR_CADENCES_SEC) lane(xstock.symbol, laneKey(symbol, "token", cadenceSec), cadenceSec, [attested("switchboard", xstock.surgeSymbol, from, null)]);
+    }
+  }
+  if (families.has("preipo")) for (const symbol of PRE_IPO_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("prestocks", symbol, PRESTOCKS_FROM_SEC, null)]);
+  if (families.has("basket")) for (const symbol of BASKET_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("basket", symbol, BASKETS_FROM_SEC, null)]);
+  if (families.has("valuation")) {
+    for (const symbol of VALUATION_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("pyth-index", TICKERS[symbol].pythIndexFeedId!.replace(/^0x/, "").toLowerCase(), isoSec("2026-09-22T00:00:00Z"), null)]);
+  }
+  return out;
+}
+
 async function main(): Promise<void> {
   await waitReady();
   log(`sandbox ${env.LEDGER_JSON_API_URL} (${(await client.version()).version})`);
@@ -147,7 +210,10 @@ async function main(): Promise<void> {
   }
   const haveSeries = new Set(pick(acs, TEMPLATE_IDS.Series, decodeSeries).map((s) => s.data.seriesKey));
   const nowSec = Math.floor(Date.now() / 1000);
-  for (const lane of cryptoLanes(nowSec)) {
+  // `--lanes crypto,regular,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
+  const families = new Set(arg("--lanes", "crypto,regular,token,preipo,basket").split(",").map((s) => s.trim()));
+  const lanes = [...(families.has("crypto") ? cryptoLanes(nowSec) : []), ...equityLanes(families)];
+  for (const lane of lanes) {
     if (haveSeries.has(lane.seriesKey)) continue;
     const anchorSec = Math.floor(nowSec / lane.cadenceSec) * lane.cadenceSec;
     const [first, ...later] = lane.versions.map((v, i) => ({ version: POLICY_VERSION + i, ...v }));

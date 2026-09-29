@@ -97,3 +97,22 @@ describe("window-roller token plan for the crypto lanes (C6)", () => {
   });
 });
 
+
+describe("window-roller attested lanes (C6)", () => {
+  const V = (printSource: string, from = 0, until: number | null = null): VersionWindow => ({ validFromSec: from, validUntilSec: until, primarySource: 4, checkSource: 0, openAdmissionSec: 60, checkAdmissionSec: 0, primaryFeedIdHex: "", printSource });
+  const down = (why: string) => (text: string) => (text.startsWith("attested:switchboard:") ? why : null);
+
+  it("lists an xStock lane only while Switchboard can sign, and names why not", () => {
+    const tsla = series({ key: "TSLAx-5m", symbol: "TSLA", versions: [V("attested:switchboard:TSLAX/USD")], lastExpirySec: SAT });
+    expect(planTokenSeries(tsla, { ...clock(SAT - 60), sourceUnavailable: () => null }).kind).toBe("open");
+    const paused = planTokenSeries(tsla, { ...clock(SAT - 60), sourceUnavailable: down("Switchboard Surge TSLAX/USD: crossbar: IPFS fetch temporarily unavailable") });
+    expect(paused).toMatchObject({ kind: "paused", state: "paused: no signed source (Switchboard Surge TSLAX/USD: crossbar: IPFS fetch temporarily unavailable)" });
+  });
+
+  it("a PreStocks lane is unaffected by another source being down; an uncovered Window keeps the plain state", () => {
+    const openai = series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: [V("attested:prestocks:OPENAI")], lastExpirySec: SAT });
+    expect(planTokenSeries(openai, { ...clock(SAT - 60), sourceUnavailable: down("x") }).kind).toBe("open");
+    const later = series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: [V("attested:prestocks:OPENAI", SAT + 7_200)], lastExpirySec: SAT });
+    expect(planTokenSeries(later, clock(SAT - 60)).state).toBe("paused: no signed source");
+  });
+});

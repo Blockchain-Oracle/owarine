@@ -42,3 +42,12 @@ export function loadRelaySources(env: NodeJS.ProcessEnv = process.env): RelaySou
     pythTrialLastSec: Date.parse(raw.pythTrial.lastCoveredClose) / 1000,
   };
 }
+
+/** The token lane's pinned Switchboard Surge feeds (price-sources.json `tokenLane.tickers`): Surge symbol → feed hash. */
+export function loadSwitchboardFeeds(): Map<string, string> {
+  const raw = JSON.parse(readFileSync(CONFIG_URL, "utf8")) as { tokenLane?: { tickers?: Record<string, { surgeSymbol?: string; feedHash?: string }> } };
+  const out = new Map<string, string>();
+  for (const t of Object.values(raw.tokenLane?.tickers ?? {})) if (t.surgeSymbol && t.feedHash) out.set(t.surgeSymbol, t.feedHash);
+  return out;
+}
+

@@ -27,6 +27,7 @@ import { createLadderBoard, type LadderBoard } from "../market-maker/seat/ladder
 import { readPricerSettings, startPricer } from "../market-maker/seat/pricer";
 import { startNetting } from "../netting";
 import { startOracleFeeders } from "../price-relay/oracle-feeder";
+import { laneReaderDeps, startLaneFeeders } from "../price-relay";
 import { startQuoteIssuer, type ShardPool } from "../quote-issuer";
 import { startRebalancer } from "../rebalancer";
 import { startReserveReporter, type ReserveSnapshot } from "../reserve-reporter";
@@ -71,6 +72,7 @@ export async function startCantonVenue(input: {
 
   if (on("roller")) stops.push((await startWindowRoller(deps("window-roller"), venue)).stop);
   if (on("oracles")) stops.push(startOracleFeeders(venue, input.log).stop);
+  if (on("oracles")) stops.push(startLaneFeeders(venue, laneReaderDeps(input.deps), input.log).stop);
   if (on("resolver")) stops.push((await startResolver(input.log("resolver"), venue)).stop);
   const settings = readPricerSettings();
   // C6: the crypto lanes are priced only on a measured realised σ (24/7 clock), re-measured every 30 min.

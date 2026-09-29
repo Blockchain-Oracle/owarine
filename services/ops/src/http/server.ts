@@ -11,6 +11,7 @@ import type { HaltBoardStore } from "../runtime/halt-board";
 import type { SessionEvents } from "../runtime/session-events";
 import { healthBody, jsonText } from "./health";
 import { sessionBody } from "./session";
+import type { SourceHealthStore } from "../runtime/source-health";
 import type { PreStocksSpotFeed } from "../prices/prestocks-spot";
 import { preStocksLatestBody } from "./prestocks-latest";
 import type { PythIndexSpotFeed } from "../prices/pyth-index-spot";
@@ -35,6 +36,8 @@ export function startOpsHttp(input: {
   prestocks?: PreStocksSpotFeed | null;
   /** The valuation indices' entitlement store and spot (S20); absent in a process without them. */
   pythIndex?: { store: PythEntitlementStore; spot: PythIndexSpotFeed | null } | null;
+  /** C6: each attested lane source's health (`source-probe`), served on `/session.sources.attested`. */
+  attested?: SourceHealthStore | null;
   sessions?: SessionService;
   halts?: HaltBoardStore;
   events?: SessionEvents;
@@ -60,7 +63,7 @@ export function startOpsHttp(input: {
       const body = healthBody(input.env);
       return json(body.ok ? 200 : 503, body);
     }
-    if (path === "/session") return json(200, sessionBody({ sessions: input.sessions ?? null, halts: input.halts ?? null, events: input.events ?? null, pythIndex: input.pythIndex?.store ?? null }));
+    if (path === "/session") return json(200, sessionBody({ sessions: input.sessions ?? null, halts: input.halts ?? null, events: input.events ?? null, pythIndex: input.pythIndex?.store ?? null, attested: input.attested ?? null }));
     if (path === "/prices/latest") {
       if (!input.spot) return json(503, { error: "no spot feed in this process" });
       return void latestBody(input.spot).then((body) => json(200, body), (error: unknown) => json(503, { error: `prices unavailable: ${error instanceof Error ? error.message : String(error)}` }));

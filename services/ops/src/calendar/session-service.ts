@@ -18,6 +18,7 @@ export interface SessionService {
 }
 
 const REFRESH_MS = 60 * 60 * 1000;
+const RETRY_FAILED_MS = 60 * 1000;
 const DAYS_BACK = 7;
 const DAYS_AHEAD = 14;
 
@@ -26,6 +27,8 @@ export function createSessionService(options: { nowSec?: () => number } = {}): S
   let agreed: SessionCalendar | null = null;
   let disputed: SessionDisagreement[] = [];
   let fetchedMs = 0;
+  /** C6: a failed refresh is not retried for a minute, so a missing Alpaca key does not call Hermes on every roller pass. */
+  let failed: { atMs: number; line: string } | null = null;
   let inflight: Promise<string> | null = null;
 
   const doRefresh = async (): Promise<string> => {
@@ -37,11 +40,14 @@ export function createSessionService(options: { nowSec?: () => number } = {}): S
       agreed = result.calendar;
       disputed = result.disagreements;
       fetchedMs = Date.now();
+      failed = null;
       const sessions = agreed.sessions.filter((s) => s.date >= today).length;
       return `calendar ${from}..${to}: ${sessions} sessions ahead${disputed.length ? `, ${disputed.length} disputed dates listed as unknown: ${disputed.map((d) => d.date).join(" ")}` : ""}`;
     } catch (error) {
       if (agreed && agreed.toDate < today) agreed = null;
-      return `calendar refresh failed (${agreed ? "keeping the last agreed calendar" : "no calendar: listing nothing"}): ${errorText(error)}`;
+      const line = `calendar refresh failed (${agreed ? "keeping the last agreed calendar" : "no calendar: listing nothing"}): ${errorText(error)}`;
+      failed = { atMs: Date.now(), line };
+      return line;
     }
   };
 
@@ -51,6 +57,7 @@ export function createSessionService(options: { nowSec?: () => number } = {}): S
     disagreements: () => disputed,
     refresh(force = false) {
       if (!force && agreed && Date.now() - fetchedMs < REFRESH_MS) return Promise.resolve("calendar fresh");
+      if (!force && failed && Date.now() - failed.atMs < RETRY_FAILED_MS) return Promise.resolve(failed.line);
       inflight ??= doRefresh().finally(() => (inflight = null));
       return inflight;
     },

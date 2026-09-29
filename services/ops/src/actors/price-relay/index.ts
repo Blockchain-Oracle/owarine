@@ -15,9 +15,20 @@ import { createVenueContext, type VenueContext } from "../venue/context";
 import { archivePass } from "./archive-pass";
 import { BoundaryCache } from "./boundary-cache";
 import { startOracleFeeders } from "./oracle-feeder";
-import { loadRelaySources } from "./sources";
+import { startLaneFeeders } from "./lane-feeder";
+import { loadRelaySources, loadSwitchboardFeeds, type RelaySources } from "./sources";
+import { currentPreStocksSpot } from "../../prices/prestocks-spot";
+import type { AttestedReaderDeps } from "../../prices/attested-read";
 
 export { startOracleFeeders } from "./oracle-feeder";
+export { startLaneFeeders } from "./lane-feeder";
+
+/** What each oracle party's lane reader needs (C6): the reference's RedStone set, the Pyth key, the entitlement store, the pinned Surge feeds, the PreStocks feed. */
+export function laneReaderDeps(deps: Pick<VenueDeps, "pythIndex">, sources: RelaySources = loadRelaySources()): AttestedReaderDeps {
+  return {
+    sources, pythKey: process.env.PYTH_API_KEY || undefined, pythIndex: deps.pythIndex, switchboardFeeds: loadSwitchboardFeeds(), prestocks: currentPreStocksSpot,
+  };
+}
 
 export interface PriceRelayHandle {
   /** The process's spot feed (equities from Pyth/RedStone, crypto from the exchange): hand it to the pricer and HTTP. */
@@ -41,6 +52,8 @@ export async function startPriceRelay(deps: VenueDeps, venue: VenueContext = cre
   stops.push(runActor({ name: "price-archive", log: (why) => log(`[archive] ${why}`), dryRun: false, everyMs: 10_000, pass: () => archivePass(archive) }).stop);
 
   stops.push(startOracleFeeders(venue, (actor) => (why) => log(`[${actor}] ${why}`)).stop);
+  // C6: the same oracle parties print the stock, xStock, PreStocks and basket lanes from their original sources.
+  stops.push(startLaneFeeders(venue, laneReaderDeps(deps, sources), (actor) => (why) => log(`[${actor}] ${why}`)).stop);
   log(`relay: RedStone ${sources.redstoneFeeds.length} feeds via ${sources.gateways.join(", ")}; Pyth ${pythKey ? `${sources.pythFeeds.length} trial feeds` : "off (no PYTH_API_KEY)"}; crypto spot from Coinbase; ${venue.summary}`);
   return { spot: joinCryptoSpot(equity, crypto), stop: () => stops.forEach((stop) => stop()) };
 }
