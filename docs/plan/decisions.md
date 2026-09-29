@@ -124,6 +124,41 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - The desk's daily window is the grant's calendar day from `dayZero` (K-024), not the reference's rolling 24 h window.
 - **Approval:** default; overrulable.
 
+### K-087 — Grants: a venue-signed grant desk, kinds read off the agent, one agent-runner party (C8 block)
+- **Date / owner:** 2026-09-29 · C8f lane
+- **Evidence:** `daml/abu-pm-agents/daml/PM/Agents/Vault.daml`; `Test.Agents.Vault` (open/fund refusals, counters kept, fund-vs-accept race in both orders, expired grant returns the whole budget, conservation).
+- **Rule:**
+  - `GrantDesk` (venue-signed, owner-controlled) opens a grant from the owner's cash and tops a live grant up. A top-up keeps the day, today's spend, open positions, caps and expiry, so it can never reset a cap (the reference's `fundGrant`). Revoke stays `Grant_Revoke`.
+  - Grant kinds are not a ledger field. The agent-runner party is the house strategy runner, the X executor and the desk operator; a grant with the X "no monetary cap" caps is the executor grant, any other grant to a runner is a strategy grant, and there is no session grant (a seat already trades in one tap, L-27).
+  - The X ceiling (2^64 − 1) does not fit a Daml `Int`; it travels as 9·10^18 and reads back as the ceiling.
+  - Ids stay numeric for the screens: a grant's id hashes owner, agent, expiry and day zero (a trade or top-up keeps them); a strategy's hashes its registry id.
+  - The trading balance is the seat's own `VenueCash`: there is no separate vault to deposit into or withdraw from.
+- **User-visible:** the grant flows are unchanged; "deposit to the vault" steps are gone because the seat's cash already is the balance.
+- **Approval:** default; overrulable.
+
+### K-088 — The desk holds what it bought and sells it back (C8 block)
+- **Date / owner:** 2026-09-29 · C8f lane
+- **Evidence:** `PM.Agents.Desk` 0.2.0; `testDeskSellWithinMandate`, `testDeskSellRefusals`, `testDeskSellRevokedAndExpiredHoldings`, `testDeskSellConservation`.
+- **Rule:** `DeskMandate.holdings` records lots per market side until the market's `refundAfter`. `Mandate_Sell` sells only lots the desk holds, on a venue buy-back quote, at no less than 92 % of the attested value, counted against the caps as the larger of proceeds and that value (the reference's sell floor and `counted`), and returns the proceeds to the budget. A fully sold position frees its open-position slot. Holdings are fungible with the owner's own legs on the same market side: the desk may sell any of them up to what it holds.
+- **Approval:** default; overrulable.
+
+### K-089 — A strategy's runner observes the consents that name it (C8 block)
+- **Date / owner:** 2026-09-29 · C8f lane
+- **Evidence:** `Subscription` gains `observer runner`; `testCreatorNeverSeesSubscribers` (the creator still sees none; the runner sees exactly its consents, copy and fade).
+- **Rule:** the runner needs to know who fades. The house runner is the venue's own agent party; a self-hosting creator already learns its subscribers through their grants (K-086). A creator who does not run its strategy still never learns who subscribes. `dpm upgrade-check` warns on the changed observers; 0.1.0 was never uploaded.
+- **Approval:** default; overrulable.
+
+### K-090 — The live desk trades the pre-IPO names' hourly Windows with venue cash (C8 block)
+- **Date / owner:** 2026-09-29 · C8f lane (records the K-085 default as built)
+- **Rule:** a desk name maps to its pre-IPO series (60 m); a buy is Up lots on that name's current Window through `Mandate_Trade`, a sell is `Mandate_Sell` on the venue's buy-back. The reference is a quorum (2 of 3) of oracle-party `DeskMark`s at the Window's fair ticks. It trades demo venue cash, so it is not gated on C7b. A Window that settles pays the owner's seat, which the record shows as money leaving the desk.
+- **User-visible:** the live desk's holdings are hourly positions on the names, not tokens.
+- **Approval:** default; overrulable.
+
+### K-091 — Practice desks price at the attested token print (C8 block)
+- **Date / owner:** 2026-09-29 · C8f lane
+- **Rule:** practice desks stay paper ledgers, filled at the PreStocks token print the lanes attest, less the reference's paper fee, one paper unit per token (no mint multiplier and no Jupiter route on Canton).
+- **Approval:** default; overrulable.
+
 ### K-125 — iOS ships on public TestFlight from a new app record (C11 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
