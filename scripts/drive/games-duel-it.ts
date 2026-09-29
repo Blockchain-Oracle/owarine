@@ -19,7 +19,7 @@ import { encodeBase58, type Address, type Hash32 } from "@agari/core/types";
 import { getDb } from "@agari/db";
 import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
-import { distributeSeasonPrizes, duelDeckHash, keccak256 } from "@agari/markets/games";
+import { distributeSeasonPrizes, duelDeckHash, keccak256, withdrawSeasonRemainder } from "@agari/markets/games";
 import { cmd, decodeVenueCash, pick } from "@agari/markets/ops/canton";
 import { decodeDuelMatch, decodeSeasonPool, gcmd } from "@agari/markets/ops/games";
 import { createGamesSeat, createOpsClient, createSeatLedger } from "@agari/markets/server";
@@ -199,8 +199,13 @@ check("each winner was credited to their seat", (await cashOf(creator.actor.part
 const pools = await client.activeContracts({ parties: [venue], templateIds: [GAMES_TEMPLATE_IDS.SeasonPool] });
 const pool = pools.contracts.map((c) => ({ cid: c.createdEvent.contractId, data: decodeSeasonPool(c.createdEvent.createArgument) })).find((p) => p.data.seasonId === seasonId)!;
 check("the pool shows it distributed, holding the remainder", pool.data.distributed && pool.data.amount === 10_000_000n, pool.data);
-const withdrawn = await client.submitAndWaitForTransaction({ actAs: [venue], commandId: `drive:season-withdraw:${seasonId}`, commands: [gcmd.withdrawSeasonRemainder(pool.cid)] });
-check("the venue withdrew the remainder and the pool closed", withdrawn.transaction.events.some((e) => "CreatedEvent" in e && e.CreatedEvent.templateId.endsWith(":VenueCash")));
+const withdrawn = await withdrawSeasonRemainder({ rpcUrl: OPS, seasonId, opsSecret: process.env.OPS_INTERNAL_SECRET! }).then((r) => ({ ok: true, r }), (e: unknown) => ({ ok: false, r: String(e) }));
+check("the admin withdrew the remainder through ops (Season_WithdrawRemainder) and the pool closed", withdrawn.ok && typeof withdrawn.r === "object" && withdrawn.r.withdrawnBase === 10_000_000n, withdrawn.r);
+const gone = await client.activeContracts({ parties: [venue], templateIds: [GAMES_TEMPLATE_IDS.SeasonPool] });
+check("no live pool remains for the season", !gone.contracts.some((c) => decodeSeasonPool(c.createdEvent.createArgument).seasonId === seasonId));
+const closed = await ops.gameSeason(seasonId);
+const closedPool = closed.ok ? closed.value.pool : null;
+check("the closed season still reads as paid out, holding nothing", closedPool !== null && closedPool.distributed && closedPool.balanceBase === 0n, closed.ok ? closedPool : closed.diagnosis);
 
 for (const p of players) await store.release(p.actor.leaseId, Date.now(), "drive done");
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}  match ${matchId}`);

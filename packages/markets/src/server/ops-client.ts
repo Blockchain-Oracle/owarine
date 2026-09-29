@@ -26,7 +26,7 @@ export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
 export const OPS_EXIT_QUOTES_PATH = "/internal/exit-quotes";
 /** The ticket desk (C8c): `range`, `parlay`, `boost`, `earn` and `state` under this prefix. */
 export const OPS_TICKETS_PREFIX = "/internal/tickets/";
-/** The arena desk (C9b): `state`, `match`, `season`, `open` and `season/distribute` under this prefix. */
+/** The arena desk (C9b): `state`, `match`, `season`, `open`, and the admin's `season/distribute` and `season/withdraw`, under this prefix. */
 export const OPS_GAMES_PREFIX = "/internal/games/";
 
 const TICKET_REPLIES = { range: rangeTicketReplyWire, parlay: parlayTicketReplyWire, boost: boostTicketReplyWire, earn: earnReplyWire } as const;

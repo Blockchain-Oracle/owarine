@@ -151,7 +151,15 @@ A default recorded early for a later stage sits in that stage's block; its owner
 
 ### K-104 — The season pool's payout and remainder (C9 block)
 - **Date / owner:** 2026-09-29 · C9b lane
-- **Rule:** `distributeSeasonPrizes` keeps its name and fields; on Canton it is the admin's HMAC-signed call to ops, which maps each winner's seat address to its `VenueAccount` and exercises `Season_Distribute` once. The remainder is withdrawn by the venue (`Season_WithdrawRemainder`) as an admin act; there is no route for it. The bootstrap creates `ArenaTerms` with core's `STAKE_TIERS` and a funded `SeasonPool`.
+- **Rule:** `distributeSeasonPrizes` keeps its name and fields; on Canton it is the admin's HMAC-signed call to ops, which maps each winner's seat address to its `VenueAccount` and exercises `Season_Distribute` once. The remainder is withdrawn by the venue (`Season_WithdrawRemainder`) as an admin act; there is no route for it (superseded by K-105). The bootstrap creates `ArenaTerms` with core's `STAKE_TIERS` and a funded `SeasonPool`.
+- **Approval:** default; overrulable.
+
+### K-105 — The season remainder is an ops admin route; a closed season reads as paid out (C9 block)
+- **Date / owner:** 2026-09-29 · C9c lane
+- **Evidence:** `services/ops/src/actors/arena-desk/routes.ts` (`season/withdraw`), `routes.test.ts`; `scripts/season-admin.ts`; `docs/evidence/c9c-games-ux.md`.
+- **Rule:**
+  - Supersedes K-104's "there is no route for it". `POST /internal/games/season/withdraw {seasonId}` is HMAC-signed like every internal route and exercises `Season_WithdrawRemainder` once (`season:withdraw:<digest>`). Ops refuses it before the distribution. No web route forwards it or the distribute call; a test scans `web/src` for either path, so no seat reaches them. The admin runs `scripts/season-admin.ts` (the reference ran a deploy script).
+  - The choice archives the pool. Ops records the closure in `season_closures` (season, end, deposited, withdrawn, update id), and in memory when there is no database. The arena desk's season read then answers the reference's drained pool (`distributed`, balance 0), so the rank's escrow line reads "the pool has paid out", not "no prize pool is deployed". The reference has no admin UI for either act, so none is added.
 - **Approval:** default; overrulable.
 
 ### K-125 — iOS ships on public TestFlight from a new app record (C11 block)
