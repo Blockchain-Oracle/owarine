@@ -33,6 +33,20 @@ export const SEAT = {
     leaseNotLive: "The key is on this phone. Seats join the ledger when trading opens; until then nothing is placed.",
   },
   menu: { seat: "Your seat" },
+  /** The funds sheet: the demo-credits grant, through a signed route once it is live; no faucet, no network fees. */
+  funds: {
+    eyebrow: "Demo credits · test network",
+    title: "Demo credits",
+    body: "A seat trades with demo credits on a Canton test network. They have no cash value, and nothing here can be bought, sold or withdrawn.",
+    takeSeatFirst: "Take a seat first: demo credits go to a seat.",
+    account: "Seat",
+    copied: "Copied!",
+    credits: "Demo credits",
+    cashValue: "Cash value",
+    none: "None",
+    request: "Get demo credits",
+    notLive: "Not live yet: the grant opens when trading opens. Nothing is placed until then.",
+  },
   /** Where the reference's tap-trading chip sat: the seat itself signs every call, so there is nothing to arm. */
   fast: { label: "one tap", why: "a seat already trades in one tap" },
   failed: (reason: string) => `This phone could not make a seat key: ${reason}`,

@@ -1,11 +1,9 @@
-import { FAUCET_UNITS } from "@agari/core/constants";
 import { formatBaseUnits } from "@agari/core/units";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useFaucet } from "@/features/markets/faucet/useFaucet";
 import { SESSION } from "@/features/session/copy";
 import type { FundingSource } from "@/features/session/useTicketRoute";
-import { diagnosisCopy, FAUCET, TICKET } from "@/lib/copy";
+import { TICKET } from "@/lib/copy";
 import type { WalletSession } from "@/lib/wallet-session";
 import { FONT } from "~/theme";
 import { ModeTile } from "./Controls";
@@ -36,13 +34,12 @@ interface GateProps {
 }
 
 /**
- * web's AccountGate, inline: connect when there is no wallet; "Top up to place this" when the stake and seat deposit
- * are more than the chosen source holds, with the fix right there (the funds sheet carries the faucet); connected, the
+ * web's AccountGate, inline: Take a seat when there is none; "Top up to place this" when the stake and seat deposit
+ * are more than the chosen source holds, with the fix right there (the demo-credits sheet; no faucet); seated, the
  * row with where a public bet is paid from and the one-tap chip (a seat already trades in one tap; no key to arm).
  */
 export function AccountGate({ session, availableBase, stakeBase, depositBase, decimals, symbol, balanceSource, route }: GateProps) {
   const tk = useTk();
-  const faucet = useFaucet();
   const connected = session.isConnected;
   const requiredBase = stakeBase > 0n ? stakeBase + depositBase : 0n;
   const short = connected && availableBase !== null && (availableBase === 0n || (stakeBase > 0n && requiredBase > availableBase));
@@ -73,14 +70,12 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
             {TICKET.gate.holds(formatBaseUnits(availableBase ?? 0n, decimals), symbol, balanceLabel)}
             {tail}
           </Text>
-          {faucet.state.diagnosis ? <Text style={[styles.line, { color: tk.gateLine }]}>{diagnosisCopy(faucet.state.diagnosis.kind).headline}</Text> : null}
           <View style={styles.actions}>
             {wallet ? (
               <GateCta label={TICKET.gate.addMoney} onPress={openFunds} />
             ) : (
               <GateCta label={balanceSource === "private" ? "Manage private balance" : "Manage Trading Balance"} onPress={() => router.navigate("/portfolio")} />
             )}
-            {wallet && faucet.hasSigner ? <Quiet label={faucet.busy ? faucet.label : FAUCET.cta(String(FAUCET_UNITS))} disabled={faucet.busy} onPress={openFunds} /> : null}
           </View>
         </View>
       ) : null}
