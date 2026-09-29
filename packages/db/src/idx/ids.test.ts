@@ -1,19 +1,13 @@
-import { isAddress } from "@agari/core/types";
+import { marketIdFromDaml } from "@agari/core/market";
 import { describe, expect, it } from "vitest";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
 import { offsetOf } from "./write";
 
-describe("ledger text ids", () => {
-  it("a Window's MarketId is base58 of 32 bytes, deterministic, and distinct per window", () => {
-    const a = marketIdOfKey("BTC-300:12");
-    expect(isAddress(a)).toBe(true);
-    expect(marketIdOfKey("BTC-300:12")).toBe(a);
-    expect(marketIdOfKey("BTC-300:13")).not.toBe(a);
-    expect(seriesIdOfKey("BTC-300")).not.toBe(a);
-  });
-
-  it("pins the derivation (sha256 of the utf-8 text, base58): other lanes derive the same id", () => {
-    expect(marketIdOfKey("")).toBe("GKot5hBsd81kMupNCXHaqbhv3huEbxAFMLnpcX2hniwn");
+describe("projection ids", () => {
+  it("use the canonical core derivation (the id the seat routes return)", () => {
+    expect(marketIdOfKey("BTC-300:12")).toBe(marketIdFromDaml("BTC-300:12"));
+    expect(marketIdOfKey("BTC-300:12")).toBe("GAMChwcLrzqMGpUs32NDt6LKNTQ5DzbcSQKcThGk9Qmb");
+    expect(seriesIdOfKey("BTC-300")).toBe("6nW79H2CfVZiDVxHZMLEMvyBbPpyZwjvH2kCR5DFdSFd");
   });
 });
 

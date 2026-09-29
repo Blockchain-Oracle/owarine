@@ -1,18 +1,16 @@
-import { encodeBase58, toAddress, type MarketId } from "@agari/core/types";
-import { sha256 } from "@noble/hashes/sha2";
+import { marketIdFromDaml, MARKET_ID_DOMAIN } from "@agari/core/market";
+import type { MarketId } from "@agari/core/types";
 
 /**
  * The app's `MarketId` for a Daml market (plan §2): base58 of SHA-256 over a domain tag and the terms' `marketId`
- * (`<seriesKey>:<index>`), so it passes `isMarketId` like every other id the app keys on. Deterministic and one-way:
- * ops, the projector and these routes derive the same id from the same terms, and nobody needs a lookup table.
+ * (`<seriesKey>:<index>`), so it passes `isMarketId` like every other id the app keys on. One canonical, pure
+ * implementation lives in `@agari/core/market` (`marketIdFromDaml`); ops, the projector, these routes and the phone
+ * all derive the same id from the same terms.
  */
-export const MARKET_ID_DOMAIN = "agari/market-id/v1:";
-
-const encoder = new TextEncoder();
+export { MARKET_ID_DOMAIN };
 
 export function appMarketId(damlMarketId: string): MarketId {
-  if (damlMarketId.length === 0) throw new Error("empty Daml marketId");
-  return toAddress(encodeBase58(sha256(encoder.encode(MARKET_ID_DOMAIN + damlMarketId)))) as MarketId;
+  return marketIdFromDaml(damlMarketId);
 }
 
 /** A client journal id (a UUID) as the ledger `commandId` of one logical action: `<intent>:<uuid>`. */
