@@ -1,0 +1,69 @@
+-- | The venue desk's batch operations: a two-way quote issued from one
+-- shard in one transaction.
+module Test.Desk where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Optional (fromSomeNote)
+import PM.Money
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- Bid 450 / ask 520 on 3 lots: the Up quote locks 3 * 480, the Down quote
+-- (at 1000 - 450 = 550) locks 3 * 450; one shard of 3000 leaves 3000 - 2790.
+testTwoWayFromOneShard = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  now <- getTime
+  sh <- shard w 3000
+  (buyQ, sellQ, change) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueTwoWay with
+      shardCid = sh; user = w.alice; termsCid = win.terms; buyPairId = "tw-b"; sellPairId = "tw-s"
+      bidTicks = 450; askTicks = 520; lots = 3; buyFee = 4; sellFee = 6; validUntil = plus now 20
+  Some b <- queryContractId w.alice buyQ
+  Some s <- queryContractId w.alice sellQ
+  (b.side, b.priceTicks, b.fee, b.pairId) === (SideUp, 520, 4, "tw-b")
+  (s.side, s.priceTicks, s.fee, s.pairId) === (SideDown, 550, 6, "tw-s")
+  Some c <- queryContractId w.venue (fromSomeNote "change" change)
+  c.amount === 3000 - 3 * 480 - 3 * 450
+  -- the user takes both sides: pays 3 * (520 + 550) + fees, holds both pairs
+  cash <- fund w w.alice (3 * 520 + 4 + 3 * 550 + 6)
+  (c1, Some rest) <- submit w.alice do exerciseCmd cash VenueCash_Split with take = 3 * 520 + 4
+  (upLeg, venueDown, _) <- submit w.alice do exerciseCmd buyQ Quote_Accept with cash = [c1]; beneficiaryRef = None
+  (downLeg, venueUp, _) <- submit w.alice do exerciseCmd sellQ Quote_Accept with cash = [rest]; beneficiaryRef = None
+  cashOf w.alice >>= (=== 0)
+  -- each pair is fully backed
+  Some u <- queryContractId w.alice upLeg
+  Some vd <- queryContractId w.venue venueDown
+  u.backingShare + vd.backingShare === quantityOf 3 1
+  Some d <- queryContractId w.alice downLeg
+  Some vu <- queryContractId w.venue venueUp
+  d.backingShare + vu.backingShare === quantityOf 3 1
+  (u.outcome, d.outcome) === (SideUp, SideDown)
+
+-- One exact-size shard, no change; crossed, duplicate and undersized
+-- requests are refused and create nothing.
+testTwoWayRefusals = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  now <- getTime
+  let req sh bid ask bp sp = trySubmit w.venue do
+        exerciseCmd w.desk Desk_IssueTwoWay with
+          shardCid = sh; user = w.alice; termsCid = win.terms; buyPairId = bp; sellPairId = sp
+          bidTicks = bid; askTicks = ask; lots = 2; buyFee = 0; sellFee = 0; validUntil = plus now 20
+  sh <- shard w (2 * 500 + 2 * 500)
+  refusedWith (refusal "crossed-two-way") =<< req sh 501 500 "a" "b"
+  refusedWith (refusal "duplicate-pair") =<< req sh 500 500 "a" "a"
+  refusedWith (refusal "bad-grid") =<< req sh 0 500 "a" "b"
+  small <- shard w 1999
+  refusedWith (refusal "shard-too-small") =<< req small 500 500 "a" "b"
+  (length <$> query @Quote w.venue) >>= (=== 0)
+  (_, _, change) <- succeeded =<< req sh 500 500 "a" "b"   -- a zero-width market is allowed
+  change === None
+  (length <$> query @Quote w.alice) >>= (=== 2)
+  -- the user alone accepts; Bob cannot see or take Alice's quotes
+  (length <$> query @Quote w.bob) >>= (=== 0)

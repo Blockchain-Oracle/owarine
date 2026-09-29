@@ -57,6 +57,44 @@ template VenueDesk
           refundAfter = terms.refundAfter
         pure (q, change)
 
+    -- A two-way price for one user from one shard in one transaction: the
+    -- user may buy Up at `askTicks`, or sell Up (buy Down) at `bidTicks`,
+    -- i.e. a Down quote at 1000 - bidTicks. Both venue stakes are locked, so
+    -- the user may accept either, both or neither. `bidTicks <= askTicks`
+    -- (an uncrossed market): a user accepting both pays at least a pair's
+    -- backing for a pair that pays exactly its backing.
+    nonconsuming choice Desk_IssueTwoWay : (ContractId Quote, ContractId Quote, Optional (ContractId VenueCash))
+      with
+        shardCid : ContractId VenueCash
+        user : Party
+        termsCid : ContractId MarketTerms
+        buyPairId : Text
+        sellPairId : Text
+        bidTicks : Int
+        askTicks : Int
+        lots : Int
+        buyFee : Int
+        sellFee : Int
+        validUntil : Time
+      controller venue
+      do
+        terms <- fetch termsCid
+        require "wrong-venue" "terms belong to another venue" (terms.venue == venue)
+        require "bad-grid" "ticks must be 1..999 and lots within the grid"
+          (ticksOk bidTicks && ticksOk askTicks && gridOk lots terms.cashUnit)
+        require "crossed-two-way" "bid must not exceed ask" (bidTicks <= askTicks)
+        require "duplicate-pair" "the two sides need distinct pair ids" (buyPairId /= sellPairId)
+        let downTicks = pairTicks - bidTicks
+            stake = venueStakeOf lots askTicks terms.cashUnit + venueStakeOf lots downTicks terms.cashUnit
+        change <- lockFromShard venue shardCid stake
+        let mk pairId side ticks fee = Quote with
+              venue; user; termsCid; marketId = terms.marketId; pairId; side; priceTicks = ticks; lots
+              cashUnit = terms.cashUnit; fee; validUntil; lockAt = terms.lockAt
+              refundAfter = terms.refundAfter
+        buyQ <- create (mk buyPairId SideUp askTicks buyFee)
+        sellQ <- create (mk sellPairId SideDown downTicks sellFee)
+        pure (buyQ, sellQ, change)
+
     nonconsuming choice Desk_IssueBuyQuote : (ContractId BuyQuote, Optional (ContractId VenueCash))
       with
         shardCid : ContractId VenueCash
