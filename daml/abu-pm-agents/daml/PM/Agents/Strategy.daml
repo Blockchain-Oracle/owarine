@@ -13,9 +13,14 @@
 --                     the creator-signed `Strategy`: a fetch informs the
 --                     fetched contract's signatories, so fetching the
 --                     Strategy would tell the creator who subscribes.
---   SubscriberBook,
---   Subscription      subscriber + venue only. A creator never learns who
---                     subscribes (the design's bilateral rule).
+--   SubscriberBook    subscriber + venue only.
+--   Subscription      subscriber + venue (signatories); the strategy's
+--                     runner observes it (0.2.0, K-089), so a runner knows
+--                     which of the grants naming it follow and which fade.
+--                     The house runner is the venue's own agent party; a
+--                     creator who self-hosts as runner already learns its
+--                     subscribers through their grants (K-086). A creator
+--                     who is not the runner never learns who subscribes.
 --   StrategyFee       venue only: a subscriber's fee held for the creator.
 --   CreatorPayout     venue (signatory), creator (observer): the per-period
 --                     aggregate the creator claims. The creator sees totals
@@ -94,9 +99,11 @@ template CreatorLicense
         require "bad-fee" "the fee must not be negative" (fee >= 0)
         require "bad-runner" "the runner cannot be the venue" (runner /= venue)
         require "spec-hash-mismatch" "the spec does not hash to the declared hash" (sha256 spec == specHash)
+        now <- getTime
         let strategyId = partyToText creator <> "/" <> show nextIndex
         let strategy = Strategy with
               venue; creator; strategyId; runner; envelope; fee; spec; specHash; version = 0; active = True
+              publishedAt = Some now
         s <- create strategy
         l <- create (listingOf s strategy)
         lic <- create this with nextIndex = nextIndex + 1
@@ -131,6 +138,8 @@ template Strategy
     specHash : Text
     version : Int
     active : Bool
+    publishedAt : Optional Time
+      -- ^ 0.2.0: when License_Publish sealed it (None on a 0.1.0 strategy)
   where
     signatory creator
     observer venue
@@ -182,7 +191,7 @@ listingOf : ContractId Strategy -> Strategy -> StrategyListing
 listingOf cid s = StrategyListing with
   venue = s.venue; creator = s.creator; strategyId = s.strategyId; strategyCid = cid
   runner = s.runner; envelope = s.envelope; fee = s.fee; specHash = s.specHash
-  version = s.version; active = s.active
+  version = s.version; active = s.active; publishedAt = s.publishedAt
 
 template StrategyListing
   with
@@ -196,6 +205,7 @@ template StrategyListing
     specHash : Text
     version : Int
     active : Bool
+    publishedAt : Optional Time
   where
     signatory venue
     observer creator
@@ -293,7 +303,8 @@ template SubscriberBook
         archive subscriptionCid
         create this with following = delete s.strategyId following
 
--- | One consent, bilateral: the creator is named but is not a stakeholder.
+-- | One consent, bilateral: the creator is named but is not a stakeholder;
+-- the runner the consent names observes it (K-089).
 template Subscription
   with
     venue : Party
@@ -308,6 +319,7 @@ template Subscription
     feePaid : Int
   where
     signatory venue, subscriber
+    observer runner
     ensure feePaid >= 0
 
 -- | A subscriber's fee, held by the venue for the creator until the
