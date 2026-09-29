@@ -35,6 +35,8 @@ describe("classifyRejection (research 05 §E, measured bodies)", () => {
     ["claim on a leg already claimed or settled", notFound(LEG), { step: "claim" as const, legCids: [LEG], resolutionCids: [RESOLUTION] }, "already-claimed"],
     ["claim against a resolution that is gone", notFound(RESOLUTION), { step: "claim" as const, legCids: [LEG], resolutionCids: [RESOLUTION] }, "not-settled"],
     ["package not on the participant", body(404, "PACKAGE_NAMES_NOT_FOUND", 11, "The following package names do not match upgradable packages uploaded on this participant: [abu-pm-nope]."), accept, "not-deployed"],
+    ["the quote was archived before routing (Canton 3.5)", body(400, "UNKNOWN_CONTRACT_SYNCHRONIZERS", 9, `The following contracts have been archived: List(${QUOTE})`), accept, "order-expired"],
+    ["the cash was archived before routing", body(400, "UNKNOWN_CONTRACT_SYNCHRONIZERS", 9, `The following contracts have been archived: List(${CASH})`), accept, "insufficient-collateral"],
     ["locked contracts (contention) on a submit", body(409, "LOCAL_VERDICT_LOCKED_CONTRACTS", 2, "Locked contracts"), accept, "send-unknown"],
   ])("%s → %s", (_label, error, ctx, kind) => {
     const d = classifyRejection(error, ctx);

@@ -149,11 +149,15 @@ export function refusalId(error: unknown): string | null {
   return m ? m[0] : null;
 }
 
-/** A consumed or unknown contract: someone else got there first (the reference's "already done" codes). */
+/**
+ * A consumed or unknown contract: someone else got there first (the reference's "already done" codes). Canton 3.5
+ * answers an input archived before routing with `UNKNOWN_CONTRACT_SYNCHRONIZERS` ("The following contracts have been
+ * archived: List(…)"), measured through the ticket desk under load (C8e).
+ */
 export function isInactive(error: unknown): boolean {
   if (!(error instanceof LedgerError)) return false;
   const code = error.code ?? "";
-  return code === "CONTRACT_NOT_FOUND" || code.includes("INACTIVE") || /LOCAL_VERDICT_INACTIVE_CONTRACTS|CONTRACT_NOT_ACTIVE/.test(error.message);
+  return code === "CONTRACT_NOT_FOUND" || code === "UNKNOWN_CONTRACT_SYNCHRONIZERS" || code.includes("INACTIVE") || /LOCAL_VERDICT_INACTIVE_CONTRACTS|CONTRACT_NOT_ACTIVE/.test(error.message);
 }
 
 /** The inactive contract ids a rejection names (Canton lists them in its cause), for the settler's retry. */
