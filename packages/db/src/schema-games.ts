@@ -187,6 +187,19 @@ CREATE TABLE IF NOT EXISTS duel_decks (
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- A season pool the venue closed ("Season_WithdrawRemainder", C9c). The contract is archived by that choice, so
+-- this row is how a finished season still reads as "the pool has paid out" rather than "no pool deployed". Written by
+-- ops' season admin route after the ledger accepted the withdrawal, keyed by the season; the ledger stays the truth.
+CREATE TABLE IF NOT EXISTS season_closures (
+  season_id       TEXT        PRIMARY KEY,
+  ends_at_sec     BIGINT      NOT NULL,
+  -- What the pool was funded with, and what the venue took back, as decimal strings (base units).
+  deposited_base  TEXT        NOT NULL,
+  withdrawn_base  TEXT        NOT NULL,
+  update_id       TEXT        NOT NULL,
+  closed_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Arcade scores are product state and say so on every board: "arcade score · not on-chain".
 CREATE TABLE IF NOT EXISTS arcade_scores (
   id              BIGSERIAL   PRIMARY KEY,

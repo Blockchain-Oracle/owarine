@@ -6,6 +6,7 @@
  */
 import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import type { Address } from "@agari/core/types";
+import { readSeasonClosure, recordSeasonClosure, type SeasonClosure } from "@agari/db";
 import { decodeResolution, decodeTerms, pick, readActive, type Active, type ResolutionC, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
 import {
   arenaAddressOf, arenaParamsOf, decodeArenaTerms, decodeDuelMatch, decodeDuelOpen, decodeDuelResult, decodeSeasonPool, isStakeTierId, tierIndexOf,
@@ -46,8 +47,19 @@ export interface PendingDeal {
   clientSeeds: readonly string[];
 }
 
-export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirectory; chainId: number; log: (why: string) => void }) {
+/** Where closed seasons are kept (Postgres by default); a test passes its own. */
+export interface SeasonClosureStore {
+  record: (c: SeasonClosure) => Promise<boolean>;
+  read: (seasonId?: string) => Promise<SeasonClosure | null>;
+}
+
+const DB_CLOSURES: SeasonClosureStore = { record: recordSeasonClosure, read: readSeasonClosure };
+
+export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirectory; chainId: number; log: (why: string) => void; closures?: SeasonClosureStore }) {
   const { venue, seats } = input;
+  const closureStore = input.closures ?? DB_CLOSURES;
+  /** Closures this process made, so a withdrawn season reads as paid out even with no database. */
+  const closedHere = new Map<string, SeasonClosure>();
   let snap: { atMs: number; value: Promise<ArenaSnapshot> } | null = null;
   const pending = new Map<string, PendingDeal>();
   const results = new Map<string, Active<DuelResultC>>();
@@ -132,16 +144,33 @@ export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirector
     return { ...view, serverSeed: r.data.serverSeed, clientSeeds: [], arenaId: r.data.arenaId };
   }
 
-  /** The newest pool, or the one named. Its admin is the venue, shown as the arena's own id. */
+  /**
+   * The newest pool, or the one named. Its admin is the venue, shown as the arena's own id. A pool the venue closed
+   * (`Season_WithdrawRemainder` archives it) reads as the reference's drained pool: paid out, holding nothing.
+   */
   async function season(seasonId?: string): Promise<SeasonPoolWire | null> {
     const s = await snapshot();
     const pools = s.pools.filter((p) => !seasonId || p.data.seasonId === seasonId).sort((a, b) => b.data.endsAtSec - a.data.endsAtSec);
     const p = pools[0];
-    if (!p) return null;
+    if (p) {
+      return {
+        address: arenaAddressOf(`season:${p.data.seasonId}`), seasonId: p.data.seasonId, endsAtSec: p.data.endsAtSec, admin: arenaAddressOf("venue"),
+        balanceBase: p.data.amount, depositedBase: p.data.deposited, distributed: p.data.distributed,
+      };
+    }
+    const closed = (seasonId ? closedHere.get(seasonId) : undefined) ?? (await closureStore.read(seasonId).catch(() => null));
+    if (!closed) return null;
     return {
-      address: arenaAddressOf(`season:${p.data.seasonId}`), seasonId: p.data.seasonId, endsAtSec: p.data.endsAtSec, admin: arenaAddressOf("venue"),
-      balanceBase: p.data.amount, depositedBase: p.data.deposited, distributed: p.data.distributed,
+      address: arenaAddressOf(`season:${closed.seasonId}`), seasonId: closed.seasonId, endsAtSec: closed.endsAtSec, admin: arenaAddressOf("venue"),
+      balanceBase: 0n, depositedBase: closed.depositedBase, distributed: true,
     };
+  }
+
+  /** Remembers a closure the ledger accepted; the database write is best effort (the ledger holds the fact). */
+  async function recordClosure(c: SeasonClosure): Promise<void> {
+    closedHere.set(c.seasonId, c);
+    snap = null;
+    await closureStore.record(c).catch((error: unknown) => input.log(`season ${c.seasonId}: closure not recorded in the database: ${error instanceof Error ? error.message : String(error)}`));
   }
 
   /** The venue's MarketTerms by Daml market id, for a reveal's card contract ids. */
@@ -154,7 +183,7 @@ export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirector
   }
 
   return {
-    venue, seats, snapshot, state, match, season, resultOf, termsByMarketId,
+    venue, seats, snapshot, state, match, season, recordClosure, resultOf, termsByMarketId,
     /** The matchmaker's sealed deck for a pairing, until the creator's open lands (the snapshot then drops it). */
     hold: (deal: PendingDeal) => void pending.set(deal.matchId.toLowerCase(), deal),
     release: (matchId: string) => void pending.delete(matchId.toLowerCase()),

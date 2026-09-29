@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { LedgerClient } from "@agari/ledger";
 import { candleUrl, closeFromPayload, decimalToE8, type Fetch } from "../../prices/candles";
-import { boundaryFor, feederPass, payloadHash } from "./oracle-feeder";
+import { boundaryFor, feederPass, GIVE_UP_SEC, payloadHash, WIDEST_ADMISSION_SEC } from "./oracle-feeder";
 
 const T = 1_790_000_040 - (1_790_000_040 % 60);
 
@@ -62,5 +62,38 @@ describe("feeder pass", () => {
     // The same boundary is never posted twice by this process.
     await feederPass(state);
     expect(submitAndWaitForTransaction).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("a late wake", () => {
+  const body = (b: number) => JSON.stringify([[b - 60, 1, 2, 1, 65000.5, 1]]);
+  const fetchImpl: Fetch = async () => ({ ok: true, status: 200, text: async () => body(T) });
+  const stateAt = (nowSec: number) => {
+    const submitAndWaitForTransaction = vi.fn(async () => ({ transaction: { events: [], updateId: "u", offset: 1, effectiveAt: "", synchronizerId: "", recordTime: "" }, submissionId: "s", attempts: 1, recovered: false }));
+    const client = { submitAndWaitForTransaction } as unknown as LedgerClient;
+    const state = {
+      role: "oracle-kraken" as const, exchange: "coinbase" as const, session: { role: "oracle-kraken", party: "o::1220ab", client, dryRun: false },
+      venue: "v::1220ab", resolver: "r::1220ab", policyVersion: 1, settings: { symbols: ["BTC"], retainSec: 7200, fetchImpl, nowSec: () => nowSec },
+      done: new Set<number>(), pending: new Map(), lastRetireMs: Date.now(), counters: { posted: 0, recovered: 0, partial: 0, missed: 0, failed: 0, retired: 0 }, log: () => {},
+    };
+    return { state, submitAndWaitForTransaction };
+  };
+
+  it("still posts a boundary at T + 39, inside a 5 m / 15 m close's T + 60 admission (the C9b void)", async () => {
+    expect(GIVE_UP_SEC).toBeLessThan(WIDEST_ADMISSION_SEC);
+    expect(GIVE_UP_SEC).toBeGreaterThan(39);
+    const { state, submitAndWaitForTransaction } = stateAt(T + 39);
+    const r = await feederPass(state);
+    expect(r.why).toMatch(/^posted @\d\d:\d\dZ T\+39s BTC 65000\.5/);
+    expect(submitAndWaitForTransaction).toHaveBeenCalledTimes(1);
+    expect(state.counters.missed).toBe(0);
+  });
+
+  it("gives the boundary up once no Window could still count the print", async () => {
+    const { state, submitAndWaitForTransaction } = stateAt(T + GIVE_UP_SEC + 1);
+    const r = await feederPass(state);
+    expect(r.why).toBe(`missed @${T}: past T+${GIVE_UP_SEC}s`);
+    expect(submitAndWaitForTransaction).not.toHaveBeenCalled();
+    expect(state.counters.missed).toBe(1);
   });
 });

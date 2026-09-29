@@ -120,10 +120,10 @@ export const STATUS = {
     spot: (why: string) => `spot: ${why}`,
 
     switchboard: "arrives with the token lane (S6)",
-    sponsorOff: "no sponsor key on this deployment · seat keys pay their own fee",
+    sponsorOff: "not needed on Canton · the venue submits every ledger write a duel makes, so seats pay no network fee",
     sponsorUnread: "the sponsor's balance could not be read · seats fund themselves until it can",
-    /** "0.29 SOL · a deck needs 0.02 SOL · ready" — the sponsor's balance against the widest deck's envelope. */
-    sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} SOL · a deck needs ${envelope} SOL · ${ready ? "ready" : "below two decks, seats fund themselves"}`,
+    /** "0.29 · a deck needs 0.02 · ready": a sponsor's balance against the widest deck's envelope (unreached on Canton, where no sponsor is configured). */
+    sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} · a deck needs ${envelope} · ${ready ? "ready" : "below two decks, seats fund themselves"}`,
 
     crossCheck: (symbols: string, pairs: number, maxBps: string) => `${symbols} · ${plural(pairs, "pair")} · max ${maxBps} bps`,
     singleSource: "single source · no cross-checked print",

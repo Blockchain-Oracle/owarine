@@ -4,7 +4,7 @@
  *   reads      ArenaTerms, DuelOpen, DuelMatch, DuelResult, SeasonPool, Resolution, as the venue; registered as this
  *              process's `@agari/markets/games` source, so the room, the matchmaker and the duel projection read the
  *              same `ArenaMatchView` the screens do
- *   routes     POST /internal/games/{state, match, season, open, season/distribute} (`routes.ts`)
+ *   routes     POST /internal/games/{state, match, season, open, season/distribute, season/withdraw} (`routes.ts`)
  *   settler    reveal · lock · score · finalize · the three refunds (`duel-settler`), one pass every few seconds
  *   deals      the matchmaker's sealed decks, held here until each creator's open lands
  *
