@@ -21,7 +21,7 @@ import { AlertsHost } from "~/features/alerts/AlertsHost";
 import { DeskWatcher } from "~/features/desk/DeskWatcher";
 import { DropBellWatcher } from "~/features/hedge/DropBell";
 import { WriteRecovery } from "~/features/recovery/WriteRecovery";
-import { WalletProvider } from "~/wallet/WalletProvider";
+import { SeatProvider } from "~/wallet/SeatProvider";
 import { trackPath } from "~/web-shims/url-state";
 
 SplashScreen.preventAutoHideAsync();
@@ -42,13 +42,13 @@ export default function RootLayout() {
     <QueryClientProvider client={client}>
       <MarketsProvider env={marketsEnv}>
         <ThemeProvider>
-          <WalletProvider>
+          <SeatProvider>
             <UserSessionProvider>
               <SessionKeyProvider>
                 <RootStack />
               </SessionKeyProvider>
             </UserSessionProvider>
-          </WalletProvider>
+          </SeatProvider>
         </ThemeProvider>
       </MarketsProvider>
     </QueryClientProvider>
