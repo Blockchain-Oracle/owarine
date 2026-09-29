@@ -25,6 +25,8 @@ const SECRET = process.env.OPS_INTERNAL_SECRET ?? "";
 const SERIES = arg("--series", "BTC-1m");
 const WINDOWS = Number(arg("--windows", "12"));
 const STAKE = BigInt(arg("--stake-base", "5000000"));
+/** Trades per user per Window (sequential per user): a burst sizes the settler's batches. */
+const PER_USER = Number(arg("--quotes-per-user", "1"));
 const out = process.env.TRAFFIC_EVENTS_FILE;
 const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("ops-traffic drives a local sandbox only");
@@ -108,7 +110,10 @@ while (traded.size < WINDOWS) {
       if (l.seriesKey !== SERIES || l.state !== "quoting" || traded.has(l.marketId) || nowSec > l.quotingUntilSec - 8) continue;
       traded.add(l.marketId);
       for (const [name, party] of users) await ensureFunded(name, party);
-      await Promise.all([trade(users[0]![0], users[0]![1], l, "up"), trade(users[1]![0], users[1]![1], l, "down")]);
+      const burst = async (name: string, party: Party, side: "up" | "down") => {
+        for (let i = 0; i < PER_USER && Math.floor(Date.now() / 1000) < l.quotingUntilSec - 6; i++) await trade(name, party, l, side);
+      };
+      await Promise.all([burst(users[0]![0], users[0]![1], "up"), burst(users[1]![0], users[1]![1], "down")]);
     }
   } catch (error) {
     log(`poll failed (ops restarting?): ${error instanceof Error ? error.message : String(error)}`);

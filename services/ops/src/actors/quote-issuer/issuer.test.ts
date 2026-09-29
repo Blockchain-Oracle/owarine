@@ -71,8 +71,9 @@ describe("quote issuer", () => {
     expect(submitAndWaitForTransaction).not.toHaveBeenCalled();
   });
 
-  it("refuses an infrastructure party, a Window not quoting, and a busy pool", async () => {
+  it("refuses an infrastructure party, a draining seat, a Window not quoting, and a busy pool", async () => {
     const { deps, pool } = setup();
+    expect((await issueQuote({ ...deps, draining: new Set([SEAT]) }, parseQuoteRequest(body()) as never)).body).toMatchObject({ kind: "refused", diagnosis: { kind: "market-not-trading" } });
     expect((await issueQuote(deps, parseQuoteRequest(body({ party: V })) as never)).body).toMatchObject({ kind: "refused", diagnosis: { kind: "unknown" } });
     expect((await issueQuote(deps, parseQuoteRequest(body({ marketId: marketIdFromDaml("BTC-1m:8") })) as never)).body).toMatchObject({ kind: "refused", diagnosis: { kind: "market-not-trading" } });
     await pool.lease(1n, "hold");

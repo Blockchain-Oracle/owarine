@@ -72,7 +72,8 @@ export async function startCantonVenue(input: {
   if (on("resolver")) stops.push((await startResolver(input.log("resolver"), venue)).stop);
   const settings = readPricerSettings();
   if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings }).stop);
-  const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings }) : null;
+  const draining = new Set<string>();
+  const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining }) : null;
   if (issuer) stops.push(issuer.stop);
   const pool = issuer?.pool ?? null;
   if (on("sweeper") && session) stops.push(startExpirySweeper({ venue: session, pool, log: input.log("expiry-sweeper") }).stop);
@@ -80,7 +81,7 @@ export async function startCantonVenue(input: {
   if (on("netting") && session) stops.push(startNetting({ venue: session, pool, log: input.log("netting") }).stop);
   if (on("settler")) stops.push((await startSettler(deps("settler"), venue)).stop);
   const funding = on("funding") ? createSeatFunding({ venue, log: input.log("seat-funding") }) : null;
-  if (on("drain") && session) stops.push(startSeatDrain({ venue: session, pool, log: input.log("seat-drain") }).stop);
+  if (on("drain") && session) stops.push(startSeatDrain({ venue: session, pool, log: input.log("seat-drain"), draining }).stop);
   const reserve = on("reserve") && session ? startReserveReporter({ venue: session, log: input.log("reserve-reporter") }) : null;
   if (reserve) stops.push(reserve.stop);
 

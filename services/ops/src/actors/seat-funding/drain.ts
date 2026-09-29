@@ -31,11 +31,22 @@ export async function drainingSeats(env: NodeJS.ProcessEnv = process.env): Promi
   }
 }
 
-export function startSeatDrain(input: { venue: RoleSession; pool: ShardPool | null; log: (why: string) => void; seats?: () => Promise<string[]> }): { stop: () => void } {
+export function startSeatDrain(input: {
+  venue: RoleSession;
+  pool: ShardPool | null;
+  log: (why: string) => void;
+  seats?: () => Promise<string[]>;
+  /** Kept equal to the draining set each pass, so the issuer stops quoting to those seats. */
+  draining?: Set<string>;
+}): { stop: () => void } {
   const seats = input.seats ?? (() => drainingSeats());
   const counters = { closedOut: 0, withdrawn: 0, failed: 0 };
   const pass = async (): Promise<PassResult> => {
     const draining = new Set(await seats());
+    if (input.draining) {
+      input.draining.clear();
+      for (const p of draining) input.draining.add(p);
+    }
     if (draining.size === 0) return { why: `no seat draining; closed out ${counters.closedOut}, withdrew ${counters.withdrawn}` };
     const acs = await readActive(input.venue, [TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Resolution]);
     const resolved = new Set(acs.filter((c) => c.createdEvent.templateId.endsWith(":PM.Market:Resolution")).map((c) => (c.createdEvent.createArgument as { termsCid: string }).termsCid));

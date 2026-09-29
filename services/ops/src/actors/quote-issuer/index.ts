@@ -25,7 +25,7 @@ export interface QuoteIssuerHandle {
   stop: () => void;
 }
 
-export async function startQuoteIssuer(input: { venue: VenueContext; board: LadderBoard; log: (why: string) => void; settings?: PricerSettings }): Promise<QuoteIssuerHandle | null> {
+export async function startQuoteIssuer(input: { venue: VenueContext; board: LadderBoard; log: (why: string) => void; settings?: PricerSettings; draining?: ReadonlySet<string> }): Promise<QuoteIssuerHandle | null> {
   const session = input.venue.session("venue");
   if (!session) {
     input.log("VENUE_PARTY and the parties file are missing: no quotes are issued");
@@ -38,7 +38,7 @@ export async function startQuoteIssuer(input: { venue: VenueContext; board: Ladd
   input.log(`issuer as ${session.party.split("::")[0]}: pool rebuilt from the ledger, ${s0.free} shards, ${s0.totalBase} base`);
   const settings = input.settings ?? readPricerSettings();
   const infrastructure = new Set(Object.values(input.venue.parties));
-  const deps = { venue: session, deskCid: input.venue.deskCid, board: input.board, pool, settings, infrastructure, log: input.log };
+  const deps = { venue: session, deskCid: input.venue.deskCid, board: input.board, pool, settings, infrastructure, log: input.log, ...(input.draining ? { draining: input.draining } : {}) };
   const keeper = runActor({
     name: "shard-pool",
     log: input.log,

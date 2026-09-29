@@ -29,6 +29,8 @@ export interface IssuerDeps {
   settings: PricerSettings;
   /** Parties that are never a seat (the infrastructure roles): a quote to one is refused. */
   infrastructure: ReadonlySet<string>;
+  /** Seats being drained (plan §4: ops stops quoting to a draining seat). */
+  draining?: ReadonlySet<string>;
   log: (why: string) => void;
 }
 
@@ -96,6 +98,7 @@ export const latencies: number[] = [];
 
 export async function issueQuote(d: IssuerDeps, req: QuoteRequest): Promise<Answer> {
   if (d.infrastructure.has(req.party)) return refused("unknown", "an infrastructure party is not a seat");
+  if (d.draining?.has(req.party)) return refused("market-not-trading", "this seat is draining: no new quotes");
   const entry = d.board.get({ marketId: req.marketId });
   if (!entry || entry.state !== "quoting") return refused("market-not-trading", "the venue is not quoting this Window (no open print yet, or its quoting time is over)");
   const nowMs = Date.now();
