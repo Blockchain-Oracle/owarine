@@ -82,7 +82,8 @@ async function resolution(c: Ctx, f: Fact<"resolution">): Promise<void> {
       void_reason = ${voided ? (f.voidDetail?.startsWith("SourceDisagreement") ? 2 : 1) : null}, void_detail = ${f.voidDetail},
       open_price_e8 = COALESCE(open_price_e8, ${f.openPriceE8}::numeric), close_price_e8 = ${f.closePriceE8}::numeric, close_signers = ${closeSigners},
       close_evidence = ${c.tx.json(f.closeEvidence as unknown as postgres.JSONValue)}, signers = ${f.signers}, single_source = ${f.signers < 2},
-      resolution_cid = ${f.contractId}, resolved_ts_sec = ${c.tsSec}, resolved_update_id = ${c.u.updateId}
+      resolution_cid = ${f.contractId}, resolved_ts_sec = ${c.tsSec}, resolved_update_id = ${c.u.updateId}, resolved_at_ms = ${f.createdAtMs},
+      resolution_blob = ${f.createdEventBlob}, resolution_template_id = ${f.templateId}, synchronizer_id = ${f.synchronizerId}
     WHERE terms_cid = ${f.termsCid} AND resolution_cid IS NULL`;
 }
 

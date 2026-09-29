@@ -1,9 +1,10 @@
 /** Projection store (schema-index.ts): the venue party's ledger view in Postgres. Owned by C3a. */
 export { applyFacts } from "./idx/apply";
-export { ledgerTextId, marketIdOfKey, seriesIdOfKey } from "./idx/ids";
+export { marketIdOfKey, seriesIdOfKey } from "./idx/ids";
 export { indexReader, type IdxFillQuery, type IdxMarketQuery, type IdxRow, type IndexReader } from "./idx/read";
 export type { IdxCursor, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxUpdate } from "./idx/types";
 export { indexWriter, offsetOf, type ApplyResult, type IndexWriter } from "./idx/write";
+export { resolutionsByMarket, type ProjectedResolution } from "./idx/read-resolutions";
 export { projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type VerifiedTemplate } from "./idx/read-verify";
 export { tapeActions, tapeFills, tapeMarkets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";
 export { statusReader, type CrossCheckRow, type PrintMixRow, type StatusReader } from "./idx/read-status";

@@ -84,10 +84,15 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
     const end = await cfg.ledger.ledgerEnd();
     const created: JsTransaction["events"] = [];
     let nodeId = 0;
-    for await (const page of cfg.ledger.iterateActiveContracts({ parties: [cfg.party], activeAtOffset: end, maxPageSize: 500 })) {
-      for (const c of page.contracts) created.push({ CreatedEvent: { ...c.createdEvent, nodeId: nodeId++ } });
+    // One synchronizer per participant here; the snapshot carries the first contract's (a Resolution's disclosure needs it).
+    let synchronizerId = "";
+    for await (const page of cfg.ledger.iterateActiveContracts({ parties: [cfg.party], activeAtOffset: end, maxPageSize: 500, includeCreatedEventBlob: true })) {
+      for (const c of page.contracts) {
+        created.push({ CreatedEvent: { ...c.createdEvent, nodeId: nodeId++ } });
+        synchronizerId ||= c.synchronizerId;
+      }
     }
-    const snapshot: JsTransaction = { updateId: `acs:${end}`, offset: end, effectiveAt: new Date().toISOString(), recordTime: new Date().toISOString(), synchronizerId: "", events: created };
+    const snapshot: JsTransaction = { updateId: `acs:${end}`, offset: end, effectiveAt: new Date().toISOString(), recordTime: new Date().toISOString(), synchronizerId, events: created };
     await writer.applyUpdate(stream, cfg.party, decodeTransaction(snapshot, { snapshot: true }));
     await writer.markAcsBootstrap(stream, cfg.party, end);
     cfg.log(`participant pruned below the requested offset: bootstrapped ${created.length} active contracts at offset ${end}; earlier history is not indexed`);
@@ -114,6 +119,8 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
         auth: cfg.auth,
         parties: [cfg.party],
         beginExclusive: begin,
+        // The Resolution's blob is what a seat's Leg_Claim discloses; the projection keeps it (resolutionsByMarket).
+        includeCreatedEventBlob: true,
         ...(cfg.WebSocket ? { WebSocket: cfg.WebSocket } : {}),
         onTransaction,
         onCheckpoint: async (cp) => {

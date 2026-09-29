@@ -85,6 +85,11 @@ describe("decodeTransaction on real venue transactions", () => {
   it("Terms_Resolve: Up with both prices, or void on source disagreement", () => {
     const up = ofKind(facts("resolve-up"), "resolution")[0]!;
     expect(up).toMatchObject({ outcome: 0, voidDetail: null, openPriceE8: "6000100000000", closePriceE8: "6010100000000", signers: 3 });
+    // The disclosure fields ride along: the fixture was fetched without blobs, the live stream asks for them.
+    expect(up.templateId).toMatch(/:PM\.Market:Resolution$/);
+    expect(up.createdEventBlob).toBeNull();
+    expect(up.synchronizerId).toBe(fixtures["resolve-up"]!.synchronizerId);
+    expect(up.createdAtMs).toBeGreaterThan(0);
     const fsVoid = facts("resolve-void");
     expect(ofKind(fsVoid, "resolution")[0]).toMatchObject({ outcome: null, voidDetail: "SourceDisagreement:CloseSlot", closePriceE8: null });
     expect(ofKind(fsVoid, "open-print-consumed")).toHaveLength(1);

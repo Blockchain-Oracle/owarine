@@ -10,7 +10,8 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
-import { crowdFlow, ensureSchema, getDb, indexReader, indexWriter, marketIdOfKey, tapeFills, type Db } from "@agari/db";
+import { marketIdFromDaml } from "@agari/core/market";
+import { crowdFlow, ensureSchema, getDb, indexReader, indexWriter, marketIdOfKey, resolutionsByMarket, tapeFills, type Db } from "@agari/db";
 import { noAuth } from "@agari/ledger";
 import { startProjectorLoop } from "../../services/ops/src/actors/projector/run";
 import { verifyProjection } from "../../services/ops/src/actors/projector/verify";
@@ -139,6 +140,17 @@ async function checkRows(w: World, db: Db): Promise<void> {
   check(tape.length === 2 && tape.every((f) => f.taker === "alice"), "tape/fills: only alice's two published trades, identified by her handle");
   check((await r.fills({ market: marketA })).length === 1, "fills?market=A: the one published trade");
   check((await crowdFlow(db, 0)) === null, "sentiment: null below 5 publishers");
+  check(marketA === marketIdFromDaml(w.win.A.key) && rows[0]?.market === marketA, "idx_markets.market is the app MarketId (marketIdFromDaml of the Daml marketId)");
+  const res = await resolutionsByMarket(db, { markets: [marketA, marketIdOfKey(w.win.B.key)] });
+  const ra = res.get(w.win.A.termsCid);
+  const rb = res.get(w.win.B.termsCid);
+  check(res.size === 2 && ra?.outcome === "up" && ra.cid === w.win.A.resolutionCid && ra.marketId === marketA, "resolutionsByMarket: A resolved up, keyed by terms cid, with the app MarketId");
+  check(rb?.outcome === null && rb.voidReason === "SourceDisagreement", "resolutionsByMarket: B void, reason SourceDisagreement");
+  check(Boolean(ra?.disclosure?.createdEventBlob) && Boolean(ra?.disclosure?.synchronizerId) && ra?.disclosure?.contractId === ra?.cid, "resolutionsByMarket: A carries its disclosure (blob, template, synchronizer)");
+  // The disclosure must match what the ledger itself serves for that contract.
+  const acs = await w.s.c.activeContracts({ parties: [w.p.venue], templateIds: ["#abu-pm-main:PM.Market:Resolution"], includeCreatedEventBlob: true });
+  const live = acs.contracts.find((c) => c.createdEvent.contractId === ra?.cid);
+  check(live?.createdEvent.createdEventBlob === ra?.disclosure?.createdEventBlob && live?.synchronizerId === ra?.disclosure?.synchronizerId, "resolutionsByMarket: blob and synchronizer equal the ACS's");
 }
 
 async function recount(db: Db, s: Awaited<ReturnType<typeof localSession>>, venue: string, label: string): Promise<void> {

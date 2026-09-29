@@ -17,13 +17,20 @@
  * only per-market counters survive.
  */
 
-/** The Solana-era tables had a `program` cursor; their shapes cannot be altered in place, so they are dropped once. */
+/**
+ * Earlier shapes cannot be altered in place, so they are dropped once and the projection replays: the Solana-era tables
+ * (a `program` cursor), and a first Canton cut without the Resolution disclosure columns (whose market ids predate the
+ * canonical `marketIdFromDaml`). Everything here is rebuildable from the ledger.
+ */
 const DROP_SOLANA_SHAPE = `
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'idx_cursor' AND column_name = 'program') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'idx_cursor' AND column_name = 'program')
+     OR (EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = current_schema() AND table_name = 'idx_markets')
+         AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'idx_markets' AND column_name = 'resolution_blob')) THEN
     DROP VIEW IF EXISTS idx_market_prints;
-    DROP TABLE IF EXISTS idx_candles, idx_positions, idx_fills, idx_orders, idx_prints, idx_markets, idx_series, idx_events, idx_txs, idx_cursor CASCADE;
+    DROP TABLE IF EXISTS idx_candles, idx_positions, idx_fills, idx_orders, idx_prints, idx_markets, idx_series, idx_events, idx_txs, idx_cursor,
+      idx_updates, idx_quotes, idx_legs, idx_publications CASCADE;
   END IF;
 END $$;
 `;
@@ -98,7 +105,7 @@ CREATE TABLE IF NOT EXISTS idx_series (
   updated_offset     BIGINT   NOT NULL
 );
 
--- One row per Window: MarketTerms created by Series_OpenWindow. market = base58(sha256(marketId text)).
+-- One row per Window: MarketTerms created by Series_OpenWindow. market = marketIdFromDaml(marketId), the app's MarketId.
 CREATE TABLE IF NOT EXISTS idx_markets (
   market                TEXT     PRIMARY KEY,
   market_key            TEXT     NOT NULL UNIQUE,
@@ -149,6 +156,11 @@ CREATE TABLE IF NOT EXISTS idx_markets (
   resolution_cid        TEXT     UNIQUE,
   resolved_ts_sec       BIGINT,
   resolved_update_id    TEXT,
+  resolved_at_ms        BIGINT,
+  -- What Leg_Claim needs to receive the Resolution as a disclosed contract (the seat is not its stakeholder).
+  resolution_blob         TEXT,
+  resolution_template_id  TEXT,
+  synchronizer_id         TEXT,
   -- Market-level aggregates: served only while participants >= 5 (k-anonymity floor).
   participants          INTEGER  NOT NULL DEFAULT 0,
   backing_lots          NUMERIC  NOT NULL DEFAULT 0,

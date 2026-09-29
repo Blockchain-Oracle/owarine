@@ -98,6 +98,11 @@ export type IdxFact =
       openEvidence: IdxEvidence[];
       closeEvidence: IdxEvidence[];
       signers: number;
+      /** The created event's own time and disclosure fields (blob null unless the stream asked for blobs). */
+      createdAtMs: number;
+      templateId: string;
+      createdEventBlob: string | null;
+      synchronizerId: string | null;
     }
   | {
       kind: "price";

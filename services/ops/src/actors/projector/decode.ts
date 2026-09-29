@@ -32,6 +32,14 @@ export function isoSec(value: unknown): number {
   return Math.floor(ms / 1000);
 }
 
+/** ISO-8601 → unix milliseconds (sub-millisecond digits dropped). */
+export function isoMs(value: unknown): number {
+  const text = String(value);
+  const ms = Date.parse(text.replace(/(\.\d{3})\d+/, "$1"));
+  if (!Number.isFinite(ms)) throw new Error(`not a ledger time: ${text}`);
+  return ms;
+}
+
 const str = (v: unknown): string => {
   if (typeof v === "string") return v;
   if (typeof v === "number" && Number.isSafeInteger(v)) return String(v);
@@ -129,7 +137,7 @@ export function decodeTransaction(tx: JsTransaction, o: DecodeOptions = {}): Idx
         nodeId: n.nodeId, kind: "created", template: name, packageName: c.packageName ?? null, contractId: c.contractId, choice: null,
         consuming: null, lastDescendant: null, marketKey: typeof a.marketId === "string" ? a.marketId : null, data: c.createArgument ?? null,
       });
-      if (isPm(c.packageName)) facts.push(...createdFacts(name, c, a, parent.get(n.nodeId), o, cashBy));
+      if (isPm(c.packageName)) facts.push(...createdFacts(name, c, a, parent.get(n.nodeId), o, cashBy, tx.synchronizerId || null));
     } else if (n.exercised) {
       const x = n.exercised;
       const name = templateName(x.templateId);
@@ -166,6 +174,7 @@ function createdFacts(
   up: ExercisedEvent | undefined,
   o: DecodeOptions,
   cashBy: (ex: ExercisedEvent) => Map<string, bigint>,
+  synchronizerId: string | null,
 ): IdxFact[] {
   const cid = c.contractId;
   switch (name) {
@@ -194,6 +203,7 @@ function createdFacts(
         voidDetail: voidDetail(a.voidReason), openPriceE8: a.openPriceE8 === null || a.openPriceE8 === undefined ? null : str(a.openPriceE8),
         closePriceE8: a.closePriceE8 === null || a.closePriceE8 === undefined ? null : str(a.closePriceE8),
         openEvidence: evidence(a.openEvidence), closeEvidence: evidence(a.closeEvidence), signers: int(a.signers),
+        createdAtMs: c.createdAt ? isoMs(c.createdAt) : 0, templateId: c.templateId, createdEventBlob: c.createdEventBlob || null, synchronizerId,
       }];
     case "PM.Oracle:PriceQuote":
       return [{
