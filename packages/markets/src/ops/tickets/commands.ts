@@ -21,8 +21,9 @@ const riskParams = (p: RiskParamsC) => ({
 
 // ---- bootstrap -----------------------------------------------------------------------------------
 
+// `"asOf"` is the Daml field's own name (a Time, encoded from `asOfSec`), quoted so the time-suffix rule reads it as such.
 export const createNavStatement = (o: { venue: Party; auditor: Party; reserveId: string; asOfSec: number }): Command =>
-  create(TEMPLATE_IDS.NavStatement, { venue: o.venue, auditor: o.auditor, reserveId: o.reserveId, seq: int(0), asOf: isoOfSec(o.asOfSec), assets: int(0), shares: int(0) });
+  create(TEMPLATE_IDS.NavStatement, { venue: o.venue, auditor: o.auditor, reserveId: o.reserveId, seq: int(0), "asOf": isoOfSec(o.asOfSec), assets: int(0), shares: int(0) });
 
 export const createRiskBook = (o: { venue: Party; reserveId: string; product: ProductC; params: RiskParamsC }): Command =>
   create(T.RiskBook, { venue: o.venue, reserveId: o.reserveId, product: o.product, params: riskParams(o.params), locked: [] });
@@ -130,7 +131,7 @@ export interface NavInputsC {
 }
 
 export const publishNav = (earnDeskCid: ContractId, navCid: ContractId, asOfSec: number, inputs: NavInputsC): Command =>
-  exercise(T.EarnDesk, earnDeskCid, "Earn_PublishNav", { navCid, asOf: isoOfSec(asOfSec), inputs });
+  exercise(T.EarnDesk, earnDeskCid, "Earn_PublishNav", { navCid, "asOf": isoOfSec(asOfSec), inputs });
 
 export const issueSupply = (navCid: ContractId, o: { provider: Party; cashIn: bigint; validUntilSec: number }): Command =>
   exercise(TEMPLATE_IDS.NavStatement, navCid, "Nav_IssueSupply", { provider: o.provider, cashIn: int(o.cashIn), validUntil: isoOfSec(o.validUntilSec) });

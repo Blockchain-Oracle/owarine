@@ -1,59 +1,28 @@
 /**
- * `POST /internal/tickets/{range,parlay,boost,earn}` (C8c): the web's HMAC-signed calls, the party taken by the web
- * from the lease only. Each prices with core's kernels (`@agari/markets/ops/tickets` pricing) off the Window's venue
- * ladder, answers a preview, a requote above the cap the seat confirmed, or a refusal without writing; otherwise it
- * issues on the reserve's `RiskBook` (one queue per reserve) with a leased reserve shard. The accept is always the
- * seat's own; ops never submits it.
+ * `POST /internal/tickets/{range,parlay,boost}` (C8c): the web's HMAC-signed calls, the party taken by the web from the
+ * lease only. Each prices with core's kernels (`@agari/markets/ops/tickets` pricing) off the Window's venue ladder,
+ * answers a preview, a requote above the cap the seat confirmed, or a refusal without writing; otherwise it issues on
+ * the reserve's `RiskBook` (one queue per reserve) with a leased reserve shard. The accept is always the seat's own;
+ * ops never submits it. Earn's liquidity quotes are `earn.ts`.
  */
 import { randomUUID } from "node:crypto";
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { diagnosis, type DiagnosisKind } from "@agari/core/types";
+import { TICKET_TEMPLATE_IDS } from "@agari/daml";
+import { diagnosis } from "@agari/core/types";
 import type { LeverageRefusal } from "@agari/core/leverage";
 import type { ParlayRefusal } from "@agari/core/parlay";
 import type { RangeRefusal } from "@agari/core/range";
 import { refusalDiagnosis } from "@agari/markets/leverage";
-import { bidLevels, failureText, isInactive, isIndefinite, refusalId, walkExit, type Side } from "@agari/markets/ops/canton";
+import { bidLevels, walkExit, type Side } from "@agari/markets/ops/canton";
 import {
-  decodeBoostExitQuote, decodeBoostQuote, decodeParlayQuote, decodeRangeQuote, decodeSupplyQuote, decodeWithdrawQuote, leverageParams, parlayParams, priceBoost, priceParlay,
-  priceRange, rangeBasisOf, rangeParams, tcmd, validUntilFor, TICKET_QUOTE_LIFE_SEC, type TicketReserveId, type TicketWindow,
+  decodeBoostExitQuote, decodeBoostQuote, decodeParlayQuote, decodeRangeQuote, leverageParams, parlayParams, priceBoost, priceParlay,
+  priceRange, rangeBasisOf, rangeParams, tcmd, validUntilFor, TICKET_QUOTE_LIFE_SEC,
 } from "@agari/markets/ops/tickets";
-import { boostTicketRequestWire, earnRequestWire, parlayTicketRequestWire, rangeTicketRequestWire } from "@agari/markets/server";
+import { boostTicketRequestWire, parlayTicketRequestWire, rangeTicketRequestWire } from "@agari/markets/server";
 import { consume } from "../quote-issuer/issuer";
-import { PoolBusyError, type Lease, type ShardPool } from "../quote-issuer/pool";
+import type { Lease, ShardPool } from "../quote-issuer/pool";
 import type { LadderEntry } from "../market-maker/seat/ladder-board";
-import { adoptCreated, createdOne, submitWithPools, type Desk } from "./desk";
-
-type Answer = { status: number; body: unknown };
-const PARTY_ID = /^[A-Za-z0-9_\-:]{1,255}::[0-9a-f]{8,}$/;
-const LEASE_ID = /^[A-Za-z0-9_\-]{1,64}$/;
-
-/** Bigints travel as decimal strings: the HTTP layer's `jsonText` writes them so. */
-const reply = (body: unknown): Answer => ({ status: 200, body });
-const refused = (kind: DiagnosisKind, technical: string): Answer => reply({ kind: "refused", diagnosis: diagnosis(kind, technical) });
-const nowSec = () => Math.floor(Date.now() / 1000);
-
-/** Who the web says the seat is (taken from its lease row), checked for shape and against the infrastructure parties. */
-function seatOf(d: Desk, body: Record<string, unknown>): { party: string; leaseId: string } | Answer {
-  const { party, leaseId } = body;
-  if (typeof party !== "string" || !PARTY_ID.test(party)) return { status: 400, body: { diagnosis: diagnosis("unknown", "party must be a party id") } };
-  if (typeof leaseId !== "string" || !LEASE_ID.test(leaseId)) return { status: 400, body: { diagnosis: diagnosis("unknown", "leaseId must be 1–64 of [A-Za-z0-9_-]") } };
-  if (d.infrastructure.has(party)) return refused("unknown", "an infrastructure party is not a seat");
-  return { party, leaseId };
-}
-
-const isAnswer = (x: unknown): x is Answer => typeof x === "object" && x !== null && "status" in x && "body" in x;
-
-function split(body: unknown): { rest: Record<string, unknown>; seat: Record<string, unknown> } | null {
-  if (typeof body !== "object" || body === null) return null;
-  const { party, leaseId, ...rest } = body as Record<string, unknown>;
-  return { rest, seat: { party, leaseId } };
-}
-
-function windowFor(d: Desk, marketId: string): LadderEntry | Answer {
-  const entry = d.board.get({ marketId });
-  if (!entry || entry.state !== "quoting") return refused("market-not-trading", "the venue is not quoting this Window (no open print yet, or its quoting time is over)");
-  return entry;
-}
+import { createdOne, submitWithPools, type Desk } from "./desk";
+import { failed, isAnswer, lease, nowSec, onReserve, refused, reply, seatOf, split, windowFor, type Answer } from "./common";
 
 function rangeRefusal(r: RangeRefusal | { kind: "too-late"; leftSec: number; minSec: number } | { kind: "centre"; centerQE6: number }): Answer {
   switch (r.kind) {
@@ -100,57 +69,6 @@ function parlayRefusal(r: ParlayRefusal | { kind: "too-late"; legIdx: number; le
 function boostRefusal(r: LeverageRefusal): Answer {
   const d = refusalDiagnosis(r);
   return reply({ kind: "refused", diagnosis: d });
-}
-
-async function lease(pool: ShardPool | null, amount: bigint, purpose: string): Promise<Lease | Answer> {
-  if (!pool) return refused("not-deployed", "no shard pool in this ops process");
-  try {
-    return await pool.lease(amount, purpose);
-  } catch (error) {
-    if (error instanceof PoolBusyError) return refused("reserve-cap", `no ${purpose.split(" ")[0]} shard covers ${amount} right now; try again in a moment`);
-    throw error;
-  }
-}
-
-/** A write on one reserve's book or statement: its queue, a stale-id retry once, and the pools told what landed. */
-async function onReserve(d: Desk, reserve: TicketReserveId, held: ReadonlyArray<readonly [ShardPool, readonly Lease[]]>, build: (ids: { navCid: string; bookCid: string }) => { commandId: string; commands: import("@agari/ledger").Command[] }) {
-  return d.lock(reserve, async () => {
-    for (let attempt = 0; ; attempt++) {
-      const l = d.live.get(reserve)!;
-      if (!l.navCid || !l.bookCid) {
-        await d.refresh();
-        if (!l.navCid || !l.bookCid) throw new DeskRefusal("not-deployed", `the ${reserve} reserve has no statement or book on this participant: run the bootstrap`);
-      }
-      try {
-        const input = build({ navCid: l.navCid!, bookCid: l.bookCid! });
-        const out = await submitWithPools(d.venue, held, input);
-        adoptCreated(d, reserve, out);
-        return out;
-      } catch (error) {
-        // The book or statement moved under us (a publish from another process): read again, once.
-        if (attempt === 0 && isInactive(error) && [l.navCid, l.bookCid].some((c) => c && failureText(error).includes(c))) {
-          await d.refresh();
-          continue;
-        }
-        throw error;
-      }
-    }
-  });
-}
-
-class DeskRefusal extends Error {
-  constructor(readonly kind: DiagnosisKind, technical: string) {
-    super(technical);
-  }
-}
-
-function failed(d: Desk, what: string, error: unknown): Answer {
-  if (error instanceof DeskRefusal) return refused(error.kind, error.message);
-  if (isIndefinite(error)) return refused("send-unknown", `the ledger did not answer in time (${what}); the shards are held until its outcome is known`);
-  const id = refusalId(error);
-  d.log(`${what} refused: ${failureText(error)}`);
-  const kind: DiagnosisKind = id && /over-|exposure/.test(id) ? "reserve-cap" : "contract-revert";
-  return refused(kind, id ?? failureText(error).slice(0, 200));
 }
 
 // ---- range ------------------------------------------------------------------------------------------
@@ -352,63 +270,3 @@ async function boostExit(d: Desk, seatBody: Record<string, unknown>, positionCid
   }
 }
 
-// ---- earn ---------------------------------------------------------------------------------------------
-
-export const LIQUIDITY_QUOTE_LIFE_SEC = 30;
-
-export async function handleEarn(d: Desk, body: unknown): Promise<Answer> {
-  const parts = split(body);
-  if (!parts) return { status: 400, body: { diagnosis: diagnosis("unknown", "body must be an object") } };
-  const parsed = earnRequestWire.safeParse(parts.rest);
-  if (!parsed.success) return { status: 400, body: { diagnosis: diagnosis("unknown", `bad earn request: ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}`) } };
-  const req = parsed.data;
-  const seat = seatOf(d, parts.seat);
-  if (isAnswer(seat)) return seat;
-  const reserve = req.reserve;
-  const validUntilSec = nowSec() + LIQUIDITY_QUOTE_LIFE_SEC;
-  const requestId = randomUUID();
-  if (req.op === "supply") {
-    if (req.amountBase <= 0n) return refused("below-min-quantity", "supply must be positive");
-    try {
-      const out = await onReserve(d, reserve, [], ({ navCid }) => ({ commandId: `earn:supply:${requestId}`, commands: [tcmd.issueSupply(navCid, { provider: seat.party, cashIn: req.amountBase, validUntilSec })] }));
-      if (out.kind === "dry") return refused("not-deployed", `DRY RUN: ${out.note}`);
-      const q = createdOne(out, TEMPLATE_IDS.SupplyQuote, decodeSupplyQuote);
-      if (!q) return refused("unknown", "the issue landed without a supply quote");
-      d.log(`earn ${reserve} supply ${q.data.cashIn} → ${q.data.sharesOut} shares for ${seat.party.split("::")[0]}`);
-      return reply({ kind: "supply-quote", quoteCid: q.cid, cashIn: q.data.cashIn, sharesOut: q.data.sharesOut, validUntilMs: validUntilSec * 1000 });
-    } catch (error) {
-      return failed(d, `earn supply ${requestId}`, error);
-    }
-  }
-  const snap = await d.refresh();
-  const shares = snap.lpShares.filter((s) => s.data.provider === seat.party && s.data.reserveId === reserve).sort((a, b) => (a.data.shares > b.data.shares ? -1 : 1));
-  const share = shares[0];
-  if (!share) return refused("insufficient-collateral", `this seat holds no ${reserve} reserve shares`);
-  if (req.shares <= 0n || req.shares > share.data.shares) {
-    return refused("insufficient-collateral", shares.length > 1 ? `withdraw at most ${share.data.shares} shares at once (merge the seat's shares first)` : `this seat holds ${share.data.shares} shares`);
-  }
-  const nav = snap.navs.get(reserve);
-  if (!nav || nav.data.shares === 0n) return refused("not-deployed", `the ${reserve} reserve has no live statement`);
-  const cashOut = (req.shares * nav.data.assets) / nav.data.shares;
-  if (cashOut <= 0n) return refused("below-min-quantity", "these shares redeem for nothing at this NAV");
-  const pool = d.reservePools.get(reserve)!;
-  const shard = await lease(pool, cashOut, `reserve ${reserve}`);
-  if (isAnswer(shard)) return refused("reserve-cap", `the ${reserve} reserve's liquid cash cannot pay ${cashOut} right now: the rest is locked behind live tickets`);
-  try {
-    const earnDesk = d.earnDeskCid;
-    if (!earnDesk) throw new DeskRefusal("not-deployed", "no EarnDesk on this participant: run the bootstrap");
-    const out = await onReserve(d, reserve, [[pool, [shard]]], ({ navCid }) => ({
-      commandId: `earn:withdraw:${requestId}`,
-      commands: [tcmd.issueWithdraw(earnDesk, { navCid, provider: seat.party, lpShareCid: share.cid, sharesIn: req.shares, shardCid: shard.cid, validUntilSec })],
-    }));
-    if (out.kind === "dry") return refused("not-deployed", `DRY RUN: ${out.note}`);
-    const q = createdOne(out, TEMPLATE_IDS.WithdrawQuote, decodeWithdrawQuote);
-    if (!q) return refused("unknown", "the issue landed without a withdraw quote");
-    d.log(`earn ${reserve} withdraw ${q.data.sharesIn} shares → ${q.data.cashOut} for ${seat.party.split("::")[0]}`);
-    return reply({ kind: "withdraw-quote", quoteCid: q.cid, sharesIn: q.data.sharesIn, cashOut: q.data.cashOut, validUntilMs: validUntilSec * 1000 });
-  } catch (error) {
-    return failed(d, `earn withdraw ${requestId}`, error);
-  }
-}
-
-export type { TicketWindow };
