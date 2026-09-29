@@ -15,10 +15,6 @@
         "usesNonExemptEncryption": false
       },
       "infoPlist": {
-        "LSApplicationQueriesSchemes": [
-          "phantom",
-          "solflare"
-        ],
         "NSSupportsLiveActivities": true
       }
     },

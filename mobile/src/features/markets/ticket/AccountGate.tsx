@@ -3,7 +3,7 @@ import { formatBaseUnits } from "@agari/core/units";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useFaucet } from "@/features/markets/faucet/useFaucet";
-import { SESSION } from "./session/copy";
+import { SESSION } from "@/features/session/copy";
 import type { FundingSource } from "@/features/session/useTicketRoute";
 import { diagnosisCopy, FAUCET, TICKET } from "@/lib/copy";
 import type { WalletSession } from "@/lib/wallet-session";
@@ -11,7 +11,8 @@ import { FONT } from "~/theme";
 import { ModeTile } from "./Controls";
 import { ConnectButton, GateCta } from "./TicketButton";
 import { tkType, useTk } from "./tk";
-import { SessionControl } from "./session/SessionControl";
+import { SEAT } from "~/wallet/seat-copy";
+import { FastChip } from "./FastChip";
 
 export interface RouteChoice {
   show: boolean;
@@ -37,7 +38,7 @@ interface GateProps {
 /**
  * web's AccountGate, inline: connect when there is no wallet; "Top up to place this" when the stake and seat deposit
  * are more than the chosen source holds, with the fix right there (the funds sheet carries the faucet); connected, the
- * row with where a public bet is paid from and the tap-trading chip.
+ * row with where a public bet is paid from and the one-tap chip (a seat already trades in one tap; no key to arm).
  */
 export function AccountGate({ session, availableBase, stakeBase, depositBase, decimals, symbol, balanceSource, route }: GateProps) {
   const tk = useTk();
@@ -62,7 +63,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
       {!connected ? (
         <View style={[styles.gate, { borderColor: tk.gateBorder, backgroundColor: tk.gateBg }]}>
           <Text style={[styles.body, { color: tk.gateBody }]}>{TICKET.gate.connect}</Text>
-          <ConnectButton label={session.isConnecting ? "Reconnecting…" : "Connect"} busy={session.isConnecting} onPress={() => router.push("/connect")} />
+          <ConnectButton label={session.isConnecting ? SEAT.sheet.taking : SEAT.sheet.title} busy={session.isConnecting} onPress={() => router.push("/connect")} />
         </View>
       ) : null}
       {short ? (
@@ -86,7 +87,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
       {connected ? (
         <View style={styles.gateRow}>
           {route?.show ? <RouteControl route={route} decimals={decimals} symbol={symbol} /> : <View />}
-          {balanceSource !== "private" ? <SessionControl symbol={symbol} /> : null}
+          {balanceSource !== "private" ? <FastChip /> : null}
         </View>
       ) : null}
     </>

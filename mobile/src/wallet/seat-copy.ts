@@ -33,5 +33,7 @@ export const SEAT = {
     leaseNotLive: "The key is on this phone. Seats join the ledger when trading opens; until then nothing is placed.",
   },
   menu: { seat: "Your seat" },
+  /** Where the reference's tap-trading chip sat: the seat itself signs every call, so there is nothing to arm. */
+  fast: { label: "one tap", why: "a seat already trades in one tap" },
   failed: (reason: string) => `This phone could not make a seat key: ${reason}`,
 } as const;

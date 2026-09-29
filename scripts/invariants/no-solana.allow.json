@@ -14,9 +14,6 @@
     "web/package.json#@solana/kit-plugin-wallet",
     "web/package.json#@solana/react",
     "web/package.json#@solana/wallet-account-signer",
-    "mobile/src/wallet/mwa.ts",
-    "mobile/package.json#@agari/clients",
-    "mobile/package.json#@solana-mobile/mobile-wallet-adapter-protocol",
     "packages/clients/"
   ]
 }

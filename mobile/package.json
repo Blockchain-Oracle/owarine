@@ -3,7 +3,6 @@
   "main": "./index.ts",
   "version": "1.0.0",
   "dependencies": {
-    "@agari/clients": "workspace:*",
     "@agari/core": "workspace:*",
     "@agari/markets": "workspace:*",
     "@dicebear/core": "9.4.3",
@@ -13,7 +12,6 @@
     "@expo-google-fonts/sora": "^0.4.2",
     "@expo/ui": "~57.0.19",
     "@shopify/flash-list": "2.0.2",
-    "@solana-mobile/mobile-wallet-adapter-protocol": "2.3.0",
     "@tanstack/react-query": "catalog:",
     "expo": "~57.0.24",
     "expo-audio": "~57.0.5",
