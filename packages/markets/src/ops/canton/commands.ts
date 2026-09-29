@@ -22,6 +22,22 @@ type Wire<T> = T extends string ? string : T extends readonly (infer U)[] ? Wire
 export const openWindow = (seriesCid: ContractId, index: number): Command =>
   exercise(TEMPLATE_IDS.Series, seriesCid, "Series_OpenWindow", { index: int(index) } satisfies Wire<PM.Series.Series_OpenWindow>);
 
+/**
+ * abu-pm-main 0.4.0 (K-030): a Window with its own boundaries, for a lane that cannot sit on the Series' grid (the
+ * Monday Gap: Friday close → Monday open, locking Sunday 20:00 ET). Same index, overlap and policy checks as
+ * `openWindow`; refusals `bad-span`, `span-too-long`, `window-overlap`, `no-policy`, `bad-window-index`.
+ */
+export const openWindowSpan = (seriesCid: ContractId, w: { index: number; tradingStartSec: number; lockAtSec: number; expirySec: number }): Command =>
+  exercise(TEMPLATE_IDS.Series, seriesCid, "Series_OpenWindowSpan", {
+    index: int(w.index), tradingStart: isoOfSec(w.tradingStartSec), lockAt: isoOfSec(w.lockAtSec), expiry: isoOfSec(w.expirySec),
+  } satisfies Wire<PM.Series.Series_OpenWindowSpan>);
+
+/** 0.4.0: a committee yes/no event as the Series' next Window (`MarketTerms` + `EventTerms` + `EventState`, no `WindowState`). */
+export const openEvent = (seriesCid: ContractId, e: { index: number; question: string; tradingStartSec: number; lockAtSec: number; closeTimeSec: number }): Command =>
+  exercise(TEMPLATE_IDS.Series, seriesCid, "Series_OpenEvent", {
+    index: int(e.index), question: e.question, tradingStart: isoOfSec(e.tradingStartSec), lockAt: isoOfSec(e.lockAtSec), closeTime: isoOfSec(e.closeTimeSec),
+  } satisfies Wire<PM.Series.Series_OpenEvent>);
+
 export const skipTo = (seriesCid: ContractId, toIndex: number): Command =>
   exercise(TEMPLATE_IDS.Series, seriesCid, "Series_SkipTo", { toIndex: int(toIndex) } satisfies Wire<PM.Series.Series_SkipTo>);
 
@@ -113,6 +129,36 @@ export function voidTerms(termsCid: ContractId, stage: VoidStageInput, quoteCids
     stage.tag === "BeforeOpen" ? { tag: "BeforeOpen", value: { stateCid: stage.stateCid } } : { tag: "AfterOpen", value: { openCid: stage.openCid } };
   return exercise(TEMPLATE_IDS.MarketTerms, termsCid, "Terms_Void", { stage: encoded, quoteCids: [...quoteCids] } satisfies Wire<PM.Market.Terms_Void>);
 }
+
+// ---- committee events (0.4.0) ------------------------------------------------------------------
+
+export interface EventAttestationInput {
+  attestor: Party;
+  venue: Party;
+  resolver: Party;
+  marketId: string;
+  answer: boolean;
+  attestedAtSec: number;
+  /** sha-256 hex of the member's full statement (core `eventStatementHash`). */
+  statementHash: string;
+}
+
+/** One committee member's YES/NO, signed by that member alone. */
+export const createEventAttestation = (a: EventAttestationInput): Command =>
+  create(TEMPLATE_IDS.EventAttestation, {
+    attestor: a.attestor, venue: a.venue, resolver: a.resolver, marketId: a.marketId, answer: a.answer,
+    attestedAt: isoOfSec(a.attestedAtSec), statementHash: a.statementHash,
+  } satisfies Wire<PM.Event.EventAttestation>);
+
+/** The resolver's `Event_Resolve`: a counted quorum, unanimous → Up (YES) / Down (NO), mixed → SourceDisagreement void. */
+export const resolveEvent = (eventCid: ContractId, stateCid: ContractId, attestationCids: readonly ContractId[]): Command =>
+  exercise(TEMPLATE_IDS.EventTerms, eventCid, "Event_Resolve", { stateCid, attestationCids: [...attestationCids] } satisfies Wire<PM.Event.Event_Resolve>);
+
+/** The resolver's `Event_Void` after the close deadline; the attestations offered only name the reason. */
+export const voidEvent = (eventCid: ContractId, stateCid: ContractId, attestationCids: readonly ContractId[]): Command =>
+  exercise(TEMPLATE_IDS.EventTerms, eventCid, "Event_Void", { stateCid, attestationCids: [...attestationCids] } satisfies Wire<PM.Event.Event_Void>);
+
+export const retireAttestation = (cid: ContractId): Command => exercise(TEMPLATE_IDS.EventAttestation, cid, "Attestation_Retire", {});
 
 // ---- the desk: quotes and settlement -----------------------------------------------------------
 

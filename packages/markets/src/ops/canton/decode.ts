@@ -83,6 +83,8 @@ export interface SeriesC {
   quorum: number;
   maxDeviationBps: number;
   policyVersions: PolicyVersionC[];
+  /** 0.4.0: the last opened Window's expiry; null on a Series that has opened none since 0.4.0 (the grid start of `nextIndex` then). */
+  lastExpirySec: number | null;
 }
 
 export interface TermsC {
@@ -252,8 +254,13 @@ export function decodeSeries(v: unknown): SeriesC {
     cadenceSec: small(r, "cadenceSec"), lockLeadSec: small(r, "lockLeadSec"), settleGraceSec: small(r, "settleGraceSec"),
     cashUnit: big(r, "cashUnit"), nextIndex: small(r, "nextIndex"), oracles: parties(r.oracles, "oracles"),
     quorum: small(r, "quorum"), maxDeviationBps: small(r, "maxDeviationBps"), policyVersions: versions.map(policyVersion),
+    lastExpirySec: optional(r.lastExpiry, (x) => timeSec(x, "lastExpiry")),
   };
 }
+
+/** Where the Series' next Window may start at the earliest (the engine's `openFloor`): the last expiry, else the grid start of `nextIndex`. */
+export const seriesOpenFloorSec = (s: Pick<SeriesC, "lastExpirySec" | "anchorSec" | "nextIndex" | "cadenceSec">): number =>
+  s.lastExpirySec ?? s.anchorSec + s.nextIndex * s.cadenceSec;
 
 export function decodeTerms(v: unknown): TermsC {
   const r = obj(v, "MarketTerms");
@@ -355,6 +362,100 @@ export function decodeNettedResidual(v: unknown): NettedResidualC {
 export function decodeVenueAccount(v: unknown): VenueAccountC {
   const r = obj(v, "VenueAccount");
   return { venue: text(r, "venue"), owner: text(r, "owner"), label: text(r, "label") };
+}
+
+// ---- committee events (0.4.0) ------------------------------------------------------------------
+
+export interface EventTermsC {
+  venue: Party;
+  resolver: Party;
+  termsCid: ContractId;
+  marketId: string;
+  question: string;
+  closeTimeSec: number;
+  closeDeadlineSec: number;
+  attestors: Party[];
+  quorum: number;
+}
+
+export interface EventStateC {
+  venue: Party;
+  resolver: Party;
+  termsCid: ContractId;
+}
+
+export interface EventAttestationC {
+  attestor: Party;
+  venue: Party;
+  resolver: Party;
+  marketId: string;
+  answer: boolean;
+  attestedAtSec: number;
+  statementHash: string;
+}
+
+export interface AttestationEvidenceC {
+  attestor: Party;
+  answer: boolean;
+  attestedAtSec: number;
+  statementHash: string;
+  attestationCid: ContractId;
+}
+
+export interface EventVerdictC {
+  venue: Party;
+  resolver: Party;
+  termsCid: ContractId;
+  marketId: string;
+  question: string;
+  /** null = void (then `voidReason` names why). */
+  answer: boolean | null;
+  voidReason: VoidReasonC | null;
+  attestations: AttestationEvidenceC[];
+  resolutionCid: ContractId;
+}
+
+const bool = (r: Raw, k: string): boolean => {
+  const v = r[k];
+  if (typeof v !== "boolean") throw new DecodeError(`field ${k} is not a Bool`);
+  return v;
+};
+
+export function decodeEventTerms(v: unknown): EventTermsC {
+  const r = obj(v, "EventTerms");
+  return {
+    venue: text(r, "venue"), resolver: text(r, "resolver"), termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), question: text(r, "question"),
+    closeTimeSec: sec(r, "closeTime"), closeDeadlineSec: sec(r, "closeDeadline"), attestors: parties(r.attestors, "attestors"), quorum: small(r, "quorum"),
+  };
+}
+
+export function decodeEventState(v: unknown): EventStateC {
+  const r = obj(v, "EventState");
+  return { venue: text(r, "venue"), resolver: text(r, "resolver"), termsCid: text(r, "termsCid") };
+}
+
+export function decodeEventAttestation(v: unknown): EventAttestationC {
+  const r = obj(v, "EventAttestation");
+  return {
+    attestor: text(r, "attestor"), venue: text(r, "venue"), resolver: text(r, "resolver"), marketId: text(r, "marketId"), answer: bool(r, "answer"),
+    attestedAtSec: sec(r, "attestedAt"), statementHash: text(r, "statementHash"),
+  };
+}
+
+export function decodeEventVerdict(v: unknown): EventVerdictC {
+  const r = obj(v, "EventVerdict");
+  const list = r.attestations;
+  if (!Array.isArray(list)) throw new DecodeError("attestations is not a list");
+  return {
+    venue: text(r, "venue"), resolver: text(r, "resolver"), termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), question: text(r, "question"),
+    answer: optional(r.answer, (x) => bool({ answer: x }, "answer")),
+    voidReason: optional(r.voidReason, voidReason),
+    attestations: list.map((a) => {
+      const e = obj(a, "AttestationEvidence");
+      return { attestor: text(e, "attestor"), answer: bool(e, "answer"), attestedAtSec: sec(e, "attestedAt"), statementHash: text(e, "statementHash"), attestationCid: text(e, "attestationCid") };
+    }),
+    resolutionCid: text(r, "resolutionCid"),
+  };
 }
 
 /** A decoded active contract: its id, its payload and (when asked for) its disclosure blob. */

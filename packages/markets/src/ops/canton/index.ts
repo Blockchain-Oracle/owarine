@@ -4,7 +4,7 @@
  * ids and the issuer's ladder walk. The web → ops call signature is `@agari/markets/server` `verifyOpsSignature`.
  */
 export * as cmd from "./commands";
-export type { IssueBuyQuoteInput, IssueQuoteInput, PriceQuoteInput, SeriesInput, VoidStageInput } from "./commands";
+export type { EventAttestationInput, IssueBuyQuoteInput, IssueQuoteInput, PriceQuoteInput, SeriesInput, VoidStageInput } from "./commands";
 export * from "./decode";
 export * from "./ids";
 export * from "./quote-walk";
