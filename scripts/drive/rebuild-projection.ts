@@ -13,7 +13,7 @@ const TABLES: Record<string, string> = {
   idx_events: "SELECT update_id, node_id, kind, template, contract_id, choice, market, data FROM idx_events ORDER BY ledger_offset, node_id",
   idx_series: "SELECT * FROM idx_series ORDER BY series",
   idx_markets: "SELECT * FROM idx_markets ORDER BY market",
-  idx_prints: "SELECT * FROM idx_prints ORDER BY oracle, symbol, boundary_sec",
+  idx_prints: "SELECT * FROM idx_prints ORDER BY oracle, symbol, boundary_sec, contract_id",
   idx_quotes: "SELECT * FROM idx_quotes ORDER BY quote_cid",
   idx_legs: "SELECT * FROM idx_legs ORDER BY leg_cid",
   idx_fills: "SELECT * FROM idx_fills ORDER BY update_id, node_id",

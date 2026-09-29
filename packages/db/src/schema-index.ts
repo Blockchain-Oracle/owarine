@@ -187,13 +187,15 @@ CREATE TABLE IF NOT EXISTS idx_markets (
 CREATE INDEX IF NOT EXISTS idx_markets_series_idx ON idx_markets (series, market_index DESC);
 CREATE INDEX IF NOT EXISTS idx_markets_expiry_idx ON idx_markets (expiry_sec DESC);
 
--- Oracle prints: one PriceQuote per (oracle, symbol, boundary). A second post by the same oracle keeps the earliest
--- fetch (then the lowest price), the rule the Daml's collectEvidence applies; 'duplicates' counts the others.
+-- Oracle prints: one row per PriceQuote contract (C6e, K-070). An oracle may post more than one quote for the same
+-- (oracle, symbol, boundary); every one is kept, so the projection holds exactly the ledger's live set. 'chosen' marks
+-- the one the resolution uses: the quote an OpenPrint / Resolution cited as evidence ('evidence'), else the resolver's
+-- rule (Oracle.collectEvidence: the earliest fetch, then the lowest price). 'duplicates' on the chosen row counts the others.
 CREATE TABLE IF NOT EXISTS idx_prints (
   oracle           TEXT     NOT NULL,
   symbol           TEXT     NOT NULL,
   boundary_sec     BIGINT   NOT NULL,
-  contract_id      TEXT     NOT NULL,
+  contract_id      TEXT     NOT NULL PRIMARY KEY,
   price_e8         NUMERIC  NOT NULL,
   bar_start_sec    BIGINT   NOT NULL,
   bar_len_sec      INTEGER  NOT NULL,
@@ -204,7 +206,8 @@ CREATE TABLE IF NOT EXISTS idx_prints (
   update_id        TEXT     NOT NULL,
   retired          BOOLEAN  NOT NULL DEFAULT false,
   duplicates       INTEGER  NOT NULL DEFAULT 0,
-  PRIMARY KEY (oracle, symbol, boundary_sec)
+  chosen           BOOLEAN  NOT NULL DEFAULT true,
+  evidence         BOOLEAN  NOT NULL DEFAULT false
 );
 CREATE INDEX IF NOT EXISTS idx_prints_symbol_idx ON idx_prints (symbol, boundary_sec);
 CREATE INDEX IF NOT EXISTS idx_prints_cid_idx ON idx_prints (contract_id);

@@ -60,4 +60,17 @@ CREATE TABLE IF NOT EXISTS idx_receipts (
   created_ts_sec     BIGINT   NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_receipts_owner_idx ON idx_receipts (owner_party, created_offset DESC);
+
+-- C6e (K-070): idx_prints keeps every PriceQuote, keyed by contract id, with the resolution's one flagged. A projection
+-- made before keeps its rows (each was the chosen one); the extra posts it dropped appear after a rebuild.
+ALTER TABLE idx_prints ADD COLUMN IF NOT EXISTS chosen BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE idx_prints ADD COLUMN IF NOT EXISTS evidence BOOLEAN NOT NULL DEFAULT false;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'idx_prints'::regclass AND contype = 'p' AND array_length(conkey, 1) = 3) THEN
+    ALTER TABLE idx_prints DROP CONSTRAINT idx_prints_pkey;
+    ALTER TABLE idx_prints ADD PRIMARY KEY (contract_id);
+  END IF;
+END $$;
+CREATE INDEX IF NOT EXISTS idx_prints_key_idx ON idx_prints (oracle, symbol, boundary_sec);
 `;
