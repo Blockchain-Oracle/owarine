@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@agari/core": "workspace:*",
-    "@agari/daml": "workspace:*",
+    "@agari/markets": "workspace:*",
     "@agari/db": "workspace:*",
     "@agari/ledger": "workspace:*",
-    "@agari/markets": "workspace:*"
+    "@agari/daml": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

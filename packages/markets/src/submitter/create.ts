@@ -3,7 +3,8 @@ import type { ArenaIntent } from "@agari/core/games";
 import type { LeverageIntent } from "@agari/core/leverage";
 import type { ParlayIntent } from "@agari/core/parlay";
 import type { RangeIntent } from "@agari/core/range";
-import { diagnosis, type Address } from "@agari/core/types";
+import type { TxOutcome } from "@agari/core/ports";
+import { diagnosis, type Address, type MarketId } from "@agari/core/types";
 import type { ArenaPickOutcome } from "../games";
 import type { LeverageOpenOutcome } from "../leverage";
 import type { ParlayOpenOutcome } from "../parlay";
@@ -19,6 +20,7 @@ import { indexEvidence, type WriteEvidence } from "./evidence";
 import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
+import { commandVerdict, submitLegExit, submitSeatOrder } from "./seat-lane";
 import { allowAllStopGate } from "./stop-gate";
 import type { WriteRpc } from "./write-rpc";
 
@@ -53,19 +55,24 @@ export interface MarketsSubmitter extends Submitter {
   submitParlayOpen: (intent: Extract<ParlayIntent, { kind: "parlay-open" }>, onPhase?: PhaseListener) => Promise<ParlayOpenOutcome>;
   submitLeverageOpen: (intent: Extract<LeverageIntent, { kind: "leverage-open" }>, onPhase?: PhaseListener) => Promise<LeverageOpenOutcome>;
   submitArenaPick: (intent: Extract<ArenaIntent, { kind: "arena-pick" | "arena-pick-for" }>, onPhase?: PhaseListener) => Promise<ArenaPickOutcome>;
+  /** One tap exits a Window's legs: its claim, or the stale refund once `refundAfter` has passed with no resolution. */
+  exitLegs(o: { marketId: MarketId; mode: "claim" | "refund" }, onPhase?: PhaseListener): Promise<TxOutcome>;
   checkGas(lane: FeeLane): Promise<GasCheck>;
 }
 
-/** Every lane's reason until the Canton adapter lands (C4 orders and claims, C7a–C9 products). */
-const ORDERS_NOT_LIVE = cantonNotLive("orders");
+/** Product lanes stay refused until their packages pass their money gates (C7a–C9); orders and claims are live (C4). */
 const PRODUCTS_NOT_LIVE = cantonNotLive("product writes");
+/** A resting call (D-088) becomes a bilateral `RestingCall` in C6; the vault route is C7a. */
+const REST_NOT_LIVE = cantonNotLive("resting calls");
+const VAULT_ROUTE_NOT_LIVE = cantonNotLive("trading balance orders");
+const CASH_OUT_NOT_LIVE = cantonNotLive("cash-out");
 
 /**
- * Binds every write lane to ONE seat (C1 stub, the reference's D-015 on Canton). Each lane refuses before anything is
- * journaled or signed, with the not-deployed diagnosis the surfaces already render as "Not live on this network yet".
- * The shape stays so C4 can re-point the lanes (status gate, re-quote, expiry, funding, issue quote, prepare, accept,
- * confirm, book from events) without moving a caller. Writes still queue through `enqueue`, so the per-seat ordering
- * is in place before any lane is live.
+ * Binds every write lane to ONE seat. Orders go through the seat lane (`seat-lane.ts`: firm quote, journal, accept
+ * as the seat's party, book from the created Leg); claims and stale refunds through the legs routes. Product lanes
+ * still refuse before anything is journaled, with the not-deployed diagnosis the surfaces render as "Not live on this
+ * network yet". Every write queues through `enqueue`, so one seat never races itself (and two tabs share the server's
+ * per-command idempotency).
  */
 export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
   const { wallet, enqueue } = deps;
@@ -74,23 +81,30 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
   const stopGate = deps.stopGate ?? allowAllStopGate;
   const attribution = deps.attribution ?? noopAttribution;
   const evidence = evidenceOf(deps);
+  const lane = { wallet, journal, stopGate, nowMs };
   const refuse = <T>(reason: string) => enqueue(async () => refusedFor(reason) as T);
   return {
     journal,
     stopGate,
     attribution,
     wallet,
-    reconciler: chainReconcilerWith({ ...(deps.rpc ? { rpc: deps.rpc } : {}), evidence, nowMs }),
+    // A browser or phone session asks our routes about its own commands; a script with its own ledger access keeps the projection reconciler.
+    reconciler: deps.rpc ? chainReconcilerWith({ rpc: deps.rpc, evidence, nowMs }) : (_wallet, record) => commandVerdict(record.id),
     hasSigner: () => true,
-    submitTx: (intent) =>
-      enqueue(async () =>
+    submitTx: (intent, onPhase) =>
+      enqueue(async () => {
         // Demo cash comes from the server-side credit (`/api/faucet`, seat lease), never a seat's own write.
-        intent.kind === "faucet"
-          ? { status: "refused" as const, diagnosis: diagnosis("faucet-refused", "demo cash is credited server-side (/api/faucet)") }
-          : { status: "refused" as const, diagnosis: notDeployed(intent.kind === "redeem" ? ORDERS_NOT_LIVE : PRODUCTS_NOT_LIVE) },
-      ),
-    submitOrder: () => refuse(ORDERS_NOT_LIVE),
-    submitCashOut: () => refuse(ORDERS_NOT_LIVE),
+        if (intent.kind === "faucet") return { status: "refused" as const, diagnosis: diagnosis("faucet-refused", "demo cash is credited server-side (/api/faucet)") };
+        if (intent.kind === "redeem") return submitLegExit(lane, { marketId: intent.marketId, mode: "claim" }, onPhase);
+        return { status: "refused" as const, diagnosis: notDeployed(PRODUCTS_NOT_LIVE) };
+      }),
+    submitOrder: (request, onPhase) => {
+      if (request.route && request.route.kind !== "wallet") return refuse(VAULT_ROUTE_NOT_LIVE);
+      if (request.entry === "rest") return refuse(REST_NOT_LIVE);
+      return enqueue(() => submitSeatOrder(lane, request, onPhase));
+    },
+    exitLegs: (o, onPhase) => enqueue(() => submitLegExit(lane, o, onPhase)),
+    submitCashOut: () => refuse(CASH_OUT_NOT_LIVE),
     submitRangeOpen: () => refuse(PRODUCTS_NOT_LIVE),
     submitParlayOpen: () => refuse(PRODUCTS_NOT_LIVE),
     submitLeverageOpen: () => refuse(PRODUCTS_NOT_LIVE),

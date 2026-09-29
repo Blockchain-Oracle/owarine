@@ -69,4 +69,6 @@ export {
 export { invalidateAfterWrite, type WriteScope } from "./invalidate";
 export { useStakeQuote, type StakeQuoteInput } from "./useStakeQuote";
 export { useTick } from "./useTick";
+export { useOpenQuotes, useSeatLease } from "./useSeat";
+export { seatScope, useExitLegs, usePlaceOrder, type ExitLegsVariables, type PlaceOrderVariables } from "./useSeatWrites";
 export type { WalletSession } from "./wallet-session";

@@ -4,6 +4,7 @@ import type { Address } from "@agari/core/types";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";
+import { registerSeatSigner } from "../provider/ledger-api";
 import { createSubmitterSession, type SubmitterSession } from "../sessions";
 import type { MarketsSubmitter } from "../submitter/create";
 import { createLocalStorageJournal } from "../submitter/journal-local-storage";
@@ -40,6 +41,8 @@ export function SubmitterSessionProvider({ env, wallet, enabled = true, children
 
     let cancelled = false;
     let created: SubmitterSession | null = null;
+    // The seat key signs the read header our ledger routes accept (the phone's proof; the web also has its cookie).
+    registerSeatSigner({ address: wallet.address, signMessage: (bytes) => wallet.signMessage(bytes) });
 
     void createSubmitterSession({ env, authority: "user-wallet", signer: { wallet }, journal: createLocalStorageJournal(nowMs), nowMs })
       .then((next) => {
@@ -55,6 +58,7 @@ export function SubmitterSessionProvider({ env, wallet, enabled = true, children
 
     return () => {
       cancelled = true;
+      registerSeatSigner(null);
       setSession(null);
       void created?.dispose();
     };
