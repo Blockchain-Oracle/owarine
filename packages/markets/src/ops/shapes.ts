@@ -74,9 +74,9 @@ export interface Market {
   mvault: Address;
   rentPayer: Address;
   index: bigint;
-  tradingStart: bigint;
-  lockAt: bigint;
-  expiry: bigint;
+  tradingStartSec: bigint;
+  lockAtSec: bigint;
+  expirySec: bigint;
   openDeadline: bigint;
   closeDeadline: bigint;
   open: Print;

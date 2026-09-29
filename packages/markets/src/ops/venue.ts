@@ -20,8 +20,8 @@ export type MarketStatus = "listed" | "trading" | "locked" | "resolved" | "voide
 export function marketStatus(m: Market, nowSec: number): MarketStatus {
   if (m.state === MARKET_STATE.resolved) return "resolved";
   if (m.state === MARKET_STATE.voided) return "voided";
-  if (nowSec < Number(m.tradingStart)) return "listed";
-  return nowSec < Number(m.lockAt) ? "trading" : "locked";
+  if (nowSec < Number(m.tradingStartSec)) return "listed";
+  return nowSec < Number(m.lockAtSec) ? "trading" : "locked";
 }
 
 export const isTerminal = (m: Market) => m.state !== MARKET_STATE.open;

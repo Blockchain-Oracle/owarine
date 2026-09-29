@@ -30,11 +30,11 @@ export interface MarketAccount {
 }
 
 /** events-engine.md §7 `status(m, now)` as core's on-chain enum; `Settling` is never observable. */
-export function onchainStatus(m: Pick<MarketData, "state" | "tradingStart" | "lockAt">, nowSec: number): number {
+export function onchainStatus(m: Pick<MarketData, "state" | "tradingStartSec" | "lockAtSec">, nowSec: number): number {
   if (m.state === MARKET_STATE.resolved) return ONCHAIN_STATUS.Resolved;
   if (m.state === MARKET_STATE.voided) return ONCHAIN_STATUS.Voided;
-  if (nowSec < Number(m.tradingStart)) return ONCHAIN_STATUS.Listed;
-  return nowSec < Number(m.lockAt) ? ONCHAIN_STATUS.Trading : ONCHAIN_STATUS.Locked;
+  if (nowSec < Number(m.tradingStartSec)) return ONCHAIN_STATUS.Listed;
+  return nowSec < Number(m.lockAtSec) ? ONCHAIN_STATUS.Trading : ONCHAIN_STATUS.Locked;
 }
 
 export function winningOutcomeOf(payoutYes: number, payoutNo: number): OutcomeIdx | null {
@@ -55,8 +55,8 @@ export function toOnchainSnapshot(m: MarketAccount, series: SeriesFacts, venue: 
     status: onchainStatus(data, nowSec),
     backing: data.backingLots * series.lotBase,
     finalized: data.state !== MARKET_STATE.open,
-    lockAtSec: Number(data.lockAt),
-    expirySec: Number(data.expiry),
+    lockAtSec: Number(data.lockAtSec),
+    expirySec: Number(data.expirySec),
     decimals: venue.decimals,
     winningOutcome: winningOutcomeOf(data.payoutYes, data.payoutNo),
     isResolved: data.state === MARKET_STATE.resolved,

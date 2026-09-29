@@ -80,7 +80,7 @@ export function emptySlots(series: SeriesView, market: MarketView): PrintSlot[] 
   if (m.state !== MARKET_STATE.open) return [];
   const version = series.data.policyVersions[m.policyVersion];
   if (!version) return [];
-  const [start, expiry] = [Number(m.tradingStart), Number(m.expiry)];
+  const [start, expiry] = [Number(m.tradingStartSec), Number(m.expirySec)];
   const out: Array<PrintSlot | null> = [];
   if (isPrintEmpty(m.open)) out.push(slotOf(series, market, "open", version.primary, start, Number(m.openDeadline)));
   if (isPrintEmpty(m.close)) out.push(slotOf(series, market, "close", version.primary, expiry, Number(m.closeDeadline)));

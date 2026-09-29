@@ -53,9 +53,9 @@ export interface MarketData {
   index: bigint;
   /** 0 open, 1 resolved, 2 voided (`MARKET_STATE`). */
   state: number;
-  tradingStart: bigint;
-  lockAt: bigint;
-  expiry: bigint;
+  tradingStartSec: bigint;
+  lockAtSec: bigint;
+  expirySec: bigint;
   backingLots: bigint;
   payoutYes: number;
   payoutNo: number;

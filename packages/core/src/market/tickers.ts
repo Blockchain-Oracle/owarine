@@ -328,9 +328,8 @@ export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean =>
 /** The asset a 24/7 Window prices (D-103): the xStock of a listed ticker, the PreStocks token of a pre-IPO name, the basket or valuation lane itself, else null. */
 export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | BasketSymbol | ValuationSymbol | CryptoSymbol | null {
   const t = TICKERS[symbol];
-  if (t.kind === "crypto") return t.symbol as CryptoSymbol; // its own 24/7 asset (`BTC-5m`)
   // A valuation lane is its own asset (`OPENAIV-60m`), so it never shares a key or a halt with the token lane it shadows.
-  if (t.kind === "valuation") return t.symbol as ValuationSymbol;
+  if (t.kind === "valuation" || t.kind === "crypto") return t.symbol as ValuationSymbol | CryptoSymbol; // crypto too: `BTC-5m`
   return t.xstock?.symbol ?? t.preIpo?.symbol ?? t.basket ?? null;
 }
 

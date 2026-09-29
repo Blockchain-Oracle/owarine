@@ -41,7 +41,7 @@ export async function statusGate(market: EventMarket, nowMs: number, admit: Gate
   if (onchain.status !== ONCHAIN_STATUS.Trading && !listed) throw notTrading(`on-chain status ${onchain.status} is not Trading (${ONCHAIN_STATUS.Trading})${admit === "listed-or-trading" ? " or Listed" : ""}`);
   if (venue.mode !== MODE_NORMAL) throw notTrading(`the venue is in mode ${venue.mode}, not Normal`);
   if (insideNoEntryBuffer(nowMs, { lockAtSec: onchain.lockAtSec, intervalSec: market.intervalSec })) throw notTrading("inside the no-entry buffer before the Window locks");
-  return { onchain, series, venue, tradingStartSec: Number(account.data.tradingStart) };
+  return { onchain, series, venue, tradingStartSec: Number(account.data.tradingStartSec) };
 }
 
 function readGate(market: EventMarket) {
