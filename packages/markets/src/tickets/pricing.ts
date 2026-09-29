@@ -11,7 +11,7 @@ import { budgetFor, knockoutLine, terms as boostTermsOf, type LeverageParams, ty
 import { quoteParlay, type ParlayMode, type ParlayParams, type ParlayQuote, type ParlayRefusal } from "@agari/core/parlay";
 import { probitE4, quoteRange, stdE8, type RangeBasis, type RangeMode, type RangeParams, type RangeQuote, type RangeRefusal, type RangeSide } from "@agari/core/range";
 import type { BookLevelView } from "@agari/core/types";
-import { walkStake } from "../ops/canton/quote-walk";
+import { bidLevels, walkExit, walkStake } from "../ops/canton/quote-walk";
 import { sigmaFor, TICKET_DECIMALS, TICKET_ONE, TICKET_QUOTE_LIFE_SEC } from "./params";
 
 /** What a ticket needs from one Window's ladder: structurally a subset of ops' `LadderEntry`. */
@@ -194,4 +194,17 @@ export function boostMark(p: { side: "up" | "down"; lots: bigint; cashUnit: bigi
   const ticks = fairTicks === null ? null : p.side === "up" ? fairTicks : 1000 - fairTicks;
   const markBase = ticks === null ? 0n : p.lots * BigInt(ticks) * p.cashUnit;
   return { markBase, lineBase: p.knockOutProceeds, knockable: p.fronted > 0n && ticks !== null && markBase <= p.knockOutProceeds };
+}
+
+/**
+ * What a boost is worth now for "Yours now" and the cash-out floor: what the venue's bids would pay for the whole
+ * position (the reference marks over the exit side, `markOverLevels(book.exitRested…)`), else the fair mid when the
+ * bids cannot take it all, else nothing. Marking at the mid put the floor (97% of the mark) above every bid once the
+ * spread passed 3%, so a cash-out always came back as a requote (C8e).
+ */
+export function boostMarkBase(p: { side: "up" | "down"; lots: bigint; cashUnit: bigint }, ladder: { up: readonly BookLevel[]; down: readonly BookLevel[] } | undefined, fairTicks: number | undefined): bigint | null {
+  const exit = ladder ? walkExit(bidLevels(ladder, p.side), p.lots, p.cashUnit) : null;
+  if (exit && exit.lots >= p.lots) return exit.proceedsBase;
+  if (fairTicks === undefined) return null;
+  return p.lots * BigInt(p.side === "up" ? fairTicks : 1000 - fairTicks) * p.cashUnit;
 }

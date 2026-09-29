@@ -9,7 +9,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { diagnosis, diagnosisSchema, type Diagnosis } from "@agari/core/types";
 import { z } from "zod";
-import { ladderLatestWire, parseLadder } from "../runtime/ladder";
+import { ladderLatestWire, parseLadder, type Ladder } from "../runtime/ladder";
 import { ladderMid2 } from "./map";
 import { exitQuoteReplyWire, quoteReplyWire, toWire, type ExitQuoteReply, type ExitQuoteRequest, type QuoteReply, type QuoteRequest } from "../provider/ledger-wire";
 import {
@@ -135,6 +135,18 @@ export function createOpsClient(cfg: OpsClientConfig) {
 
   let marks: { atMs: number; value: Promise<ReadonlyMap<string, number>> } | null = null;
   let fair: { atMs: number; value: Promise<ReadonlyMap<string, number>> } | null = null;
+  let quoting: { atMs: number; value: Promise<ReadonlyMap<string, Ladder>> } | null = null;
+  async function readQuoting(): Promise<ReadonlyMap<string, Ladder>> {
+    const res = await doFetch(`${base}/ladders/latest`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(cfg.timeoutMs ?? 3_000), cache: "no-store" } as RequestInit);
+    if (!res.ok) throw new Error(`ladders ${res.status}`);
+    const parsed = ladderLatestWire.parse(await res.json());
+    const out = new Map<string, Ladder>();
+    for (const raw of parsed.ladders) {
+      const l = parseLadder(raw);
+      if (l && l.state === "quoting") out.set(l.termsCid, l);
+    }
+    return out;
+  }
   async function readFair(): Promise<ReadonlyMap<string, number>> {
     const res = await doFetch(`${base}/ladders/latest`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(cfg.timeoutMs ?? 3_000), cache: "no-store" } as RequestInit);
     if (!res.ok) throw new Error(`ladders ${res.status}`);
@@ -181,6 +193,14 @@ export function createOpsClient(cfg: OpsClientConfig) {
       if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };
       const parsed = exitQuoteReplyWire.safeParse(r.json);
       return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown(`ops exit quote reply did not parse: ${parsed.error.message.slice(0, 200)}`) };
+    },
+    /** The quoting ladders by terms id (public `/ladders/latest`), cached 1 s: what the venue's bids pay for a boost now. */
+    quotingLadders(): Promise<ReadonlyMap<string, Ladder>> {
+      if (quoting && now() - quoting.atMs < 1_000) return quoting.value;
+      const entry = { atMs: now(), value: readQuoting() };
+      quoting = entry;
+      entry.value.catch(() => quoting === entry && (quoting = null));
+      return entry.value;
     },
     /** The venue ladder's fair YES ticks by terms id (public `/ladders/latest`), cached 1 s: a boost's live mark. */
     fairTicks(): Promise<ReadonlyMap<string, number>> {

@@ -16,6 +16,8 @@ import { decodeOpenPrint, decodeResolution, templateSuffix } from "../ops/canton
 import * as tcmd from "../ops/tickets/commands";
 import { decodeNavStatement, nextParlayLeg } from "../ops/tickets/decode";
 import { createMarketReader } from "./reads";
+import { boostMarkBase } from "../tickets/pricing";
+import type { BookLevel } from "@agari/core/market";
 import { receiptViews, type MarketFacts } from "./tickets-receipts";
 import { createdEvents, SEAT_TICKET_TEMPLATES, ticketOutcome, toTicketSnapshot, type TicketSeatSnapshot, type WindowFacts } from "./tickets-read";
 import { isTicketReserve, type TicketReserveId } from "../tickets/params";
@@ -30,6 +32,12 @@ export interface TicketSeatConfig {
   journal: CommandJournal;
   /** The venue ladder's fair YES ticks by terms id, for a boost's live mark; none = no mark. */
   fairTicks?: () => Promise<ReadonlyMap<string, number>>;
+  /**
+   * The quoting ladders by terms id: a boost marks at what the venue's bids would pay for the whole position (the
+   * reference marks over the exit side too), so "Yours now" is what a cash-out can get; fair ticks only when the bids
+   * cannot take it all.
+   */
+  ladders?: () => Promise<ReadonlyMap<string, { up: readonly BookLevel[]; down: readonly BookLevel[] }>>;
   now?: () => number;
 }
 
@@ -81,7 +89,11 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   }
 
   async function mine(party: Party): Promise<{ value: TicketsMine; offset: number; busyUntilMs: number }> {
-    const [snap, f, fair] = await Promise.all([read(party), windowFacts(), cfg.fairTicks ? cfg.fairTicks().catch(() => new Map<string, number>()) : Promise.resolve(new Map<string, number>())]);
+    const noLadders = new Map<string, { up: readonly BookLevel[]; down: readonly BookLevel[] }>();
+    const [snap, f, fair, ladders] = await Promise.all([
+      read(party), windowFacts(), cfg.fairTicks ? cfg.fairTicks().catch(() => new Map<string, number>()) : Promise.resolve(new Map<string, number>()),
+      cfg.ladders ? cfg.ladders().catch(() => noLadders) : Promise.resolve(noLadders),
+    ]);
     const rounds = snap.rounds.map(({ cid, data: r }) => {
       const res = f.resolutions.get(r.termsCid);
       return {
@@ -104,14 +116,13 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
     });
     const positions = snap.positions.map(({ cid, data: p }) => {
       const res = f.resolutions.get(p.termsCid);
-      const ticks = fair.get(p.termsCid);
-      const sideTicks = ticks === undefined ? null : p.side === "SideUp" ? ticks : 1000 - ticks;
+
       return {
         cid, marketId: appMarketId(p.marketId), side: sideOf(p.side), leverageBps: p.leverageBps, priceTicks: p.priceTicks, lots: p.lots, cashUnit: p.cashUnit,
         stakeBase: p.stake, frontedBase: p.fronted, premiumBase: p.premium, barrierE8: p.barrierE8, knockOutProceedsBase: p.knockOutProceeds,
         expirySec: p.expirySec, refundAfterSec: p.refundAfterSec,
         resolved: !res ? ("pending" as const) : res.outcome === null ? ("void" as const) : res.outcome === "SideUp" ? ("up" as const) : ("down" as const),
-        markBase: sideTicks === null ? null : p.lots * BigInt(sideTicks) * p.cashUnit,
+        markBase: boostMarkBase({ side: sideOf(p.side), lots: p.lots, cashUnit: p.cashUnit }, ladders.get(p.termsCid), fair.get(p.termsCid)),
       };
     });
     const byReserve = new Map<TicketReserveId, bigint>();
