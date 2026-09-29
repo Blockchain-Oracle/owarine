@@ -3,7 +3,11 @@
 import type { BookedOrder } from "@agari/core/ports";
 import type { EventMarket } from "@agari/core/types";
 import { useOpeningPrice } from "@agari/markets/react";
+import { txUrl } from "@agari/core/urls";
 import Link from "next/link";
+import { Hash } from "@/components/data";
+import { WhoCanSee } from "@/features/canton-ux/privacy";
+import { TICKET_CANTON } from "@/features/canton-ux/ticket";
 import { useState } from "react";
 import { CallPlacedCard, SHARE, type CallCard } from "@/features/share";
 import { useSettlementFee } from "../verdict/useVerdict";
@@ -57,14 +61,23 @@ export function PlacedCall({ booked, market, nowMs, decimals, symbol, boost, onA
       card={card}
       nowMs={nowMs}
       actions={
-        <div className="call-actions">
-          <Link href="/portfolio" data-cursor="hover">
-            {SHARE.call.portfolio}
-          </Link>
-          <button type="button" onClick={onAnother} data-cursor="hover">
-            {SHARE.call.another}
-          </button>
-        </div>
+        <>
+          {/* The receipt names the ledger update the Leg was created in, and opens it on the proof page. */}
+          <p className="cx-receipt-update">
+            <span>
+              {TICKET_CANTON.receipt.update} <Hash value={booked.txHash} href={txUrl(booked.txHash)} lead={8} tail={4} />
+            </span>
+            <WhoCanSee kind="position" />
+          </p>
+          <div className="call-actions">
+            <Link href="/portfolio" data-cursor="hover">
+              {SHARE.call.portfolio}
+            </Link>
+            <button type="button" onClick={onAnother} data-cursor="hover">
+              {SHARE.call.another}
+            </button>
+          </div>
+        </>
       }
     />
   );

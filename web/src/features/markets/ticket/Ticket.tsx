@@ -4,6 +4,8 @@ import { BPS_PER_X } from "@agari/core/leverage";
 import { belowMinStake } from "@agari/core/sizing";
 import { formatBaseUnits } from "@agari/core/units";
 import { X } from "lucide-react";
+import { WhoCanSee } from "@/features/canton-ux/privacy";
+import { HeldPriceRow, useHeldSeconds, WriteProgress } from "@/features/canton-ux/ticket";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { LEVERAGE } from "@/features/leverage";
@@ -49,7 +51,23 @@ interface TicketProps {
 export function Ticket({ selection, drawer }: TicketProps) {
   const { t, market, side, stakeBase, phase, decimals, symbol, session, source, privateMode, mode, setMode, rangeReserve, multiple, setMultiple, leverageReserve, boosted, isRange, leverageLock, boost, range, bet, displayed, walletRoute, funding, depositBase, laneGuard, regionHeld, priv, blocker, ctx, showRoute, privateTitle, choosePrivate, chooseSource, place, placeBoost, strip, costForSr, booked, privParts, reset, routing, availableBase, placedBoost } = useTicketComposer(selection);
 
-  const cta = isRange && !regionHeld ? (
+  // K-010a (direction B) on the plain order lane: the firm price on its own row with its ring, and StepProgress in
+  // the Buy button's place while the write is open, so nothing can be pressed twice.
+  const plain = !isRange && !boosted && !privateMode;
+  const writing = plain && bet.state.pending;
+  const held = plain ? bet.state.held : null;
+  const heldLeft = useHeldSeconds(held?.validUntilMs ?? null);
+  const requoted = plain && !writing && bet.state.outcome?.status === "requote" && displayed !== null && displayed === bet.requoteFor(market.marketId, side, stakeBase) ? displayed : null;
+  const heldRow =
+    writing && held && (heldLeft ?? 0) > 0 ? (
+      <HeldPriceRow priceCents={held.quote.oddsCents} remainingSec={heldLeft} aside={<WhoCanSee kind="quote" />} />
+    ) : requoted && bet.state.askedCents !== null ? (
+      <HeldPriceRow priceCents={requoted.oddsCents} remainingSec={null} expired={{ fromCents: bet.state.askedCents, toCents: requoted.oddsCents }} />
+    ) : null;
+
+  const cta = writing ? (
+    <WriteProgress phase={bet.state.phase} updateId={bet.state.txHash ?? undefined} variant="block" />
+  ) : isRange && !regionHeld ? (
     <BlockedButton blocker={range.blocker} ctx={range.ctx} tone="primary" size="lg" className="w-full" onClick={() => void range.place()}>
       {range.draft.lowPrint !== null && range.draft.highPrint !== null ? RANGE.cta.place(usdBand(range.draft.lowPrint), usdBand(range.draft.highPrint)) : RANGE.cta.placePlain}
     </BlockedButton>
@@ -115,6 +133,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
               {CLOSED.useDepth(`${formatBaseUnits(displayed.fillableStakeBase, decimals)} ${symbol}`)}
             </button>
           )}
+          {heldRow}
           <ReadoutStrip cells={strip.cells} live={strip.live} caption={strip.caption} chance={strip.chance} note={[boosted ? LEVERAGE.strip.knockout(multiple) : null, laneGuard.earnings].filter(Boolean).join(" ") || null} />
           <AccountGate
             session={session}
@@ -133,7 +152,8 @@ export function Ticket({ selection, drawer }: TicketProps) {
           {t.advancedFrom && <AutoAdvanceNote from={t.advancedFrom} to={market} />}
           {/* An armed tap the caps refuse signs from the wallet instead — and says so, as the enable sheet promised. */}
           {!privateMode && !isRange && routing.fallbackReason && <p className="tk-note">{routing.fallbackReason}</p>}
-          <OutcomeNote state={bet.state} decimals={decimals} symbol={symbol} onDismiss={bet.reset} />
+          {/* A requote is said once, by the held-price row above; every other outcome keeps the reference's note. */}
+          {!requoted && <OutcomeNote state={bet.state} decimals={decimals} symbol={symbol} onDismiss={bet.reset} />}
           {cta}
           {regionHeld && <RegionNote />}
           <p className="tk-foot">

@@ -20,6 +20,8 @@ import { OutcomeNote, RegionNote } from "./OutcomeNote";
 import { PrivateCta, PrivateNote } from "./PrivateParts";
 import { RangeBand, rangeCtaLabel, RangePlaced } from "./RangeParts";
 import { ReadoutStrip } from "./Readout";
+import { useHeldSeconds } from "@/features/canton-ux/ticket/useHeldSeconds";
+import { HeldPriceRow, WriteProgress } from "./CantonWrite";
 import { BlockedButton } from "./TicketButton";
 import { TicketDrawer } from "./TicketDrawer";
 import { tkType, useTk } from "./tk";
@@ -39,7 +41,23 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
   const said = (write: Promise<unknown>) => void write.catch((error: unknown) => pushToast({ title: NOT_PLACED, description: error instanceof Error ? error.message : String(error), tone: "warning" }));
   const money = (base: bigint) => `${formatBaseUnits(base, c.decimals)} ${c.symbol}`;
 
-  const cta = c.isRange && !c.regionHeld ? (
+  // K-010a (direction B), as web's ticket: the held price on its own row with its ring, and StepProgress in the Buy
+  // button's place while the write is open.
+  const plain = !c.isRange && !c.boosted && !c.privateMode;
+  const writing = plain && c.bet.state.pending;
+  const held = plain ? c.bet.state.held : null;
+  const heldLeft = useHeldSeconds(held?.validUntilMs ?? null);
+  const requoted = plain && !writing && c.bet.state.outcome?.status === "requote" && c.displayed !== null && c.displayed === c.bet.requoteFor(c.market.marketId, c.side, c.stakeBase) ? c.displayed : null;
+  const heldRow =
+    writing && held && (heldLeft ?? 0) > 0 ? (
+      <HeldPriceRow priceCents={held.quote.oddsCents} remainingSec={heldLeft} />
+    ) : requoted && c.bet.state.askedCents !== null ? (
+      <HeldPriceRow priceCents={requoted.oddsCents} remainingSec={null} expired={{ fromCents: c.bet.state.askedCents, toCents: requoted.oddsCents }} />
+    ) : null;
+
+  const cta = writing ? (
+    <WriteProgress phase={c.bet.state.phase} />
+  ) : c.isRange && !c.regionHeld ? (
     <BlockedButton blocker={c.range.blocker} ctx={c.range.ctx} tone="primary" label={rangeCtaLabel(c)} onPress={() => said(c.range.place())} />
   ) : c.boosted ? (
     <BlockedButton blocker={c.blocker} ctx={c.ctx} tone={c.side ?? "primary"} label={c.side && c.boost.quote ? `${LEVERAGE.cta.buy(SIDE_WORD[c.side], c.multiple)} ${money(c.boost.quote.stakeBase)}` : TICKET.buyPlain} onPress={() => said(c.placeBoost())} />
@@ -83,6 +101,7 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
               <Text style={[styles.depthText, { color: tk.ink }]}>{CLOSED.useDepth(money(c.displayed.fillableStakeBase))}</Text>
             </Pressable>
           ) : null}
+          {heldRow}
           <ReadoutStrip cells={c.strip.cells} live={c.strip.live} caption={c.strip.caption} chance={c.strip.chance} note={note} />
           <AccountGate
             session={c.session}
@@ -101,7 +120,7 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
           {c.t.advancedFrom ? <Text style={[tkType.body, { color: tk.inkSecondary }]}>{TICKET.advanced(formatCadence(c.t.advancedFrom.intervalSec), formatCadence(c.market.intervalSec))}</Text> : null}
           {/* web's `.tk-note`: an armed tap the caps refuse signs from the wallet instead, and says so. */}
           {!c.privateMode && !c.isRange && c.routing.fallbackReason ? <Text style={[tkType.caption, styles.note, { color: tk.caption }]}>{c.routing.fallbackReason}</Text> : null}
-          <OutcomeNote state={c.bet.state} decimals={c.decimals} symbol={c.symbol} onDismiss={c.bet.reset} />
+          {requoted ? null : <OutcomeNote state={c.bet.state} decimals={c.decimals} symbol={c.symbol} onDismiss={c.bet.reset} />}
           {cta}
           {c.regionHeld ? <RegionNote /> : null}
           <Text style={[tkType.caption, { color: tk.foot }]}>

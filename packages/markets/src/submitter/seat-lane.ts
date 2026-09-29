@@ -76,7 +76,7 @@ export async function submitSeatOrder(deps: SeatLaneDeps, request: OrderRequest,
   }
 
   const record = await deps.journal.record({ kind: "order", wallet: deps.wallet, summary: `${request.side} ${request.stakeBase} on ${request.market.marketId}`, marketId: request.market.marketId });
-  onPhase?.("submitted");
+  onPhase?.("submitted", { held: { quote: firm.quote, validUntilMs: firm.validUntilMs } });
   const reply = await ledgerRequest(`/quotes/${encodeURIComponent(firm.quoteCid)}/accept`, { method: "POST", body: { commandId: record.id }, wire: acceptReplyWire });
   const deadlineSec = Math.ceil(firm.validUntilMs / 1000);
 

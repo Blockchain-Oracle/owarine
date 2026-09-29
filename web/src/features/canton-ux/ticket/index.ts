@@ -3,3 +3,5 @@ export { DirectionTicket, LiveDirection, type Direction, type FrameState } from 
 export { QuoteRing } from "./QuoteRing";
 export type { FrameQuote } from "./TicketFrame";
 export { WriteProgress } from "./WriteProgress";
+export { HeldPriceRow } from "./HeldPrice";
+export { useHeldSeconds } from "./useHeldSeconds";

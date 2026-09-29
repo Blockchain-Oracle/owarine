@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { TICKET } from "@/lib/copy";
 import { TICKET_CANTON } from "./copy";
+import { HeldPriceRow } from "./HeldPrice";
 import { QuoteRing } from "./QuoteRing";
 import { TicketFrame, type FrameQuote } from "./TicketFrame";
 import { useWriteDemo } from "./useWriteDemo";
@@ -88,15 +89,7 @@ function DirectionB(p: DirectionProps) {
     <TicketFrame
       label={p.label}
       quote={p.quote}
-      beforeStrip={
-        held || state.expired ? (
-          <div className="cx-b-held" data-expired={state.expired ? "" : undefined}>
-            {held && <QuoteRing remainingSec={state.quoteLeftSec ?? 0} />}
-            <span className="cx-b-price">{T.ring.price(state.expired?.toCents ?? p.priceCents)}</span>
-            <span className="cx-b-note">{state.expired ? T.expired.fresh(state.expired.fromCents, state.expired.toCents) : T.ring.heldShort}</span>
-          </div>
-        ) : null
-      }
+      beforeStrip={held || state.expired ? <HeldPriceRow priceCents={p.priceCents} remainingSec={state.quoteLeftSec} expired={state.expired} /> : null}
       cta={
         writing ? (
           <WriteProgress phase={state.phase!} updateId={state.updateId} variant="block" />

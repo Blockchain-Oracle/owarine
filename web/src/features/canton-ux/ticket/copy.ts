@@ -33,6 +33,8 @@ export const TICKET_CANTON = {
   },
   receipt: {
     title: "Your call",
+    update: "Ledger update",
+    updateAria: (id: string) => `Ledger update ${id}: open it on the proof page`,
     market: "Window",
     side: "Side",
     price: "Price",

@@ -14,7 +14,13 @@ import type { GrantKind, VaultCaps } from "../vault/types";
 /** The write-path state machine every surface renders (EXPERIENCE.md). */
 export type WritePhase = "composing" | "submitted" | "confirming" | "confirmed" | "reverted" | "unknown";
 
-export type PhaseListener = (phase: WritePhase, detail?: { txHash?: Signature }) => void;
+/** The firm price the venue holds for this write (Canton's order lane): the ticket's held-price row and its ring. */
+export interface HeldQuote {
+  quote: Quote;
+  validUntilMs: number;
+}
+
+export type PhaseListener = (phase: WritePhase, detail?: { txHash?: Signature; held?: HeldQuote }) => void;
 
 /**
  * The order lane's third dimension (AD-3): the wallet signs its own venue order, or the same

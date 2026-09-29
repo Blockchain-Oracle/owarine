@@ -1,7 +1,7 @@
 "use client";
 
 import { ownCentsOf } from "@agari/core/orders";
-import type { OrderOutcome, OrderRequest, WritePhase } from "@agari/core/ports";
+import type { HeldQuote, OrderOutcome, OrderRequest, WritePhase } from "@agari/core/ports";
 import type { Address, MarketId, Quote, Side, Signature } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
@@ -18,9 +18,15 @@ export interface PlaceBetState {
   txHash: Signature | null;
   /** The Window the outcome is for: a requote is a price on that Book, never on the Window the ticket advanced to. */
   marketId: MarketId | null;
+  /** A write is open (from the click to its outcome); `phase` alone cannot say so, since idle is also "composing". */
+  pending: boolean;
+  /** The firm price the venue holds for this write and until when (Canton's order lane; K-010a's held-price row). */
+  held: HeldQuote | null;
+  /** The price the reader clicked on, in cents: a requote names it beside the fresh one. */
+  askedCents: number | null;
 }
 
-const IDLE: PlaceBetState = { phase: "composing", outcome: null, txHash: null, marketId: null };
+const IDLE: PlaceBetState = { phase: "composing", outcome: null, txHash: null, marketId: null, pending: false, held: null, askedCents: null };
 
 function phaseOf(outcome: OrderOutcome): WritePhase {
   switch (outcome.status) {
@@ -66,17 +72,18 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
     async (request: Omit<OrderRequest, "wallet">) => {
       if (inFlight.current || !submitter || !address) return;
       inFlight.current = true;
-      setState({ phase: "submitted", outcome: null, txHash: null, marketId: request.market.marketId });
+      // "composing" with `pending`: the firm price is being asked for (StepProgress's first step, "Price").
+      setState({ ...IDLE, phase: "composing", pending: true, marketId: request.market.marketId, askedCents: request.displayedQuote.oddsCents });
       try {
         const outcome = await submitter.submitOrder({ ...request, wallet: address }, (phase, detail) =>
-          setState((s) => ({ ...s, phase, txHash: detail?.txHash ?? s.txHash })),
+          setState((s) => ({ ...s, phase, txHash: detail?.txHash ?? s.txHash, held: detail?.held ?? s.held })),
         );
         if (outcome.status === "confirmed" || outcome.status === "resting" || outcome.status === "nothingFilled") {
           // A delegated fill lands on the owner's books, not the key's — refresh the owner too.
           await invalidateAfterWrite(queryClient, { wallet: user.address ?? address, marketId: request.market.marketId });
           if (user.address && user.address !== address) await invalidateAfterWrite(queryClient, { wallet: address });
         }
-        setState({ phase: phaseOf(outcome), outcome, txHash: txHashOf(outcome), marketId: request.market.marketId });
+        setState((s) => ({ ...s, phase: phaseOf(outcome), outcome, txHash: txHashOf(outcome), marketId: request.market.marketId, pending: false, held: null }));
         if (outcome.status === "confirmed") {
           const { booked } = outcome;
           // The bet records the bettor, as the reference's does (`bet_registry::record` inside the bet PTB).
@@ -90,6 +97,8 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
         }
       } finally {
         inFlight.current = false;
+        // A throw out of the lane leaves no outcome; the write is still over.
+        setState((s) => (s.pending ? { ...s, pending: false, held: null } : s));
       }
     },
     [address, queryClient, submitter, user.address],
@@ -106,5 +115,5 @@ export function usePlaceBet(signer?: PlaceBetSigner) {
     [state],
   );
 
-  return { state, place, reset, requoteFor, placing: state.phase === "submitted" };
+  return { state, place, reset, requoteFor, placing: state.pending };
 }
