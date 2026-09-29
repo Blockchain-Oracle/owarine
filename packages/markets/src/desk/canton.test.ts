@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import type { DeskMandateC } from "../ops/agents/decode";
 import { deskAddressOf } from "../ops/agents/ids";
 import {
-  cantonChainHead, DESK_LOT_MULTIPLIER_E12, deskStateOf, GENESIS_HEAD_HEX, heldLotsBySymbol, lotPriceE8, lotsToRaw, lotValue, rawToLots, sealedOf, sellCounted, sellFloorOk, seriesOfSymbol, symbolOfMarket, symbolOfSeries,
+  cantonChainHead, DESK_LOT_MULTIPLIER_E12, deskStateOf, GENESIS_HEAD_HEX, heldLotsBySymbol, lotPriceE8, lotsToRaw, lotValue, rawToLots, sealedOf, sellCounted, sellFloorOk, seriesOfSymbol, symbolOfMarket, symbolOfSeries, ticksOfLotPriceE8,
 } from "./canton";
 import { DESK_MINTS } from "./types";
 
@@ -17,7 +17,14 @@ describe("a lot is the pipeline's token (K-090)", () => {
       expect(valueE6(lotsToRaw(lots), M, lotPriceE8(ticks, CASH_UNIT))).toBe(lotValue(lots, ticks, CASH_UNIT));
       expect(rawFor(lotValue(lots, ticks, CASH_UNIT), M, lotPriceE8(ticks, CASH_UNIT))).toBe(lotsToRaw(lots));
       expect(rawToLots(lotsToRaw(lots))).toBe(lots);
+      expect(ticksOfLotPriceE8(lotPriceE8(ticks, CASH_UNIT), CASH_UNIT)).toBe(ticks);
     }
+  });
+
+  it("reads a lot price back to ticks with integer division, floored, never a float", () => {
+    expect(ticksOfLotPriceE8(lotPriceE8(620, CASH_UNIT) + 99_999n, CASH_UNIT)).toBe(620);
+    expect(ticksOfLotPriceE8(0n, CASH_UNIT)).toBe(0);
+    expect(() => ticksOfLotPriceE8(-1n, CASH_UNIT)).toThrow(RangeError);
   });
 
   it("core's sell value and floor agree with Mandate_Sell's 92 % floor on every lot value", () => {
