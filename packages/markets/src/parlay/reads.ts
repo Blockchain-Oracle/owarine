@@ -1,18 +1,37 @@
 /**
- * The parlay reserve (C8, under `PM.Reserve`). Until it is on the participant: no reserve (null), no tickets, no
- * shares. These are the truthful answers, not faults (D-015).
+ * The parlay reserve on Canton (C8c): the `parlay` ticket reserve and the seat's own `ParlayTicket`s, through
+ * `/api/ledger/tickets/*`. A ticket's legs are decided one at a time in the order their Windows close.
  */
 import type { ParlayReserveState, ParlayTicket } from "@agari/core/parlay";
 import type { ProviderShares } from "@agari/core/reserves";
-import type { Reading } from "@agari/core/schemas";
+import { ok, type Reading } from "@agari/core/schemas";
 import type { Address } from "@agari/core/types";
+import { registeredSeatAddress } from "../provider/ledger-api";
 import { cantonNotLive } from "../stub/not-deployed";
-import { absent } from "../stub/product";
+import { readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";
+import { parlayReserveOf, parlayTicketOf, sharesOf } from "../tickets/views";
 
-/** The reason every parlay quote and write states until the package lands (C8). */
+/** Kept for the reference's export: what a parlay surface says where the ticket desk is not reachable. */
 export const PARLAY_NOT_LIVE = cantonNotLive("parlay");
 
-export const getParlayReserveState = (): Promise<Reading<ParlayReserveState | null>> => absent(null);
-export const getParlay = (_parlayId: bigint): Promise<Reading<ParlayTicket | null>> => absent(null);
-export const listParlaysOf = (_wallet: Address): Promise<Reading<ParlayTicket[]>> => absent([]);
-export const getParlaySharesOf = (_wallet: Address): Promise<Reading<ProviderShares>> => absent({ shares: 0n, worthBase: 0n, suppliedBase: 0n, withdrawnBase: 0n });
+export async function getParlayReserveState(): Promise<Reading<ParlayReserveState | null>> {
+  const r = await readReserve("parlay");
+  return r.ok ? ok(r.value ? parlayReserveOf(r.value) : null, r.asOfMs) : r;
+}
+
+export async function listParlaysOf(wallet: Address): Promise<Reading<ParlayTicket[]>> {
+  const mine = await readTicketsMine();
+  return mine.ok ? ok(mine.value.parlays.map((t) => parlayTicketOf(t, wallet)), mine.asOfMs) : mine;
+}
+
+export async function getParlay(parlayId: bigint): Promise<Reading<ParlayTicket | null>> {
+  const mine = await readTicketsMine();
+  if (!mine.ok) return mine;
+  const t = mine.value.parlays.find((x) => ticketIdOf(x.cid) === parlayId);
+  return ok(t ? parlayTicketOf(t, registeredSeatAddress() ?? ("" as Address)) : null, mine.asOfMs);
+}
+
+export async function getParlaySharesOf(_wallet: Address): Promise<Reading<ProviderShares>> {
+  const mine = await readTicketsMine();
+  return mine.ok ? ok(sharesOf(mine.value, "parlay"), mine.asOfMs) : mine;
+}

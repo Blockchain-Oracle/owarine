@@ -1,22 +1,24 @@
-/** The parlay reserve on Canton (C8). Until it is on the participant: empty reads, a not-live quote, refused writes. */
+/** The parlay reserve on Canton (C8c): reads, prices and writes through `/api/ledger/tickets/*`. */
 import type { ParlayDeployment, ParlayIntent } from "@agari/core/parlay";
 import type { PhaseListener } from "@agari/core/ports";
 import type { MarketsEnv } from "../env";
-import { refusedFor } from "../stub/product";
-import { PARLAY_NOT_LIVE } from "./reads";
+import { nowMs } from "../provider/clock";
+import { allowAllStopGate } from "../submitter/stop-gate";
+import { reserveAddressOf } from "../tickets/client";
 import type { ParlayOpenOutcome, ParlayTxContext } from "./types";
+import { parlayOpenLane } from "./writes";
 
-export { getParlay, getParlayReserveState, getParlaySharesOf, listParlaysOf } from "./reads";
+export { getParlay, getParlayReserveState, getParlaySharesOf, listParlaysOf, PARLAY_NOT_LIVE } from "./reads";
 export { quoteParlayOnchain } from "./quote";
-export { submitParlayOpenWrite, submitParlayTx } from "./writes";
+export { parlayOpenLane, parlayTxLane, submitParlayOpenWrite, submitParlayTx } from "./writes";
 export type { ParlayOpenOutcome, ParlayTxContext } from "./types";
 
-/** No parlay package on the participant yet. */
+/** The parlay reserve's id on Canton (derived; whether it is live is `getParlayReserveState`). */
 export function resolveParlayDeployment(_env?: Partial<MarketsEnv>): ParlayDeployment | null {
-  return null;
+  return { chainId: 0, parlayReserve: reserveAddressOf("parlay"), fromBlock: 0n };
 }
 
-/** The open without a session refuses rather than pretend; nothing is journaled or signed. */
-export async function submitParlayOpen(_ctx: ParlayTxContext, _intent: Extract<ParlayIntent, { kind: "parlay-open" }>, _onPhase?: PhaseListener): Promise<ParlayOpenOutcome> {
-  return refusedFor(PARLAY_NOT_LIVE);
+/** The open outside a session's submitter (scripts): the same ticket lane, journaled in `ctx.journal`, no daily stop. */
+export function submitParlayOpen(ctx: ParlayTxContext, intent: Extract<ParlayIntent, { kind: "parlay-open" }>, onPhase?: PhaseListener): Promise<ParlayOpenOutcome> {
+  return parlayOpenLane({ wallet: ctx.wallet, journal: ctx.journal, stopGate: allowAllStopGate, nowMs }, intent, onPhase);
 }

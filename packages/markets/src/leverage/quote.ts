@@ -1,8 +1,7 @@
 import type { LeverageQuote, LeverageRefusal } from "@agari/core/leverage";
 import type { Reading } from "@agari/core/schemas";
 import { diagnosis, type Diagnosis, type MarketId, type Side } from "@agari/core/types";
-import { unavailableFor } from "../stub/product";
-import { LEVERAGE_NOT_LIVE } from "./deployment";
+import { asReading, boostCall } from "../tickets/client";
 
 /** A refusal in the ticket's words. The reserve's own policy is one kind; the venue's ladder is another. */
 export function refusalDiagnosis(refusal: LeverageRefusal): Diagnosis {
@@ -40,11 +39,20 @@ export function refusalDiagnosis(refusal: LeverageRefusal): Diagnosis {
   }
 }
 
-/** Sizing a boost needs the reserve and the venue ladder (C8); until then the ticket states not-live. */
-export function sizeLeverageForStake(_marketId: MarketId, _side: Side, _stakeBase: bigint, _leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
-  return unavailableFor(LEVERAGE_NOT_LIVE);
+/**
+ * A boost sized stake-first by ops (C8c): the budget the stake and multiple set walks the Window's venue ladder at one
+ * price, and the cost sets the front and premium (core's leverage sizing), exactly as the firm quote will.
+ */
+export async function sizeLeverageForStake(marketId: MarketId, side: Side, stakeBase: bigint, leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
+  return asReading(await boostCall({ op: "preview", marketId, side, stakeBase, leverageBps }), (r) => (r.kind === "preview" ? r.quote : null));
 }
 
-export function previewLeverageOpen(_marketId: MarketId, _side: Side, _quantityRaw: bigint, _leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
-  return unavailableFor(LEVERAGE_NOT_LIVE);
+/**
+ * By size: the stake a size needs is priced by the same stake-first walk, scaled from a one-credit probe. The boost
+ * opens stake-first only, so this is for display and never sent.
+ */
+export async function previewLeverageOpen(marketId: MarketId, side: Side, quantityRaw: bigint, leverageBps: number, maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
+  const probe = await sizeLeverageForStake(marketId, side, 1_000_000n, leverageBps, maintenanceBps);
+  if (!probe.ok || probe.value.quantityRaw === 0n) return probe;
+  return sizeLeverageForStake(marketId, side, (quantityRaw * probe.value.stakeBase) / probe.value.quantityRaw + 1n, leverageBps, maintenanceBps);
 }
