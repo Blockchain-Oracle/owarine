@@ -1,7 +1,10 @@
 import type { TickerSymbol } from "@agari/core/market";
 import type { TraderRanking } from "@agari/core/projection";
 import { ensureMarkets, notDeployedReading, readVenueBoard, readVenueStatic, unwrap, type VenueBoard } from "@agari/markets";
+import type { Address } from "@agari/core/types";
+import { getDb } from "@agari/db";
 import { unstable_cache } from "next/cache";
+import { readVenueFacts } from "@/app/api/venue/venue.server";
 import { webEnv } from "@/lib/env";
 import type { BoardPeriod, BoardSliceWire, LeaderboardPayload } from "./protocol";
 import { latestSession, type BoardSession } from "./session.server";
@@ -40,7 +43,17 @@ const inFlight = new Map<BoardPeriod, Promise<BoardCache>>();
 async function operatorWallets(): Promise<string[]> {
   const listed = (process.env.AGARI_OPERATOR_WALLETS ?? "").split(",").map((w) => w.trim()).filter(Boolean);
   const seats = await readVenueStatic().then((venue) => venue.programSeats as string[]).catch(() => []);
-  return [...new Set([...listed, ...seats])];
+  return [...new Set([...listed, ...seats, ...(await venueParties())])];
+}
+
+/**
+ * On Canton the counterparty of every published call is the venue party itself (the tape's `maker`); it is the house,
+ * never a trader, so it is left off the board. Read from the projection's own stream party.
+ */
+async function venueParties(): Promise<string[]> {
+  const sql = getDb();
+  if (!sql) return [];
+  return sql<{ party: string }[]>`SELECT DISTINCT party FROM idx_cursor`.then((rows) => rows.map((r) => r.party)).catch(() => []);
 }
 
 const rankingsWire = (rankings: readonly TraderRanking[]) => rankings.map((r) => ({ ...r, pnlBase: r.pnlBase.toString(), volumeBase: r.volumeBase.toString() }));
@@ -81,19 +94,21 @@ async function compute(period: BoardPeriod, nowMs: number): Promise<BoardCache> 
   // The deployment's env (`parseMarketsEnv()` with no input is devnet defaults only, with no venue).
   const env = webEnv.markets;
   ensureMarkets(env);
-  // No venue until agari-events is deployed and configured: the board says so instead of ranking nothing.
-  if (!env.venueId) return unwrap(notDeployedReading("no Agari venue configured yet"));
+  // On Canton the venue id is derived from the projection's venue party (`/api/venue` facts); an env override still wins.
+  // No venue at all: the board says so instead of ranking nothing.
+  const venueId = (env.venueId ?? (await readVenueFacts().catch(() => null))?.venue.config ?? null) as Address | null;
+  if (!venueId) return unwrap(notDeployedReading("no Agari venue configured yet"));
   const operators = await operatorWallets();
   if (period === "24h") {
     const board = unwrap(
-      await readVenueBoard({ venueId: env.venueId, windowStartMs: nowMs - DAY_MS, windowEndMs: nowMs, lookbackSec: Math.floor((nowMs - LOOKBACK_MS) / 1000), top: TOP, operators }),
+      await readVenueBoard({ venueId, windowStartMs: nowMs - DAY_MS, windowEndMs: nowMs, lookbackSec: Math.floor((nowMs - LOOKBACK_MS) / 1000), top: TOP, operators }),
     );
     return serialize(board, period, null, nowMs);
   }
   const session = await latestSession(env.priceFeedUrl, Math.floor(nowMs / 1000));
   const endMs = Math.min(nowMs, (session.closeSec + SETTLE_TAIL_SEC) * 1000);
   const board = unwrap(
-    await readVenueBoard({ venueId: env.venueId, windowStartMs: session.openSec * 1000, windowEndMs: endMs, lookbackSec: session.openSec - LONGEST_CADENCE_SEC, top: TOP, operators }),
+    await readVenueBoard({ venueId, windowStartMs: session.openSec * 1000, windowEndMs: endMs, lookbackSec: session.openSec - LONGEST_CADENCE_SEC, top: TOP, operators }),
   );
   return serialize(board, period, session, nowMs);
 }
@@ -108,10 +123,13 @@ function computeBoard(period: BoardPeriod): Promise<BoardCache> {
   return running;
 }
 
+/** Tag on every cached board: a publish or a retraction expires it, so the change is on the next read. */
+export const BOARD_CACHE_TAG = "agari-venue-board";
+
 /** Key by the deployment's data source and the period, never by a per-request timestamp. */
 export function readBoard(period: BoardPeriod): Promise<BoardCache> {
   const { cluster, venueId, indexerUrl } = webEnv.markets;
-  return unstable_cache(() => computeBoard(period), ["agari-venue-board-v4", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180 })();
+  return unstable_cache(() => computeBoard(period), ["agari-venue-board-v5", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
 }
 
 /** The venue's board, or one ticker's slice of it; a ticker with no closed rounds is an empty board, not an error. */

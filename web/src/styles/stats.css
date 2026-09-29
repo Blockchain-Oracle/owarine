@@ -156,3 +156,7 @@
   .stats-row { flex-wrap: wrap; }
   .stats-row-kind { width: auto; }
 }
+
+/* C5: the venue totals and auditor view follow the traction foot as their own block. */
+.stats-audit { margin-top: 48px; }
+.stats-audit ul { margin: 6px 0 0; padding-left: 16px; list-style: disc; }

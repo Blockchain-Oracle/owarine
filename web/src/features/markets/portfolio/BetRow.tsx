@@ -21,6 +21,8 @@ interface BetRowProps {
   cashOutPreview?: CashOutState;
   /** Beside the cadence: the seat's own rows carry "Who can see this" (C-ADD-01). */
   seen?: ReactNode;
+  /** At the row's end: the opt-in "Publish this call" (C5; the portfolio passes it, fixtures and the phone may not). */
+  publish?: ReactNode;
 }
 
 /** UP, DOWN, or both — a position can hold either token, and merging them into one word would hide a hedge. */
@@ -74,7 +76,7 @@ export function CashOutLink(target: CashOutTarget) {
  * Stage 5, and a `1×` on every row would be a number pretending to be a choice.
  * Before lock a one-sided bet carries the plain cash-out (L-35), which Masayume never connected.
  */
-export function BetRow({ position, symbol, nowMs, cashOutPreview, seen }: BetRowProps) {
+export function BetRow({ position, symbol, nowMs, cashOutPreview, seen, publish }: BetRowProps) {
   const state = nowMs > 0 ? countdown(nowMs, position.expirySec, position.intervalSec) : null;
   const settling = state?.settling ?? false;
   const side = heldSide(position.balanceUpRaw, position.balanceDownRaw);
@@ -125,6 +127,7 @@ export function BetRow({ position, symbol, nowMs, cashOutPreview, seen }: BetRow
         ) : (
           <CashOutLink marketId={position.marketId} side={side} heldRaw={side === "up" ? position.balanceUpRaw : position.balanceDownRaw} decimals={position.decimals} symbol={symbol} />
         ))}
+      {publish}
     </li>
   );
 }

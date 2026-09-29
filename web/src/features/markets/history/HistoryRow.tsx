@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { formatCadence } from "@agari/core/copy";
 import { roundSettledAtMs, type SettledRound } from "@agari/core/projection";
 import { OUTCOME_TO_SIDE } from "@agari/core/types";
@@ -23,6 +24,8 @@ interface HistoryRowProps {
   /** Settles a vault round into the Trading Balance — permissionless, so the button is offered to whoever is looking. */
   onCrank?: (round: SettledRound) => void;
   cranking?: boolean;
+  /** The opt-in "Publish this call" for a settled round (C5): published, or why it cannot be now. */
+  publish?: ReactNode;
 }
 
 /** UP, DOWN, or both — from what was held at expiry, or what was traded when the round closed out early. */
@@ -38,7 +41,7 @@ function sidesLabel(round: SettledRound): string {
  * The loss is printed in the same ink as everything else — a fact, not an alarm. The only
  * profit/loss colour on the row is the net figure, by the colour law.
  */
-export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking = false }: HistoryRowProps) {
+export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking = false, publish }: HistoryRowProps) {
   const settledAtMs = roundSettledAtMs(round);
   const claimLine = round.paidByCrank ? HISTORY.paidAutomatically : HISTORY.claim[round.claim];
   const vault = round.source === "vault";
@@ -84,6 +87,7 @@ export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking 
           ↗
         </a>
       )}
+      {publish}
     </li>
   );
 }

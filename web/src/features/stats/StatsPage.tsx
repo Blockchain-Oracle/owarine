@@ -8,6 +8,10 @@ import { GrowthCurve } from "./GrowthCurve";
 import { ActivityList, SectionHead, Stat } from "./StatsSections";
 import type { TractionData } from "./protocol";
 import { useTraction } from "./useTraction";
+import { useCollateralFact } from "@agari/markets/react";
+import type { AuditPayload } from "./audit";
+import { AuditSection } from "./AuditSection";
+import { useAudit } from "./useAudit";
 
 /**
  * `/stats` — ported from `reference/yosuku/app/stats/page.tsx`: the hero that answers "can they
@@ -17,11 +21,23 @@ import { useTraction } from "./useTraction";
  * against a stored high-water mark: a rolling day legitimately goes down.
  */
 export function StatsPage() {
-  return <StatsView reading={useTraction()} nowMs={useChainNowMs()} />;
+  const collateral = useCollateralFact();
+  const units = collateral?.ok ? { decimals: collateral.value.decimals, symbol: collateral.value.symbol } : undefined;
+  return <StatsView reading={useTraction()} nowMs={useChainNowMs()} audit={useAudit()} units={units} />;
 }
 
-/** Every state of the page from one reading, so `/dev/stats` renders it without the route. */
-export function StatsView({ reading, nowMs }: { reading: Reading<TractionData> | null; nowMs: number }) {
+/** Every state of the page from one reading, so `/dev/stats` renders it without the route. `audit` adds sections 04–05 (C5). */
+export function StatsView({
+  reading,
+  nowMs,
+  audit,
+  units,
+}: {
+  reading: Reading<TractionData> | null;
+  nowMs: number;
+  audit?: Reading<AuditPayload> | null;
+  units?: { decimals: number; symbol: string };
+}) {
   const t = reading?.ok ? reading.value : null;
   const failed = reading !== null && !reading.ok;
 
@@ -99,6 +115,7 @@ export function StatsView({ reading, nowMs }: { reading: Reading<TractionData> |
           ) : (
             <div className="stats-unreachable">{STATS.unreachable}</div>
           )}
+          {audit !== undefined && (units ?? t?.meta) && <AuditSection reading={audit} decimals={(units ?? t!.meta).decimals} symbol={(units ?? t!.meta).symbol} />}
         </div>
       </div>
     </div>

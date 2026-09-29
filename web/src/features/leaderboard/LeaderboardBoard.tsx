@@ -1,5 +1,6 @@
 "use client";
 
+import { PUBLISH } from "./publish/copy";
 import { isOk, type Reading } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { formatClock, remainingSec } from "@agari/core/units";
@@ -124,6 +125,7 @@ export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board
       <Hero data={data} nextExpirySec={nextExpirySec} nowMs={nowMs} board={board} onBoard={onBoard} span={span} />
       <div>
         <div className="container">
+          <p className="lb-freshness">{PUBLISH.scope}</p>
           {reading?.ok && (
             <p className="lb-freshness" role="status">
               {LEADERBOARD.updated(reading.asOfMs)}

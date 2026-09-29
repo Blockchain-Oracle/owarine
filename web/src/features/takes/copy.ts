@@ -10,7 +10,7 @@ export const TAKES = {
   pill: "Take",
   postAria: "Post a take",
   anon: "anon",
-  backed: "✓ position",
+  backed: "✓ published call",
   openCall: "open call",
   window: (cadence: string) => `${cadence} Window`,
   noNote: "No note. The call speaks for itself.",

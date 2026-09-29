@@ -28,4 +28,16 @@ CREATE TABLE IF NOT EXISTS print_proofs (
   PRIMARY KEY (feed, boundary_sec)
 );
 CREATE INDEX IF NOT EXISTS print_proofs_symbol_idx ON print_proofs (symbol, boundary_sec DESC);
+
+-- The auditor's independent recount (C5, scripts/drive/recount.ts): the ledger's active contracts at the projection's
+-- cursor offset against the projection's rows, and the venue's reserve recomputed from those contracts against the
+-- reserve reporter's snapshot. One row per run; /stats shows the newest.
+CREATE TABLE IF NOT EXISTS audit_recounts (
+  id             BIGSERIAL PRIMARY KEY,
+  at_ms          BIGINT   NOT NULL,
+  ledger_offset  BIGINT,
+  ok             BOOLEAN  NOT NULL,
+  report         JSONB    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS audit_recounts_at_idx ON audit_recounts (at_ms DESC);
 `;

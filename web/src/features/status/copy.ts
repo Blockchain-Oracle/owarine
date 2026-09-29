@@ -22,8 +22,11 @@ export const STATUS = {
   lastChecked: (clock: string) => `Last checked: ${clock} · Auto-refreshes every 30s`,
 
   pipelines: {
-    rpc: "Ledger API · head",
-    slotLag: "Projector · offsets behind head",
+    rpc: "Canton ledger · ledger end",
+    slotLag: "Projector · offsets behind ledger end",
+    oracle: (name: string) => `Oracle · ${name} freshness`,
+    resolverBacklog: "Resolver · Windows past deadline",
+    settlerBacklog: "Settler · resolved Windows with open legs",
     indexer: "Projector · live lag",
     relay: { pyth: "Price relay · Pyth freshness", redstone: "Price relay · RedStone freshness" },
     mix: (cadence: string) => `Print sources · ${cadence} Windows`,
@@ -33,7 +36,7 @@ export const STATUS = {
     switchboard: "Switchboard · quote success",
     crossCheck: "Cross-check · agreement",
     paused: "Lanes · paused",
-    faucet: "Demo credits budget",
+    faucet: "Faucet budget · SOL and credits",
     sponsor: "Sponsor budget",
     ops: (actor: string) => `Ops · ${actor}`,
     price: (asset: string) => `Price feed · ${asset}`,
@@ -59,7 +62,7 @@ export const STATUS = {
   sources: { 1: "Pyth", 2: "RedStone", 3: "Switchboard", 4: "Attested" } as Readonly<Record<number, string>>,
 
   detail: {
-    rpc: (slot: string, offsetSec: string) => `slot ${slot} · head ${offsetSec}s vs this clock`,
+    rpc: (slot: string, offsetSec: string) => `offset ${slot} · server clock ${offsetSec}s vs this clock`,
     noPrint: "the feed has no print for this asset",
     price: (price: string, printedAt: string) => `${price} · printed ${printedAt}`,
     storeOff: "not connected on this deployment — set DATABASE_URL",
@@ -73,9 +76,17 @@ export const STATUS = {
     noDb: "no database on this deployment — set DATABASE_URL",
     noSessionCalendar: "ops has no session calendar to scope prints by",
     lastSession: (date: string, text: string) => `last session ${date}: ${text}`,
-    slotLag: (slots: number, lastAt: string) => `${plural(slots, "slot")} behind head · last indexed tx ${lastAt}`,
-    slotEmpty: "the index holds no transaction yet",
-    noHead: "no chain head to compare against",
+    slotLag: (offsets: number, lastAt: string) => `${plural(offsets, "offset")} behind the ledger end · cursor moved ${lastAt}`,
+    slotEmpty: "the projection has no cursor yet",
+    noHead: "no ledger end to compare against",
+    oracle: (ageSec: number, recordSec: number | null, recent: number) =>
+      `newest close ${ageSec}s old${recordSec === null ? "" : ` · on the ledger at T + ${recordSec}s`} · ${plural(recent, "boundary", "boundaries")} in 10 min`,
+    oracleNever: "no print from this oracle yet",
+    oracleNone: "no Series lists an oracle yet",
+    resolverClear: "every Window past its close deadline has a Resolution",
+    resolverBacklog: (n: number, ageSec: number) => `${plural(n, "Window")} past the close deadline without a Resolution · oldest ${ageSec}s`,
+    settlerClear: "no resolved Window is waiting on settlement",
+    settlerBacklog: (n: number, ageSec: number) => `${plural(n, "resolved Window")} with users' legs still open · oldest ${ageSec}s after its Resolution`,
     indexer: (subscription: string, txs: number, fills: number, cursor: number | null) =>
       `subscription ${subscription} · ${plural(txs, "tx", "txs")} · ${plural(fills, "fill")} · cursor ${cursor === null ? "none" : n(cursor)}`,
     gaps: (count: number) => plural(count, "open gap"),
@@ -109,10 +120,10 @@ export const STATUS = {
     spot: (why: string) => `spot: ${why}`,
 
     switchboard: "arrives with the token lane (S6)",
-    sponsorOff: "no sponsor on Canton · there is no network fee to pay",
-    sponsorUnread: "the sponsor could not be read · Canton charges no network fee either way",
-    /** "0.29 · a deck needs 0.02 · ready" — the sponsor's balance against the widest deck's envelope (no fee token on Canton). */
-    sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} · a deck needs ${envelope} · ${ready ? "ready" : "below two decks, seats need nothing either way"}`,
+    sponsorOff: "no sponsor key on this deployment · seat keys pay their own fee",
+    sponsorUnread: "the sponsor's balance could not be read · seats fund themselves until it can",
+    /** "0.29 SOL · a deck needs 0.02 SOL · ready" — the sponsor's balance against the widest deck's envelope. */
+    sponsor: (balance: string, envelope: string, ready: boolean) => `${balance} SOL · a deck needs ${envelope} SOL · ${ready ? "ready" : "below two decks, seats fund themselves"}`,
 
     crossCheck: (symbols: string, pairs: number, maxBps: string) => `${symbols} · ${plural(pairs, "pair")} · max ${maxBps} bps`,
     singleSource: "single source · no cross-checked print",
@@ -121,8 +132,7 @@ export const STATUS = {
     noLanes: "the roller reports no lanes",
 
     faucetOff: "not set up on this deployment",
-    /** Canton has no fee token, so only the credits side is said; the first two arguments stay for the probe's call shape. */
-    faucet: (_sol: string, _solLeft: string, tusdcLeft: string | null) =>
-      `${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
+    faucet: (sol: string, solLeft: string, tusdcLeft: string | null) =>
+      `${sol} SOL · ${solLeft} SOL left today · ${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
   },
 } as const;
