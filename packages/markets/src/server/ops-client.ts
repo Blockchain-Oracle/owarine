@@ -16,6 +16,7 @@ import {
   boostTicketReplyWire, earnReplyWire, parlayTicketReplyWire, rangeTicketReplyWire, ticketStateReplyWire,
   type BoostTicketReply, type EarnReply, type ParlayTicketReply, type RangeTicketReply, type TicketStateReply,
 } from "../provider/ticket-wire";
+import { arenaMatchViewWire, arenaStateWire, duelOpenArgsWire, seasonPoolWire, type ArenaMatchViewReply, type ArenaStateReply, type DuelOpenArgs, type SeasonPoolReply } from "../provider/games-wire";
 
 export const OPS_TS_HEADER = "x-agari-ops-ts";
 export const OPS_SIG_HEADER = "x-agari-ops-sig";
@@ -25,6 +26,8 @@ export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
 export const OPS_EXIT_QUOTES_PATH = "/internal/exit-quotes";
 /** The ticket desk (C8c): `range`, `parlay`, `boost`, `earn` and `state` under this prefix. */
 export const OPS_TICKETS_PREFIX = "/internal/tickets/";
+/** The arena desk (C9b): `state`, `match`, `season`, `open` and `season/distribute` under this prefix. */
+export const OPS_GAMES_PREFIX = "/internal/games/";
 
 const TICKET_REPLIES = { range: rangeTicketReplyWire, parlay: parlayTicketReplyWire, boost: boostTicketReplyWire, earn: earnReplyWire } as const;
 export type TicketDeskProduct = keyof typeof TICKET_REPLIES;
@@ -80,6 +83,12 @@ export interface OpsClientConfig {
 export type OpsClient = ReturnType<typeof createOpsClient>;
 
 const rpcDown = (technical: string): Diagnosis => diagnosis("rpc-down", technical);
+
+function parsed<W extends z.ZodType>(r: { ok: true; json: unknown } | { ok: false; diagnosis: Diagnosis }, wire: W, what: string): { ok: true; value: z.output<W> } | { ok: false; diagnosis: Diagnosis } {
+  if (!r.ok) return r;
+  const p = wire.safeParse(r.json);
+  return p.success ? { ok: true, value: p.data } : { ok: false, diagnosis: rpcDown(`ops ${what} did not parse: ${p.error.message.slice(0, 200)}`) };
+}
 
 export function createOpsClient(cfg: OpsClientConfig) {
   const doFetch = cfg.fetch ?? globalThis.fetch;
@@ -185,6 +194,22 @@ export function createOpsClient(cfg: OpsClientConfig) {
       if (!r.ok) return r;
       const parsed = ticketStateReplyWire.safeParse(r.json);
       return parsed.success ? { ok: true, value: parsed.data } : { ok: false, diagnosis: rpcDown(`ops ticket state did not parse: ${parsed.error.message.slice(0, 200)}`) };
+    },
+    /** The arena as ops reads it from the ledger (public facts only). */
+    async gameState(): Promise<{ ok: true; value: ArenaStateReply } | { ok: false; diagnosis: Diagnosis }> {
+      return parsed(await post(`${OPS_GAMES_PREFIX}state`, {}), arenaStateWire, "arena state");
+    },
+    /** One match by its room id, whichever contract holds it now; `view: null` when none does. */
+    async gameMatch(matchId: string): Promise<{ ok: true; value: ArenaMatchViewReply } | { ok: false; diagnosis: Diagnosis }> {
+      return parsed(await post(`${OPS_GAMES_PREFIX}match`, { matchId }), arenaMatchViewWire, "arena match");
+    },
+    async gameSeason(seasonId?: string): Promise<{ ok: true; value: SeasonPoolReply } | { ok: false; diagnosis: Diagnosis }> {
+      return parsed(await post(`${OPS_GAMES_PREFIX}season`, seasonId ? { seasonId } : {}), seasonPoolWire, "season pool");
+    },
+    /** What the creator's `Arena_OpenDuel` needs from the deckmaster: only for the pending match's own creator (WHO from the lease). */
+    async gameOpen(request: { matchId: string; party: string; address: string }): Promise<DuelOpenArgs> {
+      const r = parsed(await post(`${OPS_GAMES_PREFIX}open`, request), duelOpenArgsWire, "duel open");
+      return r.ok ? r.value : { kind: "refused", diagnosis: r.diagnosis };
     },
     async fundSeat(request: { party: string; leaseId: string; address: string }): Promise<SeatFundReply> {
       const r = await post(OPS_SEAT_FUND_PATH, request);

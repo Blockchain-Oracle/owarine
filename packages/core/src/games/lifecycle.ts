@@ -39,7 +39,8 @@ const TERMINAL: ReadonlySet<MatchPhase> = new Set<MatchPhase>(["finalized", "can
  * `creator-cancelled` is a creator withdrawing an unjoined match, not a clock running out. Nobody's
  * fault refunds; a player's absence forfeits.
  */
-export type RefundReason = "creator-cancelled" | "join-timeout" | "reveal-unavailable" | "both-incomplete";
+/** `stale-settlement` is the ledger's own escape (`Duel_RefundStale`): no Window resolved before its refund deadline. */
+export type RefundReason = "creator-cancelled" | "join-timeout" | "reveal-unavailable" | "both-incomplete" | "stale-settlement";
 
 export interface MatchEntry {
   mode: DuelMode;

@@ -17,3 +17,5 @@ export * from "./publish";
 export * from "../provider/ticket-wire";
 export * from "./tickets";
 export * from "./tickets-read";
+export * from "../provider/games-wire";
+export * from "./games";
