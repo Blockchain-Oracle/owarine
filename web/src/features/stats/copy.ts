@@ -39,6 +39,36 @@ export const STATS = {
   },
   foot: "Adoption reads the published calls on every Window that closed in the last 24 hours: the same replay the leaderboard ranks, computed once and shared. Only calls their owners chose to publish; everyone else's trading stays private to them and the venue. Demo cash on a Canton test network.",
   errors: { compute: "Traction could not be computed right now." },
+  /** C5: the venue's own totals (k-floored) and the auditor's view: what the venue holds against what it owes. */
+  venue: {
+    section: { index: "04", title: "Venue totals", tag: "the venue's view · Windows with 5+ traders only" },
+    windows: { label: "Windows closed · 24h", sub: (resolved: number, voided: number) => `${resolved} resolved · ${voided} void` },
+    trades: { label: "Trades", sub: (n: number) => `on ${n} Window${n === 1 ? "" : "s"} with 5+ traders` },
+    volume: { label: "Staked", sub: (symbol: string) => `${symbol} by traders on those Windows` },
+    fees: { label: "Fees earned", sub: "recognised at settlement, never on a void" },
+    withheld: (n: number, floor: number) =>
+      n > 0
+        ? `${n} Window${n === 1 ? "" : "s"} had fewer than ${floor} traders, so ${n === 1 ? "its" : "their"} figures are left out: a total never describes one or two people.`
+        : `Every traded Window here had at least ${floor} traders.`,
+    unavailable: "The venue's projection is not reachable, so its totals cannot be shown.",
+  },
+  audit: {
+    section: { index: "05", title: "Auditor view", tag: "reserve · independent recount" },
+    free: { label: "Free cash", sub: "the venue's trading cash" },
+    locked: { label: "Locked in quotes", sub: (n: number) => `${n} live quote${n === 1 ? "" : "s"}` },
+    backing: { label: "Leg backing", sub: "venue legs + users' stakes and fees" },
+    owed: { label: "Most it can owe", sub: (n: number) => `every user leg winning · ${n} open leg${n === 1 ? "" : "s"}` },
+    headroom: (v: string, symbol: string, asOf: string) => `Headroom ${v} ${symbol}: held minus the most owed, as of ${asOf}. Never negative on a solvent venue.`,
+    reserveDown: (why: string) => `Reserve snapshot unavailable: ${why}.`,
+    recountTitle: "Independent recount",
+    recountNone: "No recount recorded yet. Run scripts/drive/recount.ts to add one.",
+    recountHead: (ok: boolean, offset: string, at: string) => `${ok ? "Agrees" : "Differs"} at ledger offset ${offset} · ${at}`,
+    recountTemplate: (t: string, ledger: number, projection: number) => `${t}: ledger ${ledger} · projection ${projection}`,
+    recountReserve: (matches: boolean) => (matches ? "Reserve recomputed from the ledger matches the projection's legs and quotes." : "Reserve recomputed from the ledger differs from the projection."),
+    recountReporter: (same: boolean, at: string) => `Against the reserve reporter's snapshot of ${at}: ${same ? "the same figures" : "the figures moved between the two reads"}.`,
+    explain:
+      "The recount re-reads the venue's active contracts straight from the ledger at the projection's offset and compares them contract by contract with the rows every page here is built from, then recomputes the reserve from those contracts. On a demo network the venue mints its own cash, so solvency is a claim this view lets anyone check.",
+  },
 } as const;
 
 /** The reference's `ago()`, verbatim. */

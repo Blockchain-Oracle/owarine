@@ -9,6 +9,8 @@ export { projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type Verif
 export { tapeActions, tapeFills, tapeMarkets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";
 export { proofArchives, proofPrints, proofWindow, type ProofArchiveRow, type ProofPrintRow, type ProofWindowRow } from "./idx/read-proof";
 export { publishedOn } from "./idx/read-publications";
+export { venueStats, type VenueStatsRow } from "./idx/read-venue-stats";
+export { latestRecount, recordRecount, type RecountRow } from "./audit";
 export { statusReader, type CrossCheckRow, type PrintMixRow, type StatusReader } from "./idx/read-status";
 export {
   crowdFlow,

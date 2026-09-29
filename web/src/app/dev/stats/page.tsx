@@ -4,6 +4,7 @@ import { oneUnit } from "@agari/core/units";
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import { SectionHeader } from "@/components/chrome";
 import { StatsView, type TractionData } from "@/features/stats";
+import type { AuditPayload } from "@/features/stats/audit";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 import { DECIMALS, FIXED_NOW_MS, SYMBOL } from "../states/fixtures";
 
@@ -15,6 +16,7 @@ const DEV = {
   none: "No calls yet",
   reading: "Reading",
   failed: "Failed",
+  recountDiff: "The auditor view when the recount found a difference",
 } as const;
 
 const ONE = oneUnit(DECIMALS);
@@ -44,8 +46,35 @@ function traction(wallets: number, calls: number, complete: boolean, unattribute
   return { wallets, calls, cashOuts: Math.floor(calls / 5), stakedBase: BigInt(calls * 2) * ONE, unattributed, windows: 337, settledWindows: 331, curve: calls > 0 ? curve : [], recent, meta: meta(complete) };
 }
 
-const READINGS: { title: string; reading: Reading<TractionData> | null }[] = [
-  { title: DEV.full, reading: ok(traction(3, 72, true, 0), FIXED_NOW_MS) },
+const U = (n: number) => (BigInt(n) * ONE).toString();
+const RESERVE = { asOfMs: FIXED_NOW_MS - 12_000, freeBase: U(48_210), lockedBase: U(1_140), venueLegBase: U(2_380), userLegBase: U(1_655), maxOwedBase: U(4_020), headroomBase: U(49_365), openLegs: 14, liveQuotes: 3 };
+const { asOfMs: _asOf, ...AT_OFFSET } = RESERVE;
+const TEMPLATES = { "PM.Leg:Leg": [14, 14], "PM.Quote:Quote": [3, 3], "PM.Market:Resolution": [331, 331], "PM.Publication:Publication": [9, 9] } as const;
+
+/** C5: the venue totals and auditor view over canned rows, one agreeing recount and one that found a diff. */
+function audit(agrees: boolean): Reading<AuditPayload> {
+  const ledger = Object.fromEntries(Object.entries(TEMPLATES).map(([t, [l]]) => [t, l]));
+  const projection = Object.fromEntries(Object.entries(TEMPLATES).map(([t, [, p]]) => [t, agrees ? p : t === "PM.Leg:Leg" ? p - 1 : p]));
+  return ok(
+    {
+      checkedAtMs: FIXED_NOW_MS,
+      venue: { windows: 337, resolved: 329, voided: 2, publicWindows: 41, withheldWindows: 12, trades: "506", volumeBase: U(12_480), feesBase: U(96), payoutsBase: U(11_870), floor: 5 },
+      reserve: { ok: true, value: RESERVE },
+      recount: {
+        atMs: FIXED_NOW_MS - 300_000,
+        offset: 48_213,
+        ok: agrees,
+        projection: { ok: agrees, ledger, projection, mismatches: agrees ? [] : ["PM.Leg:Leg: 1 live on the ledger, not in the projection (00a1b2c3d4e5…)"] },
+        reserve: { atOffset: AT_OFFSET, matchesProjection: agrees, reporter: RESERVE, reporterWhy: null },
+      },
+    },
+    FIXED_NOW_MS,
+  );
+}
+
+const READINGS: { title: string; reading: Reading<TractionData> | null; audit?: Reading<AuditPayload> }[] = [
+  { title: DEV.full, reading: ok(traction(3, 72, true, 0), FIXED_NOW_MS), audit: audit(true) },
+  { title: DEV.recountDiff, reading: ok(traction(3, 72, true, 0), FIXED_NOW_MS), audit: audit(false) },
   { title: DEV.partial, reading: ok(traction(41, 1_280, false, 2), FIXED_NOW_MS) },
   { title: DEV.none, reading: ok(traction(0, 0, true, 0), FIXED_NOW_MS) },
   { title: DEV.reading, reading: null },
@@ -64,7 +93,7 @@ export default function DevStatsPage() {
           <div className="mx-auto w-full max-w-(--content-wide) px-gutter">
             <SectionHeader index={String(i + 1).padStart(2, "0")} title={entry.title} />
           </div>
-          <StatsView reading={entry.reading} nowMs={FIXED_NOW_MS} />
+          <StatsView reading={entry.reading} nowMs={FIXED_NOW_MS} audit={entry.audit} />
         </section>
       ))}
     </div>
