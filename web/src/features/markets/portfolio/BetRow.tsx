@@ -4,13 +4,13 @@ import { countdown } from "@agari/core/lifecycle";
 import type { OpenPosition, Side } from "@agari/core/types";
 import { marketDeepLink } from "@agari/core/urls";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { AssetDisc } from "../hero/asset-mark";
 import { SIDE_WORD } from "../side-styles";
 import { CASH_OUT, useCashOut, type CashOutTarget } from "./useCashOut";
-import { WhoCanSee } from "@/features/canton-ux/privacy";
 
 interface BetRowProps {
   position: OpenPosition;
@@ -19,6 +19,8 @@ interface BetRowProps {
   nowMs: number;
   /** Fixtures only: a canned cash-out state instead of the live link. */
   cashOutPreview?: CashOutState;
+  /** Beside the cadence: the seat's own rows carry "Who can see this" (C-ADD-01). */
+  seen?: ReactNode;
 }
 
 /** UP, DOWN, or both — a position can hold either token, and merging them into one word would hide a hedge. */
@@ -72,7 +74,7 @@ export function CashOutLink(target: CashOutTarget) {
  * Stage 5, and a `1×` on every row would be a number pretending to be a choice.
  * Before lock a one-sided bet carries the plain cash-out (L-35), which Masayume never connected.
  */
-export function BetRow({ position, symbol, nowMs, cashOutPreview }: BetRowProps) {
+export function BetRow({ position, symbol, nowMs, cashOutPreview, seen }: BetRowProps) {
   const state = nowMs > 0 ? countdown(nowMs, position.expirySec, position.intervalSec) : null;
   const settling = state?.settling ?? false;
   const side = heldSide(position.balanceUpRaw, position.balanceDownRaw);
@@ -97,8 +99,8 @@ export function BetRow({ position, symbol, nowMs, cashOutPreview }: BetRowProps)
         {position.asset} {sideLabel(position)}
       </Link>
       <span className="type-label-micro text-ink-muted">{formatCadence(position.intervalSec)}</span>
-      {/* C-ADD-01: a position is a contract between the seat and the venue; the chip says so. */}
-      <WhoCanSee kind="position" />
+      {/* C-ADD-01: the portfolio passes "Who can see this" here (a DOM chip, so the phone's rows never import it). */}
+      {seen}
 
       {!settling && (
         <span className="type-caption text-ink-secondary">

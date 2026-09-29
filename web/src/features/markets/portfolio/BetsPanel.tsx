@@ -21,6 +21,7 @@ import { useChainNowMs } from "../useChainNow";
 import { BetRow } from "./BetRow";
 import { useRestingItems } from "./RestingRows";
 import { useSessionPhrase } from "@/lib/when";
+import { WhoCanSee } from "@/features/canton-ux/privacy";
 
 const PAGE_SIZE = 8;
 type Tab = "open" | "history";
@@ -79,7 +80,7 @@ export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
   };
 
   const positionItems: ListItem[] =
-    reading && isOk(reading) ? reading.value.map((position) => ({ key: `wallet:${position.marketId}`, node: <BetRow position={position} symbol={symbol} nowMs={nowMs} /> })) : [];
+    reading && isOk(reading) ? reading.value.map((position) => ({ key: `wallet:${position.marketId}`, node: <BetRow position={position} symbol={symbol} nowMs={nowMs} seen={<WhoCanSee kind="position" />} /> })) : [];
   const openItems = [...resting.items, ...positionItems, ...vault.items, ...boosts.live];
   const pager = usePager(openItems, PAGE_SIZE);
   // The tab answers once every source has: a wallet read alone said "0 open" while an X trade (a vault bet) was still
