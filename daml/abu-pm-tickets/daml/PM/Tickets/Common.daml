@@ -1,0 +1,50 @@
+-- | Shared helpers for the specialist tickets (range, moonshot, boost,
+-- short, parlay) and Earn.
+--
+-- Every ticket is house-banked by one `PM.Reserve` reserve. The reserve's
+-- capital is venue cash tagged `reserve:<id>` (`reserveBucket`). A ticket
+-- locks the reserve's part of its promise out of such a shard at issue, so
+-- a live ticket is always fully escrowed: nothing it can pay is fetched
+-- later. Money that returns to the reserve (a loss, a void's house part, an
+-- expired quote) is paid back into the same bucket, which is what Earn's
+-- NAV counts.
+--
+-- Every user contract has exactly two stakeholders, the user and the venue.
+module PM.Tickets.Common where
+
+import PM.Money
+import PM.Reserve (maxReserveUnits, reserveBucket)
+import PM.Types
+
+-- | Bound on any one ticket's amounts, so every sum below fits Int64.
+ticketUnitsOk : Int -> Bool
+ticketUnitsOk x = x >= 0 && x <= maxReserveUnits
+
+-- | Consume a venue shard of the reserve's own bucket and lock `amount`
+-- from it; the rest comes back to the reserve as change.
+lockFromReserve : Party -> Text -> ContractId VenueCash -> Int -> Update (Optional (ContractId VenueCash))
+lockFromReserve venue reserveId shardCid amount = do
+  shard <- fetch shardCid
+  require "bad-shard" "shard must be the venue's own, from this reserve"
+    (shard.owner == venue && shard.venue == venue && shard.bucket == reserveBucket reserveId)
+  require "shard-too-small" "shard does not cover the reserve's lock" (shard.amount >= amount)
+  archive shardCid
+  payIfPositive venue venue (shard.amount - amount) shard.bucket
+
+-- | Pay `amount` back into the reserve's bucket.
+payReserve : Party -> Text -> Int -> Update (Optional (ContractId VenueCash))
+payReserve venue reserveId amount = payIfPositive venue venue amount (reserveBucket reserveId)
+
+-- | What a ticket's settlement paid: the owner's part and the reserve's.
+data Paid = Paid
+  with
+    toOwner : Optional (ContractId VenueCash)
+    toReserve : Optional (ContractId VenueCash)
+  deriving (Eq, Show)
+
+-- | Pay the owner and the reserve in one step.
+payBoth : Party -> Party -> Text -> Int -> Int -> Text -> Update Paid
+payBoth venue owner reserveId ownerAmount reserveAmount ownerBucket = do
+  o <- payIfPositive venue owner ownerAmount ownerBucket
+  r <- payReserve venue reserveId reserveAmount
+  pure Paid with toOwner = o; toReserve = r

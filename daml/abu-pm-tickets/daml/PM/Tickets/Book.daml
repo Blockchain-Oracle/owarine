@@ -1,0 +1,132 @@
+-- | One reserve's risk book and ticket desk: every specialist ticket is
+-- issued here, so the reserve's caps are checked by the ledger at issue
+-- (the reference's `reserve.rs` exposure and per-expiry caps, and the
+-- leverage reserve's per-position and per-Window caps).
+--
+-- `RiskBook` is venue-only (no observer: an observer of a consuming choice
+-- would see every quote, and so who is quoted). Issuing consumes it and
+-- recreates it with the new lock booked against the ticket's expiry, so the
+-- issuer is serialised per reserve. That is the issuer's own queue, never a
+-- user's: accept, settle, claim and refund never touch the book.
+--
+-- What the book counts is the reserve capital a ticket locks at issue (the
+-- house part of a round or parlay, the front of a boost), booked against
+-- the boundary on which the ticket comes due. The caps:
+--   maxPerTicket    one ticket's size (range and parlay: maxPayout; boost:
+--                   the front)
+--   maxPerExpiry    the locks coming due at one boundary
+--   maxExposureBps  all live locks, against the reserve's stated assets
+--                   (the live `NavStatement`)
+-- Stricter than the reference in one way, on purpose: a lock stays booked
+-- until its boundary passes (`Book_Prune`), including a quote that was
+-- never accepted, so the book never needs the settle path.
+module PM.Tickets.Book where
+
+import DA.Assert (assertDeadlineExceeded)
+import qualified DA.Map as Map
+import PM.Market
+import PM.Money
+import PM.Reserve
+import PM.Tickets.Common
+import PM.Tickets.Range
+import PM.Types
+
+data Product = RangeProduct | ParlayProduct | BoostProduct
+  deriving (Eq, Show)
+
+data RiskParams = RiskParams
+  with
+    maxExposureBps : Int
+    maxPerTicket : Int
+    maxPerExpiry : Int
+    maxLeverageBps : Int
+      -- ^ boost only: 20000 = 2x; 10000 (1x) for the other products
+  deriving (Eq, Show)
+
+riskParamsOk : RiskParams -> Bool
+riskParamsOk p =
+  p.maxExposureBps > 0 && p.maxExposureBps <= 10000
+    && p.maxPerTicket > 0 && ticketUnitsOk p.maxPerTicket
+    && p.maxPerExpiry > 0 && ticketUnitsOk p.maxPerExpiry
+    && p.maxLeverageBps >= 10000 && p.maxLeverageBps <= 100000
+
+template RiskBook
+  with
+    venue : Party
+    reserveId : Text
+    product : Product
+    params : RiskParams
+    locked : Map.Map Time Int
+      -- ^ reserve capital locked by live tickets, per boundary
+  where
+    signatory venue
+    ensure reserveId /= "" && riskParamsOk params && all (\x -> x > 0 && ticketUnitsOk x) (Map.values locked)
+
+    choice Book_IssueRange : (ContractId RiskBook, ContractId RangeQuote, Optional (ContractId VenueCash))
+      with
+        navCid : ContractId NavStatement
+        shardCid : ContractId VenueCash
+        user : Party
+        termsCid : ContractId MarketTerms
+        kind : RangeKind
+        side : RangeSide
+        lowE8 : Int
+        highE8 : Int
+        stake : Int
+        maxPayout : Int
+        validUntil : Time
+      controller venue
+      do
+        require "wrong-product" "this book issues another product" (product == RangeProduct)
+        terms <- fetchTerms venue termsCid
+        require "bad-band" "band must be 0 < low < high" (bandOk lowE8 highE8)
+        require "bad-amount" "stake must be in (0, maxPayout)" (rangeAmountsOk stake maxPayout)
+        let houseLocked = maxPayout - stake
+        book <- takeRisk this navCid terms.expiry maxPayout houseLocked
+        change <- lockFromReserve venue reserveId shardCid houseLocked
+        q <- create RangeQuote with
+          venue; user; reserveId; termsCid; marketId = terms.marketId; kind; side
+          lowE8; highE8; stake; maxPayout; validUntil
+          lockAt = terms.lockAt; expiry = terms.expiry; refundAfter = terms.refundAfter
+        pure (book, q, change)
+
+    -- Release the locks of boundaries that have passed: their tickets are
+    -- decided by a recorded print, no longer by the market.
+    choice Book_Prune : ContractId RiskBook
+      with
+        before : Time
+      controller venue
+      do
+        assertDeadlineExceeded "prune-before" before
+        create this with locked = Map.filterWithKey (\k _ -> k >= before) locked
+
+    choice Book_SetParams : ContractId RiskBook
+      with
+        newParams : RiskParams
+      controller venue
+      do
+        require "bad-params" "invalid risk parameters" (riskParamsOk newParams)
+        create this with params = newParams
+
+fetchTerms : Party -> ContractId MarketTerms -> Update MarketTerms
+fetchTerms venue termsCid = do
+  t <- fetch termsCid
+  require "wrong-venue" "terms belong to another venue" (t.venue == venue)
+  pure t
+
+-- | Book `amount` of reserve capital against `expiry` after checking the
+-- three caps; returns the recreated book. `size` is what `maxPerTicket`
+-- bounds.
+takeRisk : RiskBook -> ContractId NavStatement -> Time -> Int -> Int -> Update (ContractId RiskBook)
+takeRisk book navCid expiry size amount = do
+  nav <- fetch navCid
+  require "wrong-nav" "statement is for another reserve"
+    (nav.venue == book.venue && nav.reserveId == book.reserveId)
+  require "over-ticket-cap" "ticket is above the reserve's per-ticket cap" (size <= book.params.maxPerTicket)
+  let atExpiry = optional 0 identity (Map.lookup expiry book.locked) + amount
+      total = sum (Map.values book.locked) + amount
+  require "over-expiry-cap" "too much of the reserve comes due at this boundary" (atExpiry <= book.params.maxPerExpiry)
+  require "over-exposure" "the reserve's live locks would exceed its exposure cap"
+    (total <= mulDivFloor nav.assets book.params.maxExposureBps 10000)
+  if amount == 0 then create book
+  else create book with locked = Map.insert expiry atExpiry book.locked

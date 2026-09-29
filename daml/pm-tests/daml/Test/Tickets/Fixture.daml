@@ -1,0 +1,129 @@
+-- | Shared fixtures for the tickets money gate (abu-pm-tickets).
+--
+-- One reserve "T1", seeded by an LP (`carol`) with 100,000 at NAV 1, and
+-- one RiskBook per product on it. The market fixtures are Test.Setup's
+-- (BTC 300 s window 0: lockAt +270, expiry +300, close deadline +420,
+-- refundAfter +1020).
+--
+-- Conservation for tickets: `ticketsTotal` is the engine's `ledgerTotal`
+-- (cash, quotes, legs at their resolution-aware value, grants, residuals)
+-- plus every ticket escrow and every locked withdraw. It only changes when
+-- cash is minted (a credit or a shard) or withdrawn off the venue.
+module Test.Tickets.Fixture where
+
+import Daml.Script
+import DA.Assert ((===))
+import qualified DA.Map as Map
+import PM.Market
+import PM.Money
+import PM.Reserve
+import PM.Tickets.Book
+import PM.Tickets.Range
+import Test.Conservation (ledgerTotal)
+import Test.Setup
+
+rid : Text
+rid = "T1"
+
+px : Int
+px = 6500000000000
+
+seedAssets : Int
+seedAssets = 100000
+
+data TW = TW
+  with
+    w : World
+    win : Win
+    win1 : Win
+      -- ^ the next window, for resolutions of other terms
+    lp : Party
+    nav : ContractId NavStatement
+    lpShare : ContractId LpShare
+
+-- | World, windows 0 and 1 (no prints yet), a reserve seeded by the LP.
+mkTickets : Script TW
+mkTickets = do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, win) <- openWin w s 0
+  (_, win1) <- openWin w s1 1
+  lp <- allocateParty "carol"
+  nav0 <- submit w.venue do
+    createCmd NavStatement with
+      venue = w.venue; auditor = w.auditor; reserveId = rid; seq = 0; asOf = t0; assets = 0; shares = 0
+  q <- submit w.venue do
+    exerciseCmd nav0 Nav_IssueSupply with provider = lp; cashIn = seedAssets; validUntil = plus t0 20
+  c <- fund w lp seedAssets
+  (lpShare, _, _) <- submit lp do exerciseCmd q Supply_Accept with cash = [c]
+  nav <- submit w.venue do
+    exerciseCmd nav0 Nav_Publish with newAsOf = t0; newAssets = seedAssets; newShares = seedAssets
+  pure TW with ..
+
+riskParams : RiskParams
+riskParams = RiskParams with
+  maxExposureBps = 5000; maxPerTicket = 20000; maxPerExpiry = 30000; maxLeverageBps = 30000
+
+mkBook : TW -> Product -> Script (ContractId RiskBook)
+mkBook tw product = submit tw.w.venue do
+  createCmd RiskBook with venue = tw.w.venue; reserveId = rid; product; params = riskParams; locked = Map.empty
+
+-- | A venue shard in the reserve's bucket (reserve cash the venue holds).
+reserveShard : World -> Int -> Script (ContractId VenueCash)
+reserveShard w amount = submit w.venue do
+  createCmd VenueCash with venue = w.venue; owner = w.venue; amount; bucket = reserveBucket rid
+
+-- | Cash in the reserve's bucket.
+reserveCash : World -> Script Int
+reserveCash w = do
+  cs <- query @VenueCash w.venue
+  pure (sum [c.amount | (_, c) <- cs, c.owner == w.venue, c.bucket == reserveBucket rid])
+
+-- | The single reserve shard holding the whole bucket (merged first).
+reserveAll : World -> Script (ContractId VenueCash)
+reserveAll w = do
+  cs <- query @VenueCash w.venue
+  case [c | (c, x) <- cs, x.owner == w.venue, x.bucket == reserveBucket rid] of
+    [] -> abort "the reserve has no cash"
+    (c :: others) -> if null others then pure c
+      else submit w.venue do exerciseCmd c VenueCash_Merge with others
+
+-- | Conservation measure: engine total plus every ticket escrow.
+ticketsTotal : World -> Script Int
+ticketsTotal w = do
+  base <- ledgerTotal w
+  rq <- query @RangeQuote w.venue
+  rr <- query @RangeRound w.venue
+  wq <- query @WithdrawQuote w.venue
+  pure (base
+    + sum [q.maxPayout - q.stake | (_, q) <- rq]
+    + sum [r.maxPayout | (_, r) <- rr]
+    + sum [q.cashOut | (_, q) <- wq])
+
+-- | Assert the total moved by exactly `delta` since `before`.
+conserved : World -> Int -> Int -> Script ()
+conserved w before delta = do
+  now <- ticketsTotal w
+  now === before + delta
+
+-- | Issue a range quote from a fresh reserve shard of exactly the lock.
+issueRange : TW -> ContractId RiskBook -> Party -> RangeKind -> RangeSide -> Int -> Int -> Int -> Int -> Time
+  -> Script (ContractId RiskBook, ContractId RangeQuote)
+issueRange tw book user kind side lowE8 highE8 stake maxPayout validUntil = do
+  sh <- reserveAll tw.w
+  (b, q, _) <- submit tw.w.venue do
+    exerciseCmd book Book_IssueRange with
+      navCid = tw.nav; shardCid = sh; user; termsCid = tw.win.terms; kind; side
+      lowE8; highE8; stake; maxPayout; validUntil
+  pure (b, q)
+
+-- | Fund the user with exactly the stake and accept.
+acceptRange : World -> Party -> ContractId RangeQuote -> Int -> Script (ContractId RangeRound)
+acceptRange w user q stake = do
+  c <- fund w user stake
+  (r, _) <- submit user do exerciseCmd q RangeQuote_Accept with cash = [c]
+  pure r
+
+-- | Resolution for the window with a close at `close`; the open was px.
+closeAt : TW -> ContractId OpenPrint -> Int -> Script (ContractId Resolution)
+closeAt tw op close = resolveAt tw.w tw.win op close

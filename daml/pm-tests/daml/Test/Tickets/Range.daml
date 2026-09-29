@@ -1,0 +1,385 @@
+-- | Range and Moonshot money gate: conservation after every step, void
+-- returns the stake, settle once, claim equals settle, deadline races,
+-- the reserve's caps, the venue cannot confiscate, the outsider sees
+-- nothing, and a seeded random sequence.
+module Test.Tickets.Range where
+
+import Daml.Script
+import DA.Action (foldlA, void)
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List ((!!))
+import qualified DA.Map as Map
+import PM.Market
+import PM.Reserve
+import PM.Tickets.Book
+import PM.Tickets.Range
+import Test.Setup
+import Test.Tickets.Fixture
+
+lo, hi : Int
+lo = px - px / 100
+hi = px + px / 100
+
+-- Three rounds (inside, outside, a Moonshot LONG) settled on one close:
+-- every step conserves, the payouts are exact and the reserve's PnL is
+-- what the three rounds say.
+testRangeSettleConservation = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  op <- recordOpen w tw.win px
+  total0 <- ticketsTotal w
+  (book, qa) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  conserved w total0 0
+  reserveCash w >>= (=== seedAssets - 600)
+  (book, qb) <- issueRange tw book w.bob RangeTicket Outside lo hi 700 1000 (plus t0 40)
+  (_, qm) <- issueRange tw book w.alice Moonshot Inside (px + px / 50) (4 * px) 100 1000 (plus t0 40)
+  conserved w total0 0
+  ra <- acceptRange w w.alice qa 400
+  conserved w total0 400
+  rb <- acceptRange w w.bob qb 700
+  rm <- acceptRange w w.alice qm 100
+  conserved w total0 1200
+  reserveCash w >>= (=== seedAssets - 600 - 300 - 900)
+  res <- closeAt tw op (px + 1)
+  conserved w total0 1200
+  forA_ [ra, rb, rm] \r -> do
+    _ <- submit w.venue do exerciseCmd r Round_Settle with resolutionCid = res
+    conserved w total0 1200
+  cashOf w.alice >>= (=== 1000)
+  cashOf w.bob >>= (=== 0)
+  -- reserve PnL: -600 (alice won) + 700 (bob lost) + 100 (moonshot lost)
+  reserveCash w >>= (=== seedAssets + 200)
+  (length <$> query @RangeRound w.venue) >>= (=== 0)
+
+-- A voided Window returns the stake to the owner and the lock to the
+-- reserve, through settle, claim and the stale refund alike.
+testRangeVoidReturnsStake = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  op <- recordOpen w tw.win px
+  (book, qa) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  (_, qb) <- issueRange tw book w.bob RangeTicket Outside lo hi 250 1000 (plus t0 40)
+  ra <- acceptRange w w.alice qa 400
+  rb <- acceptRange w w.bob qb 250
+  total0 <- ticketsTotal w
+  res <- voidClose w tw.win op
+  _ <- submit w.venue do exerciseCmd ra Round_Settle with resolutionCid = res
+  d <- disclosureOf w.venue res
+  _ <- submit (actAs w.bob <> disclose d) do exerciseCmd rb Round_Claim with resolutionCid = res
+  conserved w total0 0
+  cashOf w.alice >>= (=== 400)
+  cashOf w.bob >>= (=== 250)
+  reserveCash w >>= (=== seedAssets)
+
+-- Settle once; the owner's claim pays exactly what the venue's settle pays
+-- (win, loss, void), and needs the Resolution disclosed.
+testRangeSettleOnceClaimEqualsSettle = script do
+  forA_ [("win", Some (px + 5)), ("loss", Some (hi + 1)), ("void", None)] \(label, close) -> do
+    tw <- mkTickets
+    let w = tw.w
+    book <- mkBook tw RangeProduct
+    op <- recordOpen w tw.win px
+    (book, qa) <- issueRange tw book w.alice RangeTicket Inside lo hi 300 900 (plus t0 40)
+    (_, qb) <- issueRange tw book w.bob RangeTicket Inside lo hi 300 900 (plus t0 40)
+    ra <- acceptRange w w.alice qa 300
+    rb <- acceptRange w w.bob qb 300
+    res <- case close of
+      Some c -> closeAt tw op c
+      None -> voidClose w tw.win op
+    fails =<< trySubmit w.alice do exerciseCmd ra Round_Claim with resolutionCid = res
+    d <- disclosureOf w.venue res
+    _ <- submit (actAs w.alice <> disclose d) do exerciseCmd ra Round_Claim with resolutionCid = res
+    _ <- submit w.venue do exerciseCmd rb Round_Settle with resolutionCid = res
+    ca <- cashOf w.alice
+    cb <- cashOf w.bob
+    debug (label <> ": claim " <> show ca <> ", settle " <> show cb)
+    ca === cb
+    -- once only, by either path
+    fails =<< trySubmit w.venue do exerciseCmd rb Round_Settle with resolutionCid = res
+    fails =<< trySubmit (actAs w.alice <> disclose d) do exerciseCmd ra Round_Claim with resolutionCid = res
+    fails =<< trySubmit w.bob do exerciseCmd rb Round_RefundStale
+
+data Winner = FirstWins | SecondWins | Neither
+  deriving (Eq, Show)
+
+verdict : Either SubmitError a -> Either SubmitError b -> Winner
+verdict (Right _) (Left _) = FirstWins
+verdict (Left _) (Right _) = SecondWins
+verdict (Left _) (Left _) = Neither
+verdict _ _ = error "both consumed the contract"
+
+-- Accept vs expire around validUntil V = t0 + 40 (sweep from V + 5 s), in
+-- both orders.
+raceAccept : Int -> Bool -> Script Winner
+raceAccept offset acceptFirst = do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  c <- fund w w.alice 400
+  at (plus t0 offset)
+  let acceptIt = trySubmit w.alice do exerciseCmd q RangeQuote_Accept with cash = [c]
+      expireIt = trySubmit w.venue do exerciseCmd q RangeQuote_Expire
+  if acceptFirst
+    then do a <- acceptIt; e <- expireIt; pure (verdict a e)
+    else do e <- expireIt; a <- acceptIt; pure (verdict a e)
+
+-- Settle vs stale refund around refundAfter R, in both orders.
+raceSettle : Int -> Bool -> Script Winner
+raceSettle offset settleFirst = do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  op <- recordOpen w tw.win px
+  (_, q) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  r <- acceptRange w w.alice q 400
+  res <- closeAt tw op px
+  at (plus tw.win.t.refundAfter offset)
+  let settleIt = trySubmit w.venue do exerciseCmd r Round_Settle with resolutionCid = res
+      refundIt = trySubmit w.alice do exerciseCmd r Round_RefundStale
+  v <- if settleFirst
+    then do s <- settleIt; f <- refundIt; pure (verdict s f)
+    else do f <- refundIt; s <- settleIt; pure (verdict s f)
+  cashOf w.alice >>= (=== (if v == FirstWins then 1000 else 400))
+  pure v
+
+testRangeDeadlineRaces = script do
+  forA_ [True, False] \first -> do
+    raceAccept 39 first >>= (=== FirstWins)     -- V - 1
+    raceAccept 40 first >>= (=== Neither)       -- V
+    raceAccept 41 first >>= (=== Neither)       -- V + 1
+    raceAccept 45 first >>= (=== SecondWins)    -- V + 5: the sweep
+    raceSettle (-1) first >>= (=== FirstWins)   -- R - 1
+    raceSettle 0 first >>= (=== SecondWins)     -- R
+    raceSettle 1 first >>= (=== SecondWins)     -- R + 1
+
+-- The reserve's caps at issue: per ticket, per expiry, exposure; the
+-- product, the statement and the shard's bucket; pruning after the
+-- boundary.
+testRangeCaps = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  _ <- recordOpen w tw.win px
+  let v = plus t0 40
+      issueTry b stake maxPayout = do
+        sh <- reserveAll w
+        trySubmit w.venue do
+          exerciseCmd b Book_IssueRange with
+            navCid = tw.nav; shardCid = sh; user = w.alice; termsCid = tw.win.terms
+            kind = RangeTicket; side = Inside; lowE8 = lo; highE8 = hi; stake; maxPayout; validUntil = v
+  refusedWith (refusal "over-ticket-cap") =<< issueTry book 1 20001
+  refusedWith (refusal "bad-amount") =<< issueTry book 1000 1000
+  (book, _) <- issueRange tw book w.alice RangeTicket Inside lo hi 1000 20000 v   -- locks 19000
+  refusedWith (refusal "over-expiry-cap") =<< issueTry book 8000 20000          -- 19000 + 12000 > 30000
+  (book, _) <- issueRange tw book w.alice RangeTicket Inside lo hi 9000 20000 v   -- 30000 exactly
+  Some b <- queryContractId w.venue book
+  Map.toList b.locked === [(tw.win.t.expiry, 30000)]
+  -- exposure: 50% of 100,000 assets
+  book <- submit w.venue do
+    exerciseCmd book Book_SetParams with newParams = riskParams with maxPerExpiry = 100000; maxPerTicket = 100000
+  (book, _) <- issueRange tw book w.alice RangeTicket Inside lo hi 1000 21000 v   -- 50000 exactly
+  refusedWith (refusal "over-exposure") =<< issueTry book 999 1000
+  -- the wrong product, statement or bucket
+  boost <- mkBook tw BoostProduct
+  refusedWith (refusal "wrong-product") =<< issueTry boost 1 10
+  other <- submit w.venue do
+    createCmd NavStatement with
+      venue = w.venue; auditor = w.auditor; reserveId = "T2"; seq = 0; asOf = t0; assets = 10 ^ 9; shares = 10 ^ 9
+  sh <- shard w 1000
+  fresh <- mkBook tw RangeProduct
+  refusedWith (refusal "wrong-nav") =<< trySubmit w.venue do
+    exerciseCmd fresh Book_IssueRange with
+      navCid = other; shardCid = sh; user = w.alice; termsCid = tw.win.terms
+      kind = RangeTicket; side = Inside; lowE8 = lo; highE8 = hi; stake = 1; maxPayout = 10; validUntil = v
+  refusedWith (refusal "bad-shard") =<< trySubmit w.venue do
+    exerciseCmd fresh Book_IssueRange with
+      navCid = tw.nav; shardCid = sh; user = w.alice; termsCid = tw.win.terms
+      kind = RangeTicket; side = Inside; lowE8 = lo; highE8 = hi; stake = 1; maxPayout = 10; validUntil = v
+  refusedWith (refusal "bad-band") =<< trySubmit w.venue do
+    exerciseCmd fresh Book_IssueRange with
+      navCid = tw.nav; shardCid = sh; user = w.alice; termsCid = tw.win.terms
+      kind = RangeTicket; side = Inside; lowE8 = hi; highE8 = lo; stake = 1; maxPayout = 10; validUntil = v
+  -- a quote may not outlive the Window's lock
+  fails =<< trySubmit w.venue do
+    exerciseCmd fresh Book_IssueRange with
+      navCid = tw.nav; shardCid = sh; user = w.alice; termsCid = tw.win.terms
+      kind = RangeTicket; side = Inside; lowE8 = lo; highE8 = hi; stake = 1; maxPayout = 10
+      validUntil = plus tw.win.t.lockAt 1
+  -- the boundary's locks release only once it has passed
+  refusedWith deadlineNotExceeded =<< trySubmit w.venue do
+    exerciseCmd book Book_Prune with before = plus tw.win.t.expiry 1
+  at (plus tw.win.t.expiry 1)
+  book <- submit w.venue do exerciseCmd book Book_Prune with before = plus tw.win.t.expiry 1
+  Some b <- queryContractId w.venue book
+  b.locked === Map.empty
+
+-- Nothing the venue can do alone lowers what the owner is owed: it cannot
+-- archive the round, settle on another Window's resolution, settle after
+-- refundAfter, refund for the owner, or accept a quote for a user; another
+-- user cannot accept it either.
+testRangeVenueCannotConfiscate = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  op <- recordOpen w tw.win px
+  (book, q) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  (_, q2) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  cb <- fund w w.bob 400
+  fails =<< trySubmit w.bob do exerciseCmd q2 RangeQuote_Accept with cash = [cb]
+  dq <- disclosureOf w.venue q2
+  fails =<< trySubmit (actAs w.bob <> disclose dq) do exerciseCmd q2 RangeQuote_Accept with cash = [cb]
+  ca <- fund w w.alice 400
+  unauthorized =<< trySubmit w.venue do exerciseCmd q2 RangeQuote_Accept with cash = [ca]
+  r <- acceptRange w w.alice q 400
+  unauthorized =<< trySubmit w.venue do archiveCmd r
+  unauthorized =<< trySubmit w.venue do exerciseCmd r Round_RefundStale
+  -- another Window's resolution cannot settle this round
+  at (plus tw.win1.t.tradingStart 10)
+  qs1 <- prints w tw.win1.t.tradingStart [px, px, px]
+  Right op1 <- submit w.resolver do
+    exerciseCmd tw.win1.terms Terms_RecordOpen with stateCid = tw.win1.state; quoteCids = qs1
+  res0 <- closeAt tw op px                         -- alice wins on window 0
+  at (plus tw.win1.t.expiry 10)
+  qs2 <- prints w tw.win1.t.expiry [hi + 5, hi + 5, hi + 5]
+  res1 <- submit w.resolver do exerciseCmd tw.win1.terms Terms_Resolve with openCid = op1; quoteCids = qs2
+  refusedWith (refusal "wrong-resolution") =<< trySubmit w.venue do
+    exerciseCmd r Round_Settle with resolutionCid = res1
+  at tw.win.t.refundAfter
+  refusedWith deadlineExceeded =<< trySubmit w.venue do exerciseCmd r Round_Settle with resolutionCid = res0
+  d <- disclosureOf w.venue res0
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd r Round_Claim with resolutionCid = res0
+  cashOf w.alice >>= (=== 1000 + 400)              -- the payout, plus the unspent top-up
+
+-- The outsider and the auditor see no quote, round or book; each user sees
+-- only their own.
+testRangeOutsiderSeesNothing = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  _ <- recordOpen w tw.win px
+  (book, qa) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  (_, qb) <- issueRange tw book w.bob Moonshot Inside (px + 1) (4 * px) 100 1000 (plus t0 40)
+  _ <- acceptRange w w.alice qa 400
+  forA_ [w.outsider, w.auditor, tw.lp] \p -> do
+    (length <$> query @RangeQuote p) >>= (=== 0)
+    (length <$> query @RangeRound p) >>= (=== 0)
+    (length <$> query @RiskBook p) >>= (=== 0)
+  (length <$> query @RangeRound w.alice) >>= (=== 1)
+  (length <$> query @RangeQuote w.alice) >>= (=== 0)
+  (length <$> query @RangeRound w.bob) >>= (=== 0)
+  qsBob <- query @RangeQuote w.bob
+  map fst qsBob === [qb]
+
+-- ---------------------------------------------------------------------------
+-- Seeded random sequence: issue / accept / expire / withdraw / pass time
+-- before the lock, then resolve or void, then settle / claim / stale
+-- refund in random order. Conservation after every step.
+
+lcgNext : Int -> Int
+lcgNext s = (s * 1103515245 + 12345) % 2147483648
+
+draw : Int -> Int -> (Int, Int)
+draw n s = let s' = lcgNext s in ((s' / 65536) % n, s')
+
+data RS = RS
+  with
+    seed : Int
+    book : ContractId RiskBook
+    credits : Int
+
+randomStep : TW -> Int -> RS -> Int -> Script RS
+randomStep tw total0 st _ = do
+  let w = tw.w
+  now <- getTime
+  let (k0, s1) = draw 8 st.seed
+      k = [0, 0, 1, 1, 2, 3, 4, 4] !! k0
+      (u, s2) = draw 2 s1
+      user = [w.alice, w.bob] !! u
+  st' <- case k of
+    0 -> do -- issue a quote
+      let (stake, s3) = draw 900 s2
+          (sideN, s4) = draw 3 s3
+          (life, s5) = draw 20 s4
+          vu = min (plus now (5 + life)) tw.win.t.lockAt
+          (kind, side, l, h) = case sideN of
+            0 -> (RangeTicket, Inside, lo, hi)
+            1 -> (RangeTicket, Outside, lo, hi)
+            _ -> (Moonshot, Inside, px + px / 200, 4 * px)
+      sh <- reserveAll w
+      r <- trySubmit w.venue do
+        exerciseCmd st.book Book_IssueRange with
+          navCid = tw.nav; shardCid = sh; user; termsCid = tw.win.terms
+          kind; side; lowE8 = l; highE8 = h; stake = stake + 1; maxPayout = 1000; validUntil = vu
+      pure st with seed = s5; book = either (const st.book) (\(b, _, _) -> b) r
+    1 -> do -- accept a live quote
+      qs <- query @RangeQuote user
+      case [x | x@(_, q) <- qs, q.validUntil > now] of
+        [] -> pure st with seed = s2
+        ((q, x) :: _) -> do
+          c <- fund w user x.stake
+          _ <- trySubmit user do exerciseCmd q RangeQuote_Accept with cash = [c]
+          pure st with seed = s2; credits = st.credits + x.stake
+    2 -> do -- sweep expired quotes
+      qs <- query @RangeQuote w.venue
+      forA_ qs \(q, _) -> trySubmit w.venue do exerciseCmd q RangeQuote_Expire
+      pure st with seed = s2
+    3 -> do -- withdraw one quote
+      qs <- query @RangeQuote w.venue
+      case qs of
+        [] -> pure ()
+        ((q, _) :: _) -> void $ submit w.venue do exerciseCmd q RangeQuote_Withdraw with reason = "requote"
+      pure st with seed = s2
+    _ -> do -- pass time, never past the lock
+      let (dt, s3) = draw 12 s2
+      if plus now (dt + 1) < tw.win.t.lockAt then at (plus now (dt + 1)) else pure ()
+      pure st with seed = s3
+  conserved w total0 st'.credits
+  pure st'
+
+finishStep : TW -> Int -> Int -> ContractId Resolution -> Disclosure -> Int -> (ContractId RangeRound, RangeRound) -> Script Int
+finishStep tw total0 credits res d seed (r, x) = do
+  let (how, s') = draw 3 seed
+  case how of
+    0 -> void $ submit tw.w.venue do exerciseCmd r Round_Settle with resolutionCid = res
+    1 -> void $ submit (actAs x.owner <> disclose d) do exerciseCmd r Round_Claim with resolutionCid = res
+    _ -> pure ()
+  conserved tw.w total0 credits
+  pure s'
+
+testRangeRandomSequence = script do
+  forA_ [7, 20260929, 424242] \seed0 -> do
+    tw <- mkTickets
+    let w = tw.w
+    book0 <- mkBook tw RangeProduct
+    op <- recordOpen w tw.win px
+    total0 <- ticketsTotal w
+    st <- foldlA (randomStep tw total0) (RS with seed = seed0; book = book0; credits = 0) [1 .. 80]
+    let credits = st.credits
+    -- the market ends: void one time in four, else a close below, in or above the band
+    let (endK, seed2) = draw 4 st.seed
+    res <- if endK == 0 then voidClose w tw.win op
+           else do
+             let (off, _) = draw 3 seed2
+             closeAt tw op ([lo - 1, px, hi + 1] !! off)
+    conserved w total0 credits
+    at (plus tw.win.t.closeDeadline 1)
+    qs <- query @RangeQuote w.venue
+    forA_ qs \(q, _) -> submit w.venue do exerciseCmd q RangeQuote_Expire
+    conserved w total0 credits
+    -- each round ends by settle, claim or (after refundAfter) stale refund
+    rounds <- query @RangeRound w.venue
+    assertMsg "the sequence opened rounds" (length rounds >= 2)
+    d <- disclosureOf w.venue res
+    _ <- foldlA (finishStep tw total0 credits res d) seed2 rounds
+    at tw.win.t.refundAfter
+    left <- query @RangeRound w.venue
+    forA_ left \(r, x) -> do
+      _ <- submit x.owner do exerciseCmd r Round_RefundStale
+      conserved w total0 credits
+    (length <$> query @RangeRound w.venue) >>= (=== 0)
+    debug ("range seed " <> show seed0 <> ": rounds " <> show (length rounds) <> ", credits " <> show credits)

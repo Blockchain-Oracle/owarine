@@ -1,0 +1,162 @@
+-- | Range and Moonshot: a house-banked bet on where a Window's closing print
+-- lands (the reference's `agari-range`).
+--
+--   RangeQuote  venue-signed, user observer: a firm offer of `maxPayout` for
+--               `stake` on a band [lowE8, highE8] of one Window, with the
+--               reserve's part (`maxPayout - stake`) locked from a reserve
+--               shard at issue (`PM.Tickets.Book`).
+--   RangeRound  bilateral (venue, owner): the accepted round, escrowing the
+--               whole `maxPayout` (the owner's stake plus the house lock).
+--
+-- Settlement against the Window's own Resolution:
+--   void                  owner gets stake,     reserve gets maxPayout - stake
+--   close in band, Inside owner gets maxPayout (Outside: lost)
+--   otherwise             reserve gets maxPayout
+-- so a round always pays out exactly its escrow, and money only ever goes to
+-- the owner or back to the reserve (the reference's AD-5).
+--
+-- Moonshot is not a separate contract (the reference's `moonshot.ts`): it is
+-- a round on a band whose far edge saturates, LONG [K, 4 x open] and SHORT
+-- [1, K], tagged `Moonshot` so the surface can show it as one.
+--
+-- Pricing (the CDF table, margin, probability bounds) stays in
+-- `packages/core/src/range`; the ledger bounds the quote: 0 < stake <
+-- maxPayout, within the reserve's caps.
+module PM.Tickets.Range where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Time (addRelTime, seconds)
+import PM.Leg (fetchResolutionFor)
+import PM.Market
+import PM.Money
+import PM.Quote (expireSlackSec)
+import PM.Tickets.Common
+import PM.Types
+
+data RangeKind = RangeTicket | Moonshot
+  deriving (Eq, Show)
+
+-- | `Inside` wins when low <= close <= high (the reference's `inside_won`).
+data RangeSide = Inside | Outside
+  deriving (Eq, Show)
+
+bandOk : Int -> Int -> Bool
+bandOk lowE8 highE8 = lowE8 > 0 && highE8 > lowE8
+
+rangeAmountsOk : Int -> Int -> Bool
+rangeAmountsOk stake maxPayout =
+  stake > 0 && stake < maxPayout && ticketUnitsOk maxPayout
+
+-- | Whether a round on this band and side wins at this close.
+rangeWins : RangeSide -> Int -> Int -> Int -> Bool
+rangeWins side lowE8 highE8 close =
+  let inside = close >= lowE8 && close <= highE8
+  in inside == (side == Inside)
+
+template RangeQuote
+  with
+    venue : Party
+    user : Party
+    reserveId : Text
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    kind : RangeKind
+    side : RangeSide
+    lowE8 : Int
+    highE8 : Int
+    stake : Int
+    maxPayout : Int
+    validUntil : Time
+    lockAt : Time
+    expiry : Time
+    refundAfter : Time
+  where
+    signatory venue
+    observer user
+    ensure bandOk lowE8 highE8 && rangeAmountsOk stake maxPayout
+      && validUntil <= lockAt && lockAt <= expiry && expiry < refundAfter && user /= venue
+
+    choice RangeQuote_Accept : (ContractId RangeRound, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+      controller user
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        total <- sumOwnedCash venue user cash
+        require "insufficient-cash" "cash does not cover the stake" (total >= stake)
+        change <- payIfPositive venue user (total - stake) "change"
+        round <- create RangeRound with
+          venue; owner = user; reserveId; termsCid; marketId; kind; side
+          lowE8; highE8; stake; maxPayout; expiry; refundAfter
+        pure (round, change)
+
+    choice RangeQuote_Expire : Optional (ContractId VenueCash)
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        payReserve venue reserveId (maxPayout - stake)
+
+    choice RangeQuote_Withdraw : Optional (ContractId VenueCash)
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        payReserve venue reserveId (maxPayout - stake)
+
+template RangeRound
+  with
+    venue : Party
+    owner : Party
+    reserveId : Text
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    kind : RangeKind
+    side : RangeSide
+    lowE8 : Int
+    highE8 : Int
+    stake : Int
+    maxPayout : Int
+    expiry : Time
+    refundAfter : Time
+  where
+    signatory venue, owner
+    ensure bandOk lowE8 highE8 && rangeAmountsOk stake maxPayout && owner /= venue
+
+    -- Venue settlement, strictly before `refundAfter` (as `Leg_Settle`).
+    choice Round_Settle : Paid
+      with
+        resolutionCid : ContractId Resolution
+      controller venue
+      do
+        assertWithinDeadline "refund-after" refundAfter
+        payRound this resolutionCid
+
+    -- The owner's own exit once the Window has an outcome; the Resolution
+    -- arrives as a disclosed contract.
+    choice Round_Claim : Paid
+      with
+        resolutionCid : ContractId Resolution
+      controller owner
+      do payRound this resolutionCid
+
+    -- A round can never be stuck: from `refundAfter` the owner takes the
+    -- stake back and the reserve its lock, touching nothing else.
+    choice Round_RefundStale : Paid
+      controller owner
+      do
+        assertDeadlineExceeded "refund-after" refundAfter
+        payBoth venue owner reserveId stake (maxPayout - stake) "refund"
+
+-- | (owner's payout, reserve's payout) for a round under a resolution.
+roundPayout : RangeRound -> Resolution -> (Int, Int)
+roundPayout r res = case (res.outcome, res.closePriceE8) of
+  (Some _, Some close) | rangeWins r.side r.lowE8 r.highE8 close -> (r.maxPayout, 0)
+                       | otherwise -> (0, r.maxPayout)
+  _ -> (r.stake, r.maxPayout - r.stake)
+
+payRound : RangeRound -> ContractId Resolution -> Update Paid
+payRound r resolutionCid = do
+  res <- fetchResolutionFor r.venue r.termsCid resolutionCid
+  let (toOwner, toReserve) = roundPayout r res
+  payBoth r.venue r.owner r.reserveId toOwner toReserve "payout"
