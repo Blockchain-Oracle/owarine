@@ -6,7 +6,7 @@
 import type { LedgerFill, LedgerSetAction } from "@agari/core/projection";
 import type { Address, MarketId, Signature } from "@agari/core/types";
 import { toLedgerFill } from "./history";
-import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow } from "./index-api";
+import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow, type ReceiptRow } from "./index-api";
 
 const PAGE = 1_000;
 const MAX_PAGES = 10;
@@ -21,11 +21,20 @@ export interface Paged<T> {
   complete: boolean;
 }
 
+/** A `tape/tickets` row: a published ticket's receipt and the wallet it is published under. */
+export interface TapeTicketRow extends ReceiptRow {
+  wallet: string;
+  handle: string;
+  publication_cid: string;
+}
+
 export interface TapeScan {
   /** Registry Windows in scope, by id; the drive-only Series (no symbol) is no one's round (as in `history.ts`). */
   rowById: Map<string, MarketRow>;
   fills: FillRow[];
   actions: TapeActionRow[];
+  /** 0.4.0: published ticket results settled inside the window (the board's product branch). */
+  tickets: TapeTicketRow[];
   complete: boolean;
 }
 
@@ -52,17 +61,19 @@ export async function scanTape(bounds: TapeBounds): Promise<TapeScan> {
   const from = ceilSec(bounds.windowStartMs);
   const to = ceilSec(bounds.windowEndMs);
   // A Window that settled inside the window traded before it settled, so its tape ends at the window's end too.
-  const [markets, fills, actions] = await Promise.all([
+  const [markets, fills, actions, tickets] = await Promise.all([
     pageTape<MarketRow>("tape/markets", { from, to, lookback: bounds.lookbackSec }),
     pageTape<FillRow>("tape/fills", { since: bounds.lookbackSec, until: to }),
     pageTape<TapeActionRow>("tape/actions", { since: bounds.lookbackSec, until: to }),
+    pageTape<TapeTicketRow>("tape/tickets", { since: from, until: to }),
   ]);
   const rowById = new Map(markets.rows.filter((row) => row.symbol !== null).map((row) => [row.market, row]));
   return {
     rowById,
     fills: fills.rows.filter((fill) => rowById.has(fill.market)),
     actions: actions.rows.filter((action) => action.market !== null && rowById.has(action.market)),
-    complete: markets.complete && fills.complete && actions.complete,
+    tickets: tickets.rows.filter((t) => t.symbol !== null),
+    complete: markets.complete && fills.complete && actions.complete && tickets.complete,
   };
 }
 

@@ -18,8 +18,16 @@ export interface IndexQuery {
   owner?: Address;
   /** Overrides the public 2 s cache for immutable rows (e.g. a verified proof: `public, s-maxage=60`). Wallet scope ignores it. */
   cacheControl?: string;
+  /** Wallet scope: the route resolves the seat's current lease (party and start offset) and hands it to `run`. */
+  seatLease?: boolean;
   /** `db` is for lane readers with their own SQL (`idx/read-{tape,status}.ts`, `proofs.ts`; proof-analytics.md §1). */
-  run(reader: IndexReader, db: Db): Promise<IdxRow[]>;
+  run(reader: IndexReader, db: Db, lease?: SeatLeaseScope | null): Promise<IdxRow[]>;
+}
+
+/** The party a seat address leases now and the offset its lease started at (plan §4: reads filter by it). */
+export interface SeatLeaseScope {
+  party: string;
+  fromOffset: number;
 }
 
 export class BadRequest extends Error {}
@@ -76,6 +84,11 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
     case "actions": {
       const q = parse(pageQuery, query);
       return { scope: "wallet", owner, run: (r) => r.walletActions(owner, q) };
+    }
+    case "receipts": {
+      // 0.4.0: the ledger's settlement receipts (pair legs and tickets), the history's ledger source (K-028).
+      const q = parse(z.object({ limit: optionalInt }), query);
+      return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.walletReceipts(owner, { lease: lease ?? null, limit: q.limit }) };
     }
     case "orders": {
       const q = parse(z.object({ market: address.optional(), open: flag, limit: optionalInt }), query);

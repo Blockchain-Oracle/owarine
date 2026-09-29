@@ -84,7 +84,7 @@ export async function startCantonVenue(input: {
   // C6: the crypto lanes are priced only on a measured realised σ (24/7 clock), re-measured every 30 min.
   const vol = on("pricer") && session ? startVolMeter(input.log("vol-meter")) : null;
   if (vol) stops.push(vol.stop);
-  if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings, vol }).stop);
+  if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings, vol, halts: () => input.deps.halts.board() }).stop);
   const draining = new Set<string>();
   const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining }) : null;
   if (issuer) stops.push(issuer.stop);

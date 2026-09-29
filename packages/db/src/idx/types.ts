@@ -177,8 +177,62 @@ export type IdxFact =
       feeBase: string;
       resolutionCid: string | null;
     }
-  | { kind: "publication"; contractId: string; owner: string; handle: string; marketKey: string; pairId: string; outcome: Side; lots: string; backingShare: string }
-  | { kind: "publication-archived"; contractId: string };
+  | {
+      kind: "publication";
+      contractId: string;
+      owner: string;
+      handle: string;
+      marketKey: string;
+      pairId: string;
+      outcome: Side;
+      lots: string;
+      backingShare: string;
+      /** 0.4.0: null = a pair leg; the ticket product otherwise. */
+      product: string | null;
+    }
+  | { kind: "publication-archived"; contractId: string }
+  // 0.4.0 (C6d): committee events.
+  | { kind: "event-terms"; contractId: string; termsCid: string; question: string; attestors: string[]; quorum: number }
+  | { kind: "event-state"; contractId: string; termsCid: string; live: boolean }
+  | { kind: "event-attestation"; contractId: string; marketKey: string; attestor: string; answer: boolean; attestedAtSec: number; statementHash: string }
+  | { kind: "event-attestation-retired"; contractId: string }
+  | { kind: "event-verdict"; contractId: string; termsCid: string; answer: boolean | null; voidDetail: string | null; attestations: IdxAttestationEvidence[] }
+  | {
+      kind: "receipt";
+      contractId: string;
+      owner: string;
+      marketKey: string;
+      pairId: string;
+      outcome: Side;
+      resolved: Side | null;
+      lots: string;
+      cashUnit: string;
+      backingShare: string;
+      cost: string;
+      payout: string;
+      fee: string;
+      product: string | null;
+      detail: IdxReceiptDetail | null;
+    }
+  | { kind: "receipt-dismissed"; contractId: string };
+
+export interface IdxAttestationEvidence {
+  attestor: string;
+  answer: boolean;
+  attestedAtSec: number;
+  statementHash: string;
+  attestationCid: string;
+}
+
+/** A ticket's settlement beyond the pair-leg fields (`PM.Publication.ReceiptDetail`), amounts as decimal strings. */
+export interface IdxReceiptDetail {
+  reserveId: string;
+  marketIds: string[];
+  pick: string;
+  stake: string;
+  toReserve: string;
+  result: "won" | "lost" | "void" | string;
+}
 
 /** One decoded transaction (or the ACS bootstrap, whose update id is `acs:<offset>`). */
 export interface IdxUpdate {

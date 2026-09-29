@@ -103,6 +103,33 @@ export interface SettledRound {
   entryTxHash: Signature;
   fillCount: number;
   shortCount: number;
+  /** 0.4.0 (K-028/K-030): the ledger's `SettlementReceipt`(s) behind this round, when the projection has them. */
+  receipt?: RoundReceipt;
+  /** A committee event's question (engine 0.4.0 `EventTerms`): the round reads as the question, its sides as YES/NO. */
+  question?: string;
+}
+
+/** A ticket's settlement beyond the pair-leg figures (`PM.Publication.ReceiptDetail`). */
+export interface ReceiptDetailFacts {
+  reserveId: string;
+  marketIds: string[];
+  /** What the owner picked, as the ledger wrote it: "Inside 100..200", "Up,Down,Up", "Up 2.0x". */
+  pick: string;
+  stakeBase: bigint;
+  toReserveBase: bigint;
+  result: string;
+}
+
+/** What the ledger recorded when a round's positions settled or were claimed. */
+export interface RoundReceipt {
+  /** null = a pair leg; "range", "moonshot", "boost", "short", "parlay". */
+  product: string | null;
+  receiptIds: string[];
+  costBase: bigint;
+  payoutBase: bigint;
+  /** Fee the venue recognised at settlement (a ticket's premium; 0 on a void). */
+  feeBase: bigint;
+  detail: ReceiptDetailFacts | null;
 }
 
 /** A wallet's complete projection: settled rounds newest first, plus what is still open. */

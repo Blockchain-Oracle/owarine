@@ -10,16 +10,22 @@ import { diagnosisReply, jsonBody, refusal, replyWith, seatFromRequest } from "@
  * The seat's opt-in publications (plan §5; leaderboards, takes, activity and sentiment read only these).
  *
  *   GET   this lease's publications, read AS the seat's party under this lease's handle (its seat address)
- *   POST  { marketId, source? } publishes the seat's live legs on that Window (`Leg_Publish`, actAs the seat only)
+ *   POST  { marketId, source?, receiptId? } publishes the seat's live legs on that Window (`Leg_Publish`), or with
+ *         `source: "receipt"` its settled calls there from this lease's `SettlementReceipt`s (`Receipt_Publish`, engine
+ *         0.4.0); a ticket names its receipt. actAs the seat only
  *   DELETE { marketId } retracts this lease's publications on that Window (`Publication_Retract`)
  *
  * The party and the handle come from the lease row only (`no-party-from-request`); the body names a Window, nothing else.
- * `source: "receipt"` is for a settled call and is refused until the settlement leaves a receipt to publish from.
+ * `source: "receipt"` only publishes receipts created under this lease (from its start offset).
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const bodySchema = z.object({ marketId: marketIdSchema, source: z.enum(["leg", "receipt"]).default("leg") });
+const bodySchema = z.object({
+  marketId: marketIdSchema,
+  source: z.enum(["leg", "receipt"]).default("leg"),
+  receiptId: z.string().regex(/^[0-9a-f]{2,400}$/, "expected a ledger contract id").optional(),
+});
 
 export async function GET(request: NextRequest) {
   const auth = await seatFromRequest(request, { write: false });
@@ -27,8 +33,8 @@ export async function GET(request: NextRequest) {
   const { server, lease } = auth.seat;
   try {
     const value = await readPublications(server.ledger.client, lease.party, lease.address);
-    // `receipts` turns true once a settlement leaves a receipt with its own publish choice (a Daml follow-up).
-    return replyWith({ value, address: lease.address, receipts: false });
+    // Engine 0.4.0: a settlement leaves a receipt with its own publish choice, so settled calls publish too.
+    return replyWith({ value, address: lease.address, receipts: true });
   } catch (error) {
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);
   }
@@ -38,13 +44,13 @@ export async function POST(request: NextRequest) {
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const body = bodySchema.safeParse(await jsonBody(request));
-  if (!body.success) return refusal("unknown", "expected {marketId, source?: 'leg' | 'receipt'}", 400);
+  if (!body.success) return refusal("unknown", "expected {marketId, source?: 'leg' | 'receipt', receiptId?}", 400);
   const { server, lease } = auth.seat;
   try {
     const result = await publishCall(
       { client: server.ledger.client, seats: server.ledger.seats },
-      { party: lease.party, leaseId: lease.leaseId, handle: lease.address },
-      { marketId: body.data.marketId, source: body.data.source },
+      { party: lease.party, leaseId: lease.leaseId, handle: lease.address, fromOffset: lease.startOffset },
+      { marketId: body.data.marketId, source: body.data.source, ...(body.data.receiptId ? { receiptId: body.data.receiptId } : {}) },
     );
     if (result.kind === "published") revalidateTag(BOARD_CACHE_TAG, { expire: 0 });
     return replyWith(result, result.kind === "refused" ? 409 : 200);

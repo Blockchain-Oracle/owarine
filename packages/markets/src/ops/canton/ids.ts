@@ -65,3 +65,12 @@ export const withdrawCommandId = (quoteCid: string) => assertCommandId(`withdraw
 export const exitQuoteCommandId = (requestId: string) => assertCommandId(`exitquote:${safe(requestId, "requestId")}`);
 /** Sweeping an unaccepted buy-back quote. */
 export const expireBuyCommandId = (buyQuoteCid: string) => assertCommandId(`expirebuy:${safe(buyQuoteCid, "buyQuoteCid")}`);
+
+/** `attest:<digest(attestor, marketId)>`: one committee member's `EventAttestation` per event (a retry lands once). */
+export const attestCommandId = (attestor: string, marketId: string) => assertCommandId(`attest:${digest(attestor, marketId)}`);
+
+/** `openevent:<series>:<index>`: `Series_OpenEvent` (idempotent like `open:`; the index check refuses a second one). */
+export const openEventCommandId = (series: string, index: number) => assertCommandId(`openevent:${safe(series, "series")}:${index}`);
+
+/** `retireatt:<digest(sorted cids)>`: an attestor archiving its counted attestations once the verdict embeds them. */
+export const retireAttestationsCommandId = (cids: readonly string[]) => assertCommandId(`retireatt:${digest(...[...cids].sort())}`);

@@ -16,6 +16,7 @@
  * shown only with at least k = 5 participants; unaccepted quote rows are deleted when they expire or are withdrawn and
  * only per-market counters survive.
  */
+import { INDEX_SCHEMA_0_4_SQL } from "./schema-index-0-4";
 
 /**
  * Earlier shapes cannot be altered in place, so they are dropped once and the projection replays: the Solana-era tables
@@ -30,7 +31,7 @@ BEGIN
          AND NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = 'idx_markets' AND column_name = 'resolution_blob')) THEN
     DROP VIEW IF EXISTS idx_market_prints;
     DROP TABLE IF EXISTS idx_candles, idx_positions, idx_fills, idx_orders, idx_prints, idx_markets, idx_series, idx_events, idx_txs, idx_cursor,
-      idx_updates, idx_quotes, idx_legs, idx_publications CASCADE;
+      idx_updates, idx_quotes, idx_legs, idx_publications, idx_receipts, idx_event_attestations CASCADE;
   END IF;
 END $$;
 `;
@@ -365,7 +366,7 @@ CREATE TABLE IF NOT EXISTS idx_publications (
 CREATE INDEX IF NOT EXISTS idx_publications_ts_idx ON idx_publications (created_ts_sec DESC);
 CREATE INDEX IF NOT EXISTS idx_publications_owner_idx ON idx_publications (owner_party, created_ts_sec DESC);
 CREATE INDEX IF NOT EXISTS idx_publications_market_idx ON idx_publications (market);
-
+${INDEX_SCHEMA_0_4_SQL}
 -- The reference's per-Window print slots (which 0 open, 1 close) over the recorded quorum medians; source 4 = attested.
 CREATE OR REPLACE VIEW idx_market_prints AS
   SELECT market, 0::smallint AS which, 4::smallint AS source, open_price_e8 AS price, -8 AS expo, trading_start_sec AS source_ts_sec,
@@ -378,6 +379,8 @@ CREATE OR REPLACE VIEW idx_market_prints AS
 
 /** Every projection table, in the order a full rebuild truncates them (the view reads idx_markets and survives). */
 export const INDEX_TABLES = [
+  "idx_receipts",
+  "idx_event_attestations",
   "idx_publications",
   "idx_candles",
   "idx_positions",

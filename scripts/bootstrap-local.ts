@@ -27,6 +27,7 @@ import {
   attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
   SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS, type AttestedSource,
 } from "@agari/core/market";
+import { GAP_CADENCE_SEC } from "@agari/core/types";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
 import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
@@ -148,7 +149,11 @@ const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
  *   basket    the five PreStocks baskets, 60 m, on their index (S19)
  *   valuation Pyth valuation indices (S20): only with `--lanes valuation`, like the reference's init script, which
  *             refuses to register while the key is not entitled ("no dead lane is ever shown")
- * The Monday Gap is not bootstrapped yet: engine 0.4.0 lists it through `Series_OpenWindowSpan` (K-030), once the roller opens Gap lanes with it.
+ *   gap       the Monday Gap (C6d, engine 0.4.0): LAUNCH_TICKERS × one `<T>-gap` Series each (the reference's nine, key
+ *             `TSLA-gap`), on the same dated versions as the ticker's Regular lanes with the Gap rule of the reference's
+ *             `policyVersions(…, "gap")`: the Friday print is admitted until the Sunday lock (`openAdmissionSec` −1). The
+ *             cadence is a week (`GAP_CADENCE_SEC`) and only names the lane: the roller opens each Window through
+ *             `Series_OpenWindowSpan` with its own Friday close, Sunday 20:00 ET lock and Monday open (`gapWindows`).
  */
 function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
   const out: LaneSpec[] = [];
@@ -168,6 +173,17 @@ function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
       const xstock = TICKERS[symbol].xstock!;
       const from = isoSec(SOURCES.tokenLane.versions[0]!.validFrom);
       for (const cadenceSec of REGULAR_CADENCES_SEC) lane(xstock.symbol, laneKey(symbol, "token", cadenceSec), cadenceSec, [attested("switchboard", xstock.surgeSymbol, from, null)]);
+    }
+  }
+  if (families.has("gap")) {
+    for (const symbol of LAUNCH_TICKERS) {
+      const row = SOURCES.tickers[symbol];
+      if (!row) continue;
+      const versions = row.versions.map((v) => ({
+        ...attested(v.primary, v.primary === "pyth" ? row.pythFeedId! : row.redstoneFeedId!, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null),
+        openAdmissionSec: -1,
+      }));
+      out.push({ seriesKey: laneKey(symbol, "gap", GAP_CADENCE_SEC), symbol, cadenceSec: GAP_CADENCE_SEC, lockLeadSec: 0, versions });
     }
   }
   if (families.has("preipo")) for (const symbol of PRE_IPO_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("prestocks", symbol, PRESTOCKS_FROM_SEC, null)]);
@@ -221,8 +237,8 @@ async function main(): Promise<void> {
   }
   const haveSeries = new Set(pick(acs, TEMPLATE_IDS.Series, decodeSeries).map((s) => s.data.seriesKey));
   const nowSec = Math.floor(Date.now() / 1000);
-  // `--lanes crypto,regular,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
-  const families = new Set(arg("--lanes", "crypto,regular,token,preipo,basket").split(",").map((s) => s.trim()));
+  // `--lanes crypto,regular,gap,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
+  const families = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
   const lanes = [...(families.has("crypto") ? cryptoLanes(nowSec) : []), ...equityLanes(families)];
   for (const lane of lanes) {
     if (haveSeries.has(lane.seriesKey)) continue;

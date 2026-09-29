@@ -5,6 +5,7 @@ export * from "./equity";
 export * from "./leaderboard";
 export * from "./orders";
 export * from "./ledger";
+export * from "./receipts";
 export * from "./reputation";
 export * from "./settle";
 export * from "./types";

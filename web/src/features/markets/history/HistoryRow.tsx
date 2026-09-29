@@ -28,11 +28,15 @@ interface HistoryRowProps {
   publish?: ReactNode;
 }
 
-/** UP, DOWN, or both — from what was held at expiry, or what was traded when the round closed out early. */
+/** UP, DOWN, or both — from what was held at expiry, or what was traded when the round closed out early. An event reads YES/NO. */
 function sidesLabel(round: SettledRound): string {
   const sides = round.legs.length > 0 ? round.legs.map((leg) => leg.outcomeIdx) : round.sidesTraded;
+  if (round.question) return sides.map((idx) => (idx === 0 ? HISTORY.event.yes : HISTORY.event.no)).join(" + ");
   return sides.map((idx) => SIDE_WORD[OUTCOME_TO_SIDE[idx]]).join(" + ");
 }
+
+/** The ticket product a ledger receipt names (a pair leg shows nothing extra). */
+const productTag = (round: SettledRound): string | null => (round.receipt?.product ? (HISTORY.ledger.product[round.receipt.product] ?? round.receipt.product) : null);
 
 /**
  * One settled Window, ported from the reference's history rows (`Portfolio624Section` L486–512):
@@ -45,16 +49,18 @@ export function HistoryRow({ round, symbol, nowMs, onReceipt, onCrank, cranking 
   const settledAtMs = roundSettledAtMs(round);
   const claimLine = round.paidByCrank ? HISTORY.paidAutomatically : HISTORY.claim[round.claim];
   const vault = round.source === "vault";
+  const product = productTag(round);
 
   return (
     <li className="bets-row history-row">
       <span className={cn("type-label-micro shrink-0", round.outcome === "win" ? "text-ink" : "text-ink-secondary")}>{HISTORY.outcome[round.outcome]}</span>
 
       <Link href={marketDeepLink({ marketId: round.marketId })} data-cursor="hover" className="type-body-strong text-ink">
-        {round.asset} {sidesLabel(round)}
+        {round.question ?? round.asset} {sidesLabel(round)}
       </Link>
-      <span className="type-label-micro text-ink-muted">{formatCadence(round.intervalSec)}</span>
+      {!round.question && round.intervalSec > 0 && <span className="type-label-micro text-ink-muted">{formatCadence(round.intervalSec)}</span>}
       {vault && <span className="type-label-micro text-accent">{VAULT.rounds.via}</span>}
+      {product && <span className="type-label-micro text-accent">{product}</span>}
 
       {round.payoutBase > 0n && (
         <span className="type-caption text-ink-secondary">

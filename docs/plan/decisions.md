@@ -104,6 +104,40 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** the oracle feeders fetch Pyth Hermes, RedStone, Switchboard, PreStocks and the reference's other sources off-chain and post them onto the same attested `PriceQuote` path as crypto, with the original source named on every receipt (D-101's pattern). The Alpaca session calendar is a calendar, not a price.
 - **Approval:** default (due Thu 1 Oct in the plan); Abu can overrule.
 
+### K-066 — The Monday Gap lists through the span open (C6 block)
+- **Date / owner:** 2026-09-29 · C6d lane
+- **Evidence:** `services/ops/src/actors/window-roller/execute.ts` (+ `execute.test.ts`), `scripts/bootstrap-local.ts`, `docs/evidence/c6d-gap-events.md`.
+- **Rule:**
+  - A Gap Series (`<T>-gap`, the reference's nine launch tickers) opens its Window with `Series_OpenWindowSpan` at `nextIndex`, using the planner's own Friday close, Sunday 20:00 ET lock and Monday open. There is no grid, so there is no skip. The planner reads the Series' `lastExpiry` (else the grid start of `nextIndex`).
+  - Bootstrap shape: cadence one week (`GAP_CADENCE_SEC`, it only names the lane), `lockLeadSec` 0, anchor floored to the week, and the ticker's dated versions with the open print admitted until the lock (the reference's `policyVersions(…, "gap")`).
+  - The engine's refusals name the lane state instead of counting as failures: `bad-span`, `span-too-long`, `window-overlap` (refused: …), `no-policy` (paused), `bad-window-index` (already opened).
+  - The pricer prices a Gap with the reference's `gap-fair.ts`: the xStock spot against Friday's print, blind 500 ± 150 without a reference, capped per side at `MM_GAP_MAX_CASH`, stopped 60 s before the lock.
+- **User-visible:** the Gap lanes appear on `/session`, so the web's "not listed" plate goes. Without an Alpaca calendar they read "closed: no calendar", like the Regular lanes.
+- **Approval:** default; overrulable.
+
+### K-067 — The venue prices a committee event at even odds, wide (C6 block)
+- **Date / owner:** 2026-09-29 · C6d lane
+- **Rule:** while an event's `EventState` is live, the pricer puts 500 ± 150 (350/650, core `EVENT_FAIR_TICKS ± EVENT_HALF_SPREAD_TICKS`) on the board from the start until the Window stops taking quotes, under the per-market cap. The venue has no model of an event, so it takes the same stance as a blind Gap quote.
+- **User-visible:** YES and NO both cost 650 per 1,000 ticks.
+- **Approval:** default; overrulable.
+
+### K-068 — Committee statement and resolve timing (C6 block)
+- **Date / owner:** 2026-09-29 · C6d lane
+- **Rule:**
+  - A member's `statementHash` is the sha-256 of core `eventStatementText`. It binds `agari-event-v1`, the market, the question, the answer, the **named source** the member read, the member and the time, following the reference's attested-print message rule. A statement without a source is refused.
+  - The resolver runs `Event_Resolve` once every member has answered, or 300 s after the close with a quorum, so that a dissent can still void the event as SourceDisagreement. It runs `Event_Void` after the deadline plus 2 s.
+  - The old 1.0/2.0/0.5 price encoding is retired. The price path skips any terms that an `EventTerms` names.
+- **Approval:** default; overrulable.
+
+### K-069 — Receipts are history's ledger source; the board branches on product (C6 block)
+- **Date / owner:** 2026-09-29 · C6d lane
+- **Rule:**
+  - The projection keeps every `SettlementReceipt`. `/api/index/wallet/<seat>/receipts` serves the seat's own receipts, scoped to its current lease from the lease's start offset (plan §4).
+  - In history, a pair leg's receipts attach to the round the fills built, or make that round when no fill is attributed. Each ticket receipt is its own round, tagged with its product. The receipt sheet shows the ledger's breakdown.
+  - A settled call publishes from its receipt (`Receipt_Publish`, this lease's receipts only). A ticket publishes by receipt id. Retract still retracts every publication of the lease on that Window.
+  - Leaderboards: pair-leg publications (`product` null) keep the reference's fill replay, and every pair-leg read now filters on `product IS NULL`. A published ticket ranks on its receipt's settled figures (`tape/tickets`), beside the wallet's pair legs.
+- **Approval:** default; overrulable.
+
 ### K-085 — The Canton desk's live leg trades our own markets (C8 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; the live leg trades this venue's markets with venue cash and is gated on C7b.
