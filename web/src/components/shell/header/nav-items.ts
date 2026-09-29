@@ -225,7 +225,7 @@ export const NAV_ITEMS = {
     description: "Understand the product from end to end.",
     icon: CircleHelp,
   },
-  docs: { id: "docs", name: "Docs", href: DOCS_URL, external: DOCS_URL.startsWith("http"), description: "Read step-by-step guides and product documentation.", icon: BookOpen },
+  docs: { id: "docs", name: "Docs", href: DOCS_URL, external: true, description: "Read step-by-step guides and product documentation.", icon: BookOpen },
   status: {
     id: "status",
     name: "Status",
