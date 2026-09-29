@@ -1,0 +1,176 @@
+-- | Shared fixtures for the games money gate (abu-pm-games).
+--
+-- One arena "A1" with a ranked tier (pot 100 each, per-card cap 1000) and
+-- a free tier; alice creates, bob challenges. Windows are Test.Setup's
+-- (BTC 300 s): window 0 lockAt t0+270, expiry t0+300, refundAfter t0+1020;
+-- window 1 lockAt t0+570, expiry t0+600, refundAfter t0+1320. `mkGames`
+-- records window 0's open, so the clock stands at t0+10.
+--
+-- Conservation for games: `gamesTotal` is the engine's `ledgerTotal` plus
+-- every escrowed side pot (one on a DuelOpen, two on a DuelMatch). It
+-- changes only when cash is minted.
+module Test.Games.Fixture where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Games.Arena
+import PM.Games.Deck
+import PM.Leg (Leg)
+import PM.Market
+import PM.Money
+import PM.Quote
+import PM.Types
+import Test.Conservation (ledgerTotal)
+import Test.Setup
+
+theArena : Text
+theArena = "A1"
+
+px : Int
+px = 6500000000000
+
+pot : Int
+pot = 100
+
+rankedTier : Tier
+rankedTier = Tier with tierId = "t10"; potEach = pot; perCardCap = 1000; ranked = True; enabled = True
+
+free : Tier
+free = Tier with tierId = "free"; potEach = 0; perCardCap = 1000; ranked = False; enabled = True
+
+arenaParams : ArenaParams
+arenaParams = ArenaParams with
+  joinWindowSec = 120; revealWindowSec = 60; pickWindowSec = 240; minDeckSize = 1; maxDeckSize = 8
+
+theSeed : Text
+theSeed = "server-seed-1"
+
+theSeeds : [Text]
+theSeeds = ["seed-alice", "seed-bob"]
+
+data GW = GW
+  with
+    w : World
+    win0 : Win
+    win1 : Win
+    win2 : Win
+      -- ^ never in a committed deck: the wrong card for forgeries
+    open0 : ContractId OpenPrint
+    arena : ContractId ArenaTerms
+
+-- | World, windows 0, 1 and 2, the arena; window 0's open recorded (t0+10).
+mkGames : Script GW
+mkGames = do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, win0) <- openWin w s 0
+  (s2, win1) <- openWin w s1 1
+  (_, win2) <- openWin w s2 2
+  arena <- submit w.venue do
+    createCmd ArenaTerms with
+      venue = w.venue; arenaId = theArena; policyVersion = 1; params = arenaParams; tiers = [rankedTier, free]
+  open0 <- recordOpen w win0 px
+  pure GW with ..
+
+commitFor : Text -> [Win] -> Text
+commitFor matchId wins = deckCommitment theArena matchId 1 theSeed theSeeds (map (\x -> x.t.marketId) wins)
+
+-- | Alice opens a duel against bob on `tier`, committing to `wins`, the
+-- join deadline `joinIn` seconds from now. She is funded with the pot.
+openDuelWith : GW -> Text -> Tier -> Text -> Int -> Int -> Script (ContractId DuelOpen)
+openDuelWith g matchId tier deckHash deckSize joinIn = do
+  now <- getTime
+  cash <- if tier.potEach > 0 then (\c -> [c]) <$> fund g.w g.w.alice tier.potEach else pure []
+  d <- disclosureOf g.w.venue g.arena
+  (o, _) <- submit (actAs g.w.alice <> disclose d) do
+    exerciseCmd g.arena Arena_OpenDuel with
+      creator = g.w.alice; challenger = g.w.bob; matchId; tierId = tier.tierId
+      deckHash; deckSize; clientSeeds = theSeeds; joinDeadline = plus now joinIn; cash
+  pure o
+
+openDuel : GW -> Text -> [Win] -> Script (ContractId DuelOpen)
+openDuel g matchId wins = openDuelWith g matchId rankedTier (commitFor matchId wins) (length wins) 60
+
+-- | Bob joins, funded with the pot; reveal deadline `revealIn` from now.
+joinWith : GW -> ContractId DuelOpen -> Int -> Script (ContractId DuelMatch)
+joinWith g o revealIn = do
+  now <- getTime
+  c <- fund g.w g.w.bob pot
+  (m, _) <- submit g.w.bob do exerciseCmd o Open_Join with cash = [c]; revealDeadline = plus now revealIn
+  pure m
+
+joinDuel : GW -> ContractId DuelOpen -> Script (ContractId DuelMatch)
+joinDuel g o = joinWith g o 60
+
+tryReveal : GW -> ContractId DuelMatch -> Text -> [Win] -> Time -> Script (Either SubmitError (ContractId DuelMatch))
+tryReveal g m seed wins pickDeadline =
+  trySubmit g.w.venue do
+    exerciseCmd m Duel_Reveal with
+      actor = g.w.venue; seed; cardCids = map (.terms) wins; newPickDeadline = pickDeadline
+
+-- | The venue reveals the committed deck; pick deadline t0+250.
+reveal : GW -> ContractId DuelMatch -> [Win] -> Script (ContractId DuelMatch)
+reveal g m wins = tryReveal g m theSeed wins (plus t0 250) >>= succeeded
+
+-- | A player's call on a window: an ordinary quote accepted with the duel
+-- tag. Mints the pair's quantity (venue shard + player's stake) plus fee.
+buyLeg : GW -> Text -> Party -> Win -> Side -> Int -> Int -> Text -> Script (ContractId Leg)
+buyLeg g matchId player win side ticks lots pairId = do
+  now <- getTime
+  q <- issue g.w win player side ticks lots 0 (plus now 20) pairId
+  c <- fund g.w player (userStakeOf lots ticks win.t.cashUnit)
+  (u, _, _) <- submit player do
+    exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = Some (duelRef theArena matchId)
+  pure u
+
+tryRecord : GW -> ContractId DuelMatch -> Party -> Int -> ContractId Leg -> Script (Either SubmitError (ContractId DuelMatch))
+tryRecord g m player cardIndex legCid =
+  trySubmit player do exerciseCmd m Duel_RecordPick with player; cardIndex; legCid
+
+-- | Buy and record in one step (1 lot).
+pick : GW -> Text -> ContractId DuelMatch -> Party -> Int -> Win -> Side -> Int -> Script (ContractId DuelMatch, ContractId Leg)
+pick g matchId m player cardIndex win side ticks = do
+  leg <- buyLeg g matchId player win side ticks 1 (matchId <> "-" <> show player <> "-" <> show cardIndex)
+  m' <- tryRecord g m player cardIndex leg >>= succeeded
+  pure (m', leg)
+
+score : GW -> ContractId DuelMatch -> [(Int, Int, ContractId Resolution)] -> Script (ContractId DuelMatch)
+score g m items = submit g.w.venue do
+  exerciseCmd m Duel_Score with
+    actor = g.w.venue
+    items = [ScoreItem with seat; cardIndex; resolutionCid | (seat, cardIndex, resolutionCid) <- items]
+
+finalize : GW -> ContractId DuelMatch -> Script DuelResult
+finalize g m = do
+  r <- submit g.w.venue do exerciseCmd m Duel_Finalize with actor = g.w.venue
+  Some res <- queryContractId g.w.venue r
+  pure res
+
+-- | Venue-settle legs against a resolution (the engine's own path).
+settleLegs : GW -> [ContractId Leg] -> ContractId Resolution -> Script ()
+settleLegs g legs res = do
+  _ <- submit g.w.venue do exerciseCmd g.w.desk Desk_SettleBatch with legCids = legs; resolutionCid = res
+  pure ()
+
+gamesTotal : World -> Script Int
+gamesTotal w = do
+  base <- ledgerTotal w
+  opens <- query @DuelOpen w.venue
+  matches <- query @DuelMatch w.venue
+  pure (base + sum [o.tier.potEach | (_, o) <- opens]
+    + sum [2 * m.tier.potEach | (_, m) <- matches])
+
+-- | Run a step and check the total moved by exactly what it minted.
+step : World -> Int -> Script a -> Script a
+step w minted action = do
+  before <- gamesTotal w
+  x <- action
+  after <- gamesTotal w
+  after === before + minted
+  pure x
+
+-- | Cash `p` holds, as `p` sees it, counting only this bucket.
+bucketOf : Party -> Text -> Script Int
+bucketOf p bucket = do
+  cs <- query @VenueCash p
+  pure (sum [c.amount | (_, c) <- cs, c.owner == p, c.bucket == bucket])

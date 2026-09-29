@@ -1,0 +1,49 @@
+-- | The duel's deck commitment, verified on the ledger.
+--
+-- The deckmaster (the venue's ops) commits to a deck before either player
+-- has seen a card, and the reveal must reproduce the commitment exactly, so
+-- the deck cannot be changed after the players are paired. This is the
+-- reference's commit-reveal (`agari-arena/src/commitment.rs`) with the hash
+-- the Daml stdlib has: `DA.Text.sha256` over UTF-8 text, lowercase hex.
+--
+-- The preimage is a sequence of length-prefixed fields with an explicit
+-- count before each list, the same idea as the reference's counted 32-byte
+-- words: no two different decks encode to the same text, even when an
+-- element moves from the seeds to the cards.
+--
+--   field t = <number of code points of t> ":" t ","
+--   preimage = field "abu-pm/duel-deck/v1" <> field arenaId <> field matchId
+--           <> field (show policyVersion) <> field serverSeed
+--           <> field (show |clientSeeds|) <> concatMap field clientSeeds
+--           <> field (show |cards|)       <> concatMap field cards
+--
+-- A card is the Window's `marketId` (the derived base58 id on the terms),
+-- never a contract id, which is not known when the deck is committed.
+-- The ops encoder must mirror this byte for byte; `Test.Games.Duel`
+-- carries a golden vector checked against `shasum -a 256`.
+module PM.Games.Deck where
+
+import qualified DA.Text as T
+
+deckDomain : Text
+deckDomain = "abu-pm/duel-deck/v1"
+
+field : Text -> Text
+field t = show (T.length t) <> ":" <> t <> ","
+
+deckPreimage : Text -> Text -> Int -> Text -> [Text] -> [Text] -> Text
+deckPreimage arenaId matchId policyVersion serverSeed clientSeeds cards =
+  T.implode
+    ( [field deckDomain, field arenaId, field matchId, field (show policyVersion), field serverSeed
+      , field (show (length clientSeeds))]
+    ++ map field clientSeeds
+    ++ [field (show (length cards))]
+    ++ map field cards )
+
+deckCommitment : Text -> Text -> Int -> Text -> [Text] -> [Text] -> Text
+deckCommitment arenaId matchId policyVersion serverSeed clientSeeds cards =
+  T.sha256 (deckPreimage arenaId matchId policyVersion serverSeed clientSeeds cards)
+
+-- | A commitment is 64 lowercase hex characters.
+isCommitment : Text -> Bool
+isCommitment h = T.length h == 64 && all (`elem` T.explode "0123456789abcdef") (T.explode h)

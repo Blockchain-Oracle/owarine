@@ -1,0 +1,535 @@
+-- | The duel arena (the reference's `agari-arena`, Masayume's GameArena).
+--
+-- Two players, one deck of live Windows, one call per card per player. The
+-- only money the arena decides is the SIDE POT: each player escrows the
+-- tier's `potEach` and the winner (the greater sum of payout - cost over
+-- the cards) takes both; a tie splits, the odd unit to the creator.
+--
+-- Picks are ORDINARY quote accepts. A player takes a card by accepting a
+-- normal `Quote` on that card's Window with `beneficiaryRef = Some
+-- (duelRef arenaId matchId)`, which gives them an ordinary bilateral `Leg`,
+-- and then records that leg on the match (`Duel_RecordPick`). So:
+--   * card settlement IS the engine's leg settlement (`Leg_Settle`,
+--     `Leg_Claim`, `Leg_RefundStale`). The match never holds, prices or
+--     pays a card; losing or refunding a pot can never touch a position;
+--   * the opponent never witnesses the player's cash, only the recorded
+--     leg (a pick is public to the match, as it is on the reference chain);
+--   * the tag binds a leg to one match, and a card's terms bind it to one
+--     card, so a leg is never counted twice.
+-- `Duel_Score` records a card's outcome for the pot from the Window's own
+-- `Resolution` with the engine's `legPayout`, so the score is the money the
+-- leg actually pays (void = cost back = zero PnL).
+--
+-- Lifecycle (every deadline is inclusive: allowed while now <= T, and the
+-- escape opens at T + 1 s, the engine's convention):
+--
+--   ArenaTerms --Arena_OpenDuel (creator escrows potEach)--> DuelOpen
+--   DuelOpen --Open_Join (challenger escrows potEach, <= joinDeadline)--> DuelMatch
+--            --Open_Cancel (creator, any time before a join)--> refund
+--            --Open_RefundUnjoined (after joinDeadline)--> refund
+--   DuelMatch Unrevealed --Duel_Reveal (<= revealDeadline, sha256 checked)--> Picking
+--             Unrevealed --Duel_RefundUnrevealed (after revealDeadline)--> both refunded
+--   Picking --Duel_RecordPick ... last pick--> Settling
+--   Picking --Duel_Lock (after pickDeadline)--> Settling | Forfeited | both refunded
+--   Settling/Forfeited --Duel_Score* then Duel_Finalize (<= potRefundAfter)--> DuelResult
+--   any revealed status --Duel_RefundStale (after potRefundAfter)--> both refunded
+--
+-- Stakeholders: the duel is the ONE named exception to the two-stakeholder
+-- rule (plan, Rules). `DuelMatch` is signed by the venue and both players,
+-- so no one of them can archive it or move its pot alone; `DuelOpen` is
+-- signed by venue and creator with the named challenger as observer.
+-- Phase clocks start at the phase event, as in the reference; the ledger
+-- has no trusted "now" (getTime is avoided), so the caller names the
+-- deadline and the choice bounds it to (now, now + window].
+module PM.Games.Arena where
+
+import DA.Action (foldlA)
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Foldable (maximum)
+import DA.List (unique, (!!))
+import DA.Optional (isSome)
+import DA.Time (addRelTime, seconds)
+import PM.Games.Deck
+import PM.Leg
+import PM.Market (MarketTerms(..), Resolution)
+import PM.Money
+import PM.Oracle (oneSecond)
+import PM.Types
+
+-- | The reference's MAX_DECK (one byte of picked mask per seat).
+maxDeck : Int
+maxDeck = 8
+
+-- | One entry price (the reference's `Tier`, core's STAKE_TIERS). `potEach`
+-- is each player's side pot (0 = free); `perCardCap` bounds one card's pick
+-- cost (backing + fee), so a deck cannot spend more than its tier.
+data Tier = Tier
+  with
+    tierId : Text
+    potEach : Int
+    perCardCap : Int
+    ranked : Bool
+    enabled : Bool
+  deriving (Eq, Show)
+
+tierOk : Tier -> Bool
+tierOk t =
+  t.tierId /= "" && t.potEach >= 0 && t.perCardCap > 0
+    && t.potEach <= maxLotCash && t.perCardCap <= maxLotCash
+    && (t.ranked || t.potEach == 0)
+
+data ArenaParams = ArenaParams
+  with
+    joinWindowSec : Int
+    revealWindowSec : Int
+    pickWindowSec : Int
+    minDeckSize : Int
+    maxDeckSize : Int
+  deriving (Eq, Show)
+
+paramsOk : ArenaParams -> Bool
+paramsOk p =
+  p.joinWindowSec > 0 && p.revealWindowSec > 0 && p.pickWindowSec > 0
+    && p.minDeckSize >= 1 && p.minDeckSize <= p.maxDeckSize && p.maxDeckSize <= maxDeck
+
+-- | The tag a duel pick's leg carries in `beneficiaryRef`.
+duelRef : Text -> Text -> Text
+duelRef arenaId matchId = "duel:" <> arenaId <> ":" <> matchId
+
+-- ---------------------------------------------------------------------------
+-- The arena: parameters and the tier table (admin_init_arena, set_params,
+-- set_tier, set_paused). Players see it by disclosure.
+
+template ArenaTerms
+  with
+    venue : Party
+    arenaId : Text
+    policyVersion : Int
+      -- ^ bumped when the deck-selection rules change; in every commitment
+    params : ArenaParams
+    tiers : [Tier]
+  where
+    signatory venue
+    ensure arenaId /= "" && policyVersion >= 0 && paramsOk params
+      && not (null tiers) && all tierOk tiers && unique (map (.tierId) tiers)
+
+    -- A player opens a duel against one named opponent and escrows the
+    -- tier's side pot. The deck commitment is the deckmaster's (ops hands it
+    -- to the creator with both players' client seeds from the room).
+    nonconsuming choice Arena_OpenDuel : (ContractId DuelOpen, Optional (ContractId VenueCash))
+      with
+        creator : Party
+        challenger : Party
+        matchId : Text
+        tierId : Text
+        deckHash : Text
+        deckSize : Int
+        clientSeeds : [Text]
+        joinDeadline : Time
+        cash : [ContractId VenueCash]
+      controller creator
+      do
+        require "self-duel" "a duel is between two players, neither of them the venue"
+          (creator /= challenger && creator /= venue && challenger /= venue)
+        tier <- case find (\t -> t.tierId == tierId) tiers of
+          Some t | t.enabled -> pure t
+          _ -> refuse "unknown-tier" "no enabled tier with that id"
+        require "bad-match-id" "a match needs an id" (matchId /= "")
+        require "bad-deck-size" "deck size outside the arena's range"
+          (deckSize >= params.minDeckSize && deckSize <= params.maxDeckSize)
+        require "bad-commitment" "a deck commitment is 64 lowercase hex characters" (isCommitment deckHash)
+        require "bad-seeds" "one non-empty client seed per player" (length clientSeeds == 2 && all (/= "") clientSeeds)
+        startClock "join-deadline" joinDeadline params.joinWindowSec
+        change <- escrow venue creator cash tier.potEach
+        o <- create DuelOpen with
+          venue; creator; challenger; arenaId; matchId; policyVersion; tier; params
+          deckHash; deckSize; clientSeeds; joinDeadline
+        pure (o, change)
+
+    -- Parameters, tiers and pause (a paused arena disables its tiers).
+    -- Matches already open copied their tier and are unaffected.
+    choice Arena_Update : ContractId ArenaTerms
+      with
+        newParams : ArenaParams
+        newTiers : [Tier]
+      controller venue
+      do create this with params = newParams; tiers = newTiers
+
+-- ---------------------------------------------------------------------------
+-- WAITING: the creator's pot is escrowed, the named challenger may join.
+
+template DuelOpen
+  with
+    venue : Party
+    creator : Party
+    challenger : Party
+    arenaId : Text
+    matchId : Text
+    policyVersion : Int
+    tier : Tier
+    params : ArenaParams
+    deckHash : Text
+    deckSize : Int
+    clientSeeds : [Text]
+    joinDeadline : Time
+  where
+    signatory venue, creator
+    observer challenger
+    ensure creator /= challenger && creator /= venue && challenger /= venue
+      && tierOk tier && paramsOk params && isCommitment deckHash
+
+    -- The named challenger matches the pot, on or before the join deadline.
+    choice Open_Join : (ContractId DuelMatch, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+        revealDeadline : Time
+      controller challenger
+      do
+        within "join-deadline" joinDeadline
+        startClock "reveal-deadline" revealDeadline params.revealWindowSec
+        change <- escrow venue challenger cash tier.potEach
+        m <- create DuelMatch with
+          venue; creator; challenger; arenaId; matchId; policyVersion; tier; params
+          deckHash; deckSize; clientSeeds; revealDeadline
+          status = Unrevealed; serverSeed = None; cards = []; pickDeadline = None; picks = []
+        pure (m, change)
+
+    -- The creator withdraws a match nobody has joined.
+    choice Open_Cancel : Optional (ContractId VenueCash)
+      controller creator
+      do payIfPositive venue creator tier.potEach "duel-refund"
+
+    -- Anyone named returns the creator's pot once the join window closed.
+    choice Open_RefundUnjoined : Optional (ContractId VenueCash)
+      with
+        actor : Party
+      controller actor
+      do
+        require "not-a-party" "only the venue or a named player" (actor `elem` [venue, creator, challenger])
+        past "join-deadline" joinDeadline
+        payIfPositive venue creator tier.potEach "duel-refund"
+
+-- ---------------------------------------------------------------------------
+-- The match.
+
+data DuelStatus
+  = Unrevealed
+  | Picking
+  | Settling
+  | Forfeited with absent : Party
+  deriving (Eq, Show)
+
+-- | A revealed card: one live Window.
+data Card = Card
+  with
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    lockAt : Time
+    refundAfter : Time
+  deriving (Eq, Show)
+
+-- | One seat's recorded call on one card: the leg as it was when recorded
+-- (its figures are the engine's, not the player's say-so) and, once scored,
+-- what that leg pays under the Window's resolution.
+data Pick = Pick
+  with
+    seat : Int
+      -- ^ 0 = creator, 1 = challenger
+    cardIndex : Int
+    legCid : ContractId Leg
+    leg : Leg
+    cost : Int
+      -- ^ backingShare + feePaid
+    payout : Optional Int
+  deriving (Eq, Show)
+
+data ScoreItem = ScoreItem
+  with
+    seat : Int
+    cardIndex : Int
+    resolutionCid : ContractId Resolution
+  deriving (Eq, Show)
+
+template DuelMatch
+  with
+    venue : Party
+    creator : Party
+    challenger : Party
+    arenaId : Text
+    matchId : Text
+    policyVersion : Int
+    tier : Tier
+    params : ArenaParams
+    deckHash : Text
+    deckSize : Int
+    clientSeeds : [Text]
+    revealDeadline : Time
+    status : DuelStatus
+    serverSeed : Optional Text
+      -- ^ published at reveal, so anyone can replay the commitment
+    cards : [Card]
+    pickDeadline : Optional Time
+    picks : [Pick]
+  where
+    signatory venue, creator, challenger
+    ensure creator /= challenger && creator /= venue && challenger /= venue
+      && tierOk tier && paramsOk params && isCommitment deckHash
+      && (status == Unrevealed) == null cards
+      && (null cards || length cards == deckSize)
+
+    -- Opens the deck. Whoever holds the preimage may publish it (the
+    -- commitment, not a key, is the proof); the ledger recomputes
+    -- sha256 over the preimage and refuses any other deck. Every card must
+    -- be a Window of this venue that still trades when the pick window
+    -- closes, and no Window may appear twice.
+    choice Duel_Reveal : ContractId DuelMatch
+      with
+        actor : Party
+        seed : Text
+        cardCids : [ContractId MarketTerms]
+        newPickDeadline : Time
+      controller actor
+      do
+        requireParty this actor
+        -- status first, so a second reveal is told the match moved on
+        require "wrong-status" "the deck is already open" (status == Unrevealed)
+        within "reveal-deadline" revealDeadline
+        require "bad-deck-size" "the reveal names the committed number of cards" (length cardCids == deckSize)
+        ts <- forA cardCids fetch
+        require "wrong-venue" "a card is another venue's Window" (all (\t -> t.venue == venue) ts)
+        let ids = map (.marketId) ts
+        require "duplicate-card" "the same Window twice is not a deck" (unique cardCids && unique ids)
+        require "deck-mismatch" "the revealed deck is not the committed one"
+          (deckCommitment arenaId matchId policyVersion seed clientSeeds ids == deckHash)
+        require "card-too-late" "every card must still trade when the pick window closes"
+          (all (\t -> newPickDeadline <= t.lockAt) ts)
+        startClock "pick-deadline" newPickDeadline params.pickWindowSec
+        create this with
+          status = Picking; serverSeed = Some seed; pickDeadline = Some newPickDeadline
+          cards = [Card with termsCid = c; marketId = t.marketId; lockAt = t.lockAt; refundAfter = t.refundAfter
+                  | (c, t) <- zip cardCids ts]
+
+    -- Records a player's own leg as their call on one card. The leg must be
+    -- theirs, on that card's Window, tagged for this match, within the
+    -- tier's per-card cap, and recorded by the pick deadline. The last pick
+    -- locks the match by itself.
+    choice Duel_RecordPick : ContractId DuelMatch
+      with
+        player : Party
+        cardIndex : Int
+        legCid : ContractId Leg
+      controller player
+      do
+        seat <- seatOf this player
+        require "wrong-status" "picks are recorded while the match is picking" (status == Picking)
+        deadline <- getPickDeadline this
+        within "pick-deadline" deadline
+        require "bad-card" "no such card" (cardIndex >= 0 && cardIndex < length cards)
+        require "already-picked" "this seat already called this card"
+          (not (any (\p -> p.seat == seat && p.cardIndex == cardIndex) picks))
+        leg <- fetch legCid
+        let card = cards !! cardIndex
+        require "foreign-leg" "the leg is not this player's call on this card of this match"
+          (leg.owner == player && leg.venue == venue && leg.termsCid == card.termsCid
+            && leg.beneficiaryRef == Some (duelRef arenaId matchId))
+        let cost = leg.backingShare + leg.feePaid
+        require "stake-above-cap" "a pick costs more than the tier's per-card cap" (cost > 0 && cost <= tier.perCardCap)
+        let picks' = picks ++ [Pick with seat; cardIndex; legCid; leg; cost; payout = None]
+            complete = length picks' == 2 * length cards
+        create this with picks = picks'; status = if complete then Settling else Picking
+
+    -- Closes the pick window after its deadline. One absent player forfeits
+    -- the pot alone; both absent is nobody's win, so both pots go home.
+    -- Neither branch touches a leg.
+    choice Duel_Lock : Either (ContractId DuelResult) (ContractId DuelMatch)
+      with
+        actor : Party
+      controller actor
+      do
+        requireParty this actor
+        require "wrong-status" "only a picking match locks" (status == Picking)
+        deadline <- getPickDeadline this
+        past "pick-deadline" deadline
+        let done s = length (filter (\p -> p.seat == s) picks) == length cards
+        case (done 0, done 1) of
+          (True, True) -> Right <$> create this with status = Settling
+          (False, False) -> Left <$> refundBoth this BothIncomplete
+          (creatorDone, _) -> Right <$> create this with
+            status = Forfeited with absent = if creatorDone then challenger else creator
+
+    -- Scores recorded picks against their Windows' resolutions. The venue
+    -- (the settler) may score any pick; a player only their own. The score
+    -- is `legPayout` of the recorded leg, the engine's own figure.
+    choice Duel_Score : ContractId DuelMatch
+      with
+        actor : Party
+        items : [ScoreItem]
+      controller actor
+      do
+        requireParty this actor
+        require "wrong-status" "cards score once the deck is open" (status /= Unrevealed)
+        require "empty-score" "a score names at least one pick" (not (null items))
+        picks' <- foldlA (scoreOne this actor) picks items
+        create this with picks = picks'
+
+    -- Awards the side pot once every recorded pick is scored. Only the pot
+    -- moves here; the cards were paid by the engine, leg by leg. Bound by
+    -- `potRefundAfter` so it and the stale refund are exact complements.
+    choice Duel_Finalize : ContractId DuelResult
+      with
+        actor : Party
+      controller actor
+      do
+        requireParty this actor
+        require "wrong-status" "only a settling or forfeited match finalizes" (isDecidable status)
+        within "pot-refund-after" (potRefundAfter this)
+        require "cards-outstanding" "every recorded pick must be scored first" (all (isSome . (.payout)) picks)
+        let pnl s = sum [optional 0 identity p.payout - p.cost | p <- picks, p.seat == s]
+            c = pnl 0
+            ch = pnl 1
+            winner = case status of
+              Forfeited absent -> Some (if absent == creator then challenger else creator)
+              _ | c > ch -> Some creator
+                | c < ch -> Some challenger
+                | otherwise -> None
+            pot = 2 * tier.potEach
+            (toCreator, toChallenger) = case winner of
+              Some w | w == creator -> (pot, 0)
+              Some _ -> (0, pot)
+              None -> (pot - pot / 2, pot / 2)
+        _ <- payIfPositive venue creator toCreator "duel-pot"
+        _ <- payIfPositive venue challenger toChallenger "duel-pot"
+        create (resultOf this (optional Tied Won winner) c ch toCreator toChallenger)
+
+    -- The deck was never opened: an operator failure, so both pots return
+    -- and no player is punished.
+    choice Duel_RefundUnrevealed : ContractId DuelResult
+      with
+        actor : Party
+      controller actor
+      do
+        requireParty this actor
+        require "wrong-status" "the deck is already open" (status == Unrevealed)
+        past "reveal-deadline" revealDeadline
+        refundBoth this RevealUnavailable
+
+    -- The pot's own escape, as `Leg_RefundStale` is the leg's: once every
+    -- card's Window is past its refundAfter and the pot is still undecided
+    -- (no resolution, no settler), both pots return.
+    choice Duel_RefundStale : ContractId DuelResult
+      with
+        actor : Party
+      controller actor
+      do
+        requireParty this actor
+        require "wrong-status" "an unrevealed match refunds as unrevealed" (status /= Unrevealed)
+        past "pot-refund-after" (potRefundAfter this)
+        refundBoth this StaleSettlement
+
+-- ---------------------------------------------------------------------------
+-- The record every terminal match leaves (the ladder projection's input).
+
+data RefundReason = BothIncomplete | RevealUnavailable | StaleSettlement
+  deriving (Eq, Show)
+
+data DuelOutcome
+  = Won with winner : Party
+  | Tied
+  | Refunded with reason : RefundReason
+  deriving (Eq, Show)
+
+template DuelResult
+  with
+    venue : Party
+    creator : Party
+    challenger : Party
+    arenaId : Text
+    matchId : Text
+    tierId : Text
+    ranked : Bool
+    outcome : DuelOutcome
+    creatorPnl : Int
+    challengerPnl : Int
+    toCreator : Int
+    toChallenger : Int
+    serverSeed : Optional Text
+    cards : [Text]
+  where
+    signatory venue, creator, challenger
+
+resultOf : DuelMatch -> DuelOutcome -> Int -> Int -> Int -> Int -> DuelResult
+resultOf m outcome creatorPnl challengerPnl toCreator toChallenger =
+  DuelResult with
+    venue = m.venue; creator = m.creator; challenger = m.challenger
+    arenaId = m.arenaId; matchId = m.matchId; tierId = m.tier.tierId; ranked = m.tier.ranked
+    outcome; creatorPnl; challengerPnl; toCreator; toChallenger
+    serverSeed = m.serverSeed; cards = map (.marketId) m.cards
+
+refundBoth : DuelMatch -> RefundReason -> Update (ContractId DuelResult)
+refundBoth m reason = do
+  _ <- payIfPositive m.venue m.creator m.tier.potEach "duel-refund"
+  _ <- payIfPositive m.venue m.challenger m.tier.potEach "duel-refund"
+  create (resultOf m (Refunded reason) 0 0 m.tier.potEach m.tier.potEach)
+
+-- ---------------------------------------------------------------------------
+
+isDecidable : DuelStatus -> Bool
+isDecidable Settling = True
+isDecidable (Forfeited _) = True
+isDecidable _ = False
+
+requireParty : DuelMatch -> Party -> Update ()
+requireParty m actor =
+  require "not-a-party" "only the venue or a named player" (actor `elem` [m.venue, m.creator, m.challenger])
+
+seatOf : DuelMatch -> Party -> Update Int
+seatOf m p
+  | p == m.creator = pure 0
+  | p == m.challenger = pure 1
+  | otherwise = refuse "not-a-player" "only the match's two players pick"
+
+playerAt : DuelMatch -> Int -> Party
+playerAt m seat = if seat == 0 then m.creator else m.challenger
+
+getPickDeadline : DuelMatch -> Update Time
+getPickDeadline m = optional (refuse "wrong-status" "the deck is not open") pure m.pickDeadline
+
+-- | The latest refundAfter over the cards: the pot's stale refund opens here.
+potRefundAfter : DuelMatch -> Time
+potRefundAfter m = maximum (map (.refundAfter) m.cards)
+
+scoreOne : DuelMatch -> Party -> [Pick] -> ScoreItem -> Update [Pick]
+scoreOne m actor ps it = do
+  require "not-your-card" "a player scores only their own picks"
+    (actor == m.venue || (it.seat `elem` [0, 1] && actor == playerAt m it.seat))
+  require "bad-card" "no such card" (it.cardIndex >= 0 && it.cardIndex < length m.cards)
+  let card = m.cards !! it.cardIndex
+      matches p = p.seat == it.seat && p.cardIndex == it.cardIndex
+  case find matches ps of
+    None -> refuse "no-pick" "that seat recorded no pick on that card"
+    Some p -> do
+      require "already-scored" "that pick is already scored" (not (isSome p.payout))
+      r <- fetchResolutionFor m.venue card.termsCid it.resolutionCid
+      let (toOwner, _) = legPayout p.leg r
+      pure [if matches q then q with payout = Some toOwner else q | q <- ps]
+
+-- | Escrow `amount` of the owner's cash; the rest comes back as change.
+escrow : Party -> Party -> [ContractId VenueCash] -> Int -> Update (Optional (ContractId VenueCash))
+escrow venue owner cash amount = do
+  total <- sumOwnedCash venue owner cash
+  require "insufficient-cash" "cash does not cover the side pot" (total >= amount)
+  payIfPositive venue owner (total - amount) "change"
+
+-- | Allowed while now <= t.
+within : Text -> Time -> Update ()
+within label t = assertWithinDeadline label (addRelTime t oneSecond)
+
+-- | Allowed from t + 1 s.
+past : Text -> Time -> Update ()
+past label t = assertDeadlineExceeded label (addRelTime t oneSecond)
+
+-- | A caller-named phase deadline must lie in (now, now + window].
+startClock : Text -> Time -> Int -> Update ()
+startClock label deadline windowSec = do
+  assertWithinDeadline label deadline
+  assertDeadlineExceeded label (addRelTime deadline (seconds (negate windowSec)))

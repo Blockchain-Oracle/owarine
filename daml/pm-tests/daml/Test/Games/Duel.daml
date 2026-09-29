@@ -1,0 +1,365 @@
+-- | The duel money gate: conservation of stakes, pots and payouts; the
+-- deck commitment cannot be forged; refunds at T-1 / T / T+1; the venue
+-- cannot take the stakes; a player cannot settle or score the other's
+-- card; an outsider sees nothing.
+module Test.Games.Duel where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Games.Arena
+import PM.Games.Deck
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Types
+import Test.Games.Fixture
+import Test.Setup
+
+-- ---------------------------------------------------------------------------
+-- The commitment
+
+-- The preimage and its sha256, checked against `shasum -a 256` of the same
+-- text, so the ops encoder has a vector to match byte for byte.
+testDeckGoldenVector = script do
+  let cards = ["BTC-300:0", "BTC-300:1"]
+  deckPreimage "A1" "m-golden" 1 "server-seed-1" theSeeds cards
+    === "19:abu-pm/duel-deck/v1,2:A1,8:m-golden,1:1,13:server-seed-1,1:2,10:seed-alice,8:seed-bob,1:2,9:BTC-300:0,9:BTC-300:1,"
+  let h = deckCommitment "A1" "m-golden" 1 "server-seed-1" theSeeds cards
+  h === "b42a4a7beab6b0f95d72ebedc8b9edf7b3aaf5d7aa42022a57f8b938bf483ca3"
+  assertMsg "a commitment is 64 lowercase hex" (isCommitment h)
+  -- no two decks share a commitment: order, seed, policy, arena, match,
+  -- and an element moved from the seeds to the cards all change it
+  let other = [ deckCommitment "A1" "m-golden" 1 "server-seed-1" theSeeds (reverse cards)
+              , deckCommitment "A1" "m-golden" 1 "server-seed-2" theSeeds cards
+              , deckCommitment "A1" "m-golden" 2 "server-seed-1" theSeeds cards
+              , deckCommitment "A2" "m-golden" 1 "server-seed-1" theSeeds cards
+              , deckCommitment "A1" "m-other" 1 "server-seed-1" theSeeds cards
+              , deckCommitment "A1" "m-golden" 1 "server-seed-1" (theSeeds ++ ["BTC-300:0"]) ["BTC-300:1"] ]
+  forA_ other \o -> assertMsg "distinct decks must not collide" (o /= h)
+
+-- A forged reveal is refused: wrong salt, wrong order, wrong cards, a
+-- duplicated Window. The honest reveal passes once; a second is refused.
+testRevealCannotBeForged = script do
+  g <- mkGames
+  -- a deck committed with a Window twice cannot be opened either
+  oDup <- openDuelWith g "dup" rankedTier (commitFor "dup" [g.win0, g.win0]) 2 60
+  mDup <- joinDuel g oDup
+  tryReveal g mDup theSeed [g.win0, g.win0] (plus t0 250) >>= refusedWith (refusal "duplicate-card")
+  o <- openDuel g "m1" [g.win0, g.win1]
+  m <- joinDuel g o
+  let pd = plus t0 250
+  tryReveal g m "server-seed-X" [g.win0, g.win1] pd >>= refusedWith (refusal "deck-mismatch")
+  tryReveal g m theSeed [g.win1, g.win0] pd >>= refusedWith (refusal "deck-mismatch")
+  tryReveal g m theSeed [g.win0, g.win2] pd >>= refusedWith (refusal "deck-mismatch")
+  tryReveal g m theSeed [g.win0] pd >>= refusedWith (refusal "bad-deck-size")
+  -- a pick deadline past a card's lock is refused, as is one beyond the window
+  tryReveal g m theSeed [g.win0, g.win1] (plus g.win0.t.lockAt 1) >>= refusedWith (refusal "card-too-late")
+  now <- getTime
+  tryReveal g m theSeed [g.win0, g.win1] (plus now (arenaParams.pickWindowSec + 1)) >>= refusedWith deadlineNotExceeded
+  -- a player guessing a seed is refused too
+  dt0 <- disclosureOf g.w.venue g.win0.terms
+  dt1 <- disclosureOf g.w.venue g.win1.terms
+  r <- trySubmit (actAs g.w.bob <> disclose dt0 <> disclose dt1) do
+    exerciseCmd m Duel_Reveal with actor = g.w.bob; seed = "guess"; cardCids = [g.win0.terms, g.win1.terms]; newPickDeadline = pd
+  refusedWith (refusal "deck-mismatch") r
+  m' <- reveal g m [g.win0, g.win1]
+  Some v <- queryContractId g.w.alice m'
+  v.status === Picking
+  v.serverSeed === Some theSeed
+  map (.marketId) v.cards === ["BTC-300:0", "BTC-300:1"]
+  tryReveal g m' theSeed [g.win0, g.win1] pd >>= refusedWith (refusal "wrong-status")
+
+-- ---------------------------------------------------------------------------
+-- Conservation and the pot
+
+-- Full match over two cards. Every step conserves value (only mints move
+-- the total); card legs settle through the engine before the pot is
+-- decided; the pot goes to the better PnL; each player ends with exactly
+-- funded - costs + leg payouts + pot share.
+testDuelConservation = script do
+  g <- mkGames
+  let w = g.w
+  o <- step w pot (openDuel g "m1" [g.win0, g.win1])
+  m <- step w pot (joinDuel g o)
+  m <- step w 0 (reveal g m [g.win0, g.win1])
+  -- alice: Up@400 on card 0, Up@500 on card 1; bob: Down@600, Down@500
+  (m, a0) <- step w 1000 (pick g "m1" m w.alice 0 g.win0 SideUp 400)
+  (m, b0) <- step w 1000 (pick g "m1" m w.bob 0 g.win0 SideDown 600)
+  (m, a1) <- step w 1000 (pick g "m1" m w.alice 1 g.win1 SideUp 500)
+  (m, b1) <- step w 1000 (pick g "m1" m w.bob 1 g.win1 SideDown 500)
+  Some v <- queryContractId w.venue m
+  v.status === Settling
+  -- card 0 resolves Up, card 1 resolves Down
+  r0 <- step w 0 (resolveAt w g.win0 g.open0 (px + 1))
+  op1 <- step w 0 (recordOpen w g.win1 px)
+  r1 <- step w 0 (resolveAt w g.win1 op1 (px - 1))
+  -- the cards settle as ordinary legs, before and independent of the pot
+  step w 0 (settleLegs g [a0, b0] r0)
+  step w 0 (settleLegs g [a1, b1] r1)
+  bucketOf w.alice "payout" >>= (=== 1000)
+  bucketOf w.bob "payout" >>= (=== 1000)
+  m <- step w 0 (score g m [(0, 0, r0), (1, 0, r0), (0, 1, r1), (1, 1, r1)])
+  res <- step w 0 (finalize g m)
+  -- alice: +600 - 500 = +100; bob: -600 + 500 = -100
+  res.creatorPnl === 100
+  res.challengerPnl === (-100)
+  res.outcome === Won w.alice
+  (res.toCreator, res.toChallenger) === (2 * pot, 0)
+  bucketOf w.alice "duel-pot" >>= (=== 2 * pot)
+  -- funded (pot + 400 + 500) - spent (pot + 900) + payouts 1000 + pot 200
+  cashOf w.alice >>= (=== 1000 + 2 * pot)
+  cashOf w.bob >>= (=== 1000)
+  -- nothing is left escrowed for the duel
+  query @DuelMatch w.venue >>= (=== []) . map fst
+  query @DuelOpen w.venue >>= (=== []) . map fst
+
+-- A voided Window pays every leg its cost back, so both PnLs are zero and
+-- the pot splits evenly.
+testVoidedCardTies = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "m1" [g.win0]
+  m <- joinDuel g o
+  m <- reveal g m [g.win0]
+  (m, a0) <- pick g "m1" m w.alice 0 g.win0 SideUp 400
+  (m, b0) <- pick g "m1" m w.bob 0 g.win0 SideDown 700
+  r <- voidClose w g.win0 g.open0
+  settleLegs g [a0, b0] r
+  m <- score g m [(0, 0, r), (1, 0, r)]
+  res <- finalize g m
+  res.outcome === Tied
+  (res.creatorPnl, res.challengerPnl) === (0, 0)
+  (res.toCreator, res.toChallenger) === (pot, pot)
+  cashOf w.alice >>= (=== 400 + pot)
+  cashOf w.bob >>= (=== 700 + pot)
+
+-- ---------------------------------------------------------------------------
+-- Refunds at T-1 / T / T+1
+
+-- Unjoined: the join window closes at T. At T-1 and T the refund is
+-- refused and a join still lands; at T+1 the join is refused and the
+-- refund pays the creator. The creator may cancel before a join at any
+-- time; the challenger may not cancel for her.
+testRefundUnjoinedRace = script do
+  g <- mkGames
+  let w = g.w
+  oA <- openDuel g "A" [g.win0]
+  oB <- openDuel g "B" [g.win0]
+  oC <- openDuel g "C" [g.win0]
+  oD <- openDuel g "D" [g.win0]
+  Some a <- queryContractId w.alice oA
+  let tT = a.joinDeadline
+      refund o = trySubmit w.bob do exerciseCmd o Open_RefundUnjoined with actor = w.bob
+  at (plus tT (-1))
+  refund oA >>= refusedWith deadlineNotExceeded
+  at tT
+  refund oA >>= refusedWith deadlineNotExceeded
+  _ <- joinWith g oB 60
+  at (plus tT 1)
+  c <- fund w w.bob pot
+  r <- trySubmit w.bob do exerciseCmd oC Open_Join with cash = [c]; revealDeadline = plus tT 30
+  refusedWith deadlineExceeded r
+  -- bob cannot cancel alice's match; alice can
+  trySubmit w.bob (exerciseCmd oD Open_Cancel) >>= unauthorized
+  before <- cashOf w.alice
+  _ <- submit w.alice do exerciseCmd oD Open_Cancel
+  _ <- refund oA >>= succeeded
+  cashOf w.alice >>= (=== before + 2 * pot)
+  bucketOf w.alice "duel-refund" >>= (=== 2 * pot)
+  -- an outsider is no party to the match
+  trySubmit w.outsider (exerciseCmd oC Open_RefundUnjoined with actor = w.outsider) >>= fails
+
+-- Unrevealed: the reveal window closes at T. At T-1 and T the refund is
+-- refused and a reveal still lands; at T+1 the reveal is refused and the
+-- refund returns BOTH pots.
+testRefundUnrevealedRace = script do
+  g <- mkGames
+  let w = g.w
+  oA <- openDuel g "A" [g.win0]
+  oB <- openDuel g "B" [g.win0]
+  oC <- openDuel g "C" [g.win0]
+  mA <- joinDuel g oA
+  mB <- joinDuel g oB
+  mC <- joinDuel g oC
+  Some a <- queryContractId w.alice mA
+  let tT = a.revealDeadline
+      refund m = trySubmit w.alice do exerciseCmd m Duel_RefundUnrevealed with actor = w.alice
+  at (plus tT (-1))
+  refund mA >>= refusedWith deadlineNotExceeded
+  at tT
+  refund mA >>= refusedWith deadlineNotExceeded
+  _ <- tryReveal g mB theSeed [g.win0] (plus t0 250) >>= succeeded
+  at (plus tT 1)
+  tryReveal g mC theSeed [g.win0] (plus t0 250) >>= refusedWith deadlineExceeded
+  aliceBefore <- cashOf w.alice
+  bobBefore <- cashOf w.bob
+  rc <- refund mA >>= succeeded
+  Some res <- queryContractId w.alice rc
+  res.outcome === Refunded RevealUnavailable
+  cashOf w.alice >>= (=== aliceBefore + pot)
+  cashOf w.bob >>= (=== bobBefore + pot)
+
+-- The pick window closes at T: a pick records at T, not at T+1; the lock
+-- is refused at T and runs at T+1. One absent player forfeits the pot even
+-- though the present player's card lost; both absent refunds both.
+testPickLockAndForfeit = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "F" [g.win0]
+  m <- joinDuel g o
+  m <- reveal g m [g.win0]
+  oN <- openDuel g "N" [g.win0]
+  mN <- joinDuel g oN
+  mN <- reveal g mN [g.win0]
+  let tT = plus t0 250
+  at (plus tT (-5))
+  aLeg <- buyLeg g "F" w.alice g.win0 SideDown 500 1 "F-a"
+  bLeg <- buyLeg g "F" w.bob g.win0 SideUp 500 1 "F-b"
+  at tT
+  trySubmit w.alice (exerciseCmd m Duel_Lock with actor = w.alice) >>= refusedWith deadlineNotExceeded
+  m <- tryRecord g m w.alice 0 aLeg >>= succeeded
+  at (plus tT 1)
+  tryRecord g m w.bob 0 bLeg >>= refusedWith deadlineExceeded
+  Left nres <- submit w.bob do exerciseCmd mN Duel_Lock with actor = w.bob
+  Some nr <- queryContractId w.bob nres
+  nr.outcome === Refunded BothIncomplete
+  Right m <- submit w.bob do exerciseCmd m Duel_Lock with actor = w.bob
+  Some v <- queryContractId w.venue m
+  v.status === Forfeited with absent = w.bob
+  -- alice called Down, the Window goes Up: she lost the card, won the pot
+  r <- resolveAt w g.win0 g.open0 (px + 1)
+  trySubmit w.venue (exerciseCmd m Duel_Finalize with actor = w.venue) >>= refusedWith (refusal "cards-outstanding")
+  m <- score g m [(0, 0, r)]
+  res <- finalize g m
+  res.creatorPnl === (-500)
+  res.outcome === Won w.alice
+  res.toCreator === 2 * pot
+  -- bob's own leg is untouched by the forfeit: he still holds it
+  Some _ <- queryContractId w.bob bLeg
+  pure ()
+
+-- The pot's stale refund opens at potRefundAfter + 1 s, exactly where
+-- finalize closes; a scored, settling match refunds both pots there.
+testPotStaleRefund = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "S" [g.win0]
+  m <- joinDuel g o
+  m <- reveal g m [g.win0]
+  (m, _) <- pick g "S" m w.alice 0 g.win0 SideUp 500
+  (m, _) <- pick g "S" m w.bob 0 g.win0 SideDown 500
+  let tT = g.win0.t.refundAfter
+      stale = trySubmit w.bob do exerciseCmd m Duel_RefundStale with actor = w.bob
+  at tT
+  stale >>= refusedWith deadlineNotExceeded
+  at (plus tT 1)
+  trySubmit w.venue (exerciseCmd m Duel_Finalize with actor = w.venue) >>= refusedWith deadlineExceeded
+  rc <- stale >>= succeeded
+  Some res <- queryContractId w.bob rc
+  res.outcome === Refunded StaleSettlement
+  bucketOf w.alice "duel-refund" >>= (=== pot)
+  bucketOf w.bob "duel-refund" >>= (=== pot)
+
+-- ---------------------------------------------------------------------------
+-- Authority
+
+-- The venue cannot take the stakes: it cannot archive an open or joined
+-- match alone, cannot make a match in the players' names, cannot pick as a
+-- player, and a finalize it runs pays only the players.
+testVenueCannotTakeStakes = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "V" [g.win0]
+  trySubmit w.venue (archiveCmd o) >>= unauthorized
+  trySubmit w.venue (exerciseCmd o Open_Cancel) >>= unauthorized
+  m <- joinDuel g o
+  trySubmit w.venue (archiveCmd m) >>= unauthorized
+  Some v <- queryContractId w.venue m
+  trySubmit w.venue (createCmd v with matchId = "forged") >>= unauthorized
+  m <- reveal g m [g.win0]
+  leg <- buyLeg g "V" w.alice g.win0 SideUp 500 1 "V-a"
+  tryRecord g m w.venue 0 leg >>= refusedWith (refusal "not-a-player")
+  (m, _) <- pick g "V" m w.alice 0 g.win0 SideUp 400
+  (m, _) <- pick g "V" m w.bob 0 g.win0 SideDown 600
+  r <- resolveAt w g.win0 g.open0 (px + 1)
+  m <- score g m [(0, 0, r), (1, 0, r)]
+  venueBefore <- cashOf w.venue
+  res <- finalize g m
+  cashOf w.venue >>= (=== venueBefore)
+  res.toCreator + res.toChallenger === 2 * pot
+
+-- A player cannot settle the other's card: the leg is bilateral (venue and
+-- its owner), so bob can neither claim nor settle alice's leg, cannot
+-- record it as his pick, and cannot score her seat. Recording also refuses
+-- an untagged leg, a leg on another card, one above the cap, and a second
+-- pick on the same card.
+testPlayerCannotSettleOthersCard = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "P" [g.win0]
+  m <- joinDuel g o
+  m <- reveal g m [g.win0]
+  aLeg <- buyLeg g "P" w.alice g.win0 SideUp 500 1 "P-a"
+  -- bob does not even see alice's leg
+  queryContractId w.bob aLeg >>= (=== None)
+  tryRecord g m w.bob 0 aLeg >>= fails
+  -- untagged, wrong card, above cap
+  now <- getTime
+  qU <- issue w g.win0 w.alice SideUp 500 1 0 (plus now 20) "P-untagged"
+  cU <- fund w w.alice 500
+  (untagged, _, _) <- submit w.alice do exerciseCmd qU Quote_Accept with cash = [cU]; beneficiaryRef = None
+  tryRecord g m w.alice 0 untagged >>= refusedWith (refusal "foreign-leg")
+  wrongCard <- buyLeg g "P" w.alice g.win1 SideUp 500 1 "P-w1"
+  tryRecord g m w.alice 0 wrongCard >>= refusedWith (refusal "foreign-leg")
+  otherMatch <- buyLeg g "other" w.alice g.win0 SideUp 500 1 "P-other"
+  tryRecord g m w.alice 0 otherMatch >>= refusedWith (refusal "foreign-leg")
+  big <- buyLeg g "P" w.alice g.win0 SideUp 500 3 "P-big"
+  tryRecord g m w.alice 0 big >>= refusedWith (refusal "stake-above-cap")
+  tryRecord g m w.alice 1 aLeg >>= refusedWith (refusal "bad-card")
+  m <- tryRecord g m w.alice 0 aLeg >>= succeeded
+  aLeg2 <- buyLeg g "P" w.alice g.win0 SideDown 500 1 "P-a2"
+  tryRecord g m w.alice 0 aLeg2 >>= refusedWith (refusal "already-picked")
+  (m, bLeg) <- pick g "P" m w.bob 0 g.win0 SideDown 500
+  r <- resolveAt w g.win0 g.open0 (px + 1)
+  d <- disclosureOf w.venue r
+  -- bob cannot claim alice's leg, even with the resolution disclosed
+  trySubmit (actAs w.bob <> disclose d) (exerciseCmd aLeg Leg_Claim with resolutionCid = r) >>= fails
+  -- bob cannot score alice's seat; he can score his own
+  trySubmit (actAs w.bob <> disclose d)
+      (exerciseCmd m Duel_Score with actor = w.bob; items = [ScoreItem with seat = 0; cardIndex = 0; resolutionCid = r])
+    >>= refusedWith (refusal "not-your-card")
+  m <- submit (actAs w.bob <> disclose d) do
+    exerciseCmd m Duel_Score with actor = w.bob; items = [ScoreItem with seat = 1; cardIndex = 0; resolutionCid = r]
+  trySubmit (actAs w.bob <> disclose d)
+      (exerciseCmd m Duel_Score with actor = w.bob; items = [ScoreItem with seat = 1; cardIndex = 0; resolutionCid = r])
+    >>= refusedWith (refusal "already-scored")
+  -- alice claims her own leg: the card pays her, the duel is not involved
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd aLeg Leg_Claim with resolutionCid = r
+  bucketOf w.alice "payout" >>= (=== 1000)
+  Some _ <- queryContractId w.bob bLeg
+  pure ()
+
+-- ---------------------------------------------------------------------------
+-- Visibility
+
+-- An outsider sees no arena, match, result or leg; players see their own
+-- match but not the arena terms (those travel by disclosure).
+testOutsiderSeesNothing = script do
+  g <- mkGames
+  let w = g.w
+  o <- openDuel g "O" [g.win0]
+  oJ <- openDuel g "J" [g.win0]
+  m <- joinDuel g oJ
+  m <- reveal g m [g.win0]
+  (m, _) <- pick g "J" m w.alice 0 g.win0 SideUp 500
+  query @ArenaTerms w.outsider >>= (=== []) . map fst
+  query @DuelOpen w.outsider >>= (=== []) . map fst
+  query @DuelMatch w.outsider >>= (=== []) . map fst
+  query @DuelResult w.outsider >>= (=== []) . map fst
+  query @Leg w.outsider >>= (=== []) . map fst
+  query @VenueCash w.outsider >>= (=== []) . map fst
+  query @ArenaTerms w.alice >>= (=== []) . map fst
+  queryContractId w.bob o >>= (=== True) . (/= None)
+  queryContractId w.alice m >>= (=== True) . (/= None)
+  queryContractId w.bob m >>= (=== True) . (/= None)

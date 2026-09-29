@@ -4,3 +4,4 @@ packages:
 - ./abu-pm-main
 - ./abu-pm-tickets
 - ./pm-tests
+- ./abu-pm-games
