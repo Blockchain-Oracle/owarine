@@ -8,10 +8,10 @@ export type XCadence = keyof typeof X_CADENCES;
 
 export type XAsset = TickerSymbol;
 /** Every ticker by its symbol, and the company words people actually type. */
-const NAME_WORDS: Record<string, TickerSymbol> = { tesla: "TSLA", nvidia: "NVDA", apple: "AAPL", microsoft: "MSFT", amazon: "AMZN", google: "GOOGL", alphabet: "GOOGL" };
+const NAME_WORDS: Record<string, TickerSymbol> = { tesla: "TSLA", nvidia: "NVDA", apple: "AAPL", microsoft: "MSFT", amazon: "AMZN", google: "GOOGL", alphabet: "GOOGL", bitcoin: "BTC", ethereum: "ETH", ether: "ETH" };
 const ASSETS: Record<string, XAsset> = { ...Object.fromEntries(TICKER_SYMBOLS.map((symbol) => [symbol.toLowerCase(), TICKERS[symbol].symbol])), ...NAME_WORDS };
 /** Words that name an asset Agari does not list: refused as unknown rather than ignored. */
-const UNLISTED_ASSET_RE = /^(btc|bitcoin|eth|ethereum|ether|sol|bnb|xrp|doge|ada|link|avax|coin|mstr|hood|amd|nflx)$/;
+const UNLISTED_ASSET_RE = /^(sol|bnb|xrp|doge|ada|link|avax|coin|mstr|hood|amd|nflx)$/;
 /** Side words the parser understands; everything maps onto the venue's two outcomes. */
 const SIDES: Record<string, Side> = { up: "up", down: "down", long: "up", short: "down", yes: "up", no: "down", over: "up", under: "down" };
 /** Units that may trail a stake and mean nothing more than "collateral". */

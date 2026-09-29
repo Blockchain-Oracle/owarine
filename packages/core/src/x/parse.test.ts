@@ -23,6 +23,11 @@ describe("parseInstruction", () => {
     expect(ok("short alphabet 1 1h")).toMatchObject({ side: "down", asset: "GOOGL", cadence: "1h" });
     expect(ok("META up 2 15m")).toMatchObject({ asset: "META" });
   });
+  it("reads the listed crypto assets by symbol and by name", () => {
+    expect(ok("btc up 5 15m")).toMatchObject({ asset: "BTC" });
+    expect(ok("bitcoin down 5 1h")).toMatchObject({ asset: "BTC", side: "down" });
+    expect(ok("ether up 5 5m")).toMatchObject({ asset: "ETH" });
+  });
   it.each(["TSLA long 5 5 minutes", "tsla up 5 5min", "TSLA up 5 5 mins"])("accepts written minute units: %s", text => {
     expect(ok(text)).toMatchObject({ asset: "TSLA", side: "up", stakeBase: 5_000_000n, intervalSec: 300 });
   });
