@@ -350,6 +350,12 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../core
+      '@agari/daml':
+        specifier: workspace:*
+        version: link:../daml-clients
+      '@agari/ledger':
+        specifier: workspace:*
+        version: link:../ledger
       '@noble/hashes':
         specifier: 1.8.0
         version: 1.8.0
@@ -378,9 +384,15 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../packages/core
+      '@agari/daml':
+        specifier: workspace:*
+        version: link:../packages/daml-clients
       '@agari/db':
         specifier: workspace:*
         version: link:../packages/db
+      '@agari/ledger':
+        specifier: workspace:*
+        version: link:../packages/ledger
       '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets
@@ -400,9 +412,15 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@agari/daml':
+        specifier: workspace:*
+        version: link:../../packages/daml-clients
       '@agari/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@agari/ledger':
+        specifier: workspace:*
+        version: link:../../packages/ledger
       '@agari/markets':
         specifier: workspace:*
         version: link:../../packages/markets

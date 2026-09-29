@@ -37,6 +37,8 @@
   },
   "dependencies": {
     "@agari/core": "workspace:*",
+    "@agari/daml": "workspace:*",
+    "@agari/ledger": "workspace:*",
     "@noble/hashes": "1.8.0",
     "@tanstack/react-query": "catalog:",
     "zod": "catalog:"
