@@ -9,6 +9,11 @@ import { checkWebServerEnv } from "@/lib/server-env";
 const { problems } = checkWebServerEnv(process.env);
 if (problems.length > 0) {
   const report = `seat/ledger configuration:\n  ${problems.join("\n  ")}`;
-  if (process.env.NODE_ENV === "production" && process.env.AGARI_ALLOW_SEATLESS !== "1") throw new Error(report);
+  if (process.env.NODE_ENV === "production" && process.env.AGARI_ALLOW_SEATLESS !== "1") {
+    // Measured on Next 16.3: a throw here does not stop `next start`; it logs "Failed to prepare server" and answers
+    // 500 on every route. Exiting makes a misconfigured host crash-loop where the deploy can see it.
+    console.error(`[agari] refusing to start: ${report}`);
+    process.exit(1);
+  }
   console.warn(`[agari] ${report}\n  (the seat routes answer "not live" until these are set)`);
 }
