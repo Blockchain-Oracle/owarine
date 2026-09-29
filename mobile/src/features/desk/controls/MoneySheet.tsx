@@ -54,18 +54,17 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
   const b = balances.value;
   const held = b.names.filter((n) => n.raw > 0n);
   const name = held.find((n) => n.symbol === symbol) ?? held[0] ?? null;
-  const noSol = b.lamports === 0n;
 
   if (kind === "deposit") {
     const usdcE6 = parseDecimalToBaseUnits(amount, 6);
     const tooSmall = usdcE6 !== null && usdcE6 < MIN_DEPOSIT_E6;
-    const usdcOk = usdcE6 !== null && usdcE6 > 0n && !tooSmall && usdcE6 <= b.usdc.raw && !noSol;
+    const usdcOk = usdcE6 !== null && usdcE6 > 0n && !tooSmall && usdcE6 <= b.usdc.raw;
     const tokenRaw = name ? (everything ? name.raw : (parseDecimalToBaseUnits(amount, 9) ?? 0n)) : 0n;
-    const tokenOk = name !== null && tokenRaw > 0n && tokenRaw <= name.raw && !noSol;
+    const tokenOk = name !== null && tokenRaw > 0n && tokenRaw <= name.raw;
     const confirm = async () => {
       if (way === "usdc" && usdcOk) {
         const landed = await actions.tx("deposit", (s) => s.deposit({ mint: USDC_MAINNET, ownerToken: b.usdc.ownerToken, amount: usdcE6 }));
-        if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(usd(usdcE6), "USDC") });
+        if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(usd(usdcE6), MONEY.unit) });
       } else if (way === "tokens" && tokenOk && name) {
         const landed = await actions.tx("deposit", (s) => s.deposit({ mint: DESK_MINTS[name.symbol], ownerToken: name.ownerToken, amount: tokenRaw }));
         if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(tokens(uiRaw(netOfFee(tokenRaw), name.multiplierE12)), name.symbol) });
@@ -82,7 +81,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
             <AmountInput label={MONEY.usdc.amount} value={amount} onChange={setAmount} placeholder="300" />
             {tooSmall ? <Text style={[DT.caption, { color: color.warning }]}>{MONEY.tooSmall(usd(MIN_DEPOSIT_E6, 0))}</Text> : null}
             {usdcE6 !== null && usdcE6 > 0n ? (
-              <Receipt rows={[[R.send, `${usd(usdcE6)} USDC`], [R.receive, `${usd(usdcE6)} USDC`], [R.networkFee, R.networkFeeValue], [R.takes, R.seconds]]} />
+              <Receipt rows={[[R.send, `${usd(usdcE6)} ${MONEY.unit}`], [R.receive, `${usd(usdcE6)} ${MONEY.unit}`], [R.networkFee, R.networkFeeValue], [R.takes, R.seconds]]} />
             ) : null}
           </>
         ) : name ? (
@@ -111,7 +110,6 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
         ) : (
           <Text style={[DT.caption, { color: color.inkSecondary }]}>{MONEY.tokens.none}</Text>
         )}
-        {noSol ? <Text style={[DT.caption, { color: color.warning }]}>{MONEY.noSol.line}</Text> : null}
       </ControlCard>
     );
   }
@@ -128,7 +126,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
     }
     if (usdcOk) {
       const landed = await actions.tx("withdraw", (s) => s.withdraw({ mint: USDC_MAINNET, ...(everything ? {} : { amount: someE6 as bigint }) }));
-      if (landed.ok) pushToast({ tone: "neutral", title: MONEY.withdrawn("USDC") });
+      if (landed.ok) pushToast({ tone: "neutral", title: MONEY.withdrawn(MONEY.unit) });
     }
     if (everything) {
       for (const t of heldInDesk) {
@@ -144,7 +142,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
       title={MONEY.withdraw.title}
       body={MONEY.withdraw.body}
       now={[MONEY.withdraw.usdcInDesk(usd(cashE6))]}
-      after={[asCash ? MONEY.withdraw.asCash : everything ? MONEY.withdraw.perMint(1 + heldInDesk.length) : `${usd(someE6 ?? 0n)} USDC`]}
+      after={[asCash ? MONEY.withdraw.asCash : everything ? MONEY.withdraw.perMint(1 + heldInDesk.length) : `${usd(someE6 ?? 0n)} ${MONEY.unit}`]}
       who={asCash ? "request" : "wallet"}
       disabled={!asCash && !usdcOk && !(everything && heldInDesk.length > 0)}
       confirmLabel={MONEY.withdraw.button}
