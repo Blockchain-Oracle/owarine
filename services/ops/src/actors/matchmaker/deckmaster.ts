@@ -123,6 +123,11 @@ export interface DealInput {
   chainId: number;
   /** The `ArenaTerms.arenaId` the match will be opened under: part of the commitment. */
   arenaId: string;
+  /**
+   * The arena's `policyVersion`, which `Arena_OpenDuel` copies onto the match and `Duel_Reveal` hashes: the deck must be
+   * committed under it, not under this module's own number (a mismatch could only ever refund).
+   */
+  policyVersion: number;
   clientSeeds: readonly Hash32[];
   /** The arena's own deadlines. Headroom is derived from all four, never from `minCardLifeSec` alone. */
   params: Pick<ArenaParams, "minCardLifeSec" | "joinWindowSec" | "revealWindowSec" | "pickWindowSec">;
@@ -194,9 +199,9 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
     serverSeed,
     clientSeeds: input.clientSeeds,
     cards: cards as string[],
-    policyVersion: DECK_POLICY_VERSION,
+    policyVersion: input.policyVersion,
   };
-  const ledgerHash = duelDeckHash({ arenaId: input.arenaId, matchId: input.matchId, policyVersion: DECK_POLICY_VERSION, serverSeed, clientSeeds: input.clientSeeds, cards: material.cards });
+  const ledgerHash = duelDeckHash({ arenaId: input.arenaId, matchId: input.matchId, policyVersion: input.policyVersion, serverSeed, clientSeeds: input.clientSeeds, cards: material.cards });
   const deckHash = `0x${ledgerHash}` as Hash32;
   const sealed = seal(material, key);
 
@@ -213,7 +218,7 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
       matchId: input.matchId,
       chainId: input.chainId,
       arena: arenaAddressOf(input.arenaId),
-      policyVersion: DECK_POLICY_VERSION,
+      policyVersion: input.policyVersion,
       lane: selection.lane,
       cards: selection.cards.map((card) => card.marketId),
       sealed,
@@ -224,5 +229,5 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
     onWarning?.(`${input.matchId}: the deck row was not written (${error instanceof Error ? error.message : String(error)}); the journal has it`);
   }
 
-  return { ok: true, deck: { cards: selection.cards, lane: selection.lane, deckHash, policyVersion: DECK_POLICY_VERSION } };
+  return { ok: true, deck: { cards: selection.cards, lane: selection.lane, deckHash, policyVersion: input.policyVersion } };
 }

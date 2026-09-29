@@ -28,7 +28,7 @@ function tx(choice: string, on: string, argument: unknown, created: Array<{ temp
     updateId: "1220aa", offset: 42, effectiveAt: "2026-09-29T12:03:00Z", recordTime: "2026-09-29T12:03:00Z", synchronizerId: "s",
     events: [
       { ExercisedEvent: { offset: 42, nodeId: 0, contractId: "00match", templateId: tid(on), choice, choiceArgument: argument, actingParties: [], consuming: true, witnessParties: [], lastDescendantNodeId: created.length, packageName: "abu-pm-games" } },
-      ...created.map((c, i) => ({ CreatedEvent: { offset: 42, nodeId: i + 1, contractId: c.cid, templateId: tid(c.templateId), packageName: "abu-pm-games", createArgument: c.payload, witnessParties: [], signatories: [], createdAt: "" } })),
+      ...created.map((c, i) => ({ CreatedEvent: { offset: 42, nodeId: i + 1, contractId: c.cid, templateId: tid(c.templateId), packageName: "abu-pm-games", createArgument: c.payload, witnessParties: [], signatories: [] } })),
     ],
   } as JsTransaction;
 }
