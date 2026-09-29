@@ -15,8 +15,9 @@ export interface OpsRows {
 export function indexerRow({ health, inSession }: OpsRows): StatusPipeline {
   const label = STATUS.pipelines.indexer;
   if (!health.ok) return pipelineRow("indexer", label, { verdict: "bad", detail: health.why, latencyMs: health.latencyMs });
-  const beat = heartbeatOf(health.value, "indexer");
-  if (!beat) return pipelineRow("indexer", label, { verdict: "bad", detail: STATUS.detail.noBeat("indexer") });
+  // The Canton projector's heartbeat carries the reference indexer's detail names (`txs`, `cursorSlot`, `gapsOpen`).
+  const beat = heartbeatOf(health.value, "projector");
+  if (!beat) return pipelineRow("indexer", label, { verdict: "bad", detail: STATUS.detail.noBeat("projector") });
   const gapsOpen = detailNumber(beat, "gapsOpen") ?? 0;
   const lastLagSec = detailNumber(beat, "lastLagSec");
   const subscription = detailString(beat, "subscription");
@@ -27,8 +28,8 @@ export function indexerRow({ health, inSession }: OpsRows): StatusPipeline {
   return pipelineRow("indexer", label, { verdict, detail: parts.join(" · "), lagSec: lastLagSec, offHours: !inSession });
 }
 
-/** The six ops actors: failing or silent is bad in or out of session; only the seed maker rests off-hours. */
-export function heartbeatRows({ health, inSession }: OpsRows): StatusPipeline[] {
+/** The ops actors: failing or silent is bad in or out of session (the crypto lanes never close). */
+export function heartbeatRows({ health }: OpsRows): StatusPipeline[] {
   return STATUS.actors.map(({ id, actor, name }) => {
     const rowId = `ops:${id}`;
     const label = STATUS.pipelines.ops(name);
@@ -36,8 +37,7 @@ export function heartbeatRows({ health, inSession }: OpsRows): StatusPipeline[] 
     const beat = heartbeatOf(health.value, actor);
     if (!beat) return pipelineRow(rowId, label, { verdict: "bad", detail: STATUS.detail.noBeat(actor) });
     const { verdict, lagSec } = gradeHeartbeat(beat, health.value.nowMs);
-    const resting = actor === "seed-maker" && !inSession;
-    return pipelineRow(rowId, label, { verdict, lagSec, detail: STATUS.detail.beat(beat.lastWhy, beat.failures), offHours: resting });
+    return pipelineRow(rowId, label, { verdict, lagSec, detail: STATUS.detail.beat(beat.lastWhy, beat.failures) });
   });
 }
 

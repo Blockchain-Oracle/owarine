@@ -24,7 +24,7 @@ export const STATUS = {
   pipelines: {
     rpc: "Solana RPC · chain head",
     slotLag: "Indexer · slots behind head",
-    indexer: "Indexer · live lag",
+    indexer: "Projector · live lag",
     relay: { pyth: "Price relay · Pyth freshness", redstone: "Price relay · RedStone freshness" },
     mix: (cadence: string) => `Print sources · ${cadence} Windows`,
     pythTrial: "Pyth trial · sessions left",
@@ -42,12 +42,17 @@ export const STATUS = {
   },
 
   /** Ops actor ids (`/health`) and the name each row shows. */
+  // Canton ops (C3): the three oracle feeders replace the Solana price relay, the pricer replaces the seed maker, and
+  // the projector (heartbeat "projector") replaces the indexer.
   actors: [
     { id: "roller", actor: "window-roller", name: "window roller" },
-    { id: "relay", actor: "price-relay", name: "price relay" },
+    { id: "oracle-coinbase", actor: "oracle-coinbase", name: "oracle · Coinbase" },
+    { id: "oracle-kraken", actor: "oracle-kraken", name: "oracle · Kraken" },
+    { id: "oracle-bitstamp", actor: "oracle-bitstamp", name: "oracle · Bitstamp" },
+    { id: "resolver", actor: "resolver", name: "resolver" },
+    { id: "pricer", actor: "pricer", name: "pricer" },
     { id: "settler", actor: "settler", name: "settler" },
-    { id: "seed-maker", actor: "seed-maker", name: "seed maker" },
-    { id: "indexer", actor: "indexer", name: "indexer" },
+    { id: "projector", actor: "projector", name: "projector" },
     { id: "price-archive", actor: "price-archive", name: "price archive" },
   ],
 
