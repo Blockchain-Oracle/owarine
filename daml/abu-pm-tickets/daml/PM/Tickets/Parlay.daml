@@ -1,0 +1,171 @@
+-- | Parlay: a house-banked ticket over two to four Windows, every leg must
+-- come in (the reference's `agari-parlay`).
+--
+--   ParlayQuote   venue-signed, user observer: `maxPayout` for `stake` on
+--                 the legs, the house part locked from a reserve shard at
+--                 issue (`PM.Tickets.Book`).
+--   ParlayTicket  bilateral (venue, owner): escrows the whole `maxPayout`,
+--                 locked at open, so a win is always paid in full.
+--
+-- Legs are decided one at a time, in the order their Windows close (the
+-- pending leg with the earliest expiry, lowest index first), against each
+-- Window's own Resolution, so a ticket's fate is a function of what was
+-- recorded and not of who decides first (reference state/ticket.rs):
+--   leg won    the leg is marked; the last winning leg pays maxPayout
+--   leg lost   the ticket dies; the reserve takes maxPayout
+--   leg void   a voided Window voids the ticket: the owner gets the stake
+--              back, the reserve its lock
+-- From `voidAfter` (the last leg's refundAfter) the owner may void a ticket
+-- that is still live, as the reference's `void_stale`. As with `Leg`, the
+-- ledger cannot see that a Resolution exists, so a stale void of a ticket
+-- whose pending leg had lost is venue risk (the venue decides legs before).
+module PM.Tickets.Parlay where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.List ((!!), sortOn, unique)
+import DA.Time (addRelTime, seconds)
+import PM.Leg (fetchResolutionFor)
+import PM.Market
+import PM.Money
+import PM.Quote (expireSlackSec)
+import PM.Tickets.Common
+import PM.Types
+
+minParlayLegs, maxParlayLegs : Int
+minParlayLegs = 2
+maxParlayLegs = 4
+
+data ParlayLeg = ParlayLeg
+  with
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    side : Side
+    expiry : Time
+    refundAfter : Time
+    won : Bool
+  deriving (Eq, Show)
+
+legsOk : [ParlayLeg] -> Bool
+legsOk legs =
+  length legs >= minParlayLegs && length legs <= maxParlayLegs
+    && unique (map (.termsCid) legs) && all (\l -> l.expiry < l.refundAfter) legs
+
+-- | The latest refundAfter of the legs: stale voids open here.
+lastRefundAfter : [ParlayLeg] -> Time
+lastRefundAfter legs = case map (.refundAfter) legs of
+  [] -> error "a parlay has legs"
+  (x :: xs) -> foldl max x xs
+
+-- | The one leg that may be decided next: the pending leg with the earliest
+-- expiry, lowest index first.
+nextLeg : [ParlayLeg] -> Optional Int
+nextLeg legs = case sortOn (\(i, l) -> (l.expiry, i)) [(i, l) | (i, l) <- zip [0 .. length legs] legs, not l.won] of
+  [] -> None
+  ((i, _) :: _) -> Some i
+
+template ParlayQuote
+  with
+    venue : Party
+    user : Party
+    reserveId : Text
+    legs : [ParlayLeg]
+    stake : Int
+    maxPayout : Int
+    validUntil : Time
+    voidAfter : Time
+  where
+    signatory venue
+    observer user
+    ensure legsOk legs && not (any (.won) legs) && stake > 0 && stake < maxPayout
+      && ticketUnitsOk maxPayout && voidAfter == lastRefundAfter legs
+      && all (\l -> validUntil < l.expiry) legs && user /= venue
+
+    choice ParlayQuote_Accept : (ContractId ParlayTicket, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+      controller user
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        total <- sumOwnedCash venue user cash
+        require "insufficient-cash" "cash does not cover the stake" (total >= stake)
+        change <- payIfPositive venue user (total - stake) "change"
+        t <- create ParlayTicket with venue; owner = user; reserveId; legs; stake; maxPayout; voidAfter
+        pure (t, change)
+
+    choice ParlayQuote_Expire : Optional (ContractId VenueCash)
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        payReserve venue reserveId (maxPayout - stake)
+
+    choice ParlayQuote_Withdraw : Optional (ContractId VenueCash)
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        payReserve venue reserveId (maxPayout - stake)
+
+-- | What deciding one leg did.
+data ParlayStep
+  = LegWon with ticketCid : ContractId ParlayTicket
+  | TicketWon with paid : Paid
+  | TicketLost with paid : Paid
+  | TicketVoid with paid : Paid
+  deriving (Eq, Show)
+
+template ParlayTicket
+  with
+    venue : Party
+    owner : Party
+    reserveId : Text
+    legs : [ParlayLeg]
+    stake : Int
+    maxPayout : Int
+    voidAfter : Time
+  where
+    signatory venue, owner
+    ensure legsOk legs && not (all (.won) legs) && stake > 0 && stake < maxPayout
+      && ticketUnitsOk maxPayout && owner /= venue
+
+    -- The venue decides the next leg, strictly before `voidAfter`.
+    choice Ticket_ResolveLeg : ParlayStep
+      with
+        resolutionCid : ContractId Resolution
+      controller venue
+      do
+        assertWithinDeadline "void-after" voidAfter
+        decideLeg this resolutionCid
+
+    -- The owner decides it with the Resolution disclosed; same rule.
+    choice Ticket_ClaimLeg : ParlayStep
+      with
+        resolutionCid : ContractId Resolution
+      controller owner
+      do decideLeg this resolutionCid
+
+    choice Ticket_VoidStale : Paid
+      controller owner
+      do
+        assertDeadlineExceeded "void-after" voidAfter
+        payBoth venue owner reserveId stake (maxPayout - stake) "refund"
+
+decideLeg : ParlayTicket -> ContractId Resolution -> Update ParlayStep
+decideLeg t resolutionCid = do
+  r <- fetch resolutionCid
+  require "wrong-leg" "resolution is for none of this ticket's pending legs"
+    (r.venue == t.venue && any (\l -> not l.won && l.termsCid == r.termsCid) t.legs)
+  idx <- case nextLeg t.legs of
+    Some i -> pure i
+    None -> refuse "ticket-done" "every leg is already decided"
+  let leg = t.legs !! idx
+  require "leg-out-of-order" "an earlier-closing leg must be decided first" (leg.termsCid == r.termsCid)
+  _ <- fetchResolutionFor t.venue leg.termsCid resolutionCid
+  case r.outcome of
+    None -> TicketVoid <$> payBoth t.venue t.owner t.reserveId t.stake (t.maxPayout - t.stake) "refund"
+    Some w | w /= leg.side -> TicketLost <$> payBoth t.venue t.owner t.reserveId 0 t.maxPayout "payout"
+           | otherwise -> do
+               let legs' = [if i == idx then l with won = True else l | (i, l) <- zip [0 .. length t.legs] t.legs]
+               if all (.won) legs'
+                 then TicketWon <$> payBoth t.venue t.owner t.reserveId t.maxPayout 0 "payout"
+                 else LegWon <$> create t with legs = legs'

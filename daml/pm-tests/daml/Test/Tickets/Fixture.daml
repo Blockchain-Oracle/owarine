@@ -21,6 +21,7 @@ import PM.Reserve
 import PM.Types
 import PM.Tickets.Book
 import PM.Tickets.Boost
+import PM.Tickets.Parlay
 import PM.Tickets.Range
 import Test.Conservation (ledgerTotal)
 import Test.Setup
@@ -39,18 +40,20 @@ data TW = TW
     w : World
     win : Win
     win1 : Win
-      -- ^ the next window, for resolutions of other terms
+      -- ^ the next window, for resolutions of other terms and parlay legs
+    win2 : Win
     lp : Party
     nav : ContractId NavStatement
     lpShare : ContractId LpShare
 
--- | World, windows 0 and 1 (no prints yet), a reserve seeded by the LP.
+-- | World, windows 0, 1 and 2 (no prints yet), a reserve seeded by the LP.
 mkTickets : Script TW
 mkTickets = do
   w <- mkWorld
   s <- mkSeries w
   (s1, win) <- openWin w s 0
-  (_, win1) <- openWin w s1 1
+  (s2, win1) <- openWin w s1 1
+  (_, win2) <- openWin w s2 2
   lp <- allocateParty "carol"
   nav0 <- submit w.venue do
     createCmd NavStatement with
@@ -101,6 +104,8 @@ ticketsTotal w = do
   bq <- query @BoostQuote w.venue
   bp <- query @BoostPosition w.venue
   bx <- query @BoostExitQuote w.venue
+  pq <- query @ParlayQuote w.venue
+  pt <- query @ParlayTicket w.venue
   ress <- query @Resolution w.venue
   let resFor tc = case [r | (_, r) <- ress, r.termsCid == tc] of
         (r :: _) -> Some r
@@ -114,6 +119,8 @@ ticketsTotal w = do
     + sum [venueStakeOf q.lots q.priceTicks q.cashUnit + q.fronted | (_, q) <- bq]
     + sum (map (boostValue . snd) bp)
     + sum [x.proceeds | (_, x) <- bx]
+    + sum [q.maxPayout - q.stake | (_, q) <- pq]
+    + sum [t.maxPayout | (_, t) <- pt]
     + sum [q.maxPayout - q.stake | (_, q) <- rq]
     + sum [r.maxPayout | (_, r) <- rr]
     + sum [q.cashOut | (_, q) <- wq])
@@ -164,3 +171,19 @@ acceptBoost w user q stake = do
   c <- fund w user stake
   (p, l, _) <- submit user do exerciseCmd q BoostQuote_Accept with cash = [c]
   pure (p, l)
+
+-- | Issue a parlay quote, locking from the reserve's own cash.
+issueParlay : TW -> ContractId RiskBook -> Party -> [(ContractId MarketTerms, Side)] -> Int -> Int -> Time
+  -> Script (ContractId RiskBook, ContractId ParlayQuote)
+issueParlay tw book user picks stake maxPayout validUntil = do
+  sh <- reserveAll tw.w
+  (b, q, _) <- submit tw.w.venue do
+    exerciseCmd book Book_IssueParlay with
+      navCid = tw.nav; shardCid = sh; user; picks; stake; maxPayout; validUntil
+  pure (b, q)
+
+acceptParlay : World -> Party -> ContractId ParlayQuote -> Int -> Script (ContractId ParlayTicket)
+acceptParlay w user q stake = do
+  c <- fund w user stake
+  (t, _) <- submit user do exerciseCmd q ParlayQuote_Accept with cash = [c]
+  pure t

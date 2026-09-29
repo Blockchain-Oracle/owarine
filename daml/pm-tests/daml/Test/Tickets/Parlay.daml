@@ -1,0 +1,403 @@
+-- | Parlay money gate: payout locked at open, legs decided in close order,
+-- a voided Window voids the ticket and returns the stake, void-stale after
+-- the last leg's refundAfter, settle once, claim equals settle, deadline
+-- races, caps, the venue cannot confiscate, the outsider sees nothing, and
+-- a seeded random sequence. Conservation after every step.
+--
+-- Window timeline (Test.Setup): window i opens at t0 + 300 i, locks at
+-- +270, resolves from +305, refundAfter +1020.
+module Test.Tickets.Parlay where
+
+import Daml.Script
+import DA.Action (foldlA, void)
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List ((!!))
+import PM.Market
+import PM.Tickets.Book
+import PM.Tickets.Parlay
+import PM.Types
+import Test.Setup
+import Test.Tickets.Fixture
+
+v0 : Time
+v0 = plus t0 40
+
+stepKind : ParlayStep -> Text
+stepKind (LegWon _) = "leg-won"
+stepKind (TicketWon _) = "won"
+stepKind (TicketLost _) = "lost"
+stepKind (TicketVoid _) = "void"
+
+resolveLeg : World -> ContractId ParlayTicket -> ContractId Resolution -> Script ParlayStep
+resolveLeg w t r = submit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r
+
+nextTicket : ParlayStep -> Script (ContractId ParlayTicket)
+nextTicket (LegWon t) = pure t
+nextTicket s = abort ("expected a live ticket, got " <> stepKind s)
+
+-- Two tickets over one to three Windows: legs decide as their Windows
+-- close; the 2-leg ticket wins, the 3-leg ticket dies on its second leg.
+testParlayWinLoseConservation = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  total0 <- ticketsTotal w
+  (book, qa) <- issueParlay tw book w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideDown)] 200 1000 v0
+  (_, qb) <- issueParlay tw book w.bob [(tw.win.terms, SideUp), (tw.win1.terms, SideUp), (tw.win2.terms, SideUp)] 100 1000 v0
+  conserved w total0 0
+  reserveCash w >>= (=== seedAssets - 800 - 900)
+  ta <- acceptParlay w w.alice qa 200
+  tb <- acceptParlay w w.bob qb 100
+  conserved w total0 300
+  op1 <- recordOpen w tw.win1 px
+  r0 <- resolveAt w tw.win op0 (px + 5)
+  ta <- resolveLeg w ta r0 >>= nextTicket
+  tb <- resolveLeg w tb r0 >>= nextTicket
+  conserved w total0 300
+  _ <- recordOpen w tw.win2 px
+  r1 <- resolveAt w tw.win1 op1 (px - 5)
+  sa <- resolveLeg w ta r1
+  stepKind sa === "won"
+  conserved w total0 300
+  sb <- resolveLeg w tb r1
+  stepKind sb === "lost"
+  conserved w total0 300
+  cashOf w.alice >>= (=== 1000)
+  cashOf w.bob >>= (=== 0)
+  reserveCash w >>= (=== seedAssets - 800 + 100)
+  (length <$> query @ParlayTicket w.venue) >>= (=== 0)
+
+-- Legs decide in close order, not listing order or the caller's choice;
+-- a decided leg or another Window's resolution is refused.
+testParlayLegOrder = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  (_, q) <- issueParlay tw book w.alice [(tw.win1.terms, SideUp), (tw.win.terms, SideUp)] 200 1000 v0
+  t <- acceptParlay w w.alice q 200
+  op1 <- recordOpen w tw.win1 px
+  r0 <- resolveAt w tw.win op0 (px + 1)
+  op2 <- recordOpen w tw.win2 px
+  r1 <- resolveAt w tw.win1 op1 (px + 1)
+  r2 <- resolveAt w tw.win2 op2 (px + 1)
+  refusedWith (refusal "leg-out-of-order") =<< trySubmit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r1
+  refusedWith (refusal "wrong-leg") =<< trySubmit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r2
+  t <- resolveLeg w t r0 >>= nextTicket
+  refusedWith (refusal "wrong-leg") =<< trySubmit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r0
+  s <- resolveLeg w t r1
+  stepKind s === "won"
+  cashOf w.alice >>= (=== 1000)
+
+-- A voided Window voids the ticket, whether it is the first leg or a later
+-- one after a win: the owner gets the stake, the reserve its lock.
+testParlayVoidReturnsStake = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  (book, qa) <- issueParlay tw book w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)] 200 1000 v0
+  (_, qb) <- issueParlay tw book w.bob [(tw.win1.terms, SideUp), (tw.win2.terms, SideUp)] 300 1000 v0
+  ta <- acceptParlay w w.alice qa 200
+  tb <- acceptParlay w w.bob qb 300
+  total0 <- ticketsTotal w
+  op1 <- recordOpen w tw.win1 px
+  r0 <- resolveAt w tw.win op0 (px + 1)
+  ta <- resolveLeg w ta r0 >>= nextTicket
+  rv <- voidClose w tw.win1 op1
+  sa <- resolveLeg w ta rv
+  stepKind sa === "void"
+  sb <- resolveLeg w tb rv
+  stepKind sb === "void"
+  conserved w total0 0
+  cashOf w.alice >>= (=== 200)
+  cashOf w.bob >>= (=== 300)
+  reserveCash w >>= (=== seedAssets)
+
+-- The owner's own decisions (Resolutions disclosed) pay exactly what the
+-- venue's do, for a win, a loss and a void; each ticket pays once.
+testParlaySettleOnceClaimEqualsSettle = script do
+  forA_ [("win", Some (px + 5)), ("loss", Some (px - 5)), ("void", None)] \(label, second) -> do
+    tw <- mkTickets
+    let w = tw.w
+    book <- mkBook tw ParlayProduct
+    op0 <- recordOpen w tw.win px
+    let picks = [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)]
+    (book, qa) <- issueParlay tw book w.alice picks 250 1000 v0
+    (_, qb) <- issueParlay tw book w.bob picks 250 1000 v0
+    ta <- acceptParlay w w.alice qa 250
+    tb <- acceptParlay w w.bob qb 250
+    op1 <- recordOpen w tw.win1 px
+    r0 <- resolveAt w tw.win op0 (px + 5)
+    r1 <- case second of
+      Some c -> resolveAt w tw.win1 op1 c
+      None -> voidClose w tw.win1 op1
+    fails =<< trySubmit w.alice do exerciseCmd ta Ticket_ClaimLeg with resolutionCid = r0
+    d0 <- disclosureOf w.venue r0
+    d1 <- disclosureOf w.venue r1
+    LegWon ta <- submit (actAs w.alice <> disclose d0) do exerciseCmd ta Ticket_ClaimLeg with resolutionCid = r0
+    _ <- submit (actAs w.alice <> disclose d1) do exerciseCmd ta Ticket_ClaimLeg with resolutionCid = r1
+    tb <- resolveLeg w tb r0 >>= nextTicket
+    _ <- resolveLeg w tb r1
+    ca <- cashOf w.alice
+    cb <- cashOf w.bob
+    debug (label <> ": claim " <> show ca <> ", settle " <> show cb)
+    ca === cb
+    fails =<< trySubmit w.venue do exerciseCmd tb Ticket_ResolveLeg with resolutionCid = r1
+    fails =<< trySubmit (actAs w.alice <> disclose d1) do exerciseCmd ta Ticket_ClaimLeg with resolutionCid = r1
+    fails =<< trySubmit w.alice do exerciseCmd ta Ticket_VoidStale
+
+data Winner = FirstWins | SecondWins | Neither
+  deriving (Eq, Show)
+
+verdict : Either SubmitError a -> Either SubmitError b -> Winner
+verdict (Right _) (Left _) = FirstWins
+verdict (Left _) (Right _) = SecondWins
+verdict (Left _) (Left _) = Neither
+verdict _ _ = error "both consumed the contract"
+
+raceAccept : Int -> Bool -> Script Winner
+raceAccept offset acceptFirst = do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- issueParlay tw book w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)] 200 1000 v0
+  c <- fund w w.alice 200
+  at (plus t0 offset)
+  let acceptIt = trySubmit w.alice do exerciseCmd q ParlayQuote_Accept with cash = [c]
+      expireIt = trySubmit w.venue do exerciseCmd q ParlayQuote_Expire
+  if acceptFirst
+    then do a <- acceptIt; e <- expireIt; pure (verdict a e)
+    else do e <- expireIt; a <- acceptIt; pure (verdict a e)
+
+-- The last leg is decided around voidAfter V (window 1's refundAfter).
+raceVoidStale : Int -> Bool -> Script Winner
+raceVoidStale offset resolveFirst = do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  (_, q) <- issueParlay tw book w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)] 200 1000 v0
+  t <- acceptParlay w w.alice q 200
+  op1 <- recordOpen w tw.win1 px
+  r0 <- resolveAt w tw.win op0 (px + 1)
+  t <- resolveLeg w t r0 >>= nextTicket
+  r1 <- resolveAt w tw.win1 op1 (px + 1)
+  at (plus tw.win1.t.refundAfter offset)
+  let resolveIt = trySubmit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r1
+      staleIt = trySubmit w.alice do exerciseCmd t Ticket_VoidStale
+  v <- if resolveFirst
+    then do a <- resolveIt; b <- staleIt; pure (verdict a b)
+    else do b <- staleIt; a <- resolveIt; pure (verdict a b)
+  cashOf w.alice >>= (=== (if v == FirstWins then 1000 else 200))
+  pure v
+
+testParlayDeadlineRaces = script do
+  forA_ [True, False] \first -> do
+    raceAccept 39 first >>= (=== FirstWins)
+    raceAccept 40 first >>= (=== Neither)
+    raceAccept 41 first >>= (=== Neither)
+    raceAccept 45 first >>= (=== SecondWins)
+    raceVoidStale (-1) first >>= (=== FirstWins)
+    raceVoidStale 0 first >>= (=== SecondWins)
+    raceVoidStale 1 first >>= (=== SecondWins)
+
+testParlayRefusals = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  _ <- recordOpen w tw.win px
+  let issueTry b picks stake maxPayout vu = do
+        sh <- reserveAll w
+        trySubmit w.venue do
+          exerciseCmd b Book_IssueParlay with
+            navCid = tw.nav; shardCid = sh; user = w.alice; picks; stake; maxPayout; validUntil = vu
+      two = [(tw.win.terms, SideUp), (tw.win1.terms, SideDown)]
+  refusedWith (refusal "bad-legs") =<< issueTry book [(tw.win.terms, SideUp)] 1 10 v0
+  refusedWith (refusal "bad-legs") =<< issueTry book (two ++ two ++ [(tw.win2.terms, SideUp)]) 1 10 v0
+  refusedWith (refusal "duplicate-leg") =<< issueTry book [(tw.win.terms, SideUp), (tw.win.terms, SideDown)] 1 10 v0
+  refusedWith (refusal "bad-amount") =<< issueTry book two 10 10 v0
+  refusedWith (refusal "leg-locked") =<< issueTry book two 1 10 (plus tw.win.t.lockAt 1)
+  refusedWith (refusal "over-ticket-cap") =<< issueTry book two 1 20001 v0
+  (book, _, _) <- issueTry book two 1000 20000 v0 >>= succeeded          -- 19000 at window 1's expiry
+  refusedWith (refusal "over-expiry-cap") =<< issueTry book [(tw.win.terms, SideDown), (tw.win1.terms, SideUp)] 5000 17000 v0
+  _ <- issueTry book [(tw.win.terms, SideDown), (tw.win2.terms, SideUp)] 5000 17000 v0 >>= succeeded   -- another boundary
+  range <- mkBook tw RangeProduct
+  refusedWith (refusal "wrong-product") =<< issueTry range two 1 10 v0
+
+testParlayVenueCannotConfiscate = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  let picks = [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)]
+  (book, q) <- issueParlay tw book w.alice picks 200 1000 v0
+  (_, q2) <- issueParlay tw book w.alice picks 200 1000 v0
+  ca <- fund w w.alice 200
+  unauthorized =<< trySubmit w.venue do exerciseCmd q2 ParlayQuote_Accept with cash = [ca]
+  cb <- fund w w.bob 200
+  fails =<< trySubmit w.bob do exerciseCmd q2 ParlayQuote_Accept with cash = [cb]
+  t <- acceptParlay w w.alice q 200
+  unauthorized =<< trySubmit w.venue do archiveCmd t
+  unauthorized =<< trySubmit w.venue do exerciseCmd t Ticket_VoidStale
+  op1 <- recordOpen w tw.win1 px
+  r0 <- resolveAt w tw.win op0 (px + 1)
+  r1 <- resolveAt w tw.win1 op1 (px + 1)
+  at tw.win1.t.refundAfter
+  refusedWith deadlineExceeded =<< trySubmit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r0
+  d0 <- disclosureOf w.venue r0
+  d1 <- disclosureOf w.venue r1
+  LegWon t <- submit (actAs w.alice <> disclose d0) do exerciseCmd t Ticket_ClaimLeg with resolutionCid = r0
+  TicketWon _ <- submit (actAs w.alice <> disclose d1) do exerciseCmd t Ticket_ClaimLeg with resolutionCid = r1
+  cashOf w.alice >>= (=== 1000 + 200)          -- the payout plus the unspent top-up
+
+testParlayOutsiderSeesNothing = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  _ <- recordOpen w tw.win px
+  let picks = [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)]
+  (book, qa) <- issueParlay tw book w.alice picks 200 1000 v0
+  (_, qb) <- issueParlay tw book w.bob picks 200 1000 v0
+  _ <- acceptParlay w w.alice qa 200
+  forA_ [w.outsider, w.auditor, tw.lp, w.resolver] \x -> do
+    (length <$> query @ParlayQuote x) >>= (=== 0)
+    (length <$> query @ParlayTicket x) >>= (=== 0)
+  (length <$> query @ParlayTicket w.alice) >>= (=== 1)
+  (length <$> query @ParlayQuote w.alice) >>= (=== 0)
+  (length <$> query @ParlayTicket w.bob) >>= (=== 0)
+  bq <- query @ParlayQuote w.bob
+  map fst bq === [qb]
+
+-- ---------------------------------------------------------------------------
+-- Seeded random sequence: 2- and 3-leg tickets over windows 0..2 issued,
+-- accepted, expired and withdrawn before window 0 locks; then each Window
+-- resolves (or voids, one time in four) in turn and random tickets are
+-- advanced by the venue or the owner (out-of-order attempts are refused);
+-- finally every ticket is driven to its end. Conservation after every step.
+
+lcgNext : Int -> Int
+lcgNext s = (s * 1103515245 + 12345) % 2147483648
+
+draw : Int -> Int -> (Int, Int)
+draw n s = let s' = lcgNext s in ((s' / 65536) % n, s')
+
+data PS = PS
+  with
+    seed : Int
+    book : ContractId RiskBook
+    credits : Int
+    accepted : Int
+
+issueStep : TW -> Int -> PS -> Int -> Script PS
+issueStep tw total0 st _ = do
+  let w = tw.w
+  now <- getTime
+  let (k0, s1) = draw 8 st.seed
+      k = [0, 0, 1, 1, 2, 3, 4, 4] !! k0
+      (u, s2) = draw 2 s1
+      user = [w.alice, w.bob] !! u
+  st' <- case k of
+    0 -> do
+      let (shape, s3) = draw 4 s2
+          (sides, s4) = draw 8 s3
+          (stake, s5) = draw 400 s4
+          side i = if (sides / (2 ^ i)) % 2 == 0 then SideUp else SideDown
+          ws = [[tw.win, tw.win1], [tw.win, tw.win2], [tw.win1, tw.win2], [tw.win, tw.win1, tw.win2]] !! shape
+          picks = [(x.terms, side i) | (i, x) <- zip [0, 1, 2] ws]
+      sh <- reserveAll w
+      r <- trySubmit w.venue do
+        exerciseCmd st.book Book_IssueParlay with
+          navCid = tw.nav; shardCid = sh; user; picks; stake = stake + 1; maxPayout = 1500
+          validUntil = min (plus now 20) tw.win.t.lockAt
+      let book' = either (const st.book) (\(b, _, _) -> b) r
+      pure st with seed = s5; book = book'
+    1 -> do
+      qs <- query @ParlayQuote user
+      case [x | x@(_, q) <- qs, q.validUntil > now] of
+        [] -> pure st with seed = s2
+        ((q, x) :: _) -> do
+          c <- fund w user x.stake
+          _ <- submit user do exerciseCmd q ParlayQuote_Accept with cash = [c]
+          pure st with seed = s2; credits = st.credits + x.stake; accepted = st.accepted + 1
+    2 -> do
+      qs <- query @ParlayQuote w.venue
+      forA_ qs \(q, _) -> trySubmit w.venue do exerciseCmd q ParlayQuote_Expire
+      pure st with seed = s2
+    3 -> do
+      qs <- query @ParlayQuote w.venue
+      case qs of
+        [] -> pure ()
+        ((q, _) :: _) -> void $ submit w.venue do exerciseCmd q ParlayQuote_Withdraw with reason = "requote"
+      pure st with seed = s2
+    _ -> do
+      let (dt, s3) = draw 12 s2
+      if plus now (dt + 1) < tw.win.t.lockAt then at (plus now (dt + 1)) else pure ()
+      pure st with seed = s3
+  conserved w total0 st'.credits
+  pure st'
+
+-- Try to decide one ticket with this resolution, by the venue or (with
+-- the Resolution disclosed) by the owner. Refusals are expected.
+advanceStep : TW -> Int -> Int -> ContractId Resolution -> Disclosure -> Int -> (ContractId ParlayTicket, ParlayTicket) -> Script Int
+advanceStep tw total0 credits res d seed (t, x) = do
+  let (how, s') = draw 3 seed
+  _ <- case how of
+    0 -> void $ trySubmit tw.w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = res
+    1 -> void $ trySubmit (actAs x.owner <> disclose d) do exerciseCmd t Ticket_ClaimLeg with resolutionCid = res
+    _ -> pure ()
+  conserved tw.w total0 credits
+  pure s'
+
+-- Drive one ticket to its end with the recorded resolutions.
+driveTicket : TW -> Int -> Int -> [(ContractId Resolution, Resolution)] -> ContractId ParlayTicket -> Script ()
+driveTicket tw total0 credits ress t = do
+  Some x <- queryContractId tw.w.venue t
+  idx <- case nextLeg x.legs of
+    Some i -> pure i
+    None -> abort "a live ticket has a pending leg"
+  let leg = x.legs !! idx
+  (rc, _) :: _ <- pure [r | r@(_, res) <- ress, res.termsCid == leg.termsCid]
+  step <- resolveLeg tw.w t rc
+  conserved tw.w total0 credits
+  case step of
+    LegWon t' -> driveTicket tw total0 credits ress t'
+    _ -> pure ()
+
+testParlayRandomSequence = script do
+  forA_ [3, 20261002, 555] \seed0 -> do
+    tw <- mkTickets
+    let w = tw.w
+    book0 <- mkBook tw ParlayProduct
+    op0 <- recordOpen w tw.win px
+    total0 <- ticketsTotal w
+    st <- foldlA (issueStep tw total0) (PS with seed = seed0; book = book0; credits = 0; accepted = 0) [1 .. 80]
+    let credits = st.credits
+    assertMsg "the sequence opened tickets" (st.accepted >= 3)
+    at (plus tw.win.t.lockAt 1)
+    qs <- query @ParlayQuote w.venue
+    forA_ qs \(q, _) -> submit w.venue do exerciseCmd q ParlayQuote_Expire
+    conserved w total0 credits
+    -- each Window ends in turn; tickets advance at random in between
+    let endWin seed win op = do
+          let (k, s1) = draw 4 seed
+              (c, s2) = draw 3 s1
+          r <- if k == 0 then voidClose w win op else resolveAt w win op ([px - 3, px, px + 3] !! c)
+          conserved w total0 credits
+          ts <- query @ParlayTicket w.venue
+          d <- disclosureOf w.venue r
+          s3 <- foldlA (advanceStep tw total0 credits r d) s2 ts
+          pure (r, s3)
+    op1 <- recordOpen w tw.win1 px
+    (_, s1) <- endWin st.seed tw.win op0
+    op2 <- recordOpen w tw.win2 px
+    (_, s2) <- endWin s1 tw.win1 op1
+    (_, _) <- endWin s2 tw.win2 op2
+    ress <- query @Resolution w.venue
+    ts <- query @ParlayTicket w.venue
+    forA_ ts \(t, _) -> driveTicket tw total0 credits ress t
+    (length <$> query @ParlayTicket w.venue) >>= (=== 0)
+    conserved w total0 credits

@@ -23,6 +23,7 @@
 module PM.Tickets.Book where
 
 import DA.Assert (assertDeadlineExceeded)
+import DA.List (unique)
 import qualified DA.Map as Map
 import PM.Market
 import PM.Money
@@ -30,6 +31,7 @@ import PM.Reserve
 import PM.Quote (lockFromShard)
 import PM.Tickets.Boost
 import PM.Tickets.Common
+import PM.Tickets.Parlay
 import PM.Tickets.Range
 import PM.Types
 
@@ -131,6 +133,38 @@ template RiskBook
           cashUnit = terms.cashUnit; leverageBps; stake; fronted; premium; barrierE8; knockOutProceeds
           validUntil; lockAt = terms.lockAt; expiry = terms.expiry; refundAfter = terms.refundAfter
         pure (book, q, Paid with toOwner = houseChange; toReserve = reserveChange)
+
+    -- A parlay over 2..4 distinct Windows. The house part is booked
+    -- against the last leg's expiry, when a winning ticket comes due.
+    choice Book_IssueParlay : (ContractId RiskBook, ContractId ParlayQuote, Optional (ContractId VenueCash))
+      with
+        navCid : ContractId NavStatement
+        shardCid : ContractId VenueCash
+        user : Party
+        picks : [(ContractId MarketTerms, Side)]
+        stake : Int
+        maxPayout : Int
+        validUntil : Time
+      controller venue
+      do
+        require "wrong-product" "this book issues another product" (product == ParlayProduct)
+        require "bad-legs" "a parlay has 2 to 4 legs" (length picks >= minParlayLegs && length picks <= maxParlayLegs)
+        require "duplicate-leg" "each leg must be a different Window" (unique (map fst picks))
+        require "bad-amount" "stake must be in (0, maxPayout)" (stake > 0 && stake < maxPayout && ticketUnitsOk maxPayout)
+        legs <- forA picks \(termsCid, side) -> do
+          t <- fetchTerms venue termsCid
+          require "leg-locked" "every leg's Window must still trade until the quote expires" (validUntil <= t.lockAt)
+          pure ParlayLeg with
+            termsCid; marketId = t.marketId; side; expiry = t.expiry; refundAfter = t.refundAfter; won = False
+        let houseLocked = maxPayout - stake
+            lastExpiry = case map (.expiry) legs of
+              (x :: xs) -> foldl max x xs
+              [] -> error "unreachable"
+        book <- takeRisk this navCid lastExpiry maxPayout houseLocked
+        change <- lockFromReserve venue reserveId shardCid houseLocked
+        q <- create ParlayQuote with
+          venue; user; reserveId; legs; stake; maxPayout; validUntil; voidAfter = lastRefundAfter legs
+        pure (book, q, change)
 
     -- Release the locks of boundaries that have passed: their tickets are
     -- decided by a recorded print, no longer by the market.
