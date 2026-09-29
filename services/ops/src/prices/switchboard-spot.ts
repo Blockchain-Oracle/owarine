@@ -24,6 +24,9 @@ export interface SwitchboardSpotHandle {
   stop(): void;
 }
 
+/** The C1/C3 stub's refusal (`@agari/markets` `notDeployedError`): the feed has no Canton adapter yet. */
+const isNotDeployed = (reason: unknown) => (reason as { diagnosis?: { kind?: string } } | null)?.diagnosis?.kind === "not-deployed";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function createSwitchboardSpotFeed(input: { log: (why: string) => void }): SwitchboardSpotHandle {
@@ -39,14 +42,29 @@ export function createSwitchboardSpotFeed(input: { log: (why: string) => void })
       const reads = await Promise.allSettled(FEEDS.map((f) => simulateSurgeE8(f.surge)));
       const sampledSec = Math.floor(Date.now() / 1000);
       const failed: string[] = [];
+      let notDeployed = 0;
       reads.forEach((read, i) => {
         const { xstock } = FEEDS[i]!;
-        if (read.status === "rejected") return void failed.push(`${xstock}: ${errorText(read.reason)}`);
+        if (read.status === "rejected") {
+          if (isNotDeployed(read.reason)) notDeployed++;
+          return void failed.push(`${xstock}: ${errorText(read.reason)}`);
+        }
         const quote: SpotQuote = { symbol: xstock, priceE8: read.value, publishTimeSec: sampledSec, source: "switchboard" };
         last.set(xstock, quote);
         for (const listener of listeners) listener(quote);
       });
       beat.lastPassMs = Date.now();
+      // C3: the Surge simulator is not deployed on Canton (the token lane is not live). That is a known idle state, not
+      // an outage, so it neither counts as a failure nor turns `/health` red.
+      if (notDeployed === FEEDS.length) {
+        beat.lastOkMs = beat.lastPassMs;
+        beat.failures = 0;
+        beat.lastWhy = `idle: not deployed (${failed[0]})`;
+        if (!loggedFailure) input.log(beat.lastWhy);
+        loggedFailure = true;
+        await sleep(Math.max(0, EVERY_MS - (Date.now() - started)));
+        continue;
+      }
       if (failed.length < FEEDS.length) beat.lastOkMs = beat.lastPassMs;
       beat.failures = failed.length === FEEDS.length ? beat.failures + 1 : 0;
       beat.lastWhy = failed.length ? `crossbar: ${failed.length}/${FEEDS.length} failed (${failed[0]})` : `${FEEDS.length}/${FEEDS.length} Surge feeds read`;
