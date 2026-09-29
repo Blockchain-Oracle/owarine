@@ -18,16 +18,16 @@ export const BRAKE_TALKDOWN = "You're chasing. Model says no edge here. Sit this
 export const BACKED_TERMINAL = "call stood, money never matched";
 export const COMPOSER_PERMANENCE = "Takes are public and effectively permanent.";
 export const DAILY_STOP_HIT = "Daily Stop hit. Betting reopens at midnight.";
-export const OUT_OF_GAS = "You're out of SOL for network fees. Get some here first — no signing until you're topped up.";
+export const OUT_OF_GAS = "Canton charges no network fee, so there is nothing to top up. Renew your seat and try again.";
 export const SETTLING = "Settling…";
 export const PLACING = "Placing…";
 export const SUBMITTED_UNKNOWN =
-  "Submitted — waiting for the chain to answer. Your order is either in or it never left; we'll show you which.";
+  "Submitted — waiting for the ledger to answer. Your order is either in or it never left; we'll show you which.";
 
 /** The route error boundary's words — `reference/yosuku/app/error.tsx` verbatim; the disclosure label is ours. */
 export const ERROR_BOUNDARY = {
   headline: "A quiet moment on the floor.",
-  body: "Something interrupted this view. Your funds and positions are safe on-chain. This is only the screen. Try again, or head back to the markets.",
+  body: "Something interrupted this view. Your funds and positions are safe on the ledger. This is only the screen. Try again, or head back to the markets.",
   retry: "Try again",
   back: "Go to markets",
   technical: "Technical details",
@@ -50,9 +50,7 @@ export function staleLine(timeText: string, reasonLabel: string): string {
 }
 
 /**
- * How a wallet gets onto devnet, said once. A Wallet Standard wallet signs whatever it is handed and offers no switch
- * (D-120), but Phantom keeps a network setting of its own and answers a devnet transaction on mainnet with its
- * "Network mismatch" sheet; the dapp cannot flip that setting for the injected extension (Phantom's docs:
- * Settings → Developer Settings → Testnet Mode), so the app has to say where the switch is.
+ * What to do about a "wrong network" on Canton, said once. The reference told a Solana wallet how to switch to devnet;
+ * a seat is a party the venue leases on its own network, so the only honest step is a fresh seat. The name is kept.
  */
-export const DEVNET_WALLET_STEP = "Switch the wallet to Solana Devnet (Phantom: Settings → Developer Settings → Testnet Mode, then Solana Devnet).";
+export const DEVNET_WALLET_STEP = "A seat is always on the venue's network, so there is nothing to switch: reset the seat, then take a new one.";

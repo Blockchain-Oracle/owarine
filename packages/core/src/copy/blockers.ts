@@ -80,7 +80,7 @@ export interface BlockerContext {
   nextWindowText?: string;
 }
 
-const DEFAULT_CHAIN = "Solana devnet";
+const DEFAULT_CHAIN = "Canton test network";
 const DEFAULT_MIN_STAKE = "1 credit";
 
 /** The blocker IS the control's label — one derived string for the CTA and its accessible name. */
@@ -93,13 +93,13 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "boost-refused":
       return "The reserve refused this boost — see why above";
     case "disconnected":
-      return "Connect a wallet to bet";
+      return "Take a seat to call";
     case "connecting":
       return "Connecting…";
     case "wrong-chain":
       return `Switch to ${ctx.chainName ?? DEFAULT_CHAIN}`;
     case "syncing":
-      return "Syncing the chain clock…";
+      return "Syncing the ledger clock…";
     case "placing":
       return PLACING;
     case "upcoming":
@@ -115,9 +115,9 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "settling":
       return SETTLING;
     case "no-funds":
-      return "No credits yet — mint from the faucet";
+      return "No credits yet — demo credits come with your seat";
     case "out-of-gas":
-      return "Out of SOL for fees — top up first";
+      return "No network fee — renew your seat";
     case "no-side":
       return "Pick UP or DOWN";
     case "no-stake":
