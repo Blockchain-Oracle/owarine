@@ -1,11 +1,9 @@
 /**
- * agari-vault's refusals (vault.md §6, 7000–7299) in the one diagnosis vocabulary, keyed by Masayume's error names
- * (`M:vault/errors.ts:6-29`) so web refusal copy reads `errorName` unchanged. A vault failure surfaces as `Custom(code)`
- * at the vault instruction's index; engine codes (6000–6399) raised inside its CPI keep the S4 table.
+ * The reference vault's refusals (7000–7299) in the one diagnosis vocabulary, keyed by Masayume's error names so web
+ * refusal copy reads `errorName` unchanged. On Canton the trading balance is `VenueCash` (C7a) and its choices fail
+ * with stable `failWithStatus` ids that map onto the same names; the table stays the single wording source.
  */
 import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
-import { customCode, failureDiagnosis } from "../submitter/chain-failure";
-import { describeChainFailure, type ChainFailure } from "../submitter/errors";
 
 export const VAULT_ERROR_RANGE = { min: 7000, max: 7299 } as const;
 /**
@@ -58,22 +56,6 @@ const VAULT_ERRORS = new Map<number, readonly [string, DiagnosisKind, string?]>(
   [7210, ["EngineAccountingMismatch", "contract-revert"]],
 ]);
 
-/** The vault's own code for a failure, or null when it is not a vault refusal. */
-export function vaultCodeOf(failure: Pick<ChainFailure, "err">): number | null {
-  const code = customCode(failure.err);
-  if (code === null) return null;
-  if (ANCHOR_ERRORS.has(code)) return code;
-  return code >= VAULT_ERROR_RANGE.min && code <= VAULT_ERROR_RANGE.max ? code : null;
-}
-
-export const VAULT_CODE = {
-  insufficient: 7001,
-  staleGrantId: 7114,
-  marketNotTrading: 7201,
-  nothingToSettle: 7203,
-  windowPredatesVault: 7207,
-} as const;
-
 /** A named vault refusal as a diagnosis; unknown codes in the range are a plain revert with the code. */
 export function vaultDiagnosis(code: number, technical: string): Diagnosis {
   const known = VAULT_ERRORS.get(code) ?? ANCHOR_ERRORS.get(code);
@@ -82,8 +64,15 @@ export function vaultDiagnosis(code: number, technical: string): Diagnosis {
   return diagnosis(kind, copy ? `${copy} (${name}): ${technical}` : `${name}: ${technical}`, { errorName: name });
 }
 
-/** Any failure of a vault transaction: the vault's table first, then the engine's and the fee payer's (S4). */
-export function vaultFailureDiagnosis(failure: ChainFailure): Diagnosis {
-  const code = vaultCodeOf(failure);
-  return code === null ? failureDiagnosis(failure) : vaultDiagnosis(code, describeChainFailure(failure));
+/** A vault write's failure as the ledger adapter reports it: the refusal code when it is one of the table's, and the words. */
+export interface VaultFailure {
+  code: number | null;
+  technical: string;
+}
+
+/** Any failure of a vault write: the vault's table when the code is one of its own, else a plain revert. */
+export function vaultFailureDiagnosis(failure: VaultFailure): Diagnosis {
+  const { code, technical } = failure;
+  const known = code !== null && (ANCHOR_ERRORS.has(code) || (code >= VAULT_ERROR_RANGE.min && code <= VAULT_ERROR_RANGE.max));
+  return known ? vaultDiagnosis(code, technical) : diagnosis("contract-revert", technical);
 }

@@ -1,15 +1,15 @@
-/** StrategyRegistry on Solana is `agari-strategy` (S9): reads off the registry's own accounts, writes through the session's lane. */
+/** The strategy registry on Canton (C8). Until it lands: no registry, refused writes; the pure helpers stay (D-015). */
 import type { IntentJournal, PhaseListener, TxOutcome } from "@agari/core/ports";
-import { REGISTRY_NOT_DEPLOYED, type RegistryDeployment, type StrategyIntent } from "@agari/core/strategies";
+import type { RegistryDeployment, StrategyIntent } from "@agari/core/strategies";
 import type { Address } from "@agari/core/types";
 import { refusedFor } from "../stub/product";
 import type { VaultContracts } from "../vault/contracts";
-import { strategyProgramId } from "./deployment";
+import { STRATEGIES_NOT_LIVE } from "./reads";
 
 export { downsample, readAgentContext } from "./agent-context";
 export { openingOnFeedScale } from "./price-basis";
 export { getStrategy, listLiveSubscribers, listStrategies, listStrategySubscribers, listSubscriptionsOf } from "./reads";
-export { planRevision, STRATEGY_METADATA_MAX_BYTES } from "./writes";
+export { planRevision, STRATEGY_METADATA_MAX_BYTES, submitStrategyLane } from "./writes";
 
 export interface StrategyTxContext {
   journal: IntentJournal;
@@ -17,16 +17,12 @@ export interface StrategyTxContext {
   contracts: VaultContracts | undefined;
 }
 
-/** The registry's address on this cluster, or null where `agari-strategy` is not configured. */
+/** No strategy package on the participant yet. */
 export function resolveRegistryDeployment(_chainId?: number): RegistryDeployment | null {
-  const program = strategyProgramId();
-  return program ? { chainId: 0, strategyRegistry: program, fromBlock: 0n } : null;
+  return null;
 }
 
-/**
- * The write without a session. A registry write goes through `MarketsSubmitter.submitTx`, which is bound to the
- * session's signer; this arm stays for a caller that has none, and refuses rather than pretend.
- */
+/** The write without a session refuses rather than pretend. */
 export async function submitStrategyTx(_ctx: StrategyTxContext, _intent: StrategyIntent, _onPhase?: PhaseListener): Promise<TxOutcome> {
-  return refusedFor(REGISTRY_NOT_DEPLOYED);
+  return refusedFor(STRATEGIES_NOT_LIVE);
 }

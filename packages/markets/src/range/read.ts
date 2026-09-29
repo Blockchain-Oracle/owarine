@@ -1,14 +1,17 @@
-/** RangeReserve on Solana is `agari-range` (S10). Reads that need the program answer "not deployed"; the rest are empty. */
-import { multiplierMilli, RANGE_NOT_DEPLOYED, type RangeBasis, type RangeDeployment, type RangeIntent, type RangeMode, type RangeParams, type RangeQuote, type RangeReserveState, type RangeRound, type RangeSide } from "@agari/core/range";
+/** The range reserve on Canton (C8). Reads that need the package answer not-live; the rest are empty (D-015). */
+import { multiplierMilli, type RangeBasis, type RangeDeployment, type RangeIntent, type RangeMode, type RangeParams, type RangeQuote, type RangeReserveState, type RangeRound, type RangeSide } from "@agari/core/range";
 import type { IntentJournal, PhaseListener } from "@agari/core/ports";
 import type { Reading } from "@agari/core/schemas";
 import type { TickerSymbol } from "@agari/core/market";
 import type { Address, Diagnosis, MarketId, Signature } from "@agari/core/types";
 import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";
-import { absent, refusedFor, unavailableFor } from "../stub/product";
+import { cantonNotLive } from "../stub/not-deployed";
+import { refusedFor } from "../stub/product";
 import type { VaultContracts } from "../vault/contracts";
-import { rangeProgramId } from "./deployment";
+
+/** The reason every range read that needs the reserve, and every range write, states until C8. */
+export const RANGE_NOT_LIVE = cantonNotLive("range");
 
 /** What the pricing reads off the Window: the opening print, where the book sits, the house's σ. */
 export interface RangeWindowBasis {
@@ -46,10 +49,9 @@ export type RangeOpenOutcome =
   | { status: "reverted"; diagnosis: Diagnosis; txHash?: Signature }
   | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
 
-/** The reserve's address on this cluster, or null where `agari-range` is not deployed. */
+/** No range package on the participant yet. */
 export function resolveRangeDeployment(_env?: Partial<MarketsEnv>): RangeDeployment | null {
-  const program = rangeProgramId();
-  return program ? { chainId: 0, rangeReserve: program, fromBlock: 0n } : null;
+  return null;
 }
 
 export { getRange, getRangeReserveState, getRangeSharesOf, listRangesOf } from "./reads";
@@ -70,5 +72,5 @@ export function toRangeQuote(preview: RangePreview, side: RangeSide, maxPayoutBa
 }
 
 export async function submitRangeOpen(_ctx: RangeTxContext, _intent: Extract<RangeIntent, { kind: "range-open" }>, _onPhase?: PhaseListener): Promise<RangeOpenOutcome> {
-  return refusedFor(RANGE_NOT_DEPLOYED);
+  return refusedFor(RANGE_NOT_LIVE);
 }

@@ -1,15 +1,10 @@
-import { quoteLeverage, type LeverageQuote, type LeverageRefusal } from "@agari/core/leverage";
+import type { LeverageQuote, LeverageRefusal } from "@agari/core/leverage";
 import type { Reading } from "@agari/core/schemas";
 import { diagnosis, type Diagnosis, type MarketId, type Side } from "@agari/core/types";
-import { ReadingError } from "../errors/reading-error";
-import { nowMs, nowSec } from "../provider/clock";
-import { withReading } from "../provider/reading";
-import { requireProgramSeat } from "../runtime/program-seat";
-import { readBoostBook } from "./book";
-import { seatAddress } from "./deployment";
-import { paramsOf, readReserve, windowFrontedBase } from "./reads";
+import { unavailableFor } from "../stub/product";
+import { LEVERAGE_NOT_LIVE } from "./deployment";
 
-/** A refusal in the ticket's words. The reserve's own policy is one kind; the venue's book is another. */
+/** A refusal in the ticket's words. The reserve's own policy is one kind; the venue's ladder is another. */
 export function refusalDiagnosis(refusal: LeverageRefusal): Diagnosis {
   switch (refusal.kind) {
     case "zero":
@@ -45,47 +40,11 @@ export function refusalDiagnosis(refusal: LeverageRefusal): Diagnosis {
   }
 }
 
-type Sizing = { stakeBase: bigint } | { quantityRaw: bigint };
-
-/**
- * The boost the reserve would open right now, priced off the Window's own book and the reserve's own books by the
- * chain's rules (`quoteLeverage` is `owner_open`, step for step). A quote shown here is one the chain honours
- * unless the book has moved since, and a refusal here is the refusal the chain would give.
- */
-function quote(key: string, marketId: MarketId, side: Side, leverageBps: number, sizing: Sizing): Promise<Reading<LeverageQuote>> {
-  return withReading(key, async () => {
-    const [book, reserve, windowFronted] = await Promise.all([readBoostBook(marketId, side), readReserve(), windowFrontedBase(marketId)]);
-    if (!reserve) throw new ReadingError(diagnosis("not-deployed", "no leverage reserve on this cluster"));
-    if (reserve.data.paused) throw new ReadingError(diagnosis("reserve-cap", "the reserve is paused"));
-    await requireProgramSeat("the leverage reserve", marketId, book.ledger, await seatAddress());
-    const result = quoteLeverage({
-      side,
-      leverageBps,
-      stakeBase: "stakeBase" in sizing ? sizing.stakeBase : 0n,
-      ...("quantityRaw" in sizing ? { fixedQuantityRaw: sizing.quantityRaw } : {}),
-      entry: book.entry,
-      exitRested: book.exitRested,
-      one: book.one,
-      lotRaw: book.lotRaw,
-      minQuantityRaw: book.minQuantityRaw,
-      params: paramsOf(reserve.data.params),
-      books: { liquidBase: reserve.liquidBase, outstandingBase: reserve.data.outstandingBase, windowFrontedBase: windowFronted, openPositions: reserve.openPositions },
-      expirySec: book.expirySec,
-      nowSec: nowSec(),
-      decimals: book.decimals,
-      nowMs: nowMs(),
-    });
-    if (!result.ok) throw new ReadingError(refusalDiagnosis(result.refusal));
-    return result.quote;
-  });
+/** Sizing a boost needs the reserve and the venue ladder (C8); until then the ticket states not-live. */
+export function sizeLeverageForStake(_marketId: MarketId, _side: Side, _stakeBase: bigint, _leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
+  return unavailableFor(LEVERAGE_NOT_LIVE);
 }
 
-/** Stake-first, as the chain opens: what this stake at this multiple buys. `_maintenanceBps` is the reserve's own, read live. */
-export function sizeLeverageForStake(marketId: MarketId, side: Side, stakeBase: bigint, leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
-  return quote(`leverage:size:${marketId}:${side}:${leverageBps}:${stakeBase}`, marketId, side, leverageBps, { stakeBase });
-}
-
-/** A size priced for display: what boosting exactly `quantityRaw` contracts would cost the owner. */
-export function previewLeverageOpen(marketId: MarketId, side: Side, quantityRaw: bigint, leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
-  return quote(`leverage:preview:${marketId}:${side}:${leverageBps}:${quantityRaw}`, marketId, side, leverageBps, { quantityRaw });
+export function previewLeverageOpen(_marketId: MarketId, _side: Side, _quantityRaw: bigint, _leverageBps: number, _maintenanceBps?: number): Promise<Reading<LeverageQuote>> {
+  return unavailableFor(LEVERAGE_NOT_LIVE);
 }

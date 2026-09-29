@@ -1,62 +1,35 @@
 import { CLUSTER_ID, DEFAULT_CLUSTER } from "@agari/core/constants";
-import type { Address, Hash32 } from "@agari/core/types";
-import type { Instruction, KeyPairSigner } from "@solana/kit";
-import { createDeployClient, keypairSigner, type DeployClient } from "../deploy/client";
-import { send } from "../deploy/send";
-import { readDesk } from "./reads";
+import { encodeBase58, toAddress, type Address, type Hash32 } from "@agari/core/types";
 
 /**
- * The desk's own signer, server-side only. One key, one writer: every send goes through one queue, and every open
- * and cash-out holds its slot's lock so two requests for one bet cannot interleave their reads. It keeps no record
- * of anything; what it needs to resume is on the chain.
+ * The desk's own key, server-side only. On Canton the desk's writes are the venue's (C8); until then the client keeps
+ * its identity and its per-slot lock, and reports that there is no desk contract, so every route answers not-live.
  */
 export interface DeskClient {
   readonly address: Address;
-  /** The numeric cluster id product types still bind (D-012). */
+  /** The numeric network id product types still bind (D-012). */
   readonly chainId: number;
-  /** The desk key as the transaction signer. It is the client's own payer instance: Kit refuses two signer objects for one address in a transaction. */
-  readonly signer: DeployClient["payer"];
-  /** The same key as a key pair, for signing claims, which are texts and never transactions. */
-  readonly claimKey: KeyPairSigner;
-  readonly client: DeployClient;
-  /** The on-chain Desk account, or null while there is none on this cluster. */
+  /** The desk's contract on the ledger, or null while there is none (always, until C8). */
   contract(): Promise<Address | null>;
-  /** Signs, sends and confirms as the desk key. Throws with the chain's own words when the chain refuses. */
-  send(step: string, instructions: Instruction[]): Promise<string>;
   withSlotLock<T>(slotId: Hash32, task: () => Promise<T>): Promise<T>;
 }
 
 export interface DeskClientConfig {
-  /** The desk role's 64-byte Solana keypair (`PRIVATE_DESK_PRIVATE_KEY`, parsed with `parseSecretKey`). */
+  /** The desk role's 64-byte key (32-byte seed ‖ public key, `PRIVATE_DESK_PRIVATE_KEY`, parsed with `parseSecretKey`). */
   secretKey: Uint8Array;
+  /** Kept for the callers' config shape; the Canton desk reaches the ledger through the venue (C8). */
   rpcUrl: string;
   rpcSubscriptionsUrl: string;
 }
 
-export async function createDeskClient({ secretKey, rpcUrl, rpcSubscriptionsUrl }: DeskClientConfig): Promise<DeskClient> {
-  const claimKey = await keypairSigner(secretKey);
-  const client = await createDeployClient({ rpcUrl, rpcSubscriptionsUrl, payerSecret: secretKey });
+export async function createDeskClient({ secretKey }: DeskClientConfig): Promise<DeskClient> {
+  if (secretKey.length !== 64) throw new Error("expected a 64-byte desk key (seed ‖ public key)");
   const locks = new Map<string, Promise<unknown>>();
-  let queue: Promise<unknown> = Promise.resolve();
-  let contract: Address | null = null;
-
   return {
-    address: claimKey.address as string as Address,
+    address: toAddress(encodeBase58(secretKey.subarray(32))),
     chainId: CLUSTER_ID[DEFAULT_CLUSTER],
-    signer: client.payer,
-    claimKey,
-    client,
     async contract() {
-      contract ??= (await readDesk())?.address ?? null;
-      return contract;
-    },
-    send(step, instructions) {
-      const next = queue.then(
-        () => send({ client, log: () => undefined }, step, instructions, step),
-        () => send({ client, log: () => undefined }, step, instructions, step),
-      );
-      queue = next.then(() => undefined, () => undefined);
-      return next;
+      return null;
     },
     withSlotLock<T>(slotId: Hash32, task: () => Promise<T>): Promise<T> {
       const previous = locks.get(slotId) ?? Promise.resolve();

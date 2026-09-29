@@ -1,7 +1,6 @@
 import { decodeBase58, type Hash32, type Signature } from "@agari/core/types";
-import { keyHex } from "./deployment";
 
-/** The three keys one private bet uses on chain, derived from one secret the owner and the desk alone hold. */
+/** The three keys one private bet uses on the ledger, derived from one secret the owner and the desk alone hold. */
 export interface SlotKeys {
   /** The slot's id: on every SLOT-side instruction, never beside the owner. */
   slotId: Hash32;
@@ -11,6 +10,9 @@ export interface SlotKeys {
   creditKey: Hash32;
 }
 
+/** 32 bytes as the `0x` hex every private key travels as (`Hash32`). */
+const keyHex = (bytes: Uint8Array): Hash32 => `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}` as Hash32;
+
 async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
@@ -18,9 +20,9 @@ async function sha256(bytes: Uint8Array): Promise<Uint8Array> {
 }
 
 /**
- * The secret is the owner's own authorisation signature. It never touches the chain, so the three hashes cannot be
+ * The secret is the owner's own authorisation signature. It never touches the ledger, so the three hashes cannot be
  * joined without it, and a desk that lost its way mid-open re-derives them from the same signature and reads what
- * already landed off the chain. No record, no owner on any slot.
+ * already landed off the ledger. No record, no owner on any slot.
  *
  * ed25519 signatures are deterministic, so one signed text is one seed. A signature that is not 64 bytes of base58 is
  * refused: the route has verified it by then, and this never normalises what the wallet produced.

@@ -1,11 +1,9 @@
 /**
- * Duels and the season pool on Solana are `agari-arena` (S12b): a two-player match over real Windows, each card one
- * confirmed IOC pick, and only the side-pot the arena's to award. Reads come from the chain and the program's own
- * events; writes go through the session's lanes.
+ * Duels and the season pool: `abu-pm-games` on Canton (C9). Commit-reveal stays (it proves deck fairness), so the
+ * commitment hash is live; every ledger read and write answers not-live until the package is on the participant.
  */
 export { deckCommitment, keccak256 } from "./commitment";
-export { arenaProgramId, seasonVaultAddress } from "./deployment";
-export { decodeArenaEvent } from "./events";
+export { seasonVaultAddress } from "./deployment";
 export {
   arenaHeadBlock, getArenaCredit, getArenaMatch, getArenaState, getSeasonPool, listArenaEvents, quoteArenaPick, readArenaAgent, resolveArenaDeployment,
   type ArenaMatchView, type ArenaState, type SeasonPoolState,

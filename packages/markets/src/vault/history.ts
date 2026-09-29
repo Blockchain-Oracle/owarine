@@ -1,9 +1,6 @@
 import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
 import { encodeBase58, type Address, type MarketId, type Signature } from "@agari/core/types";
 import { secToMs } from "@agari/core/units";
-import { readMarket, readSeries } from "../runtime/accounts";
-import { ANY_MARKET, readVaultAccount } from "./accounts";
-import { loadVaultDeployment } from "./deployment";
 
 /** A vault round has no single transaction to link: the fills are the vault seat's, attributed by tally. */
 export const VAULT_TX_SENTINEL = encodeBase58(new Uint8Array(64)) as Signature;
@@ -29,45 +26,11 @@ export interface VaultTallies {
 }
 
 /**
- * Every Window the wallet holds through the vault right now, read from its own account's position slots.
- *
- * The EVM original rebuilt this from an event scan, which is why it carries a `complete` flag. On Solana the vault
- * keeps each owner's open positions in their `VaultAccount` (16 slots; a settled or sold-out slot is freed), so the
- * list of what is still held is complete by construction and needs no scan. It answered `complete: false` with an
- * empty list from the day the vault deployed, which held the strategy runner after its first cycle forever.
- *
- * What a slot does not record is what the position cost: the program keeps lots and the grant that opened them,
- * not cash. `costBase` is therefore 0 here and means "not recorded", which the open-bets row shows as no stake
- * line rather than a stake of zero. A closed round is not here at all; that history needs the vault's events indexed.
+ * Every Window the wallet holds through the trading balance right now. There is no `VenueCash` on the participant yet
+ * (C7a), so nothing is held through it: an empty, complete list is the truth, not a fault.
  */
-export async function listVaultTallies(wallet: Address, _options: { complete?: boolean } = {}): Promise<VaultTallies> {
-  // Awaited, never peeked: the synchronous answer is null until some other read has probed the vault, so a fresh page
-  // whose open-bets read won that race was told "nothing held" and kept it for a poll (09-24: an X trade missing from
-  // Open after a refresh). The account read needs only the program id, so it rides alongside the probe.
-  const [deployment, account] = await Promise.all([loadVaultDeployment(), readVaultAccount(wallet)]);
-  if (!deployment || !account) return { tallies: [], complete: true };
-  const held = account.positions.filter((slot) => (slot.market as string) !== ANY_MARKET && slot.yesLots + slot.noLots > 0n);
-  const tallies = await Promise.all(held.map(async (slot): Promise<VaultTally | null> => {
-    const market = await readMarket(slot.market);
-    if (!market) return null;
-    const { lotBase } = await readSeries(market.data.series);
-    return {
-      marketId: slot.market as string as MarketId,
-      costBase: 0n,
-      proceedsBase: 0n,
-      payoutBase: 0n,
-      boughtUpRaw: slot.yesLots * lotBase,
-      boughtDownRaw: slot.noLots * lotBase,
-      soldUpRaw: 0n,
-      soldDownRaw: 0n,
-      firstAtSec: 0,
-      lastAtSec: 0,
-      settledAtSec: 0,
-      fillCount: 1,
-    };
-  }));
-  // A slot whose Market the engine has already closed can no longer be settled by anyone, so it is not owed a crank.
-  return { tallies: tallies.filter((tally): tally is VaultTally => tally !== null), complete: true };
+export async function listVaultTallies(_wallet: Address, _options: { complete?: boolean } = {}): Promise<VaultTallies> {
+  return { tallies: [], complete: true };
 }
 
 /** The vault never shorts (a sale needs inventory), so held is simply bought minus sold per side. */

@@ -8,6 +8,7 @@ export {
   previewRangeOpen,
   quoteRangeOnchain,
   resolveRangeDeployment,
+  RANGE_NOT_LIVE,
   submitRangeOpen,
   toRangeQuote,
   type RangeBand,
@@ -16,3 +17,4 @@ export {
   type RangeTxContext,
   type RangeWindowBasis,
 } from "./read";
+export { submitRangeOpenWrite, submitRangeTx } from "./writes";
