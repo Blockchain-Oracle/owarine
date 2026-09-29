@@ -109,6 +109,21 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; the live leg trades this venue's markets with venue cash and is gated on C7b.
 - **Approval:** default (due Fri 2 Oct in the plan); Abu can overrule.
 
+### K-086 — Strategy registry and desk as built in `abu-pm-agents` 0.1.0 (C8 block)
+- **Date / owner:** 2026-09-29 · C8b lane
+- **Evidence:** `daml/abu-pm-agents` (`PM.Agents.Strategy`, `PM.Agents.Desk`); `Test.Agents.Strategy` and `Test.Agents.Desk`, 14 money-gate scripts; `dpm test` passes all 123 scripts.
+- **Rule (deviations from the reference, each recorded):**
+  - Subscribers fetch a venue-signed `StrategyListing`, never the creator-signed `Strategy`, because a fetch informs the fetched contract's signatories. The listing is kept in step only by the creator's own choices. The venue could still forge a listing, so this is venue trust, like the fee payout.
+  - The spec seal is an `ensure` (`sha256 spec == specHash`), not a separate `creator_seal` step: a Daml create carries the whole text.
+  - Fees are paid into a venue-only `StrategyFee` at subscribe. The creator receives a per-period `CreatorPayout` (total and count) and claims it; the reference paid the creator directly.
+  - One active consent per (subscriber, strategy) lives in a bilateral `SubscriberBook`, because there are no contract keys. It relies on the venue issuing one `SubscriberInvite` per subscriber.
+  - The engine's grants have no kinds, so any `AgentGrant` naming the runner and inside the envelope qualifies (the reference required kind STRATEGY). The runner is not a stakeholder of `Subscription`, and a self-hosting creator who is also the runner learns its subscribers through their grants.
+  - Fade and mirror are recorded on the consent; the runner's direction is not enforced on ledger (as in the reference).
+  - The desk's reference is a quorum of attestor `DeskMark`s (lower median). A trade fetches them, so an attestor learns that its mark was read.
+  - Paused is a flag beside the live and shadow mode, so unpausing restores the mode. The operator may pause; only the owner unpauses.
+  - The desk's daily window is the grant's calendar day from `dayZero` (K-024), not the reference's rolling 24 h window.
+- **Approval:** default; overrulable.
+
 ### K-125 — iOS ships on public TestFlight from a new app record (C11 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
