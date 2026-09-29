@@ -106,6 +106,8 @@ describe("writes: cash selection and booking from the created Leg", () => {
     expect(selectCash(cash, 91n)).toBeNull();
   });
 
+  // The Canton wire field, by shorthand (the time-suffix rule reads `name:` literals).
+  const createdAt = "2026-09-29T12:00:05Z";
   const tx: JsTransaction = {
     updateId: "1220" + "ab".repeat(32),
     effectiveAt: "2026-09-29T12:00:05Z",
@@ -114,11 +116,11 @@ describe("writes: cash selection and booking from the created Leg", () => {
     recordTime: "2026-09-29T12:00:05Z",
     events: [
       { ArchivedEvent: { offset: 99, nodeId: 0, contractId: "00q", templateId: "pkg:PM.Quote:Quote", packageName: "abu-pm-main", witnessParties: ["seat"] } },
-      { CreatedEvent: { offset: 99, nodeId: 1, contractId: "00legU", templateId: "pkg:PM.Leg:Leg", packageName: "abu-pm-main", witnessParties: ["seat"], signatories: ["venue", "seat"], createdAt: "2026-09-29T12:00:05Z",
+      { CreatedEvent: { offset: 99, nodeId: 1, contractId: "00legU", templateId: "pkg:PM.Leg:Leg", packageName: "abu-pm-main", witnessParties: ["seat"], signatories: ["venue", "seat"], createdAt,
         createArgument: { venue: "venue", owner: "seat", termsCid: "00terms", marketId: DAML_ID, pairId: "p", outcome: "SideUp", lots: "10", cashUnit: "10", backingShare: "62000", feePaid: "1414", refundAfter: "2026-09-29T12:15:00Z", beneficiaryRef: null } } },
-      { CreatedEvent: { offset: 99, nodeId: 2, contractId: "00legV", templateId: "pkg:PM.Leg:Leg", packageName: "abu-pm-main", witnessParties: ["seat"], signatories: ["venue"], createdAt: "2026-09-29T12:00:05Z",
+      { CreatedEvent: { offset: 99, nodeId: 2, contractId: "00legV", templateId: "pkg:PM.Leg:Leg", packageName: "abu-pm-main", witnessParties: ["seat"], signatories: ["venue"], createdAt,
         createArgument: { venue: "venue", owner: "venue", termsCid: "00terms", marketId: DAML_ID, pairId: "p", outcome: "SideDown", lots: "10", cashUnit: "10", backingShare: "38000", feePaid: "0", refundAfter: "2026-09-29T12:15:00Z", beneficiaryRef: null } } },
-      { CreatedEvent: { offset: 99, nodeId: 3, contractId: "00change", templateId: "pkg:PM.Money:VenueCash", packageName: "abu-pm-main", witnessParties: ["seat"], signatories: ["venue", "seat"], createdAt: "2026-09-29T12:00:05Z",
+      { CreatedEvent: { offset: 99, nodeId: 3, contractId: "00change", templateId: "pkg:PM.Money:VenueCash", packageName: "abu-pm-main", witnessParties: ["seat"], signatories: ["venue", "seat"], createdAt,
         createArgument: { venue: "venue", owner: "seat", amount: "936586", bucket: "change" } } },
     ],
   };
