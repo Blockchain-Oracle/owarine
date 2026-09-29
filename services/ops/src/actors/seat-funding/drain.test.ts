@@ -1,0 +1,108 @@
+/**
+ * C9d: a draining seat with nothing left to close out is recycled by ops' drain pass itself (it used to wait for the
+ * web's lease route, which only looked when the pool was already full, so empty seats sat `draining`).
+ */
+import { describe, expect, it } from "vitest";
+import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
+import type { RecycleCheck, RecycleOutcome } from "@agari/db";
+import type { ActiveContract, LedgerClient } from "@agari/ledger";
+import type { RoleSession } from "@agari/markets/ops/canton";
+import { createSeatDrainPass, sweepCommandId } from "./drain";
+
+const VENUE = "venue::1220ff";
+const SEAT = "agari-user-seat-1::1220aa";
+const suffix = (t: string) => t.slice(t.indexOf(":"));
+
+interface Fake {
+  contracts: Array<{ templateId: string; cid: string; arg: Record<string, unknown>; stakeholders: string[] }>;
+  submitted: Array<{ actAs: string[]; commandId: string; commands: unknown[] }>;
+}
+
+function fakeVenue(fake: Fake): RoleSession {
+  const client = {
+    async activeContracts(o: { parties: string[]; templateIds: string[] }) {
+      const want = new Set(o.templateIds.map(suffix));
+      const contracts: ActiveContract[] = fake.contracts
+        .filter((c) => want.has(suffix(c.templateId)) && c.stakeholders.some((p) => o.parties.includes(p)))
+        .map((c) => ({ createdEvent: { templateId: c.templateId, contractId: c.cid, createArgument: c.arg }, synchronizerId: "sync" }) as unknown as ActiveContract);
+      return { contracts, activeAtOffset: 1 };
+    },
+    async submitAndWaitForTransaction(o: { actAs: string[]; commandId: string; commands: Array<{ ExerciseCommand?: { contractId: string } }> }) {
+      fake.submitted.push(o);
+      const archived = new Set(o.commands.map((c) => c.ExerciseCommand?.contractId));
+      fake.contracts = fake.contracts.filter((c) => !archived.has(c.cid));
+      return { transaction: { updateId: "u1", events: [] } };
+    },
+  } as unknown as LedgerClient;
+  return { role: "venue", party: VENUE, client, dryRun: false };
+}
+
+/** The seat_pool row lock stand-in: one row per seat, freed when the check says so. */
+function fakePool(states: Map<string, string>) {
+  return async (party: string, _now: number, work: () => Promise<RecycleCheck>): Promise<RecycleOutcome> => {
+    if (states.get(party) !== "draining") return { kind: "busy" };
+    const check = await work();
+    if (!check.free) return { kind: "held", why: check.why };
+    states.set(party, "free");
+    return { kind: "freed" };
+  };
+}
+
+function setup(extra: Fake["contracts"] = []) {
+  const fake: Fake = { contracts: [{ templateId: TEMPLATE_IDS.VenueCash, cid: "cash-1", arg: { venue: VENUE, owner: SEAT, amount: "998000000" }, stakeholders: [VENUE, SEAT] }, ...extra], submitted: [] };
+  const states = new Map([[SEAT, "draining"]]);
+  const logs: string[] = [];
+  const draining = new Set<string>();
+  const pass = createSeatDrainPass({ venue: fakeVenue(fake), pool: null, log: (l) => logs.push(l), seats: async () => (states.get(SEAT) === "draining" ? [SEAT] : []), draining, db: null, recycle: fakePool(states) });
+  return { fake, states, logs, draining, pass };
+}
+
+describe("seat drain recycles (C9d)", () => {
+  it("a draining seat that holds nothing has its cash withdrawn as the seat and is freed in the same pass", async () => {
+    const s = setup();
+    const r = await s.pass();
+    expect(s.states.get(SEAT)).toBe("free");
+    const sweep = s.fake.submitted.find((x) => x.commandId.startsWith("drain-sweep:"));
+    expect(sweep).toMatchObject({ actAs: [SEAT], commandId: sweepCommandId(SEAT, ["cash-1"]) });
+    expect(JSON.stringify(sweep!.commands)).toContain("VenueCash_Withdraw");
+    expect(s.fake.contracts.some((c) => c.cid === "cash-1")).toBe(false);
+    expect(r.why).toMatch(/freed 1/);
+    expect(s.draining.has(SEAT)).toBe(false);
+    // The next pass sees no seat draining.
+    expect((await s.pass()).why).toMatch(/^no seat draining/);
+  });
+
+  it("a seat with an open leg stays draining (and keeps its cash) until the leg settles, then frees", async () => {
+    const leg = { templateId: TEMPLATE_IDS.Leg, cid: "leg-1", arg: { venue: VENUE, owner: SEAT }, stakeholders: [VENUE, SEAT] };
+    const s = setup([leg]);
+    const r = await s.pass();
+    expect(s.states.get(SEAT)).toBe("draining");
+    expect(s.fake.submitted.filter((x) => x.commandId.startsWith("drain-sweep:"))).toHaveLength(0);
+    expect(r.why).toContain("holds 1 leg");
+    // The settler settles the leg (archives it): the next pass frees the seat.
+    s.fake.contracts = s.fake.contracts.filter((c) => c.cid !== "leg-1");
+    await s.pass();
+    expect(s.states.get(SEAT)).toBe("free");
+  });
+
+  it("an open duel, ticket or Earn share each hold the seat", async () => {
+    for (const [templateId, arg, word] of [
+      [GAMES_TEMPLATE_IDS.DuelMatch, { creator: "other::1220bb", challenger: SEAT }, "1 duel"],
+      [TICKET_TEMPLATE_IDS.RangeRound, { owner: SEAT }, "1 ticket"],
+      [TEMPLATE_IDS.LpShare, { provider: SEAT, reserveId: "range", shares: "10" }, "1 Earn share"],
+    ] as const) {
+      const s = setup([{ templateId, cid: "h-1", arg: { venue: VENUE, ...arg }, stakeholders: [VENUE, SEAT] }]);
+      const r = await s.pass();
+      expect(s.states.get(SEAT)).toBe("draining");
+      expect(r.why).toContain(word);
+    }
+  });
+
+  it("a seat the web or another pass is already recycling is left alone", async () => {
+    const s = setup();
+    s.states.set(SEAT, "free");
+    const pass = createSeatDrainPass({ venue: fakeVenue(s.fake), pool: null, log: () => undefined, seats: async () => [SEAT], db: null, recycle: fakePool(s.states) });
+    await pass();
+    expect(s.fake.submitted).toHaveLength(0);
+  });
+});

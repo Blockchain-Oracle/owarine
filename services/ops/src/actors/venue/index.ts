@@ -41,7 +41,8 @@ import { startResolver } from "../resolver";
 import { createSeatFunding } from "../seat-funding";
 import { startSeatDrain } from "../seat-funding/drain";
 import { startSettler } from "../settler";
-import { startTicketDesk } from "../ticket-desk";
+import { startTicketDesk, type TicketDeskHandle } from "../ticket-desk";
+import { redeemSeatShares } from "../ticket-desk/earn";
 import { startArenaDesk } from "../arena-desk";
 import { startWindowRoller } from "../window-roller";
 import { startAgentsVenue } from "../agents";
@@ -97,11 +98,15 @@ export async function startCantonVenue(input: {
   if (on("netting") && session) stops.push(startNetting({ venue: session, pool, log: input.log("netting") }).stop);
   if (on("settler")) stops.push((await startSettler(deps("settler"), venue)).stop);
   const funding = on("funding") ? createSeatFunding({ venue, log: input.log("seat-funding") }) : null;
-  if (on("drain") && session) stops.push(startSeatDrain({ venue: session, pool, log: input.log("seat-drain"), draining }).stop);
+  // The ticket desk starts below; the drain reaches it late-bound to redeem a draining seat's Earn shares (C9d).
+  let ticketDesk: TicketDeskHandle | null = null;
+  const redeemShares = () => (ticketDesk ? (seat: string, shares: Parameters<typeof redeemSeatShares>[2]) => redeemSeatShares(ticketDesk!.desk, seat, shares) : null);
+  if (on("drain") && session) stops.push(startSeatDrain({ venue: session, pool, log: input.log("seat-drain"), draining, redeemShares }).stop);
   const reserve = on("reserve") && session ? startReserveReporter({ venue: session, log: input.log("reserve-reporter") }) : null;
   if (reserve) stops.push(reserve.stop);
 
   const tickets = on("tickets") ? await startTicketDesk({ venue, board, pool, log: input.log("ticket-desk"), draining }) : null;
+  ticketDesk = tickets;
   if (tickets) stops.push(tickets.stop);
   const games = on("games") ? await startArenaDesk({ venue, board, log: input.log("arena-desk") }) : null;
   if (games) stops.push(games.stop);

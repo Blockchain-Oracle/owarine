@@ -1,4 +1,4 @@
-import type { Db } from "@agari/db";
+import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
 import type { Diagnosis } from "@agari/core/types";
 import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@agari/markets/server";
 
@@ -11,7 +11,8 @@ import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@agar
  * never wait on each other's row, and a partial unique index keeps one address on at most one leased seat. The idle
  * clock (15 min) counts only while the seat holds no open leg and no live quote (`busy_until_ms`); the hard cap
  * (~4 h) applies only after the last leg settles; a seat idle for a day whose next leg settles more than a day out
- * drains too (ops closes those legs out at cost). A drained seat is recycled only once the ledger shows it empty.
+ * drains too (ops closes those legs out at cost). A drained seat is recycled only once the ledger shows it empty
+ * (`recycle`, C9d: ops' seat drain every pass, the lease route as a fallback).
  */
 
 export interface LeaseRules {
@@ -59,11 +60,27 @@ export interface SeatStore {
   release(leaseId: string, nowMs: number, reason: string): Promise<boolean>;
   /** Moves every lease the rules expire into `draining`; returns how many. */
   expire(nowMs: number, rules?: LeaseRules): Promise<number>;
+  /** Draining seats, the one checked longest ago first, so a seat still holding a leg never blocks the others. */
   draining(limit: number): Promise<string[]>;
   markFree(party: string, nowMs: number): Promise<boolean>;
+  /** Frees one draining seat if `work` finds it empty (see `@agari/db` `recycleDrainingSeat`). */
+  recycle(party: string, nowMs: number, work: () => Promise<RecycleCheck>): Promise<RecycleOutcome>;
   markFunded(leaseId: string, nowMs: number): Promise<void>;
-  stats(nowMs: number, rules?: LeaseRules): Promise<{ total: number; free: number; leased: number; draining: number; nextFreeAtMs: number | null }>;
+  stats(nowMs: number, rules?: LeaseRules): Promise<SeatPoolStats>;
   commands: CommandJournal;
+}
+
+export interface SeatPoolStats {
+  total: number;
+  free: number;
+  leased: number;
+  draining: number;
+  nextFreeAtMs: number | null;
+  /** When the longest-draining seat started draining (null when none is). */
+  oldestDrainingSinceMs: number | null;
+  /** What the longest-draining seat was last found holding (null before its first check). */
+  oldestDrainingNote: string | null;
+  waitlist: number;
 }
 
 const SCHEMA_LOCK_KEY = 5_741_220_938_115_003n;
@@ -118,7 +135,7 @@ CREATE TABLE IF NOT EXISTS seat_commands (
   created_at_ms bigint NOT NULL
 );
 CREATE INDEX IF NOT EXISTS seat_commands_lease ON seat_commands (lease_id, created_at_ms DESC);
-`;
+${SEAT_RECYCLE_COLUMNS_SQL}`;
 
 type Row = Record<string, unknown>;
 const num = (v: unknown): number => (v === null || v === undefined ? 0 : Number(v));
@@ -171,7 +188,7 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
 
   const expireSql = (tx: Db, nowMs: number, rules: LeaseRules) => tx`
     WITH gone AS (
-      UPDATE seat_pool SET state = 'draining'
+      UPDATE seat_pool SET state = 'draining', draining_since_ms = ${nowMs}
       WHERE state = 'leased' AND (
         (last_seen_ms + ${rules.idleTtlMs} < ${nowMs} AND busy_until_ms <= ${nowMs})
         OR (hard_cap_at_ms < ${nowMs} AND busy_until_ms <= ${nowMs})
@@ -252,7 +269,7 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     async release(leaseId, nowMs, reason) {
       await ready();
       return db.begin(async (tx) => {
-        const rows = await tx`UPDATE seat_pool SET state = 'draining' WHERE lease_id = ${leaseId} AND state = 'leased' RETURNING party`;
+        const rows = await tx`UPDATE seat_pool SET state = 'draining', draining_since_ms = ${nowMs} WHERE lease_id = ${leaseId} AND state = 'leased' RETURNING party`;
         if (rows.length === 0) return false;
         await tx`UPDATE seat_leases SET ended_at_ms = ${nowMs}, end_reason = ${reason} WHERE lease_id = ${leaseId}`;
         return true;
@@ -264,12 +281,17 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     },
     async draining(limit) {
       await ready();
-      return (await db<Row[]>`SELECT party FROM seat_pool WHERE state = 'draining' ORDER BY party LIMIT ${limit}`).map((r) => String(r.party));
+      return (await db<Row[]>`SELECT party FROM seat_pool WHERE state = 'draining' ORDER BY drain_checked_ms, party LIMIT ${limit}`).map((r) => String(r.party));
     },
     async markFree(party, nowMs) {
       await ready();
-      const rows = await db`UPDATE seat_pool SET state = 'free', lease_id = NULL, address = NULL, freed_at_ms = ${nowMs}, open_legs = 0, busy_until_ms = 0, next_settle_ms = 0 WHERE party = ${party} AND state = 'draining' RETURNING party`;
+      const rows = await db`UPDATE seat_pool SET state = 'free', lease_id = NULL, address = NULL, freed_at_ms = ${nowMs}, open_legs = 0, busy_until_ms = 0, next_settle_ms = 0,
+        draining_since_ms = NULL, drain_note = NULL WHERE party = ${party} AND state = 'draining' RETURNING party`;
       return rows.length > 0;
+    },
+    async recycle(party, nowMs, work) {
+      await ready();
+      return recycleDrainingSeat(db, party, nowMs, work);
     },
     async markFunded(leaseId, nowMs) {
       await ready();
@@ -277,9 +299,17 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     },
     async stats(nowMs, rules = DEFAULT_RULES) {
       await ready();
-      const [s] = await db<Row[]>`SELECT count(*) FILTER (WHERE state <> 'retired')::int AS total, count(*) FILTER (WHERE state = 'free')::int AS free, count(*) FILTER (WHERE state = 'leased')::int AS leased, count(*) FILTER (WHERE state = 'draining')::int AS draining, min(greatest(last_seen_ms + ${rules.idleTtlMs}, busy_until_ms)) FILTER (WHERE state = 'leased') AS next_free FROM seat_pool`;
+      const [s] = await db<Row[]>`SELECT count(*) FILTER (WHERE state <> 'retired')::int AS total, count(*) FILTER (WHERE state = 'free')::int AS free, count(*) FILTER (WHERE state = 'leased')::int AS leased, count(*) FILTER (WHERE state = 'draining')::int AS draining, min(greatest(last_seen_ms + ${rules.idleTtlMs}, busy_until_ms)) FILTER (WHERE state = 'leased') AS next_free,
+        (SELECT count(*)::int FROM seat_waitlist WHERE last_poll_ms >= ${nowMs - rules.waitlistStaleMs}) AS waitlist FROM seat_pool`;
+      const [oldest] = await db<Row[]>`SELECT coalesce(draining_since_ms, 0) AS since, drain_note FROM seat_pool WHERE state = 'draining' ORDER BY coalesce(draining_since_ms, 0), party LIMIT 1`;
       const next = s?.next_free;
-      return { total: num(s?.total), free: num(s?.free), leased: num(s?.leased), draining: num(s?.draining), nextFreeAtMs: next === null || next === undefined ? null : Math.max(nowMs, num(next)) };
+      return {
+        total: num(s?.total), free: num(s?.free), leased: num(s?.leased), draining: num(s?.draining),
+        nextFreeAtMs: next === null || next === undefined ? null : Math.max(nowMs, num(next)),
+        oldestDrainingSinceMs: oldest ? num(oldest.since) : null,
+        oldestDrainingNote: oldest?.drain_note === null || oldest?.drain_note === undefined ? null : String(oldest.drain_note),
+        waitlist: num(s?.waitlist),
+      };
     },
     commands: {
       async begin(row, nowMs) {
