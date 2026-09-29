@@ -153,6 +153,23 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - Privacy re-checked on the sandbox.
 - **Approval:** stage plan.
 
+### K-024 — Grants, reserve and two-way quotes as built in 0.2.0
+- **Date / owner:** 2026-09-29 · C2b lane
+- **Evidence:** `daml/abu-pm-main` 0.2.0; tests `testGrantCapsVectors` and `testReserve*`.
+- **Rule:**
+  - `Grant_AcceptQuote` takes `limitTicks` and `asOf`. The price cap applies to the agent's limit, and a quote above the limit refuses with `no-fill`.
+  - A position counts against `maxOpenPositions` until its market's `refundAfter`. This is stricter than the reference, because the grant never sees settles.
+  - Reserve NAV is venue-signed and auditor-visible, not verified by the ledger. An unaccepted withdraw returns its lock to the reserve bucket.
+  - A two-way quote is Up at the ask and Down at 1000 − bid, from one shard.
+- **User-visible:** an agent's open-position count frees a little later than on Solana.
+- **Approval:** default; overrulable.
+
+### K-025 — Oracle posting delay
+- **Date / owner:** 2026-09-29 · C0
+- **Evidence:** the candle-lag hour (acceptance): all three exchanges served the closed candle by T+5 s at 59 of 60 boundaries.
+- **Rule:** feeders post each boundary's print at T+10 s, and the 1-minute demo lane resolves on that basis.
+- **Approval:** measured.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
