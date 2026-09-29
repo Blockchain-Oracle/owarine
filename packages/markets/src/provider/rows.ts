@@ -4,7 +4,7 @@
  */
 import type { SettledMarket } from "@agari/core/claims";
 import type { ReceiptFacts, RoundMarket } from "@agari/core/projection";
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
+import { isEventKey, isTickerSymbol, type TickerSymbol } from "@agari/core/market";
 import type { Address, EventMarket, IndexedStatus, LaneBasis, MarketId, OutcomeIdx, PrintSource, Resolution, Signature, VoidReason } from "@agari/core/types";
 import type { SeriesFacts, VenueFacts } from "../runtime/accounts";
 import { big, bigOrNull, sec, type MarketRow, type PositionRow, type ReceiptRow } from "./index-api";
@@ -29,6 +29,13 @@ export const outcomeOf = (winner: number | null): OutcomeIdx | null => (winner =
 /** Rows of registry tickers on a known lane: the drive-only Series 900 (no symbol) never lists. */
 export const isListable = (row: MarketRow): boolean => row.symbol !== null && isTickerSymbol(row.symbol) && row.basis !== null && row.basis in BASIS && row.book !== null;
 
+/**
+ * C6e (K-070): a committee event's row (`EVT-…` Series listed by `Series_OpenEvent`). It lists beside the lanes, never in
+ * them; its `asset` is the Series key and its lane reads 24/7 ("token"): an event trades until its lock whatever the
+ * NYSE session, and the ticket's lane guard must not hold it to Regular hours.
+ */
+export const isEventRow = (row: MarketRow): boolean => row.symbol !== null && isEventKey(row.symbol) && row.book !== null;
+
 export function toEventMarket(row: MarketRow, venue: VenueFacts, series: SeriesFacts | null, nowSec: number): EventMarket {
   const tradingStartSec = sec(row.trading_start_sec);
   const lockAtSec = sec(row.lock_at_sec);
@@ -41,9 +48,10 @@ export function toEventMarket(row: MarketRow, venue: VenueFacts, series: SeriesF
   const cashUnit = big(row.cash_unit);
   return {
     marketId: row.market as MarketId,
+    kind: isEventRow(row) ? "event" : "price",
     venueId: venue.config as string as Address,
     asset,
-    lane: BASIS[row.basis ?? 0] ?? "regular",
+    lane: isEventRow(row) ? "token" : (BASIS[row.basis ?? 0] ?? "regular"),
     // 0.4.0: a committee event asks its own question (`EventTerms`); a price Window asks the lane's.
     question: row.event_question ?? `Will ${asset} close at or above its opening print?`,
     intervalSec: row.cadence_sec ?? 0,

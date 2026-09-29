@@ -1,5 +1,5 @@
 import { isRestable } from "@agari/core/lifecycle";
-import { LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
+import { isCommitteeMarket, LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
 import { isOk } from "@agari/core/schemas";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { marketsProvider } from "@agari/markets";
@@ -10,6 +10,7 @@ import { assetSourceLabel, windowSourceLabel } from "@/features/markets/price-so
 import { useWindowPhase } from "@/features/markets/ticket/useTicket";
 import { ErrorState, LoadingState } from "~/components/portfolio/web/states";
 import { HERO_TOP } from "~/theme/web/markets";
+import { EventHero } from "../events/EventHero";
 import { HeroAssetChart } from "./HeroAssetChart";
 import { HeroChart, HeroPanel } from "./HeroChart";
 import { useMk } from "./mk";
@@ -20,7 +21,7 @@ const DEFAULT_ASSET: TickerSymbol = LAUNCH_TICKERS[0] ?? "TSLA";
 
 /** A selected Window listed but not yet open on the Regular or Gap lane (D-088); the index's status stands in before the first tick. */
 function isListedSelection(market: EventMarket | null, phase: ReturnType<typeof useWindowPhase>): market is EventMarket {
-  if (!market || market.lane === "token") return false;
+  if (!market || market.lane === "token" || isCommitteeMarket(market)) return false;
   return phase ? isRestable(phase) : market.status === "Listed";
 }
 
@@ -54,7 +55,9 @@ export function MarketsHero({ selection, lanes, onSelect, onOpenRoom }: Props) {
 
   return (
     <View style={[styles.hero, { borderBottomColor: mk.heroRule }]}>
-      {listed ? (
+      {market && isCommitteeMarket(market) ? (
+        <EventHero market={market} nowMs={selection.nowMs} />
+      ) : listed ? (
         <HeroAssetChart asset={market.asset as TickerSymbol} tickers={listedTickers} onPickAsset={pickListed} window={market} source={windowSourceLabel(market)} />
       ) : market ? (
         <HeroChart

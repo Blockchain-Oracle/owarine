@@ -35,7 +35,8 @@ export const SOURCE_COPY = {
 
 /** The registry's own line for an asset whose source is fixed by what it is: a pre-IPO name, a basket or a valuation lane. */
 function kindLabel(asset: TickerSymbol): SourceLabel | null {
-  const ticker = TICKERS[asset];
+  const ticker = (TICKERS as Partial<Record<string, (typeof TICKERS)[TickerSymbol]>>)[asset];
+  if (!ticker) return null;
   const basket = basketOf(asset);
   if (basket) return { provider: "prestocks", text: SOURCE_COPY.basket(basket.members.length), href: null };
   if (ticker.kind === "preIpo" && ticker.preIpo) {
@@ -52,7 +53,8 @@ function kindLabel(asset: TickerSymbol): SourceLabel | null {
 /** An exchange-listed name's line for one signed source, or null when the ticker has no feed on it. */
 function listedLabel(asset: TickerSymbol, source: PrintSource | null, lane: EventMarket["lane"]): SourceLabel | null {
   if (source === null) return null;
-  const ticker = TICKERS[asset];
+  const ticker = (TICKERS as Partial<Record<string, (typeof TICKERS)[TickerSymbol]>>)[asset];
+  if (!ticker) return null;
   const pair = `${asset}/USD`;
   // The token lane prices the xStock; the Regular and Gap lanes price the stock's own print.
   if (lane === "token") {

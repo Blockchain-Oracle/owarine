@@ -3,7 +3,7 @@
  * the successor Window and a lane's next start. The chain facts a row lacks (collateral, decimals, a not-yet-printed
  * Window's primary source) are read alongside the index fetch, never after it, and are cached for the runtime's life.
  */
-import { groupIntoLanes } from "@agari/core/market";
+import { groupIntoLanes, isCommitteeMarket } from "@agari/core/market";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, EventMarket, LaneSet, MarketId, Resolution } from "@agari/core/types";
 import { readSeries, readVenueStatic, type SeriesFacts, type VenueFacts } from "../runtime/accounts";
@@ -11,7 +11,7 @@ import { nowSec } from "./clock";
 import { indexRows, type MarketRow } from "./index-api";
 import { rememberOpeningPrint } from "./opening-prints";
 import { withReading } from "./reading";
-import { isListable, PRINT, toEventMarket, toResolution } from "./rows";
+import { isEventRow, isListable, PRINT, toEventMarket, toResolution } from "./rows";
 
 const LIVE_LIMIT = 300;
 const SETTLED_PAGE = 50;
@@ -26,8 +26,9 @@ async function seriesFor(rows: readonly MarketRow[]): Promise<Map<string, Series
   return new Map(needed.flatMap((series, i) => (facts[i] ? [[series, facts[i]] as const] : [])));
 }
 
-async function toMarkets(rows: readonly MarketRow[], venue: VenueFacts): Promise<EventMarket[]> {
-  const listable = rows.filter(isListable);
+/** `events`: also committee events (C6e) — the live board, one Window's own page and the successor read list them. */
+async function toMarkets(rows: readonly MarketRow[], venue: VenueFacts, events = false): Promise<EventMarket[]> {
+  const listable = rows.filter((row) => isListable(row) || (events && isEventRow(row)));
   const series = await seriesFor(listable);
   const now = nowSec();
   return listable.map((row) => {
@@ -47,14 +48,17 @@ export async function listLiveLanes(venueId: Address): Promise<Reading<LaneSet>>
     // Floored to 5 s so the URL (and the route's 2 s shared cache) holds between a tab's polls and across tabs.
     const expiryFrom = Math.floor(nowSec() / 5) * 5;
     const [rows, venue] = await rowsWithVenue("markets", { state: "open", expiryFrom, limit: LIVE_LIMIT });
-    return groupIntoLanes(await toMarkets(rows, venue), venueId);
+    const markets = await toMarkets(rows, venue, true);
+    // C6e: committee events list beside the lanes (soonest close first), never inside a cadence lane.
+    const events = markets.filter((m) => isCommitteeMarket(m)).sort((a, b) => a.lockAtSec - b.lockAtSec || a.expirySec - b.expirySec);
+    return { ...groupIntoLanes(markets.filter((m) => !isCommitteeMarket(m)), venueId), events };
   });
 }
 
 export async function getMarket(marketId: MarketId): Promise<Reading<EventMarket | null>> {
   return withReading(`market:${marketId}`, async () => {
     const [rows, venue] = await rowsWithVenue(`markets/${marketId}`, {});
-    return (await toMarkets(rows, venue))[0] ?? null;
+    return (await toMarkets(rows, venue, true))[0] ?? null;
   });
 }
 

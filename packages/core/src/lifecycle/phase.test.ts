@@ -27,6 +27,8 @@ describe("phase", () => {
   it("walks the time-derived transitions of one window", () => {
     expect(phase(market(), at(START_SEC - 1))).toBe("upcoming");
     expect(phase(market({ openingPriceRaw: null }), at(START_SEC))).toBe("pendingOpeningPrint");
+    // C6e: a committee event has no opening print; it trades from its start.
+    expect(phase(market({ openingPriceRaw: null, kind: "event" }), at(START_SEC))).toBe("trading");
     expect(phase(market(), at(START_SEC))).toBe("trading");
     expect(phase(market(), at(EXPIRY_SEC - HEADROOM_SEC - 1))).toBe("trading");
     expect(phase(market(), at(EXPIRY_SEC - HEADROOM_SEC))).toBe("noEntryBuffer");

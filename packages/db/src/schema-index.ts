@@ -187,10 +187,8 @@ CREATE TABLE IF NOT EXISTS idx_markets (
 CREATE INDEX IF NOT EXISTS idx_markets_series_idx ON idx_markets (series, market_index DESC);
 CREATE INDEX IF NOT EXISTS idx_markets_expiry_idx ON idx_markets (expiry_sec DESC);
 
--- Oracle prints: one row per PriceQuote contract (C6e, K-070). An oracle may post more than one quote for the same
--- (oracle, symbol, boundary); every one is kept, so the projection holds exactly the ledger's live set. 'chosen' marks
--- the one the resolution uses: the quote an OpenPrint / Resolution cited as evidence ('evidence'), else the resolver's
--- rule (Oracle.collectEvidence: the earliest fetch, then the lowest price). 'duplicates' on the chosen row counts the others.
+-- Oracle prints, one row per PriceQuote (C6e, K-070). Per (oracle, symbol, boundary) 'chosen' is the quote a resolution
+-- cited ('evidence'), else the resolver's rule (earliest fetch, lowest price); 'duplicates' on it counts the others.
 CREATE TABLE IF NOT EXISTS idx_prints (
   oracle           TEXT     NOT NULL,
   symbol           TEXT     NOT NULL,
@@ -210,7 +208,6 @@ CREATE TABLE IF NOT EXISTS idx_prints (
   evidence         BOOLEAN  NOT NULL DEFAULT false
 );
 CREATE INDEX IF NOT EXISTS idx_prints_symbol_idx ON idx_prints (symbol, boundary_sec);
-CREATE INDEX IF NOT EXISTS idx_prints_cid_idx ON idx_prints (contract_id);
 
 -- Venue quotes to one user. Only live and accepted quotes keep a row: an expired or withdrawn quote is a record of
 -- intent the ledger no longer holds, so its row is deleted and only idx_markets.quotes_* counts it.
