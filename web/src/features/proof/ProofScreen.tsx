@@ -6,6 +6,7 @@ import type { MarketId } from "@agari/core/types";
 import { useMarket, useResolution } from "@agari/markets/react";
 import { AlertTriangleIcon, RefreshCwIcon } from "lucide-react";
 import { SectionHeader } from "@/components/chrome";
+import { PROOF_CANTON, ResolutionTimeline, TrustBoundary, type ResolutionEvidence } from "@/features/canton-ux/proof";
 import { PROOF } from "./copy";
 import { PrintProofReceipt } from "./PrintProofReceipt";
 import { ProofTable } from "./ProofTable";
@@ -14,12 +15,13 @@ import { useMarketProof } from "./useMarketProof";
 import "./proof-page.css";
 
 const index = (n: number) => String(n).padStart(2, "0");
+const PROOF_CANTON_INDEX = "00";
 
 /**
  * `/proof/<market>` (proof-analytics.md §2.6): Masayume's `/status` page frame (numbered header, holding states, the
  * pipeline table) over the Window's prints, then one cream receipt per print, as the verdict receipt audits a payout.
  */
-export function ProofScreen({ marketId }: { marketId: MarketId }) {
+export function ProofScreen({ marketId, evidence = null }: { marketId: MarketId; evidence?: ResolutionEvidence | null }) {
   const { reading, refresh } = useMarketProof(marketId);
   const market = useMarket(marketId);
   const resolution = useResolution(marketId);
@@ -31,6 +33,14 @@ export function ProofScreen({ marketId }: { marketId: MarketId }) {
     <div className="container status-page proof-page">
       <SectionHeader index={PROOF.section.index} title={PROOF.section.title} desc={desc} />
       <p className="proof-intro type-body text-ink-secondary">{PROOF.intro}</p>
+
+      {/* C-ADD-09: how the Window was decided, step by step from the projected Resolution, each step's ledger update named. */}
+      {evidence && (
+        <section className="proof-print" aria-label={PROOF_CANTON.timeline}>
+          <SectionHeader index={PROOF_CANTON_INDEX} title={PROOF_CANTON.timeline} />
+          <ResolutionTimeline evidence={evidence} />
+        </section>
+      )}
 
       {reading === null && (
         <div className="status-holding" role="status" aria-busy="true">
@@ -69,6 +79,9 @@ export function ProofScreen({ marketId }: { marketId: MarketId }) {
           </div>
         </div>
       )}
+
+      {/* C-ADD-11: the demo's trust boundary, said on the page that asks to be trusted. */}
+      <TrustBoundary />
     </div>
   );
 }

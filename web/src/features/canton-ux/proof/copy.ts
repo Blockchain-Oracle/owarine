@@ -13,9 +13,20 @@ export const PROOF_CANTON = {
   resolved: (side: string) => `Resolved ${side}`,
   resolvedBody: (close: string, open: string, word: string) => `${close} closed ${word} the ${open} open.`,
   voided: "Voided",
-  voidReason: { quorum: "Only two of three oracles reported before the deadline." },
+  voidReason: {
+    quorum: "Too few oracles reported before the deadline.",
+    missingPrint: "No close print was recorded before the deadline.",
+    resolverAbsent: "The resolver did not decide the Window in time.",
+    sourceDisagreement: "The oracles' quotes were further apart than the limit.",
+  },
   voidBody: "Every call on this Window gets its cost and fee back.",
   update: "Ledger update",
+  updatePlate: {
+    title: "Ledger update",
+    facts: (offset: number, at: string, events: number) => `At offset ${offset.toLocaleString("en-US")}, ${at}. ${events === 1 ? "1 event" : `${events} events`} the venue witnessed.`,
+    missing: "The venue's projection does not hold this update yet. It trails the ledger by a moment; reload in a few seconds.",
+    window: "See how this Window was decided →",
+  },
   party: "Party",
   reverify: {
     title: "Check it yourself",

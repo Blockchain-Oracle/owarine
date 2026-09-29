@@ -2,7 +2,7 @@
 
 import { AlertTriangleIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { Skeleton } from "@/components/ui/skeleton";
 import { oraclePriceText } from "@/features/markets/hero";
@@ -79,7 +79,7 @@ function SkeletonRows() {
  * `/status` frame (numbered header, holding states, the hairline table), with filter chips over the sources the rows
  * actually hold. One cached read, never polled.
  */
-export function ProofFeedScreen() {
+export function ProofFeedScreen({ lead }: { lead?: ReactNode } = {}) {
   const when = useWhen();
   const reading = useProofFeed();
   const [source, setSource] = useState<string>(F.all);
@@ -98,6 +98,7 @@ export function ProofFeedScreen() {
     <div className="container status-page proof-page">
       <SectionHeader index={F.section.index} title={F.section.title} desc={F.section.desc} />
       <p className="proof-intro type-body text-ink-secondary">{F.intro}</p>
+      {lead}
 
       {reading !== null && !reading.ok ? (
         <div className="status-holding" role="alert">
