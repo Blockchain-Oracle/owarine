@@ -10,7 +10,7 @@
  *   prestocks    the running catalogue feed has a read in the last 60 s (else one direct catalogue read)
  *   basket       as prestocks: a basket index is computed from the same catalogue reads
  */
-import { PRE_IPO_TICKERS, type AttestedSource } from "@agari/core/market";
+import { ATTESTED_SOURCE_LABEL, PRE_IPO_TICKERS, type AttestedSource } from "@agari/core/market";
 import { fetchPreStocks } from "@agari/markets/ops/prints";
 import { runActor } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
@@ -24,6 +24,8 @@ const REDSTONE_LATEST_PATH = "/data-packages/latest/redstone-primary-prod";
 import type { RelaySources } from "../price-relay/sources";
 
 export const PROBE_EVERY_MS = 5 * 60_000;
+/** A source found down is asked again after a minute, so a lane resumes soon after its source does. */
+export const PROBE_RETRY_MS = 60_000;
 const PROBED: readonly AttestedSource[] = ["redstone", "pyth", "pyth-index", "switchboard", "prestocks", "basket"];
 
 export interface ProbeContext {
@@ -77,12 +79,14 @@ async function check(source: AttestedSource, ctx: ProbeContext): Promise<{ ok: b
     case "basket": {
       const feed = currentPreStocksSpot();
       if (feed && PRE_IPO_TICKERS.some((s) => feed.latest(s, 60) !== null)) return { ok: true, reason: null };
+      // The running feed is the reading; a second direct request would only add to PreStocks' rate limit (429).
+      const beat = heartbeats().find((b) => b.actor === "prestocks-spot");
+      if (feed) return { ok: false, reason: short(`no PreStocks catalogue read in the last 60 s${beat?.lastWhy ? ` (${beat.lastWhy})` : ""}`) };
       try {
         await fetchPreStocks({ fetchImpl });
         return { ok: true, reason: null };
       } catch (error) {
-        const beat = heartbeats().find((b) => b.actor === "prestocks-spot");
-        return { ok: false, reason: short(`PreStocks catalogue: ${errorText(error)}${beat?.lastWhy ? ` (feed: ${beat.lastWhy})` : ""}`) };
+        return { ok: false, reason: short(`PreStocks catalogue: ${errorText(error)}`) };
       }
     }
     default:
@@ -98,7 +102,9 @@ export async function probeAll(store: SourceHealthStore, ctx: ProbeContext): Pro
       try {
         return [source, { ...(await check(source, ctx)), checkedAtSec: nowSec }];
       } catch (error) {
-        return [source, { ok: false, reason: short(`${source}: ${errorText(error)}`), checkedAtSec: nowSec }];
+        const text = errorText(error);
+        const why = /abort|timeout/i.test(text) ? `${ATTESTED_SOURCE_LABEL[source]} did not answer within 10 s` : `${ATTESTED_SOURCE_LABEL[source]}: ${text}`;
+        return [source, { ok: false, reason: short(why), checkedAtSec: nowSec }];
       }
     }),
   );
@@ -112,6 +118,10 @@ export function startSourceProbe(store: SourceHealthStore, ctx: ProbeContext, lo
     log,
     dryRun: false,
     everyMs: PROBE_EVERY_MS,
-    pass: async () => ({ why: await probeAll(store, ctx), detail: { sources: store.all() } }),
+    pass: async () => {
+      const why = await probeAll(store, ctx);
+      const anyDown = Object.values(store.all()).some((st) => !st?.ok);
+      return { why, detail: { sources: store.all() }, nextDelayMs: anyDown ? PROBE_RETRY_MS : PROBE_EVERY_MS };
+    },
   });
 }
