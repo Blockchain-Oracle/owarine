@@ -170,6 +170,12 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** feeders post each boundary's print at T+10 s, and the 1-minute demo lane resolves on that basis.
 - **Approval:** measured.
 
+### K-010a — Ticket direction B (D-081 choice)
+- **Date / owner:** 2026-09-29 · **Abu**
+- **Evidence:** the three directions at `/dev/ticket-canton` (`docs/evidence/ux/ticket-canton-*.png`).
+- **Rule:** the held price gets its own row, with the 20 s `CountdownRing` beside it. While a write is open, `StepProgress` (Price → Sent → Confirming → Placed) takes the Buy button's place, so nothing can be pressed twice. The rest of the ticket stays the reference's.
+- **Approval:** Abu, 2026-09-29.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
