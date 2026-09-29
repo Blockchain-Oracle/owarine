@@ -43,7 +43,7 @@ coverage/
 /_bmad-output/
 /skills/
 /context/
-/docs/plan/
+# docs/plan/ is tracked (K-006): judges read the plan as evidence.
 /web/.21st/
 /docs-site/evidence/
 /docs/submission/description.md

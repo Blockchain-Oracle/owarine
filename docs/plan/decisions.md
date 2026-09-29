@@ -1,0 +1,119 @@
+# Decisions and open questions
+
+The plan (`00-plan.md`) changes only through entries here. Format: `K-###`: date · owner · evidence · rule · user-visible consequence · approval.
+
+Every choice that has a default is recorded here as a decision, and Abu can overrule any of them by saying so. Nothing waits on him to confirm a default.
+
+**Numbering.** This repo's decisions use `K-` so they never collide with the reference's `D-` numbers (D-113, D-127, D-128, D-129 are cited throughout). Each stage owns a block so parallel lanes never collide:
+
+| Stage | Block | Stage | Block |
+|---|---|---|---|
+| C0 | K-001–009 | C8 | K-085–099 |
+| C1 | K-010–019 | C9 | K-100–114 |
+| C2 | K-020–034 | C10 | K-115–124 |
+| C3 | K-035–049 | C11 iOS | K-125–139 |
+| C4 | K-050–059 | C13 | K-140–149 |
+| C5 | K-060–064 | BitSafe | K-150–159 |
+| C6 | K-065–074 | Grofty | K-160–169 |
+| C7 | K-075–084 | Business | K-170–179 |
+| | | Overflow | K-200 on |
+
+A default recorded early for a later stage sits in that stage's block; its owner may amend it with a new entry.
+
+## Decisions
+
+### K-001 — Fork base: Agari `codex/mobile-takeover` @ `661a24ee`
+- **Date / owner:** 2026-09-29 · C0 owner
+- **Evidence:** the reference as checked 29 Sep (`00-plan.md`, "The reference as it stands today"): clean, contains all of `integration/w1` plus the native app. Baseline measured on the untouched tree before import (`acceptance.md`, 01:22–01:26Z): `pnpm install` 40 s; typecheck green in 9 projects; invariants 20/20; vitest 1,773 passed / 3 skipped (191 files: 190 passed, 1 skipped); web build green; mobile typecheck green. `expo export` was not part of that run.
+- **Rule:** the repo starts from that tree, imported by `git archive` without `anchor/` (commit `6f3f3cf`, tag `hackcanton-s3-start`). Everything after the tag is HackCanton-window work.
+- **User-visible:** none yet; the app is still the Solana app until C1.
+- **Approval:** plan revision 5 (Abu, 2026-09-29).
+
+### K-002 — The design system is used directly; no licence gating
+- **Date / owner:** 2026-09-29 · Abu
+- **Evidence:** Abu, 29 Sep: use the reference design system directly (Masayume/Agari); no licence gating. `94a0d65` had mounted `web/src/styles/yosuku/` from a private submodule; `2855af5` removed the submodule and restored the 18-part stylesheets byte-identical from `661a24ee`.
+- **Rule:** the stylesheets live in the repo as they are. The lineage is recorded factually in `THIRD_PARTY_NOTICES.md` and `references.md`. No licence deadline and no re-expression lane. The same holds for the yosuku-derived literals in `mobile/src/theme/web/**`.
+- **User-visible:** the app looks exactly like the reference.
+- **Approval:** Abu, 2026-09-29.
+
+### K-003 — Hosting: Coolify, Namecheap DNS straight to the server, no Cloudflare (a later deploy-stage item)
+- **Date / owner:** 2026-09-29 · Abu (no Cloudflare) · C0 owner (defaults)
+- **Evidence:** `00-plan.md`, Architecture §10. Abu, 29 Sep: the Canton product uses no Cloudflare. Agari sets `TRUSTED_PROXY=cloudflare` because `useagari.xyz` answers through Cloudflare; that does not carry over. `web/src/lib/client-ip.server.ts` already supports a proxy that owns `x-forwarded-for` (Traefik). Region detection reads `x-vercel-ip-country` (`web/src/lib/region-mark.ts:12`), which nothing sets on this host.
+- **Rule:**
+  - Web, ops and Postgres (and docs) run as new Coolify apps on Abu's server beside Agari's, from the reference's Dockerfiles. Namecheap A records for `@`, `docs`, `ops`, `room` point straight at the server; Traefik issues Let's Encrypt certificates.
+  - `TRUSTED_PROXY=forwarded`. If a forged `X-Forwarded-For` reaches the app, Traefik gets explicit `forwardedHeaders` and the seven direct readers move onto `clientIp()`.
+  - Region hold (D-095): country from a local IP-to-country database read in `proxy.ts`, default **DB-IP IP-to-Country Lite** (CC BY 4.0, attribution on `/legal`). MaxMind GeoLite2 is the alternative.
+  - Domain choice, DNS records and host probes (disk, forged header, `x-forwarded-proto`, unbuffered SSE, certificates) come with the first hosted deploy. They block nothing before it.
+- **User-visible:** the region hold keeps working without a CDN header; `/legal` credits DB-IP.
+- **Approval:** Abu (no Cloudflare, hosting later), 2026-09-29; the DB-IP default stands unless he overrules it.
+
+### K-004 — Decision ids use `K-`
+- **Date / owner:** 2026-09-29 · C0 owner
+- **Evidence:** the reference's `decisions.md` runs to D-129 and this plan cites D-015, D-036, D-066, D-081, D-095, D-101, D-113, D-120 … D-129 by number.
+- **Rule:** this repo's decisions are `K-###`, in the stage blocks above. `D-` always means the reference's decision.
+- **User-visible:** none.
+- **Approval:** plan revision 5.
+
+### K-005 — The reference's exclusions and removals carry over
+- **Date / owner:** 2026-09-29 · C0 owner, recording Abu's earlier decisions
+- **Evidence:** the 14 Excluded Yosuku-lineage rows (Abu, 13 Sep, reference Q-002/Q-003: Y-01…05, 07…13, 15, 18); Abu's mobile removals of 25 Sep (install strip, News, Pitch, Demo, Print proof, Stats, Market Surface, Download, and the /more and /notifications nav entries; `mobile/src/nav/items.ts`); friends/follows removed in the reference (`fb782348`); the sealed strategy memory market removed (`d4a693e5`, L-56); the "Strategies on X" strip removed from `/agents` (`d4a693e5`).
+- **Rule:** all of these stay out (`parity.md` rows marked Excluded, and C-X01…X03). Nothing else is excluded.
+- **User-visible:** the app has exactly the reference's current feature set.
+- **Approval:** Abu's own dated decisions; he can reopen any of them.
+
+### K-006 — `docs/plan/` is tracked in git
+- **Date / owner:** 2026-09-29 · C0 owner (Abu's default)
+- **Evidence:** the reference took its planning docs out of git on 23 Sep (`386d41ed`). Judges "open your repository… open your journal" (Opening Ceremony), and the rules require in-window work to be identifiable.
+- **Rule:** `.gitignore` no longer ignores `/docs/plan/`; `/context/` stays ignored. No credential is ever written under `docs/plan/`.
+- **User-visible:** the plan, decisions and evidence ledgers are public with the repo.
+- **Approval:** default, 2026-09-29; Abu can overrule.
+
+### K-007 — Product name stays neutral for now
+- **Date / owner:** 2026-09-29 · C0 owner (plan default)
+- **Rule:** a neutral scope until Abu names it, so a late name changes one constant each (`BRAND`, `SIGNED_MESSAGE_BRAND`, app display name, bundle id). The App Store name and subtitle avoid "prediction market" and "wallet".
+- **User-visible:** a working name in the app until then.
+- **Approval:** default; Abu can overrule.
+
+### K-008 — Optional exclusions default to building the feature
+- **Date / owner:** 2026-09-29 · C0 owner (plan default)
+- **Evidence:** `00-plan.md`, "For Abu, optional exclusions".
+- **Rule:** Blinks (A-3e) are built as a signed Window share link on the same URLs; BTC/ETH appear on the marquee (not read as Y-08's excluded multi-coin ticker). The "Strategies on X" strip is already recorded as removed (K-005).
+- **User-visible:** share links open the ticket on web or in the app; the marquee shows BTC and ETH.
+- **Approval:** default; Abu can overrule.
+
+### K-009 — Local sandbox first; DevNet later
+- **Date / owner:** 2026-09-29 · Abu
+- **Evidence:** Abu, 29 Sep: Noders onboarding is not a blocker. Already known without onboarding: Noders `/v2/version` is public and reports Canton 3.5.18; CORS is open (`acceptance.md`).
+- **Rule:** all building and testing runs on the local Canton sandbox (dpm 3.5.10 assembly, Canton 3.5.17). Just before the DevNet skeleton (C2x), Abu signs in to the Noders wallet and Console with his HackCanton account (about 2 minutes) and creates the party set; the Noders probes (rights, `POST /v2/parties`, DAR validate, token life, concurrent sessions, deduplication period, `synchronizerId`, pruning offset, ledger-time tolerance, primary-party quota, `abu-pm-dev` name collision) run then, each an acceptance row.
+- **User-visible:** none until the DevNet demo.
+- **Approval:** Abu, 2026-09-29.
+
+### K-010 — Ticket direction under D-081 (C1 block)
+- **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
+- **Rule:** 2–3 directions for StepProgress and the quote ring on the ticket are shown at `/dev/ticket-canton` by Thu 1 Oct. Abu picks one; without a pick, the option closest to today's ticket is used. The pick is recorded as a new entry before the ticket changes.
+- **Approval:** default; Abu chooses.
+
+### K-035 — The platform credential lives on both hosts (C3 block)
+- **Date / owner:** 2026-09-29 · C0 owner, recording the plan default (Architecture §9, option A)
+- **Rule:** `packages/ledger` takes a password grant per process, single-flight, re-granted at 80% of `expires_in`, and stores no refresh token. The credential is in the secret store of the web host and the ops host. If the realm limits concurrent sessions (probed with K-009's Noders probes), option B is forced: only ops holds it and serves short-lived tokens over `/internal/token`.
+- **User-visible:** user exits keep working with the worker down.
+- **Approval:** default; Abu can overrule.
+
+### K-065 — Stock, token, basket and Pyth lanes use attested off-chain prints (C6 block)
+- **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
+- **Rule:** the oracle feeders fetch Pyth Hermes, RedStone, Switchboard, PreStocks and the reference's other sources off-chain and post them onto the same attested `PriceQuote` path as crypto, with the original source named on every receipt (D-101's pattern). The Alpaca session calendar is a calendar, not a price.
+- **Approval:** default (due Thu 1 Oct in the plan); Abu can overrule.
+
+### K-085 — The Canton desk's live leg trades our own markets (C8 block)
+- **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
+- **Rule:** `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; the live leg trades this venue's markets with venue cash and is gated on C7b.
+- **Approval:** default (due Fri 2 Oct in the plan); Abu can overrule.
+
+### K-125 — iOS ships on public TestFlight from a new app record (C11 block)
+- **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
+- **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
+- **Approval:** default; Abu creates the app record when the iOS build reaches it.
+
+## Open questions
+
+None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
