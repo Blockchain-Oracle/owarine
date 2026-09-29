@@ -9,6 +9,8 @@
  *   LEDGER_JSON_API_URL=http://localhost:7575 AGARI_PARTIES_FILE=… DRY_RUN=0 OPS_INTERNAL_SECRET=… \
  *     pnpm --filter @agari/scripts exec tsx drive/ops-local.ts
  */
+// C6e: ops' env files (services/ops/.env.local, then the root .env.local) load first, never over an explicit variable.
+import { loadedEnvFiles } from "../../services/ops/src/runtime/load-env";
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { appendFileSync } from "node:fs";
 import { startCantonVenue } from "../../services/ops/src/actors/venue";
@@ -22,6 +24,7 @@ import { createCryptoSpotFeed } from "../../services/ops/src/prices/crypto-spot"
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, heartbeats, readOpsEnv } from "../../services/ops/src/runtime";
 
 const env = readOpsEnv();
+for (const f of loadedEnvFiles) console.log(`env file ${f.path}: ${f.taken.length} variable(s) taken (explicit env wins)`);
 const stamp = () => new Date().toISOString().slice(11, 23);
 const log = (actor: string) => (why: string) => console.log(`${stamp()} [${actor}] ${why}`);
 const eventsFile = process.env.OPS_EVENTS_FILE;

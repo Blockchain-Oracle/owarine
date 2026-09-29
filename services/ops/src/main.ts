@@ -7,6 +7,8 @@
  * what runs: the default is the venue set; `all` adds the Masayume-era actors, which idle until their stages deploy
  * the programs they drive. DRY_RUN stays on unless `DRY_RUN=0` (nothing signs by default).
  */
+// C6e: the local env files load before any module reads process.env (the reference's `--env-file-if-exists`).
+import { loadedEnvFiles } from "./runtime/load-env";
 import "./actors/venue/quiet-codegen";
 import { attachDuelRoom, createDuelProjection } from "./actors/duel-projector";
 import { startDeskRunner } from "./actors/desk-runner";
@@ -82,6 +84,7 @@ function boot<T>(actor: string, start: () => Promise<T>): Promise<T> {
 const env = readOpsEnv();
 const actors = selectedActors(process.env.OPS_ACTORS);
 console.log(whyString("ops", `boot: ${env.cluster}, ${env.dryRun ? "DRY RUN" : "live"}, actors ${[...actors].join(",")}`));
+for (const f of loadedEnvFiles) console.log(whyString("ops", `env file ${f.path}: ${f.taken.length} variable(s) taken (explicit env wins)`));
 
 // C3 drive evidence: every venue event as one JSONL line (with this pid) for `scripts/drive/ops-report.ts`. Off unless set.
 const eventsFile = process.env.OPS_EVENTS_FILE;

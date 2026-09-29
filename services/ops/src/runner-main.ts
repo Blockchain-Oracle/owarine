@@ -3,6 +3,7 @@
  * actor the house runs, over the key `RUNNER_PRIVATE_KEY` names, for the strategies in
  * `STRATEGY_IDS` — nothing else of the ops service starts. See "Run your own bot" in the studio.
  */
+import "./runtime/load-env";
 import { startStrategyRunner } from "./actors/strategy-runner";
 
 const HEARTBEAT_MS = 30_000;
