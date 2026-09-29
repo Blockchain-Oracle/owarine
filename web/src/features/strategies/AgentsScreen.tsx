@@ -2,7 +2,6 @@
 
 import { rankAgents, type StrategyRecord } from "@agari/core/strategies";
 import type { Address, Hex } from "@agari/core/types";
-import { addressUrl } from "@agari/core/urls";
 import Link from "next/link";
 import { useMemo } from "react";
 import { CapabilityPending } from "@/components/shell";
@@ -14,7 +13,7 @@ import { AGENTS, STRATEGIES } from "./copy";
 import { money } from "./format";
 import { ago, shortAddress } from "./names";
 import { AgentPortrait } from "./AgentPortrait";
-import { strategyIdentity } from "./identity";
+import { runnerHref, strategyIdentity } from "./identity";
 import type { StrategiesPayload } from "./protocol";
 import { useRefreshStrategies, useStrategies } from "./useStrategies";
 import "./strategies.css";
@@ -126,9 +125,16 @@ function Board({ payload, nowMs }: { payload: StrategiesPayload; nowMs: number }
                       <AgentPortrait seed={identity.seed} name={identity.name} size="row" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <a href={addressUrl(row.runner)} target="_blank" rel="noreferrer" className="strat-mono-12 truncate text-ink transition-colors hover:text-vermilion">
-                            {identity.name}
-                          </a>
+                          {(() => {
+                            const href = runnerHref(row.runner, editions.length === 1 ? editions[0]!.strategyId : null);
+                            return href ? (
+                              <a href={href} target={href.startsWith("/u/") ? "_blank" : undefined} rel="noreferrer" className="strat-mono-12 truncate text-ink transition-colors hover:text-vermilion">
+                                {identity.name}
+                              </a>
+                            ) : (
+                              <span className="strat-mono-12 truncate text-ink" title={row.runner}>{identity.name}</span>
+                            );
+                          })()}
                           {top && <span className="agents-top-badge">{AGENTS.desk.top}</span>}
                         </div>
                         <div className="strat-mono-11 mt-1 truncate text-ink-disabled">

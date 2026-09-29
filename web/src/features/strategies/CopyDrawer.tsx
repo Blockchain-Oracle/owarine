@@ -3,7 +3,7 @@
 import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
 import type { VaultGrant } from "@agari/core/vault";
 import type { Address } from "@agari/core/types";
-import { addressUrl, txUrl } from "@agari/core/urls";
+import { txUrl } from "@agari/core/urls";
 import { XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
@@ -16,7 +16,8 @@ import { checkCopyForm } from "./copy-form";
 import { COPY_FORM } from "./copy-form-copy";
 import { CopyFormFields } from "./CopyFormFields";
 import { capsFor, money, parseAmount } from "./format";
-import { strategyIdentity } from "./identity";
+import { runnerHref, strategyIdentity } from "./identity";
+import { shortParty } from "./names";
 import { STRATEGIES, STRATEGY_DIRECTION } from "./copy";
 import { copyStateOf, COPY_STATE_LABEL } from "./lifecycle";
 import type { StrategyWire } from "./protocol";
@@ -120,7 +121,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
     <button type="button" className="strat-drawer-scrim" aria-label="Close strategy" tabIndex={-1} onClick={onClose} />
     <div ref={panel} tabIndex={-1} className="strat-drawer" role="dialog" aria-modal="true" aria-labelledby="copy-strategy-title">
       <button type="button" onClick={onClose} aria-label="Close strategy" className="strat-drawer-close"><XIcon aria-hidden="true" /></button>
-      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on the proof page ↗</a></div></div>
+      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2>{runnerHref(card.runner) ? <a href={runnerHref(card.runner)!} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner's profile ↗</a> : <span className="strat-meta block truncate text-ink-muted" title={card.runner}>Runner {shortParty(card.runner)}</span>}</div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>
       <RecordCard record={card.record} decimals={decimals} symbol={symbol} />
       {tabs.length > 1 && <div className="strat-drawer-tabs mt-5" role="tablist" aria-label={name}>{tabs.map((key) => <button key={key} type="button" role="tab" id={`strat-tab-${key}`} aria-controls={`strat-panel-${key}`} aria-selected={tab === key} onClick={() => setTab(key)}>{key === "decisions" ? `${T.decisions} · ${card.agent?.decisions.length ?? 0}` : key === "playbook" ? T.playbook : sub ? T.manage : T.copy}</button>)}</div>}

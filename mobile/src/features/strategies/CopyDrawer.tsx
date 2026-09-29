@@ -7,7 +7,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import Animated, { FadeIn, SlideInRight } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { STRATEGIES } from "@/features/strategies/copy";
-import { strategyIdentity } from "@/features/strategies/identity";
+import { runnerHref, strategyIdentity } from "@/features/strategies/identity";
+import { shortParty } from "@/features/strategies/names";
 import type { StrategyWire } from "@/features/strategies/protocol";
 import { useStrategyHealth } from "@/features/strategies/useStrategies";
 import { openLedgerLink } from "~/lib/external";
@@ -62,9 +63,13 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
                 <Text numberOfLines={1} style={[styles.name, { color: color.ink }]} accessibilityRole="header">
                   {name}
                 </Text>
-                <Pressable accessibilityRole="link" onPress={() => void openLedgerLink("address", card.runner)}>
-                  <Text style={[ST.meta, { color: color.inkMuted }]}>Runner's seat ↗</Text>
-                </Pressable>
+                {runnerHref(card.runner) ? (
+                  <Pressable accessibilityRole="link" onPress={() => void openLedgerLink("address", card.runner)}>
+                    <Text style={[ST.meta, { color: color.inkMuted }]}>Runner's seat ↗</Text>
+                  </Pressable>
+                ) : (
+                  <Text numberOfLines={1} style={[ST.meta, { color: color.inkMuted }]}>Runner {shortParty(card.runner)}</Text>
+                )}
               </View>
             </View>
             <Text style={[body, styles.mb20]}>
