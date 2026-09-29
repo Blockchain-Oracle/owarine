@@ -69,6 +69,7 @@ testEventOpens = script do
   ev.e.closeDeadline === plus t0 3720
   ev.win.t.expiry === plus t0 3600
   ev.win.t.refundAfter === plus t0 4320
+  ev.win.t.closeAdmissionSec === Some 120
   -- no WindowState: the price path has nothing to consume
   ws <- query @WindowState w.venue
   ws === []

@@ -185,6 +185,7 @@ createTerms s index tradingStart lockAt expiry = do
         policyVersion = pv.version; printSource = pv.printSource
         minDelaySec = pv.minDelaySec; barLenSec = pv.barLenSec; tieUp = True
         oracles = s.oracles; quorum = s.quorum; maxDeviationBps = s.maxDeviationBps
+        closeAdmissionSec = Some pv.closeAdmissionSec
   termsCid <- create terms
   pure (termsCid, terms)
 

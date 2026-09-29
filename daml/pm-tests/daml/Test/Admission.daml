@@ -1,0 +1,24 @@
+-- | 0.4.0 `MarketTerms.closeAdmissionSec` (K-030): set from the frozen
+-- policy at open (closeDeadline = expiry + it), and derived by
+-- `closeAdmissionOf` for terms opened before 0.4.0 (None).
+module Test.Admission where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Time (seconds)
+import PM.Market
+import Test.Setup
+
+testCloseAdmissionSetAtOpen = script do
+  (_, win) <- mkWorldWin
+  win.t.closeAdmissionSec === Some 120
+  closeAdmissionOf win.t === seconds 120
+  win.t.closeDeadline === plus win.t.expiry 120
+
+testCloseAdmissionFallback = script do
+  (w, win) <- mkWorldWin
+  -- terms as 0.3.0 wrote them: no field, the reader derives it
+  let legacy = win.t with marketId = "BTC-300:legacy"; closeAdmissionSec = None
+  legacyCid <- submit w.venue do createCmd legacy
+  Some l <- queryContractId w.venue legacyCid
+  closeAdmissionOf l === seconds 120

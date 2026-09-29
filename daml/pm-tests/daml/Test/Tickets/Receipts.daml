@@ -131,6 +131,7 @@ testParlayReceipts = script do
   (won.marketId, won.outcome, won.resolved) === (tw.win1.t.marketId, SideDown, Some SideDown)
   (won.cost, won.payout, won.fee) === (200, 1000, 0)
   dw <- detailOf won
+  assert (receiptDetailOk dw)
   dw === ReceiptDetail with
     reserveId = rid; marketIds = [tw.win.t.marketId, tw.win1.t.marketId]; pick = "Up,Down"
     stake = 200; toReserve = 0; result = "won"

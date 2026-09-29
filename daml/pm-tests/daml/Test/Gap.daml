@@ -54,6 +54,7 @@ testGapSpanOpens = script do
   win.t.closeDeadline === plus monOpen 120
   win.t.refundAfter === plus monOpen 720
   win.t.policyVersion === 1
+  win.t.closeAdmissionSec === Some 120
   Some s <- queryContractId w.venue s1
   s.nextIndex === 1
   s.lastExpiry === Some monOpen

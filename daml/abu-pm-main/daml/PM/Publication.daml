@@ -67,8 +67,9 @@ template SettlementReceipt
       -- ^ 0.4.0: a ticket's reserve, markets, pick and payout breakdown
   where
     signatory venue, owner
+    -- The 0.3.0 precondition, unchanged so the upgrade adds no ensure
+    -- clause; tickets build `detail` with `receiptDetailOk` in mind.
     ensure owner /= venue && lots > 0 && cost >= 0 && payout >= 0 && fee >= 0
-      && optional True receiptDetailOk detail
 
     -- The same `Publication` shape `Leg_Publish` creates, from the settled figures.
     nonconsuming choice Receipt_Publish : ContractId Publication

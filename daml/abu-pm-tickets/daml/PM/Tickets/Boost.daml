@@ -34,7 +34,7 @@
 module PM.Tickets.Boost where
 
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
-import DA.Time (addRelTime, seconds, subTime)
+import DA.Time (addRelTime, seconds)
 import PM.Leg
 import PM.Market
 import PM.Money
@@ -197,7 +197,8 @@ template BoostPosition
           (observedAt >= barrierFrom && observedAt < expiry)
         terms <- fetch termsCid
         require "wrong-terms" "terms changed venue" (terms.venue == venue)
-        let admission = subTime terms.closeDeadline terms.expiry
+        -- the Window's close admission (explicit since abu-pm-main 0.4.0)
+        let admission = closeAdmissionOf terms
             rule = PrintRule with
               symbol = terms.symbol; boundary = observedAt; oracles = terms.oracles
               barLenSec = terms.barLenSec; policyVersion = terms.policyVersion

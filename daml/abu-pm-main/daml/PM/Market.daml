@@ -19,7 +19,7 @@ module PM.Market where
 
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
 import DA.List (unique)
-import DA.Time (addRelTime, seconds)
+import DA.Time (RelTime, addRelTime, seconds, subTime)
 import PM.Oracle
 import PM.Types
 
@@ -48,6 +48,10 @@ template MarketTerms
     oracles : [Party]
     quorum : Int
     maxDeviationBps : Int
+    closeAdmissionSec : Optional Int
+      -- ^ 0.4.0: the frozen policy's close admission (closeDeadline =
+      -- expiry + this, >= 0), set at open by `Series`. None on terms opened
+      -- before 0.4.0: read it with `closeAdmissionOf`, which derives it.
   where
     signatory venue
     observer resolver
@@ -56,6 +60,9 @@ template MarketTerms
       && refundAfter > closeDeadline
       && quorum >= 1 && quorum <= length oracles && unique oracles
       && maxDeviationBps >= 0 && minDelaySec >= 0 && barLenSec > 0
+      -- (the 0.3.0 precondition, unchanged: `Series` alone creates terms and
+      -- sets closeAdmissionSec = closeDeadline - expiry, so an upgrade adds
+      -- no ensure clause)
 
     nonconsuming choice Terms_RecordOpen : Either (ContractId Resolution) (ContractId OpenPrint)
       with
@@ -171,6 +178,11 @@ template Resolution
   where
     signatory resolver, venue
     ensure (outcome == None) == (voidReason /= None)
+
+-- | How long after a boundary a print is admitted at the close: the
+-- explicit field, or (terms from before 0.4.0) closeDeadline - expiry.
+closeAdmissionOf : MarketTerms -> RelTime
+closeAdmissionOf t = optional (subTime t.closeDeadline t.expiry) seconds t.closeAdmissionSec
 
 isVoid : Resolution -> Bool
 isVoid r = r.outcome == None
