@@ -12,7 +12,9 @@
   "dependencies": {
     "@agari/brain": "workspace:*",
     "@agari/core": "workspace:*",
+    "@agari/daml": "workspace:*",
     "@agari/db": "workspace:*",
+    "@agari/ledger": "workspace:*",
     "@agari/markets": "workspace:*",
     "@noble/hashes": "1.8.0",
     "opentype.js": "1.3.4",

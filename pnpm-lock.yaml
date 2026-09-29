@@ -378,12 +378,21 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../packages/core
+      '@agari/daml':
+        specifier: workspace:*
+        version: link:../packages/daml-clients
       '@agari/db':
         specifier: workspace:*
         version: link:../packages/db
+      '@agari/ledger':
+        specifier: workspace:*
+        version: link:../packages/ledger
       '@agari/markets':
         specifier: workspace:*
         version: link:../packages/markets
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -400,9 +409,15 @@ importers:
       '@agari/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@agari/daml':
+        specifier: workspace:*
+        version: link:../../packages/daml-clients
       '@agari/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@agari/ledger':
+        specifier: workspace:*
+        version: link:../../packages/ledger
       '@agari/markets':
         specifier: workspace:*
         version: link:../../packages/markets

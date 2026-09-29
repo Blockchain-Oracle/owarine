@@ -9,8 +9,11 @@
   },
   "dependencies": {
     "@agari/core": "workspace:*",
+    "@agari/daml": "workspace:*",
+    "@agari/db": "workspace:*",
+    "@agari/ledger": "workspace:*",
     "@agari/markets": "workspace:*",
-    "@agari/db": "workspace:*"
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@types/node": "catalog:",
