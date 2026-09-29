@@ -1,0 +1,254 @@
+-- | 0.4.0 events (K-030): a yes/no question decided by the committee's
+-- attestations, resolved into the same `Resolution` a price Window gets
+-- (Up = YES), so Legs settle unchanged. Quorum, conflict and lateness void
+-- with a named reason, exactly once.
+module Test.Event where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Event
+import PM.Leg
+import PM.Market
+import PM.Publication
+import PM.Series
+import PM.Types
+import Test.Setup
+
+eventQuestion : Text
+eventQuestion = "Will the committee sign off DEMO-1 by 13:00Z?"
+
+data Ev = Ev
+  with
+    series : ContractId Series
+    win : Win
+    event : ContractId EventTerms
+    e : EventTerms
+    st : ContractId EventState
+
+-- One event from t0: locks at +3000, closes at +3600, close deadline +3720
+-- (policy1's 120 s close admission), refundAfter +4320.
+mkEvent : World -> Script Ev
+mkEvent w = do
+  s0 <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "EVT-DEMO-1"; symbol = "EVT-DEMO-1"; maxDeviationBps = 0
+  (s1, terms, event, st) <- submit w.venue do
+    exerciseCmd s0 Series_OpenEvent with
+      index = 0; question = eventQuestion; tradingStart = t0; lockAt = plus t0 3000; closeTime = plus t0 3600
+  Some t <- queryContractId w.venue terms
+  Some e <- queryContractId w.venue event
+  pure Ev with series = s1; win = winOf terms t; event; e; st
+
+-- `trade` reads only the terms; an event has no WindowState, so `state` is
+-- a placeholder that nothing exercises.
+winOf : ContractId MarketTerms -> MarketTerms -> Win
+winOf terms t = Win with terms; state = coerceContractId terms; t
+
+attest : World -> Ev -> Party -> Bool -> Int -> Script (ContractId EventAttestation)
+attest w ev who answer afterClose = submit who do
+  createCmd EventAttestation with
+    attestor = who; venue = w.venue; resolver = w.resolver; marketId = ev.e.marketId
+    answer; attestedAt = plus ev.e.closeTime afterClose; statementHash = "sha256:statement"
+
+resolveEvent : World -> Ev -> [ContractId EventAttestation] -> Script (ContractId Resolution, ContractId EventVerdict)
+resolveEvent w ev as = submit w.resolver do
+  exerciseCmd ev.event Event_Resolve with stateCid = ev.st; attestationCids = as
+
+voidEvent : World -> Ev -> [ContractId EventAttestation] -> Script (ContractId Resolution, ContractId EventVerdict)
+voidEvent w ev as = submit w.resolver do
+  exerciseCmd ev.event Event_Void with stateCid = ev.st; attestationCids = as
+
+testEventOpens = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  ev.e.marketId === "EVT-DEMO-1:0"
+  ev.e.question === eventQuestion
+  ev.e.attestors === [w.o1, w.o2, w.o3]
+  ev.e.quorum === 2
+  ev.e.closeTime === plus t0 3600
+  ev.e.closeDeadline === plus t0 3720
+  ev.win.t.expiry === plus t0 3600
+  ev.win.t.refundAfter === plus t0 4320
+  -- no WindowState: the price path has nothing to consume
+  ws <- query @WindowState w.venue
+  ws === []
+  Some s <- queryContractId w.venue ev.series
+  s.nextIndex === 1
+  s.lastExpiry === Some (plus t0 3600)
+
+-- YES resolves Up: the YES leg wins its pair, the NO leg loses, both with
+-- a receipt, and the verdict records the question and the attestations.
+testEventYesSettlesLegs = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  (aliceUp, venueDown) <- trade w ev.win w.alice SideUp 400 10 3 "evt-p1"
+  (bobDown, venueUp) <- trade w ev.win w.bob SideDown 600 10 3 "evt-p2"
+  at (plus ev.e.closeTime 30)
+  a1 <- attest w ev w.o1 True 10
+  a2 <- attest w ev w.o2 True 20
+  (res, verdict) <- resolveEvent w ev [a1, a2]
+  Some r <- queryContractId w.resolver res
+  r.outcome === Some SideUp
+  r.voidReason === None
+  r.signers === 2
+  r.termsCid === ev.win.terms
+  Some v <- queryContractId w.resolver verdict
+  v.answer === Some True
+  v.question === eventQuestion
+  map (.attestor) v.attestations === [w.o1, w.o2]
+  v.resolutionCid === res
+  aliceBefore <- cashOf w.alice
+  _ <- submit w.venue do exerciseCmd aliceUp Leg_Settle with resolutionCid = res
+  aliceAfter <- cashOf w.alice
+  aliceAfter - aliceBefore === quantityOf 10 1
+  bobBefore <- cashOf w.bob
+  _ <- submit w.venue do exerciseCmd bobDown Leg_Settle with resolutionCid = res
+  bobAfter <- cashOf w.bob
+  bobAfter - bobBefore === 0
+  forA_ [venueDown, venueUp] \l -> submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+  receipts <- query @SettlementReceipt w.venue
+  length receipts === 2
+
+testEventNoResolvesDown = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  at (plus ev.e.closeTime 30)
+  as <- mapA (\o -> attest w ev o False 5) [w.o1, w.o2, w.o3]
+  (res, verdict) <- resolveEvent w ev as
+  Some r <- queryContractId w.resolver res
+  r.outcome === Some SideDown
+  Some v <- queryContractId w.resolver verdict
+  v.answer === Some False
+  length v.attestations === 3
+
+-- YES and NO at once void the event as a source disagreement, and every
+-- leg gets its backing and fee back.
+testEventConflictVoids = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  (aliceUp, _) <- trade w ev.win w.alice SideUp 400 10 3 "evt-p1"
+  at (plus ev.e.closeTime 30)
+  a1 <- attest w ev w.o1 True 10
+  a2 <- attest w ev w.o2 False 10
+  (res, verdict) <- resolveEvent w ev [a1, a2]
+  Some r <- queryContractId w.resolver res
+  r.outcome === None
+  r.voidReason === Some (SourceDisagreement CloseSlot)
+  Some v <- queryContractId w.resolver verdict
+  v.answer === None
+  aliceBefore <- cashOf w.alice
+  _ <- submit w.venue do exerciseCmd aliceUp Leg_Settle with resolutionCid = res
+  aliceAfter <- cashOf w.alice
+  aliceAfter - aliceBefore === userStakeOf 10 400 1 + 3
+
+-- Attestations that do not count are ignored, not fatal: before the close,
+-- after the deadline, from outside the committee, for another market, and
+-- a member's second answer (the earliest is kept).
+testEventIgnoresStrayAttestations = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  at (plus ev.e.closeTime 30)
+  early <- attest w ev w.o1 False (-1)
+  late <- attest w ev w.o2 False 121
+  foreign <- attest w ev w.outsider False 10
+  other <- submit w.o3 do
+    createCmd EventAttestation with
+      attestor = w.o3; venue = w.venue; resolver = w.resolver; marketId = "EVT-OTHER:0"
+      answer = False; attestedAt = plus ev.e.closeTime 10; statementHash = "x"
+  a1 <- attest w ev w.o1 True 10
+  a1again <- attest w ev w.o1 False 20
+  -- only o1 counts: below the quorum
+  refusedWith (refusal "quorum-not-met") =<< trySubmit w.resolver do
+    exerciseCmd ev.event Event_Resolve with stateCid = ev.st; attestationCids = [early, late, foreign, other, a1, a1again]
+  a2 <- attest w ev w.o2 True 11
+  (res, verdict) <- resolveEvent w ev [early, late, foreign, other, a1, a1again, a2]
+  Some r <- queryContractId w.resolver res
+  r.outcome === Some SideUp
+  Some v <- queryContractId w.resolver verdict
+  map (\x -> (x.attestor, x.answer)) v.attestations === [(w.o1, True), (w.o2, True)]
+
+-- An event resolves or voids exactly once, only inside its times, and only
+-- by the resolver.
+testEventExactlyOnceAndTimes = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  at (plus ev.e.closeTime (-1))
+  a1 <- attest w ev w.o1 True 0
+  a2 <- attest w ev w.o2 True 0
+  refusedWith deadlineNotExceeded =<< trySubmit w.resolver do
+    exerciseCmd ev.event Event_Resolve with stateCid = ev.st; attestationCids = [a1, a2]
+  at ev.e.closeTime
+  unauthorized =<< trySubmit w.venue do
+    exerciseCmd ev.event Event_Resolve with stateCid = ev.st; attestationCids = [a1, a2]
+  refusedWith deadlineNotExceeded =<< trySubmit w.resolver do
+    exerciseCmd ev.event Event_Void with stateCid = ev.st; attestationCids = []
+  _ <- resolveEvent w ev [a1, a2]
+  fails =<< trySubmit w.resolver do
+    exerciseCmd ev.event Event_Resolve with stateCid = ev.st; attestationCids = [a1, a2]
+  at (plus ev.e.closeDeadline 1)
+  fails =<< trySubmit w.resolver do
+    exerciseCmd ev.event Event_Void with stateCid = ev.st; attestationCids = []
+  rs <- query @Resolution w.resolver
+  length rs === 1
+
+-- After the deadline only a void runs, and its reason says why.
+testEventVoidReasons = script do
+  w <- mkWorld
+  let cases =
+        [ ([], MissingPrint CloseSlot)
+        , ([(True, 0)], QuorumNotMet CloseSlot)
+        , ([(True, 0), (True, 1)], ResolverAbsent CloseSlot)
+        , ([(True, 0), (False, 1)], SourceDisagreement CloseSlot) ]
+  forA_ (zip [0 .. 3] cases) \(i, (answers, reason)) -> do
+    s0 <- submit w.venue do
+      createCmd (seriesFor w) with seriesKey = "EVT-V" <> show i; symbol = "EVT-V"; maxDeviationBps = 0
+    now <- getTime
+    (_, terms, event, st) <- submit w.venue do
+      exerciseCmd s0 Series_OpenEvent with
+        index = 0; question = eventQuestion; tradingStart = plus now 60; lockAt = plus now 120; closeTime = plus now 180
+    Some t <- queryContractId w.venue terms
+    Some e <- queryContractId w.venue event
+    let ev = Ev with series = s0; win = winOf terms t; event; e; st
+    at (plus e.closeTime 5)
+    as <- mapA (\(o, (ans, d)) -> attest w ev o ans d) (zip [w.o1, w.o2] answers)
+    at e.closeDeadline
+    refusedWith deadlineNotExceeded =<< trySubmit w.resolver do
+      exerciseCmd event Event_Void with stateCid = st; attestationCids = as
+    at (plus e.closeDeadline 1)
+    refusedWith deadlineExceeded =<< trySubmit w.resolver do
+      exerciseCmd event Event_Resolve with stateCid = st; attestationCids = as
+    (res, verdict) <- voidEvent w ev as
+    Some r <- queryContractId w.resolver res
+    r.voidReason === Some reason
+    Some v <- queryContractId w.resolver verdict
+    v.voidReason === Some reason
+
+testEventOpenRefusals = script do
+  w <- mkWorld
+  s0 <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "EVT-R"; symbol = "EVT-R"; maxDeviationBps = 0
+  let openAt i q a b c = trySubmit w.venue do
+        exerciseCmd s0 Series_OpenEvent with index = i; question = q; tradingStart = a; lockAt = b; closeTime = c
+  refusedWith (refusal "bad-window-index") =<< openAt 1 eventQuestion t0 (plus t0 60) (plus t0 120)
+  refusedWith (refusal "no-question") =<< openAt 0 "" t0 (plus t0 60) (plus t0 120)
+  refusedWith (refusal "bad-span") =<< openAt 0 eventQuestion t0 (plus t0 121) (plus t0 120)
+  refusedWith (refusal "span-too-long") =<< openAt 0 eventQuestion t0 (plus t0 60) (plus t0 (92 * 86400 + 1))
+  refusedWith (refusal "window-overlap") =<< openAt 0 eventQuestion (plus t0 (-1)) (plus t0 60) (plus t0 120)
+  unauthorized =<< trySubmit w.resolver do
+    exerciseCmd s0 Series_OpenEvent with index = 0; question = eventQuestion; tradingStart = t0; lockAt = plus t0 60; closeTime = plus t0 120
+
+-- Attestations are seen by the member, the venue and the resolver only.
+testEventAttestationPrivacy = script do
+  w <- mkWorld
+  ev <- mkEvent w
+  at ev.e.closeTime
+  a1 <- attest w ev w.o1 True 0
+  forA_ [w.o1, w.venue, w.resolver] \p -> do
+    x <- queryContractId p a1
+    assert (x /= None)
+  forA_ [w.o2, w.alice, w.outsider, w.auditor] \p -> do
+    x <- queryContractId p a1
+    x === None
+  -- the auditor sees the Series, not the event's question
+  es <- query @EventTerms w.auditor
+  es === []

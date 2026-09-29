@@ -17,6 +17,7 @@ module PM.Series where
 
 import DA.List (unique, last)
 import DA.Time (addRelTime, seconds)
+import PM.Event
 import PM.Market
 import PM.Types
 
@@ -81,6 +82,33 @@ template Series
           (expiry <= addRelTime tradingStart (seconds maxSpanSec))
         openWindowAt this index tradingStart lockAt expiry
 
+    -- A yes/no event (PM.Event) as this Series' next Window: its terms, the
+    -- question and committee (the Series' oracles and quorum), and the
+    -- event's single-use state. No WindowState is created, so only
+    -- `Event_Resolve` / `Event_Void` decide it.
+    choice Series_OpenEvent : (ContractId Series, ContractId MarketTerms, ContractId EventTerms, ContractId EventState)
+      with
+        index : Int
+        question : Text
+        tradingStart : Time
+        lockAt : Time
+        closeTime : Time
+      controller venue
+      do
+        require "bad-span" "an event must trade before it locks, and lock no later than it closes"
+          (tradingStart < lockAt && lockAt <= closeTime)
+        require "span-too-long" "an event runs at most 92 days"
+          (closeTime <= addRelTime tradingStart (seconds maxEventSpanSec))
+        require "no-question" "an event asks a question" (question /= "")
+        checkNext this index tradingStart
+        (termsCid, terms) <- createTerms this index tradingStart lockAt closeTime
+        stateCid <- create EventState with venue; resolver; termsCid
+        eventCid <- create EventTerms with
+          venue; resolver; termsCid; marketId = terms.marketId; question
+          closeTime; closeDeadline = terms.closeDeadline; attestors = oracles; quorum
+        next <- create this with nextIndex = index + 1; lastExpiry = Some closeTime
+        pure (next, termsCid, eventCid, stateCid)
+
     -- The roller skips windows (halts, closed sessions) by moving the index
     -- forward. It can never move backwards.
     choice Series_SkipTo : ContractId Series
@@ -126,12 +154,17 @@ openFloor s = optional (gridStart s s.nextIndex) identity s.lastExpiry
 -- Series.
 openWindowAt : Series -> Int -> Time -> Time -> Time -> Update (ContractId Series, ContractId MarketTerms, ContractId WindowState)
 openWindowAt s index tradingStart lockAt expiry = do
-  require "bad-window-index" "window index is not the series' next index" (index == s.nextIndex)
-  require "window-overlap" "a Window cannot start before the last one expires" (tradingStart >= openFloor s)
+  checkNext s index tradingStart
   (termsCid, _) <- createTerms s index tradingStart lockAt expiry
   stateCid <- create WindowState with venue = s.venue; resolver = s.resolver; termsCid
   next <- create s with nextIndex = index + 1; lastExpiry = Some expiry
   pure (next, termsCid, stateCid)
+
+-- | The index and overlap checks every open makes.
+checkNext : Series -> Int -> Time -> Update ()
+checkNext s index tradingStart = do
+  require "bad-window-index" "window index is not the series' next index" (index == s.nextIndex)
+  require "window-overlap" "a Window cannot start before the last one expires" (tradingStart >= openFloor s)
 
 -- | The Window's terms under the highest policy version covering both
 -- boundaries (no WindowState: the caller creates the resolution marker).
