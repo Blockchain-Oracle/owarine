@@ -17,6 +17,8 @@ import { startHaltWatch } from "./actors/halt-watch";
 import { startProjector } from "./actors/projector";
 import { CANTON_ACTORS, startCantonVenue } from "./actors/venue";
 import { createVenueContext } from "./actors/venue/context";
+import { onVenueEvent } from "./actors/venue/events";
+import { appendFileSync } from "node:fs";
 import { startLeverageKeeper } from "./actors/leverage-keeper";
 import { startMarketMaker } from "./actors/market-maker";
 import { startPriceRelay } from "./actors/price-relay";
@@ -76,6 +78,10 @@ function boot<T>(actor: string, start: () => Promise<T>): Promise<T> {
 const env = readOpsEnv();
 const actors = selectedActors(process.env.OPS_ACTORS);
 console.log(whyString("ops", `boot: ${env.cluster}, ${env.dryRun ? "DRY RUN" : "live"}, actors ${[...actors].join(",")}`));
+
+// C3 drive evidence: every venue event as one JSONL line (with this pid) for `scripts/drive/ops-report.ts`. Off unless set.
+const eventsFile = process.env.OPS_EVENTS_FILE;
+if (eventsFile) onVenueEvent((e) => appendFileSync(eventsFile, `${JSON.stringify({ ...e, pid: process.pid })}\n`));
 
 const sessions = createSessionService();
 // S6 (session-lanes.md §3): halt-watch is the halt board's only writer; the events reader serves corporate actions and earnings.
