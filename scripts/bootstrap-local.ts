@@ -10,7 +10,7 @@
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
  *
- *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--shards 16] [--users alice,bob] [--fresh]
+ *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -101,7 +101,12 @@ async function main(): Promise<void> {
     parties[role] = had && known.has(had) ? had : await allocate(`agari-${role}-${run}`);
   }
   const users: Record<string, string> = {};
-  const wantUsers = arg("--users", "").split(",").map((s) => s.trim()).filter(Boolean);
+  // K-026: the web reads personas from users.alice|bob|outsider and its seat pool from users named seat-*.
+  const seatCount = Number(arg("--seats", "0"));
+  const wantUsers = [
+    ...arg("--users", "").split(",").map((s) => s.trim()).filter(Boolean),
+    ...Array.from({ length: Number.isInteger(seatCount) && seatCount > 0 ? seatCount : 0 }, (_, i) => `seat-${i + 1}`),
+  ];
   for (const name of wantUsers) {
     const had = previous?.users?.[name];
     users[name] = had && known.has(had) ? had : await allocate(`agari-user-${name}-${run}`);

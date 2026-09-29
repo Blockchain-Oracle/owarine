@@ -176,6 +176,18 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** the held price gets its own row, with the 20 s `CountdownRing` beside it. While a write is open, `StepProgress` (Price → Sent → Confirming → Placed) takes the Buy button's place, so nothing can be pressed twice. The rest of the ticket stays the reference's.
 - **Approval:** Abu, 2026-09-29.
 
+### K-026 — One parties file for web and ops
+- **Date / owner:** 2026-09-29 · stage owner (C3 gate finding)
+- **Rule:** `AGARI_PARTIES_FILE` has one shape, the one ops and `scripts/bootstrap-local.ts` write: `{ network, parties: {venue, resolver, …}, users: {alice, bob, outsider, "seat-1", …} }`. The web takes the venue from `parties`, the personas from `users`, and the seat pool from every `seat-*` user, in numeric order. `bootstrap-local.ts --seats N` creates the seats. The web still accepts its older shape.
+- **Evidence:** `web/src/lib/server-env.parties.test.ts`.
+- **Approval:** default; overrulable.
+
+### K-027 — Display-only price feeds never mark ops unhealthy
+- **Date / owner:** 2026-09-29 · stage owner (C3 gate finding: PreStocks answers 429 to this host)
+- **Rule:** `prestocks-spot`, `xstock-spot`, `pyth-index-spot` and `switchboard-spot` show prices on screen and never price, resolve or settle. `/health` lists them under `degraded` without turning `ok` false. The status page's relay-freshness rows read the three oracle feeders' heartbeats.
+- **Evidence:** `services/ops/src/http/health.test.ts`.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
