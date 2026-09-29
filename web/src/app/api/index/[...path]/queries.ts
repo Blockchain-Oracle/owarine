@@ -1,5 +1,5 @@
 import { TICKER_SYMBOLS } from "@agari/core/market";
-import { addressSchema } from "@agari/core/types";
+import { addressSchema, type Address } from "@agari/core/types";
 import type { Db, IdxRow, IndexReader } from "@agari/db";
 import { z } from "zod";
 import { resolveArchiveQuery } from "./queries-archive";
@@ -12,8 +12,10 @@ import { resolveTapeQuery } from "./queries-tape";
  * `idx/read.ts` query. Integers stay the decimal strings Postgres returns; limits are clamped by the reader (≤ 1,000).
  */
 export interface IndexQuery {
-  /** `wallet/*` answers are private to the wallet and never cached by a CDN. */
+  /** `wallet/*` answers are private to the seat and never cached by a CDN. */
   scope: "public" | "wallet";
+  /** For `wallet` scope: the seat whose rows these are. The route serves them only to that seat (plan §5). */
+  owner?: Address;
   /** Overrides the public 2 s cache for immutable rows (e.g. a verified proof: `public, s-maxage=60`). Wallet scope ignores it. */
   cacheControl?: string;
   /** `db` is for lane readers with their own SQL (`idx/read-{tape,status}.ts`, `proofs.ts`; proof-analytics.md §1). */
@@ -60,19 +62,19 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
   switch (resource) {
     case "fills": {
       const q = parse(fillsQuery, query);
-      return { scope: "wallet", run: (r) => r.walletFills(owner, { market: q.market, book: q.book, sinceSec: q.since, limit: q.limit, offset: q.offset }) };
+      return { scope: "wallet", owner, run: (r) => r.walletFills(owner, { market: q.market, book: q.book, sinceSec: q.since, limit: q.limit, offset: q.offset }) };
     }
     case "positions": {
       const q = parse(z.object({ unredeemed: flag, limit: optionalInt }), query);
-      return { scope: "wallet", run: (r) => r.positions(owner, { unredeemedOnly: q.unredeemed, limit: q.limit }) };
+      return { scope: "wallet", owner, run: (r) => r.positions(owner, { unredeemedOnly: q.unredeemed, limit: q.limit }) };
     }
     case "actions": {
       const q = parse(pageQuery, query);
-      return { scope: "wallet", run: (r) => r.walletActions(owner, q) };
+      return { scope: "wallet", owner, run: (r) => r.walletActions(owner, q) };
     }
     case "orders": {
       const q = parse(z.object({ market: address.optional(), open: flag, limit: optionalInt }), query);
-      return { scope: "wallet", run: (r) => r.orders({ owner, market: q.market, openOnly: q.open, limit: q.limit }) };
+      return { scope: "wallet", owner, run: (r) => r.orders({ owner, market: q.market, openOnly: q.open, limit: q.limit }) };
     }
     default:
       return null;
