@@ -16,7 +16,7 @@ export { NOW_SEC, OWNER };
 const MANDATE = presetMandate("ailabs", { notes: "Never buy on a Sunday." })!;
 
 const row = (over: Partial<DeskRowWire> = {}): DeskRowWire => ({
-  id: DESK_ID, address: null, owner: OWNER, cluster: "mainnet-beta", mode: "practice", state: "practice", stateReason: null, chainSeq: 0, chainHead: `0x${"0".repeat(64)}`, mandateVersion: 1,
+  id: DESK_ID, address: null, owner: OWNER, cluster: "mainnet", mode: "practice", state: "practice", stateReason: null, chainSeq: 0, chainHead: `0x${"0".repeat(64)}`, mandateVersion: 1,
   practiceChecks: 4, recordOpenedAtSec: null, sharePublic: false, createdAtSec: NOW_SEC - 86_400 * 2, updatedAtSec: NOW_SEC - 1_400, ...over,
 });
 

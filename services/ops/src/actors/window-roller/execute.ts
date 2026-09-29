@@ -51,7 +51,6 @@ export const seriesKey = seriesLaneKey;
 /** A Gap spans days, so its log span carries dates (`09-18 20:00Z–09-21 13:30Z`). */
 const spanFor = (s: SeriesView, w: { tradingStartSec: number; expirySec: number }) => (seriesBasis(s) === "gap" ? gapSpanOf(w) : spanOf(w));
 /** Lamports as an exact SOL string with three decimals (display only). */
-const solText = (lamports: bigint) => `${lamports / 1_000_000_000n}.${(lamports % 1_000_000_000n).toString().padStart(9, "0").slice(0, 3)}`;
 
 async function refreshSeries(state: RollerState): Promise<void> {
   if (Date.now() - state.seriesListedMs >= SERIES_LIST_MS) {
@@ -199,7 +198,7 @@ function currentState(s: SeriesView, bound: Bound[], nowSec: number): string | n
   const m = live.at(-1)?.market.data;
   if (!m) return null;
   const version = describeVersion(m.policyVersion, versionWindow(s.data.policyVersions[m.policyVersion]!));
-  return `open #${m.index} ${spanFor(s, { tradingStartSec: Number(m.tradingStart), expirySec: Number(m.expiry) })} ${version}`;
+  return `open #${m.index} ${spanFor(s, { tradingStartSec: Number(m.tradingStartSec), expirySec: Number(m.expirySec) })} ${version}`;
 }
 
 export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<PassResult> {
@@ -231,13 +230,9 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
     else lanes[seriesKey(s)] = plan.kind === "wait" && current ? current : plan.state;
     if ((plan.kind === "wait" || plan.kind === "paused") && plan.wakeSec < wakeSec) wakeSec = plan.wakeSec;
     // Wake at the next lock so the Book recycles promptly; an already-locked Book that failed waits for the normal cadence.
-    for (const b of bound) if (b.series.address === s.address && Number(b.market.data.lockAt) > nowSec) wakeSec = Math.min(wakeSec, Number(b.market.data.lockAt));
+    for (const b of bound) if (b.series.address === s.address && Number(b.market.data.lockAtSec) > nowSec) wakeSec = Math.min(wakeSec, Number(b.market.data.lockAtSec));
   }
-  // The prelist is the roller's SOL float: report what it has left next to the lanes holding it.
-  if (Object.values(lanes).some((v) => v.includes("prelist"))) {
-    const balance = (await state.client.rpc.getBalance(state.client.payer.address).send()).value;
-    for (const [key, value] of Object.entries(lanes)) if (value.includes("prelist")) lanes[key] = `${value} · roller ${solText(balance)} SOL`;
-  }
+  // The reference reported the roller's SOL float beside prelisting lanes; Canton charges no network fee, so there is none.
   const counts = Object.values(lanes).reduce<Record<string, number>>((acc, v) => ((acc[v.split(/[: #]/)[0]!] = (acc[v.split(/[: #]/)[0]!] ?? 0) + 1), acc), {});
   const summary = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(", ");
   const why = [`${state.series.length} series (${summary || "none"})`, ...notes].join(" · ");

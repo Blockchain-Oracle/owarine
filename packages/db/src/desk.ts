@@ -7,7 +7,8 @@ import type { Db } from "./client";
 import { storageKey } from "./keys";
 import { ensureSchema } from "./migrate";
 
-export type DeskCluster = "mainnet-beta" | "devnet" | "localnet";
+/** The Canton network a desk runs on (core `Cluster` values; the reference stored Solana's "mainnet-beta"). */
+export type DeskCluster = "mainnet" | "devnet" | "localnet";
 export type DeskModeName = "practice" | "ask_first" | "on_its_own";
 export type DeskStateName = "active" | "paused" | "stopped_by_loss" | "needs_attention" | "closed";
 export type WakeTrigger = "hour" | "deposit" | "move" | "check_now" | "test_read" | "checkpoint" | "owner_request";

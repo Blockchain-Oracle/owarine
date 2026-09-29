@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS desks (
   address               TEXT,
   owner                 TEXT        NOT NULL,
   operator              TEXT,
-  cluster               TEXT        NOT NULL CHECK (cluster IN ('mainnet-beta', 'devnet', 'localnet')),
+  cluster               TEXT        NOT NULL CHECK (cluster IN ('mainnet', 'devnet', 'localnet')),
   mode                  TEXT        NOT NULL CHECK (mode IN ('practice', 'ask_first', 'on_its_own')),
   state                 TEXT        NOT NULL CHECK (state IN ('active', 'paused', 'stopped_by_loss', 'needs_attention', 'closed')),
   state_reason          TEXT,

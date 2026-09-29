@@ -39,7 +39,7 @@ async function send(ctx: WindowCtx, label: string, build: () => Promise<Paramete
 export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: TickerSymbol, m: MarketView, placed: Placed | null, label: string): Promise<WindowResult> {
   const d = m.data;
   const me = ctx.client.payer.address;
-  const lockAtSec = Number(d.lockAt);
+  const lockAtSec = Number(d.lockAtSec);
   if (marketStatus(d, ctx.nowSec) !== "trading") return { state: "idle", placed: null, note: "not trading" };
   const lane = ctx.lane ?? null;
   const phase = lane?.phase ?? makerPhase({ nowSec: ctx.nowSec, lockAtSec, inSession: ctx.inSession, closesAtSec: ctx.closesAtSec, spotFresh: ctx.spotE8 !== null });
@@ -48,7 +48,7 @@ export async function tendWindow(ctx: WindowCtx, series: SeriesView, symbol: Tic
       ? null
       : lane
         ? lane.fairTicks
-        : fairYesTicks({ spotE8: ctx.spotE8!, openE8: d.open.price, secondsLeft: Number(d.expiry) - ctx.nowSec, sigmaBps: ctx.env.sigmaBps(symbol), minTick: ctx.env.minTick });
+        : fairYesTicks({ spotE8: ctx.spotE8!, openE8: d.open.price, secondsLeft: Number(d.expirySec) - ctx.nowSec, sigmaBps: ctx.env.sigmaBps(symbol), minTick: ctx.env.minTick });
   // A pair still inside its life and near the fair needs no reads at all: fills and expiries surface at the next requote.
   if (fair !== null && placed && !needsRequote({ placed, fairTicks: fair, nowSec: ctx.nowSec, requoteTicks: ctx.env.requoteTicks })) {
     return { state: "resting", placed, note: `fair ${fair}, resting` };

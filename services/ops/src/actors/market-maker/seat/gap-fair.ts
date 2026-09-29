@@ -60,7 +60,7 @@ function referenceOf(input: LaneQuoteInput, xstock: XStockSymbol | null): bigint
 
 export function gapQuote(input: LaneQuoteInput): LaneQuote {
   const d = input.market.data;
-  const [tradingStartSec, lockAtSec, expirySec] = [Number(d.tradingStart), Number(d.lockAt), Number(d.expiry)];
+  const [tradingStartSec, lockAtSec, expirySec] = [Number(d.tradingStartSec), Number(d.lockAtSec), Number(d.expirySec)];
   const cap = input.env.gapMaxCash;
   const halted = Boolean(input.halts[input.symbol]);
   const phase = gapPhase({ nowSec: input.nowSec, tradingStartSec, lockAtSec, halted });

@@ -41,18 +41,18 @@ export function tokenQuote(input: LaneQuoteInput, spotFeed: XStockSpotFeed | nul
   const halt = haltOf(input.halts, xstock);
   if (halt) return pull(`halted (${halt.reason})`);
   const m = input.market.data;
-  if (input.nowSec >= Number(m.lockAt) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
+  if (input.nowSec >= Number(m.lockAtSec) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
   if (!spotFeed) return pull("no xStock spot feed running");
   const spot = spotFeed.latest(xstock, input.env.spotMaxAgeSec);
   if (!spot) return pull(`${xstock} Jupiter spot stale`);
   if (m.open.source === 0) return { phase: "quote", fairTicks: null, maxCashPerWindow: cap, why: "waiting for the open print" };
-  const startSec = Number(m.tradingStart);
+  const startSec = Number(m.tradingStartSec);
   const reference = spotFeed.at(xstock, startSec + START_SAMPLE_WINDOW_SEC, START_SAMPLE_WINDOW_SEC + 5);
   if (!reference) return pull(`no ${xstock} Jupiter sample near the Window's start`);
   const fairTicks = fairYesTicks({
     spotE8: spot.priceE8,
     openE8: reference.priceE8,
-    secondsLeft: tradingSecondsOf(Number(m.expiry) - input.nowSec),
+    secondsLeft: tradingSecondsOf(Number(m.expirySec) - input.nowSec),
     sigmaBps: input.env.sigmaBps(input.symbol),
     minTick: input.env.minTick,
   });
@@ -91,12 +91,12 @@ export function sampledQuote(input: LaneQuoteInput, source: SampledSource | null
   const halt = haltOf(input.halts, input.symbol);
   if (halt) return pull(`halted (${halt.reason})`);
   const m = input.market.data;
-  if (input.nowSec >= Number(m.lockAt) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
+  if (input.nowSec >= Number(m.lockAtSec) - 60) return { phase: "stop", fairTicks: null, maxCashPerWindow: cap, why: "60 s before lock" };
   if (!source) return pull("no PreStocks feed running");
   const spotE8 = source.latest(input.env.spotMaxAgeSec);
   if (spotE8 === null) return pull(`${label} stale`);
   if (m.open.source === 0) return { phase: "quote", fairTicks: null, maxCashPerWindow: cap, why: "waiting for the open print" };
-  const startSec = Number(m.tradingStart);
+  const startSec = Number(m.tradingStartSec);
   // The Window's own opening print is the same PreStocks number the venue signed at the start (the print source and
   // the chart are one feed here), so when this process has no sample near the start — it restarted mid-Window — the
   // print stands in for it. Before S23 the lane pulled until the next Window, and a restart left its books empty for
@@ -106,7 +106,7 @@ export function sampledQuote(input: LaneQuoteInput, source: SampledSource | null
   const fairTicks = fairYesTicks({
     spotE8,
     openE8,
-    secondsLeft: tradingSecondsOf(Number(m.expiry) - input.nowSec),
+    secondsLeft: tradingSecondsOf(Number(m.expirySec) - input.nowSec),
     sigmaBps: input.env.sigmaBps(input.symbol),
     minTick: input.env.minTick,
   });

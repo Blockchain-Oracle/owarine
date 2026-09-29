@@ -101,8 +101,11 @@ export type DeskEventName =
   | "OperatorSet" | "OperatorRevoked" | "Paused" | "Unpaused" | "Bought" | "Sold" | "Checkpoint";
 
 /** A sealed desk decision as its event recorded it; other events carry their fields in `data`. */
+type SealedFields = { seq: bigint; head: Uint8Array; decisionHash: Uint8Array };
 export type DeskEvent =
-  | { name: "Bought" | "Sold" | "Checkpoint"; data: { seq: bigint; head: Uint8Array; decisionHash: Uint8Array } }
+  | { name: "Bought"; data: SealedFields & { usdcIn: bigint; tokenOut: bigint } }
+  | { name: "Sold"; data: SealedFields & { tokenIn: bigint; usdcOut: bigint; countedUsdc: bigint } }
+  | { name: "Checkpoint"; data: SealedFields }
   | { name: Exclude<DeskEventName, "Bought" | "Sold" | "Checkpoint">; data: Record<string, unknown> };
 
 export interface SealedAction {

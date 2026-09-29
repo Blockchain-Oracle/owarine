@@ -49,7 +49,7 @@ function afterCode(code: number | null, action: Sendable, nowSec: number, m: Mar
   const again = (sec: number, note: string, done = false): Outcome => ({ sent: null, nextCheckSec: sec, note, done });
   switch (code) {
     case ENGINE_ERROR.crossCheckPending:
-      return again(Number(m.data.expiry) + checkAdmissionSec + 1, "cross-check pending");
+      return again(Number(m.data.expirySec) + checkAdmissionSec + 1, "cross-check pending");
     case ENGINE_ERROR.marketAlreadyTerminal:
       return again(nowSec, "already resolved");
     case ENGINE_ERROR.settlementWindowOpen:
