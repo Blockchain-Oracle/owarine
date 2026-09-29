@@ -65,7 +65,7 @@ populated = do
   gc <- fund w w.bob 900
   _ <- submit w.bob do
     exerciseCmd offer GrantOffer_Open with
-      agent = w.auditor; caps = GrantCaps with maxStakePerTrade = 500; maxDailySpend = 500; maxPriceTicks = 0
+      agent = w.auditor; caps = GrantCaps with maxStakePerTrade = 500; maxDailySpend = 500; maxPriceTicks = 0; maxOpenPositions = 5
       expiresAt = plus t0 86400; dayZero = t0; budget = 900; cash = [gc]
   res <- resolveAt w win op px
   pure (w, res)
