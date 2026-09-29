@@ -11,16 +11,27 @@
  * `expiry-from-headroom`) — their files were the EVM lane; S4 re-adds them against the Solana order lane.
  *
  * A check rule returns its findings, or `{ findings, skipped }` when part of what it guards has not landed yet.
+ *
+ * Canton port (C1): `no-solana` added (shrinking allowlist, empty at the C1 gate); `idl-no-destination` and
+ * `program-id-drift` are skipped while `anchor/` is absent — the Anchor programs are gone, and their Daml analogues
+ * (`choice-no-destination`, `package-drift`) land with the Daml packages (C2).
  */
 import { codeLines, readText, walkFiles } from "./lib/walk.mjs";
 import { finding } from "./lib/report.mjs";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
+import { noSolana } from "./lib/no-solana.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
 import { venueIdentity } from "./lib/venue-identity.mjs";
 
 const TS = [".ts", ".tsx"];
 const OUTSIDE_MARKETS = ["web", "mobile", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 const MAX_FILE_LINES = 400;
+
+/** An Anchor-era rule, skipped while `anchor/` is absent (Canton port): it guards programs that no longer exist here. */
+const whileAnchor = (check, replacement) => (rule, ctx) =>
+  existsSync(join(ctx.root, "anchor")) ? check(rule, ctx) : { findings: [], skipped: `anchor/ is gone (Canton port); ${replacement} replaces it with the Daml packages (C2)` };
 /** Codama output is regenerated, never edited (`pnpm codegen && git diff --exit-code packages/clients`), so the cap skips it. */
 const GENERATED = /^packages\/clients\/[^/]+\/src\/generated\//;
 
@@ -75,8 +86,9 @@ function sessionKeyNonExtractable(rule, ctx) {
 export const rules = [
   { id: "no-evm", description: "no EVM library in any workspace source or manifest (shrinking allowlist, empty at the S1 gate)", check: noEvm },
   { id: "kit-import-boundary", description: "only packages/markets imports the Solana/oracle SDKs; web3.js 1 only under prices/legacy (plan §6)", check: kitImportBoundary },
-  { id: "idl-no-destination", description: "no program instruction takes a caller-chosen payout destination (AD-5)", check: idlNoDestination },
-  { id: "program-id-drift", description: "declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json", check: programIdDrift },
+  { id: "no-solana", description: "no Solana, Solana-oracle or Anchor library in any workspace source or manifest (shrinking allowlist, empty at the C1 gate)", check: noSolana },
+  { id: "idl-no-destination", description: "no program instruction takes a caller-chosen payout destination (AD-5)", optional: true, check: whileAnchor(idlNoDestination, "choice-no-destination") },
+  { id: "program-id-drift", description: "declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json", optional: true, check: whileAnchor(programIdDrift, "package-drift") },
   {
     id: "write-boundary",
     description: "no transaction sends outside packages/markets (AD-3); the wallet island only wraps the wallet's own send for markets",

@@ -12,13 +12,13 @@ import { finding } from "./report.mjs";
 import { codeLines, readText, walkFiles } from "./walk.mjs";
 
 const SOURCE_EXTS = [".ts", ".tsx", ".mts", ".mjs", ".js"];
-const WORKSPACE = ["web", "mobile", "packages", "services", "scripts"];
+export const WORKSPACE = ["web", "mobile", "packages", "services", "scripts"];
 const EXCLUDE = ["scripts/invariants", "reference"];
 
 const readJson = (abs) => JSON.parse(readFileSync(abs, "utf8"));
 
 /** Lines importing (statically or dynamically) any module matching `modules`. */
-function* importsOf(root, scopes, modules, exclude = []) {
+export function* importsOf(root, scopes, modules, exclude = []) {
   const pattern = new RegExp(`(?:from\\s+|import\\s*\\(\\s*|require\\(\\s*)["'](${modules.source})`);
   for (const scope of scopes) {
     for (const { rel, abs } of walkFiles(root, scope, SOURCE_EXTS, [...EXCLUDE, ...exclude])) {

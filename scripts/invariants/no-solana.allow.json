@@ -1,0 +1,22 @@
+{
+  "_doc": [
+    "C1 no-solana migration allowlist (Canton port; the reference's no-evm trick, D-016). Every entry is a Solana import or",
+    "dependency a C1 lane removes: 1c the web seat island, 1e the phone seat island, packages/clients deleted whole.",
+    "The list only shrinks: the rule fails on a stale entry, and the C1 gate requires this file to be empty.",
+    "An entry ending in / covers a directory prefix (a tree deleted whole)."
+  ],
+  "files": [
+    "web/src/providers/wallet/WalletShellProvider.tsx",
+    "web/src/providers/wallet/kit-wallet.ts",
+    "web/src/providers/wallet/mainnet-signer.ts",
+    "web/src/providers/wallet/useWalletChoices.ts",
+    "web/package.json#@solana/kit",
+    "web/package.json#@solana/kit-plugin-wallet",
+    "web/package.json#@solana/react",
+    "web/package.json#@solana/wallet-account-signer",
+    "mobile/src/wallet/mwa.ts",
+    "mobile/package.json#@agari/clients",
+    "mobile/package.json#@solana-mobile/mobile-wallet-adapter-protocol",
+    "packages/clients/"
+  ]
+}

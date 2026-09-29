@@ -4,17 +4,18 @@ import { finding } from "./report.mjs";
 import { readText, walkFiles } from "./walk.mjs";
 
 /**
- * Agari lists stocks on Solana. The reference it was ported from listed BTC and ETH on an EVM chain, so a leftover
- * asset, brand or chain name in live code is a defect, and some were functional ones: Lucky drew from BTC/ETH and
- * could never be dealt a Window, the parlay preset looked for BTC Windows, the X reply dropped every stock's ticker,
- * and one explorer link pointed at the reference's chain (owner's note, 2026-09-19).
+ * No reference product's brand or chain in live code or copy (owner's note, 2026-09-19): a leftover name was a defect,
+ * and some were functional ones (one explorer link pointed at the reference's chain).
+ *
+ * Canton port (C1): BTC and ETH are listed again (Masayume's crypto lanes, core `CRYPTO_SYMBOLS`), so the crypto asset
+ * names are no longer banned; the reference brands and chain stay banned.
  *
  * Comments and tests may say what the reference did; code and copy may not, outside the allowlist.
  */
 const SCOPES = ["web/src", "packages/core/src", "packages/markets/src", "packages/db/src", "packages/brain/src", "services/ops/src"];
 const EXTS = [".ts", ".tsx"];
 const SKIP_FILE = /\.test\.tsx?$|^web\/src\/app\/dev\//;
-const FORBIDDEN = /\b(btc|wbtc|eth|weth|bitcoin|ethereum|masayume|yosuku|somnia|dreamdex|flicky)\b|shannon-explorer/i;
+const FORBIDDEN = /\b(masayume|yosuku|somnia|dreamdex|flicky)\b|shannon-explorer/i;
 /** A whole-line comment in TS, JSX or SQL-in-a-template. */
 const COMMENT_LINE = /^\s*(\/\/|\*|\/\*|\{\/\*|--\s)/;
 /** Trailing comments: `code; // words`, `code /* words *\/` and `{/* words *\/}`. A `//` inside a URL has no space before it. */
@@ -41,7 +42,7 @@ export function venueIdentity(rule, ctx) {
         if (!match) return;
         const entry = allow.findIndex((e) => e.file === rel && raw.includes(e.match));
         if (entry >= 0) { used.add(entry); return; }
-        findings.push(finding(rule, `\`${match[0]}\` — the venue lists stocks on Solana; name what it lists, or allowlist the line with a reason`, `${rel}:${index + 1}`));
+        findings.push(finding(rule, `\`${match[0]}\` — a reference brand or chain; name the product's own, or allowlist the line with a reason`, `${rel}:${index + 1}`));
       });
     }
   }
