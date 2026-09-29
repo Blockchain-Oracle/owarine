@@ -50,6 +50,22 @@ export function createdEvents(tx: JsTransaction): CreatedEvent[] {
 export const createdOf = (created: readonly CreatedEvent[], templateId: string) =>
   created.filter((e) => templateSuffix(e.templateId) === templateSuffix(templateId));
 
+/** The synchronizer a prepare names (the JSON API requires it, with a package preference, on `prepare`), per client. */
+const synchronizers = new WeakMap<LedgerClient, Promise<string>>();
+function synchronizerOf(client: LedgerClient): Promise<string> {
+  let p = synchronizers.get(client);
+  if (!p) {
+    p = client.connectedSynchronizers().then((list) => {
+      const id = list[0]?.synchronizerId;
+      if (!id) throw new Error("the participant is connected to no synchronizer");
+      return id;
+    });
+    p.catch(() => synchronizers.delete(client));
+    synchronizers.set(client, p);
+  }
+  return p;
+}
+
 export async function submit(s: RoleSession, input: SubmitInput): Promise<SubmitOutcome> {
   const started = Date.now();
   if (s.dryRun) {
@@ -59,6 +75,8 @@ export async function submit(s: RoleSession, input: SubmitInput): Promise<Submit
     await s.client.prepare({
       commandId: input.commandId,
       commands: [first],
+      synchronizerId: await synchronizerOf(s.client),
+      packageIdSelectionPreference: [],
       actAs: [s.party, ...(input.alsoActAs ?? [])],
       ...(input.disclosedContracts ? { disclosedContracts: input.disclosedContracts } : {}),
     });

@@ -47,7 +47,11 @@ async function knownTerms(state: ResolverState, cids: readonly string[]): Promis
 async function send(state: ResolverState, what: "open" | "resolve" | "void", termsCid: string, t: TermsC, commandId: string, command: ReturnType<typeof cmd.resolve>): Promise<string> {
   try {
     const out = await submit(state.session, { commandId, commands: [command] });
-    if (out.kind === "dry") return `${out.note} (${what} ${label(t)})`;
+    if (out.kind === "dry") {
+      // A dry resolver prepares each Window's step once, not every pass.
+      state.finished.add(termsCid);
+      return `${out.note} (${what} ${label(t)})`;
+    }
     if (what !== "open") state.finished.add(termsCid);
     const res = out.created.find((e) => templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.Resolution));
     const open = out.created.find((e) => templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.OpenPrint));
