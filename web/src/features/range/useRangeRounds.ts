@@ -33,7 +33,7 @@ export async function listRangeRounds(wallet: Address): Promise<Reading<RangeRou
       const market = byId.get(round.marketId) ?? null;
       return {
         ...round,
-        // An ended round's receipt names its Window but not its expiry when the terms could not be read (K-087).
+        // An ended round's receipt names its Window but not its expiry when the terms could not be read (K-088).
         expirySec: round.expirySec || (market?.expirySec ?? 0),
         asset: market?.asset ?? null,
         intervalSec: market?.intervalSec ?? null,

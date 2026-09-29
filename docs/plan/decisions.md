@@ -124,6 +124,36 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - The desk's daily window is the grant's calendar day from `dayZero` (K-024), not the reference's rolling 24 h window.
 - **Approval:** default; overrulable.
 
+### K-087 — The maker vault (Earn's maker tab) needs three things `abu-pm-main` 0.4.0 does not have (C8 block)
+- **Date / owner:** 2026-09-29 · C8e lane
+- **Evidence:** `web/src/features/earn/MakerEarn.tsx` renders the reference's not-deployed state because `packages/markets/src/maker/{reads,writes}.ts` are stubs. What the ledger has: `PM.Reserve` gives any reserve id a `NavStatement`, `LpShare`s and firm `SupplyQuote`/`WithdrawQuote`s, so a `maker` reserve could take supplies today. What it lacks is a truthful NAV for a book that quotes pairs:
+  1. **No on-ledger NAV for the pair book.** `Earn_PublishNav` (`PM.Tickets.Earn`) counts only ticket contracts (`NavInputs`: reserve cash, LP shares, withdraw quotes, range/parlay/boost quotes and tickets). The maker's capital sits in `Quote` locks (`Quote.daml`, the venue stake locked at issue), in the venue's own `Leg`s after an accept, and in `BuyQuote` locks. Nothing can count those into a statement.
+  2. **The pair book's cash is not kept apart.** The issuer's pool locks from `shard` buckets (`services/ops/src/actors/quote-issuer/pool.ts`), and a venue-owned leg is paid into the `payout` bucket (`PM.Leg.payOut`) or `netting` (`Leg_Merge`). The same buckets carry the house side of boosts (`houseTakesSide`), exit buy-backs and seat funding. A venue leg carries `beneficiaryRef = None` (`Quote.daml:201`, `Leg.daml:109`), so a maker leg cannot be told from any other venue leg.
+  3. **The issuer does not draw from the reserve.** Quotes lock from venue `shard` cash. For LP money to be what the maker quotes with, the issuer must lock from `reserve:maker` shards, and the proceeds must come back to that bucket.
+- **Rule:** the maker tab stays in the reference's not-deployed state (`EARN.notDeployed`), which says so on screen. Nothing is claimed that the ledger cannot show (D-015). Because every missing piece is in `abu-pm-main` (`Quote`, `Leg`), this lane does not change main.
+- **Design for `abu-pm-main` 0.5.0 (upgrade-compatible):**
+  - `Quote` gains `book : Optional Text` (None = the venue desk, as now). `Desk_IssueQuote` takes the shard's bucket as the book when it is `reserve:<id>`. `Quote_Accept` creates the venue leg with `beneficiaryRef = book`.
+  - `payOut` and `Leg_Merge` pay a leg whose `beneficiaryRef` is `Some "reserve:<id>"` into that bucket instead of `payout`/`netting`. `BuyQuote` locks from, and returns to, the same bucket.
+  - `abu-pm-tickets` (or a new `abu-pm-maker`) adds `MakerDesk.Maker_PublishNav`. Like `Earn_PublishNav`, it fetches and checks each input: `reserve:maker` cash, open maker `Quote`/`BuyQuote` locks at their locked amount, and maker-tagged venue `Leg`s at their backing until resolved. The auditor observes the statement, as for the ticket reserves.
+  - Ops: a second `ShardPool` over the `reserve:maker` bucket (the pool already takes a bucket filter, C8c). The pricer quotes the maker's lanes from it. `maker/{reads,writes}.ts` then read the maker statement and the seat's `LpShare`s, and route `maker-supply` and `maker-withdraw` through the existing Earn lane, the way the ticket reserves do.
+- **User-visible:** until 0.5.0, the maker tab shows the reference's not-deployed Earn panel (`EARN.notDeployed`). The range, parlay and boost Earn tabs are live.
+- **Approval:** default; overrulable.
+
+### K-088 — Every way a ticket ends leaves a receipt (`abu-pm-tickets` 0.1.2) (C8 block)
+- **Date / owner:** 2026-09-29 · C8e lane
+- **Evidence:** in 0.1.1, only settle and claim wrote a `SettlementReceipt` (K-030). The reference's portfolio History lists boosts that settled, knocked out or were cashed out, and its range and parlay screens keep ended tickets. `Test.Tickets.ExitReceipts` has 5 new money-gate scripts. `dpm test` passes all 160 scripts. `dpm upgrade-check --both` passes 0.1.1 → 0.1.2 with no warnings.
+- **Rule:**
+  - `Boost_KnockOut`, `BoostExit_Accept`, `Boost_RefundStale`, `Round_RefundStale` and `Ticket_VoidStale` each write the owner's receipt.
+  - `detail.result` gains two words beyond won/lost/void: `"knocked-out"` and `"sold"`. A stale refund or stale void is `"void"` with `resolved = None`.
+  - A stale parlay void is named by the first leg still undecided.
+  - For a boost, `payout` is what the owner took; `fee` is the premium, or 0 on a void or refund; `toReserve` is the front reclaimed plus the fee.
+  - `receiptDetailOk` (main) still names only the first three results. It is a helper, not a precondition, so main is unchanged.
+  - The seat's `/api/ledger/tickets/mine` returns the receipts. `@agari/markets` maps them to the reference's ended states:
+    - range, moonshot and parlay: `claimed`, `lost` or `void`;
+    - boost and short: `settled`, `closed` (cashed out) or `knocked-out`.
+- **User-visible:** a settled, voided, refunded, knocked-out or cashed-out ticket stays in "Your rounds", the parlay list and the portfolio's History, with the amounts it paid.
+- **Approval:** default; overrulable.
+
 ### K-125 — iOS ships on public TestFlight from a new app record (C11 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).

@@ -204,7 +204,7 @@ export const lpShareViewWire = z.object({ reserveId: ticketReserveWire, shares: 
 
 /**
  * A ticket that has ended, from its `SettlementReceipt` (abu-pm-main 0.4.0; abu-pm-tickets 0.1.2 writes one on every
- * way a ticket ends, K-087). The receipt is the seat's own contract, so a settled ticket stays in history. What the
+ * way a ticket ends, K-088). The receipt is the seat's own contract, so a settled ticket stays in history. What the
  * receipt does not carry is read beside it: the Window's prints and expiry (0 when its terms could not be read), and
  * a parlay's per-leg outcomes from each Window's Resolution.
  */

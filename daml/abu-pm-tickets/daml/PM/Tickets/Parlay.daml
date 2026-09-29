@@ -152,7 +152,7 @@ template ParlayTicket
         assertDeadlineExceeded "void-after" voidAfter
         paid <- payBoth venue owner reserveId stake (maxPayout - stake) "refund"
         -- 0.1.2: a stale void leaves the same receipt as a voided leg, named
-        -- by the first leg still undecided (K-087)
+        -- by the first leg still undecided (K-088)
         let leg = legs !! optional 0 identity (nextLeg legs)
         recordReceipt $ ticketReceipt this leg None stake "void"
         pure paid

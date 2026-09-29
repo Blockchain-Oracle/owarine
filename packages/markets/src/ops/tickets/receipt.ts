@@ -1,6 +1,6 @@
 /**
  * `PM.Publication.SettlementReceipt` (abu-pm-main 0.4.0) → a typed shape. A ticket's receipt carries its product and a
- * `ReceiptDetail`; a pair leg's has neither. abu-pm-tickets 0.1.2 (K-087) writes one on every way a ticket ends, so
+ * `ReceiptDetail`; a pair leg's has neither. abu-pm-tickets 0.1.2 (K-088) writes one on every way a ticket ends, so
  * the `detail.result` vocabulary is "won" | "lost" | "void" (settle, claim, stale refund or void) plus "sold" and
  * "knocked-out" for a boost. Server-only, same rules as `./decode.ts`.
  */
