@@ -8,6 +8,7 @@ export { resolutionsByMarket, type ProjectedResolution } from "./idx/read-resolu
 export { projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type VerifiedTemplate } from "./idx/read-verify";
 export { tapeActions, tapeFills, tapeMarkets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";
 export { proofArchives, proofPrints, proofWindow, type ProofArchiveRow, type ProofPrintRow, type ProofWindowRow } from "./idx/read-proof";
+export { publishedOn } from "./idx/read-publications";
 export { statusReader, type CrossCheckRow, type PrintMixRow, type StatusReader } from "./idx/read-status";
 export {
   crowdFlow,

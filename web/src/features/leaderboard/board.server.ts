@@ -108,10 +108,13 @@ function computeBoard(period: BoardPeriod): Promise<BoardCache> {
   return running;
 }
 
+/** Tag on every cached board: a publish or a retraction expires it, so the change is on the next read. */
+export const BOARD_CACHE_TAG = "agari-venue-board";
+
 /** Key by the deployment's data source and the period, never by a per-request timestamp. */
 export function readBoard(period: BoardPeriod): Promise<BoardCache> {
   const { cluster, venueId, indexerUrl } = webEnv.markets;
-  return unstable_cache(() => computeBoard(period), ["agari-venue-board-v4", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180 })();
+  return unstable_cache(() => computeBoard(period), ["agari-venue-board-v4", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
 }
 
 /** The venue's board, or one ticker's slice of it; a ticker with no closed rounds is an empty board, not an error. */

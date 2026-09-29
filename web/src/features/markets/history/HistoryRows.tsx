@@ -1,5 +1,6 @@
 "use client";
 
+import { PublishCall } from "@/features/leaderboard/publish";
 import type { SettledRound, WalletHistory } from "@agari/core/projection";
 import { useState } from "react";
 import { Pager } from "@/components/chrome";
@@ -53,6 +54,7 @@ export function HistoryRows({ history, symbol }: HistoryRowsProps) {
                 onReceipt={setReceiptFor}
                 onCrank={crank}
                 cranking={vaultWrite.busy === "vault-crank-settle"}
+                publish={round.source === "vault" ? undefined : <PublishCall marketId={round.marketId} address={address} source="receipt" />}
               />
             ))}
           </ul>

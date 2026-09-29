@@ -1,10 +1,10 @@
 import { isTickerSymbol } from "@agari/core/market";
 import { isAddress } from "@agari/core/types";
-import { insertTake, isDbConfigured, listTakes, type TakeRecord, type TakesQuery } from "@agari/db";
+import { getDb, insertTake, isDbConfigured, listTakes, publishedOn, type TakeRecord, type TakesQuery } from "@agari/db";
 import { ensureMarkets, marketsProvider } from "@agari/markets";
 import { secToMs } from "@agari/core/units";
 import { NextResponse } from "next/server";
-import { GateUnreadableError, holdsPosition } from "@/features/room/gate.server";
+import { GateUnreadableError } from "@/features/room/gate.server";
 import { ROOM_LIMITS } from "@/features/room/limits.server";
 import { parseCashtags } from "@/features/takes/cashtags";
 import { TAKE_ERRORS } from "@/features/takes/copy";
@@ -19,9 +19,10 @@ import { webEnv } from "@/lib/env";
  * Reading is public, as the reference's feed is, and can be narrowed to one ticker's
  * cashtag (`?symbol=TSLA`) or a set of authors (`?authors=a,b`). Posting proves two
  * things here rather than in the browser: the wallet owns the address (a signature the
- * route verifies) and — for the "✓ position" badge — whether it has bet on the Window
- * (the Room's own gate). The reference's badge comes from an order id the bet flow
- * hands over; ours comes from the gate, so the badge can never be asserted by a client.
+ * route verifies) and — for the badge — whether it published a call on the Window
+ * (an opt-in `Publication`, read from the projection). The reference's badge comes from an
+ * order id the bet flow hands over; ours from the ledger, so a client can never assert it,
+ * and a position its owner kept private is never revealed by it.
  */
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -102,13 +103,15 @@ export async function POST(req: Request) {
   if (!market) return refuse(TAKE_ERRORS.noWindow, 404);
   if (secToMs(market.expirySec) <= now) return refuse(TAKE_ERRORS.windowClosed, 409);
 
+  // On Canton the badge is a published call (plan §5): a position its owner kept private is never revealed by a take.
   let backed: boolean;
   try {
-    backed = await holdsPosition(address, marketId);
-  } catch (cause) {
+    const sql = getDb();
+    if (!sql) throw new GateUnreadableError("index");
+    backed = await publishedOn(sql, marketId, address);
+  } catch {
     // Not "you hold nothing" — an unreadable gate would then stamp a bettor's call
     // "open call", which is the wrong badge for the wrong reason.
-    if (!(cause instanceof GateUnreadableError)) throw cause;
     return refuse(TAKE_ERRORS.gateUnreadable, 503);
   }
 
