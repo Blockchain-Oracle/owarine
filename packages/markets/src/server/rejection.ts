@@ -35,6 +35,23 @@ const BY_ERROR_ID: Record<string, DiagnosisKind> = {
   "abu-pm/shard-too-small": "no-liquidity",
   "abu-pm/bad-shard": "contract-revert",
   "abu-pm/bad-lots": "invalid-price",
+  // C8c: the ticket reserves' caps and a ticket's own order.
+  "abu-pm/over-ticket-cap": "reserve-cap",
+  "abu-pm/over-expiry-cap": "reserve-cap",
+  "abu-pm/over-exposure": "reserve-cap",
+  "abu-pm/wrong-product": "contract-revert",
+  "abu-pm/position-mismatch": "order-expired",
+  "abu-pm/share-mismatch": "order-expired",
+  "abu-pm/ticket-done": "already-claimed",
+  "abu-pm/wrong-leg": "not-settled",
+  "abu-pm/leg-out-of-order": "not-settled",
+  "abu-pm/bad-terms": "invalid-price",
+  "abu-pm/bad-band": "invalid-price",
+  "abu-pm/bad-legs": "invalid-price",
+  "abu-pm/duplicate-leg": "invalid-price",
+  "abu-pm/leg-locked": "market-not-trading",
+  "abu-pm/below-one-share": "below-min-quantity",
+  "abu-pm/below-one-unit": "below-min-quantity",
 };
 
 const NOT_DEPLOYED_CODES = new Set(["PACKAGE_NAMES_NOT_FOUND", "PACKAGE_NOT_FOUND", "TEMPLATES_OR_INTERFACES_NOT_FOUND", "NO_TEMPLATES_OR_INTERFACES_FOR_PACKAGE_NAME"]);
