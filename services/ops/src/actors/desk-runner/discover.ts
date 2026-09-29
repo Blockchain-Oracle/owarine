@@ -6,7 +6,7 @@
  * valued and recorded, and trades only once the owner's signed mandate arrives through the web.
  */
 import { getDb, type DeskRow } from "@agari/db";
-import { listDesksByOperator } from "@agari/markets/desk";
+import { listDesksByOperator } from "@agari/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import type { RunnerContext } from "./types";
 

@@ -12,7 +12,7 @@ export const GAMES = {
   sections: {
     prediction: { number: "01", title: "Prediction", desc: "Real positions or a house-funded outcome on a live Window." },
     duel: { number: "02", title: "Duel", desc: "The swipe loop — alone with no stake, or against another player." },
-    arcade: { number: "03", title: "Arcade", desc: "Score-only runs. Nothing here touches the chain." },
+    arcade: { number: "03", title: "Arcade", desc: "Score-only runs. Nothing here touches the ledger." },
     profile: { number: "04", title: "Your games", desc: "Who you are in the games, and what the arena has recorded for you." },
     history: { number: "05", title: "History", desc: "Every finished match and every spin, with the transactions that decided them." },
   },
@@ -71,8 +71,8 @@ export const GAMES = {
     lucky: ["A live Window and a side are drawn for you from a seed you can check.", "You see the real quote before anything is placed; one tap places one order.", "It settles like any other order on the book."],
     range: ["Choose a band around the price and a Window.", "The house prices the band; you win the full payout if the print closes inside it.", "Outside the band, the stake is lost — and the odds say so up front."],
     moonshot: ["Pick a multiple. A level is solved so that hitting it pays that multiple.", "It is one band with a far edge, priced by the same house model as Range.", "Hit it and the payout is the multiple; miss and the stake is lost."],
-    "line-rider": ["A line scrolls in from the right, drawn from a seed you can see. Drag on the screen, scroll, or hold the arrow keys to keep the dot on it.", "Hugging the line builds a combo and refills your grip; drifting off drains it. Grip empty, run over.", "No stake and nothing on chain. Your inputs are recorded and the server replays the run before it records the score."],
-    "candle-hop": ["Candles scroll in from a seed you can see. Tap the screen or press Space to hop; gravity does the rest.", "Slip through each gap for a point. Clip a candle or the floor and the run ends.", "No stake and nothing on chain. Your inputs are recorded and the server replays the run before it records the score."],
+    "line-rider": ["A line scrolls in from the right, drawn from a seed you can see. Drag on the screen, scroll, or hold the arrow keys to keep the dot on it.", "Hugging the line builds a combo and refills your grip; drifting off drains it. Grip empty, run over.", "No stake and nothing on the ledger. Your inputs are recorded and the server replays the run before it records the score."],
+    "candle-hop": ["Candles scroll in from a seed you can see. Tap the screen or press Space to hop; gravity does the rest.", "Slip through each gap for a point. Clip a candle or the floor and the run ends.", "No stake and nothing on the ledger. Your inputs are recorded and the server replays the run before it records the score."],
   } as Record<string, readonly string[]>,
 
   profile: {
@@ -103,7 +103,7 @@ export const GAMES = {
     title: "Your duels",
     connect: "Take a seat to see the duels it has played.",
     loading: "Reading your duels…",
-    notConfigured: "This deployment has no games store, so there is no history to read here. Every match is still on chain.",
+    notConfigured: "This deployment has no games store, so there is no history to read here. Every match is still on the ledger.",
     empty: "No duels yet. The first one is one queue away.",
     live: "Live",
     won: "Won",
@@ -132,8 +132,8 @@ export const GAMES = {
     prizes: (name: string) => `${name} prizes`,
     each: "each",
     eligible: (n: number) => `eligible: ${n}+ ranked duels`,
-    escrowed: (amount: string, symbol: string) => `escrowed on chain: ${amount} ${symbol}`,
-    escrowShort: (have: string, want: string, symbol: string) => `escrowed on chain: ${have} of ${want} ${symbol}`,
+    escrowed: (amount: string, symbol: string) => `escrowed on the ledger: ${amount} ${symbol}`,
+    escrowShort: (have: string, want: string, symbol: string) => `escrowed on the ledger: ${have} of ${want} ${symbol}`,
     notEscrowed: "no prize pool is deployed on this network — nothing here is escrowed",
     distributed: "the pool has paid out",
     prize: (amount: number, currency: string) => `${amount} ${currency}`,
@@ -152,7 +152,7 @@ export const GAMES = {
     cta: "see the prizes",
   },
   history: {
-    body: "Every duel you have played and every spin you have made, newest first, with how each ended and what the chain measured.",
+    body: "Every duel you have played and every spin you have made, newest first, with how each ended and what the ledger recorded.",
     cta: "See your history",
     title: "Finished matches",
     pending:

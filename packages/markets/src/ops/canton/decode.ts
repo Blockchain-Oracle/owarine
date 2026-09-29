@@ -5,7 +5,7 @@
  * except small counters (index, cadence, quorum, ticks, seconds) that are range-checked into a safe `number`. Every
  * Daml `Time` becomes epoch seconds (`…Sec`), floored: the engine's deadlines are whole seconds.
  */
-import { fromDamlInt, type ContractId, type CreatedEvent, type Party } from "@agari/ledger";
+import { fromDamlInt, type ContractId, type CreatedEvent, type Party } from "@agari/ledger/pure";
 
 export type Side = "SideUp" | "SideDown";
 export type SlotName = "OpenSlot" | "CloseSlot";

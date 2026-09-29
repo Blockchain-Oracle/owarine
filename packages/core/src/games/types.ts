@@ -41,8 +41,8 @@ const DESCRIPTORS: Readonly<Record<GameId, GameDescriptor>> = {
   lucky: { id: "lucky", group: "prediction", economicKind: "market-order", economicLabel: "One real order on the book" },
   range: { id: "range", group: "prediction", economicKind: "house-position", economicLabel: "A band priced by the house" },
   moonshot: { id: "moonshot", group: "prediction", economicKind: "house-position", economicLabel: "A reach priced by the house" },
-  "line-rider": { id: "line-rider", group: "arcade", economicKind: "none", economicLabel: "Arcade score · not on-chain" },
-  "candle-hop": { id: "candle-hop", group: "arcade", economicKind: "none", economicLabel: "Arcade score · not on-chain" },
+  "line-rider": { id: "line-rider", group: "arcade", economicKind: "none", economicLabel: "Arcade score · not on the ledger" },
+  "candle-hop": { id: "candle-hop", group: "arcade", economicKind: "none", economicLabel: "Arcade score · not on the ledger" },
 };
 
 export function gameDescriptor(id: GameId): GameDescriptor {

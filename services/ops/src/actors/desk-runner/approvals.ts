@@ -7,7 +7,7 @@
  */
 import { deskCopy, gate, nameOf, type ApprovalOf, type DeskNeed, type PlannedOutcome } from "@agari/core/desk";
 import type { PreIpoSymbol } from "@agari/core/market";
-import { DESK_MINTS } from "@agari/markets/desk";
+import { DESK_MINTS } from "@agari/markets/desk/server";
 import type { ApprovalRow } from "@agari/db";
 import { appendPlainRecord, commit } from "./commit";
 import { blockersFor, DEADLINE_SEC, gateInputFor, SLIPPAGE_BPS, summaryOf, type Considered } from "./consider";

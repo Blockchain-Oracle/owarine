@@ -60,6 +60,7 @@ export const arenaMatchWire = z.object({
   createdAtSec: z.number().int(),
   joinedAtSec: z.number().int(),
   revealedAtSec: z.number().int(),
+  refundReason: z.enum(["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete", "stale-settlement"]).optional(),
   pickDeadlineSec: z.number().int(),
   potBase: baseUnits,
   perCardCapBase: baseUnits,
@@ -150,3 +151,10 @@ export const seasonDistributeReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
 ]);
 export type SeasonDistributeReply = z.output<typeof seasonDistributeReplyWire>;
+
+/** The season admin's close (K-105): what the pool held after the payout, returned to the venue, and the pool archived. */
+export const seasonWithdrawReplyWire = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("confirmed"), updateId: txHash, withdrawnBase: baseUnits }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+]);
+export type SeasonWithdrawReply = z.output<typeof seasonWithdrawReplyWire>;

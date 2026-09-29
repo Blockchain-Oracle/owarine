@@ -19,9 +19,23 @@ import { readOpsEnv } from "./env";
 export function opsMarketsEnv(venueId?: string): MarketsEnv {
   const input = marketsEnvInputFrom(process.env);
   const ops = readOpsEnv();
+  const ledgerApiPath = absoluteLedgerPath(input.ledgerApiPath as string | undefined, input.indexerUrl as string | undefined);
   return parseMarketsEnv({
     ...input,
     priceFeedUrl: input.priceFeedUrl ?? `http://127.0.0.1:${ops.httpPort}`,
+    ...(ledgerApiPath ? { ledgerApiPath } : {}),
     ...(venueId ? { venueId } : {}),
   });
+}
+
+/**
+ * The web's public routes (`/api/venue/facts`, which every Window description reads) for a process that is not a
+ * browser. A relative `NEXT_PUBLIC_LEDGER_API_PATH` (or none, `/api/ledger`) would resolve against
+ * `127.0.0.1:$PORT`, which in ops is not the web, so the room could not describe a dealt deck after the reveal
+ * (C9c). With an absolute indexer URL the web's origin is known: the same origin serves both.
+ */
+export function absoluteLedgerPath(ledgerApiPath: string | undefined, indexerUrl: string | undefined): string | undefined {
+  if (ledgerApiPath && !ledgerApiPath.startsWith("/")) return ledgerApiPath;
+  if (!indexerUrl || !/^https?:\/\//.test(indexerUrl)) return ledgerApiPath;
+  return `${new URL(indexerUrl).origin}${ledgerApiPath ?? "/api/ledger"}`;
 }

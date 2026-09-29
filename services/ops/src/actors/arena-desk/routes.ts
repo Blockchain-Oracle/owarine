@@ -8,6 +8,8 @@
  *                        and only while the matchmaker holds it (WHO comes from the web's lease, never a body field
  *                        the browser wrote)
  *   season/distribute    the season admin's payout: seat addresses → their venue accounts → one `Season_Distribute`
+ *   season/withdraw      the season admin's close: what is left after the payout back to the venue, one
+ *                        `Season_WithdrawRemainder` (K-105). An admin act: no web route forwards it, so no seat reaches it
  */
 import { diagnosis, type Diagnosis } from "@agari/core/types";
 import { TEMPLATE_IDS } from "@agari/daml";
@@ -90,7 +92,25 @@ export function arenaRoutes(desk: ArenaDesk): Record<string, Handler> {
         return refused(diagnosis("contract-revert", failureText(error)));
       }
     },
+
+    "/internal/games/season/withdraw": async (raw) => {
+      const seasonId = str(bodyOf(raw), "seasonId");
+      if (!seasonId) return { status: 400, body: { diagnosis: diagnosis("unknown", "expected {seasonId}") } };
+      const snap = await desk.snapshot({ fresh: true });
+      const pool = snap.pools.find((p) => p.data.seasonId === seasonId);
+      if (!pool) return refused(diagnosis("not-deployed", `no live season pool ${seasonId} (never created, or already closed)`));
+      if (!pool.data.distributed) return refused(diagnosis("market-not-trading", `season ${seasonId} has not paid out: the remainder is withdrawn only after the distribution`));
+      try {
+        const out = await submit(desk.venue, { commandId: seasonCommandId("withdraw", seasonId, pool.cid), commands: [gcmd.withdrawSeasonRemainder(pool.cid)] });
+        if (out.kind !== "done") return refused(diagnosis("unknown", "DRY RUN: the withdrawal was prepared, not sent"));
+        const updateId = out.transaction.updateId;
+        await desk.recordClosure({ seasonId, endsAtSec: pool.data.endsAtSec, depositedBase: pool.data.deposited, withdrawnBase: pool.data.amount, updateId });
+        return { status: 200, body: { kind: "confirmed", updateId, withdrawnBase: pool.data.amount } };
+      } catch (error) {
+        return refused(diagnosis("contract-revert", failureText(error)));
+      }
+    },
   };
 }
 
-export const ARENA_ROUTES = ["/internal/games/state", "/internal/games/match", "/internal/games/season", "/internal/games/open", "/internal/games/season/distribute"] as const;
+export const ARENA_ROUTES = ["/internal/games/state", "/internal/games/match", "/internal/games/season", "/internal/games/open", "/internal/games/season/distribute", "/internal/games/season/withdraw"] as const;

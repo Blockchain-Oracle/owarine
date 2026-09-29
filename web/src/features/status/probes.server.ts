@@ -136,9 +136,10 @@ export function probeFaucet(nowMs = Date.now()): Promise<StatusPipeline> {
 /** Capabilities that arrive in later stages, shown as the reference shows an unconfigured option. */
 export const switchboardRow = () => notConfiguredRow("switchboard", STATUS.pipelines.switchboard, STATUS.detail.switchboard);
 /**
- * The game sponsor's budget: the key's SOL against the widest deck's envelope, from the same read `/api/games/sponsor`
- * serves. This row was a stub that said "arrives in S7" long after S7 shipped the sponsor, so /status called a funded,
- * co-signing sponsor "no sponsor on this deployment yet".
+ * The games sponsor row, kept because /status lists it. On Canton there is no sponsor to fund: the venue submits every
+ * ledger write a duel makes, so a seat pays no network fee and holds no fee balance (K-101). `gameSponsorStatus` answers
+ * not configured, and this row says why rather than showing an empty budget. The balance branch stays for the
+ * reference's shape and is not reached here.
  */
 export async function sponsorRow(): Promise<StatusPipeline> {
   const label = STATUS.pipelines.sponsor;
@@ -148,7 +149,7 @@ export async function sponsorRow(): Promise<StatusPipeline> {
     // A balance that would not read is an outage, not an empty key: say so rather than print 0.00 (the D-098 lesson).
     if (status.balanceWei === null) return down("sponsor", label, STATUS.detail.sponsorUnread, false, true, elapsedMs);
     const balance = formatBaseUnits(BigInt(status.balanceWei), LAMPORT_DECIMALS);
-    // A deck's envelope is a few ten-thousandths of a SOL; two decimals would print it as nothing.
+    // A deck's envelope is a small fraction of a unit; two decimals would print it as nothing.
     const envelope = formatBaseUnits(BigInt(status.deckEnvelopeWei), LAMPORT_DECIMALS, { maxDp: 5, minDp: 0 });
     const detail = STATUS.detail.sponsor(balance, envelope, status.ready);
     if (!status.ready) return down("sponsor", label, detail, false, true, elapsedMs);

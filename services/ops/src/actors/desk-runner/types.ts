@@ -7,7 +7,7 @@
 import type { ResolvedModel } from "@agari/brain";
 import type { DeskMandate, DeskValuation, PlannedOutcome } from "@agari/core/desk";
 import type { DeskQueries, DeskRow, MandateRow, WakeTrigger } from "@agari/db";
-import type { DeskMintState, DeskOperatorClient, DeskRpc, DeskState } from "@agari/markets/desk";
+import type { DeskMintState, DeskOperatorClient, DeskRpc, DeskState } from "@agari/markets/desk/server";
 import type { Ladder } from "@agari/markets/runtime";
 import type { PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import type { Log } from "../../runtime/actor";

@@ -91,6 +91,11 @@ export interface ArenaMatch {
   pickDeadlineSec: number;
   potBase: bigint;
   perCardCapBase: bigint;
+  /**
+   * Why a refunded match refunded, when the ledger says (a `DuelResult`'s `Refunded` reason). Absent on a live match;
+   * a reader without it falls back to the timestamps.
+   */
+  refundReason?: RefundReason;
 }
 
 /** What the arena measured around one IOC, and what the redemption later paid for it. */

@@ -4,7 +4,7 @@ import { hmac } from "@noble/hashes/hmac";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import { ReadingError } from "../errors/reading-error";
-import { seasonDistributeReplyWire } from "../provider/games-wire";
+import { seasonDistributeReplyWire, seasonWithdrawReplyWire } from "../provider/games-wire";
 
 /**
  * The season admin's payout: one winner list, one amount each, paid once from the pool (`Season_Distribute`).
@@ -27,32 +27,60 @@ export interface DistributeSeasonInput {
   opsSecret?: string;
 }
 
-const PATH = "/internal/games/season/distribute";
+const DISTRIBUTE_PATH = "/internal/games/season/distribute";
+const WITHDRAW_PATH = "/internal/games/season/withdraw";
 
 /** The same signature `@agari/markets/server` `opsSignature` computes, with a browser-safe HMAC. */
-function sign(secret: string, ts: number, body: string): string {
-  return `v1=${bytesToHex(hmac(sha256, utf8ToBytes(secret), utf8ToBytes(`${ts}.POST.${PATH}.${body}`)))}`;
+function sign(secret: string, ts: number, path: string, body: string): string {
+  return `v1=${bytesToHex(hmac(sha256, utf8ToBytes(secret), utf8ToBytes(`${ts}.POST.${path}.${body}`)))}`;
 }
 
-/** A plain-promise write: resolves with the distribution's update id, rejects with a diagnosis. */
-export async function distributeSeasonPrizes(input: DistributeSeasonInput): Promise<Signature> {
-  const secret = input.opsSecret ?? (typeof process !== "undefined" ? process.env.OPS_INTERNAL_SECRET : undefined);
-  if (!secret) throw new ReadingError(diagnosis("signer-required", "the season payout is signed with OPS_INTERNAL_SECRET, which is not set"));
-  if (input.winners.length !== input.amountsBase.length) throw new ReadingError(diagnosis("unknown", "one amount per winner"));
-  const body = JSON.stringify({ seasonId: input.seasonId, payouts: input.winners.map((address, i) => ({ address, amountBase: String(input.amountsBase[i]) })) });
+/** One HMAC-signed admin call to ops; resolves with the parsed reply's JSON, rejects with a diagnosis. */
+async function adminPost(rpcUrl: string, path: string, body: string, opsSecret: string | undefined): Promise<unknown> {
+  const secret = opsSecret ?? (typeof process !== "undefined" ? process.env.OPS_INTERNAL_SECRET : undefined);
+  if (!secret) throw new ReadingError(diagnosis("signer-required", "the season admin's calls are signed with OPS_INTERNAL_SECRET, which is not set"));
   const ts = Date.now();
   let res: Response;
   try {
-    res = await fetch(`${input.rpcUrl.replace(/\/$/, "")}${PATH}`, {
+    res = await fetch(`${rpcUrl.replace(/\/$/, "")}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-agari-ops-ts": String(ts), "x-agari-ops-sig": sign(secret, ts, body) },
+      headers: { "content-type": "application/json", "x-agari-ops-ts": String(ts), "x-agari-ops-sig": sign(secret, ts, path, body) },
       body,
     });
   } catch (error) {
     throw new ReadingError(diagnosis("rpc-down", `ops unreachable: ${error instanceof Error ? error.message : String(error)}`));
   }
-  const parsed = seasonDistributeReplyWire.safeParse(await res.json().catch(() => null));
-  if (!parsed.success) throw new ReadingError(diagnosis("rpc-down", `ops ${PATH} → ${res.status}`));
+  const json = await res.json().catch(() => null);
+  if (json === null) throw new ReadingError(diagnosis("rpc-down", `ops ${path} → ${res.status}`));
+  return json;
+}
+
+/** A plain-promise write: resolves with the distribution's update id, rejects with a diagnosis. */
+export async function distributeSeasonPrizes(input: DistributeSeasonInput): Promise<Signature> {
+  if (input.winners.length !== input.amountsBase.length) throw new ReadingError(diagnosis("unknown", "one amount per winner"));
+  const body = JSON.stringify({ seasonId: input.seasonId, payouts: input.winners.map((address, i) => ({ address, amountBase: String(input.amountsBase[i]) })) });
+  const parsed = seasonDistributeReplyWire.safeParse(await adminPost(input.rpcUrl, DISTRIBUTE_PATH, body, input.opsSecret));
+  if (!parsed.success) throw new ReadingError(diagnosis("rpc-down", `ops ${DISTRIBUTE_PATH}: unexpected reply`));
   if (parsed.data.kind === "refused") throw new ReadingError(parsed.data.diagnosis);
   return parsed.data.updateId;
+}
+
+export interface WithdrawSeasonInput {
+  /** Ops' internal base URL (`OPS_INTERNAL_URL`). */
+  rpcUrl: string;
+  seasonId: string;
+  /** `OPS_INTERNAL_SECRET`, which signs the call; read from the environment when omitted. */
+  opsSecret?: string;
+}
+
+/**
+ * The reference's `withdrawSeasonRemainder` (an admin deploy step there): what is left in the pool after its one payout
+ * goes back to the venue and the pool closes (`Season_WithdrawRemainder`). An admin act: ops refuses it before the
+ * distribution, and no web route forwards it (K-105). Resolves with the update id and the amount returned.
+ */
+export async function withdrawSeasonRemainder(input: WithdrawSeasonInput): Promise<{ updateId: Signature; withdrawnBase: bigint }> {
+  const parsed = seasonWithdrawReplyWire.safeParse(await adminPost(input.rpcUrl, WITHDRAW_PATH, JSON.stringify({ seasonId: input.seasonId }), input.opsSecret));
+  if (!parsed.success) throw new ReadingError(diagnosis("rpc-down", `ops ${WITHDRAW_PATH}: unexpected reply`));
+  if (parsed.data.kind === "refused") throw new ReadingError(parsed.data.diagnosis);
+  return { updateId: parsed.data.updateId, withdrawnBase: parsed.data.withdrawnBase };
 }

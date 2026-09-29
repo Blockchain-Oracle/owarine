@@ -9,7 +9,7 @@
 import { buildDecisionBody, deskCopy, GENESIS_SLOT, hashRecord, nameOf, netOfFee, paperFeeBpsFor, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@agari/core/desk";
 import { CLUSTER_ID } from "@agari/core/constants";
 import type { Hash32 } from "@agari/core/types";
-import { buy, cantonChainHead, DeskSendError, DeskSendUnknownError, sell } from "@agari/markets/desk";
+import { buy, cantonChainHead, DeskSendError, DeskSendUnknownError, sell } from "@agari/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import { APPROVAL_TTL_SEC, DEADLINE_SEC, type Considered } from "./consider";
 import { REFERENCE_REFRESH_SEC } from "./market";

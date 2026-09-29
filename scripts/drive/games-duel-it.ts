@@ -19,7 +19,7 @@ import { encodeBase58, type Address, type Hash32 } from "@agari/core/types";
 import { getDb } from "@agari/db";
 import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
-import { distributeSeasonPrizes, duelDeckHash, keccak256 } from "@agari/markets/games";
+import { distributeSeasonPrizes, duelDeckHash, keccak256, withdrawSeasonRemainder } from "@agari/markets/games";
 import { cmd, decodeVenueCash, pick } from "@agari/markets/ops/canton";
 import { decodeDuelMatch, decodeSeasonPool, gcmd } from "@agari/markets/ops/games";
 import { createGamesSeat, createOpsClient, createSeatLedger } from "@agari/markets/server";
@@ -94,6 +94,9 @@ function connect(token: string): Promise<Conn> {
 // ---- the duel ---------------------------------------------------------------------------------------------------
 
 await store.ready();
+const LEDGER = env.LEDGER_JSON_API_URL.replace(/\/$/, "");
+const ledgerEnd = async (): Promise<number> => ((await (await fetch(`${LEDGER}/v2/state/ledger-end`)).json()) as { offset: number }).offset;
+const startOffset = await ledgerEnd();
 const arena = await ops.gameState();
 if (!arena.ok || !arena.value.deployed) throw new Error(`no arena on this ledger: ${arena.ok ? "not deployed" : arena.diagnosis.technical}`);
 const tier = arena.value.tiers.find((t) => t.tierId === TIER)!;
@@ -179,6 +182,40 @@ const after = await Promise.all(players.map((p) => cashOf(p.actor.party)));
 const pots = await Promise.all(players.map((p) => cashOf(p.actor.party, "duel-pot")));
 check("the pot moved exactly once: 2 × pot to the winner, or split on a tie", pots[0]! + pots[1]! === 2n * tier.potBase, { pots, pnl: [final?.creatorPnlBase, final?.challengerPnlBase] });
 console.log(`${stamp()} cash before ${before.join(" / ")} → after ${after.join(" / ")}`);
+// C9c: a decisive result, not a void tie. The winner holds both pots, the loser's pot moved to them, and the ladder moved.
+const winnerIdx = pots[0] === 2n * tier.potBase ? 0 : pots[1] === 2n * tier.potBase ? 1 : -1;
+check("the duel was decisive: the winner holds both pots and the loser's pot moved to them", winnerIdx >= 0 && pots[1 - winnerIdx] === 0n, { winner: winnerIdx < 0 ? null : winnerIdx === 0 ? "creator" : "challenger", pots, pnl: [final?.creatorPnlBase, final?.challengerPnlBase] });
+check("the winner's card PnL beats the loser's (the ledger's own score)", final !== null && final.creatorPnlBase !== final.challengerPnlBase);
+let ratings: Array<{ wallet: string; rating: number; verified_matches: number }> = [];
+for (let i = 0; i < 20; i++) {
+  ratings = await db<{ wallet: string; rating: number; verified_matches: number }[]>`SELECT wallet, rating, verified_matches FROM game_ratings WHERE wallet IN (${creator.address}, ${challenger.address})`;
+  if (ratings.length === 2 && ratings.some((r) => r.rating !== 1000)) break;
+  await sleep(1_000);
+}
+check("the ratings moved: the winner up, the loser down (game_ratings, what /games/rank reads)", ratings.length === 2 && ratings.some((r) => r.rating > 1000) && ratings.some((r) => r.rating < 1000), ratings);
+// The update ids of every transaction that touched this match, read back from the venue's ledger stream.
+const endOffset = await ledgerEnd();
+type Tx = { updateId: string; offset: number; events: Array<Record<string, { createArgument?: { matchId?: string }; choice?: string }>> };
+const updates: Array<{ update: { Transaction?: { value: Tx } } }> = [];
+// The JSON API caps one read's elements, so the stream is read in pages of offsets.
+for (let from = startOffset; from < endOffset; from += 200) {
+  const page = (await (await fetch(`${LEDGER}/v2/updates`, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ beginExclusive: from, endInclusive: Math.min(from + 200, endOffset), updateFormat: { includeTransactions: { transactionShape: "TRANSACTION_SHAPE_LEDGER_EFFECTS", eventFormat: { filtersByParty: { [venue]: { cumulative: [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: false } } } }] } }, verbose: false } } } }),
+  })).json()) as unknown;
+  if (!Array.isArray(page)) throw new Error(`/v2/updates ${from}: ${JSON.stringify(page).slice(0, 300)}`);
+  updates.push(...(page as typeof updates));
+}
+const touched = updates.flatMap((u) => {
+  const t = u.update.Transaction?.value;
+  if (!t) return [];
+  const evs = t.events.map((e) => Object.values(e)[0]!);
+  if (!evs.some((e) => e.createArgument?.matchId === matchId)) return [];
+  const choices = [...new Set(evs.map((e) => e.choice).filter((c): c is string => !!c && /^(Arena_OpenDuel|Open_Join|Duel_|Quote_Accept)/.test(c)))];
+  return [{ offset: t.offset, updateId: t.updateId, choices }];
+});
+for (const t of touched) console.log(`  update ${t.updateId} @${t.offset}  ${t.choices.join(", ")}`);
+check("the finalize transaction created the DuelResult (update id recorded)", touched.some((t) => t.choices.includes("Duel_Finalize")), touched.find((t) => t.choices.includes("Duel_Finalize"))?.updateId);
 conns.forEach((c) => c.close());
 
 // ---- the season pool ------------------------------------------------------------------------------------------------
@@ -199,8 +236,13 @@ check("each winner was credited to their seat", (await cashOf(creator.actor.part
 const pools = await client.activeContracts({ parties: [venue], templateIds: [GAMES_TEMPLATE_IDS.SeasonPool] });
 const pool = pools.contracts.map((c) => ({ cid: c.createdEvent.contractId, data: decodeSeasonPool(c.createdEvent.createArgument) })).find((p) => p.data.seasonId === seasonId)!;
 check("the pool shows it distributed, holding the remainder", pool.data.distributed && pool.data.amount === 10_000_000n, pool.data);
-const withdrawn = await client.submitAndWaitForTransaction({ actAs: [venue], commandId: `drive:season-withdraw:${seasonId}`, commands: [gcmd.withdrawSeasonRemainder(pool.cid)] });
-check("the venue withdrew the remainder and the pool closed", withdrawn.transaction.events.some((e) => "CreatedEvent" in e && e.CreatedEvent.templateId.endsWith(":VenueCash")));
+const withdrawn = await withdrawSeasonRemainder({ rpcUrl: OPS, seasonId, opsSecret: process.env.OPS_INTERNAL_SECRET! }).then((r) => ({ ok: true, r }), (e: unknown) => ({ ok: false, r: String(e) }));
+check("the admin withdrew the remainder through ops (Season_WithdrawRemainder) and the pool closed", withdrawn.ok && typeof withdrawn.r === "object" && withdrawn.r.withdrawnBase === 10_000_000n, withdrawn.r);
+const gone = await client.activeContracts({ parties: [venue], templateIds: [GAMES_TEMPLATE_IDS.SeasonPool] });
+check("no live pool remains for the season", !gone.contracts.some((c) => decodeSeasonPool(c.createdEvent.createArgument).seasonId === seasonId));
+const closed = await ops.gameSeason(seasonId);
+const closedPool = closed.ok ? closed.value.pool : null;
+check("the closed season still reads as paid out, holding nothing", closedPool !== null && closedPool.distributed && closedPool.balanceBase === 0n, closed.ok ? closedPool : closed.diagnosis);
 
 for (const p of players) await store.release(p.actor.leaseId, Date.now(), "drive done");
 console.log(`\n${failures === 0 ? "ALL PASS" : `${failures} FAILURE(S)`}  match ${matchId}`);

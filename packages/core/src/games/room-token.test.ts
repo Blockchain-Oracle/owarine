@@ -50,7 +50,8 @@ describe("the duel room token", () => {
     expect(message).toContain(ARENA);
     expect(message).toContain("on Canton DevNet");
     expect(message).toContain("moves no funds");
-    expect(message).toContain("not the wallet");
+    expect(message).toContain("seat's own key");
+    expect(message).not.toContain("on chain");
     // The prompt for another arena, or from another key, is a different string, so a signature cannot be carried across.
     expect(roomAuthMessage({ wallet: WALLET, key: KEY, chainId: CHAIN, arena: OTHER_ARENA, issuedAtMs: NOW })).not.toBe(message);
     expect(roomAuthMessage({ wallet: WALLET, key: WALLET, chainId: CHAIN, arena: ARENA, issuedAtMs: NOW })).not.toBe(message);

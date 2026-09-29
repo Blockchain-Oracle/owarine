@@ -126,6 +126,8 @@ export function viewOfMatch(m: DuelMatchC, addressOf: AddressOf): DuelViewOf {
   };
 }
 
+const RESULT_REFUND = { BothIncomplete: "both-incomplete", RevealUnavailable: "reveal-unavailable", StaleSettlement: "stale-settlement" } as const;
+
 /** A decided match. The result keeps the deck and both PnLs; its picks are in the projection's history. */
 export function viewOfResult(r: DuelResultC, addressOf: AddressOf, deck?: { deckHash: string; deckSize: number; policyVersion: number; potEach: bigint; perCardCap: bigint }): DuelViewOf {
   const tierId = r.tierId;
@@ -136,6 +138,8 @@ export function viewOfResult(r: DuelResultC, addressOf: AddressOf, deck?: { deck
       status: r.outcome.tag === "Refunded" ? "refunded" : "finalized", deckSize: deck?.deckSize ?? r.cards.length, pickedMask0: 0, pickedMask1: 0, settledMask: 0,
       policyVersion: deck?.policyVersion ?? 0, deckHash: hash32(deck?.deckHash ?? "0".repeat(64)), createdAtSec: 0, joinedAtSec: 0, revealedAtSec: 0, pickDeadlineSec: 0,
       potBase: deck?.potEach ?? (r.outcome.tag === "Refunded" ? r.toCreator : 0n), perCardCapBase: deck?.perCardCap ?? BigInt(tier?.perCardCapUnits ?? 0),
+      // A `DuelResult` exists only for a joined match, so its refund is never "withdrawn before anyone joined" (C9c).
+      ...(r.outcome.tag === "Refunded" ? { refundReason: RESULT_REFUND[r.outcome.reason] } : {}),
     },
     cards: r.cards.map((c) => marketIdFromDaml(c)),
     picks: [],

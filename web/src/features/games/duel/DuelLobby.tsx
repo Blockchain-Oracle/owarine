@@ -116,7 +116,7 @@ function OnChain({ state, isCreator }: { state: Extract<MatchState, { phase: "co
   const refused = refusal ? <RefusalPlate diagnosis={refusal.diagnosis} /> : null;
 
   if (isCreator) {
-    if (created) return <p className="du-body">{DUEL.lobby.waitingCreate}</p>;
+    if (created) return <p className="du-body">{DUEL.lobby.waitingJoin}</p>;
     return (
       <>
         <p className="du-body">{DUEL.lobby.openBody(pot, symbol)}</p>
