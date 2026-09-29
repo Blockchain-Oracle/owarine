@@ -4,8 +4,8 @@ import { readCrowd } from "./crowd";
 
 /**
  * `GET /api/sentiment` — the marquee's sentiment cell (social-assistant.md §1.5, Q-S13-1). Crowd flow from the index,
- * labelled as the crowd: the Up share of taker lots over the last hour, in integer bps, `null` below 20 fills. Not a
- * Fear & Greed reading, and never dressed as one. Read-only over `idx_fills`.
+ * labelled as the crowd: the Up share of published lots over the last hour, in integer bps, `null` below 20 of them or 5
+ * publishers. Not a Fear & Greed reading, and never dressed as one. Read-only over `idx_publications`.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

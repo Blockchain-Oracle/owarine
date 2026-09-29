@@ -24,6 +24,9 @@ export interface IndexQuery {
 
 export class BadRequest extends Error {}
 
+/** The projector's cursor row (services/ops `PROJECTOR_STREAM`, default `venue`). */
+const PROJECTION_STREAM = process.env.PROJECTOR_STREAM ?? "venue";
+
 const int = z.coerce.number().int().nonnegative();
 const optionalInt = int.optional();
 const flag = z.enum(["0", "1"]).optional().transform((v) => v === "1");
@@ -51,7 +54,9 @@ const marketsQuery = z.object({
   settled: flag,
   ids,
 });
-const fillsQuery = z.object({ market: address.optional(), book: address.optional(), since: optionalInt, limit: optionalInt, offset: optionalInt });
+/** A Window's Book is its `MarketTerms` contract id on Canton (hex), no longer a base58 account. */
+const contractId = z.string().regex(/^[0-9a-f]{2,400}$/, "expected a ledger contract id");
+const fillsQuery = z.object({ market: address.optional(), book: contractId.optional(), since: optionalInt, limit: optionalInt, offset: optionalInt });
 const pageQuery = z.object({ limit: optionalInt, offset: optionalInt });
 const rangeQuery = z.object({ from: int, to: int, limit: optionalInt });
 /** `basis` (0 Regular, 1 Gap, 2 Token) keeps one lane: a ticker's stock and 24/7 xStock Windows print different prices. */
@@ -82,9 +87,9 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
 }
 
 /** Null when the path names nothing; throws `BadRequest` when it does but a parameter is malformed. */
-export function resolveIndexQuery(path: readonly string[], query: Record<string, string>, programId: string): IndexQuery | null {
+export function resolveIndexQuery(path: readonly string[], query: Record<string, string>, _programId: string): IndexQuery | null {
   // S5 lane paths (`tape/*` 5b, `status/*` sub-paths 5c, `proofs/*` 5d) resolve in their own files first.
-  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, programId) ?? resolveProofQuery(path, query) ?? resolveArchiveQuery(path, query);
+  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, _programId) ?? resolveProofQuery(path, query) ?? resolveArchiveQuery(path, query);
   if (lane) return lane;
   const [head, second, third, ...rest] = path;
   if (rest.length > 0) return null;
@@ -126,7 +131,8 @@ export function resolveIndexQuery(path: readonly string[], query: Record<string,
       return { scope: "public", run: (r) => r.candles(market, q.from, q.to) };
     }
     case "status":
-      return second === undefined ? { scope: "public", run: async (r) => [await r.status(programId)] } : null;
+      // The projection's freshness row is keyed by its stream (the venue's view), not by a program or package id.
+      return second === undefined ? { scope: "public", run: async (r) => [await r.status(PROJECTION_STREAM)] } : null;
     default:
       return null;
   }
