@@ -35,7 +35,7 @@ if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs again
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
 const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.4.0.dar"));
-const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.1.dar"));
+const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.2.dar"));
 /** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
 const RESERVE_SEED_BASE = BigInt(arg("--reserve-seed", "10000")) * 1_000_000n;
 const SHARDS = Number(arg("--shards", process.env.VENUE_SHARDS ?? "16"));

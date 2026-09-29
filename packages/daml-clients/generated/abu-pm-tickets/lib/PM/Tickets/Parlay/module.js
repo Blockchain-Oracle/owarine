@@ -43,7 +43,7 @@ exports.ParlayLeg = {
 exports.ParlayQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Parlay:ParlayQuote',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Parlay:ParlayQuote',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Parlay:ParlayQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -121,7 +121,7 @@ exports.ParlayQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.ParlayQuote, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.ParlayQuote, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.ParlayQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -242,7 +242,7 @@ exports.ParlayStep = {
 exports.ParlayTicket = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Parlay:ParlayTicket',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Parlay:ParlayTicket',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Parlay:ParlayTicket',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -318,7 +318,7 @@ exports.ParlayTicket = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.ParlayTicket, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.ParlayTicket, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.Ticket_ClaimLeg = {
   decoder: damlTypes.lazyMemo(function () {

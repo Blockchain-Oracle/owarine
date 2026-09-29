@@ -147,7 +147,10 @@ template RangeRound
       controller owner
       do
         assertDeadlineExceeded "refund-after" refundAfter
-        payBoth venue owner reserveId stake (maxPayout - stake) "refund"
+        paid <- payBoth venue owner reserveId stake (maxPayout - stake) "refund"
+        -- 0.1.2: a stale refund leaves the same receipt as a void (K-087)
+        recordReceipt $ roundReceipt this None stake (maxPayout - stake) "void"
+        pure paid
 
 -- | (owner's payout, reserve's payout) for a round under a resolution.
 roundPayout : RangeRound -> Resolution -> (Int, Int)
@@ -164,10 +167,15 @@ payRound r resolutionCid = do
         (Some _, Some _) -> Some (toOwner > 0)
         _ -> None
   paid <- payBoth r.venue r.owner r.reserveId toOwner toReserve "payout"
-  recordReceipt $ stakeReceipt r.venue r.owner (if r.kind == Moonshot then "moonshot" else "range") r.marketId
-    (if r.side == Inside then SideUp else SideDown) res.outcome r.stake toOwner
+  recordReceipt $ roundReceipt r res.outcome toOwner toReserve (resultText decided)
+  pure paid
+
+-- | A round's receipt: settle, claim, and (0.1.2) the stale refund.
+roundReceipt : RangeRound -> Optional Side -> Int -> Int -> Text -> TicketReceipt
+roundReceipt r resolved toOwner toReserve result =
+  stakeReceipt r.venue r.owner (if r.kind == Moonshot then "moonshot" else "range") r.marketId
+    (if r.side == Inside then SideUp else SideDown) resolved r.stake toOwner
     ReceiptDetail with
       reserveId = r.reserveId; marketIds = [r.marketId]
       pick = show r.side <> " " <> show r.lowE8 <> ".." <> show r.highE8
-      stake = r.stake; toReserve; result = resultText decided
-  pure paid
+      stake = r.stake; toReserve; result

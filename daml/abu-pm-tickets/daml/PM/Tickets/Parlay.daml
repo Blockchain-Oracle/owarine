@@ -150,7 +150,12 @@ template ParlayTicket
       controller owner
       do
         assertDeadlineExceeded "void-after" voidAfter
-        payBoth venue owner reserveId stake (maxPayout - stake) "refund"
+        paid <- payBoth venue owner reserveId stake (maxPayout - stake) "refund"
+        -- 0.1.2: a stale void leaves the same receipt as a voided leg, named
+        -- by the first leg still undecided (K-087)
+        let leg = legs !! optional 0 identity (nextLeg legs)
+        recordReceipt $ ticketReceipt this leg None stake "void"
+        pure paid
 
 decideLeg : ParlayTicket -> ContractId Resolution -> Update ParlayStep
 decideLeg t resolutionCid = do
@@ -166,11 +171,7 @@ decideLeg t resolutionCid = do
   -- A ticket that ends here leaves its owner's receipt (K-030).
   let finish decided toOwner bucket = do
         paid <- payBoth t.venue t.owner t.reserveId toOwner (t.maxPayout - toOwner) bucket
-        recordReceipt $ stakeReceipt t.venue t.owner "parlay" leg.marketId leg.side r.outcome t.stake toOwner
-          ReceiptDetail with
-            reserveId = t.reserveId; marketIds = map (.marketId) t.legs
-            pick = intercalate "," (map (sideText . (.side)) t.legs)
-            stake = t.stake; toReserve = t.maxPayout - toOwner; result = resultText decided
+        recordReceipt $ ticketReceipt t leg r.outcome toOwner (resultText decided)
         pure paid
   case r.outcome of
     None -> TicketVoid <$> finish None t.stake "refund"
@@ -180,3 +181,13 @@ decideLeg t resolutionCid = do
                if all (.won) legs'
                  then TicketWon <$> finish (Some True) t.maxPayout "payout"
                  else LegWon <$> create t with legs = legs'
+
+-- | A ticket's receipt where it ends: the deciding leg's settle or claim,
+-- and (0.1.2) the stale void.
+ticketReceipt : ParlayTicket -> ParlayLeg -> Optional Side -> Int -> Text -> TicketReceipt
+ticketReceipt t leg resolved toOwner result =
+  stakeReceipt t.venue t.owner "parlay" leg.marketId leg.side resolved t.stake toOwner
+    ReceiptDetail with
+      reserveId = t.reserveId; marketIds = map (.marketId) t.legs
+      pick = intercalate "," (map (sideText . (.side)) t.legs)
+      stake = t.stake; toReserve = t.maxPayout - toOwner; result

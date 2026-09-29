@@ -20,7 +20,7 @@ var PM_Tickets_Common = require('../../../PM/Tickets/Common/module');
 exports.BoostExitQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Boost:BoostExitQuote',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Boost:BoostExitQuote',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Boost:BoostExitQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -96,7 +96,7 @@ exports.BoostExitQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BoostExitQuote, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.BoostExitQuote, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.BoostExit_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -134,7 +134,7 @@ exports.BoostExit_Withdraw = {
 exports.BoostPosition = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Boost:BoostPosition',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Boost:BoostPosition',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Boost:BoostPosition',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -260,12 +260,12 @@ exports.BoostPosition = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BoostPosition, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.BoostPosition, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.BoostQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Boost:BoostQuote',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Boost:BoostQuote',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Boost:BoostQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -367,7 +367,7 @@ exports.BoostQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BoostQuote, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.BoostQuote, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.BoostQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
