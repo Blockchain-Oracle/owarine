@@ -3,16 +3,29 @@
  * Window with a recorded open print it prices `P(close ≥ open)` from the live spot (`fair.ts`), builds the venue price
  * ladder around it (`ladder.ts`, `quote.ts`'s `quotePair`) within the per-market cap, and puts it on the board the
  * issuer walks and `/ladders/stream` publishes. It writes nothing to the ledger, so it runs the same live or dry.
+ *
+ * Three bases (C6d):
+ *   price   Regular, token and crypto Windows: spot against the open print (`fair.ts`).
+ *   gap     a Monday Gap Window: the reference's `gap-fair.ts` unchanged, the xStock weekend spot against Friday's print
+ *           on the Gap variance clock, blind 500 ± 150 without a reference; stops 60 s before the Sunday lock; the per-
+ *           side cap is `MM_GAP_MAX_CASH`.
+ *   event   a committee event (engine 0.4.0 `EventTerms`, no open print): even odds quoted wide (core
+ *           `EVENT_FAIR_TICKS ± EVENT_HALF_SPREAD_TICKS`) from its start until it stops taking quotes.
  */
-import { CALENDAR_YEAR_SEC, parseLaneKey, spotSymbolOf, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { CALENDAR_YEAR_SEC, EVENT_FAIR_TICKS, EVENT_HALF_SPREAD_TICKS, parseLaneKey, spotSymbolOf, TICKERS, type TickerSymbol } from "@agari/core/market";
+import type { HaltBoard } from "@agari/core/types";
 import { TEMPLATE_IDS } from "@agari/daml";
-import { decodeLeg, decodeOpenPrint, decodeQuote, decodeTerms, pick, readActive, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import {
+  decodeEventState, decodeEventTerms, decodeLeg, decodeOpenPrint, decodeQuote, decodeTerms, pick, readActive, type Active, type LegC, type QuoteC, type RoleSession,
+  type TermsC,
+} from "@agari/markets/ops/canton";
 import { marketIdFromDaml, seriesIdFromDaml } from "@agari/core/market";
 import type { SpotFeed } from "../../../prices/spot";
 import type { VolBoard } from "../../../prices/vol-meter";
 import { runActor, type PassResult } from "../../../runtime/actor";
 import { readSeatMakerEnv, type SeatMakerEnv } from "./env";
 import { fairYesTicks } from "./fair";
+import { GAP_BLIND_HALF_SPREAD_TICKS, GAP_STOP_BEFORE_LOCK_SEC, gapFairTicks, gapPhase } from "./gap-fair";
 import { buildLadder, quotingUntilSec } from "./ladder";
 import type { LadderBoard } from "./ladder-board";
 
@@ -58,6 +71,65 @@ interface PricerState {
   board: LadderBoard;
   settings: PricerSettings;
   terms: Map<string, TermsC>;
+  /** The halt board (Gap: the ticker and its xStock); absent reads as nothing halted. */
+  halts: () => HaltBoard;
+}
+
+/** One Window's price for this pass, or why it is not quoted. */
+export interface Priced {
+  fairTicks: number;
+  halfSpreadTicks: number;
+  /** The last second the Window takes quotes. */
+  untilSec: number;
+  /** Per side, base units of venue stake (bounded again by `MM_MARKET_CAP_CREDITS`). */
+  capBase: bigint;
+  spotE8: bigint;
+  basis: "price" | "gap" | "event";
+  why: string;
+}
+export type WindowPrice = Priced | { skip: string };
+
+/**
+ * A Gap Window's price (the reference's `gapQuote`, on Canton shapes): pulled before the Friday print and when the
+ * ticker is halted, stopped 60 s before the Sunday lock, else `gapFairTicks` against the xStock spot (blind and wide
+ * when the name has none, or it is stale or halted).
+ */
+export function gapPrice(i: { t: TermsC; ticker: TickerSymbol; openE8: bigint; nowSec: number; spot: SpotFeed | null; halts: HaltBoard; maker: SeatMakerEnv }): WindowPrice {
+  const { t, ticker, maker } = i;
+  const halted = Boolean(i.halts[ticker]);
+  const phase = gapPhase({ nowSec: i.nowSec, tradingStartSec: t.tradingStartSec, lockAtSec: t.lockAtSec, halted });
+  if (phase !== "quote") return { skip: halted ? `halted (${i.halts[ticker]!.reason})` : phase === "stop" ? "60 s before the Sunday lock" : "Gap not trading yet" };
+  const xstock = TICKERS[ticker].xstock?.symbol ?? null;
+  const referenceE8 = xstock && !i.halts[xstock] ? (i.spot?.latest(xstock, maker.spotMaxAgeSec)?.priceE8 ?? null) : null;
+  const fair = gapFairTicks({
+    nowSec: i.nowSec, tradingStartSec: t.tradingStartSec, lockAtSec: t.lockAtSec, expirySec: t.expirySec, openE8: i.openE8, referenceE8,
+    sigmaBps: maker.sigmaBps(ticker), minTick: maker.minTick,
+  });
+  if (fair === null) return { skip: "waiting for the Friday print" };
+  const why = referenceE8 !== null ? `${xstock} reference` : xstock ? `${xstock} spot unavailable: blind` : "no weekend reference: blind";
+  return {
+    fairTicks: fair, halfSpreadTicks: referenceE8 === null ? Math.max(GAP_BLIND_HALF_SPREAD_TICKS, maker.halfSpreadTicks) : maker.halfSpreadTicks,
+    untilSec: t.lockAtSec - GAP_STOP_BEFORE_LOCK_SEC, capBase: maker.gapMaxCash, spotE8: referenceE8 ?? i.openE8, basis: "gap", why,
+  };
+}
+
+/** A committee event's price: even odds, wide, while it trades (it has no open print and no spot). */
+export function eventPrice(t: TermsC, capBase: bigint): Priced {
+  return { fairTicks: EVENT_FAIR_TICKS, halfSpreadTicks: EVENT_HALF_SPREAD_TICKS, untilSec: quotingUntilSec(t), capBase, spotE8: 0n, basis: "event", why: "committee event: even odds, wide" };
+}
+
+/** Venue stake already held against each side of one Window: its legs opposite the users' and its live quotes on that side. */
+function usedStake(termsCid: string, venueLegs: readonly Active<LegC>[], quotes: readonly Active<QuoteC>[]): { usedUpBase: bigint; usedDownBase: bigint } {
+  let usedUpBase = 0n;
+  let usedDownBase = 0n;
+  for (const l of venueLegs) if (l.data.termsCid === termsCid) l.data.outcome === "SideDown" ? (usedUpBase += l.data.backingShare) : (usedDownBase += l.data.backingShare);
+  for (const q of quotes) {
+    if (q.data.termsCid !== termsCid) continue;
+    const stake = q.data.lots * BigInt(1000 - q.data.priceTicks) * q.data.cashUnit;
+    if (q.data.side === "SideUp") usedUpBase += stake;
+    else usedDownBase += stake;
+  }
+  return { usedUpBase, usedDownBase };
 }
 
 const isTicker = (s: string): s is TickerSymbol => s in TICKERS;
@@ -73,9 +145,12 @@ export function sigmaFor(maker: SeatMakerEnv, vol: VolBoard | null, ticker: Tick
 }
 
 export async function pricerPass(state: PricerState): Promise<PassResult> {
-  const acs = await readActive(state.venue, [TEMPLATE_IDS.OpenPrint, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Leg]);
+  const acs = await readActive(state.venue, [TEMPLATE_IDS.OpenPrint, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Leg, TEMPLATE_IDS.EventTerms, TEMPLATE_IDS.EventState]);
   const opens = pick(acs, TEMPLATE_IDS.OpenPrint, decodeOpenPrint);
-  if (opens.some((o) => !state.terms.has(o.data.termsCid))) {
+  // An event is live while its single-use EventState is: once resolved or voided it stops quoting.
+  const liveEvents = new Set(pick(acs, TEMPLATE_IDS.EventState, decodeEventState).map((e) => e.data.termsCid));
+  const events = pick(acs, TEMPLATE_IDS.EventTerms, decodeEventTerms).filter((e) => liveEvents.has(e.data.termsCid));
+  if ([...opens.map((o) => o.data.termsCid), ...events.map((e) => e.data.termsCid)].some((cid) => !state.terms.has(cid))) {
     for (const t of pick(await readActive(state.venue, [TEMPLATE_IDS.MarketTerms]), TEMPLATE_IDS.MarketTerms, decodeTerms)) state.terms.set(t.cid, t.data);
   }
   const quotes = pick(acs, TEMPLATE_IDS.Quote, decodeQuote);
@@ -84,11 +159,37 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
   const s = state.settings;
   const live = new Set<string>();
   const notes: string[] = [];
+  const halts = state.halts();
+
+  const post = (termsCid: string, t: TermsC, price: Priced, openPriceE8: bigint) => {
+    if (nowSec < t.tradingStartSec || nowSec > price.untilSec - s.minQuoteLifeSec) return;
+    const cap = price.capBase < s.marketCapBase ? price.capBase : s.marketCapBase;
+    const ladder = buildLadder({
+      fairTicks: price.fairTicks, halfSpreadTicks: price.halfSpreadTicks, minTick: s.maker.minTick, levels: s.levels, stepTicks: s.stepTicks,
+      lotsPerLevel: s.lotsPerLevel, cashUnit: t.cashUnit, capBase: cap, ...usedStake(termsCid, venueLegs, quotes),
+    });
+    const marketId = marketIdFromDaml(t.marketId);
+    live.add(marketId);
+    state.board.put({
+      marketId, damlMarketId: t.marketId, seriesId: seriesIdFromDaml(t.seriesKey), termsCid, seriesKey: t.seriesKey, symbol: t.symbol, index: t.index,
+      tradingStartSec: t.tradingStartSec, lockAtSec: t.lockAtSec, expirySec: t.expirySec, quotingUntilSec: price.untilSec,
+      cashUnit: t.cashUnit, feeRateBps: s.feeRateBps, fairTicks: price.fairTicks, openPriceE8, spotE8: price.spotE8,
+      up: ladder.up, down: ladder.down, asOfMs: Date.now(), state: "quoting",
+    });
+    notes.push(`${t.marketId} ${price.basis === "price" ? "" : `${price.basis} `}fair ${price.fairTicks} up ${ladder.up[0]?.[0] ?? "-"} down ${ladder.down[0]?.[0] ?? "-"}`);
+  };
+
   for (const op of opens) {
     const t = state.terms.get(op.data.termsCid);
     const lane = t ? parseLaneKey(t.seriesKey) : null;
     const ticker = lane?.symbol ?? (t && isTicker(t.symbol) ? t.symbol : null);
     if (!t || !ticker) continue;
+    if (lane?.basis === "gap") {
+      const price = gapPrice({ t, ticker, openE8: op.data.openPriceE8, nowSec, spot: state.spot, halts, maker: s.maker });
+      if ("skip" in price) notes.push(`${t.marketId} ${price.skip}`);
+      else post(op.data.termsCid, t, price, op.data.openPriceE8);
+      continue;
+    }
     const untilSec = quotingUntilSec(t);
     if (nowSec < t.tradingStartSec || nowSec > untilSec - s.minQuoteLifeSec) continue;
     // A token lane's spot is its xStock (the asset its prints price), every other lane's its ticker.
@@ -103,37 +204,29 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
       continue;
     }
     const fair = fairYesTicks({ spotE8: spot.priceE8, openE8: op.data.openPriceE8, secondsLeft: t.expirySec - nowSec, ...sigma, minTick: s.maker.minTick });
-    // Venue stake held against each side: its legs opposite the users' and its live quotes on that side.
-    let usedUpBase = 0n;
-    let usedDownBase = 0n;
-    for (const l of venueLegs) if (l.data.termsCid === op.data.termsCid) l.data.outcome === "SideDown" ? (usedUpBase += l.data.backingShare) : (usedDownBase += l.data.backingShare);
-    for (const q of quotes) {
-      if (q.data.termsCid !== op.data.termsCid) continue;
-      const stake = q.data.lots * BigInt(1000 - q.data.priceTicks) * q.data.cashUnit;
-      if (q.data.side === "SideUp") usedUpBase += stake;
-      else usedDownBase += stake;
-    }
-    const ladder = buildLadder({
-      fairTicks: fair, halfSpreadTicks: s.maker.halfSpreadTicks, minTick: s.maker.minTick, levels: s.levels, stepTicks: s.stepTicks,
-      lotsPerLevel: s.lotsPerLevel, cashUnit: t.cashUnit, capBase: s.marketCapBase, usedUpBase, usedDownBase,
-    });
-    const marketId = marketIdFromDaml(t.marketId);
-    live.add(marketId);
-    state.board.put({
-      marketId, damlMarketId: t.marketId, seriesId: seriesIdFromDaml(t.seriesKey), termsCid: op.data.termsCid, seriesKey: t.seriesKey, symbol: t.symbol, index: t.index,
-      tradingStartSec: t.tradingStartSec, lockAtSec: t.lockAtSec, expirySec: t.expirySec, quotingUntilSec: untilSec,
-      cashUnit: t.cashUnit, feeRateBps: s.feeRateBps, fairTicks: fair, openPriceE8: op.data.openPriceE8, spotE8: spot.priceE8,
-      up: ladder.up, down: ladder.down, asOfMs: Date.now(), state: "quoting",
-    });
-    notes.push(`${t.marketId} fair ${fair} up ${ladder.up[0]?.[0] ?? "-"} down ${ladder.down[0]?.[0] ?? "-"}`);
+    post(op.data.termsCid, t, { fairTicks: fair, halfSpreadTicks: s.maker.halfSpreadTicks, untilSec, capBase: s.marketCapBase, spotE8: spot.priceE8, basis: "price", why: "spot" }, op.data.openPriceE8);
   }
+
+  for (const ev of events) {
+    const t = state.terms.get(ev.data.termsCid);
+    if (t) post(ev.data.termsCid, t, eventPrice(t, s.marketCapBase), 0n);
+  }
+
   for (const e of state.board.all()) if (!live.has(e.marketId)) state.board.close(e.marketId);
   return { why: notes.length ? notes.join("; ") : "no Window quoting", detail: { quoting: live.size } };
 }
 
-export function startPricer(input: { venue: RoleSession; spot: SpotFeed | null; board: LadderBoard; log: (why: string) => void; settings?: PricerSettings; vol?: VolBoard | null }): { stop: () => void } {
+export function startPricer(input: {
+  venue: RoleSession;
+  spot: SpotFeed | null;
+  board: LadderBoard;
+  log: (why: string) => void;
+  settings?: PricerSettings;
+  vol?: VolBoard | null;
+  halts?: () => HaltBoard;
+}): { stop: () => void } {
   const settings = input.settings ?? readPricerSettings();
-  const state: PricerState = { venue: input.venue, spot: input.spot, vol: input.vol ?? null, board: input.board, settings, terms: new Map() };
+  const state: PricerState = { venue: input.venue, spot: input.spot, vol: input.vol ?? null, board: input.board, settings, terms: new Map(), halts: input.halts ?? (() => ({})) };
   input.log(`pricer: ${settings.levels} levels × ${settings.lotsPerLevel} lots every ${settings.stepTicks} ticks, half-spread ${settings.maker.halfSpreadTicks}, cap ${settings.marketCapBase} base/side, fee ${settings.feeRateBps} bps${input.spot ? "" : " · NO SPOT FEED"}`);
   return runActor({ name: "pricer", log: input.log, dryRun: false, everyMs: settings.everyMs, pass: () => pricerPass(state) });
 }
