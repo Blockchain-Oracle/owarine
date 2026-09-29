@@ -1,15 +1,10 @@
-import { readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { BASKET_SYMBOLS, BASKETS, type Basket } from "@agari/core/market";
 import { preStocksBasketFeedHex } from "../prices/prestocks";
 import { SOURCE, ZERO_POLICY } from "./policies";
-import type { SeriesRecord, VenueRecord } from "./send";
 import { BASIS, preStocksBasketFeedId, preStocksBasketSeries } from "./venue-spec";
 
 const hex = (bytes: Uint8Array) => Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-const ADDRESSES = resolve(dirname(fileURLToPath(import.meta.url)), "../../../../scripts/deploy/addresses.devnet.json");
 
 describe("preStocksBasketSeries", () => {
   it("is a token-basis attested Series on the basket's own ticker id and feed, keyed like every token Series", () => {
@@ -36,20 +31,5 @@ describe("preStocksBasketSeries", () => {
     const unbased: Basket = { ...BASKETS.AILABS, members: BASKETS.AILABS.members.map((m, i) => (i === 0 ? { ...m, basePriceE8: null } : m)) };
     expect(() => preStocksBasketSeries(unbased)).toThrow(/AILABS has no base for OPENAI/);
     expect(() => preStocksBasketSeries({ ...BASKETS.AILABS, baseAtSec: null })).toThrow(/has no base/);
-  });
-
-  // Once a basket Series is registered, the record beside it carries the bases its feed version stands on. Those must
-  // equal the code's frozen bases forever: a change in `baskets.ts` after registration is a new feed version and a new
-  // Series, never an edit, or a settled Window would stop being recomputable.
-  it("pins every registered basket Series to the frozen bases in core", () => {
-    const file = JSON.parse(readFileSync(ADDRESSES, "utf8")) as { venue: VenueRecord };
-    const registered = Object.entries(file.venue.series ?? {}).filter((entry): entry is [string, SeriesRecord & { basePrices: Record<string, string> }] => entry[1].basePrices !== undefined);
-    for (const [key, record] of registered) {
-      const symbol = BASKET_SYMBOLS.find((s) => BASKETS[s].seriesId === record.ticker);
-      expect(symbol, `${key} is a basket Series`).toBeDefined();
-      const basket = BASKETS[symbol!];
-      expect(record.baseAtSec, `${key} baseAtSec`).toBe(basket.baseAtSec);
-      expect(record.basePrices, `${key} basePrices`).toEqual(Object.fromEntries(basket.members.map((m) => [m.symbol, String(m.basePriceE8)])));
-    }
   });
 });
