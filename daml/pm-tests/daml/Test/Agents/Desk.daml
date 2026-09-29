@@ -1,0 +1,433 @@
+-- | The desk mandate's money gate: the operator trades only inside the
+-- owner's allowlist, the premium ceiling over an attested reference, and
+-- every grant cap; pause, revoke, close and expiry races at T-1/T/T+1 and
+-- in both transaction orders; the hash-chained record (checkpoints in
+-- shadow and paused mode, fork refusal, tamper detection); visibility; and
+-- conservation through agent-placed quotes.
+module Test.Agents.Desk where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List (sortOn)
+import DA.Text (sha256)
+import PM.Agents.Desk
+import PM.Grant
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+data D = D with
+  w : World
+  win : Win
+    -- ^ BTC-3d, allowed
+  eth : Win
+    -- ^ ETH-3d, not on the allowlist
+  operator : Party
+  mandate : ContractId DeskMandate
+
+caps0 : GrantCaps
+caps0 = GrantCaps with maxStakePerTrade = 700; maxDailySpend = 1000; maxPriceTicks = 650; maxOpenPositions = 9
+
+deskExpiry : Time
+deskExpiry = plus t0 (2 * 86400)
+
+-- Alice funds 2500 and opens a live desk with budget 2000; attestors are
+-- the three oracles with a quorum of 2; premium ceiling 500 bps.
+setupD : Script D
+setupD = do
+  w <- mkWorld
+  s <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "BTC-3d"; cadenceSec = 3 * 86400
+  (_, win) <- openWin w s 0
+  se <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "ETH-3d"; symbol = "ETH"; cadenceSec = 3 * 86400
+  (_, eth) <- openWin w se 0
+  operator <- allocateParty "operator"
+  offer <- submit w.venue do createCmd DeskOffer with venue = w.venue; owner = w.alice
+  c <- fund w w.alice 2500
+  mandate <- submit w.alice do
+    exerciseCmd offer DeskOffer_Open with
+      operator; caps = caps0; expiresAt = deskExpiry; dayZero = t0; budget = 2000; cash = [c]
+      allowList = ["BTC-3d"]; maxPremiumBps = 500; attestors = [w.o1, w.o2, w.o3]; refQuorum = 2
+      mode = DeskLive
+  cashOf w.alice >>= (=== 500)
+  pure D with ..
+
+h : Int -> Text
+h n = sha256 ("decision " <> show n)
+
+mandateOf : D -> ContractId DeskMandate -> Script DeskMandate
+mandateOf d cid = do
+  Some m <- queryContractId d.w.alice cid
+  pure m
+
+headOf : D -> ContractId DeskMandate -> Script Text
+headOf d cid = optional genesisHead (\m -> m.head) <$> queryContractId d.w.alice cid
+
+markAt : D -> Party -> Win -> Side -> Int -> Time -> Script (ContractId DeskMark)
+markAt d who win side ticks fetchedAt = submit who do
+  createCmd DeskMark with
+    attestor = who; venue = d.w.venue; marketId = win.t.marketId; side; refTicks = ticks; fetchedAt
+
+-- Two fresh agreeing marks (o1, o2) for the window's side.
+marks2 : D -> Win -> Side -> Int -> Script [ContractId DeskMark]
+marks2 d win side ticks = do
+  now <- getTime
+  mapA (\o -> markAt d o win side ticks now) [d.w.o1, d.w.o2]
+
+type TradeResult = (ContractId DeskMandate, ContractId Leg, ContractId DeskDecision)
+
+-- The operator submits a trade on an already-issued quote.
+tradeQuote : D -> ContractId DeskMandate -> ContractId Quote -> Int -> [ContractId DeskMark] -> Text -> Time
+  -> Script (Either SubmitError TradeResult)
+tradeQuote d cid q limit marks dh asOf = do
+  prev <- headOf d cid
+  dq <- disclosureOf d.w.venue q
+  dms <- mapA (disclosureOf d.w.venue) marks
+  trySubmit (foldl (<>) (actAs d.operator <> disclose dq) (map disclose dms)) do
+    exerciseCmd cid Mandate_Trade with
+      actor = d.operator; quoteCid = q; limitTicks = limit; asOf; markCids = marks
+      prevHead = prev; decisionHash = dh; note = "buy"
+
+-- Issue Alice a quote on `win` and have the operator buy it, reference
+-- marks at `ref`, limit = price, decision hash `dh`.
+tradeOn : D -> Win -> ContractId DeskMandate -> Party -> Side -> Int -> Int -> Int -> Text
+  -> Script (Either SubmitError TradeResult)
+tradeOn d win cid user side ticks lots ref dh = do
+  now <- getTime
+  q <- issue d.w win user side ticks lots 0 (plus now 20) "d"
+  ms <- marks2 d win side ref
+  tradeQuote d cid q ticks ms dh now
+
+trade1 : D -> ContractId DeskMandate -> Int -> Int -> Text -> Script (Either SubmitError TradeResult)
+trade1 d cid ticks lots dh = tradeOn d d.win cid d.w.alice SideUp ticks lots ticks dh
+
+budgetOf : D -> ContractId DeskMandate -> Script Int
+budgetOf d cid = (\m -> m.grant.budget) <$> mandateOf d cid
+
+checkpoint : D -> ContractId DeskMandate -> Text -> Script (Either SubmitError (ContractId DeskMandate, ContractId DeskDecision))
+checkpoint d cid dh = do
+  prev <- headOf d cid
+  now <- getTime
+  trySubmit d.operator do
+    exerciseCmd cid Mandate_Checkpoint with
+      actor = d.operator; prevHead = prev; decisionHash = dh; deadline = plus now 30; note = "hold"
+
+-- Everything the venue can see that holds money: cash, quote locks, legs
+-- (backing plus fee), grant and mandate budgets.
+money : D -> Script Int
+money d = do
+  let v = d.w.venue
+  cs <- query @VenueCash v
+  qs <- query @Quote v
+  ls <- query @Leg v
+  gs <- query @AgentGrant v
+  ms <- query @DeskMandate v
+  pure (sum [c.amount | (_, c) <- cs]
+        + sum [venueStakeOf q.lots q.priceTicks q.cashUnit | (_, q) <- qs]
+        + sum [l.backingShare + l.feePaid | (_, l) <- ls]
+        + sum [g.budget | (_, g) <- gs]
+        + sum [m.grant.budget | (_, m) <- ms])
+
+-- ---------------------------------------------------------------------------
+
+-- A trade inside the mandate: Alice's leg, the budget charged, the record
+-- sealed from genesis, and no standing grant left behind for the operator.
+testDeskTradeWithinMandate = script do
+  d <- setupD
+  (m1, leg, dec) <- succeeded =<< trade1 d d.mandate 600 1 (h 1)
+  Some l <- queryContractId d.w.alice leg
+  (l.owner, l.lots, l.backingShare, l.beneficiaryRef) === (d.w.alice, 1, 600, Some "grant")
+  budgetOf d m1 >>= (=== 1400)
+  Some r <- queryContractId d.w.alice dec
+  (r.seq, r.prevHead, r.decisionHash, r.head) === (1, genesisHead, h 1, nextHead genesisHead 1 (h 1))
+  r.action === DeskTrade with
+    marketId = d.win.t.marketId; side = SideUp; lots = 1; priceTicks = 600; referenceTicks = 600; charge = 600
+  m <- mandateOf d m1
+  (m.seq, m.head, m.grant.spentToday, length m.grant.positions) === (1, r.head, 600, 1)
+  -- the operator never holds a grant of its own
+  (length <$> query @AgentGrant d.operator) >>= (=== 0)
+  (length <$> query @AgentGrant d.w.venue) >>= (=== 0)
+  -- the operator sees its record
+  (length <$> query @DeskDecision d.operator) >>= (=== 1)
+
+-- The operator can never exceed a cap, trade outside the allowlist, over
+-- the premium ceiling or on a bad reference; every refusal leaves the
+-- budget and the record untouched.
+testDeskNeverExceedsMandate = script do
+  d <- setupD
+  (m1, _, _) <- succeeded =<< trade1 d d.mandate 600 1 (h 1)
+  let m = m1
+  -- grant caps (K-024 order)
+  refusedWith (refusal "over-stake-cap") =<< trade1 d m 360 2 (h 2)
+  refusedWith (refusal "over-price-cap") =<< trade1 d m 651 1 (h 2)
+  refusedWith (refusal "over-daily-cap") =<< trade1 d m 401 1 (h 2)
+  -- allowlist: the ETH series is not the owner's choice
+  refusedWith (refusal "not-allowed") =<< tradeOn d d.eth m d.w.alice SideUp 300 1 300 (h 2)
+  -- premium ceiling: 500 bps over a 380 reference admits 399, not 400
+  refusedWith (refusal "premium-too-high") =<< tradeOn d d.win m d.w.alice SideUp 400 1 380 (h 2)
+  -- the reference: quorum, attestor set, market and side, freshness
+  now <- getTime
+  q <- issue d.w d.win d.w.alice SideUp 300 1 0 (plus now 20) "d"
+  [a1, a2] <- marks2 d d.win SideUp 300
+  refusedWith (refusal "reference-quorum") =<< tradeQuote d m q 300 [a1] (h 2) now
+  a1again <- markAt d d.w.o1 d.win SideUp 300 now
+  refusedWith (refusal "reference-quorum") =<< tradeQuote d m q 300 [a1, a1again] (h 2) now
+  stranger <- markAt d d.w.outsider d.win SideUp 300 now
+  refusedWith (refusal "unknown-attestor") =<< tradeQuote d m q 300 [a1, stranger] (h 2) now
+  otherSide <- markAt d d.w.o2 d.win SideDown 700 now
+  refusedWith (refusal "wrong-reference") =<< tradeQuote d m q 300 [a1, otherSide] (h 2) now
+  stale <- markAt d d.w.o2 d.win SideUp 300 (plus now (-901))
+  refusedWith (refusal "reference-stale") =<< tradeQuote d m q 300 [a1, stale] (h 2) now
+  early <- markAt d d.w.o2 d.win SideUp 300 (plus now 6)
+  refusedWith (refusal "reference-stale") =<< tradeQuote d m q 300 [a1, early] (h 2) now
+  -- the operator's record: a zero or short hash, or a forked head
+  refusedWith (refusal "zero-hash") =<< tradeQuote d m q 300 [a1, a2] genesisHead now
+  refusedWith (refusal "zero-hash") =<< tradeQuote d m q 300 [a1, a2] "abc" now
+  dq <- disclosureOf d.w.venue q
+  dms <- mapA (disclosureOf d.w.venue) [a1, a2]
+  refusedWith (refusal "head-mismatch") =<< trySubmit (foldl (<>) (actAs d.operator <> disclose dq) (map disclose dms)) do
+    exerciseCmd m Mandate_Trade with
+      actor = d.operator; quoteCid = q; limitTicks = 300; asOf = now; markCids = [a1, a2]
+      prevHead = genesisHead; decisionHash = h 2; note = "fork"
+  -- another owner's quote
+  refusedWith (refusal "wrong-quote") =<< tradeOn d d.win m d.w.bob SideUp 300 1 300 (h 2)
+  -- the venue is not the operator; an outsider cannot even see the desk
+  refusedWith (refusal "not-operator") =<< trySubmit (actAs d.w.venue <> disclose dq) do
+    exerciseCmd m Mandate_Trade with
+      actor = d.w.venue; quoteCid = q; limitTicks = 300; asOf = now; markCids = [a1, a2]
+      prevHead = nextHead genesisHead 1 (h 1); decisionHash = h 2; note = ""
+  fails =<< trySubmit (actAs d.w.outsider <> disclose dq) do
+    exerciseCmd m Mandate_Trade with
+      actor = d.w.outsider; quoteCid = q; limitTicks = 300; asOf = now; markCids = [a1, a2]
+      prevHead = nextHead genesisHead 1 (h 1); decisionHash = h 2; note = ""
+  -- the lower median of three is the reference: 300, 390, 400 -> 390
+  a3 <- markAt d d.w.o3 d.win SideUp 400 now
+  lo <- markAt d d.w.o2 d.win SideUp 390 now
+  q2 <- issue d.w d.win d.w.alice SideUp 390 1 0 (plus now 20) "d"
+  (m2, _, dec) <- succeeded =<< tradeQuote d m q2 390 [a1, lo, a3] (h 2) now
+  Some r <- queryContractId d.w.alice dec
+  r.action === DeskTrade with
+    marketId = d.win.t.marketId; side = SideUp; lots = 1; priceTicks = 390; referenceTicks = 390; charge = 390
+  budgetOf d m2 >>= (=== 2000 - 600 - 390)
+  -- budget: the owner withdraws down to 9, and a 10 charge is refused
+  (m3, _) <- submit d.w.alice do exerciseCmd m2 Mandate_Withdraw with amount = 1001
+  budgetOf d m3 >>= (=== 9)
+  at (plus t0 86400)
+  refusedWith (refusal "insufficient-budget") =<< trade1 d m3 10 1 (h 3)
+
+-- Shadow mode sends nothing; paused sends nothing; both still checkpoint.
+-- The owner or the operator may pause; only the owner unpauses, changes
+-- mode, limits, allowlist or operator.
+testDeskModesAndControls = script do
+  d <- setupD
+  m1 <- submit d.w.alice do exerciseCmd d.mandate Mandate_SetMode with newMode = DeskShadow
+  refusedWith (refusal "shadow-mode") =<< trade1 d m1 500 1 (h 1)
+  (m2, _) <- succeeded =<< checkpoint d m1 (h 1)
+  -- the operator pauses; it cannot unpause or change anything
+  m3 <- submit d.operator do exerciseCmd m2 Mandate_Pause with actor = d.operator
+  fails =<< trySubmit d.operator do exerciseCmd m3 Mandate_Unpause
+  fails =<< trySubmit d.operator do exerciseCmd m3 Mandate_SetMode with newMode = DeskLive
+  fails =<< trySubmit d.operator do exerciseCmd m3 Mandate_SetAllowList with newAllowList = ["ETH-3d"]
+  fails =<< trySubmit d.operator do exerciseCmd m3 Mandate_SetLimits with newCaps = (caps0 with maxStakePerTrade = 10000); newMaxPremiumBps = 10000
+  fails =<< trySubmit d.operator do exerciseCmd m3 Mandate_Withdraw with amount = 1
+  -- nor can the venue drive the owner's controls or pause
+  fails =<< trySubmit d.w.venue do exerciseCmd m3 Mandate_Unpause
+  refusedWith (refusal "not-owner-or-operator") =<< trySubmit d.w.venue do exerciseCmd m3 Mandate_Pause with actor = d.w.venue
+  (m4, _) <- succeeded =<< checkpoint d m3 (h 2)
+  m5 <- submit d.w.alice do exerciseCmd m4 Mandate_SetMode with newMode = DeskLive
+  refusedWith (refusal "desk-paused") =<< trade1 d m5 500 1 (h 3)
+  m6 <- submit d.w.alice do exerciseCmd m5 Mandate_Unpause
+  (m7, _, _) <- succeeded =<< trade1 d m6 500 1 (h 3)
+  -- limits: bad configs refused; a tighter per-trade cap binds at once
+  refusedWith (refusal "bad-config") =<< trySubmit d.w.alice do
+    exerciseCmd m7 Mandate_SetLimits with newCaps = (caps0 with maxStakePerTrade = 1001); newMaxPremiumBps = 500
+  m8 <- submit d.w.alice do
+    exerciseCmd m7 Mandate_SetLimits with newCaps = (caps0 with maxStakePerTrade = 100); newMaxPremiumBps = 0
+  refusedWith (refusal "over-stake-cap") =<< trade1 d m8 101 1 (h 4)
+  -- premium 0: the price may not exceed the reference at all
+  refusedWith (refusal "premium-too-high") =<< tradeOn d d.win m8 d.w.alice SideUp 100 1 99 (h 4)
+  -- allowlist changes bind at once
+  m9 <- submit d.w.alice do exerciseCmd m8 Mandate_SetAllowList with newAllowList = ["ETH-3d"]
+  refusedWith (refusal "not-allowed") =<< trade1 d m9 100 1 (h 4)
+  (m10, _, _) <- succeeded =<< tradeOn d d.eth m9 d.w.alice SideUp 100 1 100 (h 4)
+  -- the owner can never be the operator
+  refusedWith (refusal "bad-operator") =<< trySubmit d.w.alice do
+    exerciseCmd m10 Mandate_SetOperator with newOperator = d.w.alice
+  pure ()
+
+-- Pause and revoke against a trade, in both transaction orders: whichever
+-- commits first wins, and the loser never spends.
+testDeskPauseRevokeRaces = script do
+  -- pause first: the trade on the old mandate fails, on the new one it is refused
+  d <- setupD
+  now <- getTime
+  q <- issue d.w d.win d.w.alice SideUp 500 1 0 (plus now 20) "d"
+  ms <- marks2 d d.win SideUp 500
+  m1 <- submit d.w.alice do exerciseCmd d.mandate Mandate_Pause with actor = d.w.alice
+  fails =<< tradeQuote d d.mandate q 500 ms (h 1) now
+  refusedWith (refusal "desk-paused") =<< tradeQuote d m1 q 500 ms (h 1) now
+  budgetOf d m1 >>= (=== 2000)
+  -- trade first: it lands; the pause on the old mandate fails, on the new one it lands
+  d2 <- setupD
+  q2 <- issue d2.w d2.win d2.w.alice SideUp 500 1 0 (plus now 20) "d"
+  ms2 <- marks2 d2 d2.win SideUp 500
+  (n1, leg, _) <- succeeded =<< tradeQuote d2 d2.mandate q2 500 ms2 (h 1) now
+  fails =<< trySubmit d2.w.alice do exerciseCmd d2.mandate Mandate_Pause with actor = d2.w.alice
+  n2 <- submit d2.w.alice do exerciseCmd n1 Mandate_Pause with actor = d2.w.alice
+  budgetOf d2 n2 >>= (=== 1500)
+  -- revoke first: the operator loses sight of the desk and every action fails
+  d3 <- setupD
+  r1 <- submit d3.w.alice do exerciseCmd d3.mandate Mandate_RevokeOperator
+  mv <- mandateOf d3 r1
+  (mv.operator, mv.paused) === (None, True)
+  (length <$> query @DeskMandate d3.operator) >>= (=== 0)
+  fails =<< trade1 d3 d3.mandate 400 1 (h 1)
+  fails =<< trade1 d3 r1 400 1 (h 1)
+  fails =<< checkpoint d3 r1 (h 1)
+  fails =<< trySubmit d3.operator do exerciseCmd r1 Mandate_Pause with actor = d3.operator
+  -- a new operator; the old one stays out
+  op2 <- allocateParty "operator2"
+  r2 <- submit d3.w.alice do exerciseCmd r1 Mandate_SetOperator with newOperator = op2
+  r3 <- submit d3.w.alice do exerciseCmd r2 Mandate_Unpause
+  fails =<< trade1 d3 r3 400 1 (h 1)
+  (_, _, _) <- succeeded =<< trade1 (d3 with operator = op2) r3 400 1 (h 1)
+  -- trade first, then revoke: the trade and its leg stand
+  d4 <- setupD
+  (k1, leg4, _) <- succeeded =<< trade1 d4 d4.mandate 400 1 (h 1)
+  k2 <- submit d4.w.alice do exerciseCmd k1 Mandate_RevokeOperator
+  budgetOf d4 k2 >>= (=== 1600)
+  Some l <- queryContractId d4.w.alice leg4
+  l.owner === d4.w.alice
+  Some _ <- queryContractId d2.w.alice leg
+  pure ()
+
+-- Expiry at T-1, T and T+1 (the grant admits at expiresAt), and close
+-- against a trade in both orders; close and withdraw work on an expired,
+-- paused or revoked desk.
+testDeskExpiryAndCloseRaces = script do
+  -- close first: the operator's trade on the closed desk fails
+  d2 <- setupD
+  _ <- submit d2.w.alice do exerciseCmd d2.mandate Mandate_Close
+  fails =<< trade1 d2 d2.mandate 300 1 (h 1)
+  cashOf d2.w.alice >>= (=== 2500)
+  -- trade first: the close returns what is left
+  d3 <- setupD
+  (n1, _, _) <- succeeded =<< trade1 d3 d3.mandate 300 1 (h 1)
+  fails =<< trade1 d3 d3.mandate 300 1 (h 2)
+  _ <- submit d3.w.alice do exerciseCmd n1 Mandate_Close
+  cashOf d3.w.alice >>= (=== 500 + 1700)
+  -- expiry
+  d <- setupD
+  at (plus deskExpiry (-1))
+  (m1, _, _) <- succeeded =<< trade1 d d.mandate 300 1 (h 1)
+  at deskExpiry
+  (m2, _, _) <- succeeded =<< trade1 d m1 300 1 (h 2)
+  at (plus deskExpiry 1)
+  refusedWith deadlineExceeded =<< trade1 d m2 300 1 (h 3)
+  -- still recordable, revocable and closable after expiry
+  (m3, _) <- succeeded =<< checkpoint d m2 (h 3)
+  m4 <- submit d.w.alice do exerciseCmd m3 Mandate_RevokeOperator
+  before <- cashOf d.w.alice
+  Some back <- submit d.w.alice do exerciseCmd m4 Mandate_Close
+  Some b <- queryContractId d.w.alice back
+  b.amount === 1400
+  cashOf d.w.alice >>= (=== before + 1400)
+
+-- The record is a hash chain: every action and checkpoint advances it from
+-- genesis, a fork is refused, and any tampering with a stored record
+-- (a changed hash, a dropped or reordered decision) fails re-verification.
+testDeskChainTamperDetection = script do
+  d <- setupD
+  (m1, _) <- succeeded =<< checkpoint d d.mandate (h 1)
+  (m2, _, _) <- succeeded =<< trade1 d m1 300 1 (h 2)
+  m3 <- submit d.w.alice do exerciseCmd m2 Mandate_SetMode with newMode = DeskShadow
+  (m4, _) <- succeeded =<< checkpoint d m3 (h 3)
+  m5 <- submit d.operator do exerciseCmd m4 Mandate_Pause with actor = d.operator
+  (m6, _) <- succeeded =<< checkpoint d m5 (h 4)
+  -- refusals: a stale head, a zero hash, a passed deadline
+  now <- getTime
+  refusedWith (refusal "head-mismatch") =<< trySubmit d.operator do
+    exerciseCmd m6 Mandate_Checkpoint with
+      actor = d.operator; prevHead = nextHead genesisHead 1 (h 1); decisionHash = h 5; deadline = plus now 30; note = ""
+  refusedWith (refusal "zero-hash") =<< checkpoint d m6 genesisHead
+  refusedWith deadlineExceeded =<< trySubmit d.operator do
+    exerciseCmd m6 Mandate_Checkpoint with
+      actor = d.operator; prevHead = genesisHead; decisionHash = h 5; deadline = plus now (-1); note = ""
+  -- the owner's copy of the record re-verifies
+  ds <- map snd . sortOn (\(_, x) -> x.seq) <$> query @DeskDecision d.w.alice
+  map (\x -> x.seq) ds === [1, 2, 3, 4]
+  chainOk ds === True
+  m <- mandateOf d m6
+  m.head === (lastOf ds).head
+  -- tampering is detected
+  let changed = [if x.seq == 2 then (x with decisionHash = h 99) else x | x <- ds]
+      dropped = [x | x <- ds, x.seq /= 3]
+      swapped = case ds of
+        [a, b, c, e] -> [a, c, b, e]
+        _ -> ds
+      forged = [if x.seq == 3 then (x with prevHead = genesisHead; head = nextHead genesisHead 3 x.decisionHash) else x | x <- ds]
+  forA_ [changed, dropped, swapped, forged] \t -> chainOk t === False
+  -- the venue's copy is the same record
+  vs <- map snd . sortOn (\(_, x) -> x.seq) <$> query @DeskDecision d.w.venue
+  vs === ds
+  where
+    lastOf xs = case reverse xs of
+      (x :: _) -> x
+      [] -> error "empty"
+
+-- Visibility: an outsider sees nothing; another owner sees nothing of
+-- Alice's desk; a revoked operator keeps only the decisions it sealed.
+testDeskVisibility = script do
+  d <- setupD
+  (m1, _, _) <- succeeded =<< trade1 d d.mandate 300 1 (h 1)
+  let counts p = do
+        a <- length <$> query @DeskOffer p
+        b <- length <$> query @DeskMandate p
+        c <- length <$> query @DeskDecision p
+        e <- length <$> query @AgentGrant p
+        pure (a, b, c, e)
+  counts d.w.outsider >>= (=== (0, 0, 0, 0))
+  counts d.w.bob >>= (=== (0, 0, 0, 0))
+  counts d.w.alice >>= (=== (1, 1, 1, 0))
+  counts d.operator >>= (=== (0, 1, 1, 0))
+  _ <- submit d.w.alice do exerciseCmd m1 Mandate_RevokeOperator
+  counts d.operator >>= (=== (0, 0, 1, 0))
+  -- marks are the attestor's and the venue's only
+  (length <$> query @DeskMark d.w.outsider) >>= (=== 0)
+  (length <$> query @DeskMark d.w.alice) >>= (=== 0)
+
+-- Conservation through agent-placed quotes: every step moves money between
+-- cash, quote locks, legs and the desk budget, and the total only changes
+-- by the credits (the venue's shards) made for each quote.
+testDeskConservation = script do
+  d <- setupD
+  m0 <- money d
+  let step cid ticks lots dh = do
+        before <- money d
+        r <- trade1 d cid ticks lots dh
+        after <- money d
+        -- the only credit in a step is the venue shard behind the quote
+        after === before + venueStakeOf lots ticks 1
+        pure r
+  (m1, _, _) <- succeeded =<< step d.mandate 300 1 (h 1)
+  (m2, _, _) <- succeeded =<< step m1 450 1 (h 2)
+  refusedWith (refusal "over-stake-cap") =<< step m2 400 2 (h 3)
+  refusedWith (refusal "over-price-cap") =<< step m2 700 1 (h 3)
+  -- deposit and withdraw move cash, never create it
+  c <- fund d.w d.w.alice 100
+  before <- money d
+  m3 <- submit d.w.alice do exerciseCmd m2 Mandate_Deposit with cash = [c]
+  (m4, _) <- submit d.w.alice do exerciseCmd m3 Mandate_Withdraw with amount = 50
+  _ <- submit d.w.alice do exerciseCmd m4 Mandate_Close
+  money d >>= (=== before)
+  -- Alice's side: cash + legs at cost = everything she was credited
+  cashOf d.w.alice >>= \x -> do
+    legs <- query @Leg d.w.alice
+    x + sum [l.backingShare + l.feePaid | (_, l) <- legs, l.owner == d.w.alice] === 2500 + 100
+  -- and nothing was conjured beyond the credits
+  final <- money d
+  final === m0 + 100 + venueStakeOf 1 300 1 + venueStakeOf 1 450 1 + venueStakeOf 2 400 1 + venueStakeOf 1 700 1

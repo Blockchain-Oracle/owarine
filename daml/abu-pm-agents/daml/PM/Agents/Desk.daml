@@ -1,0 +1,363 @@
+-- | The desk (the reference's `agari-desk`, D-126) as a `DeskMandate` built
+-- on `AgentGrant` (K-085: the live leg trades this venue's own markets with
+-- venue cash; practice desks stay off-ledger paper ledgers).
+--
+-- The owner decides what the desk may own; the operator decides only when,
+-- and only inside:
+--   * the mandate's market allowlist (series keys),
+--   * the premium ceiling over an attested reference (a quorum of attestor
+--     marks, the lower median of them),
+--   * every cap of the embedded grant, enforced by `PM.Grant`'s own
+--     `Grant_AcceptQuote` (expiry, price cap, escrow, per-trade, daily,
+--     budget, open positions, fill; K-024's order).
+-- The grant lives inside the mandate as data. For each trade the mandate
+-- creates it with `agent = operator`, exercises `Grant_AcceptQuote` and
+-- archives the result in the same transaction, so the operator never holds
+-- a standing grant it could use around the mandate's own checks.
+--
+-- Every action, "did nothing" included, carries a decision hash and
+-- advances a hash chain in the same transaction:
+--   head(n) = sha256(head(n-1) <> ":" <> show n <> ":" <> decisionHash(n))
+-- from 64 zeros, and leaves a `DeskDecision` (owner + venue) storing the
+-- previous head. An operator must name the head it builds on, so a forked
+-- or replayed record is refused; `chainOk` re-verifies a stored record.
+--
+-- Visibility: the mandate and its decisions are the owner's and the venue's;
+-- the current operator observes the mandate. A trade fetches the attestors'
+-- marks, so an attestor learns that its mark was read (not by whom it was
+-- quoted or for how much).
+module PM.Agents.Desk where
+
+import DA.Assert (assertWithinDeadline)
+import DA.List (init, sort, unique, (!!))
+import DA.Optional (optionalToList)
+import qualified DA.Text as T
+import DA.Time (addRelTime, seconds)
+import PM.Grant
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Types
+
+-- | Live trades; Shadow records decisions (checkpoints) and sends nothing.
+-- Paused is a separate flag, as in the reference, so unpausing returns the
+-- desk to the mode it had.
+data DeskMode = DeskLive | DeskShadow
+  deriving (Eq, Show)
+
+-- ---------------------------------------------------------------------------
+-- The hash chain
+
+genesisHead : Text
+genesisHead = T.implode (replicate 64 "0")
+
+nextHead : Text -> Int -> Text -> Text
+nextHead prev n decisionHash = T.sha256 (prev <> ":" <> show n <> ":" <> decisionHash)
+
+-- | A decision hash is a 64-character digest and never the zero hash.
+decisionHashOk : Text -> Bool
+decisionHashOk h = T.length h == 64 && h /= genesisHead
+
+-- | Re-verify a stored record from genesis: gap-free sequence numbers from
+-- 1, each decision building on the previous head, each head recomputed.
+chainOk : [DeskDecision] -> Bool
+chainOk = chainFrom genesisHead 1
+
+chainFrom : Text -> Int -> [DeskDecision] -> Bool
+chainFrom _ _ [] = True
+chainFrom prev n (d :: ds) =
+  d.seq == n && d.prevHead == prev && d.head == nextHead prev n d.decisionHash
+    && chainFrom d.head (n + 1) ds
+
+-- ---------------------------------------------------------------------------
+-- The attested reference and the premium ceiling
+
+referenceMaxAgeSec : Int
+referenceMaxAgeSec = 900
+
+referenceFutureSlackSec : Int
+referenceFutureSlackSec = 5
+
+-- | `price * 10000 <= reference * (10000 + maxBps)`: at most `maxBps` above
+-- the reference, inclusive. A zero reference never passes.
+premiumOk : Int -> Int -> Int -> Bool
+premiumOk priceTicks refTicks maxBps = refTicks > 0 && priceTicks * 10000 <= refTicks * (10000 + maxBps)
+
+-- | The series a market id belongs to (`seriesKey <> ":" <> index`).
+seriesOf : Text -> Text
+seriesOf marketId = case T.splitOn ":" marketId of
+  [] -> ""
+  parts -> T.intercalate ":" (init parts)
+
+-- | One attestor's mark for one side of one market, in ticks.
+template DeskMark
+  with
+    attestor : Party
+    venue : Party
+    marketId : Text
+    side : Side
+    refTicks : Int
+    fetchedAt : Time
+  where
+    signatory attestor
+    observer venue
+    ensure ticksOk refTicks
+
+-- ---------------------------------------------------------------------------
+-- Opening
+
+-- | The venue's standing offer to open desks for one owner. The owner funds
+-- the mandate's budget from their own cash.
+template DeskOffer
+  with
+    venue : Party
+    owner : Party
+  where
+    signatory venue
+    observer owner
+
+    nonconsuming choice DeskOffer_Open : ContractId DeskMandate
+      with
+        operator : Party
+        caps : GrantCaps
+        expiresAt : Time
+        dayZero : Time
+        budget : Int
+        cash : [ContractId VenueCash]
+        allowList : [Text]
+        maxPremiumBps : Int
+        attestors : [Party]
+        refQuorum : Int
+        mode : DeskMode
+      controller owner
+      do
+        total <- sumOwnedCash venue owner cash
+        require "insufficient-cash" "cash does not cover the budget" (total >= budget)
+        _ <- payIfPositive venue owner (total - budget) "change"
+        create DeskMandate with
+          venue; owner; operator = Some operator
+          grant = AgentGrant with
+            venue; owner; agent = operator; caps; budget; expiresAt; dayZero
+            day = 0; spentToday = 0; positions = []
+          allowList; maxPremiumBps; attestors; refQuorum; mode; paused = False
+          head = genesisHead; seq = 0
+
+-- | The per-action and daily caps must be positive, per-action at most the
+-- daily cap (the reference's BadConfig), and the grant's own bounds.
+deskCapsOk : GrantCaps -> Bool
+deskCapsOk c =
+  c.maxStakePerTrade > 0 && c.maxStakePerTrade <= c.maxDailySpend
+    && c.maxPriceTicks >= 0 && c.maxPriceTicks <= 999 && c.maxOpenPositions > 0
+
+template DeskMandate
+  with
+    venue : Party
+    owner : Party
+    operator : Optional Party
+      -- ^ None = revoked
+    grant : AgentGrant
+      -- ^ the budget and caps; `grant.agent` is the last operator
+    allowList : [Text]
+      -- ^ series keys the desk may buy
+    maxPremiumBps : Int
+    attestors : [Party]
+    refQuorum : Int
+    mode : DeskMode
+    paused : Bool
+    head : Text
+    seq : Int
+  where
+    signatory owner, venue
+    observer optionalToList operator
+    ensure grant.owner == owner && grant.venue == venue && owner /= venue
+      && optional True (\o -> o /= owner && o /= venue) operator
+      && grant.budget >= 0 && deskCapsOk grant.caps
+      && maxPremiumBps >= 0 && maxPremiumBps <= 10000
+      && refQuorum >= 1 && refQuorum <= length attestors && unique attestors
+      && unique allowList && all (/= "") allowList
+      && seq >= 0 && T.length head == 64
+
+    -- The operator buys one of the owner's quotes. Checks, in order: the
+    -- operator, the decision hash, the head it builds on, not paused, live
+    -- mode, the owner's quote, the allowlist, the attested reference and
+    -- the premium, then every grant cap (inside `Grant_AcceptQuote`).
+    choice Mandate_Trade : (ContractId DeskMandate, ContractId Leg, ContractId DeskDecision)
+      with
+        actor : Party
+        quoteCid : ContractId Quote
+        limitTicks : Int
+        asOf : Time
+        markCids : [ContractId DeskMark]
+        prevHead : Text
+        decisionHash : Text
+        note : Text
+      controller actor
+      do
+        require "not-operator" "only the desk's operator trades" (operator == Some actor)
+        require "zero-hash" "a decision hash is a 64-character digest, never zero" (decisionHashOk decisionHash)
+        require "head-mismatch" "the decision does not build on the desk's head" (prevHead == head)
+        require "desk-paused" "the desk is paused" (not paused)
+        require "shadow-mode" "the desk is in shadow mode: nothing is sent" (mode == DeskLive)
+        q <- fetch quoteCid
+        require "wrong-quote" "quote is not for this desk's owner" (q.user == owner && q.venue == venue)
+        require "not-allowed" "the owner has not allowed this market" (seriesOf q.marketId `elem` allowList)
+        ref <- attestedReference venue attestors refQuorum asOf q markCids
+        require "premium-too-high" "the quote is further above its reference than the owner's ceiling"
+          (premiumOk q.priceTicks ref maxPremiumBps)
+        g <- create grant with agent = actor
+        (g', leg) <- exercise g Grant_AcceptQuote with quoteCid; limitTicks; asOf
+        after <- fetch g'
+        archive g'
+        let n = seq + 1
+            head' = nextHead head n decisionHash
+        d <- create DeskDecision with
+          venue; owner; operator = actor; seq = n; prevHead = head; decisionHash; head = head'; note
+          action = DeskTrade with
+            marketId = q.marketId; side = q.side; lots = q.lots; priceTicks = q.priceTicks
+            referenceTicks = ref; charge = grant.budget - after.budget
+        m <- create this with grant = after; head = head'; seq = n
+        pure (m, leg, d)
+
+    -- Seals a non-action into the chain ("looked, did nothing", or a shadow
+    -- decision). Allowed while paused and in shadow mode.
+    choice Mandate_Checkpoint : (ContractId DeskMandate, ContractId DeskDecision)
+      with
+        actor : Party
+        prevHead : Text
+        decisionHash : Text
+        deadline : Time
+        note : Text
+      controller actor
+      do
+        require "not-operator" "only the desk's operator checkpoints" (operator == Some actor)
+        require "zero-hash" "a decision hash is a 64-character digest, never zero" (decisionHashOk decisionHash)
+        assertWithinDeadline "checkpoint-deadline" deadline
+        require "head-mismatch" "the decision does not build on the desk's head" (prevHead == head)
+        let n = seq + 1
+            head' = nextHead head n decisionHash
+        d <- create DeskDecision with
+          venue; owner; operator = actor; seq = n; prevHead = head; decisionHash; head = head'; note
+          action = DeskHold
+        m <- create this with head = head'; seq = n
+        pure (m, d)
+
+    -- The owner or the operator may stop the desk; only the owner starts it.
+    choice Mandate_Pause : ContractId DeskMandate
+      with
+        actor : Party
+      controller actor
+      do
+        require "not-owner-or-operator" "only the owner or the operator may pause"
+          (actor == owner || operator == Some actor)
+        create this with paused = True
+
+    choice Mandate_Unpause : ContractId DeskMandate
+      controller owner
+      do create this with paused = False
+
+    choice Mandate_SetMode : ContractId DeskMandate
+      with
+        newMode : DeskMode
+      controller owner
+      do create this with mode = newMode
+
+    choice Mandate_SetLimits : ContractId DeskMandate
+      with
+        newCaps : GrantCaps
+        newMaxPremiumBps : Int
+      controller owner
+      do
+        require "bad-config" "caps must be positive and per-action at most daily"
+          (deskCapsOk newCaps && newMaxPremiumBps >= 0 && newMaxPremiumBps <= 10000)
+        create this with grant = (grant with caps = newCaps); maxPremiumBps = newMaxPremiumBps
+
+    choice Mandate_SetAllowList : ContractId DeskMandate
+      with
+        newAllowList : [Text]
+      controller owner
+      do create this with allowList = newAllowList
+
+    choice Mandate_SetOperator : ContractId DeskMandate
+      with
+        newOperator : Party
+      controller owner
+      do
+        require "bad-operator" "the operator must be neither the owner nor the venue"
+          (newOperator /= owner && newOperator /= venue)
+        create this with operator = Some newOperator; grant = (grant with agent = newOperator)
+
+    -- Fire the operator: it loses all access at once and the desk pauses.
+    choice Mandate_RevokeOperator : ContractId DeskMandate
+      controller owner
+      do create this with operator = None; paused = True
+
+    choice Mandate_Deposit : ContractId DeskMandate
+      with
+        cash : [ContractId VenueCash]
+      controller owner
+      do
+        total <- sumOwnedCash venue owner cash
+        create this with grant = (grant with budget = grant.budget + total)
+
+    -- Nothing ever leaves the desk except to the owner; never blocked by the
+    -- desk's state (paused, revoked, expired).
+    choice Mandate_Withdraw : (ContractId DeskMandate, ContractId VenueCash)
+      with
+        amount : Int
+      controller owner
+      do
+        require "bad-amount" "withdraw 1..budget" (amount > 0 && amount <= grant.budget)
+        c <- create VenueCash with venue; owner; amount; bucket = "desk-return"
+        m <- create this with grant = (grant with budget = grant.budget - amount)
+        pure (m, c)
+
+    choice Mandate_Close : Optional (ContractId VenueCash)
+      controller owner
+      do payIfPositive venue owner grant.budget "desk-return"
+
+-- | The reference for a quote: at least `quorum` marks from distinct
+-- mandate attestors, all for the quote's market and side, each fresh at
+-- `asOf` (at most 900 s old, at most 5 s early); the lower median.
+attestedReference : Party -> [Party] -> Int -> Time -> Quote -> [ContractId DeskMark] -> Update Int
+attestedReference venue attestors quorum asOf q markCids = do
+  require "duplicate-mark" "the same mark was passed twice" (unique markCids)
+  marks <- forA markCids fetch
+  require "unknown-attestor" "a mark is not from one of the mandate's attestors"
+    (all (\m -> m.attestor `elem` attestors && m.venue == venue) marks)
+  require "reference-quorum" "fewer distinct attestors than the mandate's quorum"
+    (unique (map (\m -> m.attestor) marks) && length marks >= quorum)
+  require "wrong-reference" "a mark is for another market or side"
+    (all (\m -> m.marketId == q.marketId && m.side == q.side) marks)
+  require "reference-stale" "a mark is older than 900 s or from the future"
+    (all (\m -> m.fetchedAt <= addRelTime asOf (seconds referenceFutureSlackSec)
+                && asOf <= addRelTime m.fetchedAt (seconds referenceMaxAgeSec)) marks)
+  let refs = sort (map (\m -> m.refTicks) marks)
+  pure (refs !! ((length refs - 1) / 2))
+
+data DeskAction
+  = DeskHold
+  | DeskTrade with
+      marketId : Text
+      side : Side
+      lots : Int
+      priceTicks : Int
+      referenceTicks : Int
+      charge : Int
+  deriving (Eq, Show)
+
+-- | One sealed action of the record. The operator that sealed it observes it.
+template DeskDecision
+  with
+    venue : Party
+    owner : Party
+    operator : Party
+    seq : Int
+    prevHead : Text
+    decisionHash : Text
+    head : Text
+    action : DeskAction
+    note : Text
+  where
+    signatory owner, venue
+    observer operator
+    ensure seq >= 1 && head == nextHead prevHead seq decisionHash
