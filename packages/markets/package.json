@@ -30,7 +30,8 @@
     "./ops": "./src/ops/index.ts",
     "./ops/*": "./src/ops/*/index.ts",
     "./proof": "./src/proof/index.ts",
-    "./desk": "./src/desk/index.ts"
+    "./desk": "./src/desk/index.ts",
+    "./server": "./src/server/index.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -39,7 +40,9 @@
     "@agari/core": "workspace:*",
     "@noble/hashes": "1.8.0",
     "@tanstack/react-query": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@agari/ledger": "workspace:*",
+    "@agari/daml": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18"

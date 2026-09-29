@@ -113,7 +113,8 @@ export function usePositions(wallet: Address | null): Reading<OpenPosition[]> | 
 export function useClaimables(wallet: Address | null, venueId: Address | null): Reading<ClaimableRow[]> | null {
   return useReadingQuery(keys.claimables(wallet, venueId), () => listClaimables(wallet as Address, venueId as Address), {
     pollMs: MARKETS_POLL_MS,
-    enabled: wallet !== null && venueId !== null,
+    // Claimables are the seat's own legs, read as its party: the venue id only keys the cache (C4).
+    enabled: wallet !== null,
   });
 }
 
