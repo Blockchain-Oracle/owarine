@@ -45,7 +45,7 @@ describe("reply delivery without financial execution", () => {
     await deliverReplies(ctx);
     expect(state.order).toEqual(["upload", "persist-post", "post"]);
     expect(ctx.store.beginPost).toHaveBeenCalledWith(job, expect.stringContaining("Spent 3 tUSDC"), "789");
-    expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("/tx/"), "789");
+    expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("/proof?update="), "789");
     expect(ctx.store.sent).toHaveBeenCalledWith(job, "999");
     expect(ctx.transport.reply).toHaveBeenCalledTimes(1);
   });

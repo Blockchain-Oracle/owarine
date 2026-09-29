@@ -95,7 +95,7 @@ describe("devnet SOL faucet policy", () => {
   });
   it("binds the signature to domain, wallet, network, nonce and expiry", async () => {
     const h = harness(); const c = await h.service.challenge(W, "ip-a", "https://useagari.xyz");
-    for (const part of ["https://useagari.xyz", W, "Solana devnet", c.id, "gives no permission"]) expect(c.message).toContain(part);
+    for (const part of ["https://useagari.xyz", W, "Canton DevNet", c.id, "gives no permission"]) expect(c.message).toContain(part);
   });
   it("refuses a malformed wallet or signature before any crypto runs", async () => {
     expect(await verifyChallengeSignature("0x1234", "message", SIG)).toBe(false);

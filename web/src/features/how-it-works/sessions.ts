@@ -93,7 +93,7 @@ export const ASIDES: readonly Aside[] = [
   },
   {
     title: "Voids",
-    body: "If no reliable print lands inside the settlement window, the Window voids and both sides pay 0.5 — your stake back. The verdict says “Void — no reliable print, both sides pay 0.5”, and one line under it says why: a missing print names the source, the boundary and the deadline it passed; a cross-check divergence names the 0.25% band the two sources fell outside. Redemption credits the venue, the same as a win.",
+    body: "If no reliable print lands inside the settlement window, the Window voids and both sides get back what they paid, stake and fee. The verdict says “Void — no reliable print, both sides get their stake and fee back”, and one line under it says why: a missing print names the source, the boundary and the deadline it passed; a cross-check divergence names the 0.25% band the two sources fell outside. Redemption credits the venue, the same as a win.",
     icon: ScaleIcon,
   },
   {

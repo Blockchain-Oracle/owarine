@@ -194,7 +194,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "How much do I win?",
-    answer: "Each winning contract redeems for 1 tUSDC less the settlement fee; a losing contract pays 0; a void pays 0.5 per contract to both sides. Your cost is the book price you paid, so profit is payout minus cost.",
+    answer: "Each winning contract redeems for 1 tUSDC less the settlement fee; a losing contract pays 0; a void returns what each side paid, stake and fee. Your cost is the book price you paid, so profit is payout minus cost.",
   },
   {
     question: "What wallet do I need?",

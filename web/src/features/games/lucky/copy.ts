@@ -134,7 +134,7 @@ export const LUCKY = {
     line: (asset: string, side: string, m: number) => `${asset} · ${side} · ${m}×`,
     pays: (contracts: string, symbol: string) => `pays ${contracts} ${symbol} before the settlement fee`,
     lostLine: (cost: string, symbol: string) => `${cost} ${symbol} staked`,
-    voidLine: "the Window was voided — both sides pay their half",
+    voidLine: "the Window was voided — both sides get their stake and fee back",
     cashedLine: "closed on the book before the Window settled",
     streak: (n: number) => `Streak ${n}`,
     claim: "Collect it from your portfolio",

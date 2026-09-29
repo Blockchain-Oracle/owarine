@@ -12,7 +12,7 @@ import { keys, useMarket, useReadingQuery } from "@agari/markets/react";
 export interface VoidWords {
   /** "VOID · MISSING PRINT" / "VOID · CROSS-CHECK DIVERGENCE". */
   shareWord: string;
-  /** "Void — no reliable print, both sides pay 0.5", verbatim. */
+  /** "Void — no reliable print, both sides get their stake and fee back", verbatim. */
   headline: string;
   /** "No signed Pyth price at 16:00:00 ET was recorded by 16:15:00 ET." */
   reason: string;

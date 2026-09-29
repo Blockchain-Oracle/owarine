@@ -8,8 +8,11 @@ import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate } from "./et-t
  * never named as the cause: the verdict says what the chain saw.
  */
 
-/** Masayume's void line, verbatim (M `packages/core/src/copy/verdict.ts:29`), always shown first. */
-export const VOID_HEADLINE = "Void — no reliable print, both sides pay 0.5";
+/**
+ * The void line, always shown first. Masayume's (M `packages/core/src/copy/verdict.ts:29`) said "both sides pay 0.5";
+ * on Canton a void returns each side what it paid, stake plus fee (plan "Adapted rows"), so the line says that instead.
+ */
+export const VOID_HEADLINE = "Void — no reliable print, both sides get their stake and fee back";
 
 /** The share-card stamp (S5d's wording, proof-analytics.md). */
 export const VOID_SHARE_WORD: Readonly<Record<VoidReason, string>> = {

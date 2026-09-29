@@ -74,7 +74,7 @@ describe("voidDetail", () => {
 });
 
 it("keeps Masayume's void line verbatim and writes bps as percent", () => {
-  expect(VOID_HEADLINE).toBe("Void — no reliable print, both sides pay 0.5");
+  expect(VOID_HEADLINE).toBe("Void — no reliable print, both sides get their stake and fee back");
   expect([25, 100, 150, 5, 1_000].map(bpsPercent)).toEqual(["0.25%", "1%", "1.5%", "0.05%", "10%"]);
 });
 

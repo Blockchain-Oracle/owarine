@@ -67,6 +67,7 @@ The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-0
 | Amazon | simple-icons **14.15.0**, the last release to carry `amazon.svg` | CC0 1.0 at publication. The maintainers removed the Amazon and AWS icons in 15.0.0 ([PR #13056](https://github.com/simple-icons/simple-icons/pull/13056)) pending permission, not on a request from Amazon. |
 | Microsoft | Own geometry: four rectangles drawn in `paths.ts`; no third-party artwork | simple-icons removed its Microsoft icons in 13.0.0 on Microsoft's trademark terms ([PR #10019](https://github.com/simple-icons/simple-icons/pull/10019)), so none is vendored. |
 | Invesco QQQ, Vanguard S&P 500, SPDR S&P 500 | None: the registry monogram typed on the fund house's colour | — |
+| Bitcoin, Ethereum | Masayume's own `BitcoinMark` (the ₿ path on the orange disc) and `EthereumMark` (the diamond), reimplemented from the reference as single white glyphs on the asset's published colour (`#F7931A`, `#627EEA`) | The marks identify the traded assets; no endorsement implied. |
 
 The brand colours in `packages/core/src/market/tickers.ts` (`Ticker.brand`) and `web/src/styles/icons.css` are the issuers' published mark colours (simple-icons `hex` for the vendored marks, near-black for Apple). Two vendored marks take the issuer's own published colour rather than simple-icons' near-black, so two discs do not go black and need rings: Anthropic's clay `#D97757` (simple-icons records `#191919`) and SpaceX's blue `#005288` (simple-icons records `#000000`).
 
