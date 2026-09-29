@@ -25,6 +25,8 @@ export interface ProjectorOverrides {
   WebSocket?: WebSocketCtor;
   /** Heartbeat name on `/health` (default `projector`; the `indexer` shim keeps the name web's /status row reads today). */
   heartbeatName?: string;
+  /** Per applied transaction (C9b: the duel projection). */
+  onApplied?: (tx: import("@agari/ledger").JsTransaction) => Promise<void>;
 }
 
 /** Starts the projector actor; null (with a logged reason) when there is no database or no venue party. */
@@ -57,6 +59,7 @@ export async function startProjector(
     stream,
     log: deps.log,
     ...(o.WebSocket ? { WebSocket: o.WebSocket } : {}),
+    ...(o.onApplied ? { onApplied: o.onApplied } : {}),
   });
   const reader = indexReader(db);
   const everyMs = Number(env.PROJECTOR_HEARTBEAT_MS) >= 1_000 ? Number(env.PROJECTOR_HEARTBEAT_MS) : DEFAULT_HEARTBEAT_MS;

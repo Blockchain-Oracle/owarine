@@ -1,93 +1,55 @@
-import type { ArenaMatch, ArenaParams, ArenaStatus } from "@agari/core/games";
-import { encodeBase58, toMarketId, type Address, type Hash32, type MarketId } from "@agari/core/types";
+import type { DuelMatchC, DuelOpenC, PickC } from "@agari/markets/ops/games";
 import { describe, expect, it } from "vitest";
-import { decideMatch, isDone } from "./decide";
+import { decideMatch, decideOpen, potRefundAfterSec } from "./decide";
 
-const NOW = 1_756_900_000;
-const MATCH_ID = `0x${"11".repeat(32)}` as Hash32;
-const CARDS: readonly MarketId[] = [0, 1, 2].map((i) => toMarketId(encodeBase58(new Uint8Array(32).fill(i + 1))));
-const ALL = new Set(CARDS);
+const tier = { tierId: "t1", potEach: 1_000_000n, perCardCap: 1_000_000n, ranked: true, enabled: true };
+const params = { joinWindowSec: 120, revealWindowSec: 60, pickWindowSec: 240, minDeckSize: 1, maxDeckSize: 8 };
+const base = {
+  venue: "venue::1", creator: "alice::1", challenger: "bob::1", arenaId: "arena-1", matchId: `0x${"ab".repeat(32)}`, policyVersion: 5,
+  tier, params, deckHash: "cd".repeat(32), deckSize: 2, clientSeeds: ["s0", "s1"],
+};
+const cards = [
+  { termsCid: "t0", marketId: "BTC-60:1", lockAtSec: 1_000, refundAfterSec: 2_000 },
+  { termsCid: "t1", marketId: "BTC-60:2", lockAtSec: 1_060, refundAfterSec: 2_060 },
+];
+const leg = { venue: "venue::1", owner: "alice::1", termsCid: "t0", marketId: "BTC-60:1", pairId: "p", outcome: "SideUp" as const, lots: 1n, cashUnit: 1n, backingShare: 400n, feePaid: 0n, refundAfterSec: 2_000, beneficiaryRef: "duel:arena-1:x" };
+const pick = (seat: 0 | 1, cardIndex: number, payout: bigint | null = null): PickC => ({ seat, cardIndex, legCid: `l${seat}${cardIndex}`, leg, cost: 400n, payout });
+const match = (over: Partial<DuelMatchC>): DuelMatchC => ({ ...base, revealDeadlineSec: 500, status: { tag: "Unrevealed" }, serverSeed: null, cards: [], pickDeadlineSec: null, picks: [], ...over });
 
-const PARAMS: ArenaParams = { joinWindowSec: 300, revealWindowSec: 180, pickWindowSec: 120, minDeckSize: 3, maxDeckSize: 5, minCardLifeSec: 240 };
-
-function match(status: ArenaStatus, overrides: Partial<ArenaMatch> = {}): ArenaMatch {
-  return {
-    matchId: MATCH_ID,
-    creator: encodeBase58(new Uint8Array(32).fill(0xaa)) as Address,
-    challenger: encodeBase58(new Uint8Array(32).fill(0xbb)) as Address,
-    tier: 1,
-    status,
-    deckSize: 3,
-    pickedMask0: 0b111,
-    pickedMask1: 0b111,
-    settledMask: 0,
-    policyVersion: 1,
-    deckHash: `0x${"ab".repeat(32)}` as Hash32,
-    createdAtSec: NOW - 1_000,
-    joinedAtSec: NOW - 900,
-    revealedAtSec: NOW - 800,
-    pickDeadlineSec: NOW - 100,
-    potBase: 5_000_000n,
-    perCardCapBase: 1_000_000n,
-    ...overrides,
-  };
-}
-
-function decide(m: ArenaMatch, settleable: ReadonlySet<MarketId> = ALL, nowSec = NOW) {
-  return decideMatch({ match: m, params: PARAMS, cards: CARDS, settleable, nowSec });
-}
-
-describe("what the settler may crank", () => {
-  it("waits for the join window before returning an unjoined pot", () => {
-    const waiting = match("waiting", { createdAtSec: NOW - 100 });
-    expect(decide(waiting)).toEqual([]);
-    expect(decide(match("waiting", { createdAtSec: NOW - 400 }))[0]?.kind).toBe("arena-refund-unjoined");
+describe("the duel settler's decisions (PM.Games.Arena's preconditions)", () => {
+  it("refunds an unjoined duel only from the join deadline + 1 s", () => {
+    const o: DuelOpenC = { ...base, joinDeadlineSec: 100 };
+    expect(decideOpen(o, 100)).toEqual([]);
+    expect(decideOpen(o, 101).map((a) => a.kind)).toEqual(["refund-unjoined"]);
   });
 
-  it("opens a committed deck while it can, and refunds it once the window has closed", () => {
-    expect(decide(match("activeUnrevealed", { joinedAtSec: NOW - 100 }))[0]?.kind).toBe("arena-reveal");
-    expect(decide(match("activeUnrevealed", { joinedAtSec: NOW - 200 }))[0]?.kind).toBe("arena-refund-unrevealed");
+  it("reveals while the reveal window is open, and only with the sealed material on hand", () => {
+    expect(decideMatch(match({}), new Set(), 500, true).map((a) => a.kind)).toEqual(["reveal"]);
+    expect(decideMatch(match({}), new Set(), 500, false)).toEqual([]);
+    expect(decideMatch(match({}), new Set(), 501, true).map((a) => a.kind)).toEqual(["refund-unrevealed"]);
   });
 
-  it("locks only after the pick deadline has actually passed", () => {
-    expect(decide(match("picking", { pickDeadlineSec: NOW + 10 }))).toEqual([]);
-    expect(decide(match("picking", { pickDeadlineSec: NOW - 1 }))[0]?.kind).toBe("arena-lock");
-    // The contract's own boundary is strict: at the deadline exactly, it is not yet passed.
-    expect(decide(match("picking", { pickDeadlineSec: NOW }))).toEqual([]);
+  it("locks a picking match only after its pick deadline", () => {
+    const m = match({ status: { tag: "Picking" }, cards, pickDeadlineSec: 900 });
+    expect(decideMatch(m, new Set(), 900, true)).toEqual([]);
+    expect(decideMatch(m, new Set(), 901, true).map((a) => a.kind)).toEqual(["lock"]);
   });
 
-  it("settles only the cards whose Windows the venue says are done", () => {
-    const settling = match("settling");
-    expect(decide(settling, new Set()).length).toBe(0);
-    const partial = decide(settling, new Set([CARDS[0] as MarketId, CARDS[2] as MarketId]));
-    expect(partial.map((a) => ("cardIndex" in a ? a.cardIndex : -1))).toEqual([0, 2]);
+  it("scores the picks on resolved Windows, then finalizes once every recorded pick is scored", () => {
+    const m = match({ status: { tag: "Settling" }, cards, pickDeadlineSec: 900, picks: [pick(0, 0), pick(1, 0), pick(0, 1), pick(1, 1)] });
+    expect(decideMatch(m, new Set(), 1_500, true)).toEqual([]);
+    const first = decideMatch(m, new Set(["t0"]), 1_500, true);
+    expect(first).toEqual([{ kind: "score", matchId: m.matchId, items: [{ seat: 0, cardIndex: 0, termsCid: "t0" }, { seat: 1, cardIndex: 0, termsCid: "t0" }], why: "2 pick(s) on resolved Windows" }]);
+    const scored = match({ ...m, picks: [pick(0, 0, 1000n), pick(1, 0, 0n), pick(0, 1, 0n), pick(1, 1, 1000n)] });
+    expect(decideMatch(scored, new Set(["t0", "t1"]), 1_500, true).map((a) => a.kind)).toEqual(["finalize"]);
   });
 
-  it("settles only cards somebody played, and never one already settled", () => {
-    // Card 1 was never picked by either seat, and card 0 is already paid.
-    const sparse = match("settling", { pickedMask0: 0b101, pickedMask1: 0b100, settledMask: 0b001 });
-    expect(decide(sparse).map((a) => ("cardIndex" in a ? a.cardIndex : -1))).toEqual([2]);
-  });
-
-  it("finalizes only once every played card is settled, and not beside a settlement", () => {
-    const halfway = match("settling", { settledMask: 0b011 });
-    expect(decide(halfway).every((a) => a.kind === "arena-settle-card")).toBe(true);
-
-    const done = match("settling", { settledMask: 0b111 });
-    expect(decide(done)).toEqual([{ kind: "arena-finalize", matchId: MATCH_ID, why: "all 3 played card(s) settled" }]);
-  });
-
-  it("still settles and finalizes a forfeited match, because those positions were paid for", () => {
-    const forfeited = match("forfeited", { pickedMask1: 0b011, settledMask: 0 });
-    expect(decide(forfeited).length).toBe(3);
-    expect(decide(match("forfeited", { pickedMask1: 0b011, settledMask: 0b111 }))[0]?.kind).toBe("arena-finalize");
-  });
-
-  it("has nothing to say about a match whose pot is already decided", () => {
-    expect(decide(match("finalized"))).toEqual([]);
-    expect(decide(match("refunded"))).toEqual([]);
-    expect(isDone(match("finalized"))).toBe(true);
-    expect(isDone(match("refunded"))).toBe(true);
-    expect(isDone(match("settling"))).toBe(false);
+  it("finalizes a forfeit whose only player's pick is scored, and refunds a stale pot past the last refund deadline", () => {
+    const f = match({ status: { tag: "Forfeited", absent: "bob::1" }, cards, pickDeadlineSec: 900, picks: [pick(0, 0, 0n)] });
+    expect(decideMatch(f, new Set(), 1_500, true).map((a) => a.kind)).toEqual(["finalize"]);
+    const stuck = match({ status: { tag: "Settling" }, cards, pickDeadlineSec: 900, picks: [pick(0, 0)] });
+    expect(potRefundAfterSec(stuck)).toBe(2_060);
+    expect(decideMatch(stuck, new Set(), 2_060, true)).toEqual([]);
+    expect(decideMatch(stuck, new Set(), 2_061, true).map((a) => a.kind)).toEqual(["refund-stale"]);
   });
 });

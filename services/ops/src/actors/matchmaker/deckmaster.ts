@@ -1,26 +1,24 @@
 import { randomBytes } from "node:crypto";
-import { deckCommitmentPreimage, nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@agari/core/games";
-import { phase } from "@agari/core/lifecycle";
-import { etDateOf, etWallToUtcSec, REGULAR_CLOSE_MINUTES } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32, Hex, MarketId } from "@agari/core/types";
+import { nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@agari/core/games";
+import type { Hash32, MarketId } from "@agari/core/types";
 import { putDeck } from "@agari/db";
-import { marketsProvider, resolveVenueId } from "@agari/markets";
-import { keccak256 } from "@agari/markets/games";
+import { duelDeckHash, keccak256 } from "@agari/markets/games";
+import { arenaAddressOf } from "@agari/markets/ops/games";
+import { currentLadderBoard } from "../arena-desk";
 import { DECK_KEY_ENV, deckKey, journal, seal, type RevealMaterial } from "./seal";
-import { opsMarketsEnv } from "../../runtime/markets-env";
 
 /**
  * Dealing a deck, and making its reveal durable before anyone can be asked to pay for it.
  *
  * The order here is the whole point. Cards are chosen, the material is written to disk and to Postgres,
- * and only then is a commitment handed back for a player to put on chain. A commitment published before
+ * and only then is a commitment handed back for a player to put on the ledger. A commitment published before
  * its preimage is durable is a match that can only refund, and the player who paid for it will have been
  * told a duel was about to start.
  *
- * The policy version is in the commitment, so a deck dealt under one set of rules can never claim
- * another's guarantees — and it is bumped here, beside the rules it names.
+ * On Canton (C9b) the commitment is `PM.Games.Deck.deckCommitment`: sha256 over a length-prefixed text preimage whose
+ * cards are the Windows' Daml market ids, recomputed by `Duel_Reveal` on the ledger. The policy version is in it, so a
+ * deck dealt under one set of rules can never claim another's guarantees, and it is bumped here, beside the rules it
+ * names.
  */
 
 /**
@@ -29,8 +27,10 @@ import { opsMarketsEnv } from "../../runtime/markets-env";
  * arena's own deadlines instead of a guessed margin.
  */
 /** 4 since 2026-09-04: the headroom holds the arena's card-life floor for the whole pick window (rule D). 5 since
- * 2026-09-23 (S23): a card comes only from a Book quoting both sides, and no series is projected past its close. */
-export const DECK_POLICY_VERSION = 5;
+ * 2026-09-23 (S23): a card comes only from a Book quoting both sides, and no series is projected past its close. 6 since
+ * 2026-09-29 (C9b): the commitment is the ledger's sha256 text preimage over Daml market ids, and a card must still
+ * trade when the pick window closes (`Duel_Reveal`'s own rule). */
+export const DECK_POLICY_VERSION = 6;
 
 /** A duel should finish inside an hour: every card must settle within it, or the match outlives its players. */
 const HORIZON_SEC = Number(process.env.GAME_DECK_HORIZON_SEC ?? 60 * 60);
@@ -73,57 +73,29 @@ export function seedCommitment(seed: Hash32): Hash32 {
 }
 
 /**
- * Every live Window of the venue, unfiltered.
- *
- * It deliberately does NOT drop the Windows that are too close to expiry to deal. `selectDeck` applies
- * `minHeadroomSec` itself, so pre-filtering here changed no deck — but it silently broke the countdown
- * beside it. `nextDealableSec` projects each series forward to its SUCCESSOR Window, and the series
- * whose successor makes the next deck is precisely the one about to expire. Filtering those out left the
- * projection with only the 4h and 1d series, whose successors never fall inside a duel's horizon, so
- * `deckSupply` returned null — "further out than the projection looked" — exactly during the dead zone
- * where the queue has a countdown to show. Found on 2026-09-03 by `spike:duel-full` landing in the gap.
+ * Every Window the venue is quoting now, from this process's own price ladders (the pricer's board): the app's id for
+ * selection, the Daml id for the commitment. A card is dealt only from a ladder quoting both Up and Down (S23): a deck
+ * of one-sided Books fails its picks. Null when no pricer runs in this process.
  */
-async function candidates(): Promise<readonly DeckCandidate[] | null> {
-  const venue = await resolveVenueId(opsMarketsEnv().venueId);
-  if (!isOk(venue) || !venue.value.venueId) return null;
-  const lanes = await marketsProvider.listLiveLanes(venue.value.venueId);
-  if (!isOk(lanes)) return null;
-  const nowMs = marketsProvider.nowMs();
-  const markets = lanes.value.lanes.flatMap((lane) => lane.markets);
-  const quoted = await twoSided(markets.filter((m) => phase(m, nowMs) === "trading"));
-  return markets.map((market) => ({
-    marketId: market.marketId,
-    asset: market.asset,
-    intervalSec: market.intervalSec,
-    expirySec: market.expirySec,
-    trading: phase(market, nowMs) === "trading",
-    tradingStartSec: market.tradingStartSec,
-    seriesEndSec: seriesEndSec(market),
-    // A card is dealt only from a Book that quotes both Up and Down (S23): out of hours the 24/7 pre-IPO and basket
-    // Books can sit empty, and a deck of them failed every pick with "did not fill before the deadline". An
-    // upcoming Window keeps depth 1 so the countdown can still project the open; it is checked again when dealt.
-    spreadRaw: 0n,
-    depthRaw: phase(market, nowMs) === "trading" ? (quoted.has(market.marketId) ? 1n : 0n) : 1n,
-  }));
-}
-
-/** A Regular series rolls only inside the session; a Gap Window has no successor; a 24/7 token series never stops. */
-function seriesEndSec(market: EventMarket): number | undefined {
-  if (market.lane === "token") return undefined;
-  if (market.lane === "gap") return market.expirySec;
-  // The day's regular close; an early-close day ends sooner, which the roller's own listing then reflects.
-  return etWallToUtcSec(etDateOf(market.expirySec - 1), REGULAR_CLOSE_MINUTES);
-}
-
-/** The trading Windows whose Book rests an ask on both Up and Down right now; a failed read counts as empty. */
-async function twoSided(markets: readonly EventMarket[]): Promise<Set<MarketId>> {
-  const reads = await Promise.all(
-    markets.map(async (m) => {
-      const depth = await marketsProvider.getBookDepth({ marketId: m.marketId, poolAddress: m.poolAddress, decimals: m.decimals }, 1);
-      return isOk(depth) && depth.value.upAsks.length > 0 && depth.value.downAsks.length > 0 ? m.marketId : null;
-    }),
-  );
-  return new Set(reads.filter((id): id is MarketId => id !== null));
+function candidates(): { pool: readonly DeckCandidate[]; damlIds: ReadonlyMap<MarketId, string> } | null {
+  const board = currentLadderBoard();
+  if (!board) return null;
+  const nowSec = Math.floor(Date.now() / 1_000);
+  const damlIds = new Map<MarketId, string>();
+  const pool = board.all().filter((l) => l.state === "quoting").map((l): DeckCandidate => {
+    damlIds.set(l.marketId as MarketId, l.damlMarketId);
+    return {
+      marketId: l.marketId as MarketId,
+      asset: l.symbol,
+      intervalSec: Math.max(1, l.expirySec - l.tradingStartSec),
+      expirySec: l.expirySec,
+      trading: nowSec >= l.tradingStartSec && nowSec < l.lockAtSec,
+      tradingStartSec: l.tradingStartSec,
+      spreadRaw: 0n,
+      depthRaw: l.up.length > 0 && l.down.length > 0 ? 1n : 0n,
+    };
+  });
+  return { pool, damlIds };
 }
 
 /**
@@ -132,9 +104,9 @@ async function twoSided(markets: readonly EventMarket[]): Promise<Set<MarketId>>
  */
 export async function deckSupply(params: DealInput["params"]): Promise<number | null> {
   const headroomSec = dealHeadroomSec(params);
-  const pool = await candidates();
+  const pool = candidates()?.pool;
   if (!pool) return null;
-  const nowSec = Math.floor(marketsProvider.nowMs() / 1_000);
+  const nowSec = Math.floor(Date.now() / 1_000);
   const policy = {
     supportedAssets: [...new Set(pool.map((c) => c.asset))],
     maxSpreadRaw: 2n ** 128n,
@@ -149,7 +121,8 @@ export async function deckSupply(params: DealInput["params"]): Promise<number | 
 export interface DealInput {
   matchId: Hash32;
   chainId: number;
-  arena: Address;
+  /** The `ArenaTerms.arenaId` the match will be opened under: part of the commitment. */
+  arenaId: string;
   clientSeeds: readonly Hash32[];
   /** The arena's own deadlines. Headroom is derived from all four, never from `minCardLifeSec` alone. */
   params: Pick<ArenaParams, "minCardLifeSec" | "joinWindowSec" | "revealWindowSec" | "pickWindowSec">;
@@ -186,10 +159,11 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
   if (!key) return { ok: false, why: `no ${DECK_KEY_ENV}, so a deck's reveal could not be kept`, retry: false };
 
   const headroomSec = dealHeadroomSec(input.params);
-  const pool = await candidates();
-  if (!pool) return { ok: false, why: "the venue's live Windows are unreadable", retry: true };
+  const found = candidates();
+  if (!found) return { ok: false, why: "no venue price ladders in this process (the pricer is off)", retry: true };
+  const { pool, damlIds } = found;
 
-  const nowSec = Math.floor(marketsProvider.nowMs() / 1_000);
+  const nowSec = Math.floor(Date.now() / 1_000);
   const policy = {
     supportedAssets: [...new Set(pool.map((c) => c.asset))],
     maxSpreadRaw: 2n ** 128n,
@@ -211,25 +185,19 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
     };
   }
 
-  const cards: readonly MarketId[] = selection.cards.map((card) => card.marketId);
+  // The commitment names the Windows as the ledger does: their Daml market ids, in deck order.
+  const cards = selection.cards.map((card) => damlIds.get(card.marketId));
+  if (cards.some((c) => !c)) return { ok: false, retry: true, why: "a dealt card has no Daml market id on the board" };
   const serverSeed = bytes32();
   const material: RevealMaterial = {
     matchId: input.matchId,
     serverSeed,
     clientSeeds: input.clientSeeds,
-    cards,
+    cards: cards as string[],
     policyVersion: DECK_POLICY_VERSION,
   };
-  const preimage = deckCommitmentPreimage({
-    chainId: input.chainId,
-    arena: input.arena,
-    matchId: input.matchId,
-    policyVersion: DECK_POLICY_VERSION,
-    serverSeed,
-    clientSeeds: input.clientSeeds,
-    cards,
-  });
-  const deckHash = keccak256(preimage as Hex);
+  const ledgerHash = duelDeckHash({ arenaId: input.arenaId, matchId: input.matchId, policyVersion: DECK_POLICY_VERSION, serverSeed, clientSeeds: input.clientSeeds, cards: material.cards });
+  const deckHash = `0x${ledgerHash}` as Hash32;
   const sealed = seal(material, key);
 
   try {
@@ -244,10 +212,10 @@ export async function dealDeck(input: DealInput, onWarning?: (why: string) => vo
     await putDeck({
       matchId: input.matchId,
       chainId: input.chainId,
-      arena: input.arena,
+      arena: arenaAddressOf(input.arenaId),
       policyVersion: DECK_POLICY_VERSION,
       lane: selection.lane,
-      cards,
+      cards: selection.cards.map((card) => card.marketId),
       sealed,
     });
   } catch (error) {

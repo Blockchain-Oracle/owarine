@@ -15,6 +15,8 @@ import { deckSupply } from "./deckmaster";
 import type { Address, Hash32 } from "@agari/core/types";
 import { readRatings } from "@agari/db";
 import { getArenaState } from "@agari/markets/games";
+import { toLedgerCommitment } from "@agari/core/games";
+import { currentArenaDesk } from "../arena-desk";
 import { WebSocket } from "ws";
 import type { RoomConnection } from "../game-room/hub";
 import type { Matchmaker, RoomContext } from "../game-room/handlers";
@@ -152,11 +154,15 @@ export function createMatchmaker(ctx: RoomContext): Matchmaker {
     if (gone(pairing)) return;
     if (!isOk(state) || !state.value) return dissolve(pairing, "the arena is unreadable right now");
 
+    const desk = currentArenaDesk();
+    const arena = desk ? await desk.state().catch(() => null) : null;
+    if (gone(pairing)) return;
+    if (!desk || !arena?.deployed) return dissolve(pairing, "the arena is not on this ledger");
     const seeds = pairing.players.map((player) => pairing.seeds.get(player.connection.id) as Hash32);
     const dealt = await dealDeck({
       matchId: pairing.matchId,
       chainId: ctx.chainId,
-      arena: ctx.arena,
+      arenaId: arena.arenaId,
       clientSeeds: seeds,
       params: state.value.params,
     }, ctx.log);
@@ -175,6 +181,11 @@ export function createMatchmaker(ctx: RoomContext): Matchmaker {
     for (const entry of pairing.players) pairingOf.delete(entry.connection.id);
     const commitment = { hash: dealt.deck.deckHash, size: dealt.deck.cards.length, policyVersion: dealt.deck.policyVersion };
     const players = { creator: creator.wallet, challenger: challenger.wallet };
+    // The desk holds what the creator's open needs (the seat route asks for it by match id, as the creator's lease).
+    desk.hold({
+      matchId: pairing.matchId, creator: creator.wallet, challenger: challenger.wallet, tierId: creator.tier, arenaId: arena.arenaId,
+      deckHash: toLedgerCommitment(dealt.deck.deckHash), deckSize: dealt.deck.cards.length, clientSeeds: seeds,
+    });
     pending.hold({ matchId: pairing.matchId, players, mode: stakeTier(creator.tier).mode, tier: creator.tier, commitment });
     for (const player of pairing.players) tell(player, { type: "deck.committed", matchId: pairing.matchId, commitment });
     ctx.log(`${pairing.matchId}: ${creator.wallet} vs ${challenger.wallet} · ${dealt.deck.cards.length} cards from the ${dealt.deck.lane} lane`);
