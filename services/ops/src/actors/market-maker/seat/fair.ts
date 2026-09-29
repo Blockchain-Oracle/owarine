@@ -30,6 +30,11 @@ export interface FairInput {
   sigmaBps: number;
   /** Quotes never go below this many ticks or above `1000 − minTick`. */
   minTick: number;
+  /**
+   * The variance clock σ is annualised over (default `TRADING_YEAR_SEC`, the equity session year). A 24/7 asset passes
+   * core `CALENDAR_YEAR_SEC` with a σ measured on it (C6), so its per-second variance is not overstated 2.3×.
+   */
+  yearSec?: number;
 }
 
 const RATIO_SCALE = 1_000_000_000n;
@@ -38,7 +43,7 @@ const RATIO_SCALE = 1_000_000_000n;
 export function fairYesTicks(i: FairInput): number {
   if (i.spotE8 <= 0n || i.openE8 <= 0n) throw new Error("fair value needs positive spot and open prices");
   const ratio = Number((i.spotE8 * RATIO_SCALE) / i.openE8) / Number(RATIO_SCALE);
-  const scale = (i.sigmaBps / 10_000) * Math.sqrt(Math.max(i.secondsLeft, MIN_SECONDS_LEFT) / TRADING_YEAR_SEC);
+  const scale = (i.sigmaBps / 10_000) * Math.sqrt(Math.max(i.secondsLeft, MIN_SECONDS_LEFT) / (i.yearSec ?? TRADING_YEAR_SEC));
   const p = scale > 0 ? normalCdf(Math.log(ratio) / scale) : ratio >= 1 ? 1 : 0;
   const ticks = Math.floor(p * 1000 + TIE_BIAS_TICKS + 0.5);
   return Math.min(1000 - i.minTick, Math.max(i.minTick, ticks));

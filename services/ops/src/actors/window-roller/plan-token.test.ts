@@ -64,3 +64,55 @@ describe("window-roller token plan for a pre-IPO name (D-103)", () => {
     expect(planTokenSeries(series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: ATTESTED }), { ...clock(SAT - 60), halts: { OPENAI: { reason: "quote-unavailable", sinceSec: SAT - 900 } } }).state).toBe("paused: halted (quote-unavailable)");
   });
 });
+
+describe("window-roller token plan for the crypto lanes (C6)", () => {
+  const ATTESTED: VersionWindow[] = [{ validFromSec: 0, validUntilSec: null, primarySource: 4, checkSource: 0, openAdmissionSec: 60, checkAdmissionSec: 0, primaryFeedIdHex: "" }];
+  // Tue 2026-09-29 10:33:00Z, mid-way through the 08:00–12:00 4 h Window and the 09-29 1 d Window.
+  const NOW = 1_790_677_980;
+  const DAY = 1_790_640_000; // 2026-09-29T00:00:00Z
+  const crypto = (cadenceSec: number, lastExpirySec: number, key = `BTC-${cadenceSec / 60}m`) =>
+    series({ key, symbol: "BTC", cadenceSec, versions: ATTESTED, lastExpirySec, nextIndex: 0n });
+
+  it("lists the next 4 h Window a whole cadence ahead: 12:00–16:00Z at 10:33, since the current one's open print is gone", () => {
+    const plan = planTokenSeries(crypto(14_400, DAY), clock(NOW));
+    expect(plan).toMatchObject({ kind: "open", state: "opening #0 12:00–16:00Z v1 attested" });
+    expect(plan.kind === "open" && plan.window.tradingStartSec).toBe(DAY + 12 * 3_600);
+    // Once it is listed, the one after waits until 12:00Z (a cadence before 16:00Z).
+    expect(planTokenSeries(crypto(14_400, DAY + 16 * 3_600), clock(NOW))).toMatchObject({ kind: "wait", wakeSec: DAY + 12 * 3_600, state: "waiting: next 16:00–20:00Z" });
+  });
+
+  it("lists tomorrow's 1 d Window now and names its dates", () => {
+    const plan = planTokenSeries(crypto(86_400, DAY), clock(NOW));
+    expect(plan).toMatchObject({ kind: "open", state: "opening #0 09-30 00:00Z–10-01 00:00Z v1 attested" });
+    expect(planTokenSeries(crypto(86_400, DAY + 2 * 86_400), clock(NOW))).toMatchObject({ kind: "wait", wakeSec: DAY + 86_400 });
+  });
+
+  it("keeps the 120 s lead on the 1 m, 5 m, 15 m and 1 h lanes", () => {
+    for (const cadenceSec of [60, 300, 900, 3_600]) {
+      const plan = planTokenSeries(crypto(cadenceSec, 0), clock(NOW));
+      const next = Math.ceil(NOW / cadenceSec) * cadenceSec;
+      if (next - NOW > 120) expect(plan).toMatchObject({ kind: "wait", wakeSec: next - 120 });
+      else expect(plan.kind).toBe("open");
+    }
+  });
+});
+
+
+describe("window-roller attested lanes (C6)", () => {
+  const V = (printSource: string, from = 0, until: number | null = null): VersionWindow => ({ validFromSec: from, validUntilSec: until, primarySource: 4, checkSource: 0, openAdmissionSec: 60, checkAdmissionSec: 0, primaryFeedIdHex: "", printSource });
+  const down = (why: string) => (text: string) => (text.startsWith("attested:switchboard:") ? why : null);
+
+  it("lists an xStock lane only while Switchboard can sign, and names why not", () => {
+    const tsla = series({ key: "TSLAx-5m", symbol: "TSLA", versions: [V("attested:switchboard:TSLAX/USD")], lastExpirySec: SAT });
+    expect(planTokenSeries(tsla, { ...clock(SAT - 60), sourceUnavailable: () => null }).kind).toBe("open");
+    const paused = planTokenSeries(tsla, { ...clock(SAT - 60), sourceUnavailable: down("Switchboard Surge TSLAX/USD: crossbar: IPFS fetch temporarily unavailable") });
+    expect(paused).toMatchObject({ kind: "paused", state: "paused: no signed source (Switchboard Surge TSLAX/USD: crossbar: IPFS fetch temporarily unavailable)" });
+  });
+
+  it("a PreStocks lane is unaffected by another source being down; an uncovered Window keeps the plain state", () => {
+    const openai = series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: [V("attested:prestocks:OPENAI")], lastExpirySec: SAT });
+    expect(planTokenSeries(openai, { ...clock(SAT - 60), sourceUnavailable: down("x") }).kind).toBe("open");
+    const later = series({ key: "OPENAI-60m", symbol: "OPENAI", cadenceSec: 3_600, versions: [V("attested:prestocks:OPENAI", SAT + 7_200)], lastExpirySec: SAT });
+    expect(planTokenSeries(later, clock(SAT - 60)).state).toBe("paused: no signed source");
+  });
+});

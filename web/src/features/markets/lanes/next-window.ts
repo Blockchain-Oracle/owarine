@@ -1,5 +1,5 @@
-import { parseLaneKey, regularWindows, type TickerSymbol, type TradingSession } from "@agari/core/market";
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import { laneKey, parseLaneKey, regularWindows, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@agari/core/market";
+import type { EventMarket, Lane, LaneSet } from "@agari/core/types";
 import type { MarketSession } from "../session";
 import { compareLaneTabKeys, laneTabKey, laneTabParts, type LaneTabKey } from "./lane-view";
 
@@ -9,7 +9,7 @@ import { compareLaneTabKeys, laneTabKey, laneTabParts, type LaneTabKey } from ".
  */
 
 /** Every configured lane as a tab key, in board order, whether or not a Window is live in it. */
-export function configuredLaneKeys(session: MarketSession | null): LaneTabKey[] {
+export function configuredLaneKeys(session: Pick<MarketSession, "lanes"> | null): LaneTabKey[] {
   if (!session) return [];
   const keys = new Set<LaneTabKey>();
   for (const key of Object.keys(session.lanes)) {
@@ -65,3 +65,29 @@ export function nextListedWindow(laneSet: LaneSet | null, asset: TickerSymbol, n
     .sort((a, b) => a.tradingStartSec - b.tradingStartSec);
   return listed.find((m) => m.intervalSec === intervalSec) ?? listed[0] ?? null;
 }
+
+type LaneStates = Readonly<Record<string, string>>;
+
+/**
+ * The roller's paused tickers in one lane, with the state it reported (web and phone). A Regular lane says nothing while
+ * the session is closed or unknown (every ticker is closed, not paused). C6: a 24/7 or Gap lane's pause is about its
+ * source, not the NYSE clock, so it comes from the roller's states (`useLaneStates`) even with no agreed calendar.
+ */
+export function pausedInLane(session: Pick<MarketSession, "lanes" | "open"> | null, laneStates: LaneStates | null, lane: Pick<Lane, "basis" | "intervalSec">): Map<TickerSymbol, string> {
+  const paused = new Map<TickerSymbol, string>();
+  const lanes = lane.basis === "regular" ? (session?.open ? session.lanes : null) : (session?.lanes ?? laneStates);
+  if (!lanes) return paused;
+  for (const symbol of TICKER_SYMBOLS) {
+    const state = lanes[laneKey(symbol, lane.basis, lane.intervalSec)];
+    if (state?.startsWith("paused")) paused.set(symbol, state);
+  }
+  return paused;
+}
+
+/** The lanes that stand in for live Windows: every configured lane, or with no agreed calendar only the 24/7 and Gap ones. */
+export function standInLaneKeys(session: Pick<MarketSession, "lanes"> | null, laneStates: LaneStates | null): LaneTabKey[] {
+  if (session) return configuredLaneKeys(session);
+  if (!laneStates) return [];
+  return configuredLaneKeys({ lanes: Object.fromEntries(Object.entries(laneStates).filter(([k]) => parseLaneKey(k)?.basis !== "regular")) });
+}
+

@@ -34,6 +34,9 @@ import { createSwitchboardSpotFeed, joinSwitchboardSpot } from "./prices/switchb
 import { createPreStocksSpotFeed, joinPreStocksSpot, PRESTOCKS_SPOT_EVERY_MS, type PreStocksSpotHandle } from "./prices/prestocks-spot";
 import { createPythIndexSpotFeed, joinPythIndexSpot, type PythIndexSpotHandle } from "./prices/pyth-index-spot";
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
+import { createSourceHealthStore } from "./runtime/source-health";
+import { startSourceProbe } from "./actors/source-probe";
+import { loadRelaySources, loadSwitchboardFeeds } from "./actors/price-relay/sources";
 
 const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
@@ -89,8 +92,14 @@ const halts = createHaltBoard();
 const events = createSessionEvents();
 // S20 (D-125): one entitlement store per process; `pyth-entitlement` writes it, the relay, roller, maker and `/session` read it.
 const pythIndex = createPythEntitlementStore({ key: process.env.PYTH_API_KEY || undefined, log: log("pyth-entitlement") });
-const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot, halts, events, pythIndex });
+// C6: whether each attested lane's original source can sign now; `source-probe` writes it, the roller lists by it.
+const sources = createSourceHealthStore();
+const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ env, log: log(actor), sessions, spot, halts, events, pythIndex, sources });
 if (actors.has("relay") || actors.has("venue")) void boot("pyth-entitlement", () => startPythEntitlement(deps("pyth-entitlement")));
+if (actors.has("relay") || actors.has("venue"))
+  void boot("source-probe", async () =>
+    startSourceProbe(sources, { sources: loadRelaySources(), pythKey: process.env.PYTH_API_KEY || undefined, pythIndex, switchboardFeeds: loadSwitchboardFeeds() }, log("source-probe")),
+  );
 
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.
 // One venue context for the whole process: the relay's oracle feeders and the venue actors share its ledger sessions.
@@ -142,6 +151,7 @@ if (actors.has("http"))
       spot: displaySpot,
       prestocks: prestocksSpot,
       pythIndex: { store: pythIndex, spot: pythIndexSpot },
+      attested: sources,
       sessions,
       halts,
       events,

@@ -28,14 +28,25 @@ export const LANE_STATE = {
   },
   source: {
     gap: (open: string, close: string) => `Settles on the oracle price at ${open} ET and ${close} ET (first regular-session print, not the opening cross)`,
-    token: (xstock: string) => `Settles on the Switchboard ${xstock} token price observed ≤ 60 s after each boundary · the live price is that feed`,
-    /** A valuation lane (S20, D-125): Pyth's valuation index for the company, posted to the receiver and verified on chain, like TSLA. */
-    valuation: (name: string) => `Settles on Pyth's ${name} valuation index, verified on chain at open and close · chart follows the index`,
-    /** A pre-IPO name (D-100, D-101): one source, the venue's own signature; the chart follows the same read. */
-    preIpo: (name: string) => `Settles on the PreStocks ${name} token price, read ≤ 45 s after each boundary and signed by Agari · single source, no cross-check`,
-    /** A basket (S19, D-124): the index the venue computes from one read of every member, in points. */
-    basket: (name: string, members: string) => `Settles on the ${name} index, in points: ${members} weighted equally from one PreStocks read ≤ 45 s after each boundary, signed by Agari · single source`,
+    token: (xstock: string) => `Settles on the Switchboard ${xstock} token price read ≤ 60 s after each boundary, attested by three oracle parties · the live price is that feed`,
+    /** A valuation lane (S20, D-125): Pyth's valuation index for the company, read and attested by the oracle parties (C6). */
+    valuation: (name: string) => `Settles on Pyth's ${name} valuation index at open and close, attested by three oracle parties · chart follows the index`,
+    /** A pre-IPO name (D-100, D-101): one source, attested by the oracle parties (C6); the chart follows the same read. */
+    preIpo: (name: string) => `Settles on the PreStocks ${name} token price, read ≤ 45 s after each boundary and attested by three oracle parties · single source, no cross-check`,
+    /** A basket (S19, D-124): the index computed from one read of every member, in points. */
+    basket: (name: string, members: string) => `Settles on the ${name} index, in points: ${members} weighted equally from one PreStocks read ≤ 45 s after each boundary, attested by three oracle parties · single source`,
+    /** C6: BTC and ETH, every cadence. */
+    crypto: (asset: string) => `Settles on the median ${asset} 1-minute candle close of Coinbase, Kraken and Bitstamp, one per oracle party · chart follows Coinbase`,
+    /** C6: a committee-attested event (an Addition). */
+    event: "Settles YES or NO on the committee's attestation, recorded by the resolver and the venue",
   },
+  /** C6: a 4 h or 1 d 24/7 Window listed a cadence ahead, before its open. */
+  longListed: {
+    headline: (opens: string) => `Listed · opens ${opens}`,
+    why: (settles: string) => `Calls open at the start, once the oracle parties' opening print sets the line. Settles ${settles}.`,
+  },
+  /** C6: the roller's reason inside `paused: no signed source (<why>)`, under the paused card's line. */
+  pausedReason: (why: string) => `Source check: ${why}.`,
   /** An earnings line under the ticket's strip: a warning, never a blocker (L-32). */
   earnings: {
     /** `when` is "after the close today", "before the open Mon", or "today" when Finnhub gives no hour. */

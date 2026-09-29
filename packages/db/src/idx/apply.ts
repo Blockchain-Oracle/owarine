@@ -22,6 +22,8 @@
  *   Publication created / archived  → idx_publications insert / delete
  */
 import type postgres from "postgres";
+import { LANE_BASES } from "@agari/core/types";
+import { parseLaneKey } from "@agari/core/market";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
 import type { IdxFact, IdxUpdate } from "./types";
 
@@ -49,9 +51,19 @@ function sideTicksOf(backingShare: string, lots: string, cashUnit: string): numb
   return unit === 0n ? 0 : Number(BigInt(backingShare) / unit);
 }
 
+/**
+ * The lane a Series key names (C6): its registry ticker and basis. A token lane's ledger symbol is the asset its prints
+ * price (`TSLAx`), so the app's row carries the ticker (`TSLA`) and basis 2, as the reference's Series did; a crypto
+ * lane is 24/7 (basis 2). A key outside the registry keeps its ledger symbol, basis Regular.
+ */
+function laneRow(seriesKey: string, symbol: string): { symbol: string; basis: number } {
+  const lane = parseLaneKey(seriesKey);
+  return lane ? { symbol: lane.symbol, basis: LANE_BASES.indexOf(lane.basis) } : { symbol, basis: 0 };
+}
+
 async function series(c: Ctx, f: Fact<"series">): Promise<void> {
   const row = {
-    series: seriesIdOfKey(f.seriesKey), series_key: f.seriesKey, symbol: f.symbol, cadence_sec: f.cadenceSec, cash_unit: f.cashUnit,
+    series: seriesIdOfKey(f.seriesKey), series_key: f.seriesKey, ...laneRow(f.seriesKey, f.symbol), cadence_sec: f.cadenceSec, cash_unit: f.cashUnit,
     contract_id: f.contractId, next_index: f.nextIndex, anchor_sec: f.anchorSec, lock_lead_sec: f.lockLeadSec, settle_grace_sec: f.settleGraceSec,
     quorum: f.quorum, oracles: c.tx.json(f.oracles), max_deviation_bps: f.maxDeviationBps, resolver: f.resolver,
     policy_versions: c.tx.json(f.policyVersions as unknown as postgres.JSONValue), updated_offset: c.u.offset,
@@ -66,7 +78,7 @@ async function series(c: Ctx, f: Fact<"series">): Promise<void> {
 async function windowOpened(c: Ctx, f: Fact<"window-opened">): Promise<void> {
   const row = {
     market: marketIdOfKey(f.marketKey), market_key: f.marketKey, terms_cid: f.termsCid, series: seriesIdOfKey(f.seriesKey), series_key: f.seriesKey,
-    symbol: f.symbol, cadence_sec: f.expirySec - f.tradingStartSec, market_index: f.index, cash_unit: f.cashUnit,
+    ...laneRow(f.seriesKey, f.symbol), cadence_sec: f.expirySec - f.tradingStartSec, market_index: f.index, cash_unit: f.cashUnit,
     trading_start_sec: f.tradingStartSec, lock_at_sec: f.lockAtSec, expiry_sec: f.expirySec, open_deadline_sec: f.openDeadlineSec,
     close_deadline_sec: f.closeDeadlineSec, refund_after_sec: f.refundAfterSec, policy_version: f.policyVersion, print_source: f.printSource,
     min_delay_sec: f.minDelaySec, bar_len_sec: f.barLenSec, tie_up: f.tieUp, quorum: f.quorum, oracles: c.tx.json(f.oracles),

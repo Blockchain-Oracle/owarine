@@ -4,7 +4,7 @@
  */
 import type { SettledMarket } from "@agari/core/claims";
 import type { RoundMarket } from "@agari/core/projection";
-import type { TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
 import type { Address, EventMarket, IndexedStatus, LaneBasis, MarketId, OutcomeIdx, PrintSource, Resolution, Signature, VoidReason } from "@agari/core/types";
 import type { SeriesFacts, VenueFacts } from "../runtime/accounts";
 import { big, bigOrNull, sec, type MarketRow, type PositionRow } from "./index-api";
@@ -27,7 +27,7 @@ export function indexedStatus(state: MarketRow["state"], tradingStartSec: number
 export const outcomeOf = (winner: number | null): OutcomeIdx | null => (winner === 0 || winner === 1 ? winner : null);
 
 /** Rows of registry tickers on a known lane: the drive-only Series 900 (no symbol) never lists. */
-export const isListable = (row: MarketRow): boolean => row.symbol !== null && row.basis !== null && row.basis in BASIS && row.book !== null;
+export const isListable = (row: MarketRow): boolean => row.symbol !== null && isTickerSymbol(row.symbol) && row.basis !== null && row.basis in BASIS && row.book !== null;
 
 export function toEventMarket(row: MarketRow, venue: VenueFacts, series: SeriesFacts | null, nowSec: number): EventMarket {
   const tradingStartSec = sec(row.trading_start_sec);

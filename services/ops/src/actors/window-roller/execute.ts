@@ -8,7 +8,7 @@
  * book" can never block a lane. Idempotence is the ledger's: `open:<series>:<index>` and `skip:<series>:<index>` are
  * deduplicated, and a retry against the new Series fails `abu-pm/bad-window-index`, which reads as "already opened".
  */
-import { isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { isTokenOnlyKind, parseLaneKey, TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { LaneBasis } from "@agari/core/types";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { cmd, decodeSeries, failureText, isInactive, openWindowCommandId, pick, readActive, refusalId, skipToCommandId, submit, type Active, type RoleSession, type SeriesC } from "@agari/markets/ops/canton";
@@ -56,19 +56,30 @@ export function versionWindowOf(pv: SeriesC["policyVersions"][number]): VersionW
     openAdmissionSec: pv.openAdmissionSec < 0 ? ADMIT_UNTIL_LOCK : pv.openAdmissionSec,
     checkAdmissionSec: 0,
     primaryFeedIdHex: "",
+    printSource: pv.printSource,
   };
 }
 
-/** The lane basis of a Series: a crypto, pre-IPO, basket or valuation symbol trades 24/7 (token lane); a stock is Regular. */
-export function basisOf(symbol: string): LaneBasis | null {
-  const t = (TICKERS as Record<string, (typeof TICKERS)[TickerSymbol] | undefined>)[symbol];
+/**
+ * A Series' lane: its registry ticker and basis. The lane key names both (`TSLA-5m` Regular, `TSLAx-5m` the TSLA token
+ * lane, `BTC-240m` 24/7), because on Canton a token lane's `symbol` is the asset its prints price (`TSLAx`), which the
+ * registry does not list. Falls back to the symbol for a key the registry cannot parse.
+ */
+export function laneOf(s: Pick<SeriesC, "seriesKey" | "symbol">): { symbol: TickerSymbol; basis: LaneBasis } | null {
+  const parsed = parseLaneKey(s.seriesKey);
+  if (parsed) return { symbol: parsed.symbol, basis: parsed.basis };
+  const t = (TICKERS as Record<string, (typeof TICKERS)[TickerSymbol] | undefined>)[s.symbol];
   if (!t) return null;
-  return isTokenOnlyKind(t.kind) ? "token" : "regular";
+  return { symbol: t.symbol, basis: isTokenOnlyKind(t.kind) ? "token" : "regular" };
 }
+
+/** The lane basis of a Series (see `laneOf`); null for a Series outside the registry. */
+export const basisOf = (s: Pick<SeriesC, "seriesKey" | "symbol">): LaneBasis | null => laneOf(s)?.basis ?? null;
 
 export function planSeriesOf(s: SeriesC): PlanSeries {
   return {
-    key: s.seriesKey, symbol: s.symbol, cadenceSec: s.cadenceSec, maxLeadSec: MAX_LEAD_SEC, nextIndex: BigInt(s.nextIndex),
+    // The planners key halts, skips and the 24/7 asset by the registry ticker, never the print symbol (`TSLAx`).
+    key: s.seriesKey, symbol: laneOf(s)?.symbol ?? s.symbol, cadenceSec: s.cadenceSec, maxLeadSec: MAX_LEAD_SEC, nextIndex: BigInt(s.nextIndex),
     lastExpirySec: s.anchorSec + s.nextIndex * s.cadenceSec, versions: s.policyVersions.map(versionWindowOf), freeBooks: NO_BOOK,
   };
 }
@@ -129,7 +140,7 @@ async function open(state: RollerState, series: Active<SeriesC>, plan: Extract<S
 export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<PassResult> {
   const series = await readSeries(state);
   const notes: string[] = [];
-  const regular = series.some((s) => basisOf(s.data.symbol) === "regular");
+  const regular = series.some((s) => basisOf(s.data) === "regular");
   if (regular) {
     const calendarNote = await deps.sessions.refresh();
     if (calendarNote !== "calendar fresh") notes.push(calendarNote);
@@ -139,13 +150,14 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
     calendar: deps.sessions.calendar(), nowSec, leadSec: state.settings.leadSec, gapLeadSec: state.settings.gapLeadSec,
     minTradableSec: state.settings.minTradableSec, skips: deps.events.skips(), multipliers: deps.events.multipliers(), halts: deps.halts.board(),
     prelist: state.settings.prelist, prelistCadencesSec: state.settings.prelistCadencesSec,
-    // Attested versions are always usable; the Pyth entitlement gate (S20) only ever judges a Pyth version.
+    // The Pyth entitlement gate (S20) judges a Pyth version; C6: an attested version lists only while its named source can sign.
     pythUsable: (feedIdHex) => deps.pythIndex.usable(feedIdHex),
+    sourceUnavailable: deps.sources ? (printSource) => deps.sources!.unavailable(printSource) : undefined,
   };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;
   for (const s of series) {
-    const basis = basisOf(s.data.symbol);
+    const basis = basisOf(s.data);
     if (!basis) {
       lanes[s.data.seriesKey] = "not a registry ticker";
       continue;

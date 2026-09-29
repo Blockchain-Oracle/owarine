@@ -12,6 +12,8 @@ export interface VersionWindow {
   checkAdmissionSec: number;
   /** `primary.feed_id` as lower-case hex: what `PlanClock.pythUsable` judges a Pyth version by (S20). */
   primaryFeedIdHex: string;
+  /** Canton (C6): the version's `printSource` text, naming the attested print's original source (core `parsePrintSource`). */
+  printSource?: string;
 }
 
 /** Whether a covering version may be listed on now: false for a Pyth version whose feed the key is not entitled to (S20). */
@@ -73,13 +75,37 @@ export function highestCoveringVersion(versions: readonly VersionWindow[], start
 export const PAUSED_NO_SOURCE = "paused: no signed source";
 export const PAUSED_NOT_ENTITLED = "paused: no signed source (Pyth feed not entitled)";
 
-/** The lane state when nothing lists: a covering version exists but its Pyth feed is not entitled, or no version covers the Window at all. */
-export function noSourceState(versions: readonly VersionWindow[], startSec: number, expirySec: number, usable: VersionUsable): string {
-  return highestCoveringVersion(versions, startSec, expirySec) !== null && highestCoveringVersion(versions, startSec, expirySec, usable) === null ? PAUSED_NOT_ENTITLED : PAUSED_NO_SOURCE;
+/** Why a covering version cannot list now (C6: its attested source is down), or null when that is not the reason. */
+export type VersionReason = (v: VersionWindow) => string | null;
+
+/**
+ * The lane state when nothing lists: a covering version exists but its Pyth feed is not entitled, or (C6) its attested
+ * source is unavailable here, named by `reasonOf`; or no version covers the Window at all.
+ */
+export function noSourceState(versions: readonly VersionWindow[], startSec: number, expirySec: number, usable: VersionUsable, reasonOf: VersionReason = () => null): string {
+  const covering = highestCoveringVersion(versions, startSec, expirySec);
+  if (covering === null || highestCoveringVersion(versions, startSec, expirySec, usable) !== null) return PAUSED_NO_SOURCE;
+  const why = reasonOf(versions[covering]!);
+  return why ? `${PAUSED_NO_SOURCE} (${why})` : PAUSED_NOT_ENTITLED;
 }
 
-/** The roller's predicate from its clock: every non-Pyth version is usable; a Pyth version follows `clock.pythUsable` on its feed. */
-export const usableBy = (clock: { pythUsable: (feedIdHex: string) => boolean }): VersionUsable => (v) => v.primarySource !== SOURCE_PYTH || clock.pythUsable(v.primaryFeedIdHex);
+/** What the roller's clock knows about sources: the Pyth entitlement (S20) and, on Canton, each attested source's health. */
+export interface SourceClock {
+  pythUsable: (feedIdHex: string) => boolean;
+  /** C6: why the attested source a `printSource` names cannot sign now, or null when it can (absent = always can). */
+  sourceUnavailable?: (printSource: string) => string | null;
+}
+
+const attestedDown = (clock: SourceClock, v: VersionWindow): string | null => (v.printSource && clock.sourceUnavailable ? clock.sourceUnavailable(v.printSource) : null);
+
+/**
+ * The roller's predicate from its clock: a Pyth version follows `clock.pythUsable` on its feed; an attested version
+ * whose source is down (C6) is not usable; every other version is.
+ */
+export const usableBy = (clock: SourceClock): VersionUsable => (v) => (v.primarySource !== SOURCE_PYTH || clock.pythUsable(v.primaryFeedIdHex)) && attestedDown(clock, v) === null;
+
+/** The reason `usableBy` refused a version, for the paused state. */
+export const reasonBy = (clock: SourceClock): VersionReason => (v) => attestedDown(clock, v);
 
 /** `v2 redstone`, `v1 pyth+redstone` (1-based like price-sources.json). */
 export function describeVersion(index: number, v: VersionWindow): string {

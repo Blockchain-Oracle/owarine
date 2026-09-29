@@ -40,17 +40,28 @@ export interface SeriesInput {
   oracles: Party[];
   quorum: number;
   maxDeviationBps: number;
-  policy: {
-    version: number;
-    effectiveFromSec: number;
-    printSource: string;
-    minDelaySec: number;
-    barLenSec: number;
-    /** Negative: admit the open print until `lockAt`. */
-    openAdmissionSec: number;
-    closeAdmissionSec: number;
-  };
+  policy: PolicyInput;
+  /** Dated later versions, oldest first (C6: TSLA's Pyth version ends at the trial and RedStone takes over). */
+  laterPolicies?: PolicyInput[];
 }
+
+export interface PolicyInput {
+  version: number;
+  effectiveFromSec: number;
+  /** The version's end (`validUntil`); null or absent is open-ended. */
+  validUntilSec?: number | null;
+  printSource: string;
+  minDelaySec: number;
+  barLenSec: number;
+  /** Negative: admit the open print until `lockAt`. */
+  openAdmissionSec: number;
+  closeAdmissionSec: number;
+}
+
+const policyVersion = (p: PolicyInput) => ({
+  version: int(p.version), effectiveFrom: isoOfSec(p.effectiveFromSec), validUntil: p.validUntilSec == null ? null : isoOfSec(p.validUntilSec), printSource: p.printSource,
+  minDelaySec: int(p.minDelaySec), barLenSec: int(p.barLenSec), openAdmissionSec: int(p.openAdmissionSec), closeAdmissionSec: int(p.closeAdmissionSec),
+});
 
 /** A new cadence lane (bootstrap only; a live Series is only ever consumed by `Series_OpenWindow` and friends). */
 export const createSeries = (s: SeriesInput): Command =>
@@ -58,13 +69,7 @@ export const createSeries = (s: SeriesInput): Command =>
     venue: s.venue, resolver: s.resolver, auditor: s.auditor, seriesKey: s.seriesKey, symbol: s.symbol,
     anchor: isoOfSec(s.anchorSec), cadenceSec: int(s.cadenceSec), lockLeadSec: int(s.lockLeadSec), settleGraceSec: int(s.settleGraceSec),
     cashUnit: int(s.cashUnit), nextIndex: int(s.nextIndex), oracles: s.oracles, quorum: int(s.quorum), maxDeviationBps: int(s.maxDeviationBps),
-    policyVersions: [
-      {
-        version: int(s.policy.version), effectiveFrom: isoOfSec(s.policy.effectiveFromSec), validUntil: null, printSource: s.policy.printSource,
-        minDelaySec: int(s.policy.minDelaySec), barLenSec: int(s.policy.barLenSec),
-        openAdmissionSec: int(s.policy.openAdmissionSec), closeAdmissionSec: int(s.policy.closeAdmissionSec),
-      },
-    ],
+    policyVersions: [s.policy, ...(s.laterPolicies ?? [])].map(policyVersion),
   } satisfies Wire<PM.Series.Series>);
 
 // ---- oracle prints -----------------------------------------------------------------------------

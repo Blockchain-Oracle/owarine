@@ -2,7 +2,7 @@
  * How a lane reads on every surface (session-lanes.md §5): its tab key and label, the asset it prices, its ET clock
  * words and its source note. Pure, so the cards, the hero, the ticket and the `/dev` fixtures say the same thing.
  */
-import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, TICKERS, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
+import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, noSourceReason, TICKERS, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
 import { HALT_REASONS, type EarningsEvent, type EventMarket, type HaltReason, type LaneBasis } from "@agari/core/types";
 import { formatCadence, HERO, LANE_STATE, MARKETS } from "@/lib/copy";
 
@@ -73,6 +73,7 @@ export function priceSourceLine(market: Pick<EventMarket, "asset" | "lane" | "tr
     const basket = basketOf(market.asset);
     if (basket) return LANE_STATE.source.basket(basket.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "));
     if (ticker.kind === "valuation") return LANE_STATE.source.valuation(TICKERS[ticker.valuationOf!].name);
+    if (ticker.kind === "crypto") return LANE_STATE.source.crypto(market.asset);
     if (ticker.kind === "preIpo") return LANE_STATE.source.preIpo(ticker.name);
     return LANE_STATE.source.token(laneAssetLabel(market.asset, "token"));
   }
@@ -93,7 +94,10 @@ export function pausedCopy(state: string, asset: string, basis: LaneBasis, inter
     return { headline: haltLabel(reason as HaltReason), why: LANE_STATE.haltWhy(lead, tail) };
   }
   const corporate = state.startsWith("paused: corporate action");
-  return { headline: corporate ? MARKETS.paused.corporateAction : MARKETS.paused.noSource, why: tail ? MARKETS.paused.why(lead, tail) : LANE_STATE.pausedWhy(lead) };
+  const why = tail ? MARKETS.paused.why(lead, tail) : LANE_STATE.pausedWhy(lead);
+  // C6: the roller names why the lane's source cannot sign (`paused: no signed source (<why>)`); say it, never hide it.
+  const sourceWhy = corporate ? null : noSourceReason(state);
+  return { headline: corporate ? MARKETS.paused.corporateAction : MARKETS.paused.noSource, why: sourceWhy ? `${why} ${LANE_STATE.pausedReason(sourceWhy)}` : why };
 }
 
 /**

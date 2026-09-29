@@ -2,9 +2,9 @@ import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
 import { StyleSheet, View } from "react-native";
 import { laneAssetLabel, laneCadenceLabel, laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";
-import { configuredTickers } from "@/features/markets/lanes/next-window";
+import { configuredTickers, pausedInLane } from "@/features/markets/lanes/next-window";
 import { laneTickers, tickerMarkets } from "@/features/markets/lanes/useTickerPin";
-import { laneState, type MarketSession } from "@/features/markets/session/useMarketSession";
+import type { MarketSession } from "@/features/markets/session/useMarketSession";
 import { MARKETS } from "@/lib/copy";
 import { usePager } from "@/lib/use-pager";
 import { EmptyState } from "~/components/portfolio/web/states";
@@ -18,16 +18,6 @@ import { NextWindowCard } from "./NextWindowCard";
 const LANE_PAGE_SIZE = 8;
 const NO_PAUSES: ReadonlyMap<TickerSymbol, string> = new Map();
 
-/** The roller's paused tickers in a lane; a closed Regular lane says nothing (every ticker is closed, not paused). */
-function pausedIn(session: MarketSession | null, lane: Lane): Map<TickerSymbol, string> {
-  const paused = new Map<TickerSymbol, string>();
-  if (!session || (lane.basis === "regular" && !session.open)) return paused;
-  for (const symbol of TICKER_SYMBOLS) {
-    const state = laneState(session, symbol, lane.basis, lane.intervalSec);
-    if (state?.startsWith("paused")) paused.set(symbol, state);
-  }
-  return paused;
-}
 
 interface TickerLaneProps {
   lane: Lane;
@@ -38,11 +28,13 @@ interface TickerLaneProps {
   selectedMarketId: MarketId | null;
   onSelect?: (marketId: MarketId, side?: Side) => void;
   onOpenRoom?: (market: EventMarket) => void;
+  /** C6: the roller's lane states without a calendar (`useLaneStates`), for the 24/7 and Gap pauses. */
+  laneStates?: Readonly<Record<string, string>> | null;
 }
 
 /** web's TickerLane + LaneRows: the picker, the live rail (`.markets-grid-live`, 12 apart) paged by eight, the paused slots on the last page. */
-export function TickerLane({ lane, ticker, onPick, session, nowMs, selectedMarketId, onSelect, onOpenRoom }: TickerLaneProps) {
-  const pausedStates = pausedIn(session, lane);
+export function TickerLane({ lane, ticker, onPick, session, laneStates = null, nowMs, selectedMarketId, onSelect, onOpenRoom }: TickerLaneProps) {
+  const pausedStates = pausedInLane(session, laneStates, lane);
   const listed = laneTickers(lane);
   const tickers = TICKER_SYMBOLS.filter((symbol) => listed.includes(symbol) || pausedStates.has(symbol) || symbol === ticker);
   const markets = tickerMarkets(lane, ticker);

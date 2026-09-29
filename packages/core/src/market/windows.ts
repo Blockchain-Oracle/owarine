@@ -111,9 +111,21 @@ export function gapWindows(calendar: SessionCalendar): ScheduledWindow[] {
   return out;
 }
 
+/** The Masayume long cadences (4 h, 1 d), 24/7 only, aligned to the UTC day: 00:00, 04:00, … and 00:00 UTC. */
+export const LONG_CADENCES_SEC = [14_400, 86_400] as const;
+
+/**
+ * A 24/7 cadence: one that divides the hour (as on the Regular lanes), or a whole number of hours dividing the UTC day
+ * (Masayume's 4 h and 1 d BTC/ETH lanes). A 24/7 lane has no ET clock, so its long boundaries sit on the UTC day.
+ */
+export function isTokenCadence(cadenceSec: number): boolean {
+  if (!Number.isInteger(cadenceSec) || cadenceSec < 60) return false;
+  return SEC_PER_HOUR % cadenceSec === 0 || (cadenceSec % SEC_PER_HOUR === 0 && 86_400 % cadenceSec === 0);
+}
+
 /** Back-to-back 24/7 token-lane Windows starting at or after `fromSec` and expiring no later than `toSec`. */
 export function tokenWindows(fromSec: number, toSec: number, cadenceSec: number): ScheduledWindow[] {
-  assertCadence(cadenceSec);
+  if (!isTokenCadence(cadenceSec)) throw new Error(`a 24/7 cadence divides one hour or is whole hours dividing one day, got ${cadenceSec}`);
   const out: ScheduledWindow[] = [];
   for (let start = alignUp(fromSec, cadenceSec); start + cadenceSec <= toSec; start += cadenceSec) {
     const end = start + cadenceSec;

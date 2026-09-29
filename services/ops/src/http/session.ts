@@ -10,6 +10,7 @@ import type { HaltBoardStore } from "../runtime/halt-board";
 import { heartbeats } from "../runtime/heartbeat";
 import type { PythEntitlementStore } from "../runtime/pyth-entitlement";
 import type { SessionEvents } from "../runtime/session-events";
+import type { SourceHealthStore } from "../runtime/source-health";
 
 const UPCOMING = 5;
 const RECENT = 5;
@@ -32,6 +33,8 @@ export interface SessionInputs {
   events: SessionEvents | null;
   /** The valuation indices' live entitlement (S20); null in a process without the store. */
   pythIndex?: PythEntitlementStore | null;
+  /** C6: whether each attested lane source can sign now (`source-probe`). */
+  attested?: SourceHealthStore | null;
 }
 
 /** `sources.pythIndex`: per pre-IPO name, what the key may read now — from the live store, never the config file. */
@@ -39,7 +42,7 @@ function pythIndexSources(store: PythEntitlementStore | null | undefined) {
   return Object.fromEntries((store?.feeds() ?? []).map((f) => [f.symbol, { state: f.state, status: f.status, checkedAtSec: f.checkedAtSec, reason: f.reason }]));
 }
 
-export function sessionBody({ sessions, halts, events, pythIndex }: SessionInputs, nowSec = Math.floor(Date.now() / 1000)) {
+export function sessionBody({ sessions, halts, events, pythIndex, attested }: SessionInputs, nowSec = Math.floor(Date.now() / 1000)) {
   const calendar = sessions?.calendar() ?? null;
   const status = sessions?.status(nowSec) ?? null;
   const roller = heartbeats().find((b) => b.actor === "window-roller");
@@ -57,7 +60,7 @@ export function sessionBody({ sessions, halts, events, pythIndex }: SessionInput
         }
       : null,
     lanes: (roller?.detail.lanes as Record<string, string> | undefined) ?? {},
-    sources: { pythTrialLastCloseSec: PYTH_TRIAL_LAST_CLOSE_SEC, pythIndex: pythIndexSources(pythIndex) },
+    sources: { pythTrialLastCloseSec: PYTH_TRIAL_LAST_CLOSE_SEC, pythIndex: pythIndexSources(pythIndex), attested: attested?.all() ?? {} },
     /** Halted lanes by asset (ticker, or xStock for the token lane); `{}` when nothing is halted. */
     halts: halts?.board() ?? {},
     /** Report dates 14 days ahead; null until the first fetch ("unknown", never "none"). */

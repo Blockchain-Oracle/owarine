@@ -4,11 +4,12 @@
  * ladder around it (`ladder.ts`, `quote.ts`'s `quotePair`) within the per-market cap, and puts it on the board the
  * issuer walks and `/ladders/stream` publishes. It writes nothing to the ledger, so it runs the same live or dry.
  */
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { CALENDAR_YEAR_SEC, parseLaneKey, spotSymbolOf, TICKERS, type TickerSymbol } from "@agari/core/market";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { decodeLeg, decodeOpenPrint, decodeQuote, decodeTerms, pick, readActive, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
 import { marketIdFromDaml, seriesIdFromDaml } from "@agari/core/market";
 import type { SpotFeed } from "../../../prices/spot";
+import type { VolBoard } from "../../../prices/vol-meter";
 import { runActor, type PassResult } from "../../../runtime/actor";
 import { readSeatMakerEnv, type SeatMakerEnv } from "./env";
 import { fairYesTicks } from "./fair";
@@ -52,12 +53,24 @@ export function readPricerSettings(env: NodeJS.ProcessEnv = process.env): Pricer
 interface PricerState {
   venue: RoleSession;
   spot: SpotFeed | null;
+  /** C6: the crypto lanes' measured realised σ; a crypto Window without one (and without an override) is not priced. */
+  vol: VolBoard | null;
   board: LadderBoard;
   settings: PricerSettings;
   terms: Map<string, TermsC>;
 }
 
 const isTicker = (s: string): s is TickerSymbol => s in TICKERS;
+
+/**
+ * σ and its clock for one Window. The lane key names the registry ticker (a token lane's print symbol is its xStock).
+ * Crypto (C6): the vol meter's measured σ on the 365-day clock, or an `MM_SIGMA_BPS` override; never the placeholder.
+ */
+export function sigmaFor(maker: SeatMakerEnv, vol: VolBoard | null, ticker: TickerSymbol): { sigmaBps: number; yearSec?: number } | { missing: string } {
+  if (TICKERS[ticker].kind !== "crypto") return { sigmaBps: maker.sigmaBps(ticker) };
+  const sigmaBps = maker.sigmaOverride(ticker) ?? vol?.sigmaBps(ticker) ?? null;
+  return sigmaBps === null ? { missing: `${ticker} realised vol not measured yet` } : { sigmaBps, yearSec: CALENDAR_YEAR_SEC };
+}
 
 export async function pricerPass(state: PricerState): Promise<PassResult> {
   const acs = await readActive(state.venue, [TEMPLATE_IDS.OpenPrint, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Leg]);
@@ -73,15 +86,23 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
   const notes: string[] = [];
   for (const op of opens) {
     const t = state.terms.get(op.data.termsCid);
-    if (!t || !isTicker(t.symbol)) continue;
+    const lane = t ? parseLaneKey(t.seriesKey) : null;
+    const ticker = lane?.symbol ?? (t && isTicker(t.symbol) ? t.symbol : null);
+    if (!t || !ticker) continue;
     const untilSec = quotingUntilSec(t);
     if (nowSec < t.tradingStartSec || nowSec > untilSec - s.minQuoteLifeSec) continue;
-    const spot = state.spot?.latest(t.symbol, s.maker.spotMaxAgeSec) ?? null;
+    // A token lane's spot is its xStock (the asset its prints price), every other lane's its ticker.
+    const spot = state.spot?.latest(lane ? spotSymbolOf(lane.symbol, lane.basis) : ticker, s.maker.spotMaxAgeSec) ?? null;
     if (!spot) {
       notes.push(`${t.marketId} no fresh spot`);
       continue;
     }
-    const fair = fairYesTicks({ spotE8: spot.priceE8, openE8: op.data.openPriceE8, secondsLeft: t.expirySec - nowSec, sigmaBps: s.maker.sigmaBps(t.symbol), minTick: s.maker.minTick });
+    const sigma = sigmaFor(s.maker, state.vol, ticker);
+    if ("missing" in sigma) {
+      notes.push(`${t.marketId} ${sigma.missing}`);
+      continue;
+    }
+    const fair = fairYesTicks({ spotE8: spot.priceE8, openE8: op.data.openPriceE8, secondsLeft: t.expirySec - nowSec, ...sigma, minTick: s.maker.minTick });
     // Venue stake held against each side: its legs opposite the users' and its live quotes on that side.
     let usedUpBase = 0n;
     let usedDownBase = 0n;
@@ -110,9 +131,9 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
   return { why: notes.length ? notes.join("; ") : "no Window quoting", detail: { quoting: live.size } };
 }
 
-export function startPricer(input: { venue: RoleSession; spot: SpotFeed | null; board: LadderBoard; log: (why: string) => void; settings?: PricerSettings }): { stop: () => void } {
+export function startPricer(input: { venue: RoleSession; spot: SpotFeed | null; board: LadderBoard; log: (why: string) => void; settings?: PricerSettings; vol?: VolBoard | null }): { stop: () => void } {
   const settings = input.settings ?? readPricerSettings();
-  const state: PricerState = { venue: input.venue, spot: input.spot, board: input.board, settings, terms: new Map() };
+  const state: PricerState = { venue: input.venue, spot: input.spot, vol: input.vol ?? null, board: input.board, settings, terms: new Map() };
   input.log(`pricer: ${settings.levels} levels × ${settings.lotsPerLevel} lots every ${settings.stepTicks} ticks, half-spread ${settings.maker.halfSpreadTicks}, cap ${settings.marketCapBase} base/side, fee ${settings.feeRateBps} bps${input.spot ? "" : " · NO SPOT FEED"}`);
   return runActor({ name: "pricer", log: input.log, dryRun: false, everyMs: settings.everyMs, pass: () => pricerPass(state) });
 }

@@ -5,7 +5,8 @@
  *   1. uploads abu-pm-main (idempotent: the same DAR twice is one package),
  *   2. allocates the infrastructure parties (venue, resolver, three oracles, auditor, lp, agent-runner) and any demo
  *      users named with `--users alice,bob`,
- *   3. creates the VenueDesk, K venue cash shards and the BTC/ETH Series (60 s demo cadence and 300 s),
+ *   3. creates the VenueDesk, K venue cash shards and the BTC/ETH Series on every crypto cadence (C6: 60 s demo, 300,
+ *      900 and 3,600 s, and Masayume's 4 h and 1 d),
  *   4. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
@@ -16,6 +17,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
 import { TEMPLATE_IDS } from "@agari/daml";
+import {
+  attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
+  SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS, type AttestedSource,
+} from "@agari/core/market";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
@@ -70,20 +75,97 @@ async function submitAs(party: string, commandId: string, commands: Command[]): 
 
 interface LaneSpec {
   seriesKey: string;
-  symbol: "BTC" | "ETH";
+  /** What the lane's prints price: the crypto asset, the stock, the xStock (`TSLAx`), the pre-IPO name or basket. */
+  symbol: string;
   cadenceSec: number;
   lockLeadSec: number;
-  openAdmissionSec: number;
-  closeAdmissionSec: number;
+  /** Policy versions, oldest first; each names its attested source (core `attestedPrintSource`). */
+  versions: Array<{ effectiveFromSec: number; validUntilSec: number | null; printSource: string; minDelaySec: number; barLenSec: number; openAdmissionSec: number; closeAdmissionSec: number }>;
 }
 
-/** 60 s demo lane (an Addition, plan "Lanes") and the reference's 300 s cadence. Keys follow core `laneKey` (`BTC-5m`). */
-const LANES: LaneSpec[] = [
-  { seriesKey: "BTC-1m", symbol: "BTC", cadenceSec: 60, lockLeadSec: 10, openAdmissionSec: -1, closeAdmissionSec: 40 },
-  { seriesKey: "ETH-1m", symbol: "ETH", cadenceSec: 60, lockLeadSec: 10, openAdmissionSec: -1, closeAdmissionSec: 40 },
-  { seriesKey: "BTC-5m", symbol: "BTC", cadenceSec: 300, lockLeadSec: 30, openAdmissionSec: 60, closeAdmissionSec: 60 },
-  { seriesKey: "ETH-5m", symbol: "ETH", cadenceSec: 300, lockLeadSec: 30, openAdmissionSec: 60, closeAdmissionSec: 60 },
-];
+/**
+ * How long before expiry each crypto cadence stops taking quotes. The reference locks a Regular Window at its expiry;
+ * on Canton a quote must be valid until `lockAt` and settle behind the close print, so every lane keeps a lead that
+ * grows with the cadence (1 m and 5 m as C3 set them).
+ */
+const CRYPTO_LOCK_LEAD_SEC: Record<number, number> = { 60: 10, 300: 30, 900: 60, 3_600: 120, 14_400: 300, 86_400: 900 };
+
+/**
+ * BTC and ETH on every crypto cadence (core `CRYPTO_CADENCES_SEC`): the 60 s demo lane (an Addition, C3), the
+ * reference's 300/900/3,600 s and Masayume's 4 h and 1 d. Keys follow core `laneKey` (`BTC-5m`, `BTC-240m`, `BTC-1440m`).
+ * The 1-minute lane admits its open print until lock (C3); every other lane admits a print for 60 s after its boundary.
+ */
+function cryptoLanes(nowSec: number): LaneSpec[] {
+  return CRYPTO_SYMBOLS.flatMap((symbol) =>
+    CRYPTO_CADENCES_SEC.map((cadenceSec): LaneSpec => ({
+      seriesKey: laneKey(symbol, "token", cadenceSec), symbol, cadenceSec, lockLeadSec: CRYPTO_LOCK_LEAD_SEC[cadenceSec]!,
+      versions: [{
+        effectiveFromSec: Math.floor(nowSec / cadenceSec) * cadenceSec, validUntilSec: null, printSource: EXCHANGE_PRINT_SOURCE, minDelaySec: 5, barLenSec: 60,
+        openAdmissionSec: cadenceSec === 60 ? -1 : 60, closeAdmissionSec: cadenceSec === 60 ? 40 : 60,
+      }],
+    })),
+  );
+}
+
+/** The reference's price-source matrix (D-003): each Regular ticker's dated versions and the token lane's pinned Surge feeds. */
+type Sources = {
+  tickers: Record<string, { pythFeedId?: string; redstoneFeedId?: string; surgeSymbol?: string; versions: Array<{ validFrom: string; validUntil: string | null; primary: "pyth" | "redstone" }> }>;
+  tokenLane: { versions: Array<{ validFrom: string }>; tickers: Record<string, { surgeSymbol: string }> };
+};
+const SOURCES = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "services/ops/config/price-sources.json"), "utf8")) as Sources;
+const isoSec = (iso: string) => Math.floor(Date.parse(iso) / 1000);
+
+/** One attested version: the source's bar, delay and admission (core `SOURCE_TIMING`), from `fromSec` until `untilSec`. */
+function attested(source: Exclude<AttestedSource, "exchanges">, feed: string, fromSec: number, untilSec: number | null): LaneSpec["versions"][number] {
+  const t = SOURCE_TIMING[source];
+  return { effectiveFromSec: fromSec, validUntilSec: untilSec, printSource: attestedPrintSource(source, feed), minDelaySec: t.minDelaySec, barLenSec: BAR_LEN_SEC[source], openAdmissionSec: t.admissionSec, closeAdmissionSec: t.admissionSec };
+}
+
+/** The reference's Regular, token, pre-IPO and basket cadences (session-lanes.md §2; D-100, S19): 5/15/60 m, and 60 m for the PreStocks lanes. */
+const REGULAR_CADENCES_SEC = [300, 900, 3_600];
+const LOCK_LEAD_SEC: Record<number, number> = { 300: 30, 900: 60, 3_600: 120 };
+/** D-100 (pre-IPO mints verified) and S19 (basket bases) dates: the attested PreStocks versions start there. */
+const PRESTOCKS_FROM_SEC = isoSec("2026-09-19T00:00:00Z");
+const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
+
+/**
+ * The equity families (C6): every reference lane on the attested path, each version naming its original source.
+ *   regular   LAUNCH_TICKERS × 5/15/60 m; the dated Pyth/RedStone versions of price-sources.json (TSLA: Pyth until the
+ *             trial's last close, then RedStone; QQQ and VOO end with the trial and pause: no signed source)
+ *   token     the four xStocks × 5/15/60 m on their pinned Switchboard Surge jobs; the Series prints the xStock (`TSLAx`)
+ *   preipo    the eight PreStocks names, 60 m, on the catalogue read (D-100/D-101)
+ *   basket    the five PreStocks baskets, 60 m, on their index (S19)
+ *   valuation Pyth valuation indices (S20): only with `--lanes valuation`, like the reference's init script, which
+ *             refuses to register while the key is not entitled ("no dead lane is ever shown")
+ * The Monday Gap is not bootstrapped: engine 0.3.0 fixes `expiry = start + cadence`, and a Gap spans Fri close → Mon open.
+ */
+function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
+  const out: LaneSpec[] = [];
+  const lane = (symbol: string, key: string, cadenceSec: number, versions: LaneSpec["versions"]) =>
+    out.push({ seriesKey: key, symbol, cadenceSec, lockLeadSec: LOCK_LEAD_SEC[cadenceSec] ?? 120, versions });
+  if (families.has("regular")) {
+    for (const symbol of LAUNCH_TICKERS) {
+      const row = SOURCES.tickers[symbol];
+      if (!row) continue;
+      const versions = row.versions.map((v) =>
+        attested(v.primary, v.primary === "pyth" ? row.pythFeedId! : row.redstoneFeedId!, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null));
+      for (const cadenceSec of REGULAR_CADENCES_SEC) lane(symbol, laneKey(symbol, "regular", cadenceSec), cadenceSec, versions);
+    }
+  }
+  if (families.has("token")) {
+    for (const symbol of TOKEN_LANE_TICKERS) {
+      const xstock = TICKERS[symbol].xstock!;
+      const from = isoSec(SOURCES.tokenLane.versions[0]!.validFrom);
+      for (const cadenceSec of REGULAR_CADENCES_SEC) lane(xstock.symbol, laneKey(symbol, "token", cadenceSec), cadenceSec, [attested("switchboard", xstock.surgeSymbol, from, null)]);
+    }
+  }
+  if (families.has("preipo")) for (const symbol of PRE_IPO_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("prestocks", symbol, PRESTOCKS_FROM_SEC, null)]);
+  if (families.has("basket")) for (const symbol of BASKET_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("basket", symbol, BASKETS_FROM_SEC, null)]);
+  if (families.has("valuation")) {
+    for (const symbol of VALUATION_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("pyth-index", TICKERS[symbol].pythIndexFeedId!.replace(/^0x/, "").toLowerCase(), isoSec("2026-09-22T00:00:00Z"), null)]);
+  }
+  return out;
+}
 
 async function main(): Promise<void> {
   await waitReady();
@@ -128,21 +210,22 @@ async function main(): Promise<void> {
   }
   const haveSeries = new Set(pick(acs, TEMPLATE_IDS.Series, decodeSeries).map((s) => s.data.seriesKey));
   const nowSec = Math.floor(Date.now() / 1000);
-  for (const lane of LANES) {
+  // `--lanes crypto,regular,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
+  const families = new Set(arg("--lanes", "crypto,regular,token,preipo,basket").split(",").map((s) => s.trim()));
+  const lanes = [...(families.has("crypto") ? cryptoLanes(nowSec) : []), ...equityLanes(families)];
+  for (const lane of lanes) {
     if (haveSeries.has(lane.seriesKey)) continue;
     const anchorSec = Math.floor(nowSec / lane.cadenceSec) * lane.cadenceSec;
+    const [first, ...later] = lane.versions.map((v, i) => ({ version: POLICY_VERSION + i, ...v }));
     await submitAs(venue, `bootstrap:series:${lane.seriesKey}:${run}`, [
       cmd.createSeries({
         venue, resolver: parties.resolver!, auditor: parties.auditor!, seriesKey: lane.seriesKey, symbol: lane.symbol,
         anchorSec, cadenceSec: lane.cadenceSec, lockLeadSec: lane.lockLeadSec, settleGraceSec: 300, cashUnit: CASH_UNIT, nextIndex: 0,
         oracles: ORACLE_ROLES.map((r) => parties[r]!), quorum: 2, maxDeviationBps: 100,
-        policy: {
-          version: POLICY_VERSION, effectiveFromSec: anchorSec, printSource: "attested:coinbase,kraken,bitstamp 1m candle close",
-          minDelaySec: 5, barLenSec: 60, openAdmissionSec: lane.openAdmissionSec, closeAdmissionSec: lane.closeAdmissionSec,
-        },
+        policy: first!, laterPolicies: later,
       }),
     ]);
-    log(`created Series ${lane.seriesKey} (cadence ${lane.cadenceSec} s, lock lead ${lane.lockLeadSec} s, anchor ${new Date(anchorSec * 1000).toISOString()})`);
+    log(`created Series ${lane.seriesKey} (cadence ${lane.cadenceSec} s, lock lead ${lane.lockLeadSec} s, anchor ${new Date(anchorSec * 1000).toISOString()}, ${lane.versions.map((v) => v.printSource).join(" → ")})`);
   }
 
   const file: PartiesFile = { network: "local", createdAtMs: Date.now(), parties, users, policyVersion: POLICY_VERSION };

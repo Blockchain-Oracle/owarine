@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { alpacaCalendar, utc } from "./calendar.fixtures";
-import { gapWindows, regularWindows, tokenWindows, type ScheduledWindow } from "./windows";
+import { gapWindows, isTokenCadence, regularWindows, tokenWindows, type ScheduledWindow } from "./windows";
 
 const iso = (sec: number) => new Date(sec * 1000).toISOString().replace(".000", "");
 const span = (w: ScheduledWindow) => [iso(w.tradingStartSec), iso(w.lockAtSec), iso(w.expirySec), w.openKind, w.closeKind];
@@ -59,5 +59,15 @@ describe("token windows", () => {
     const windows = tokenWindows(utc("2026-09-26T23:57:12Z"), utc("2026-09-27T00:30:00Z"), 900);
     expect(windows.map((w) => iso(w.tradingStartSec).slice(11, 16))).toEqual(["00:00", "00:15"]);
     expect(() => tokenWindows(0, 3_600, 420)).toThrow();
+  });
+
+  it("aligns Masayume's 4 h and 1 d crypto lanes to the UTC day, and refuses hours that do not divide it", () => {
+    const four = tokenWindows(utc("2026-09-29T10:33:00Z"), utc("2026-09-30T04:00:00Z"), 14_400);
+    expect(four.map((w) => iso(w.tradingStartSec).slice(11, 16))).toEqual(["12:00", "16:00", "20:00", "00:00"]);
+    const day = tokenWindows(utc("2026-09-29T10:33:00Z"), utc("2026-10-01T00:00:00Z"), 86_400);
+    expect(day.map((w) => [iso(w.tradingStartSec), iso(w.expirySec)])).toEqual([["2026-09-30T00:00:00Z", "2026-10-01T00:00:00Z"]]);
+    expect(isTokenCadence(60) && isTokenCadence(3_600) && isTokenCadence(14_400) && isTokenCadence(86_400)).toBe(true);
+    expect(isTokenCadence(18_000) || isTokenCadence(7_200 * 5) || isTokenCadence(172_800)).toBe(false);
+    expect(() => tokenWindows(0, 86_400 * 3, 172_800)).toThrow();
   });
 });
