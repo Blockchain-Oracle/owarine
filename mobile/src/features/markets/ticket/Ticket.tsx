@@ -20,6 +20,7 @@ import { OutcomeNote, RegionNote } from "./OutcomeNote";
 import { PrivateCta, PrivateNote } from "./PrivateParts";
 import { RangeBand, rangeCtaLabel, RangePlaced } from "./RangeParts";
 import { ReadoutStrip } from "./Readout";
+import { TICKET_CANTON } from "@/features/canton-ux/ticket/copy";
 import { useHeldSeconds } from "@/features/canton-ux/ticket/useHeldSeconds";
 import { HeldPriceRow, WriteProgress } from "./CantonWrite";
 import { BlockedButton } from "./TicketButton";
@@ -128,6 +129,7 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
             {c.isRange && c.rangeReserve?.paused ? ` ${RANGE.ticket.reservePaused}` : ""}
             {!c.isRange && !c.boosted && c.walletRoute && c.funding?.ok && c.funding.venueCreditUsedBase > 0n ? ` ${TICKET.creditNote(money(c.funding.venueCreditUsedBase))}` : ""}
             {c.session.isConnected && c.depositBase > 0n ? ` ${TICKET.seatDeposit(money(c.depositBase))}` : ""}
+            {plain ? ` ${TICKET_CANTON.ladder}` : ""}
           </Text>
         </>
       )}

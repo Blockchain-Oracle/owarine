@@ -1,17 +1,22 @@
 /**
  * The venue's ledger facts, as the order lane and the read port consume them (first-call.md §2.1 shapes, kept).
  *
- * C1 stub (the reference's D-015 on Canton): there is no participant to read yet, so every read here rejects with the
- * not-deployed reading before touching the network, and callers that wrap it in `withReading` answer "not live on this
- * network yet". The shapes stay, because the whole quote and size math is built on them: C4 fills `SeriesFacts` and
- * `VenueFacts` from the venue's `Series` / `VenueAccount` contracts and `MarketData` from `MarketTerms` + `Resolution`.
+ * On Canton (C4) they come from our own public routes, which read the projection (`/api/venue/facts` for the venue
+ * and every Series, `/api/venue/markets/<id>` for one Window), and from the venue's published ladder for a Book. A
+ * seat's position and cash come from its own `/api/ledger/me/*` reads, for the seat this runtime has registered only;
+ * any other owner reads as holding nothing here, never someone else's numbers. A read that cannot be answered throws
+ * the route's diagnosis, so callers wrapped in `withReading` say what went wrong instead of inventing a value.
  */
 import type { BookSideView } from "@agari/core/market";
 import type { TickerSymbol } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
-import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
-
-const NOT_LIVE = cantonNotLive("runtime");
+import { diagnosis, type Address } from "@agari/core/types";
+import { z } from "zod";
+import { ReadingError } from "../errors/reading-error";
+import { ledgerRequest, registeredSeatAddress } from "../provider/ledger-api";
+import { balanceWire, meReplyWire, positionWire } from "../provider/ledger-wire";
+import { marketFactsWire, venueFactsWire, venueRequest, type VenueFactsWire } from "../provider/venue-api";
+import { ladderBase, ladderBookState, ladderLatestWire, parseLadder } from "./ladder";
+import { peekClient } from "./read-runtime";
 
 export interface VenueFacts {
   /** The venue's id as the app keys it. */
@@ -95,23 +100,178 @@ export interface LedgerSeat {
 /** `Seat.flags` bits. */
 export const SEAT_FLAG = { program: 1, bonded: 2 } as const;
 
-const notLive = <T>(): Promise<T> => Promise.reject(notDeployedError(NOT_LIVE));
+// ---- the venue and its Series (`/api/venue/facts`) ------------------------------------------------------------------
 
-/** The venue's id. Not derivable before the venue exists on a participant. */
-export function eventsProgramAddress(): Address {
-  throw notDeployedError(NOT_LIVE);
+/** A venue's mode can change (a halt); its identity and its Series' terms cannot. */
+const VENUE_REFRESH_MS = 15_000;
+/** A Series the facts did not list is asked for again at most this often (the roller may just have created it). */
+const SERIES_MISS_MS = 5_000;
+
+interface LoadedFacts {
+  venue: VenueFacts;
+  series: Map<string, SeriesFacts>;
+  atMs: number;
 }
 
-export const configAddress = (): Promise<Address> => notLive();
-export const readVenue = (): Promise<VenueFacts> => notLive();
+let facts: LoadedFacts | null = null;
+let factsInFlight: Promise<LoadedFacts> | null = null;
+let lastSeriesMissMs = 0;
+
+const failed = (d: Parameters<typeof diagnosis>[0], technical: string) => new ReadingError(diagnosis(d, technical));
+
+function toFacts(w: VenueFactsWire): LoadedFacts {
+  const venue: VenueFacts = {
+    config: w.venue.config as Address,
+    collateralMint: w.venue.collateralMint as Address,
+    decimals: w.venue.decimals,
+    treasury: w.venue.treasury as Address,
+    mode: w.venue.mode,
+    programSeats: w.venue.programSeats as Address[],
+  };
+  const series = new Map<string, SeriesFacts>();
+  for (const s of w.series) {
+    series.set(s.address, {
+      address: s.address as Address,
+      symbol: (s.symbol ?? null) as TickerSymbol | null,
+      basis: s.basis,
+      cadenceSec: s.cadenceSec,
+      lotBase: s.lotBase,
+      tickBase: s.tickBase,
+      cashUnit: s.cashUnit,
+      minLots: s.minLots,
+      seatBond: s.seatBond,
+      fillsCap: s.fillsCap,
+      evictionsCap: s.evictionsCap,
+      minRestSlots: s.minRestSlots,
+      policySources: s.policySources,
+    });
+  }
+  return { venue, series, atMs: Date.now() };
+}
+
+function loadFacts(force = false): Promise<LoadedFacts> {
+  if (facts && !force && Date.now() - facts.atMs < VENUE_REFRESH_MS) return Promise.resolve(facts);
+  factsInFlight ??= venueRequest("facts", venueFactsWire)
+    .then((r): LoadedFacts => {
+      if (!r.ok) throw new ReadingError(r.diagnosis);
+      const loaded = toFacts(r.value);
+      facts = loaded;
+      return loaded;
+    })
+    .finally(() => {
+      factsInFlight = null;
+    });
+  return factsInFlight;
+}
+
+/** The Series facts already loaded, without a read (the ladder coordinator's synchronous path). */
+export function peekSeries(series: Address | string): SeriesFacts | null {
+  return facts?.series.get(series) ?? null;
+}
+
+/** The venue facts already loaded, without a read. */
+export function peekVenue(): VenueFacts | null {
+  return facts?.venue ?? null;
+}
+
+/** The venue's id. Known once the venue facts have been read; before that there is nothing honest to return. */
+export function eventsProgramAddress(): Address {
+  if (facts) return facts.venue.config;
+  throw failed("not-deployed", "the venue facts have not been read yet (/api/venue/facts)");
+}
+
+export const configAddress = async (): Promise<Address> => (await loadFacts()).venue.config;
+export const readVenue = async (): Promise<VenueFacts> => (await loadFacts()).venue;
 /** The venue's immutable facts without a mode refresh. */
-export const readVenueStatic = (): Promise<VenueFacts> => notLive();
-export const readSeries = (_series: Address): Promise<SeriesFacts> => notLive();
-/** Null when the Window doesn't exist. */
-export const readMarket = (_market: Address): Promise<{ address: Address; data: MarketData } | null> => notLive();
-/** Null = the Window's positions are closed; `seat` null = the owner holds nothing there. */
-export const readSeat = (_ledger: Address, _owner: Address): Promise<{ seat: LedgerSeat | null; seatBond: bigint } | null> => notLive();
-/** Null when the Window has no ladder. */
-export const readBook = (_book: Address): Promise<BookState | null> => notLive();
-/** `amountBase` null = the owner holds no venue cash yet. */
-export const readTokenBalance = (_owner: Address, _mint: Address): Promise<{ ata: Address; amountBase: bigint | null }> => notLive();
+export const readVenueStatic = async (): Promise<VenueFacts> => (facts ?? (await loadFacts())).venue;
+
+export async function readSeries(series: Address): Promise<SeriesFacts> {
+  const known = peekSeries(series) ?? (await loadFacts()).series.get(series);
+  if (known) return known;
+  if (Date.now() - lastSeriesMissMs > SERIES_MISS_MS) {
+    lastSeriesMissMs = Date.now();
+    const again = (await loadFacts(true)).series.get(series);
+    if (again) return again;
+  }
+  throw failed("market-not-trading", `no Series ${series} on this venue`);
+}
+
+// ---- one Window (`/api/venue/markets/<id>`) ---------------------------------------------------------------------------
+
+const MARKET_MEMO_MS = 1_000;
+const marketMemo = new Map<string, { atMs: number; value: Promise<{ address: Address; data: MarketData } | null> }>();
+
+/** Null when the Window doesn't exist. `ledger` and `book` are the app's ids for it: the Window id and its terms. */
+export function readMarket(market: Address): Promise<{ address: Address; data: MarketData } | null> {
+  const hit = marketMemo.get(market);
+  if (hit && Date.now() - hit.atMs < MARKET_MEMO_MS) return hit.value;
+  const value = venueRequest(`markets/${encodeURIComponent(market)}`, marketFactsWire).then((r) => {
+    if (!r.ok) throw new ReadingError(r.diagnosis);
+    const m = r.value.market;
+    if (!m) return null;
+    return { address: m.address as Address, data: { ...m.data, series: m.data.series as Address, book: m.data.book as Address, ledger: m.data.ledger as Address } };
+  });
+  value.catch(() => marketMemo.delete(market));
+  marketMemo.set(market, { atMs: Date.now(), value });
+  if (marketMemo.size > 256) for (const [key, entry] of marketMemo) if (Date.now() - entry.atMs > MARKET_MEMO_MS) marketMemo.delete(key);
+  return value;
+}
+
+// ---- the registered seat's own position and cash (`/api/ledger/me/*`) --------------------------------------------
+
+async function mine<W extends z.ZodType>(owner: Address, path: string, wire: W): Promise<z.output<W> | null> {
+  if (registeredSeatAddress() !== owner) return null;
+  const r = await ledgerRequest(`/me/${path}`, { method: "GET", wire: meReplyWire });
+  if (!r.ok) throw new ReadingError(r.diagnosis);
+  if (r.value.address !== owner) return null;
+  const rows = wire.safeParse(r.value.value);
+  if (!rows.success) throw failed("unknown", `/me/${path} answered an unexpected shape`);
+  return rows.data as z.output<W>;
+}
+
+/**
+ * Null = the Window's positions are closed; `seat` null = the owner holds nothing there. On Canton a seat posts no
+ * bond and holds no venue credit (`seatBond` 0, `credit` 0); its legs are the seat's `Leg` contracts, summed per side.
+ */
+export async function readSeat(ledger: Address, owner: Address): Promise<{ seat: LedgerSeat | null; seatBond: bigint } | null> {
+  const market = await readMarket(ledger);
+  if (!market || market.data.state !== 0) return null;
+  const positions = await mine(owner, "positions", z.array(positionWire));
+  const row = positions?.find((p) => p.marketId === ledger);
+  if (!row || (row.balanceUpRaw === 0n && row.balanceDownRaw === 0n)) return { seat: null, seatBond: 0n };
+  const { lotBase } = await readSeries(market.data.series);
+  const lots = (raw: bigint) => (lotBase > 0n ? raw / lotBase : 0n);
+  return {
+    seat: { index: 0, owner, credit: 0n, lockedCash: 0n, yesFree: lots(row.balanceUpRaw), yesLocked: 0n, noFree: lots(row.balanceDownRaw), noLocked: 0n, openOrders: 0, flags: 0 },
+    seatBond: 0n,
+  };
+}
+
+/** `amountBase` null = the owner holds no venue cash yet (or is not the seat this runtime reads for). */
+export async function readTokenBalance(owner: Address, _mint: Address): Promise<{ ata: Address; amountBase: bigint | null }> {
+  const sheet = await mine(owner, "balance", balanceWire);
+  return { ata: owner, amountBase: sheet ? sheet.spendableBase : null };
+}
+
+// ---- a Window's Book: the venue ladder (`/ladders/latest`) --------------------------------------------------------
+
+/** Null when the venue publishes no ladder for this Window (not quoting yet, or quoting is over). */
+export async function readBook(book: Address): Promise<BookState | null> {
+  const base = ladderBase(peekClient());
+  if (!base) throw failed("not-deployed", "no ladder feed configured (NEXT_PUBLIC_LADDER_URL)");
+  let json: unknown;
+  try {
+    const res = await fetch(`${base}/ladders/latest`, { cache: "no-store", headers: { accept: "application/json" } } as RequestInit);
+    if (!res.ok) throw new Error(`ladders ${res.status}`);
+    json = await res.json();
+  } catch (error) {
+    throw failed("rpc-down", `venue ladder unreachable: ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const parsed = ladderLatestWire.safeParse(json);
+  if (!parsed.success) throw failed("unknown", "the venue ladder answered an unexpected shape");
+  for (const raw of parsed.data.ladders) {
+    const ladder = parseLadder(raw);
+    if (ladder && (ladder.termsCid === book || ladder.marketId === book)) return ladderBookState(ladder);
+  }
+  return null;
+}

@@ -1,6 +1,8 @@
 /** The shared read runtime. No account, no signer, no ledger credential: everything that signs lives in ../sessions. */
 export { bookSnapshot, bookStateSnapshot, CANONICAL_BOOK_DEPTH, resetCoordinator, subscribeBook, type BookStateView } from "./coordinator";
 export { liveSpot, spotView, subscribeSpot, type SpotTick, type SpotView } from "./spot-stream";
+export { openStream, setStreamFactory, type StreamFactory, type StreamSource } from "./event-source";
+export { ladderBookState, parseLadder, wireLadder, type Ladder } from "./ladder";
 export {
   closeRuntime,
   configureMarkets,
@@ -20,6 +22,8 @@ export {
   readSeat,
   readSeries,
   readTokenBalance,
+  peekSeries,
+  peekVenue,
   readVenue,
   readVenueStatic,
   SEAT_FLAG,

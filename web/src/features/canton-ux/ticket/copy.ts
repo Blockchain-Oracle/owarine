@@ -21,6 +21,8 @@ export const TICKET_CANTON = {
     unknown: "No answer yet. We are checking the ledger, so don't place it again: your history will show it either way.",
   } satisfies Record<WritePhase, string>,
   step: (n: number, total: number, label: string) => `Step ${n} of ${total}: ${label}`,
+  /** Where the composing ticket's prices come from (plan §6): said once, in the ticket's footnote. */
+  ladder: "Prices shown are the venue's price ladder (indicative, not a public order book); the firm price is held when you place.",
   ring: {
     held: (sec: number) => `Price held for ${sec} s`,
     heldShort: "Price held",

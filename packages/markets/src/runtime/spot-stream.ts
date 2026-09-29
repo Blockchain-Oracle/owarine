@@ -3,6 +3,7 @@
  * by the first subscriber and closed after the last leaves. A tab hidden for a minute closes it too; on return it
  * reopens and the stream's snapshot refills every symbol. Display only, never a settlement input.
  */
+import { openStream, type StreamSource } from "./event-source";
 import { pageDocument, pageHidden } from "./page";
 import { peekClient } from "./read-runtime";
 
@@ -29,7 +30,7 @@ const NOT_LIVE: SpotView = Object.freeze({ tick: null, live: false });
 const ticks = new Map<string, SpotTick>();
 const views = new Map<string, SpotView>();
 const listeners = new Map<string, Set<() => void>>();
-let source: EventSource | null = null;
+let source: StreamSource | null = null;
 let live = false;
 let retryMs = RETRY_MIN_MS;
 let retryTimer: ReturnType<typeof setTimeout> | null = null;
@@ -73,23 +74,24 @@ function close(): void {
 
 function open(): void {
   const base = peekClient()?.priceFeedUrl;
-  if (source || !base || typeof EventSource === "undefined" || listeners.size === 0) return;
+  if (source || !base || listeners.size === 0) return;
   if (pageHidden()) return;
-  const stream = new EventSource(`${base.replace(/\/$/, "")}/prices/stream`);
+  const stream = openStream(`${base.replace(/\/$/, "")}/prices/stream`);
+  if (!stream) return;
   source = stream;
-  stream.addEventListener("spot", (event) => onSpot(event as unknown as { data: string }));
-  stream.onerror = () => {
+  stream.listen("spot", (data) => onSpot({ data }));
+  stream.onError((closed) => {
     if (stream !== source) return;
     setLive(false);
-    // CONNECTING: the browser retries on its own. CLOSED: it gave up, so reopen with a backoff.
-    if (stream.readyState !== EventSource.CLOSED) return;
+    // Still connecting: the source retries on its own. Closed: it gave up, so reopen with a backoff.
+    if (!closed) return;
     source = null;
     retryTimer ??= setTimeout(() => {
       retryTimer = null;
       open();
     }, retryMs);
     retryMs = Math.min(retryMs * 2, RETRY_MAX_MS);
-  };
+  });
 }
 
 function bindVisibility(): void {

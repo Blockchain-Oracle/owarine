@@ -116,7 +116,9 @@ export function quoteFromBook(book: BookState, series: SeriesFacts, target: Quot
     oddsCents: bpsToOddsCents(avgPriceBps),
     payoutIfRightBase: contractsRaw,
     fillableStakeBase: sized.escrowCash,
-    partial: stakeBase - sized.escrowCash > oneCent(target.decimals),
+    // Partial means the ladder ran out, not that the stake is not a whole number of lots: a remainder smaller than one
+    // more lot's escrow at the limit is rounding (a Canton lot is a whole contract, up to a credit each).
+    partial: stakeBase - sized.escrowCash > oneCent(target.decimals) && stakeBase - sized.escrowCash >= (sized.lots > 0n ? sized.escrowCash / sized.lots : 0n),
     feeBps: 0,
     decimals: target.decimals,
     quotedAtMs: nowSec * 1000,

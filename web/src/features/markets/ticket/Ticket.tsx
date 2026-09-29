@@ -5,7 +5,7 @@ import { belowMinStake } from "@agari/core/sizing";
 import { formatBaseUnits } from "@agari/core/units";
 import { X } from "lucide-react";
 import { WhoCanSee } from "@/features/canton-ux/privacy";
-import { HeldPriceRow, useHeldSeconds, WriteProgress } from "@/features/canton-ux/ticket";
+import { HeldPriceRow, TICKET_CANTON, useHeldSeconds, WriteProgress } from "@/features/canton-ux/ticket";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { LEVERAGE } from "@/features/leverage";
@@ -161,6 +161,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
             {isRange && rangeReserve?.paused ? ` ${RANGE.ticket.reservePaused}` : null}
             {!isRange && !boosted && walletRoute && funding?.ok && funding.venueCreditUsedBase > 0n ? ` ${TICKET.creditNote(`${formatBaseUnits(funding.venueCreditUsedBase, decimals)} ${symbol}`)}` : null}
             {session.isConnected && depositBase > 0n ? ` ${TICKET.seatDeposit(`${formatBaseUnits(depositBase, decimals)} ${symbol}`)}` : null}
+            {plain ? ` ${TICKET_CANTON.ladder}` : null}
           </p>
         </>
       )}

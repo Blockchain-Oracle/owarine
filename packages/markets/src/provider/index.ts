@@ -73,3 +73,4 @@ export { ledgerBase, ledgerRequest, registerSeatSigner, registeredSeatAddress, S
 export * from "./ledger-wire";
 export { leaseSeat, readSeatLease, releaseSeat, SEAT_LEASE_TTL_MS, seatLeaseRequestWire, seatLeaseText, seatLeaseWire, type SeatLeaseView } from "./seat";
 export { listOpenQuotes } from "./wallet";
+export { marketFactsWire, venueClockWire, venueFactsWire, venueRequest, type VenueClockWire, type VenueFactsWire } from "./venue-api";

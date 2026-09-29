@@ -8,6 +8,8 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SessionKeyProvider } from "@/features/session/SessionKeyProvider";
 import { UserSessionProvider } from "@/providers/UserSessionProvider";
 import { marketsEnv } from "~/lib/env";
+// The runtime's price and ladder streams go through react-native-sse on the phone (registered before any subscribe).
+import "~/lib/sse";
 import { ThemeProvider, useTheme } from "~/theme";
 import { useAppFonts } from "~/theme/fonts";
 import { AppChrome } from "~/components/shell/AppChrome";
