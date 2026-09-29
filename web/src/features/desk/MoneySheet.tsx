@@ -27,7 +27,7 @@ interface MoneySheetProps {
   zone: string | null;
   nowSec: number;
   onClose: () => void;
-  /** Fixtures hand the balances in; live use reads them through `/api/rpc/mainnet`. */
+  /** Fixtures hand the balances in; live use reads them through the desk reader (not live until C7b). */
   balances?: Reading<OwnerDeskBalances> | null;
 }
 

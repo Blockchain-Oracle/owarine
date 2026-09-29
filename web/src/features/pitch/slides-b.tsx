@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { webEnv } from "@/lib/env";
 import AgariMark from "@/components/shell/AgariMark";
 import { PITCH } from "./copy";
 import { PhoneMock } from "./mocks";
@@ -18,9 +17,9 @@ import type { VenueUsage } from "./useVenueUsage";
  */
 
 const shortAddr = (a: string) => a.slice(0, 10);
-/** The one program every Window runs on, and the one that holds a Trading Balance; honest when either is unset. */
-const EVENTS_PROGRAM = webEnv.markets.eventsProgramId ?? "not deployed";
-const VAULT_PROGRAM = webEnv.markets.vaultProgramId ?? "not deployed";
+/** The engine and the Trading Balance are Daml templates with no address to show; honest until C10 points them at the proof page. */
+const EVENTS_PROGRAM = "not deployed";
+const VAULT_PROGRAM = "not deployed";
 
 const A = PITCH.agents;
 const U = PITCH.demand;

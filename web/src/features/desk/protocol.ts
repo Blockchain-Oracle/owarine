@@ -10,7 +10,7 @@ import { z } from "zod";
  * drift; validated on both sides because everything here crosses a browser. Money and token amounts travel as
  * integer strings (base units) or plain decimal strings (a record's own form); never a float, never a bigint.
  */
-export const DESK_CLUSTER: Cluster = "mainnet-beta";
+export const DESK_CLUSTER: Cluster = "mainnet";
 /** A signature is good for a few minutes, so a captured one cannot be replayed later (the X link's rule). */
 export const DESK_SIGNATURE_TTL_MS = 5 * 60_000;
 /** Six own practice checks and the record opened unlock Go live (desk.md §7). */

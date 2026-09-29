@@ -93,9 +93,11 @@ export interface ContractProof {
   address: Address | null;
 }
 
+// On Canton the engine is a Daml package, which has no base58 address to link: the events and vault rows are left out
+// (never invented) until C10 points them at the package's proof page.
 const CONTRACTS: Record<ContractKey, { label: string; address: Address | undefined }> = {
-  events: { label: "agari-events (the book, the Windows, the prints, settlement)", address: webEnv.markets.eventsProgramId },
-  vault: { label: "agari-vault (the Trading Balance and its grants)", address: webEnv.markets.vaultProgramId },
+  events: { label: "agari-events (the book, the Windows, the prints, settlement)", address: undefined },
+  vault: { label: "agari-vault (the Trading Balance and its grants)", address: undefined },
   venue: { label: "Venue config (signers, thresholds and roles every Window reads)", address: webEnv.markets.venueId },
 };
 

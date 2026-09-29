@@ -17,7 +17,7 @@ describe("toFeed (S25: /proof's rows)", () => {
       row({ market: "E", state: "open" }),
     ]);
     expect(feed.map((r) => r.market)).toEqual(["B", "C", "A"]);
-    expect(feed[0]).toMatchObject({ outcome: "down", sourceName: "PreStocks", sourceHref: expect.stringContaining("explorer.solana.com") });
+    expect(feed[0]).toMatchObject({ outcome: "down", sourceName: "PreStocks", sourceHref: null });
     expect(feed[1]).toMatchObject({ outcome: "void", voidReason: "missing-print", closeE8: null, sourceName: "PreStocks", sourceHref: null });
     expect(feed[2]).toMatchObject({ outcome: "up", sourceName: "Pyth", sourceHref: "https://app.pyth.com/explore/Equity.US.TSLA%2FUSD" });
   });

@@ -81,7 +81,7 @@ export function CheckIt({ body, recordHash, proof, initial = null }: { body: unk
     a.click();
     URL.revokeObjectURL(url);
   };
-  const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, "mainnet-beta") : null;
+  const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, "mainnet") : null;
   return (
     <div className="flex flex-col gap-3">
       <div className="dk-card-actions dc-proof-actions">

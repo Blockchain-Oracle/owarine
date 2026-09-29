@@ -6,8 +6,8 @@ export const dynamic = "force-dynamic";
 
 /**
  * Boot check — the markets runtime as this deployment configured it. Masayume probed the DreamDEX indexer and its live
- * markets here; on Solana the engine and the indexer arrive with S2 and S3, so the honest probe is the configuration
- * itself and the stub's own answer until they do (D-015).
+ * markets here; on Canton the Daml package reaches the participant in C2 and the adapter in C4, so the honest probe is
+ * the configuration itself and the stub's own answer until they do (D-015).
  */
 export default async function BootPage() {
   ensureMarkets(webEnv.markets);
@@ -23,16 +23,17 @@ export default async function BootPage() {
           <li>
             cluster: {CLUSTER_LABEL[client.cluster]} ({env.chainId})
           </li>
-          <li>http rpc: {client.rpcHttpUrl}</li>
-          <li>ws rpc: {client.rpcWsUrl}</li>
+          <li>ledger routes: {client.ledgerApiPath}</li>
           <li>indexer: {env.indexerUrl ?? "—"}</li>
           <li>venue: {env.venueId ?? "—"}</li>
-          <li>agari-events: {client.eventsProgramId ?? "—"}</li>
+          <li>price feed: {client.priceFeedUrl ?? "—"}</li>
+          <li>ladder: {client.ladderUrl ?? "—"}</li>
+          <li>daml package: {client.packageName}</li>
         </ul>
       </section>
       <section>
         <h2 className="font-semibold">Engine</h2>
-        <p>{client.eventsProgramId ? `program ${client.eventsProgramId}` : NOT_DEPLOYED_TECHNICAL}</p>
+        <p>{NOT_DEPLOYED_TECHNICAL}</p>
       </section>
     </main>
   );

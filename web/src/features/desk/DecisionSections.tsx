@@ -145,7 +145,7 @@ export function DecisionSections({ decision, base, nowSec, zone, isLive, ceiling
                   </span>
                   {a.actualOut !== null && a.expectedOut !== null && <span className="dk-mono text-ink-secondary">{D.happened.received(a.actualOut, a.expectedOut)}</span>}
                   {a.failureCode && <span className="dk-warn">{D.happened.failed(`${a.failureCode}${a.failureDetail ? `: ${a.failureDetail}` : ""}`)}</span>}
-                  {a.signature && <a href={txUrl(a.signature as Signature, "mainnet-beta")} target="_blank" rel="noopener noreferrer" className="dk-link dc-explorer">{D.happened.explorer}</a>}
+                  {a.signature && <a href={txUrl(a.signature as Signature, "mainnet")} target="_blank" rel="noopener noreferrer" className="dk-link dc-explorer">{D.happened.explorer}</a>}
                 </li>
               ))}
             </ul>
