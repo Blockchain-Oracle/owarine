@@ -34,7 +34,7 @@ export function OnChain({ state, isCreator }: { state: Extract<MatchState, { pha
   const size = state.commitment.size;
 
   if (!canSign) return <Refusal>{DUEL.lobby.noSigner}</Refusal>;
-  if (isCreator && created) return <Body>{DUEL.lobby.waitingCreate}</Body>;
+  if (isCreator && created) return <Body>{DUEL.lobby.waitingJoin}</Body>;
   if (!isCreator && !created) return <Body>{DUEL.lobby.waitingCreate}</Body>;
 
   const key = isCreator ? "create" : "join";

@@ -121,6 +121,8 @@ export const DUEL = {
     joinBody: (pot: string, symbol: string) =>
       pot === "0" ? "The match is on the ledger and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on the ledger and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
     waitingCreate: "Waiting for the other player to put the match on the ledger.",
+    /** The creator's own match has landed: the next move is the challenger's (the reference reused `waitingCreate` here). */
+    waitingJoin: "Your match is on the ledger. Waiting for the other player to join.",
     opening: "Opening…",
     joining: "Joining…",
     noSigner: "This browser has no signing session, so it cannot send the transaction this match needs.",
