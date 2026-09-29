@@ -9,6 +9,7 @@
  *   type Quote = PM.Quote.Quote;          // the contract payload
  */
 import { PM, packageId } from "@daml.js/abu-pm-main";
+import * as Tickets from "@daml.js/abu-pm-tickets";
 
 export { PM, packageId };
 
@@ -42,3 +43,31 @@ export const TEMPLATE_IDS = {
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATE_IDS;
+
+/**
+ * The abu-pm-tickets package (C8): range and moonshot rounds, boosts and shorts, parlays, the per-reserve `RiskBook`
+ * and the Earn desk. A second namespace beside `PM`, since both packages declare modules under `PM.*`.
+ *
+ *   import { Tickets, TICKET_TEMPLATE_IDS } from "@agari/daml";
+ *   Tickets.PM.Tickets.Range.RangeRound.templateId  // "#abu-pm-tickets:PM.Tickets.Range:RangeRound"
+ */
+export { Tickets };
+
+export const TICKETS_PACKAGE_NAME = "abu-pm-tickets";
+
+const T = Tickets.PM.Tickets;
+
+/** Package-name template ids of abu-pm-tickets, kept apart from `TEMPLATE_IDS` so nothing that walks those changes. */
+export const TICKET_TEMPLATE_IDS = {
+  RiskBook: T.Book.RiskBook.templateId,
+  EarnDesk: T.Earn.EarnDesk.templateId,
+  RangeQuote: T.Range.RangeQuote.templateId,
+  RangeRound: T.Range.RangeRound.templateId,
+  BoostQuote: T.Boost.BoostQuote.templateId,
+  BoostPosition: T.Boost.BoostPosition.templateId,
+  BoostExitQuote: T.Boost.BoostExitQuote.templateId,
+  ParlayQuote: T.Parlay.ParlayQuote.templateId,
+  ParlayTicket: T.Parlay.ParlayTicket.templateId,
+} as const;
+
+export type TicketTemplateName = keyof typeof TICKET_TEMPLATE_IDS;

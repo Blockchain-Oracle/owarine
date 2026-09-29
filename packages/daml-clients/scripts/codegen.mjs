@@ -1,14 +1,16 @@
 #!/usr/bin/env node
 /**
- * `pnpm codegen:daml`: rebuild the Daml workspace and regenerate the TypeScript bindings for abu-pm-main into
- * packages/daml-clients/generated/. The output is committed; CI-style check:
+ * `pnpm codegen:daml`: rebuild the Daml workspace and regenerate the TypeScript bindings for abu-pm-main and
+ * abu-pm-tickets (C8c) into packages/daml-clients/generated/. The output is committed; CI-style check:
  *
  *   pnpm codegen:daml && git diff --exit-code packages/daml-clients
  *
- * Steps: `dpm build --all` in daml/ -> `dpm codegen-js` on abu-pm-main's DAR into a temp dir -> keep only the
- * packages abu-pm-main's bindings import (its `file:` dependency closure; codegen emits every stdlib module) ->
- * rename `abu-pm-main-<version>` to a version-free `abu-pm-main` (package name `@daml.js/abu-pm-main`) so a
- * daml.yaml version bump never changes an import path. Nothing else in the generated files is edited.
+ * Steps: `dpm build --all` in daml/ -> `dpm codegen-js` on abu-pm-tickets' DAR (which carries abu-pm-main as a
+ * data-dependency, same package id) into a temp dir -> keep only the packages the two bindings import (their `file:`
+ * dependency closure; codegen emits every stdlib module) -> rename `<name>-<version>` to a version-free `<name>`
+ * (package name `@daml.js/<name>`) so a daml.yaml version bump never changes an import path. Nothing else in the
+ * generated files is edited: abu-pm-tickets' own modules still `require("@daml.js/abu-pm-main-<version>")`, which
+ * packages/daml-clients/package.json aliases to the same generated/abu-pm-main directory.
  *
  * Needs dpm (~/.dpm/bin) and a JDK 21 (JAVA_HOME; defaults to Homebrew's openjdk@21 when unset).
  */
@@ -23,6 +25,8 @@ const repo = resolve(pkgDir, "../..");
 const damlDir = join(repo, "daml");
 const outDir = join(pkgDir, "generated");
 const MAIN = "abu-pm-main";
+const TICKETS = "abu-pm-tickets";
+const RENAMED = [MAIN, TICKETS];
 
 const env = { ...process.env, PATH: `${join(homedir(), ".dpm/bin")}:${process.env.PATH ?? ""}` };
 const brewJdk = "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home";
@@ -31,14 +35,19 @@ if (env.JAVA_HOME) env.PATH = `${join(env.JAVA_HOME, "bin")}:${env.PATH}`;
 
 const run = (args, cwd) => execFileSync("dpm", args, { cwd, env, stdio: ["ignore", "inherit", "inherit"] });
 
-const version = /^version:\s*(\S+)\s*$/m.exec(readFileSync(join(damlDir, MAIN, "daml.yaml"), "utf8"))?.[1];
-if (!version) throw new Error(`no version in daml/${MAIN}/daml.yaml`);
+const versionOf = (name) => {
+  const v = /^version:\s*(\S+)\s*$/m.exec(readFileSync(join(damlDir, name, "daml.yaml"), "utf8"))?.[1];
+  if (!v) throw new Error(`no version in daml/${name}/daml.yaml`);
+  return v;
+};
+const versions = Object.fromEntries(RENAMED.map((n) => [n, versionOf(n)]));
+const versioned = (name) => `${name}-${versions[name]}`;
 
 run(["build", "--all"], damlDir);
-const dar = join(damlDir, MAIN, ".daml/dist", `${MAIN}-${version}.dar`);
+const dar = join(damlDir, TICKETS, ".daml/dist", `${versioned(TICKETS)}.dar`);
 const tmp = mkdtempSync(join(tmpdir(), "daml-codegen-"));
 try {
-  run(["codegen-js", dar, "-o", tmp], join(damlDir, MAIN));
+  run(["codegen-js", dar, "-o", tmp], join(damlDir, TICKETS));
 
   // The `file:` dependency closure of the main package.
   const keep = new Set();
@@ -48,21 +57,23 @@ try {
     const deps = JSON.parse(readFileSync(join(tmp, dir, "package.json"), "utf8")).dependencies ?? {};
     for (const spec of Object.values(deps)) if (spec.startsWith("file:../")) visit(spec.slice("file:../".length));
   };
-  visit(`${MAIN}-${version}`);
+  visit(versioned(TICKETS));
+  if (!keep.has(versioned(MAIN))) throw new Error(`${versioned(TICKETS)} does not depend on ${versioned(MAIN)}`);
 
   rmSync(outDir, { recursive: true, force: true });
   for (const dir of readdirSync(tmp).filter((d) => keep.has(d)).sort()) {
-    const target = dir === `${MAIN}-${version}` ? MAIN : dir;
+    const name = RENAMED.find((n) => dir === versioned(n));
+    const target = name ?? dir;
     cpSync(join(tmp, dir), join(outDir, target), { recursive: true });
-    if (target === MAIN) {
+    if (name) {
       const pj = join(outDir, target, "package.json");
       const json = JSON.parse(readFileSync(pj, "utf8"));
-      json.name = `@daml.js/${MAIN}`;
-      json.description = `${json.description} (${MAIN} ${version}, renamed version-free by packages/daml-clients/scripts/codegen.mjs)`;
+      json.name = `@daml.js/${name}`;
+      json.description = `${json.description} (${name} ${versions[name]}, renamed version-free by packages/daml-clients/scripts/codegen.mjs)`;
       writeFileSync(pj, `${JSON.stringify(json, null, 2)}\n`);
     }
   }
-  console.log(`codegen:daml: ${MAIN} ${version} -> ${[...keep].length} packages in packages/daml-clients/generated`);
+  console.log(`codegen:daml: ${RENAMED.map((n) => `${n} ${versions[n]}`).join(", ")} -> ${[...keep].length} packages in packages/daml-clients/generated`);
 } finally {
   rmSync(tmp, { recursive: true, force: true });
 }
