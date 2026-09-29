@@ -194,6 +194,22 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** until 0.3.0, publishing works on live legs, and a settled, unpublished call shows an honest note. In 0.3.0, `Leg_Settle`/`Leg_Claim` create a bilateral `SettlementReceipt` (owner + venue) with `Receipt_Publish`. That removes the note and gives portfolio history a ledger source.
 - **Approval:** default; overrulable.
 
+### K-029 — Ticket products as built in `abu-pm-tickets` 0.1.0
+- **Date / owner:** 2026-09-29 · C8a lane
+- **Evidence:** `daml/abu-pm-tickets`, 37 new money-gate scripts; `dpm test` passes all 107 scripts with 0 failures.
+- **Rule (deviations from the reference, each recorded):**
+  - A Boost void returns the premium: fees are recognised only on a non-void settle (K-022).
+  - Knock-out proceeds are pinned at issue, because there is no book mark.
+  - Boost exits are whole-position only.
+  - Cap locks release at prune after expiry, not at settle.
+  - Parlay risk is booked against the last leg's expiry.
+  - Pricing stays in `packages/core`; the ledger only bounds quotes.
+- **For a later engine version:**
+  - `Nav_IssueWithdraw` should require a reserve shard.
+  - A general `SettlementReceipt` covering tickets.
+  - An explicit close-admission field on `MarketTerms`.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
