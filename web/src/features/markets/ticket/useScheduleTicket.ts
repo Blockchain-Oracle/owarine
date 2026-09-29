@@ -14,6 +14,7 @@ import { SIDE_WORD } from "../side-styles";
 import { crossingOf, type Crossing } from "./crossing";
 import { DEFAULT_PRICE_CENTS } from "./PriceControl";
 import { useRegionRestricted } from "@/lib/region";
+import { leasedAddressOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import { deriveScheduleBlocker } from "./schedule-guards";
 import { useSeatDeposit } from "./seat-deposit";
 import type { TicketSelection } from "./types";
@@ -83,7 +84,8 @@ export function useScheduleTicket(selection: TicketSelection): ScheduleTicketApi
   const laneGuard = useLaneGuard(market);
   const book = useBook({ marketId: market.marketId, poolAddress: market.poolAddress, decimals });
   const crossing = useMemo<Crossing | null>(() => (side && book && isOk(book) && isPriceCents(priceCents) ? crossingOf(side, priceCents, book.value) : null), [side, book, priceCents]);
-  const resting = useRestingOrders(address);
+  // No lease, no read: the seat's rows answer 403 until it holds one (C4c.2).
+  const resting = useRestingOrders(leasedAddressOf(useSeatLeaseState().view, address));
   const restingCount = resting === null ? null : resting.ok ? resting.value.filter((v) => v.marketId === market.marketId && (v.status === "resting" || v.status === "resting-for-open")).length : 0;
 
   const bet = usePlaceBet();
