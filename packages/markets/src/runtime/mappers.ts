@@ -1,18 +1,15 @@
 /**
- * Chain accounts → port shapes, pure (first-call.md §2.1–2.2). Prices are YES ticks `1..999`: `priceRaw = ticks ×
+ * Ledger facts → port shapes, pure (first-call.md §2.1–2.2). Prices are YES ticks `1..999`: `priceRaw = ticks ×
  * tick_base`, `quantityRaw = lots × lot_base`, cash = `lots × ticks × cash_unit`. Nothing here reads a clock or the
  * network; callers pass the chain-corrected `nowSec`.
  */
-import type { Market } from "@agari/clients/agari-events";
 import type { QuoteTarget } from "@agari/core/ports";
 import { ONCHAIN_STATUS } from "@agari/core/lifecycle";
 import { bookLevels, exitWalk, outcomeLevels, quoteStake, vwapOverDepth, type BookLevel, type NodeFilter } from "@agari/core/market";
 import { bufferToSlippageBps, costCapBufferBps } from "@agari/core/sizing";
-import type { Address as CoreAddress, BookDepth, BookLevelView, MarketId, OnchainSnapshot, OutcomeIdx, Quote, Side } from "@agari/core/types";
+import type { Address, BookDepth, BookLevelView, MarketId, OnchainSnapshot, OutcomeIdx, Quote, Side } from "@agari/core/types";
 import { bpsToOddsCents, oneCent } from "@agari/core/units";
-import type { Address } from "@solana/kit";
-import type { SeriesFacts, VenueFacts } from "./accounts";
-import type { BookState } from "./decode";
+import type { BookState, MarketData, SeriesFacts, VenueFacts } from "./accounts";
 
 /** How many levels a side carries: the coordinated Book, the quote walk and `getBookDepth` all use it. */
 export const BOOK_LEVELS = 32;
@@ -29,11 +26,11 @@ export const MARKET_FLAG = { bookReleased: 1, ledgerClosed: 2, singleSource: 4 }
 
 export interface MarketAccount {
   address: Address;
-  data: Market;
+  data: MarketData;
 }
 
 /** events-engine.md §7 `status(m, now)` as core's on-chain enum; `Settling` is never observable. */
-export function onchainStatus(m: Market, nowSec: number): number {
+export function onchainStatus(m: Pick<MarketData, "state" | "tradingStart" | "lockAt">, nowSec: number): number {
   if (m.state === MARKET_STATE.resolved) return ONCHAIN_STATUS.Resolved;
   if (m.state === MARKET_STATE.voided) return ONCHAIN_STATUS.Voided;
   if (nowSec < Number(m.tradingStart)) return ONCHAIN_STATUS.Listed;
@@ -50,11 +47,11 @@ export function toOnchainSnapshot(m: MarketAccount, series: SeriesFacts, venue: 
   const { data } = m;
   return {
     marketId: m.address as string as MarketId,
-    marketAddress: m.address as string as CoreAddress,
-    pool: data.book as string as CoreAddress,
-    ledger: data.ledger as string as CoreAddress,
+    marketAddress: m.address,
+    pool: data.book,
+    ledger: data.ledger,
     nonce: data.index,
-    collateral: venue.collateralMint as string as CoreAddress,
+    collateral: venue.collateralMint,
     status: onchainStatus(data, nowSec),
     backing: data.backingLots * series.lotBase,
     finalized: data.state !== MARKET_STATE.open,

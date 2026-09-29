@@ -1,10 +1,8 @@
 import type { QuoteTarget } from "@agari/core/ports";
-import type { MarketId } from "@agari/core/types";
-import type { Address } from "@solana/kit";
+import type { Address, MarketId } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import type { SeriesFacts } from "./accounts";
-import { bookBytes } from "./book-bytes.fixture";
-import { decodeBook } from "./decode";
+import { ladderState } from "./ladder.fixture";
 import { quoteFromBook, toBookDepth } from "./mappers";
 
 const MARKET = "BKkTERCDMQK17uLvBxVTTJfWMx5t4zzesJVhFFoGH252";
@@ -18,7 +16,7 @@ const series: SeriesFacts = {
 const target: QuoteTarget = { marketId: MARKET as MarketId, poolAddress: "8xPqjTVYdsu2f4fZo2EDuhkSxFrioZECnypZKfqW97m2" as QuoteTarget["poolAddress"], decimals: 6, intervalSec: 300 };
 const order = (price: number, lots: bigint, expireTs = BigInt(NOW + 60)) => ({ price, lots, expireTs, placedSlot: 400_000_000n, live: true });
 // YES bid 480 × 5,000; YES asks 520 × 5,000 and 530 × 10,000; an expired ask at 510 must never be quoted.
-const book = decodeBook(target.poolAddress as unknown as Address, bookBytes([order(480, 5_000n)], [order(510, 99_000n, BigInt(NOW)), order(520, 5_000n), order(530, 10_000n)], MARKET as Address), 400_000_100n);
+const book = ladderState([order(480, 5_000n)], [order(510, 99_000n, BigInt(NOW)), order(520, 5_000n), order(530, 10_000n)], MARKET as Address, 400_000_100n);
 
 describe("toBookDepth", () => {
   it("shows the YES book in Up/Down terms, dropping expired orders", () => {
@@ -56,7 +54,7 @@ describe("quoteFromBook (the ticket's and the submitter's one kernel)", () => {
 
   it("is null below min_lots and on an empty side", () => {
     expect(quoteFromBook(book, series, target, "up", 400_000n, NOW)).toBeNull();
-    const asksOnly = decodeBook(book.address, bookBytes([], [order(520, 5_000n)], MARKET as Address), 400_000_100n);
+    const asksOnly = ladderState([], [order(520, 5_000n)], MARKET as Address, 400_000_100n);
     expect(quoteFromBook(asksOnly, series, target, "down", 10_000_000n, NOW)).toBeNull();
   });
 });

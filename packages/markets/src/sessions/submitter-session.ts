@@ -3,40 +3,35 @@ import type { AttributionHook, IntentJournal, StopGate } from "@agari/core/ports
 import type { Address } from "@agari/core/types";
 import type { MarketsEnv } from "../env";
 import type { WalletSession } from "../react/wallet-session";
+import { getVaultDeployment } from "../runtime/read-runtime";
 import { createSubmitter, type MarketsSubmitter } from "../submitter/create";
-import type { VaultContracts } from "../vault/contracts";
-import type { SponsorCosigner } from "../vault/cosign";
-import { resolveVaultDeployment } from "../vault/deployment";
+import type { WriteRpc } from "../submitter/write-rpc";
+import type { SponsorCosigner, VaultContracts } from "../vault";
 import type { AuthorityKind } from "./authority";
-import type { WriteRpc } from "../submitter/steps/message";
-import { keypairAddress } from "./keypair";
-import { keypairSigner } from "./keypair-signer";
+import { signerFromSecretKey } from "./ed25519";
 import { createNonceQueue } from "./nonce-queue";
-import { createSignerFromKeyPair, type TransactionSigner } from "@solana/kit";
+import type { SeatSigner } from "./seat-signer";
 
 /**
  * Exactly one of these — a session signs one way, decided once, at construction:
- * - `wallet`: the person's Wallet Standard wallet, as a Kit signer (D-014, D-023);
- * - `secretKey`: a server role's 64-byte Solana keypair (ops actors, the desk, the settler);
- * - `keyPair`: a tap-trading session key, a non-extractable WebCrypto Ed25519 pair from `generateSessionKey()` (D-066).
+ * - `wallet`: the person's seat as the web or the phone hands it over (`WalletSession`, D-014);
+ * - `seat`: a seat signer the caller already holds;
+ * - `secretKey`: a server role's or a drive's 64-byte keypair (`seed ‖ public key`), until C3 moves ops onto role parties.
  */
-/** Kit's WebCrypto key pair type, named without the DOM lib (the ops service compiles markets without it). */
-export type SessionKeyPair = Parameters<typeof createSignerFromKeyPair>[0];
-
-export type SessionSigner = { wallet: WalletSession } | { secretKey: Uint8Array } | { keyPair: SessionKeyPair };
+export type SessionSigner = { wallet: WalletSession } | { seat: SeatSigner } | { secretKey: Uint8Array };
 
 export interface SubmitterSessionConfig {
   env: MarketsEnv;
   authority: AuthorityKind;
   signer: SessionSigner;
-  /** Off-chain durability for this actor's intents. Defaults to an in-memory journal. */
+  /** Off-ledger durability for this actor's intents. Defaults to an in-memory journal. */
   journal?: IntentJournal;
   stopGate?: StopGate;
   attribution?: AttributionHook;
   nowMs?: () => number;
-  /** A server or script session's own RPC; a browser session uses the read runtime's. */
+  /** A server or script session's own ledger access; a browser session goes through our route handlers. */
   rpc?: WriteRpc;
-  /** Pays the fees of sponsorable vault writes (`/api/sponsor` in the web); absent, the signer pays (tap-trading.md §3). */
+  /** Kept for the config's shape; Canton has no fee payer to co-sign. */
   sponsor?: SponsorCosigner;
 }
 
@@ -44,7 +39,7 @@ export interface SubmitterSession {
   readonly authority: AuthorityKind;
   readonly address: Address;
   readonly cluster: Cluster;
-  /** The numeric cluster id product intents still bind (D-012). */
+  /** The numeric network id product intents still bind (D-012). */
   readonly chainId: number;
   readonly submitter: MarketsSubmitter;
   /** Who signs product writes, and against which deployment. */
@@ -61,39 +56,32 @@ export class SessionDisposedError extends Error {
   }
 }
 
+async function seatOf(signer: SessionSigner): Promise<{ address: Address; seat: SeatSigner | undefined }> {
+  if ("wallet" in signer) return { address: signer.wallet.address, seat: signer.wallet.signer };
+  if ("seat" in signer) return { address: signer.seat.address, seat: signer.seat };
+  const seat = await signerFromSecretKey(signer.secretKey);
+  return { address: seat.address, seat };
+}
+
 /**
- * One account, one cluster, one authority, one writer.
+ * One seat, one network, one authority, one writer.
  *
- * The signer is fixed at construction and never swapped, so an in-flight write can't find a different authority
- * than the one it started with. Disposal is required on disconnect, account switch, grant expiry or revocation.
- * A wallet session signs with the wallet's Kit signer; a `{ secretKey }` session with a Kit keypair signer (§3.4); a
- * `{ keyPair }` session with the non-extractable WebCrypto key (D-066).
+ * The signer is fixed at construction and never swapped, so an in-flight write can't find a different authority than
+ * the one it started with. Disposal is required on disconnect, seat release or lease loss.
  */
 export async function createSubmitterSession(config: SubmitterSessionConfig): Promise<SubmitterSession> {
-  const { env, authority, signer } = config;
-  let address: Address;
-  let transactionSigner: TransactionSigner;
-  if ("wallet" in signer) {
-    address = signer.wallet.address;
-    transactionSigner = signer.wallet.signer;
-  } else if ("keyPair" in signer) {
-    const sessionKey = await createSignerFromKeyPair(signer.keyPair);
-    address = sessionKey.address as unknown as Address;
-    transactionSigner = sessionKey;
-  } else {
-    address = keypairAddress(signer.secretKey);
-    transactionSigner = await keypairSigner(signer.secretKey);
-  }
+  const { env, authority } = config;
+  const { address, seat } = await seatOf(config.signer);
 
   let disposed = false;
   const enqueue = createNonceQueue();
   const guardedEnqueue = <T>(task: () => Promise<T>): Promise<T> =>
     enqueue(() => (disposed ? Promise.reject(new SessionDisposedError(authority)) : task()));
 
-  const contracts: VaultContracts = { signer: address, deployment: resolveVaultDeployment(env) };
+  const contracts: VaultContracts = { signer: address, deployment: getVaultDeployment() };
   const submitter = createSubmitter({
     wallet: address,
-    signer: transactionSigner,
+    ...(seat ? { signer: seat } : {}),
     enqueue: guardedEnqueue,
     ...(config.rpc ? { rpc: config.rpc } : {}),
     ...(config.journal ? { journal: config.journal } : {}),

@@ -4,7 +4,7 @@ import { msToSec } from "@agari/core/units";
 let offsetMs = 0;
 let lastSync: ClockSync | null = null;
 
-/** Chain-offset-corrected wall clock. Raw device time never drives a phase (Story 1.3 AC). */
+/** Ledger-offset-corrected wall clock (device time until the ledger clock lands, C4). */
 export function nowMs(): number {
   return Date.now() + offsetMs;
 }

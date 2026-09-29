@@ -2,21 +2,20 @@ import type { IntentJournal, IntentRecord } from "@agari/core/ports";
 import type { Address } from "@agari/core/types";
 import { indexEvidence } from "./evidence";
 import { reconcileUnknown, type ReconcileDeps, type ReconcileVerdict } from "./reconcile";
-import { solana } from "../runtime/solana";
 
 /**
  * Recovery of writes the journal still holds open — a send that timed out, a tab closed
  * between the wallet popup and the receipt. Run once when a session opens.
  *
- * AD-3, kept strictly: nothing here re-sends. A record moves only on the chain's answer
+ * AD-3, kept strictly: nothing here re-sends. A record moves only on the ledger's answer
  * (confirmed, reverted, absent), or when it has waited so long that no answer can be expected
  * and holding it open would keep a reservation and a "still checking" note alive forever.
  */
 export const UNVERIFIABLE_AFTER_MS = 24 * 60 * 60 * 1000;
 
 export const RECOVERY_REASON = {
-  absent: "reconciled: not on chain",
-  reverted: "reconciled: reverted on chain",
+  absent: "reconciled: not on the ledger",
+  reverted: "reconciled: rejected by the ledger",
   expired: "reconciled: unverifiable after 24h",
 } as const;
 
@@ -30,17 +29,14 @@ export interface RecoveryResult {
 
 export type Reconciler = (wallet: Address, record: IntentRecord) => Promise<ReconcileVerdict>;
 
-/** A reconciler over explicit chain and index access (scripts, ops, the drive). */
+/** A reconciler over explicit ledger and projection access (scripts, ops, the drive). */
 export const chainReconcilerWith =
   (deps: ReconcileDeps): Reconciler =>
   (wallet, record) =>
     reconcileUnknown(wallet, record, deps);
 
-/** The chain reconciler: the transaction status when there is a signature, the Window's fills or `Redeemed` when there is not. */
-export const chainReconciler: Reconciler = (wallet, record) => {
-  const rpc = solana().rpc;
-  return reconcileUnknown(wallet, record, { rpc, evidence: indexEvidence(rpc), nowMs: Date.now });
-};
+/** The ledger reconciler: the update's outcome when there is an update id, the Window's fills or claim when there is not. */
+export const chainReconciler: Reconciler = (wallet, record) => reconcileUnknown(wallet, record, { evidence: indexEvidence(), nowMs: Date.now });
 
 async function recoverOne(journal: IntentJournal, wallet: Address, record: IntentRecord, reconcile: Reconciler, nowMs: number): Promise<RecoveryResult> {
   let verdict: ReconcileVerdict;

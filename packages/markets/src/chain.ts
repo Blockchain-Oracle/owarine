@@ -1,8 +1,9 @@
-import { DEFAULT_CLUSTER, SOLANA_EXPLORER_URL } from "@agari/core/constants";
+import { DEFAULT_CLUSTER, PROOF_BASE_PATH } from "@agari/core/constants";
 import { DEVNET_DEFAULTS } from "./env";
 
-/** The cluster Agari targets (plan §0). Explorer links carry it: build them with core `txUrl`/`addressUrl`. */
+/** The Canton network the product targets. Receipt links carry it: build them with core `txUrl`/`addressUrl`. */
 export const CLUSTER = DEFAULT_CLUSTER;
-export const RPC_HTTP_URLS: readonly string[] = DEVNET_DEFAULTS.rpcHttpUrls;
-export const RPC_WS_URLS: readonly string[] = DEVNET_DEFAULTS.rpcWsUrls;
-export const EXPLORER_URL = SOLANA_EXPLORER_URL;
+/** Our own ledger route handlers; the browser never holds a ledger endpoint or credential. */
+export const LEDGER_API_PATH: string = DEVNET_DEFAULTS.ledgerApiPath;
+/** Where a receipt's proof lives: the product's own `/proof` page (Canton updates are private; no public explorer shows them). */
+export const EXPLORER_URL = PROOF_BASE_PATH;

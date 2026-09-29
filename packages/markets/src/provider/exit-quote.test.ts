@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { Address } from "@solana/kit";
+import type { Address } from "@agari/core/types";
 import type { SeriesFacts } from "../runtime/accounts";
-import { bookBytes, type FixtureOrder } from "../runtime/book-bytes.fixture";
-import { decodeBook } from "../runtime/decode";
+import { ladderState, type FixtureOrder } from "../runtime/ladder.fixture";
 import { exitQuoteFromBook } from "./exit-quote";
 
 const NOW = 1_788_400_000;
 const series = { lotBase: 1_000n, tickBase: 1_000n, cashUnit: 1n, minLots: 1_000n, minRestSlots: 50n } as SeriesFacts;
 const order = (price: number, lots: bigint): FixtureOrder => ({ price, lots, expireTs: BigInt(NOW + 300), placedSlot: 1n, live: true });
-const book = (bids: FixtureOrder[], asks: FixtureOrder[]) => decodeBook("Book111111111111111111111111111111111111111" as Address, bookBytes(bids, asks), 1_000n);
+const book = (bids: FixtureOrder[], asks: FixtureOrder[]) => ladderState(bids, asks, "Book111111111111111111111111111111111111111" as Address, 1_000n);
 
 describe("exit quote (L-35): the cash-out sells into the Book in its own terms", () => {
   it("Up sells YES into the bids as they are, padded down from the last level reached", () => {

@@ -1,20 +1,16 @@
 /**
- * Book reads straight from chain (first-call.md §2.2): the depth of one Window's Book, the Series grid a Book trades on,
- * and the click-time quote the submitter re-checks with. None of them touches the coordinator's subscription.
- * A Book bound to another Window (recycled, canon #3) reads empty for the Window that asked.
+ * Ladder reads straight from the venue (first-call.md §2.2): the depth of one Window's price ladder, the Series grid it
+ * trades on, and the click-time quote the submitter re-checks with. None of them touches the coordinator's
+ * subscription. A ladder bound to another Window reads empty for the Window that asked. Until the Canton adapter lands
+ * (C4) `readBook` rejects with the not-deployed reading, which `withReading` returns as the honest answer.
  */
 import type { BookTarget, QuoteTarget } from "@agari/core/ports";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, BookDepth, BookParams, Quote, Side } from "@agari/core/types";
-import { getAddressDecoder } from "@solana/kit";
-import { loadAccount } from "../runtime/account-loader";
 import { readBook, readSeries } from "../runtime/accounts";
 import { EMPTY_BOOK_DEPTH, quoteFromBook, toBookDepth } from "../runtime/mappers";
 import { nowMs, nowSec } from "./clock";
 import { withReading } from "./reading";
-
-/** `Book.series` (struct offset 32 + the discriminator). */
-const BOOK_SERIES_SLICE = { offset: 40, length: 32 } as const;
 
 /** Levels are sliced to `depth` per side; the walk itself always reads the canonical 32. */
 function sliceDepth(book: BookDepth, depth: number | undefined): BookDepth {
@@ -30,12 +26,12 @@ export async function getBookDepth(target: BookTarget, depth?: number): Promise<
   });
 }
 
-/** The Series tick, lot and minimum a Book trades on; 32 bytes of the Book, then the (cached) Series. */
+/** The Series tick, lot and minimum a ladder trades on. */
 export async function getBookParams(poolAddress: Address): Promise<Reading<BookParams>> {
   return withReading(`bookParams:${poolAddress}`, async () => {
-    const { bytes } = await loadAccount(poolAddress as string as Parameters<typeof loadAccount>[0], BOOK_SERIES_SLICE);
-    if (!bytes) throw new Error(`Book ${poolAddress} not found`);
-    const series = await readSeries(getAddressDecoder().decode(bytes));
+    const book = await readBook(poolAddress);
+    if (!book) throw new Error(`ladder ${poolAddress} not found`);
+    const series = await readSeries(book.series);
     return { tickSizeRaw: series.tickBase, lotSizeRaw: series.lotBase, minQuantityRaw: series.minLots * series.lotBase };
   });
 }

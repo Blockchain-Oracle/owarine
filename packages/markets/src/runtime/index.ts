@@ -1,4 +1,4 @@
-/** The shared read runtime. No account, no signer: everything that signs lives in ../sessions. */
+/** The shared read runtime. No account, no signer, no ledger credential: everything that signs lives in ../sessions. */
 export { bookSnapshot, bookStateSnapshot, CANONICAL_BOOK_DEPTH, resetCoordinator, subscribeBook, type BookStateView } from "./coordinator";
 export { liveSpot, spotView, subscribeSpot, type SpotTick, type SpotView } from "./spot-stream";
 export {
@@ -12,12 +12,8 @@ export {
   subscribeExchange,
   type ReadClient,
 } from "./read-runtime";
-export { solana, type SolanaRuntime } from "./solana";
-export { pacedRpcTransport, rpcCallCounts } from "./transport";
-export { loadAccount, loadAccounts, type DataSlice, type LoadedAccount } from "./account-loader";
 export {
   configAddress,
-  decodeBook,
   eventsProgramAddress,
   readBook,
   readMarket,
@@ -29,6 +25,7 @@ export {
   SEAT_FLAG,
   type BookState,
   type LedgerSeat,
+  type MarketData,
   type SeriesFacts,
   type VenueFacts,
 } from "./accounts";

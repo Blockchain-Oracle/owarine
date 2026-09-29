@@ -1,19 +1,15 @@
 /**
- * A wallet's money (first-call.md §2.2): open positions and claimables discovered from the wallet's own index rows
- * (never a venue scan), then the head-fresh truth from chain in one batched account read: SOL, the tUSDC ATA and
- * the Ledger seats of the Windows it still has something in.
+ * A seat's money (first-call.md §2.2): open positions and claimables discovered from the seat's own projection rows
+ * (never a venue scan), then the head-fresh truth from the ledger as that seat's party: its venue cash and its legs in
+ * the Windows it still has something in. Until the Canton adapter lands (C4) the ledger reads reject with the
+ * not-deployed reading, which `withReading` returns as the honest answer.
  */
 import { enumerateClaimables, type SettledHolding } from "@agari/core/claims";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, BalanceSheet, ClaimableRow, MarketId, OpenPosition, VenueCredit } from "@agari/core/types";
 import { oneUnit } from "@agari/core/units";
-import type { Address as KitAddress } from "@solana/kit";
-import { loadAccount, loadAccounts } from "../runtime/account-loader";
-import { readTokenBalance, readVenueStatic } from "../runtime/accounts";
-import { findSeat, type LedgerSeat } from "../runtime/decode";
+import { readSeat, readTokenBalance, readVenueStatic, type LedgerSeat } from "../runtime/accounts";
 import { loadCollateral } from "../collateral";
-import { readVaultAccount } from "../vault/accounts";
-import { loadVaultDeployment } from "../vault/deployment";
 import { big, indexRows, sec, type PositionRow } from "./index-api";
 import { withReading } from "./reading";
 import { positionMarket } from "./rows";
@@ -25,18 +21,9 @@ const MAX_CREDIT_LEDGERS = 10;
 /** The wallet's position rows on registry tickers: a drive-only Series (no symbol) is never a user surface. */
 const positionsOf = async (wallet: Address, unredeemed = false) =>
   (await indexRows<PositionRow>(`wallet/${wallet}/positions`, unredeemed ? { unredeemed: 1 } : {})).filter((row) => row.symbol !== null);
-const kit = (value: string) => value as KitAddress;
-
-/** Seats of `wallet` in each row's Ledger, in one batch; null where the Ledger is closed or holds no seat. */
+/** The seat's position in each row's Window; null where the Window's positions are closed or it holds nothing. */
 async function seatsIn(wallet: Address, rows: readonly PositionRow[]): Promise<(LedgerSeat | null)[]> {
-  const withLedger = rows.map((row) => row.ledger);
-  const accounts = await loadAccounts(withLedger.filter((l): l is string => l !== null).map(kit));
-  let cursor = 0;
-  return withLedger.map((ledger) => {
-    if (ledger === null) return null;
-    const bytes = accounts[cursor++]?.bytes;
-    return bytes ? findSeat(bytes, kit(wallet)) : null;
-  });
+  return Promise.all(rows.map(async (row) => (row.ledger === null ? null : ((await readSeat(row.ledger as Address, wallet))?.seat ?? null))));
 }
 
 export async function listOpenPositions(wallet: Address): Promise<Reading<OpenPosition[]>> {
@@ -96,13 +83,11 @@ export async function listClaimables(wallet: Address, venueId: Address): Promise
   });
 }
 
-/** The Trading Balance's free `available` (Masayume `balances.ts:64`): null without a vault, 0 before an account opens. */
-async function vaultAvailable(wallet: Address): Promise<bigint | null> {
-  const [deployment, account] = await Promise.all([loadVaultDeployment(), readVaultAccount(wallet)]);
-  return deployment ? (account?.available ?? 0n) : null;
-}
-
-/** Every pool of money labelled separately (FR-5): wallet tUSDC, SOL, cash locked by resting orders, seat credit, the Trading Balance. */
+/**
+ * Every pool of money labelled separately (FR-5): venue cash, locked cash, credit, the Trading Balance. `nativeLamports`
+ * keeps its field and is always 0: a Canton seat pays no network fee and holds no fee token. The Trading Balance is
+ * `null` until its package is live (C7a).
+ */
 export async function getBalanceSheet(wallet: Address): Promise<Reading<BalanceSheet>> {
   return withReading(`balances:${wallet}`, async () => {
     const [rows, venue] = await Promise.all([positionsOf(wallet, true), readVenueStatic()]);
@@ -111,13 +96,7 @@ export async function getBalanceSheet(wallet: Address): Promise<Reading<BalanceS
       .filter((row) => row.ledger !== null)
       .sort((a, b) => Number(b.state === "open") - Number(a.state === "open"))
       .slice(0, MAX_CREDIT_LEDGERS);
-    // Index first, then one batch: the wallet, its ATA and every Ledger join the same getMultipleAccounts.
-    const [native, token, seats, vaultBase] = await Promise.all([
-      loadAccount(kit(wallet)),
-      readTokenBalance(wallet, venue.collateralMint),
-      seatsIn(wallet, credited),
-      vaultAvailable(wallet),
-    ]);
+    const [token, seats] = await Promise.all([readTokenBalance(wallet, venue.collateralMint), seatsIn(wallet, credited)]);
     const credits: VenueCredit[] = [];
     let orderEscrowBase = 0n;
     credited.forEach((row, i) => {
@@ -129,16 +108,16 @@ export async function getBalanceSheet(wallet: Address): Promise<Reading<BalanceS
     return {
       decimals: venue.decimals,
       spendableBase: token.amountBase ?? 0n,
-      nativeLamports: native.lamports,
+      nativeLamports: 0n,
       orderEscrowBase,
       venueCreditBase: credits.reduce((sum, credit) => sum + credit.amountBase, 0n),
       venueCreditByMarket: credits,
-      vaultBase,
+      vaultBase: null,
     };
   });
 }
 
-/** A wallet's tUSDC balance: the collateral fact and one ATA read, nothing venue-wide. */
+/** A seat's venue cash: the collateral fact and one cash read, nothing venue-wide. */
 export function getWalletCollateral(wallet: Address): Promise<Reading<{ amountBase: bigint; decimals: number; symbol: string }>> {
   return withReading(`wallet-collateral:${wallet}`, async (inner) => {
     const collateral = inner(await loadCollateral());

@@ -16,16 +16,18 @@ export class RequoteError extends Error {
   }
 }
 
-/** What the chain said about a transaction that did not succeed: in simulation, preflight, or once landed. */
+/**
+ * What the ledger said about a command that did not succeed: in `prepare` (the dry run), at submission, or once
+ * completed. The reference's Solana shape is kept (C4 maps Canton rejections onto it): `engineCode` carries a stable
+ * `failWithStatus` id's number when the choice says one, `err` the raw rejection, `logs` its message lines.
+ */
 export interface ChainFailure {
-  /** The agari-events custom error code, when the failing instruction is ours and says one. */
   engineCode: number | null;
-  /** The raw `TransactionError` as the RPC returned it. */
   err: unknown;
   logs: readonly string[];
 }
 
-/** Simulation (or the first send's preflight) refused the transaction: nothing was broadcast, no fee was paid. */
+/** The dry run (or submission) refused the command: nothing was committed. */
 export class SimulationFailedError extends Error {
   constructor(
     readonly failure: ChainFailure,
@@ -40,6 +42,6 @@ const jsonSafe = (_key: string, value: unknown) => (typeof value === "bigint" ? 
 
 export function describeChainFailure(failure: ChainFailure): string {
   const tail = failure.logs.filter((line) => /Program log|failed|error/i.test(line)).slice(-4);
-  const head = failure.engineCode === null ? JSON.stringify(failure.err, jsonSafe) : `agari-events ${failure.engineCode}`;
+  const head = failure.engineCode === null ? JSON.stringify(failure.err, jsonSafe) : `venue ${failure.engineCode}`;
   return [head, ...tail].join(" | ");
 }

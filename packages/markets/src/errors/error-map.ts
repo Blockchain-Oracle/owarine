@@ -4,7 +4,7 @@ import { ReadingError } from "./reading-error";
 /** Wallet Standard wallets (Phantom, Solflare, Backpack) use 4001 for a user's refusal, as EIP-1193 did. */
 const USER_REJECTED_CODE = 4001;
 
-/** Chain-agnostic message patterns. Anchor program error codes map here once the Solana adapter exists (S4). */
+/** Transport message patterns. Canton rejections (stable `failWithStatus` ids, gRPC status names) map here in C4. */
 const MESSAGE_KINDS: ReadonlyArray<readonly [RegExp, DiagnosisKind]> = [
   [/user (rejected|denied|cancel)|rejected the request/i, "user-rejected"],
   [/insufficient (funds|lamports)|attempt to debit an account but found no record of a prior credit/i, "out-of-gas"],

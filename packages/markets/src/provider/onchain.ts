@@ -1,12 +1,11 @@
 /**
- * Head-fresh Window reads from chain (first-call.md §2.2): the write gate's snapshot, a wallet's seat holdings, and
- * the opening print. A Window whose account is gone (closed after retention) answers from its index row.
+ * Head-fresh Window reads from the ledger (first-call.md §2.2): the write gate's snapshot, a seat's holdings, and the
+ * opening print. A Window whose contracts are archived answers from its projection row.
  */
 import { ONCHAIN_STATUS } from "@agari/core/lifecycle";
 import type { Reading } from "@agari/core/schemas";
 import { diagnosis, type Address, type Holdings, type MarketId, type OnchainSnapshot } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
-import { loadAccount } from "../runtime/account-loader";
 import { readMarket, readSeat, readSeries, readVenue } from "../runtime/accounts";
 import { toOnchainSnapshot, winningOutcomeOf } from "../runtime/mappers";
 import { nowSec } from "./clock";
@@ -16,8 +15,6 @@ import { rememberOpeningPrint, seenOpeningPrint } from "./opening-prints";
 import { withReading } from "./reading";
 import { heldAtSettlement } from "./rows";
 
-/** `Market.open` (struct offset 208 + the discriminator): `price` i64 @0, `source` u8 @20. */
-const OPEN_PRINT_AT = 216;
 /** A Window's Series never changes: once seen, a holdings poll reads only the Ledger. */
 const seriesOfMarket = new Map<string, Address>();
 
@@ -45,13 +42,13 @@ function snapshotFromRow(row: MarketRow, decimals: number, collateral: Address):
 
 export async function getOnchain(marketId: MarketId): Promise<Reading<OnchainSnapshot>> {
   return withReading(`onchain:${marketId}`, async () => {
-    const [market, venue] = await Promise.all([readMarket(marketId), readVenue()]);
+    const [market, venue] = await Promise.all([readMarket(marketId as string as Address), readVenue()]);
     if (market) {
-      seriesOfMarket.set(marketId, market.data.series as string as Address);
+      seriesOfMarket.set(marketId, market.data.series);
       return toOnchainSnapshot(market, await readSeries(market.data.series), venue, nowSec());
     }
     const row = await marketRow(marketId).catch(() => null);
-    if (row && row.state !== "open") return snapshotFromRow(row, venue.decimals, venue.collateralMint as string as Address);
+    if (row && row.state !== "open") return snapshotFromRow(row, venue.decimals, venue.collateralMint);
     throw new ReadingError(diagnosis("market-not-trading", `Window not found: ${marketId}`));
   });
 }
@@ -61,7 +58,7 @@ export async function getHoldings(wallet: Address, onchain: OnchainSnapshot): Pr
   return withReading(`holdings:${wallet}:${onchain.marketId}`, async () => {
     const known = seriesOfMarket.get(onchain.marketId);
     const [series, seat] = await Promise.all([
-      known ?? readMarket(onchain.marketId).then((market) => market && (seriesOfMarket.set(onchain.marketId, market.data.series as string as Address), market.data.series as string as Address)),
+      known ?? readMarket(onchain.marketId as string as Address).then((market) => market && (seriesOfMarket.set(onchain.marketId, market.data.series), market.data.series)),
       readSeat(onchain.ledger, wallet),
     ]);
     if (seat?.seat && series) {
@@ -78,24 +75,13 @@ export async function getHoldings(wallet: Address, onchain: OnchainSnapshot): Pr
   });
 }
 
-/**
- * The Window's opening print (× 10⁻⁸) off its account; null until recorded. The whole 456 B account is read so a
- * focused Window's print and snapshot polls share one account in one batch.
- */
+/** The Window's opening print (× 10⁻⁸); null until recorded. Read from the projection's print rows until C4. */
 export async function getOpeningPrice(marketId: MarketId): Promise<Reading<bigint | null>> {
   return withReading(`opening:${marketId}`, async () => {
     const seen = seenOpeningPrint(marketId);
     if (seen !== undefined) return seen;
-    const { bytes } = await loadAccount(marketId as string as Parameters<typeof loadAccount>[0]);
-    if (!bytes) {
-      const open = (await marketRow(marketId))?.prints?.["0"];
-      if (open) rememberOpeningPrint(marketId, BigInt(open.price));
-      return open ? BigInt(open.price) : null;
-    }
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    if (view.getUint8(OPEN_PRINT_AT + 20) === 0) return null;
-    const price = view.getBigInt64(OPEN_PRINT_AT, true);
-    rememberOpeningPrint(marketId, price);
-    return price;
+    const open = (await marketRow(marketId))?.prints?.["0"];
+    if (open) rememberOpeningPrint(marketId, BigInt(open.price));
+    return open ? BigInt(open.price) : null;
   });
 }
