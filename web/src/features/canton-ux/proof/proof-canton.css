@@ -24,3 +24,7 @@
 
 /* /proof?update=<id>: the update plate on the status page's holding frame, left-aligned as a fact rather than a wait. */
 .proof-update { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 16px 0; padding: 16px; border: 1px solid var(--color-hairline); border-radius: var(--radius-md); text-align: left; }
+
+/* /proof/<market>: the timeline and the trust boundary sit in the page's section rhythm. */
+.cx-proof-timeline { margin: 32px 0; }
+.cx-proof-trust { margin-top: 32px; }

@@ -36,7 +36,7 @@ export function ProofScreen({ marketId, evidence = null }: { marketId: MarketId;
 
       {/* C-ADD-09: how the Window was decided, step by step from the projected Resolution, each step's ledger update named. */}
       {evidence && (
-        <section className="proof-print" aria-label={PROOF_CANTON.timeline}>
+        <section className="proof-print cx-proof-timeline" aria-label={PROOF_CANTON.timeline}>
           <SectionHeader index={PROOF_CANTON_INDEX} title={PROOF_CANTON.timeline} />
           <ResolutionTimeline evidence={evidence} />
         </section>
@@ -81,7 +81,9 @@ export function ProofScreen({ marketId, evidence = null }: { marketId: MarketId;
       )}
 
       {/* C-ADD-11: the demo's trust boundary, said on the page that asks to be trusted. */}
-      <TrustBoundary />
+      <div className="cx-proof-trust">
+        <TrustBoundary />
+      </div>
     </div>
   );
 }
