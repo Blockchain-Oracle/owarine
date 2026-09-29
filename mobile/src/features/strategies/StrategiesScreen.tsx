@@ -41,7 +41,7 @@ export function StrategiesScreen() {
     <StickyPage title={STRATEGIES.title} onRefresh={refresh}>
       <View style={styles.container}>
         <View style={[styles.nameplate, { borderBottomColor: t.ink(0.15) }]}>
-          <Text style={[ST.meta, styles.mb12, { color: color.accent }]}>AGENTS · SOLANA DEVNET</Text>
+          <Text style={[ST.meta, styles.mb12, { color: color.accent }]}>AGENTS · CANTON TEST NETWORK</Text>
           <Text style={[ST.h1, { color: color.ink }]} accessibilityRole="header">
             Give your strategy a life.
           </Text>

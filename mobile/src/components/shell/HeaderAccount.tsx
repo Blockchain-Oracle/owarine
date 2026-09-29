@@ -7,18 +7,20 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FUNDING } from "@/features/funding/copy";
 import { useBalancePlate } from "@/features/markets/balance/useBalancePlate";
-import { ACCOUNT_MENU, CONNECT } from "@/lib/copy";
+import { ACCOUNT_MENU } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";
 import { TUsdcMark } from "~/components/marks/TUsdcMark";
 import { FONT, useTheme } from "~/theme";
 import { CHROME, chromeTokens, type ChromeTokens } from "~/theme/chrome";
+import { SEAT } from "~/wallet/seat-copy";
 
 const AMOUNT_DP = 2;
 
 /**
- * web's header-right on a phone (HeaderMoneyPill + HeaderAccount): "Connect" until a wallet is connected; then the
+ * web's header-right on a phone (HeaderMoneyPill + HeaderAccount): "Take a seat" until this phone has a seat; then the
  * balance pill (total, unit, vermilion +, opens Add money) and the address button — under 420 px web shows only
- * its avatar dot — whose menu is exactly two balance rows, Portfolio and Disconnect.
+ * its avatar dot — whose menu is exactly two balance rows, Portfolio and the seat (its sheet holds Reset seat, behind a
+ * confirm: a seat has nothing to disconnect from).
  */
 export function HeaderAccount() {
   const session = useWalletSession();
@@ -29,7 +31,7 @@ export function HeaderAccount() {
   if (!session.isConnected || !session.address) {
     return (
       <Pressable onPress={session.connect} accessibilityRole="button" style={({ pressed }) => [styles.connect, { backgroundColor: pressed ? color.accentPressed : color.accent }]}>
-        <Text style={[styles.connectText, { color: t.connectInk }]}>{CONNECT.connect}</Text>
+        <Text style={[styles.connectText, { color: t.connectInk }]}>{SEAT.sheet.title}</Text>
       </Pressable>
     );
   }
@@ -39,7 +41,7 @@ export function HeaderAccount() {
       <Pressable onPress={() => setOpen(true)} accessibilityRole="button" accessibilityLabel={ACCOUNT_MENU.open} style={[styles.wallet, { borderColor: t.pillBorder }]}>
         <AddrDot t={t} accent={color.accent} />
       </Pressable>
-      <AccountMenu open={open} onClose={() => setOpen(false)} t={t} disconnect={session.disconnect} />
+      <AccountMenu open={open} onClose={() => setOpen(false)} t={t} />
     </View>
   );
 }
@@ -74,7 +76,7 @@ function MoneyPill({ t }: { t: ChromeTokens }) {
   );
 }
 
-function AccountMenu({ open, onClose, t, disconnect }: { open: boolean; onClose: () => void; t: ChromeTokens; disconnect: () => Promise<void> }) {
+function AccountMenu({ open, onClose, t }: { open: boolean; onClose: () => void; t: ChromeTokens }) {
   const insets = useSafeAreaInsets();
   const { sheet, fmt } = useSheetAmounts();
   const top = insets.top + CHROME.marquee + CHROME.header + 8;
@@ -95,8 +97,8 @@ function AccountMenu({ open, onClose, t, disconnect }: { open: boolean; onClose:
         <Pressable accessibilityRole="menuitem" style={styles.link} onPress={() => { onClose(); router.navigate("/portfolio"); }}>
           <Text style={[styles.linkText, { color: t.menuLink }]}>{ACCOUNT_MENU.portfolio}</Text>
         </Pressable>
-        <Pressable accessibilityRole="menuitem" style={styles.link} onPress={() => { onClose(); void disconnect(); }}>
-          <Text style={[styles.linkText, { color: t.menuDanger }]}>{CONNECT.disconnect}</Text>
+        <Pressable accessibilityRole="menuitem" style={styles.link} onPress={() => { onClose(); router.push("/account"); }}>
+          <Text style={[styles.linkText, { color: t.menuLink }]}>{SEAT.menu.seat}</Text>
         </Pressable>
       </View>
     </Modal>

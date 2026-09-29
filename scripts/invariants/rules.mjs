@@ -21,6 +21,7 @@ import { finding } from "./lib/report.mjs";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
+import { mobileShimPaths } from "./lib/mobile-shim-paths.mjs";
 import { noSolana } from "./lib/no-solana.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
 import { venueIdentity } from "./lib/venue-identity.mjs";
@@ -117,6 +118,7 @@ export const rules = [
     exclude: ["mobile/src/theme", "mobile/src/components/ui/SvgStop.tsx"],
     pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
   },
+  { id: "mobile-shim-paths", description: "every path in the app's Metro shim map (mobile/web-shims.map.cjs) exists: a moved web file would silently bundle the browser version (iOS step 9b)", check: mobileShimPaths },
   { id: "mobile-tight-leading", description: "no app text with a lineHeight under its fontSize — iOS clips the glyph tops; use lineHeight = fontSize and a negative margin (S26)", check: mobileTightLeading },
   {
     id: "mobile-svg-motion",

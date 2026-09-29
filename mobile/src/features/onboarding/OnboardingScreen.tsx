@@ -15,16 +15,18 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { notify } from "@/lib/toast";
 import { Button, haptic } from "~/components/kit";
+import { ONBOARDED_KEY } from "~/lib/keys";
 import { storage } from "~/lib/storage";
 import { FONT, useTheme } from "~/theme";
 import { BrandIntro } from "./BrandIntro";
 import { ONBOARDING_PAGES, ONBOARDING_UI, type OnboardingPage } from "./onboarding-copy";
 import { playOnboarding, preloadOnboardingSounds, releaseOnboardingSounds } from "./onboarding-sound";
 import { OnboardingVisual } from "./OnboardingVisuals";
+import { SEAT } from "~/wallet/seat-copy";
+import { useSeat } from "~/wallet/SeatProvider";
 
-/** This install has been onboarded; web's tutorial key is set too, so its first-run card never follows this. */
-export const ONBOARDED_KEY = "agari.mobile.onboarded.v1";
 const LAST = ONBOARDING_PAGES.length - 1;
 
 /** The title's words rise in one after another (21st "Words Stagger": 0.1 s apart, up and in). */
@@ -78,7 +80,10 @@ function Page({ page, index, width, scrollX, active }: { page: OnboardingPage; i
 
 /**
  * The app's first run (S26, 09-25), before anything else: the brand intro, then four pages that swipe (or step with
- * Next) under a progress rule, each page turn a tick and a selection tap, the last one ending on Connect or Look around.
+ * Next) under a progress rule, each page turn a tick and a selection tap. The last page is the demo-credits gate: its
+ * accept takes the seat (the key is made on this phone), or Look around first goes in with no seat. Skip jumps to that
+ * page rather than past it, so every first run reads the terms. The onboarded flag is set either way (web's tutorial key
+ * too, so its first-run card never follows this).
  */
 export function OnboardingScreen() {
   const { color } = useTheme();
@@ -112,16 +117,23 @@ export function OnboardingScreen() {
     haptic.select();
   };
 
-  const finish = useCallback((then: "connect" | "browse") => {
+  const seat = useSeat();
+  const finish = useCallback((then: "seat" | "browse") => {
     if (ended.current) return;
     ended.current = true;
     storage.set(ONBOARDED_KEY, true);
     globalThis.localStorage?.setItem("agari.tutorialSeen", "1");
+    if (then === "seat") {
+      seat.acceptTerms();
+      seat.takeSeat().catch((error: unknown) => {
+        haptic.error();
+        notify.warning(SEAT.failed(error instanceof Error ? error.message : String(error)));
+      });
+    }
     playOnboarding("done");
     haptic.success();
     router.replace("/markets");
-    if (then === "connect") setTimeout(() => router.push("/connect"), 350);
-  }, []);
+  }, [seat]);
 
   const progress = useAnimatedStyle(() => ({ width: `${Math.min(100, ((scrollX.value / width + 1) / ONBOARDING_PAGES.length) * 100)}%` }));
   const last = index === LAST;
@@ -131,7 +143,7 @@ export function OnboardingScreen() {
       <View style={styles.top}>
         <Text style={[styles.step, { color: color.inkMuted }]}>{ONBOARDING_UI.progress(index + 1, ONBOARDING_PAGES.length)}</Text>
         {last ? null : (
-          <Pressable onPress={() => finish("browse")} hitSlop={12} accessibilityRole="button">
+          <Pressable onPress={() => goTo(LAST)} hitSlop={12} accessibilityRole="button">
             <Text style={[styles.skip, { color: color.inkSecondary }]}>{ONBOARDING_UI.skip}</Text>
           </Pressable>
         )}
@@ -158,7 +170,7 @@ export function OnboardingScreen() {
       <View style={[styles.foot, { paddingBottom: Math.max(insets.bottom, 16) + 8 }]}>
         {last ? (
           <Animated.View entering={FadeIn.duration(260)} style={styles.actions}>
-            <Button label={ONBOARDING_UI.connect} variant="primary" size="lg" onPress={() => finish("connect")} />
+            <Button label={ONBOARDING_UI.accept} variant="primary" size="lg" onPress={() => finish("seat")} />
             <Button label={ONBOARDING_UI.browse} variant="ghost" size="lg" onPress={() => finish("browse")} />
           </Animated.View>
         ) : (

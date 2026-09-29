@@ -6,9 +6,6 @@
     "An entry ending in / covers a directory prefix (a tree deleted whole)."
   ],
   "files": [
-    "mobile/src/wallet/mwa.ts",
-    "mobile/package.json#@agari/clients",
-    "mobile/package.json#@solana-mobile/mobile-wallet-adapter-protocol",
     "packages/clients/"
   ]
 }

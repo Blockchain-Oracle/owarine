@@ -5,10 +5,11 @@ import { PLATE } from "@/features/markets/portfolio/plate/copy";
 import { useWalletSession } from "@/lib/wallet-session";
 import { usePortfolioTokens, WebButton } from "~/components/portfolio/web";
 import { FONT, useTheme } from "~/theme";
+import { SEAT } from "~/wallet/seat-copy";
 
 /**
  * web `ConnectCard` (ledger-plate.css `.connect-card`): the disconnected Portfolio — a hairline box on the ground, the
- * 64 pt ring with its drawn card glyph, "Connect Wallet", web's Connect button, and the quiet "New to Solana?" link.
+ * 64 pt ring with its drawn card glyph, the plate's title, Take a seat, and the quiet "new here" link to How it works.
  */
 export function ConnectCard() {
   const { color } = useTheme();
@@ -26,7 +27,7 @@ export function ConnectCard() {
         {PLATE.connect.title}
       </Text>
       <View style={styles.actions}>
-        <WebButton label={session.isConnecting ? "Connecting…" : "Connect"} disabled={session.isConnecting} onPress={() => router.push("/connect")} />
+        <WebButton label={session.isConnecting ? SEAT.sheet.taking : SEAT.sheet.title} disabled={session.isConnecting} onPress={() => router.push("/connect")} />
         <Pressable onPress={() => router.push("/how-it-works")} accessibilityRole="link" hitSlop={8}>
           <Text style={[styles.link, { color: t.linkInk }]}>{PLATE.connect.newHere}</Text>
         </Pressable>

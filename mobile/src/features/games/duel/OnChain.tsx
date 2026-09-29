@@ -85,7 +85,7 @@ export function OnChain({ state, isCreator, wallet }: { state: Extract<MatchStat
           <Refusal>{DUEL.lobby.sponsorDeclined(funded.error)}</Refusal>
         )
       ) : null}
-      {refusal ? <RefusalPlate diagnosis={refusal.diagnosis} gasShort={refusal.gasShort} wallet={wallet as Address | null} /> : null}
+      {refusal ? <RefusalPlate diagnosis={refusal.diagnosis} /> : null}
     </>
   );
 }

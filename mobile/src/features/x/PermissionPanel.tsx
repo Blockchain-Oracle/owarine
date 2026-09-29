@@ -1,7 +1,7 @@
 import { formatBaseUnits, formatUtc } from "@agari/core/units";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X_CARD } from "@/features/x/copy";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { tradeXTokens } from "~/theme/web/products/trade-x";
 import type { XGrantState } from "./useXGrant";
@@ -64,7 +64,7 @@ export function PermissionPanel({ grant, executor, symbol, disabled = false }: {
         </Text>
       ) : null}
       {txHash ? (
-        <Pressable onPress={() => void openExternal(explorerUrl("tx", txHash))} accessibilityRole="link" style={({ pressed }) => [styles.btnInk, { borderColor: t.xwLine }, pressed && { backgroundColor: t.xwActionBg }]}>
+        <Pressable onPress={() => void openLedgerLink("tx", txHash)} accessibilityRole="link" style={({ pressed }) => [styles.btnInk, { borderColor: t.xwLine }, pressed && { backgroundColor: t.xwActionBg }]}>
           <Text style={[styles.btnInkText, { color: t.ink }]}>View update transaction ↗</Text>
         </Pressable>
       ) : null}

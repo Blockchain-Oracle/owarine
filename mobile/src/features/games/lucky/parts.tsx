@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import Svg, { Defs, Pattern, Rect } from "react-native-svg";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { shortHex } from "@agari/core/units";
 import { FONT, useTheme } from "~/theme";
 import { luckyTokens, type LuckyTokens } from "~/theme/web/games-lucky";
@@ -62,7 +62,7 @@ export function TxLine({ label, hash }: { label: string; hash: string }) {
   return (
     <Text style={[styles.foot, { color: color.inkMuted }]}>
       {label}{" "}
-      <Text onPress={() => void openExternal(explorerUrl("tx", hash))} accessibilityRole="link" style={[styles.hash, { textDecorationColor: color.inkMuted }]}>
+      <Text onPress={() => void openLedgerLink("tx", hash)} accessibilityRole="link" style={[styles.hash, { textDecorationColor: color.inkMuted }]}>
         {shortHex(hash)}
       </Text>
     </Text>

@@ -1,6 +1,5 @@
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";
@@ -13,7 +12,7 @@ import { SIDE_WORD } from "@/features/markets/side-styles";
 import { useVenue } from "@/features/markets/useVenue";
 import { usePager } from "@/lib/use-pager";
 import { StageHead } from "~/features/games/stage";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { PIXEL_FONT } from "~/theme/web/games";
 import { Body, Foot, Refusal, useDuelTokens } from "../../duel/parts";
@@ -88,7 +87,7 @@ export function LuckyHistorySection({ address, reload }: { address: string | nul
                   detail={detail}
                   value={
                     tx ? (
-                      <Pressable onPress={() => void openExternal(txUrl(tx))} accessibilityRole="link" hitSlop={8}>
+                      <Pressable onPress={() => void openLedgerLink("tx", tx)} accessibilityRole="link" hitSlop={8}>
                         <Text style={[styles.hash, { color: color.ink }]}>{shortHex(tx)}</Text>
                       </Pressable>
                     ) : (

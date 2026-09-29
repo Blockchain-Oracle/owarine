@@ -16,11 +16,9 @@ import { useArenaState } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNowMs } from "@/components/data/useNowMs";
 import { DUEL } from "@/features/games/duel/copy";
-import { deckFeeLamports } from "@/features/games/duel/gas";
 import { useArenaOdds } from "@/features/games/duel/useArenaOdds";
 import { useArenaWrites } from "@/features/games/duel/useArenaWrites";
 import type { DuelRoom } from "@/features/games/duel/useDuelRoom";
-import { useGameSponsor, type FundOutcome } from "@/features/games/duel/useGameSponsor";
 import { webEnv } from "@/lib/env";
 import { useVenue } from "@/features/markets/useVenue";
 
@@ -38,11 +36,8 @@ export function usePicking(state: Extract<MatchState, { phase: "picking" }>, wal
   const arena = useArenaState();
   const { boot } = useVenue();
   const writes = useArenaWrites();
-  const { pick, fundKey, busy, canSign, refusal, game } = writes;
-  const sponsor = useGameSponsor();
+  const { pick, busy, canSign, refusal, game } = writes;
   const [failed, setFailed] = useState<number | null>(null);
-  const [keyDry, setKeyDry] = useState<boolean | null>(null);
-  const [asked, setAsked] = useState<FundOutcome | null>(null);
   const [autoPlayed, setAutoPlayed] = useState<readonly number[]>([]);
   const autoRef = useRef<string | null>(null);
   const keyed = game.session !== null;
@@ -107,22 +102,9 @@ export function usePicking(state: Extract<MatchState, { phase: "picking" }>, wal
   }, [active, params, stakeBase, decimals, canSign, keyed, busy, failed, endsSec, nowSec, state.matchId, onPick]);
 
   const odds = useArenaOdds(active?.marketId ?? null, stakeBase, decimals);
-  const dry = keyed && (keyDry === true || refusal?.gasShort === true);
+  // A seat pays no network fees; a gas refusal from the write lane is still named, with no top-up to offer.
+  const dry = keyed && refusal?.gasShort === true;
   const held = !canSign ? DUEL.lobby.noSigner : dry ? DUEL.picking.keyGasShort : active && params && !playable ? DUEL.picking.tooLate : null;
-  const topUpLamports = deckFeeLamports(Math.max(1, state.cards.length - mine.length));
-
-  const askSponsor = () => {
-    if (!game.key || !you) return;
-    setAsked(null);
-    void sponsor.fund(state.matchId as Hash32, you as Address, game.key).then((outcome) => {
-      setAsked(outcome);
-      if (outcome.ok) setKeyDry(false);
-    });
-  };
-  const fundFromWallet = () => {
-    setAsked(null);
-    void fundKey(topUpLamports).then((hash) => hash && setKeyDry(false));
-  };
 
   const lastAuto = autoPlayed.length > 0 ? mine.find((r) => r.cardIndex === autoPlayed[autoPlayed.length - 1]) : undefined;
   const opponentHere =
@@ -152,11 +134,6 @@ export function usePicking(state: Extract<MatchState, { phase: "picking" }>, wal
     dry,
     failed,
     keyed,
-    asked,
-    askSponsor,
-    fundFromWallet,
-    topUpLamports,
-    sponsorConfigured: sponsor.status?.configured === true,
     autoPlayed,
     lastAuto,
     opponentHere,

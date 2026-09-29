@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PROOF_CAPTION } from "@agari/core/copy";
 import { haptic } from "~/components/kit";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { proofTokens } from "~/theme/web/explore/proof";
 
@@ -51,7 +51,7 @@ export function Receipt({ title, figure, figureLabel, settledAtMs, footer, child
 
 /**
  * web's `ReceiptRow`: label … dotted leader … value. With `explorer` the value is web's `ProofLink` — the dotted
- * underlined hash with "Don't trust it. Click it." under it — opening that transaction or account on Solana Explorer;
+ * underlined hash with "Don't trust it. Click it." under it — opening that update's proof page, or the seat's own page;
  * `hash` is web's bare `Hash` link (the replay's post and close transactions), with no caption.
  */
 export function ReceiptRow({ label, children, explorer, hash = false }: { label: string; children: ReactNode; explorer?: { kind: "tx" | "address"; id: string }; hash?: boolean }) {
@@ -65,10 +65,10 @@ export function ReceiptRow({ label, children, explorer, hash = false }: { label:
         <Pressable
           onPress={() => {
             haptic.tap();
-            void openExternal(explorerUrl(explorer.kind, explorer.id));
+            void openLedgerLink(explorer.kind, explorer.id);
           }}
           accessibilityRole="link"
-          accessibilityLabel={`${label}: open on Solana Explorer`}
+          accessibilityLabel={`${label}: open its proof`}
           hitSlop={8}
           style={styles.link}
         >

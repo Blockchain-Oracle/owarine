@@ -1,7 +1,6 @@
 import { formatCadence } from "@agari/core/copy";
 import { roundSettledAtMs, type SettledRound, type WalletHistory } from "@agari/core/projection";
 import { OUTCOME_TO_SIDE } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -14,8 +13,7 @@ import { VAULT } from "@/features/vault/copy";
 import { useVaultWrite } from "@/features/vault/useVaultWrite";
 import { usePager } from "@/lib/use-pager";
 import { Pager, ReadingBoundary, usePortfolioTokens } from "~/components/portfolio/web";
-import { openExternal } from "~/lib/external";
-import { marketsEnv } from "~/lib/env";
+import { openLedgerLink } from "~/lib/external";
 import { useTheme } from "~/theme";
 import { WEB_TYPE } from "~/theme/web/portfolio";
 import { HistoryReceipt } from "../HistoryReceipt";
@@ -81,7 +79,7 @@ function HistoryRow({ round, symbol, nowMs, first, onReceipt, onCrank, cranking 
         <Text style={[WEB_TYPE.labelMicro, styles.receipt, { color: t.receiptInk }]}>{HISTORY.receipt} ↗</Text>
       </Pressable>
       {!vault ? (
-        <Pressable onPress={() => void openExternal(txUrl(round.entryTxHash, marketsEnv.cluster))} accessibilityRole="link" accessibilityLabel={HISTORY.entryTx} hitSlop={8}>
+        <Pressable onPress={() => void openLedgerLink("tx", round.entryTxHash)} accessibilityRole="link" accessibilityLabel={HISTORY.entryTx} hitSlop={8}>
           <Text style={[styles.proof, { color: t.vermilion }]}>↗</Text>
         </Pressable>
       ) : null}

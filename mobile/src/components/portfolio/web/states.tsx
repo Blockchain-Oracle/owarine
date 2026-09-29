@@ -8,6 +8,7 @@ import { openFunds } from "~/web-shims/credited";
 import { useTheme } from "~/theme";
 import { portfolioTokens, WEB_TYPE } from "~/theme/web/portfolio";
 import { WebButton } from "./Button";
+import { SEAT } from "~/wallet/seat-copy";
 
 /** web `ui/skeleton`: animate-pulse rounded-md bg-muted. */
 export function Skeleton({ width = "100%", height = 16, radius = 8 }: { width?: DimensionValue; height?: number; radius?: number }) {
@@ -80,7 +81,7 @@ export function ErrorState({ diagnosis, retry, style }: { diagnosis: Diagnosis; 
       </View>
       {diagnosis.kind === "out-of-gas" || offerRetry ? (
         <View style={styles.actions}>
-          {diagnosis.kind === "out-of-gas" ? <WebButton label="Get test funds" onPress={openFunds} size="sm" /> : null}
+          {diagnosis.kind === "out-of-gas" ? <WebButton label={SEAT.funds.title} onPress={openFunds} size="sm" /> : null}
           {offerRetry ? <WebButton label={ERROR_BOUNDARY.retry} onPress={retry} variant="secondary" size="sm" /> : null}
         </View>
       ) : null}

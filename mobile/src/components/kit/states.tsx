@@ -7,6 +7,7 @@ import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepea
 import { openFunds } from "~/web-shims/credited";
 import { RADIUS, TYPE, useTheme } from "~/theme";
 import { Button } from "./Button";
+import { SEAT } from "~/wallet/seat-copy";
 
 /** A breathing placeholder block; still under Reduce Motion. */
 export function Skeleton({ width = "100%", height = 16, radius = RADIUS.sm }: { width?: DimensionValue; height?: number; radius?: number }) {
@@ -68,7 +69,7 @@ export function ErrorState({ diagnosis, retry }: { diagnosis: Diagnosis; retry?:
       <Text style={[TYPE.body, { color: color.inkSecondary }]}>{copy.body}</Text>
       {diagnosis.kind === "out-of-gas" || offerRetry ? (
         <View style={styles.actions}>
-          {diagnosis.kind === "out-of-gas" ? <Button label="Get test funds" onPress={openFunds} size="sm" block={false} /> : null}
+          {diagnosis.kind === "out-of-gas" ? <Button label={SEAT.funds.title} onPress={openFunds} size="sm" block={false} /> : null}
           {offerRetry ? <Button label={ERROR_BOUNDARY.retry} onPress={retry} variant="secondary" size="sm" block={false} /> : null}
         </View>
       ) : null}

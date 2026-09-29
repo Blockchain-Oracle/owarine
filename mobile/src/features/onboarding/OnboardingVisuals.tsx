@@ -7,7 +7,6 @@ import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { BRAND_LOGOS } from "~/components/logos/brand-logos";
-import { Logo } from "~/components/logos/Logo";
 import { TUsdcMark } from "~/components/marks/TUsdcMark";
 import { MarketCard } from "~/features/markets/board/MarketCard";
 import { FONT, useTheme } from "~/theme";
@@ -97,7 +96,7 @@ function PlayVisual() {
   );
 }
 
-/** Screen 4: what the one signature gets you — test tUSDC on devnet. */
+/** Screen 4, the demo-credits gate: what a seat trades with — demo credits, no cash value, on a test network. */
 function StartVisual() {
   const { color } = useTheme();
   const f = ONBOARDING_UI.funds;
@@ -105,7 +104,6 @@ function StartVisual() {
     <View style={[styles.plate, styles.funds, { backgroundColor: color.surface1, borderColor: color.hairline }]}>
       <View style={styles.marks}>
         <TUsdcMark size={44} />
-        <Logo brand="solana" size={30} />
       </View>
       <Text style={[styles.mono, { color: color.inkMuted }]}>{f.label}</Text>
       <Text style={[styles.fundsBig, { color: color.accent }]}>{f.amount}</Text>

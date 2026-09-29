@@ -1,7 +1,6 @@
-import { txUrl } from "@agari/core/urls";
 import { StyleSheet, Text, View } from "react-native";
 import type { DeskWriteResult } from "@/features/strategies/useDeskWrites";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { AgentPortrait } from "../AgentPortrait";
 import { Confirm, Sensei, ST, useStrat } from "../ui";
@@ -20,7 +19,7 @@ export function Published({ published, seed, name, onPublished, onAnother }: { p
     <View accessibilityLiveRegion="polite" style={styles.wrap}>
       <AgentPortrait seed={seed} name={name} />
       <View>
-        <Text style={[ST.micro, { color: color.accent }]}>{published.ok ? "Published on Solana" : "Publication needs checking"}</Text>
+        <Text style={[ST.micro, { color: color.accent }]}>{published.ok ? "Published on the ledger" : "Publication needs checking"}</Text>
         <Text style={[ST.h2, styles.mt8, { color: color.ink }]}>{name}</Text>
       </View>
       <Body>
@@ -28,7 +27,7 @@ export function Published({ published, seed, name, onPublished, onAnother }: { p
           ? "Your strategy is registered. Publishing has not deposited money or enabled trades from your wallet."
           : "The transaction result is uncertain. Check the receipt and Your strategies before publishing again."}
       </Body>
-      {published.txHash ? <Sensei label="View publication transaction ↗" onPress={() => void openExternal(txUrl(published.txHash!))} /> : null}
+      {published.txHash ? <Sensei label="View publication transaction ↗" onPress={() => void openLedgerLink("tx", published.txHash!)} /> : null}
       <View style={styles.steps}>
         {NEXT.map((line, i) => (
           <View key={line} style={styles.step}>

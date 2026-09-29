@@ -11,19 +11,10 @@ const config = getDefaultConfig(__dirname);
 const SINGLETONS = ["react", "react-native", "@tanstack/react-query"];
 const OPERATOR_ONLY = new Set(["undici"]);
 const appRoot = path.join(__dirname, "node_modules");
-const webSrc = path.resolve(__dirname, "../web/src");
 const shims = path.join(__dirname, "src/web-shims");
-const WEB_SHIMS = new Map([
-  [path.join(webSrc, "lib/env.ts"), path.join(shims, "env.ts")],
-  [path.join(webSrc, "lib/visibility.ts"), path.join(shims, "visibility.ts")],
-  [path.join(webSrc, "lib/toast.ts"), path.join(shims, "toast.ts")],
-  [path.join(webSrc, "features/funding/credited.ts"), path.join(shims, "credited.ts")],
-  [path.join(webSrc, "lib/url-state.ts"), path.join(shims, "url-state.ts")],
-  [path.join(webSrc, "providers/wallet/mainnet-signer.ts"), path.join(shims, "mainnet-signer.ts")],
-  [path.join(webSrc, "features/session/SessionKeyProvider.tsx"), path.join(shims, "session-key-provider.tsx")],
-  [path.join(webSrc, "features/games/duel/useGameKey.ts"), path.join(shims, "game-key.ts")],
-  [path.resolve(__dirname, "../packages/markets/src/runtime/page.ts"), path.join(shims, "page.ts")],
-]);
+const repoRoot = path.resolve(__dirname, "..");
+// The shim map lives in web-shims.map.cjs, which the `mobile-shim-paths` invariant also reads.
+const WEB_SHIMS = new Map(require("./web-shims.map.cjs").map(([from, to]) => [path.join(repoRoot, from), path.join(repoRoot, to)]));
 
 const upstream = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {

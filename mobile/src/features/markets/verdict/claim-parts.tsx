@@ -6,7 +6,7 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View } from "react-nativ
 import Svg, { Defs, Ellipse, RadialGradient } from "react-native-svg";
 import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { VERDICT_UI } from "@/lib/copy";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { wordsTokens } from "~/theme/web/markets-words";
 
@@ -67,7 +67,7 @@ export function Paid({ tone, byCrank, txHash }: { tone: Tone; byCrank: boolean; 
       {txHash ? (
         <Text style={[styles.foot, { color: color.inkMuted }]}>
           {VERDICT_UI.claim.paidTx}{" "}
-          <Text onPress={() => void openExternal(explorerUrl("tx", txHash))} accessibilityRole="link" style={[styles.hash, { color: color.inkSecondary }]}>
+          <Text onPress={() => void openLedgerLink("tx", txHash)} accessibilityRole="link" style={[styles.hash, { color: color.inkSecondary }]}>
             {shortHex(txHash, 6, 4)}
           </Text>
         </Text>

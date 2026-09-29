@@ -1,7 +1,5 @@
 import { deskRecordSchema, nameOf, type DeskRecordBody } from "@agari/core/desk";
 import type { PreIpoSymbol } from "@agari/core/market";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import { ArrowUpRight, Eye, Fingerprint, Gavel, Hourglass, Radar, Receipt, Search, ShieldCheck, Split, TrendingDown, TrendingUp, Zap } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -11,7 +9,7 @@ import { DECISION } from "@/features/desk/decision/copy-decision";
 import { ago, pct, pctSigned, stamp, tokensText, usdText } from "@/features/desk/format";
 import type { DecisionWire } from "@/features/desk/protocol";
 import { AssetDisc } from "~/components/marks/AssetDisc";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { DkLink, DT, Eyebrow, TONE, toneInk, useDeskTheme } from "../kit";
 import { CheckIt } from "./CheckIt";
@@ -148,7 +146,7 @@ export function DecisionSections({ decision, base, nowSec, zone, ceilingBps }: {
                   {a.actualOut !== null && a.expectedOut !== null ? <Text style={[DT.mono, { color: color.inkSecondary }]}>{D.happened.received(a.actualOut, a.expectedOut)}</Text> : null}
                   {a.failureCode ? <Text style={[DT.body, { color: color.warning }]}>{D.happened.failed(`${a.failureCode}${a.failureDetail ? `: ${a.failureDetail}` : ""}`)}</Text> : null}
                   {a.signature ? (
-                    <Text style={[styles.explorer, { color: color.accent }]} accessibilityRole="link" onPress={() => void openExternal(txUrl(a.signature as Signature, "mainnet-beta"))}>
+                    <Text style={[styles.explorer, { color: color.accent }]} accessibilityRole="link" onPress={() => void openLedgerLink("tx", a.signature!)}>
                       {D.happened.explorer}
                     </Text>
                   ) : null}

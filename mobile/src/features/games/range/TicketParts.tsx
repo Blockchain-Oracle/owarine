@@ -2,14 +2,13 @@ import { SETTLING } from "@agari/core/copy";
 import { countdown } from "@agari/core/lifecycle";
 import type { Signature } from "@agari/core/types";
 import { formatClock } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
 import { AlertCircle, Check, Loader2 } from "lucide-react-native";
 import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle } from "react-native";
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import type { SolveMode } from "@/features/range/RangeTicket";
 import { Press } from "~/features/games/frame";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { useRangeTokens } from "./PageParts";
 
@@ -250,7 +249,7 @@ export function ErrorBlock({ title, detail, onReset, labels }: { title: string; 
 export function TxLink({ txHash, label }: { txHash: Signature; label: string }) {
   const { r } = useRangeTokens();
   return (
-    <Pressable onPress={() => void openExternal(txUrl(txHash))} accessibilityRole="link">
+    <Pressable onPress={() => void openLedgerLink("tx", txHash)} accessibilityRole="link">
       <Text style={[styles.txLink, { color: r.txLink }]}>{label}</Text>
     </Pressable>
   );

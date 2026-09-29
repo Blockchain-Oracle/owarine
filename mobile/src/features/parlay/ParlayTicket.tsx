@@ -3,9 +3,8 @@ import { formatCadence } from "@agari/core/market";
 import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
 import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
 import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
 import { AlertCircle, Trophy } from "lucide-react-native";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PARLAY } from "@/features/parlay/copy";
 import { formatBpsPct, formatLine, formatMultiplier, formatProbPct, parseThinBook, utilizationPct } from "@/features/parlay/format";
 import { FONT } from "~/theme";
@@ -13,6 +12,7 @@ import { useEarnParlay } from "~/features/earn/EarnKit";
 import type { DraftLeg } from "./LegRow";
 import { Countdown, Rise, Spinner } from "./ParlayKit";
 import { AmountField, ErrorBlock, PlaceButton, Row, type PlaceStep } from "./TicketParts";
+import { openLedgerLink } from "~/lib/external";
 
 export type SolveMode = "fixStake" | "fixPayout";
 
@@ -163,7 +163,7 @@ export function ParlayTicket(props: ParlayTicketProps) {
 
               {step === "success" && txHash ? (
                 <Rise>
-                  <Pressable onPress={() => void Linking.openURL(txUrl(txHash))} accessibilityRole="link">
+                  <Pressable onPress={() => void openLedgerLink("tx", txHash)} accessibilityRole="link">
                     {({ pressed }) => <Text style={[styles.txlink, { color: pressed ? color.profit : t.mint60 }]}>{ticket.viewTx}</Text>}
                   </Pressable>
                 </Rise>

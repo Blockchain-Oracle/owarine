@@ -14,7 +14,7 @@ import { SHARE } from "@/features/share/copy";
 import { Countdown } from "~/features/markets/parts/Countdown";
 import { ShareButton } from "~/features/markets/share/ShareButton";
 import { LiveVerdict } from "~/features/markets/verdict/LiveVerdict";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
 import { LIGHT } from "~/theme/palette";
 
@@ -88,7 +88,7 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
           <Text style={[TYPE.caption, { color: ink, opacity: 0.7 }]}>{pastBell ? SHARE.call.settling : SHARE.call.settlesIn}</Text>
           {pastBell ? null : <Countdown expirySec={placedIn.expirySec} intervalSec={placedIn.intervalSec} nowMs={nowMs} style={[TYPE.dataLg, { color: ink }]} />}
         </View>
-        <Pressable onPress={() => openExternal(explorerUrl("tx", booked.txHash))} accessibilityRole="link" style={styles.tx} hitSlop={8}>
+        <Pressable onPress={() => openLedgerLink("tx", booked.txHash)} accessibilityRole="link" style={styles.tx} hitSlop={8}>
           <Text style={[TYPE.data, { color: LIGHT.accent }]}>{SHARE.call.tx(booked.txHash.slice(0, 10))}</Text>
           <ArrowUpRight size={12} color={LIGHT.accent} />
         </Pressable>

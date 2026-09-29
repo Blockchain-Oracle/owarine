@@ -1,5 +1,3 @@
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
@@ -7,7 +5,7 @@ import { money } from "@/features/strategies/format";
 import { strategyIdentity } from "@/features/strategies/identity";
 import { ago } from "@/features/strategies/names";
 import type { FillWire, StrategyWire } from "@/features/strategies/protocol";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { AgentPortrait } from "./AgentPortrait";
 import { ST, useStrat } from "./ui";
@@ -65,7 +63,7 @@ export function RecentCopyTrades({ fills, strategies, storeConnected, decimals, 
               <Pressable
                 key={`${row.strategyId}:${row.owner}`}
                 accessibilityRole="link"
-                onPress={() => void openExternal(txUrl(row.txHash as Signature))}
+                onPress={() => void openLedgerLink("tx", row.txHash)}
                 style={({ pressed }) => [styles.row, i > 0 && { borderTopWidth: 1, borderTopColor: t.ink(0.05) }, pressed && { backgroundColor: t.ink(0.02) }]}
               >
                 <AgentPortrait seed={seed} name={name} size="small" />

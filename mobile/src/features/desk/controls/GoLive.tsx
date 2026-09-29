@@ -17,7 +17,7 @@ const STEPS: LiveStage[] = ["open-pending", "allow-pending", "mandate-pending", 
 const STEP_COPY = { "open-pending": GO_LIVE.steps.open, "allow-pending": GO_LIVE.steps.allow, "mandate-pending": GO_LIVE.steps.attach, "deposit-pending": GO_LIVE.steps.deposit } as const;
 
 /**
- * Go live (web's GoLive.tsx): open the desk on Solana mainnet, allow the basket's companies, link the desk to its
+ * Go live (web's GoLive.tsx): open the live desk, allow the basket's companies, link the desk to its
  * record, put money in. A durable stage machine (`go-live.ts`) kept on this phone: each step is saved before its
  * confirmation, and on return the chain is read first so nothing is asked for twice. The step's button asks the wallet.
  */

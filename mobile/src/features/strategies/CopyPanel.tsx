@@ -1,5 +1,4 @@
 import type { RunnerHealth, StrategySubscription } from "@agari/core/strategies";
-import { txUrl } from "@agari/core/urls";
 import type { VaultGrant } from "@agari/core/vault";
 import { router, type Href } from "expo-router";
 import { useState } from "react";
@@ -9,7 +8,7 @@ import { COPY_FORM } from "@/features/strategies/copy-form-copy";
 import { money, parseAmount } from "@/features/strategies/format";
 import { COPY_STATE_LABEL } from "@/features/strategies/lifecycle";
 import type { StrategyWire } from "@/features/strategies/protocol";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { CopyFormFields } from "./CopyFormFields";
 import { StrategyActivity } from "./StrategyActivity";
@@ -27,7 +26,7 @@ const RULE_DEFAULT = "Review a new permission to start or resume. Publishing alo
 function TxLink({ label, hash }: { label: string; hash: string }) {
   const { color } = useStrat();
   return (
-    <Pressable accessibilityRole="link" onPress={() => void openExternal(txUrl(hash as Parameters<typeof txUrl>[0]))}>
+    <Pressable accessibilityRole="link" onPress={() => void openLedgerLink("tx", hash)}>
       <Text style={[styles.progressP, styles.mt8, { color: color.ink, textDecorationLine: "underline" }]}>{label}</Text>
     </Pressable>
   );

@@ -12,7 +12,7 @@ import type { XStatus } from "@/features/x/protocol";
 import { useWalletSession } from "@/lib/wallet-session";
 import { ExplorePage } from "~/features/explore/ExplorePage";
 import { HueAvatar } from "~/features/social/HueAvatar";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openExternal } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";
 import { profileTokens } from "~/theme/web/explore/profile";
 import { ProfileCalls } from "./ProfileCalls";
@@ -113,7 +113,7 @@ export function ProfileScreen({ address }: { address: Address }) {
         ) : null}
         <View style={styles.tabs}>
           <Tab label={copied ? PROFILE.copied : PROFILE.copy} onPress={copy} />
-          <Tab label={PROFILE.explorer} onPress={() => openExternal(explorerUrl("address", address))} />
+          {/* The reference's Explorer tab is gone: this is the seat's own page, and a party has no public explorer. */}
           {own ? null : <Tab label={PROFILE.copyTrader} onPress={() => router.push(`/strategies?copy=${address}` as never)} />}
         </View>
       </View>

@@ -1,28 +1,45 @@
+import { PROOF_BASE_PATH } from "@agari/core/constants";
+import type { Signature } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
 import * as WebBrowser from "expo-web-browser";
-import { SITE_URL } from "./env";
+import { router } from "expo-router";
+import { marketsEnv, SITE_URL } from "./env";
 
 /**
- * The app's one door to the outside: guides on the docs site, a transaction on an explorer, a wallet's store page.
- * Agari's own product pages are native screens, so a link back to the web app is refused here rather than opened
- * (the `mobile-no-web-handoff` invariant keeps every other file off the browser).
+ * The app's one door to the outside: guides on the docs site, and a ledger update's proof. The product's own pages are
+ * native screens, so a link back to the web app is refused here rather than opened (the `mobile-no-web-handoff`
+ * invariant keeps every other file off the browser). The one exception is `/proof`: Canton updates are private, so
+ * there is no public explorer, and the phone has no proof screen (Abu, 25 Sep): the web's proof page re-reads it.
  */
 const PRODUCT_ORIGIN = new URL(SITE_URL).host;
 
 export function isProductUrl(url: string): boolean {
   try {
-    const host = new URL(url).host;
-    return host === PRODUCT_ORIGIN || host === "useagari.xyz" || host === "www.useagari.xyz";
+    const parsed = new URL(url);
+    return parsed.host === PRODUCT_ORIGIN && parsed.pathname !== PROOF_BASE_PATH;
   } catch {
     return false;
   }
 }
 
 export async function openExternal(url: string): Promise<void> {
-  if (isProductUrl(url)) throw new Error(`Refusing to open an Agari product page in a browser: ${url}`);
+  if (isProductUrl(url)) throw new Error(`Refusing to open a product page in a browser: ${url}`);
   await WebBrowser.openBrowserAsync(url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET });
 }
 
-/** A devnet transaction or account on Solana Explorer. */
-export function explorerUrl(kind: "tx" | "address", id: string): string {
-  return `https://explorer.solana.com/${kind}/${id}?cluster=devnet`;
+/** A ledger update's proof on the web: core's `txUrl` (`/proof?update=…`), made absolute against the site. */
+export function proofUrl(update: string): string {
+  return `${SITE_URL}${txUrl(update as Signature, marketsEnv.cluster)}`;
+}
+
+/**
+ * Where the reference opened Solana Explorer: an update opens its proof page; a seat opens its own native page
+ * (`/u/<address>`), since a party has no public explorer page either.
+ */
+export async function openLedgerLink(kind: "tx" | "address", id: string): Promise<void> {
+  if (kind === "address") {
+    router.push(`/u/${id}` as never);
+    return;
+  }
+  await openExternal(proofUrl(id));
 }

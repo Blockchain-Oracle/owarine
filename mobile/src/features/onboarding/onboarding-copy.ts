@@ -1,8 +1,11 @@
+import { SEAT } from "~/wallet/seat-copy";
+
 /**
  * The app's first run (S26, the owner's call 09-25: "every mobile app has an onboarding flow"). Four screens before
- * the app, each one true of the product today: a Window is a live question on a real stock, a signed oracle price
- * settles it on Solana, the games play the same Windows, and devnet test funds are free. Web's in-page Tutorial card
- * says the same things over /markets; the app shows this instead, once per install.
+ * the app, each one true of the product today: a Window is a live question on a real stock, the price settles it on
+ * the ledger, the games play the same Windows, and the last page is the demo-credits gate (plan, iOS step 3): a test
+ * network, demo credits with no cash value, nothing to buy, sell or withdraw. Accepting it takes the seat. Web's
+ * in-page Tutorial card says the same things over /markets; the app shows this instead, once per install.
  */
 
 export interface OnboardingPage {
@@ -17,17 +20,17 @@ export interface OnboardingPage {
 export const ONBOARDING_PAGES: readonly OnboardingPage[] = [
   {
     key: "call",
-    eyebrow: "Stock prices · Solana",
+    eyebrow: "Stock prices · Canton",
     title: "Call where a stock",
     accent: "closes.",
-    body: "Every Window asks one question about a real stock — above or below a line when the clock runs out. Tap Up or Down; the ticket shows the exact cost before you sign.",
+    body: "Every Window asks one question about a real stock — above or below a line when the clock runs out. Tap Up or Down; the ticket shows the exact cost before you place it.",
   },
   {
     key: "settle",
     eyebrow: "No one decides but the price",
     title: "Settled by the",
     accent: "price.",
-    body: "At the close a signed oracle price settles the Window on-chain, and a winning call pays out. Nobody picks the result.",
+    body: "At the close the recorded price settles the Window on the ledger, and a winning call pays out. Nobody picks the result.",
   },
   {
     key: "play",
@@ -38,25 +41,25 @@ export const ONBOARDING_PAGES: readonly OnboardingPage[] = [
   },
   {
     key: "start",
-    eyebrow: "Solana devnet · test funds only",
-    title: "Start with test",
-    accent: "money.",
-    body: "Agari runs on devnet: connect any Solana wallet and get test tUSDC in one signature. No real money moves, and every order is one you approve.",
+    eyebrow: SEAT.terms.eyebrow,
+    title: SEAT.terms.title,
+    accent: SEAT.terms.accent,
+    body: SEAT.terms.body,
   },
 ];
 
 export const ONBOARDING_UI = {
   skip: "Skip",
   next: "Next",
-  connect: "Connect a wallet",
-  browse: "Look around first",
+  accept: SEAT.terms.accept,
+  browse: SEAT.terms.browse,
   progress: (step: number, total: number) => `${step} of ${total}`,
   example: "Live now",
   settle: {
     opening: "opening print",
     closing: "closing print",
     verdict: "UP wins",
-    sources: "+ RedStone · Switchboard",
+    sources: "+ two more price feeds",
   },
   games: [
     { name: "Lucky", line: "A call drawn for you" },
@@ -66,5 +69,5 @@ export const ONBOARDING_UI = {
     { name: "Line Rider", line: "Arcade · no stake" },
     { name: "Candle Hop", line: "Arcade · no stake" },
   ],
-  funds: { label: "Test funds", amount: "Free", note: "tUSDC on Solana devnet · one signature" },
+  funds: { label: "Demo credits", amount: "Free", note: "No cash value · test network" },
 } as const;

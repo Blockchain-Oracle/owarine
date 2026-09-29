@@ -14,7 +14,7 @@ import { MoneySheet } from "./MoneySheet";
 import { ModePicker, type LiveMode } from "./ModePicker";
 
 export type ControlKind = "addMoney" | "withdraw" | "sellAll" | "pause" | "resume" | "mode" | "checkNow" | "share" | "close";
-/** A card is good for ten minutes; a Solana blockhash is good for about a minute, so the wallet asks again after that anyway. */
+/** A card is good for ten minutes; the signer asks again after that. */
 const CARD_TTL_SEC = 600;
 
 interface Props {

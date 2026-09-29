@@ -1,5 +1,3 @@
-import { addressUrl } from "@agari/core/urls";
-import type { Address } from "@agari/core/types";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -11,7 +9,7 @@ import { ago, shortAddress } from "@/features/strategies/names";
 import type { StrategiesPayload } from "@/features/strategies/protocol";
 import { AgentPortrait } from "~/features/strategies/AgentPortrait";
 import { ST, useStrat } from "~/features/strategies/ui";
-import { openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { rankRunners } from "./ranking";
 
@@ -91,7 +89,7 @@ export function AgentsBoard({ payload }: { payload: StrategiesPayload }) {
                     <AgentPortrait seed={identity.seed} name={identity.name} size="row" />
                     <View style={styles.whoText}>
                       <View style={styles.nameLine}>
-                        <Pressable onPress={() => void openExternal(addressUrl(row.runner as Address))} accessibilityRole="link" style={styles.shrink}>
+                        <Pressable onPress={() => void openLedgerLink("address", row.runner)} accessibilityRole="link" style={styles.shrink}>
                           <Text numberOfLines={1} style={[ST.mono12, { color: color.ink }]}>
                             {identity.name}
                           </Text>

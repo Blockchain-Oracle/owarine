@@ -27,7 +27,7 @@ export interface DuelEntryProps {
 /**
  * web's `DuelEntry.tsx`: choosing a stake, with what it costs said before anything is signed. The amounts are the
  * arena's own (`useArenaState`), the wallet's balance is compared to the pot, and the gas line names the payer —
- * the sponsor when it is ready, the player otherwise. An empty SOL tank blocks the search itself.
+ * the sponsor when it is ready, the player otherwise. A gas refusal from the write lane still blocks the search (a seat pays no fees, so it should not come).
  */
 export function DuelEntry({ onFind, roomOpen, tierId, onTier, occupancy }: DuelEntryProps) {
   const { d, color } = useDuelTokens();

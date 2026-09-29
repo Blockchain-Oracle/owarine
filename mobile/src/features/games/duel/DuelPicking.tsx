@@ -9,13 +9,13 @@ import { Cta, PulseDot } from "~/features/games/frame";
 import { FONT } from "~/theme";
 import { clockUrgency, SwipeDeck, useStageTokens, type DeckPlace } from "../stage";
 import { DuelFace } from "./DuelFace";
-import { Body, Foot, Key, Plate, PlateTitle, Quiet, Refusal } from "./parts";
+import { Body, Foot, Key, Plate, PlateTitle, Refusal } from "./parts";
 import { usePicking } from "./usePicking";
 
 /**
  * web's `DuelPicking.tsx` (`.du-picking`): the swipe, with money behind it — the same `SwipeDeck` as Practice. Above
  * the deck, the opponent's absence (when the room says so) and the pick window draining full width in the clock's
- * colour; a dry key's refusal with its two cranks; under it, the opponent's live cue and your picks as the chain
+ * colour; a dry key's refusal (a seat pays no fees, so there is no top-up to offer); under it, the opponent's live cue and your picks as the chain
  * filled them. Once the window has closed, the dead-duel plate names the permissionless lock.
  */
 export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState, { phase: "picking" }>; wallet: string | null; room: DuelRoom }) {
@@ -60,15 +60,6 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
       {p.dry ? (
         <Refusal>
           <Body>{DUEL.picking.keyGasShortWhy}</Body>
-          <View style={styles.cranks}>
-            {p.sponsorConfigured ? <Quiet label={DUEL.picking.askSponsor} disabled={busy !== null} onPress={p.askSponsor} /> : null}
-            <Quiet
-              label={busy === "fund" ? DUEL.picking.funding : DUEL.picking.fundKey(formatBaseUnits(p.topUpLamports, 9, { maxDp: 6, minDp: 0 }))}
-              disabled={busy !== null}
-              onPress={p.fundFromWallet}
-            />
-          </View>
-          {p.asked ? <Foot>{p.asked.ok ? DUEL.lobby.sponsorFunded(formatBaseUnits(p.asked.amountWei, 9, { maxDp: 6, minDp: 0 })) : DUEL.lobby.sponsorDeclined(p.asked.error)}</Foot> : null}
         </Refusal>
       ) : null}
       <SwipeDeck

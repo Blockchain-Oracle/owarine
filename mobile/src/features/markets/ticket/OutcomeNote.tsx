@@ -8,14 +8,14 @@ import { SIDE_WORD } from "@/features/markets/side-styles";
 import type { PlaceBetState } from "@/features/markets/ticket/usePlaceBet";
 import { PREOPEN, TICKET } from "@/lib/copy";
 import { ErrorState } from "~/components/kit";
-import { explorerUrl, openExternal } from "~/lib/external";
+import { openLedgerLink } from "~/lib/external";
 import { FONT } from "~/theme";
 import { useTk } from "./tk";
 
 /** web's Hash with an href: the short signature, dotted-underlined, opening the explorer. */
 export function TxHash({ hash, color }: { hash: string; color: string }) {
   return (
-    <Text onPress={() => void openExternal(explorerUrl("tx", hash))} accessibilityRole="link" style={[styles.hash, { color, textDecorationColor: color }]}>
+    <Text onPress={() => void openLedgerLink("tx", hash)} accessibilityRole="link" style={[styles.hash, { color, textDecorationColor: color }]}>
       {shortHex(hash)}
     </Text>
   );

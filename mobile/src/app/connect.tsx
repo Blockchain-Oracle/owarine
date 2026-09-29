@@ -1,103 +1,65 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { WALLET_MODAL } from "@/providers/wallet/copy";
+import { useWalletSession } from "@/lib/wallet-session";
 import { haptic } from "~/components/kit";
-import { BackButton, CloseButton } from "~/components/wallet/sheet-parts";
+import { CloseButton } from "~/components/wallet/sheet-parts";
 import type { DrawerClose } from "~/components/drawer/BottomDrawer";
 import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
-import { Choose, GetWallet } from "~/features/connect/Choose";
-import { Handoff } from "~/features/connect/Handoff";
-import { openExternal } from "~/lib/external";
-import { storage } from "~/lib/storage";
+import { TakeSeat } from "~/features/connect/TakeSeat";
 import { FONT, useTheme } from "~/theme";
-import { WALLET_CHOICES, type WalletKind } from "~/wallet/choices";
-import { cancelWalletRequest } from "~/wallet/link-port";
-import { useConnectWallet, WalletNotInstalledError } from "~/wallet/WalletProvider";
-
-const RECENT_KEY = "agari.wallet.recent";
-
-type Phase =
-  | { kind: "connect"; connecting: WalletKind | null }
-  | { kind: "get" }
-  | { kind: "detail"; wallet: WalletKind; error: string | null; missingUrl: string | null };
-
-const choiceOf = (kind: WalletKind) => WALLET_CHOICES.find((c) => c.kind === kind) ?? WALLET_CHOICES[0]!;
+import { SEAT } from "~/wallet/seat-copy";
+import { useSeat } from "~/wallet/SeatProvider";
 
 /**
- * web's connect modal as it draws at 402 px: RainbowKit's bottom sheet holding `WalletPickerPhone`. A wallet tile
- * rings with the spinner while its app has the turn; a connect closes the sheet, as web's does. A refusal or a
- * missing app lands on web's `ConnectStep` (RETRY / INSTALL), with Back to the strip.
+ * Take a seat: where the reference's connect sheet was (web's `openPicker` lands here), in the same bottom sheet. It
+ * restates the demo-credits terms, and its button accepts them and takes the seat; a seat already on this phone closes
+ * the sheet at once. A failure stays on the sheet with the reason and the button to try again.
  */
 export default function ConnectSheet() {
   const { color } = useTheme();
-  const connect = useConnectWallet();
-  const [phase, setPhase] = useState<Phase>({ kind: "connect", connecting: null });
-  const attempt = useRef(0);
-  const recent = (storage.getString(RECENT_KEY) as WalletKind | undefined) ?? null;
+  const session = useWalletSession();
+  const seat = useSeat();
+  const [taking, setTaking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const drawer = useRef<DrawerClose | null>(null);
+  const close = () => (drawer.current ? drawer.current() : dismiss());
 
-  const choose = async (kind: WalletKind) => {
-    const id = ++attempt.current;
-    setPhase({ kind: "connect", connecting: kind });
+  useEffect(() => {
+    if (session.isConnected && !taking) close();
+    // Only a seat that appears while the sheet is open closes it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.isConnected]);
+
+  const take = async () => {
+    setTaking(true);
+    setError(null);
     try {
-      await connect(kind);
-      if (attempt.current !== id) return;
-      storage.set(RECENT_KEY, kind);
+      seat.acceptTerms();
+      await seat.takeSeat();
       haptic.success();
-      if (drawer.current) drawer.current();
-      else dismiss();
-    } catch (error) {
-      if (attempt.current !== id) return;
+      close();
+    } catch (failure) {
       haptic.error();
-      if (error instanceof WalletNotInstalledError) setPhase({ kind: "detail", wallet: kind, error: null, missingUrl: error.storeUrl });
-      else setPhase({ kind: "detail", wallet: kind, error: error instanceof Error ? error.message : String(error), missingUrl: null });
+      setError(failure instanceof Error ? failure.message : String(failure));
+    } finally {
+      setTaking(false);
     }
   };
 
-  const drawer = useRef<DrawerClose | null>(null);
-  // The drawer's own close (drag, scrim, back) lands here once it has slid away; the X slides it first.
-  const leave = () => {
-    attempt.current += 1;
-    cancelWalletRequest();
-    dismiss();
-  };
-  const close = () => (drawer.current ? drawer.current() : leave());
-  const toStrip = () => {
-    attempt.current += 1;
-    cancelWalletRequest();
-    setPhase({ kind: "connect", connecting: null });
-  };
-
-  const title = phase.kind === "get" ? WALLET_MODAL.get.title : WALLET_MODAL.title;
   return (
-    <WalletSheet onClose={leave} closeRef={drawer}>
+    <WalletSheet closeRef={drawer}>
       <View style={styles.mobile}>
         <View style={[styles.head, { backgroundColor: color.surface1 }]}>
           <View style={styles.headRow}>
-            {phase.kind !== "connect" ? (
-              <View style={styles.back}>
-                <BackButton onPress={toStrip} />
-              </View>
-            ) : null}
             <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
-              {title}
+              {SEAT.sheet.title}
             </Text>
             <View style={styles.close}>
               <CloseButton onPress={close} />
             </View>
           </View>
         </View>
-        {phase.kind === "connect" ? <Choose recent={recent} connecting={phase.connecting} onChoose={(kind) => void choose(kind)} onGet={() => setPhase({ kind: "get" })} /> : null}
-        {phase.kind === "get" ? <GetWallet /> : null}
-        {phase.kind === "detail" ? (
-          <Handoff
-            choice={choiceOf(phase.wallet)}
-            failed={phase.error !== null}
-            error={phase.error}
-            missingUrl={phase.missingUrl}
-            onRetry={() => void choose(phase.wallet)}
-            onInstall={() => (phase.missingUrl ? void openExternal(phase.missingUrl) : undefined)}
-          />
-        ) : null}
+        <TakeSeat taking={taking} error={error} onTake={() => void take()} onBrowse={close} />
       </View>
     </WalletSheet>
   );
@@ -108,7 +70,6 @@ const styles = StyleSheet.create({
   mobile: { paddingBottom: 36 },
   head: { paddingTop: 14, paddingBottom: 4 },
   headRow: { justifyContent: "center", paddingHorizontal: 20, paddingBottom: 6 },
-  back: { position: "absolute", left: 0, top: 0, zIndex: 1 },
   title: { width: "100%", marginTop: 4, textAlign: "center", fontFamily: FONT.bodyBold, fontSize: 20, lineHeight: 24 },
   close: { position: "absolute", right: 14, top: 0, height: 32, justifyContent: "center" },
 });

@@ -1,6 +1,4 @@
 import { canonicalJson, hashRecord } from "@agari/core/desk";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -12,7 +10,7 @@ import { shortHash } from "@/features/desk/format";
 import type { ProofWire } from "@/features/desk/protocol";
 import { MAINNET_RPC_PATH } from "@/providers/wallet/mainnet-signer";
 import { haptic } from "~/components/kit";
-import { openExternal } from "~/lib/external";
+import { openExternal, proofUrl } from "~/lib/external";
 import { FONT } from "~/theme";
 import { DkControl, DT, useDeskTheme } from "../kit";
 
@@ -125,7 +123,7 @@ export function CheckIt({ body, recordHash, proof }: { body: unknown; recordHash
     file.write(`${canonicalJson(body)}\n`);
     await Sharing.shareAsync(file.uri, { mimeType: "application/json", UTI: "public.json", dialogTitle: C.download });
   };
-  const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, "mainnet-beta") : null;
+  const explorer = proof.kind === "own" || proof.kind === "later" ? proofUrl(proof.signature) : null;
   return (
     <View style={styles.wrap}>
       <View style={styles.actions}>

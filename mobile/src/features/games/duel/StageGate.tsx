@@ -93,7 +93,7 @@ export function Rekey({ matchId, room, wallet }: { matchId: Hash32; room: DuelRo
         <Cta label={busy === "authorize" ? words.naming : words.cta} disabled={busy !== null} onPress={name} />
       )}
       <Foot>{words.note}</Foot>
-      {refusal ? <RefusalPlate diagnosis={refusal.diagnosis} gasShort={refusal.gasShort} wallet={wallet as Address | null} /> : null}
+      {refusal ? <RefusalPlate diagnosis={refusal.diagnosis} /> : null}
     </Plate>
   );
 }
