@@ -115,7 +115,7 @@ export function anyClaimView(claim: AnyFaucetClaim): AnyFaucetClaimView {
 }
 
 /** The tUSDC half of a status when this server cannot mint (no mint authority key, or a key that is not the mint's). */
-export function unavailableTusdcStatus(message = "In-app test tUSDC is unavailable on this deployment."): TusdcFaucetStatus {
+export function unavailableTusdcStatus(message = "In-app demo credits are unavailable on this deployment."): TusdcFaucetStatus {
   return { configured: false, ready: false, mint: null, decimals: null, amountBase: null, walletBalanceBase: null, dailyRemainingBase: null, claim: null, message };
 }
 
@@ -135,7 +135,7 @@ export function faucetChallengeMessage(input: { origin: string; wallet: string; 
     `Site: ${input.origin}`,
     `Wallet: ${input.wallet}`,
     networkLine(SOL_FAUCET_POLICY.cluster),
-    `Request: top up SOL to 0.02 only if my balance is below 0.005, and add ${TUSDC_FAUCET_POLICY.amountUnits.toLocaleString("en-US")} test tUSDC; subject to availability and limits.`,
+    `Request: top up SOL to 0.02 only if my balance is below 0.005, and add ${TUSDC_FAUCET_POLICY.amountUnits.toLocaleString("en-US")} demo credits; subject to availability and limits.`,
     `Nonce: ${input.id}`,
     `Expires: ${new Date(input.expiresAtMs).toISOString()}`,
     "This message is not a transaction: it costs nothing and gives no permission to spend my funds.",

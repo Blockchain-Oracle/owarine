@@ -15,7 +15,7 @@ const AS_OF_MS = Date.UTC(2026, 8, 2, 10, 0, 0);
 const STALE_AGE_MS = 90_000;
 const NOW_SEC = Math.floor(AS_OF_MS / 1000);
 
-export const FIXTURE_SYMBOL = "tUSDC";
+export const FIXTURE_SYMBOL = "credits";
 export const FIXTURE_OWNER = fixtureAddress("0x000000000000000000000000000000000000d357");
 
 const deployment: VaultDeployment = {

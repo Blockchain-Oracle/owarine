@@ -8,7 +8,7 @@ import type { Address } from "../types/primitives";
 const CREATOR = testAddress(0xaa);
 const CHALLENGER = testAddress(0xbb);
 const MATCH_ID = `0x${"11".repeat(32)}`;
-const POT = 5_000_000n; // 5 tUSDC at six decimals.
+const POT = 5_000_000n; // 5 credits at six decimals.
 
 function receipt(player: Address, cardIndex: number, costBase: bigint, payoutBase: bigint | null, pick: Pick = "up"): CardReceipt {
   return { cardIndex, player, pick, quantity: 1_000_000n, costBase, payoutBase, pickKey: arenaPickKey(50_312, MATCH_ID, cardIndex, player === CREATOR ? 0 : 1) };

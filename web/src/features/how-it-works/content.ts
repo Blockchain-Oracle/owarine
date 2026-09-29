@@ -40,7 +40,7 @@ export const STEPS: readonly Step[] = [
     number: 1,
     title: "Connect & Fund",
     description:
-      "Connect any Solana wallet — Phantom, Solflare, Backpack — on devnet. Get test funds sends a little SOL for fees when your wallet is short, then mints the venue’s test tUSDC to you in one signature. SOL pays network fees.",
+      "Connect any Solana wallet — Phantom, Solflare, Backpack — on devnet. Get test funds sends a little SOL for fees when your wallet is short, then mints the venue’s demo credits to you in one signature. SOL pays network fees.",
     icon: CoinsIcon,
     tone: "mint",
   },
@@ -56,7 +56,7 @@ export const STEPS: readonly Step[] = [
     number: 3,
     title: "Trade UP or DOWN",
     description:
-      "Go UP if the Window closes at or above its opening print, DOWN if below — a close exactly on the line pays UP. Stake in tUSDC and see the exact quote for your size before you sign.",
+      "Go UP if the Window closes at or above its opening print, DOWN if below — a close exactly on the line pays UP. Stake in credits and see the exact quote for your size before you sign.",
     icon: ZapIcon,
     tone: "mint",
   },
@@ -64,7 +64,7 @@ export const STEPS: readonly Step[] = [
     number: 4,
     title: "Collect Payout",
     description:
-      "When the Window closes, a signed price for that second is recorded on it. Winning contracts redeem for 1 tUSDC each less the settlement fee; losing contracts pay 0; a void pays 0.5 to both sides. Collect it on the Window's result, or everything at once from Portfolio.",
+      "When the Window closes, a signed price for that second is recorded on it. Winning contracts redeem for 1 credit each less the settlement fee; losing contracts pay 0; a void pays 0.5 to both sides. Collect it on the Window's result, or everything at once from Portfolio.",
     icon: TrophyIcon,
     tone: "blue",
   },
@@ -143,7 +143,7 @@ export const SETTLEMENT_STEPS: readonly SettlementStep[] = [
   { step: "1", label: "Window Closes", desc: "The round reaches its scheduled expiry — the second its settlement price is asked about." },
   { step: "2", label: "The Print Is Recorded", desc: "A signed price for that exact second is posted to the Window and verified on-chain: Pyth's own signature, or a RedStone package that at least 3 of 5 configured signers put their names to. Anyone may post it, and nobody can post a price the program has not checked." },
   { step: "3", label: "Settlement", desc: "The agari-events program compares the closing print with the opening one. Close at or above the open pays UP, and a close exactly on the line pays UP; anything below pays DOWN. Where the policy names a second source, both boundaries are cross-checked first and a gap wider than 25 bps voids the Window instead." },
-  { step: "4", label: "Payout", desc: "Winning contracts redeem for 1 tUSDC less the settlement fee. Redemption is a program call you make — on the Window's result, or everything at once from Portfolio — and an unclaimed seat is cranked so nothing strands." },
+  { step: "4", label: "Payout", desc: "Winning contracts redeem for 1 credit less the settlement fee. Redemption is a program call you make — on the Window's result, or everything at once from Portfolio — and an unclaimed seat is cranked so nothing strands." },
 ];
 
 export interface ArchitectureCard {
@@ -178,7 +178,7 @@ export interface Faq {
 export const FAQS: readonly Faq[] = [
   {
     question: "What currency does Agari use?",
-    answer: "tUSDC, the test collateral the venue mints on Solana devnet. Choose Get test funds from the header or Portfolio: eligible wallets receive a little SOL for fees first, then the tUSDC mint. External SOL faucets are available if needed.",
+    answer: "Credits, the test collateral the venue mints on Solana devnet. Choose Get test funds from the header or Portfolio: eligible wallets receive a little SOL for fees first, then the credits mint. External SOL faucets are available if needed.",
   },
   {
     question: "When can I trade?",
@@ -194,7 +194,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "How much do I win?",
-    answer: "Each winning contract redeems for 1 tUSDC less the settlement fee; a losing contract pays 0; a void returns what each side paid, stake and fee. Your cost is the book price you paid, so profit is payout minus cost.",
+    answer: "Each winning contract redeems for 1 credit less the settlement fee; a losing contract pays 0; a void returns what each side paid, stake and fee. Your cost is the book price you paid, so profit is payout minus cost.",
   },
   {
     question: "What wallet do I need?",
@@ -202,7 +202,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "Is this real money?",
-    answer: "No. Agari runs on Solana devnet with tUSDC from the venue's own faucet. Nothing here is worth anything off devnet, and there is no way to move it off.",
+    answer: "No. Agari runs on Solana devnet with credits from the venue's own faucet. Nothing here is worth anything off devnet, and there is no way to move it off.",
   },
   {
     question: "How does Agari ensure fair pricing?",

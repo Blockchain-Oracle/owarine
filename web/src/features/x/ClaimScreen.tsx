@@ -43,7 +43,7 @@ function Step({ index, label, done, dim, children }: { index: number; label: str
 export function ClaimScreen() {
   const { address } = useWalletSession();
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const link = useXStatus();
   const session = link.status?.session ?? null;
   const binding = link.status?.binding ?? null;

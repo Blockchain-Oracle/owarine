@@ -2,7 +2,7 @@ import type { StrategiesPayload, StrategyWire } from "@/features/strategies/prot
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 export const DECIMALS = 6;
-export const SYMBOL = "tUSDC";
+export const SYMBOL = "credits";
 const ONE = 1_000_000n;
 const NOW_SEC = 1_788_400_000;
 export const FIXTURE_NOW_MS = NOW_SEC * 1000;

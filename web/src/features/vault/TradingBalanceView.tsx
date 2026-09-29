@@ -60,7 +60,7 @@ export function TradingBalanceView(props: TradingBalanceViewProps) {
         </div>
         <VaultControls
           decimals={decimals}
-          symbol={symbol ?? "tUSDC"}
+          symbol={symbol ?? "credits"}
           availableBase={account.availableBase}
           privateAvailableBase={account.privateAvailableBase}
           walletSpendableBase={walletSpendableBase}

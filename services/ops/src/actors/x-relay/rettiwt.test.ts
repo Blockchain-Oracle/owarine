@@ -54,9 +54,9 @@ describe("X media transport", () => {
     mocks.post.mockResolvedValue("789");
     const transport = rettiwtTransport("fixture-key", "@masayume_app");
     const media = await transport.uploadImage!(new Uint8Array([1, 2, 3]));
-    await expect(transport.reply!("123", "Order filled\nSpent 3 tUSDC.", media)).resolves.toBe("789");
+    await expect(transport.reply!("123", "Order filled\nSpent 3 credits.", media)).resolves.toBe("789");
     expect(mocks.upload.mock.calls[0]![0]).toBeInstanceOf(ArrayBuffer);
-    expect(mocks.post).toHaveBeenCalledWith({ text: "Order filled\nSpent 3 tUSDC.", replyTo: "123", media: [{ id: "456" }] });
+    expect(mocks.post).toHaveBeenCalledWith({ text: "Order filled\nSpent 3 credits.", replyTo: "123", media: [{ id: "456" }] });
     expect(mocks.configs.map(c => c.maxRetries)).toEqual([2, 0]);
   });
 

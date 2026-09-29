@@ -23,7 +23,7 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
   const { address, isRightChain } = useWalletSession();
   const faucet = useFaucet();
   const [copied, setCopied] = useState(false);
-  const symbol = collateralOrNull()?.symbol ?? "tUSDC";
+  const symbol = collateralOrNull()?.symbol ?? "credits";
   // The geofence (D-095): the dialog still explains the test funds; only the mint is held.
   const regionHeld = useRegionRestricted();
   const amountText = String(FAUCET_UNITS);

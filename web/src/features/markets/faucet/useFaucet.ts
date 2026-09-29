@@ -118,7 +118,7 @@ export function useFaucet() {
       if (!current()) return;
       const gasMessage = gasError instanceof Error ? gasError.message : null;
       setState((s) => ({ ...IDLE, phase: "confirmed", stage: "ready", txHash: mintClaim.txHash as Signature, gasClaim: s.gasClaim, mintClaim, gasShort: !enoughGas, error: gasMessage }));
-      announceCredit(address, String(FAUCET_UNITS), collateralOrNull()?.symbol ?? "tUSDC");
+      announceCredit(address, String(FAUCET_UNITS), collateralOrNull()?.symbol ?? "credits");
       notify.neutral(FAUCET.minted);
     } catch (error) {
       if (current()) setState((s) => ({ ...s, stage: "idle", phase: error instanceof PendingClaimError ? "unknown" : s.phase, error: error instanceof Error ? error.message : "The request could not finish. Please retry." }));

@@ -5,7 +5,7 @@
  */
 export const HOW_IT_WORKS = {
   title: "How It Works",
-  lead: "Call where a stock closes its Window. Trade UP or DOWN with tUSDC. Settle on a signed price, on-chain.",
+  lead: "Call where a stock closes its Window. Trade UP or DOWN with credits. Settle on a signed price, on-chain.",
   back: "Back to Markets",
   sections: {
     steps: "Getting Started",
@@ -48,8 +48,8 @@ export const HOW_IT_WORKS = {
     contracts: "100 UP @ 64¢ each",
     outcome: "TSLA closes at or above the line",
     get: "You get",
-    payout: "100 tUSDC",
-    profit: "(+36 tUSDC before the settlement fee)",
+    payout: "100 credits",
+    profit: "(+36 credits before the settlement fee)",
   },
   formula: {
     identity: "price(DOWN) = 1 − price(UP)",
@@ -58,7 +58,7 @@ export const HOW_IT_WORKS = {
   },
   cta: {
     title: "Ready to predict?",
-    body: "Get test tUSDC, pick a side, and see if you can beat the book.",
+    body: "Get demo credits, pick a side, and see if you can beat the book.",
     action: "Go to Markets",
   },
 } as const;

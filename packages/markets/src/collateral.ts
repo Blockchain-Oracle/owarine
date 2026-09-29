@@ -11,7 +11,7 @@ export interface CollateralInfo {
 }
 
 /** Test collateral's display name (D-026); the mint address and decimals always come from chain. */
-const COLLATERAL_SYMBOL = "tUSDC";
+const COLLATERAL_SYMBOL = "credits";
 
 let cached: CollateralInfo | null = null;
 

@@ -11,7 +11,7 @@ import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-id
 // Canned readings; nothing here is a real ticket, address or deployment.
 const DECIMALS = 6;
 const UNIT = 10n ** BigInt(DECIMALS);
-export const FIXTURE_SYMBOL = "tUSDC";
+export const FIXTURE_SYMBOL = "credits";
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 2, 10, 0, 0);
 const NOW_SEC = Math.floor(FIXTURE_NOW_MS / 1000);
 export const FIXTURE_OWNER = fixtureAddress("0x000000000000000000000000000000000000d357");

@@ -61,10 +61,10 @@ export const BANNER = {
 
 export const FAUCET = {
   title: "Fuel up",
-  intro: (amountText: string) => `Start with SOL for fees, then get ${amountText} test tUSDC for trading. One free signature covers both, and no starting balance is needed while funding is available.`,
+  intro: (amountText: string) => `Start with SOL for fees, then get ${amountText} demo credits for trading. One free signature covers both, and no starting balance is needed while funding is available.`,
   cta: (_amountText: string) => "Get test funds",
   minted: "Minted — your balance updates on its own",
-  minting: "Adding test tUSDC…",
+  minting: "Adding demo credits…",
   gasTitle: "Get SOL for fees first",
   yourAddress: "Your address:",
   recheck: "I've got SOL — check again",
@@ -96,7 +96,7 @@ export const WALLET_DEV = {
   signerBound: "bound to the markets session",
   noSigner: "not bound",
   connectFirst: "Connect a wallet to read balances.",
-  spendable: "Spendable tUSDC",
+  spendable: "Spendable credits",
   native: "SOL for fees",
   escrow: "Order escrow",
   credit: "Venue payout credit",

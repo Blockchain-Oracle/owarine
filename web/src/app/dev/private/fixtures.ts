@@ -9,7 +9,7 @@ import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-id
 // whatever the S1 verifier says about them, never a faked "Verified".
 const DECIMALS = 6;
 const UNIT = 10n ** BigInt(DECIMALS);
-export const FIXTURE_SYMBOL = "tUSDC";
+export const FIXTURE_SYMBOL = "credits";
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 2, 10, 0, 0);
 export const OWNER = fixtureAddress("0x000000000000000000000000000000000000d357");
 export const CONTRACT = fixtureAddress("0x00000000000000000000000000000000000000d5");

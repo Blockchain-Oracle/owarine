@@ -47,5 +47,5 @@ export function useTickerFeed(symbol: string | null): FeedReading {
 /** Collateral decimals and symbol from the boot read every money figure in the app already waits on. */
 export function useMoneyUnits(): MoneyUnits {
   const { boot, decimals } = useVenue();
-  return { decimals, symbol: boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC" };
+  return { decimals, symbol: boot && isOk(boot) ? boot.value.collateral.symbol : "credits" };
 }

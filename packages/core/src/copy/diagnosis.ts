@@ -11,7 +11,7 @@ const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "wrong-chain": { headline: "Wrong network", body: `This app runs on Solana devnet. ${DEVNET_WALLET_STEP} Then try again.` },
   "user-rejected": { headline: "You cancelled in your wallet", body: `Nothing was sent. If your wallet said "Network mismatch", it is on mainnet: ${DEVNET_WALLET_STEP} Then try again.` },
   "out-of-gas": { headline: "Out of SOL for fees", body: OUT_OF_GAS },
-  "insufficient-collateral": { headline: "Not enough tUSDC", body: "Your stake exceeds what your wallet holds. Mint from the faucet or lower the stake." },
+  "insufficient-collateral": { headline: "Not enough credits", body: "Your stake exceeds what your wallet holds. Mint from the faucet or lower the stake." },
   "market-not-trading": { headline: "The Window closed under you", body: "Your stake was never taken. The next Window is pre-armed." },
   "order-expired": { headline: "Order expired before it filled", body: "The book moved past your quote. Nothing was taken." },
   "post-only-would-cross": { headline: "Your price would fill immediately", body: "A backing order rests, it doesn't take. Adjust the level." },

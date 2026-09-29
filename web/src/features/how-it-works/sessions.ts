@@ -61,7 +61,7 @@ export const PRE_OPEN = {
     "Your wallet signs. The stake is held from the moment it rests until it fills, you cancel, or it expires.",
     "An unfilled call expires 90 seconds after the bell by default and the stake returns as venue credit. Resting until the Window locks is opt-in.",
     "No fill is promised. The venue's maker, or any trader, may take a resting call at your price.",
-    "The 0.25 tUSDC seat bond comes back once the Window settles, and an unfilled call loses nothing if the Window voids.",
+    "The 0.25 credits seat bond comes back once the Window settles, and an unfilled call loses nothing if the Window voids.",
   ],
 } as const;
 
@@ -98,7 +98,7 @@ export const ASIDES: readonly Aside[] = [
   },
   {
     title: "Your money",
-    body: "Everything here is tUSDC on Solana devnet, minted by the venue's faucet — it is worth nothing anywhere else. A deposit into your Trading Balance lets a browser key tap inside caps you set, so a call costs a tap instead of a wallet prompt; that key can never withdraw, only your wallet can. Nothing on the server ever holds a key of yours.",
+    body: "Everything here is credits on Solana devnet, minted by the venue's faucet — it is worth nothing anywhere else. A deposit into your Trading Balance lets a browser key tap inside caps you set, so a call costs a tap instead of a wallet prompt; that key can never withdraw, only your wallet can. Nothing on the server ever holds a key of yours.",
     icon: WalletIcon,
   },
 ];

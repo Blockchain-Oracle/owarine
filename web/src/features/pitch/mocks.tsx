@@ -69,7 +69,7 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
               <AgariMark className="pitch-phone-mark" />
               agari
             </span>
-            <span className="pitch-phone-balance">12.74 tUSDC</span>
+            <span className="pitch-phone-balance">12.74 credits</span>
           </div>
           {won ? (
             <div className="pitch-phone-won">
@@ -96,7 +96,7 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
                 <div className="pitch-phone-side down">▼ DOWN · 36¢</div>
               </div>
               <div className="pitch-phone-ctawrap">
-                <div className="pitch-phone-cta">Place bet · 5.00 tUSDC</div>
+                <div className="pitch-phone-cta">Place bet · 5.00 credits</div>
               </div>
             </>
           )}

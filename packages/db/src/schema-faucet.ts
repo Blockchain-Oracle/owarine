@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS sol_faucet_claims (
 );
 CREATE INDEX IF NOT EXISTS sol_faucet_claims_wallet_time ON sol_faucet_claims (wallet, created_at_ms);
 CREATE INDEX IF NOT EXISTS sol_faucet_claims_time ON sol_faucet_claims (created_at_ms);
--- Server-sent test tUSDC mints (D-034): the SOL columns with the amount in tUSDC base units. One per challenge id.
+-- Server-sent demo credits mints (D-034): the SOL columns with the amount in credits base units. One per challenge id.
 CREATE TABLE IF NOT EXISTS tusdc_faucet_claims (
   id TEXT PRIMARY KEY REFERENCES faucet_challenges(id),
   wallet TEXT NOT NULL,

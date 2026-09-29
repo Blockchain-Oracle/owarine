@@ -54,7 +54,7 @@ export const LANDING = {
       {
         kicker: "Call",
         title: "Make the call",
-        body: "Up or Down, and a stake in test tUSDC. The price is the book's, and the fill lands on Solana.",
+        body: "Up or Down, and a stake in demo credits. The price is the book's, and the fill lands on Solana.",
         art: [{ word: "Up", tone: "up" }, { word: "Down", tone: "down" }],
       },
       {

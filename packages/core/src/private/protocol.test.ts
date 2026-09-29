@@ -14,7 +14,7 @@ const INPUT = {
   expirySec: 1_788_400_300,
   side: "up" as const,
   stakeText: "10.00",
-  symbol: "tUSDC",
+  symbol: "credits",
   issuedAtMs: 1_788_400_000_000,
 };
 
@@ -25,7 +25,7 @@ describe("privateOpenMessage", () => {
         "Agari — private bet",
         "",
         "Side: UP",
-        "Stake: 10.00 tUSDC",
+        "Stake: 10.00 credits",
         "Window: BTC 5m, closes 2026-09-03T01:51:40.000Z",
         `Market: ${INPUT.marketId}`,
         `Desk: ${INPUT.contract} on Canton DevNet`,

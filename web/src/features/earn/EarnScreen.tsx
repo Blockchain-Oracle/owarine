@@ -20,7 +20,7 @@ import "./earn-page.css";
 export function EarnScreen() {
   const [tab, setTab] = useState<ReserveKind>("maker");
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const tabs = <ReserveTabs active={tab} onSelect={setTab} />;
   return (
     <div className="earn-page ea-page">

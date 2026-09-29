@@ -2,7 +2,7 @@ import { diagnosis, err, ok, stale, txUrl, type Diagnosis, type Reading } from "
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 export const DECIMALS = 6;
-export const SYMBOL = "tUSDC";
+export const SYMBOL = "credits";
 export const FIXED_NOW_MS = Date.UTC(2026, 8, 1, 14, 35, 0);
 export const FIXED_NOW_SEC = FIXED_NOW_MS / 1000;
 export const CADENCE_SEC = 300;

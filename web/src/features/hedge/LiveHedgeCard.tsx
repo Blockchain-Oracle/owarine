@@ -19,7 +19,7 @@ import { HedgeTeaser } from "./HedgeTeaser";
 import { useHoldings, type HoldingView } from "./useHoldings";
 import type { Reading } from "@agari/core";
 
-const FALLBACK_SYMBOL = "tUSDC";
+const FALLBACK_SYMBOL = "credits";
 const FALLBACK_DECIMALS = 6;
 // Base58 is case-sensitive: the address is keyed exactly as written (D-010), as `features/funding/credited.ts` does.
 const NOTICED_KEY = (address: string) => `agari.holdings.noticed.${address}`;

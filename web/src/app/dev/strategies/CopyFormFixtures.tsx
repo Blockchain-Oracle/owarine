@@ -9,7 +9,7 @@ import "@/features/strategies/builder.css";
 
 /** The copy drawer's form in the four states the S23 review asked for, with no wallet and no registry. */
 const BASE: CopyFormInput = {
-  budgetText: "100", perTradeText: "5", decimals: 6, symbol: "tUSDC", strategyMaxBase: 5_000_000n, walletBase: 142_500_000n, reusableBase: 12_000_000n,
+  budgetText: "100", perTradeText: "5", decimals: 6, symbol: "credits", strategyMaxBase: 5_000_000n, walletBase: 142_500_000n, reusableBase: 12_000_000n,
   feeBase: 0n, feeError: null, busy: false, canSign: true, readable: true, otherPendingId: null, releasePending: false, resuming: false,
 };
 const CASES: Array<[string, Partial<CopyFormInput>]> = [
@@ -27,8 +27,8 @@ function Case({ title, over }: { title: string; over: Partial<CopyFormInput> }) 
   return (
     <div className="strat-drawer" style={{ position: "static", maxWidth: 440, height: "auto", transform: "none" }} data-fixture-copy={title}>
       <p className="strat-meta mb-4 text-vermilion">{title}</p>
-      <CopyFormFields check={check} budget={budget} perTrade={perTrade} setBudget={setBudget} setPerTrade={setPerTrade} fixed={null} fieldsDisabled={false} decimals={6} symbol="tUSDC" walletBase={input.walletBase} vaultAvailableBase={input.reusableBase} feeBase={input.feeBase} confirmBusy={false} onConfirm={() => undefined} confirmLabel="Fund permission and copy">
-        <p className="strat-drawer-body">Strategy maximum: 5.00 tUSDC per trade. Your limit must fit within your budget. This permission lasts 30 days.</p>
+      <CopyFormFields check={check} budget={budget} perTrade={perTrade} setBudget={setBudget} setPerTrade={setPerTrade} fixed={null} fieldsDisabled={false} decimals={6} symbol="credits" walletBase={input.walletBase} vaultAvailableBase={input.reusableBase} feeBase={input.feeBase} confirmBusy={false} onConfirm={() => undefined} confirmLabel="Fund permission and copy">
+        <p className="strat-drawer-body">Strategy maximum: 5.00 credits per trade. Your limit must fit within your budget. This permission lasts 30 days.</p>
       </CopyFormFields>
     </div>
   );

@@ -75,7 +75,7 @@ export default function DevXPage() {
       <XUpgradeFixture />
       <section className="xt xt-page rounded-lg p-6">
         <h2 className="type-body-strong text-ink">Instruction builder — fixed market fixtures</h2>
-        <XInstructionBuilderView enabled balanceBase={55_000_000n} decimals={6} symbol="tUSDC" markets={WINDOWS} unavailable={false} nowMs={FIXTURE_NOW_MS} />
+        <XInstructionBuilderView enabled balanceBase={55_000_000n} decimals={6} symbol="credits" markets={WINDOWS} unavailable={false} nowMs={FIXTURE_NOW_MS} />
       </section>
       {CASES.map((c) => (
         <section key={c.title} className="flex flex-col gap-3">
@@ -86,13 +86,13 @@ export default function DevXPage() {
       <section className="flex flex-col gap-3">
         <h2 className="type-body-strong text-ink">Claim ticket — masked, known, claimed</h2>
         <div className="grid gap-6 lg:grid-cols-3">
-          <ClaimReceiptCard amount={null} handle={null} done={false} symbol="tUSDC" />
-          <ClaimReceiptCard amount="42.50" handle="abu_builds" done={false} symbol="tUSDC" />
-          <ClaimReceiptCard amount="42.50" handle="abu_builds" done symbol="tUSDC" />
+          <ClaimReceiptCard amount={null} handle={null} done={false} symbol="credits" />
+          <ClaimReceiptCard amount="42.50" handle="abu_builds" done={false} symbol="credits" />
+          <ClaimReceiptCard amount="42.50" handle="abu_builds" done symbol="credits" />
         </div>
       </section>
       <section className="xt xt-page rounded-lg p-6">
-        <XReceiptsList receipts={RECEIPTS} configured decimals={6} symbol="tUSDC" />
+        <XReceiptsList receipts={RECEIPTS} configured decimals={6} symbol="credits" />
       </section>
     </div>
   );

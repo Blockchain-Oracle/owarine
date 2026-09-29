@@ -23,7 +23,7 @@ export function LandingCoverCard() {
       pick={pick}
       stakeBase={null}
       decimals={6}
-      symbol="tUSDC"
+      symbol="credits"
       onSelect={() => router.push(MARKETS_PATH)}
       stamp={HEDGE.example.stamp}
       ctaText={LANDING.cover.cta}

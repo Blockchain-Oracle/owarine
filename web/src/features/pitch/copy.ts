@@ -126,9 +126,9 @@ export const PITCH = {
     h1a: "A wallet and a",
     h1b: "tap of the ",
     emph: "faucet",
-    lead: "Connect any Solana wallet that speaks the Wallet Standard — Phantom, Solflare, Backpack — and choose Get test funds. A wallet short on SOL gets a little for fees first, then the venue mints its test tUSDC to you in one signature. A card on-ramp and social sign-in are a later stage, and they are labelled that way in the product too, never dressed up as live.",
+    lead: "Connect any Solana wallet that speaks the Wallet Standard — Phantom, Solflare, Backpack — and choose Get test funds. A wallet short on SOL gets a little for fees first, then the venue mints its demo credits to you in one signature. A card on-ramp and social sign-in are a later stage, and they are labelled that way in the product too, never dressed up as live.",
     cells: [
-      ["Faucet", "tUSDC · 100,000 a tap", "LIVE"],
+      ["Faucet", "credits · 100,000 a tap", "LIVE"],
       ["Wallet", "any Wallet Standard wallet · devnet", "LIVE"],
       ["Card or bank", "on-ramp", "LATER · NOT LIVE"],
     ] as const,

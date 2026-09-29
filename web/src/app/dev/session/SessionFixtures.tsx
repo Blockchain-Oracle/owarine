@@ -18,7 +18,7 @@ const KEY = fixtureAddress("0x00000000000000000000000000000000000000aa");
 const OTHER_KEY = fixtureAddress("0x00000000000000000000000000000000000000bb");
 const VAULT = fixtureAddress("0x0000000000000000000000000000000000000ee1");
 const NOW_SEC = 1_788_400_000;
-const SYMBOL = "tUSDC";
+const SYMBOL = "credits";
 /** The wire allowlist `GET /api/sponsor` reports (tap-trading.md §3); a copy here keeps the client bundle free of the server policy. */
 const SPONSOR_ALLOWLIST = ["agari_vault:actor_place_for", "agari_vault:public_crank_settle", "agari_vault:owner_withdraw", "agari_vault:owner_withdraw_private", "agari_vault:owner_revoke"];
 

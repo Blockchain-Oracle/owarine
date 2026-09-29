@@ -42,13 +42,13 @@ export function useFundingProgress(address: Address, faucet: ReturnType<typeof u
     solText: native != null ? `${formatBaseUnits(BigInt(native), SOL_DECIMALS, { maxDp: 4 })} SOL` : "Balance unavailable",
     tokenText: token ? `${formatBaseUnits(token.amountBase, token.decimals)} ${token.symbol}${balances?.ok && balances.stale ? " · last known" : ""}` : balances === null ? "Checking balance…" : "Balance unavailable",
     policy: FUNDING.modal.gasPolicy,
-    gasLine: gas?.message ?? (faucet.gasStatusUnavailable ? "SOL availability could not be checked. Retry or use an external SOL faucet." : "Checking SOL first. Your tUSDC follows with the same signature."),
+    gasLine: gas?.message ?? (faucet.gasStatusUnavailable ? "SOL availability could not be checked. Retry or use an external SOL faucet." : "Checking SOL first. Your credits follow with the same signature."),
     mintNote: gas?.configured && (!gas.tusdc.ready || gas.tusdc.claim) ? gas.tusdc.message : null,
     busyLabel: faucet.busy ? faucet.label : null,
     error: faucet.state.error ?? null,
     solLink: link("SOL top-up", claim),
     solNext: next("SOL request", claim),
-    mintLink: link("tUSDC claim", mintClaim),
-    mintNext: next("tUSDC claim", mintClaim),
+    mintLink: link("credits claim", mintClaim),
+    mintNext: next("credits claim", mintClaim),
   };
 }

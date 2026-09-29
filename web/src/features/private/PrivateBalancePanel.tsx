@@ -44,7 +44,7 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
   const regionHeld = useRegionRestricted();
   const { address } = session;
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const deskReading = usePrivateDesk();
   const budgetReading = usePrivateBudget(address);
   const sheet = useBalanceSheet(address);

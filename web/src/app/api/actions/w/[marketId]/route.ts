@@ -71,7 +71,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ mar
   if (!reading.value) return fail(X_REFUSAL_DETAILS["no-window"], 404);
 
   const stake = parseStakeBase(url.searchParams.get("stake"), reading.value.decimals);
-  if (stake === null) return fail("Enter an amount of tUSDC.", 400);
+  if (stake === null) return fail("Enter an amount of credits.", 400);
 
   const body: unknown = await request.json().catch(() => null);
   const account = addressSchema.safeParse((body as { account?: unknown } | null)?.account);

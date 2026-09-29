@@ -188,15 +188,15 @@ describe("devnet SOL faucet policy", () => {
   });
 });
 
-describe("server-sent tUSDC claims (D-034)", () => {
+describe("server-sent credits claims (D-034)", () => {
   const AMOUNT = TUSDC.amountUnits * 1_000_000n;
   const claimBoth = async (h: ReturnType<typeof harness>, w = W, ip = "ip-a") => {
     const c = await h.service.challenge(w, ip, "https://useagari.xyz");
     return { c, sol: await h.service.claim(c.id, SIG, ip, "sol"), tusdc: await h.service.claim(c.id, SIG, ip, "tusdc") };
   };
-  it("one challenge signature pays the SOL top-up and mints tUSDC once each", async () => {
+  it("one challenge signature pays the SOL top-up and mints credits once each", async () => {
     const h = harness(); const { c, sol, tusdc } = await claimBoth(h);
-    expect(c.message).toContain("100,000 test tUSDC");
+    expect(c.message).toContain("100,000 demo credits");
     expect(sol).toMatchObject({ asset: "sol", status: "confirmed" }); expect(tusdc).toMatchObject({ asset: "tusdc", amountBase: AMOUNT.toString(), status: "confirmed" });
     await Promise.all(Array.from({ length: 8 }, () => h.service.claim(c.id, SIG, "ip-a", "tusdc")));
     expect(h.chain.prepareMint).toHaveBeenCalledTimes(1); expect(h.tokens.get(W)).toBe(AMOUNT); expect(h.mints.size).toBe(1);
@@ -232,7 +232,7 @@ describe("server-sent tUSDC claims (D-034)", () => {
     const recovered = await createFaucetService(h.chain, h.deps).claim(c.id, SIG, "new-ip", "tusdc");
     expect(recovered).toMatchObject({ status: "confirmed" }); expect(h.chain.prepareMint).toHaveBeenCalledTimes(1); expect(h.tokens.get(W)).toBe(AMOUNT);
   });
-  it("reports tUSDC unavailable without a mint authority, and SOL keeps working", async () => {
+  it("reports credits unavailable without a mint authority, and SOL keeps working", async () => {
     const h = harness({ mintAuthority: false }); const status = await h.service.status(W);
     expect(status.tusdc).toMatchObject({ configured: false, ready: false }); expect(status.ready).toBe(true);
   });

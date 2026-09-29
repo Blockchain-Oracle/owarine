@@ -13,7 +13,7 @@ function fixture() {
   const state = { value: "pending", order: [] as string[] };
   const job = { mentionId: "123", lease: "lease-one" };
   const ctx: ReplyDeliveryContext = {
-    decimals: 6, symbol: "tUSDC", imagesEnabled: true, log: vi.fn(),
+    decimals: 6, symbol: "credits", imagesEnabled: true, log: vi.fn(),
     render: vi.fn(async () => new Uint8Array([1, 2, 3])),
     transport: {
       describe: () => "test", fetchMentions: vi.fn(async () => []),
@@ -44,7 +44,7 @@ describe("reply delivery without financial execution", () => {
     await deliverReplies(ctx);
     await deliverReplies(ctx);
     expect(state.order).toEqual(["upload", "persist-post", "post"]);
-    expect(ctx.store.beginPost).toHaveBeenCalledWith(job, expect.stringContaining("Spent 3 tUSDC"), "789");
+    expect(ctx.store.beginPost).toHaveBeenCalledWith(job, expect.stringContaining("Spent 3 credits"), "789");
     expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("/proof?update="), "789");
     expect(ctx.store.sent).toHaveBeenCalledWith(job, "999");
     expect(ctx.transport.reply).toHaveBeenCalledTimes(1);
@@ -58,7 +58,7 @@ describe("reply delivery without financial execution", () => {
     await deliverReplies(ctx);
     expect(state.value).toBe("sent");
     expect(ctx.transport.reply).toHaveBeenCalledTimes(1);
-    expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("Spent 3 tUSDC"), undefined);
+    expect(ctx.transport.reply).toHaveBeenCalledWith("123", expect.stringContaining("Spent 3 credits"), undefined);
   });
 
   it.each(["timeout", "missing-id", "ack-storage"])("never reposts after ambiguous %s", async (failure) => {

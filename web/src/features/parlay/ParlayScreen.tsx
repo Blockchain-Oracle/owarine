@@ -37,7 +37,7 @@ function NotDeployed() {
 
 function Page({ reserve }: { reserve: ParlayReserveState }) {
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const { sections } = PARLAY;
   return (
     <>

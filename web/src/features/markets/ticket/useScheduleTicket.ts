@@ -23,7 +23,7 @@ import { usePlaceBet } from "./usePlaceBet";
 import { useSeriesGrid } from "./useSeriesGrid";
 import { useTicket, type TicketApi } from "./useTicket";
 
-const FALLBACK_SYMBOL = "tUSDC";
+const FALLBACK_SYMBOL = "credits";
 
 export interface ScheduleTicketApi {
   t: TicketApi;

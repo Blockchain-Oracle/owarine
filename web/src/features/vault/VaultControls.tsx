@@ -32,7 +32,7 @@ const DEFAULT_AMOUNT = "1";
  * exactly as the reference disables: while a write is in flight, on a zero amount, or when the
  * wallet cannot cover the deposit.
  */
-export function VaultControls({ decimals, symbol = "tUSDC", availableBase, privateAvailableBase, walletSpendableBase, needsApproval, blocker, busy, onDeposit, onWithdraw, onWithdrawPrivate }: VaultControlsProps) {
+export function VaultControls({ decimals, symbol = "credits", availableBase, privateAvailableBase, walletSpendableBase, needsApproval, blocker, busy, onDeposit, onWithdraw, onWithdrawPrivate }: VaultControlsProps) {
   const [typed, setTyped] = useState<string | null>(null);
   // Untouched, the default never asks for more than the wallet holds: a wallet with less starts at what it has.
   const amount = typed ?? (walletSpendableBase !== null && walletSpendableBase > 0n && (parseDecimalToBaseUnits(DEFAULT_AMOUNT, decimals) ?? 0n) > walletSpendableBase ? formatBaseUnits(walletSpendableBase, decimals, { minDp: 0 }).replace(/,/g, "") : DEFAULT_AMOUNT);

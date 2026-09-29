@@ -43,7 +43,7 @@ export function StrategiesScreen({ houseRunner }: { houseRunner: string | null }
     </nav>
     {writes.pending && !writes.busy && <div className="copy-progress mt-5" role="status"><strong>Copy setup needs attention.</strong><p>Strategy #{writes.pending.strategyId} has an unfinished permission or subscription. Your progress is saved on this browser.</p><button className="desk-pill mt-3" onClick={() => setView("yours")}>Continue setup →</button></div>}
     <div hidden={view !== "create"}>
-      <CreatorStudio writes={writes} decimals={payload?.decimals ?? 6} symbol={payload?.symbol ?? "tUSDC"} asset={STRATEGY_MARKETS} houseRunner={houseRunner} onPublished={() => setView("yours")} />
+      <CreatorStudio writes={writes} decimals={payload?.decimals ?? 6} symbol={payload?.symbol ?? "credits"} asset={STRATEGY_MARKETS} houseRunner={houseRunner} onPublished={() => setView("yours")} />
     </div>
     {view !== "create" && <ReadingBoundary reading={reading} shape="plate" retry={refresh}>
       {(data) => data.deployed ? <Catalogue payload={data} writes={writes} view={view} onCreate={() => setView("create")} /> : <CapabilityPending eyebrow={STRATEGIES.notDeployed.eyebrow} title={STRATEGIES.notDeployed.title} dependency={STRATEGIES.notDeployed.dependency}><p>{STRATEGIES.notDeployed.body}</p></CapabilityPending>}

@@ -45,7 +45,7 @@ import { usePortfolioTiers } from "./useTiers";
 export function PortfolioScreen() {
   const { address } = useWalletSession();
   const { boot, venueId } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const money = useMoney();
   const positions = usePositions(address);
   const vaultBets = useVaultOpenBets(address);

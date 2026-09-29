@@ -101,7 +101,7 @@ export async function drainPush(nowMs: number): Promise<DrainReport> {
   }
 
   const collateral = await loadCollateral();
-  const units: MoneyUnits = isOk(collateral) ? { decimals: collateral.value.decimals, symbol: collateral.value.symbol } : { decimals: null, symbol: "tUSDC" };
+  const units: MoneyUnits = isOk(collateral) ? { decimals: collateral.value.decimals, symbol: collateral.value.symbol } : { decimals: null, symbol: "credits" };
   const sentByToken = (await sentPushIds(devices.map((d) => d.expoToken))) ?? new Map<string, Set<string>>();
 
   const byWallet = new Map<string, PushDevice[]>();

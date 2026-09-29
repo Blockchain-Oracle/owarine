@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { checkCopyForm, type CopyFormInput } from "./copy-form";
 
 const base: CopyFormInput = {
-  budgetText: "100", perTradeText: "5", decimals: 6, symbol: "tUSDC", strategyMaxBase: 5_000_000n, walletBase: 200_000_000n, reusableBase: 0n,
+  budgetText: "100", perTradeText: "5", decimals: 6, symbol: "credits", strategyMaxBase: 5_000_000n, walletBase: 200_000_000n, reusableBase: 0n,
   feeBase: 0n, feeError: null, busy: false, canSign: true, readable: true, otherPendingId: null, releasePending: false, resuming: false,
 };
 const check = (over: Partial<CopyFormInput>) => checkCopyForm({ ...base, ...over });
@@ -16,7 +16,7 @@ describe("checkCopyForm (S23 copy drawer)", () => {
 
   it("names a per-trade limit above the strategy's ceiling on the field and the button", () => {
     const r = check({ perTradeText: "10" });
-    expect(r.perTradeError).toBe("Above this strategy's 5.00 tUSDC per trade");
+    expect(r.perTradeError).toBe("Above this strategy's 5.00 credits per trade");
     expect(r.blockedBy).toBe(r.perTradeError);
   });
 
@@ -28,7 +28,7 @@ describe("checkCopyForm (S23 copy drawer)", () => {
 
   it("names a wallet that cannot cover the top-up and fee", () => {
     const r = check({ walletBase: 40_000_000n, feeBase: 1_000_000n, reusableBase: 10_000_000n });
-    expect(r.budgetError).toBe("Your wallet holds 40.00 tUSDC; this setup needs 91.00 tUSDC");
+    expect(r.budgetError).toBe("Your wallet holds 40.00 credits; this setup needs 91.00 credits");
     expect(r.maxBudgetBase).toBe(49_000_000n);
   });
 

@@ -9,7 +9,7 @@ const SAMPLES: readonly { utility: string; sample: string; ja?: boolean }[] = [
   { utility: "type-caption", sample: "calculated in your browser from on-chain history" },
   { utility: "type-label-micro", sample: "01 · Live now" },
   { utility: "type-data", sample: "62¢ · 5Kd3…Nw2x · 14:35:00 UTC" },
-  { utility: "type-data-lg", sample: "10.00 tUSDC" },
+  { utility: "type-data-lg", sample: "10.00 credits" },
   { utility: "type-data-hero", sample: "1,204.50" },
   { utility: "type-stamp", sample: "正夢", ja: true },
   { utility: "type-stamp-hero", sample: "逆夢", ja: true },

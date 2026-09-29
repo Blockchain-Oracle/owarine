@@ -50,7 +50,7 @@ function marketContext(receipt: XReceipt): string {
 }
 
 /** Only validated receipt facts and fixed copy reach public text or the deterministic card renderer. */
-export function createReplyPresentation(receipt: XReceipt, decimals: number, symbol = "tUSDC"): ReplyPresentation {
+export function createReplyPresentation(receipt: XReceipt, decimals: number, symbol = "credits"): ReplyPresentation {
   const hash = isSignature(receipt.txHash) ? receipt.txHash : null;
   let status = X_RECEIPT_STATUSES.includes(receipt.status) ? receipt.status : "unknown";
   // A corrupt historical row must not produce a chain-result claim without a usable receipt link.
@@ -86,7 +86,7 @@ export function createReplyPresentation(receipt: XReceipt, decimals: number, sym
 }
 
 /** Public replies are ASCII. With these URLs, the raw length also bounds X's weighted length. */
-export function replyText(receipt: XReceipt, decimals: number, symbol = "tUSDC"): string {
+export function replyText(receipt: XReceipt, decimals: number, symbol = "credits"): string {
   const presentation = createReplyPresentation(receipt, decimals, symbol);
   const sender = presentation.sender ? `For ${presentation.sender}` : null;
   const lines = [presentation.title, presentation.context, sender, presentation.detail, presentation.footer, presentation.url];

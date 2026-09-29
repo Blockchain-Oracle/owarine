@@ -81,7 +81,7 @@ export interface BlockerContext {
 }
 
 const DEFAULT_CHAIN = "Solana devnet";
-const DEFAULT_MIN_STAKE = "1 tUSDC";
+const DEFAULT_MIN_STAKE = "1 credit";
 
 /** The blocker IS the control's label — one derived string for the CTA and its accessible name. */
 export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): string {
@@ -115,7 +115,7 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
     case "settling":
       return SETTLING;
     case "no-funds":
-      return "No tUSDC yet — mint from the faucet";
+      return "No credits yet — mint from the faucet";
     case "out-of-gas":
       return "Out of SOL for fees — top up first";
     case "no-side":

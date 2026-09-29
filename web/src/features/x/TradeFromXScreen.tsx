@@ -38,7 +38,7 @@ const RETURN_TO = "/trade-from-x";
 export function TradeFromXScreen() {
   const { address } = useWalletSession();
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const link = useXStatus();
   const grant = useXGrant();
   const receipts = useXReceipts(address ?? null);

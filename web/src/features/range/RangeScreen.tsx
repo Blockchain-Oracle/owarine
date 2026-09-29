@@ -39,7 +39,7 @@ function NotDeployed() {
 
 function Page({ reserve }: { reserve: RangeReserveState }) {
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const { sections } = RANGE;
   return (
     <>

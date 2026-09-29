@@ -22,7 +22,7 @@ export const COPY_FORM = {
     pullsDetail: (fee: string | null) => (fee ? `from your wallet, fee ${fee} included` : "from your wallet"),
   },
   addFunds: {
-    toggle: "Add tUSDC to your Trading Balance",
+    toggle: "Add credits to your Trading Balance",
     label: "Amount to deposit",
     deposit: "Deposit",
     depositing: "Depositing",

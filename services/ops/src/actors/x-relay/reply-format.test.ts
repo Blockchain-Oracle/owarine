@@ -24,7 +24,7 @@ function weightedLength(text: string): number {
 describe("public X receipt text", () => {
   it("uses booked spend without calling unused budget a partial fill or a win", () => {
     const result = replyText(receipt({ bookedCostBase: "1234567", bookedContractsRaw: "2000000" }), 6);
-    expect(result).toContain("Spent 1.234567 tUSDC.");
+    expect(result).toContain("Spent 1.234567 credits.");
     expect(result).not.toContain("100");
     expect(result.toLowerCase()).not.toMatch(/partial|profit|you won/);
     expect(result).toContain("The market result comes later.");
@@ -42,7 +42,7 @@ describe("public X receipt text", () => {
   it.each([["1", 6, "0.000001"], ["1", 18, "0.000000000000000001"], ["0", 6, "0"], ["1230000", 6, "1.23"]])(
     "preserves every fractional unit: %s at %s decimals",
     (bookedCostBase, decimals, expected) => {
-      expect(createReplyPresentation(receipt({ bookedCostBase: String(bookedCostBase) }), Number(decimals)).detail).toBe(`Spent ${expected} tUSDC.`);
+      expect(createReplyPresentation(receipt({ bookedCostBase: String(bookedCostBase) }), Number(decimals)).detail).toBe(`Spent ${expected} credits.`);
     },
   );
 

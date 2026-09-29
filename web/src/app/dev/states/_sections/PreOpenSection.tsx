@@ -48,7 +48,7 @@ const LADDER: ReadonlyArray<{ label: string; input: ScheduleBlockerInput; ctx?: 
   { label: "rest-would-cross — the book already offers DOWN at 45¢", input: { ...READY, crossing: { otherSide: "down", otherCents: 45, maxCents: 54 } }, ctx: { crossingText: PREOPEN.ticket.crossing(SIDE_WORD.down, 45, SIDE_WORD.up, 54) } },
   { label: "too-many-resting — the seat's 16 calls", input: { ...READY, restingCount: 16 } },
   {
-    label: "below-min-stake — 0.30 tUSDC rests fewer than 1,000 lots at 55¢",
+    label: "below-min-stake — 0.30 credits rests fewer than 1,000 lots at 55¢",
     input: { ...READY, stakeBase: 300_000n, sized: restingQuote({ side: "up", priceCents: 55, stakeBase: 300_000n, grid: GRID, decimals: DECIMALS, quotedAtMs: 0 }) },
     ctx: { minStakeText: `0.55 ${SYMBOL}` },
   },
@@ -87,7 +87,7 @@ export function PreOpenSection() {
             <ListedCard market={fixtureGapWindow({ marketId: GAP_LISTED.marketId, decimals: DECIMALS, status: "Listed" })} selected={false} onSelect={noop} />
           </div>
         </Fixture>
-        <Fixture label="Schedule ticket — the price control, the strip and the CTA on a 5.50 tUSDC stake (live control)">
+        <Fixture label="Schedule ticket — the price control, the strip and the CTA on a 5.50 credits stake (live control)">
           <ScheduleComposer />
         </Fixture>
         {/* A-1a: the bearish mode, with the side control it reorders. Live: the switch writes this browser's own choice. */}

@@ -26,7 +26,7 @@ export interface XWalletCardProps {
 }
 
 /** The X-Predict wallet (reference `XWalletCard.tsx`), over an EXECUTOR grant: WHO this balance bets for comes first. */
-export function XWalletCard({ compact = false, returnTo = "/portfolio", symbol = "tUSDC" }: XWalletCardProps) {
+export function XWalletCard({ compact = false, returnTo = "/portfolio", symbol = "credits" }: XWalletCardProps) {
   const { address } = useWalletSession();
   const link = useXStatus();
   const grant = useXGrant();
@@ -40,7 +40,7 @@ export interface XWalletCardViewProps extends XWalletCardProps {
 }
 
 /** The card as pure presentation, so the fixture page can show every state without a wallet. */
-export function XWalletCardView({ address, link, grant, compact = false, returnTo = "/portfolio", symbol = "tUSDC" }: XWalletCardViewProps) {
+export function XWalletCardView({ address, link, grant, compact = false, returnTo = "/portfolio", symbol = "credits" }: XWalletCardViewProps) {
   const [amount, setAmount] = useState("5");
   const [manage, setManage] = useState(false);
   const [source, setSource] = useState<"wallet" | "trading-balance">("wallet");

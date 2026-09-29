@@ -8,7 +8,7 @@ import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-id
 // Canned books; nothing here is a real market, pool or order.
 const DECIMALS = 6;
 const UNIT = 10n ** BigInt(DECIMALS);
-export const FIXTURE_SYMBOL = "tUSDC";
+export const FIXTURE_SYMBOL = "credits";
 export const FIXTURE_DECIMALS = DECIMALS;
 export const FIXTURE_LOT = UNIT / 100n;
 export const FIXTURE_NOW_MS = Date.UTC(2026, 8, 3, 9, 0, 0);

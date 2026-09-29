@@ -33,7 +33,7 @@ export const STATUS = {
     switchboard: "Switchboard · quote success",
     crossCheck: "Cross-check · agreement",
     paused: "Lanes · paused",
-    faucet: "Faucet budget · SOL and tUSDC",
+    faucet: "Faucet budget · SOL and credits",
     sponsor: "Sponsor budget",
     ops: (actor: string) => `Ops · ${actor}`,
     price: (asset: string) => `Price feed · ${asset}`,
@@ -117,6 +117,6 @@ export const STATUS = {
 
     faucetOff: "not set up on this deployment",
     faucet: (sol: string, solLeft: string, tusdcLeft: string | null) =>
-      `${sol} SOL · ${solLeft} SOL left today · ${tusdcLeft === null ? "tUSDC unavailable" : `${tusdcLeft} tUSDC left today`}`,
+      `${sol} SOL · ${solLeft} SOL left today · ${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
   },
 } as const;

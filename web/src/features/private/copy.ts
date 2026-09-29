@@ -104,7 +104,7 @@ export const PRIVATE = {
     revoking: "Revoking",
     revokeNote: "stops private bets; the balance stays yours",
     cells: { balance: "Balance", allowance: "Desk may spend", spendable: "Spendable", desk: "Desk key", cap: "Per bet, at most" },
-    approvalNote: "Two signatures this first time: approve tUSDC, then the deposit.",
+    approvalNote: "Two signatures this first time: approve credits, then the deposit.",
     allowanceNote: "A deposit allows the desk the whole new balance.",
     trust: "The desk moves what you allow into a bet and the payout back to this balance; only your wallet withdraws. A stolen desk key could redirect what you allowed it, so the allowance is the most at risk — keep it to a few bets.",
     correlation: "What stays visible: the charge and the slot's funding land seconds apart for the same figure. Someone determined can line them up.",

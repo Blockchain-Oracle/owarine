@@ -10,7 +10,7 @@ const check = (g: VaultGrant, spendBase: bigint) => simulateCaps({ grant: g, now
   quantityRaw: spendBase * 2n, spendBase, one: 1_000_000n, opensNewPosition: true });
 
 describe("X allocated-balance policy", () => {
-  it("allows two 25 tUSDC trades after a 5 initial allocation is topped up to 55 on the same day", () => {
+  it("allows two 25 credits trades after a 5 initial allocation is topped up to 55 on the same day", () => {
     expect(check(grant, 25_000_000n).ok).toBe(true);
     const second = { ...grant, budgetBase: 30_000_000n, spentTodayBase: 25_000_000n, openPositions: 1 };
     expect(check(second, 25_000_000n).ok).toBe(true);

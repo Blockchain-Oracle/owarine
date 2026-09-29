@@ -51,7 +51,7 @@ export const VAULT = {
   withdrawPrivate: "Withdraw Private",
   loading: "Loading your balance…",
   /** The Ticket's own sentence for an absorbed allowance (Approvals convention). */
-  approvalNote: "Two signatures this first time: approve tUSDC, then the deposit.",
+  approvalNote: "Two signatures this first time: approve credits, then the deposit.",
   /** The snapshot cells (reference L358–412), the ones the vault can fill truthfully. */
   cells: {
     wallet: "Wallet",

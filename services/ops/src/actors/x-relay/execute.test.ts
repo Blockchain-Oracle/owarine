@@ -109,7 +109,7 @@ describe("mention execution receipt integration", () => {
     const result = await executeMention(context, mention);
     expect(dependencies.submit).toHaveBeenCalledWith(expect.objectContaining({ stakeBase: 100_000_000n, route: { kind: "vault-grant", grantId: 7n } }));
     expect(result).toMatchObject({ stakeBase: "100000000", bookedCostBase: "1234567", bookedContractsRaw: "2469134", avgPriceBps: 5000, marketId: MARKET_ID, asset: "TSLA", intervalSec: 300, expirySec: 400, grantId: "7", status: "filled", txHash: HASH });
-    expect(replyText(result, 6)).toContain("Spent 1.234567 tUSDC.");
+    expect(replyText(result, 6)).toContain("Spent 1.234567 credits.");
   });
 
   it("does not submit an unlinked account and returns the stable public category", async () => {

@@ -15,7 +15,7 @@ import { Fixture } from "../states/_sections/Fixture";
 import { BALANCE_BASE, BASKETS_FIXTURE, CALM_LEAD, HEDGE_FIXTURES, NO_CARD, STOCKS_FIXTURE } from "./fixtures";
 
 const DECIMALS = 6;
-const SYMBOL = "tUSDC";
+const SYMBOL = "credits";
 const noop = () => {};
 
 function Canned({ label, pick, onSelect }: { label: string; pick: HedgePick; onSelect: (marketId: MarketId, side?: Side) => void }) {

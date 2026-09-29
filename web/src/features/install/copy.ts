@@ -57,7 +57,7 @@ export const INSTALL = {
     cta: "Join the TestFlight beta",
   },
   points: [
-    { title: "Connect and go", body: "Any Solana wallet that speaks the Wallet Standard. The faucet hands you test tUSDC, and a little SOL for fees if you are short. There is nothing else to install." },
+    { title: "Connect and go", body: "Any Solana wallet that speaks the Wallet Standard. The faucet hands you demo credits, and a little SOL for fees if you are short. There is nothing else to install." },
     { title: "Open after the bell", body: "Stock Windows every few minutes while US markets trade, a weekend Window from Friday's close to Monday's open, and 24/7 Windows on tokenised stock. When the exchange is shut, rest a call at your price for the open." },
     { title: "Paid on the close", body: "Settlement reads the signed price for the closing second, the same feed you watched. Win and it is yours to claim — nobody else can." },
   ],

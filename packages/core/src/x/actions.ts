@@ -132,7 +132,7 @@ export function windowActionTitle(market: Pick<EventMarket, "asset" | "intervalS
 export function windowActionDescription(market: Pick<EventMarket, "asset" | "expirySec" | "decimals">): string {
   const floor = formatBaseUnits(minStakeBase(market.decimals), market.decimals);
   return `Up or Down on ${market.asset} at the ${UTC(market.expirySec)} close, settled from a signed price print. `
-    + `Your stake is the most you can lose. Minimum ${floor} tUSDC.`;
+    + `Your stake is the most you can lose. Minimum ${floor} credits.`;
 }
 
 /** Two buttons, each with its own amount field: the side is in the path, the stake is the viewer's. */
@@ -140,8 +140,8 @@ export function windowActionLinks(market: Pick<EventMarket, "marketId" | "decima
   const floor = formatBaseUnits(minStakeBase(market.decimals), market.decimals);
   const stake = (label: string): ActionParameter => ({ name: "stake", type: "number", label, required: true, min: floor });
   return [
-    { type: "transaction", href: `${basePath}?side=up&stake={stake}`, label: "Up", parameters: [stake("tUSDC on Up")] },
-    { type: "transaction", href: `${basePath}?side=down&stake={stake}`, label: "Down", parameters: [stake("tUSDC on Down")] },
+    { type: "transaction", href: `${basePath}?side=up&stake={stake}`, label: "Up", parameters: [stake("credits on Up")] },
+    { type: "transaction", href: `${basePath}?side=down&stake={stake}`, label: "Down", parameters: [stake("credits on Down")] },
   ];
 }
 

@@ -22,9 +22,9 @@ export interface FaucetServiceDeps {
 export const TUSDC_FUNDING_FLOOR_LAMPORTS = POLICY.reserveLamports + TUSDC.ataRentLamports + TUSDC.maxMintFeeLamports;
 const RULES = {
   sol: { cooldownMs: POLICY.cooldownMs, maxPerIp: POLICY.maxPerIpPerDay, cooldown: "This wallet can request another SOL top-up 24 hours after its last request.", ip: "This connection has reached its daily SOL allocation.", pending: "A SOL transfer is still being checked. Please try again shortly." },
-  tusdc: { cooldownMs: TUSDC.cooldownMs, maxPerIp: TUSDC.maxPerIpPerDay, cooldown: "This wallet can claim test tUSDC again 24 hours after its last claim.", ip: "This connection has reached its daily test tUSDC claims.", pending: "A tUSDC claim is still being checked. Please try again shortly." },
+  tusdc: { cooldownMs: TUSDC.cooldownMs, maxPerIp: TUSDC.maxPerIpPerDay, cooldown: "This wallet can claim demo credits again 24 hours after its last claim.", ip: "This connection has reached its daily demo credits claims.", pending: "A credits claim is still being checked. Please try again shortly." },
 } as const;
-const TUSDC_AMOUNT_TEXT = `${TUSDC.amountUnits.toLocaleString("en-US")} test tUSDC`;
+const TUSDC_AMOUNT_TEXT = `${TUSDC.amountUnits.toLocaleString("en-US")} demo credits`;
 
 /** A base58 wallet's signature over exactly `message`; malformed input is a plain false. */
 export async function verifyChallengeSignature(wallet: string, message: string, signature: string): Promise<boolean> {
@@ -51,7 +51,7 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
   async function reserveSol(wallet: string, usedLamports: bigint) {
     const balance = await deps.chain.balance(wallet);
     const amountLamports = faucetTopUpLamports(balance);
-    if (amountLamports === 0n) throw new FaucetError("already-funded", "You already have enough SOL for fees. Continue to get test tUSDC.");
+    if (amountLamports === 0n) throw new FaucetError("already-funded", "You already have enough SOL for fees. Continue to get demo credits.");
     if (usedLamports + amountLamports > POLICY.dailyLamports) throw new FaucetError("daily-limit", "Today's SOL allocation is used up. Try later or use an external faucet.", 429);
     const funding = await deps.chain.balance(deps.chain.address);
     if (funding < POLICY.reserveLamports + amountLamports) throw refill();
@@ -63,8 +63,8 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
   async function reserveTusdc(wallet: string, usedBase: bigint) {
     const { decimals } = await deps.chain.mint();
     const amountBase = tusdcBaseUnits(TUSDC.amountUnits, decimals);
-    if (usedBase + amountBase > tusdcBaseUnits(TUSDC.dailyUnits, decimals)) throw new FaucetError("daily-limit", "Today's test tUSDC allocation is used up. Please try again later.", 429);
-    if (await deps.chain.balance(deps.chain.address) < TUSDC_FUNDING_FLOOR_LAMPORTS) throw new FaucetError("refill-needed", "Our faucet is waiting for a SOL refill, so tUSDC claims are paused. Please try again later.", 503);
+    if (usedBase + amountBase > tusdcBaseUnits(TUSDC.dailyUnits, decimals)) throw new FaucetError("daily-limit", "Today's demo credits allocation is used up. Please try again later.", 429);
+    if (await deps.chain.balance(deps.chain.address) < TUSDC_FUNDING_FLOOR_LAMPORTS) throw new FaucetError("refill-needed", "Our faucet is waiting for a SOL refill, so credits claims are paused. Please try again later.", 503);
     const prepared = await deps.chain.prepareMint(wallet, amountBase);
     return { asset: "tusdc" as const, amountBase: amountBase.toString(), ...prepared };
   }
@@ -79,11 +79,11 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
     const remaining = daily > used.amount ? daily - used.amount : 0n;
     const funded = fundingLamports >= TUSDC_FUNDING_FLOOR_LAMPORTS;
     const nextMs = current ? current.createdAtMs + TUSDC.cooldownMs : null;
-    const message = current?.status === "prepared" ? "Your tUSDC claim is confirming. It will not be minted twice."
-      : current?.status === "conflict" ? "Your tUSDC claim needs operator review."
-      : nextMs !== null && nextMs > deps.now() ? "This wallet has claimed its test tUSDC for the last 24 hours."
-      : !funded ? "Our faucet is waiting for a SOL refill, so tUSDC claims are paused."
-      : remaining < amount ? "Today's test tUSDC allocation is used up. Please try again later."
+    const message = current?.status === "prepared" ? "Your credits claim is confirming. It will not be minted twice."
+      : current?.status === "conflict" ? "Your credits claim needs operator review."
+      : nextMs !== null && nextMs > deps.now() ? "This wallet has claimed its demo credits for the last 24 hours."
+      : !funded ? "Our faucet is waiting for a SOL refill, so credits claims are paused."
+      : remaining < amount ? "Today's demo credits allocation is used up. Please try again later."
       : `The same free signature adds ${TUSDC_AMOUNT_TEXT}. There is no transaction to approve and no fee.`;
     return { configured: true, ready: funded && remaining >= amount, mint: facts.address, decimals: facts.decimals, amountBase: amount.toString(), walletBalanceBase: balance?.toString() ?? null, dailyRemainingBase: remaining.toString(), claim: current ? tusdcClaimView(current) : null, message };
   }
@@ -102,11 +102,11 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
       const nextMs = current ? current.createdAtMs + POLICY.cooldownMs : null;
       const message = current?.status === "prepared" ? "Your SOL transfer is confirming. It will not be paid twice."
         : current?.status === "conflict" ? "Your SOL transfer needs operator review. Use an external faucet meanwhile."
-        : balance !== null && amount === 0n ? "You already have enough SOL for fees. Continue to get test tUSDC."
+        : balance !== null && amount === 0n ? "You already have enough SOL for fees. Continue to get demo credits."
         : nextMs !== null && nextMs > deps.now() ? "This wallet has used its SOL top-up for the last 24 hours."
         : !funded ? "Our SOL faucet is waiting for a refill. External faucets are available below."
         : remaining < amount ? "Today's SOL allocation is used up. Try later or use an external faucet."
-        : "Verify with a free wallet signature. Our faucet pays the transfer fee, then adds your tUSDC.";
+        : "Verify with a free wallet signature. Our faucet pays the transfer fee, then adds your credits.";
       return { configured: true, ready, address: deps.chain.address, fundingBalanceLamports: funding.toString(), walletBalanceLamports: balance?.toString() ?? null, dailyRemainingLamports: remaining.toString(), targetLamports: POLICY.targetLamports.toString(), thresholdLamports: POLICY.thresholdLamports.toString(), claim: current ? faucetClaimView(current) : null, tusdc, message };
     },
     async challenge(wallet: string, ipHash: string, origin: string) {

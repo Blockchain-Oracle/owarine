@@ -37,7 +37,7 @@ import { usePlaceBet } from "./usePlaceBet";
 import { useQuote } from "./useQuote";
 import { useTicket } from "./useTicket";
 
-const FALLBACK_SYMBOL = "tUSDC";
+const FALLBACK_SYMBOL = "credits";
 /** The reference sizes with an 8% cushion for a quote that drifts before it lands; a boost accepts up to 5% fewer contracts. */
 const BOOST_FILL_FLOOR_BPS = 9_500n;
 

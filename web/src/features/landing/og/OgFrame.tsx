@@ -71,7 +71,7 @@ export function OgFrame({ eyebrow, children }: OgFrameProps) {
         <div style={{ display: "flex", fontSize: 18, letterSpacing: "0.18em", textTransform: "uppercase", color: OG.dim }}>{eyebrow}</div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>{children}</div>
-      {/* Not uppercased: "tUSDC" is a name with fixed casing, and "TUSDC" reads as a different token. */}
+      {/* Not uppercased: "credits" is a name with fixed casing, and "TUSDC" reads as a different token. */}
       <div style={{ display: "flex", fontSize: 22, letterSpacing: "0.04em", color: OG.dim }}>{OG_COPY.honesty}</div>
     </div>
   );

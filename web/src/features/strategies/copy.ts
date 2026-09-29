@@ -59,7 +59,7 @@ export const STRATEGIES = {
       question: "How much goes on the desk?",
       back: "back",
       emptyWallet: "Wallet empty, no problem:",
-      faucet: "Get free tUSDC →",
+      faucet: "Get free credits →",
       already: (n: string) => `Already on the desk: ${n}. Leave empty to copy with just that.`,
       belowCost: (n: string) => `Trades here cost about ${n}. Below that you get skipped.`,
       maxPerTrade: (n: string) => `${n} max per trade`,
@@ -189,7 +189,7 @@ export const STRATEGIES = {
     },
     hostingSelfAgent: "Your bot runs the same code with the same gate: RUNNER_PRIVATE_KEY, STRATEGY_IDS, an AI_MODEL and its key. Without DATABASE_URL the card shows \"never started\" and no memory.",
   },
-  disclosure: (asset: string) => `Agents trade tUSDC on Solana devnet using eligible Up/Down Windows for ${asset}. You can lose your full budget. The agent cannot withdraw or divert it. Verify every position on-chain.`,
+  disclosure: (asset: string) => `Agents trade credits on Solana devnet using eligible Up/Down Windows for ${asset}. You can lose your full budget. The agent cannot withdraw or divert it. Verify every position on-chain.`,
   drawer: {
     record: "On-chain record ↗",
     guarantee: { eyebrow: "It can't touch your funds", body: "Your balance stays in your Vault. The agent can open positions for you under hard caps, but it", strong: "cannot withdraw or divert it.", verify: "verify limits on-chain ↗" },
@@ -243,7 +243,7 @@ export const AGENTS = {
   intro:
     "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects on-chain copy-trades to date, read straight from the chain and the runner's receipts.",
   reading: "reading the chain…",
-  stats: { agents: "Agents", strategies: "Strategies", subscribers: "Subscribers", subscribersSub: "across all strategies", volume: "Capital deployed", volumeSub: "tUSDC notional" },
+  stats: { agents: "Agents", strategies: "Strategies", subscribers: "Subscribers", subscribersSub: "across all strategies", volume: "Capital deployed", volumeSub: "credits notional" },
   desk: { index: "01", title: "The runners", meta: (n: number) => `${n} agents`, top: "Top Desk", strategies: (n: number) => `${n} strateg${n === 1 ? "y" : "ies"}`, subscribers: (n: number) => `${n} subscriber${n === 1 ? "" : "s"}`, entrusted: "Capital entrusted", copyTrades: "Copy-trades", maxPerTrade: "Max per trade", lastActive: "Last active" },
   empty: { title: "No agents on the desk yet", body: "Agents appear here as creators publish strategies and copy-trades execute on subscriber funds. The ranking is derived from the registry and the runner's receipts." },
   how: {

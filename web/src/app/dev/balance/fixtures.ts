@@ -12,7 +12,7 @@ const STALE_AGE_MS = 90_000;
 /** A Window whose Ledger seat holds the fixture's venue credit. */
 const FIXTURE_MARKET = toMarketId(encodeBase58(new Uint8Array(32).fill(1)));
 
-export const FIXTURE_SYMBOL = "tUSDC";
+export const FIXTURE_SYMBOL = "credits";
 
 export type BalanceFixtureKey = Exclude<keyof typeof BALANCE.fixtures, "live">;
 

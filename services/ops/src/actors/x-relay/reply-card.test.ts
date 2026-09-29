@@ -26,7 +26,7 @@ describe("receipt reply artwork", () => {
     const svg = renderReplyCardSvg(first);
     expect(svg).toContain("FOR @alice");
     expect(svg).toContain(base.txHash);
-    expect(svg).toContain("Spent 4.95 tUSDC.");
+    expect(svg).toContain("Spent 4.95 credits.");
     expect(renderReplyCardSvg(second)).not.toContain(base.txHash);
     const [a, b, same] = await Promise.all([renderReplyCardPng(first), renderReplyCardPng(second), renderReplyCardPng(first)]);
     expect(a.equals(b)).toBe(false);
@@ -51,7 +51,7 @@ describe("receipt reply artwork", () => {
     expect(svg).toContain("SOLANA DEVNET");
     expect(svg).toContain("— Agari</title>");
     expect(svg).not.toMatch(/masayume|somnia|shannon|testnet/i);
-    expect(svg).not.toMatch(/\bBTC\b|\btUSDC\b|0x[\da-f]+|paid out|profit|win/i);
+    expect(svg).not.toMatch(/\bBTC\b|\bcredits\b|0x[\da-f]+|paid out|profit|win/i);
   });
 
   it.each<XReceiptStatus>(["submitted", "unknown", "refused", "reverted", "nothing-filled"])("never renders a success headline or check for %s", (status) => {
@@ -90,7 +90,7 @@ describe("receipt reply artwork", () => {
   });
 
   it("exports a repeatable 1200×600 PNG under the image upload limit", async () => {
-    const model = { status: "filled" as const, context: "TSLA · UP · Devnet", detail: "Requested stake: 5 tUSDC. Booked amount is unavailable." };
+    const model = { status: "filled" as const, context: "TSLA · UP · Devnet", detail: "Requested stake: 5 credits. Booked amount is unavailable." };
     const first = await renderReplyCardPng(model, { demo: true });
     const second = await renderReplyCardPng(model, { demo: true });
     expect(first.equals(second)).toBe(true);
