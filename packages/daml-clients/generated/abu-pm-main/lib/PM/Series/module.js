@@ -20,7 +20,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.Series = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Series:Series',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Series:Series',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Series:Series',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -112,7 +112,7 @@ exports.Series = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Series, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Series, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.Series_AddPolicyVersion = {
   decoder: damlTypes.lazyMemo(function () {

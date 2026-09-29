@@ -24,7 +24,7 @@ const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs against an unauthenticated local sandbox only");
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
-const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.2.0.dar"));
+const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.3.0.dar"));
 const SHARDS = Number(arg("--shards", process.env.VENUE_SHARDS ?? "16"));
 /** Base units (demo credits × 10⁶). 2,000 credits a shard: above the worst per-quote venue stake (`MM_MAX_QUOTE_LOTS` × 999 × cashUnit). */
 const SHARD_BASE = BigInt(arg("--shard-base", "2000000000"));

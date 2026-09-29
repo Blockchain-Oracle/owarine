@@ -21,3 +21,36 @@ template Publication
     choice Publication_Retract : ()
       controller owner
       do pure ()
+
+-- | The ledger's record of a user's leg once it settled or was claimed (K-028):
+-- `Leg_Settle` and `Leg_Claim` archive the leg, so this is what a settled call
+-- is published from and what portfolio history reads. Bilateral, like the leg.
+-- `resolved` is the Window's outcome (None = void); `cost` is backing plus fee.
+template SettlementReceipt
+  with
+    venue : Party
+    owner : Party
+    marketId : Text
+    pairId : Text
+    outcome : Side
+    resolved : Optional Side
+    lots : Int
+    cashUnit : Int
+    backingShare : Int
+    cost : Int
+    payout : Int
+    fee : Int
+  where
+    signatory venue, owner
+    ensure owner /= venue && lots > 0 && cost >= 0 && payout >= 0 && fee >= 0
+
+    -- The same `Publication` shape `Leg_Publish` creates, from the settled leg's figures.
+    nonconsuming choice Receipt_Publish : ContractId Publication
+      with
+        handle : Text
+      controller owner
+      do create Publication with venue; owner; handle; marketId; pairId; outcome; lots; backingShare
+
+    choice Receipt_Dismiss : ()
+      controller owner
+      do pure ()

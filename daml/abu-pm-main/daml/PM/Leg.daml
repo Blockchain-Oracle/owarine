@@ -11,6 +11,7 @@
 -- Summed over a pair this pays out exactly the pair's backing plus fees.
 module PM.Leg where
 
+import DA.Action (void, when)
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
 import PM.Market
 import PM.Money
@@ -156,4 +157,9 @@ payOut l resolutionCid = do
   let (toOwner, fee) = legPayout l r
   paid <- payIfPositive l.venue l.owner toOwner "payout"
   feeCash <- payIfPositive l.venue l.venue fee "fee"
+  -- K-028: a user's leg leaves a receipt (one create per leg, so a batch of 25 stays bounded).
+  when (l.owner /= l.venue) $ void $ create SettlementReceipt with
+    venue = l.venue; owner = l.owner; marketId = l.marketId; pairId = l.pairId; outcome = l.outcome
+    resolved = r.outcome; lots = l.lots; cashUnit = l.cashUnit; backingShare = l.backingShare
+    cost = l.backingShare + l.feePaid; payout = toOwner; fee
   pure (paid, feeCash)

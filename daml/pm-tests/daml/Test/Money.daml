@@ -249,7 +249,7 @@ testVenueCannotConfiscate = script do
       openEvidence = []; closeEvidence = []; signers = 0
   -- a buy-back needs Alice's acceptance
   (bq, _) <- submit w.venue do
-    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 1; validUntil = plus win.t.tradingStart 60
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 1; validUntil = plus win.t.tradingStart 60; sellLots = None
   fails =<< trySubmit w.venue do exerciseCmd bq BuyQuote_Accept
   after <- aliceValue
   after === before
@@ -295,7 +295,7 @@ testBuyBackThenPairMerge = script do
   sh <- shard w 1500
   now <- getTime
   (bq, _) <- submit w.venue do
-    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 700; validUntil = plus now 20
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 700; validUntil = plus now 20; sellLots = None
   (paid, vu, feeC) <- submit w.alice do exerciseCmd bq BuyQuote_Accept
   Some p <- queryContractId w.alice paid
   p.amount === 1400

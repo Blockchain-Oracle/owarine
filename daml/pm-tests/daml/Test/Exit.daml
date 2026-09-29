@@ -1,0 +1,152 @@
+-- | Partial buy-backs ("sell half", C7a) and settlement receipts (K-028).
+-- A partial sell re-creates the user's remainder leg; the sold slice takes
+-- ceil(backing * sold / lots) and ceil(fee * sold / lots), so any integer
+-- remainder sits on the venue's side and the pair still sums exactly.
+module Test.Exit where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Optional (fromSome)
+import PM.Leg
+import PM.Publication
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- | Sell `sold` of the user's leg at `ticks`; returns (paid, venue slice, user's remainder).
+sellPart : World -> ContractId Leg -> Int -> Int -> Script (Int, (ContractId Leg, Leg), Optional (ContractId Leg, Leg))
+sellPart w u ticks sold = do
+  Some l <- queryContractId w.alice u
+  sh <- shard w (userStakeOf sold ticks l.cashUnit)
+  now <- getTime
+  (bq, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = ticks; validUntil = plus now 20; sellLots = Some sold
+  (paid, vu, _) <- submit w.alice do exerciseCmd bq BuyQuote_Accept
+  Some p <- queryContractId w.alice paid
+  Some v <- queryContractId w.venue vu
+  mine <- query @Leg w.alice
+  let rest = [(c, x) | (c, x) <- mine, x.owner == w.alice, x.pairId == l.pairId]
+  pure (p.amount, (vu, v), case rest of [r] -> Some r; _ -> None)
+
+-- | The pair's backing is conserved across the split, and the fee escrow too.
+checkSplit : Leg -> Leg -> Optional Leg -> Script ()
+checkSplit orig slice rest = do
+  let keptB = optional 0 (.backingShare) rest
+      keptF = optional 0 (.feePaid) rest
+      keptL = optional 0 (.lots) rest
+  slice.backingShare + keptB === orig.backingShare
+  keptL + slice.lots === orig.lots
+  slice.feePaid === 0
+  -- the venue's slice takes the ceiling: the remainder never holds more than its pro-rata share
+  assertMsg "remainder backing is the floor" (keptB * orig.lots <= orig.backingShare * keptL)
+  assertMsg "remainder fee is the floor" (keptF * orig.lots <= orig.feePaid * keptL)
+
+testSellHalfThenResolve = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- trade w win w.alice SideUp 620 100 40 "p1"
+  Some orig <- queryContractId w.alice u
+  (paid, (vu, vs), rest) <- sellPart w u 600 50
+  paid === 50 * 600
+  vs.lots === 50
+  let (rc, r) = fromSome rest
+  r.lots === 50
+  r.feePaid === 20
+  checkSplit orig vs (Some r)
+  -- Up wins: the remainder pays 50 × 1000; alice holds the sale plus that
+  res <- resolveAt w win op (px + 1)
+  d <- disclosureOf w.venue res
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd rc Leg_Claim with resolutionCid = res
+  cashOf w.alice >>= (=== 30000 + 50000)
+  -- venue legs settle: its Up slice pays the venue, its Down leg nothing
+  _ <- submit w.venue do exerciseCmd vu Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  pure ()
+
+testSellOneLot = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 333 7 11 "p1"
+  Some orig <- queryContractId w.alice u
+  (paid, (_, vs), rest) <- sellPart w u 400 1
+  paid === 400
+  vs.lots === 1
+  vs.backingShare === 333
+  fmap ((.lots) . snd) rest === Some 6
+  checkSplit orig vs (snd <$> rest)
+  -- fee 11 over 7 lots: the sold lot recognises ceil(11/7) = 2
+  fmap ((.feePaid) . snd) rest === Some 9
+
+testSellAllButOne = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideDown 457 9 13 "p1"
+  Some orig <- queryContractId w.alice u
+  (_, (_, vs), rest) <- sellPart w u 500 8
+  vs.lots === 8
+  fmap ((.lots) . snd) rest === Some 1
+  checkSplit orig vs (snd <$> rest)
+
+testOddSplitThenVoid = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- trade w win w.alice SideUp 501 3 7 "p1"
+  Some orig <- queryContractId w.alice u
+  (paid, (vu, vs), rest) <- sellPart w u 490 2
+  checkSplit orig vs (snd <$> rest)
+  -- ceilings: backing 1503 * 2 / 3 = 1002, fee ceil(14/3) = 5
+  vs.backingShare === 1002
+  let (rc, r) = fromSome rest
+  r.backingShare === 501
+  r.feePaid === 2
+  res <- voidClose w win op
+  d <- disclosureOf w.venue res
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd rc Leg_Claim with resolutionCid = res
+  -- void: the remainder returns its backing plus its fee escrow
+  cashOf w.alice >>= (=== paid + 501 + 2)
+  _ <- submit w.venue do exerciseCmd vu Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  pure ()
+
+testSellRefusals = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 4 0 "p1"
+  sh <- shard w 100000
+  now <- getTime
+  over <- trySubmit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 600; validUntil = plus now 20; sellLots = Some 5
+  refusedWith (refusal "bad-lots") over
+  zero <- trySubmit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 600; validUntil = plus now 20; sellLots = Some 0
+  refusedWith (refusal "bad-lots") zero
+
+-- K-028: settle and claim leave a bilateral receipt the owner can publish from.
+testSettlementReceipt = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 2 20 "p1"
+  (b, _) <- trade w win w.bob SideDown 400 1 5 "p2"
+  res <- resolveAt w win op (px + 1)
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd b Leg_Settle with resolutionCid = res
+  [(rc, r)] <- query @SettlementReceipt w.alice
+  r.payout === 2000
+  r.cost === 1260
+  r.fee === 20
+  r.resolved === Some SideUp
+  [(_, rb)] <- query @SettlementReceipt w.bob
+  rb.payout === 0
+  rb.outcome === SideDown
+  -- no receipt for venue legs, and the outsider sees none
+  none <- query @SettlementReceipt w.outsider
+  length none === 0
+  pc <- submit w.alice do exerciseCmd rc Receipt_Publish with handle = "alice"
+  Some p <- queryContractId w.alice pc
+  p.lots === 2
+  p.backingShare === 1240
+  denied <- trySubmit w.bob do exerciseCmd rc Receipt_Publish with handle = "bob"
+  fails denied

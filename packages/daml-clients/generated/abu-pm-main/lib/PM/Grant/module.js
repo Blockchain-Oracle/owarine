@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.AgentGrant = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Grant:AgentGrant',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Grant:AgentGrant',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Grant:AgentGrant',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -92,7 +92,7 @@ exports.AgentGrant = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.AgentGrant, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.AgentGrant, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.CapInput = {
   decoder: damlTypes.lazyMemo(function () {
@@ -147,7 +147,7 @@ exports.GrantCaps = {
 exports.GrantOffer = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Grant:GrantOffer',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Grant:GrantOffer',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Grant:GrantOffer',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -189,7 +189,7 @@ exports.GrantOffer = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.GrantOffer, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.GrantOffer, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.GrantOffer_Open = {
   decoder: damlTypes.lazyMemo(function () {
