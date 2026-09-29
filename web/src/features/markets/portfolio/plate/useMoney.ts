@@ -3,10 +3,11 @@
 import { isOk } from "@agari/core/schemas";
 import type { Address } from "@agari/core/types";
 import { shortHex } from "@agari/core/units";
-import { usePrivateBudget, usePrivateDesk, useVaultSnapshot } from "@agari/markets/react";
+import { useClaimables, usePositions, usePrivateBudget, usePrivateDesk, useVaultSnapshot } from "@agari/markets/react";
 import { useXGrant, useXStatus } from "@/features/x";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useBalancePlate } from "../../balance";
+import { useVenue } from "../../useVenue";
 import { PLATE } from "./copy";
 
 export type PoolId = "x" | "private";
@@ -30,6 +31,17 @@ export interface Money {
   readyToBetBase: bigint;
   walletBase: bigint;
   accountBase: bigint;
+  /** Open positions marked at the venue ladder's mid (at entry where no ladder quotes); 0 while loading. */
+  positionsBase: bigint;
+  /** What the seat can collect now (wins, voids, stale refunds). */
+  claimableBase: bigint;
+  /**
+   * The portfolio's one number (the reference's balance sheet): demo credits + open positions at the mid + claimables.
+   * The named pools (`pools`) are never summed in.
+   */
+  totalBase: bigint;
+  /** False while any of the three reads is still loading: the figure renders pending. */
+  totalBaseReady: boolean;
   /** False while either half is still loading: render pending, never assert a wrong number. */
   totalReady: boolean;
   totalUnknown: boolean;
@@ -44,6 +56,9 @@ export function useMoney(): Money {
   const x = useXStatus();
   const xGrant = useXGrant();
   const desk = usePrivateDesk();
+  const { venueId } = useVenue();
+  const positions = usePositions(address);
+  const claimables = useClaimables(address, venueId);
   const privateBudget = usePrivateBudget(address);
 
   const reading = plate.kind === "connected" ? plate.reading : null;
@@ -94,9 +109,18 @@ export function useMoney(): Money {
     }
   }
 
+  const positionRows = positions && isOk(positions) ? positions.value : null;
+  const claimRows = claimables && isOk(claimables) ? claimables.value : null;
+  const positionsBase = (positionRows ?? []).reduce((sum, p) => sum + p.markValueBase, 0n);
+  const claimableBase = (claimRows ?? []).reduce((sum, c) => sum + c.netPayoutBase, 0n);
+
   return {
     address,
     decimals,
+    positionsBase,
+    claimableBase,
+    totalBase: walletBase + accountBase + positionsBase + claimableBase,
+    totalBaseReady: sheet !== null && positionRows !== null && claimRows !== null,
     readyToBetBase: walletBase + accountBase,
     walletBase,
     accountBase,

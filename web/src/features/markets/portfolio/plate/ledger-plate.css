@@ -23,10 +23,13 @@
 /* bg-[#E04D26] · bg-[#E04D26]/35 */
 .lp-bar-wallet { background: #E04D26; }
 .lp-bar-account { background: rgba(224, 77, 38, 0.35); }
+/* C7a: open positions at the mid, between credits and what is waiting to be collected */
+.lp-bar-positions { background: rgba(224, 77, 38, 0.65); }
 /* h-2 w-2 shrink-0 rounded-full; text-[12px] text-[var(--lp-mute)]; font-mono text-[13px] tabular-nums text-[var(--lp-ink)] */
 .lp-leg-dot { height: 8px; width: 8px; flex-shrink: 0; border-radius: 999px; }
 .lp-leg-dot--wallet { background: #E04D26; }
 .lp-leg-dot--account { background: rgba(224, 77, 38, 0.35); }
+.lp-leg-dot--positions { background: rgba(224, 77, 38, 0.65); }
 .lp-leg-label { font-size: 12px; color: var(--lp-mute); }
 .lp-leg-value { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--lp-ink); }
 /* ml-auto flex items-baseline gap-2 font-mono text-[12px] text-[var(--lp-mute)]; text-[#C9BFA6] separator */
