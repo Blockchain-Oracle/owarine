@@ -11,6 +11,7 @@ export { proofArchives, proofPrints, proofWindow, type ProofArchiveRow, type Pro
 export { publishedOn } from "./idx/read-publications";
 export { venueStats, type VenueStatsRow } from "./idx/read-venue-stats";
 export { latestRecount, recordRecount, type RecountRow } from "./audit";
+export { cursorHead, oracleFreshness, pipelineBacklog, type BacklogRow, type CursorHeadRow, type OracleFreshRow } from "./idx/read-status-canton";
 export { statusReader, type CrossCheckRow, type PrintMixRow, type StatusReader } from "./idx/read-status";
 export {
   crowdFlow,
