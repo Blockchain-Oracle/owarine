@@ -1,8 +1,8 @@
-import { tapeActions, tapeFills, tapeMarkets } from "@agari/db";
+import { tapeActions, tapeFills, tapeMarkets, tapeTickets } from "@agari/db";
 import { z } from "zod";
 import { BadRequest, type IndexQuery } from "./queries";
 
-/** Lane 5b: `tape/markets`, `tape/fills`, `tape/actions` (proof-analytics.md §1): the venue-wide scans the board pages. */
+/** Lane 5b: `tape/markets`, `tape/fills`, `tape/actions` and (0.4.0) `tape/tickets` (proof-analytics.md §1): the venue-wide scans the board pages. */
 const int = z.coerce.number().int().nonnegative();
 const page = { limit: int.optional(), offset: int.optional() };
 const marketsQuery = z.object({ from: int, to: int, lookback: int, ...page });
@@ -29,6 +29,11 @@ export function resolveTapeQuery(path: readonly string[], query: Record<string, 
     case "actions": {
       const q = parse(rangeQuery, query);
       return { scope: "public", run: (_r, db) => tapeActions(db, { sinceSec: q.since, untilSec: q.until, limit: q.limit, offset: q.offset }) };
+    }
+    case "tickets": {
+      // 0.4.0: published ticket results (a Publication with a product), with their receipts' settled figures.
+      const q = parse(rangeQuery, query);
+      return { scope: "public", run: (_r, db) => tapeTickets(db, { sinceSec: q.since, untilSec: q.until, limit: q.limit, offset: q.offset }) };
     }
     default:
       return null;

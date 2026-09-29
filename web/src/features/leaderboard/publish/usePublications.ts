@@ -8,7 +8,11 @@ import { z } from "zod";
  * The seat's own publications (GET/POST/DELETE `/api/ledger/publications`), keyed by the seat address so a new lease
  * never shows the last visitor's. A publish or retract refreshes it and the board.
  */
-const publicationWire = z.object({ cid: z.string(), marketId: z.string(), pairId: z.string(), side: z.enum(["up", "down"]), lots: z.string(), handle: z.string() });
+const publicationWire = z.object({
+  cid: z.string(), marketId: z.string(), pairId: z.string(), side: z.enum(["up", "down"]), lots: z.string(), handle: z.string(),
+  /** 0.4.0: null for a pair leg; the ticket product otherwise (absent from an older server). */
+  product: z.string().nullable().optional(),
+});
 const listWire = z.object({ value: z.array(publicationWire), address: z.string(), receipts: z.boolean() });
 const publishWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("published"), publications: z.array(publicationWire), updateId: z.string().nullable() }),
@@ -41,7 +45,7 @@ export function usePublishCall(address: string | null) {
     void client.invalidateQueries({ queryKey: ["agari", "leaderboard"] });
   };
   const publish = useMutation({
-    mutationFn: async (o: { marketId: string; source: PublishSource }) => {
+    mutationFn: async (o: { marketId: string; source: PublishSource; receiptId?: string }) => {
       const r = await ledgerRequest("/publications", { method: "POST", body: o, wire: publishWire, okStatuses: [409] });
       if (!r.ok) throw new Error(r.diagnosis.technical || r.diagnosis.kind);
       return r.value;

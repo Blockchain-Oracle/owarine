@@ -3,13 +3,13 @@
  * seat and every complete-set action, replayed into one ledger per Window and settled by the chain's rule. Whether a
  * payout reached the wallet is the index's `redeemed` flag (a user redeem or the settler's `redeem_for`).
  */
-import { buildLedgers, ledgerHasActivity, roundSettledAtMs, settleRound, type LedgerFill, type LedgerSetAction, type LedgerSide, type MarketLedger, type SettledRound, type WalletHistory } from "@agari/core/projection";
+import { buildLedgers, ledgerHasActivity, roundSettledAtMs, settleRound, withReceipts, type LedgerFill, type LedgerSetAction, type LedgerSide, type MarketLedger, type SettledRound, type WalletHistory } from "@agari/core/projection";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, Holdings, MarketId, Signature } from "@agari/core/types";
 import { readVenueStatic } from "../runtime/accounts";
-import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow, type PositionRow } from "./index-api";
+import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow, type PositionRow, type ReceiptRow } from "./index-api";
 import { withReading } from "./reading";
-import { outcomeOf } from "./rows";
+import { outcomeOf, receiptFacts } from "./rows";
 
 const PAGE = 1_000;
 const MAX_PAGES = 5;
@@ -75,10 +75,12 @@ async function marketRows(ids: readonly string[]): Promise<Map<string, MarketRow
 
 export async function listWalletHistory(wallet: Address): Promise<Reading<WalletHistory>> {
   return withReading(`history:${wallet}`, async () => {
-    const [fills, actions, positions, venue] = await Promise.all([
+    const [fills, actions, positions, receipts, venue] = await Promise.all([
       pageAll<FillRow>(`wallet/${wallet}/fills`),
       pageAll<ActionRow>(`wallet/${wallet}/actions`),
       indexRows<PositionRow>(`wallet/${wallet}/positions`, { limit: PAGE }),
+      // 0.4.0 (K-028/K-030): the ledger's settlement receipts, pair legs and tickets, the history's ledger source.
+      indexRows<ReceiptRow>(`wallet/${wallet}/receipts`, { limit: PAGE }),
       readVenueStatic(),
     ]);
     const ids = [...new Set([...fills.rows.map((f) => f.market), ...actions.rows.flatMap((a) => (a.market ? [a.market] : []))])];
@@ -124,12 +126,14 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
       });
       if (round) rounds.push(round.claim === "paid" && byCrank.get(id) === true ? { ...round, paidByCrank: true } : round);
     }
-    rounds.sort((a, b) => roundSettledAtMs(b) - roundSettledAtMs(a));
+    // Receipts attach to the rounds the fills built, and add the rounds only they know (tickets; legs with no fills).
+    const all = withReceipts(rounds, receipts.map(receiptFacts), venue.decimals);
+    all.sort((a, b) => roundSettledAtMs(b) - roundSettledAtMs(a));
     return {
-      rounds,
+      rounds: all,
       openCount,
       fillCount: fills.rows.length,
-      complete: fills.complete && actions.complete && attributed.length === own.length,
+      complete: fills.complete && actions.complete && attributed.length === own.length && receipts.length < PAGE,
       decimals: venue.decimals,
     };
   });

@@ -6,8 +6,11 @@
  * The handle is the lease's seat address: a seat is recycled between visitors, so a reader asks for the publications
  * of this party under this lease's handle, and a new visitor never sees the last one's calls as their own.
  *
- * Only a live leg can be published today: `Leg_Settle` and `Leg_Claim` archive the leg. A settled call is publishable
- * once the settlement leaves a receipt with its own publish choice (the source `receipt`, refused until it exists).
+ * A live leg publishes through `Leg_Publish` (source `leg`). A settled call publishes from the `SettlementReceipt` the
+ * settlement left (engine 0.4.0, K-028): source `receipt` exercises `Receipt_Publish` on the seat's receipts on that
+ * Window, only those created under this lease (from its start offset), so a new visitor never publishes the last one's.
+ * A pair leg's receipts publish together (each pair once); a ticket's receipt is named by `receiptId`, and its
+ * `Publication` carries the ticket's `product`.
  */
 import { PM, TEMPLATE_IDS } from "@agari/daml";
 import { sha256 } from "@noble/hashes/sha2";
@@ -25,6 +28,8 @@ export interface PublicationView {
   side: Side;
   lots: bigint;
   handle: string;
+  /** 0.4.0: null for a pair leg; the ticket product otherwise. */
+  product: string | null;
 }
 
 export type PublishSource = "leg" | "receipt";
@@ -35,6 +40,7 @@ export type PublishResult =
   | { kind: "refused"; code: "nothing-live" | "receipt-unavailable"; reason: string };
 
 const PUBLICATION = entityOf(TEMPLATE_IDS.Publication);
+const RECEIPT = entityOf(TEMPLATE_IDS.SettlementReceipt);
 
 /** The seat's publications under one handle. Read as the seat: the participant returns only its own. */
 export async function readPublications(client: LedgerClient, party: Party, handle: string): Promise<PublicationView[]> {
@@ -43,8 +49,58 @@ export async function readPublications(client: LedgerClient, party: Party, handl
     if (entityOf(e.templateId) !== PUBLICATION) return [];
     const p = PM.Publication.Publication.decoder.runWithException(e.createArgument);
     if (p.owner !== party || p.handle !== handle) return [];
-    return [{ cid: e.contractId, marketId: appMarketId(p.marketId), pairId: p.pairId, side: p.outcome === "SideUp" ? "up" : "down", lots: fromDamlInt(p.lots, "Publication.lots"), handle: p.handle }];
+    return [{
+      cid: e.contractId, marketId: appMarketId(p.marketId), pairId: p.pairId, side: p.outcome === "SideUp" ? "up" : "down", lots: fromDamlInt(p.lots, "Publication.lots"),
+      handle: p.handle, product: p.product ?? null,
+    }];
   });
+}
+
+export interface ReceiptView {
+  cid: string;
+  marketId: MarketId;
+  pairId: string;
+  product: string | null;
+  /** The offset the receipt was created at: the lease filter. */
+  offset: number;
+}
+
+/** The seat's settlement receipts from `fromOffset` on (this lease's), read as the seat. */
+export async function readReceipts(client: LedgerClient, party: Party, fromOffset: number): Promise<ReceiptView[]> {
+  const r = await client.activeContracts({ parties: [party], templateIds: [TEMPLATE_IDS.SettlementReceipt] });
+  return r.contracts.flatMap(({ createdEvent: e }) => {
+    if (entityOf(e.templateId) !== RECEIPT || (e.offset ?? 0) < fromOffset) return [];
+    const x = PM.Publication.SettlementReceipt.decoder.runWithException(e.createArgument);
+    if (x.owner !== party) return [];
+    return [{ cid: e.contractId, marketId: appMarketId(x.marketId), pairId: x.pairId, product: x.product ?? null, offset: e.offset ?? 0 }];
+  });
+}
+
+/** `Receipt_Publish` on the receipts not yet published under this handle (pair legs by pair; a ticket by its receipt id). */
+async function publishReceipts(
+  deps: { client: LedgerClient; seats: SeatReader },
+  actor: { party: Party; leaseId: string; handle: string; fromOffset?: number },
+  o: { marketId: MarketId; receiptId?: string },
+): Promise<PublishResult> {
+  const [receipts, existing] = await Promise.all([readReceipts(deps.client, actor.party, actor.fromOffset ?? 0), readPublications(deps.client, actor.party, actor.handle)]);
+  const onWindow = receipts.filter((r) => r.marketId === o.marketId && (o.receiptId ? r.cid === o.receiptId : r.product === null));
+  const mine = existing.filter((p) => p.marketId === o.marketId && (o.receiptId ? p.product === onWindow[0]?.product : p.product === null));
+  const done = new Set(mine.map((p) => `${p.product ?? ""}|${p.pairId}`));
+  const todo = onWindow.filter((r) => !done.has(`${r.product ?? ""}|${r.pairId}`));
+  if (todo.length === 0) {
+    if (mine.length > 0) return { kind: "already", publications: mine };
+    return { kind: "refused", code: "receipt-unavailable", reason: "the seat has no settlement receipt on this Window under this lease" };
+  }
+  const commands: Command[] = todo.map((r) => ({ ExerciseCommand: { templateId: TEMPLATE_IDS.SettlementReceipt, contractId: r.cid, choice: "Receipt_Publish", choiceArgument: { handle: actor.handle } } }));
+  let updateId: string | null = null;
+  try {
+    const out = await deps.client.submitAndWaitForTransaction({ actAs: [actor.party], commandId: publishCommandId(actor.leaseId, todo.map((r) => r.cid)), commands });
+    updateId = out.transaction.updateId;
+  } catch (error) {
+    if (!(error instanceof LedgerError && error.kind === "duplicate")) throw error;
+  }
+  const after = (await readPublications(deps.client, actor.party, actor.handle)).filter((p) => p.marketId === o.marketId);
+  return { kind: "published", publications: after, updateId };
 }
 
 /** `publish:<digest>`: the same legs under the same lease publish once, however often the button is pressed. */
@@ -54,10 +110,10 @@ export function publishCommandId(leaseId: string, legCids: readonly string[]): s
 
 export async function publishCall(
   deps: { client: LedgerClient; seats: SeatReader },
-  actor: { party: Party; leaseId: string; handle: string },
-  o: { marketId: MarketId; source: PublishSource },
+  actor: { party: Party; leaseId: string; handle: string; fromOffset?: number },
+  o: { marketId: MarketId; source: PublishSource; receiptId?: string },
 ): Promise<PublishResult> {
-  if (o.source === "receipt") return { kind: "refused", code: "receipt-unavailable", reason: "a settled call leaves no contract to publish from yet" };
+  if (o.source === "receipt") return publishReceipts(deps, actor, o);
   const [snap, existing] = await Promise.all([deps.seats.read(actor.party, { fresh: true }), readPublications(deps.client, actor.party, actor.handle)]);
   const mine = existing.filter((p) => p.marketId === o.marketId);
   const done = new Set(mine.map((p) => p.pairId));
