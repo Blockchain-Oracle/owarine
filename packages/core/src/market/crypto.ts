@@ -13,6 +13,15 @@ import type { Ticker } from "./tickers";
 
 export const CRYPTO_SYMBOLS = ["BTC", "ETH"] as const;
 export type CryptoSymbol = (typeof CRYPTO_SYMBOLS)[number];
+/**
+ * The crypto lanes' cadences: the 1-minute demo lane (an Addition, C3), the reference's 5 m, 15 m and 1 h, and
+ * Masayume's 4 h and 1 d (its DreamDEX BTC/ETH set was 1m/5m/15m/1h/4h/1d). All 24/7, on the UTC clock.
+ */
+export const CRYPTO_CADENCES_SEC = [60, 300, 900, 3_600, 14_400, 86_400] as const;
+
+/** A Canton adaptation: 24/7 variance accrues every second of a 365-day year, not over 252 × 6.5 exchange hours. */
+export const CALENDAR_YEAR_SEC = 365 * 86_400;
+
 /** The crypto rows of the registry, in listing order (every one is 24/7, token lane only). */
 export const CRYPTO_TICKERS: readonly CryptoSymbol[] = CRYPTO_SYMBOLS;
 

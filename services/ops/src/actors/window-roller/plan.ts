@@ -15,7 +15,7 @@ import {
   type TickerSymbol,
 } from "@agari/core/market";
 import type { CorporateSkip, HaltBoard, MultiplierChange } from "@agari/core/types";
-import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, usableBy, type VersionWindow } from "./versions";
+import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, reasonBy, usableBy, type VersionWindow } from "./versions";
 
 /** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */
 export const BOUNDARY_KIND_U8: Record<BoundaryKind, number> = { Intraday: 0, SessionOpen: 1, SessionClose: 2 };
@@ -57,6 +57,8 @@ export interface PlanClock {
   halts: HaltBoard;
   /** Whether a Pyth version naming this feed may list (S20): a trial feed always, a valuation index only while the key is entitled. */
   pythUsable: (feedIdHex: string) => boolean;
+  /** C6: why an attested version's source (its `printSource`) cannot sign now, or null; absent means every source can. */
+  sourceUnavailable?: (printSource: string) => string | null;
 }
 
 export type SeriesPlan =
@@ -77,7 +79,10 @@ export const DEFAULT_MIN_TRADABLE_SEC = 60;
 export const PRINT_MARGIN_SEC = 45;
 
 const hhmm = (sec: number) => new Date(sec * 1000).toISOString().slice(11, 16);
-export const spanOf = (w: { tradingStartSec: number; expirySec: number }) => `${hhmm(w.tradingStartSec)}–${hhmm(w.expirySec)}Z`;
+const mdhm = (sec: number) => new Date(sec * 1000).toISOString().slice(5, 16).replace("T", " ");
+/** `14:00–14:05Z`; a Window of a day or more (the 1 d crypto lane) names its dates, or `00:00–00:00Z` would be ambiguous. */
+export const spanOf = (w: { tradingStartSec: number; expirySec: number }) =>
+  w.expirySec - w.tradingStartSec >= 86_400 ? `${mdhm(w.tradingStartSec)}Z–${mdhm(w.expirySec)}Z` : `${hhmm(w.tradingStartSec)}–${hhmm(w.expirySec)}Z`;
 
 /** The close of the session in progress, or null when nothing is trading. */
 export function liveSessionCloseSec(clock: PlanClock): number | null {
@@ -146,7 +151,7 @@ export function planSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
   const action = corporateActionFor({ symbol: series.symbol as TickerSymbol, lane: "regular", window: w }, clock.skips);
   if (action) return { kind: "paused", window: w, wakeSec: passSec, state: corporatePausedState(action.why) };
   const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
-  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock)) };
+  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock), reasonBy(clock)) };
   const book = series.freeBooks[0];
   if (!book) return { kind: "blocked", window: w, state: "waiting: no free book" };
   return {

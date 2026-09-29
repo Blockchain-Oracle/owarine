@@ -5,7 +5,7 @@
  */
 import { corporateActionFor, corporatePausedState, gapWindows, haltOf, haltPausedState, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
-import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, usableBy } from "./versions";
+import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, reasonBy, usableBy } from "./versions";
 
 const day = (sec: number) => new Date(sec * 1000).toISOString().slice(5, 16).replace("T", " ");
 /** `09-18 20:00Z–09-21 13:30Z`: a Gap spans days, so the Regular `HH:MM–HH:MMZ` would be ambiguous. */
@@ -40,7 +40,7 @@ export function planGapSeries(series: PlanSeries, clock: PlanClock): SeriesPlan 
   const action = corporateActionFor({ symbol: series.symbol as TickerSymbol, lane: "gap", window: w }, clock.skips);
   if (action) return { kind: "paused", window: w, wakeSec: passSec, state: corporatePausedState(action.why) };
   const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
-  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock)) };
+  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock), reasonBy(clock)) };
   const book = series.freeBooks[0];
   if (!book) return { kind: "blocked", window: w, state: "waiting: no free book" };
   return {

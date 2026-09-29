@@ -5,6 +5,7 @@ import type { OpsEnv } from "./env";
 import type { PythEntitlementStore } from "./pyth-entitlement";
 import type { HaltBoardStore } from "./halt-board";
 import type { SessionEvents } from "./session-events";
+import type { SourceHealthStore } from "./source-health";
 
 /** What `main.ts` hands every venue actor (venue-ops.md §2.5, session-lanes.md §6): one calendar, spot feed, halt board and events reader per process. */
 export interface VenueDeps {
@@ -19,4 +20,6 @@ export interface VenueDeps {
   events: SessionEvents;
   /** Whether the Pyth key may read each valuation index (S20, D-125); written by `pyth-entitlement`, read by the relay, the roller, the maker and `/session`. */
   pythIndex: PythEntitlementStore;
+  /** C6: whether each attested print source can sign now; written by `source-probe`, read by the roller and the lane feeders. */
+  sources?: SourceHealthStore;
 }

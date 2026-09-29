@@ -5,7 +5,8 @@
  *   1. uploads abu-pm-main (idempotent: the same DAR twice is one package),
  *   2. allocates the infrastructure parties (venue, resolver, three oracles, auditor, lp, agent-runner) and any demo
  *      users named with `--users alice,bob`,
- *   3. creates the VenueDesk, K venue cash shards and the BTC/ETH Series (60 s demo cadence and 300 s),
+ *   3. creates the VenueDesk, K venue cash shards and the BTC/ETH Series on every crypto cadence (C6: 60 s demo, 300,
+ *      900 and 3,600 s, and Masayume's 4 h and 1 d),
  *   4. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
@@ -16,6 +17,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
 import { TEMPLATE_IDS } from "@agari/daml";
+import { CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, laneKey } from "@agari/core/market";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
@@ -70,20 +72,37 @@ async function submitAs(party: string, commandId: string, commands: Command[]): 
 
 interface LaneSpec {
   seriesKey: string;
-  symbol: "BTC" | "ETH";
+  /** What the lane's prints price: the crypto asset, the stock, the xStock (`TSLAx`), the pre-IPO name or basket. */
+  symbol: string;
   cadenceSec: number;
   lockLeadSec: number;
-  openAdmissionSec: number;
-  closeAdmissionSec: number;
+  /** Policy versions, oldest first; each names its attested source (core `attestedPrintSource`). */
+  versions: Array<{ effectiveFromSec: number; validUntilSec: number | null; printSource: string; minDelaySec: number; barLenSec: number; openAdmissionSec: number; closeAdmissionSec: number }>;
 }
 
-/** 60 s demo lane (an Addition, plan "Lanes") and the reference's 300 s cadence. Keys follow core `laneKey` (`BTC-5m`). */
-const LANES: LaneSpec[] = [
-  { seriesKey: "BTC-1m", symbol: "BTC", cadenceSec: 60, lockLeadSec: 10, openAdmissionSec: -1, closeAdmissionSec: 40 },
-  { seriesKey: "ETH-1m", symbol: "ETH", cadenceSec: 60, lockLeadSec: 10, openAdmissionSec: -1, closeAdmissionSec: 40 },
-  { seriesKey: "BTC-5m", symbol: "BTC", cadenceSec: 300, lockLeadSec: 30, openAdmissionSec: 60, closeAdmissionSec: 60 },
-  { seriesKey: "ETH-5m", symbol: "ETH", cadenceSec: 300, lockLeadSec: 30, openAdmissionSec: 60, closeAdmissionSec: 60 },
-];
+/**
+ * How long before expiry each crypto cadence stops taking quotes. The reference locks a Regular Window at its expiry;
+ * on Canton a quote must be valid until `lockAt` and settle behind the close print, so every lane keeps a lead that
+ * grows with the cadence (1 m and 5 m as C3 set them).
+ */
+const CRYPTO_LOCK_LEAD_SEC: Record<number, number> = { 60: 10, 300: 30, 900: 60, 3_600: 120, 14_400: 300, 86_400: 900 };
+
+/**
+ * BTC and ETH on every crypto cadence (core `CRYPTO_CADENCES_SEC`): the 60 s demo lane (an Addition, C3), the
+ * reference's 300/900/3,600 s and Masayume's 4 h and 1 d. Keys follow core `laneKey` (`BTC-5m`, `BTC-240m`, `BTC-1440m`).
+ * The 1-minute lane admits its open print until lock (C3); every other lane admits a print for 60 s after its boundary.
+ */
+function cryptoLanes(nowSec: number): LaneSpec[] {
+  return CRYPTO_SYMBOLS.flatMap((symbol) =>
+    CRYPTO_CADENCES_SEC.map((cadenceSec): LaneSpec => ({
+      seriesKey: laneKey(symbol, "token", cadenceSec), symbol, cadenceSec, lockLeadSec: CRYPTO_LOCK_LEAD_SEC[cadenceSec]!,
+      versions: [{
+        effectiveFromSec: Math.floor(nowSec / cadenceSec) * cadenceSec, validUntilSec: null, printSource: EXCHANGE_PRINT_SOURCE, minDelaySec: 5, barLenSec: 60,
+        openAdmissionSec: cadenceSec === 60 ? -1 : 60, closeAdmissionSec: cadenceSec === 60 ? 40 : 60,
+      }],
+    })),
+  );
+}
 
 async function main(): Promise<void> {
   await waitReady();
@@ -128,21 +147,19 @@ async function main(): Promise<void> {
   }
   const haveSeries = new Set(pick(acs, TEMPLATE_IDS.Series, decodeSeries).map((s) => s.data.seriesKey));
   const nowSec = Math.floor(Date.now() / 1000);
-  for (const lane of LANES) {
+  for (const lane of cryptoLanes(nowSec)) {
     if (haveSeries.has(lane.seriesKey)) continue;
     const anchorSec = Math.floor(nowSec / lane.cadenceSec) * lane.cadenceSec;
+    const [first, ...later] = lane.versions.map((v, i) => ({ version: POLICY_VERSION + i, ...v }));
     await submitAs(venue, `bootstrap:series:${lane.seriesKey}:${run}`, [
       cmd.createSeries({
         venue, resolver: parties.resolver!, auditor: parties.auditor!, seriesKey: lane.seriesKey, symbol: lane.symbol,
         anchorSec, cadenceSec: lane.cadenceSec, lockLeadSec: lane.lockLeadSec, settleGraceSec: 300, cashUnit: CASH_UNIT, nextIndex: 0,
         oracles: ORACLE_ROLES.map((r) => parties[r]!), quorum: 2, maxDeviationBps: 100,
-        policy: {
-          version: POLICY_VERSION, effectiveFromSec: anchorSec, printSource: "attested:coinbase,kraken,bitstamp 1m candle close",
-          minDelaySec: 5, barLenSec: 60, openAdmissionSec: lane.openAdmissionSec, closeAdmissionSec: lane.closeAdmissionSec,
-        },
+        policy: first!, laterPolicies: later,
       }),
     ]);
-    log(`created Series ${lane.seriesKey} (cadence ${lane.cadenceSec} s, lock lead ${lane.lockLeadSec} s, anchor ${new Date(anchorSec * 1000).toISOString()})`);
+    log(`created Series ${lane.seriesKey} (cadence ${lane.cadenceSec} s, lock lead ${lane.lockLeadSec} s, anchor ${new Date(anchorSec * 1000).toISOString()}, ${lane.versions.map((v) => v.printSource).join(" → ")})`);
   }
 
   const file: PartiesFile = { network: "local", createdAtMs: Date.now(), parties, users, policyVersion: POLICY_VERSION };

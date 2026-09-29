@@ -9,15 +9,22 @@
  * `open_deadline`; after downtime the next aligned Window is the candidate. A valuation lane (S20) lists only while its
  * Pyth index is entitled (`clock.pythUsable`); otherwise it reads `paused: no signed source (Pyth feed not entitled)`.
  */
-import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, tokenLaneAsset, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
+import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, LONG_CADENCES_SEC, tokenLaneAsset, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
-import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, usableBy } from "./versions";
+import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, reasonBy, usableBy } from "./versions";
+
+/**
+ * How far ahead a 24/7 Window lists. The reference's 5 m, 15 m and 1 h lanes list `clock.leadSec` (120 s) ahead. A 4 h
+ * or 1 d Window lists one whole cadence ahead, the long-lane analogue of D-089's prelist: the next Window is on the
+ * board (and on the ledger) while the current one trades, so the lane always says when and what opens next.
+ */
+export const tokenLeadSec = (cadenceSec: number, leadSec: number): number => ((LONG_CADENCES_SEC as readonly number[]).includes(cadenceSec) ? Math.max(cadenceSec, leadSec) : leadSec);
 
 /** The earliest Window at or after `lastExpirySec` that can still be opened and take its opening print. */
 export function nextTokenCandidate(series: PlanSeries, clock: PlanClock): ScheduledWindow {
   const cadence = series.cadenceSec;
   const from = Math.max(series.lastExpirySec, clock.nowSec - cadence);
-  const windows = tokenWindows(from, Math.max(from, clock.nowSec) + clock.leadSec + 2 * cadence, cadence);
+  const windows = tokenWindows(from, Math.max(from, clock.nowSec) + tokenLeadSec(cadence, clock.leadSec) + 2 * cadence, cadence);
   const ok = windows.find((w) => {
     if (w.tradingStartSec < series.lastExpirySec || w.lockAtSec - clock.nowSec < clock.minTradableSec) return false;
     const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
@@ -41,12 +48,13 @@ function pauseReason(series: PlanSeries, w: ScheduledWindow, clock: PlanClock): 
 export function planTokenSeries(series: PlanSeries, clock: PlanClock): SeriesPlan {
   const w = nextTokenCandidate(series, clock);
   const untilOpen = w.tradingStartSec - clock.nowSec;
-  if (untilOpen > clock.leadSec) return { kind: "wait", window: w, wakeSec: w.tradingStartSec - clock.leadSec, state: `waiting: next ${spanOf(w)}` };
+  const leadSec = tokenLeadSec(series.cadenceSec, clock.leadSec);
+  if (untilOpen > leadSec) return { kind: "wait", window: w, wakeSec: w.tradingStartSec - leadSec, state: `waiting: next ${spanOf(w)}` };
   const passSec = w.lockAtSec - clock.minTradableSec + 1;
   const paused = pauseReason(series, w, clock);
   if (paused) return { kind: "paused", window: w, wakeSec: passSec, state: paused };
   const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));
-  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock)) };
+  if (version === null) return { kind: "paused", window: w, wakeSec: passSec, state: noSourceState(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock), reasonBy(clock)) };
   const book = series.freeBooks[0];
   if (!book) return { kind: "blocked", window: w, state: "waiting: no free book" };
   return {
