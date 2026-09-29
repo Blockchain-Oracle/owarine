@@ -29,12 +29,11 @@ import { venueIdentity } from "./lib/venue-identity.mjs";
 const TS = [".ts", ".tsx"];
 const OUTSIDE_MARKETS = ["web", "mobile", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 const MAX_FILE_LINES = 400;
-
 /** An Anchor-era rule, skipped while `anchor/` is absent (Canton port): it guards programs that no longer exist here. */
 const whileAnchor = (check, replacement) => (rule, ctx) =>
   existsSync(join(ctx.root, "anchor")) ? check(rule, ctx) : { findings: [], skipped: `anchor/ is gone (Canton port); ${replacement} replaces it with the Daml packages (C2)` };
-/** Generated code is regenerated, never edited, so the cap skips it. */
-const GENERATED = /^packages\/clients\/[^/]+\/src\/generated\//;
+/** The Daml bindings (`pnpm codegen:daml && git diff --exit-code packages/daml-clients`) are regenerated, never edited, so the cap skips them. */
+const GENERATED = /^packages\/daml-clients\/generated\//;
 
 function fileLength(rule, ctx) {
   const findings = [];

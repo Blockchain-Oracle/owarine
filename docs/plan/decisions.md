@@ -114,6 +114,68 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
 - **Approval:** default; Abu creates the app record when the iOS build reaches it.
 
+### K-020 — Quote issuance lives on a venue-only `VenueDesk`
+- **Date / owner:** 2026-09-29 · C2 lane
+- **Evidence:** Daml forbids import cycles: `VenueCash_IssueQuote` would create a `Quote` whose `Quote_Accept` consumes `VenueCash`. `daml/abu-pm-main/daml/PM/Quote.daml`.
+- **Rule:** `Desk_IssueQuote` and `Desk_IssueBuyQuote` are nonconsuming on a venue-only desk. The venue cash shard passed in is consumed and its stake is locked in the quote. The plan's "`VenueCash_IssueQuote`" means this.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-021 — Resolution details fixed in the engine
+- **Date / owner:** 2026-09-29 · C2 lane
+- **Evidence:** `PM/Market.daml`; tests `testResolvesExactlyOnce`, `testVoidsExactlyOnce`, `testDeviationVoids`, `testLateQuoteIgnored`.
+- **Rule:**
+  - A missing open print voids by consuming `WindowState` (`BeforeOpen`); after the open print, void consumes `OpenPrint` (`AfterOpen`). Each is exactly once.
+  - A quorum whose spread exceeds `maxDeviationBps` voids as `SourceDisagreement` automatically.
+  - Ineligible quotes are ignored, not fatal. One quote per oracle is kept (the earliest fetch). The median of an even count is the lower middle.
+- **User-visible:** void receipts name the reason and the slot.
+- **Approval:** default; overrulable.
+
+### K-022 — Money details fixed in the engine
+- **Date / owner:** 2026-09-29 · C2 lane
+- **Evidence:** `PM/Leg.daml`, `PM/Quote.daml`; tests `testFeeRecognisedOnlyAtSettle`, `testBuyBackThenPairMerge`, `testCloseOutAtCost`, `testStaleRefundLosingLegIsVenueRisk`, the conservation sequences.
+- **Rule:**
+  - Fee ≤ 25 % of quantity; `lots ≤ 10^12 / cashUnit`.
+  - A buy-back recognises the escrowed fee at buy-back: the user closed at a price they accepted.
+  - `Leg_CloseOut` needs a venue shard to re-back the pair.
+  - `Leg_Settle` is valid strictly before `refundAfter`, so settle and stale refund are exact complements.
+  - One merge rule: release `min(shareA + shareB, quantity)`, with equal lots.
+  - Grants follow the reference's `caps.ts` order and admit at `expiresAt`.
+- **User-visible:** none beyond the documented stale-refund venue risk.
+- **Approval:** default; overrulable.
+
+### K-023 — Still to build in C2 before R1
+- **Date / owner:** 2026-09-29 · stage owner
+- **Rule:**
+  - `VenueCash_IssueTwoWay`, the batched `SettleBatch`, `PM.Reserve` (`LpShare`, `NavStatement`).
+  - The full `caps.vectors.json` table, the grant revoke race, day-rollover races.
+  - Policy coverage of both boundaries.
+  - Privacy re-checked on the sandbox.
+- **Approval:** stage plan.
+
+### K-024 — Grants, reserve and two-way quotes as built in 0.2.0
+- **Date / owner:** 2026-09-29 · C2b lane
+- **Evidence:** `daml/abu-pm-main` 0.2.0; tests `testGrantCapsVectors` and `testReserve*`.
+- **Rule:**
+  - `Grant_AcceptQuote` takes `limitTicks` and `asOf`. The price cap applies to the agent's limit, and a quote above the limit refuses with `no-fill`.
+  - A position counts against `maxOpenPositions` until its market's `refundAfter`. This is stricter than the reference, because the grant never sees settles.
+  - Reserve NAV is venue-signed and auditor-visible, not verified by the ledger. An unaccepted withdraw returns its lock to the reserve bucket.
+  - A two-way quote is Up at the ask and Down at 1000 − bid, from one shard.
+- **User-visible:** an agent's open-position count frees a little later than on Solana.
+- **Approval:** default; overrulable.
+
+### K-025 — Oracle posting delay
+- **Date / owner:** 2026-09-29 · C0
+- **Evidence:** the candle-lag hour (acceptance): all three exchanges served the closed candle by T+5 s at 59 of 60 boundaries.
+- **Rule:** feeders post each boundary's print at T+10 s, and the 1-minute demo lane resolves on that basis.
+- **Approval:** measured.
+
+### K-010a — Ticket direction B (D-081 choice)
+- **Date / owner:** 2026-09-29 · **Abu**
+- **Evidence:** the three directions at `/dev/ticket-canton` (`docs/evidence/ux/ticket-canton-*.png`).
+- **Rule:** the held price gets its own row, with the 20 s `CountdownRing` beside it. While a write is open, `StepProgress` (Price → Sent → Confirming → Placed) takes the Buy button's place, so nothing can be pressed twice. The rest of the ticket stays the reference's.
+- **Approval:** Abu, 2026-09-29.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

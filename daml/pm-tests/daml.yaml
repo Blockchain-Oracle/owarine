@@ -1,0 +1,10 @@
+sdk-version: 3.5.2
+name: pm-tests
+source: daml
+version: 0.1.0
+dependencies:
+  - daml-prim
+  - daml-stdlib
+  - daml-script
+data-dependencies:
+  - ../abu-pm-main/.daml/dist/abu-pm-main-0.2.0.dar

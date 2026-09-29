@@ -1,0 +1,199 @@
+-- | PM.Reserve: supply and withdraw at NAV through firm per-provider
+-- quotes, rounding in the venue's favour, conservation of cash and shares,
+-- the withdraw race, and who can see and do what.
+module Test.Reserve where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Money
+import PM.Reserve
+import Test.Setup
+
+rid : Text
+rid = "R1"
+
+genesis : World -> Script (ContractId NavStatement)
+genesis w = submit w.venue do
+  createCmd NavStatement with
+    venue = w.venue; auditor = w.auditor; reserveId = rid; seq = 0; asOf = t0; assets = 0; shares = 0
+
+supply : World -> ContractId NavStatement -> Party -> Int -> Script (ContractId LpShare, Int)
+supply w nav who amount = do
+  now <- getTime
+  q <- submit w.venue do
+    exerciseCmd nav Nav_IssueSupply with provider = who; cashIn = amount; validUntil = plus now 20
+  Some sq <- queryContractId who q
+  c <- fund w who amount
+  (lp, _, _) <- submit who do exerciseCmd q Supply_Accept with cash = [c]
+  pure (lp, sq.sharesOut)
+
+withdrawQuote : World -> ContractId NavStatement -> Party -> ContractId LpShare -> Int -> Script (ContractId WithdrawQuote)
+withdrawQuote w nav who lp n = do
+  now <- getTime
+  Some navS <- queryContractId w.venue nav
+  sh <- shard w (cashFor navS n)
+  (q, _) <- submit w.venue do
+    exerciseCmd nav Nav_IssueWithdraw with
+      provider = who; lpShareCid = lp; sharesIn = n; shardCid = sh; validUntil = plus now 20
+  pure q
+
+-- Σ LpShare as the venue sees it.
+sharesOutstanding : World -> Script Int
+sharesOutstanding w = do
+  lps <- query @LpShare w.venue
+  pure (sum [l.shares | (_, l) <- lps, l.reserveId == rid])
+
+-- Σ every VenueCash the venue sees plus cash locked in withdraw quotes.
+cashTotal : World -> Script Int
+cashTotal w = do
+  cash <- query @VenueCash w.venue
+  wq <- query @WithdrawQuote w.venue
+  pure (sum [c.amount | (_, c) <- cash] + sum [q.cashOut | (_, q) <- wq])
+
+reserveCash : World -> Script Int
+reserveCash w = do
+  cash <- query @VenueCash w.venue
+  pure (sum [c.amount | (_, c) <- cash, c.owner == w.venue, c.bucket == reserveBucket rid])
+
+-- NAV per share as a fraction; (a1, s1) >= (a0, s0) iff a1 * s0 >= a0 * s1.
+navNotLower : (Int, Int) -> (Int, Int) -> Bool
+navNotLower (a0, s0) (a1, s1) = a1 * s0 >= a0 * s1
+
+-- Supply 1:1 into an empty reserve, a gain restated, awkward supplies and
+-- withdrawals: after each, cash is conserved (every unit is somewhere),
+-- the statement's share count equals the shares held, and NAV per share
+-- never falls for those who stay.
+testReserveConservation = script do
+  w <- mkWorld
+  nav0 <- genesis w
+  (la, sa) <- supply w nav0 w.alice 1000
+  sa === 1000
+  -- the venue restates: 1000 shares, 1000 cash plus 1000 of trading gain
+  _ <- shard w 1000        -- trading gain: cash the venue holds for the reserve
+  nav1 <- submit w.venue do exerciseCmd nav0 Nav_Publish with newAsOf = plus t0 60; newAssets = 2000; newShares = 1000
+  total0 <- cashTotal w
+  -- Bob supplies 101 at NAV 2: floor(101 * 1000 / 2000) = 50 shares
+  (lb, sb) <- supply w nav1 w.bob 101
+  sb === 50
+  total1 <- cashTotal w
+  total1 === total0 + 101                               -- only the funding was new
+  sharesOutstanding w >>= (=== 1050)
+  nav2 <- submit w.venue do exerciseCmd nav1 Nav_Publish with newAsOf = plus t0 60; newAssets = 2101; newShares = 1050
+  navNotLower (2000, 1000) (2101, 1050) === True
+  -- Alice redeems 333: floor(333 * 2101 / 1050) = 666 (666.3 exact)
+  q <- withdrawQuote w nav2 w.alice la 333
+  Some wq <- queryContractId w.alice q
+  wq.cashOut === 666
+  aliceBefore <- cashOf w.alice
+  (_, Some rest) <- submit w.alice do exerciseCmd q Withdraw_Accept
+  cashOf w.alice >>= (=== aliceBefore + 666)
+  Some r <- queryContractId w.alice rest
+  r.shares === 667
+  sharesOutstanding w >>= (=== 717)
+  nav3 <- submit w.venue do exerciseCmd nav2 Nav_Publish with newAsOf = plus t0 60; newAssets = 2101 - 666; newShares = 717
+  navNotLower (2101, 1050) (1435, 717) === True
+  -- Bob exits fully: floor(50 * 1435 / 717) = 100 (100.07)
+  qb <- withdrawQuote w nav3 w.bob lb 50
+  (_, none) <- submit w.bob do exerciseCmd qb Withdraw_Accept
+  none === None
+  sharesOutstanding w >>= (=== 667)
+  navNotLower (1435, 717) (1335, 667) === True
+  cashTotal w >>= (=== total1 + 666 + 100)            -- the two shards minted to lock the payouts
+
+-- Rounding goes to the venue in both directions, including at the bound.
+testReserveRounding = script do
+  w <- mkWorld
+  let nav = NavStatement with
+        venue = w.venue; auditor = w.auditor; reserveId = rid; seq = 0; asOf = t0; assets = 3; shares = 2
+  sharesFor nav 1 === 0          -- 0.66 share: refused at issue as below-one-share
+  sharesFor nav 2 === 1          -- 1.33
+  cashFor nav 1 === 1            -- 1.5
+  cashFor nav 2 === 3
+  let big = maxReserveUnits
+      bigNav = nav with assets = big; shares = big - 1
+  sharesFor bigNav big === big - 1
+  cashFor bigNav (big - 1) === big
+  cashFor bigNav (big - 2) === big - 2          -- (big - 2) * big / (big - 1) = big - 1 - 1/(big - 1)
+  mulDivFloor big big (big - 1) === big + 1
+  mulDivFloor 7 3 2 === 10
+  mulDivFloor 5 5 2 === 12                       -- 12.5 rounds down (half-even would give 12, half-up 13)
+  mulDivFloor 7 5 2 === 17                       -- 17.5: half-even would give 18
+
+testReserveIssueRefusals = script do
+  w <- mkWorld
+  nav0 <- genesis w
+  now <- getTime
+  (la, _) <- supply w nav0 w.alice 10
+  nav1 <- submit w.venue do exerciseCmd nav0 Nav_Publish with newAsOf = t0; newAssets = 30; newShares = 10
+  refusedWith (refusal "below-one-share") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueSupply with provider = w.bob; cashIn = 2; validUntil = plus now 20
+  refusedWith (refusal "bad-amount") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueSupply with provider = w.bob; cashIn = 0; validUntil = plus now 20
+  sh <- shard w 100
+  refusedWith (refusal "bad-amount") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueWithdraw with
+      provider = w.alice; lpShareCid = la; sharesIn = 11; shardCid = sh; validUntil = plus now 20
+  refusedWith (refusal "wrong-share") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueWithdraw with
+      provider = w.bob; lpShareCid = la; sharesIn = 1; shardCid = sh; validUntil = plus now 20
+  refusedWith (refusal "stale-nav") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_Publish with newAsOf = plus t0 (-1); newAssets = 30; newShares = 10
+  -- the superseded statement cannot price anything
+  fails =<< trySubmit w.venue do
+    exerciseCmd nav0 Nav_IssueSupply with provider = w.bob; cashIn = 5; validUntil = plus now 20
+
+-- Two withdraw quotes on one LpShare, accepted in both orders: exactly one
+-- pays, the other fails (the share is gone) and the venue expires it for
+-- its locked cash. Nothing is paid twice.
+testReserveWithdrawRace = script do
+  forA_ [True, False] \firstWins -> do
+    w <- mkWorld
+    nav0 <- genesis w
+    (la, _) <- supply w nav0 w.alice 500
+    nav1 <- submit w.venue do exerciseCmd nav0 Nav_Publish with newAsOf = t0; newAssets = 500; newShares = 500
+    total0 <- cashTotal w
+    qa <- withdrawQuote w nav1 w.alice la 500
+    qb <- withdrawQuote w nav1 w.alice la 200
+    let (first, second) = if firstWins then (qa, qb) else (qb, qa)
+    before <- cashOf w.alice
+    _ <- submit w.alice do exerciseCmd first Withdraw_Accept
+    fails =<< trySubmit w.alice do exerciseCmd second Withdraw_Accept
+    let paid = if firstWins then 500 else 200
+    cashOf w.alice >>= (=== before + paid)
+    sharesOutstanding w >>= (=== 500 - paid)
+    at (plus t0 25)
+    _ <- submit w.venue do exerciseCmd second Withdraw_Expire
+    (length <$> query @WithdrawQuote w.venue) >>= (=== 0)
+    cashTotal w >>= (=== total0 + 700)              -- the two shards minted to lock
+    -- an unaccepted lock returns to the reserve
+    reserveCash w >>= (=== 500 + (if firstWins then 200 else 500))
+
+-- Authority and visibility: the provider alone accepts their quote, the
+-- auditor sees every statement and no LpShare, another provider sees
+-- nothing of Alice's, only the venue issues.
+testReserveAuthority = script do
+  w <- mkWorld
+  nav0 <- genesis w
+  now <- getTime
+  q <- submit w.venue do
+    exerciseCmd nav0 Nav_IssueSupply with provider = w.alice; cashIn = 50; validUntil = plus now 20
+  cb <- fund w w.bob 50
+  fails =<< trySubmit w.bob do exerciseCmd q Supply_Accept with cash = [cb]
+  fails =<< trySubmit w.alice do
+    exerciseCmd nav0 Nav_IssueSupply with provider = w.alice; cashIn = 50; validUntil = plus now 20
+  ca <- fund w w.alice 50
+  (lp, _, _) <- submit w.alice do exerciseCmd q Supply_Accept with cash = [ca]
+  (length <$> query @NavStatement w.auditor) >>= (=== 1)
+  (length <$> query @LpShare w.auditor) >>= (=== 0)
+  (length <$> query @LpShare w.bob) >>= (=== 0)
+  (length <$> query @NavStatement w.alice) >>= (=== 0)
+  (length <$> query @LpShare w.alice) >>= (=== 1)
+  -- the venue cannot take the provider's shares
+  fails =<< trySubmit w.venue do archiveCmd lp
+  -- an expired supply quote cannot be accepted
+  q2 <- submit w.venue do
+    exerciseCmd nav0 Nav_IssueSupply with provider = w.alice; cashIn = 5; validUntil = plus now 20
+  at (plus now 20)
+  c2 <- fund w w.alice 5
+  refusedWith deadlineExceeded =<< trySubmit w.alice do exerciseCmd q2 Supply_Accept with cash = [c2]

@@ -1,0 +1,105 @@
+-- | Deadline races at T-1 s, T and T+1 s in both transaction orders:
+-- accept vs expire around a quote's validUntil (and validUntil + 5 s), and
+-- settle vs stale refund around a leg's refundAfter. Each case builds a
+-- fresh world so both orders run against the same state.
+module Test.Races where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Leg
+import PM.Money (VenueCash)
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+data Winner = AcceptWins | ExpireWins | NeitherYet
+  deriving (Eq, Show)
+
+-- A quote valid until V = t0 + 40. Returns (world, quote, user cash).
+quoteSetup : Script (World, ContractId Quote, [ContractId VenueCash])
+quoteSetup = do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  q <- issue w win w.alice SideUp 500 1 0 (plus t0 40) "p1"
+  c <- fund w w.alice 500
+  pure (w, q, [c])
+
+-- Run one ordering at one instant and report who won.
+raceQuote : Int -> Bool -> Script Winner
+raceQuote offset acceptFirst = do
+  (w, q, cash) <- quoteSetup
+  at (plus t0 offset)
+  let acceptIt = trySubmit w.alice do exerciseCmd q Quote_Accept with cash; beneficiaryRef = None
+      expireIt = trySubmit w.venue do exerciseCmd q Quote_Expire
+  if acceptFirst
+    then do
+      a <- acceptIt
+      e <- expireIt
+      pure (verdict (isRight a) (isRight e))
+    else do
+      e <- expireIt
+      a <- acceptIt
+      pure (verdict (isRight a) (isRight e))
+  where
+    isRight r = case r of
+      Right _ -> True
+      Left _ -> False
+    verdict True False = AcceptWins
+    verdict False True = ExpireWins
+    verdict False False = NeitherYet
+    verdict True True = error "both consumed the quote"
+
+-- V = t0 + 40; the venue may sweep from E = V + 5 s.
+testAcceptVsExpireRace = script do
+  forA_ [True, False] \acceptFirst -> do
+    raceQuote 39 acceptFirst >>= (=== AcceptWins)   -- V - 1
+    raceQuote 40 acceptFirst >>= (=== NeitherYet)   -- V: accept refused, sweep not yet
+    raceQuote 41 acceptFirst >>= (=== NeitherYet)   -- V + 1
+    raceQuote 44 acceptFirst >>= (=== NeitherYet)   -- E - 1
+    raceQuote 45 acceptFirst >>= (=== ExpireWins)   -- E
+    raceQuote 46 acceptFirst >>= (=== ExpireWins)   -- E + 1
+
+-- The exact refusal ids at the edges.
+testQuoteDeadlineIds = script do
+  (w, q, cash) <- quoteSetup
+  at (plus t0 40)
+  a <- trySubmit w.alice do exerciseCmd q Quote_Accept with cash; beneficiaryRef = None
+  refusedWith deadlineExceeded a
+  at (plus t0 44)
+  e <- trySubmit w.venue do exerciseCmd q Quote_Expire
+  refusedWith deadlineNotExceeded e
+
+data LegWinner = SettleWins | RefundWins
+  deriving (Eq, Show)
+
+-- Resolved market; the leg is unsettled when refundAfter R arrives.
+raceLeg : Int -> Bool -> Script LegWinner
+raceLeg offset settleFirst = do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 500 1 3 "p1"
+  res <- resolveAt w win op px
+  at (plus win.t.refundAfter offset)
+  let settleIt = trySubmit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+      refundIt = trySubmit w.alice do exerciseCmd u Leg_RefundStale
+  (s, r) <- if settleFirst
+    then do s <- settleIt; r <- refundIt; pure (s, r)
+    else do r <- refundIt; s <- settleIt; pure (s, r)
+  case (s, r) of
+    (Right _, Left _) -> do
+      cashOf w.alice >>= (=== 1000)     -- won: quantity
+      pure SettleWins
+    (Left _, Right _) -> do
+      cashOf w.alice >>= (=== 503)      -- backing plus fee
+      pure RefundWins
+    _ -> abort "exactly one of settle and refund must win"
+
+testSettleVsStaleRefundRace = script do
+  forA_ [True, False] \settleFirst -> do
+    raceLeg (-1) settleFirst >>= (=== SettleWins)
+    raceLeg 0 settleFirst >>= (=== RefundWins)
+    raceLeg 1 settleFirst >>= (=== RefundWins)

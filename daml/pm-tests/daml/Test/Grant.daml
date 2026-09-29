@@ -1,0 +1,342 @@
+-- | Agent grants: the reference's caps.vectors.json table row for row,
+-- caps (per-trade charge, daily spend, price cap, budget, open positions),
+-- expiry at T-1/T, the revoke race and the day rollover at T-1/T/T+1 in
+-- both orders, revoke returning the budget (also after expiry), and the
+-- agent's limits.
+module Test.Grant where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Action (when)
+import DA.Foldable (forA_)
+import PM.Grant
+import PM.Leg
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+data G = G with
+  w : World
+  win : Win
+  agent : Party
+  grant : ContractId AgentGrant
+
+-- Budget 2000, per-trade 700, daily 1000, price cap 650 ticks, expires at
+-- t0 + 2 days; day 0 starts at t0. The market is a 3-day window so quotes
+-- stay issuable across the day rollover.
+grantSetup : Script G
+grantSetup = do
+  w <- mkWorld
+  s <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "BTC-3d"; cadenceSec = 3 * 86400
+  (_, win) <- openWin w s 0
+  _ <- recordOpen w win px
+  agent <- allocateParty "agent"
+  offer <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.alice
+  c <- fund w w.alice 2500
+  grant <- submit w.alice do
+    exerciseCmd offer GrantOffer_Open with
+      agent; caps = GrantCaps with maxStakePerTrade = 700; maxDailySpend = 1000; maxPriceTicks = 650; maxOpenPositions = 9
+      expiresAt = plus t0 (2 * 86400); dayZero = t0; budget = 2000; cash = [c]
+  cashOf w.alice >>= (=== 500)
+  pure G with ..
+
+-- Issue a quote to Alice and have the agent accept it under the grant, at
+-- a limit equal to the quote's price, with the agent's clock at `asOf`.
+agentBuysAt : G -> ContractId AgentGrant -> Int -> Int -> Int -> Time -> Script (Either SubmitError (ContractId AgentGrant, ContractId Leg))
+agentBuysAt g grant ticks lots fee asOf = do
+  now <- getTime
+  q <- issue g.w g.win g.w.alice SideUp ticks lots fee (plus now 20) "g"
+  d <- disclosureOf g.w.venue q
+  trySubmit (actAs g.agent <> disclose d) do
+    exerciseCmd grant Grant_AcceptQuote with quoteCid = q; limitTicks = ticks; asOf
+
+-- The same with the agent's clock on ledger time.
+agentBuys : G -> ContractId AgentGrant -> Int -> Int -> Int -> Script (Either SubmitError (ContractId AgentGrant, ContractId Leg))
+agentBuys g grant ticks lots fee = do
+  now <- getTime
+  agentBuysAt g grant ticks lots fee now
+
+budgetOf : G -> ContractId AgentGrant -> Script Int
+budgetOf g cid = do
+  Some x <- queryContractId g.w.alice cid
+  pure x.budget
+
+testGrantCaps = script do
+  g <- grantSetup
+  -- in-cap: 600 ticks * 1 lot + fee 10 = 610
+  (g1, leg) <- succeeded =<< agentBuys g g.grant 600 1 10
+  budgetOf g g1 >>= (=== 1390)
+  Some l <- queryContractId g.w.alice leg
+  l.owner === g.w.alice
+  l.beneficiaryRef === Some "grant"
+  -- per-trade cap counts the actual charge (700 + fee 1 > 700)
+  refusedWith (refusal "over-stake-cap") =<< agentBuys g g1 350 2 1
+  -- price cap on the side bought
+  refusedWith (refusal "over-price-cap") =<< agentBuys g g1 651 1 0
+  -- daily cap counts today's earlier spend: 610 + 400 > 1000
+  refusedWith (refusal "over-daily-cap") =<< agentBuys g g1 400 1 0
+  (g2, _) <- succeeded =<< agentBuys g g1 390 1 0     -- exactly 1000 today
+  budgetOf g g2 >>= (=== 1000)
+  -- next day the daily counter resets
+  at (plus t0 86400)
+  (g3, _) <- succeeded =<< agentBuys g g2 600 1 0
+  budgetOf g g3 >>= (=== 400)
+  -- budget must cover the charge
+  refusedWith (refusal "insufficient-budget") =<< agentBuys g g3 500 1 0
+  -- the day cannot be claimed early or go backwards
+  refusedWith deadlineNotExceeded =<< agentBuysAt g g3 100 1 0 (plus t0 (2 * 86400))
+  -- yesterday's window is closed
+  refusedWith deadlineExceeded =<< agentBuysAt g g3 100 1 0 t0
+
+-- Expiry: admitted at T (the reference refuses only when now > expiresAt),
+-- refused at T + 1 s; revoke still returns the budget.
+testGrantExpiryAndRevoke = script do
+  g <- grantSetup
+  let expiry = plus t0 (2 * 86400)
+  at (plus expiry (-1))
+  (g1, _) <- succeeded =<< agentBuys g g.grant 500 1 0
+  at expiry
+  (g2, _) <- succeeded =<< agentBuys g g1 100 1 0
+  at (plus expiry 1)
+  refusedWith deadlineExceeded =<< agentBuys g g2 100 1 0
+  _ <- submit g.w.alice do exerciseCmd g2 Grant_Revoke
+  cashOf g.w.alice >>= (=== 500 + 1400)
+
+-- The agent cannot revoke, cannot spend on another owner's quote, and the
+-- venue cannot drive the grant.
+testGrantAuthority = script do
+  g <- grantSetup
+  fails =<< trySubmit g.agent do exerciseCmd g.grant Grant_Revoke
+  now <- getTime
+  qb <- issue g.w g.win g.w.bob SideUp 500 1 0 (plus now 20) "b"
+  d <- disclosureOf g.w.venue qb
+  refusedWith (refusal "wrong-quote") =<< trySubmit (actAs g.agent <> disclose d) do
+    exerciseCmd g.grant Grant_AcceptQuote with quoteCid = qb; limitTicks = 500; asOf = now
+  qa <- issue g.w g.win g.w.alice SideUp 500 1 0 (plus now 20) "a"
+  fails =<< trySubmit g.w.venue do exerciseCmd g.grant Grant_AcceptQuote with quoteCid = qa; limitTicks = 500; asOf = now
+  budgetOf g g.grant >>= (=== 2000)
+
+-- ---------------------------------------------------------------------------
+-- caps.vectors.json, transcribed row for row (packages/core/src/vault/
+-- caps.vectors.json; "count": 10). Units: ONE = 10^6 raw, so a Daml lot is
+-- 10^6 raw contracts, a tick is 1000 raw, and cashUnit = 1000 base makes
+-- lots * ticks * cashUnit equal the reference's base amounts. The mock
+-- book fills YES at 600 and NO at 400: that is the venue's firm quote; the
+-- vector's `priceRaw` (YES terms) is the agent's limit.
+
+data Order = Order with
+  outcomeIdx : Int
+  priceRaw : Int
+  quantityRaw : Int
+ deriving (Eq, Show)
+
+data Vec = Vec with
+  name : Text
+  maxStakePerTrade : Int
+  maxDailySpend : Int
+  maxOpenPositions : Int
+  maxPriceRaw : Int
+  budget : Int
+  expired : Bool
+  prior : Optional Order
+  order : Order
+  expect : Either Text Int
+    -- ^ Left the reference's refusal kind, Right the spend in base units
+ deriving (Eq, Show)
+
+vectors : [Vec]
+vectors =
+  [ Vec "in-cap buy fills" 50000000 100000000 5 0 200000000 False None (Order 0 700000 50000000) (Right 30000000)
+  , Vec "per-trade cap on the actual charge" 10000000 100000000 5 0 200000000 False None (Order 0 700000 50000000) (Left "stake")
+  , Vec "budget must cover the escrow at the limit" 50000000 100000000 5 0 20000000 False None (Order 0 700000 50000000) (Left "escrow")
+  , Vec "daily cap counts today's earlier spend" 50000000 50000000 9 0 500000000 False (Some (Order 0 700000 50000000)) (Order 0 700000 50000000) (Left "daily")
+  , Vec "price cap on YES" 50000000 500000000 9 650000 500000000 False None (Order 0 700000 10000000) (Left "price")
+  , Vec "price cap on NO reads the complement" 50000000 500000000 9 650000 500000000 False None (Order 1 300000 10000000) (Left "price")
+  , Vec "NO under the price cap fills" 50000000 500000000 9 650000 500000000 False None (Order 1 400000 10000000) (Right 4000000)
+  , Vec "open-position cap counts a new side" 50000000 500000000 1 0 500000000 False (Some (Order 0 700000 10000000)) (Order 1 500000 10000000) (Left "positions")
+  , Vec "expired grant" 50000000 500000000 9 0 500000000 True None (Order 0 700000 10000000) (Left "expired")
+  , Vec "a limit under the book passes every cap and the venue refuses the empty IOC" 50000000 500000000 9 0 500000000 False None (Order 0 500000 10000000) (Left "venue")
+  ]
+
+-- | The refusal id each reference kind maps to.
+refusalFor : Text -> Text
+refusalFor kind = case kind of
+  "price" -> refusal "over-price-cap"
+  "escrow" -> refusal "insufficient-budget"
+  "stake" -> refusal "over-stake-cap"
+  "daily" -> refusal "over-daily-cap"
+  "positions" -> refusal "over-position-cap"
+  "expired" -> deadlineExceeded
+  "venue" -> refusal "no-fill"
+  _ -> error ("unmapped refusal kind " <> kind)
+
+rawOne : Int
+rawOne = 1000000
+
+sideOfIdx : Int -> Side
+sideOfIdx i = if i == 0 then SideUp else SideDown
+
+-- The agent's limit in the bought side's own ticks.
+limitTicksOf : Order -> Int
+limitTicksOf o = (if o.outcomeIdx == 0 then o.priceRaw else rawOne - o.priceRaw) / 1000
+
+-- The mock book's fill, side terms: YES 0.60, NO 0.40.
+bookTicksOf : Order -> Int
+bookTicksOf o = if o.outcomeIdx == 0 then 600 else 400
+
+-- One vector against a fresh ledger: a cashUnit-1000 market, a grant with
+-- the vector's caps and budget, the prior order (must fill), then the order.
+runVector : Vec -> Script ()
+runVector v = do
+  w <- mkWorld
+  s <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "BTC-3d-u1000"; cadenceSec = 3 * 86400; cashUnit = 1000
+  (_, win) <- openWin w s 0
+  _ <- recordOpen w win px
+  agent <- allocateParty "agent"
+  offer <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.alice
+  c <- fund w w.alice v.budget
+  let expiresAt = plus t0 86400
+  grant <- submit w.alice do
+    exerciseCmd offer GrantOffer_Open with
+      agent; caps = GrantCaps with
+        maxStakePerTrade = v.maxStakePerTrade; maxDailySpend = v.maxDailySpend
+        maxPriceTicks = v.maxPriceRaw / 1000; maxOpenPositions = v.maxOpenPositions
+      expiresAt; dayZero = t0; budget = v.budget; cash = [c]
+  when v.expired (at (plus expiresAt 1))
+  let place g o = do
+        now <- getTime
+        q <- issue w win w.alice (sideOfIdx o.outcomeIdx) (bookTicksOf o) (o.quantityRaw / rawOne) 0 (plus now 20) "v"
+        d <- disclosureOf w.venue q
+        trySubmit (actAs agent <> disclose d) do
+          exerciseCmd g Grant_AcceptQuote with quoteCid = q; limitTicks = limitTicksOf o; asOf = now
+  g <- case v.prior of
+    None -> pure grant
+    Some o -> fst <$> (succeeded =<< place grant o)
+  Some before <- queryContractId w.alice g
+  r <- place g v.order
+  case v.expect of
+    Left kind -> refusedWith (refusalFor kind) r
+    Right spend -> do
+      (g', _) <- succeeded r
+      Some after <- queryContractId w.alice g'
+      before.budget - after.budget === spend
+
+testGrantCapsVectors = script do
+  length vectors === 10
+  forA_ vectors \v -> do
+    debug v.name
+    runVector v
+
+-- ---------------------------------------------------------------------------
+-- Revoke vs agent accept around the grant's expiry T, both orders. Both
+-- target the same grant contract, so exactly one consumes it; after T the
+-- accept is refused and revoke wins either way. The owner always ends with
+-- her change plus the budget less whatever the agent spent.
+
+data GrantWinner = AgentWins | OwnerWins
+  deriving (Eq, Show)
+
+raceRevoke : Int -> Bool -> Script GrantWinner
+raceRevoke offset agentFirst = do
+  g <- grantSetup
+  let expiry = plus t0 (2 * 86400)
+  at (plus expiry offset)
+  now <- getTime
+  q <- issue g.w g.win g.w.alice SideUp 500 1 0 (plus now 20) "r"
+  d <- disclosureOf g.w.venue q
+  let acceptIt = trySubmit (actAs g.agent <> disclose d) do
+        exerciseCmd g.grant Grant_AcceptQuote with quoteCid = q; limitTicks = 500; asOf = now
+      revokeIt = trySubmit g.w.alice do exerciseCmd g.grant Grant_Revoke
+  (a, r) <- if agentFirst
+    then do a <- acceptIt; r <- revokeIt; pure (a, r)
+    else do r <- revokeIt; a <- acceptIt; pure (a, r)
+  case (a, r) of
+    (Right (g', _), Left _) -> do
+      _ <- submit g.w.alice do exerciseCmd g' Grant_Revoke
+      cashOf g.w.alice >>= (=== 500 + 2000 - 500)
+      pure AgentWins
+    (Left _, Right _) -> do
+      cashOf g.w.alice >>= (=== 500 + 2000)
+      pure OwnerWins
+    _ -> abort "exactly one of accept and revoke must consume the grant"
+
+testGrantRevokeRace = script do
+  forA_ [True, False] \agentFirst -> do
+    raceRevoke (-1) agentFirst >>= (=== if agentFirst then AgentWins else OwnerWins)
+    raceRevoke 0 agentFirst >>= (=== if agentFirst then AgentWins else OwnerWins)
+    raceRevoke 1 agentFirst >>= (=== OwnerWins)
+
+-- ---------------------------------------------------------------------------
+-- Day rollover at T = dayZero + 1 day with day 0's cap spent: at T-1 the
+-- daily cap refuses, at T and T+1 the counter has reset. The agent's clock
+-- must be in the ledger's day: a stale asOf (day 0) at T and an early asOf
+-- (day 1) at T-1 are both refused, in either order of the two attempts.
+
+spentDay0 : Script (G, ContractId AgentGrant)
+spentDay0 = do
+  g <- grantSetup
+  (g1, _) <- succeeded =<< agentBuys g g.grant 600 1 0
+  (g2, _) <- succeeded =<< agentBuys g g1 400 1 0       -- day 0 at its cap of 1000
+  pure (g, g2)
+
+testGrantDayRollover = script do
+  let t = plus t0 86400
+  -- T - 1: still day 0, the cap holds
+  (g, g2) <- spentDay0
+  at (plus t (-1))
+  refusedWith (refusal "over-daily-cap") =<< agentBuys g g2 100 1 0
+  refusedWith deadlineNotExceeded =<< agentBuysAt g g2 100 1 0 t      -- claims day 1 early
+  forA_ [0, 1] \offset -> forA_ [True, False] \staleFirst -> do
+    (g, g2) <- spentDay0
+    at (plus t offset)
+    now <- getTime
+    let stale = agentBuysAt g g2 100 1 0 (plus t (-1))
+        fresh = agentBuysAt g g2 100 1 0 now
+    (sr, fr) <- if staleFirst
+      then do sr <- stale; fr <- fresh; pure (sr, fr)
+      else do fr <- fresh; sr <- stale; pure (sr, fr)
+    -- a stale day-0 clock is refused at the day's end (either order: when
+    -- the fresh accept ran first the old grant is also gone)
+    fails sr
+    when staleFirst (refusedWith deadlineExceeded sr)
+    (g3, _) <- succeeded fr
+    Some x <- queryContractId g.w.alice g3
+    (x.day, x.spentToday, x.budget) === (1, 100, 1000 - 100)
+
+-- A position holds its open-position slot until its market's refundAfter;
+-- a second side of the same market or a second market is refused before
+-- then, and admitted once the first market is past it.
+testGrantPositionCapFreesAtRefundAfter = script do
+  w <- mkWorld
+  s0 <- mkSeries w
+  (s1, win0) <- openWin w s0 0
+  (s2, win1) <- openWin w s1 1
+  (s3, _) <- openWin w s2 2
+  (_, win3) <- openWin w s3 3
+  agent <- allocateParty "agent"
+  offer <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.alice
+  c <- fund w w.alice 5000
+  g0 <- submit w.alice do
+    exerciseCmd offer GrantOffer_Open with
+      agent; caps = GrantCaps with maxStakePerTrade = 1000; maxDailySpend = 5000; maxPriceTicks = 0; maxOpenPositions = 1
+      expiresAt = plus t0 86400; dayZero = t0; budget = 5000; cash = [c]
+  let buy g win side = do
+        now <- getTime
+        q <- issue w win w.alice side 500 1 0 (plus now 20) "p"
+        d <- disclosureOf w.venue q
+        trySubmit (actAs agent <> disclose d) do
+          exerciseCmd g Grant_AcceptQuote with quoteCid = q; limitTicks = 500; asOf = now
+  at (plus t0 10)
+  (g1, _) <- succeeded =<< buy g0 win0 SideUp
+  (g2, _) <- succeeded =<< buy g1 win0 SideUp                  -- same side: not a new position
+  refusedWith (refusal "over-position-cap") =<< buy g2 win0 SideDown
+  at (plus t0 310)
+  refusedWith (refusal "over-position-cap") =<< buy g2 win1 SideUp
+  at win0.t.refundAfter                                         -- window 0 no longer open
+  (g3, _) <- succeeded =<< buy g2 win3 SideUp
+  Some x <- queryContractId w.alice g3
+  map (.marketId) x.positions === [win3.t.marketId]

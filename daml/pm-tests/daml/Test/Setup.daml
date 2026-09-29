@@ -1,0 +1,208 @@
+-- | Shared fixtures for the money gate. One series (BTC, 300 s cadence,
+-- 3 oracles, quorum 2, 50 bps max deviation, cashUnit 1) anchored at t0.
+--
+-- Window i timeline (seconds after its tradingStart):
+--   0 trading start | +5 earliest open print | +120 open deadline
+--   +270 lockAt | +300 expiry | +305 earliest close print
+--   +420 close deadline | +1020 refundAfter
+module Test.Setup where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Date (Month(..), date)
+import DA.Time (RelTime, addRelTime, seconds, time)
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Oracle
+import PM.Quote
+import PM.Series
+import PM.Types
+
+data World = World
+  with
+    venue : Party
+    resolver : Party
+    auditor : Party
+    o1 : Party
+    o2 : Party
+    o3 : Party
+    alice : Party
+    bob : Party
+    outsider : Party
+    desk : ContractId VenueDesk
+
+data Win = Win
+  with
+    terms : ContractId MarketTerms
+    state : ContractId WindowState
+    t : MarketTerms
+
+t0 : Time
+t0 = time (date 2026 Oct 1) 12 0 0
+
+secs : Int -> RelTime
+secs = seconds
+
+plus : Time -> Int -> Time
+plus t s = addRelTime t (seconds s)
+
+at : Time -> Script ()
+at = setTime
+
+policy1 : PolicyVersion
+policy1 = PolicyVersion with
+  version = 1; effectiveFrom = t0; validUntil = None; printSource = "attested:cex-median3"
+  minDelaySec = 5; barLenSec = 60; openAdmissionSec = 120; closeAdmissionSec = 120
+
+mkWorld : Script World
+mkWorld = do
+  venue <- allocateParty "venue"
+  resolver <- allocateParty "resolver"
+  auditor <- allocateParty "auditor"
+  o1 <- allocateParty "oracle1"
+  o2 <- allocateParty "oracle2"
+  o3 <- allocateParty "oracle3"
+  alice <- allocateParty "alice"
+  bob <- allocateParty "bob"
+  outsider <- allocateParty "outsider"
+  at t0
+  desk <- submit venue do createCmd VenueDesk with venue
+  pure World with ..
+
+seriesFor : World -> Series
+seriesFor w = Series with
+  venue = w.venue; resolver = w.resolver; auditor = w.auditor
+  seriesKey = "BTC-300"; symbol = "BTC"; anchor = t0; cadenceSec = 300
+  lockLeadSec = 30; settleGraceSec = 600; cashUnit = 1; nextIndex = 0
+  oracles = [w.o1, w.o2, w.o3]; quorum = 2; maxDeviationBps = 50
+  policyVersions = [policy1]
+
+mkSeries : World -> Script (ContractId Series)
+mkSeries w = submit w.venue do createCmd (seriesFor w)
+
+openWin : World -> ContractId Series -> Int -> Script (ContractId Series, Win)
+openWin w s i = do
+  (s', terms, state) <- submit w.venue do exerciseCmd s Series_OpenWindow with index = i
+  Some t <- queryContractId w.venue terms
+  pure (s', Win with terms; state; t)
+
+-- | World plus window 0, time at t0.
+mkWorldWin : Script (World, Win)
+mkWorldWin = do
+  w <- mkWorld
+  s <- mkSeries w
+  (_, win) <- openWin w s 0
+  pure (w, win)
+
+postPrintAt : World -> Party -> Time -> Int -> Int -> Script (ContractId PriceQuote)
+postPrintAt w oracle boundary price delaySec =
+  submit oracle do
+    createCmd PriceQuote with
+      oracle; venue = w.venue; resolver = w.resolver; symbol = "BTC"
+      boundaryT = boundary; priceE8 = price; barStart = plus boundary (-60); barLenSec = 60
+      fetchedAt = plus boundary delaySec; payloadHash = "sha256:test"; policyVersion = 1
+
+-- | One quote per oracle (o1, o2, o3 in order) for the prices given.
+prints : World -> Time -> [Int] -> Script [ContractId PriceQuote]
+prints w boundary ps =
+  mapA (\(o, p) -> postPrintAt w o boundary p 10) (zip [w.o1, w.o2, w.o3] ps)
+
+-- | Record the open at tradingStart + 10 s with three agreeing prints.
+recordOpen : World -> Win -> Int -> Script (ContractId OpenPrint)
+recordOpen w win price = do
+  at (plus win.t.tradingStart 10)
+  qs <- prints w win.t.tradingStart [price, price, price]
+  r <- submit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = qs
+  case r of
+    Right op -> pure op
+    Left _ -> abort "open unexpectedly voided"
+
+-- | Resolve at expiry + 10 s with three agreeing close prints.
+resolveAt : World -> Win -> ContractId OpenPrint -> Int -> Script (ContractId Resolution)
+resolveAt w win op price = do
+  at (plus win.t.expiry 10)
+  qs <- prints w win.t.expiry [price, price, price]
+  submit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = qs
+
+-- | Void after the close deadline.
+voidClose : World -> Win -> ContractId OpenPrint -> Script (ContractId Resolution)
+voidClose w win op = do
+  at (plus win.t.closeDeadline 1)
+  submit w.resolver do
+    exerciseCmd win.terms Terms_Void with stage = AfterOpen op; quoteCids = []
+
+fund : World -> Party -> Int -> Script (ContractId VenueCash)
+fund w owner amount = submit (actAs [w.venue, owner]) do
+  createCmd VenueCash with venue = w.venue; owner; amount; bucket = "demo"
+
+shard : World -> Int -> Script (ContractId VenueCash)
+shard w amount = submit w.venue do
+  createCmd VenueCash with venue = w.venue; owner = w.venue; amount; bucket = "shard"
+
+-- | Issue a quote from a fresh shard of exactly the venue stake.
+issue : World -> Win -> Party -> Side -> Int -> Int -> Int -> Time -> Text -> Script (ContractId Quote)
+issue w win user side ticks lots fee validUntil pairId = do
+  sh <- shard w (venueStakeOf lots ticks win.t.cashUnit)
+  (q, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueQuote with
+      shardCid = sh; user; termsCid = win.terms; pairId; side; priceTicks = ticks; lots; fee; validUntil
+  pure q
+
+-- | Fund the user with exactly stake + fee, issue, accept. Valid 20 s.
+trade : World -> Win -> Party -> Side -> Int -> Int -> Int -> Text -> Script (ContractId Leg, ContractId Leg)
+trade w win user side ticks lots fee pairId = do
+  now <- getTime
+  q <- issue w win user side ticks lots fee (plus now 20) pairId
+  c <- fund w user (userStakeOf lots ticks win.t.cashUnit + fee)
+  (u, v, _) <- submit user do exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = None
+  pure (u, v)
+
+-- | Total VenueCash owned by `p`, as `p` sees it.
+cashOf : Party -> Script Int
+cashOf p = do
+  cs <- query @VenueCash p
+  pure (sum [c.amount | (_, c) <- cs, c.owner == p])
+
+-- | Expect a refusal carrying this failWithStatus id.
+refusedWith : Show a => Text -> Either SubmitError a -> Script ()
+refusedWith code r = case r of
+  Left (FailureStatusError fs) -> fs.errorId === code
+  Left e -> abort ("expected " <> code <> ", got " <> show e)
+  Right x -> abort ("expected " <> code <> ", but it succeeded: " <> show x)
+
+refusal : Text -> Text
+refusal code = refusalPrefix <> code
+
+deadlineExceeded : Text
+deadlineExceeded = "stdlib.daml.com/deadline-exceeded"
+
+deadlineNotExceeded : Text
+deadlineNotExceeded = "stdlib.daml.com/deadline-not-exceeded"
+
+-- | Expect an authorization failure (missing party authority).
+unauthorized : Show a => Either SubmitError a -> Script ()
+unauthorized r = case r of
+  Left (AuthorizationError _) -> pure ()
+  Left e -> abort ("expected an authorization error, got " <> show e)
+  Right x -> abort ("expected an authorization error, but it succeeded: " <> show x)
+
+-- | Expect any failure.
+fails : Show a => Either SubmitError a -> Script ()
+fails r = case r of
+  Left _ -> pure ()
+  Right x -> abort ("expected a failure, but it succeeded: " <> show x)
+
+succeeded : Show a => Either SubmitError a -> Script a
+succeeded r = case r of
+  Right x -> pure x
+  Left e -> abort ("expected success, got " <> show e)
+
+disclosureOf : Template t => Party -> ContractId t -> Script Disclosure
+disclosureOf p cid = do
+  d <- queryDisclosure p cid
+  case d of
+    Some x -> pure x
+    None -> abort "no disclosure available"

@@ -1,0 +1,431 @@
+-- | Conservation over seeded pseudo-random sequences.
+--
+-- After every step, as the venue (a stakeholder of every money contract):
+--
+--   Σ VenueCash + Σ Quote venue stake + Σ BuyQuote locked + Σ AgentGrant budget
+--     + Σ Leg value + Σ NettedResidual value
+--   == Σ credits − Σ withdrawals
+--
+-- where a Leg's value is backingShare + feePaid while its market has no
+-- Resolution, and its full payout (owner's share plus the venue's fee, see
+-- `legPayout`) once one exists; a NettedResidual is worth `heldIfVoid`
+-- unless its market resolved non-void, then `owedIfResolved`. A non-void
+-- resolution only moves value between the legs of a pair (plus residuals),
+-- so the sum is invariant.
+--
+-- Excluded by construction, and tested separately as the documented limit
+-- (Test.Money.testStaleRefundLosingLegIsVenueRisk): a stale refund of a leg
+-- whose market resolved non-void. The sequence never attempts one.
+--
+-- Steps (chosen by a 31-bit LCG): credit, mint shard, issue, accept (also
+-- via an agent grant), expire, withdraw quote, pass time, merge, open print /
+-- resolve / void (with occasional disagreeing oracles), settle, claim with
+-- disclosure, stale refund, buy-back, residual settle, cash withdraw, cash
+-- split/merge, close-out, grant open/revoke, open next window.
+module Test.Conservation where
+
+import Daml.Script
+import DA.Foldable (forA_)
+import DA.Action (foldlA)
+import DA.List ((!!), sortOn)
+import qualified DA.Map as Map
+import DA.Optional (fromOptional)
+import PM.Grant
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Oracle (PriceQuote)
+import PM.Quote
+import PM.Series
+import PM.Types
+import Test.Setup
+
+data St = St
+  with
+    seed : Int
+    credits : Int
+    series : ContractId Series
+    nextIndex : Int
+    pairNo : Int
+    counts : Map.Map Text Int
+    agent : Party
+
+px : Int
+px = 6500000000000
+
+lcg : Int -> Int
+lcg s = (s * 1103515245 + 12345) % 2147483648
+
+-- | Uniform-ish draw in [0, n).
+roll : Int -> St -> (Int, St)
+roll n st = let s' = lcg st.seed in ((s' / 65536) % n, st with seed = s')
+
+pickFrom : [a] -> St -> (Optional a, St)
+pickFrom [] st = (None, st)
+pickFrom xs st = let (i, st') = roll (length xs) st in (Some (xs !! i), st')
+
+bump : Text -> St -> St
+bump k st = st with counts = Map.insertWith (+) k 1 st.counts
+
+-- | Record the outcome of an attempted action.
+attempt : Text -> St -> Either SubmitError a -> Script St
+attempt k st r = pure (case r of
+  Right _ -> bump k st
+  Left _ -> bump (k <> "!refused") st)
+
+-- ---------------------------------------------------------------------------
+
+ledgerTotal : World -> Script Int
+ledgerTotal w = do
+  cash <- cashQ w.venue
+  quotes <- quotesQ w
+  bqs <- buyQ w
+  grants <- query @AgentGrant w.venue
+  legs <- legsQ w
+  resids <- residQ w
+  ress <- query @Resolution w.venue
+  let resFor tc = case [r | (_, r) <- ress, r.termsCid == tc] of
+        (r :: _) -> Some r
+        [] -> None
+      legValue l = case resFor l.termsCid of
+        None -> l.backingShare + l.feePaid
+        Some r -> let (o, f) = legPayout l r in o + f
+      residValue x = case resFor x.termsCid of
+        Some r | not (isVoid r) -> x.owedIfResolved
+        _ -> x.heldIfVoid
+  pure (sum [c.amount | (_, c) <- cash]
+    + sum [venueStakeOf q.lots q.priceTicks q.cashUnit | (_, q) <- quotes]
+    + sum [b.locked | (_, b) <- bqs]
+    + sum [g.budget | (_, g) <- grants]
+    + sum (map (legValue . snd) legs)
+    + sum (map (residValue . snd) resids))
+
+-- ---------------------------------------------------------------------------
+-- Stable reads. Contract ids are hashes that differ between runs, so the
+-- ACS order does too; every candidate list is sorted by a business key
+-- before the LCG picks from it, which makes a seed replay exactly.
+
+termsQ : World -> Script [(ContractId MarketTerms, MarketTerms)]
+termsQ w = sortOn (\(_, t) -> t.index) <$> query @MarketTerms w.venue
+
+quotesQ : World -> Script [(ContractId Quote, Quote)]
+quotesQ w = sortOn (\(_, q) -> q.pairId) <$> query @Quote w.venue
+
+buyQ : World -> Script [(ContractId BuyQuote, BuyQuote)]
+buyQ w = sortOn (\(_, b) -> (b.pairId, b.priceTicks)) <$> query @BuyQuote w.venue
+
+legsQ : World -> Script [(ContractId Leg, Leg)]
+legsQ w = sortOn (\(_, l) -> (l.marketId, l.pairId, l.outcome, l.owner == w.venue)) <$> query @Leg w.venue
+
+residQ : World -> Script [(ContractId NettedResidual, NettedResidual)]
+residQ w = sortOn (\(_, r) -> (r.marketId, r.pairA, r.pairB)) <$> query @NettedResidual w.venue
+
+-- Equal keys here mean interchangeable contracts (same owner, amount, bucket).
+cashQ : Party -> Script [(ContractId VenueCash, VenueCash)]
+cashQ p = sortOn (\(_, c) -> (c.owner == p, c.amount, c.bucket)) <$> query @VenueCash p
+
+users : World -> [Party]
+users w = [w.alice, w.bob]
+
+-- | Markets the issuer quotes: open print recorded (the reference's seed
+-- maker quotes only then) and not yet locked.
+liveTerms : World -> Script [(ContractId MarketTerms, MarketTerms)]
+liveTerms w = do
+  now <- getTime
+  ts <- termsQ w
+  opens <- query @OpenPrint w.venue
+  pure [x | x@(tc, t) <- ts, t.lockAt > plus now 1, any (\(_, o) -> o.termsCid == tc) opens]
+
+-- | A venue shard covering `amount`, minting one when none does.
+shardFor : World -> Int -> St -> Script (ContractId VenueCash, St)
+shardFor w amount st = do
+  cs <- cashQ w.venue
+  case [c | (c, x) <- cs, x.owner == w.venue, x.amount >= amount] of
+    (c :: _) -> pure (c, st)
+    [] -> do
+      c <- shard w (amount + 5000)
+      pure (c, bump "mint" st with credits = st.credits + amount + 5000)
+
+resolutionFor : World -> ContractId MarketTerms -> Script (Optional (ContractId Resolution, Resolution))
+resolutionFor w tc = do
+  ress <- query @Resolution w.venue
+  pure (case [x | x@(_, r) <- ress, r.termsCid == tc] of
+    (x :: _) -> Some x
+    [] -> None)
+
+oraclePrices : World -> Time -> St -> Script ([ContractId PriceQuote], St)
+oraclePrices w boundary st = do
+  let (base, st1) = roll 2000 st
+      (wild, st2) = roll 10 st1
+      p = px + base - 1000
+      -- one time in ten, oracle 2 disagrees by 2%
+      p2 = if wild == 0 then p + p / 50 else p + 3
+  qs <- prints w boundary [p, p2, p - 2]
+  pure (qs, st2)
+
+-- | The user (or, one time in three, Alice's agent under her grant) takes
+-- the quote, topping up cash if short.
+acceptQuote : World -> St -> (ContractId Quote, Quote) -> Script St
+acceptQuote w st (qc, q) = do
+  let (viaGrant, st1) = roll 3 st
+  grants <- query @AgentGrant w.venue
+  case [g | (g, x) <- grants, x.owner == q.user] of
+    (g :: _) | viaGrant == 0 -> do
+      d <- disclosureOf w.venue qc
+      now <- getTime
+      r <- trySubmit (actAs st1.agent <> disclose d) do
+        exerciseCmd g Grant_AcceptQuote with quoteCid = qc; limitTicks = q.priceTicks; asOf = now
+      attempt "grant-accept" st1 r
+    _ -> do
+      let cost = userStakeOf q.lots q.priceTicks q.cashUnit + q.fee
+      cs <- cashQ q.user
+      let mine = [(c, x.amount) | (c, x) <- cs, x.owner == q.user]
+          have = sum (map snd mine)
+      (cids, st2) <- if have >= cost then pure (map fst mine, st1) else do
+        top <- fund w q.user (cost - have)
+        pure (top :: map fst mine, bump "credit" st1 with credits = st1.credits + cost - have)
+      r <- trySubmit q.user do exerciseCmd qc Quote_Accept with cash = cids; beneficiaryRef = None
+      attempt "accept" st2 r
+
+step : World -> St -> Script St
+step w st0 = do
+  let (kind, st) = roll 20 st0
+  now <- getTime
+  case kind of
+    0 -> do -- credit a user
+      let (u, st1) = roll 2 st
+          (amt, st2) = roll 5000 st1
+      _ <- fund w (users w !! u) (amt + 100)
+      pure (bump "credit" st2 with credits = st2.credits + amt + 100)
+    1 -> do -- mint a venue shard
+      let (amt, st1) = roll 20000 st
+      _ <- shard w (amt + 1000)
+      pure (bump "mint" st1 with credits = st1.credits + amt + 1000)
+    k | k <= 3 -> do -- issue a quote
+      ts <- liveTerms w
+      let (mt, st1) = pickFrom ts st
+      case mt of
+        None -> pure (bump "issue!no-market" st1)
+        Some (tc, t) -> do
+          let (u, st2) = roll 2 st1
+              (sideN, st3) = roll 2 st2
+              (tk, st4) = roll 999 st3
+              (lotsM, st5) = roll 5 st4
+              lots = lotsM + 1
+              ticks = tk + 1
+              (fee, st6) = roll (quantityOf lots t.cashUnit / 4 + 1) st5
+              validUntil = min (plus now 20) t.lockAt   -- the seat quote lifetime
+          (sh, st7) <- shardFor w (venueStakeOf lots ticks t.cashUnit) st6
+          r <- trySubmit w.venue do
+            exerciseCmd w.desk Desk_IssueQuote with
+              shardCid = sh; user = users w !! u; termsCid = tc
+              pairId = "pair-" <> show st7.pairNo; side = if sideN == 0 then SideUp else SideDown
+              priceTicks = ticks; lots; fee; validUntil
+          st8 <- attempt "issue" (st7 with pairNo = st7.pairNo + 1) r
+          -- half the time the user accepts at once, as in the live handshake
+          let (now', st9) = roll 2 st8
+          case r of
+            Right (qc, _) | now' == 0 -> do
+              Some q <- queryContractId w.venue qc
+              acceptQuote w st9 (qc, q)
+            _ -> pure st9
+    k | k <= 5 -> do -- accept an outstanding quote
+      qs <- quotesQ w
+      let (mq, st1) = pickFrom qs st
+      case mq of
+        None -> pure (bump "accept!none" st1)
+        Some x -> acceptQuote w st1 x
+    6 -> do -- venue sweeps a quote (fails until validUntil + 5 s)
+      qs <- quotesQ w
+      let (mq, st1) = pickFrom qs st
+      case mq of
+        None -> pure st1
+        Some (qc, _) -> attempt "expire" st1 =<< trySubmit w.venue do exerciseCmd qc Quote_Expire
+    7 -> do -- venue withdraws a quote or buy quote
+      qs <- quotesQ w
+      bqs <- buyQ w
+      let (mq, st1) = pickFrom qs st
+      case (mq, bqs) of
+        (Some (qc, _), _) -> attempt "withdraw" st1 =<< trySubmit w.venue do exerciseCmd qc Quote_Withdraw with reason = "halt"
+        (None, (bc, _) :: _) -> attempt "withdraw-buy" st1 =<< trySubmit w.venue do exerciseCmd bc BuyQuote_Withdraw with reason = "halt"
+        _ -> pure st1
+    k | k <= 9 -> do -- time passes; the resolver runs on every tick
+      let (s, st1) = roll 150 st
+      passTime (secs (s + 1))
+      resolverPass w (bump "time" st1)
+    10 -> do -- venue nets two of its legs
+      legs <- legsQ w
+      let mine = [(c, l) | (c, l) <- legs, l.owner == w.venue]
+          (ma, st1) = pickFrom mine st
+      case ma of
+        None -> pure st1
+        Some (ca, a) -> case [c | (c, l) <- mine, l.termsCid == a.termsCid, l.outcome /= a.outcome, l.lots == a.lots] of
+          [] -> pure (bump "merge!no-match" st1)
+          (cb :: _) -> attempt "merge" st1 =<< trySubmit w.venue do exerciseCmd ca Leg_Merge with otherCid = cb
+    11 -> resolverPass w st
+    12 -> do -- venue settles, or the owner claims with the resolution disclosed
+      legs <- legsQ w
+      ress <- query @Resolution w.venue
+      let settleable = [(lc, l, rc) | (lc, l) <- legs, (rc, r) <- ress, r.termsCid == l.termsCid]
+          (ml, st1) = pickFrom (sortOn (\(_, l, _) -> (l.marketId, l.pairId, l.outcome, l.owner == w.venue)) settleable) st
+          (claim, st2) = roll 2 st1
+      case ml of
+        None -> pure (bump "settle!none" st2)
+        Some (lc, l, rc)
+          | claim == 0 && l.owner /= w.venue -> do
+              d <- disclosureOf w.venue rc
+              attempt "claim" st2 =<< trySubmit (actAs l.owner <> disclose d) do exerciseCmd lc Leg_Claim with resolutionCid = rc
+          | otherwise -> attempt "settle" st2 =<< trySubmit w.venue do exerciseCmd lc Leg_Settle with resolutionCid = rc
+    13 -> do -- stale refund, only where no non-void resolution exists
+      legs <- legsQ w
+      ress <- query @Resolution w.venue
+      let eligible = [(c, l) | (c, l) <- legs
+                             , all (\(_, r) -> r.termsCid /= l.termsCid || isVoid r) ress]
+          (ml, st1) = pickFrom eligible st
+      case ml of
+        None -> pure st1
+        Some (lc, l) -> attempt "stale-refund" st1 =<< trySubmit l.owner do exerciseCmd lc Leg_RefundStale
+    14 -> do -- buy-back of a user's leg
+      legs <- legsQ w
+      let (ml, st1) = pickFrom [(c, l) | (c, l) <- legs, l.owner /= w.venue] st
+          (tk, st2) = roll 999 st1
+      case ml of
+        None -> pure st2
+        Some (lc, l) -> do
+          (sh, st3) <- shardFor w (userStakeOf l.lots (tk + 1) l.cashUnit) st2
+          r <- trySubmit w.venue do
+            exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = lc; priceTicks = tk + 1; validUntil = plus now 20
+          case r of
+            Left _ -> pure (bump "buy-issue!refused" st3)
+            Right (bq, _) -> attempt "buy-back" st3 =<< trySubmit l.owner do exerciseCmd bq BuyQuote_Accept
+    15 -> do -- residual settles once its market has an outcome
+      rs <- residQ w
+      let (mr, st1) = pickFrom rs st
+      case mr of
+        None -> pure st1
+        Some (rc, x) -> do
+          mres <- resolutionFor w x.termsCid
+          case mres of
+            None -> pure (bump "residual!unresolved" st1)
+            Some (res, _) -> attempt "residual" st1 =<< trySubmit w.venue do exerciseCmd rc Residual_Settle with resolutionCid = res
+    16 -> do -- a user withdraws, splits or merges cash
+      let (u, st1) = roll 2 st
+          (op, st2) = roll 3 st1
+          p = users w !! u
+      cs <- cashQ p
+      let mine = [(c, x) | (c, x) <- cs, x.owner == p]
+      case (mine, op) of
+        ((c, x) :: _, 0) -> do
+          r <- trySubmit p do exerciseCmd c VenueCash_Withdraw
+          case r of
+            Right _ -> pure (bump "withdraw-cash" st2 with credits = st2.credits - x.amount)
+            Left _ -> pure (bump "withdraw-cash!refused" st2)
+        ((c, x) :: _, 1) -> attempt "split" st2 =<< trySubmit p do exerciseCmd c VenueCash_Split with take = (x.amount + 1) / 2
+        ((c, _) :: rest@(_ :: _), _) -> attempt "merge-cash" st2 =<< trySubmit p do exerciseCmd c VenueCash_Merge with others = map fst rest
+        _ -> pure st2
+    17 -> do -- two-controller close-out at cost
+      legs <- legsQ w
+      let (ml, st1) = pickFrom [(c, l) | (c, l) <- legs, l.owner /= w.venue] st
+      case ml of
+        None -> pure st1
+        Some (lc, l) -> do
+          (sh, st2) <- shardFor w l.backingShare st1
+          attempt "close-out" st2 =<< trySubmit (actAs [w.venue, l.owner]) do exerciseCmd lc Leg_CloseOut with shardCid = sh
+    18 -> do -- Alice opens or revokes her agent grant
+      grants <- query @AgentGrant w.alice
+      case grants of
+        (g, _) :: _ -> attempt "grant-revoke" st =<< trySubmit w.alice do exerciseCmd g Grant_Revoke
+        [] -> do
+          offers <- query @GrantOffer w.alice
+          c <- fund w w.alice 5000
+          let st1 = bump "credit" st with credits = st.credits + 5000
+          case offers of
+            (o, _) :: _ -> attempt "grant-open" st1 =<< trySubmit w.alice do
+              exerciseCmd o GrantOffer_Open with
+                agent = st1.agent; caps = GrantCaps with maxStakePerTrade = 4000; maxDailySpend = 10000; maxPriceTicks = 0; maxOpenPositions = 1000
+                expiresAt = plus t0 86400; dayZero = t0; budget = 5000; cash = [c]
+            [] -> pure st1
+    _ -> do -- the roller opens the next window
+      r <- trySubmit w.venue do exerciseCmd st.series Series_OpenWindow with index = st.nextIndex
+      case r of
+        Right (s', _, _) -> pure (bump "open-window" st with series = s'; nextIndex = st.nextIndex + 1)
+        Left _ -> pure (bump "open-window!refused" st)
+
+-- | The resolver's loop: for every market, record the open print, resolve,
+-- or void, whichever the clock admits. Oracles post fresh quotes each time,
+-- one time in ten with oracle 2 off by 2% (which voids).
+resolverPass : World -> St -> Script St
+resolverPass w st0 = do
+  ts <- termsQ w
+  foldlA (resolveOne w) st0 ts
+
+resolveOne : World -> St -> (ContractId MarketTerms, MarketTerms) -> Script St
+resolveOne w st (tc, t) = do
+  now <- getTime
+  states <- query @WindowState w.venue
+  opens <- query @OpenPrint w.venue
+  case ([s | (s, x) <- states, x.termsCid == tc], [o | (o, x) <- opens, x.termsCid == tc]) of
+    (s :: _, _)
+      | now >= plus t.tradingStart 5 && now <= t.openDeadline -> do
+          (qs, st1) <- oraclePrices w t.tradingStart st
+          attempt "record-open" st1 =<< trySubmit w.resolver do
+            exerciseCmd tc Terms_RecordOpen with stateCid = s; quoteCids = qs
+      | now > t.openDeadline ->
+          attempt "void-open" st =<< trySubmit w.resolver do
+            exerciseCmd tc Terms_Void with stage = BeforeOpen s; quoteCids = []
+    ([], o :: _)
+      | now >= plus t.expiry 5 && now <= t.closeDeadline -> do
+          (qs, st1) <- oraclePrices w t.expiry st
+          attempt "resolve" st1 =<< trySubmit w.resolver do
+            exerciseCmd tc Terms_Resolve with openCid = o; quoteCids = qs
+      | now > t.closeDeadline ->
+          attempt "void-close" st =<< trySubmit w.resolver do
+            exerciseCmd tc Terms_Void with stage = AfterOpen o; quoteCids = []
+    _ -> pure st
+
+runSteps : World -> Int -> Int -> St -> Script St
+runSteps w steps i st
+  | i >= steps = pure st
+  | otherwise = do
+      st' <- step w st
+      total <- ledgerTotal w
+      if total == st'.credits then runSteps w steps (i + 1) st'
+      else abort ("conservation broken at step " <> show i <> ": ledger " <> show total
+                  <> " vs credits " <> show st'.credits <> " after " <> show (Map.toList st'.counts))
+
+runSequence : Int -> Int -> Script (Map.Map Text Int)
+runSequence seed steps = do
+  w <- mkWorld
+  agent <- allocateParty "agent"
+  s0 <- mkSeries w
+  (s1, _) <- openWin w s0 0
+  (s2, _) <- openWin w s1 1
+  _ <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.alice
+  let st0 = St with seed; credits = 0; series = s2; nextIndex = 2; pairNo = 0; counts = Map.empty; agent
+  total0 <- ledgerTotal w
+  assertMsg "starts empty" (total0 == 0)
+  final <- runSteps w steps 0 st0
+  pure final.counts
+
+-- 200 steps, seed 20261009. Also checks the sequence exercised the paths
+-- that matter (so a green run is not a run of refusals).
+testConservation200 = script do
+  counts <- runSequence 20261009 200
+  debug (sortOn fst (Map.toList counts))
+  let n k = fromOptional 0 (Map.lookup k counts)
+  forA_ ["issue", "accept", "time", "record-open", "resolve", "merge", "buy-back", "close-out", "settle", "claim"] \k ->
+    assertMsg ("path never taken: " <> k) (n k > 0)
+  assertMsg "no market reached an outcome" (n "resolve" + n "void-open" + n "void-close" > 0)
+  assertMsg "nothing was paid out" (n "settle" + n "claim" + n "stale-refund" > 0)
+
+-- Two more seeds, 200 steps each, one per script: running both sequences
+-- in one script overflows the script service's stack (measured).
+testConservationSeed7 = script do
+  counts <- runSequence 7 200
+  debug (sortOn fst (Map.toList counts))
+  assertMsg "no accepts" (fromOptional 0 (Map.lookup "accept" counts) > 0)
+
+testConservationSeed424242 = script do
+  counts <- runSequence 424242 200
+  debug (sortOn fst (Map.toList counts))
+  assertMsg "no accepts" (fromOptional 0 (Map.lookup "accept" counts) > 0)

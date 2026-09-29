@@ -1,0 +1,336 @@
+-- | Money gate, money half: pair invariant and parity grid, void refunds,
+-- fee recognition, cross-pair merge, settle once, claim equals settle,
+-- authority (accept, confiscation), stale refunds, buy-back netting.
+module Test.Money where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- Pure: every tick 1..999 at the lot extremes, for two cash units. The two
+-- stakes are positive and sum to the pair's backing exactly.
+testParityGrid = script do
+  forA_ [1, 1000] \cu -> do
+    let maxLots = maxLotCash / cu
+    forA_ [1, 2, maxLots] \lots -> do
+      gridOk lots cu === True
+      forA_ [1 .. 999] \t -> do
+        let u = userStakeOf lots t cu
+            v = venueStakeOf lots t cu
+        assertMsg "stakes positive" (u > 0 && v > 0)
+        u + v === quantityOf lots cu
+    gridOk (maxLots + 1) cu === False
+  ticksOk 0 === False
+  ticksOk 1000 === False
+
+-- On the ledger: each accept creates a pair whose shares sum to the
+-- quantity, and per terms Up lots equal Down lots.
+testPairInvariant = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  forA_ [(1, 1), (500, 7), (999, 3), (620, maxLotCash / 1000)] \(t, lots) -> do
+    (u, v) <- trade w win w.alice SideUp t lots 0 ("p" <> show t)
+    Some ul <- queryContractId w.venue u
+    Some vl <- queryContractId w.venue v
+    ul.backingShare + vl.backingShare === quantityOf lots 1
+    ul.lots === vl.lots
+    ul.outcome === opposite vl.outcome
+  _ <- trade w win w.bob SideDown 400 11 0 "pb"
+  legs <- query @Leg w.venue
+  let lotsOn s = sum [l.lots | (_, l) <- legs, l.termsCid == win.terms, l.outcome == s]
+  lotsOn SideUp === lotsOn SideDown
+  -- a size beyond the Int64 bound is refused at issue
+  sh <- shard w 1000
+  now <- getTime
+  big <- trySubmit w.venue do
+    exerciseCmd w.desk Desk_IssueQuote with
+      shardCid = sh; user = w.alice; termsCid = win.terms; pairId = "big"; side = SideUp
+      priceTicks = 500; lots = maxLotCash + 1; fee = 0; validUntil = plus now 20
+  refusedWith (refusal "bad-grid") big
+
+-- A void returns backingShare + feePaid to the user, and the venue's stake
+-- to the venue; no fee is recognised.
+testVoidReturnsBackingPlusFee = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- trade w win w.alice SideUp 620 10 37 "p1"
+  cashOf w.alice >>= (=== 0)
+  res <- voidClose w win op
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 6200 + 37)
+  vc <- query @VenueCash w.venue
+  sum [c.amount | (_, c) <- vc, c.owner == w.venue, c.bucket == "fee"] === 0
+  sum [c.amount | (_, c) <- vc, c.owner == w.venue] === 3800
+
+-- The fee sits in the leg until a non-void settle, then goes to the venue.
+testFeeRecognisedOnlyAtSettle = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- trade w win w.alice SideUp 620 10 37 "p1"
+  let feeCash = do
+        vc <- query @VenueCash w.venue
+        pure (sum [c.amount | (_, c) <- vc, c.owner == w.venue, c.bucket == "fee"])
+  feeCash >>= (=== 0)
+  Some ul <- queryContractId w.alice u
+  ul.feePaid === 37
+  res <- resolveAt w win op (px + 5)          -- Up wins
+  feeCash >>= (=== 0)                         -- resolution alone recognises nothing
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  feeCash >>= (=== 37)
+  cashOf w.alice >>= (=== 10000)              -- quantity: 10 lots * 1000
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashOf w.venue >>= (=== 37)                 -- venue leg lost; only the fee
+
+-- The review's case: Alice buys Up at 620, Bob buys Down at 400. The venue
+-- nets its two legs (Down 380 of pair 1, Up 600 of pair 2). A later void
+-- must still refund 620 + 400 in full.
+testVoidAfterCrossPairMerge = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (a, va) <- trade w win w.alice SideUp 620 1 0 "p1"
+  (b, vb) <- trade w win w.bob SideDown 400 1 0 "p2"
+  (released, residual) <- submit w.venue do exerciseCmd va Leg_Merge with otherCid = vb
+  Some rel <- case released of
+    Some c -> queryContractId w.venue c
+    None -> abort "expected a release"
+  rel.amount === 980                            -- min(380 + 600, 1000)
+  Some resid <- case residual of
+    Some c -> queryContractId w.venue c
+    None -> abort "expected a residual"
+  resid.heldIfVoid === 0
+  resid.owedIfResolved === 20
+  res <- voidClose w win op
+  _ <- submit w.venue do exerciseCmd a Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd b Leg_Settle with resolutionCid = res
+  Some rc <- pure residual
+  _ <- submit w.venue do exerciseCmd rc Residual_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 620)
+  cashOf w.bob >>= (=== 400)
+  cashOf w.venue >>= (=== 980)                  -- 2000 in, 2000 out
+
+-- Same trades, resolved Up: Alice is paid the full quantity, and the
+-- residual gives the venue the rest of its winning netted leg.
+testCrossPairMergeThenResolve = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (a, va) <- trade w win w.alice SideUp 620 1 0 "p1"
+  (b, vb) <- trade w win w.bob SideDown 400 1 0 "p2"
+  (_, Some rc) <- submit w.venue do exerciseCmd va Leg_Merge with otherCid = vb
+  res <- resolveAt w win op px
+  _ <- submit w.venue do exerciseCmd a Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd b Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd rc Residual_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 1000)
+  cashOf w.bob >>= (=== 0)
+  cashOf w.venue >>= (=== 1000)                 -- 980 now + 20 at resolution
+
+-- Shares above the quantity (Alice Up at 300, Bob Down at 200): the merge
+-- releases the quantity and holds the excess for a void.
+testCrossPairMergeExcessThenVoid = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (a, va) <- trade w win w.alice SideUp 300 1 0 "p1"
+  (b, vb) <- trade w win w.bob SideDown 200 1 0 "p2"
+  (Some rel, Some rc) <- submit w.venue do exerciseCmd va Leg_Merge with otherCid = vb
+  Some relC <- queryContractId w.venue rel
+  relC.amount === 1000
+  Some r <- queryContractId w.venue rc
+  (r.heldIfVoid, r.owedIfResolved) === (500, 0)
+  res <- voidClose w win op
+  forA_ [a, b] \l -> submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd rc Residual_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 300)
+  cashOf w.bob >>= (=== 200)
+  cashOf w.venue >>= (=== 1500)
+
+-- A leg settles once: settle-settle and settle-claim both fail second.
+testSettleOnce = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 600 5 10 "p1"
+  res <- resolveAt w win op px
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  again <- trySubmit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  fails again
+  d <- disclosureOf w.venue res
+  claim <- trySubmit (actAs w.alice <> disclose d) do exerciseCmd u Leg_Claim with resolutionCid = res
+  fails claim
+  cashOf w.alice >>= (=== 5000)
+
+-- The owner's claim pays exactly what the venue's settle pays, for a win,
+-- a loss and a void. The claim needs the Resolution disclosed.
+testClaimEqualsSettle = script do
+  forA_ [(px + 1, "win"), (px - 1, "loss"), (0, "void")] \(close, label) -> do
+    (w, win) <- mkWorldWin
+    op <- recordOpen w win px
+    (u1, _) <- trade w win w.alice SideUp 620 3 9 "p1"
+    (u2, _) <- trade w win w.bob SideUp 620 3 9 "p2"
+    res <- if close == 0 then voidClose w win op else resolveAt w win op close
+    noDisclosure <- trySubmit w.alice do exerciseCmd u1 Leg_Claim with resolutionCid = res
+    fails noDisclosure
+    d <- disclosureOf w.venue res
+    _ <- submit (actAs w.alice <> disclose d) do exerciseCmd u1 Leg_Claim with resolutionCid = res
+    _ <- submit w.venue do exerciseCmd u2 Leg_Settle with resolutionCid = res
+    ca <- cashOf w.alice
+    cb <- cashOf w.bob
+    debug (label <> ": claim " <> show ca <> ", settle " <> show cb)
+    ca === cb
+    ca === (if label == "win" then 3000 else if label == "void" then 1869 else 0)
+
+-- The venue cannot accept a user's quote, nor mint a user's leg.
+testVenueCannotAcceptForUser = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  now <- getTime
+  q <- issue w win w.alice SideUp 600 1 0 (plus now 20) "p1"
+  c <- fund w w.alice 600
+  r <- trySubmit w.venue do exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = None
+  fails r
+  mint <- trySubmit w.venue do
+    createCmd Leg with
+      venue = w.venue; owner = w.alice; termsCid = win.terms; marketId = win.t.marketId
+      pairId = "x"; outcome = SideUp; lots = 1; cashUnit = 1; backingShare = 600; feePaid = 0
+      refundAfter = win.t.refundAfter; beneficiaryRef = None
+  unauthorized mint
+  cashOf w.alice >>= (=== 600)
+
+-- Bob cannot take Alice's quote (with or without seeing it), and Alice
+-- cannot pay with Bob's cash.
+testWrongUserCannotAccept = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  now <- getTime
+  q <- issue w win w.alice SideUp 600 1 0 (plus now 20) "p1"
+  cb <- fund w w.bob 600
+  r1 <- trySubmit w.bob do exerciseCmd q Quote_Accept with cash = [cb]; beneficiaryRef = None
+  fails r1
+  d <- disclosureOf w.venue q
+  r2 <- trySubmit (actAs w.bob <> disclose d) do exerciseCmd q Quote_Accept with cash = [cb]; beneficiaryRef = None
+  fails r2
+  dc <- disclosureOf w.venue cb
+  r3 <- trySubmit (actAs w.alice <> disclose dc) do exerciseCmd q Quote_Accept with cash = [cb]; beneficiaryRef = None
+  fails r3
+  cashOf w.bob >>= (=== 600)
+
+-- No venue-controlled path lowers what the owner holds.
+testVenueCannotConfiscate = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 600 2 5 "p1"
+  c <- fund w w.alice 777
+  let aliceValue = do
+        cash <- cashOf w.alice
+        legs <- query @Leg w.alice
+        pure (cash + sum [l.backingShare + l.feePaid | (_, l) <- legs, l.owner == w.alice])
+  before <- aliceValue
+  fails =<< trySubmit w.venue do exerciseCmd c VenueCash_Withdraw
+  fails =<< trySubmit w.venue do exerciseCmd c VenueCash_Split with take = 1
+  fails =<< trySubmit w.venue do archiveCmd c
+  fails =<< trySubmit w.venue do archiveCmd u
+  fails =<< trySubmit w.venue do exerciseCmd u Leg_RefundStale
+  refusedWith (refusal "not-venue-leg") =<< trySubmit w.venue do exerciseCmd u Leg_Merge with otherCid = u
+  sh <- shard w 5000
+  fails =<< trySubmit w.venue do exerciseCmd u Leg_CloseOut with shardCid = sh
+  -- a Resolution needs the resolver, so the venue cannot settle early
+  fails =<< trySubmit w.venue do
+    createCmd Resolution with
+      venue = w.venue; resolver = w.resolver; termsCid = win.terms; marketId = win.t.marketId
+      outcome = Some SideDown; voidReason = None; openPriceE8 = Some px; closePriceE8 = Some 0
+      openEvidence = []; closeEvidence = []; signers = 0
+  -- a buy-back needs Alice's acceptance
+  (bq, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 1; validUntil = plus win.t.tradingStart 60
+  fails =<< trySubmit w.venue do exerciseCmd bq BuyQuote_Accept
+  after <- aliceValue
+  after === before
+  -- settlement follows the resolution, not the venue's wish
+  res <- resolveAt w win op px
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 777 + 2000)
+
+-- The owner's stale refund works with the market gone: it fetches nothing.
+testStaleRefundWithoutMarket = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 4 12 "p1"
+  -- the venue archives the terms: the refund must not care
+  submit w.venue do archiveCmd win.terms
+  at (plus win.t.refundAfter (-1))
+  early <- trySubmit w.alice do exerciseCmd u Leg_RefundStale
+  refusedWith deadlineNotExceeded early
+  at win.t.refundAfter
+  _ <- submit w.alice do exerciseCmd u Leg_RefundStale
+  cashOf w.alice >>= (=== 2480 + 12)
+
+-- The documented limit: a losing leg left unsettled past refundAfter can
+-- still be refunded at cost; that is venue risk (ops alarms on any resolved
+-- market with unsettled legs). The venue can no longer settle it then.
+testStaleRefundLosingLegIsVenueRisk = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 1 8 "p1"
+  res <- resolveAt w win op (px - 1)            -- Down wins; Alice lost
+  at win.t.refundAfter
+  late <- trySubmit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  refusedWith deadlineExceeded late
+  _ <- submit w.alice do exerciseCmd u Leg_RefundStale
+  cashOf w.alice >>= (=== 628)
+
+-- Buy-back then pair-first merge: the venue ends holding the whole pair
+-- and nets it fully, with no residual.
+testBuyBackThenPairMerge = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- trade w win w.alice SideUp 620 2 20 "p1"
+  sh <- shard w 1500
+  now <- getTime
+  (bq, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 700; validUntil = plus now 20
+  (paid, vu, feeC) <- submit w.alice do exerciseCmd bq BuyQuote_Accept
+  Some p <- queryContractId w.alice paid
+  p.amount === 1400
+  (Some rel, residual) <- submit w.venue do exerciseCmd vu Leg_Merge with otherCid = v
+  residual === None
+  Some r <- queryContractId w.venue rel
+  r.amount === 2000
+  assertMsg "fee recognised at buy-back" (feeC /= None)
+  _ <- resolveAt w win op px
+  cashOf w.alice >>= (=== 1400)
+  -- venue: 1500 shard - 1400 paid + 20 fee + 2000 netted
+  cashOf w.venue >>= (=== 100 + 20 + 2000)
+
+-- Two-controller close-out at cost keeps the pair whole.
+testCloseOutAtCost = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- trade w win w.alice SideUp 620 1 8 "p1"
+  sh <- shard w 1000
+  (Some paid, vu, _) <- submit (actAs [w.venue, w.alice]) do exerciseCmd u Leg_CloseOut with shardCid = sh
+  Some p <- queryContractId w.alice paid
+  p.amount === 628
+  (Some rel, None) <- submit w.venue do exerciseCmd vu Leg_Merge with otherCid = v
+  Some r <- queryContractId w.venue rel
+  r.amount === 1000
+  _ <- voidClose w win op
+  cashOf w.venue >>= (=== 380 + 1000)          -- shard change + netted pair
+
+-- Account path: invite, accept, credit. Crediting needs no user action but
+-- only ever adds.
+testAccountCredit = script do
+  w <- mkWorld
+  inv <- submit w.venue do createCmd VenueAccountInvite with venue = w.venue; owner = w.alice; label = "seat-1"
+  acct <- submit w.alice do exerciseCmd inv Invite_Accept
+  _ <- submit w.venue do exerciseCmd acct VenueAccount_Credit with amount = 5000; bucket = "demo"
+  cashOf w.alice >>= (=== 5000)
+  neg <- trySubmit w.venue do exerciseCmd acct VenueAccount_Credit with amount = -1; bucket = "demo"
+  refusedWith (refusal "bad-amount") neg

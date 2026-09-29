@@ -28,6 +28,10 @@ const FIXTURES = [
   { href: "/dev/basket", label: "Baskets", note: "the composed mark at three sizes, a basket Window card trading and paused, the hero question in points, the hub holding none and two members, the /baskets card" },
   { href: "/dev/pyth-index", label: "Pyth valuation index", note: "the pre-IPO hub's figure bar without the index (today) and with it (an entitled key)" },
   { href: "/dev/desk", label: "The desk", note: "the studio at each step, the desk page in practice and live, paused, stopped, has not checked in, a frozen name, approvals waiting and expired, the record with a folded quiet run, a decision of each outcome, Check it passing and failing, the money sheet, the shared read-only view" },
+  { href: "/dev/canton-privacy", label: "Canton privacy", note: "the who-can-see-this chip on a position, a quote and a receipt; the Alice / Bob / Outsider switcher with the literal ledger query" },
+  { href: "/dev/seat", label: "Guest seat", note: "the seat menu leased and closing (party id, lease left, reset), pool full and draining plates, the seat link showing a code, expired and linked" },
+  { href: "/dev/ticket-canton", label: "Ticket on Canton", note: "D-081: three directions for the write steps and the 20 s held price, each live and in four states (confirming, placed, no answer, price ran out)" },
+  { href: "/dev/proof-canton", label: "Proof on Canton", note: "resolution evidence as a timeline (open print, three oracle quotes, median and spread, resolved or voided with its reason) beside Re-verify, and the trust-boundary note" },
 ] as const;
 
 export default function DevIndexPage() {
