@@ -11,7 +11,7 @@ import { createPrivateKey, sign as edSign } from "node:crypto";
 import { deskMandateText, mandateFingerprint, mandateToWire, presetMandate } from "@agari/core/desk";
 import { networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
 import { encodeBase58 } from "@agari/core/types";
-import { roleSecret } from "../deploy/ops-cluster";
+import { roleSecret } from "./cli";
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(name);
@@ -63,7 +63,7 @@ function shareText(i: { owner: string; on: boolean; signedAtIso: string }): stri
     "",
     `Owner: ${i.owner}`,
     `Signed at: ${i.signedAtIso}`,
-    networkLine("mainnet-beta"),
+    networkLine("mainnet"),
   ].join("\n");
 }
 
@@ -83,7 +83,7 @@ console.log(`desk-smoke: site ${site}, owner ${owner} (${role}), preset ${preset
 const existing = await view();
 const existingDesk = existing && !("error" in existing) ? (existing.desk as { mandateVersion?: number } | null) : null;
 const version = existingDesk ? (existingDesk.mandateVersion ?? 0) + 1 : 1;
-const text = deskMandateText({ owner: owner as never, cluster: "mainnet-beta", version, fingerprint, signedAtIso });
+const text = deskMandateText({ owner: owner as never, cluster: "mainnet", version, fingerprint, signedAtIso });
 const signature = signText(secret, text);
 const res = await fetch(`${site}/api/desk/${owner}/mandate`, {
   method: "POST",
