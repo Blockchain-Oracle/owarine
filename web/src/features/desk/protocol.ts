@@ -212,7 +212,9 @@ export const mandateRequestSchema = z.object({
 export const approvalRequestSchema = z.object({ owner: addressSchema, signature: messageSignatureSchema, approvalId: z.string(), answer: z.enum(["approve", "decline"]) });
 export const checkNowRequestSchema = z.object({ owner: addressSchema, signature: messageSignatureSchema, requestedAtIso: z.iso.datetime() });
 export const shareRequestSchema = z.object({ ...signed, on: z.boolean() });
-export const modeRequestSchema = z.object({ ...signed, mode: deskModeSchema, attach: z.object({ address: addressSchema, operator: addressSchema }).optional() });
+/** `attach.operator` is the desk's operator party (the agent-runner party, K-087), not a base58 key. */
+const operatorParty = z.string().regex(/^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/);
+export const modeRequestSchema = z.object({ ...signed, mode: deskModeSchema, attach: z.object({ address: addressSchema, operator: operatorParty }).optional() });
 export const ownerActionRequestSchema = z.object({ ...signed, kind: z.enum(["sell_all", "close"]) });
 export type OwnerActionKind = z.infer<typeof ownerActionRequestSchema>["kind"];
 

@@ -1,7 +1,9 @@
 /**
- * `@agari/markets/desk`: the agent desk. The reference's mainnet desk (Jupiter on Solana) becomes a Canton
- * `DeskMandate` whose live leg is gated on C7b; practice desks stay paper ledgers and never call this module. C1
- * stub: shapes and reference constants are kept, every read and write refuses as not live.
+ * `@agari/markets/desk`: the agent desk on Canton (C8f). The reference's mainnet desk (Jupiter on Solana) is a
+ * `DeskMandate` whose live leg trades this venue's own markets with venue cash (K-090, `canton.ts`); practice desks stay
+ * paper ledgers (K-091). Reads go over the ledger on a server and over the app's routes in a browser or the phone; the
+ * owner writes through the routes as the leased seat; the operator (the agent-runner party) trades, sells, seals and
+ * pauses through `operator.ts`.
  */
 export {
   DESK_MINTS,
@@ -14,6 +16,7 @@ export {
   type DeskAllowedToken,
   type DeskEvent,
   type DeskEventName,
+  type DeskLedgerAccess,
   type DeskHistoryEntry,
   type DeskInitPlan,
   type DeskInitRecord,
@@ -33,7 +36,15 @@ export {
   type SealedAction,
   type SignatureOutcome,
 } from "./types";
+export * from "./canton";
+export * from "./wire";
+export { DeskSendError, DeskSendUnknownError } from "./errors";
 export {
+  createDeskLedgerRpc,
+  findMandate,
+  mintOf,
+  namesOfAllowList,
+  readMandates,
   associatedTokenAddress,
   chainNowSec,
   createBrowserDeskRpc,
@@ -60,8 +71,6 @@ export {
   buyIx,
   checkpoint,
   createDeskOperatorClient,
-  DeskSendError,
-  DeskSendUnknownError,
   forkAirdrop,
   forkSetTokenAccount,
   forkTimeTravel,
@@ -71,7 +80,9 @@ export {
   postReferenceInstructions,
   prewarmRoute,
   quoteSwap,
+  quotingWindow,
   refreshRoute,
+  VENUE_ROUTE_LABEL,
   sell,
   sendForRefusal,
   swapInstructions,
@@ -94,4 +105,5 @@ export {
   type SwapAction,
   type SwapInstructionsInput,
   type SwapResult,
+  type VenuePreview,
 } from "./operator";

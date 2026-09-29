@@ -1,10 +1,13 @@
 /**
- * The desk's shapes and reference constants (C1 stub). The reference's `agari-desk` bought PreStocks through Jupiter
- * on Solana mainnet; on Canton the desk becomes a `DeskMandate` over an `AgentGrant` whose live leg trades the venue's
- * own markets and is gated on C7b, while practice desks stay paper ledgers. The shapes the web, the app and the
- * desk runner read are kept (addresses as core `Address`, ids as core `Signature`); nothing in C1 produces a live one.
+ * The desk's shapes and reference constants (C8f). The reference's `agari-desk` bought PreStocks through Jupiter on
+ * Solana mainnet; on Canton the desk is a `DeskMandate` over an embedded `AgentGrant` whose live leg trades the venue's
+ * own markets with venue cash (K-090, `canton.ts` has the mapping), while practice desks stay paper ledgers (K-091).
+ * The shapes the web, the app and the desk runner read are kept (addresses as core `Address`, ids as core
+ * `Signature`): a "slot" is a ledger offset, a "signature" is a ledger update id, a "mint" names a PreStocks company
+ * (the reference's key), a "token" is one lot of that company's pre-IPO Window.
  */
 import type { DeskMode } from "@agari/core/desk";
+import type { LedgerClient, Party } from "@agari/ledger";
 import { PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol } from "@agari/core/market";
 import type { Address, Hash32, Signature } from "@agari/core/types";
 
@@ -23,9 +26,26 @@ const SYMBOL_OF_MINT = new Map<string, PreIpoSymbol>(PRE_IPO_SYMBOLS.map((symbol
 export const deskSymbolOfMint = (mint: string): PreIpoSymbol | null => SYMBOL_OF_MINT.get(mint) ?? null;
 export const tokenProgramOf = (mint: Address, usdcMint: Address = USDC_MAINNET): Address => (mint === usdcMint ? TOKEN_PROGRAM : TOKEN_2022_PROGRAM);
 
-/** The desk's ledger read surface. Opaque in C1 (the Canton desk reads through the ledger adapter, C8). */
+/**
+ * The desk's read surface. `endpoint` is the app's ledger routes (`/api/ledger`, the browser and the phone); a server
+ * (the web tier, the desk runner) reads the ledger directly through `ledger`.
+ */
 export interface DeskRpc {
   readonly endpoint: string;
+  readonly ledger?: DeskLedgerAccess;
+}
+
+/** A server's direct ledger access for desk reads (never in a browser). */
+export interface DeskLedgerAccess {
+  client: LedgerClient;
+  /** The venue party: every mandate, decision and mark is visible to it (read-only). */
+  venue: Party;
+  /** The parties reads are made as (the venue, or the operator when the process holds no venue credential). */
+  readAs: readonly Party[];
+  /** The desk operator (the agent-runner party), for finding the operator's own commands. */
+  operator?: Party | null;
+  /** A seat's address (base58 key) to its leased party, when this process can see the lease table. */
+  resolveOwner?: (address: string) => Promise<Party | null>;
 }
 
 export interface DeskTokenAccountState {

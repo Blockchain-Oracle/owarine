@@ -1,18 +1,20 @@
 /**
- * The desk runner's environment (S21 C4, plan §8), read once at boot. On Canton the live desk is a Canton desk whose
- * live leg is gated on C7b (plan "Adapted rows"), so there is no chain endpoint to default to: `DESK_RPC_URL` is kept
- * for the reader's shape and the C1 desk reader refuses with its not-live reason. Practice desks need nothing.
+ * The desk runner's environment (S21 C4, plan §8; Canton C8f), read once at boot. The live desk's operator is the
+ * agent-runner party (K-087: `AGENT_RUNNER_PARTY` or the parties file), acting through the process's ledger client; the
+ * venue's ladders and firm quotes come from the ops process itself when the venue runs here, else from
+ * `OPS_INTERNAL_URL` (signed with `OPS_INTERNAL_SECRET`; `/ladders/latest` is public). Practice desks need nothing.
  */
 import type { DeskCluster } from "@agari/db";
-import { roleSecret } from "../../runtime/keys";
+import { roleParty } from "../../runtime/keys";
 
 export interface DeskRunnerEnv {
-  /** `desk-runner`: the operator role's 64-byte keypair; null means nothing is sent. */
-  operatorSecret: Uint8Array | null;
-  /** `price-attestor`: signs the venue reference the program measures against; null means references are never refreshed here. */
-  attestorSecret: Uint8Array | null;
-  /** May carry a provider key. Never log it. */
+  /** The operator party (the agent-runner role); null means live desks are read and recorded, never traded. */
+  operatorParty: string | null;
+  /** Reference-only (the Solana RPC); unused on Canton. */
   rpcUrl: string;
+  /** Ops' internal URL and secret, for a runner outside the venue's process (ladders, firm quotes). */
+  opsUrl: string | undefined;
+  opsSecret: string | undefined;
   cluster: DeskCluster;
   intervalMs: number;
   maxModelCallsPerHour: number;
@@ -53,9 +55,10 @@ export function readDeskRunnerEnv(env: NodeJS.ProcessEnv = process.env): DeskRun
   const modelStub = clusterOf(env) === "localnet" && stub && (MODEL_STUBS as readonly string[]).includes(stub) ? (stub as DeskModelStub) : undefined;
   return {
     ...(modelStub ? { modelStub } : {}),
-    operatorSecret: roleSecret("desk-runner", env),
-    attestorSecret: roleSecret("price-attestor", env),
+    operatorParty: roleParty("agent-runner", env),
     rpcUrl: deskRpcUrl(env),
+    opsUrl: env.OPS_INTERNAL_URL?.trim() || undefined,
+    opsSecret: env.OPS_INTERNAL_SECRET?.trim() || undefined,
     cluster: clusterOf(env),
     intervalMs: intEnv(env, "DESK_INTERVAL_MS", DEFAULT_INTERVAL_MS, 5_000),
     maxModelCallsPerHour: intEnv(env, "DESK_MAX_MODEL_CALLS_PER_HOUR", DEFAULT_MAX_CALLS_PER_HOUR, 1),

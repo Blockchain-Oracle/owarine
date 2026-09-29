@@ -6,7 +6,7 @@
  */
 export const DESK = {
   eyebrow: {
-    live: "YOUR DESK · LIVE DESK · PLANNED",
+    live: "YOUR DESK · LIVE DESK",
     practice: "YOUR DESK · PRACTICE · NO MONEY MOVES",
     visitorLive: "SOMEONE ELSE'S DESK · LIVE · READ-ONLY",
     visitorPractice: "SOMEONE ELSE'S DESK · PRACTICE · READ-ONLY",
@@ -74,13 +74,13 @@ export const DESK = {
     },
     read: {
       title: "Read my basket now",
-      body: "One real cycle, no money: real PreStocks prices, real quotes at your size, PreStocks' 1% fee counted, the one AI question asked and answered. Signing the mandate starts your practice desk with a practice balance; nothing moves.",
+      body: "One real cycle, no money: real PreStocks prices, fills at the attested print with PreStocks' 1% fee counted, the one AI question asked and answered. Signing the mandate starts your practice desk with a practice balance; nothing moves.",
       practiceCash: "Practice balance",
       practiceCashNote: "Pretend money the desk counts with. Change it to the amount you would really put in.",
       run: "Read my basket now",
       again: "Read it again",
       signing: "Sign the mandate with your seat…",
-      waiting: "The desk is reading your basket. Real prices, real quotes, one AI question; about a minute.",
+      waiting: "The desk is reading your basket. Real prices, one AI question; about a minute.",
       throttled: (until: string) => `The desk already checked a moment ago. It looks again at ${until}, or at the next check.`,
       first: "The first decision",
       heard: "Here is how I understood you",
@@ -92,7 +92,7 @@ export const DESK = {
     create: {
       title: "Create your desk",
       practice: { title: "Practice", body: "One signature. The desk exists as a record with a practice balance. Every hour it reads real prices and writes down what it would have done. No transaction, no money, no eligibility.", button: "Sign and start in practice", done: "Your practice desk exists." },
-      live: { title: "Live", body: "Planned: the live desk trades this venue's own markets once the Canton Coin rail lands. Practice runs today.", button: "Open the live desk", needsPractice: (n: number) => `Go live unlocks after ${n} practice checks and the record opened. Start in practice first.` },
+      live: { title: "Live", body: "The live desk trades this venue's own markets with your seat's cash: a company is held as its hourly Window, bought and sold at the venue's firm price, inside limits the ledger enforces.", button: "Open the live desk", needsPractice: (n: number) => `Go live unlocks after ${n} practice checks and the record opened. Start in practice first.` },
       applied: "Mandate applied.",
       apply: "Sign the new version",
       connect: "Take a seat to sign. Signing costs nothing and moves nothing.",
