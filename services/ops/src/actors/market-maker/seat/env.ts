@@ -9,6 +9,8 @@ export interface SeatMakerEnv {
   symbols: TickerSymbol[] | null;
   cadencesSec: number[];
   sigmaBps: (symbol: TickerSymbol) => number;
+  /** The `MM_SIGMA_BPS` value for this symbol (its own, else the global one), or null when none was set. */
+  sigmaOverride: (symbol: TickerSymbol) => number | null;
   halfSpreadTicks: number;
   /** `MM_ORDER_TYPE`: `post-only` rests only (default, today's behaviour); `limit` also takes resting user calls (D-090). */
   orderType: "post-only" | "limit";
@@ -37,11 +39,11 @@ const num = (raw: string | undefined, fallback: number, min: number) => {
  * than any one of them, and no basket has traded long enough to measure; override per symbol once it has.
  */
 /** A valuation lane (S20) follows a company's valuation index, which moves like a single name. */
-// crypto: a 60 % annualised placeholder for BTC and ETH until C6 re-measures their realised volatility, which it
-// does before any crypto fair value goes live (plan C6); `MM_SIGMA_BPS` overrides it per symbol meanwhile.
+// crypto: never used by the pricer (C6). A crypto Window is priced only on the vol meter's measured σ (24/7, calendar
+// year) or an `MM_SIGMA_BPS` override; this 60 % is the table's type-complete entry, not a fallback.
 export const DEFAULT_SIGMA_BPS = { stock: 4_500, etf: 2_000, preIpo: 4_500, basket: 3_000, valuation: 4_500, crypto: 6_000 } as const;
 
-function sigmaTable(raw: string | undefined): (symbol: TickerSymbol) => number {
+function sigmaOverrides(raw: string | undefined): (symbol: TickerSymbol) => number | null {
   const perSymbol = new Map<string, number>();
   let all: number | null = null;
   for (const part of (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean)) {
@@ -49,7 +51,7 @@ function sigmaTable(raw: string | undefined): (symbol: TickerSymbol) => number {
     if (b === undefined) all = num(a, 0, 1) || null;
     else perSymbol.set(a!.toUpperCase(), num(b, 0, 1));
   }
-  return (symbol) => perSymbol.get(symbol) || all || DEFAULT_SIGMA_BPS[TICKERS[symbol].kind];
+  return (symbol) => perSymbol.get(symbol) || all || null;
 }
 
 export function readSeatMakerEnv(env: NodeJS.ProcessEnv = process.env): SeatMakerEnv {
@@ -57,10 +59,12 @@ export function readSeatMakerEnv(env: NodeJS.ProcessEnv = process.env): SeatMake
   const cadences = (env.MM_CADENCES ?? "").split(",").map(Number).filter((n) => [300, 900, 3_600].includes(n));
   const tusdc = (raw: string | undefined, fallback: number) => BigInt(num(raw, fallback, 1)) * 1_000_000n;
   const cash = Number(env.MM_MAX_CASH_PER_WINDOW);
+  const sigmaOverride = sigmaOverrides(env.MM_SIGMA_BPS);
   return {
     symbols: symbols.length ? symbols : null,
     cadencesSec: cadences.length ? cadences : [300, 900, 3_600],
-    sigmaBps: sigmaTable(env.MM_SIGMA_BPS),
+    sigmaBps: (symbol) => sigmaOverride(symbol) ?? DEFAULT_SIGMA_BPS[TICKERS[symbol].kind],
+    sigmaOverride,
     halfSpreadTicks: num(env.MM_HALF_SPREAD_TICKS, 30, 1),
     orderType: env.MM_ORDER_TYPE?.trim().toLowerCase() === "limit" ? "limit" : "post-only",
     quoteLots: BigInt(num(env.MM_QUOTE_LOTS, 5_000, 1)),

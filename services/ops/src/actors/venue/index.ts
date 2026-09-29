@@ -35,6 +35,7 @@ import { createSeatFunding } from "../seat-funding";
 import { startSeatDrain } from "../seat-funding/drain";
 import { startSettler } from "../settler";
 import { startWindowRoller } from "../window-roller";
+import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 
 export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve"] as const;
@@ -72,7 +73,10 @@ export async function startCantonVenue(input: {
   if (on("oracles")) stops.push(startOracleFeeders(venue, input.log).stop);
   if (on("resolver")) stops.push((await startResolver(input.log("resolver"), venue)).stop);
   const settings = readPricerSettings();
-  if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings }).stop);
+  // C6: the crypto lanes are priced only on a measured realised σ (24/7 clock), re-measured every 30 min.
+  const vol = on("pricer") && session ? startVolMeter(input.log("vol-meter")) : null;
+  if (vol) stops.push(vol.stop);
+  if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings, vol }).stop);
   const draining = new Set<string>();
   const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining }) : null;
   if (issuer) stops.push(issuer.stop);
