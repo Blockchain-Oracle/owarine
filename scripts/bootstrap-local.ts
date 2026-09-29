@@ -7,21 +7,26 @@
  *      users named with `--users alice,bob`,
  *   3. creates the VenueDesk, K venue cash shards and the BTC/ETH Series on every crypto cadence (C6: 60 s demo, 300,
  *      900 and 3,600 s, and Masayume's 4 h and 1 d),
- *   4. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
+ *   4. (C8c) uploads abu-pm-tickets and creates the ticket reserves: per reserve (range, parlay, boost) a
+ *      `NavStatement` (auditor-visible) and a `RiskBook`, one `EarnDesk`, and seeds each reserve from the LP party
+ *      (`--reserve-seed` credits in 4 supplies, then the first `Earn_PublishNav`),
+ *   5. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
  *
- *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8] [--fresh]
+ *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
+ *     [--reserve-seed 10000] [--no-tickets] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import {
   attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
   SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS, type AttestedSource,
 } from "@agari/core/market";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
+import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
 
@@ -30,6 +35,9 @@ if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs again
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
 const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.3.0.dar"));
+const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.0.dar"));
+/** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
+const RESERVE_SEED_BASE = BigInt(arg("--reserve-seed", "10000")) * 1_000_000n;
 const SHARDS = Number(arg("--shards", process.env.VENUE_SHARDS ?? "16"));
 /** Base units (demo credits × 10⁶). 2,000 credits a shard: above the worst per-quote venue stake (`MM_MAX_QUOTE_LOTS` × 999 × cashUnit). */
 const SHARD_BASE = BigInt(arg("--shard-base", "2000000000"));
@@ -228,6 +236,8 @@ async function main(): Promise<void> {
     log(`created Series ${lane.seriesKey} (cadence ${lane.cadenceSec} s, lock lead ${lane.lockLeadSec} s, anchor ${new Date(anchorSec * 1000).toISOString()}, ${lane.versions.map((v) => v.printSource).join(" → ")})`);
   }
 
+  if (!flag("--no-tickets")) await bootstrapTickets(venue, parties.auditor!, parties.lp!);
+
   const file: PartiesFile = { network: "local", createdAtMs: Date.now(), parties, users, policyVersion: POLICY_VERSION };
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, `${JSON.stringify(file, null, 2)}\n`, { mode: 0o600 });
@@ -235,3 +245,77 @@ async function main(): Promise<void> {
 }
 
 await main();
+
+/**
+ * C8c: the ticket reserves. Idempotent per piece: a reserve that already has its statement, book or shares is left as
+ * it is, so re-running only fills gaps. The LP party opens a `VenueAccount` (invite + accept, both signed here on the
+ * local sandbox), is credited the seed, and supplies it at the first statement's 1:1 price; the first `Earn_PublishNav`
+ * then states the pooled cash and the shares.
+ */
+async function bootstrapTickets(venue: string, auditor: string, lp: string): Promise<void> {
+  if (!existsSync(TICKETS_DAR)) throw new Error(`${TICKETS_DAR} is missing: run \`dpm build --all\` in daml/ first`);
+  await client.uploadDar(readFileSync(TICKETS_DAR));
+  log(`uploaded ${TICKETS_DAR.split("/").slice(-1)[0]}`);
+  const vs = session("venue", venue);
+  const read = () => readActive(vs, [TEMPLATE_IDS.NavStatement, TICKET_TEMPLATE_IDS.RiskBook, TICKET_TEMPLATE_IDS.EarnDesk, TEMPLATE_IDS.LpShare, TEMPLATE_IDS.VenueCash]);
+  let acs = await read();
+  const nowSec = () => Math.floor(Date.now() / 1000);
+
+  if (!acs.some((c) => c.createdEvent.templateId.endsWith(":PM.Tickets.Earn:EarnDesk"))) {
+    await submitAs(venue, `bootstrap:earndesk:${run}`, [tcmd.createEarnDesk(venue)]);
+    log("created the EarnDesk");
+  }
+  const navs = pick(acs, TEMPLATE_IDS.NavStatement, decodeNavStatement);
+  const books = pick(acs, TICKET_TEMPLATE_IDS.RiskBook, decodeRiskBook);
+  for (const reserve of TICKET_RESERVES) {
+    const commands = [];
+    if (!navs.some((n) => n.data.reserveId === reserve)) commands.push(tcmd.createNavStatement({ venue, auditor, reserveId: reserve, asOfSec: nowSec() }));
+    if (!books.some((b) => b.data.reserveId === reserve)) commands.push(tcmd.createRiskBook({ venue, reserveId: reserve, product: productOf(reserve), params: riskParamsFor(reserve) }));
+    if (commands.length) {
+      await submitAs(venue, `bootstrap:reserve:${reserve}:${run}`, commands);
+      log(`created the ${reserve} reserve's ${commands.length === 2 ? "statement and book" : "missing piece"}`);
+    }
+  }
+
+  // The LP's account, once.
+  const lpAcs = await client.activeContracts({ parties: [lp], templateIds: [TEMPLATE_IDS.VenueAccount] });
+  let accountCid = lpAcs.contracts.find((c) => (c.createdEvent.createArgument as { owner?: string }).owner === lp)?.createdEvent.contractId;
+  if (!accountCid) {
+    const invited = await client.submitAndWaitForTransaction({ actAs: [venue], commandId: `bootstrap:lp-invite:${run}`, commands: [cmd.inviteAccount(venue, lp, "lp")] });
+    const invite = invited.transaction.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : []))[0]!.contractId;
+    const accepted = await client.submitAndWaitForTransaction({ actAs: [lp], commandId: `bootstrap:lp-accept:${run}`, commands: [cmd.acceptInvite(invite)] });
+    accountCid = accepted.transaction.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : []))[0]!.contractId;
+    log("opened the LP's venue account");
+  }
+
+  acs = await read();
+  const shares = pick(acs, TEMPLATE_IDS.LpShare, decodeLpShare);
+  for (const reserve of TICKET_RESERVES) {
+    if (shares.some((s) => s.data.reserveId === reserve && s.data.provider === lp)) continue;
+    const nav = pick(acs, TEMPLATE_IDS.NavStatement, decodeNavStatement).find((n) => n.data.reserveId === reserve)!;
+    const piece = RESERVE_SEED_BASE / 4n;
+    for (let i = 0; i < 4; i++) {
+      const credited = await client.submitAndWaitForTransaction({ actAs: [venue], commandId: `bootstrap:lp-credit:${reserve}:${i}:${run}`, commands: [cmd.creditAccount(accountCid, piece, "lp-seed")] });
+      const cash = credited.transaction.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : [])).find((e) => e.templateId.endsWith(":PM.Money:VenueCash"))!.contractId;
+      const issued = await client.submitAndWaitForTransaction({ actAs: [venue], commandId: `bootstrap:supply:${reserve}:${i}:${run}`, commands: [tcmd.issueSupply(nav.cid, { provider: lp, cashIn: piece, validUntilSec: nowSec() + 120 })] });
+      const quote = issued.transaction.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : [])).find((e) => e.templateId.endsWith(":PM.Reserve:SupplyQuote"))!.contractId;
+      await client.submitAndWaitForTransaction({ actAs: [lp], commandId: `bootstrap:supply-accept:${reserve}:${i}:${run}`, commands: [tcmd.acceptSupply(quote, [cash])] });
+    }
+    log(`seeded the ${reserve} reserve with ${RESERVE_SEED_BASE / 1_000_000n} credits from the LP`);
+  }
+
+  // The first statement of each seeded reserve: its cash and its shares, counted on ledger.
+  acs = await read();
+  const earnDesk = acs.find((c) => c.createdEvent.templateId.endsWith(":PM.Tickets.Earn:EarnDesk"))!.createdEvent.contractId;
+  for (const reserve of TICKET_RESERVES) {
+    const nav = pick(acs, TEMPLATE_IDS.NavStatement, decodeNavStatement).find((n) => n.data.reserveId === reserve)!;
+    const cash = pick(acs, TEMPLATE_IDS.VenueCash, decodeVenueCash).filter((c) => c.data.owner === venue && c.data.bucket === `reserve:${reserve}`);
+    const lpShares = pick(acs, TEMPLATE_IDS.LpShare, decodeLpShare).filter((s) => s.data.reserveId === reserve);
+    const assets = cash.reduce((a, c) => a + c.data.amount, 0n);
+    // Only the first statement: from then on ops' keeper publishes, counting the live tickets too.
+    if (nav.data.seq > 0) continue;
+    const inputs = { cash: cash.map((c) => c.cid), lpShares: lpShares.map((s) => s.cid), withdrawQuotes: [], rangeQuotes: [], rounds: [], parlayQuotes: [], tickets: [], boostQuotes: [], positions: [] };
+    await submitAs(venue, `bootstrap:nav:${reserve}:${run}`, [tcmd.publishNav(earnDesk, nav.cid, nowSec(), inputs)]);
+    log(`published the ${reserve} reserve's statement: ${assets / 1_000_000n} credits, ${lpShares.length} share contract(s)`);
+  }
+}

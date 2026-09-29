@@ -12,6 +12,10 @@ import { z } from "zod";
 import { ladderLatestWire, parseLadder } from "../runtime/ladder";
 import { ladderMid2 } from "./map";
 import { exitQuoteReplyWire, quoteReplyWire, toWire, type ExitQuoteReply, type ExitQuoteRequest, type QuoteReply, type QuoteRequest } from "../provider/ledger-wire";
+import {
+  boostTicketReplyWire, earnReplyWire, parlayTicketReplyWire, rangeTicketReplyWire, ticketStateReplyWire,
+  type BoostTicketReply, type EarnReply, type ParlayTicketReply, type RangeTicketReply, type TicketStateReply,
+} from "../provider/ticket-wire";
 
 export const OPS_TS_HEADER = "x-agari-ops-ts";
 export const OPS_SIG_HEADER = "x-agari-ops-sig";
@@ -19,6 +23,17 @@ export const OPS_SKEW_MS = 30_000;
 export const OPS_QUOTES_PATH = "/internal/quotes";
 export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
 export const OPS_EXIT_QUOTES_PATH = "/internal/exit-quotes";
+/** The ticket desk (C8c): `range`, `parlay`, `boost`, `earn` and `state` under this prefix. */
+export const OPS_TICKETS_PREFIX = "/internal/tickets/";
+
+const TICKET_REPLIES = { range: rangeTicketReplyWire, parlay: parlayTicketReplyWire, boost: boostTicketReplyWire, earn: earnReplyWire } as const;
+export type TicketDeskProduct = keyof typeof TICKET_REPLIES;
+export interface TicketDeskReplies {
+  range: RangeTicketReply;
+  parlay: ParlayTicketReply;
+  boost: BoostTicketReply;
+  earn: EarnReply;
+}
 
 export function opsSignature(secret: string, ts: number, method: string, path: string, body: string): string {
   return `v1=${createHmac("sha256", secret).update(`${ts}.${method.toUpperCase()}.${path}.${body}`).digest("hex")}`;
@@ -101,6 +116,18 @@ export function createOpsClient(cfg: OpsClientConfig) {
   }
 
   let marks: { atMs: number; value: Promise<ReadonlyMap<string, number>> } | null = null;
+  let fair: { atMs: number; value: Promise<ReadonlyMap<string, number>> } | null = null;
+  async function readFair(): Promise<ReadonlyMap<string, number>> {
+    const res = await doFetch(`${base}/ladders/latest`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(cfg.timeoutMs ?? 3_000), cache: "no-store" } as RequestInit);
+    if (!res.ok) throw new Error(`ladders ${res.status}`);
+    const parsed = ladderLatestWire.parse(await res.json());
+    const out = new Map<string, number>();
+    for (const raw of parsed.ladders) {
+      const l = parseLadder(raw);
+      if (l && l.state === "quoting" && typeof l.fairTicks === "number") out.set(l.termsCid, l.fairTicks);
+    }
+    return out;
+  }
   async function readMarks(): Promise<ReadonlyMap<string, number>> {
     const res = await doFetch(`${base}/ladders/latest`, { headers: { accept: "application/json" }, signal: AbortSignal.timeout(cfg.timeoutMs ?? 3_000), cache: "no-store" } as RequestInit);
     if (!res.ok) throw new Error(`ladders ${res.status}`);
@@ -136,6 +163,28 @@ export function createOpsClient(cfg: OpsClientConfig) {
       if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };
       const parsed = exitQuoteReplyWire.safeParse(r.json);
       return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown(`ops exit quote reply did not parse: ${parsed.error.message.slice(0, 200)}`) };
+    },
+    /** The venue ladder's fair YES ticks by terms id (public `/ladders/latest`), cached 1 s: a boost's live mark. */
+    fairTicks(): Promise<ReadonlyMap<string, number>> {
+      if (fair && now() - fair.atMs < 1_000) return fair.value;
+      const entry = { atMs: now(), value: readFair() };
+      fair = entry;
+      entry.value.catch(() => fair === entry && (fair = null));
+      return entry.value;
+    },
+    /** A ticket preview, a firm ticket or liquidity quote, a requote, or a refusal (C8c). WHO comes from the lease only. */
+    async ticket<P extends TicketDeskProduct>(product: P, request: Record<string, unknown> & { party?: string; leaseId?: string }): Promise<TicketDeskReplies[P]> {
+      const r = await post(`${OPS_TICKETS_PREFIX}${product}`, request);
+      if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis } as TicketDeskReplies[P];
+      const parsed = TICKET_REPLIES[product].safeParse(r.json);
+      return (parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown(`ops ${product} reply did not parse: ${parsed.error.message.slice(0, 200)}`) }) as TicketDeskReplies[P];
+    },
+    /** The three ticket reserves as ops reads them; null when ops has no ticket desk or is unreachable. */
+    async ticketState(): Promise<{ ok: true; value: TicketStateReply } | { ok: false; diagnosis: Diagnosis }> {
+      const r = await post(`${OPS_TICKETS_PREFIX}state`, {});
+      if (!r.ok) return r;
+      const parsed = ticketStateReplyWire.safeParse(r.json);
+      return parsed.success ? { ok: true, value: parsed.data } : { ok: false, diagnosis: rpcDown(`ops ticket state did not parse: ${parsed.error.message.slice(0, 200)}`) };
     },
     async fundSeat(request: { party: string; leaseId: string; address: string }): Promise<SeatFundReply> {
       const r = await post(OPS_SEAT_FUND_PATH, request);

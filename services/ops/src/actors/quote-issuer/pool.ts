@@ -54,7 +54,12 @@ export class ShardPool {
   /** Shards this process saw consumed, so a snapshot read before the consuming write cannot bring them back. */
   private readonly tombstones = new Map<string, number>();
 
-  constructor(private readonly opts: { venue: string; maxWaitMs?: number }) {}
+  /** `bucket` picks the cash this pool leases: the venue's trading shards by default, one reserve's bucket for a ticket reserve (C8c). */
+  constructor(private readonly opts: { venue: string; maxWaitMs?: number; bucket?: (bucket: string) => boolean }) {}
+
+  private accepts(bucket: string): boolean {
+    return (this.opts.bucket ?? isShardBucket)(bucket);
+  }
 
   /** Reconciles with a fresh read of the venue's cash: new shards join free; free or quarantined ones that vanished are dropped. */
   sync(active: readonly Active<VenueCashC>[]): { added: number; dropped: number } {
@@ -64,7 +69,7 @@ export class ShardPool {
     const nowMs = Date.now();
     for (const [cid, atMs] of this.tombstones) if (nowMs - atMs > TOMBSTONE_MS) this.tombstones.delete(cid);
     for (const c of active) {
-      if (c.data.owner !== this.opts.venue || c.data.venue !== this.opts.venue || !isShardBucket(c.data.bucket) || this.tombstones.has(c.cid)) continue;
+      if (c.data.owner !== this.opts.venue || c.data.venue !== this.opts.venue || !this.accepts(c.data.bucket) || this.tombstones.has(c.cid)) continue;
       seen.add(c.cid);
       if (!this.shards.has(c.cid)) {
         this.shards.set(c.cid, { cid: c.cid, amount: c.data.amount, state: "free", sinceMs: Date.now() });
@@ -149,7 +154,7 @@ export class ShardPool {
       else Object.assign(s, { state: "free", sinceMs: Date.now(), purpose: undefined });
     }
     for (const c of created) {
-      if (c.data.owner !== this.opts.venue || c.data.venue !== this.opts.venue || !isShardBucket(c.data.bucket) || this.shards.has(c.cid)) continue;
+      if (c.data.owner !== this.opts.venue || c.data.venue !== this.opts.venue || !this.accepts(c.data.bucket) || this.shards.has(c.cid)) continue;
       this.shards.set(c.cid, { cid: c.cid, amount: c.data.amount, state: "free", sinceMs: Date.now() });
     }
     this.serveWaiters();

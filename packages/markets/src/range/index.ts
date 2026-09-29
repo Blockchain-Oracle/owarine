@@ -17,4 +17,4 @@ export {
   type RangeTxContext,
   type RangeWindowBasis,
 } from "./read";
-export { submitRangeOpenWrite, submitRangeTx } from "./writes";
+export { rangeOpenLane, rangeTxLane, submitRangeOpenWrite, submitRangeTx } from "./writes";

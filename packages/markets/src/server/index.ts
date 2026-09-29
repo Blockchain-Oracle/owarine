@@ -14,3 +14,6 @@ export * from "./seat-ledger";
 export * from "./view";
 export * from "./writes";
 export * from "./publish";
+export * from "../provider/ticket-wire";
+export * from "./tickets";
+export * from "./tickets-read";

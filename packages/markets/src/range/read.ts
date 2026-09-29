@@ -1,4 +1,4 @@
-/** The range reserve on Canton (C8). Reads that need the package answer not-live; the rest are empty (D-015). */
+/** The range reserve on Canton (C8c): the `range` ticket reserve, read and priced through `/api/ledger/tickets/*`. */
 import { multiplierMilli, type RangeBasis, type RangeDeployment, type RangeIntent, type RangeMode, type RangeParams, type RangeQuote, type RangeReserveState, type RangeRound, type RangeSide } from "@agari/core/range";
 import type { IntentJournal, PhaseListener } from "@agari/core/ports";
 import type { Reading } from "@agari/core/schemas";
@@ -7,10 +7,12 @@ import type { Address, Diagnosis, MarketId, Signature } from "@agari/core/types"
 import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";
 import { cantonNotLive } from "../stub/not-deployed";
-import { refusedFor } from "../stub/product";
+import { allowAllStopGate } from "../submitter/stop-gate";
+import { reserveAddressOf } from "../tickets/client";
 import type { VaultContracts } from "../vault/contracts";
+import { rangeOpenLane } from "./writes";
 
-/** The reason every range read that needs the reserve, and every range write, states until C8. */
+/** Kept for the reference's export: what a range surface says where the ticket desk is not reachable. */
 export const RANGE_NOT_LIVE = cantonNotLive("range");
 
 /** What the pricing reads off the Window: the opening print, where the book sits, the house's σ. */
@@ -49,9 +51,9 @@ export type RangeOpenOutcome =
   | { status: "reverted"; diagnosis: Diagnosis; txHash?: Signature }
   | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
 
-/** No range package on the participant yet. */
+/** The range reserve's id on Canton (derived; whether it is live is `getRangeReserveState`). */
 export function resolveRangeDeployment(_env?: Partial<MarketsEnv>): RangeDeployment | null {
-  return null;
+  return { chainId: 0, rangeReserve: reserveAddressOf("range"), fromBlock: 0n };
 }
 
 export { getRange, getRangeReserveState, getRangeSharesOf, listRangesOf } from "./reads";
@@ -71,6 +73,7 @@ export function toRangeQuote(preview: RangePreview, side: RangeSide, maxPayoutBa
   };
 }
 
-export async function submitRangeOpen(_ctx: RangeTxContext, _intent: Extract<RangeIntent, { kind: "range-open" }>, _onPhase?: PhaseListener): Promise<RangeOpenOutcome> {
-  return refusedFor(RANGE_NOT_LIVE);
+/** The open outside a session's submitter (scripts): the same ticket lane, journaled in `ctx.journal`, no daily stop. */
+export function submitRangeOpen(ctx: RangeTxContext, intent: Extract<RangeIntent, { kind: "range-open" }>, onPhase?: PhaseListener): Promise<RangeOpenOutcome> {
+  return rangeOpenLane({ wallet: ctx.wallet, journal: ctx.journal, stopGate: allowAllStopGate, nowMs }, intent, onPhase);
 }

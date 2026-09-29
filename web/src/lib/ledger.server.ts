@@ -1,7 +1,7 @@
 import "server-only";
 import { getDb } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
-import { createOpsClient, createSeatLedger, type OpsClient, type SeatLedger } from "@agari/markets/server";
+import { createOpsClient, createSeatLedger, createTicketSeat, type OpsClient, type SeatLedger, type TicketSeat } from "@agari/markets/server";
 import { checkWebServerEnv, seatParties, type SeatParties, type WebServerEnv } from "./server-env";
 import { createSeatStore, type SeatStore } from "./seat-store.server";
 
@@ -14,6 +14,8 @@ import { createSeatStore, type SeatStore } from "./seat-store.server";
 export interface SeatServer {
   client: LedgerClient;
   ledger: SeatLedger;
+  /** The seat's side of the ticket products (C8c): its own tickets, accepts, claims and refunds. */
+  tickets: TicketSeat;
   ops: OpsClient;
   store: SeatStore;
   parties: SeatParties;
@@ -38,7 +40,8 @@ export function seatServer(): SeatServerState {
   const store = createSeatStore(db, parties.seats);
   const ops = createOpsClient({ baseUrl: env.OPS_INTERNAL_URL!, secret: env.OPS_INTERNAL_SECRET! });
   const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands, marks: () => ops.ladderMarks() });
-  state = { ok: true, server: { client, ledger, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
+  const tickets = createTicketSeat({ client, venueParty: parties.venue!, journal: store.commands, fairTicks: () => ops.fairTicks() });
+  state = { ok: true, server: { client, ledger, tickets, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
   return state;
 }
 

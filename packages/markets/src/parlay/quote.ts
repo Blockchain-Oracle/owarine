@@ -1,9 +1,8 @@
 import type { ParlayLegInput, ParlayMode, ParlayParams, ParlayQuote } from "@agari/core/parlay";
 import type { Reading } from "@agari/core/schemas";
-import { unavailableFor } from "../stub/product";
-import { PARLAY_NOT_LIVE } from "./reads";
+import { asReading, parlayCall } from "../tickets/client";
 
-/** The ticket the reserve would sell: it needs the reserve and each leg's venue ladder (C8), so it is not-live until then. */
-export function quoteParlayOnchain(_legs: readonly ParlayLegInput[], _mode: ParlayMode, _params: ParlayParams): Promise<Reading<ParlayQuote>> {
-  return unavailableFor(PARLAY_NOT_LIVE);
+/** The ticket the reserve would sell (C8c): ops prices every leg off its Window's venue ladder with core's `quoteParlay`. */
+export async function quoteParlayOnchain(legs: readonly ParlayLegInput[], mode: ParlayMode, _params: ParlayParams): Promise<Reading<ParlayQuote>> {
+  return asReading(await parlayCall({ op: "preview", legs: legs.map((l) => ({ marketId: l.marketId, side: l.side })), mode }), (r) => (r.kind === "preview" ? r.quote : null));
 }

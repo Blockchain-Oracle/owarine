@@ -290,6 +290,12 @@ importers:
       '@daml.js/abu-pm-main':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main
+      '@daml.js/abu-pm-main-0.3.0':
+        specifier: link:./generated/abu-pm-main
+        version: link:generated/abu-pm-main
+      '@daml.js/abu-pm-tickets':
+        specifier: link:./generated/abu-pm-tickets
+        version: link:generated/abu-pm-tickets
       '@daml.js/daml-prim-DA-Types-1.0.0':
         specifier: link:./generated/daml-prim-DA-Types-1.0.0
         version: link:generated/daml-prim-DA-Types-1.0.0
