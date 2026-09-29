@@ -1,3 +1,4 @@
+import * as Event from './Event';
 import * as Grant from './Grant';
 import * as Leg from './Leg';
 import * as Market from './Market';
@@ -9,6 +10,7 @@ import * as Reserve from './Reserve';
 import * as Series from './Series';
 import * as Types from './Types';
 
+export { Event };
 export { Grant };
 export { Leg };
 export { Market };

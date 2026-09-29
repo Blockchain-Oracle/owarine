@@ -40,6 +40,11 @@ export const TEMPLATE_IDS = {
   LpShare: PM.Reserve.LpShare.templateId,
   SupplyQuote: PM.Reserve.SupplyQuote.templateId,
   WithdrawQuote: PM.Reserve.WithdrawQuote.templateId,
+  // 0.4.0 (K-030): committee yes/no events.
+  EventTerms: PM.Event.EventTerms.templateId,
+  EventState: PM.Event.EventState.templateId,
+  EventAttestation: PM.Event.EventAttestation.templateId,
+  EventVerdict: PM.Event.EventVerdict.templateId,
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATE_IDS;

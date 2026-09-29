@@ -14,13 +14,14 @@ var damlTypes = require('@daml/types');
 var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
 var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
 
+var PM_Event = require('../../PM/Event/module');
 var PM_Market = require('../../PM/Market/module');
 var PM_Types = require('../../PM/Types/module');
 
 exports.Series = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Series:Series',
-    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Series:Series',
+    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Series:Series',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -40,6 +41,7 @@ exports.Series = damlTypes.assembleTemplate(
         quorum: damlTypes.Int.decoder,
         maxDeviationBps: damlTypes.Int.decoder,
         policyVersions: damlTypes.List(PM_Types.PolicyVersion).decoder,
+        lastExpiry: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Time).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -59,6 +61,7 @@ exports.Series = damlTypes.assembleTemplate(
         quorum: damlTypes.Int.encode(__typed__.quorum),
         maxDeviationBps: damlTypes.Int.encode(__typed__.maxDeviationBps),
         policyVersions: damlTypes.List(PM_Types.PolicyVersion).encode(__typed__.policyVersions),
+        lastExpiry: damlTypes.Optional(damlTypes.Time).encode(__typed__.lastExpiry),
       };
     },
     Archive: {
@@ -85,6 +88,18 @@ exports.Series = damlTypes.assembleTemplate(
       }),
       resultEncode: function (__typed__) { return damlTypes.ContractId(exports.Series).encode(__typed__); },
     },
+    Series_OpenEvent: {
+      template: function () { return exports.Series; },
+      choiceName: 'Series_OpenEvent',
+      argumentDecoder: damlTypes.lazyMemo(function () {
+        return exports.Series_OpenEvent.decoder;
+      }),
+      argumentEncode: function (__typed__) { return exports.Series_OpenEvent.encode(__typed__); },
+      resultDecoder: damlTypes.lazyMemo(function () {
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple4(damlTypes.ContractId(exports.Series), damlTypes.ContractId(PM_Market.MarketTerms), damlTypes.ContractId(PM_Event.EventTerms), damlTypes.ContractId(PM_Event.EventState)).decoder;
+      }),
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple4(damlTypes.ContractId(exports.Series), damlTypes.ContractId(PM_Market.MarketTerms), damlTypes.ContractId(PM_Event.EventTerms), damlTypes.ContractId(PM_Event.EventState)).encode(__typed__); },
+    },
     Series_OpenWindow: {
       template: function () { return exports.Series; },
       choiceName: 'Series_OpenWindow',
@@ -92,6 +107,18 @@ exports.Series = damlTypes.assembleTemplate(
         return exports.Series_OpenWindow.decoder;
       }),
       argumentEncode: function (__typed__) { return exports.Series_OpenWindow.encode(__typed__); },
+      resultDecoder: damlTypes.lazyMemo(function () {
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.Series), damlTypes.ContractId(PM_Market.MarketTerms), damlTypes.ContractId(PM_Market.WindowState)).decoder;
+      }),
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.Series), damlTypes.ContractId(PM_Market.MarketTerms), damlTypes.ContractId(PM_Market.WindowState)).encode(__typed__); },
+    },
+    Series_OpenWindowSpan: {
+      template: function () { return exports.Series; },
+      choiceName: 'Series_OpenWindowSpan',
+      argumentDecoder: damlTypes.lazyMemo(function () {
+        return exports.Series_OpenWindowSpan.decoder;
+      }),
+      argumentEncode: function (__typed__) { return exports.Series_OpenWindowSpan.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
         return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.Series), damlTypes.ContractId(PM_Market.MarketTerms), damlTypes.ContractId(PM_Market.WindowState)).decoder;
       }),
@@ -112,7 +139,7 @@ exports.Series = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Series, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Series, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
 
 exports.Series_AddPolicyVersion = {
   decoder: damlTypes.lazyMemo(function () {
@@ -127,6 +154,27 @@ exports.Series_AddPolicyVersion = {
   },
 };
 
+exports.Series_OpenEvent = {
+  decoder: damlTypes.lazyMemo(function () {
+    return jtv.object({
+      index: damlTypes.Int.decoder,
+      question: damlTypes.Text.decoder,
+      tradingStart: damlTypes.Time.decoder,
+      lockAt: damlTypes.Time.decoder,
+      closeTime: damlTypes.Time.decoder,
+    });
+  }),
+  encode: function (__typed__) {
+    return {
+      index: damlTypes.Int.encode(__typed__.index),
+      question: damlTypes.Text.encode(__typed__.question),
+      tradingStart: damlTypes.Time.encode(__typed__.tradingStart),
+      lockAt: damlTypes.Time.encode(__typed__.lockAt),
+      closeTime: damlTypes.Time.encode(__typed__.closeTime),
+    };
+  },
+};
+
 exports.Series_OpenWindow = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
@@ -136,6 +184,25 @@ exports.Series_OpenWindow = {
   encode: function (__typed__) {
     return {
       index: damlTypes.Int.encode(__typed__.index),
+    };
+  },
+};
+
+exports.Series_OpenWindowSpan = {
+  decoder: damlTypes.lazyMemo(function () {
+    return jtv.object({
+      index: damlTypes.Int.decoder,
+      tradingStart: damlTypes.Time.decoder,
+      lockAt: damlTypes.Time.decoder,
+      expiry: damlTypes.Time.decoder,
+    });
+  }),
+  encode: function (__typed__) {
+    return {
+      index: damlTypes.Int.encode(__typed__.index),
+      tradingStart: damlTypes.Time.encode(__typed__.tradingStart),
+      lockAt: damlTypes.Time.encode(__typed__.lockAt),
+      expiry: damlTypes.Time.encode(__typed__.expiry),
     };
   },
 };

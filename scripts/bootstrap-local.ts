@@ -34,8 +34,8 @@ const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs against an unauthenticated local sandbox only");
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
-const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.3.0.dar"));
-const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.0.dar"));
+const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.4.0.dar"));
+const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.1.dar"));
 /** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
 const RESERVE_SEED_BASE = BigInt(arg("--reserve-seed", "10000")) * 1_000_000n;
 const SHARDS = Number(arg("--shards", process.env.VENUE_SHARDS ?? "16"));
@@ -145,7 +145,7 @@ const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
  *   basket    the five PreStocks baskets, 60 m, on their index (S19)
  *   valuation Pyth valuation indices (S20): only with `--lanes valuation`, like the reference's init script, which
  *             refuses to register while the key is not entitled ("no dead lane is ever shown")
- * The Monday Gap is not bootstrapped: engine 0.3.0 fixes `expiry = start + cadence`, and a Gap spans Fri close → Mon open.
+ * The Monday Gap is not bootstrapped yet: engine 0.4.0 lists it through `Series_OpenWindowSpan` (K-030), once the roller opens Gap lanes with it.
  */
 function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
   const out: LaneSpec[] = [];
