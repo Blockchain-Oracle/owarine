@@ -78,7 +78,7 @@ export function StrategiesScreen() {
           <CreatorStudio
             writes={writes}
             decimals={payload?.decimals ?? 6}
-            symbol={payload?.symbol ?? "tUSDC"}
+            symbol={payload?.symbol ?? "credits"}
             asset={STRATEGY_MARKETS}
             houseRunner={HOUSE_RUNNER}
             initialTrader={params.copy ?? null}

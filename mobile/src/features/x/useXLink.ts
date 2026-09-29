@@ -69,7 +69,7 @@ export function useXLink() {
       const { ok: fine, body } = await post("/api/x/bind", { wallet: address, issuedAtMs, signature });
       if (!fine || body.ok === false) {
         if (body.reason === X_ERRORS.alreadyLinkedOther && body.boundWallet) {
-          throw new Error(`That X account is already pointed at ${shortHex(body.boundWallet)}. Connect that wallet instead.`);
+          throw new Error(`That X account is already pointed at ${shortHex(body.boundWallet)}. Take that seat instead.`);
         }
         throw new Error(body.reason || X_ERRORS.linkFailed);
       }

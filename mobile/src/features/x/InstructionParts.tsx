@@ -106,7 +106,7 @@ export function PostPreview({ side, asset, amount, cadence, canCopy, copied, ena
         <Icon size={15} color={ink} strokeWidth={2} />
         <Text style={[styles.copyText, { color: ink }]}>{copied ? "Copied — paste into X" : "Copy instruction"}</Text>
       </Pressable>
-      {!enabled ? <Text style={[styles.setup, { color: t.xiSetup }]}>Complete wallet, funding and X setup above to enable copying.</Text> : null}
+      {!enabled ? <Text style={[styles.setup, { color: t.xiSetup }]}>Complete seat, funding and X setup above to enable copying.</Text> : null}
       {failed ? <Text style={[styles.setup, { color: t.xiSetup }]} accessibilityRole="alert">{failed}</Text> : null}
     </View>
   );

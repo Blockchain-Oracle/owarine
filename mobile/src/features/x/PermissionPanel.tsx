@@ -22,7 +22,7 @@ export function PermissionPanel({ grant, executor, symbol, disabled = false }: {
     : state === "unavailable" ? "X trading status unavailable" : "Fund your X trading balance";
   const detail = pending?.stage === "grant-ready"
     ? `${formatBaseUnits(BigInt(pending.returnedBase ?? "0"), grant.decimals)} ${symbol} returned to your Trading Balance. Continue to use it for X trading.`
-    : pending ? "Your progress is saved. Continue to verify the last transaction before any further wallet action."
+    : pending ? "Your progress is saved. Continue to verify the last transaction before any further seat action."
     : state === "update" ? "Your existing permission still has the old spending limits. Update it to trade from your full X balance."
     : state === "expired" ? "Your permission expired. Your remaining X funds are still here."
     : state === "mismatch" ? "Your permission names a previous executor. Reconnect it to the current X service."
@@ -39,7 +39,7 @@ export function PermissionPanel({ grant, executor, symbol, disabled = false }: {
         <>
           <Text style={[styles.body, { color: t.muted }]}>{X_CARD.budgetPolicy}</Text>
           <Text style={[styles.note, { color: t.muted }]}>
-            {pending ? "No additional deposit. Existing positions stay yours." : "Two wallet confirmations. Reuse your remaining X funds; no additional deposit."}
+            {pending ? "No additional deposit. Existing positions stay yours." : "Two seat confirmations. Reuse your remaining X funds; no additional deposit."}
           </Text>
           <Pressable
             disabled={updateOff}
@@ -48,7 +48,7 @@ export function PermissionPanel({ grant, executor, symbol, disabled = false }: {
             style={({ pressed }) => [styles.btnV, { borderColor: t.xwBtnBorder }, pressed && { backgroundColor: t.nodeActiveBg }, updateOff && styles.btnVOff]}
           >
             <Text style={[styles.btnVText, { color: t.v }]}>
-              {grant.busy === "update" ? "Confirm in your wallet…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
+              {grant.busy === "update" ? "Confirm with your seat…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
             </Text>
           </Pressable>
           {pending?.stage === "grant-ready" ? (

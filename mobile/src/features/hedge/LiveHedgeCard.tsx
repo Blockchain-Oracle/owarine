@@ -18,7 +18,7 @@ import { pushToast } from "~/components/toast/store";
 import { HedgeCard, HedgeTeaser } from "./HedgeCard";
 import { selectWindow } from "~/features/markets/openWindow";
 
-const FALLBACK_SYMBOL = "tUSDC";
+const FALLBACK_SYMBOL = "credits";
 const FALLBACK_DECIMALS = 6;
 // Base58 is case-sensitive: the address is keyed exactly as written, as web keys it.
 const NOTICED_KEY = (address: string) => `agari.holdings.noticed.${address}`;

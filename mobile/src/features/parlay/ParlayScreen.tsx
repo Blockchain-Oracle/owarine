@@ -44,7 +44,7 @@ function NotDeployed() {
 function Page({ reserve }: { reserve: ParlayReserveState }) {
   const { color, t } = useEarnParlay();
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const nowMs = useChainNowMs();
   const { sections } = PARLAY;
   return (

@@ -26,7 +26,7 @@ export function ClaimFlow() {
   const t = activityTokens(name);
   const { address } = useWalletSession();
   const { boot } = useVenue();
-  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "tUSDC";
+  const symbol = boot && isOk(boot) ? boot.value.collateral.symbol : "credits";
   const link = useXLink();
   const session = link.status?.session ?? null;
   const binding = link.status?.binding ?? null;

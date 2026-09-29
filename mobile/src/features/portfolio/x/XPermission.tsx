@@ -17,7 +17,7 @@ function permissionCopy(grant: XGrantState, executor: string | null, symbol: str
     : state === "unavailable" ? "X trading status unavailable" : "Fund your X trading balance";
   const detail = pending?.stage === "grant-ready"
     ? `${formatBaseUnits(BigInt(pending.returnedBase ?? "0"), grant.decimals)} ${symbol} returned to your Trading Balance. Continue to use it for X trading.`
-    : pending ? "Your progress is saved. Continue to verify the last transaction before any further wallet action."
+    : pending ? "Your progress is saved. Continue to verify the last transaction before any further seat action."
     : state === "update" ? "Your existing permission still has the old spending limits. Update it to trade from your full X balance."
     : state === "expired" ? "Your permission expired. Your remaining X funds are still here."
     : state === "mismatch" ? "Your permission names a previous executor. Reconnect it to the current X service."
@@ -35,7 +35,7 @@ export function XPermission({ grant, executor, symbol, disabled }: { grant: XGra
   const pending = grant.pendingUpdate;
   const { title, detail } = permissionCopy(grant, executor, symbol);
   const off = disabled || !grant.readable || Boolean(grant.busy) || !executor;
-  const action = grant.busy === "update" ? "Confirm in your wallet…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading";
+  const action = grant.busy === "update" ? "Confirm with your seat…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading";
   return (
     <View style={[styles.box, { borderColor: needsUpdate ? x.v : x.line, backgroundColor: needsUpdate ? x.permissionWash : "transparent" }]} accessibilityRole="summary">
       <Text style={[xs.slabTitle, { color: x.ink }]}>{title}</Text>
@@ -43,7 +43,7 @@ export function XPermission({ grant, executor, symbol, disabled }: { grant: XGra
       {needsUpdate ? (
         <>
           <Text style={[xs.slabBody, { color: x.mute }]}>{X_CARD.budgetPolicy}</Text>
-          <Text style={[xs.slabNote, { color: x.mute }]}>{pending ? "No additional deposit. Existing positions stay yours." : "Two wallet confirmations. Reuse your remaining X funds; no additional deposit."}</Text>
+          <Text style={[xs.slabNote, { color: x.mute }]}>{pending ? "No additional deposit. Existing positions stay yours." : "Two seat confirmations. Reuse your remaining X funds; no additional deposit."}</Text>
           <Pressable disabled={off} onPress={() => void grant.update(executor)} accessibilityRole="button" style={[xs.btnV, { borderColor: x.vBorder }, off && xs.disabled]}>
             <Text style={[xs.btnVText, { color: x.v }]}>{action}</Text>
           </Pressable>
