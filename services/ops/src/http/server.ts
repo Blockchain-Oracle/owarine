@@ -1,4 +1,8 @@
-/** The ops HTTP server (venue-ops.md §2.3, §6.5): `/health`, `/session`, `/prices/latest`, `/prices/stream`, `/prestocks/latest`, `/pyth-index/latest`. GET only, CORS `*`. */
+/**
+ * The ops HTTP server (venue-ops.md §2.3, §6.5): `/health`, `/session`, `/prices/latest`, `/prices/stream`,
+ * `/prestocks/latest`, `/pyth-index/latest`, and on Canton (C3) `/ladders/latest`, `/ladders/stream` and `/reserve`:
+ * GET only, CORS `*`. `POST /internal/*` (quotes, seat funding) is HMAC-authenticated and carries no CORS (`internal.ts`).
+ */
 import { createServer } from "node:http";
 import type { SessionService } from "../calendar/session-service";
 import type { SpotFeed } from "../prices/spot";
@@ -13,6 +17,9 @@ import type { PythIndexSpotFeed } from "../prices/pyth-index-spot";
 import type { PythEntitlementStore } from "../runtime/pyth-entitlement";
 import { pythIndexLatestBody } from "./pyth-index-latest";
 import { latestBody, streamSpot } from "./spot-sse";
+import type { LadderBoard } from "../actors/market-maker/seat/ladder-board";
+import { handleInternal, type InternalRoutes } from "./internal";
+import { ladderLatestBody, streamLadders } from "./ladder-sse";
 
 const CORS = { "access-control-allow-origin": "*", "access-control-allow-methods": "GET, OPTIONS" };
 
@@ -33,6 +40,12 @@ export function startOpsHttp(input: {
   events?: SessionEvents;
   env?: OpsEnv;
   log?: (why: string) => void;
+  /** The venue price ladders (C3 pricer); absent in a process without the pricer. */
+  ladders?: LadderBoard | null;
+  /** The HMAC-authenticated venue calls (quote issuer, seat funding); absent = every `/internal/*` is 404. */
+  internal?: InternalRoutes | null;
+  /** The reserve reporter's latest snapshot. */
+  reserve?: (() => unknown) | null;
 }): Promise<OpsHttp> {
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://ops").pathname;
@@ -40,6 +53,7 @@ export function startOpsHttp(input: {
       res.writeHead(status, { ...CORS, "content-type": "application/json" });
       res.end(jsonText(body));
     };
+    if (path.startsWith("/internal/")) return void handleInternal(req, res, path, input.internal);
     if (req.method === "OPTIONS") return void res.writeHead(204, CORS).end();
     if (req.method !== "GET") return json(405, { error: "GET only" });
     if (path === "/health") {
@@ -54,12 +68,15 @@ export function startOpsHttp(input: {
     if (path === "/prices/stream") return input.spot ? void streamSpot(req, res, input.spot, CORS) : json(503, { error: "no spot feed in this process" });
     if (path === "/prestocks/latest") return input.prestocks ? json(200, preStocksLatestBody(input.prestocks)) : json(503, { error: "no PreStocks feed in this process" });
     if (path === "/pyth-index/latest") return input.pythIndex ? json(200, pythIndexLatestBody(input.pythIndex.store, input.pythIndex.spot, input.prestocks ?? null)) : json(503, { error: "no Pyth index store in this process" });
+    if (path === "/ladders/latest") return input.ladders ? json(200, ladderLatestBody(input.ladders)) : json(503, { error: "no pricer in this process" });
+    if (path === "/ladders/stream") return input.ladders ? void streamLadders(req, res, input.ladders, CORS) : json(503, { error: "no pricer in this process" });
+    if (path === "/reserve") return input.reserve ? json(200, input.reserve()) : json(503, { error: "no reserve reporter in this process" });
     return json(404, { error: "not found" });
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(input.port, () => {
-      input.log?.(`http on :${input.port} (/health, /session, /prices/latest, /prices/stream, /prestocks/latest, /pyth-index/latest)`);
+      input.log?.(`http on :${input.port} (/health, /session, /prices/*, /prestocks/latest, /pyth-index/latest${input.ladders ? ", /ladders/*" : ""}${input.internal ? ", POST /internal/*" : ""})`);
       resolve({ port: input.port, close: () => new Promise((done) => server.close(() => done())) });
     });
   });

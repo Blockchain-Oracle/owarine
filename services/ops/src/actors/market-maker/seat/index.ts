@@ -1,85 +1,23 @@
 /**
- * The seed maker, `MAKER_MODE=seat` (venue-ops.md §8): two-sided PostOnly quotes around a spot-vs-open fair value on
- * every trading Window of the launch tickers, from the `maker` key's own seat. Books have quotes; that is the job.
- * Gap and token Windows take their phase, fair and cap from their lane (`lane-quote.ts`, session-lanes.md §6); a halted
- * ticker pulls (§3.1). Vault mode (S8) is the other actor in `../index.ts`.
+ * The seed maker, re-meant for Canton (plan "Venue operations": the fair-value math, unchanged, becomes the pricer; its
+ * `quote.ts` becomes the issuer). There are no resting orders: the maker publishes the venue price ladder per Window
+ * (`pricer.ts`) and the quote issuer (`../../quote-issuer`) turns one walk of it into a firm `Quote` on request.
+ * Gap and token lanes keep `lane-quote.ts` for C6; the crypto lanes price on spot against the recorded open print.
  */
-import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type SeriesView } from "@agari/markets/ops";
-import { readVenueConfig, type VenueConfig } from "@agari/markets/ops/maker";
-import { haltOf, laneListable, tokenLaneAsset, type HaltAsset, type TickerSymbol } from "@agari/core/market";
-import { runActor, type PassResult, type VenueDeps } from "../../../runtime";
-import { roleClient } from "../../settler/role-client";
-import { seriesLabel, marketLabel } from "../../settler/views";
-import { readSeatMakerEnv } from "./env";
-import { laneQuote } from "./lane-quote";
-import type { Placed } from "./quote";
-import { tendWindow } from "./window";
+import type { VenueDeps } from "../../../runtime";
+import { createVenueContext, type VenueContext } from "../../venue/context";
+import { createLadderBoard, type LadderBoard } from "./ladder-board";
+import { readPricerSettings, startPricer } from "./pricer";
 
-const SERIES_LIST_MS = 5 * 60_000;
+export { createLadderBoard, toWireLadder, type LadderBoard, type LadderEntry, type WireLadder } from "./ladder-board";
+export { readPricerSettings, type PricerSettings } from "./pricer";
 
-export async function startSeedMaker(deps: VenueDeps): Promise<{ stop: () => void }> {
-  const env = readSeatMakerEnv();
-  const { client, signing } = await roleClient(deps.env, "maker");
-  if (!signing) deps.log("MAKER_PRIVATE_KEY and ~/.config/agari/devnet/maker.json are missing: scanning and reporting only");
-  else deps.log(`seed maker key ${client.payer.address}`);
-  const dryRun = deps.env.dryRun || !signing;
-  let config: VenueConfig | null = null;
-  let series: SeriesView[] = [];
-  let listedAtMs = 0;
-  const placed = new Map<string, Placed>();
-
-  const pass = async (): Promise<PassResult> => {
-    config ??= await readVenueConfig(client);
-    await deps.sessions.refresh();
-    if (Date.now() - listedAtMs > SERIES_LIST_MS) {
-      const wanted = (s: SeriesView) => seriesBasis(s) !== null && (seriesBasis(s) !== "regular" || env.cadencesSec.includes(s.data.cadenceSec));
-      series = (await listSeries(client)).filter((s) => s.symbol !== null && wanted(s) && laneListable(s.symbol, seriesBasis(s)!) && (!env.symbols || env.symbols.includes(s.symbol)));
-      listedAtMs = Date.now();
-    } else {
-      series = (await fetchSeries(client, series.map((s) => s.address))).filter((s): s is SeriesView => s !== null);
-    }
-    const nowSec = await chainNowSec(client);
-    const status = deps.sessions.status(nowSec);
-    const inSession = status !== null && (status.state === "regular" || status.state === "early-close");
-    const halts = deps.halts.board();
-    // The newest two indices: the trading Window and, near a boundary, the one just listed after it.
-    const refs = (await Promise.all(series.flatMap((s) => [1n, 2n].filter((k) => s.data.nextIndex >= k).map(async (k) => ({ s, market: (await windowAddresses(s.address, s.data.nextIndex - k)).market })))));
-    const views = await fetchMarkets(client, refs.map((r) => r.market));
-    const notes: string[] = [];
-    const live = new Set<string>();
-    for (const [i, ref] of refs.entries()) {
-      const m = views[i];
-      if (!m || m.data.state !== 0) continue;
-      const symbol = ref.s.symbol as TickerSymbol;
-      const basis = seriesBasis(ref.s)!;
-      // Token Windows halt by their xStock (session-lanes.md §3.1); Regular and Gap Windows by the ticker.
-      const haltAsset: HaltAsset = basis === "token" ? (tokenLaneAsset(symbol) ?? symbol) : symbol;
-      const spot = deps.spot?.latest(symbol, env.spotMaxAgeSec) ?? null;
-      const label = marketLabel(ref.s, m);
-      const lane = laneQuote(basis, { series: ref.s, market: m, symbol, nowSec, status, spot: deps.spot, halts, env });
-      try {
-        const result = await tendWindow(
-          { client, config, env, dryRun, nowSec, inSession: inSession && !haltOf(halts, haltAsset), closesAtSec: status?.closesAtSec ?? null, spotE8: spot?.priceE8 ?? null, log: deps.log, lane },
-          ref.s, symbol, m, placed.get(m.address) ?? null, label,
-        );
-        if (result.placed) placed.set(m.address, result.placed);
-        else if (result.state !== "resting") placed.delete(m.address);
-        if (result.state === "quoting" || result.state === "resting") {
-          live.add(m.address);
-          notes.push(`${seriesLabel(ref.s)} ${result.note}`);
-        }
-      } catch (error) {
-        deps.log(`${label}: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-    for (const key of placed.keys()) if (!live.has(key)) placed.delete(key);
-    const session = status?.state ?? "no calendar";
-    return {
-      why: `${notes.length ? notes.join("; ") : "no quotes resting"} · session ${session}${deps.spot ? "" : " · no spot feed"}${dryRun ? " · DRY RUN" : ""}`,
-      detail: { quoting: notes.length, series: series.length, session },
-    };
-  };
-
-  const { stop } = runActor({ name: "seed-maker", log: deps.log, dryRun, everyMs: env.refreshMs, pass });
-  return { stop };
+export async function startSeedMaker(deps: VenueDeps, board: LadderBoard = createLadderBoard(), venue: VenueContext = createVenueContext()): Promise<{ stop: () => void; board: LadderBoard }> {
+  const session = venue.session("venue");
+  if (!session) {
+    deps.log("VENUE_PARTY and the parties file are missing: the pricer has no venue to read");
+    return { stop: () => {}, board };
+  }
+  const { stop } = startPricer({ venue: session, spot: deps.spot, board, log: deps.log, settings: readPricerSettings() });
+  return { stop, board };
 }
