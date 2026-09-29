@@ -1,0 +1,2200 @@
+{
+  "$comment": "Capability registry: one entry per parity row. A capability is `live` only when its gate has passed and `acceptanceRow` names a row in acceptance.md. Driven by honest-state plates; an invariant will fail on `live` without evidence.",
+  "updated": "2026-09-29",
+  "capabilities": [
+    {
+      "id": "L-01",
+      "capability": "Root layout, providers, pre-paint theme, fonts, PWA manifest",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-02",
+      "capability": "Desktop header, grouped nav, balance pill, account menu",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "L-02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-03",
+      "capability": "Mobile pill nav + \"Everything\" drawer",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-04",
+      "capability": "AppStrip, Marquee ticker, footer, grain, cursor, theme toggle",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C5"
+      ],
+      "parityRow": "L-04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-05",
+      "capability": "Design system (Yosuku port)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C0"
+      ],
+      "parityRow": "L-05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-06",
+      "capability": "Toast / transaction feedback",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-07",
+      "capability": "Error boundaries",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-07",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-08",
+      "capability": "Write-journal recovery on session start",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-08",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-09",
+      "capability": "First-run Tutorial",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-09",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-10",
+      "capability": "Wrong-network banner",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-10",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-11",
+      "capability": "/ editorial landing",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-11",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-12",
+      "capability": "How it works",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-12",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-13",
+      "capability": "Demo",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-13",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-14",
+      "capability": "Pitch folio",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-14",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-15",
+      "capability": "Stats / traction",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-15",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-16",
+      "capability": "Status",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-16",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-17",
+      "capability": "News wire",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-17",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-18",
+      "capability": "Download / PWA install",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10",
+        "gate:C11"
+      ],
+      "parityRow": "L-18",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-19",
+      "capability": "Native app + /native-auth",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11",
+        "gate:C13"
+      ],
+      "parityRow": "L-19",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-20",
+      "capability": "Documentation site",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-20",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-21",
+      "capability": "Legacy redirects",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-21",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-22",
+      "capability": "Share cards (The Call, Earned Heat)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-22",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-23",
+      "capability": "Social OG images",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-23",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-24",
+      "capability": "Wallet connect / disconnect / account switch",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "L-24",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-25",
+      "capability": "Get test funds",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-25",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-26",
+      "capability": "Add-money modal + CreditWelcome",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-26",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-27",
+      "capability": "Tap-trading (session key + SESSION grant + sponsor)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-27",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-28",
+      "capability": "Trading Balance vault",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7a"
+      ],
+      "parityRow": "L-28",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-29",
+      "capability": "/markets hero-as-ticket",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-29",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-30",
+      "capability": "§01 live-now rail cards",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-30",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-31",
+      "capability": "§02 \"Just ask\" word board",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-31",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-32",
+      "capability": "Call ticket (one-tap)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-32",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-33",
+      "capability": "Verdict + inline claim",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-33",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-34",
+      "capability": "Claim-all plate",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-34",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-35",
+      "capability": "Plain-position cash-out",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7a"
+      ],
+      "parityRow": "L-35",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-36",
+      "capability": "Range (ticket mode + /games/range)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-36",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-37",
+      "capability": "Boost 2×/3× (LeverageReserve)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-37",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-38",
+      "capability": "Parlay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-38",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-39",
+      "capability": "Private mode",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-39",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-40",
+      "capability": "Market Surface",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-40",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-41",
+      "capability": "Sensei AI dock",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-41",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-42",
+      "capability": "The Room",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-42",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-43",
+      "capability": "Price alerts",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-43",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-44",
+      "capability": "Reels",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-44",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-45",
+      "capability": "Takes",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-45",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-46",
+      "capability": "Portfolio",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4",
+        "gate:C7a"
+      ],
+      "parityRow": "L-46",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-47",
+      "capability": "Trader Edge",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-47",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-48",
+      "capability": "Leaderboard",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-48",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-49",
+      "capability": "Reputation, badges, CSV",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-49",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-50",
+      "capability": "Earn (maker vault)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-50",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-51",
+      "capability": "Strategies desk",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-51",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-52",
+      "capability": "Launch an agent (4-step builder)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-52",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-53",
+      "capability": "Copy a strategy",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-53",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-54",
+      "capability": "Agents board",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-54",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-55",
+      "capability": "Strategy runner + self-host",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-55",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-56",
+      "capability": "Paid Memory Market",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "L-56",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-57",
+      "capability": "Reversion preset",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-57",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-58",
+      "capability": "Trade from X",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-58",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-59",
+      "capability": "X recovery / claim",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-59",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-60",
+      "capability": "X relay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-60",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-61",
+      "capability": "Games hub",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-61",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-62",
+      "capability": "Practice",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-62",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-63",
+      "capability": "Duel (Free/Ranked) + match link",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-63",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-64",
+      "capability": "Games history",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-64",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-65",
+      "capability": "Rank + seasons",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-65",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-66",
+      "capability": "Lucky Draw",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-66",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-67",
+      "capability": "Moonshot",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-67",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-68",
+      "capability": "Line Rider",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-68",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-69",
+      "capability": "Candle Hop",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-69",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-70",
+      "capability": "Game audio, motion, art, settings",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-70",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-71",
+      "capability": "Game profile, achievements, friends",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-71",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-72",
+      "capability": "/dev/* fixtures",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-72",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-73",
+      "capability": "Ops host and health",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C0",
+        "gate:C4"
+      ],
+      "parityRow": "L-73",
+      "acceptanceRow": null
+    },
+    {
+      "id": "L-74",
+      "capability": "API surface",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3",
+        "gate:C4"
+      ],
+      "parityRow": "L-74",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-01",
+      "capability": "Founder waitlist + referral rank (/waitlist)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-02",
+      "capability": "Creators guide, creator card studio, creator recovery (/creators, /creator/studio, /creator/recover)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-03",
+      "capability": "Founder Line Studio (/studio)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-04",
+      "capability": "Internal social content board (/social)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-05",
+      "capability": "/fund card on-ramp + cross-chain deposit (CCTP)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-06",
+      "capability": "In-app editorial /docs page",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "Y-06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-07",
+      "capability": "Agent/MCP tx-builder (/api/bet/build), npm SDK, MCP server",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-07",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-08",
+      "capability": "Polymarket discovery rail; multi-coin ticker + Fear & Greed",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-08",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-09",
+      "capability": "Sensei persistent memory (MemWal)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-09",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-10",
+      "capability": "TEE-attested agent / attested X bind",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-10",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-11",
+      "capability": "Name-service handle claim (.yosuku.sui)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-11",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-12",
+      "capability": "Encrypted rooms (Seal)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-12",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-13",
+      "capability": "TheBell floating draggable countdown widget",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-13",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-14",
+      "capability": "Site-wide + per-market OG images",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "Y-14",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-15",
+      "capability": "/agent attested showcase",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-15",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-16",
+      "capability": "Standalone Trading Balance deposit/withdraw modal",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7a"
+      ],
+      "parityRow": "Y-16",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-17",
+      "capability": "Native iOS/Android app",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "Y-17",
+      "acceptanceRow": null
+    },
+    {
+      "id": "Y-18",
+      "capability": "Creator earnings pool row (builder codes)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-18",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-1a",
+      "capability": "Bearish exposure via existing primitives",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7a",
+        "gate:C8"
+      ],
+      "parityRow": "A-1a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-1b",
+      "capability": "Inverse position (linear short, not binary)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-1b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-1c",
+      "capability": "Fade a trader/agent",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-1c",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-2a",
+      "capability": "Yield on idle Trading Balance",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-2a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-2b",
+      "capability": "Supplier (\"be the house\") UI for every reserve",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-2b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-2c",
+      "capability": "Yield reporting",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-2c",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-3a",
+      "capability": "Trader profiles, follows, social leaderboards",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5",
+        "gate:C13"
+      ],
+      "parityRow": "A-3a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-3b",
+      "capability": "Copy human traders",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-3b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-3c",
+      "capability": "Ticker rooms, cashtag takes, activity feed, notifications",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "A-3c",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-3d",
+      "capability": "Trade-from-X for stocks",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "A-3d",
+      "acceptanceRow": null
+    },
+    {
+      "id": "A-3e",
+      "capability": "Blinks: every Window as a Solana Action (/actions.json, /api/actions/w/<marketId>, /api/actions/t/<symbol>/<cadence>)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "A-3e",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S19a",
+      "capability": "Baskets /baskets, basket hub, measured in points (D-124)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-S19a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S19b",
+      "capability": "\"Your baskets\" cover card and basket cover (pickBasketHedges)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b"
+      ],
+      "parityRow": "C-S19b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S20a",
+      "capability": "Valuation lanes (OPENAIV/ANTHROPICV), hub \"Token vs Pyth\" (D-125)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-S20a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S20b",
+      "capability": "Pyth entitlement gate: a lane lists only while the probe says the index is readable",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-S20b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S21a",
+      "capability": "Desk pages /desk, /desk/new, /desk/[id], /desk/[id]/record, /desk/[id]/decision/[seq], desk OG image (D-126)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S21b",
+      "capability": "Desk API: /api/desk/[owner] + actions, approvals, check-now, feed, mandate, mode, opened, records, records/[seq], share; /api/desk/marks",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S21c",
+      "capability": "Desk program: attested reference, premium ceiling, hash-chained operator_checkpoint, shadow/pause mode, token allowlist",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21c",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S21d",
+      "capability": "DeskWatcher toasts; judges' shared read-only desk",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21d",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S22",
+      "capability": "Desk UX kit from 21st components (D-127), web and native",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S22",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S23a",
+      "capability": "Closed market: word board and ticket out of hours, 24/7 chips, \"No quotes yet\", games tell the truth out of hours",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-S23a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S23b",
+      "capability": "Pre-open resting call (\"Schedule a call\")",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-S23b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S24a",
+      "capability": "Dark-mode balance controls; compact /short",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6",
+        "gate:C8"
+      ],
+      "parityRow": "C-S24a",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S24b",
+      "capability": "Strategy runner rests while no Window trades; isStalledOpening drops a Window whose opening print is over 2 min late",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6",
+        "gate:C8"
+      ],
+      "parityRow": "C-S24b",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-S25",
+      "capability": "Sponsor visibility: \"Built on\" band, per-price source line (S25b), docs sponsor page, footer credit",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "C-S25",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-PUSH",
+      "capability": "Push notifications: api/push/register, api/push/drain, ops push-clock, Expo; fills, results, payouts",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-PUSH",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DOC-01",
+      "capability": "Docs site: 42 pages, llms.txt, llms-full.txt, /raw, /api/search, OG, sitemap, captures",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C0",
+        "gate:C10"
+      ],
+      "parityRow": "C-DOC-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-PROOF",
+      "capability": "/proof feed and /proof/[market] with ReverifyButton",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5",
+        "gate:C10"
+      ],
+      "parityRow": "C-PROOF",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-01",
+      "capability": "Ticker hub /tickers/[symbol] + OG (basket and valuation modes)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4",
+        "gate:C8d"
+      ],
+      "parityRow": "C-MKT-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-02",
+      "capability": "Lanes: Regular, Gap (Monday), 24/7 xStock token, PreStocks pre-IPO; session, halt and gap states",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-03",
+      "capability": "Cadences 300/900/3600 s plus Gap; Masayume 4 h and 1 d; Masayume's BTC/ETH cadence lanes",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-04",
+      "capability": "Price sources (PrintSource: Pyth, RedStone, Switchboard, attested)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-05",
+      "capability": "Oracle quorum and cross-check-and-void (maxDeviationBps, VoidReason specific reasons)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-MKT-05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-06",
+      "capability": "BTC/ETH realised-vol re-measure before fair values go live",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-07",
+      "capability": "D-123 demo-cash and ladder depth at the reference's scale (100,000 credits a day)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C0"
+      ],
+      "parityRow": "C-MKT-07",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-08",
+      "capability": "Region hold (D-095, HTTP 451, RegionNote)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-MKT-08",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-09",
+      "capability": "/api/sentiment crowd flow",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-MKT-09",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-10",
+      "capability": "/api/proof/pyth",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-MKT-10",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-11",
+      "capability": "/api/dev/verify-message",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-MKT-11",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-12",
+      "capability": "Holdings-dependent UX: cover and hedge cards, \"Your stocks\", drop bell, landing Cover",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b"
+      ],
+      "parityRow": "C-MKT-12",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-MKT-13",
+      "capability": "X grammar <btc|eth>",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-MKT-13",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DAML-01",
+      "capability": "Engine abu-pm-main: Series, MarketTerms, WindowState, PriceQuote, OpenPrint, Resolution, VenueCash, Quote, BuyQuote, Leg, NettedResidual and the money gate",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C2"
+      ],
+      "parityRow": "C-DAML-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DAML-02",
+      "capability": "Venue mode (admin_set_mode: pause, reduce-only)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-DAML-02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DAML-03",
+      "capability": "Product dependents (product_add_dependent / release_dependent)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-DAML-03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DAML-04",
+      "capability": "Strategy creator_seal (sealed spec), set_runner, deactivate",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-DAML-04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DAML-05",
+      "capability": "Season prize pool and arena tiers",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-DAML-05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-DAML-06",
+      "capability": "Canton Coin rail (CIP-56 allocation)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b"
+      ],
+      "parityRow": "C-DAML-06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-01",
+      "capability": "Supervisor, heartbeats, /health, calendar, earnings, halt-watch, SSE, print_archive",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-02",
+      "capability": "Window roller",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-03",
+      "capability": "Oracle feeders (Coinbase, Kraken, Bitstamp 1-minute closes), replacing price-relay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-04",
+      "capability": "Pricer and quote issuer over K venue cash shards; venue price ladder over SSE",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-05",
+      "capability": "Settler (SettleBatch), resolver proposer, netting, rebalancer, expiry sweeper, reserve reporter",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-06",
+      "capability": "Projector (/v2/updates → Postgres), replacing the indexer",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-07",
+      "capability": "Seat funding and close-out",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3",
+        "gate:C4"
+      ],
+      "parityRow": "C-OPS-07",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-08",
+      "capability": "strategy-runner + self-host runner-main.ts",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-08",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-09",
+      "capability": "leverage-keeper",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-09",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-10",
+      "capability": "game-room, matchmaker, duel-projector, duel-settler",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-OPS-10",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-11",
+      "capability": "x-relay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-OPS-11",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-12",
+      "capability": "desk-runner (opt-in)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-12",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-13",
+      "capability": "market-maker vault mode (MAKER_MODE=vault)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-13",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-OPS-14",
+      "capability": "Actor set split VENUE / LEGACY / OPT-IN",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-14",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N00",
+      "capability": "Native shell: NativeTabs, header, floating pill dock, BottomDrawer, More side panel, haptics, pull-to-refresh",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N00",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N01",
+      "capability": "Native route / (index, first-run redirect)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N02",
+      "capability": "Native route /welcome",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N03",
+      "capability": "Native route /onboarding",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N04",
+      "capability": "Native route /connect (seat drawer)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N05",
+      "capability": "Native route /account",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N06",
+      "capability": "Native route /funds (demo-credits grant)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N07",
+      "capability": "Native route /ticket (sheet)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N07",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N08",
+      "capability": "Native route /markets (tab)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N08",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N09",
+      "capability": "Native route /markets/[id]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N09",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N10",
+      "capability": "Native route /portfolio (tab)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N10",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N11",
+      "capability": "Native route /portfolio/edge",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-N11",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N12",
+      "capability": "Native route /reels (tab)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N12",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N13",
+      "capability": "Native route /games (tab)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N13",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N14",
+      "capability": "Native route /games/practice",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N14",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N15",
+      "capability": "Native route /games/duel",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N15",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N16",
+      "capability": "Native route /games/duel/[matchId]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N16",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N17",
+      "capability": "Native route /games/lucky",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N17",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N18",
+      "capability": "Native route /games/range",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N18",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N19",
+      "capability": "Native route /games/moonshot",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N19",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N20",
+      "capability": "Native route /games/line-rider",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N20",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N21",
+      "capability": "Native route /games/candle-hop",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N21",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N22",
+      "capability": "Native route /games/history",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N22",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N23",
+      "capability": "Native route /games/rank",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N23",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N24",
+      "capability": "Native route /activity",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N24",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N25",
+      "capability": "Native route /agents",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N25",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N26",
+      "capability": "Native route /baskets",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-N26",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N27",
+      "capability": "Native route /claim (X recovery)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N27",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N28",
+      "capability": "Native route /desk",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N28",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N29",
+      "capability": "Native route /desk/new",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N29",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N30",
+      "capability": "Native route /desk/[id]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N30",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N31",
+      "capability": "Native route /desk/[id]/record",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N31",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N32",
+      "capability": "Native route /desk/[id]/decision/[seq]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N32",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N33",
+      "capability": "Native route /earn",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N33",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N34",
+      "capability": "Native route /how-it-works",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "C-N34",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N35",
+      "capability": "Native route /leaderboard",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-N35",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N36",
+      "capability": "Native route /notifications (push settings; its nav entry was removed 25 Sep, the screen stays)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N36",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N37",
+      "capability": "Native route /parlay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N37",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N38",
+      "capability": "Native route /pool (redirect)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N38",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N39",
+      "capability": "Native route /sensei",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N39",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N40",
+      "capability": "Native route /short",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N40",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N41",
+      "capability": "Native route /status",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N41",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N42",
+      "capability": "Native route /strategies",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N42",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N43",
+      "capability": "Native route /strategies/[id] (redirect)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N43",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N44",
+      "capability": "Native route /tickers/[symbol]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N44",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N45",
+      "capability": "Native route /trade-from-x",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N45",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N46",
+      "capability": "Native route /u/[address]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-N46",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N47",
+      "capability": "+native-intent deep-link handling",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N47",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N48",
+      "capability": "Home-screen widget and Live Activity",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N48",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N49",
+      "capability": "Onboarding with sound",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N49",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N50",
+      "capability": "Android ongoing notification and Android APK (FCM credentials added)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N50",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N51",
+      "capability": "Live spot stream and venue ladder on the phone (react-native-sse)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N51",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-N52",
+      "capability": "DropBellWatcher, DeskWatcher on the phone",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b",
+        "gate:C8"
+      ],
+      "parityRow": "C-N52",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-01",
+      "capability": "\"Who can see this\" chip (web and phone)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-ADD-01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-02",
+      "capability": "Per-party view switcher with the literal query on screen (web and phone)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "C-ADD-02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-03",
+      "capability": "Seat link between devices (QR + 6-character code)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-ADD-03",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-04",
+      "capability": "iOS first-run demo-credits gate",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-ADD-04",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-05",
+      "capability": "1-minute demo lane resolved by the three oracle parties",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-ADD-05",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-06",
+      "capability": "Institutional event markets resolved by committee attestation",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-ADD-06",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-07",
+      "capability": "BitSafe governed resolution (abu-pm-governance)",
+      "state": "not-live",
+      "dependsOn": [
+        "BitSafe add-on"
+      ],
+      "parityRow": "C-ADD-07",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-08",
+      "capability": "Ticket write-progress steps (desk-kit StepProgress) and firm-quote ring (20 s)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "C-ADD-08",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-09",
+      "capability": "Resolution timeline on /proof/<market> beside ReverifyButton",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-ADD-09",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-10",
+      "capability": "Seat pool-full, draining and waitlist plates",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-ADD-10",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-11",
+      "capability": "Privacy matrix page with a runnable command; trust-boundary statement on /proof",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5",
+        "gate:C10"
+      ],
+      "parityRow": "C-ADD-11",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-ADD-12",
+      "capability": "Grofty money rail (PartyLayer connector, web only)",
+      "state": "not-live",
+      "dependsOn": [
+        "Grofty add-on"
+      ],
+      "parityRow": "C-ADD-12",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-X01",
+      "capability": "\"Strategies on X\" strip on /agents (removed in the reference, d4a693e5)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "C-X01",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-X02",
+      "capability": "Mobile removals of 25 Sep: install strip, News, Pitch, Demo, Print proof, Stats, Market Surface, Download, the /more and /notifications nav entries",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "C-X02",
+      "acceptanceRow": null
+    },
+    {
+      "id": "C-X03",
+      "capability": "Friends and follows (removed in the reference, fb782348)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "C-X03",
+      "acceptanceRow": null
+    }
+  ]
+}
