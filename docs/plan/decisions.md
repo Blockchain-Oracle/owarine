@@ -188,6 +188,12 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Evidence:** `services/ops/src/http/health.test.ts`.
 - **Approval:** default; overrulable.
 
+### K-028 — Publishing a settled call needs a settlement receipt (Daml 0.3.0, before R1)
+- **Date / owner:** 2026-09-29 · stage owner (C5 finding)
+- **Evidence:** `Leg_Publish` is nonconsuming on `Leg`, and `Leg_Settle`/`Leg_Claim` archive the leg, so there is nothing to publish from after settlement. The reference lets a call be shared after it settles.
+- **Rule:** until 0.3.0, publishing works on live legs, and a settled, unpublished call shows an honest note. In 0.3.0, `Leg_Settle`/`Leg_Claim` create a bilateral `SettlementReceipt` (owner + venue) with `Receipt_Publish`. That removes the note and gives portfolio history a ledger source.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
