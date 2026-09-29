@@ -1,0 +1,23 @@
+/* Code Block (21st #23586, kvnkld/code-block), restyled in the reference tokens. The source's class names are kept
+   in spirit (cb, cbHead → cb-head, cbLn → cb-ln); every colour, face and radius is a bridge or component token, so
+   both themes follow. The body scrolls sideways inside the card, never the page. */
+
+.cb { display: flex; flex-direction: column; min-width: 0; margin: 0; overflow: hidden; border: 1px solid var(--color-hairline); border-radius: var(--radius-lg); background: var(--color-ground); }
+
+.cb-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 8px 8px 14px; border-bottom: 1px solid var(--color-hairline); background: var(--color-surface-1); }
+.cb-file { display: inline-flex; min-width: 0; align-items: center; gap: 8px; color: var(--color-ink-secondary); }
+.cb-icon { flex: none; width: 15px; height: 15px; color: var(--color-ink-muted); }
+.cb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.02em; color: var(--color-ink-secondary); }
+
+.cb-copy { display: inline-flex; flex: none; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border: 1px solid var(--color-hairline); border-radius: var(--radius-sm); background: transparent; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-secondary); transition: color 160ms var(--ease), border-color 160ms var(--ease), background-color 160ms var(--ease); }
+.cb-copy:hover { border-color: var(--color-border-strong); background: var(--color-surface-2); color: var(--color-ink); }
+.cb-copy svg { width: 13px; height: 13px; }
+.cb-copy:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+.cb-body { overflow-x: auto; padding: 10px 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.7; scrollbar-width: thin; }
+.cb-body:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.cb-row { display: grid; grid-template-columns: 40px max-content; min-width: max-content; }
+.cb-row:hover { background: var(--color-surface-1); }
+.cb-ln { padding-right: 14px; text-align: right; color: var(--color-ink-disabled); font-variant-numeric: tabular-nums; user-select: none; }
+.cb-code { padding-right: 16px; white-space: pre; color: var(--color-ink); font-family: inherit; font-size: inherit; background: none; }
+.cb-hash { color: var(--color-accent); cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }

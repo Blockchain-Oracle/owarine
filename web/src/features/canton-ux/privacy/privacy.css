@@ -1,0 +1,46 @@
+/* The privacy surfaces (C-ADD-01, C-ADD-02) in the reference tokens: the chip is the reference badge in its outline
+   variant, set to the desk kit's pill rhythm; the switcher's rows follow the portfolio's bets rows. */
+
+.cx-muted { color: var(--color-ink-muted); }
+.cx-label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-ink-muted); }
+
+/* ── "Who can see this" chip ── */
+.cx-seen { display: inline-flex; border: 0; padding: 0; background: none; border-radius: 9999px; }
+.cx-seen:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.cx-seen-badge { height: auto; gap: 8px; padding: 3px 10px 3px 3px; border-color: var(--color-hairline); border-radius: 9999px; background: var(--color-surface-1); color: var(--color-ink-secondary); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0.02em; transition: border-color 160ms var(--ease), color 160ms var(--ease); }
+.cx-seen:hover .cx-seen-badge, .cx-seen[data-popup-open] .cx-seen-badge { border-color: var(--color-accent-dim); color: var(--color-ink); }
+.cx-seen-badge .dkit-logo-disc.generic { font-family: var(--font-mono); font-size: 10px; font-weight: 700; color: var(--color-ink); }
+.cx-seen-badge .dkit-logo:last-child { background: var(--color-accent-wash); }
+.cx-seen-badge .dkit-logo:last-child .dkit-logo-disc.generic { color: var(--color-accent); }
+.cx-seen-text { white-space: nowrap; }
+.cx-seen-eye { width: 13px; height: 13px; color: var(--color-ink-muted); }
+
+.cx-seen-tip { display: flex; max-width: 280px; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; text-align: left; line-height: 1.45; }
+.cx-seen-tip-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.7; }
+.cx-seen-tip-row strong { font-weight: 700; }
+.cx-seen-tip-foot { margin-top: 4px; padding-top: 6px; border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent); opacity: 0.85; }
+
+/* ── the view switcher ── */
+.cx-switcher { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+.cx-switcher-intro { max-width: 60ch; font-size: 13px; line-height: 1.5; color: var(--color-ink-secondary); }
+.cx-switcher-panel { display: flex; min-width: 0; flex-direction: column; gap: 16px; }
+.cx-switcher-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; font-size: 12.5px; }
+.cx-party { font-family: var(--font-mono); font-size: 12.5px; color: var(--color-ink); }
+.cx-switcher-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); }
+.cx-switcher-query { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+
+.cx-positions { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid var(--market-card-border); border-radius: var(--market-card-radius); background: var(--market-card-surface); }
+.cx-position { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "market side" "stake stake" "cid seen"; align-items: center; gap: 6px 12px; padding: 12px 14px; }
+.cx-position + .cx-position { border-top: 1px solid var(--color-hairline); }
+.cx-position-market { grid-area: market; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); }
+.cx-position-side { grid-area: side; justify-self: end; padding: 2px 8px; border: 1px solid; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; }
+.cx-position-side[data-side="up"] { border-color: var(--button-up-border); background: var(--button-up-fill); color: var(--button-up-ink); }
+.cx-position-side[data-side="down"] { border-color: var(--button-down-border); background: var(--button-down-fill); color: var(--button-down-ink); }
+.cx-position-stake { grid-area: stake; font-family: var(--font-mono); font-size: 12.5px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+.cx-position-cid { grid-area: cid; min-width: 0; font-family: var(--font-mono); font-size: 11.5px; color: var(--color-ink-secondary); }
+.cx-position-seen { grid-area: seen; justify-self: end; }
+
+@media (min-width: 768px) {
+  .cx-position { grid-template-columns: minmax(0, 1.2fr) auto minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "market side stake cid seen"; }
+  .cx-position-side { justify-self: start; }
+}
