@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { decodePriceUpdateV2, printDiff } from "./decode";
 import { parseArchivedUpdate, preflightRefusal } from "./hermes";
 
-const vectors = new URL("../../../../anchor/tests/vectors/prints/", import.meta.url);
+const vectors = new URL("./vectors/", import.meta.url);
 const account = Buffer.from(readFileSync(new URL("pyth-tsla-1789156800.account.b64", vectors), "utf8").trim(), "base64");
 const parsed = JSON.parse(readFileSync(new URL("pyth-tsla-1789156800.json", vectors), "utf8")) as {
   T: number;

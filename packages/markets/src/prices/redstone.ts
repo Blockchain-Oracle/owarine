@@ -2,7 +2,6 @@
  * RedStone gateway JSON → the `public_record_print_redstone` payload (prints.md §4.2). Pure.
  * Every integer on the wire is big-endian; each package is single-feed with a 32-byte value (142 B).
  */
-import { getBase64Encoder } from "@solana/kit";
 
 export const REDSTONE_GATEWAY = "https://oracle-gateway-2.a.redstone.finance";
 export const REDSTONE_SERVICE = "redstone-primary-prod";
@@ -68,7 +67,7 @@ function beBytes(value: bigint, length: number): Uint8Array {
 export function redstonePackageBytes(pkg: RedStonePackage, feed: string): Uint8Array {
   const point = pkg.dataPoints[0];
   if (pkg.dataPoints.length !== 1 || !point || point.dataFeedId !== feed) throw new Error(`package is not single-feed ${feed}`);
-  const signature = getBase64Encoder().encode(pkg.signature);
+  const signature = Uint8Array.from(atob(pkg.signature), (c) => c.charCodeAt(0));
   if (signature.length !== 65) throw new Error(`signature is ${signature.length} bytes, expected 65`);
   const out = new Uint8Array(REDSTONE_PACKAGE_BYTES);
   out.set(redstoneFeedBytes(feed), 0);

@@ -2,9 +2,9 @@
  * What `init-events` ensures on a cluster: the launch grid, the authorities and the S2 Series set (plan §7.2 S2).
  * Values mirror the LiteSVM fixtures (`anchor/tests/src/fixtures.rs`), which the engine tests run against.
  */
-import type { AdminRegisterSeriesInstructionDataArgs, AdminSetAuthoritiesInstructionDataArgs } from "@agari/clients/agari-events";
 import { TICKERS, type Basket, type TickerSymbol } from "@agari/core/market";
-import type { Address } from "@solana/kit";
+import type { Address } from "@agari/core/types";
+import type { AuthoritiesArgs, SeriesRegisterArgs } from "./specs";
 import { preStocksBasketFeedHex, preStocksFeedHex } from "../prices/prestocks";
 import { asciiFeedId, I64_MAX, policyVersions, pythIndexPolicyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
 
@@ -20,7 +20,7 @@ export const BASIS = { regular: 0, gap: 1, token: 2 } as const;
 /** `8 + 32,384 + 48 · capacity` (events-accounts.md §3.8). */
 export const bookSpace = (capacity: number) => 8 + 32_384 + 48 * capacity;
 
-type SeriesParams = Omit<AdminRegisterSeriesInstructionDataArgs, "ticker" | "cadenceSec" | "basis">;
+type SeriesParams = Omit<SeriesRegisterArgs, "ticker" | "cadenceSec" | "basis">;
 
 /** The launch grid: lot = tick = 1,000 base units on 6-dp collateral (cash unit 1), 0.25 tUSDC seat bond, ~20 s rest filter. */
 export const LAUNCH_GRID: SeriesParams = {
@@ -87,7 +87,7 @@ export function s2Series(sources: PriceSources): SeriesSpec[] {
 
 export type AuthorityKeys = { roller: Address; attestor: Address };
 
-export function s2Authorities(keys: AuthorityKeys, sources: PriceSources): AdminSetAuthoritiesInstructionDataArgs {
+export function s2Authorities(keys: AuthorityKeys, sources: PriceSources): AuthoritiesArgs {
   const pad = (list: Address[], size: number) => [...list, ...Array<Address>(size - list.length).fill(DEFAULT_ADDRESS)];
   return {
     rollers: pad([keys.roller], 4),

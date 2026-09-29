@@ -1,99 +1,64 @@
 /**
- * Sending for venue actors (venue-ops.md §3). Actors reconcile before they send, so a failure carrying an
- * "already done" engine code means another writer (or an earlier pass) won the race: treat it as done, never resend.
+ * Sending for venue actors (C1 stub). Actors reconcile before they send, so a failure carrying an "already done" code
+ * means another writer won the race. On Canton the codes become Daml `failWithStatus` ids (C3); in C1 nothing is
+ * sent: `sendOps` throws `OpsSendError` with no code and the not-live reason.
  */
-import {
-  AGARI_EVENTS_ERROR__BAD_WINDOW_INDEX,
-  AGARI_EVENTS_ERROR__BOOK_MARKET_MISMATCH,
-  AGARI_EVENTS_ERROR__BOOK_NOT_RELEASED,
-  AGARI_EVENTS_ERROR__CROSS_CHECK_PENDING,
-  AGARI_EVENTS_ERROR__DEPENDENTS_REMAIN,
-  AGARI_EVENTS_ERROR__LEDGER_NOT_CLOSED,
-  AGARI_EVENTS_ERROR__LEDGER_NOT_EMPTY,
-  AGARI_EVENTS_ERROR__MARKET_ALREADY_TERMINAL,
-  AGARI_EVENTS_ERROR__MARKET_NOT_LOCKED,
-  AGARI_EVENTS_ERROR__MARKET_NOT_TERMINAL,
-  AGARI_EVENTS_ERROR__NO_FREE_BOOK,
-  AGARI_EVENTS_ERROR__OPEN_ORDERS_REMAIN,
-  AGARI_EVENTS_ERROR__POST_ONLY_WOULD_CROSS,
-  AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED,
-  AGARI_EVENTS_ERROR__PRINT_ALREADY_RECORDED,
-  AGARI_EVENTS_ERROR__PRINT_TOO_EARLY,
-  AGARI_EVENTS_ERROR__PRINT_TOO_LATE,
-  AGARI_EVENTS_ERROR__PRINTS_MISSING,
-  AGARI_EVENTS_ERROR__RETENTION_NOT_ELAPSED,
-  AGARI_EVENTS_ERROR__SEAT_MISMATCH,
-  AGARI_EVENTS_ERROR__SETTLEMENT_WINDOW_OPEN,
-  AGARI_EVENTS_ERROR__SOURCE_NOT_COVERED,
-  AGARI_EVENTS_ERROR__TOO_MANY_OPEN_ORDERS,
-  AGARI_EVENTS_ERROR__WINDOW_OVERLAP,
-} from "@agari/clients/agari-events";
-import type { Instruction } from "@solana/kit";
-import { describeSendError } from "../deploy/send";
+import type { Instruction } from "./shapes";
+import { cantonNotLive } from "../stub/not-deployed";
 import type { OpsClient } from "./client";
 
-/** The engine codes actors branch on. Numbers, so `services/ops` never imports the client package. */
+/**
+ * The venue-command refusals actors branch on, by name. The reference's numbers were agari-events error codes; they
+ * are kept as stable local numbers so `services/ops` still compiles its branches. No Canton rejection maps to them yet.
+ */
 export const ENGINE_ERROR = {
-  badWindowIndex: AGARI_EVENTS_ERROR__BAD_WINDOW_INDEX,
-  windowOverlap: AGARI_EVENTS_ERROR__WINDOW_OVERLAP,
-  noFreeBook: AGARI_EVENTS_ERROR__NO_FREE_BOOK,
-  bookMarketMismatch: AGARI_EVENTS_ERROR__BOOK_MARKET_MISMATCH,
-  sourceNotCovered: AGARI_EVENTS_ERROR__SOURCE_NOT_COVERED,
-  seatMismatch: AGARI_EVENTS_ERROR__SEAT_MISMATCH,
-  postOnlyWouldCross: AGARI_EVENTS_ERROR__POST_ONLY_WOULD_CROSS,
-  /** D-088: a seat at its 16 resting orders; a taker sent to a Listed Window (only post-only rests before the open). */
-  tooManyOpenOrders: AGARI_EVENTS_ERROR__TOO_MANY_OPEN_ORDERS,
-  preOpenTakerRefused: AGARI_EVENTS_ERROR__PRE_OPEN_TAKER_REFUSED,
-  marketNotLocked: AGARI_EVENTS_ERROR__MARKET_NOT_LOCKED,
-  marketNotTerminal: AGARI_EVENTS_ERROR__MARKET_NOT_TERMINAL,
-  marketAlreadyTerminal: AGARI_EVENTS_ERROR__MARKET_ALREADY_TERMINAL,
-  printAlreadyRecorded: AGARI_EVENTS_ERROR__PRINT_ALREADY_RECORDED,
-  printTooEarly: AGARI_EVENTS_ERROR__PRINT_TOO_EARLY,
-  printTooLate: AGARI_EVENTS_ERROR__PRINT_TOO_LATE,
-  crossCheckPending: AGARI_EVENTS_ERROR__CROSS_CHECK_PENDING,
-  retentionNotElapsed: AGARI_EVENTS_ERROR__RETENTION_NOT_ELAPSED,
-  printsMissing: AGARI_EVENTS_ERROR__PRINTS_MISSING,
-  settlementWindowOpen: AGARI_EVENTS_ERROR__SETTLEMENT_WINDOW_OPEN,
-  openOrdersRemain: AGARI_EVENTS_ERROR__OPEN_ORDERS_REMAIN,
-  ledgerNotEmpty: AGARI_EVENTS_ERROR__LEDGER_NOT_EMPTY,
-  dependentsRemain: AGARI_EVENTS_ERROR__DEPENDENTS_REMAIN,
-  bookNotReleased: AGARI_EVENTS_ERROR__BOOK_NOT_RELEASED,
-  ledgerNotClosed: AGARI_EVENTS_ERROR__LEDGER_NOT_CLOSED,
+  badWindowIndex: 6001,
+  windowOverlap: 6002,
+  noFreeBook: 6003,
+  bookMarketMismatch: 6004,
+  sourceNotCovered: 6005,
+  seatMismatch: 6006,
+  postOnlyWouldCross: 6007,
+  tooManyOpenOrders: 6008,
+  preOpenTakerRefused: 6009,
+  marketNotLocked: 6010,
+  marketNotTerminal: 6011,
+  marketAlreadyTerminal: 6012,
+  printAlreadyRecorded: 6013,
+  printTooEarly: 6014,
+  printTooLate: 6015,
+  crossCheckPending: 6016,
+  retentionNotElapsed: 6017,
+  printsMissing: 6018,
+  settlementWindowOpen: 6019,
+  openOrdersRemain: 6020,
+  ledgerNotEmpty: 6021,
+  dependentsRemain: 6022,
+  bookNotReleased: 6023,
+  ledgerNotClosed: 6024,
 } as const;
 
-const ENGINE_CODES = { min: 6000, max: 6399 };
-
-/** The first agari-events custom error code on a Kit error's cause chain, or null. */
+/** The venue refusal code on an error's cause chain, or null. None exists in C1. */
 export function engineErrorCode(error: unknown): number | null {
   for (let e: unknown = error, depth = 0; e && depth < 8; e = (e as { cause?: unknown }).cause, depth++) {
-    const code = (e as { context?: { code?: unknown } }).context?.code;
-    if (typeof code === "number" && code >= ENGINE_CODES.min && code <= ENGINE_CODES.max) return code;
+    if (e instanceof OpsSendError) return e.code;
   }
   return null;
 }
 
-/** A failed send: `code` is the engine error (null for RPC, blockhash or other failures); `message` is log-safe. */
+/** A failed send: `code` is the venue refusal (null for anything else); `message` is log-safe. */
 export class OpsSendError extends Error {
   readonly code: number | null;
-  constructor(label: string, cause: unknown) {
-    super(`${label} failed: ${describeSendError(cause)}`, { cause });
+  constructor(label: string, cause: unknown, code: number | null = null) {
+    super(`${label} failed: ${cause instanceof Error ? cause.message : String(cause)}`, { cause });
     this.name = "OpsSendError";
-    this.code = engineErrorCode(cause);
+    this.code = code;
   }
 }
 
-/**
- * A send that hasn't confirmed by then is abandoned (a stalled confirmation subscription once hung a roller pass for
- * 50 minutes). The transaction may still land: the actor's next pass re-reads chain state before acting.
- */
 export const SEND_TIMEOUT_MS = 120_000;
 
-/** Sends one transaction and waits for confirmation, at most `SEND_TIMEOUT_MS`. Throws `OpsSendError`. */
-export async function sendOps(client: OpsClient, instructions: Instruction[], label: string): Promise<{ signature: string }> {
-  try {
-    const result = await client.sendTransaction(instructions, { abortSignal: AbortSignal.timeout(SEND_TIMEOUT_MS) });
-    return { signature: String(result.context.signature) };
-  } catch (error) {
-    throw new OpsSendError(label, error);
-  }
+/** Nothing is sent in C1: every send throws `OpsSendError` with the not-live reason. */
+export async function sendOps(_client: OpsClient, _instructions: Instruction[], label: string): Promise<{ signature: string }> {
+  throw new OpsSendError(label, new Error(cantonNotLive("ops")));
 }

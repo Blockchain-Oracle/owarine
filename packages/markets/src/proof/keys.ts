@@ -1,7 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { DEVNET_DEFAULTS } from "../env";
 import { parseSecretKey } from "../sessions/keypair";
 
 export const PROOF_REPLAY_ROLE = "proof-replay";
@@ -32,7 +31,7 @@ function readRoleFile(dir: string): string | null {
   }
 }
 
-/** The replay's RPC: `PROOF_REPLAY_RPC_URL`, else public devnet (a handful of sends per boundary; the ops Helius budget stays with ops, D-030). */
+/** The replay's endpoint: `PROOF_REPLAY_RPC_URL`, else "" (Canton has no public RPC to default to; the replay is not live, C1). */
 export function proofReplayRpcUrl(env: Record<string, string | undefined>): string {
-  return env.PROOF_REPLAY_RPC_URL?.trim() || DEVNET_DEFAULTS.rpcHttpUrls[0];
+  return env.PROOF_REPLAY_RPC_URL?.trim() || "";
 }

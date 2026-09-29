@@ -2,7 +2,8 @@
  * `services/ops/config/price-sources.json` (D-003) → `admin_add_policy_version` arguments (prints.md §2.1).
  * Pure: the script reads the file, this maps it, and `versionDiff` compares against a Series read back from chain.
  */
-import type { PolicyVersion, PrintPolicy, PrintPolicyInput } from "@agari/clients/agari-events";
+import type { PolicyVersion, PrintPolicy } from "../ops/shapes";
+import type { PrintPolicyInput } from "./specs";
 import { pythIndexFeedOf, TICKERS, type TickerSymbol } from "@agari/core/market";
 import type { LaneBasis } from "@agari/core/types";
 import { tokenPolicyFor, tokenPolicyVersions } from "./policies-token";

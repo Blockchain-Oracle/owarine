@@ -1,15 +1,13 @@
-/** Opening a Window (roller), funding a user with tUSDC (faucet) and placing orders. */
-import {
-  AGARI_EVENTS_PROGRAM_ADDRESS,
-  getRollerOpenWindowInstructionAsync,
-  getUserPlaceOrderInstructionAsync,
-  type UserPlaceOrderInstructionDataArgs,
-} from "@agari/clients/agari-events";
-import { generateKeyPairSigner, type Address, type KeyPairSigner } from "@solana/kit";
-import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from "@solana-program/token";
-import { send, type SendContext } from "../send";
-import { COLLATERAL_DECIMALS } from "../venue-spec";
-import { coveringVersion, eventAuthority, readSeats, windowAddresses, type WindowAddresses } from "./accounts";
+/**
+ * The drive's window cycle (C1 stub): open a window, fund a user, place orders; then record prints, settle and redeem.
+ * On Canton these are `Series_OpenWindow`, demo-cash credits, `Quote_Accept`, `PriceQuote`, `Terms_Resolve` and
+ * `SettleBatch` (C2x/C3). The order constants stay; every ledger step refuses as not live.
+ */
+import { encodeBase58, toAddress, type Address } from "@agari/core/types";
+import type { KeyPairSigner } from "../client";
+import { deployNotLive, type SendContext } from "../send";
+import type { WindowAddresses } from "./accounts";
+import type { Instruction } from "../../ops/shapes";
 
 export type OpenedWindow = WindowAddresses & {
   book: Address;
@@ -22,93 +20,42 @@ export type OpenedWindow = WindowAddresses & {
 
 export const KIND = { buyYes: 0, sellYes: 1, buyNo: 2, sellNo: 3 } as const;
 export const ORDER_TYPE = { normal: 0, fok: 1, ioc: 2, postOnly: 3 } as const;
-/** A throwaway drive user (never persisted). */
-export const newSigner = generateKeyPairSigner;
-
 /** `seat_hint = u16::MAX`: the first empty seat, or the authority's own. */
 export const ANY_SEAT = 0xffff;
 
-/** A clock-aligned Regular Window `[tradingStart, tradingStart + cadence]` on the next index and a free Book. */
-export async function openWindow(
-  ctx: SendContext,
-  input: { roller: KeyPairSigner; series: Address; mint: Address; tradingStartSec: number },
-): Promise<OpenedWindow> {
-  const series = await ctx.client.agariEvents.accounts.series.fetch(input.series);
-  const tradingStart = input.tradingStartSec;
-  const expiry = tradingStart + series.data.cadenceSec;
-  if (tradingStart % series.data.cadenceSec !== 0) throw new Error(`${tradingStart} is not on the ${series.data.cadenceSec} s grid`);
-  const policyVersion = coveringVersion(series.data, tradingStart, expiry);
-  if (policyVersion === null) throw new Error(`no policy version covers ${tradingStart}..${expiry}: the Window is not listed`);
-  const book = series.data.freeBooks[0];
-  if (series.data.freeBookCount === 0 || !book) throw new Error(`Series ${input.series} has no free Book`);
-  const w = await windowAddresses(input.series, series.data.nextIndex);
-  const ix = await getRollerOpenWindowInstructionAsync({
-    roller: input.roller,
-    payer: ctx.client.payer,
-    series: input.series,
-    market: w.market,
-    book,
-    collateralMint: input.mint,
-    eventAuthority: await eventAuthority(),
-    program: AGARI_EVENTS_PROGRAM_ADDRESS,
-    index: w.index,
-    tradingStart,
-    lockAt: expiry,
-    expiry,
-    policyVersion,
-    openKind: 0,
-    closeKind: 0,
-  });
-  const signature = await send(ctx, "open window", [ix], `#${w.index} ${new Date(tradingStart * 1000).toISOString()} → market ${w.market}, v${policyVersion + 1}, book ${book}`);
-  return { ...w, book, mint: input.mint, tradingStartSec: tradingStart, expirySec: expiry, policyVersion, signature };
+/** A throwaway drive identity (never persisted): a fresh WebCrypto Ed25519 key's address. */
+export async function newSigner(): Promise<KeyPairSigner> {
+  const pair = (await crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as CryptoKeyPair;
+  return { address: toAddress(encodeBase58(new Uint8Array(await crypto.subtle.exportKey("raw", pair.publicKey)))) };
 }
 
-/** Mints `amount` base units of tUSDC to `owner`'s ATA (created if missing) with the faucet authority. */
-export async function fundUser(ctx: SendContext, input: { faucet: KeyPairSigner; mint: Address; owner: Address; amount: bigint }): Promise<Address> {
-  const [ata] = await findAssociatedTokenPda({ owner: input.owner, mint: input.mint, tokenProgram: TOKEN_PROGRAM_ADDRESS });
-  const result = await ctx.client.token.instructions
-    .mintToATA({ ata, owner: input.owner, mint: input.mint, mintAuthority: input.faucet, amount: input.amount, decimals: COLLATERAL_DECIMALS })
-    .sendTransaction();
-  ctx.log({ step: "fund user", signature: String(result.context.signature), note: `${input.amount} base units → ${input.owner}` });
-  return ata;
+export type OrderInput = {
+  kind: number;
+  priceTicks: number;
+  lots: bigint;
+  orderType: number;
+  expireTs?: number | bigint;
+  selfMatch?: number;
+  maxFills?: number;
+  maxEvictions?: number;
+  seatHint?: number;
+  useCredit?: boolean;
+  withdrawProceeds?: boolean;
+  clientId?: bigint;
+};
+
+export async function openWindow(_ctx: SendContext, _input: { roller: KeyPairSigner; series: Address; mint: Address; tradingStartSec: number; expirySec?: number }): Promise<OpenedWindow> {
+  throw deployNotLive();
 }
-
-export type OrderInput = Pick<UserPlaceOrderInstructionDataArgs, "kind" | "priceTicks" | "lots" | "orderType"> &
-  Partial<Omit<UserPlaceOrderInstructionDataArgs, "kind" | "priceTicks" | "lots" | "orderType">>;
-
-/** An authority that already holds a seat must name it; `ANY_SEAT` is refused with `SeatMismatch` (D-020). */
-export async function seatHintFor(ctx: SendContext, w: OpenedWindow, authority: Address): Promise<number> {
-  const seat = (await readSeats(ctx.client, w.ledger)).find((s) => s.owner === authority);
-  return seat ? seat.index : ANY_SEAT;
+export async function fundUser(_ctx: SendContext, _input: { faucet: KeyPairSigner; mint: Address; owner: Address; amount: bigint }): Promise<Address> {
+  throw deployNotLive();
 }
-
-export async function placeOrderInstruction(ctx: SendContext, w: OpenedWindow, user: KeyPairSigner, userToken: Address, order: OrderInput) {
-  const seatHint = order.seatHint ?? (await seatHintFor(ctx, w, user.address));
-  return getUserPlaceOrderInstructionAsync({
-    authority: user,
-    series: w.series,
-    market: w.market,
-    book: w.book,
-    ledger: w.ledger,
-    mvault: w.mvault,
-    authorityToken: userToken,
-    collateralMint: w.mint,
-    eventAuthority: await eventAuthority(),
-    program: AGARI_EVENTS_PROGRAM_ADDRESS,
-    expireTs: w.expirySec,
-    selfMatch: 0,
-    maxFills: 16,
-    maxEvictions: 16,
-    useCredit: false,
-    withdrawProceeds: false,
-    clientId: 0,
-    ...order,
-    seatHint,
-  });
+export async function seatHintFor(_ctx: SendContext, _w: OpenedWindow, _authority: Address): Promise<number> {
+  throw deployNotLive();
 }
-
-export async function placeOrder(ctx: SendContext, w: OpenedWindow, user: KeyPairSigner, userToken: Address, order: OrderInput): Promise<string> {
-  const ix = await placeOrderInstruction(ctx, w, user, userToken, order);
-  const kind = Object.entries(KIND).find(([, v]) => v === order.kind)?.[0];
-  return send(ctx, "place order", [ix], `${user.address.slice(0, 6)} ${kind} ${order.lots} @ ${order.priceTicks}`);
+export async function placeOrderInstruction(_ctx: SendContext, _w: OpenedWindow, _user: KeyPairSigner, _userToken: Address, _order: OrderInput): Promise<Instruction> {
+  throw deployNotLive();
+}
+export async function placeOrder(_ctx: SendContext, _w: OpenedWindow, _user: KeyPairSigner, _userToken: Address, _order: OrderInput): Promise<string> {
+  throw deployNotLive();
 }

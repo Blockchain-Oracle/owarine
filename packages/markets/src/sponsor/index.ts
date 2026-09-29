@@ -1,10 +1,8 @@
 /**
- * `@agari/markets/sponsor`: the fee-payer co-sign (tap-trading.md §3, D-065). Server-only: the co-signer reads the
- * `sponsor` role key. Not re-exported from the package root, so no web bundle pulls it; the root carries only
- * `SponsorStatus`. The route is a thin handler over `createSponsorService`; nothing here sends a transaction.
+ * `@agari/markets/sponsor`: the fee sponsor's path, kept with its machinery removed. Canton charges the user no network
+ * fee, so status reports that nothing needs sponsoring and co-signs are refused. Server-only; the root carries only
+ * `SponsorStatus`.
  */
-export { checkChain, createSponsorRpc, MIN_BLOCKS_LEFT, SponsorRpcError, type ChainPass, type SponsorRpc, type SponsorSimulation } from "./chain";
-export { cosign, type CosignAccepted, type CosignDeps, type CosignRequest, type SponsorKeyPair, type SponsorLimits } from "./cosign";
 export {
   BREAKER_REASON,
   breakerOpen,
@@ -18,6 +16,16 @@ export {
   type GateLimits,
   type SponsorLedger,
 } from "./gates";
-export { checkStatic, type Refusal, type StaticLimits, type StaticPass } from "./policy";
-export { createSponsorService, NO_SPONSOR_KEY, sponsorLimitsFrom, sponsorRoleSecret, type SponsorService } from "./service";
-export { SPONSOR_ALLOWLIST, SPONSORABLE_INSTRUCTIONS, type SponsorableInstruction, type SponsorStatus } from "./status";
+export { refuse, type Refusal, type StaticLimits } from "./policy";
+export {
+  createSponsorRpc,
+  createSponsorService,
+  NO_SPONSOR_KEY,
+  sponsorLimitsFrom,
+  sponsorRoleSecret,
+  type CosignAccepted,
+  type SponsorLimits,
+  type SponsorRpc,
+  type SponsorService,
+} from "./service";
+export { NO_NETWORK_FEE, SPONSOR_ALLOWLIST, type SponsorStatus } from "./status";

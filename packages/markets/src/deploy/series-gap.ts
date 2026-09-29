@@ -6,14 +6,13 @@
  * the Surfpool time-travel drive, whose prints are labelled drive data; 902, TSLA's Pyth v1 Gap version for the overnight
  * devnet drive (Q-S6-3). And `openGapWindow`, the roller's Gap listing for drives (the cycle's `openWindow` is Regular-only).
  */
-import { AGARI_EVENTS_PROGRAM_ADDRESS, getRollerOpenWindowInstructionAsync } from "@agari/clients/agari-events";
-import { LAUNCH_TICKERS, TICKERS, type BoundaryKind, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
+import { LAUNCH_TICKERS, TICKERS, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
 import { GAP_CADENCE_SEC } from "@agari/core/types";
-import type { Address, KeyPairSigner } from "@solana/kit";
-import { coveringVersion, eventAuthority, windowAddresses } from "./cycle/accounts";
+import type { Address } from "@agari/core/types";
+import type { KeyPairSigner } from "./client";
 import type { OpenedWindow } from "./cycle/window";
 import { ADMIT_UNTIL_LOCK, asciiFeedId, I64_MAX, policyVersions, SOURCE, ZERO_POLICY, type PriceSources } from "./policies";
-import { send, type SendContext } from "./send";
+import { deployNotLive, type SendContext } from "./send";
 import { BASIS, LAUNCH_GRID, type SeriesSpec } from "./venue-spec";
 
 /** One recyclable Book per Gap Series: the previous weekend's Book is released at its lock (plan §3.3). */
@@ -57,30 +56,9 @@ export function driveGapPythSeries(sources: PriceSources): SeriesSpec {
   return { key: "TEST-PYTH-gap", symbol: "TSLA", ticker: DRIVE_GAP_PYTH_TICKER, cadenceSec: GAP_CADENCE_SEC, basis: BASIS.gap, params: LAUNCH_GRID, versions: [v1], books: { ...GAP_BOOKS } };
 }
 
-/** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */
-const KIND_U8: Record<BoundaryKind, number> = { Intraday: 0, SessionOpen: 1, SessionClose: 2 };
-
 export type OpenedGapWindow = OpenedWindow & { lockAtSec: number };
 
-/** Lists one Gap Window (any span the engine accepts) on the next index and the Series' first free Book. */
-export async function openGapWindow(ctx: SendContext, input: { roller: KeyPairSigner; series: Address; mint: Address; window: ScheduledWindow }): Promise<OpenedGapWindow> {
-  const series = await ctx.client.agariEvents.accounts.series.fetch(input.series);
-  const { tradingStartSec, lockAtSec, expirySec } = input.window;
-  if (series.data.basis !== BASIS.gap) throw new Error(`Series ${input.series} is not a Gap Series (basis ${series.data.basis})`);
-  const policyVersion = coveringVersion(series.data, tradingStartSec, expirySec);
-  if (policyVersion === null) throw new Error(`no policy version covers ${tradingStartSec}..${expirySec}: the Window is not listed`);
-  const book = series.data.freeBooks[0];
-  if (series.data.freeBookCount === 0 || !book) throw new Error(`Series ${input.series} has no free Book`);
-  const w = await windowAddresses(input.series, series.data.nextIndex);
-  // The instruction's own field names (unix seconds on the wire).
-  const [tradingStart, expiry] = [tradingStartSec, expirySec];
-  const ix = await getRollerOpenWindowInstructionAsync({
-    roller: input.roller, payer: ctx.client.payer, series: input.series, market: w.market, book, collateralMint: input.mint,
-    eventAuthority: await eventAuthority(), program: AGARI_EVENTS_PROGRAM_ADDRESS, index: w.index,
-    tradingStart, lockAt: lockAtSec, expiry, policyVersion,
-    openKind: KIND_U8[input.window.openKind], closeKind: KIND_U8[input.window.closeKind],
-  });
-  const iso = (sec: number) => new Date(sec * 1000).toISOString();
-  const signature = await send(ctx, "open gap window", [ix], `#${w.index} ${iso(tradingStartSec)} → lock ${iso(lockAtSec)} → ${iso(expirySec)}, market ${w.market}, v${policyVersion + 1}, book ${book}`);
-  return { ...w, book, mint: input.mint, tradingStartSec, lockAtSec, expirySec, policyVersion, signature };
+/** Lists one Gap Window. On Canton a window opens through `Series_OpenWindow` (C3); not live in C1. */
+export async function openGapWindow(_ctx: SendContext, _input: { roller: KeyPairSigner; series: Address; mint: Address; window: ScheduledWindow }): Promise<OpenedGapWindow> {
+  throw deployNotLive();
 }

@@ -1,66 +1,36 @@
 /**
- * The operator client for deploy-time scripts (S2 init-events, later the S3 actors' bootstrap).
- * Server-only: it is built from a keypair's secret bytes, which scripts read from `~/.config/agari/<cluster>/`.
+ * The operator client for deploy-time scripts and the venue actors (C1 stub). The reference built a Kit client whose
+ * fee payer was the role key; on Canton a role acts as its own party through the venue's ledger session (C2x/C3),
+ * and the user pays no network fee. This client is a descriptor naming the role key's address; every ledger call made
+ * with it refuses as not live. Server-only.
  */
-import { agariEventsProgram } from "@agari/clients/agari-events";
-import { agariRangeProgram } from "@agari/clients/agari-range";
-import { createClient, createKeyPairSignerFromBytes, createSolanaRpcFromTransport, createSolanaRpcSubscriptions, type KeyPairSigner } from "@solana/kit";
-import {
-  rpcConnection,
-  rpcGetMinimumBalance,
-  rpcSubscriptionsConnection,
-  rpcTransactionPlanner,
-  rpcTransactionPlanSendingExecutor,
-  rpcTransactionPlanSigningExecutor,
-} from "@solana/kit-plugin-rpc";
-import { signer } from "@solana/kit-plugin-signer";
-import { systemProgram } from "@solana-program/system";
-import { tokenProgram } from "@solana-program/token";
-import { retryingRpcTransport, type RpcLane } from "./rpc-transport";
+import type { Address } from "@agari/core/types";
+import { keypairAddress } from "../sessions/keypair";
 
 export type DeployClientConfig = {
-  /** HTTP RPC endpoint. May carry a provider key: never log it. */
+  /** The ledger endpoint (a secret when it carries credentials: never log it). */
   rpcUrl: string;
   rpcSubscriptionsUrl: string;
-  /** 64-byte Solana CLI keypair (seed + public key) of the fee payer, which is also the identity. */
+  /** The role's 64-byte key (seed ‖ public key); its public half is the role's address. */
   payerSecret: Uint8Array;
-  /** The pacing lane (`rpc-transport.ts`); price-relay uses `priority`. */
-  rpcLane?: RpcLane;
-  /** Send without preflight, so a transaction the program refuses still lands as a failed one (drive evidence only). */
+  rpcLane?: "priority" | "default";
   skipPreflight?: boolean;
 };
 
+/** A role's signing identity: its key's address. Nothing signs a ledger command with it in C1. */
+export type KeyPairSigner = { readonly address: Address };
+
 export async function keypairSigner(secret: Uint8Array): Promise<KeyPairSigner> {
   if (secret.length !== 64) throw new Error(`expected a 64-byte keypair, got ${secret.length} bytes`);
-  return createKeyPairSignerFromBytes(secret);
+  return { address: keypairAddress(secret) };
 }
 
-/**
- * One RPC Subscriptions instance per URL for the whole process: Kit pools every client's confirmation subscriptions
- * onto shared websockets instead of one socket per role client (Helius refused extra connections in the S3 soak).
- */
-const subscriptionsByUrl = new Map<string, ReturnType<typeof createSolanaRpcSubscriptions>>();
-function sharedSubscriptions(url: string) {
-  let subscriptions = subscriptionsByUrl.get(url);
-  if (!subscriptions) subscriptionsByUrl.set(url, (subscriptions = createSolanaRpcSubscriptions(url)));
-  return subscriptions;
+/** A role client: who acts, and where. `payer` keeps the reference's name for the acting role. */
+export interface DeployClient {
+  readonly payer: KeyPairSigner;
+  readonly endpoint: string;
 }
 
-export async function createDeployClient(config: DeployClientConfig) {
-  const payer = await keypairSigner(config.payerSecret);
-  return createClient()
-    .use(signer(payer))
-    // `solanaRpc`'s own composition (kit-plugin-rpc 0.19), with the retrying transport in place of the default one.
-    .use(rpcConnection(createSolanaRpcFromTransport(retryingRpcTransport(config.rpcUrl, config.rpcLane))))
-    .use(rpcSubscriptionsConnection(sharedSubscriptions(config.rpcSubscriptionsUrl)))
-    .use(rpcGetMinimumBalance())
-    .use(rpcTransactionPlanner())
-    .use(rpcTransactionPlanSigningExecutor())
-    .use(rpcTransactionPlanSendingExecutor({ skipPreflight: config.skipPreflight ?? false }))
-    .use(systemProgram())
-    .use(tokenProgram())
-    .use(agariEventsProgram())
-    .use(agariRangeProgram());
+export async function createDeployClient(config: DeployClientConfig): Promise<DeployClient> {
+  return { payer: await keypairSigner(config.payerSecret), endpoint: config.rpcUrl };
 }
-
-export type DeployClient = Awaited<ReturnType<typeof createDeployClient>>;

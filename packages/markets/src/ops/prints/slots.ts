@@ -1,8 +1,8 @@
 /**
- * Print slots of a Market (prints.md §3–4, venue-ops.md §6.1): which boundary, which source and feed, and the
- * admission bounds, as plain data the relay schedules on. Pure over decoded accounts.
+ * Print slots of a Market: which boundary, which source and feed, and the admission bounds, as plain data the relay
+ * schedules on. Pure over the ledger shapes (`../shapes`); on Canton each slot is an oracle party's `PriceQuote` (C3).
  */
-import type { Print, PrintPolicy } from "@agari/clients/agari-events";
+import type { Print, PrintPolicy } from "../shapes";
 import type { LaneBasis } from "@agari/core/types";
 import type { MarketView, SeriesView } from "../venue";
 import { MARKET_STATE, seriesBasis, seriesLaneKey } from "../venue";

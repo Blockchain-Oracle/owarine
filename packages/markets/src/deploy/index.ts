@@ -1,92 +1,45 @@
 /**
- * `@agari/markets/deploy`: server-only operator tooling. Scripts read keypair files and JSON, then call these.
- * Not re-exported from the package root, so no web bundle pulls it.
+ * `@agari/markets/deploy`: server-only operator tooling. Scripts read keypair files and JSON, then call these. Not
+ * re-exported from the package root. C1 stub: the pure venue specs and price policies are live (the Daml `Series`
+ * contracts take the same values, C2x); every ledger step refuses as not live.
  */
-import type { Address, KeyPairSigner } from "@solana/kit";
-import type { DeployClient } from "./client";
-import { ensureConfig, ensureMint, ensureTreasury } from "./ensure-config";
-import { ensureBooks, ensureSeries } from "./ensure-series";
+import type { Address } from "@agari/core/types";
+import type { DeployClient, KeyPairSigner } from "./client";
 import type { PriceSources } from "./policies";
-import type { StepContext, StepLog, VenueRecord } from "./send";
-export type { StepContext } from "./send";
-import { s2Authorities, s2Series, type AuthorityKeys } from "./venue-spec";
+import { deployNotLive, type StepLog, type VenueRecord } from "./send";
+import type { AuthorityKeys } from "./venue-spec";
 
-export { createDeployClient, keypairSigner, type DeployClient, type DeployClientConfig } from "./client";
-export { describeSendError, DriftError, type SendContext, type SeriesRecord, type StepLog, type VenueRecord } from "./send";
+export { createDeployClient, keypairSigner, type DeployClient, type DeployClientConfig, type KeyPairSigner } from "./client";
+export { assertNoDrift, describeSendError, diffField, DriftError, send, type SendContext, type SeriesRecord, type StepContext, type StepLog, type VenueRecord } from "./send";
 export { ADMIT_UNTIL_LOCK, policyVersions, pythIndexPolicyVersions, type PriceSources, type PythIndexSources } from "./policies";
-// S6 lanes (session-lanes.md §6): 6a the Gap Series, 6b the token Series.
+export type { AuthoritiesArgs, PrintPolicyInput, SeriesRegisterArgs } from "./specs";
 export * from "./series-gap";
 export * from "./series-token";
-export { seriesAddress } from "./ensure-series";
-export { BOOK_CAPACITY, BOOKS_PER_SERIES, DRIVE_ATTESTED_FEED, driveTestSeries, LAUNCH_GRID, s2Series, type SeriesSpec } from "./venue-spec";
-export { ensureBooks, ensureSeries } from "./ensure-series";
+export { BOOK_CAPACITY, BOOKS_PER_SERIES, DRIVE_ATTESTED_FEED, driveTestSeries, LAUNCH_GRID, s2Series, type AuthorityKeys, type SeriesSpec } from "./venue-spec";
 export { chainNowSec, readSeats, windowAddresses, type Seat } from "./cycle/accounts";
 export { DRIVE_TEST_TICKER } from "./venue-spec";
-// S18 (D-100): the PreStocks Pre-IPO lane.
 export { BASIS, PRESTOCKS_TICKER_BASE, preStocksBasketFeedId, preStocksBasketSeries, preStocksFeedId, preStocksSeries } from "./venue-spec";
-// S20 (D-125): the valuation lanes on Pyth's Equity.Index feeds.
 export { pythValuationSeries } from "./venue-spec";
-export { profileOnSurfpool, type TransactionProfile } from "./cycle/profile";
 export { ANY_SEAT, fundUser, KIND, newSigner, openWindow, ORDER_TYPE, placeOrder, placeOrderInstruction, seatHintFor, type OpenedWindow, type OrderInput } from "./cycle/window";
-export { recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH } from "./cycle/resolve";
-export { attestedMessage, ed25519Instruction } from "../prices/attested";
-export { initVault, programDataAddress, registerVaultSeat, VAULT_AUTHORITY_INDEX, vaultAddresses } from "./vault";
-export { depositAndAllowPrivate, rawChargeAsPayer, readPrivateBudget, readPrivateDesk, revokePrivate, withdrawPrivate } from "./private-drive";
-export { DEVNET_PRIVATE_PARAMS, initPrivateDesk, PRIVATE_AUTHORITY_INDEX, privateAddresses, registerPrivateSeat } from "./private";
-export { DEVNET_PARLAY_PARAMS, initParlayReserve, parlayAddresses } from "./parlay";
-export { initStrategyRegistry, strategyAddresses } from "./strategy";
-export { openParlayTicket, probeParlayLeg, readParlayReserve, settleParlayTicket, supplyParlay, ticketAddressOf, voidStaleParlay, type DriveLeg } from "./parlay-drive";
-export { DEVNET_RANGE_PARAMS, initRangeReserve, rangeAddresses } from "./range";
-export { closeOwnedWindow, DRIVE_OWNED_TICKERS, driveOwnedSeries, type OwnedLane, openOwnedWindow, ownedWindowOf, quoteOwnedWindow, type OwnedQuote, type OwnedWindowKeys } from "./drive-window";
-export { createSeasonPool, depositSeasonPool, withdrawSeasonRemainder } from "./season-drive";
-export { ARENA_AUTHORITY_INDEX, arenaAddresses, DEVNET_ARENA_PARAMS, DEVNET_ARENA_TIERS, initArena, registerArenaSeat } from "./arena";
-export { claimLeverage, exitLeverage, openLeverage, probeLeverage, readLeveragePosition, readLeverageReserve, supplyLeverage, withdrawLeverage, type BoostSpec } from "./leverage-drive";
-export { DEVNET_LEVERAGE_PARAMS, initLeverageReserve, leverageAddresses, LEVERAGE_AUTHORITY_INDEX, registerLeverageSeat } from "./leverage";
-export { DEVNET_MAKER_PARAMS, initMakerVault, makerAddresses, MAKER_AUTHORITY_INDEX, registerMakerSeat } from "./maker";
-export { mergeMaker, pullMaker, quoteMaker, settleMaker, supplyMaker, withdrawMaker, windowBookOf, type QuoteInput } from "./maker-drive";
-export { expiryBookAddressOf, liveWindowFor, markWindow, probeWindow, openRangeRound, roundAddressOf, settleRangeRound, supplyRange, type OpenRangeInput } from "./range-drive";
+export { profileOnSurfpool, recordAttestedPrint, recordPythPrint, recordRedstonePrint, recycleBooks, redeem, settleWindow, sweepExpired, voidExpired, WHICH, type AttestedInput, type TransactionProfile } from "./cycle/resolve";
+export { DRIVE_OWNED_FEED, DRIVE_OWNED_TICKERS, driveOwnedSeries, type OwnedLane, type OwnedQuote, type OwnedWindowKeys } from "./drive-window";
+export * from "./products";
 export { packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, redstonePayload, decimalToE8, type RedStonePackage } from "../prices/redstone";
 
 export type InitEventsInput = {
-  /** Fee payer and config admin: must be the program's upgrade authority (`admin_init_config`). */
   client: DeployClient;
   clusterTag: number;
   programData: Address;
-  /** The tUSDC mint keypair; it signs only when the mint is created. */
   mint: KeyPairSigner;
   mintAuthority: Address;
   authorities: AuthorityKeys;
   sources: PriceSources;
-  /** Mutated in place and passed to `save` after every confirmed step. */
   record: VenueRecord;
   save: (record: VenueRecord) => void;
   log: (entry: StepLog) => void;
 };
 
-/** S2 `init-events`: mint → treasury → config + authorities → TSLA/NVDA 5m Series + versions → 2 Books each. */
-export async function initEvents(input: InitEventsInput): Promise<VenueRecord> {
-  const ctx: StepContext = {
-    client: input.client,
-    record: input.record,
-    save: (next) => {
-      Object.assign(input.record, next);
-      input.save(input.record);
-    },
-    log: input.log,
-  };
-  const mint = await ensureMint(ctx, input.mint, input.mintAuthority);
-  const treasury = await ensureTreasury(ctx, mint);
-  await ensureConfig(ctx, {
-    clusterTag: input.clusterTag,
-    programData: input.programData,
-    mint,
-    treasury,
-    authorities: s2Authorities(input.authorities, input.sources),
-  });
-  for (const spec of s2Series(input.sources)) {
-    const series = await ensureSeries(ctx, spec);
-    await ensureBooks(ctx, spec, series);
-  }
-  return input.record;
+/** The venue's bootstrap. On Canton: DAR upload, parties and the `Series` contracts (C2x); not live in C1. */
+export async function initEvents(_input: InitEventsInput): Promise<VenueRecord> {
+  throw deployNotLive();
 }
-export { planAuthorities, setAuthorities, type AuthoritiesChange, type AuthoritiesPlan } from "./authorities";

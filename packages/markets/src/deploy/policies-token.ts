@@ -6,7 +6,7 @@
  * version, `sha256("jupiter-price-v3-median3:<xStock>")`. A null feed hash refuses, so nothing lists unpinned.
  */
 import { createHash } from "node:crypto";
-import type { PrintPolicyInput } from "@agari/clients/agari-events";
+import type { PrintPolicyInput } from "./specs";
 import { TICKERS, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
 import { hexBytes, I64_MAX, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources, type SourceName, type TickerSources } from "./policies";
 

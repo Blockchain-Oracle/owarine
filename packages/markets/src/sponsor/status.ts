@@ -1,21 +1,24 @@
 import type { Address } from "@agari/core/types";
 
 /**
- * The fee-payer co-signer's status for `GET /api/sponsor` (tap-trading.md §3). On Solana the sponsor signs only as fee
- * payer, for an exact agari-vault instruction allowlist, after simulating. Browser-safe: only the type is re-exported
- * from the package root.
+ * The fee sponsor's status for `GET /api/sponsor`. On Canton the venue's participant pays the synchronizer traffic and
+ * the user pays no network fee, so there is nothing to sponsor: `configured` is false, `reason` says why, and the
+ * allowlist is empty. The shape is kept so the route and the session sheet keep rendering it. Browser-safe: only the
+ * type is re-exported from the package root.
  */
 export interface SponsorStatus {
   configured: boolean;
   sponsor: Address | null;
+  /** The sponsor's balance for fees; null, because there is no fee payer on Canton. */
   balanceLamports: bigint | null;
-  /** Allowlisted instructions as `program:instruction` names. */
+  /** Sponsorable writes as `package:choice` names; empty on Canton. */
   allowlist: readonly string[];
-  /** Why the sponsor is off or degraded (no key, no vault, breaker open, "local counters"). */
+  /** Why the sponsor is off: on Canton, that the user pays no network fee. */
   reason?: string;
 }
 
-/** Masayume's `SPONSORABLE_FUNCTIONS` (`M:packages/markets/src/vault/sponsor.ts:25-27`) on agari-vault, minus `sweep`. */
-export const SPONSORABLE_INSTRUCTIONS = ["actor_place_for", "public_crank_settle", "owner_withdraw", "owner_withdraw_private", "owner_revoke"] as const;
-export type SponsorableInstruction = (typeof SPONSORABLE_INSTRUCTIONS)[number];
-export const SPONSOR_ALLOWLIST: readonly string[] = SPONSORABLE_INSTRUCTIONS.map((name) => `agari_vault:${name}`);
+/** Nothing is sponsorable: the user pays no network fee on Canton. */
+export const SPONSOR_ALLOWLIST: readonly string[] = [];
+
+/** The status line every sponsor read gives on Canton. */
+export const NO_NETWORK_FEE = "Canton charges the user no network fee; there is nothing to sponsor";
