@@ -37,19 +37,20 @@ export const WORD_BOARD = {
   open: "Open",
 } as const;
 
+/** The connect control's words: on Canton the account is a guest seat (plan §2, §4), so it is taken and reset. */
 export const CONNECT = {
-  connect: "Connect",
-  connecting: "Connecting…",
+  connect: "Take a seat",
+  connecting: "Taking a seat…",
   wrongChain: "Wrong network",
-  disconnect: "Disconnect",
-  connected: "Connected wallet",
+  disconnect: "Reset seat",
+  connected: "Your seat",
 } as const;
 
 /** The account menu — the reference's rows (`Header.tsx` L337–363), nothing more. */
 export const ACCOUNT_MENU = {
   open: "Open account menu",
   tradingAccount: "Trading account",
-  wallet: "Wallet",
+  wallet: "Seat",
   portfolio: "Portfolio",
 } as const;
 
