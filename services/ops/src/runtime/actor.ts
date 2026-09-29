@@ -48,6 +48,9 @@ export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat }
         if (result.detail) beat.detail = result.detail;
         say(result.why);
         delay = result.nextDelayMs ?? spec.everyMs;
+        // A pass that announces a longer rest (an unconfigured actor idling 10 min) is not silent during it: `/health`
+        // measures silence against `everyMs`, so it tracks the interval the actor is actually keeping.
+        beat.everyMs = Math.max(spec.everyMs, delay);
       } catch (error) {
         beat.failures += 1;
         beat.lastWhy = `pass failed: ${errorText(error)}`;

@@ -31,11 +31,36 @@ export const webServerEnvSchema = z.object({
 
 export type WebServerEnv = z.output<typeof webServerEnvSchema>;
 
-const partiesFileSchema = z.object({
-  venue: party.optional(),
-  seats: z.array(party).default([]),
-  personas: z.object({ alice: party.optional(), bob: party.optional(), outsider: party.optional() }).default({}),
-});
+/**
+ * One parties file for web and ops (K-026). Ops and `scripts/bootstrap-local.ts` write
+ * `{ network, parties: { venue, resolver, … }, users: { alice, bob, outsider, "seat-1", … } }`. The web reads the venue from
+ * `parties`, the personas from `users.alice|bob|outsider`, and the seat pool from every `users` entry named `seat-*`.
+ * The older web-only shape `{ venue, seats, personas }` is still accepted.
+ */
+const partiesFileSchema = z
+  .object({
+    venue: party.optional(),
+    seats: z.array(party).default([]),
+    personas: z.object({ alice: party.optional(), bob: party.optional(), outsider: party.optional() }).default({}),
+    parties: z.record(z.string(), party).optional(),
+    users: z.record(z.string(), party).optional(),
+  })
+  .transform((f) => {
+    const users = f.users ?? {};
+    const seatUsers = Object.entries(users)
+      .filter(([name]) => name.startsWith("seat-"))
+      .sort(([a], [b]) => a.localeCompare(b, "en", { numeric: true }))
+      .map(([, p]) => p);
+    return {
+      venue: f.venue ?? f.parties?.venue,
+      seats: f.seats.length > 0 ? f.seats : seatUsers,
+      personas: {
+        alice: f.personas.alice ?? users.alice,
+        bob: f.personas.bob ?? users.bob,
+        outsider: f.personas.outsider ?? users.outsider,
+      },
+    };
+  });
 
 export interface SeatParties {
   venue: string | null;

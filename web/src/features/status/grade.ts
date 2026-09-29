@@ -42,7 +42,8 @@ export function gradeIndexer(beat: IndexerBeat, inSession: boolean): Verdict {
   if (beat.failures >= HEARTBEAT.failing || beat.gapsOpen > 0) return "bad";
   if (!inSession) return "good";
   const lag = beat.lastLagSec === null ? "good" : beat.lastLagSec < INDEXER_LAG_SEC.good ? "good" : beat.lastLagSec < INDEXER_LAG_SEC.warn ? "warn" : "bad";
-  return worst(lag, beat.subscription === "connected" ? "good" : "warn");
+  // "open" is the Canton projector's live `/v2/updates` stream (`@agari/ledger` StreamState); "connected" the Solana indexer's.
+  return worst(lag, beat.subscription === "open" || beat.subscription === "connected" ? "good" : "warn");
 }
 
 export interface Beat {

@@ -54,7 +54,10 @@ async function readOps<T>(base: string | undefined, path: string, schema: z.ZodT
   if (!base) return failed("NEXT_PUBLIC_PRICE_FEED_URL is not set");
   try {
     const response = await fetch(`${base.replace(/\/$/, "")}${path}`, { cache: "no-store", signal: AbortSignal.timeout(OPS_TIMEOUT_MS) });
-    if (!response.ok) return failed(`answered ${response.status}`);
+    // Ops answers /health with 503 and the full body when any actor is failing or silent: the rows still need that body
+    // to name which one, instead of every ops row turning bad for one failing feed.
+    const bodyOn503 = path === "/health" && response.status === 503;
+    if (!response.ok && !bodyOn503) return failed(`answered ${response.status}`);
     const parsed = schema.safeParse(await response.json());
     if (!parsed.success) return failed("body did not parse");
     return { ok: true, value: parsed.data, latencyMs: Date.now() - startedMs };

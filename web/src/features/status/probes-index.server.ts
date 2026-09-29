@@ -125,7 +125,11 @@ export async function probeIndex(input: IndexProbeInput): Promise<IndexRows> {
 /** The relay's missed-slot counter and start, for the freshness rows. */
 export function relayCounters(health: OpsRead<OpsHealth>): PrintScope["relay"] {
   if (!health.ok) return null;
-  const beat = heartbeatOf(health.value, "price-relay");
-  if (!beat) return null;
-  return { missed: detailNumber(beat, "missed") ?? 0, startedAt: formatUtc(beat.startedMs) };
+  // Canton ops (K-027): the three oracle feeders are the relay; the Solana-era "price-relay" beat is read if present.
+  const beats = ["oracle-coinbase", "oracle-kraken", "oracle-bitstamp"].map((n) => heartbeatOf(health.value, n)).filter((b) => b !== undefined && b !== null);
+  const legacy = heartbeatOf(health.value, "price-relay");
+  const all = legacy ? [legacy] : beats;
+  if (all.length === 0) return null;
+  const missed = all.reduce((sum, b) => sum + (detailNumber(b, "missed") ?? 0), 0);
+  return { missed, startedAt: formatUtc(Math.min(...all.map((b) => b.startedMs))) };
 }
