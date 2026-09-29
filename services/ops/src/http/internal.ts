@@ -1,12 +1,17 @@
 /**
- * `POST /internal/*`: the web → ops calls that exercise venue authority (plan §3). Each request carries the HMAC of
- * `@agari/markets/ops/canton` `signInternalRequest` under `OPS_INTERNAL_SECRET`; without the secret configured every
- * internal route answers 503, so a misconfigured deploy can never issue quotes to anyone. No CORS: a browser never
- * calls these, only the web's route handlers.
+ * `POST /internal/*`: the web → ops calls that exercise venue authority (plan §3). Each request carries the web's
+ * `x-agari-ops-ts` / `x-agari-ops-sig` headers, checked with `@agari/markets/server` `verifyOpsSignature` under
+ * `OPS_INTERNAL_SECRET` (30 s skew), so both sides compute the MAC one way. Without the secret every internal route
+ * answers 503, so a misconfigured deploy can never issue quotes to anyone. No CORS: a browser never calls these, only
+ * the web's route handlers. Failures answer `{ diagnosis }`, which the web's ops client reads.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { INTERNAL_SIG_HEADER, INTERNAL_TS_HEADER, MIN_SECRET_LENGTH, verifyInternalRequest } from "@agari/markets/ops/canton";
+import { diagnosis } from "@agari/core/types";
+import { OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
 import { jsonText } from "./health";
+
+/** A secret shorter than this is treated as unset. */
+export const MIN_SECRET_LENGTH = 32;
 
 export type InternalHandler = (body: unknown) => Promise<{ status: number; body: unknown }>;
 
@@ -48,27 +53,27 @@ export async function handleInternal(req: IncomingMessage, res: ServerResponse, 
     res.end(jsonText(body));
   };
   const handler = internal?.routes[path];
-  if (!internal || !handler) return json(404, { error: "not found" });
-  if (!internal.secret || internal.secret.length < MIN_SECRET_LENGTH) return json(503, { error: "internal routes are closed: OPS_INTERNAL_SECRET is not set" });
-  if (req.method !== "POST") return json(405, { error: "POST only" });
+  if (!internal || !handler) return json(404, { diagnosis: diagnosis("not-deployed", `no ${path} in this ops process`) });
+  if (!internal.secret || internal.secret.length < MIN_SECRET_LENGTH) return json(503, { diagnosis: diagnosis("not-deployed", "internal routes are closed: OPS_INTERNAL_SECRET is not set") });
+  if (req.method !== "POST") return json(405, { diagnosis: diagnosis("unknown", "POST only") });
   let raw: string;
   try {
     raw = await readBody(req);
   } catch {
-    return json(413, { error: "body too large" });
+    return json(413, { diagnosis: diagnosis("unknown", "body too large") });
   }
-  const auth = verifyInternalRequest(internal.secret, "POST", path, raw, { ts: header(req, INTERNAL_TS_HEADER), sig: header(req, INTERNAL_SIG_HEADER) });
-  if (!auth.ok) return json(401, { error: `unauthenticated (${auth.reason})` });
+  const ok = verifyOpsSignature(internal.secret, { ts: header(req, OPS_TS_HEADER) ?? null, sig: header(req, OPS_SIG_HEADER) ?? null, method: "POST", path, body: raw });
+  if (!ok) return json(401, { diagnosis: diagnosis("unknown", "unauthenticated ops call (bad or stale signature)") });
   let body: unknown;
   try {
     body = JSON.parse(raw);
   } catch {
-    return json(400, { error: "body is not JSON" });
+    return json(400, { diagnosis: diagnosis("unknown", "body is not JSON") });
   }
   try {
     const out = await handler(body);
     return json(out.status, out.body);
   } catch (error) {
-    return json(500, { error: error instanceof Error ? error.message : String(error) });
+    return json(500, { diagnosis: diagnosis("unknown", error instanceof Error ? error.message : String(error)) });
   }
 }

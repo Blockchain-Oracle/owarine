@@ -20,7 +20,7 @@ describe("the resolver's evidence", () => {
       q("a", T, T + 10, 100n), q("a", T, T + 12, 90n), // a's later duplicate is ignored
       q("b", T, T + 3, 101n), // before T + minDelay: ignored
       q("b", T, T + 11, 102n),
-      q("c", T, T + 51, 103n), // after the open deadline: ignored
+      q("c", T, T + 51, 103n), // after the open-print cutoff: ignored
       q("d", T, T + 10, 1n), // not in the terms' list
       q("a", T + 60, T + 70, 200n), // the close boundary
       q("c", T, T + 10, 104n, { policyVersion: 2 }), // another policy version

@@ -76,7 +76,8 @@ export function closeFromPayload(exchange: Exchange, payload: string, boundarySe
       return row && last >= startSec ? numberText(row[4]) : null;
     }
     case "bitstamp": {
-      const rows = (body as { data?: { ohlc?: { timestamp: string; close: string }[] } }).data?.ohlc ?? [];
+      // Bitstamp's row: `{ timestamp, open, high, low, close, volume }`, all strings.
+      const rows = (body as { data?: { ohlc?: Record<"timestamp" | "close", string>[] } }).data?.ohlc ?? [];
       const row = rows.find((c) => Number(c.timestamp) === startSec);
       return row ? numberText(row.close) : null;
     }

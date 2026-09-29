@@ -13,7 +13,8 @@ describe("exchange candles", () => {
     const kraken = (last: number) => JSON.stringify({ error: [], result: { XXBTZUSD: [[T - 60, "1", "2", "1", "111999.9", "0", "0", 1], [T, "1", "2", "1", "112001.2", "0", "0", 1]], last } });
     expect(closeFromPayload("kraken", kraken(T), T + 60)).toBe("112001.2");
     expect(closeFromPayload("kraken", kraken(T - 60), T + 60)).toBeNull();
-    const bitstamp = JSON.stringify({ data: { ohlc: [{ timestamp: String(T), close: "112003" }], pair: "BTC/USD" } });
+    const timestamp = String(T);
+    const bitstamp = JSON.stringify({ data: { ohlc: [{ timestamp, close: "112003" }], pair: "BTC/USD" } });
     expect(closeFromPayload("bitstamp", bitstamp, T + 60)).toBe("112003");
     expect(candleUrl("kraken", "BTC", T + 60)).toContain("pair=XBTUSD");
   });

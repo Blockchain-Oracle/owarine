@@ -7,6 +7,7 @@
 import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { decodeLeg, decodeOpenPrint, decodeQuote, decodeTerms, pick, readActive, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { marketIdFromDaml, seriesIdFromDaml } from "@agari/core/market";
 import type { SpotFeed } from "../../../prices/spot";
 import { runActor, type PassResult } from "../../../runtime/actor";
 import { readSeatMakerEnv, type SeatMakerEnv } from "./env";
@@ -95,9 +96,10 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
       fairTicks: fair, halfSpreadTicks: s.maker.halfSpreadTicks, minTick: s.maker.minTick, levels: s.levels, stepTicks: s.stepTicks,
       lotsPerLevel: s.lotsPerLevel, cashUnit: t.cashUnit, capBase: s.marketCapBase, usedUpBase, usedDownBase,
     });
-    live.add(t.marketId);
+    const marketId = marketIdFromDaml(t.marketId);
+    live.add(marketId);
     state.board.put({
-      marketId: t.marketId, termsCid: op.data.termsCid, seriesKey: t.seriesKey, symbol: t.symbol, index: t.index,
+      marketId, damlMarketId: t.marketId, seriesId: seriesIdFromDaml(t.seriesKey), termsCid: op.data.termsCid, seriesKey: t.seriesKey, symbol: t.symbol, index: t.index,
       tradingStartSec: t.tradingStartSec, lockAtSec: t.lockAtSec, expirySec: t.expirySec, quotingUntilSec: untilSec,
       cashUnit: t.cashUnit, feeRateBps: s.feeRateBps, fairTicks: fair, openPriceE8: op.data.openPriceE8, spotE8: spot.priceE8,
       up: ladder.up, down: ladder.down, asOfMs: Date.now(), state: "quoting",

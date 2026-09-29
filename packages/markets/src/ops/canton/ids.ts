@@ -54,3 +54,9 @@ export const acceptAccountCommandId = (party: string) => assertCommandId(`accoun
 
 /** `credit:<digest(party)>:<leaseId>`: one demo-credit grant per seat lease. */
 export const creditCommandId = (party: string, leaseId: string) => assertCommandId(`credit:${digest(party)}:${safe(leaseId, "leaseId")}`);
+
+/** `closeout:<legCid>`: a draining seat's `Leg_CloseOut`. */
+export const closeOutCommandId = (legCid: string) => assertCommandId(`closeout:${safe(legCid, "legCid")}`);
+
+/** `withdraw:<quoteCid>`: `Quote_Withdraw` of a draining seat's live quote. */
+export const withdrawCommandId = (quoteCid: string) => assertCommandId(`withdraw:${safe(quoteCid, "quoteCid")}`);

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { LedgerError } from "@agari/ledger";
 import { decodeQuote, decodeResolution, decodeTerms, isoOfSec, timeSec } from "./decode";
 import { creditCommandId, expireCommandId, settleBatchCommandId, skipToCommandId } from "./ids";
-import { signInternalRequest, verifyInternalRequest } from "./internal-auth";
 import { costOf, feeFor, walkStake } from "./quote-walk";
 import { inactiveCids, isInactive, refusalId } from "./session";
 
@@ -10,9 +9,10 @@ const T = 1_790_000_000;
 
 describe("decoders", () => {
   it("reads MarketTerms times as epoch seconds and Ints exactly", () => {
+    const [tradingStart, expiry] = [isoOfSec(T), isoOfSec(T + 60)];
     const t = decodeTerms({
       venue: "v::1", resolver: "r::1", seriesKey: "BTC-1m", marketId: "BTC-1m:7", index: "7", symbol: "BTC", cashUnit: "1000",
-      tradingStart: isoOfSec(T), lockAt: isoOfSec(T + 50), expiry: isoOfSec(T + 60), openDeadline: isoOfSec(T + 50), closeDeadline: "2026-09-21T20:14:40.123456Z",
+      tradingStart, lockAt: isoOfSec(T + 50), expiry, openDeadline: isoOfSec(T + 50), closeDeadline: "2026-09-21T20:14:40.123456Z",
       refundAfter: isoOfSec(T + 400), policyVersion: "1", printSource: "attested", minDelaySec: "5", barLenSec: "60", tieUp: true,
       oracles: ["a::1", "b::1", "c::1"], quorum: "2", maxDeviationBps: "100",
     });
@@ -46,20 +46,6 @@ describe("command ids", () => {
     expect(settleBatchCommandId("res", ["a"])).not.toBe(settleBatchCommandId("res", ["a", "b"]));
     expect(creditCommandId("seat-1::1220ab", "lease-9")).toMatch(/^credit:[0-9a-f]{32}:lease-9$/);
     expect(() => expireCommandId("00ab.cd")).toThrow();
-  });
-});
-
-describe("internal call signature", () => {
-  const secret = "s".repeat(40);
-  it("verifies what it signed, and nothing replayed, altered or late", () => {
-    const body = JSON.stringify({ side: "up" });
-    const h = signInternalRequest(secret, "POST", "/internal/quotes", body, T);
-    const headers = { ts: h["x-agari-ts"], sig: h["x-agari-sig"] };
-    expect(verifyInternalRequest(secret, "POST", "/internal/quotes", body, headers, T + 5)).toEqual({ ok: true });
-    expect(verifyInternalRequest(secret, "POST", "/internal/quotes", body.replace("up", "down"), headers, T)).toEqual({ ok: false, reason: "signature" });
-    expect(verifyInternalRequest(secret, "POST", "/internal/seats/fund", body, headers, T)).toEqual({ ok: false, reason: "signature" });
-    expect(verifyInternalRequest(secret, "POST", "/internal/quotes", body, headers, T + 31)).toEqual({ ok: false, reason: "skew" });
-    expect(verifyInternalRequest(secret, "POST", "/internal/quotes", body, { ts: undefined, sig: undefined }, T)).toEqual({ ok: false, reason: "missing" });
   });
 });
 

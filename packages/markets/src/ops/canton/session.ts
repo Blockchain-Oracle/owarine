@@ -34,6 +34,8 @@ export interface SubmitInput {
   disclosedContracts?: DisclosedContract[];
   /** Template ids whose created events should carry their `createdEventBlob` (for disclosure to a user). */
   blobsFor?: readonly string[];
+  /** A second controller for a two-controller choice (`Leg_CloseOut`: venue and owner). */
+  alsoActAs?: readonly Party[];
 }
 
 export type SubmitOutcome =
@@ -57,7 +59,7 @@ export async function submit(s: RoleSession, input: SubmitInput): Promise<Submit
     await s.client.prepare({
       commandId: input.commandId,
       commands: [first],
-      actAs: [s.party],
+      actAs: [s.party, ...(input.alsoActAs ?? [])],
       ...(input.disclosedContracts ? { disclosedContracts: input.disclosedContracts } : {}),
     });
     const extra = input.commands.length > 1 ? ` (first of ${input.commands.length} commands)` : "";
@@ -82,7 +84,7 @@ export async function submit(s: RoleSession, input: SubmitInput): Promise<Submit
         }
       : undefined;
   const r = await s.client.submitAndWaitForTransaction({
-    actAs: [s.party],
+    actAs: [s.party, ...(input.alsoActAs ?? [])],
     commandId: input.commandId,
     commands: input.commands,
     ...(input.disclosedContracts ? { disclosedContracts: input.disclosedContracts } : {}),

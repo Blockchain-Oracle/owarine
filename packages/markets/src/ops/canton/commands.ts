@@ -136,6 +136,13 @@ export const expireQuote = (quoteCid: ContractId): Command => exercise(TEMPLATE_
 export const acceptQuote = (quoteCid: ContractId, cash: readonly ContractId[], beneficiaryRef: string | null = null): Command =>
   exercise(TEMPLATE_IDS.Quote, quoteCid, "Quote_Accept", { cash: [...cash], beneficiaryRef } satisfies Wire<PM.Quote.Quote_Accept>);
 
+/** Two controllers (venue and owner): the seat drain's close-out at cost, re-backed from a venue shard. */
+export const closeOutLeg = (legCid: ContractId, shardCid: ContractId): Command =>
+  exercise(TEMPLATE_IDS.Leg, legCid, "Leg_CloseOut", { shardCid } satisfies Wire<PM.Leg.Leg_CloseOut>);
+
+export const withdrawQuote = (quoteCid: ContractId, reason: string): Command =>
+  exercise(TEMPLATE_IDS.Quote, quoteCid, "Quote_Withdraw", { reason } satisfies Wire<PM.Quote.Quote_Withdraw>);
+
 export const settleResidual = (residualCid: ContractId, resolutionCid: ContractId): Command =>
   exercise(TEMPLATE_IDS.NettedResidual, residualCid, "Residual_Settle", { resolutionCid } satisfies Wire<PM.Leg.Residual_Settle>);
 
