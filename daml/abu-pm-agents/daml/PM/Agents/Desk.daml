@@ -26,13 +26,20 @@
 -- the current operator observes the mandate. A trade fetches the attestors'
 -- marks, so an attestor learns that its mark was read (not by whom it was
 -- quoted or for how much).
+--
+-- 0.2.0 (K-088): the desk keeps its own holdings (lots per market and side,
+-- open until the market's refundAfter), so the operator can sell back only
+-- what the desk bought (`Mandate_Sell`, the reference's `sell`): a venue
+-- buy-back quote on one of the owner's legs, at no less than 92 % of the
+-- attested value, counted against the caps as the larger of the proceeds
+-- and that value, with the proceeds returning to the desk's budget.
 module PM.Agents.Desk where
 
-import DA.Assert (assertWithinDeadline)
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
 import DA.List (init, sort, unique, (!!))
-import DA.Optional (optionalToList)
+import DA.Optional (fromOptional, optionalToList)
 import qualified DA.Text as T
-import DA.Time (addRelTime, seconds)
+import DA.Time (addRelTime, days, seconds)
 import PM.Grant
 import PM.Leg
 import PM.Money
@@ -82,6 +89,40 @@ referenceFutureSlackSec = 5
 -- the reference, inclusive. A zero reference never passes.
 premiumOk : Int -> Int -> Int -> Bool
 premiumOk priceTicks refTicks maxBps = refTicks > 0 && priceTicks * 10000 <= refTicks * (10000 + maxBps)
+
+-- | A sale keeps at least 92 % of the attested value (the reference's
+-- 8 % band): `proceeds * 100 >= value * 92`.
+sellFloorOk : Int -> Int -> Bool
+sellFloorOk proceeds value = proceeds * 100 >= value * 92
+
+-- | What the desk bought and still holds: lots of one market's side, open
+-- until the market's refundAfter (by then the leg is settled or refunded to
+-- the owner, like the grant's own position rule).
+data DeskHolding = DeskHolding
+  with
+    marketId : Text
+    side : Side
+    lots : Int
+    refundAfter : Time
+  deriving (Eq, Show)
+
+-- | Holdings still open at `asOf`.
+liveHoldings : Time -> [DeskHolding] -> [DeskHolding]
+liveHoldings asOf = filter (\h -> h.refundAfter > asOf && h.lots > 0)
+
+-- | Lots the desk holds of one market's side.
+heldLots : Text -> Side -> [DeskHolding] -> Int
+heldLots marketId side hs = sum [h.lots | h <- hs, h.marketId == marketId, h.side == side]
+
+-- | Add (or, negative, remove) lots of one market's side; empty rows go.
+adjustHolding : Text -> Side -> Time -> Int -> [DeskHolding] -> [DeskHolding]
+adjustHolding marketId side refundAfter delta hs =
+  let (same, rest) = partitionOn hs
+      total = sum (map (\h -> h.lots) same) + delta
+  in if total > 0 then rest ++ [DeskHolding with marketId; side; lots = total; refundAfter] else rest
+  where
+    partitionOn xs = (filter matches xs, filter (not . matches) xs)
+    matches h = h.marketId == marketId && h.side == side
 
 -- | The series a market id belongs to (`seriesKey <> ":" <> index`).
 seriesOf : Text -> Text
@@ -140,7 +181,7 @@ template DeskOffer
             venue; owner; agent = operator; caps; budget; expiresAt; dayZero
             day = 0; spentToday = 0; positions = []
           allowList; maxPremiumBps; attestors; refQuorum; mode; paused = False
-          head = genesisHead; seq = 0
+          head = genesisHead; seq = 0; holdings = Some []
 
 -- | The per-action and daily caps must be positive, per-action at most the
 -- daily cap (the reference's BadConfig), and the grant's own bounds.
@@ -166,6 +207,8 @@ template DeskMandate
     paused : Bool
     head : Text
     seq : Int
+    holdings : Optional [DeskHolding]
+      -- ^ 0.2.0: what the desk bought and still holds (None = none yet)
   where
     signatory owner, venue
     observer optionalToList operator
@@ -176,6 +219,7 @@ template DeskMandate
       && refQuorum >= 1 && refQuorum <= length attestors && unique attestors
       && unique allowList && all (/= "") allowList
       && seq >= 0 && T.length head == 64
+      && all (\h -> h.lots > 0) (fromOptional [] holdings)
 
     -- The operator buys one of the owner's quotes. Checks, in order: the
     -- operator, the decision hash, the head it builds on, not paused, live
@@ -210,13 +254,76 @@ template DeskMandate
         archive g'
         let n = seq + 1
             head' = nextHead head n decisionHash
+            held' = adjustHolding q.marketId q.side q.refundAfter q.lots (liveHoldings asOf (fromOptional [] holdings))
         d <- create DeskDecision with
           venue; owner; operator = actor; seq = n; prevHead = head; decisionHash; head = head'; note
           action = DeskTrade with
             marketId = q.marketId; side = q.side; lots = q.lots; priceTicks = q.priceTicks
             referenceTicks = ref; charge = grant.budget - after.budget
-        m <- create this with grant = after; head = head'; seq = n
+        m <- create this with grant = after; head = head'; seq = n; holdings = Some held'
         pure (m, leg, d)
+
+    -- The operator sells lots the desk holds back to the venue: a buy-back
+    -- quote on one of the owner's legs. Checks, in order: the operator, the
+    -- decision hash, the head, not paused, live mode, the owner's quote, the
+    -- lots held by the desk, the attested reference and the 92 % floor, then
+    -- the per-action and daily caps on the counted amount (the larger of
+    -- proceeds and attested value), on the grant's calendar day. Proceeds
+    -- return to the budget; a fully sold position frees its open-position
+    -- slot.
+    choice Mandate_Sell : (ContractId DeskMandate, ContractId DeskDecision)
+      with
+        actor : Party
+        buyQuoteCid : ContractId BuyQuote
+        asOf : Time
+        markCids : [ContractId DeskMark]
+        prevHead : Text
+        decisionHash : Text
+        note : Text
+      controller actor
+      do
+        require "not-operator" "only the desk's operator sells" (operator == Some actor)
+        require "zero-hash" "a decision hash is a 64-character digest, never zero" (decisionHashOk decisionHash)
+        require "head-mismatch" "the decision does not build on the desk's head" (prevHead == head)
+        require "desk-paused" "the desk is paused" (not paused)
+        require "shadow-mode" "the desk is in shadow mode: nothing is sent" (mode == DeskLive)
+        assertWithinDeadline "grant-expiry" (addRelTime grant.expiresAt (seconds 1))
+        require "before-day-zero" "asOf precedes the desk's day zero" (asOf >= grant.dayZero)
+        let today = dayIndex grant.dayZero asOf
+        assertDeadlineExceeded "grant-as-of" asOf
+        assertWithinDeadline "grant-day-end" (addRelTime grant.dayZero (days (today + 1)))
+        require "stale-day" "day cannot go backwards" (today >= grant.day)
+        bq <- fetch buyQuoteCid
+        require "wrong-quote" "quote is not for this desk's owner" (bq.user == owner && bq.venue == venue)
+        leg <- fetch bq.legCid
+        let live = liveHoldings asOf (fromOptional [] holdings)
+        require "not-held" "the desk does not hold that many lots of this market"
+          (bq.lots <= heldLots leg.marketId bq.outcome live)
+        ref <- attestedReferenceAt venue attestors refQuorum asOf leg.marketId bq.outcome markCids
+        let value = userStakeOf bq.lots ref bq.cashUnit
+            proceeds = bq.locked
+            counted = max proceeds value
+            spent = if today > grant.day then 0 else grant.spentToday
+        require "below-floor" "the sale returns less than 92 % of the attested value" (sellFloorOk proceeds value)
+        require "over-stake-cap" "the sale counts more than the per-action cap" (counted <= grant.caps.maxStakePerTrade)
+        require "over-daily-cap" "the sale counts more than today's remaining cap" (spent + counted <= grant.caps.maxDailySpend)
+        (paid, _venueLeg, _fee) <- exercise buyQuoteCid BuyQuote_Accept
+        returned <- sumOwnedCash venue owner [paid]
+        let held' = adjustHolding leg.marketId bq.outcome leg.refundAfter (negate bq.lots) live
+            stillHeld = heldLots leg.marketId bq.outcome held' > 0
+            positions' = if stillHeld then grant.positions
+              else filter (\p -> not (p.marketId == leg.marketId && p.outcome == bq.outcome)) grant.positions
+            n = seq + 1
+            head' = nextHead head n decisionHash
+        d <- create DeskDecision with
+          venue; owner; operator = actor; seq = n; prevHead = head; decisionHash; head = head'; note
+          action = DeskSell with
+            marketId = leg.marketId; side = bq.outcome; lots = bq.lots; priceTicks = bq.priceTicks
+            referenceTicks = ref; proceeds = returned; counted
+        m <- create this with
+          grant = grant with budget = grant.budget + returned; day = today; spentToday = spent + counted; positions = positions'
+          head = head'; seq = n; holdings = Some held'
+        pure (m, d)
 
     -- Seals a non-action into the chain ("looked, did nothing", or a shadow
     -- decision). Allowed while paused and in shadow mode.
@@ -319,7 +426,11 @@ template DeskMandate
 -- mandate attestors, all for the quote's market and side, each fresh at
 -- `asOf` (at most 900 s old, at most 5 s early); the lower median.
 attestedReference : Party -> [Party] -> Int -> Time -> Quote -> [ContractId DeskMark] -> Update Int
-attestedReference venue attestors quorum asOf q markCids = do
+attestedReference venue attestors quorum asOf q = attestedReferenceAt venue attestors quorum asOf q.marketId q.side
+
+-- | The same for any market's side (a sale names its leg's market).
+attestedReferenceAt : Party -> [Party] -> Int -> Time -> Text -> Side -> [ContractId DeskMark] -> Update Int
+attestedReferenceAt venue attestors quorum asOf marketId side markCids = do
   require "duplicate-mark" "the same mark was passed twice" (unique markCids)
   marks <- forA markCids fetch
   require "unknown-attestor" "a mark is not from one of the mandate's attestors"
@@ -327,7 +438,7 @@ attestedReference venue attestors quorum asOf q markCids = do
   require "reference-quorum" "fewer distinct attestors than the mandate's quorum"
     (unique (map (\m -> m.attestor) marks) && length marks >= quorum)
   require "wrong-reference" "a mark is for another market or side"
-    (all (\m -> m.marketId == q.marketId && m.side == q.side) marks)
+    (all (\m -> m.marketId == marketId && m.side == side) marks)
   require "reference-stale" "a mark is older than 900 s or from the future"
     (all (\m -> m.fetchedAt <= addRelTime asOf (seconds referenceFutureSlackSec)
                 && asOf <= addRelTime m.fetchedAt (seconds referenceMaxAgeSec)) marks)
@@ -343,6 +454,14 @@ data DeskAction
       priceTicks : Int
       referenceTicks : Int
       charge : Int
+  | DeskSell with
+      marketId : Text
+      side : Side
+      lots : Int
+      priceTicks : Int
+      referenceTicks : Int
+      proceeds : Int
+      counted : Int
   deriving (Eq, Show)
 
 -- | One sealed action of the record. The operator that sealed it observes it.

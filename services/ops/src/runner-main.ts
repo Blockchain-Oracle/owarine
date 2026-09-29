@@ -1,7 +1,10 @@
 /**
- * The strategy runner on its own: the entry point for a creator who hosts their bot. The same
- * actor the house runs, over the key `RUNNER_PRIVATE_KEY` names, for the strategies in
- * `STRATEGY_IDS` — nothing else of the ops service starts. See "Run your own bot" in the studio.
+ * The strategy runner on its own: the entry point for a creator who hosts their bot (L-55). The same actor the house
+ * runs, acting as `RUNNER_PARTY` (the creator's own seat party; else the parties file's `agent-runner`) through each
+ * subscriber's grant, for the strategies in `STRATEGY_IDS` (else every active strategy naming that party) — nothing
+ * else of the ops service starts. Quotes come from ops over its signed route (`OPS_INTERNAL_URL`,
+ * `OPS_INTERNAL_SECRET`); the ledger is reached with this process's own credential (`LEDGER_*`). See "Run your own bot"
+ * in the studio.
  */
 import { startStrategyRunner } from "./actors/strategy-runner";
 

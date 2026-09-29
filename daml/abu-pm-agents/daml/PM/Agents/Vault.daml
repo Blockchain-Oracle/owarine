@@ -1,0 +1,68 @@
+-- | The owner's grant desk (the reference's `agari-vault` grant writes):
+-- open a grant from the owner's own cash, and top up a live grant without
+-- touching its counters. Revoking stays `PM.Grant`'s own `Grant_Revoke`
+-- (owner only, budget back as cash, expired or not).
+--
+-- Why a separate template: `AgentGrant` is signed by owner and venue and has
+-- no top-up choice. A choice on this venue-signed desk, controlled by the
+-- owner, carries both authorities, so it can archive the grant and create
+-- the same grant with a larger budget. Day, today's spend, open positions,
+-- caps and expiry are carried over unchanged, so a top-up can never reset
+-- the daily cap or the open-position count (the reference's `fundGrant`).
+--
+-- Grant kinds (the reference's session / executor / strategy) are not a
+-- ledger field: an `AgentGrant` names its agent, and the app reads the kind
+-- off the agent's role (the X executor, a strategy runner). K-087.
+module PM.Agents.Vault where
+
+import DA.Assert (assertWithinDeadline)
+import DA.Time (addRelTime, seconds)
+import PM.Grant
+import PM.Money
+import PM.Types
+
+-- | The venue's standing desk for one owner's grants.
+template GrantDesk
+  with
+    venue : Party
+    owner : Party
+  where
+    signatory venue
+    observer owner
+    ensure owner /= venue
+
+    -- Open a grant funded from the owner's cash; change comes back.
+    nonconsuming choice GrantDesk_Open : (ContractId AgentGrant, Optional (ContractId VenueCash))
+      with
+        agent : Party
+        caps : GrantCaps
+        expiresAt : Time
+        dayZero : Time
+        budget : Int
+        cash : [ContractId VenueCash]
+      controller owner
+      do
+        require "bad-budget" "a grant's budget must be positive" (budget > 0)
+        total <- sumOwnedCash venue owner cash
+        require "insufficient-cash" "cash does not cover the budget" (total >= budget)
+        change <- payIfPositive venue owner (total - budget) "change"
+        g <- create AgentGrant with
+          venue; owner; agent; caps; budget; expiresAt; dayZero; day = 0; spentToday = 0
+          positions = []
+        pure (g, change)
+
+    -- Add cash to a live grant's budget. Everything else is kept.
+    nonconsuming choice GrantDesk_Fund : ContractId AgentGrant
+      with
+        grantCid : ContractId AgentGrant
+        cash : [ContractId VenueCash]
+      controller owner
+      do
+        g <- fetch grantCid
+        require "not-grant-owner" "that grant belongs to a different owner or venue" (g.owner == owner && g.venue == venue)
+        -- live by the grant's own rule: admitted up to and at expiresAt
+        assertWithinDeadline "grant-expiry" (addRelTime g.expiresAt (seconds 1))
+        total <- sumOwnedCash venue owner cash
+        require "bad-amount" "a top-up must add cash" (total > 0)
+        archive grantCid
+        create g with budget = g.budget + total

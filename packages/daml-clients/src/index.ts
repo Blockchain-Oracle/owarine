@@ -10,6 +10,7 @@
  */
 import { PM, packageId } from "@daml.js/abu-pm-main";
 import * as Tickets from "@daml.js/abu-pm-tickets";
+import * as Agents from "@daml.js/abu-pm-agents";
 import * as Games from "@daml.js/abu-pm-games";
 
 export { PM, packageId };
@@ -77,6 +78,38 @@ export const TICKET_TEMPLATE_IDS = {
 } as const;
 
 export type TicketTemplateName = keyof typeof TICKET_TEMPLATE_IDS;
+
+/**
+ * The abu-pm-agents package (C8f): grants' desk, the strategy registry and the agent desk. A fourth namespace beside
+ * `PM`, `Tickets` and `Games`, since it too declares modules under `PM.*`.
+ *
+ *   import { Agents, AGENT_TEMPLATE_IDS } from "@agari/daml";
+ *   Agents.PM.Agents.Desk.DeskMandate.templateId  // "#abu-pm-agents:PM.Agents.Desk:DeskMandate"
+ */
+export { Agents };
+
+export const AGENTS_PACKAGE_NAME = "abu-pm-agents";
+
+const A = Agents.PM.Agents;
+
+/** Package-name template ids of abu-pm-agents. */
+export const AGENT_TEMPLATE_IDS = {
+  GrantDesk: A.Vault.GrantDesk.templateId,
+  CreatorLicense: A.Strategy.CreatorLicense.templateId,
+  Strategy: A.Strategy.Strategy.templateId,
+  StrategyListing: A.Strategy.StrategyListing.templateId,
+  SubscriberInvite: A.Strategy.SubscriberInvite.templateId,
+  SubscriberBook: A.Strategy.SubscriberBook.templateId,
+  Subscription: A.Strategy.Subscription.templateId,
+  StrategyFee: A.Strategy.StrategyFee.templateId,
+  CreatorPayout: A.Strategy.CreatorPayout.templateId,
+  DeskOffer: A.Desk.DeskOffer.templateId,
+  DeskMandate: A.Desk.DeskMandate.templateId,
+  DeskDecision: A.Desk.DeskDecision.templateId,
+  DeskMark: A.Desk.DeskMark.templateId,
+} as const;
+
+export type AgentTemplateName = keyof typeof AGENT_TEMPLATE_IDS;
 
 /**
  * The abu-pm-games package (C9): the duel arena (commit-reveal checked on the ledger with `DA.Text.sha256`), the

@@ -20,6 +20,8 @@
  *   reserve    (no writes)                 /reserve
  *   tickets    Book_Issue*, Nav_IssueSupply, Earn_IssueWithdraw, Boost_OfferExit   POST /internal/tickets/*
  *              Round_Settle, Ticket_ResolveLeg, Boost_Settle, Boost_KnockOut, *_Expire, Book_Prune, Earn_PublishNav (C8c)
+ *   agents     GrantDesk, DeskOffer, SubscriberInvite, CreatorLicense   POST /internal/agents/enrol
+ *              License_Payout (creators' aggregate fees) (C8f)
  *   games      Duel_Reveal, Duel_Lock, Duel_Score, Duel_Finalize, the three duel refunds, Season_Distribute
  *                                          duel:<step>:<digest>, season:<step>:<digest>   POST /internal/games/* (C9b)
  */
@@ -42,10 +44,11 @@ import { startSettler } from "../settler";
 import { startTicketDesk } from "../ticket-desk";
 import { startArenaDesk } from "../arena-desk";
 import { startWindowRoller } from "../window-roller";
+import { startAgentsVenue } from "../agents";
 import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 
-export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games"] as const;
+export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
 
 export interface CantonVenue {
@@ -103,8 +106,12 @@ export async function startCantonVenue(input: {
   const games = on("games") ? await startArenaDesk({ venue, board, log: input.log("arena-desk") }) : null;
   if (games) stops.push(games.stop);
 
+  const agents = on("agents") ? await startAgentsVenue({ venue, log: input.log("agents") }) : null;
+  if (agents) stops.push(agents.stop);
+
   const routes: InternalRoutes["routes"] = {};
   if (tickets) Object.assign(routes, tickets.routes);
+  if (agents) Object.assign(routes, agents.routes);
   if (games) Object.assign(routes, games.routes);
   if (issuer) routes["/internal/quotes"] = issuer.handle;
   if (issuer) routes["/internal/exit-quotes"] = issuer.handleExit;

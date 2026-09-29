@@ -4,26 +4,26 @@ import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 import { SITE_URL } from "~/lib/env";
 
 /**
- * Stands in for web/src/providers/wallet/mainnet-signer.ts. Web re-wraps a Wallet Standard account for
- * `solana:mainnet`; the phone has no Wallet Standard registry, and every wallet it connects (the practice key, a
- * Phantom or Solflare link session, an Android MWA session) is opened on devnet. So a live desk's mainnet
- * transactions are refused with the reason, before any wallet is asked. Signed messages (a practice desk, approvals,
- * check now, sharing) never need this and keep working.
+ * Stands in for web/src/providers/wallet/mainnet-signer.ts on the phone. On Canton (C8f, K-090) the live desk is the
+ * leased seat's `DeskMandate` and its owner writes go through the app's routes as that seat, so a held seat that can
+ * sign is the session, exactly as on the web.
  */
-export const MAINNET_CHAIN = "solana:mainnet";
-/** Absolute on a phone: the Solana client builds its own requests and has no page origin to resolve a path against. */
-export const MAINNET_RPC_PATH = `${SITE_URL}/api/rpc/mainnet`;
+export const MAINNET_CHAIN = "canton:mainnet";
+/** Absolute on a phone: the app's ledger routes at the site's origin. */
+export const MAINNET_RPC_PATH = `${SITE_URL}/api/ledger`;
 
 export type { MainnetWalletSession };
 
-const WHY = "The desk's live leg on Canton is planned, not live yet. Practice desks, approvals, Check now and sharing still work.";
+const WHY = "Take a seat that can sign to run a live desk. Practice desks, approvals, Check now and sharing still work.";
 
 export function useMainnetWalletSession(): MainnetWalletSession {
   const shell = useWalletShell();
   const address = shell.status === "ready" ? shell.address : null;
+  const held = shell.status === "ready" && shell.wallet !== null;
   return useMemo<MainnetWalletSession>(() => {
     if (shell.status === "restoring") return { kind: "restoring" };
     if (address === null) return { kind: "no-wallet" };
-    return { kind: "unsupported", address, why: WHY };
-  }, [shell.status, address]);
+    if (!held) return { kind: "unsupported", address, why: WHY };
+    return { kind: "ready", address, signer: { address }, rpcUrl: MAINNET_RPC_PATH };
+  }, [shell.status, address, held]);
 }

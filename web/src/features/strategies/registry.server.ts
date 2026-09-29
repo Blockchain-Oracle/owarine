@@ -5,6 +5,7 @@ import { isDbConfigured, latestHeartbeats, listPlaybooks, listStrategyDecisions,
 import { ensureMarkets, loadCollateral, marketsProvider, mapPool, parseMarketsEnv, unwrap } from "@agari/markets";
 import { listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
 import type { DecisionWire, FillWire, HealthPayload, StrategiesPayload, StrategyWire } from "./protocol";
+import { ensureStrategyReader } from "@/lib/agents.server";
 
 const CACHE_TTL_MS = 20_000;
 const FILL_LIMIT = 500;
@@ -128,6 +129,7 @@ function median(values: bigint[]): bigint {
 
 async function compute(): Promise<StrategiesPayload> {
   boot();
+  await ensureStrategyReader();
   const collateral = unwrap(await loadCollateral());
   const nowMs = Date.now();
   const deployed = resolveRegistryDeployment() !== null;

@@ -171,10 +171,19 @@ if (actors.has("projector") || actors.has("indexer"))
 // The earn vault's market maker (MAKER_MODE=vault) is a C8 product; the venue's own pricer lives in "venue".
 if (actors.has("maker") && process.env.MAKER_MODE === "vault") void boot("market-maker", () => startMarketMaker(log("market-maker")));
 
-// S21 (D-126): the desk reads the in-process PreStocks feed, so it starts after the feed; its RPC is its own (mainnet).
-if (actors.has("desk-runner")) void boot(OPT_IN_ACTORS[0], () => startDeskRunner({ log: log("desk-runner"), prestocks: prestocksSpot }));
-if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"));
-if (actors.has("x-relay")) void startXRelay(log("x-relay"));
+// S21 (D-126): the desk reads the in-process PreStocks feed, so it starts after the feed; on Canton (C8f) its live leg
+// uses this process's ledger sessions, and the venue's ladder and issuer when the venue runs here.
+if (actors.has("desk-runner")) void boot(OPT_IN_ACTORS[0], () => startDeskRunner({ log: log("desk-runner"), prestocks: prestocksSpot, venue: venueCtx, board: canton?.board ?? null, internal: canton?.internal ?? null }));
+// C8f: the runner and the X relay act as the agent-runner party through owners' grants; with the venue in this process
+// they take quotes from its issuer directly, otherwise from ops over the signed internal route.
+const issuerRoutes = (() => {
+  const r = canton?.internal.routes;
+  const quotes = r?.["/internal/quotes"];
+  const exitQuotes = r?.["/internal/exit-quotes"];
+  return quotes && exitQuotes ? { quotes, exitQuotes } : null;
+})();
+if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"), { venue: venueCtx, routes: issuerRoutes });
+if (actors.has("x-relay")) void startXRelay(log("x-relay"), { venue: venueCtx, routes: issuerRoutes });
 if (actors.has("leverage-keeper")) void startLeverageKeeper(log("leverage-keeper"));
 // The duel room and its matchmaker (C9b): after the venue, whose arena desk is the room's source and the matchmaker's
 // dealer. The projector's duel projection broadcasts into the room once it listens; without one it still writes rows.

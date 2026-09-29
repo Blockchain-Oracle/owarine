@@ -24,6 +24,8 @@ export const OPS_SKEW_MS = 30_000;
 export const OPS_QUOTES_PATH = "/internal/quotes";
 export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
 export const OPS_EXIT_QUOTES_PATH = "/internal/exit-quotes";
+/** C8f: create a seat's missing standing offers for agents (grant desk, subscriber invitation, creator licence, desk offer). */
+export const OPS_AGENTS_ENROL_PATH = "/internal/agents/enrol";
 /** The ticket desk (C8c): `range`, `parlay`, `boost`, `earn` and `state` under this prefix. */
 export const OPS_TICKETS_PREFIX = "/internal/tickets/";
 /** The arena desk (C9b): `state`, `match`, `season`, `open` and `season/distribute` under this prefix. */
@@ -71,6 +73,13 @@ export const seatFundReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
 ]);
 export type SeatFundReply = z.output<typeof seatFundReplyWire>;
+
+export const agentsEnrolReplyWire = z.discriminatedUnion("kind", [
+  /** The offers the venue created for this seat now (none when it had them all). */
+  z.object({ kind: z.literal("enrolled"), created: z.array(z.string()) }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+]);
+export type AgentsEnrolReply = z.output<typeof agentsEnrolReplyWire>;
 
 export interface OpsClientConfig {
   baseUrl: string;
@@ -194,6 +203,13 @@ export function createOpsClient(cfg: OpsClientConfig) {
       if (!r.ok) return r;
       const parsed = ticketStateReplyWire.safeParse(r.json);
       return parsed.success ? { ok: true, value: parsed.data } : { ok: false, diagnosis: rpcDown(`ops ticket state did not parse: ${parsed.error.message.slice(0, 200)}`) };
+    },
+    /** C8f: the venue's standing offers for a seat's agents, created when missing (idempotent). */
+    async enrolAgents(request: { party: string; leaseId: string }): Promise<AgentsEnrolReply> {
+      const r = await post(OPS_AGENTS_ENROL_PATH, request);
+      if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };
+      const parsed = agentsEnrolReplyWire.safeParse(r.json);
+      return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown("ops agents-enrol reply did not parse") };
     },
     /** The arena as ops reads it from the ledger (public facts only). */
     async gameState(): Promise<{ ok: true; value: ArenaStateReply } | { ok: false; diagnosis: Diagnosis }> {

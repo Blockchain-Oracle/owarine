@@ -1,21 +1,20 @@
 import { ADVICE_COPY } from "@agari/core/copy";
-import { isAddress } from "@agari/core/types";
 import type { Metadata } from "next";
 import { StrategiesScreen } from "@/features/strategies";
+import { seatServer } from "@/lib/ledger.server";
 
 export const metadata: Metadata = { title: "Strategies" };
 
 /**
- * The house runner's key is the server's to know; the studio names it when a creator picks "Let Agari run it".
- *
- * The check is `isAddress`, core's own. It was an Ethereum one carried over with the port — `/^0x[0-9a-fA-F]{40}$/`
- * plus a `toLowerCase()` — which no base58 Solana address can pass, and which would have destroyed one if it did
- * (addresses are case-sensitive, D-010). So "Let Agari run it" was disabled on every deployment, however the
- * variable was set, and the studio said a house runner was not configured while one was.
+ * The house runner is a party on Canton (C8f): the parties file's `agent-runner` (or `AGARI_AGENT_RUNNER_PARTY`), the
+ * same agent that places for X and runs desks (K-087). The studio names it when a creator picks "Let Agari run it"; a
+ * deployment without it says a house runner is not configured, and a creator runs its own bot instead.
  */
+export const dynamic = "force-dynamic";
+
 export default function Page() {
-  const configured = process.env.STRATEGY_RUNNER_ADDRESS?.trim();
-  const houseRunner = configured && isAddress(configured) ? configured : null;
+  const state = seatServer();
+  const houseRunner = state.ok ? state.server.parties.agentRunner : null;
   return (
     <>
       <StrategiesScreen houseRunner={houseRunner} />

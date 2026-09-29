@@ -1,105 +1,104 @@
 /**
- * What the market looks like for one candidate, right now (core `market.ts`): a real Jupiter quote at the exact
- * size, the venue's spot and mark from the feed, the spot against its own half-hour mean, the mint's flags, and how
- * old the reference is. For a live desk the reference age is the on-chain `DeskRef`'s (the program measures against
- * that one); for a practice desk it is the feed's own. Jupiter is paced: lite-api allows two seconds between calls.
+ * What the market looks like for one candidate, right now (core `market.ts`), on Canton (C8f):
+ *
+ *   the name's prices   spot, half-hour mean and mark from the in-process PreStocks feed (the signals, the evidence
+ *                       and the grade compare these; the lane feeders attest the same reads)
+ *   live leg (K-090)    the venue's published ladder for the name's current hourly Window: a preview of what the
+ *                       stake buys (Up lots, as raw "tokens") or what the lots sell for, the Window's fair Up price as
+ *                       the reference (the operator posts it as the attestors' marks right before acting), and the
+ *                       premium of the ask over that fair price, which the mandate's ceiling bounds
+ *   practice (K-091)    a paper fill at the feed's token print, multiplier 1; PreStocks' 1 % fee is taken off the
+ *                       received leg by the paper ledger and counted in the cost here
  */
-import { costBpsFor, gapOf, type DeskCandidate, type DeskMarketRead } from "@agari/core/desk";
+import { costBpsFor, gapOf, PAPER_FEE_BPS, rawFor, valueE6, type DeskCandidate, type DeskMarketRead } from "@agari/core/desk";
 import type { PreIpoSymbol } from "@agari/core/market";
-import { DESK_MINTS, quoteSwap, USDC_MAINNET, type JupiterQuote } from "@agari/markets/desk";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, quotingWindow, USDC_MAINNET, type JupiterQuote } from "@agari/markets/desk";
 import { errorText } from "../../runtime/env";
 import type { DeskStanding, RunnerContext } from "./types";
-import { multiplierOf, pausedOf, priceView } from "./value";
+import { priceView } from "./value";
 
-const KEYLESS_GAP_MS = 2_100;
-const KEYED_GAP_MS = 250;
+/** Practice units carry no mint multiplier: one unit is one token at the printed price (K-091). */
+export const PRACTICE_MULTIPLIER_E12 = 1_000_000_000_000n;
+/** The route label a paper fill carries; unknown to `paperFeeBpsFor`, so the paper ledger takes the full fee. */
+export const PAPER_ROUTE_LABEL = "Agari paper";
 /**
- * A posted reference older than this is re-posted before an action, so the program never sees one near its 900 s
- * limit; and a live desk whose reference the runner CAN refresh is read against the feed's latest values, because
- * that is what will be on chain when the action is sent (a never-posted `DeskRef` is all zeros: the gate would deny
- * every trade of a fresh desk otherwise, and nothing would ever post the first reference).
+ * Kept for the record's shape: a live desk's reference is posted fresh (as marks) right before each action, so it is
+ * never older than this when the ledger measures against it.
  */
 export const REFERENCE_REFRESH_SEC = 300;
-/**
- * The slippage every quote is asked for and every send carries as its own floor (the program's 8 % band floor is
- * the outer one, the gate's `MAX_COST_BPS` 250 bounds the whole cost). Measured on the C6 fork: OpenAI's route is
- * a thin Manifest book (169–203 bps of price impact on $100–$400), and at 50 bps Jupiter itself refused the fill
- * (6001, slippage) while 200 bps filled; Anthropic's Meteora route filled at 50.
- */
+/** The slippage every preview carries as its own floor; the ledger's 92 % floor on a sale is the outer one. */
 export const SLIPPAGE_BPS = 200;
-let lastQuoteMs = 0;
-let queue: Promise<unknown> = Promise.resolve();
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** One Jupiter quote at a time, spaced for the endpoint in use; a failed quote is a null quote, never a thrown check. */
-export function pacedQuote(ctx: RunnerContext, side: "buy" | "sell", symbol: PreIpoSymbol, amountIn: bigint): Promise<JupiterQuote | null> {
-  const run = async () => {
-    const gap = ctx.env.jupiterApiKey ? KEYED_GAP_MS : KEYLESS_GAP_MS;
-    const wait = lastQuoteMs + gap - Date.now();
-    if (wait > 0) await sleep(wait);
-    lastQuoteMs = Date.now();
-    const mint = DESK_MINTS[symbol];
-    try {
-      return await quoteSwap({ inputMint: side === "buy" ? USDC_MAINNET : mint, outputMint: side === "buy" ? mint : USDC_MAINNET, amount: amountIn, slippageBps: SLIPPAGE_BPS, ...(ctx.env.jupiterApiKey ? { apiKey: ctx.env.jupiterApiKey } : {}) });
-    } catch (error) {
-      ctx.log(`quote ${side} ${symbol} failed: ${errorText(error)}`);
-      return null;
-    }
-  };
-  const next = queue.then(run, run);
-  queue = next.then(() => undefined, () => undefined);
-  return next;
-}
 
 export interface MarketRead {
   market: DeskMarketRead;
   quote: JupiterQuote | null;
-  /** The venue reference the program will measure against: the on-chain one for a live desk, the feed's for practice. */
+  /** The reference the ledger measures against: the Window's fair price for a live desk, the feed's for practice. */
   reference: { tokenPriceE8: bigint; markPriceE8: bigint; multiplierE12: bigint; fetchedAtSec: number } | null;
+}
+
+function paperQuote(side: "buy" | "sell", symbol: PreIpoSymbol, amountIn: bigint, spotE8: bigint): JupiterQuote {
+  const out = side === "buy" ? rawFor(amountIn, PRACTICE_MULTIPLIER_E12, spotE8) : valueE6(amountIn, PRACTICE_MULTIPLIER_E12, spotE8);
+  const mint = DESK_MINTS[symbol];
+  return {
+    inputMint: side === "buy" ? USDC_MAINNET : mint, outputMint: side === "buy" ? mint : USDC_MAINNET, inAmount: amountIn, outAmount: out,
+    otherAmountThreshold: out, slippageBps: 0, priceImpactBps: 0, routeLabels: [PAPER_ROUTE_LABEL], contextSlot: null, raw: { paper: true, spotE8: spotE8.toString() },
+  };
 }
 
 /** The read for `candidate` at `amountIn` (its own size unless a part was chosen). */
 export async function readMarket(ctx: RunnerContext, standing: DeskStanding, candidate: DeskCandidate, amountIn: bigint, nowSec: number): Promise<MarketRead> {
   const symbol = candidate.symbol;
   const view = priceView(ctx.feed, symbol, nowSec);
-  const multiplierE12 = multiplierOf(ctx.mints, symbol);
-  const mint = DESK_MINTS[symbol] as string;
-  const chainRef = standing.kind === "live" ? standing.chain.refs[mint] ?? null : null;
-  // A live desk is measured against the posted reference while it is fresh; when the runner can refresh it (an
-  // operator and an attestor key, not a dry run) the feed's latest values stand in, because `commit` posts exactly
-  // those before the action is sent. Without the keys, the chain's own reference, stale or unposted, is the truth.
-  const canRefresh = standing.kind === "live" && ctx.operator !== null && ctx.attestor !== null;
-  const chainFresh = chainRef !== null && chainRef.fetchedAtSec > 0 && nowSec - chainRef.fetchedAtSec <= REFERENCE_REFRESH_SEC;
-  const reference = chainRef && (chainFresh || !canRefresh)
-    ? { tokenPriceE8: chainRef.tokenPriceE8, markPriceE8: chainRef.markPriceE8, multiplierE12: chainRef.multiplierE12, fetchedAtSec: chainRef.fetchedAtSec }
-    : view && multiplierE12 !== null
-      ? { tokenPriceE8: view.spotE8, markPriceE8: view.markE8, multiplierE12, fetchedAtSec: view.fetchedAtSec }
-      : null;
-  const quote = view ? await pacedQuote(ctx, candidate.side, symbol, amountIn) : null;
   const spotE8 = view?.spotE8 ?? 0n;
   const meanE8 = view?.meanE8 ?? spotE8;
   const gap = gapOf(spotE8, meanE8);
-  const multiplier = multiplierE12 ?? 0n;
-  const frozen = standing.kind === "live" ? (standing.frozen[symbol] ?? null) : false;
-  const referenceAgeSec = reference ? Math.max(0, nowSec - reference.fetchedAtSec) : null;
+  const base = { atSec: nowSec, symbol, spotE8, meanE8, markE8: view?.markE8 ?? null, indexE8: null, indexPremiumBps: null, routeAccounts: null, mintPaused: false, ...gap };
+
+  if (standing.kind === "practice") {
+    const quote = view ? paperQuote(candidate.side, symbol, amountIn, spotE8) : null;
+    const reference = view ? { tokenPriceE8: view.spotE8, markPriceE8: view.markE8, multiplierE12: PRACTICE_MULTIPLIER_E12, fetchedAtSec: view.fetchedAtSec } : null;
+    const market: DeskMarketRead = {
+      ...base,
+      multiplierE12: PRACTICE_MULTIPLIER_E12,
+      referenceAgeSec: reference ? Math.max(0, nowSec - reference.fetchedAtSec) : null,
+      premiumBps: view && view.markE8 > 0n ? Number(((spotE8 - view.markE8) * 10_000n) / view.markE8) : null,
+      quoteOut: quote?.outAmount ?? null,
+      costBps: quote ? PAPER_FEE_BPS : null,
+      accountFrozen: false,
+    };
+    return { market, quote, reference };
+  }
+
+  // The live leg: the name's current Window on the venue's ladder.
+  let ladders: Awaited<ReturnType<RunnerContext["ladders"]>> = [];
+  try {
+    ladders = await ctx.ladders();
+  } catch (error) {
+    ctx.log(`ladders unreadable: ${errorText(error)}`);
+  }
+  const window = quotingWindow(ladders, symbol);
+  const fair = window?.fairTicks ?? null;
+  const fairE8 = window && fair ? lotPriceE8(fair, window.cashUnit) : null;
+  let quote: JupiterQuote | null = null;
+  if (window) {
+    try {
+      const mint = DESK_MINTS[symbol];
+      quote = await quoteSwap({ inputMint: candidate.side === "buy" ? USDC_MAINNET : mint, outputMint: candidate.side === "buy" ? mint : USDC_MAINNET, amount: amountIn, slippageBps: SLIPPAGE_BPS, ladders });
+    } catch (error) {
+      ctx.log(`preview ${candidate.side} ${symbol} failed: ${errorText(error)}`);
+    }
+  }
+  const best = (quote?.raw as { bestTicks?: number } | undefined)?.bestTicks ?? null;
+  const reference = fairE8 ? { tokenPriceE8: fairE8, markPriceE8: fairE8, multiplierE12: DESK_LOT_MULTIPLIER_E12, fetchedAtSec: nowSec } : null;
   const market: DeskMarketRead = {
-    atSec: nowSec,
-    symbol,
-    spotE8,
-    meanE8,
-    markE8: view?.markE8 ?? null,
-    indexE8: null,
-    multiplierE12: multiplier,
-    // Without a multiplier nothing can be sized or floored: the reference counts as unavailable, whatever its age.
-    referenceAgeSec: multiplierE12 === null ? null : referenceAgeSec,
-    ...gap,
-    premiumBps: view && view.markE8 > 0n ? Number(((spotE8 - view.markE8) * 10_000n) / view.markE8) : null,
-    indexPremiumBps: null,
+    ...base,
+    multiplierE12: DESK_LOT_MULTIPLIER_E12,
+    referenceAgeSec: reference ? 0 : null,
+    // The ask over the Window's fair price: what the mandate's premium ceiling bounds on a buy.
+    premiumBps: fair && best ? Math.round(((best - fair) * 10_000) / fair) : null,
     quoteOut: quote?.outAmount ?? null,
-    costBps: quote && multiplier > 0n ? costBpsFor(candidate.side, amountIn, quote.outAmount, spotE8, multiplier) : null,
-    routeAccounts: null,
-    mintPaused: pausedOf(ctx.mints, symbol),
-    accountFrozen: frozen,
+    costBps: quote && fairE8 && quote.outAmount > 0n ? costBpsFor(candidate.side, amountIn, quote.outAmount, fairE8, DESK_LOT_MULTIPLIER_E12) : null,
+    accountFrozen: standing.frozen[symbol] ?? false,
   };
   return { market, quote, reference };
 }

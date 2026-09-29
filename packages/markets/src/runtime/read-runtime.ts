@@ -5,6 +5,8 @@
  * credential. Every signer lives in its own `SubmitterSession` (../sessions), so a read-endpoint change can never move
  * a write's authority. It is a descriptor, not a connection.
  */
+import { CLUSTER_ID } from "@agari/core/constants";
+import { cantonVaultDeployment } from "../vault/deployment";
 import type { Cluster } from "@agari/core/constants";
 import type { ArenaDeployment } from "@agari/core/games";
 import type { LeverageDeployment } from "@agari/core/leverage";
@@ -95,7 +97,8 @@ export async function closeRuntime(): Promise<void> {
  * Product deployments on the configured network. Every product read branches on these, and each is null until its
  * Daml package is on the participant and its money gate has passed (C7a vault, C8 products, C9 arena).
  */
-export const getVaultDeployment = (): VaultDeployment | null => null;
+/** C8f: the grant desk (abu-pm-agents) with the seat's cash as the balance; see `vault/deployment.ts`. */
+export const getVaultDeployment = (): VaultDeployment | null => (client ? cantonVaultDeployment(CLUSTER_ID[client.cluster]) : null);
 export const getParlayDeployment = (): ParlayDeployment | null => null;
 export const getRangeDeployment = (): RangeDeployment | null => null;
 export const getMakerDeployment = (): MakerDeployment | null => null;

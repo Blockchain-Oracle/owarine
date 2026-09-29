@@ -1,0 +1,186 @@
+-- | The grant desk's money gate (abu-pm-agents 0.2.0): opening from the
+-- owner's own cash with change, a top-up that keeps every counter (day,
+-- today's spend, open positions, caps, expiry), top-up refusals (foreign,
+-- expired, empty), the top-up vs agent-accept race in both orders,
+-- revoke returning the whole budget (funded, spent and expired alike), and
+-- conservation through open, trade, top-up and revoke.
+module Test.Agents.Vault where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Agents.Vault
+import PM.Grant
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+data V = V with
+  w : World
+  win : Win
+  agent : Party
+  desk : ContractId GrantDesk
+  grant : ContractId AgentGrant
+
+caps0 : GrantCaps
+caps0 = GrantCaps with maxStakePerTrade = 700; maxDailySpend = 1000; maxPriceTicks = 650; maxOpenPositions = 9
+
+expiry : Time
+expiry = plus t0 (2 * 86400)
+
+-- Alice funds 2500 and opens a 2000 grant through her desk: 500 change.
+setupV : Script V
+setupV = do
+  w <- mkWorld
+  s <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "BTC-3d"; cadenceSec = 3 * 86400
+  (_, win) <- openWin w s 0
+  _ <- recordOpen w win px
+  agent <- allocateParty "agent"
+  desk <- submit w.venue do createCmd GrantDesk with venue = w.venue; owner = w.alice
+  c <- fund w w.alice 2500
+  (grant, change) <- submit w.alice do
+    exerciseCmd desk GrantDesk_Open with
+      agent; caps = caps0; expiresAt = expiry; dayZero = t0; budget = 2000; cash = [c]
+  optional 0 (const 1) change === 1
+  cashOf w.alice >>= (=== 500)
+  pure V with ..
+
+agentBuys : V -> ContractId AgentGrant -> Int -> Int -> Script (Either SubmitError (ContractId AgentGrant, ContractId Leg))
+agentBuys v g ticks lots = do
+  now <- getTime
+  q <- issue v.w v.win v.w.alice SideUp ticks lots 0 (plus now 20) "v"
+  d <- disclosureOf v.w.venue q
+  trySubmit (actAs v.agent <> disclose d) do
+    exerciseCmd g Grant_AcceptQuote with quoteCid = q; limitTicks = ticks; asOf = now
+
+grantOf : V -> ContractId AgentGrant -> Script AgentGrant
+grantOf v cid = do
+  Some g <- queryContractId v.w.alice cid
+  pure g
+
+-- Every amount of money the venue sees: cash, quote locks, legs (backing
+-- plus fee) and grant budgets.
+money : V -> Script Int
+money v = do
+  cs <- query @VenueCash v.w.venue
+  qs <- query @Quote v.w.venue
+  ls <- query @Leg v.w.venue
+  gs <- query @AgentGrant v.w.venue
+  pure (sum [c.amount | (_, c) <- cs]
+        + sum [venueStakeOf q.lots q.priceTicks q.cashUnit | (_, q) <- qs]
+        + sum [l.backingShare + l.feePaid | (_, l) <- ls]
+        + sum [g.budget | (_, g) <- gs])
+
+-- Open refuses a budget the cash does not cover, and a zero budget.
+testGrantDeskOpenRefusals = script do
+  v <- setupV
+  c <- fund v.w v.w.alice 100
+  refusedWith (refusal "insufficient-cash") =<< trySubmit v.w.alice do
+    exerciseCmd v.desk GrantDesk_Open with
+      agent = v.agent; caps = caps0; expiresAt = expiry; dayZero = t0; budget = 101; cash = [c]
+  refusedWith (refusal "bad-budget") =<< trySubmit v.w.alice do
+    exerciseCmd v.desk GrantDesk_Open with
+      agent = v.agent; caps = caps0; expiresAt = expiry; dayZero = t0; budget = 0; cash = [c]
+  -- only the owner opens: not the venue, not the agent
+  fails =<< trySubmit v.w.venue do
+    exerciseCmd v.desk GrantDesk_Open with
+      agent = v.agent; caps = caps0; expiresAt = expiry; dayZero = t0; budget = 50; cash = [c]
+  fails =<< trySubmit v.agent do
+    exerciseCmd v.desk GrantDesk_Open with
+      agent = v.agent; caps = caps0; expiresAt = expiry; dayZero = t0; budget = 50; cash = [c]
+
+-- A top-up keeps the day, today's spend, the open positions, caps and
+-- expiry: it can never reset the daily cap or the position count.
+testGrantDeskFundKeepsCounters = script do
+  v <- setupV
+  (g1, _) <- succeeded =<< agentBuys v v.grant 600 1
+  before <- grantOf v g1
+  (before.budget, before.spentToday, length before.positions) === (1400, 600, 1)
+  c <- fund v.w v.w.alice 300
+  g2 <- submit v.w.alice do exerciseCmd v.desk GrantDesk_Fund with grantCid = g1; cash = [c]
+  after <- grantOf v g2
+  after === (before with budget = 1700)
+  -- today's cap still counts the earlier 600: 401 more is over it
+  refusedWith (refusal "over-daily-cap") =<< agentBuys v g2 401 1
+  (g3, _) <- succeeded =<< agentBuys v g2 400 1
+  (.budget) <$> grantOf v g3 >>= (=== 1300)
+
+-- Refusals: an empty top-up, a grant after its expiry, someone else's
+-- desk or grant, and nobody but the owner.
+testGrantDeskFundRefusals = script do
+  v <- setupV
+  refusedWith (refusal "bad-amount") =<< trySubmit v.w.alice do
+    exerciseCmd v.desk GrantDesk_Fund with grantCid = v.grant; cash = []
+  c <- fund v.w v.w.alice 300
+  fails =<< trySubmit v.agent do exerciseCmd v.desk GrantDesk_Fund with grantCid = v.grant; cash = [c]
+  fails =<< trySubmit v.w.venue do exerciseCmd v.desk GrantDesk_Fund with grantCid = v.grant; cash = [c]
+  -- Bob's desk cannot top up Alice's grant (and cannot even see it)
+  bobDesk <- submit v.w.venue do createCmd GrantDesk with venue = v.w.venue; owner = v.w.bob
+  cb <- fund v.w v.w.bob 300
+  fails =<< trySubmit v.w.bob do exerciseCmd bobDesk GrantDesk_Fund with grantCid = v.grant; cash = [cb]
+  -- admitted at expiresAt, refused one second later
+  at expiry
+  g1 <- submit v.w.alice do exerciseCmd v.desk GrantDesk_Fund with grantCid = v.grant; cash = [c]
+  c2 <- fund v.w v.w.alice 10
+  at (plus expiry 1)
+  refusedWith deadlineExceeded =<< trySubmit v.w.alice do
+    exerciseCmd v.desk GrantDesk_Fund with grantCid = g1; cash = [c2]
+  -- an expired grant still returns its whole budget, the top-up included
+  Some back <- submit v.w.alice do exerciseCmd g1 Grant_Revoke
+  Some b <- queryContractId v.w.alice back
+  b.amount === 2300
+
+-- Top-up against an agent accept on the same grant, in both orders: both
+-- consume the grant, so exactly one lands, and the loser moves nothing.
+testGrantDeskFundVsAcceptRace = script do
+  forA_ [True, False] \fundFirst -> do
+    v <- setupV
+    now <- getTime
+    q <- issue v.w v.win v.w.alice SideUp 600 1 0 (plus now 20) "race"
+    d <- disclosureOf v.w.venue q
+    c <- fund v.w v.w.alice 300
+    base <- money v
+    let doFund = trySubmit v.w.alice do exerciseCmd v.desk GrantDesk_Fund with grantCid = v.grant; cash = [c]
+        doBuy = trySubmit (actAs v.agent <> disclose d) do
+          exerciseCmd v.grant Grant_AcceptQuote with quoteCid = q; limitTicks = 600; asOf = now
+    if fundFirst
+      then do
+        g <- succeeded =<< doFund
+        fails =<< doBuy
+        (.budget) <$> grantOf v g >>= (=== 2300)
+      else do
+        (g, _) <- succeeded =<< doBuy
+        fails =<< doFund
+        (.budget) <$> grantOf v g >>= (=== 1400)
+        cashOf v.w.alice >>= (=== 800)
+    money v >>= (=== base)
+
+-- Conservation: open, trade, top-up and revoke move money between cash,
+-- quote locks, legs and the budget; the total changes only by credits.
+testGrantDeskConservation = script do
+  v <- setupV
+  base <- money v
+  now <- getTime
+  -- the quote's venue shard is a credit of exactly the venue stake
+  q <- issue v.w v.win v.w.alice SideUp 600 1 0 (plus now 20) "c"
+  money v >>= (=== base + venueStakeOf 1 600 v.win.t.cashUnit)
+  let base1 = base + venueStakeOf 1 600 v.win.t.cashUnit
+  d <- disclosureOf v.w.venue q
+  (g1, _) <- submit (actAs v.agent <> disclose d) do
+    exerciseCmd v.grant Grant_AcceptQuote with quoteCid = q; limitTicks = 600; asOf = now
+  money v >>= (=== base1)
+  c <- fund v.w v.w.alice 300
+  money v >>= (=== base1 + 300)
+  g2 <- submit v.w.alice do exerciseCmd v.desk GrantDesk_Fund with grantCid = g1; cash = [c]
+  money v >>= (=== base1 + 300)
+  Some back <- submit v.w.alice do exerciseCmd g2 Grant_Revoke
+  money v >>= (=== base1 + 300)
+  Some b <- queryContractId v.w.alice back
+  b.amount === 1700
+  (length <$> query @AgentGrant v.w.alice) >>= (=== 0)

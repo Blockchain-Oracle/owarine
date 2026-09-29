@@ -66,7 +66,9 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
   const ceilingBase = pending ? BigInt(pending.caps.maxStakePerTradeBase) : parseAmount(perTrade, decimals);
   const envelope = { maxStakePerTradeBase: BigInt(card.envelope.maxStakePerTradeBase), maxDailySpendBase: BigInt(card.envelope.maxDailySpendBase), maxOpenPositions: card.envelope.maxOpenPositions, maxPriceRaw: BigInt(card.envelope.maxPriceRaw) };
   const caps = pending ? progressCaps(pending) : capsFor("balanced", ceilingBase, targetBase, decimals, envelope);
-  const reusable = availableBase + (grant && !grant.revoked ? grant.budgetBase : 0n);
+  // C8f: the seat's cash is both the wallet and the Trading Balance on Canton, so only the live grant's budget is
+  // reusable on top of the wallet (counting the cash twice would promise a budget the ledger then refuses).
+  const reusable = grant && !grant.revoked ? grant.budgetBase : 0n;
   const topUp = !pending && targetBase > reusable ? targetBase - reusable : 0n;
   const disabled = Boolean(writes.busy) || !writes.canSign || !readable || anotherPending;
   const sheet = useBalanceSheet(writes.address);

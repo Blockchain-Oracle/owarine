@@ -1,12 +1,12 @@
 /**
- * The daily seal (desk.md §0.3, plan §8 C4): at 00:05 UTC every live desk writes a record with no trade and sends
- * `operator_checkpoint` with its hash, so the quiet hours join the on-chain chain too (each record's `prevHash`
+ * The daily seal (desk.md §0.3, plan §8 C4): at 00:05 UTC every live desk writes a record with no trade and exercises
+ * `Mandate_Checkpoint` with its hash (C8f), so the quiet hours join the on-chain chain too (each record's `prevHash`
  * links the ones before it). Allowed while paused and in mode 0: "paused, did nothing" is a record as well. The
  * second consecutive check below the loss limit also pauses the desk ON THE CHAIN, so even a stolen operator key
  * could not trade it; only the owner's wallet lifts that.
  */
-import { chainHead, deskCopy } from "@agari/core/desk";
-import { checkpoint, DeskSendError, DeskSendUnknownError, pauseIx } from "@agari/markets/desk";
+import { deskCopy } from "@agari/core/desk";
+import { cantonChainHead, checkpoint, DeskSendError, DeskSendUnknownError, pauseIx } from "@agari/markets/desk";
 import { errorText } from "../../runtime/env";
 import { appendPlainRecord } from "./commit";
 import { DEADLINE_SEC } from "./consider";
@@ -26,8 +26,8 @@ export async function sealCheckpoint(ctx: RunnerContext, frame: WakeFrame): Prom
   const deadlineSec = frame.nowSec + DEADLINE_SEC;
   const actionId = await ctx.q.insertAction({ deskId: desk.id, recordSeq: record.seq, kind: "checkpoint", state: "attempting", signature: null, symbol: null, amountIn: null, expectedOut: null, minOut: null, countedE6: null, deadlineSec, sentAtSec: frame.nowSec });
   try {
-    const sent = await checkpoint(ctx.operator, { owner: desk.owner as never, deadlineSec, decisionHash: record.hash });
-    const expectedHead = chainHead(chain.head, sent.sealed.seq, record.hash);
+    const sent = await checkpoint(ctx.operator, { owner: (desk.address ?? desk.owner) as never, deadlineSec, decisionHash: record.hash });
+    const expectedHead = cantonChainHead(chain.head, sent.sealed.seq, record.hash);
     await ctx.q.resolveAction({ id: actionId, state: "confirmed", signature: sent.signature, chainSeq: Number(sent.sealed.seq), nowSec: frame.nowSec });
     await ctx.q.markSealed({ deskId: desk.id, seq: record.seq, signature: sent.signature, chainSeq: Number(sent.sealed.seq) });
     await ctx.q.setChainPosition({ deskId: desk.id, chainSeq: Number(sent.sealed.seq), chainHead: sent.sealed.head, nowSec: frame.nowSec });
@@ -47,12 +47,12 @@ export async function sealCheckpoint(ctx: RunnerContext, frame: WakeFrame): Prom
   return record;
 }
 
-/** `pause` from the operator key: the loss limit's second breach in a row. */
+/** `Mandate_Pause` as the operator: the loss limit's second breach in a row. */
 export async function pauseOnChain(ctx: RunnerContext, frame: WakeFrame): Promise<string | null> {
   const chain = frame.standing.kind === "live" ? frame.standing.chain : null;
   if (!chain || !ctx.operator || chain.paused || frame.dry) return null;
   try {
-    const sent = await ctx.operator.send("pause", [await pauseIx(ctx.operator.signer, frame.desk.owner as never)]);
+    const sent = await ctx.operator.send("pause", [await pauseIx(null, (frame.desk.address ?? frame.desk.owner) as never)]);
     await ctx.q.addEvent({ deskId: frame.desk.id, kind: "paused_on_chain", actor: "desk", detail: { signature: sent.signature, why: "loss limit, second breach" }, atSec: frame.nowSec });
     return sent.signature;
   } catch (error) {

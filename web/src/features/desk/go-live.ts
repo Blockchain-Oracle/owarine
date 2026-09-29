@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Go live's stage machine (plan §5.4 step 04, §5.5): four owner steps on Solana mainnet, each resumable. The stage
+ * Go live's stage machine (plan §5.4 step 04, §5.5): four owner steps on Canton, each resumable. The stage
  * is written to this browser BEFORE each confirmation, so a closed tab or a wallet that took a minute to answer
  * never starts a step twice: on return the flow reads the chain first (does the desk exist? are the names allowed?)
  * and only then asks for a signature.

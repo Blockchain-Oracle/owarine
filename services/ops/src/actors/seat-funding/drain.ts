@@ -5,6 +5,10 @@
  *   - closes out each open leg on a market not yet resolved with the two-controller `Leg_CloseOut` (venue and seat),
  *     re-backed from a pool shard (`closeout:<legCid>`): the seat gets backing plus fee back, the venue takes the leg.
  *
+ *   - (C8f) ends its agents, as the seat's own choices: revokes each `AgentGrant` it opened (the budget returns to its
+ *     cash), ends each consent (`Subscriber_Unsubscribe`) and closes its desk (`Mandate_Close`, the budget returns),
+ *     so no later lessee of this party inherits a grant, a consent or a desk (`drain-agent:<cid>`).
+ *
  * Legs on resolved markets are the settler's. The web recycles the seat once the ledger shows no open leg and no live
  * quote, and withdraws its leftover cash itself. Draining seats come from the web's `seat_pool` table (read-only), or
  * from `SEAT_DRAIN_PARTIES` on a local run.
@@ -14,6 +18,9 @@ import { TEMPLATE_IDS } from "@agari/daml";
 import {
   closeOutCommandId, cmd, decodeLeg, decodeQuote, failureText, isInactive, pick, readActive, submit, withdrawCommandId, type RoleSession,
 } from "@agari/markets/ops/canton";
+import { AGENT_TEMPLATE_IDS } from "@agari/daml";
+import { acmd, decodeDeskMandate } from "@agari/markets/ops/agents";
+import { readAgentsAs } from "@agari/markets/server";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { submitWithShards, venueCashCreated } from "../quote-issuer/pooled-submit";
@@ -40,7 +47,7 @@ export function startSeatDrain(input: {
   draining?: Set<string>;
 }): { stop: () => void } {
   const seats = input.seats ?? (() => drainingSeats());
-  const counters = { closedOut: 0, withdrawn: 0, failed: 0 };
+  const counters = { closedOut: 0, withdrawn: 0, failed: 0, agentsEnded: 0 };
   const pass = async (): Promise<PassResult> => {
     const draining = new Set(await seats());
     if (input.draining) {
@@ -79,8 +86,56 @@ export function startSeatDrain(input: {
         notes.push(`close-out ${l.data.marketId} failed: ${failureText(error)}`);
       }
     }
+    for (const seat of draining) {
+      try {
+        counters.agentsEnded += await endAgents(input.venue, seat, notes);
+      } catch (error) {
+        counters.failed++;
+        notes.push(`agents of ${seat.split("::")[0]} not ended: ${failureText(error)}`);
+      }
+    }
     for (const n of notes) input.log(n);
     return { why: `${draining.size} seats draining: ${legs.length} legs to close out, ${quotes.length} quotes to withdraw; closed out ${counters.closedOut}, withdrew ${counters.withdrawn}, failed ${counters.failed}`, detail: { ...counters } };
   };
   return runActor({ name: "seat-drain", log: input.log, dryRun: input.venue.dryRun, everyMs: 15_000, pass });
+}
+
+/**
+ * The seat's grants, consents and desk, ended by the seat's own choices (the venue's process may act as any party of
+ * its account, the same authority `Leg_CloseOut` uses for the seat half). Each under its own deterministic command id.
+ */
+async function endAgents(venue: RoleSession, seat: string, notes: string[]): Promise<number> {
+  const snap = await readAgentsAs(venue.client, seat);
+  const desks = await venue.client.activeContracts({ parties: [seat], templateIds: [AGENT_TEMPLATE_IDS.DeskMandate] });
+  const jobs: Array<{ id: string; command: ReturnType<typeof acmd.revokeGrant>; what: string }> = [];
+  for (const g of snap.grants.filter((x) => x.data.owner === seat)) jobs.push({ id: `drain-agent:${g.cid.slice(0, 48)}`, command: acmd.revokeGrant(g.cid), what: `revoked a grant to ${g.data.agent.split("::")[0]} (${g.data.budget} back)` });
+  const book = snap.books[0];
+  if (book) {
+    // Each unsubscribe re-creates the book, so one per pass is exercised on the live book; the next pass does the next.
+    const sub = snap.subscriptions.find((x) => x.data.subscriber === seat);
+    if (sub) jobs.push({ id: `drain-agent:${sub.cid.slice(0, 48)}`, command: acmd.unsubscribe(book.cid, sub.cid), what: `ended a consent to ${sub.data.strategyId}` });
+  }
+  for (const c of desks.contracts) {
+    try {
+      const m = decodeDeskMandate(c.createdEvent.createArgument);
+      if (m.owner === seat) jobs.push({ id: `drain-agent:${c.createdEvent.contractId.slice(0, 48)}`, command: acmd.closeDesk(c.createdEvent.contractId), what: `closed its desk (${m.grant.budget} back)` });
+    } catch {
+      // not ours to close
+    }
+  }
+  let ended = 0;
+  for (const job of jobs) {
+    if (venue.dryRun) {
+      notes.push(`DRY: would have ${job.what} for ${seat.split("::")[0]}`);
+      continue;
+    }
+    try {
+      await venue.client.submitAndWaitForTransaction({ actAs: [seat], commandId: job.id, commands: [job.command] });
+      ended++;
+      notes.push(`${seat.split("::")[0]}: ${job.what}`);
+    } catch (error) {
+      if (!isInactive(error)) throw error;
+    }
+  }
+  return ended;
 }

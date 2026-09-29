@@ -1,4 +1,7 @@
-import { createSubmitterSession, ensureMarkets, getCollateral, loadCollateral, syncClock } from "@agari/markets";
+import { ensureMarkets, getCollateral, loadCollateral, syncClock } from "@agari/markets";
+import type { OpsRoute } from "@agari/markets/ops/agents";
+import { agentSessionFrom } from "../agents/from-env";
+import type { VenueContext } from "../venue/context";
 import { xAcquireReplyDelivery, xBeginReplyPost, xClaimMention, xFinishReplyPost, xMarkInterruptedReplyPosts, xReceiptByMention, xRelayStateGet, xRelayStateSet, xStopReplyDelivery, xRecoveryCandidates, xStoreRecoveredReceipt, xSetStageHealth, xHasUnresolvedBroadcast, xIsRelayReply, xSuppressRelayReplyDeliveries } from "@agari/db";
 import type { Hash32 } from "@agari/core/types";
 import { readRelayEnv, RELAY_ENV } from "./env";
@@ -21,7 +24,7 @@ const CURSOR_KEY = "mentions.since_id";
  * its key it heartbeats what is missing and never crashes; without `X_POSTING_ENABLED` it executes but
  * does not reply.
  */
-export async function startXRelay(log: (why: string) => void): Promise<void> {
+export async function startXRelay(log: (why: string) => void, o: { venue?: VenueContext; routes?: { quotes: OpsRoute; exitQuotes: OpsRoute } | null } = {}): Promise<void> {
   const reading = readRelayEnv();
   if (!reading.ok) {
     const why = `not configured — set ${reading.missing.join(", ")}`;
@@ -41,7 +44,14 @@ export async function startXRelay(log: (why: string) => void): Promise<void> {
     return;
   }
   const execution = createXExecutionJournal();
-  const session = await createSubmitterSession({ env: marketsEnv, authority: "x-executor", signer: { secretKey: relay.executorPrivateKey }, journal: execution.journal });
+  // C8f: the executor is an agent party acting through each bound seat's EXECUTOR grant (`Grant_AcceptQuote`).
+  const made = agentSessionFrom({ authority: "x-executor", partyEnv: "X_EXECUTOR_PARTY", ...(o.venue ? { venue: o.venue } : {}), routes: o.routes ?? null, journal: execution.journal });
+  if (!made.ok) {
+    log(`not configured — ${made.why}`);
+    setInterval(() => log(`not configured — ${made.why}`), HEARTBEAT_MS);
+    return;
+  }
+  const session = made.session;
   // The way to X: the account's own session. Replies go out as the account only when asked for.
   const transport = rettiwtTransport(relay.rettiwtApiKey, relay.handle);
   let botAuthorId: string;

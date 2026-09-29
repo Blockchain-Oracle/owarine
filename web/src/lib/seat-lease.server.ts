@@ -10,7 +10,7 @@ import { DEFAULT_RULES, freeAtMs, type LeaseRow, type LeaseRules } from "./seat-
 /**
  * Taking, renewing and recycling seats (plan §4). A lease is taken only on an explicit, signed request; the first
  * lease of a seat asks ops to fund it (demo cash into `VenueCash`); a drained seat is recycled only when the ledger,
- * read as that party, shows no open leg and no live quote, and its leftover cash is withdrawn by the seat itself, so
+ * read as that party, shows no open leg, no live quote and no grant, consent or desk (C8f), and its leftover cash is withdrawn by the seat itself, so
  * the next visitor starts from an empty party.
  */
 export function leaseRules(server: SeatServer): LeaseRules {
@@ -53,6 +53,9 @@ export async function recycleDrained(server: SeatServer, nowMs: number, limit = 
       const snap = await server.ledger.seats.read(party, { fresh: true });
       const live = snap.quotes.filter((q) => q.validUntilMs > nowMs);
       if (snap.legs.length > 0 || live.length > 0) continue;
+      // C8f: a grant, a consent or a desk still on the party is ended by ops' drain first (its budget returns to cash).
+      const agents = await server.agents.read(party);
+      if (agents.grants.some((g) => g.data.owner === party) || agents.subscriptions.some((x) => x.data.subscriber === party) || (await server.agents.hasDesk(party))) continue;
       await server.ledger.writer.sweepCash(party, `${nowMs}-${randomUUID().slice(0, 8)}`);
       if (await server.store.markFree(party, nowMs)) freed += 1;
     } catch {

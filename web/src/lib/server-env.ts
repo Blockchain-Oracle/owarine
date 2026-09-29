@@ -25,6 +25,8 @@ export const webServerEnvSchema = z.object({
   AGARI_PERSONA_ALICE: party.optional(),
   AGARI_PERSONA_BOB: party.optional(),
   AGARI_PERSONA_OUTSIDER: party.optional(),
+  /** C8f: the agent-runner party (strategy runner, X executor and desk operator); else the parties file's `agent-runner`. */
+  AGARI_AGENT_RUNNER_PARTY: party.optional(),
   AGARI_SEAT_IDLE_TTL_SEC: z.coerce.number().int().positive().default(900),
   AGARI_SEAT_HARD_CAP_SEC: z.coerce.number().int().positive().default(14_400),
 });
@@ -51,8 +53,14 @@ const partiesFileSchema = z
       .filter(([name]) => name.startsWith("seat-"))
       .sort(([a], [b]) => a.localeCompare(b, "en", { numeric: true }))
       .map(([, p]) => p);
+    const oracles = Object.entries(f.parties ?? {})
+      .filter(([role]) => role.startsWith("oracle-"))
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, p]) => p);
     return {
       venue: f.venue ?? f.parties?.venue,
+      agentRunner: f.parties?.["agent-runner"],
+      oracles,
       seats: f.seats.length > 0 ? f.seats : seatUsers,
       personas: {
         alice: f.personas.alice ?? users.alice,
@@ -64,6 +72,10 @@ const partiesFileSchema = z
 
 export interface SeatParties {
   venue: string | null;
+  /** C8f: the agent-runner party (strategy runner, X executor, desk operator: K-087); null = no agents on this deployment. */
+  agentRunner: string | null;
+  /** C8f: the oracle parties, the desk's mark attestors (by role name). */
+  oracles: string[];
   seats: string[];
   personas: { alice: string | null; bob: string | null; outsider: string | null };
 }
@@ -74,6 +86,8 @@ export function seatParties(env: WebServerEnv): SeatParties {
   const seats = listed && listed.length > 0 ? listed.map((s) => party.parse(s)) : (file?.seats ?? []);
   return {
     venue: env.AGARI_VENUE_PARTY ?? file?.venue ?? null,
+    agentRunner: env.AGARI_AGENT_RUNNER_PARTY ?? file?.agentRunner ?? null,
+    oracles: file?.oracles ?? [],
     seats: [...new Set(seats)],
     personas: {
       alice: env.AGARI_PERSONA_ALICE ?? file?.personas.alice ?? null,

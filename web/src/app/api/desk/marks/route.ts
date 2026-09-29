@@ -3,9 +3,10 @@ import { NextResponse } from "next/server";
 import { deskStore } from "@/features/desk/desk.server";
 
 /**
- * `GET /api/desk/marks`: the last seven days of hourly PreStocks token prices for every name the desk can hold (S22),
- * the one read behind the studio's basket sparklines and the holdings' lines before a desk has history. Public data,
- * cached at the edge for five minutes; 503 without the desk index.
+ * `GET /api/desk/marks`: our own marks (C8f): the last seven days of the hourly token prices the desk runner records
+ * for every name the desk can hold (S22), from the same PreStocks reads the venue's pre-IPO lanes attest. The one read
+ * behind the studio's basket sparklines and the holdings' lines before a desk has history. Public data, cached at the
+ * edge for five minutes; 503 without the desk index.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

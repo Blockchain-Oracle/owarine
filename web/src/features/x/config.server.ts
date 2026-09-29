@@ -8,7 +8,7 @@
  * same "API Key / API Key Secret" the developer portal shows first; no OAuth 2.0 client.
  */
 
-import { isAddress } from "@agari/core/types";
+import { seatServer } from "@/lib/ledger.server";
 export interface XConfig {
   consumerKey: string;
   consumerSecret: string;
@@ -49,8 +49,15 @@ export function readXConfig(origin: string): XConfigReading {
   };
 }
 
-/** The executor address is public information (it is what the grant names), so either env name works. Base58, exactly as written. */
+/**
+ * The executor an EXECUTOR grant names (C8f): a party on Canton, public information (it is what the grant names). The
+ * parties file's `agent-runner` (K-087), or `X_EXECUTOR_PARTY` / `NEXT_PUBLIC_X_EXECUTOR_PARTY` to override it.
+ */
 export function executorAddress(): string | null {
-  const value = process.env.X_EXECUTOR_ADDRESS || process.env.NEXT_PUBLIC_X_EXECUTOR_ADDRESS || "";
-  return isAddress(value) ? value : null;
+  const value = process.env.X_EXECUTOR_PARTY || process.env.NEXT_PUBLIC_X_EXECUTOR_PARTY || "";
+  if (PARTY_ID.test(value)) return value;
+  const state = seatServer();
+  return state.ok ? state.server.parties.agentRunner : null;
 }
+
+const PARTY_ID = /^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/;

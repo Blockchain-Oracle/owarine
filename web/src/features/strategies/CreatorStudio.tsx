@@ -51,7 +51,8 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
   const daily = parseDecimalToBaseUnits(form.maxDaily, decimals);
   const fee = parseDecimalToBaseUnits(form.subFee, decimals);
   const behaviorValid = isSpec(spec) && perTrade !== null && perTrade > 0n && daily !== null && daily >= perTrade;
-  const runnerValid = isAddress(runner);
+  // C8f: the house runner is a party; a self-hosted bot is named by its seat address or its party (L-55).
+  const runnerValid = isAddress(runner) || /^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/.test(runner ?? "");
   // The description is what a subscriber reads before they sign, so every preset describes itself: the two fixed
   // rules from this form's own threshold, and the agent and the copy from `describeSpec`.
   const summary =

@@ -101,7 +101,7 @@ function Verdict({ result, recordHash, proof, explorer }: { result: CheckResult;
 
 /**
  * "Check it" (web's CheckIt.tsx): this phone rebuilds the record's fingerprint from its canonical bytes, compares it with
- * the one stored beside it, then asks Solana mainnet for the fingerprint the sealing transaction carries. The exact
+ * the one stored beside it, then asks the ledger for the fingerprint the sealing update carries. The exact
  * bytes can be shown, and saved as the same JSON file web downloads (through the phone's share sheet).
  */
 export function CheckIt({ body, recordHash, proof }: { body: unknown; recordHash: string; proof: ProofWire }) {

@@ -1,13 +1,17 @@
 import { noEntryCutoffSec } from "@agari/core/lifecycle";
 import { describeRefusal, isBalanceOnlyXGrant, parseInstruction, selectXWindow, X_REFUSAL_DETAILS, type XInstruction } from "@agari/core/x";
 import { xLinkByAuthor, xReceiptUpsert, type XReceiptRecord } from "@agari/db";
-import { getCollateral, getVaultSnapshot, marketsProvider, readRecoveryCursor, resolveVenueId, type SubmitterSession } from "@agari/markets";
+import { getCollateral, getVaultSnapshot, marketsProvider, readRecoveryCursor, resolveVenueId } from "@agari/markets";
+import type { AgentSession } from "../agents/session";
+
+/** What an actor needs of its agent session (tests pass a stand-in). */
+type AgentSessionLike = Pick<AgentSession, "address" | "submitter"> & Partial<Pick<AgentSession, "recoveryCursor">>;
 import type { Address } from "@agari/core/types";
 import type { Mention } from "./transport";
 import { outcomeToReceipt } from "./receipt-outcome";
 
 export interface ExecutorContext {
-  session: SubmitterSession;
+  session: AgentSessionLike;
   venueId: Address;
   log: (why: string) => void;
   /** Required in production: preserve wallet/target before entering the signing lane. */
@@ -46,8 +50,8 @@ async function liveWindow(venueId: Address, instruction: XInstruction) {
 /**
  * One mention → one receipt. Authenticate the author by their live link, parse deterministically,
  * resolve the Window, check the EXECUTOR grant is live and names this executor, quote, and send
- * through the same order lane every surface uses — `route: vault-grant`, caps pre-checked by
- * `simulateCaps` and enforced again by the contract. Nothing here can pay the executor.
+ * through the agent session's grant lane — `route: vault-grant`, `Grant_AcceptQuote` as the executor party on the owner's
+ * grant (C8f), caps pre-checked by `simulateCaps` and enforced again by the ledger. Nothing here can pay the executor.
  */
 export async function executeMention(ctx: ExecutorContext, mention: Mention): Promise<XReceiptRecord> {
   const { decimals } = getCollateral();
@@ -86,12 +90,14 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
   if (!quote.ok || quote.stale) return receiptFor(mention, { ...withMarket, refusalCode: "quote-unavailable", reason: "A current quote could not be confirmed." });
   if (!quote.value) return receiptFor(mention, { ...withMarket, refusalCode: "no-liquidity", reason: "No fillable quote was available for this instruction." });
 
+  let fromOffset: bigint | undefined;
   if (ctx.checkpoint) {
-    // The recovery cursor is the slot before the send; Solana has no account nonce.
-    const cursor = await readRecoveryCursor();
+    // The recovery cursor is the ledger offset before the send: the grant order's command id is derived from it (C8f).
+    const cursor = ctx.session.recoveryCursor ? await ctx.session.recoveryCursor() : await readRecoveryCursor();
     if (!cursor.ok) return receiptFor(mention, { ...withMarket, refusalCode: "execution-unavailable", reason: X_REFUSAL_DETAILS["execution-unavailable"] });
     await ctx.checkpoint(receiptFor(mention, { ...withMarket, status: "submitted", executionActor: ctx.session.address,
       poolAddress: market.poolAddress, collateralDecimals: market.decimals, recoveryFromBlock: cursor.value.fromSlot.toString(), expectedNonce: null }));
+    fromOffset = cursor.value.fromSlot;
   }
 
   const outcome = await ctx.session.submitter.submitOrder({
@@ -101,6 +107,7 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
     displayedQuote: quote.value,
     wallet: ctx.session.address,
     route: { kind: "vault-grant", grantId: grant.grantId },
+    ...(fromOffset !== undefined ? { fromOffset } : {}),
   });
   ctx.log(`mention ${mention.id}: ${outcome.status}`);
   return receiptFor(mention, { ...withMarket, ...outcomeToReceipt(outcome) });

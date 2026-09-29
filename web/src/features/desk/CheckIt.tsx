@@ -59,7 +59,7 @@ async function sealsFromChain(signature: string): Promise<{ decisionHash: string
 
 /**
  * "Check it" (plan §5.9 item 8): the reader's own browser rebuilds the record's fingerprint from its canonical bytes,
- * compares it with the one stored beside the record, then asks Solana mainnet (through the app's own endpoint, from
+ * compares it with the one stored beside the record, then asks the ledger (through the app's own endpoint, from
  * this browser) for the fingerprint the sealing transaction carries. A record sealed by a later one is linked to it
  * here, record by record. The exact bytes can be shown and downloaded.
  */

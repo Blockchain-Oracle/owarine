@@ -27,6 +27,6 @@ export async function GET(req: Request, context: { params: Promise<{ owner: stri
   }
   const viewer = viewerAddress === loaded.desk.owner ? "owner" : "visitor";
   if (viewer === "visitor" && !loaded.desk.sharePublic) return refuse(404, DESK_ERRORS.notShared);
-  const chain = loaded.desk.address ? await readChain(loaded.desk.owner as Address, nowSec) : { state: null, error: null };
+  const chain = loaded.desk.address ? await readChain(loaded.desk.owner as Address, nowSec, loaded.desk.address) : { state: null, error: null };
   return answer(await assembleView({ store: loaded.store, desk: loaded.desk, viewer, nowSec, chain, operator: operatorAddress() }));
 }
