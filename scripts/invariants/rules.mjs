@@ -33,7 +33,7 @@ const MAX_FILE_LINES = 400;
 /** An Anchor-era rule, skipped while `anchor/` is absent (Canton port): it guards programs that no longer exist here. */
 const whileAnchor = (check, replacement) => (rule, ctx) =>
   existsSync(join(ctx.root, "anchor")) ? check(rule, ctx) : { findings: [], skipped: `anchor/ is gone (Canton port); ${replacement} replaces it with the Daml packages (C2)` };
-/** Codama output is regenerated, never edited (`pnpm codegen && git diff --exit-code packages/clients`), so the cap skips it. */
+/** Generated code is regenerated, never edited, so the cap skips it. */
 const GENERATED = /^packages\/clients\/[^/]+\/src\/generated\//;
 
 function fileLength(rule, ctx) {

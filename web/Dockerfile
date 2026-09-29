@@ -24,7 +24,6 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY web/package.json ./web/
 COPY scripts/package.json ./scripts/
 COPY packages/brain/package.json ./packages/brain/
-COPY packages/clients/package.json ./packages/clients/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/markets/package.json ./packages/markets/

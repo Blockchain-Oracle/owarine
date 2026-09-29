@@ -5,7 +5,5 @@
     "The list only shrinks: the rule fails on a stale entry, and the C1 gate requires this file to be empty.",
     "An entry ending in / covers a directory prefix (a tree deleted whole)."
   ],
-  "files": [
-    "packages/clients/"
-  ]
+  "files": []
 }
