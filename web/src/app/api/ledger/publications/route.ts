@@ -13,7 +13,8 @@ import { diagnosisReply, jsonBody, refusal, replyWith, seatFromRequest } from "@
  *   POST  { marketId, source?, receiptId? } publishes the seat's live legs on that Window (`Leg_Publish`), or with
  *         `source: "receipt"` its settled calls there from this lease's `SettlementReceipt`s (`Receipt_Publish`, engine
  *         0.4.0); a ticket names its receipt. actAs the seat only
- *   DELETE { marketId } retracts this lease's publications on that Window (`Publication_Retract`)
+ *   DELETE { marketId, product? } retracts this lease's publications of one product on that Window (`Publication_Retract`):
+ *         the pair legs by default (`product` null), or that ticket product's (C6e, K-070), never both
  *
  * The party and the handle come from the lease row only (`no-party-from-request`); the body names a Window, nothing else.
  * `source: "receipt"` only publishes receipts created under this lease (from its start offset).
@@ -62,11 +63,11 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
-  const body = z.object({ marketId: marketIdSchema }).safeParse(await jsonBody(request));
-  if (!body.success) return refusal("unknown", "expected {marketId}", 400);
+  const body = z.object({ marketId: marketIdSchema, product: z.string().regex(/^[a-z]{2,20}$/).nullable().default(null) }).safeParse(await jsonBody(request));
+  if (!body.success) return refusal("unknown", "expected {marketId, product?: ticket product | null}", 400);
   const { server, lease } = auth.seat;
   try {
-    const out = await retractCall({ client: server.ledger.client }, { party: lease.party, leaseId: lease.leaseId, handle: lease.address }, { marketId: body.data.marketId });
+    const out = await retractCall({ client: server.ledger.client }, { party: lease.party, leaseId: lease.leaseId, handle: lease.address }, { marketId: body.data.marketId, product: body.data.product });
     if (out.retracted > 0) revalidateTag(BOARD_CACHE_TAG, { expire: 0 });
     return replyWith(out);
   } catch (error) {
