@@ -1,91 +1,82 @@
 "use client";
 
-import { isAddress, type Address } from "@agari/core/types";
 import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
-import { useConnectedWallet, useDisconnect, useWalletStatus } from "@solana/kit-plugin-wallet/react";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AccountModal } from "./AccountModal";
-import { WALLET_STORAGE_KEY, walletClient } from "./kit-wallet";
+import { hasSeatMarker, loadSeat, resetSeat, seatSigner, takeSeat, type StoredSeat } from "./seat-client";
 import { WalletPicker } from "./WalletPicker";
 import { WalletShellContext, type WalletShell } from "./wallet-shell-context";
 
-/** The plugin's own window for a remembered wallet to re-register before it gives up (its `statusTimeout`). */
-const RESTORE_CAP_MS = 3_000;
-
 const subscribeNothing = () => () => undefined;
 
-function hasRememberedWallet(): boolean {
-  try {
-    return window.localStorage.getItem(WALLET_STORAGE_KEY) !== null;
-  } catch {
-    return false;
-  }
-}
-
 /**
- * Owns the wallet connection (D-023) from the Kit wallet plugin's `useSyncExternalStore` hooks.
+ * Owns the seat (plan §2, §4): the browser's non-extractable ed25519 seat key, which is the app's connected account.
  *
- * - **Server render and hydration:** the state is always "ready, disconnected", so "Connect" is in the first paint on
- *   both sides. The plugin's hooks hand hydration the live client store, and reading them there hydrated the header
- *   with mismatched attributes.
- * - **After hydration:** "restoring" means a remembered wallet (`agari.wallet`) is silently reconnecting, and never
- *   for longer than the plugin's own 3 s window. A browser with nothing remembered is ready at once, whatever the
- *   plugin's `pending` is doing, as wagmi's `isReconnecting` only ever was for a stored connection in Masayume.
+ * - **Server render and hydration:** the state is always "ready, disconnected", so "Take a seat" is in the first paint
+ *   on both sides.
+ * - **After hydration:** "restoring" only while a browser that holds a seat (`agari.seat`) reads its key back from
+ *   IndexedDB, a few milliseconds. A browser without one is ready at once.
+ * - A seat is only ever taken on an explicit click, never on page load (the lease rule, plan §4).
  */
 export function WalletShellProvider({ children }: { children: ReactNode }) {
   const hydrated = useSyncExternalStore(subscribeNothing, () => true, () => false);
-  const remembered = useSyncExternalStore(subscribeNothing, hasRememberedWallet, () => false);
-  const liveStatus = useWalletStatus(walletClient);
-  const liveConnected = useConnectedWallet(walletClient);
-  const connected = hydrated ? liveConnected : null;
-  const warmingUp = hydrated && remembered && (liveStatus === "pending" || liveStatus === "reconnecting");
-  const [restoreExpired, setRestoreExpired] = useState(false);
-  useEffect(() => {
-    if (!warmingUp) return;
-    const timer = setTimeout(() => setRestoreExpired(true), RESTORE_CAP_MS);
-    return () => clearTimeout(timer);
-  }, [warmingUp]);
-  const restoring = warmingUp && !restoreExpired;
-  const { dispatchAsync: disconnectWallet } = useDisconnect(walletClient);
+  const remembered = useSyncExternalStore(subscribeNothing, hasSeatMarker, () => false);
+  const [seat, setSeat] = useState<StoredSeat | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [connecting, setConnecting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
-  const rawAddress = connected?.account.address ?? null;
-  const address: Address | null = rawAddress !== null && isAddress(rawAddress) ? rawAddress : null;
-  const signer = connected?.signer ?? null;
+  useEffect(() => {
+    if (!hydrated) return;
+    let live = true;
+    void loadSeat().then((stored) => {
+      if (!live) return;
+      setSeat((now) => now ?? stored);
+      setLoaded(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, [hydrated]);
+
+  const restoring = hydrated && remembered && !loaded;
+  const address = seat?.address ?? null;
 
   const wallet = useMemo<MarketsWalletSession | null>(() => {
-    if (address === null || signer === null) return null;
-    return { address, signer, signMessage: (message) => walletClient.wallet.signMessage(message) };
-  }, [address, signer]);
+    if (seat === null) return null;
+    const signer = seatSigner(seat);
+    return { address: seat.address, signer, signMessage: signer.signMessage };
+  }, [seat]);
+
+  const take = useCallback(async (): Promise<boolean> => {
+    setConnecting(true);
+    try {
+      setSeat(await takeSeat());
+      return true;
+    } catch {
+      return false;
+    } finally {
+      setConnecting(false);
+    }
+  }, []);
 
   const openPicker = useCallback(() => setPickerOpen(true), []);
   const openAccount = useCallback(() => setAccountOpen(true), []);
   const disconnect = useCallback(async () => {
-    try {
-      await disconnectWallet();
-    } catch (error) {
-      if ((error as Error).name !== "AbortError") throw error;
-    }
-  }, [disconnectWallet]);
+    setSeat(null);
+    await resetSeat();
+  }, []);
 
   const value = useMemo<WalletShell>(
-    () => ({
-      status: restoring ? "restoring" : "ready",
-      connecting: hydrated && liveStatus === "connecting",
-      address,
-      wallet,
-      openPicker,
-      openAccount,
-      disconnect,
-    }),
-    [restoring, hydrated, liveStatus, address, wallet, openPicker, openAccount, disconnect],
+    () => ({ status: restoring ? "restoring" : "ready", connecting, address, wallet, openPicker, openAccount, disconnect }),
+    [restoring, connecting, address, wallet, openPicker, openAccount, disconnect],
   );
 
   return (
     <WalletShellContext.Provider value={value}>
       {children}
-      <WalletPicker open={pickerOpen} onOpenChange={setPickerOpen} />
+      <WalletPicker open={pickerOpen} onOpenChange={setPickerOpen} takeSeat={take} held={address !== null} />
       <AccountModal open={accountOpen} onOpenChange={setAccountOpen} address={address} onDisconnect={disconnect} />
     </WalletShellContext.Provider>
   );

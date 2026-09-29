@@ -54,7 +54,6 @@ The original filenames and encoding information are recorded in [`web/public/sou
 Agari's connect and account modals (`web/src/providers/wallet/`) replicate the RainbowKit 2.2.11 modals that Masayume shipped, without the package:
 
 - **RainbowKit** ([rainbow-me/rainbowkit](https://github.com/rainbow-me/rainbowkit), MIT, Copyright (c) 2024 Rainbow): the close, back, copy, copied and disconnect glyph paths, the spinner outline, the emoji avatar palette, and the two "What is a Wallet?" illustrations (`web/public/wallet/assets.svg`, `login.svg`). Its English strings are reused with "Ethereum" replaced by "Solana".
-- **Solana Wallet Adapter** ([anza-xyz/wallet-adapter](https://github.com/anza-xyz/wallet-adapter), Apache-2.0): the Phantom, Solflare and Backpack icons (`web/public/wallet/phantom.svg`, `solflare.svg`, `backpack.png`), taken from the adapters' `icon` data. The names and marks belong to those wallets and identify them only.
 
 ## Asset marks
 

@@ -2,15 +2,15 @@
 
 import { Dialog } from "@base-ui/react/dialog";
 import { useState } from "react";
-import { KNOWN_WALLETS, WALLET_MODAL } from "./copy";
+import { KNOWN_WALLETS, SEAT_CONNECTOR, WALLET_MODAL } from "./copy";
 import type { DiscoveredWallet, WalletChoices } from "./useWalletChoices";
 import { ActionButton, BackButton, CloseButton, Spinner, WalletIcon } from "./wallet-modal-parts";
 
 const T = WALLET_MODAL;
 
 /**
- * RainbowKit's `MobileOptions` in its bottom sheet: the installed wallets as a strip of app icons, the "What is a
- * Wallet?" paragraph with Get a Wallet / Learn More, and a Get step listing where to download one.
+ * RainbowKit's `MobileOptions` in its bottom sheet: the seat connectors as a strip of app icons, then the "What is a
+ * Seat?" paragraph with Take a Seat / Learn More. The Get step lists the connectors not available here (none yet).
  */
 export function WalletPickerPhone({ choices, close }: { choices: WalletChoices; close: () => void }) {
   const [step, setStep] = useState<"connect" | "get">("connect");
@@ -47,7 +47,7 @@ export function WalletPickerPhone({ choices, close }: { choices: WalletChoices; 
         <div>
           <div className="wm-m-strip">
             {choices.installed.map(({ wallet, recent }) => (
-              <button key={wallet.name} type="button" className="wm-m-tile" onClick={() => void choose(wallet)} disabled={connecting !== null}>
+              <button key={wallet.id} type="button" className="wm-m-tile" onClick={() => void choose(wallet)} disabled={connecting !== null}>
                 <span className="wm-m-tile-art">
                   {connecting === wallet.name && <Spinner />}
                   <WalletIcon src={wallet.icon} size={60} ring={false} />
@@ -67,7 +67,7 @@ export function WalletPickerPhone({ choices, close }: { choices: WalletChoices; 
             <span className="wm-m-intro-body">{T.intro.description}</span>
           </div>
           <div className="wm-m-actions">
-            <ActionButton secondary size="large" label={T.intro.get} onClick={() => setStep("get")} />
+            <ActionButton secondary size="large" label={T.intro.get} onClick={() => void choose(SEAT_CONNECTOR)} />
             <ActionButton secondary size="large" label={T.learnMore} href={T.learnMoreUrl} />
           </div>
         </div>

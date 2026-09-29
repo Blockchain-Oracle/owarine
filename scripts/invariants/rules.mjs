@@ -61,8 +61,13 @@ function mobileTightLeading(rule, ctx) {
   return findings;
 }
 
-/** tap-trading.md §2 (D-066): the session key's secret never exists as bytes in the page. */
-const EXTRACTABLE_KEY = /\bexportKey\s*\(|\bextractable\s*:\s*true\b|\bgenerateKeyPair(?:Signer)?\s*\(\s*true\b/;
+/**
+ * tap-trading.md §2 (D-066), carried to the seat key (plan §2): the private half never exists as bytes in the page.
+ * Exporting a key pair's public half as raw bytes (`exportKey("raw", ….publicKey)`) is how the seat's address is read,
+ * so that one form is allowed; every other export, and any key generated extractable, is not.
+ */
+const EXTRACTABLE_KEY =
+  /\bexportKey\s*\((?!\s*["']raw["']\s*,\s*[\w.]*\bpublicKey\s*\))|\bextractable\s*:\s*true\b|\bgenerateKeyPair(?:Signer)?\s*\(\s*true\b|\bgenerateKey\s*\(\s*(?:\{[^}]*\}|[\w.]+)\s*,\s*true\b/;
 /** The S1 port's PKCS#8 export, which lane 7c replaces with `generateSessionKey` from `@agari/markets` and the v2 store. */
 const S1_KEYGEN = "web/src/features/session/keygen.ts";
 
@@ -184,8 +189,8 @@ export const rules = [
   // S7 (tap-trading.md §2, D-066): the tap-trading key is a non-extractable CryptoKeyPair from generation to IndexedDB.
   {
     id: "session-key-non-extractable",
-    description: "the session key is generated non-extractable and never exported (no exportKey( or extractable: true); tap-trading.md §2",
-    scopes: ["packages/markets/src/sessions", "web/src/features/session"],
+    description: "the session and seat keys are generated non-extractable and only their public half is ever exported; tap-trading.md §2, plan §2",
+    scopes: ["packages/markets/src/sessions", "web/src/features/session", "web/src/providers/wallet"],
     check: sessionKeyNonExtractable,
   },
   { id: "venue-identity", description: "no reference asset, brand or chain (BTC, ETH, Masayume, Somnia…) in live code or copy; comments and tests may name them", check: venueIdentity },
