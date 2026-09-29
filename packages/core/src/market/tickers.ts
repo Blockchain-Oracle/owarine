@@ -2,6 +2,7 @@ import { z } from "zod";
 import { GAP_CADENCE_SEC, type LaneBasis } from "../types/market";
 import { toAddress, type Address, type Hash32 } from "../types/primitives";
 import { BASKET_SYMBOLS, BASKETS, type BasketSymbol } from "./baskets";
+import { CRYPTO_ROWS, CRYPTO_SYMBOLS, type CryptoSymbol } from "./crypto";
 import { PYTH_INDEX_FEEDS, VALUATION_ROWS, VALUATION_SYMBOLS, type ValuationSymbol } from "./valuation";
 
 /**
@@ -17,7 +18,7 @@ import { PYTH_INDEX_FEEDS, VALUATION_ROWS, VALUATION_SYMBOLS, type ValuationSymb
 export const PRE_IPO_SYMBOLS = ["OPENAI", "ANTHROPIC", "SPACEX", "NEURALINK", "ANDURIL", "KALSHI", "POLYMARKET", "FIGUREAI"] as const;
 export type PreIpoSymbol = (typeof PRE_IPO_SYMBOLS)[number];
 
-export const TICKER_SYMBOLS = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "SPY", ...PRE_IPO_SYMBOLS, ...BASKET_SYMBOLS, ...VALUATION_SYMBOLS] as const;
+export const TICKER_SYMBOLS = ["TSLA", "NVDA", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "QQQ", "VOO", "SPY", ...PRE_IPO_SYMBOLS, ...BASKET_SYMBOLS, ...VALUATION_SYMBOLS, ...CRYPTO_SYMBOLS] as const;
 export type TickerSymbol = (typeof TICKER_SYMBOLS)[number];
 
 export const XSTOCK_SYMBOLS = ["TSLAx", "NVDAx", "SPYx", "QQQx"] as const;
@@ -62,7 +63,7 @@ export const BRAND_SLUGS = [
   // Baskets (S19, D-124): composed marks over the member discs; the colour is the basket's own.
   "ailabs", "frontier", "predmkts", "defspace", "preall",
   // Valuation lanes (S20, D-125): the company's second brand colour under a typed "V", so the two lanes never share a disc.
-  "openaiv", "anthropicv",
+  "openaiv", "anthropicv", "bitcoin", "ethereum", // …then crypto (`crypto.ts`), the asset's own mark colour.
 ] as const;
 export type BrandSlug = (typeof BRAND_SLUGS)[number];
 
@@ -85,7 +86,7 @@ export interface Ticker {
    */
   seriesId: number;
   name: string;
-  kind: "stock" | "etf" | "preIpo" | "basket" | "valuation";
+  kind: "stock" | "etf" | "preIpo" | "basket" | "valuation" | "crypto";
   /** Alpaca calendar/bars symbol; null for a pre-IPO name, which no exchange lists. */
   alpacaSymbol: string | null;
   /** Pyth `Equity.US.<T>/USD` feed id (Hermes, fetched 2026-09-14). Only TSLA, QQQ and VOO are in the trial; null where Pyth has no feed. */
@@ -243,6 +244,7 @@ export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
   },
   ...BASKET_ROWS,
   ...VALUATION_ROWS,
+  ...CRYPTO_ROWS,
 };
 
 /** Series ids 11 (COIN) and 12 (MSTR) are reserved for the deferred tickers; they return with a signed source. */
@@ -257,8 +259,8 @@ export const BASKET_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((sy
 /** Valuation lanes (S20, D-125): a pre-IPO name's lane on Pyth's valuation index; 24/7 like the token lane, listed only once the feed is entitled. */
 export const VALUATION_TICKERS: readonly TickerSymbol[] = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].valuationOf !== null);
 
-/** A kind that has no exchange session and so lists only on the 24/7 token lane: a pre-IPO name, a basket of them, or a valuation lane. */
-export const isTokenOnlyKind = (kind: Ticker["kind"]): boolean => kind === "preIpo" || kind === "basket" || kind === "valuation";
+/** A kind that has no exchange session and so lists only on the 24/7 token lane: a pre-IPO name, a basket of them, a valuation lane, or a crypto asset. */
+export const isTokenOnlyKind = (kind: Ticker["kind"]): boolean => kind === "preIpo" || kind === "basket" || kind === "valuation" || kind === "crypto";
 
 /** The Pyth valuation index behind a ticker (a pre-IPO name's, or the one its valuation lane settles on), or null. Gated by ops' probe before any use. */
 export const pythIndexFeedOf = (symbol: TickerSymbol): Hash32 | null => TICKERS[symbol].pythIndexFeedId;
@@ -324,8 +326,9 @@ export const SHARE_TOKENS: readonly ShareToken[] = [
 export const laneListable = (symbol: TickerSymbol, basis: LaneBasis): boolean => !isTokenOnlyKind(TICKERS[symbol].kind) || basis === "token";
 
 /** The asset a 24/7 Window prices (D-103): the xStock of a listed ticker, the PreStocks token of a pre-IPO name, the basket or valuation lane itself, else null. */
-export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | BasketSymbol | ValuationSymbol | null {
+export function tokenLaneAsset(symbol: TickerSymbol): XStockSymbol | PreIpoSymbol | BasketSymbol | ValuationSymbol | CryptoSymbol | null {
   const t = TICKERS[symbol];
+  if (t.kind === "crypto") return t.symbol as CryptoSymbol; // its own 24/7 asset (`BTC-5m`)
   // A valuation lane is its own asset (`OPENAIV-60m`), so it never shares a key or a halt with the token lane it shadows.
   if (t.kind === "valuation") return t.symbol as ValuationSymbol;
   return t.xstock?.symbol ?? t.preIpo?.symbol ?? t.basket ?? null;

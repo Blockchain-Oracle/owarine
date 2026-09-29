@@ -31,8 +31,23 @@ export const GAP_CADENCE_SEC = 604_800;
 /** Which signed source recorded a print (plan PD-1). Every verdict names it. */
 export type PrintSource = "pyth" | "redstone" | "switchboard" | "attested";
 
-/** Why a Window voided at 0.5/0.5 instead of paying Up or Down (stored in `MarketResult`). */
-export type VoidReason = "missing-print" | "cross-check-divergence";
+/**
+ * Why a Window voided instead of paying Up or Down. The first two are the reference's (`MarketResult`); the rest are
+ * the Canton resolution's own, recorded on the `Resolution` contract:
+ * - `quorum-not-met`: too few oracle parties signed a price for a boundary by its deadline;
+ * - `source-disagreement`: the oracles' prices differed by more than the Series' `maxDeviationBps`;
+ * - `resolver-absent`: the resolver never resolved, so the market voided at its stale deadline;
+ * - `source-halted`: the price source was halted over the boundary;
+ * - `operator-void`: the venue voided the market by a named, recorded decision.
+ */
+export type VoidReason =
+  | "missing-print"
+  | "cross-check-divergence"
+  | "quorum-not-met"
+  | "source-disagreement"
+  | "resolver-absent"
+  | "source-halted"
+  | "operator-void";
 
 /** One Window: the `Market` PDA, its Series and the recycled Book it trades on. */
 export interface EventMarket {

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { isHash32 } from "../types/primitives";
 import { BASKET_SYMBOLS, BASKETS } from "./baskets";
-import { BASKET_TICKERS, isTokenOnlyKind, LAUNCH_TICKERS, PRE_IPO_SYMBOLS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock, tokenLaneAsset } from "./tickers";
+import { CRYPTO_TICKERS } from "./crypto";
+import { BASKET_TICKERS, isTokenOnlyKind, laneKey, parseLaneKey, spotSymbolOf, LAUNCH_TICKERS, PRE_IPO_SYMBOLS, PRE_IPO_TICKERS, RESERVED_SERIES_IDS, SHARE_TOKENS, TICKER_SYMBOLS, TICKERS, TOKEN_LANE_TICKERS, tickerBySeriesId, tickerOfXStock, tokenLaneAsset } from "./tickers";
 
 describe("ticker registry", () => {
   it("gives every ticker a distinct, u16, never-reserved series id (it is part of every Series address)", () => {
@@ -156,5 +157,20 @@ describe("valuation lanes (S20, D-125)", () => {
       expect(TICKERS[symbol].pythIndexFeedId).toBeNull();
       expect(TICKERS[symbol].valuationOf).toBeNull();
     }
+  });
+
+  it("lists BTC and ETH as 24/7 crypto assets, only on the token lane", () => {
+    expect(CRYPTO_TICKERS).toEqual(["BTC", "ETH"]);
+    for (const symbol of CRYPTO_TICKERS) {
+      const t = TICKERS[symbol];
+      expect(isTokenOnlyKind(t.kind)).toBe(true);
+      expect(t.alpacaSymbol).toBeNull();
+      expect(t.pythFeedId).toBeNull();
+      expect(tokenLaneAsset(symbol)).toBe(symbol);
+      expect(spotSymbolOf(symbol, "token")).toBe(symbol);
+    }
+    expect(laneKey("BTC", "token", 300)).toBe("BTC-5m");
+    expect(parseLaneKey("ETH-60m")).toEqual({ symbol: "ETH", basis: "token", cadenceSec: 3600 });
+    expect(parseLaneKey("BTC-gap")).toBeNull();
   });
 });

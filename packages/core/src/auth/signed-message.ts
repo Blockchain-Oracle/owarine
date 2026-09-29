@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CLUSTER_LABEL, type Cluster } from "../constants/chain";
 import { decodeBase58 } from "../types/base58";
-import { isSignature, type Address, type Signature } from "../types/primitives";
+import { isEd25519Signature, type Address, type Signature } from "../types/primitives";
 
 /**
  * Every text Agari asks a wallet (or a browser key) to sign, and how a server checks it.
@@ -44,7 +44,7 @@ export interface SignedMessage {
 }
 
 /** On the wire a message signature is base58, exactly like a transaction signature. */
-export const messageSignatureSchema = z.custom<Signature>(isSignature, "expected a base58 ed25519 signature");
+export const messageSignatureSchema = z.custom<Signature>(isEd25519Signature, "expected a base58 ed25519 signature");
 
 /**
  * True only when `signature` is `signer`'s ed25519 signature over `text`. Malformed base58 is a plain false, never a

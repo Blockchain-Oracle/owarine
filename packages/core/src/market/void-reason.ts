@@ -15,7 +15,17 @@ export const VOID_HEADLINE = "Void — no reliable print, both sides pay 0.5";
 export const VOID_SHARE_WORD: Readonly<Record<VoidReason, string>> = {
   "missing-print": "VOID · MISSING PRINT",
   "cross-check-divergence": "VOID · CROSS-CHECK DIVERGENCE",
+  "quorum-not-met": "VOID · NO ORACLE QUORUM",
+  "source-disagreement": "VOID · ORACLES DISAGREED",
+  "resolver-absent": "VOID · NOT RESOLVED IN TIME",
+  "source-halted": "VOID · SOURCE HALTED",
+  "operator-void": "VOID · VENUE DECISION",
 };
+
+/** Reasons whose slot is an empty print at a deadline (the reference's `missing-print`, or too few oracles signing one). */
+const isMissingKind = (reason: VoidReason): boolean => reason === "missing-print" || reason === "quorum-not-met";
+/** Reasons whose slot is a pair of prices that differed past the band (the reference's cross-check, or the oracles). */
+const isDivergenceKind = (reason: VoidReason): boolean => reason === "cross-check-divergence" || reason === "source-disagreement";
 
 /** D-003 admission defaults (`price-sources.json` `defaults`), used only when the caller can't pass the Market's frozen deadlines. */
 const DEFAULT_ADMISSION_SEC: Readonly<Record<PrintSource, number>> = { pyth: 900, redstone: 900, attested: 900, switchboard: 60 };
@@ -70,7 +80,7 @@ function diverges(primary: bigint | null | undefined, check: bigint | null | und
 export function voidDetail(input: VoidInput): VoidDetail | null {
   const { voidReason: reason } = input;
   if (!reason) return null;
-  if (reason === "missing-print") {
+  if (isMissingKind(reason)) {
     const slot: VoidSlot | null = input.openE8 === null ? "open" : input.closeE8 === null ? "close" : null;
     return {
       reason,
@@ -80,6 +90,7 @@ export function voidDetail(input: VoidInput): VoidDetail | null {
       deadlineSec: slot === null ? null : deadlineOf(input, slot),
     };
   }
+  if (!isDivergenceKind(reason)) return { reason, slot: null, source: input.primarySource, boundarySec: null, deadlineSec: null };
   const bps = input.maxDivergenceBps ?? DEFAULT_MAX_DIVERGENCE_BPS;
   const slot: VoidSlot | null = diverges(input.openE8, input.checkOpenE8, bps) ? "open" : diverges(input.closeE8, input.checkCloseE8, bps) ? "close" : null;
   return {
@@ -110,6 +121,18 @@ export function bpsPercent(bps: number): string {
  * - "Pyth and RedStone differed by more than 0.25% at 16:00:00 ET."
  */
 export function voidReasonLine(detail: VoidDetail, options: { checkSource?: PrintSource | null; maxDivergenceBps?: number } = {}): string {
+  if (detail.reason === "resolver-absent") return "The resolver did not resolve this Window before its deadline.";
+  if (detail.reason === "source-halted") return "The price source was halted over this Window.";
+  if (detail.reason === "operator-void") return "The venue voided this Window by a recorded decision.";
+  if (detail.reason === "source-disagreement") {
+    const at = detail.boundarySec === null ? "" : ` at ${etClockWithSeconds(detail.boundarySec)} ET`;
+    return `The oracles' prices differed by more than ${bpsPercent(options.maxDivergenceBps ?? DEFAULT_MAX_DIVERGENCE_BPS)}${at}.`;
+  }
+  if (detail.reason === "quorum-not-met") {
+    if (detail.boundarySec === null) return "Too few oracles signed a price before its deadline.";
+    const boundary = `Too few oracles signed a price at ${etClockWithSeconds(detail.boundarySec)} ET`;
+    return detail.deadlineSec === null ? `${boundary} in time.` : `${boundary} by ${etClockWithSeconds(detail.deadlineSec)} ET.`;
+  }
   if (detail.reason === "cross-check-divergence") {
     const names = detail.source && options.checkSource ? `${SOURCE_NAME[detail.source]} and ${SOURCE_NAME[options.checkSource]}` : "The price and its cross-check";
     const at = detail.boundarySec === null ? "" : ` at ${etClockWithSeconds(detail.boundarySec)} ET`;

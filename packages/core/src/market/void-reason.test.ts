@@ -77,3 +77,24 @@ it("keeps Masayume's void line verbatim and writes bps as percent", () => {
   expect(VOID_HEADLINE).toBe("Void — no reliable print, both sides pay 0.5");
   expect([25, 100, 150, 5, 1_000].map(bpsPercent)).toEqual(["0.25%", "1%", "1.5%", "0.05%", "10%"]);
 });
+
+describe("the Canton void reasons", () => {
+  const attested: VoidInput = { ...pythWindow, primarySource: "attested", closeDeadlineSec: T + 1_200 };
+  it("names the empty slot when the oracle quorum was not met, like a missing print", () => {
+    const detail = voidDetail({ ...attested, voidReason: "quorum-not-met" })!;
+    expect(detail).toMatchObject({ reason: "quorum-not-met", slot: "close", boundarySec: T + 300, deadlineSec: T + 1_200 });
+    expect(voidReasonLine(detail)).toBe("Too few oracles signed a price at 16:05:00 ET by 16:20:00 ET.");
+  });
+  it("names the diverging pair when the oracles disagreed", () => {
+    const detail = voidDetail({ ...attested, voidReason: "source-disagreement", closeE8: 36_547_600_000n, checkOpenE8: 30_000_000_000n })!;
+    expect(detail.slot).toBe("open");
+    expect(voidReasonLine(detail)).toBe("The oracles' prices differed by more than 0.25% at 16:00:00 ET.");
+  });
+  it("names no slot for a reason that is not about a print", () => {
+    for (const reason of ["resolver-absent", "source-halted", "operator-void"] as const) {
+      const detail = voidDetail({ ...attested, voidReason: reason })!;
+      expect(detail).toMatchObject({ reason, slot: null, boundarySec: null, deadlineSec: null });
+      expect(voidReasonLine(detail).length).toBeGreaterThan(0);
+    }
+  });
+});

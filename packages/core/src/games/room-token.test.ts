@@ -48,7 +48,7 @@ describe("the duel room token", () => {
     expect(message).toContain(WALLET);
     expect(message).toContain(KEY);
     expect(message).toContain(ARENA);
-    expect(message).toContain("on Solana devnet");
+    expect(message).toContain("on Canton DevNet");
     expect(message).toContain("moves no funds");
     expect(message).toContain("not the wallet");
     // The prompt for another arena, or from another key, is a different string, so a signature cannot be carried across.
@@ -96,7 +96,7 @@ describe("the duel room token", () => {
   });
 
   it("refuses a token minted for another chain", () => {
-    const token = mintRoomToken(roomSessionClaims(WALLET, KEY, CLUSTER_ID["mainnet-beta"], ARENA, NOW), sign);
+    const token = mintRoomToken(roomSessionClaims(WALLET, KEY, CLUSTER_ID["mainnet"], ARENA, NOW), sign);
     const verdict = verifyRoomToken(token, EXPECT, NOW, verify);
     expect(verdict.ok).toBe(false);
     if (!verdict.ok) expect(verdict.code).toBe("forbidden");

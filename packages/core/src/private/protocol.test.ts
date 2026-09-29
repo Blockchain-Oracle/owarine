@@ -28,7 +28,7 @@ describe("privateOpenMessage", () => {
         "Stake: 10.00 tUSDC",
         "Window: BTC 5m, closes 2026-09-03T01:51:40.000Z",
         `Market: ${INPUT.marketId}`,
-        `Desk: ${INPUT.contract} on Solana devnet`,
+        `Desk: ${INPUT.contract} on Canton DevNet`,
         `Wallet: ${INPUT.owner}`,
         "Issued: 2026-09-03T01:46:40.000Z",
         "",
@@ -42,7 +42,7 @@ describe("privateOpenMessage", () => {
     expect(privateOpenMessage({ ...INPUT, side: "down" })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, stakeText: "10.01" })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, issuedAtMs: INPUT.issuedAtMs + 1 })).not.toBe(base);
-    expect(privateOpenMessage({ ...INPUT, chainId: CLUSTER_ID["mainnet-beta"] })).not.toBe(base);
+    expect(privateOpenMessage({ ...INPUT, chainId: CLUSTER_ID["mainnet"] })).not.toBe(base);
     expect(privateOpenMessage({ ...INPUT, contract: testAddress(0xab) })).not.toBe(base);
   });
 });
@@ -77,15 +77,15 @@ describe("privateClaimMessage", () => {
   const desk = "CsKhDTNZbTMoc4qzxPPgY2VheMB8mDTWsZrSkw46r3hH";
 
   it("binds the desk account, its cluster and every field of the claim", () => {
-    const text = privateClaimMessage(claim, desk, 103);
+    const text = privateClaimMessage(claim, desk, 203);
     expect(text.split("\n")).toEqual([
-      "Agari private claim", `Desk: ${desk} on Solana devnet`, "Owner: 6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ", `Slot: 0x${"ab".repeat(32)}`, `Credit key: 0x${"cd".repeat(32)}`,
+      "Agari private claim", `Desk: ${desk} on Canton DevNet`, "Owner: 6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ", `Slot: 0x${"ab".repeat(32)}`, `Credit key: 0x${"cd".repeat(32)}`,
       "Market: BpKpucLRc9uApoXUyoARwacEHXHz1k44dDNpW5WqXTbA", "Outcome: 1", "Stake: 4000000", "Issued: 1789900000000",
     ]);
     for (const patch of [{ owner: desk }, { slotId: `0x${"00".repeat(32)}` }, { creditKey: `0x${"11".repeat(32)}` }, { outcomeIdx: 0 }, { stakeBase: "4000001" }, { issuedAtMs: 1 }]) {
-      expect(privateClaimMessage({ ...(claim as object), ...patch } as never, desk, 103)).not.toBe(text);
+      expect(privateClaimMessage({ ...(claim as object), ...patch } as never, desk, 203)).not.toBe(text);
     }
-    expect(privateClaimMessage(claim, "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j", 103)).not.toBe(text);
-    expect(privateClaimMessage(claim, desk, 101)).not.toBe(text);
+    expect(privateClaimMessage(claim, "6qjoqeiGt8K5RoYvsRCDoS4QsDXrsPAZjHwy4vU98d9j", 203)).not.toBe(text);
+    expect(privateClaimMessage(claim, desk, 201)).not.toBe(text);
   });
 });

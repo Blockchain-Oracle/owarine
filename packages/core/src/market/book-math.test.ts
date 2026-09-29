@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import vectors from "../../../../anchor/tests/vectors/book.vectors.json";
+import vectors from "./book.vectors.json";
 import { bookLevels, exitWalk, outcomeLevels, quoteStake, topOfBook, vwapOverDepth, type BookLevel, type BookSideView, type NodeFilter, type TakerKind } from "./book-math";
 
 interface VectorOrder {

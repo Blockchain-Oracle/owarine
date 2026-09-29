@@ -8,7 +8,7 @@
  * RFC requires: object keys sorted by UTF-16 code units (the default sort) and `JSON.stringify` string escaping.
  *
  * The chain head is the program's: `head = sha256(head ‖ seq LE u64 ‖ decision_hash)` from a zero genesis
- * (`agari-desk` `chain.rs`); `anchor/tests/vectors/desk/chain-head.json` is asserted on both sides.
+ * (`agari-desk` `chain.rs`); `chain-head.vectors.json` (the reference's `anchor/tests/vectors/desk/chain-head.json` at 661a24ee) is asserted.
  */
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils";

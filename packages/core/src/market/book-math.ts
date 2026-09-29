@@ -1,6 +1,6 @@
 /**
  * Book walks, mirrored from `agari-common::book_walk` (events-engine.md §9) with identical results on the shared
- * vectors (`anchor/tests/vectors/book.vectors.json`). Pure bigint math over a decoded Book side: walks traverse the
+ * vectors (`packages/core/src/market/book.vectors.json`, copied from the reference's `anchor/tests/vectors` at 661a24ee). Pure bigint math over a decoded Book side: walks traverse the
  * FIFO nodes (never `live_lots` alone) and count only live, unexpired, and (when asked) rested orders (PD-2).
  * Erasable TypeScript only, so Node can run it directly for the vector generator.
  */

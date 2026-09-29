@@ -28,13 +28,13 @@ describe("our own words", () => {
   });
 
   it("the signed texts say what they allow and name the network", () => {
-    const mandate = deskMandateText({ owner: "OWNER", cluster: "mainnet-beta", version: 2, fingerprint: `0x${"ab".repeat(32)}`, signedAtIso: "2026-09-22T14:00:00Z" });
+    const mandate = deskMandateText({ owner: "OWNER", cluster: "mainnet", version: 2, fingerprint: `0x${"ab".repeat(32)}`, signedAtIso: "2026-09-22T14:00:00Z" });
     expect(mandate).toContain("does not approve any single trade");
-    expect(mandate).toContain("Network: Solana mainnet");
-    const approval = deskApprovalText({ owner: "OWNER", cluster: "mainnet-beta", decisionSeq: 7, decisionHash: `0x${"cd".repeat(32)}`, answer: "approve", summary: "buy $140 of OpenAI", expiresAtIso: "2026-09-22T17:00:00Z" });
+    expect(mandate).toContain("Network: Canton MainNet");
+    const approval = deskApprovalText({ owner: "OWNER", cluster: "mainnet", decisionSeq: 7, decisionHash: `0x${"cd".repeat(32)}`, answer: "approve", summary: "buy $140 of OpenAI", expiresAtIso: "2026-09-22T17:00:00Z" });
     expect(approval).toContain("I approve this one action: buy $140 of OpenAI.");
     expect(approval).toContain("Decision: 7");
-    expect(deskCheckNowText({ owner: "OWNER", cluster: "devnet", requestedAtIso: "2026-09-22T14:00:00Z" })).toContain("Network: Solana devnet");
+    expect(deskCheckNowText({ owner: "OWNER", cluster: "devnet", requestedAtIso: "2026-09-22T14:00:00Z" })).toContain("Network: Canton DevNet");
     for (const text of [mandate, approval]) expect(findBannedWords(text)).toEqual([]);
   });
 

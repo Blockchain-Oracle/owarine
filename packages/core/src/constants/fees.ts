@@ -13,7 +13,8 @@ export const LAMPORTS_PER_SOL = 1_000_000_000n;
 export const LAMPORTS_PER_SIGNATURE = 5_000n;
 
 /**
- * A wallet paying its own fees must hold this before signing: two signatures (wallet + a co-signer) with room for
- * a retry. Sponsored sends (the `api/sponsor` fee-payer co-sign) need none.
+ * What a user must hold for network fees before a write. Canton charges the user no per-transaction fee (the venue's
+ * participant pays traffic), so it is zero; the name is kept because the funding check, the balance sheet and the
+ * faucet still ask the question.
  */
-export const FEE_RESERVE_LAMPORTS = 4n * LAMPORTS_PER_SIGNATURE;
+export const FEE_RESERVE_LAMPORTS = 0n;

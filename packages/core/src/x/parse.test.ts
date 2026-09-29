@@ -39,7 +39,7 @@ describe("parseInstruction", () => {
     expect(refused("tsla 5 15m")).toBe("no-side");
     expect(refused("up 5 15m")).toBe("no-asset");
     expect(refused("sol up 5 15m")).toBe("unknown-asset");
-    expect(refused("btc up 5 15m")).toBe("unknown-asset");
+    expect(refused("doge up 5 15m")).toBe("unknown-asset");
     expect(refused("tsla up 15m")).toBe("no-stake");
     expect(refused("tsla up 5")).toBe("no-cadence");
     expect(refused("tsla up 5 30m")).toBe("cadence-not-listed");

@@ -79,7 +79,8 @@ export interface Holdings {
   downRaw: bigint;
 }
 
-export type ClaimKind = "win" | "void" | "vault-credit";
+/** `stale-refund`: a leg whose market never resolved, refunded by the owner alone after its `refundAfter` (Canton `Leg_RefundStale`). */
+export type ClaimKind = "win" | "void" | "vault-credit" | "stale-refund";
 
 export interface ClaimLeg {
   outcomeIdx: OutcomeIdx;

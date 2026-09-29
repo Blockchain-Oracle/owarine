@@ -6,7 +6,7 @@ import { buildDecisionBody, GENESIS_SLOT, mandateFingerprint } from "./record";
 import { presetMandate } from "./presets";
 import type { Hash32 } from "../types/primitives";
 
-const vectors = JSON.parse(readFileSync(new URL("../../../../anchor/tests/vectors/desk/chain-head.json", import.meta.url), "utf8")) as {
+const vectors = JSON.parse(readFileSync(new URL("./chain-head.vectors.json", import.meta.url), "utf8")) as {
   canonical: { body: unknown; json: string; sha256: Hash32 };
   steps: { seq: number; decisionHash: Hash32; prevHead: Hash32; head: Hash32 }[];
 };
