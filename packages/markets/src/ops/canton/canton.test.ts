@@ -86,5 +86,9 @@ describe("refusal reading", () => {
     expect(isInactive(gone)).toBe(true);
     expect(inactiveCids(gone, ["00aa11", "00bb22"])).toEqual(["00aa11"]);
     expect(isInactive(new Error("x"))).toBe(false);
+    // Canton 3.5 rejects an input archived before routing this way (C8e, the ticket desk under load)
+    const routed = rejected("UNKNOWN_CONTRACT_SYNCHRONIZERS", "The following contracts have been archived: List(00cc33, 00dd44)");
+    expect(isInactive(routed)).toBe(true);
+    expect(inactiveCids(routed, ["00aa11", "00cc33"])).toEqual(["00cc33"]);
   });
 });

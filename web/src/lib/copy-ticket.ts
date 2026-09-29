@@ -19,7 +19,7 @@ export const TICKET = {
   odds: "Odds",
   requoting: "requoting…",
   noLiquidity: "No liquidity at this size — nobody is on the other side right now.",
-  partial: (fillableText: string) => `Fills up to ${fillableText} at this size — the rest stays in your wallet.`,
+  partial: (fillableText: string) => `Fills up to ${fillableText} at this size — the rest stays in your seat.`,
   creditNote: (creditText: string) => `${creditText} comes from your venue payout credit first.`,
   /** agari-events holds a seat bond on a wallet's first order in a Window and returns it at redeem. */
   seatDeposit: (bondText: string) => `${bondText} refundable seat deposit on your first order in a Window.`,

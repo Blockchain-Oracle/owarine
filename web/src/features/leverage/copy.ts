@@ -17,7 +17,7 @@ export const LEVERAGE = {
     exposure: "Exposure",
     /** The reference's exact sentence under the quote strip. */
     knockout: (x: number) => `${x}× can knock out before expiry.`,
-    sized: (charged: string, symbol: string) => `Sized to the venue's lot: ${charged} ${symbol} is charged, the rest stays in your wallet.`,
+    sized: (charged: string, symbol: string) => `Sized to the venue's lot: ${charged} ${symbol} is charged, the rest stays in your seat.`,
     requote: (contracts: string) => `The book moved — your stake now buys ${contracts} contracts. Confirm again at the new size.`,
   },
   cta: {
@@ -44,10 +44,10 @@ export const LEVERAGE = {
     waiting: (amount: string, symbol: string) => `${amount} ${symbol} waiting`,
     claim: "Claim",
     claiming: "Claiming…",
-    claimedToast: (amount: string, symbol: string) => `Claimed: ${amount} ${symbol} in your wallet.`,
+    claimedToast: (amount: string, symbol: string) => `Claimed: ${amount} ${symbol} in your seat.`,
     history: "Boosts, settled",
-    cashedOut: (amount: string, symbol: string) => `Cashed out: ${amount} ${symbol} back to your wallet.`,
-    settledToast: "Settled. Whatever the contracts paid is in your wallet, the reserve repaid first.",
+    cashedOut: (amount: string, symbol: string) => `Cashed out: ${amount} ${symbol} back to your seat.`,
+    settledToast: "Settled. Whatever the contracts paid is in your seat, the reserve repaid first.",
   },
   devTitle: "Leverage",
 } as const;

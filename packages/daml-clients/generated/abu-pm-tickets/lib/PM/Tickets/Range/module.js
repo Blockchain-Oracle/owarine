@@ -33,7 +33,7 @@ exports.RangeKind = {
 exports.RangeQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Range:RangeQuote',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Range:RangeQuote',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Range:RangeQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -125,7 +125,7 @@ exports.RangeQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.RangeQuote, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.RangeQuote, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.RangeQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -166,7 +166,7 @@ exports.RangeQuote_Withdraw = {
 exports.RangeRound = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Range:RangeRound',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Range:RangeRound',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Range:RangeRound',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -254,7 +254,7 @@ exports.RangeRound = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.RangeRound, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.RangeRound, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.RangeSide = {
   Inside: 'Inside',

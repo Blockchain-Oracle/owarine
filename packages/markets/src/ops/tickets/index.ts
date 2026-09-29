@@ -5,5 +5,6 @@
 export * as tcmd from "./commands";
 export type { IssueBoostInput, IssueParlayInput, IssueRangeInput, NavInputsC } from "./commands";
 export * from "./decode";
+export * from "./receipt";
 export * from "../../tickets/params";
 export * from "../../tickets/pricing";

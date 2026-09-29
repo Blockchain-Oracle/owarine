@@ -22,7 +22,7 @@ var PM_Tickets_Range = require('../../../PM/Tickets/Range/module');
 exports.EarnDesk = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Earn:EarnDesk',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Earn:EarnDesk',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Earn:EarnDesk',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -74,7 +74,7 @@ exports.EarnDesk = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.EarnDesk, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.EarnDesk, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.Earn_IssueWithdraw = {
   decoder: damlTypes.lazyMemo(function () {

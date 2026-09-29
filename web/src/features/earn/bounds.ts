@@ -18,7 +18,7 @@ const multiple = (bps: number): string => `${Math.round((bps / BPS_PER_X) * 10) 
 /** The two rows every reserve has: what it can pay out today, and what it is already holding. */
 function sheetRows(sheet: ReserveSheet, words: ReserveWords, symbol: string): BoundRow[] {
   return [
-    { label: "Free to withdraw", value: `${money2(sheet.liquidBase, sheet.decimals)} ${symbol}`, note: "Equity no live position is holding. A withdrawal larger than this is refused by the program, not by the page." },
+    { label: "Free to withdraw", value: `${money2(sheet.liquidBase, sheet.decimals)} ${symbol}`, note: "Equity no live position is holding. A withdrawal larger than this is refused by the ledger, not by the page." },
     { label: words.committed, value: `${money2(sheet.committedBase, sheet.decimals)} ${symbol}`, note: words.committedRow },
   ];
 }
@@ -52,7 +52,7 @@ export function boostBounds(state: LeverageReserveState, sheet: ReserveSheet, wo
   return [
     ...sheetRows(sheet, words, symbol),
     { label: "Premium taken up front", value: bpsPct(params.premiumBps), note: "Charged on the capital the reserve fronts, at the moment a boost opens. It is the whole of what suppliers earn here." },
-    { label: "Most leverage", value: multiple(params.maxLeverageBps), note: "The largest multiple a boost may ask for; past it the program refuses." },
+    { label: "Most leverage", value: multiple(params.maxLeverageBps), note: "The largest multiple a boost may ask for; past it the ledger refuses." },
     { label: "Knock-out line", value: `${bpsPct(params.maintenanceBps)} of the front`, note: "Anyone may close a boost once its mark falls under this much of the capital the reserve fronted, which is what keeps the front whole." },
     { label: "Most fronted on one boost", value: `${money2(params.maxFrontedPerPositionBase, decimals)} ${symbol}`, note: "A cap on how much one position can put at risk." },
     { label: "Boosts open at once", value: `${state.openPositions} of ${params.maxOpenPositions}`, note: "The reserve tracks its live positions in fixed slots, so there is a hard ceiling on how many it can carry." },

@@ -202,11 +202,44 @@ export type BoostPositionView = z.output<typeof boostPositionViewWire>;
 
 export const lpShareViewWire = z.object({ reserveId: ticketReserveWire, shares: baseUnits, worthBase: baseUnits });
 
+/**
+ * A ticket that has ended, from its `SettlementReceipt` (abu-pm-main 0.4.0; abu-pm-tickets 0.1.2 writes one on every
+ * way a ticket ends, K-093). The receipt is the seat's own contract, so a settled ticket stays in history. What the
+ * receipt does not carry is read beside it: the Window's prints and expiry (0 when its terms could not be read), and
+ * a parlay's per-leg outcomes from each Window's Resolution.
+ */
+export const ticketReceiptViewWire = z.object({
+  cid,
+  product: z.enum(["range", "moonshot", "parlay", "boost", "short"]),
+  result: z.enum(["won", "lost", "void", "sold", "knocked-out"]),
+  /** When the receipt was written: the ticket's settle, claim, sale, knock-out or refund. */
+  settledAtSec: z.number(),
+  marketId,
+  side,
+  resolved: side.nullable(),
+  lots: baseUnits,
+  cashUnit: baseUnits,
+  backingShare: baseUnits,
+  cost: baseUnits,
+  payout: baseUnits,
+  fee: baseUnits,
+  stakeBase: baseUnits,
+  toReserveBase: baseUnits,
+  pick: z.string(),
+  expirySec: z.number(),
+  openingPrint: baseUnits.nullable(),
+  closingPrint: baseUnits.nullable(),
+  legs: z.array(z.object({ marketId, side, expirySec: z.number(), resolved: z.enum(["pending", "won", "lost", "void"]) })),
+});
+export type TicketReceiptView = z.output<typeof ticketReceiptViewWire>;
+
 export const ticketsMineWire = z.object({
   rounds: z.array(rangeRoundViewWire),
   parlays: z.array(parlayTicketViewWire),
   positions: z.array(boostPositionViewWire),
   shares: z.array(lpShareViewWire),
+  /** Older servers send none. */
+  receipts: z.array(ticketReceiptViewWire).default([]),
 });
 export type TicketsMine = z.output<typeof ticketsMineWire>;
 
