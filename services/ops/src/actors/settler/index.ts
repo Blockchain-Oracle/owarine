@@ -1,141 +1,137 @@
 /**
- * settler (plan §4; venue-ops.md §7): settles or voids every Window once its prints allow, then drains it — sweep,
- * redeem_for every public seat to its owner's ATA, release the Book, close the Ledger, and close Market + result
- * after retention. One writer (the `settler` key), reconcile before send, never resend blindly.
+ * settler (plan "Venue operations"): once a Window has its `Resolution`, pays every leg against it with the venue-only
+ * `Desk_SettleBatch` in batches of `SETTLE_BATCH` (25): winners paid the pair, losers archived, fees recognised, voids
+ * refunded backing plus fee. Users witness only their own sub-action. A batch is atomic: a leg claimed or refunded in
+ * the meantime fails it with the cid named, and the settler retries without that leg; with no cid named it bisects.
+ * Then any `NettedResidual` of the market is paid out (`Residual_Settle`).
+ *
+ * Deleted with the Solana settler: sweep, redeem-for with ATA create, release book, close ledger, close market,
+ * seats and retention. The print-wait and void decisions moved to the resolver, which reuses `decide.ts`.
  */
-import { chainNowSec, fetchMarkets, fetchSeries, listMarketsOfSeries, listSeries, MARKET_FLAG, seriesBasis, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
-import { readBookOrderCount, readLedger, readVenueConfig, type LedgerState, type VenueConfig } from "@agari/markets/ops/settle";
-import { runActor, type PassResult, type VenueDeps } from "../../runtime";
-import { decideSettle } from "./decide";
-import { execute } from "./execute";
-import { roleClient } from "./role-client";
-import { marketLabel, settleInput } from "./views";
+import { TEMPLATE_IDS } from "@agari/daml";
+import {
+  cmd, decodeLeg, decodeNettedResidual, decodeResolution, failureText, inactiveCids, isInactive, pick, readActive, refusalId, residualCommandId,
+  settleBatchCommandId, submit, type ResolutionC, type RoleSession,
+} from "@agari/markets/ops/canton";
+import { runActor, type PassResult } from "../../runtime/actor";
+import type { VenueDeps } from "../../runtime/deps";
+import { createVenueContext, type VenueContext } from "../venue/context";
+import { emitVenueEvent } from "../venue/events";
+import { DEFAULT_BATCH, planBatches } from "./batches";
 
-/** D-032: seats stay claimable by their owners for this long after resolution before `redeem_for` pays them. */
-const REDEEM_GRACE_SEC = Number.isFinite(Number(process.env.SETTLER_REDEEM_GRACE_SEC)) && process.env.SETTLER_REDEEM_GRACE_SEC ? Number(process.env.SETTLER_REDEEM_GRACE_SEC) : 300;
+const MAX_BISECT_DEPTH = 6;
 
-const PASS_MS = 5_000;
-const SERIES_LIST_MS = 5 * 60_000;
-const SERIES_POLL_MS = 30_000;
-const CLOCK_CACHE_MS = 5_000;
-/** Sends per pass, so a backlog (a restart after a busy session) stays inside the RPC budget. */
-const MAX_SENDS_PER_PASS = 12;
-
-type Tracked = { address: string; series: string; nextCheckSec: number; seen: boolean };
-
-interface Settler {
-  deps: VenueDeps;
-  client: OpsClient;
-  dryRun: boolean;
-  allSeries: boolean;
-  config: VenueConfig | null;
-  series: Map<string, SeriesView>;
-  nextIndex: Map<string, bigint>;
-  tracked: Map<string, Tracked>;
-  clock: { sec: number; atMs: number };
-  listedAtMs: number;
-  polledAtMs: number;
-  counts: Record<string, number>;
+export interface SettleTiming {
+  marketId: string;
+  legs: number;
+  ms: number;
 }
 
-/** Every registry ticker's Series of a known basis: settle and void rules are the same for Regular, Gap and token Windows (session-lanes.md §1.5, §2.4). */
-const eligible = (s: SeriesView, all: boolean) => all || (s.symbol !== null && seriesBasis(s) !== null);
-
-async function nowSec(st: Settler): Promise<number> {
-  if (Date.now() - st.clock.atMs > CLOCK_CACHE_MS) st.clock = { sec: await chainNowSec(st.client), atMs: Date.now() };
-  return st.clock.sec + Math.floor((Date.now() - st.clock.atMs) / 1000);
+interface SettlerState {
+  venue: RoleSession;
+  deskCid: () => Promise<string>;
+  batchSize: number;
+  resolutions: Map<string, { cid: string; data: ResolutionC }>;
+  counters: { legs: number; batches: number; residuals: number; failed: number; stale: number };
+  timings: SettleTiming[];
+  log: (why: string) => void;
 }
 
-function track(st: Settler, series: string, address: string) {
-  if (!st.tracked.has(address)) st.tracked.set(address, { address, series, nextCheckSec: 0, seen: false });
-}
-
-/** Boot and every 5 minutes: every eligible Series and its existing Markets; every 30 s: new Window indices. */
-async function discover(st: Settler): Promise<void> {
-  if (Date.now() - st.listedAtMs > SERIES_LIST_MS) {
-    for (const s of await listSeries(st.client)) {
-      if (!eligible(s, st.allSeries)) continue;
-      if (!st.series.has(s.address)) {
-        for (const m of await listMarketsOfSeries(st.client, s.address)) track(st, s.address, m.address);
-        st.nextIndex.set(s.address, s.data.nextIndex);
-      }
-      st.series.set(s.address, s);
+/** Settles `legCids` in one batch; on an inactive leg retries without it, else bisects. Returns legs settled. */
+async function settle(st: SettlerState, marketId: string, resolutionCid: string, legCids: string[], depth = 0): Promise<number> {
+  if (legCids.length === 0) return 0;
+  const started = Date.now();
+  try {
+    const out = await submit(st.venue, { commandId: settleBatchCommandId(resolutionCid, legCids), commands: [cmd.settleBatch(await st.deskCid(), resolutionCid, legCids)] });
+    if (out.kind === "dry") {
+      st.log(`${out.note} (${legCids.length} legs of ${marketId})`);
+      return 0;
     }
-    st.listedAtMs = st.polledAtMs = Date.now();
-    return;
-  }
-  if (Date.now() - st.polledAtMs < SERIES_POLL_MS) return;
-  st.polledAtMs = Date.now();
-  const fresh = await fetchSeries(st.client, [...st.series.keys()] as never);
-  for (const s of fresh) {
-    if (!s) continue;
-    st.series.set(s.address, s);
-    for (let i = st.nextIndex.get(s.address) ?? s.data.nextIndex; i < s.data.nextIndex; i++) track(st, s.address, (await windowAddresses(s.address, i)).market);
-    st.nextIndex.set(s.address, s.data.nextIndex);
+    st.counters.batches++;
+    st.timings.push({ marketId, legs: legCids.length, ms: Date.now() - started });
+    if (st.timings.length > 1_000) st.timings.shift();
+    return legCids.length;
+  } catch (error) {
+    if (isInactive(error)) {
+      const gone = new Set(inactiveCids(error, legCids));
+      if (gone.size > 0) return settle(st, marketId, resolutionCid, legCids.filter((c) => !gone.has(c)), depth);
+    }
+    if (legCids.length === 1 || depth >= MAX_BISECT_DEPTH) {
+      st.counters.failed++;
+      st.log(`settle ${marketId} (${legCids.length} legs) failed: ${refusalId(error) ?? ""} ${failureText(error)}`);
+      return 0;
+    }
+    const mid = Math.ceil(legCids.length / 2);
+    return (await settle(st, marketId, resolutionCid, legCids.slice(0, mid), depth + 1)) + (await settle(st, marketId, resolutionCid, legCids.slice(mid), depth + 1));
   }
 }
 
-async function tend(st: Settler, m: MarketView, now: number, budget: { sends: number }): Promise<{ note: string | null; nextCheckSec: number }> {
-  const series = st.series.get(m.data.series)!;
-  const label = marketLabel(series, m);
-  const terminal = m.data.state !== 0;
-  const bookOrderCount = terminal && (m.data.flags & MARKET_FLAG.bookReleased) === 0 ? await readBookOrderCount(st.client, m.data.book) : null;
-  let ledger: LedgerState | null | undefined;
-  if (terminal && (m.data.flags & MARKET_FLAG.ledgerClosed) === 0) ledger = await readLedger(st.client, m.data.ledger);
-  const action = decideSettle(settleInput(m, series, { nowSec: now, retentionSec: st.config!.retentionSec, redeemGraceSec: REDEEM_GRACE_SEC, bookOrderCount, ledger }));
-  if (action.kind === "wait") return { note: null, nextCheckSec: action.untilSec };
-  if (action.kind === "read") return { note: `${label}: ${action.why} unreadable`, nextCheckSec: now + 30 };
-  if (budget.sends <= 0) return { note: null, nextCheckSec: now };
-  budget.sends -= 1;
-  const checkAdmissionSec = series.data.policyVersions[m.data.policyVersion]?.checkAdmissionSec ?? 0;
-  const outcome = await execute({ client: st.client, dryRun: st.dryRun, nowSec: now, config: st.config!, checkAdmissionSec, label }, action, m, ledger);
-  if (outcome.sent) st.counts[action.kind] = (st.counts[action.kind] ?? 0) + 1;
-  return { note: outcome.note, nextCheckSec: outcome.nextCheckSec };
-}
-
-async function pass(st: Settler): Promise<PassResult> {
-  st.config ??= await readVenueConfig(st.client);
-  await discover(st);
-  const now = await nowSec(st);
-  const due = [...st.tracked.values()].filter((t) => t.nextCheckSec <= now);
-  const views = await fetchMarkets(st.client, due.map((t) => t.address) as never);
-  const budget = { sends: MAX_SENDS_PER_PASS };
-  for (const [i, t] of due.entries()) {
-    const view = views[i];
-    if (!view) {
-      // Closed (or a stale index that never opened): nothing left to do.
-      if (t.seen) st.counts.closedGone = (st.counts.closedGone ?? 0) + 1;
-      st.tracked.delete(t.address);
+export async function settlerPass(st: SettlerState): Promise<PassResult> {
+  const acs = await readActive(st.venue, [TEMPLATE_IDS.Leg, TEMPLATE_IDS.NettedResidual]);
+  const legs = pick(acs, TEMPLATE_IDS.Leg, decodeLeg).filter((l) => l.data.venue === st.venue.party);
+  const residuals = pick(acs, TEMPLATE_IDS.NettedResidual, decodeNettedResidual);
+  const terms = new Set([...legs.map((l) => l.data.termsCid), ...residuals.map((r) => r.data.termsCid)]);
+  if ([...terms].some((t) => !st.resolutions.has(t))) {
+    // Resolutions are immutable: read them only when a leg names a market not seen resolved yet.
+    for (const r of pick(await readActive(st.venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution)) st.resolutions.set(r.data.termsCid, r);
+  }
+  const nowSec = Math.floor(Date.now() / 1000);
+  const notes: string[] = [];
+  let pending = 0;
+  for (const termsCid of terms) {
+    const res = st.resolutions.get(termsCid);
+    const mine = legs.filter((l) => l.data.termsCid === termsCid);
+    if (!res) {
+      pending += mine.length;
       continue;
     }
-    t.seen = true;
-    try {
-      const { note, nextCheckSec } = await tend(st, view, now, budget);
-      t.nextCheckSec = nextCheckSec;
-      if (note) st.deps.log(note);
-    } catch (error) {
-      t.nextCheckSec = now + 30;
-      st.deps.log(`${marketLabel(st.series.get(t.series), view)}: ${error instanceof Error ? error.message : String(error)}`);
+    const live = mine.filter((l) => l.data.refundAfterSec > nowSec + 1);
+    if (live.length < mine.length) {
+      st.counters.stale += mine.length - live.length;
+      notes.push(`ALARM ${res.data.marketId}: ${mine.length - live.length} legs past refundAfter unsettled (stale refund is the owner's)`);
+    }
+    if (live.length > 0) {
+      const started = Date.now();
+      const batches = planBatches(live, res.data, st.venue.party, st.batchSize);
+      let done = 0;
+      for (const b of batches) done += await settle(st, res.data.marketId, res.cid, b);
+      st.counters.legs += done;
+      if (done > 0) {
+        const outcome = res.data.outcome === null ? `void ${res.data.voidReason?.tag ?? ""}` : res.data.outcome === "SideUp" ? "Up" : "Down";
+        emitVenueEvent({ kind: "settled", marketId: res.data.marketId, legs: done, batches: batches.length, ms: Date.now() - started, atMs: Date.now() });
+        notes.push(`settled ${res.data.marketId} (${outcome}): ${done} legs in ${batches.length} batches, ${Date.now() - started} ms`);
+      }
+    }
+    for (const r of residuals.filter((x) => x.data.termsCid === termsCid)) {
+      try {
+        const out = await submit(st.venue, { commandId: residualCommandId(r.cid), commands: [cmd.settleResidual(r.cid, res.cid)] });
+        if (out.kind === "done") st.counters.residuals++;
+      } catch (error) {
+        if (!isInactive(error)) notes.push(`residual ${res.data.marketId} failed: ${failureText(error)}`);
+      }
     }
   }
-  const waiting = [...st.tracked.values()].map((t) => t.nextCheckSec).filter((s) => s > now);
-  const next = waiting.length ? Math.min(...waiting) : null;
-  const counts = Object.entries(st.counts).map(([k, v]) => `${k} ${v}`).join(", ") || "nothing sent yet";
+  for (const n of notes) st.log(n);
+  const c = st.counters;
   return {
-    why: `${st.tracked.size} Windows tracked over ${st.series.size} Series; ${due.length} due; ${counts}${next ? `; next due ${new Date(next * 1000).toISOString().slice(11, 19)}Z` : ""}${st.dryRun ? " · DRY RUN" : ""}`,
-    detail: { tracked: st.tracked.size, series: st.series.size, counts: { ...st.counts }, nextDueSec: next },
-    nextDelayMs: budget.sends <= 0 ? 500 : PASS_MS,
+    why: `${legs.length} legs open (${pending} awaiting resolution); settled ${c.legs} in ${c.batches} batches, residuals ${c.residuals}, failed ${c.failed}${st.venue.dryRun ? " · DRY RUN" : ""}`,
+    detail: { ...c },
   };
 }
 
-export async function startSettler(deps: VenueDeps): Promise<{ stop: () => void }> {
-  const { client, signing } = await roleClient(deps.env, "settler");
-  if (!signing) deps.log("SETTLER_PRIVATE_KEY and ~/.config/agari/devnet/settler.json are missing: scanning and reporting only");
-  else deps.log(`settler key ${client.payer.address}`);
-  const st: Settler = {
-    deps, client, dryRun: deps.env.dryRun || !signing, allSeries: process.env.SETTLER_ALL_SERIES === "1",
-    config: null, series: new Map(), nextIndex: new Map(), tracked: new Map(), clock: { sec: 0, atMs: 0 }, listedAtMs: 0, polledAtMs: 0, counts: {},
+export const settleTimings: SettleTiming[] = [];
+
+export async function startSettler(deps: VenueDeps, venue: VenueContext = createVenueContext()): Promise<{ stop: () => void }> {
+  const session = venue.session("venue");
+  if (!session) {
+    deps.log("VENUE_PARTY and the parties file are missing: nothing settles");
+    return runActor({ name: "settler", log: deps.log, dryRun: true, everyMs: 60_000, pass: async () => ({ why: "no venue party: scanning and reporting only" }) });
+  }
+  const size = Number(process.env.SETTLE_BATCH);
+  const st: SettlerState = {
+    venue: session, deskCid: venue.deskCid, batchSize: Number.isInteger(size) && size > 0 ? size : DEFAULT_BATCH, resolutions: new Map(),
+    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0 }, timings: settleTimings, log: deps.log,
   };
-  const { stop } = runActor({ name: "settler", log: deps.log, dryRun: st.dryRun, everyMs: PASS_MS, pass: () => pass(st) });
-  return { stop };
+  deps.log(`settler as ${session.party.split("::")[0]}, batches of ${st.batchSize}`);
+  return runActor({ name: "settler", log: deps.log, dryRun: session.dryRun, everyMs: 3_000, pass: () => settlerPass(st) });
 }
