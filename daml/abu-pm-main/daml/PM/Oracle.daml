@@ -1,0 +1,103 @@
+-- | Oracle prints. One `PriceQuote` per (oracle, symbol, boundaryT), not per
+-- market, so one print serves every cadence's close and the next Window's
+-- open. Identified by those fields; there are no contract keys, so the
+-- ledger cannot stop an oracle from posting twice: selection below keeps one
+-- quote per oracle (earliest fetch) and the proof page shows every quote.
+module PM.Oracle where
+
+import DA.List (sortOn, (!!))
+import DA.Time (RelTime, addRelTime, seconds)
+
+-- | An attested price: the close of the exchange's bar ending at `boundaryT`.
+template PriceQuote
+  with
+    oracle : Party
+    venue : Party
+    resolver : Party
+    symbol : Text
+    boundaryT : Time
+    priceE8 : Int
+    barStart : Time
+    barLenSec : Int
+    fetchedAt : Time
+    payloadHash : Text
+    policyVersion : Int
+  where
+    signatory oracle
+    observer venue, resolver
+    ensure priceE8 > 0 && barLenSec > 0
+      && barStart == addRelTime boundaryT (seconds (negate barLenSec))
+      && fetchedAt >= boundaryT
+
+    -- Retention: the oracle archives old quotes; resolutions embed evidence.
+    choice PriceQuote_Retire : ()
+      controller oracle
+      do pure ()
+
+-- | What a resolution records about each counted quote.
+data Evidence = Evidence
+  with
+    oracle : Party
+    priceE8 : Int
+    fetchedAt : Time
+    payloadHash : Text
+    quoteCid : ContractId PriceQuote
+  deriving (Eq, Show)
+
+-- | The rules a quote must meet to count for one slot of one Window.
+data PrintRule = PrintRule
+  with
+    symbol : Text
+    boundary : Time
+    oracles : [Party]
+    barLenSec : Int
+    policyVersion : Int
+    earliest : Time   -- boundary + minDelaySec
+    deadline : Time   -- the slot's admission deadline (inclusive)
+  deriving (Eq, Show)
+
+-- | A quote counts iff it is for this symbol and boundary, from an oracle in
+-- the terms' list, under the frozen policy, and fetched inside
+-- [earliest, deadline]. Anything else (late, early, foreign) is ignored,
+-- not fatal: a stray quote cannot block a resolution.
+counts : PrintRule -> PriceQuote -> Bool
+counts r q =
+  q.symbol == r.symbol && q.boundaryT == r.boundary
+    && q.oracle `elem` r.oracles
+    && q.barLenSec == r.barLenSec && q.policyVersion == r.policyVersion
+    && q.fetchedAt >= r.earliest && q.fetchedAt <= r.deadline
+
+-- | Fetch the offered quotes and keep the counting ones, one per oracle
+-- (earliest fetch wins, then lowest price, so the choice is deterministic).
+collectEvidence : PrintRule -> [ContractId PriceQuote] -> Update [Evidence]
+collectEvidence r cids = do
+  qs <- mapA (\c -> do q <- fetch c; pure (c, q)) cids
+  let valid = [ Evidence with oracle = q.oracle; priceE8 = q.priceE8; fetchedAt = q.fetchedAt
+                              payloadHash = q.payloadHash; quoteCid = c
+              | (c, q) <- qs, counts r q ]
+  pure (firstPerOracle (sortOn (\e -> (e.oracle, e.fetchedAt, e.priceE8)) valid))
+
+firstPerOracle : [Evidence] -> [Evidence]
+firstPerOracle = reverse . foldl step []
+  where
+    step acc e = case acc of
+      (p :: _) | p.oracle == e.oracle -> acc
+      _ -> e :: acc
+
+-- | Lower median of the counted prices (an observed price, integer-exact).
+medianOf : [Evidence] -> Int
+medianOf es =
+  let ps = sortOn identity (map (.priceE8) es)
+  in ps !! ((length ps - 1) / 2)
+
+-- | True when the spread of the counted prices exceeds `maxDeviationBps` of
+-- the median: (max - min) * 10000 > maxDeviationBps * median.
+disagrees : Int -> [Evidence] -> Bool
+disagrees maxDeviationBps es =
+  let ps = map (.priceE8) es
+      hi = foldl max 0 ps
+      lo = foldl min hi ps
+  in (hi - lo) * 10000 > maxDeviationBps * medianOf es
+
+oneSecond : RelTime
+oneSecond = seconds 1

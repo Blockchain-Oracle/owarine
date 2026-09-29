@@ -1,0 +1,5 @@
+# abu-pm Daml workspace. Later lanes add abu-pm-tickets, abu-pm-agents,
+# abu-pm-games, abu-pm-governance and abu-pm-mainnet here.
+packages:
+- ./abu-pm-main
+- ./pm-tests

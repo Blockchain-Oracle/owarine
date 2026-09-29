@@ -1,0 +1,121 @@
+-- | Shared vocabulary for the prediction-market engine: sides, slots, void
+-- reasons, policy versions, the integer money grid and refusal helpers.
+--
+-- Money is integer end to end (plan, Architecture §7): price in ticks of
+-- 1000 (1..999), size in lots, a per-series `cashUnit`. For a user taking a
+-- side at `ticks`:
+--   userStake  = lots * ticks          * cashUnit
+--   venueStake = lots * (1000 - ticks) * cashUnit
+--   quantity   = lots * 1000           * cashUnit   (the pair's backing)
+-- so the two stakes sum to the backing exactly. No rounding anywhere.
+module PM.Types where
+
+import DA.Fail
+import qualified DA.TextMap as TextMap
+
+-- | Outcome of a Window. The reference market has no strike: it resolves Up
+-- when close >= open (ties go Up), else Down. Constructors are SideUp and SideDown because the Prelude already exports `Down`.
+data Side = SideUp | SideDown
+  deriving (Eq, Ord, Show)
+
+opposite : Side -> Side
+opposite SideUp = SideDown
+opposite SideDown = SideUp
+
+-- | Which boundary print a check or a void refers to.
+data Slot = OpenSlot | CloseSlot
+  deriving (Eq, Ord, Show)
+
+-- | Named void reasons. The adapter maps them onto the reference's two core
+-- values (MissingPrint, CrossCheckDivergence) and shows the specific one.
+data VoidReason
+  = MissingPrint with slot : Slot
+    -- ^ no valid oracle quote at all by the admission deadline
+  | QuorumNotMet with slot : Slot
+    -- ^ some, but fewer than `quorum`, valid distinct quotes by the deadline
+  | ResolverAbsent with slot : Slot
+    -- ^ a quorum existed but the resolver did not record it in time
+  | SourceDisagreement with slot : Slot
+    -- ^ the quorum's spread exceeded `maxDeviationBps`
+  deriving (Eq, Show)
+
+-- | One dated, immutable price-policy version (the reference's
+-- `price-sources.json` versions). A Window freezes the version covering its
+-- trading start.
+data PolicyVersion = PolicyVersion
+  with
+    version : Int
+    effectiveFrom : Time
+    printSource : Text
+    minDelaySec : Int
+      -- ^ earliest admission of a print is boundary + minDelaySec
+    barLenSec : Int
+      -- ^ attested bar length: a print is the close of the bar ending at T
+    openAdmissionSec : Int
+      -- ^ open deadline = tradingStart + this; a negative value means
+      -- "admit until lockAt" (the reference's ADMIT_UNTIL_LOCK)
+    closeAdmissionSec : Int
+      -- ^ close deadline = expiry + this
+  deriving (Eq, Show)
+
+policyVersionOk : PolicyVersion -> Bool
+policyVersionOk p =
+  p.version >= 0 && p.minDelaySec >= 0 && p.barLenSec > 0
+    && p.closeAdmissionSec >= 0 && p.printSource /= ""
+
+-- ---------------------------------------------------------------------------
+-- The integer money grid
+
+pairTicks : Int
+pairTicks = 1000
+
+-- | `ensure` bound on `lots * cashUnit`. With it, `quantity = lots * 1000 *
+-- cashUnit <= 10^15` and `quantity * maxFeeBps <= 2.5 * 10^18`, inside
+-- Int64 (9.2 * 10^18). (A sum over legs all at the maximum size overflows
+-- past about 9,000 of them.) Daml aborts on overflow, so the bound is
+-- checked by division, never by multiplying first.
+maxLotCash : Int
+maxLotCash = 1000000000000
+
+-- | The ledger's upper bound on a quote's fee, in basis points of the pair's
+-- quantity. The pricer computes the exact fee
+-- ceil(quantity * rateBps * t * (1000 - t) / 10^10); the ledger only bounds it.
+-- At t = 500 and rateBps = 10000 that formula gives 25% of quantity, so 2500
+-- bps admits every rate up to 100%.
+maxFeeBps : Int
+maxFeeBps = 2500
+
+gridOk : Int -> Int -> Bool
+gridOk lots cashUnit = lots > 0 && cashUnit > 0 && lots <= maxLotCash / cashUnit
+
+ticksOk : Int -> Bool
+ticksOk t = t >= 1 && t <= 999
+
+userStakeOf : Int -> Int -> Int -> Int
+userStakeOf lots ticks cashUnit = lots * ticks * cashUnit
+
+venueStakeOf : Int -> Int -> Int -> Int
+venueStakeOf lots ticks cashUnit = lots * (pairTicks - ticks) * cashUnit
+
+quantityOf : Int -> Int -> Int
+quantityOf lots cashUnit = lots * pairTicks * cashUnit
+
+feeOk : Int -> Int -> Int -> Bool
+feeOk lots cashUnit fee =
+  -- fee <= floor(q * bps / 10000) is fee * 10000 <= q * bps for integers,
+  -- without multiplying the unbounded `fee` first. Call only after gridOk.
+  fee >= 0 && fee <= quantityOf lots cashUnit * maxFeeBps / 10000
+
+-- ---------------------------------------------------------------------------
+-- Refusals with stable ids (Noders returns only a trace id on errors, so the
+-- user-facing reason travels in the status id).
+
+refusalPrefix : Text
+refusalPrefix = "abu-pm/"
+
+refuse : ActionFailWithStatus m => Text -> Text -> m a
+refuse code msg =
+  failWithStatus (FailureStatus (refusalPrefix <> code) InvalidGivenCurrentSystemStateOther msg TextMap.empty)
+
+require : ActionFailWithStatus m => Text -> Text -> Bool -> m ()
+require code msg ok = if ok then pure () else refuse code msg

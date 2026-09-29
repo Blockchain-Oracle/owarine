@@ -1,0 +1,104 @@
+-- | Agent grants: an owner lets an agent trade within caps. The grant embeds
+-- its budget (moved out of the owner's cash when it opens), so a grant never
+-- exists without it; revoke returns whatever is left, expired or not.
+--
+-- Caps follow the reference's delegated-buy checks (caps.vectors.json):
+-- per-trade charge, daily spend, a price cap on the side bought (0 = off),
+-- and the budget. The reference's `maxOpenPositions` is not enforced here
+-- (see the lane report).
+module PM.Grant where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Time (addRelTime, days, seconds)
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Types
+
+data GrantCaps = GrantCaps
+  with
+    maxStakePerTrade : Int
+    maxDailySpend : Int
+    maxPriceTicks : Int
+  deriving (Eq, Show)
+
+-- | The venue's standing offer to open grants for one owner. The owner opens
+-- a grant from their own cash; the venue's signature here supplies the
+-- venue half of the authority the new grant needs.
+template GrantOffer
+  with
+    venue : Party
+    owner : Party
+  where
+    signatory venue
+    observer owner
+
+    nonconsuming choice GrantOffer_Open : ContractId AgentGrant
+      with
+        agent : Party
+        caps : GrantCaps
+        expiresAt : Time
+        dayZero : Time
+        budget : Int
+        cash : [ContractId VenueCash]
+      controller owner
+      do
+        total <- sumOwnedCash venue owner cash
+        require "insufficient-cash" "cash does not cover the budget" (total >= budget)
+        _ <- payIfPositive venue owner (total - budget) "change"
+        create AgentGrant with
+          venue; owner; agent; caps; budget; expiresAt; dayZero; day = 0; spentToday = 0
+
+template AgentGrant
+  with
+    venue : Party
+    owner : Party
+    agent : Party
+    caps : GrantCaps
+    budget : Int
+    expiresAt : Time
+    dayZero : Time
+      -- ^ start of day 0; day d is [dayZero + d days, dayZero + (d+1) days)
+    day : Int
+    spentToday : Int
+  where
+    signatory owner, venue
+    observer agent
+    ensure budget >= 0 && day >= 0 && spentToday >= 0
+      && caps.maxStakePerTrade > 0 && caps.maxDailySpend > 0
+      && caps.maxPriceTicks >= 0 && caps.maxPriceTicks <= 999
+      && agent /= owner && agent /= venue
+
+    -- The agent accepts one of the owner's quotes. `today` is supplied by
+    -- the agent and pinned by ledger-time assertions, so no getTime.
+    choice Grant_AcceptQuote : (ContractId AgentGrant, ContractId Leg)
+      with
+        quoteCid : ContractId Quote
+        today : Int
+      controller agent
+      do
+        -- the reference refuses only when now > expiresAt, so admit at it
+        assertWithinDeadline "grant-expiry" (addRelTime expiresAt (seconds 1))
+        let dayStart = addRelTime dayZero (days today)
+        assertDeadlineExceeded "grant-day-start" dayStart
+        assertWithinDeadline "grant-day-end" (addRelTime dayStart (days 1))
+        require "stale-day" "day cannot go backwards" (today >= day)
+        q <- fetch quoteCid
+        require "wrong-quote" "quote is not for this grant's owner" (q.user == owner && q.venue == venue)
+        let charge = userStakeOf q.lots q.priceTicks q.cashUnit + q.fee
+            spent = if today > day then 0 else spentToday
+        -- the reference's order (caps.ts): price, budget, per-trade, daily
+        require "over-price-cap" "price exceeds the grant's price cap"
+          (caps.maxPriceTicks == 0 || q.priceTicks <= caps.maxPriceTicks)
+        require "insufficient-budget" "grant budget does not cover the charge" (charge <= budget)
+        require "over-stake-cap" "charge exceeds the per-trade cap" (charge <= caps.maxStakePerTrade)
+        require "over-daily-cap" "charge exceeds today's remaining spend" (spent + charge <= caps.maxDailySpend)
+        fund <- create VenueCash with venue; owner; amount = charge; bucket = "grant"
+        (leg, _venueLeg, _change) <- exercise quoteCid Quote_Accept with
+          cash = [fund]; beneficiaryRef = Some "grant"
+        g <- create this with budget = budget - charge; day = today; spentToday = spent + charge
+        pure (g, leg)
+
+    choice Grant_Revoke : Optional (ContractId VenueCash)
+      controller owner
+      do payIfPositive venue owner budget "grant-return"

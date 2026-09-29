@@ -1,0 +1,23 @@
+-- | Opt-in publication of a position. Leaderboards, takes and activity come
+-- only from these, never from the venue's private view. Created through
+-- `Leg_Publish`, so its figures are the ledger's, not the user's say-so.
+module PM.Publication where
+
+import PM.Types
+
+template Publication
+  with
+    venue : Party
+    owner : Party
+    handle : Text
+    marketId : Text
+    pairId : Text
+    outcome : Side
+    lots : Int
+    backingShare : Int
+  where
+    signatory venue, owner
+
+    choice Publication_Retract : ()
+      controller owner
+      do pure ()

@@ -1,0 +1,101 @@
+-- | Venue cash and the user's account relationship.
+--
+-- `VenueCash` is signed by venue AND owner, so neither can conjure or seize
+-- it alone. Venue shards are VenueCash with owner = venue. On DevNet the
+-- venue can mint its own shards, so "fully backed" is enforced by the ledger
+-- per pair only; overall solvency is a reserve claim the auditor checks.
+module PM.Money where
+
+import DA.List (unique)
+import PM.Types
+
+template VenueCash
+  with
+    venue : Party
+    owner : Party
+    amount : Int
+    bucket : Text
+  where
+    signatory venue, owner
+    ensure amount > 0
+
+    -- Split off `take`; the rest comes back as change.
+    choice VenueCash_Split : (ContractId VenueCash, Optional (ContractId VenueCash))
+      with
+        take : Int
+      controller owner
+      do
+        require "bad-amount" "split amount must be in (0, amount]" (take > 0 && take <= amount)
+        part <- create this with amount = take
+        change <- payIfPositive venue owner (amount - take) bucket
+        pure (part, change)
+
+    choice VenueCash_Merge : ContractId VenueCash
+      with
+        others : [ContractId VenueCash]
+      controller owner
+      do
+        total <- sumOwnedCash venue owner others
+        create this with amount = amount + total
+
+    -- Withdrawal off the venue (the demo faucet's reverse). Counted in the
+    -- conservation law as a withdrawal.
+    choice VenueCash_Withdraw : ()
+      controller owner
+      do pure ()
+
+-- | Fetch, check and archive cash contracts; returns their total.
+sumOwnedCash : Party -> Party -> [ContractId VenueCash] -> Update Int
+sumOwnedCash venue owner cids = do
+  require "duplicate-cash" "the same cash contract was passed twice" (unique cids)
+  amounts <- forA cids \c -> do
+    x <- fetch c
+    require "foreign-cash" "cash belongs to another owner or venue" (x.owner == owner && x.venue == venue)
+    archive c
+    pure x.amount
+  pure (sum amounts)
+
+payIfPositive : Party -> Party -> Int -> Text -> Update (Optional (ContractId VenueCash))
+payIfPositive venue owner amount bucket =
+  if amount > 0 then Some <$> create VenueCash with venue; owner; amount; bucket
+  else pure None
+
+-- | The bilateral account. Holding it is the user's standing consent for the
+-- venue to credit (never debit) demo cash into their name.
+template VenueAccount
+  with
+    venue : Party
+    owner : Party
+    label : Text
+  where
+    signatory venue, owner
+
+    nonconsuming choice VenueAccount_Credit : ContractId VenueCash
+      with
+        amount : Int
+        bucket : Text
+      controller venue
+      do
+        require "bad-amount" "credit must be positive" (amount > 0)
+        create VenueCash with venue; owner; amount; bucket
+
+    choice VenueAccount_Close : ()
+      controller owner
+      do pure ()
+
+template VenueAccountInvite
+  with
+    venue : Party
+    owner : Party
+    label : Text
+  where
+    signatory venue
+    observer owner
+
+    choice Invite_Accept : ContractId VenueAccount
+      controller owner
+      do create VenueAccount with venue; owner; label
+
+    choice Invite_Withdraw : ()
+      controller venue
+      do pure ()

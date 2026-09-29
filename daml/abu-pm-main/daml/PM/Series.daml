@@ -1,0 +1,106 @@
+-- | A cadence lane (e.g. BTC every 300 s). Only the roller touches it, so
+-- users never contend on it. Window creation goes through the consuming
+-- `Series_OpenWindow`, which checks `nextIndex`: a crash-retry of the same
+-- command hits an archived contract, and a retry against the new Series
+-- fails the index check, so a Window can never be created twice (the
+-- reference's BadWindowIndex).
+module PM.Series where
+
+import DA.List (unique, last)
+import DA.Time (addRelTime, seconds)
+import PM.Market
+import PM.Types
+
+template Series
+  with
+    venue : Party
+    resolver : Party
+    auditor : Party
+    seriesKey : Text
+    symbol : Text
+    anchor : Time
+      -- ^ trading start of window 0; window i starts at anchor + i * cadence
+    cadenceSec : Int
+    lockLeadSec : Int
+      -- ^ lockAt = expiry - lockLeadSec
+    settleGraceSec : Int
+      -- ^ refundAfter = closeDeadline + settleGraceSec
+    cashUnit : Int
+    nextIndex : Int
+    oracles : [Party]
+    quorum : Int
+    maxDeviationBps : Int
+    policyVersions : [PolicyVersion]
+      -- ^ append-only, strictly increasing in version and effectiveFrom
+  where
+    signatory venue
+    observer resolver, auditor
+    ensure cadenceSec > 0 && lockLeadSec >= 0 && lockLeadSec < cadenceSec
+      && settleGraceSec > 0 && cashUnit > 0 && nextIndex >= 0
+      && quorum >= 1 && quorum <= length oracles && unique oracles
+      && maxDeviationBps >= 0
+      && not (null policyVersions) && all policyVersionOk policyVersions
+      && increasing policyVersions
+
+    choice Series_OpenWindow : (ContractId Series, ContractId MarketTerms, ContractId WindowState)
+      with
+        index : Int
+      controller venue
+      do
+        require "bad-window-index" "window index is not the series' next index" (index == nextIndex)
+        let tradingStart = addRelTime anchor (seconds (index * cadenceSec))
+            expiry = addRelTime tradingStart (seconds cadenceSec)
+            lockAt = addRelTime expiry (seconds (negate lockLeadSec))
+        pv <- case covering tradingStart policyVersions of
+          Some v -> pure v
+          None -> refuse "no-policy" "no price-policy version covers this window"
+        let openDeadline = if pv.openAdmissionSec < 0 then lockAt
+                           else addRelTime tradingStart (seconds pv.openAdmissionSec)
+            closeDeadline = addRelTime expiry (seconds pv.closeAdmissionSec)
+            refundAfter = addRelTime closeDeadline (seconds settleGraceSec)
+        termsCid <- create MarketTerms with
+          venue; resolver; seriesKey; marketId = seriesKey <> ":" <> show index
+          index; symbol; cashUnit; tradingStart; lockAt; expiry
+          openDeadline; closeDeadline; refundAfter
+          policyVersion = pv.version; printSource = pv.printSource
+          minDelaySec = pv.minDelaySec; barLenSec = pv.barLenSec; tieUp = True
+          oracles; quorum; maxDeviationBps
+        stateCid <- create WindowState with venue; resolver; termsCid
+        next <- create this with nextIndex = index + 1
+        pure (next, termsCid, stateCid)
+
+    -- The roller skips windows (halts, closed sessions) by moving the index
+    -- forward. It can never move backwards.
+    choice Series_SkipTo : ContractId Series
+      with
+        toIndex : Int
+      controller venue
+      do
+        require "bad-window-index" "can only skip forward" (toIndex > nextIndex)
+        create this with nextIndex = toIndex
+
+    -- Append-only. A new version may not take effect before the next
+    -- unopened window, so an already-listed window's policy never changes.
+    choice Series_AddPolicyVersion : ContractId Series
+      with
+        pv : PolicyVersion
+      controller venue
+      do
+        let prev = last policyVersions
+            nextStart = addRelTime anchor (seconds (nextIndex * cadenceSec))
+        require "bad-policy" "version must be the next number" (pv.version == prev.version + 1)
+        require "bad-policy" "must take effect after the previous version" (pv.effectiveFrom > prev.effectiveFrom)
+        require "bad-policy" "cannot cover an already-opened window" (pv.effectiveFrom >= nextStart)
+        require "bad-policy" "invalid policy fields" (policyVersionOk pv)
+        create this with policyVersions = policyVersions ++ [pv]
+
+increasing : [PolicyVersion] -> Bool
+increasing (a :: b :: rest) = a.version < b.version && a.effectiveFrom < b.effectiveFrom && increasing (b :: rest)
+increasing _ = True
+
+-- | The highest version whose effectiveFrom is at or before the window start.
+covering : Time -> [PolicyVersion] -> Optional PolicyVersion
+covering t vs = case filter (\v -> v.effectiveFrom <= t) vs of
+  [] -> None
+  ok -> Some (last ok)
+

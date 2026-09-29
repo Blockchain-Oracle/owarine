@@ -1,0 +1,111 @@
+-- | Visibility: an outsider sees nothing of any template, and each user
+-- sees only their own quotes, legs, cash, grants and publications.
+module Test.Privacy where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Grant
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Oracle
+import PM.Publication
+import PM.Quote
+import PM.Series
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- Count every template's contracts visible to one party.
+visibleCounts : Party -> Script [(Text, Int)]
+visibleCounts p = do
+  a <- length <$> query @Series p
+  b <- length <$> query @MarketTerms p
+  c <- length <$> query @WindowState p
+  d <- length <$> query @OpenPrint p
+  e <- length <$> query @Resolution p
+  f <- length <$> query @PriceQuote p
+  g <- length <$> query @VenueCash p
+  h <- length <$> query @VenueAccount p
+  i <- length <$> query @VenueDesk p
+  j <- length <$> query @Quote p
+  k <- length <$> query @BuyQuote p
+  l <- length <$> query @Leg p
+  m <- length <$> query @NettedResidual p
+  n <- length <$> query @Publication p
+  o <- length <$> query @AgentGrant p
+  q <- length <$> query @GrantOffer p
+  pure [ ("Series", a), ("MarketTerms", b), ("WindowState", c), ("OpenPrint", d)
+       , ("Resolution", e), ("PriceQuote", f), ("VenueCash", g), ("VenueAccount", h)
+       , ("VenueDesk", i), ("Quote", j), ("BuyQuote", k), ("Leg", l)
+       , ("NettedResidual", m), ("Publication", n), ("AgentGrant", o), ("GrantOffer", q) ]
+
+-- A populated market with every template in play.
+populated : Script (World, ContractId Resolution)
+populated = do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, win) <- openWin w s 0
+  (_, _) <- openWin w s1 1
+  op <- recordOpen w win px
+  inv <- submit w.venue do createCmd VenueAccountInvite with venue = w.venue; owner = w.alice; label = "a"
+  _ <- submit w.alice do exerciseCmd inv Invite_Accept
+  (ua, va) <- trade w win w.alice SideUp 620 1 5 "p1"
+  (_, vb) <- trade w win w.bob SideDown 400 1 5 "p2"
+  _ <- submit w.venue do exerciseCmd va Leg_Merge with otherCid = vb
+  _ <- submit w.alice do exerciseCmd ua Leg_Publish with handle = "alice"
+  now <- getTime
+  _ <- issue w win w.bob SideUp 300 1 0 (plus now 20) "p3"
+  sh <- shard w 1000
+  _ <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = ua; priceTicks = 600; validUntil = plus now 20
+  offer <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.bob
+  gc <- fund w w.bob 900
+  _ <- submit w.bob do
+    exerciseCmd offer GrantOffer_Open with
+      agent = w.auditor; caps = GrantCaps with maxStakePerTrade = 500; maxDailySpend = 500; maxPriceTicks = 0
+      expiresAt = plus t0 86400; dayZero = t0; budget = 900; cash = [gc]
+  res <- resolveAt w win op px
+  pure (w, res)
+
+testOutsiderSeesNothing = script do
+  (w, _) <- populated
+  counts <- visibleCounts w.outsider
+  debug counts
+  [(name, n) | (name, n) <- counts, n /= 0] === []
+
+testUserSeesOnlyOwn = script do
+  (w, _) <- populated
+  -- Alice: her leg, her publication, her account, her buy quote; no terms,
+  -- no resolution, no venue legs, nothing of Bob's.
+  aliceCounts <- visibleCounts w.alice
+  debug aliceCounts
+  lookup "MarketTerms" aliceCounts === Some 0
+  lookup "Resolution" aliceCounts === Some 0
+  lookup "PriceQuote" aliceCounts === Some 0
+  lookup "Series" aliceCounts === Some 0
+  lookup "NettedResidual" aliceCounts === Some 0
+  lookup "AgentGrant" aliceCounts === Some 0
+  lookup "GrantOffer" aliceCounts === Some 0
+  lookup "Quote" aliceCounts === Some 0              -- Bob's open quote is invisible
+  lookup "BuyQuote" aliceCounts === Some 1
+  lookup "Publication" aliceCounts === Some 1
+  lookup "VenueAccount" aliceCounts === Some 1
+  legs <- query @Leg w.alice
+  map (\(_, l) -> l.owner) legs === [w.alice]
+  cash <- query @VenueCash w.alice
+  all (\(_, c) -> c.owner == w.alice) cash === True
+  -- Bob: his leg, his open quote, his grant and offer; nothing of Alice's.
+  bobLegs <- query @Leg w.bob
+  map (\(_, l) -> l.owner) bobLegs === [w.bob]
+  bobQuotes <- query @Quote w.bob
+  map (\(_, q) -> q.user) bobQuotes === [w.bob]
+  bobCounts <- visibleCounts w.bob
+  lookup "Publication" bobCounts === Some 0
+  lookup "BuyQuote" bobCounts === Some 0
+  lookup "VenueAccount" bobCounts === Some 0
+  lookup "AgentGrant" bobCounts === Some 1
+  bobCash <- query @VenueCash w.bob
+  all (\(_, c) -> c.owner == w.bob) bobCash === True

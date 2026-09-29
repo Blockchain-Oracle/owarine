@@ -1,0 +1,193 @@
+-- | Firm per-user quotes and the venue's issuing desk.
+--
+-- The venue issues a `Quote` from one of its cash shards, locking the
+-- venue's stake inside the quote. The user alone accepts it (single
+-- controller, the Grofty-compatible path); the accept fetches nothing
+-- shared, only the user's own cash, and asserts the deadline with
+-- `assertWithinDeadline` (never getTime, which dies on slow approvals).
+--
+-- `priceTicks` is the price of the USER's side, so
+--   userStake = lots * priceTicks * cashUnit          (paid by the user)
+--   venueStake = lots * (1000 - priceTicks) * cashUnit (locked by the venue)
+module PM.Quote where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Time (addRelTime, seconds)
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Types
+
+-- | Slack after `validUntil` before the venue may sweep a quote; between
+-- validUntil and validUntil + 5 s neither accept nor expire can run.
+expireSlackSec : Int
+expireSlackSec = 5
+
+-- | The venue's issuing desk. Issuance is a nonconsuming choice here (not
+-- on VenueCash itself) because Daml forbids import cycles: the choice
+-- creates a Quote, and Quote_Accept must consume VenueCash. Nonconsuming
+-- exercises of one desk never contend; the shard passed in is consumed.
+template VenueDesk
+  with
+    venue : Party
+  where
+    signatory venue
+
+    nonconsuming choice Desk_IssueQuote : (ContractId Quote, Optional (ContractId VenueCash))
+      with
+        shardCid : ContractId VenueCash
+        user : Party
+        termsCid : ContractId MarketTerms
+        pairId : Text
+        side : Side
+        priceTicks : Int
+        lots : Int
+        fee : Int
+        validUntil : Time
+      controller venue
+      do
+        terms <- fetch termsCid
+        require "wrong-venue" "terms belong to another venue" (terms.venue == venue)
+        require "bad-grid" "ticks must be 1..999 and lots within the grid"
+          (ticksOk priceTicks && gridOk lots terms.cashUnit)
+        change <- lockFromShard venue shardCid (venueStakeOf lots priceTicks terms.cashUnit)
+        q <- create Quote with
+          venue; user; termsCid; marketId = terms.marketId; pairId; side; priceTicks; lots
+          cashUnit = terms.cashUnit; fee; validUntil; lockAt = terms.lockAt
+          refundAfter = terms.refundAfter
+        pure (q, change)
+
+    nonconsuming choice Desk_IssueBuyQuote : (ContractId BuyQuote, Optional (ContractId VenueCash))
+      with
+        shardCid : ContractId VenueCash
+        legCid : ContractId Leg
+        priceTicks : Int
+        validUntil : Time
+      controller venue
+      do
+        leg <- fetch legCid
+        require "wrong-venue" "leg belongs to another venue" (leg.venue == venue && leg.owner /= venue)
+        require "bad-grid" "ticks must be 1..999" (ticksOk priceTicks)
+        let locked = userStakeOf leg.lots priceTicks leg.cashUnit
+        change <- lockFromShard venue shardCid locked
+        bq <- create BuyQuote with
+          venue; user = leg.owner; legCid; termsCid = leg.termsCid; pairId = leg.pairId
+          outcome = leg.outcome; lots = leg.lots; cashUnit = leg.cashUnit; priceTicks
+          locked; validUntil
+        pure (bq, change)
+
+lockFromShard : Party -> ContractId VenueCash -> Int -> Update (Optional (ContractId VenueCash))
+lockFromShard venue shardCid stake = do
+  shard <- fetch shardCid
+  require "bad-shard" "shard must be the venue's own" (shard.owner == venue && shard.venue == venue)
+  require "shard-too-small" "shard does not cover the venue stake" (shard.amount >= stake)
+  archive shardCid
+  payIfPositive venue venue (shard.amount - stake) shard.bucket
+
+template Quote
+  with
+    venue : Party
+    user : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    pairId : Text
+    side : Side
+    priceTicks : Int
+    lots : Int
+    cashUnit : Int
+    fee : Int
+    validUntil : Time
+    lockAt : Time
+    refundAfter : Time
+  where
+    signatory venue
+    observer user
+    ensure ticksOk priceTicks && gridOk lots cashUnit && feeOk lots cashUnit fee
+      && validUntil <= lockAt && lockAt < refundAfter && user /= venue
+
+    choice Quote_Accept : (ContractId Leg, ContractId Leg, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+        beneficiaryRef : Optional Text
+      controller user
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        total <- sumOwnedCash venue user cash
+        let cost = userStakeOf lots priceTicks cashUnit + fee
+        require "insufficient-cash" "cash does not cover stake plus fee" (total >= cost)
+        change <- payIfPositive venue user (total - cost) "change"
+        userLeg <- create Leg with
+          venue; owner = user; termsCid; marketId; pairId; outcome = side; lots; cashUnit
+          backingShare = userStakeOf lots priceTicks cashUnit; feePaid = fee
+          refundAfter; beneficiaryRef
+        venueLeg <- create Leg with
+          venue; owner = venue; termsCid; marketId; pairId; outcome = opposite side; lots; cashUnit
+          backingShare = venueStakeOf lots priceTicks cashUnit; feePaid = 0
+          refundAfter; beneficiaryRef = None
+        pure (userLeg, venueLeg, change)
+
+    choice Quote_Expire : ContractId VenueCash
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        create VenueCash with venue; owner = venue; amount = venueStakeOf lots priceTicks cashUnit; bucket = "shard"
+
+    choice Quote_Withdraw : ContractId VenueCash
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        create VenueCash with venue; owner = venue; amount = venueStakeOf lots priceTicks cashUnit; bucket = "shard"
+
+-- | The venue's firm offer to buy a user's leg back at `priceTicks` of the
+-- leg's side. On accept the user is paid `locked`, the fee escrowed in the
+-- leg is recognised (the user's trade closed at a price they accepted, so
+-- no void refund is owed to them), and the leg passes to the venue with its
+-- backing share, where it can be netted against the pair's other half.
+template BuyQuote
+  with
+    venue : Party
+    user : Party
+    legCid : ContractId Leg
+    termsCid : ContractId MarketTerms
+    pairId : Text
+    outcome : Side
+    lots : Int
+    cashUnit : Int
+    priceTicks : Int
+    locked : Int
+    validUntil : Time
+  where
+    signatory venue
+    observer user
+    ensure ticksOk priceTicks && gridOk lots cashUnit
+      && locked == userStakeOf lots priceTicks cashUnit && user /= venue
+
+    choice BuyQuote_Accept : (ContractId VenueCash, ContractId Leg, Optional (ContractId VenueCash))
+      controller user
+      do
+        assertWithinDeadline "quote-valid-until" validUntil
+        leg <- fetch legCid
+        require "leg-mismatch" "the leg changed since the quote"
+          (leg.owner == user && leg.venue == venue && leg.termsCid == termsCid
+            && leg.pairId == pairId && leg.outcome == outcome && leg.lots == lots)
+        archive legCid
+        paid <- create VenueCash with venue; owner = user; amount = locked; bucket = "sale"
+        venueLeg <- create leg with owner = venue; feePaid = 0; beneficiaryRef = None
+        feeCash <- payIfPositive venue venue leg.feePaid "fee"
+        pure (paid, venueLeg, feeCash)
+
+    choice BuyQuote_Expire : ContractId VenueCash
+      controller venue
+      do
+        assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
+        create VenueCash with venue; owner = venue; amount = locked; bucket = "shard"
+
+    choice BuyQuote_Withdraw : ContractId VenueCash
+      with
+        reason : Text
+      controller venue
+      do
+        require "no-reason" "a withdrawal names its reason" (reason /= "")
+        create VenueCash with venue; owner = venue; amount = locked; bucket = "shard"

@@ -1,0 +1,159 @@
+-- | Positions. Every accept creates one pair: the user's `Leg` and the
+-- venue's opposite `Leg`, with backing shares summing to the pair's quantity
+-- (`lots * 1000 * cashUnit`). The fee is escrowed in the user's leg
+-- (`feePaid`) and becomes venue revenue only at a non-void settle; a void
+-- returns `backingShare + feePaid`.
+--
+-- Payout of a leg against a Resolution of its own terms:
+--   void          owner gets backingShare + feePaid
+--   won           owner gets quantity,  venue gets feePaid
+--   lost          owner gets 0,         venue gets feePaid
+-- Summed over a pair this pays out exactly the pair's backing plus fees.
+module PM.Leg where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import PM.Market
+import PM.Money
+import PM.Publication
+import PM.Types
+
+template Leg
+  with
+    venue : Party
+    owner : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    pairId : Text
+    outcome : Side
+    lots : Int
+    cashUnit : Int
+    backingShare : Int
+    feePaid : Int
+    refundAfter : Time
+    beneficiaryRef : Optional Text
+  where
+    signatory venue, owner
+    ensure gridOk lots cashUnit && backingShare >= 0
+      && backingShare <= quantityOf lots cashUnit && feePaid >= 0
+
+    -- Venue settlement. Deadline-bound so that at `refundAfter` exactly one
+    -- of settle (strictly before) and stale refund (at or after) can run.
+    choice Leg_Settle : (Optional (ContractId VenueCash), Optional (ContractId VenueCash))
+      with
+        resolutionCid : ContractId Resolution
+      controller venue
+      do
+        assertWithinDeadline "refund-after" refundAfter
+        payOut this resolutionCid
+
+    -- The owner's own exit once the market has an outcome. The Resolution is
+    -- not the owner's contract: at runtime it arrives as a disclosed
+    -- contract (createdEventBlob).
+    choice Leg_Claim : (Optional (ContractId VenueCash), Optional (ContractId VenueCash))
+      with
+        resolutionCid : ContractId Resolution
+      controller owner
+      do payOut this resolutionCid
+
+    -- The real escape: after `refundAfter` the owner takes back backing plus
+    -- fee without touching any other contract (no terms, no resolution).
+    choice Leg_RefundStale : Optional (ContractId VenueCash)
+      controller owner
+      do
+        assertDeadlineExceeded "refund-after" refundAfter
+        payIfPositive venue owner (backingShare + feePaid) "refund"
+
+    -- Net two venue-held legs of opposite outcome in one market. Releases
+    -- min(shareA + shareB, quantity) now; a pair (shares summing to the
+    -- quantity) nets fully, a cross-pair merge leaves a `NettedResidual` for
+    -- what is still owed at resolution or void. Fees on either leg release
+    -- with it (venue legs carry none unless bought back).
+    choice Leg_Merge : (Optional (ContractId VenueCash), Optional (ContractId NettedResidual))
+      with
+        otherCid : ContractId Leg
+      controller venue
+      do
+        require "not-venue-leg" "only venue-held legs merge" (owner == venue)
+        o <- fetch otherCid
+        require "merge-mismatch" "legs must be the venue's, same market and size, opposite outcomes"
+          (o.owner == venue && o.venue == venue && o.termsCid == termsCid
+            && o.outcome /= outcome && o.lots == lots && o.cashUnit == cashUnit)
+        archive otherCid
+        let q = quantityOf lots cashUnit
+            shares = backingShare + o.backingShare
+            release = min shares q
+        cash <- payIfPositive venue venue (release + feePaid + o.feePaid) "netting"
+        residual <- if shares /= q
+          then Some <$> create NettedResidual with
+            venue; termsCid; marketId; pairA = pairId; pairB = o.pairId
+            heldIfVoid = shares - release; owedIfResolved = q - release
+          else pure None
+        pure (cash, residual)
+
+    -- Two-controller close-out at cost (seat drain): the owner gets
+    -- backingShare + feePaid from the leg's own escrow, and the venue re-backs
+    -- the position from one of its shards, taking it over. The pair stays
+    -- whole, so the venue's opposite leg still has its counterpart.
+    choice Leg_CloseOut : (Optional (ContractId VenueCash), ContractId Leg, Optional (ContractId VenueCash))
+      with
+        shardCid : ContractId VenueCash
+      controller venue, owner
+      do
+        require "not-user-leg" "only a user's leg closes out" (owner /= venue)
+        shard <- fetch shardCid
+        require "bad-shard" "shard must be the venue's own and cover the backing"
+          (shard.owner == venue && shard.venue == venue && shard.amount >= backingShare)
+        archive shardCid
+        paid <- payIfPositive venue owner (backingShare + feePaid) "close-out"
+        leg <- create this with owner = venue; feePaid = 0; beneficiaryRef = None
+        change <- payIfPositive venue venue (shard.amount - backingShare) shard.bucket
+        pure (paid, leg, change)
+
+    nonconsuming choice Leg_Publish : ContractId Publication
+      with
+        handle : Text
+      controller owner
+      do create Publication with venue; owner; handle; marketId; pairId; outcome; lots; backingShare
+
+-- | What a cross-pair merge still owes the venue: `owedIfResolved` if the
+-- market resolves, `heldIfVoid` if it voids. Both are non-negative.
+template NettedResidual
+  with
+    venue : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    pairA : Text
+    pairB : Text
+    heldIfVoid : Int
+    owedIfResolved : Int
+  where
+    signatory venue
+    ensure heldIfVoid >= 0 && owedIfResolved >= 0
+
+    choice Residual_Settle : Optional (ContractId VenueCash)
+      with
+        resolutionCid : ContractId Resolution
+      controller venue
+      do
+        r <- fetchResolutionFor venue termsCid resolutionCid
+        payIfPositive venue venue (if isVoid r then heldIfVoid else owedIfResolved) "netting"
+
+fetchResolutionFor : Party -> ContractId MarketTerms -> ContractId Resolution -> Update Resolution
+fetchResolutionFor venue termsCid resolutionCid = do
+  r <- fetch resolutionCid
+  require "wrong-resolution" "resolution is for other terms" (r.termsCid == termsCid && r.venue == venue)
+  pure r
+
+-- | (owner's payout, venue's fee) for a leg under a resolution.
+legPayout : Leg -> Resolution -> (Int, Int)
+legPayout l r = case r.outcome of
+  None -> (l.backingShare + l.feePaid, 0)
+  Some w -> (if w == l.outcome then quantityOf l.lots l.cashUnit else 0, l.feePaid)
+
+payOut : Leg -> ContractId Resolution -> Update (Optional (ContractId VenueCash), Optional (ContractId VenueCash))
+payOut l resolutionCid = do
+  r <- fetchResolutionFor l.venue l.termsCid resolutionCid
+  let (toOwner, fee) = legPayout l r
+  paid <- payIfPositive l.venue l.owner toOwner "payout"
+  feeCash <- payIfPositive l.venue l.venue fee "fee"
+  pure (paid, feeCash)

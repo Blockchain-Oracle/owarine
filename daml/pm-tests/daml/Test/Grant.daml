@@ -1,0 +1,109 @@
+-- | Agent grants: caps from the reference's caps.vectors.json (per-trade
+-- charge, daily spend, price cap, budget), expiry at T-1/T, day rollover,
+-- revoke returning the budget (also after expiry), and the agent's limits.
+module Test.Grant where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Grant
+import PM.Leg
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+data G = G with
+  w : World
+  win : Win
+  agent : Party
+  grant : ContractId AgentGrant
+
+-- Budget 2000, per-trade 700, daily 1000, price cap 650 ticks, expires at
+-- t0 + 2 days; day 0 starts at t0. The market is a 3-day window so quotes
+-- stay issuable across the day rollover.
+grantSetup : Script G
+grantSetup = do
+  w <- mkWorld
+  s <- submit w.venue do
+    createCmd (seriesFor w) with seriesKey = "BTC-3d"; cadenceSec = 3 * 86400
+  (_, win) <- openWin w s 0
+  _ <- recordOpen w win px
+  agent <- allocateParty "agent"
+  offer <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.alice
+  c <- fund w w.alice 2500
+  grant <- submit w.alice do
+    exerciseCmd offer GrantOffer_Open with
+      agent; caps = GrantCaps with maxStakePerTrade = 700; maxDailySpend = 1000; maxPriceTicks = 650
+      expiresAt = plus t0 (2 * 86400); dayZero = t0; budget = 2000; cash = [c]
+  cashOf w.alice >>= (=== 500)
+  pure G with ..
+
+-- Issue a quote to Alice and have the agent accept it under the grant.
+agentBuys : G -> ContractId AgentGrant -> Int -> Int -> Int -> Int -> Script (Either SubmitError (ContractId AgentGrant, ContractId Leg))
+agentBuys g grant ticks lots fee today = do
+  now <- getTime
+  q <- issue g.w g.win g.w.alice SideUp ticks lots fee (plus now 20) "g"
+  d <- disclosureOf g.w.venue q
+  trySubmit (actAs g.agent <> disclose d) do
+    exerciseCmd grant Grant_AcceptQuote with quoteCid = q; today
+
+budgetOf : G -> ContractId AgentGrant -> Script Int
+budgetOf g cid = do
+  Some x <- queryContractId g.w.alice cid
+  pure x.budget
+
+testGrantCaps = script do
+  g <- grantSetup
+  -- in-cap: 600 ticks * 1 lot + fee 10 = 610
+  (g1, leg) <- succeeded =<< agentBuys g g.grant 600 1 10 0
+  budgetOf g g1 >>= (=== 1390)
+  Some l <- queryContractId g.w.alice leg
+  l.owner === g.w.alice
+  l.beneficiaryRef === Some "grant"
+  -- per-trade cap counts the actual charge (700 + fee 1 > 700)
+  refusedWith (refusal "over-stake-cap") =<< agentBuys g g1 350 2 1 0
+  -- price cap on the side bought
+  refusedWith (refusal "over-price-cap") =<< agentBuys g g1 651 1 0 0
+  -- daily cap counts today's earlier spend: 610 + 400 > 1000
+  refusedWith (refusal "over-daily-cap") =<< agentBuys g g1 400 1 0 0
+  (g2, _) <- succeeded =<< agentBuys g g1 390 1 0 0     -- exactly 1000 today
+  budgetOf g g2 >>= (=== 1000)
+  -- next day the daily counter resets
+  at (plus t0 86400)
+  (g3, _) <- succeeded =<< agentBuys g g2 600 1 0 1
+  budgetOf g g3 >>= (=== 400)
+  -- budget must cover the charge
+  refusedWith (refusal "insufficient-budget") =<< agentBuys g g3 500 1 0 1
+  -- the day cannot be claimed early or go backwards
+  refusedWith deadlineNotExceeded =<< agentBuys g g3 100 1 0 2
+  -- yesterday's window is closed
+  refusedWith deadlineExceeded =<< agentBuys g g3 100 1 0 0
+
+-- Expiry: admitted at T (the reference refuses only when now > expiresAt),
+-- refused at T + 1 s; revoke still returns the budget.
+testGrantExpiryAndRevoke = script do
+  g <- grantSetup
+  let expiry = plus t0 (2 * 86400)
+  at (plus expiry (-1))
+  (g1, _) <- succeeded =<< agentBuys g g.grant 500 1 0 1
+  at expiry
+  (g2, _) <- succeeded =<< agentBuys g g1 100 1 0 2
+  at (plus expiry 1)
+  refusedWith deadlineExceeded =<< agentBuys g g2 100 1 0 2
+  _ <- submit g.w.alice do exerciseCmd g2 Grant_Revoke
+  cashOf g.w.alice >>= (=== 500 + 1400)
+
+-- The agent cannot revoke, cannot spend on another owner's quote, and the
+-- venue cannot drive the grant.
+testGrantAuthority = script do
+  g <- grantSetup
+  fails =<< trySubmit g.agent do exerciseCmd g.grant Grant_Revoke
+  now <- getTime
+  qb <- issue g.w g.win g.w.bob SideUp 500 1 0 (plus now 20) "b"
+  d <- disclosureOf g.w.venue qb
+  refusedWith (refusal "wrong-quote") =<< trySubmit (actAs g.agent <> disclose d) do
+    exerciseCmd g.grant Grant_AcceptQuote with quoteCid = qb; today = 0
+  qa <- issue g.w g.win g.w.alice SideUp 500 1 0 (plus now 20) "a"
+  fails =<< trySubmit g.w.venue do exerciseCmd g.grant Grant_AcceptQuote with quoteCid = qa; today = 0
+  budgetOf g g.grant >>= (=== 2000)

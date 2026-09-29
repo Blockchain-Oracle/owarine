@@ -1,0 +1,297 @@
+-- | Money gate, resolution half: who can resolve, exactly once, quorum,
+-- late quotes, deviation, binding to terms, window idempotency, print/void
+-- deadline races, policy coverage.
+module Test.Resolution where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Leg
+import PM.Market
+import PM.Oracle
+import PM.Series
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000   -- 65,000.00000000 at e8
+
+-- The venue cannot create a Resolution or an OpenPrint, and cannot exercise
+-- the resolver's choices.
+testVenueCannotResolve = script do
+  (w, win) <- mkWorldWin
+  at (plus t0 10)
+  qs <- prints w t0 [px, px, px]
+  r1 <- trySubmit w.venue do
+    createCmd Resolution with
+      venue = w.venue; resolver = w.resolver; termsCid = win.terms; marketId = win.t.marketId
+      outcome = Some SideUp; voidReason = None; openPriceE8 = Some px; closePriceE8 = Some px
+      openEvidence = []; closeEvidence = []; signers = 3
+  unauthorized r1
+  r2 <- trySubmit w.venue do
+    createCmd OpenPrint with
+      venue = w.venue; resolver = w.resolver; termsCid = win.terms; marketId = win.t.marketId
+      openPriceE8 = px; evidence = []; signers = 3
+  unauthorized r2
+  r3 <- trySubmit w.venue do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = qs
+  fails r3
+
+-- The resolver cannot create a Resolution directly, and cannot resolve
+-- through the choices without an oracle quorum.
+testResolverNeedsQuorumAndChoice = script do
+  (w, win) <- mkWorldWin
+  r1 <- trySubmit w.resolver do
+    createCmd Resolution with
+      venue = w.venue; resolver = w.resolver; termsCid = win.terms; marketId = win.t.marketId
+      outcome = Some SideDown; voidReason = None; openPriceE8 = Some px; closePriceE8 = Some 1
+      openEvidence = []; closeEvidence = []; signers = 0
+  unauthorized r1
+  at (plus t0 10)
+  one <- postPrintAt w w.o1 t0 px 10
+  r2 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = [one]
+  refusedWith (refusal "quorum-not-met") r2
+  op <- recordOpen w win px
+  at (plus win.t.expiry 10)
+  c1 <- postPrintAt w w.o1 win.t.expiry px 10
+  r3 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = [c1]
+  refusedWith (refusal "quorum-not-met") r3
+  -- and the resolver cannot record a close before the earliest admission
+  at (plus win.t.expiry 4)
+  qs <- prints w win.t.expiry [px, px, px]
+  r4 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = qs
+  refusedWith deadlineNotExceeded r4
+
+-- A market resolves or voids exactly once, whichever path is tried second.
+testResolvesExactlyOnce = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  _ <- resolveAt w win op (px + 1)
+  qs <- prints w win.t.expiry [px, px, px]
+  again <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = qs
+  fails again
+  at (plus win.t.closeDeadline 1)
+  v1 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Void with stage = AfterOpen op; quoteCids = []
+  fails v1
+  v2 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Void with stage = BeforeOpen win.state; quoteCids = []
+  fails v2
+  rs <- query @Resolution w.venue
+  length [r | (_, r) <- rs, r.termsCid == win.terms] === 1
+
+-- Void first, then every resolve path fails.
+testVoidsExactlyOnce = script do
+  (w, win) <- mkWorldWin
+  at (plus win.t.openDeadline 1)
+  _ <- submit w.resolver do
+    exerciseCmd win.terms Terms_Void with stage = BeforeOpen win.state; quoteCids = []
+  qs <- prints w t0 [px, px, px]
+  r <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = qs
+  fails r
+  rs <- query @Resolution w.venue
+  map (\(_, x) -> x.voidReason) rs === [Some (MissingPrint OpenSlot)]
+
+-- Duplicated oracles, foreign "oracles" and other symbols do not count.
+testQuorumCannotBeFaked = script do
+  (w, win) <- mkWorldWin
+  at (plus t0 10)
+  a <- postPrintAt w w.o1 t0 px 10
+  b <- postPrintAt w w.o1 t0 px 11            -- same oracle again
+  fake <- postPrintAt w w.outsider t0 px 10   -- not in the terms' list
+  other <- submit w.o2 do
+    createCmd PriceQuote with
+      oracle = w.o2; venue = w.venue; resolver = w.resolver; symbol = "ETH"
+      boundaryT = t0; priceE8 = px; barStart = plus t0 (-60); barLenSec = 60
+      fetchedAt = plus t0 10; payloadHash = "h"; policyVersion = 1
+  r <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = [a, b, fake, other]
+  refusedWith (refusal "quorum-not-met") r
+  -- passing the same cid twice does not count twice either
+  r2 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = [a, a]
+  refusedWith (refusal "quorum-not-met") r2
+
+-- A quote fetched after the slot's deadline, or for another boundary, is
+-- ignored: it cannot move the price and does not count toward quorum.
+testLateQuoteIgnored = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  at (plus win.t.expiry 10)
+  g1 <- postPrintAt w w.o1 win.t.expiry (px - 100) 10
+  g2 <- postPrintAt w w.o2 win.t.expiry (px - 100) 10
+  late <- postPrintAt w w.o3 win.t.expiry (px * 2) 121          -- after closeDeadline (expiry + 120)
+  early <- postPrintAt w w.o3 win.t.expiry (px * 2) 4           -- before earliest (expiry + 5)
+  wrongT <- postPrintAt w w.o3 (plus win.t.expiry 60) (px * 2) 10
+  -- only the late one plus one good: quorum not met
+  r1 <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = [g1, late, early, wrongT]
+  refusedWith (refusal "quorum-not-met") r1
+  res <- submit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = [g1, g2, late, early, wrongT]
+  Some r <- queryContractId w.venue res
+  r.closePriceE8 === Some (px - 100)
+  r.outcome === Some SideDown
+  r.signers === 2
+
+-- Spread above maxDeviationBps voids with a named reason, at open and close.
+testDeviationVoids = script do
+  (w, win) <- mkWorldWin
+  at (plus t0 10)
+  qs <- prints w t0 [px, px + px / 100, px]   -- 1% > 50 bps
+  r <- submit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = qs
+  case r of
+    Left res -> do
+      Some x <- queryContractId w.venue res
+      x.voidReason === Some (SourceDisagreement OpenSlot)
+      x.outcome === None
+    Right _ -> abort "a 1% spread must void"
+  -- close side, on the next window
+  s <- mkSeries w
+  s1 <- submit w.venue do exerciseCmd s Series_SkipTo with toIndex = 1
+  (s1b, win1) <- openWin w s1 1
+  op <- recordOpen w win1 px
+  at (plus win1.t.expiry 10)
+  cqs <- prints w win1.t.expiry [px, px - px / 100, px]
+  res1 <- submit w.resolver do
+    exerciseCmd win1.terms Terms_Resolve with openCid = op; quoteCids = cqs
+  Some x1 <- queryContractId w.venue res1
+  x1.voidReason === Some (SourceDisagreement CloseSlot)
+  -- a spread inside the bound resolves normally (40 bps)
+  s2 <- submit w.venue do exerciseCmd s1b Series_SkipTo with toIndex = 3
+  (_, win3) <- openWin w s2 3
+  op3 <- recordOpen w win3 px
+  at (plus win3.t.expiry 10)
+  okqs <- prints w win3.t.expiry [px, px + px * 40 / 10000, px + 1]
+  res3 <- submit w.resolver do
+    exerciseCmd win3.terms Terms_Resolve with openCid = op3; quoteCids = okqs
+  Some x3 <- queryContractId w.venue res3
+  x3.outcome === Some SideUp
+  x3.closePriceE8 === Some (px + 1)   -- lower median of three
+
+-- Close >= open resolves Up; ties go Up.
+testTieGoesUp = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  res <- resolveAt w win op px
+  Some r <- queryContractId w.venue res
+  r.outcome === Some SideUp
+
+-- A resolution of other terms cannot settle a leg.
+testResolutionBoundToTerms = script do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, win0) <- openWin w s 0
+  (_, win1) <- openWin w s1 1
+  _ <- recordOpen w win0 px
+  (u, _) <- trade w win0 w.alice SideUp 600 10 0 "p0"
+  -- window 1 resolves; its resolution must not settle window 0's leg
+  op1 <- recordOpen w win1 px
+  res1 <- resolveAt w win1 op1 px
+  r <- trySubmit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res1
+  refusedWith (refusal "wrong-resolution") r
+  pure ()
+
+-- Opening the same window twice is impossible.
+testOpenWindowIdempotent = script do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, _) <- openWin w s 0
+  again <- trySubmit w.venue do exerciseCmd s Series_OpenWindow with index = 0
+  fails again                                     -- archived series
+  dup <- trySubmit w.venue do exerciseCmd s1 Series_OpenWindow with index = 0
+  refusedWith (refusal "bad-window-index") dup
+  skip <- trySubmit w.venue do exerciseCmd s1 Series_OpenWindow with index = 2
+  refusedWith (refusal "bad-window-index") skip
+  back <- trySubmit w.venue do exerciseCmd s1 Series_SkipTo with toIndex = 0
+  refusedWith (refusal "bad-window-index") back
+  (_, win1) <- openWin w s1 1
+  win1.t.marketId === "BTC-300:1"
+  ts <- query @MarketTerms w.venue
+  length ts === 2
+
+-- Open print vs open void at openDeadline (T) and T + 1 s, both orders.
+testOpenDeadlineRace = script do
+  -- at T: void first (refused), then print (admitted)
+  (w, win) <- mkWorldWin
+  qs <- prints w t0 [px, px, px]
+  at win.t.openDeadline
+  v <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Void with stage = BeforeOpen win.state; quoteCids = []
+  refusedWith deadlineNotExceeded v
+  p <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_RecordOpen with stateCid = win.state; quoteCids = qs
+  _ <- succeeded p
+  -- at T + 1: print first (refused), then void (admitted)
+  (w2, win2) <- mkWorldWin
+  qs2 <- prints w2 t0 [px, px, px]
+  at (plus win2.t.openDeadline 1)
+  p2 <- trySubmit w2.resolver do
+    exerciseCmd win2.terms Terms_RecordOpen with stateCid = win2.state; quoteCids = qs2
+  refusedWith deadlineExceeded p2
+  v2 <- trySubmit w2.resolver do
+    exerciseCmd win2.terms Terms_Void with stage = BeforeOpen win2.state; quoteCids = qs2
+  vr <- succeeded v2
+  Some r <- queryContractId w2.venue vr
+  r.voidReason === Some (ResolverAbsent OpenSlot)   -- a quorum existed, unrecorded
+  -- at T - 1: print admitted
+  (w3, win3) <- mkWorldWin
+  qs3 <- prints w3 t0 [px, px, px]
+  at (plus win3.t.openDeadline (-1))
+  p3 <- trySubmit w3.resolver do
+    exerciseCmd win3.terms Terms_RecordOpen with stateCid = win3.state; quoteCids = qs3
+  _ <- succeeded p3
+  pure ()
+
+-- Close print vs close void at closeDeadline (T) and T + 1 s, both orders.
+testCloseDeadlineRace = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  qs <- prints w win.t.expiry [px, px, px]
+  at win.t.closeDeadline
+  v <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Void with stage = AfterOpen op; quoteCids = []
+  refusedWith deadlineNotExceeded v
+  r <- trySubmit w.resolver do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = qs
+  _ <- succeeded r
+  (w2, win2) <- mkWorldWin
+  op2 <- recordOpen w2 win2 px
+  one <- postPrintAt w2 w2.o1 win2.t.expiry px 10
+  at (plus win2.t.closeDeadline 1)
+  qs2 <- prints w2 win2.t.expiry [px, px, px]
+  r2 <- trySubmit w2.resolver do
+    exerciseCmd win2.terms Terms_Resolve with openCid = op2; quoteCids = qs2
+  refusedWith deadlineExceeded r2
+  v2 <- trySubmit w2.resolver do
+    exerciseCmd win2.terms Terms_Void with stage = AfterOpen op2; quoteCids = [one]
+  vr <- succeeded v2
+  Some x <- queryContractId w2.venue vr
+  x.voidReason === Some (QuorumNotMet CloseSlot)
+  x.openPriceE8 === Some px
+
+-- Policy versions are append-only and never cover an opened window.
+testPolicyCoverage = script do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, win0) <- openWin w s 0
+  win0.t.policyVersion === 1
+  let v2 = policy1 with version = 2; effectiveFrom = plus t0 300; minDelaySec = 7
+  retro <- trySubmit w.venue do
+    exerciseCmd s1 Series_AddPolicyVersion with pv = v2 with effectiveFrom = plus t0 100
+  refusedWith (refusal "bad-policy") retro
+  gap <- trySubmit w.venue do
+    exerciseCmd s1 Series_AddPolicyVersion with pv = v2 with version = 3
+  refusedWith (refusal "bad-policy") gap
+  s2 <- submit w.venue do exerciseCmd s1 Series_AddPolicyVersion with pv = v2
+  (_, win1) <- openWin w s2 1
+  win1.t.policyVersion === 2
+  win1.t.minDelaySec === 7
+  -- the already-open window keeps its frozen version
+  Some t0' <- queryContractId w.venue win0.terms
+  t0'.policyVersion === 1

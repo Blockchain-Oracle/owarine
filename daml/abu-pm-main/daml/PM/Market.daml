@@ -1,0 +1,221 @@
+-- | One Window's immutable terms and its single-use resolution chain.
+--
+--   WindowState --Terms_RecordOpen--> OpenPrint --Terms_Resolve--> Resolution
+--        |                                |
+--        +------Terms_Void (open)-------->+----Terms_Void (close)--> Resolution
+--
+-- Every arrow consumes its source, and each source exists once per Window,
+-- so a market resolves or voids exactly once while the terms themselves are
+-- never archived (Quotes and Legs keep a valid `termsCid`). All three choices
+-- are the resolver's; `OpenPrint` and `Resolution` are signed by resolver
+-- AND venue, so neither party can create one alone, and they only come into
+-- existence through these checked choices on venue-signed terms.
+--
+-- Deadlines port the reference exactly: a print is admissible while
+-- now <= deadline, a void from deadline + 1 s. `assertWithinDeadline` fails
+-- AT its argument and `assertDeadlineExceeded` passes AT it, so both sides
+-- assert against `deadline + 1s`, which makes them exact complements.
+module PM.Market where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.List (unique)
+import DA.Time (addRelTime, seconds)
+import PM.Oracle
+import PM.Types
+
+template MarketTerms
+  with
+    venue : Party
+    resolver : Party
+    seriesKey : Text
+    marketId : Text
+    index : Int
+    symbol : Text
+    cashUnit : Int
+    tradingStart : Time
+    lockAt : Time
+    expiry : Time
+    openDeadline : Time
+    closeDeadline : Time
+    refundAfter : Time
+      -- ^ closeDeadline + the series' settle grace; stale refunds open here
+    policyVersion : Int
+    printSource : Text
+    minDelaySec : Int
+    barLenSec : Int
+    tieUp : Bool
+    -- copied from Series at open, so resolution never fetches Series
+    oracles : [Party]
+    quorum : Int
+    maxDeviationBps : Int
+  where
+    signatory venue
+    observer resolver
+    ensure cashUnit > 0 && tradingStart < lockAt && lockAt <= expiry
+      && openDeadline >= tradingStart && closeDeadline >= expiry
+      && refundAfter > closeDeadline
+      && quorum >= 1 && quorum <= length oracles && unique oracles
+      && maxDeviationBps >= 0 && minDelaySec >= 0 && barLenSec > 0
+
+    nonconsuming choice Terms_RecordOpen : Either (ContractId Resolution) (ContractId OpenPrint)
+      with
+        stateCid : ContractId WindowState
+        quoteCids : [ContractId PriceQuote]
+      controller resolver
+      do
+        let rule = printRule this OpenSlot
+        assertDeadlineExceeded "open-earliest" rule.earliest
+        assertWithinDeadline "open-deadline" (addRelTime openDeadline oneSecond)
+        consumeState self this stateCid
+        ev <- collectEvidence rule quoteCids
+        require "quorum-not-met" "fewer distinct valid oracle quotes than the quorum" (length ev >= quorum)
+        if disagrees maxDeviationBps ev
+          then Left <$> create (voidResolution this self (SourceDisagreement OpenSlot) ev [] None)
+          else Right <$> create OpenPrint with
+            venue; resolver; termsCid = self; marketId
+            openPriceE8 = medianOf ev; evidence = ev; signers = length ev
+
+    nonconsuming choice Terms_Resolve : ContractId Resolution
+      with
+        openCid : ContractId OpenPrint
+        quoteCids : [ContractId PriceQuote]
+      controller resolver
+      do
+        let rule = printRule this CloseSlot
+        assertDeadlineExceeded "close-earliest" rule.earliest
+        assertWithinDeadline "close-deadline" (addRelTime closeDeadline oneSecond)
+        op <- consumeOpen self openCid
+        ev <- collectEvidence rule quoteCids
+        require "quorum-not-met" "fewer distinct valid oracle quotes than the quorum" (length ev >= quorum)
+        if disagrees maxDeviationBps ev
+          then create (voidResolution this self (SourceDisagreement CloseSlot) op.evidence ev (Some op.openPriceE8))
+          else do
+            let close = medianOf ev
+                winner
+                  | close > op.openPriceE8 = SideUp
+                  | close == op.openPriceE8 = if tieUp then SideUp else SideDown
+                  | otherwise = SideDown
+            create Resolution with
+              venue; resolver; termsCid = self; marketId
+              outcome = Some winner; voidReason = None
+              openPriceE8 = Some op.openPriceE8; closePriceE8 = Some close
+              openEvidence = op.evidence; closeEvidence = ev
+              signers = min op.signers (length ev)
+
+    -- Void a slot whose print was not recorded by its deadline. The quotes
+    -- offered (possibly none) only name the reason; they cannot block it.
+    nonconsuming choice Terms_Void : ContractId Resolution
+      with
+        stage : VoidStage
+        quoteCids : [ContractId PriceQuote]
+      controller resolver
+      do
+        case stage of
+          BeforeOpen stateCid -> do
+            assertDeadlineExceeded "open-void" (addRelTime openDeadline oneSecond)
+            consumeState self this stateCid
+            ev <- collectEvidence (printRule this OpenSlot) quoteCids
+            create (voidResolution this self (missingReason quorum ev OpenSlot) ev [] None)
+          AfterOpen openCid -> do
+            assertDeadlineExceeded "close-void" (addRelTime closeDeadline oneSecond)
+            op <- consumeOpen self openCid
+            ev <- collectEvidence (printRule this CloseSlot) quoteCids
+            create (voidResolution this self (missingReason quorum ev CloseSlot) op.evidence ev (Some op.openPriceE8))
+
+data VoidStage
+  = BeforeOpen with stateCid : ContractId WindowState
+  | AfterOpen with openCid : ContractId OpenPrint
+  deriving (Eq, Show)
+
+-- | The single-use marker created with the terms. Consumed by exactly one of
+-- Terms_RecordOpen or Terms_Void (BeforeOpen).
+template WindowState
+  with
+    venue : Party
+    resolver : Party
+    termsCid : ContractId MarketTerms
+  where
+    signatory venue
+    observer resolver
+
+-- | The recorded open print. Consumed by exactly one of Terms_Resolve or
+-- Terms_Void (AfterOpen). The issuer quotes only once this exists.
+template OpenPrint
+  with
+    venue : Party
+    resolver : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    openPriceE8 : Int
+    evidence : [Evidence]
+    signers : Int
+  where
+    signatory resolver, venue
+
+-- | The one outcome of a Window. `outcome = None` means void. Users are not
+-- stakeholders: they witness it inside their settle subtree, and `Leg_Claim`
+-- receives it as a disclosed contract.
+template Resolution
+  with
+    venue : Party
+    resolver : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    outcome : Optional Side
+    voidReason : Optional VoidReason
+    openPriceE8 : Optional Int
+    closePriceE8 : Optional Int
+    openEvidence : [Evidence]
+    closeEvidence : [Evidence]
+    signers : Int
+  where
+    signatory resolver, venue
+    ensure (outcome == None) == (voidReason /= None)
+
+isVoid : Resolution -> Bool
+isVoid r = r.outcome == None
+
+-- ---------------------------------------------------------------------------
+
+printRule : MarketTerms -> Slot -> PrintRule
+printRule t slot =
+  let boundary = if slot == OpenSlot then t.tradingStart else t.expiry
+      deadline = if slot == OpenSlot then t.openDeadline else t.closeDeadline
+  in PrintRule with
+      symbol = t.symbol; boundary; oracles = t.oracles; barLenSec = t.barLenSec
+      policyVersion = t.policyVersion
+      earliest = addRelTime boundary (seconds t.minDelaySec); deadline
+
+consumeState : ContractId MarketTerms -> MarketTerms -> ContractId WindowState -> Update ()
+consumeState self t stateCid = do
+  st <- fetch stateCid
+  require "wrong-window" "window state belongs to other terms" (st.termsCid == self && st.venue == t.venue)
+  archive stateCid
+
+consumeOpen : ContractId MarketTerms -> ContractId OpenPrint -> Update OpenPrint
+consumeOpen self openCid = do
+  op <- fetch openCid
+  require "wrong-window" "open print belongs to other terms" (op.termsCid == self)
+  archive openCid
+  pure op
+
+missingReason : Int -> [Evidence] -> Slot -> VoidReason
+missingReason quorum ev slot
+  | null ev = MissingPrint slot
+  | length ev < quorum = QuorumNotMet slot
+  | otherwise = ResolverAbsent slot
+
+voidResolution : MarketTerms -> ContractId MarketTerms -> VoidReason -> [Evidence] -> [Evidence] -> Optional Int -> Resolution
+voidResolution t self reason openEv closeEv openPrice =
+  Resolution with
+    venue = t.venue; resolver = t.resolver; termsCid = self; marketId = t.marketId
+    outcome = None; voidReason = Some reason
+    openPriceE8 = openPrice; closePriceE8 = None
+    openEvidence = openEv; closeEvidence = closeEv
+    signers = length (if slotOf reason == OpenSlot then openEv else closeEv)
+
+slotOf : VoidReason -> Slot
+slotOf (MissingPrint s) = s
+slotOf (QuorumNotMet s) = s
+slotOf (ResolverAbsent s) = s
+slotOf (SourceDisagreement s) = s
