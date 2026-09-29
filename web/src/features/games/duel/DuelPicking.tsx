@@ -25,15 +25,13 @@ import { webEnv } from "@/lib/env";
 import { clockUrgency, StageFace } from "../stage/StageFace";
 import { SwipeDeck, type DeckPlace } from "../stage/SwipeDeck";
 import { DUEL } from "./copy";
-import { deckFeeLamports } from "./gas";
 import { useArenaOdds } from "./useArenaOdds";
 import { useArenaWrites } from "./useArenaWrites";
 import type { DuelRoom } from "./useDuelRoom";
-import { useGameSponsor, type FundOutcome } from "./useGameSponsor";
 
 /**
  * A card's own cutoff is the earlier of the pick window and the arena's floor on its life; this long
- * before it, a card nobody has swiped is played by the key on the favoured side — Flicky's auto-swipe
+ * before it, a card nobody has swiped is played by the seat on the favoured side — Flicky's auto-swipe
  * (`active-duel.tsx` L504–549), which fires at the deadline because its transactions are buffered
  * server-side; ours have no such buffer, so the lead is the buffer.
  */
@@ -61,16 +59,13 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   const nowMs = useNowMs();
   const arena = useArenaState();
   const { boot } = useVenue();
-  const { pick, lock, fundKey, progress, busy, canSign, refusal, game } = useArenaWrites();
-  const sponsor = useGameSponsor();
+  const { pick, lock, progress, busy, canSign } = useArenaWrites();
   const [failed, setFailed] = useState<number | null>(null);
-  /** The key's own tank, read before a throw rather than discovered by one; null until read. */
-  const [keyDry, setKeyDry] = useState<boolean | null>(null);
-  const [asked, setAsked] = useState<FundOutcome | null>(null);
-  /** Cards the key played at their cutoff, so the list can say so — the chain records a pick, not who chose it. */
+  /** Cards played at their cutoff, so the list can say so — the ledger records a pick, not who chose it. */
   const [autoPlayed, setAutoPlayed] = useState<readonly number[]>([]);
   const autoRef = useRef<string | null>(null);
-  const keyed = game.session !== null;
+  // Every pick is the seat's own route with no prompt (the server submits as the leased party), so the seat swipes.
+  const keyed = canSign;
 
   const you = wallet ?? null;
   const params = arena && isOk(arena) ? arena.value?.params : undefined;
@@ -121,7 +116,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
     [pick, room, state.matchId, stakeBase, endsSec, canSign, you, seat],
   );
 
-  // Flicky's auto-swipe, through the key only: a card left unswiped into its last seconds is played on
+  // Flicky's auto-swipe, through the seat's own route: a card left unswiped into its last seconds is played on
   // the side the book prices above even money, once per card, and marked as played for the player.
   useEffect(() => {
     if (!active || !params || stakeBase === null || decimals === null || !canSign || !keyed || busy !== null || failed === active.index) return;
@@ -148,29 +143,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   // The active card's two quotes, read where the deck can refuse a throw on them rather than after the chain has.
   const odds = useArenaOdds(active?.marketId ?? null, stakeBase, decimals);
 
-  /**
-   * The key's tank. Masayume polled the key's balance so a dry key was named before a card was played; on Solana that
-   * read is the adapter's (S4) and the arena's (S12), so until then a dry key is known only from a refused pick
-   * (`refusal.gasShort`) and a top-up that lands clears it.
-   */
-  const keyAddress = game.key;
-
-  const dry = keyed && (keyDry === true || refusal?.gasShort === true);
-  const held = !canSign ? DUEL.lobby.noSigner : dry ? DUEL.picking.keyGasShort : active && params && !playable ? DUEL.picking.tooLate : null;
-  const cardsLeft = Math.max(1, state.cards.length - mine.length);
-  const topUpLamports = deckFeeLamports(cardsLeft);
-  const askSponsor = () => {
-    if (!keyAddress || !you) return;
-    setAsked(null);
-    void sponsor.fund(state.matchId as Hash32, you as Address, keyAddress).then((outcome) => {
-      setAsked(outcome);
-      if (outcome.ok) setKeyDry(false);
-    });
-  };
-  const fundFromWallet = () => {
-    setAsked(null);
-    void fundKey(topUpLamports).then((hash) => hash && setKeyDry(false));
-  };
+  const held = !canSign ? DUEL.lobby.noSigner : active && params && !playable ? DUEL.picking.tooLate : null;
   const lastAuto = autoPlayed.length > 0 ? mine.find((r) => r.cardIndex === autoPlayed[autoPlayed.length - 1]) : undefined;
 
   /** The opponent's cue only means anything while it is fresh; a stale one is a lie about presence. */
@@ -219,22 +192,6 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
       <div className="st-deplete" aria-hidden>
         <span className="st-deplete-fill" data-urgency={urgency.level} data-pulse={urgency.pulse || undefined} style={{ width: `${depleted}%` }} />
       </div>
-      {dry && (
-        <div className="du-refusal" role="status">
-          <p className="du-body">{DUEL.picking.keyGasShortWhy}</p>
-          <div className="du-cranks">
-            {sponsor.status?.configured && (
-              <button type="button" className="du-quiet" disabled={busy !== null} onClick={askSponsor}>
-                {DUEL.picking.askSponsor}
-              </button>
-            )}
-            <button type="button" className="du-quiet" disabled={busy !== null} onClick={fundFromWallet}>
-              {busy === "fund" ? DUEL.picking.funding : DUEL.picking.fundKey(formatBaseUnits(topUpLamports, 9, { maxDp: 6, minDp: 0 }))}
-            </button>
-          </div>
-          {asked && <p className="du-foot">{asked.ok ? DUEL.lobby.sponsorFunded(formatBaseUnits(asked.amountWei, 18, { maxDp: 3, minDp: 0 })) : DUEL.lobby.sponsorDeclined(asked.error)}</p>}
-        </div>
-      )}
       <SwipeDeck
         cards={state.cards}
         active={active}

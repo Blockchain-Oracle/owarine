@@ -3,6 +3,7 @@ import { isOk } from "@agari/core/schemas";
 import type { Address } from "@agari/core/types";
 import { ensureMarkets, loadCollateral } from "@agari/markets";
 import { getSeasonPool } from "@agari/markets/games";
+import { seatServer } from "@/lib/ledger.server";
 import { marketsEnvFromProcess } from "@/features/session/sponsor.server";
 
 /**
@@ -40,7 +41,9 @@ export async function seasonView(): Promise<SeasonWire | null> {
   ensureMarkets(marketsEnvFromProcess());
   const collateral = await loadCollateral();
   const money = isOk(collateral) ? collateral.value : null;
-  const pool = await getSeasonPool();
+  // The pool is ops' desk's read of the venue's `SeasonPool`; building the seat tier registers that source first.
+  seatServer();
+  const pool = await getSeasonPool(config.id);
   const state = isOk(pool) ? pool.value : null;
   return {
     season: { ...config, prizePool: { totalUnits: prizePoolTotalUnits(config.prizeSplit), currency: money?.symbol ?? "" } },
