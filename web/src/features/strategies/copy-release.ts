@@ -15,8 +15,9 @@ interface ReleasePorts {
 export async function releaseCopyPermission(pending: CopyProgress, owner: Address, ports: ReleasePorts): Promise<CopyWriteResult> {
   try {
     const grant = pending.grantId ? await ports.historical(BigInt(pending.grantId)) : await ports.current();
+    // A grant leaves the ledger only by its owner's revoke (C8f): a gone grant with this id is released.
+    if (grant && pending.grantId && grant.grantId.toString() === pending.grantId && grant.revoked) { ports.save(null); return { ok: true, ...(pending.releaseTx ? { txHash: pending.releaseTx } : {}) }; }
     if (!grant || grant.owner !== owner || grant.actor !== pending.runner) return { ok: false, reason: "This permission needs investigation before it can be released." };
-    if (pending.grantId && grant.grantId.toString() === pending.grantId && grant.revoked) { ports.save(null); return { ok: true, ...(pending.releaseTx ? { txHash: pending.releaseTx } : {}) }; }
     if (!matchesProgressGrant(pending, grant)) return { ok: false, reason: "This permission needs investigation before it can be released." };
     if (pending.releasePending) {
       if (!pending.releaseTx || await ports.receipt(pending.releaseTx) !== "reverted") return { ok: false, reason: "The permission release is still being checked. It has not been resent." };

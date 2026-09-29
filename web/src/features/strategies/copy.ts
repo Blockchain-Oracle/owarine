@@ -143,7 +143,7 @@ export const STRATEGIES = {
     publish: "Publish strategy",
     launching: "launching…",
     note: "Limits are enforced on the ledger. The agent trades only inside them and can never withdraw a copier's funds.",
-    houseRunnerMissing: "No house runner is configured on this deployment (STRATEGY_RUNNER_ADDRESS); run your own bot instead.",
+    houseRunnerMissing: "No house runner is configured on this deployment (the parties file's agent-runner); run your own bot instead.",
     playbook: "Playbook",
     playbookHint: "plain text, published in the open — nothing here is encrypted",
     agent: {
@@ -187,7 +187,7 @@ export const STRATEGIES = {
         badRequest: "Write a persona and pick at least one cadence first.",
       },
     },
-    hostingSelfAgent: "Your bot runs the same code with the same gate: RUNNER_PRIVATE_KEY, STRATEGY_IDS, an AI_MODEL and its key. Without DATABASE_URL the card shows \"never started\" and no memory.",
+    hostingSelfAgent: "Your bot runs the same code with the same gate: RUNNER_PARTY (your own seat party), STRATEGY_IDS, an AI_MODEL and its key. Without DATABASE_URL the card shows \"never started\" and no memory.",
   },
   disclosure: (asset: string) => `Agents trade demo credits on the Canton test network using eligible Up/Down Windows for ${asset}. You can lose your full budget. The agent cannot withdraw or divert it. Check every position on the proof page.`,
   drawer: {

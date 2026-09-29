@@ -10,7 +10,7 @@ import { replyWith, refusal, seatFromRequest } from "@/lib/seat.server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const INTENTS: SeatIntent[] = ["accept", "claim", "refund", "sell"];
+const INTENTS: SeatIntent[] = ["accept", "claim", "refund", "sell", "agent"];
 
 export async function GET(request: NextRequest, context: { params: Promise<{ commandId: string }> }) {
   const { commandId } = await context.params;

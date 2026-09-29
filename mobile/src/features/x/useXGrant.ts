@@ -4,6 +4,7 @@ import { formatBaseUnits } from "@agari/core/units";
 import type { VaultGrant } from "@agari/core/vault";
 import { X_GRANT, xGrantCaps, xPermissionState, type XPermissionState } from "@agari/core/x";
 import { getVaultSnapshot } from "@agari/markets";
+import { readSeatReceipt } from "@agari/markets/vault";
 import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
@@ -119,19 +120,16 @@ export function useXGrant(): XGrantState {
         const existing = fresh.value.grants.executor;
         const state = xPermissionState(existing, executor, Math.floor(Date.now() / 1000));
         if (["update", "expired", "mismatch"].includes(state)) throw new Error(X_CARD.finishUpdate);
-        if (source === "trading-balance" && fresh.value.account.availableBase < amountBase) throw new Error(X_CARD.availableShort);
         const caps = xGrantCaps();
         const expiresAtSec = Math.floor(Date.now() / 1000) + X_GRANT.days * 86_400;
         const terms: GrantTerms = { kind: "executor", actor: executor as GrantTerms["actor"], caps, expiresAtSec, budgetBase: amountBase };
+        // C8f: the seat's cash IS the Trading Balance on Canton, so both sources fund the X grant from the same cash,
+        // in one write: a top-up of the live grant, or a new grant.
+        if (fresh.value.account.availableBase < amountBase) throw new Error(X_CARD.availableShort);
         if (existing && !existing.revoked) {
-          if (source === "wallet") {
-            const deposit = await submitter.submitTx({ kind: "vault-deposit", amountBase });
-            const failed = outcomeError(deposit);
-            if (failed) throw new Error(failed);
-          }
           const topUp = await submitter.submitTx({ kind: "vault-fund-grant", grantId: existing.grantId, amountBase });
           const failedTopUp = outcomeError(topUp);
-          if (failedTopUp) throw new Error(source === "wallet" ? `${failedTopUp} ${X_CARD.depositReturned}` : failedTopUp);
+          if (failedTopUp) throw new Error(failedTopUp);
         } else {
           const outcome = await submitter.submitTx(source === "wallet" ? { kind: "vault-deposit-and-grant", amountBase, terms } : { kind: "vault-grant", terms });
           const failed = outcomeError(outcome);
@@ -170,9 +168,11 @@ export function useXGrant(): XGrantState {
           return fresh.ok && !fresh.stale && fresh.value ? { grant: fresh.value.grants.executor, availableBase: fresh.value.account.availableBase } : null;
         },
         submit: (intent) => submitter.submitTx(intent),
-        // Reading a confirmed revoke's returned budget needs the transaction reader (S4) and the vault's events (S7);
-        // until then no receipt is readable, so an update stops honestly instead of guessing the refund.
-        receipt: async () => null,
+        // C8f: a confirmed revoke's returned budget is the cash that transaction paid the seat, read AS the seat.
+        receipt: async (hash) => {
+          const r = await readSeatReceipt(hash);
+          return r ? { status: "success" as const, returnedBase: r.paidBase } : null;
+        },
         nowSec: () => Math.floor(Date.now() / 1000),
       });
       setOk(X_CARD.updated);

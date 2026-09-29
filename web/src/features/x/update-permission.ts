@@ -17,7 +17,8 @@ export function parseXUpdate(raw: string | null): XUpdateProgress | null {
   if (!raw) return null;
   try {
     const p = JSON.parse(raw) as XUpdateProgress;
-    if (p.version !== 1 || !isAddress(p.owner) || !isAddress(p.executor)
+    // The executor is a party on Canton (C8f); the owner is the seat's address.
+    if (p.version !== 1 || !isAddress(p.owner) || typeof p.executor !== "string" || p.executor.length === 0 || p.executor.length > 300
       || !/^[1-9]\d{0,77}$/.test(p.oldGrantId) || !["revoke-ready", "revoke-pending", "grant-ready", "grant-pending"].includes(p.stage)
       || (p.txHash !== undefined && !isSignature(p.txHash))
       || (p.returnedBase !== undefined && !/^(0|[1-9]\d{0,77})$/.test(p.returnedBase))

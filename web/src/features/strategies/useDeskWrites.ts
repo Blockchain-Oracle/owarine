@@ -6,7 +6,7 @@ import type { Signature } from "@agari/core/types";
 import { isOk } from "@agari/core/schemas";
 import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
 import { getStrategy, listSubscriptionsOf } from "@agari/markets/strategies";
-import { getVaultGrant, getVaultSnapshot, resolveVaultDeployment } from "@agari/markets/vault";
+import { getVaultGrant, getVaultSnapshot, readSeatReceipt, resolveVaultDeployment } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { webEnv } from "@/lib/env";
@@ -25,11 +25,12 @@ const SEEN_ATTEMPTS = 8;
 const SEEN_EVERY_MS = 1_500;
 
 /**
- * Whether an uncertain send landed. Reading a transaction's status is the Solana adapter's (S4); until then it is
- * unknown, which the copy flows already treat as "still being reconciled, never resent" (D-015).
+ * Whether an uncertain send landed (C8f): the seat's own transaction, read AS the seat. Canton leaves no transaction
+ * for a rejected command, so a landed one succeeded; one that cannot be read is still unknown, which the copy flows
+ * treat as "still being reconciled, never resent" (D-015).
  */
-async function transactionStatus(_signature: Signature): Promise<"success" | "reverted" | null> {
-  return null;
+async function transactionStatus(signature: Signature): Promise<"success" | "reverted" | null> {
+  return (await readSeatReceipt(signature)) ? "success" : null;
 }
 
 function failed(outcome: TxOutcome): DeskWriteResult {
@@ -165,13 +166,14 @@ export function useDeskWrites() {
     [run, submitter, registry, address],
   );
 
-  /** Add to the desk: the deposit lands in the Vault, then tops the live grant's budget. */
+  /**
+   * Add to the desk: the live grant's budget is topped up from the seat's cash. On Canton the seat's cash IS the
+   * Trading Balance (C8f), so the reference's deposit-then-top-up is one write.
+   */
   const addMoney = useCallback(
     (grantId: bigint, amountBase: bigint) =>
       run("add", async (): Promise<DeskWriteResult> => {
         if (!submitter) return { ok: false, reason: "take a seat first" };
-        const deposited = await submitter.submitTx({ kind: "vault-deposit", amountBase });
-        if (deposited.status !== "confirmed") return failed(deposited);
         return failed(await submitter.submitTx({ kind: "vault-fund-grant", grantId, amountBase }));
       }),
     [run, submitter],
@@ -188,16 +190,16 @@ export function useDeskWrites() {
     return failed(await submitter.submitTx({ kind: "vault-fund-grant", grantId, amountBase }));
   }), [run, submitter, address]);
 
-  /** Taking money off the desk revokes the grant first (the budget is the desk), then pays the owner. */
+  /**
+   * Taking money off the desk revokes the grant (the budget is the desk): its whole budget returns to the seat's cash,
+   * which on Canton IS the Trading Balance (C8f), so there is no separate withdrawal to follow.
+   */
   const withdraw = useCallback(
-    (grantId: bigint | null, amountBase: bigint) =>
+    (grantId: bigint | null, _amountBase: bigint) =>
       run("withdraw", async (): Promise<DeskWriteResult> => {
         if (!submitter) return { ok: false, reason: "take a seat first" };
-        if (grantId !== null) {
-          const revoked = await submitter.submitTx({ kind: "vault-revoke", grantId });
-          if (revoked.status !== "confirmed") return failed(revoked);
-        }
-        return failed(await submitter.submitTx({ kind: "vault-withdraw", amountBase }));
+        if (grantId === null) return { ok: false, reason: "Nothing is held on this desk: the seat's cash is already its own." };
+        return failed(await submitter.submitTx({ kind: "vault-revoke", grantId }));
       }),
     [run, submitter],
   );
