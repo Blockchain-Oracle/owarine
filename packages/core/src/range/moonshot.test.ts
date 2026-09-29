@@ -157,3 +157,28 @@ describe("the ladder and the caps", () => {
     expect(moonshotPayoutCapBase(25, 50n * ONE, ONE)).toBe(50n * ONE);
   });
 });
+
+// A Window far from its open (C8e, seen live: BTC 15m with the venue's price at 92.4% four minutes in). The closed
+// form lands well short of the strike, and a unit nudge on an E8 print could never reach it.
+describe("solveStrike with the centre near an end", () => {
+  const open = 8_296_331_000_000n;
+  const base = { openingPrint: open, sigmaE8: 9_000n, tauSec: 628, marginBps: 1_200, one: ONE };
+  const probAt = (direction: MoonshotDirection, strike: bigint, centerQE6: bigint) => {
+    const [lo, hi] = direction === "long" ? [strike, open * 4n] : [1n, strike];
+    return sideProbRaw(bandProbE6(open, lo, hi, centerQE6, base.sigmaE8, base.tauSec), "inside", ONE);
+  };
+  for (const centerQE6 of [924_000n, 76_000n]) {
+    for (const direction of MOONSHOT_DIRECTIONS) {
+      for (const multiple of MOONSHOT_RUNGS) {
+        it(`${direction} ×${multiple} at centre ${centerQE6} holds its rung, and one print nearer the open does not`, () => {
+          const band = solveStrike({ ...base, direction, multiple, centerQE6 });
+          expect(rungHolds(probAt(direction, band.strikePrint, centerQE6), multiple, ONE, base.marginBps)).toBe(true);
+          const nearer = band.strikePrint + (direction === "long" ? -1n : 1n);
+          if ((nearer - open) * (direction === "long" ? 1n : -1n) > 0n) {
+            expect(rungHolds(probAt(direction, nearer, centerQE6), multiple, ONE, base.marginBps)).toBe(false);
+          }
+        });
+      }
+    }
+  }
+});
