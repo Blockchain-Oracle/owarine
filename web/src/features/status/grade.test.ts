@@ -10,6 +10,8 @@ describe("status thresholds (proof-analytics.md §2.5)", () => {
     expect([50, 51, 300, 301].map(gradeSlotLag)).toEqual(["good", "warn", "warn", "bad"]);
     const beat = { subscription: "connected", lastLagSec: 9, gapsOpen: 0, failures: 0 };
     expect(gradeIndexer(beat, true)).toBe("good");
+    expect(gradeIndexer({ ...beat, subscription: "open" }, true)).toBe("good");
+    expect(gradeIndexer({ ...beat, subscription: "reconnecting" }, true)).toBe("warn");
     expect(gradeIndexer({ ...beat, lastLagSec: 10 }, true)).toBe("warn");
     expect(gradeIndexer({ ...beat, lastLagSec: 60 }, true)).toBe("bad");
     expect(gradeIndexer({ ...beat, subscription: "reconnecting", lastLagSec: null }, false)).toBe("good");
