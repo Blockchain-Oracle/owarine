@@ -11,7 +11,10 @@ describe("attested print sources (C6)", () => {
 
   it("refuses what it does not know", () => {
     expect(parsePrintSource("pyth")).toBeNull();
-    expect(parsePrintSource("attested:jupiter:TSLAx")).toBeNull();
+    expect(parsePrintSource("attested:stork:TSLAx")).toBeNull();
+    // C6e (K-070): Alpaca and the Jupiter median are known sources now.
+    expect(parsePrintSource("attested:jupiter:TSLAx")).toEqual({ source: "jupiter", feed: "TSLAx" });
+    expect(parsePrintSource(attestedPrintSource("alpaca", "QQQ"))).toEqual({ source: "alpaca", feed: "QQQ" });
     expect(() => attestedPrintSource("redstone", "")).toThrow();
   });
 

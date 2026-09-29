@@ -2,6 +2,9 @@
  * The process's spot feed (venue-ops.md §6.5), implementing `SpotFeed`: the Hermes SSE stream for the Pyth trial
  * feeds and the RedStone `latest` packages every 5 s (median of the configured signers). Quotes are integers × 10⁸.
  * Pyth wins when both are fresh. A refused Pyth key stops the stream; RedStone carries on.
+ *
+ * C6e (K-070): the tickers RedStone does not carry (QQQ, VOO, whose only reference source was the Pyth trial) poll
+ * Alpaca's latest IEX trade every 5 s with the ops keys, the same source their Windows now settle on. Pyth still wins.
  */
 import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 import { HERMES, parsePythEntries } from "../actors/price-relay/hermes-fetch";
@@ -22,8 +25,29 @@ const REDSTONE_EVERY_MS = 5_000;
 const DEFAULT_MAX_AGE_SEC = 30;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export function createSpotFeed(input: { sources: RelaySources; pythKey?: string; log: (why: string) => void }): SpotFeedHandle {
+const ALPACA_DATA_URL = "https://data.alpaca.markets/v2";
+const ALPACA_MAX_AGE_SEC = 120;
+
+/** Alpaca `/stocks/trades/latest` → one quote per symbol with a priced trade. Pure. */
+export function alpacaLatestQuotes(text: string, symbols: readonly TickerSymbol[]): SpotQuote[] {
+  const body = JSON.parse(text) as { trades?: Record<string, { p?: unknown; t?: unknown }> };
+  return symbols.flatMap((symbol) => {
+    const trade = body.trades?.[symbol];
+    if (!trade || typeof trade.p !== "number" || !(trade.p > 0) || typeof trade.t !== "string") return [];
+    const [whole, frac = ""] = trade.p.toFixed(8).split(".");
+    return [{ symbol, priceE8: BigInt(whole!) * 100_000_000n + BigInt(frac.padEnd(8, "0").slice(0, 8)), publishTimeSec: Math.floor(Date.parse(trade.t) / 1000), source: "alpaca" as const }];
+  });
+}
+
+export function createSpotFeed(input: {
+  sources: RelaySources;
+  pythKey?: string;
+  /** C6e: Alpaca market-data keys; the tickers without a RedStone feed poll it. */
+  alpaca?: { keyId: string; secretKey: string; dataUrl?: string } | null;
+  log: (why: string) => void;
+}): SpotFeedHandle {
   const { sources, pythKey, log } = input;
+  const alpacaSymbols = TICKER_SYMBOLS.filter((s) => !sources.redstoneFeeds.some((f) => f.symbol === s));
   const quotes = new Map<string, SpotQuote>();
   const listeners = new Set<(q: SpotQuote) => void>();
   const beat = registerHeartbeat("spot-feed", false);
@@ -105,21 +129,51 @@ export function createSpotFeed(input: { sources: RelaySources; pythKey?: string;
     }
   }
 
+  async function pollAlpaca(): Promise<void> {
+    const keys = input.alpaca;
+    if (!keys || alpacaSymbols.length === 0) return;
+    const base = (keys.dataUrl ?? ALPACA_DATA_URL).replace(/\/+$/, "");
+    let failedLogged = false;
+    while (!stopped) {
+      const started = Date.now();
+      try {
+        const res = await fetch(`${base}/stocks/trades/latest?symbols=${alpacaSymbols.join(",")}&feed=iex`, {
+          headers: { "APCA-API-KEY-ID": keys.keyId, "APCA-API-SECRET-KEY": keys.secretKey }, signal: AbortSignal.timeout(8_000),
+        });
+        if (res.status === 401 || res.status === 403) {
+          log(`Alpaca refused the key (HTTP ${res.status}): ${alpacaSymbols.join(",")} spot stops`);
+          return;
+        }
+        if (!res.ok) throw new Error(`Alpaca latest trades HTTP ${res.status}`);
+        for (const q of alpacaLatestQuotes(await res.text(), alpacaSymbols)) emit(q);
+        failedLogged = false;
+      } catch (error) {
+        beat.failures += 1;
+        beat.lastWhy = `Alpaca latest failed: ${errorText(error)}`;
+        if (!failedLogged) log(beat.lastWhy);
+        failedLogged = true;
+      }
+      await sleep(Math.max(0, REDSTONE_EVERY_MS - (Date.now() - started)));
+    }
+  }
+
   return {
     latest(symbol, maxAgeSec = DEFAULT_MAX_AGE_SEC) {
       const now = Math.floor(Date.now() / 1000);
-      const fresh = (q: SpotQuote | undefined) => (q && now - q.publishTimeSec <= maxAgeSec ? q : null);
-      return fresh(quotes.get(`${symbol}:pyth`)) ?? fresh(quotes.get(`${symbol}:redstone`));
+      const fresh = (q: SpotQuote | undefined, ageSec = maxAgeSec) => (q && now - q.publishTimeSec <= ageSec ? q : null);
+      // An IEX trade on a quiet ETF can be a minute old in session; it is still the last price (C6e).
+      return fresh(quotes.get(`${symbol}:pyth`)) ?? fresh(quotes.get(`${symbol}:redstone`)) ?? fresh(quotes.get(`${symbol}:alpaca`), Math.max(maxAgeSec, ALPACA_MAX_AGE_SEC));
     },
     subscribe(listener) {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    symbols: () => TICKER_SYMBOLS.filter((s) => quotes.has(`${s}:pyth`) || quotes.has(`${s}:redstone`)),
+    symbols: () => TICKER_SYMBOLS.filter((s) => quotes.has(`${s}:pyth`) || quotes.has(`${s}:redstone`) || quotes.has(`${s}:alpaca`)),
     start() {
       beat.lastWhy = "streaming";
       void streamPyth();
       void pollRedstone();
+      void pollAlpaca();
     },
     stop() {
       stopped = true;

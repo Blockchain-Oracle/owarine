@@ -37,7 +37,8 @@ import { createPythIndexSpotFeed, joinPythIndexSpot, type PythIndexSpotHandle } 
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
 import { createSourceHealthStore } from "./runtime/source-health";
 import { startSourceProbe } from "./actors/source-probe";
-import { loadRelaySources, loadSwitchboardFeeds } from "./actors/price-relay/sources";
+import { loadRelaySources, loadSwitchboardFeeds, loadXStockMints } from "./actors/price-relay/sources";
+import { alpacaKeys } from "./actors/price-relay";
 
 const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
@@ -102,7 +103,11 @@ const deps = (actor: string, spot: VenueDeps["spot"] = null): VenueDeps => ({ en
 if (actors.has("relay") || actors.has("venue")) void boot("pyth-entitlement", () => startPythEntitlement(deps("pyth-entitlement")));
 if (actors.has("relay") || actors.has("venue"))
   void boot("source-probe", async () =>
-    startSourceProbe(sources, { sources: loadRelaySources(), pythKey: process.env.PYTH_API_KEY || undefined, pythIndex, switchboardFeeds: loadSwitchboardFeeds() }, log("source-probe")),
+    startSourceProbe(
+      sources,
+      { sources: loadRelaySources(), pythKey: process.env.PYTH_API_KEY || undefined, pythIndex, switchboardFeeds: loadSwitchboardFeeds(), alpaca: alpacaKeys(), xstockMints: loadXStockMints() },
+      log("source-probe"),
+    ),
   );
 
 // The relay owns the spot feed, so it starts first and hands the feed to the maker and the HTTP server.

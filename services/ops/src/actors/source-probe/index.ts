@@ -9,6 +9,8 @@
  *   switchboard  a Surge simulation of the first pinned xStock feed on the crossbar
  *   prestocks    the running catalogue feed has a read in the last 60 s (else one direct catalogue read)
  *   basket       as prestocks: a basket index is computed from the same catalogue reads
+ *   alpaca       (C6e) Alpaca's latest IEX trade for QQQ answers with the ops keys
+ *   jupiter      (C6e) the running xStock feed sampled every xStock in the last 30 s (else one direct Price v3 read)
  */
 import { ATTESTED_SOURCE_LABEL, PRE_IPO_TICKERS, type AttestedSource } from "@agari/core/market";
 import { fetchPreStocks } from "@agari/markets/ops/prints";
@@ -18,6 +20,8 @@ import { heartbeats } from "../../runtime/heartbeat";
 import type { PythEntitlementStore } from "../../runtime/pyth-entitlement";
 import type { SourceHealthStore, SourceState } from "../../runtime/source-health";
 import { currentPreStocksSpot } from "../../prices/prestocks-spot";
+import { currentXStockSpot } from "../../prices/xstock-spot";
+import { XSTOCK_SYMBOLS } from "@agari/core/market";
 import { SWITCHBOARD_CROSSBAR, surgeValueOf } from "../../prices/attested-read";
 import { HERMES } from "../price-relay/hermes-fetch";
 const REDSTONE_LATEST_PATH = "/data-packages/latest/redstone-primary-prod";
@@ -26,13 +30,17 @@ import type { RelaySources } from "../price-relay/sources";
 export const PROBE_EVERY_MS = 5 * 60_000;
 /** A source found down is asked again after a minute, so a lane resumes soon after its source does. */
 export const PROBE_RETRY_MS = 60_000;
-const PROBED: readonly AttestedSource[] = ["redstone", "pyth", "pyth-index", "switchboard", "prestocks", "basket"];
+const PROBED: readonly AttestedSource[] = ["redstone", "pyth", "pyth-index", "switchboard", "prestocks", "basket", "alpaca", "jupiter"];
+const JUPITER_LITE = "https://lite-api.jup.ag/price/v3";
 
 export interface ProbeContext {
   sources: Pick<RelaySources, "gateways" | "pythFeeds">;
   pythKey?: string;
   pythIndex: Pick<PythEntitlementStore, "hasKey" | "feeds">;
   switchboardFeeds: ReadonlyMap<string, string>;
+  /** C6e: Alpaca market-data keys (null when unset) and the xStock mints Jupiter prices. */
+  alpaca?: { keyId: string; secretKey: string; dataUrl?: string } | null;
+  xstockMints?: readonly string[];
   fetchImpl?: typeof fetch;
   nowSec?: () => number;
 }
@@ -88,6 +96,26 @@ async function check(source: AttestedSource, ctx: ProbeContext): Promise<{ ok: b
       } catch (error) {
         return { ok: false, reason: short(`PreStocks catalogue: ${errorText(error)}`) };
       }
+    }
+    case "alpaca": {
+      const keys = ctx.alpaca;
+      if (!keys) return { ok: false, reason: "ALPACA_KEY_ID / ALPACA_SECRET_KEY are not set" };
+      const base = (keys.dataUrl ?? "https://data.alpaca.markets/v2").replace(/\/+$/, "");
+      const res = await fetchImpl(`${base}/stocks/trades/latest?symbols=QQQ&feed=iex`, {
+        headers: { "APCA-API-KEY-ID": keys.keyId, "APCA-API-SECRET-KEY": keys.secretKey }, signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) return { ok: true, reason: null };
+      return { ok: false, reason: res.status === 401 || res.status === 403 ? `Alpaca refused the key (HTTP ${res.status})` : `Alpaca market data HTTP ${res.status}` };
+    }
+    case "jupiter": {
+      const feed = currentXStockSpot();
+      if (feed && XSTOCK_SYMBOLS.every((x) => feed.latest(x, 30) !== null)) return { ok: true, reason: null };
+      const beat = heartbeats().find((b) => b.actor === "xstock-spot");
+      if (feed) return { ok: false, reason: short(`no Jupiter sample for every xStock in the last 30 s${beat?.lastWhy ? ` (${beat.lastWhy})` : ""}`) };
+      const mints = ctx.xstockMints ?? [];
+      if (mints.length === 0) return { ok: false, reason: "no Jupiter xStock feed running" };
+      const res = await fetchImpl(`${JUPITER_LITE}?ids=${mints.join(",")}`, { signal: AbortSignal.timeout(10_000) });
+      return res.ok ? { ok: true, reason: null } : { ok: false, reason: `Jupiter Price v3 HTTP ${res.status}` };
     }
     default:
       return { ok: true, reason: null };
