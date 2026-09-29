@@ -33,7 +33,7 @@ export function arenaPickKey(chainId: number, matchId: string, cardIndex: number
 }
 
 /** `IGameArena.RefundReason`, in the contract's enum order. */
-export const ARENA_REFUND_REASONS: readonly RefundReason[] = ["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete"];
+export const ARENA_REFUND_REASONS: readonly RefundReason[] = ["creator-cancelled", "join-timeout", "reveal-unavailable", "both-incomplete", "stale-settlement"];
 
 export function arenaRefundReasonOf(index: number): RefundReason {
   const reason = ARENA_REFUND_REASONS[index];

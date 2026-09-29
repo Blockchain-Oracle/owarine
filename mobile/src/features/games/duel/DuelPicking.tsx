@@ -15,7 +15,7 @@ import { usePicking } from "./usePicking";
 /**
  * web's `DuelPicking.tsx` (`.du-picking`): the swipe, with money behind it — the same `SwipeDeck` as Practice. Above
  * the deck, the opponent's absence (when the room says so) and the pick window draining full width in the clock's
- * colour; a dry key's refusal (a seat pays no fees, so there is no top-up to offer); under it, the opponent's live cue and your picks as the chain
+ * colour; under it, the opponent's live cue and your picks as the chain
  * filled them. Once the window has closed, the dead-duel plate names the permissionless lock.
  */
 export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState, { phase: "picking" }>; wallet: string | null; room: DuelRoom }) {
@@ -57,11 +57,6 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
       <View style={[styles.deplete, { backgroundColor: s.deplete }]} accessibilityRole="progressbar" accessibilityLabel={`${DUEL.picking.deadline}: ${p.leftSec}s`}>
         <View style={[styles.depleteFill, { width: `${p.depleted * 100}%`, backgroundColor: drainInk }]} />
       </View>
-      {p.dry ? (
-        <Refusal>
-          <Body>{DUEL.picking.keyGasShortWhy}</Body>
-        </Refusal>
-      ) : null}
       <SwipeDeck
         cards={state.cards}
         active={p.active}

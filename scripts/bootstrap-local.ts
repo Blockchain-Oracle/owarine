@@ -10,12 +10,14 @@
  *   4. (C8c) uploads abu-pm-tickets and creates the ticket reserves: per reserve (range, parlay, boost) a
  *      `NavStatement` (auditor-visible) and a `RiskBook`, one `EarnDesk`, and seeds each reserve from the LP party
  *      (`--reserve-seed` credits in 4 supplies, then the first `Earn_PublishNav`),
- *   5. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
+ *   5. (C9b) uploads abu-pm-games and creates the duel arena (`ArenaTerms`, the reference's stake tiers) and a funded
+ *      season prize pool (`bootstrap-games.ts`; `--no-games` skips it),
+ *   6. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
  *
  *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
- *     [--reserve-seed 10000] [--no-tickets] [--fresh]
+ *     [--reserve-seed 10000] [--no-tickets] [--no-games] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -29,6 +31,7 @@ import { cmd, decodeSeries, decodeVenueCash, pick, readActive, type RoleSession 
 import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
+import { bootstrapGames } from "./bootstrap-games";
 
 const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs against an unauthenticated local sandbox only");
@@ -237,6 +240,7 @@ async function main(): Promise<void> {
   }
 
   if (!flag("--no-tickets")) await bootstrapTickets(venue, parties.auditor!, parties.lp!);
+  if (!flag("--no-games")) await bootstrapGames({ client, venue: vs, run, log });
 
   const file: PartiesFile = { network: "local", createdAtMs: Date.now(), parties, users, policyVersion: POLICY_VERSION };
   mkdirSync(dirname(path), { recursive: true });

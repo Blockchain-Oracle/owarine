@@ -11,14 +11,11 @@ import {
   type StakeTierId,
 } from "@agari/core/games";
 import { isOk } from "@agari/core/schemas";
-import { ARENA_NOT_DEPLOYED } from "@agari/core/games";
-import { diagnosis, type Address, type Hash32, type Diagnosis, type MarketId, type Signature } from "@agari/core/types";
+import { diagnosis, type Address, type Hash32, type Diagnosis, type MarketId } from "@agari/core/types";
 import { quoteArenaPick, type ArenaPickOutcome } from "@agari/markets/games";
 import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
-import { resolveVaultDeployment, type VaultContracts } from "@agari/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { webEnv } from "@/lib/env";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useOwnerWallet } from "@/lib/wallet-session";
 import { useGameSession, type GameSession } from "./useGameSession";
@@ -26,33 +23,27 @@ import { useGameSession, type GameSession } from "./useGameSession";
 /**
  * Every transaction a duel asks of a player: opening the match, joining it, and each pick.
  *
- * **A pick retries, and that is not defensive padding.** On a binary pool, buying UP and buying DOWN
- * draw on the same resting liquidity, so two seats swiping the same card in the same second contend
- * — the loser's fill comes back under the floor it was quoted against and the arena refuses it, as it
- * should. That is the normal case in a live duel, and it is what cost the first drive its eighth pick
- * (`context/54` §3). The stake never changes on a retry, only the floor loosens, because the arena
+ * **A pick retries, and that is not defensive padding.** Two seats swiping the same card in the same second draw on
+ * the same venue ladder, so the loser's firm quote can come back above the tier's per-card cap and is answered as a
+ * requote, as it should be. That is the normal case in a live duel (`context/54` §3). The stake never changes on a
+ * retry, only the floor loosens, because the ledger
  * refunds whatever the walk does not spend.
  *
  * **Nothing here quotes a size the chain did not.** Every attempt re-reads `sizeForStake` immediately
  * before it sends, so a floor is always a fraction of a live quote rather than of a stale one.
  */
 
-export type ArenaBusy = "create" | "join" | "claim" | "finalize" | "lock" | "authorize" | "fund" | `pick:${number}` | `settle:${number}` | null;
+export type ArenaBusy = "create" | "join" | "claim" | "finalize" | "lock" | "authorize" | `pick:${number}` | `settle:${number}` | null;
 
 /**
- * The last transaction this screen asked for and did not get — and the reason a duel needed it.
+ * The last write this screen asked for and did not get — and the reason a duel needed it.
  *
- * `create` and `join` used to be sent with `void`, so every refusal was discarded. A wallet with no STT
- * therefore pressed "open the match", watched it say "opening…", and got the same button back with
- * nothing said: the gas pre-check had refused it before the wallet was ever asked. Measured on
- * 2026-09-04 — both browsers in that session held 0 STT and not one of their three sealed decks reached
- * the chain. A write that fails silently is worse than one that fails loudly.
+ * `create` and `join` used to be sent with `void`, so every refusal was discarded and a button could go quiet with
+ * nothing said. A write that fails silently is worse than one that fails loudly, so every refusal lands here.
  */
 export interface ArenaRefusal {
   key: Exclude<ArenaBusy, null>;
   diagnosis: Diagnosis;
-  /** The one refusal with somewhere to go: an empty tank routes to the faucets (FR-2), never a revert. */
-  gasShort: boolean;
 }
 
 export interface PickProgress {
@@ -72,21 +63,13 @@ export function useArenaWrites() {
   const [progress, setProgress] = useState<PickProgress | null>(null);
   const [refusal, setRefusal] = useState<ArenaRefusal | null>(null);
 
-  const contracts = useCallback((): VaultContracts | null => {
-    if (!wallet) return null;
-    return { signer: wallet.address, deployment: resolveVaultDeployment(webEnv.markets) };
-  }, [wallet]);
-
   const refresh = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
   }, [address, queryClient]);
 
   /**
-   * One write, with its answer kept.
-   *
-   * Gas is checked before the wallet is asked, the same order the faucet uses: an empty tank routes the
-   * player to a faucet instead of opening a prompt for a transaction that cannot be paid for. Everything
-   * that is not `confirmed` lands in `refusal`, so no button can go quiet.
+   * One write, with its answer kept. Canton charges no network fee, so there is nothing to check before the seat's
+   * route is asked; everything that is not `confirmed` lands in `refusal`, so no button can go quiet.
    */
   const send = useCallback(
     async (intent: ArenaIntent, key: Exclude<ArenaBusy, null>) => {
@@ -94,19 +77,12 @@ export function useArenaWrites() {
       setBusy(key);
       setRefusal(null);
       try {
-        const gas = await submitter.checkGas("arena");
-        if (!gas.ok) {
-          setRefusal({ key, diagnosis: gas.diagnosis, gasShort: gas.diagnosis.kind === "out-of-gas" });
-          return { status: "refused", diagnosis: gas.diagnosis } as const;
-        }
         const outcome = await submitter.submitTx(intent);
-        if (outcome.status !== "confirmed") {
-          setRefusal({ key, diagnosis: outcome.diagnosis, gasShort: outcome.diagnosis.kind === "out-of-gas" });
-        }
+        if (outcome.status !== "confirmed") setRefusal({ key, diagnosis: outcome.diagnosis });
         return outcome;
       } catch (cause) {
         const diag = diagnosis("unknown", String((cause as Error)?.message ?? cause).slice(0, 200));
-        setRefusal({ key, diagnosis: diag, gasShort: false });
+        setRefusal({ key, diagnosis: diag });
         return { status: "refused", diagnosis: diag } as const;
       } finally {
         setBusy(null);
@@ -116,7 +92,7 @@ export function useArenaWrites() {
     [submitter, address, refresh],
   );
 
-  /** The creator's transaction: the pot goes in and the sealed deck's hash goes on chain with it. */
+  /** The creator's write: the pot goes in and the sealed deck's hash goes on the ledger with it (`Arena_OpenDuel`). */
   const create = useCallback(
     (input: { matchId: Hash32; challenger: Address; tier: StakeTierId; deckHash: Hash32; deckSize: number; policyVersion: number; potBase: bigint; agent?: ArenaAgentGrant }) =>
       send(
@@ -144,18 +120,14 @@ export function useArenaWrites() {
   /** A pull, and the arena pays the player named on it rather than the caller. */
   const claim = useCallback((player: Address) => send({ kind: "arena-claim", player }, "claim"), [send]);
 
-  /**
-   * Names this browser's key for a seat after the entry did not — the way back in when the key that
-   * entered is on another device, or was lost with its storage. One wallet transaction, then the key swipes.
-   */
+  /** Naming an agent key: the reference's re-key. Canton has none to name, so the lane refuses it with its own reason. */
   const authorize = useCallback((matchId: Hash32, agent: Address, ttlSec: number) => send({ kind: "arena-authorize", matchId, agent, ttlSec }, "authorize"), [send]);
 
   /**
-   * The two permissionless cranks a player may need to run themselves.
+   * The cranks a player may need to run themselves.
    *
-   * Doc 04's recovery list requires it: with the operator's settler unavailable, a player or anyone
-   * else must be able to advance a settled card and award the pot. Neither can redirect a payout —
-   * the arena credits whoever it already recorded — so the only thing the caller spends is gas.
+   * Doc 04's recovery list requires it: with the operator's settler unavailable, a player must be able to score their
+   * own card and award the pot. Neither can redirect a payout — the match pays whoever it already recorded.
    */
   const settleCard = useCallback(
     (matchId: Hash32, cardIndex: number) => send({ kind: "arena-settle-card", matchId, cardIndex }, `settle:${cardIndex}`),
@@ -169,22 +141,16 @@ export function useArenaWrites() {
   /**
    * One card, one side, retried while the deadline allows.
    *
-   * The deadline guard stops attempts a few seconds early rather than at the line: a send already in
-   * flight still has to be mined, and a pick that lands after the lock is gas spent on a revert.
-   *
-   * With a game key in hand the pick is `placePickFor`, signed by the key and paid for by the player:
-   * no wallet prompt, and the gas check is the key's own tank. Without one it is the player's own
-   * `placePick`, one signature per card — the shape the first duels shipped with.
+   * The deadline guard stops attempts a few seconds early rather than at the line: a write already in flight still has
+   * to land, and a pick recorded after the lock is refused. Each attempt is the seat's own route: a firm quote within
+   * the tier's per-card cap, accepted with the duel's tag and recorded on the match; a price that moved past the cap
+   * answers a requote, and the next attempt asks again.
    */
   const pick = useCallback(
     async (input: { matchId: Hash32; cardIndex: number; marketId: MarketId; side: Pick; stakeBase: bigint; deadlineSec: number }): Promise<ArenaPickOutcome> => {
       if (!submitter || !address) {
-        return { status: "refused", diagnosis: diagnosis("signer-required", "this browser has no signing session bound") };
+        return { status: "refused", diagnosis: diagnosis("signer-required", "this browser has no seat session bound") };
       }
-
-      // With a game key the pick is signed by the key's own session; without one it is the wallet's.
-      const keyed = game.session;
-      const lane = keyed ? keyed.submitter : submitter;
       setBusy(`pick:${input.cardIndex}`);
       setRefusal(null);
       let last: ArenaPickOutcome = { status: "refused", diagnosis: diagnosis("order-expired", "the pick deadline passed before a fill landed") };
@@ -198,15 +164,11 @@ export function useArenaWrites() {
           if (!isOk(quote) || !quote.value) continue;
 
           const floor = pickFloorRaw(quote.value.quantityRaw, attempt);
-          last = await lane.submitArenaPick(
-            keyed
-              ? { kind: "arena-pick-for", player: address, matchId: input.matchId, cardIndex: input.cardIndex, pick: input.side, stakeBase: input.stakeBase, minQuantityRaw: floor }
-              : { kind: "arena-pick", matchId: input.matchId, cardIndex: input.cardIndex, pick: input.side, stakeBase: input.stakeBase, minQuantityRaw: floor },
-          );
+          last = await submitter.submitArenaPick({ kind: "arena-pick", matchId: input.matchId, cardIndex: input.cardIndex, pick: input.side, stakeBase: input.stakeBase, minQuantityRaw: floor });
           if (last.status === "confirmed" || last.status === "unknown") return last;
-          // A dry tank is not a lost race: nothing will fill until the key is funded, so say that and stop retrying.
-          if (last.status === "refused" && last.diagnosis.kind === "out-of-gas") {
-            setRefusal({ key: `pick:${input.cardIndex}`, diagnosis: last.diagnosis, gasShort: true });
+          // A refusal that is not a moved price (a spent seat, a closed window) will not change on a retry.
+          if (last.status === "refused" && last.diagnosis.kind !== "requote" && last.diagnosis.kind !== "send-unknown") {
+            setRefusal({ key: `pick:${input.cardIndex}`, diagnosis: last.diagnosis });
             return last;
           }
         }
@@ -217,29 +179,12 @@ export function useArenaWrites() {
         await refresh();
       }
     },
-    [submitter, address, refresh, game.session],
-  );
-
-  /**
-   * The player's own top-up of the key — one wallet transaction, the fallback when no sponsor will pay and
-   * the entry's envelope has been spent. The amount is the caller's, in lamports, sized off the cards still to play.
-   *
-   * On Solana that is a SOL transfer the markets adapter builds and the wallet signs (S4), for the arena program's key
-   * (S12). Until then it refuses with the arena's own not-deployed reason, and nothing is signed.
-   */
-  const fundKey = useCallback(
-    async (_amountLamports: bigint): Promise<Signature | null> => {
-      if (!wallet || !game.key) return null;
-      setRefusal({ key: "fund", diagnosis: diagnosis("not-deployed", ARENA_NOT_DEPLOYED), gasShort: false });
-      return null;
-    },
-    [wallet, game.key],
+    [submitter, address, refresh],
   );
 
   return {
-    /** The key this browser swipes with, and the grant an entry names for it. */
+    /** The agent key and its grant: none on Canton (the seat's own route places every pick). */
     game: game as GameSession,
-    fundKey,
     create,
     join,
     claim,

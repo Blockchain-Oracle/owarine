@@ -124,6 +124,36 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - The desk's daily window is the grant's calendar day from `dayZero` (K-024), not the reference's rolling 24 h window.
 - **Approval:** default; overrulable.
 
+### K-100 — Games wired on `abu-pm-games` 0.1.0 as built; no Daml change (C9 block)
+- **Date / owner:** 2026-09-29 · C9b lane
+- **Evidence:** `daml/pm-tests/daml/Test/Games/{Duel,Season,Gate}.daml`, 18 games scripts green (`dpm test --files …`); `scripts/drive/games-duel-it.ts`; `docs/evidence/c9b-games.md`.
+- **Rule:**
+  - The package needed no change, so it stays 0.1.0 (never uploaded). The added money gate (`Test.Games.Gate`: settle once, a mismatched reveal refunds both in full, the free tier, the pick rules) is test-only.
+  - A pick is two seat commands, never one: `Quote_Accept` with `beneficiaryRef = duel:<arena>:<match>`, then `Duel_RecordPick`. One combined choice would make the opponent (a match signatory) a witness of the player's cash.
+  - The deck commitment is `PM.Games.Deck.deckCommitment`: sha256 over the length-prefixed text preimage with the Windows' Daml market ids, committed under `ArenaTerms.policyVersion` (the version `Duel_Reveal` hashes). The TS encoder is pinned to the Daml golden vector by a differential test. Deck policy 6.
+  - Deck candidates come from the venue's own price ladders (quoting both Up and Down), not the indexer, so ops deals without the web. The reference's rule that 5 m Windows are never dealt stands.
+- **Approval:** default; overrulable.
+
+### K-101 — No agent keys, arena credit or gas sponsor on Canton (C9 block)
+- **Date / owner:** 2026-09-29 · C9b lane
+- **Rule:** the seat key is the game key: it signs the room credential (wallet = key) and every pick is the seat's own command through the web's lease. `arena-authorize`, `arena-release-agent` and `arena-claim` answer a plain refusal (a decided pot is paid straight into each player's cash); `arena-reveal` is the deckmaster's (it alone holds the preimage). The Solana gas envelope, the arena gas check, the game sponsor hook and `/api/games/sponsor` are removed; the status probe reads the sponsor as not configured. No SOL, gas or lamport line remains in the duel on web or phone; the entry states that there is no network fee.
+- **Approval:** default; overrulable.
+
+### K-102 — The duel projection rides the main projector (C9 block)
+- **Date / owner:** 2026-09-29 · C9b lane
+- **Rule:** the projector calls an `onApplied` hook per applied venue transaction; `duel-projector/ledger.ts` translates arena choices into the reference's `ArenaEvent`s and `apply.ts` writes the rows, the ladder and the room deltas unchanged. There is no second stream or cursor. `arenaHeadBlock` / `listArenaEvents` keep their names and answer not-live with that reason (never an empty list). Seats map to parties through the web's `seat_pool`, read-only by ops and remembered per process; an unmapped party shows as a derived, stable id.
+- **Approval:** default; overrulable.
+
+### K-103 — Where the duel actors run (C9 block)
+- **Date / owner:** 2026-09-29 · C9b lane
+- **Rule:** a `games` Canton actor (the arena desk) serves `POST /internal/games/{state,match,season,open,season/distribute}` and runs the duel settler (reveal, lock, score, finalize, the three refunds) with stable `duel:<step>:<digest>` command ids. `game-room`, which constructs the matchmaker, joins the default venue actor set and idles without `ROOM_TOKEN_SECRET`. The old `duel-projector` and `duel-settler` actor names leave `main.ts`. Core's `RefundReason` gains `stale-settlement` for `Duel_RefundStale`.
+- **Approval:** default; overrulable.
+
+### K-104 — The season pool's payout and remainder (C9 block)
+- **Date / owner:** 2026-09-29 · C9b lane
+- **Rule:** `distributeSeasonPrizes` keeps its name and fields; on Canton it is the admin's HMAC-signed call to ops, which maps each winner's seat address to its `VenueAccount` and exercises `Season_Distribute` once. The remainder is withdrawn by the venue (`Season_WithdrawRemainder`) as an admin act; there is no route for it. The bootstrap creates `ArenaTerms` with core's `STAKE_TIERS` and a funded `SeasonPool`.
+- **Approval:** default; overrulable.
+
 ### K-125 — iOS ships on public TestFlight from a new app record (C11 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).

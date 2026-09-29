@@ -8,9 +8,8 @@
  * the programs they drive. DRY_RUN stays on unless `DRY_RUN=0` (nothing signs by default).
  */
 import "./actors/venue/quiet-codegen";
-import { startDuelProjector } from "./actors/duel-projector";
+import { attachDuelRoom, createDuelProjection } from "./actors/duel-projector";
 import { startDeskRunner } from "./actors/desk-runner";
-import { startDuelSettler } from "./actors/duel-settler";
 import { startPushClock } from "./actors/push-clock";
 import { startGameRoom } from "./actors/game-room";
 import { startHaltWatch } from "./actors/halt-watch";
@@ -43,8 +42,10 @@ const HEARTBEAT_MS = 30_000;
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
 /** Canton (C3): "venue" runs the roller, resolver, pricer, issuer, sweeper, rebalancer, netting, settler, seat funding and
  * drain, and the reserve reporter; "relay" runs the three oracle feeders; "projector" replaces the Solana indexer. */
-const VENUE_ACTORS = ["relay", "venue", "projector", "http", "halts", "earnings", "push-clock"] as const;
-const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper", "game-room", "duel-projector", "duel-settler"] as const;
+/** C9b: the duel room (with its matchmaker) is a venue actor; the duel settler runs inside "venue" (the arena desk) and
+ * the duel projection inside "projector". The room idles, saying why, without `ROOM_TOKEN_SECRET`. */
+const VENUE_ACTORS = ["relay", "venue", "projector", "http", "halts", "earnings", "push-clock", "game-room"] as const;
+const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper"] as const;
 /** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126). */
 const OPT_IN_ACTORS = ["desk-runner"] as const;
 
@@ -165,7 +166,8 @@ if (actors.has("http"))
 if (actors.has("halts")) void boot("halt-watch", () => startHaltWatch(deps("halt-watch", spot)));
 if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earnings")));
 // "indexer" is the pre-Canton name for the projector; either starts it.
-if (actors.has("projector") || actors.has("indexer")) void boot("projector", () => startProjector(deps("projector")));
+if (actors.has("projector") || actors.has("indexer"))
+  void boot("projector", () => startProjector(deps("projector"), process.env, { onApplied: createDuelProjection(log("duel-projector")) }));
 // The earn vault's market maker (MAKER_MODE=vault) is a C8 product; the venue's own pricer lives in "venue".
 if (actors.has("maker") && process.env.MAKER_MODE === "vault") void boot("market-maker", () => startMarketMaker(log("market-maker")));
 
@@ -174,11 +176,9 @@ if (actors.has("desk-runner")) void boot(OPT_IN_ACTORS[0], () => startDeskRunner
 if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"));
 if (actors.has("x-relay")) void startXRelay(log("x-relay"));
 if (actors.has("leverage-keeper")) void startLeverageKeeper(log("leverage-keeper"));
-// The projector feeds the room it is given, so the room starts first and hands its context over. Named on its own it
-// still runs: the rows it writes are the duel history, and the room is only where live deltas go.
-if (actors.has("game-room")) void startGameRoom(log("game-room")).then((room) => startDuelProjector(log("duel-projector"), room));
-else if (actors.has("duel-projector")) void startDuelProjector(log("duel-projector"), null);
-if (actors.has("duel-settler")) void startDuelSettler(log("duel-settler"));
+// The duel room and its matchmaker (C9b): after the venue, whose arena desk is the room's source and the matchmaker's
+// dealer. The projector's duel projection broadcasts into the room once it listens; without one it still writes rows.
+if (actors.has("game-room")) void startGameRoom(log("game-room")).then(attachDuelRoom);
 // S26.4: the phone push drain's clock; web chooses and words each notification.
 if (actors.has("push-clock")) void boot("push-clock", () => startPushClock(log("push-clock")));
 setInterval(() => {

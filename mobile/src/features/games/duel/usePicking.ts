@@ -36,11 +36,12 @@ export function usePicking(state: Extract<MatchState, { phase: "picking" }>, wal
   const arena = useArenaState();
   const { boot } = useVenue();
   const writes = useArenaWrites();
-  const { pick, busy, canSign, refusal, game } = writes;
+  const { pick, busy, canSign } = writes;
   const [failed, setFailed] = useState<number | null>(null);
   const [autoPlayed, setAutoPlayed] = useState<readonly number[]>([]);
   const autoRef = useRef<string | null>(null);
-  const keyed = game.session !== null;
+  // Every pick is the seat's own route with no prompt (the server submits as the leased party), so the seat swipes.
+  const keyed = canSign;
 
   const you = wallet;
   const params = arena && isOk(arena) ? arena.value?.params : undefined;
@@ -102,9 +103,7 @@ export function usePicking(state: Extract<MatchState, { phase: "picking" }>, wal
   }, [active, params, stakeBase, decimals, canSign, keyed, busy, failed, endsSec, nowSec, state.matchId, onPick]);
 
   const odds = useArenaOdds(active?.marketId ?? null, stakeBase, decimals);
-  // A seat pays no network fees; a gas refusal from the write lane is still named, with no top-up to offer.
-  const dry = keyed && refusal?.gasShort === true;
-  const held = !canSign ? DUEL.lobby.noSigner : dry ? DUEL.picking.keyGasShort : active && params && !playable ? DUEL.picking.tooLate : null;
+  const held = !canSign ? DUEL.lobby.noSigner : active && params && !playable ? DUEL.picking.tooLate : null;
 
   const lastAuto = autoPlayed.length > 0 ? mine.find((r) => r.cardIndex === autoPlayed[autoPlayed.length - 1]) : undefined;
   const opponentHere =
@@ -131,7 +130,6 @@ export function usePicking(state: Extract<MatchState, { phase: "picking" }>, wal
     onPick,
     odds,
     held,
-    dry,
     failed,
     keyed,
     autoPlayed,

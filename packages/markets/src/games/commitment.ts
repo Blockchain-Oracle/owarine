@@ -1,21 +1,33 @@
-import { deckCommitmentPreimage, type DeckCommitmentInput } from "@agari/core/games";
+import { duelDeckPreimage, type DuelDeckInput } from "@agari/core/games";
 import type { Hash32, Hex } from "@agari/core/types";
+import { sha256 } from "@noble/hashes/sha2";
 import { keccak_256 } from "@noble/hashes/sha3";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
+import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils";
 
 /**
- * keccak-256 over the bytes a `0x`-hex string encodes: the hash a deck commitment, a Lucky seed and a candidate set
- * are taken over. `@agari/core` carries no crypto by design, so it builds the preimage and the caller hashes it.
- *
- * It lives here, once, because three places need the same digest and a second implementation is a second chance to
- * get it wrong: the browser verifying a reveal, the ops deckmaster sealing one, and `agari-arena`'s own
- * `solana_keccak_hasher::hash`, whose packing is pinned to core's golden vector by the program's test.
+ * keccak-256 over the bytes a `0x`-hex string encodes: the hash the off-ledger commitments are taken over (a room
+ * client seed's commitment, a Lucky seed and its candidate set). `@agari/core` carries no crypto by design, so it builds
+ * the preimage and the caller hashes it. The duel deck no longer uses it: its reveal is checked on the ledger, and the
+ * ledger's hash is `DA.Text.sha256` (below).
  */
 export function keccak256(data: Hex): Hash32 {
   return `0x${bytesToHex(keccak_256(hexToBytes(data.slice(2))))}`;
 }
 
-/** The commitment for one deck: what the creator publishes, and what the reveal must reproduce. */
-export function deckCommitment(input: DeckCommitmentInput): Hash32 {
-  return keccak256(deckCommitmentPreimage(input));
+/**
+ * sha256 over UTF-8 text, lowercase hex without `0x`: exactly what `DA.Text.sha256` returns, so the value the ops
+ * deckmaster commits to is the value `Duel_Reveal` recomputes and compares.
+ */
+export function sha256Text(text: string): string {
+  return bytesToHex(sha256(utf8ToBytes(text)));
+}
+
+/** The deck commitment as the ledger stores it (`DuelOpen.deckHash`): 64 lowercase hex characters. */
+export function duelDeckHash(input: DuelDeckInput): string {
+  return sha256Text(duelDeckPreimage(input));
+}
+
+/** The commitment for one deck as the app keys it (`0x` + the ledger's hex): what the room shows before the reveal. */
+export function deckCommitment(input: DuelDeckInput): Hash32 {
+  return `0x${duelDeckHash(input)}`;
 }

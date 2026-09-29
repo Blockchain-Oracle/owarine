@@ -89,12 +89,12 @@ export const LUCKY = {
       drift: (dealt: string, live: string) =>
         `The live multiple is ${live}, not the ${dealt} the reel dealt — the book moved. Placing takes the live quote; the reach is the book's, not the reel's.`,
     },
-    /** The key stays `gas` (the reference's); the words are Solana's: a network fee, paid in SOL. */
+    /** The key stays `gas` (the reference's "who pays" line); on Canton the answer is nobody: the venue submits the order. */
     gas: {
       label: "Network fee",
-      wallet: "You sign once with your seat. Canton charges no network fee.",
-      key: "Your session key places it with no prompt. Canton charges no network fee.",
-      fallback: (why: string) => `${why} You sign with your seat. Canton charges no network fee.`,
+      wallet: "None: your seat places the order and the venue submits it to the ledger.",
+      key: "None: your seat places the order with no prompt, and the venue submits it to the ledger.",
+      fallback: (why: string) => `${why} Your seat places the order; there is still no network fee.`,
     },
     place: (side: string) => `Place ${side} ·`,
     skip: "Skip this deal",
