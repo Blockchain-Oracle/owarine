@@ -4,18 +4,18 @@ import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { haptic } from "~/components/kit";
 import { TutorialCard } from "~/features/onboarding/TutorialCard";
+import { ONBOARDED_KEY } from "~/lib/keys";
 import { storage } from "~/lib/storage";
 import { useTheme } from "~/theme";
 import { activityTokens } from "~/theme/web/portfolio-activity";
-
-/** This install has seen the walkthrough; web's own key is set too, so web code reading it agrees. */
-const ONBOARDED_KEY = "agari.mobile.onboarded.v1";
 
 /**
  * `/welcome` — web's first run is not a page: it is the Tutorial dialog (features/onboarding/Tutorial.tsx) over the
  * live markets. So this route is that dialog: web's `.tutorial-scrim` (black/70, a 4 px blur) over whatever is
  * beneath, and the card at the bottom. Reached straight from the app's entry redirect it first puts Markets under
- * itself. Close, Skip, a tap on the scrim, or connecting on the last screen all end it, as on web.
+ * itself. Close, Skip, a tap on the scrim, or Connect on the last screen all end it, as on web. The flag it sets is
+ * the app's own onboarded key (web's own key is set too, so web code reading it agrees). Connect opens the Take a seat
+ * sheet, which shows the demo-credits terms before any seat is made.
  */
 export default function WelcomeScreen() {
   const { name } = useTheme();
