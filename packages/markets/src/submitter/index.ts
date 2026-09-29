@@ -11,3 +11,4 @@ export * from "./reconcile";
 export * from "./recovery";
 export type { WriteRpc } from "./write-rpc";
 export * from "./stop-gate";
+export { commandVerdict, CONFIRM_CAP_MS, CONFIRM_POLL_MS, requestFirmQuote, submitLegExit, submitSeatOrder, type SeatLaneDeps } from "./seat-lane";
