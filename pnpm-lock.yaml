@@ -287,6 +287,9 @@ importers:
 
   packages/daml-clients:
     dependencies:
+      '@daml.js/abu-pm-games':
+        specifier: link:./generated/abu-pm-games
+        version: link:generated/abu-pm-games
       '@daml.js/abu-pm-main':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main
