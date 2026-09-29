@@ -3,7 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-describe("/api/venue routes without a projection", () => {
+// The first test imports the route graph cold; under a loaded machine that alone can pass 5 s.
+describe("/api/venue routes without a projection", { timeout: 30_000 }, () => {
   beforeEach(() => vi.stubEnv("DATABASE_URL", ""));
   afterEach(() => vi.unstubAllEnvs());
 
