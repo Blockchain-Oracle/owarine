@@ -12,7 +12,9 @@
 -- Every user contract has exactly two stakeholders, the user and the venue.
 module PM.Tickets.Common where
 
+import DA.Action (void)
 import PM.Money
+import PM.Publication (ReceiptDetail(..), SettlementReceipt(..))
 import PM.Reserve (maxReserveUnits, reserveBucket)
 import PM.Types
 
@@ -48,3 +50,46 @@ payBoth venue owner reserveId ownerAmount reserveAmount ownerBucket = do
   o <- payIfPositive venue owner ownerAmount ownerBucket
   r <- payReserve venue reserveId reserveAmount
   pure Paid with toOwner = o; toReserve = r
+
+-- | "won", "lost" or "void", as a receipt's `detail.result`.
+resultText : Optional Bool -> Text
+resultText None = "void"
+resultText (Some True) = "won"
+resultText (Some False) = "lost"
+
+sideText : Side -> Text
+sideText SideUp = "Up"
+sideText SideDown = "Down"
+
+-- | What a ticket's receipt records beyond its detail (abu-pm-main 0.4.0's
+-- general `SettlementReceipt`, K-030; field meanings in PM.Publication).
+data TicketReceipt = TicketReceipt
+  with
+    venue : Party
+    owner : Party
+    product : Text
+    marketId : Text
+    pairId : Text
+    outcome : Side
+    resolved : Optional Side
+    lots : Int
+    cashUnit : Int
+    backingShare : Int
+    cost : Int
+    payout : Int
+    fee : Int
+    detail : ReceiptDetail
+
+-- | Leave the owner's settlement receipt (one create per settle or claim).
+recordReceipt : TicketReceipt -> Update ()
+recordReceipt t = void $ create SettlementReceipt with
+  venue = t.venue; owner = t.owner; marketId = t.marketId; pairId = t.pairId; outcome = t.outcome
+  resolved = t.resolved; lots = t.lots; cashUnit = t.cashUnit; backingShare = t.backingShare
+  cost = t.cost; payout = t.payout; fee = t.fee; product = Some t.product; detail = Some t.detail
+
+-- | A receipt for a stake-for-payout ticket (range, moonshot, parlay): one
+-- lot of cash unit 1 whose backing and cost are the stake, no fee.
+stakeReceipt : Party -> Party -> Text -> Text -> Side -> Optional Side -> Int -> Int -> ReceiptDetail -> TicketReceipt
+stakeReceipt venue owner product marketId outcome resolved stake payout detail = TicketReceipt with
+  venue; owner; product; marketId; pairId = ""; outcome; resolved; lots = 1; cashUnit = 1
+  backingShare = stake; cost = stake; payout; fee = 0; detail

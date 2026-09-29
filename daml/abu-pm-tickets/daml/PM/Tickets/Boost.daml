@@ -39,6 +39,7 @@ import PM.Leg
 import PM.Market
 import PM.Money
 import PM.Oracle
+import PM.Publication (ReceiptDetail(..))
 import PM.Quote (expireSlackSec, lockFromShard)
 import PM.Reserve (mulDivFloor)
 import PM.Tickets.Common
@@ -293,7 +294,19 @@ settleBoost : BoostPosition -> ContractId Resolution -> Update Paid
 settleBoost p resolutionCid = do
   r <- fetchResolutionFor p.venue p.termsCid resolutionCid
   let (proceeds, fee) = boostPayout p r
-  exitWith p proceeds fee "payout"
+      reclaimed = min proceeds p.fronted
+  paid <- exitWith p proceeds fee "payout"
+  recordReceipt TicketReceipt with
+    venue = p.venue; owner = p.owner; product = if p.side == SideUp then "boost" else "short"
+    marketId = p.marketId; pairId = p.pairId; outcome = p.side; resolved = r.outcome
+    lots = p.lots; cashUnit = p.cashUnit; backingShare = costOf p; cost = p.stake
+    payout = proceeds - reclaimed; fee
+    detail = ReceiptDetail with
+      reserveId = p.reserveId; marketIds = [p.marketId]
+      pick = sideText p.side <> " @" <> show p.leverageBps <> "bps"
+      stake = p.stake; toReserve = reclaimed + fee
+      result = resultText ((== p.side) <$> r.outcome)
+  pure paid
 
 -- | The user's side of the pair, now held by the venue at its backing, so
 -- the pair stays whole.

@@ -23,10 +23,12 @@ module PM.Tickets.Parlay where
 
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
 import DA.List ((!!), sortOn, unique)
+import DA.Text (intercalate)
 import DA.Time (addRelTime, seconds)
 import PM.Leg (fetchResolutionFor)
 import PM.Market
 import PM.Money
+import PM.Publication (ReceiptDetail(..))
 import PM.Quote (expireSlackSec)
 import PM.Tickets.Common
 import PM.Types
@@ -161,11 +163,20 @@ decideLeg t resolutionCid = do
   let leg = t.legs !! idx
   require "leg-out-of-order" "an earlier-closing leg must be decided first" (leg.termsCid == r.termsCid)
   _ <- fetchResolutionFor t.venue leg.termsCid resolutionCid
+  -- A ticket that ends here leaves its owner's receipt (K-030).
+  let finish decided toOwner bucket = do
+        paid <- payBoth t.venue t.owner t.reserveId toOwner (t.maxPayout - toOwner) bucket
+        recordReceipt $ stakeReceipt t.venue t.owner "parlay" leg.marketId leg.side r.outcome t.stake toOwner
+          ReceiptDetail with
+            reserveId = t.reserveId; marketIds = map (.marketId) t.legs
+            pick = intercalate "," (map (sideText . (.side)) t.legs)
+            stake = t.stake; toReserve = t.maxPayout - toOwner; result = resultText decided
+        pure paid
   case r.outcome of
-    None -> TicketVoid <$> payBoth t.venue t.owner t.reserveId t.stake (t.maxPayout - t.stake) "refund"
-    Some w | w /= leg.side -> TicketLost <$> payBoth t.venue t.owner t.reserveId 0 t.maxPayout "payout"
+    None -> TicketVoid <$> finish None t.stake "refund"
+    Some w | w /= leg.side -> TicketLost <$> finish (Some False) 0 "payout"
            | otherwise -> do
                let legs' = [if i == idx then l with won = True else l | (i, l) <- zip [0 .. length t.legs] t.legs]
                if all (.won) legs'
-                 then TicketWon <$> payBoth t.venue t.owner t.reserveId t.maxPayout 0 "payout"
+                 then TicketWon <$> finish (Some True) t.maxPayout "payout"
                  else LegWon <$> create t with legs = legs'
