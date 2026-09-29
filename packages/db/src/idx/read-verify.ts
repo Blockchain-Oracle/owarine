@@ -19,6 +19,12 @@ export const VERIFIED_TEMPLATES = [
   "PM.Quote:BuyQuote",
   "PM.Leg:Leg",
   "PM.Publication:Publication",
+  // 0.4.0 (C6d)
+  "PM.Publication:SettlementReceipt",
+  "PM.Event:EventTerms",
+  "PM.Event:EventState",
+  "PM.Event:EventAttestation",
+  "PM.Event:EventVerdict",
 ] as const;
 
 export type VerifiedTemplate = (typeof VERIFIED_TEMPLATES)[number];
@@ -36,6 +42,11 @@ export async function projectedLiveSets(sql: Sql): Promise<Record<VerifiedTempla
     "PM.Quote:BuyQuote": await col(sql`SELECT quote_cid AS cid FROM idx_quotes WHERE kind = 'buy' AND status = 'issued'`),
     "PM.Leg:Leg": await col(sql`SELECT leg_cid AS cid FROM idx_legs WHERE status = 'open'`),
     "PM.Publication:Publication": await col(sql`SELECT publication_cid AS cid FROM idx_publications`),
+    "PM.Publication:SettlementReceipt": await col(sql`SELECT receipt_cid AS cid FROM idx_receipts WHERE NOT dismissed`),
+    "PM.Event:EventTerms": await col(sql`SELECT event_terms_cid AS cid FROM idx_markets`),
+    "PM.Event:EventState": await col(sql`SELECT event_state_cid AS cid FROM idx_markets`),
+    "PM.Event:EventAttestation": await col(sql`SELECT contract_id AS cid FROM idx_event_attestations WHERE NOT retired`),
+    "PM.Event:EventVerdict": await col(sql`SELECT event_verdict_cid AS cid FROM idx_markets`),
   };
 }
 

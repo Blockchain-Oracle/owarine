@@ -120,3 +120,105 @@ describe("decodeTransaction on real venue transactions", () => {
     expect(ofKind(u.facts, "leg").every((l) => l.origin === "snapshot" && l.acceptNodeId === null)).toBe(true);
   });
 });
+
+/** Synthetic 0.4.0 transactions in the LEDGER_EFFECTS shape (C6d): the event templates and the settlement receipt. */
+describe("decodeTransaction on engine 0.4.0 templates", () => {
+  let node = 0;
+  const created = (template: string, contractId: string, createArgument: unknown) => ({
+    CreatedEvent: {
+      offset: 9, nodeId: node++, contractId, templateId: `pkg:${template}`, packageName: "abu-pm-main", createArgument, witnessParties: ["venue::1220"],
+      signatories: ["venue::1220"], createdAt: "2026-09-29T12:00:00Z",
+    },
+  });
+  const exercised = (template: string, contractId: string, choice: string, consuming: boolean, lastDescendantNodeId: number) => ({
+    ExercisedEvent: {
+      offset: 9, nodeId: node++, contractId, templateId: `pkg:${template}`, packageName: "abu-pm-main", choice, choiceArgument: {}, actingParties: ["resolver::1220"],
+      consuming, witnessParties: ["venue::1220"], lastDescendantNodeId, exerciseResult: null,
+    },
+  });
+  const tx = (events: unknown[]): JsTransaction =>
+    ({ updateId: "u-1", offset: 9, effectiveAt: "2026-09-29T12:00:00Z", recordTime: "2026-09-29T12:00:00Z", synchronizerId: "s", events }) as unknown as JsTransaction;
+
+  it("Series_OpenEvent: the terms, the event's question and committee, and its single-use state (no WindowState)", () => {
+    node = 0;
+    const u = decodeTransaction(tx([
+      exercised("PM.Series:Series", "series-0", "Series_OpenEvent", true, 4),
+      created("PM.Market:MarketTerms", "terms-1", {
+        venue: "venue::1220", resolver: "resolver::1220", seriesKey: "EVT-DEMO-1", marketId: "EVT-DEMO-1:0", index: "0", symbol: "EVT-DEMO-1", cashUnit: "1000",
+        tradingStart: "2026-09-29T12:00:00Z", lockAt: "2026-09-29T12:04:30Z", expiry: "2026-09-29T12:05:00Z", openDeadline: "2026-09-29T12:04:30Z",
+        closeDeadline: "2026-09-29T13:05:00Z", refundAfter: "2026-09-29T13:10:00Z", policyVersion: "1", printSource: "attested:committee:DEMO-1", minDelaySec: "0",
+        barLenSec: "1", tieUp: true, oracles: ["o1::1220", "o2::1220", "o3::1220"], quorum: "2", maxDeviationBps: "0", closeAdmissionSec: "3600",
+      }),
+      created("PM.Event:EventState", "state-1", { venue: "venue::1220", resolver: "resolver::1220", termsCid: "terms-1" }),
+      created("PM.Event:EventTerms", "event-1", {
+        venue: "venue::1220", resolver: "resolver::1220", termsCid: "terms-1", marketId: "EVT-DEMO-1:0", question: "Will it rain?", closeTime: "2026-09-29T12:05:00Z",
+        closeDeadline: "2026-09-29T13:05:00Z", attestors: ["o1::1220", "o2::1220", "o3::1220"], quorum: "2",
+      }),
+    ]));
+    expect(u.facts.map((f) => f.kind)).toEqual(["window-opened", "event-state", "event-terms"]);
+    expect(u.facts[2]).toEqual({ kind: "event-terms", contractId: "event-1", termsCid: "terms-1", question: "Will it rain?", attestors: ["o1::1220", "o2::1220", "o3::1220"], quorum: 2 });
+  });
+
+  it("an attestation, then Event_Resolve: the state is consumed and the verdict names the answer and the evidence", () => {
+    node = 0;
+    const att = decodeTransaction(tx([created("PM.Event:EventAttestation", "att-1", {
+      attestor: "o1::1220", venue: "venue::1220", resolver: "resolver::1220", marketId: "EVT-DEMO-1:0", answer: true, attestedAt: "2026-09-29T12:05:03Z", statementHash: "ab12",
+    })]));
+    expect(att.facts).toEqual([{ kind: "event-attestation", contractId: "att-1", marketKey: "EVT-DEMO-1:0", attestor: "o1::1220", answer: true, attestedAtSec: Date.parse("2026-09-29T12:05:03Z") / 1000, statementHash: "ab12" }]);
+    node = 0;
+    const u = decodeTransaction(tx([
+      exercised("PM.Event:EventTerms", "event-1", "Event_Resolve", false, 4),
+      exercised("PM.Event:EventState", "state-1", "Archive", true, 1),
+      created("PM.Market:Resolution", "res-1", {
+        venue: "venue::1220", resolver: "resolver::1220", termsCid: "terms-1", marketId: "EVT-DEMO-1:0", outcome: "SideUp", voidReason: null, openPriceE8: null,
+        closePriceE8: null, openEvidence: [], closeEvidence: [], signers: "2",
+      }),
+      created("PM.Event:EventVerdict", "verdict-1", {
+        venue: "venue::1220", resolver: "resolver::1220", termsCid: "terms-1", marketId: "EVT-DEMO-1:0", question: "Will it rain?", answer: true, voidReason: null,
+        attestations: [{ attestor: "o1::1220", answer: true, attestedAt: "2026-09-29T12:05:03Z", statementHash: "ab12", attestationCid: "att-1" }], resolutionCid: "res-1",
+      }),
+    ]));
+    expect(u.facts.map((f) => f.kind)).toEqual(["event-state", "resolution", "event-verdict"]);
+    expect(u.facts[0]).toMatchObject({ kind: "event-state", contractId: "state-1", live: false });
+    expect(u.facts[1]).toMatchObject({ kind: "resolution", outcome: 0, voidDetail: null, openPriceE8: null });
+    expect(u.facts[2]).toMatchObject({ kind: "event-verdict", termsCid: "terms-1", answer: true, voidDetail: null, attestations: [{ attestor: "o1::1220", attestationCid: "att-1" }] });
+  });
+
+  it("a conflict verdict is a void with SourceDisagreement and no answer", () => {
+    node = 0;
+    const u = decodeTransaction(tx([created("PM.Event:EventVerdict", "verdict-2", {
+      venue: "venue::1220", resolver: "resolver::1220", termsCid: "terms-2", marketId: "EVT-C:0", question: "Q?", answer: null,
+      voidReason: { tag: "SourceDisagreement", value: { slot: "CloseSlot" } }, attestations: [], resolutionCid: "res-2",
+    })]));
+    expect(u.facts[0]).toMatchObject({ kind: "event-verdict", answer: null, voidDetail: "SourceDisagreement:CloseSlot" });
+  });
+
+  it("a ticket's SettlementReceipt keeps its product and payout breakdown; Receipt_Dismiss marks it dismissed", () => {
+    node = 0;
+    const u = decodeTransaction(tx([created("PM.Publication:SettlementReceipt", "rcpt-1", {
+      venue: "venue::1220", owner: "alice::1220", marketId: "BTC-5m:7", pairId: "", outcome: "SideUp", resolved: "SideUp", lots: "1", cashUnit: "1",
+      backingShare: "5000000", cost: "5000000", payout: "12000000", fee: "0", product: "range",
+      detail: { reserveId: "range", marketIds: ["BTC-5m:7"], pick: "Inside 100..200", stake: "5000000", toReserve: "0", result: "won" },
+    })]));
+    expect(u.facts[0]).toEqual({
+      kind: "receipt", contractId: "rcpt-1", owner: "alice::1220", marketKey: "BTC-5m:7", pairId: "", outcome: 0, resolved: 0, lots: "1", cashUnit: "1",
+      backingShare: "5000000", cost: "5000000", payout: "12000000", fee: "0", product: "range",
+      detail: { reserveId: "range", marketIds: ["BTC-5m:7"], pick: "Inside 100..200", stake: "5000000", toReserve: "0", result: "won" },
+    });
+    node = 0;
+    expect(decodeTransaction(tx([exercised("PM.Publication:SettlementReceipt", "rcpt-1", "Receipt_Dismiss", true, 0)])).facts).toEqual([{ kind: "receipt-dismissed", contractId: "rcpt-1" }]);
+  });
+
+  it("a pair-leg receipt has no product; a publication carries its product", () => {
+    node = 0;
+    const u = decodeTransaction(tx([
+      created("PM.Publication:SettlementReceipt", "rcpt-2", {
+        venue: "venue::1220", owner: "bob::1220", marketId: "BTC-5m:7", pairId: "p-1", outcome: "SideDown", resolved: null, lots: "10", cashUnit: "1000",
+        backingShare: "5000000", cost: "5100000", payout: "5100000", fee: "0", product: null, detail: null,
+      }),
+      created("PM.Publication:Publication", "pub-1", { venue: "venue::1220", owner: "bob::1220", handle: "bob", marketId: "BTC-5m:7", pairId: "", outcome: "SideUp", lots: "1", backingShare: "1", product: "parlay" }),
+    ]));
+    expect(u.facts[0]).toMatchObject({ kind: "receipt", product: null, detail: null, resolved: null, outcome: 1 });
+    expect(u.facts[1]).toMatchObject({ kind: "publication", product: "parlay" });
+  });
+});

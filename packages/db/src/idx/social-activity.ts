@@ -75,7 +75,7 @@ export function socialActivityReader(sql: Sql) {
     m.symbol, m.cadence_sec, p.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit)::text AS amount_base, f.ts_sec::text AS ts_sec`;
   const published = sql`
     idx_publications p JOIN idx_markets m ON m.market = p.market
-      JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2)`;
+      JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2) AND p.product IS NULL`;
 
   const settlementCols = sql`
     p.market, ${who} AS owner, m.symbol, m.cadence_sec, m.state, m.winner, m.resolved_ts_sec::text, m.expiry_sec::text,
@@ -83,8 +83,9 @@ export function socialActivityReader(sql: Sql) {
     (m.cash_unit * 1000)::text AS lot_base, (p.backing_share + COALESCE(l.fee_paid, 0))::text AS cost_base, '0' AS proceeds_base,
     (l.status IS NOT NULL AND l.status <> 'open') AS redeemed, COALESCE(l.status = 'settled', false) AS redeemed_by_crank,
     COALESCE(l.payout_base, 0)::text AS payout_base, l.closed_update_id AS last_signature, l.closed_ts_sec::text AS last_ts_sec`;
+  // A ticket's publication (0.4.0 `product`) has no leg or fill: the pair-leg feeds read pair legs only.
   const settled = sql`
-    idx_publications p JOIN idx_markets m ON m.market = p.market
+    idx_publications p JOIN idx_markets m ON m.market = p.market AND p.product IS NULL
       LEFT JOIN idx_legs l ON l.owner_party = p.owner_party AND l.pair_id = p.pair_id AND l.market = p.market AND NOT l.is_venue`;
 
   const since = (column: postgres.PendingQuery<postgres.Row[]>, sinceSec: number | undefined) =>
