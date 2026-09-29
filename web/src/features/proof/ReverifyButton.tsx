@@ -1,48 +1,64 @@
 "use client";
 
-import type { PrintWhich, ReplayState } from "@agari/markets";
+import type { ReverifyReport } from "@agari/core/proof";
+import { formatUtc } from "@agari/core/units";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PROOF } from "./copy";
+import { ReverifyChecks } from "./ReverifyChecks";
 
-type RefusalCode = keyof typeof PROOF.replayRefused;
+type RefusalCode = keyof typeof PROOF.refused;
+
+export interface ReverifyResult {
+  report: ReverifyReport;
+  atMs: number;
+}
 
 /**
- * "Re-verify on devnet": asks the server to post the archived update again as `proof-replay` (POST /api/proof/pyth,
- * idempotent per boundary, quota-limited), then the proof read polls every 3 s until the row settles.
+ * "Re-verify": asks the server to recompute the Window's result from the Resolution's evidence, hash the archived
+ * exchange responses and re-fetch each candle (POST /api/proof/pyth, one run per Window per minute), then lists every
+ * check as it came back. `preview` renders a canned result for `/dev` fixtures.
  */
-export function ReverifyButton({ marketId, which, state, onStarted }: { marketId: string; which: PrintWhich; state: ReplayState | null; onStarted: () => void }) {
+export function ReverifyButton({ marketId, preview }: { marketId: string; preview?: ReverifyResult }) {
   const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<ReverifyResult | null>(preview ?? null);
   const [note, setNote] = useState<string | null>(null);
-  const posting = state === "posting";
-  // An open verified account is its own proof; a closed or failed one can be posted again.
-  const disabled = busy || posting || state === "verified";
 
   const start = async () => {
     setBusy(true);
     setNote(null);
     try {
-      const response = await fetch("/api/proof/pyth", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ market: marketId, which }) });
-      if (response.ok) {
-        onStarted();
+      const response = await fetch("/api/proof/pyth", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ market: marketId }) });
+      const body = (await response.json().catch(() => null)) as (ReverifyResult & { code?: string }) | null;
+      if (response.ok && body?.report) {
+        setResult({ report: body.report, atMs: body.atMs });
         return;
       }
-      const body = (await response.json().catch(() => null)) as { code?: string } | null;
-      const code = (body?.code && body.code in PROOF.replayRefused ? body.code : "failed") as RefusalCode;
-      setNote(PROOF.replayRefused[code]);
+      const code = (body?.code && body.code in PROOF.refused ? body.code : "failed") as RefusalCode;
+      setNote(PROOF.refused[code]);
     } catch {
-      setNote(PROOF.replayRefused.failed);
+      setNote(PROOF.refused.failed);
     } finally {
       setBusy(false);
     }
   };
 
+  const report = result?.report;
   return (
-    <div className="proof-reverify">
-      <Button variant="secondary" size="xs" disabled={disabled} aria-busy={busy || posting} onClick={() => void start()}>
-        {busy || posting ? PROOF.reverifying : PROOF.reverify}
-      </Button>
+    <div className="proof-reverify-panel">
+      <div className="proof-reverify">
+        {report && (
+          <span className={report.verdict === "pass" ? "type-caption text-profit" : "type-caption text-loss"} role="status">
+            {report.verdict === "pass" ? PROOF.verdict.pass(report.passed, report.unavailable) : PROOF.verdict.fail(report.failed)}
+            {result && ` · ${PROOF.checkedAt(formatUtc(result.atMs))}`}
+          </span>
+        )}
+        <Button variant="secondary" size="xs" disabled={busy} aria-busy={busy} onClick={() => void start()}>
+          {busy ? PROOF.reverifying : PROOF.reverify}
+        </Button>
+      </div>
       {note && <span className="type-caption text-warning">{note}</span>}
+      {report && <ReverifyChecks report={report} />}
     </div>
   );
 }

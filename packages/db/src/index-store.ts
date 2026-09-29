@@ -7,6 +7,7 @@ export { indexWriter, offsetOf, type ApplyResult, type IndexWriter } from "./idx
 export { resolutionsByMarket, type ProjectedResolution } from "./idx/read-resolutions";
 export { projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type VerifiedTemplate } from "./idx/read-verify";
 export { tapeActions, tapeFills, tapeMarkets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";
+export { proofArchives, proofPrints, proofWindow, type ProofArchiveRow, type ProofPrintRow, type ProofWindowRow } from "./idx/read-proof";
 export { statusReader, type CrossCheckRow, type PrintMixRow, type StatusReader } from "./idx/read-status";
 export {
   crowdFlow,

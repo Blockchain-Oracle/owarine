@@ -1,34 +1,27 @@
-import { formatEtClock } from "@agari/core/market";
-import { formatBaseUnits } from "@agari/core/units";
-import type { PrintProof } from "@agari/markets";
+import type { Exchange } from "@agari/core/proof";
 
-const SUPERSCRIPT: Record<string, string> = { "-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹" };
+const E8 = 100_000_000n;
 
-/** The integer a source signed and its exponent, as the chain holds them: "35898253 × 10⁻⁵". */
-export const integerText = (value: bigint, expo: number): string => `${value} × 10${String(expo).replace(/./g, (c) => SUPERSCRIPT[c] ?? c)}`;
-
-/** "16:00:00 ET" for any instant (boundaries and publish times alike). */
-export const etClockSecText = (sec: number): string => `${formatEtClock(sec)}:${String(((sec % 60) + 60) % 60).padStart(2, "0")} ET`;
-
-/**
- * The replayed price against the settled print in the finer scale, the integer rule of `@agari/markets/proof`
- * `printDiff` (server-only there, so the page keeps its own copy): 0n is an exact match.
- */
-export function replayDiff(price: bigint, expo: number, printE8: bigint): bigint {
-  const shift = 8 + expo;
-  return shift >= 0 ? price * 10n ** BigInt(shift) - printE8 : price - printE8 * 10n ** BigInt(-shift);
+/** A price in 1e-8 units as the proof page writes prices: two decimals, grouped, rounded half up. "—" for none. */
+export function priceE8Text(e8: string | bigint | null): string {
+  if (e8 === null) return "—";
+  const v = typeof e8 === "bigint" ? e8 : BigInt(e8);
+  const cents = (v * 100n + E8 / 2n) / E8;
+  const whole = cents / 100n;
+  const frac = (cents % 100n).toString().padStart(2, "0");
+  return `${whole.toLocaleString("en-US")}.${frac}`;
 }
 
-/** Cross-check divergence in integer centi-bps, `|p − c| × 1,000,000 / c` (spec §2 units), shown to 2 dp. */
-export function crossCheckBpsText(primaryE8: bigint, checkE8: bigint): string | null {
-  if (checkE8 <= 0n) return null;
-  const diff = primaryE8 > checkE8 ? primaryE8 - checkE8 : checkE8 - primaryE8;
-  return formatBaseUnits((diff * 1_000_000n) / checkE8, 2, { maxDp: 2, minDp: 2 });
-}
+/** The exact integer the quote carries: "11234567000000 × 10⁻⁸". */
+export const e8Text = (e8: string | null): string => (e8 === null ? "—" : `${e8} × 10⁻⁸`);
 
-/** The closing prints of both sources when the Window's policy has a check. */
-export function crossCheckPair(prints: readonly PrintProof[]): { primary: PrintProof; check: PrintProof } | null {
-  const primary = prints.find((p) => p.which === 1);
-  const check = prints.find((p) => p.which === 3);
-  return primary && check ? { primary, check } : null;
-}
+export const EXCHANGE_NAME: Readonly<Record<Exchange, string>> = { coinbase: "Coinbase", kraken: "Kraken", bitstamp: "Bitstamp" };
+
+/** "Coinbase", or the party's hint when it names no exchange. */
+export const oracleName = (exchange: Exchange | null, party: string): string => (exchange ? EXCHANGE_NAME[exchange] : (party.split("::")[0] ?? party));
+
+/** Where a party id's fingerprint starts, so `Hash` keeps the readable hint and a few fingerprint characters. */
+export const partyLead = (party: string): number => Math.max(8, party.indexOf("::") + 6);
+
+/** "T + 10 s" after a boundary. */
+export const afterT = (sec: number, boundarySec: number): string => `T + ${sec - boundarySec} s`;

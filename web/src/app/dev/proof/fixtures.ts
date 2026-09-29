@@ -1,77 +1,57 @@
-import type { PrintProof, PythReplay } from "@agari/markets";
-import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
+import { reverify, sha256Hex, type SourceInput } from "@agari/core/proof";
+import type { ReverifyResult } from "@/features/proof";
+import { buildProofView, toProofResolution, type CantonProofView, type PrintRowWire, type WindowRowWire } from "@/features/proof/canton-proof";
+import { party, updateId, VENUE, RESOLVER } from "../canton-ids";
 
 /**
- * `/dev/proof`: one Window's four prints in every replay state. Shaped on the TSLA 5m Window that closed 2026-09-14
- * 16:00 ET (Pyth primary, RedStone check); ids, signatures and addresses are fixture values, not real accounts.
+ * `/dev/proof`: a BTC 1m Window decided two ways over canned projection rows, and re-verify reports in every state
+ * (all green, a tampered archive, an exchange that no longer serves the candle). Prices, times and ids are fixture
+ * values; the views and reports are built by the same code the live page runs.
  */
-const MARKET = fixtureMarketId(`0x${"7e57".repeat(16)}`);
-const T_OPEN = 1_789_415_700;
-const T_CLOSE = 1_789_416_000;
-const sig = (n: number) => fixtureSignature(`0x${n.toString(16).padStart(2, "0").repeat(64)}`);
+const T = Math.floor(Date.UTC(2026, 8, 29, 14, 35, 0) / 1000);
+const CB = party("agari-oracle-coinbase-r1", "0a1b2c3d4e5f6071");
+const KR = party("agari-oracle-kraken-r1", "1b2c3d4e5f607182");
+const BS = party("agari-oracle-bitstamp-r1", "2c3d4e5f60718293");
+const ORACLES = [CB, KR, BS];
 
-const VERIFIED: PythReplay = {
-  state: "verified",
-  receiver: "rec5EKMGg6MxZYaMdyBfgwp4d5rB9T1VQH5pJv5LtFJ",
-  priceUpdate: fixtureAddress(`0x${"9d".repeat(32)}`),
-  verification: "full",
-  price: 35_898_253n,
-  conf: 8_253n,
-  expo: -5,
-  publishTimeSec: T_CLOSE,
-  prevPublishTimeSec: T_CLOSE - 1,
-  postedSlot: 498_628_202n,
-  postSignatures: [sig(0x21), sig(0x22), sig(0x23), sig(0x24)],
-  closeSignatures: [],
-  payer: fixtureAddress(`0x${"4a".repeat(32)}`),
-  error: null,
-  postedAtMs: Date.UTC(2026, 8, 15, 6, 5, 0),
-  closedAtMs: null,
+const coinbaseBody = (boundary: number, close: string) => `[[${boundary - 60},1,2,1.5,${close},3]]`;
+const ev = (oracle: string, price: string, payload: string, fetchedAtSec: number) => ({ oracle, priceE8: price, fetchedAtSec, payloadHash: sha256Hex(payload), quoteCid: "00" });
+
+const OPEN = [ev(CB, "11234567000000", coinbaseBody(T, "112345.67"), T + 10), ev(KR, "11234612000000", "kraken-open", T + 10), ev(BS, "11234400000000", "bitstamp-open", T + 11)];
+const CLOSE_OK = [ev(CB, "11241230000000", coinbaseBody(T + 60, "112412.3"), T + 70), ev(KR, "11241100000000", "kraken-close", T + 70), ev(BS, "11241450000000", "bitstamp-close", T + 71)];
+const CLOSE_FAR = [CLOSE_OK[0]!, ev(KR, "11298000000000", "kraken-close-far", T + 70), CLOSE_OK[2]!];
+
+const base: WindowRowWire = {
+  market: "7e57".repeat(11), symbol: "BTC", state: "resolved", winner: 0, void_detail: null, tie_up: false, quorum: 2, oracles: ORACLES,
+  max_deviation_bps: 50, trading_start_sec: String(T), expiry_sec: String(T + 60), open_price_e8: "11234567000000", open_evidence: OPEN,
+  close_price_e8: "11241230000000", close_evidence: CLOSE_OK, resolver: RESOLVER, resolution_cid: "00d44d", resolved_update_id: updateId("d44d"),
+  resolved_at_ms: String((T + 72) * 1000), resolved_ts_sec: String(T + 72), resolution_venue: VENUE, resolution_resolver: RESOLVER,
+  resolution_open_evidence: null, resolution_close_evidence: null,
 };
 
-const archive = (feed: string, boundarySec: number, bytes: number, signers: number, addresses: string[] | null): PrintProof["archive"] => ({
-  feed,
-  signers,
-  fetchedAtMs: boundarySec * 1000 + 4_210,
-  archivedAtMs: boundarySec * 1000 + 4_388,
-  payloadBytes: bytes,
-  payloadSha256: "3f9c2a0b7d41e8c65b0f1d2e3a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d",
-  signerAddresses: addresses,
-  packageTsMs: addresses ? boundarySec * 1000 : null,
-});
+const printsOf = (rows: ReturnType<typeof ev>[], boundary: number): PrintRowWire[] =>
+  rows.map((e, i) => ({ oracle: e.oracle, boundary_sec: String(boundary), price_e8: e.priceE8, fetched_at_sec: String(e.fetchedAtSec), payload_hash: e.payloadHash, update_id: updateId(`a${i}${boundary % 10}`) }));
 
-const PYTH_FEED = "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1";
-const SIGNERS = ["0x8BB8F32Df04c8b654987DAaeD53D6B6091e3B774", "0xdEB22f54738d54976C4c0fe5ce6d408E40d88499", "0x51Ce04Be4b3E32572C4Ec9135221d0691Ba7d202", "0xDD682daEC5A90dD295d14DA4b0bec9281017b5bE", "0x9c5AE89C4Af6aA32cE58588DBaF90d18a855B6de"];
+const RESOLVED_ROW = base;
+const VOIDED_ROW: WindowRowWire = { ...base, state: "voided", winner: 2, void_detail: "SourceDisagreement:CloseSlot", close_price_e8: null, close_evidence: CLOSE_FAR };
 
-const print = (which: PrintProof["which"], source: PrintProof["source"], priceE8: bigint, boundarySec: number, signers: number, n: number): PrintProof => ({
-  market: MARKET,
-  which,
-  source,
-  priceE8,
-  boundarySec,
-  signers,
-  copied: false,
-  recordedSec: boundarySec + 18,
-  recordSignature: sig(n),
-  symbol: "TSLA",
-  archive: source === "pyth" ? archive(PYTH_FEED, boundarySec, 3_410, 1, null) : source === "redstone" ? archive("TSLA", boundarySec, 2_634, 5, SIGNERS) : null,
-  replay: null,
-});
+export const RESOLVED_VIEW: CantonProofView = buildProofView(RESOLVED_ROW, [...printsOf(OPEN, T), ...printsOf(CLOSE_OK, T + 60)]);
+export const VOIDED_VIEW: CantonProofView = buildProofView(VOIDED_ROW, [...printsOf(OPEN, T), ...printsOf(CLOSE_FAR, T + 60)]);
 
-export const FIXTURE_MARKET = MARKET;
+function report(row: WindowRowWire, mode: "green" | "tampered" | "gone"): ReverifyResult {
+  const r = toProofResolution(row)!;
+  const cbClose = r.closeEvidence[0]!;
+  const payload = coinbaseBody(T + 60, "112412.3");
+  const source: SourceInput = {
+    slot: "close",
+    item: cbClose,
+    source: mode === "tampered" ? { exchange: "coinbase", archive: "tampered", hashMatches: false } : { exchange: "coinbase", archive: payload, hashMatches: true },
+    refetch: mode === "gone" ? { kind: "ok", payload: "[]" } : { kind: "ok", payload },
+  };
+  const kraken: SourceInput = { slot: "close", item: r.closeEvidence[1]!, source: { exchange: "kraken", archive: null, hashMatches: false }, refetch: { kind: "unavailable", why: "the exchange answered HTTP 429" } };
+  return { report: reverify(r, mode === "green" ? [source] : [source, kraken]), atMs: (T + 600) * 1000 };
+}
 
-/** Open (Pyth, closed after 24 h), close (Pyth, verified), and both RedStone check prints. */
-export const WINDOW_PRINTS: PrintProof[] = [
-  { ...print(0, "pyth", 35_942_501_000n, T_OPEN, 0, 0x31), replay: { ...VERIFIED, price: 35_942_501n, conf: 1_749n, publishTimeSec: T_OPEN, prevPublishTimeSec: T_OPEN - 1, state: "closed", closeSignatures: [sig(0x41)], closedAtMs: Date.UTC(2026, 8, 16, 6, 10, 0) } },
-  { ...print(1, "pyth", 35_898_253_000n, T_CLOSE, 0, 0x32), replay: VERIFIED },
-  print(2, "redstone", 35_949_909_426n, T_OPEN, 5, 0x33),
-  print(3, "redstone", 35_907_116_349n, T_CLOSE, 5, 0x34),
-];
-
-/** The Pyth close in the states a reader can meet before it is proven, plus an attested demo print. */
-export const STATE_PRINTS: PrintProof[] = [
-  { ...print(1, "pyth", 35_898_253_000n, T_CLOSE, 0, 0x35), replay: null },
-  { ...print(1, "pyth", 35_898_253_000n, T_CLOSE, 0, 0x36), replay: { ...VERIFIED, state: "posting", priceUpdate: null, price: null, conf: null, expo: null, publishTimeSec: null, postedSlot: null, postSignatures: [] } },
-  { ...print(1, "pyth", 35_898_253_000n, T_CLOSE, 0, 0x37), replay: { ...VERIFIED, price: 35_898_254n } },
-  { ...print(1, "attested", 35_907_116_349n, T_CLOSE, 1, 0x38), symbol: null },
-];
+export const REPORT_GREEN = report(RESOLVED_ROW, "green");
+export const REPORT_TAMPERED = report(RESOLVED_ROW, "tampered");
+export const REPORT_GONE = report(VOIDED_ROW, "gone");
