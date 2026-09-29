@@ -45,8 +45,8 @@ export const splitCashCommandId = (cid: string) => assertCommandId(`split:${safe
 /** `net:<digest(legA, legB)>`: the netting job's `Leg_Merge`. */
 export const netLegsCommandId = (a: string, b: string) => assertCommandId(`net:${digest(...[a, b].sort())}`);
 
-/** `retire:<oracle>:<beforeEpochSec>`: an oracle archiving its old quotes. */
-export const retireCommandId = (oracle: string, beforeSec: number) => assertCommandId(`retire:${safe(oracle, "oracle")}:${beforeSec}`);
+/** `retire:<oracle>:<digest(sorted quote cids)>`: an oracle archiving a batch of its old quotes. */
+export const retireCommandId = (oracle: string, cids: readonly string[]) => assertCommandId(`retire:${safe(oracle, "oracle")}:${digest(...[...cids].sort())}`);
 
 /** `invite:<digest(party)>` / `account:<digest(party)>`: a seat's VenueAccount, once per party. */
 export const inviteCommandId = (party: string) => assertCommandId(`invite:${digest(party)}`);

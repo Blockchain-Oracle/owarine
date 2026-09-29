@@ -11,7 +11,8 @@ export interface SpotQuote {
   publishTimeSec: number;
   /** `"prestocks"`: the catalogue's `tokenPrice` for a pre-IPO name (plan Step 1); display and quoting only. */
   /** `"switchboard"`: a token-lane xStock's Surge value, read unsigned for display beside its 24/7 Windows. */
-  source: "pyth" | "redstone" | "jupiter" | "prestocks" | "switchboard";
+  /** `"exchange"`: a crypto asset's last trade on the oracle feeders' exchanges (Coinbase ticker), for the pricer and display. */
+  source: "pyth" | "redstone" | "jupiter" | "prestocks" | "switchboard" | "exchange";
 }
 
 export interface SpotFeed {
