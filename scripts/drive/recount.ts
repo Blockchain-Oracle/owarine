@@ -10,6 +10,7 @@
 //      summed here from those same contracts, then compared with the reserve reporter's live `/reserve` snapshot and
 //      with the projection's open legs and live quotes at the same offset.
 // Exits 0 when the projection recount has zero diffs and the reserve at the offset matches the projection, else 1.
+import "../../services/ops/src/actors/venue/quiet-codegen";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { getDb, indexWriter, recordRecount } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type ActiveContract } from "@agari/ledger";

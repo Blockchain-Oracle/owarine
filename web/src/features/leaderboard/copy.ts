@@ -87,7 +87,7 @@ export const LEADERBOARD = {
   activity: {
     number: "03",
     title: "Live activity",
-    desc: "The latest calls and cash-outs on Agari. Click any row → Solana Explorer.",
+    desc: "The latest published calls on Agari. Click any row → its ledger update.",
     updated: (ago: string) => `updated ${ago}`,
     reading: "reading the chain…",
     unreachable: "couldn't reach the chain, retrying…",

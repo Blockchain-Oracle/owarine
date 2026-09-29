@@ -12,7 +12,8 @@ function label(c: ProofCheck): string {
 
 function detail(c: ProofCheck): string {
   const show = (v: string | null) => (v === null ? "—" : isPrice(c) ? priceE8Text(v) : c.kind === "hash" ? `${v.slice(0, 10)}…` : v);
-  const parts: string[] = [PROOF.status[c.status]];
+  // The status already stands in its own column; the detail says what was compared.
+  const parts: string[] = [];
   if (c.status === "unavailable") parts.push(c.note ?? "");
   else if (c.kind === "spread") parts.push(`${c.found ?? "—"} bps, ${c.expected}`, c.note ?? "");
   else parts.push(c.status === "pass" ? show(c.found) : `ledger ${show(c.expected)}, found ${show(c.found)}`);

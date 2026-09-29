@@ -41,7 +41,7 @@ export function AuditSection({ reading, decimals, symbol }: { reading: Reading<A
   const venue = audit?.venue ?? null;
   const reserve = audit?.reserve ?? null;
   return (
-    <>
+    <div className="stats-audit">
       <SectionHead {...V.section} />
       {venue ? (
         <>
@@ -74,6 +74,6 @@ export function AuditSection({ reading, decimals, symbol }: { reading: Reading<A
       <h3 className="stats-section-tag">{A.recountTitle}</h3>
       <RecountBlock recount={audit?.recount ?? null} />
       <p className="stats-note">{A.explain}</p>
-    </>
+    </div>
   );
 }
