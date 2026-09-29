@@ -34,6 +34,8 @@ interface SettlerState {
   resolutions: Map<string, { cid: string; data: ResolutionC }>;
   counters: { legs: number; batches: number; residuals: number; failed: number; stale: number };
   timings: SettleTiming[];
+  /** Markets already alarmed about, so a stale-leg alarm is said once, not every pass. */
+  alarmed: Set<string>;
   log: (why: string) => void;
 }
 
@@ -86,7 +88,8 @@ export async function settlerPass(st: SettlerState): Promise<PassResult> {
       continue;
     }
     const live = mine.filter((l) => l.data.refundAfterSec > nowSec + 1);
-    if (live.length < mine.length) {
+    if (live.length < mine.length && !st.alarmed.has(termsCid)) {
+      st.alarmed.add(termsCid);
       st.counters.stale += mine.length - live.length;
       notes.push(`ALARM ${res.data.marketId}: ${mine.length - live.length} legs past refundAfter unsettled (stale refund is the owner's)`);
     }
@@ -130,7 +133,7 @@ export async function startSettler(deps: VenueDeps, venue: VenueContext = create
   const size = Number(process.env.SETTLE_BATCH);
   const st: SettlerState = {
     venue: session, deskCid: venue.deskCid, batchSize: Number.isInteger(size) && size > 0 ? size : DEFAULT_BATCH, resolutions: new Map(),
-    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0 }, timings: settleTimings, log: deps.log,
+    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0 }, timings: settleTimings, alarmed: new Set(), log: deps.log,
   };
   deps.log(`settler as ${session.party.split("::")[0]}, batches of ${st.batchSize}`);
   return runActor({ name: "settler", log: deps.log, dryRun: session.dryRun, everyMs: 3_000, pass: () => settlerPass(st) });

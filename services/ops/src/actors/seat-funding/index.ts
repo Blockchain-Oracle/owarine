@@ -4,21 +4,27 @@
  * to credit, never debit): the venue invites, the seat party accepts (ops acts as the seat only for this, on a party the
  * lease names), then the venue credits. Every step has a stable command id, so a retried lease credits once.
  *
- * `POST /internal/seats/fund` `{ seatParty, amountBase, leaseId }` → `{ kind: "funded", cashCid, amountBase, accountCid }`.
+ * `POST /internal/seats/fund` `{ party, leaseId, address }` (the web's `@agari/markets/server` contract) →
+ * `{ kind: "funded", amountBase }` · `{ kind: "already" }` (this lease was credited before) · `{ kind: "refused", diagnosis }`.
+ * The amount is ops' own (`SEAT_FUND_CREDITS`, default 1,000 demo credits), never the caller's.
  */
 import { TEMPLATE_IDS } from "@agari/daml";
 import {
   acceptAccountCommandId, cmd, creditCommandId, decodeVenueAccount, failureText, inviteCommandId, pick, readActive, submit, templateSuffix,
   type RoleSession,
 } from "@agari/markets/ops/canton";
+import { diagnosis } from "@agari/core/types";
 import type { VenueContext } from "../venue/context";
 
 const PARTY_ID = /^[A-Za-z0-9_\-:]{1,255}::[0-9a-f]{8,}$/;
 const LEASE_ID = /^[A-Za-z0-9_\-]{1,64}$/;
 /** D-123: demo credits are sized to the reference's scale, 100,000 credits a day; one credit is 10⁶ base units. */
 export const MAX_CREDIT_BASE = BigInt(Number(process.env.SEAT_CREDIT_MAX_CREDITS) || 100_000) * 1_000_000n;
+/** What one lease is credited. */
+export const SEAT_FUND_BASE = BigInt(Number(process.env.SEAT_FUND_CREDITS) || 1_000) * 1_000_000n;
 
 type Answer = { status: number; body: Record<string, unknown> };
+const refused = (kind: Parameters<typeof diagnosis>[0], technical: string): Answer => ({ status: 200, body: { kind: "refused", diagnosis: diagnosis(kind, technical) } });
 
 export interface SeatFunding {
   fund(seatParty: string, amountBase: bigint, leaseId: string): Promise<Answer>;
@@ -51,19 +57,18 @@ export function createSeatFunding(input: { venue: VenueContext; log: (why: strin
   }
 
   async function fund(seatParty: string, amountBase: bigint, leaseId: string): Promise<Answer> {
-    if (infrastructure.has(seatParty)) return { status: 409, body: { kind: "refused", reason: "not-a-seat" } };
-    if (amountBase <= 0n || amountBase > MAX_CREDIT_BASE) return { status: 400, body: { kind: "refused", reason: "bad-amount", maxBase: MAX_CREDIT_BASE.toString() } };
+    if (infrastructure.has(seatParty)) return refused("faucet-refused", "an infrastructure party is not a seat");
+    if (amountBase <= 0n || amountBase > MAX_CREDIT_BASE) return refused("faucet-refused", `a credit is 1..${MAX_CREDIT_BASE} base units`);
     try {
       const accountCid = await account(seatParty);
-      if (!accountCid) return { status: 200, body: { kind: "dry", note: "DRY RUN: the account and credit were prepared, not executed" } };
+      if (!accountCid) return refused("not-deployed", "DRY RUN: the account and credit were prepared, not executed");
       const out = await submit(venue!, { commandId: creditCommandId(seatParty, leaseId), commands: [cmd.creditAccount(accountCid, amountBase)] });
-      if (out.kind === "dry") return { status: 200, body: { kind: "dry", note: out.note } };
-      const cash = out.created.find((e) => templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.VenueCash));
+      if (out.kind === "dry") return refused("not-deployed", `DRY RUN: ${out.note}`);
       input.log(`funded ${seatParty.split("::")[0]} with ${amountBase} base (lease ${leaseId})${out.recovered ? " · already funded for this lease" : ""}`);
-      return { status: 200, body: { kind: "funded", cashCid: cash?.contractId ?? null, amountBase: amountBase.toString(), accountCid, recovered: out.recovered } };
+      return { status: 200, body: out.recovered ? { kind: "already" } : { kind: "funded", amountBase: amountBase.toString() } };
     } catch (error) {
       input.log(`fund ${seatParty.split("::")[0]} failed: ${failureText(error)}`);
-      return { status: 502, body: { kind: "refused", reason: "ledger-rejected", detail: failureText(error).slice(0, 200) } };
+      return refused("faucet-refused", `ledger rejected the credit: ${failureText(error).slice(0, 200)}`);
     }
   }
 
@@ -71,10 +76,10 @@ export function createSeatFunding(input: { venue: VenueContext; log: (why: strin
     fund,
     async handle(body) {
       const b = (typeof body === "object" && body !== null ? body : {}) as Record<string, unknown>;
-      if (typeof b.seatParty !== "string" || !PARTY_ID.test(b.seatParty)) return { status: 400, body: { kind: "refused", reason: "bad-request", detail: "seatParty must be a party id" } };
-      if (typeof b.amountBase !== "string" || !/^\d{1,19}$/.test(b.amountBase)) return { status: 400, body: { kind: "refused", reason: "bad-request", detail: "amountBase must be a decimal integer string" } };
-      if (typeof b.leaseId !== "string" || !LEASE_ID.test(b.leaseId)) return { status: 400, body: { kind: "refused", reason: "bad-request", detail: "leaseId must be 1–64 of [A-Za-z0-9_-]" } };
-      return fund(b.seatParty, BigInt(b.amountBase), b.leaseId);
+      if (typeof b.party !== "string" || !PARTY_ID.test(b.party)) return { status: 400, body: { diagnosis: diagnosis("unknown", "party must be a party id") } };
+      if (typeof b.leaseId !== "string" || !LEASE_ID.test(b.leaseId)) return { status: 400, body: { diagnosis: diagnosis("unknown", "leaseId must be 1–64 of [A-Za-z0-9_-]") } };
+      if (b.address !== undefined && typeof b.address !== "string") return { status: 400, body: { diagnosis: diagnosis("unknown", "address must be text") } };
+      return fund(b.party, SEAT_FUND_BASE, b.leaseId);
     },
   };
 }
