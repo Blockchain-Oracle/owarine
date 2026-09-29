@@ -7,9 +7,9 @@ import { Brand } from './brand';
 const tours = {
   basket: { title: 'Preview a connected basket call', file: 'connected-basket-ticket', duration: '16 seconds', poster: 'basket-quote-connected', note: 'The wallet was connected; the Down quote was previewed. Buy was not pressed and no order was submitted.', chapters: [
     { at: 0, title: 'Choose a basket', text: 'Open the AI Labs card from the basket catalogue.' },
-    { at: 3.5, title: 'Open the live Window', text: 'Predict opens the current devnet Window and its ticket.' },
+    { at: 3.5, title: 'Open the live Window', text: 'Predict opens the current Window and its ticket.' },
     { at: 8.8, title: 'Choose Down', text: 'The side changes while the live quote updates.' },
-    { at: 11.2, title: 'Preview a quote', text: 'A 5 tUSDC amount shows cost, return and maximum loss before a buy.' },
+    { at: 11.2, title: 'Preview a quote', text: 'A 5-credit amount shows cost, return and maximum loss before a buy.' },
   ] },
   portfolio: { title: 'Read a connected Portfolio', file: 'connected-portfolio', duration: '12 seconds', poster: 'portfolio-connected', note: 'The wallet was connected; balances and settled history were read. No deposit, withdrawal or claim was submitted.', chapters: [
     { at: 0, title: 'Read the balances', text: 'Ready to bet, wallet, Trading Balance and Private are distinct values.' },

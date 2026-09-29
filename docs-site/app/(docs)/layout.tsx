@@ -13,7 +13,7 @@ function SidebarFooter() {
       <span>GitHub</span>
       <ArrowUpRight size={15} aria-hidden="true" />
     </a>}
-    <p className="sidebar-note">Built on Solana devnet.<br/>Explained step by step.</p>
+    <p className="sidebar-note">Built on Canton, test network.<br/>Explained step by step.</p>
   </div>;
 }
 

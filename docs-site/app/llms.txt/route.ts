@@ -13,9 +13,9 @@ export function GET() {
   const readme = site.source && site.revision ? `\n- [Application README](${site.source}/blob/${site.revision}/README.md): Product overview, proof and architecture.` : '';
   const text = `# Agari Docs
 
-> Guides to Agari, a stock-price Up/Down prediction market on Solana devnet. Reviewed ${site.reviewed}.
+> Guides to Agari, an Up/Down prediction market on Canton Network (test network, demo credits). Reviewed ${site.reviewed}.
 
-Agari's own Anchor programs settle Up/Down Windows on Solana devnet with tUSDC test collateral, from boundary prints verified on chain: Pyth pull updates, RedStone signatures, Switchboard On-Demand quotes, and PreStocks prices signed by Agari's attestor. The PreStocks desk (\`agari-desk\`) is a separate program built for Solana mainnet and not yet deployed there; practice desks move no money. ${site.source ? `Application source: ${site.source} at ${site.revision}.` : 'The application repository is not public yet, so source links are not included.'}
+Agari's Daml package (\`abu-pm-main\`) settles Up/Down Windows with demo credits. Three oracle parties post signed 1-minute candle closes, a quorum of two agrees each boundary, and a separate resolver party resolves each Window exactly once. Each position is a contract only its seat's party and the venue can see. Stock, PreStocks and Pyth prices on the same path, and the desk's live leg, are planned; practice desks move no money. ${site.source ? `Application source: ${site.source} at ${site.revision}.` : 'The application repository is not public yet, so source links are not included.'}
 
 ## Start here
 
