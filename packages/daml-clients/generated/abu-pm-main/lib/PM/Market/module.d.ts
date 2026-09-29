@@ -34,6 +34,7 @@ export declare type MarketTerms = {
   oracles: damlTypes.Party[],
   quorum: damlTypes.Int,
   maxDeviationBps: damlTypes.Int,
+  closeAdmissionSec: damlTypes.Optional<damlTypes.Int>,
 }
 
 export declare interface MarketTermsInterface {

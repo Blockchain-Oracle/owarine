@@ -1,0 +1,146 @@
+-- | The general `SettlementReceipt` (abu-pm-main 0.4.0, abu-pm-tickets
+-- 0.1.1, K-030): every ticket's settle and claim leaves its owner a receipt
+-- naming the product, with the payout breakdown in `detail`; a published
+-- receipt keeps the product tag.
+module Test.Tickets.Receipts where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.List (sortOn)
+import PM.Leg
+import PM.Publication
+import PM.Tickets.Book
+import PM.Tickets.Boost
+import PM.Tickets.Parlay
+import PM.Tickets.Range
+import PM.Types
+import Test.Setup
+import Test.Tickets.Boost (boostUp, shortDown)
+import Test.Tickets.Fixture
+import Test.Tickets.Range (hi, lo)
+
+receiptsOf : Party -> Script [SettlementReceipt]
+receiptsOf p = do
+  rs <- query @SettlementReceipt p
+  pure (sortOn (\r -> (r.product, r.payout)) [r | (_, r) <- rs, r.owner == p])
+
+detailOf : SettlementReceipt -> Script ReceiptDetail
+detailOf r = case r.detail of
+  Some d -> pure d
+  None -> abort "a ticket receipt carries its detail"
+
+testRangeReceipts = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  op <- recordOpen w tw.win px
+  (book, qa) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  (book, qb) <- issueRange tw book w.bob RangeTicket Outside lo hi 700 1000 (plus t0 40)
+  (_, qm) <- issueRange tw book w.alice Moonshot Inside (px + px / 50) (4 * px) 100 1000 (plus t0 40)
+  ra <- acceptRange w w.alice qa 400
+  rb <- acceptRange w w.bob qb 700
+  rm <- acceptRange w w.alice qm 100
+  res <- closeAt tw op (px + 1)
+  _ <- submit w.venue do exerciseCmd ra Round_Settle with resolutionCid = res
+  d <- disclosureOf w.venue res
+  _ <- submit (actAs w.bob <> disclose d) do exerciseCmd rb Round_Claim with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd rm Round_Settle with resolutionCid = res
+  [moon, range] <- receiptsOf w.alice
+  range.product === Some "range"
+  range.marketId === tw.win.t.marketId
+  range.outcome === SideUp
+  range.resolved === Some SideUp
+  (range.cost, range.payout, range.fee, range.backingShare) === (400, 1000, 0, 400)
+  dr <- detailOf range
+  dr === ReceiptDetail with
+    reserveId = rid; marketIds = [tw.win.t.marketId]; pick = "Inside " <> show lo <> ".." <> show hi
+    stake = 400; toReserve = 0; result = "won"
+  moon.product === Some "moonshot"
+  (moon.cost, moon.payout) === (100, 0)
+  dm <- detailOf moon
+  (dm.toReserve, dm.result) === (1000, "lost")
+  [out] <- receiptsOf w.bob
+  out.product === Some "range"
+  out.outcome === SideDown
+  (out.cost, out.payout) === (700, 0)
+  dout <- detailOf out
+  (dout.toReserve, dout.result) === (1000, "lost")
+
+testBoostReceipts = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  op <- recordOpen w tw.win px
+  (book, qa) <- boostUp tw book w.alice "b1"
+  (_, qb) <- shortDown tw book w.bob "s1"
+  (pa, la) <- acceptBoost w w.alice qa 1026
+  (pb, lb) <- acceptBoost w w.bob qb 2000
+  res <- closeAt tw op (px + 10)
+  _ <- submit w.venue do exerciseCmd pa Boost_Settle with resolutionCid = res
+  d <- disclosureOf w.venue res
+  _ <- submit (actAs w.bob <> disclose d) do exerciseCmd pb Boost_Claim with resolutionCid = res
+  -- the house legs are the venue's: no receipt
+  _ <- submit w.venue do exerciseCmd la Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd lb Leg_Settle with resolutionCid = res
+  [boost] <- receiptsOf w.alice
+  boost.product === Some "boost"
+  (boost.pairId, boost.outcome, boost.resolved, boost.lots) === ("b1", SideUp, Some SideUp, 4)
+  (boost.backingShare, boost.cost, boost.payout, boost.fee) === (2000, 1026, 4000 - 1025, 51)
+  db <- detailOf boost
+  (db.pick, db.stake, db.toReserve, db.result) === ("Up @20000bps", 1026, 1025 + 51, "won")
+  [short] <- receiptsOf w.bob
+  short.product === Some "short"
+  (short.outcome, short.cost, short.payout, short.fee) === (SideDown, 2000, 0, 0)
+  ds <- detailOf short
+  (ds.toReserve, ds.result) === (0, "lost")
+  -- a void pays the boost's stake back, and the receipt says so
+  tw2 <- mkTickets
+  let w2 = tw2.w
+  book2 <- mkBook tw2 BoostProduct
+  op2 <- recordOpen w2 tw2.win px
+  (_, q2) <- boostUp tw2 book2 w2.alice "b2"
+  (p2, _) <- acceptBoost w2 w2.alice q2 1026
+  vres <- voidClose w2 tw2.win op2
+  _ <- submit w2.venue do exerciseCmd p2 Boost_Settle with resolutionCid = vres
+  [vr] <- receiptsOf w2.alice
+  (vr.resolved, vr.payout, vr.fee) === (None, 1026, 0)
+  dv <- detailOf vr
+  (dv.toReserve, dv.result) === (1025, "void")
+
+testParlayReceipts = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  (book, qa) <- issueParlay tw book w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideDown)] 200 1000 (plus t0 40)
+  (_, qb) <- issueParlay tw book w.bob [(tw.win.terms, SideUp), (tw.win1.terms, SideUp)] 100 1000 (plus t0 40)
+  ta <- acceptParlay w w.alice qa 200
+  tb <- acceptParlay w w.bob qb 100
+  op1 <- recordOpen w tw.win1 px
+  r0 <- resolveAt w tw.win op0 (px + 5)
+  LegWon ta <- submit w.venue do exerciseCmd ta Ticket_ResolveLeg with resolutionCid = r0
+  LegWon tb <- submit w.venue do exerciseCmd tb Ticket_ResolveLeg with resolutionCid = r0
+  -- a leg that does not end the ticket leaves no receipt
+  (length <$> receiptsOf w.alice) >>= (=== 0)
+  r1 <- resolveAt w tw.win1 op1 (px - 5)
+  TicketWon _ <- submit w.venue do exerciseCmd ta Ticket_ResolveLeg with resolutionCid = r1
+  d1 <- disclosureOf w.venue r1
+  TicketLost _ <- submit (actAs w.bob <> disclose d1) do exerciseCmd tb Ticket_ClaimLeg with resolutionCid = r1
+  [won] <- receiptsOf w.alice
+  won.product === Some "parlay"
+  (won.marketId, won.outcome, won.resolved) === (tw.win1.t.marketId, SideDown, Some SideDown)
+  (won.cost, won.payout, won.fee) === (200, 1000, 0)
+  dw <- detailOf won
+  assert (receiptDetailOk dw)
+  dw === ReceiptDetail with
+    reserveId = rid; marketIds = [tw.win.t.marketId, tw.win1.t.marketId]; pick = "Up,Down"
+    stake = 200; toReserve = 0; result = "won"
+  [lost] <- receiptsOf w.bob
+  (lost.outcome, lost.payout) === (SideUp, 0)
+  dl <- detailOf lost
+  (dl.toReserve, dl.result) === (1000, "lost")
+  -- a published ticket receipt carries its product
+  [(rc, _)] <- query @SettlementReceipt w.alice
+  pub <- submit w.alice do exerciseCmd rc Receipt_Publish with handle = "alice"
+  Some p <- queryContractId w.alice pub
+  (p.product, p.marketId, p.backingShare) === (Some "parlay", tw.win1.t.marketId, 200)

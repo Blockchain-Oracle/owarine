@@ -70,6 +70,8 @@ export const createSeries = (s: SeriesInput): Command =>
     anchor: isoOfSec(s.anchorSec), cadenceSec: int(s.cadenceSec), lockLeadSec: int(s.lockLeadSec), settleGraceSec: int(s.settleGraceSec),
     cashUnit: int(s.cashUnit), nextIndex: int(s.nextIndex), oracles: s.oracles, quorum: int(s.quorum), maxDeviationBps: int(s.maxDeviationBps),
     policyVersions: [s.policy, ...(s.laterPolicies ?? [])].map(policyVersion),
+    // abu-pm-main 0.4.0: a new Series has opened no Window yet.
+    lastExpiry: null,
   } satisfies Wire<PM.Series.Series>);
 
 // ---- oracle prints -----------------------------------------------------------------------------

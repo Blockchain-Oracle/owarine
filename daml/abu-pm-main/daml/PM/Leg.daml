@@ -114,7 +114,7 @@ template Leg
       with
         handle : Text
       controller owner
-      do create Publication with venue; owner; handle; marketId; pairId; outcome; lots; backingShare
+      do create Publication with venue; owner; handle; marketId; pairId; outcome; lots; backingShare; product = None
 
 -- | What a cross-pair merge still owes the venue: `owedIfResolved` if the
 -- market resolves, `heldIfVoid` if it voids. Both are non-negative.
@@ -161,5 +161,5 @@ payOut l resolutionCid = do
   when (l.owner /= l.venue) $ void $ create SettlementReceipt with
     venue = l.venue; owner = l.owner; marketId = l.marketId; pairId = l.pairId; outcome = l.outcome
     resolved = r.outcome; lots = l.lots; cashUnit = l.cashUnit; backingShare = l.backingShare
-    cost = l.backingShare + l.feePaid; payout = toOwner; fee
+    cost = l.backingShare + l.feePaid; payout = toOwner; fee; product = None; detail = None
   pure (paid, feeCash)

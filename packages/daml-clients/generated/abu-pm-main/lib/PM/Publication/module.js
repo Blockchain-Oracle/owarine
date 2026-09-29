@@ -18,7 +18,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.Publication = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Publication:Publication',
-    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Publication:Publication',
+    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Publication:Publication',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -31,6 +31,7 @@ exports.Publication = damlTypes.assembleTemplate(
         outcome: PM_Types.Side.decoder,
         lots: damlTypes.Int.decoder,
         backingShare: damlTypes.Int.decoder,
+        product: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -43,6 +44,7 @@ exports.Publication = damlTypes.assembleTemplate(
         outcome: PM_Types.Side.encode(__typed__.outcome),
         lots: damlTypes.Int.encode(__typed__.lots),
         backingShare: damlTypes.Int.encode(__typed__.backingShare),
+        product: damlTypes.Optional(damlTypes.Text).encode(__typed__.product),
       };
     },
     Archive: {
@@ -72,7 +74,7 @@ exports.Publication = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Publication, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Publication, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
 
 exports.Publication_Retract = {
   decoder: damlTypes.lazyMemo(function () {
@@ -81,6 +83,29 @@ exports.Publication_Retract = {
   }),
   encode: function (__typed__) {
     return {};
+  },
+};
+
+exports.ReceiptDetail = {
+  decoder: damlTypes.lazyMemo(function () {
+    return jtv.object({
+      reserveId: damlTypes.Text.decoder,
+      marketIds: damlTypes.List(damlTypes.Text).decoder,
+      pick: damlTypes.Text.decoder,
+      stake: damlTypes.Int.decoder,
+      toReserve: damlTypes.Int.decoder,
+      result: damlTypes.Text.decoder,
+    });
+  }),
+  encode: function (__typed__) {
+    return {
+      reserveId: damlTypes.Text.encode(__typed__.reserveId),
+      marketIds: damlTypes.List(damlTypes.Text).encode(__typed__.marketIds),
+      pick: damlTypes.Text.encode(__typed__.pick),
+      stake: damlTypes.Int.encode(__typed__.stake),
+      toReserve: damlTypes.Int.encode(__typed__.toReserve),
+      result: damlTypes.Text.encode(__typed__.result),
+    };
   },
 };
 
@@ -110,7 +135,7 @@ exports.Receipt_Publish = {
 exports.SettlementReceipt = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Publication:SettlementReceipt',
-    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Publication:SettlementReceipt',
+    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Publication:SettlementReceipt',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -127,6 +152,8 @@ exports.SettlementReceipt = damlTypes.assembleTemplate(
         cost: damlTypes.Int.decoder,
         payout: damlTypes.Int.decoder,
         fee: damlTypes.Int.decoder,
+        product: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
+        detail: jtv.Decoder.withDefault(null, damlTypes.Optional(exports.ReceiptDetail).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -143,6 +170,8 @@ exports.SettlementReceipt = damlTypes.assembleTemplate(
         cost: damlTypes.Int.encode(__typed__.cost),
         payout: damlTypes.Int.encode(__typed__.payout),
         fee: damlTypes.Int.encode(__typed__.fee),
+        product: damlTypes.Optional(damlTypes.Text).encode(__typed__.product),
+        detail: damlTypes.Optional(exports.ReceiptDetail).encode(__typed__.detail),
       };
     },
     Archive: {
@@ -184,4 +213,4 @@ exports.SettlementReceipt = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.SettlementReceipt, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.SettlementReceipt, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);

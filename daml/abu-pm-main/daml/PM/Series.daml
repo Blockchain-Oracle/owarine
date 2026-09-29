@@ -4,10 +4,20 @@
 -- command hits an archived contract, and a retry against the new Series
 -- fails the index check, so a Window can never be created twice (the
 -- reference's BadWindowIndex).
+--
+-- Two ways to open (0.4.0, K-030): `Series_OpenWindow` puts Window i on the
+-- grid (anchor + i * cadence); `Series_OpenWindowSpan` takes the Window's own
+-- trading start, lock and expiry, for a Window that cannot sit on a grid
+-- (the Monday Gap: Friday close to Monday open, locking Sunday 20:00 ET).
+-- Both consume the Series, check `nextIndex`, refuse a Window starting
+-- before the last one's expiry (`lastExpiry`, or the grid start of
+-- `nextIndex` for a Series that has not recorded one), and freeze the policy
+-- version covering both boundaries.
 module PM.Series where
 
 import DA.List (unique, last)
 import DA.Time (addRelTime, seconds)
+import PM.Event
 import PM.Market
 import PM.Types
 
@@ -32,6 +42,9 @@ template Series
     maxDeviationBps : Int
     policyVersions : [PolicyVersion]
       -- ^ append-only, strictly increasing in version and effectiveFrom
+    lastExpiry : Optional Time
+      -- ^ 0.4.0: the expiry of the last Window opened (None on a Series that
+      -- has opened none since 0.4.0); the next Window may not start before it
   where
     signatory venue
     observer resolver, auditor
@@ -47,27 +60,54 @@ template Series
         index : Int
       controller venue
       do
-        require "bad-window-index" "window index is not the series' next index" (index == nextIndex)
-        let tradingStart = addRelTime anchor (seconds (index * cadenceSec))
+        let tradingStart = gridStart this index
             expiry = addRelTime tradingStart (seconds cadenceSec)
             lockAt = addRelTime expiry (seconds (negate lockLeadSec))
-        pv <- case covering tradingStart expiry policyVersions of
-          Some v -> pure v
-          None -> refuse "no-policy" "no price-policy version covers this window"
-        let openDeadline = if pv.openAdmissionSec < 0 then lockAt
-                           else addRelTime tradingStart (seconds pv.openAdmissionSec)
-            closeDeadline = addRelTime expiry (seconds pv.closeAdmissionSec)
-            refundAfter = addRelTime closeDeadline (seconds settleGraceSec)
-        termsCid <- create MarketTerms with
-          venue; resolver; seriesKey; marketId = seriesKey <> ":" <> show index
-          index; symbol; cashUnit; tradingStart; lockAt; expiry
-          openDeadline; closeDeadline; refundAfter
-          policyVersion = pv.version; printSource = pv.printSource
-          minDelaySec = pv.minDelaySec; barLenSec = pv.barLenSec; tieUp = True
-          oracles; quorum; maxDeviationBps
-        stateCid <- create WindowState with venue; resolver; termsCid
-        next <- create this with nextIndex = index + 1
-        pure (next, termsCid, stateCid)
+        openWindowAt this index tradingStart lockAt expiry
+
+    -- A Window with its own boundaries (the Monday Gap). Same index,
+    -- overlap and policy checks as `Series_OpenWindow`; the span is at most
+    -- `maxSpanSec`, and the Window trades before it locks.
+    choice Series_OpenWindowSpan : (ContractId Series, ContractId MarketTerms, ContractId WindowState)
+      with
+        index : Int
+        tradingStart : Time
+        lockAt : Time
+        expiry : Time
+      controller venue
+      do
+        require "bad-span" "a Window must trade before it locks, and lock no later than it expires"
+          (tradingStart < lockAt && lockAt <= expiry)
+        require "span-too-long" "a Window spans at most four days"
+          (expiry <= addRelTime tradingStart (seconds maxSpanSec))
+        openWindowAt this index tradingStart lockAt expiry
+
+    -- A yes/no event (PM.Event) as this Series' next Window: its terms, the
+    -- question and committee (the Series' oracles and quorum), and the
+    -- event's single-use state. No WindowState is created, so only
+    -- `Event_Resolve` / `Event_Void` decide it.
+    choice Series_OpenEvent : (ContractId Series, ContractId MarketTerms, ContractId EventTerms, ContractId EventState)
+      with
+        index : Int
+        question : Text
+        tradingStart : Time
+        lockAt : Time
+        closeTime : Time
+      controller venue
+      do
+        require "bad-span" "an event must trade before it locks, and lock no later than it closes"
+          (tradingStart < lockAt && lockAt <= closeTime)
+        require "span-too-long" "an event runs at most 92 days"
+          (closeTime <= addRelTime tradingStart (seconds maxEventSpanSec))
+        require "no-question" "an event asks a question" (question /= "")
+        checkNext this index tradingStart
+        (termsCid, terms) <- createTerms this index tradingStart lockAt closeTime
+        stateCid <- create EventState with venue; resolver; termsCid
+        eventCid <- create EventTerms with
+          venue; resolver; termsCid; marketId = terms.marketId; question
+          closeTime; closeDeadline = terms.closeDeadline; attestors = oracles; quorum
+        next <- create this with nextIndex = index + 1; lastExpiry = Some closeTime
+        pure (next, termsCid, eventCid, stateCid)
 
     -- The roller skips windows (halts, closed sessions) by moving the index
     -- forward. It can never move backwards.
@@ -87,12 +127,67 @@ template Series
       controller venue
       do
         let prev = last policyVersions
-            nextStart = addRelTime anchor (seconds (nextIndex * cadenceSec))
+            nextStart = openFloor this
         require "bad-policy" "version must be the next number" (pv.version == prev.version + 1)
         require "bad-policy" "must take effect after the previous version" (pv.effectiveFrom > prev.effectiveFrom)
         require "bad-policy" "cannot cover an already-opened window" (pv.effectiveFrom >= nextStart)
         require "bad-policy" "invalid policy fields" (policyVersionOk pv)
         create this with policyVersions = policyVersions ++ [pv]
+
+-- | The longest Window `Series_OpenWindowSpan` opens: four days. A Gap from
+-- Friday 16:00 ET to Tuesday 09:30 ET (a Monday holiday) is 89.5 h.
+maxSpanSec : Int
+maxSpanSec = 4 * 86400
+
+-- | Window i's trading start on the Series' grid.
+gridStart : Series -> Int -> Time
+gridStart s index = addRelTime s.anchor (seconds (index * s.cadenceSec))
+
+-- | The earliest trading start of the next Window: the last opened Window's
+-- expiry, or (a Series without one) the grid start of `nextIndex`, which is
+-- the previous grid Window's expiry. A skip moves the grid start forward.
+openFloor : Series -> Time
+openFloor s = optional (gridStart s s.nextIndex) identity s.lastExpiry
+
+-- | Open Window `index` with these boundaries: the index, overlap and
+-- policy-coverage checks, then the terms, the single-use state and the next
+-- Series.
+openWindowAt : Series -> Int -> Time -> Time -> Time -> Update (ContractId Series, ContractId MarketTerms, ContractId WindowState)
+openWindowAt s index tradingStart lockAt expiry = do
+  checkNext s index tradingStart
+  (termsCid, _) <- createTerms s index tradingStart lockAt expiry
+  stateCid <- create WindowState with venue = s.venue; resolver = s.resolver; termsCid
+  next <- create s with nextIndex = index + 1; lastExpiry = Some expiry
+  pure (next, termsCid, stateCid)
+
+-- | The index and overlap checks every open makes.
+checkNext : Series -> Int -> Time -> Update ()
+checkNext s index tradingStart = do
+  require "bad-window-index" "window index is not the series' next index" (index == s.nextIndex)
+  require "window-overlap" "a Window cannot start before the last one expires" (tradingStart >= openFloor s)
+
+-- | The Window's terms under the highest policy version covering both
+-- boundaries (no WindowState: the caller creates the resolution marker).
+createTerms : Series -> Int -> Time -> Time -> Time -> Update (ContractId MarketTerms, MarketTerms)
+createTerms s index tradingStart lockAt expiry = do
+  pv <- case covering tradingStart expiry s.policyVersions of
+    Some v -> pure v
+    None -> refuse "no-policy" "no price-policy version covers this window"
+  let openDeadline = if pv.openAdmissionSec < 0 then lockAt
+                     else addRelTime tradingStart (seconds pv.openAdmissionSec)
+      closeDeadline = addRelTime expiry (seconds pv.closeAdmissionSec)
+      refundAfter = addRelTime closeDeadline (seconds s.settleGraceSec)
+      terms = MarketTerms with
+        venue = s.venue; resolver = s.resolver; seriesKey = s.seriesKey
+        marketId = s.seriesKey <> ":" <> show index
+        index; symbol = s.symbol; cashUnit = s.cashUnit; tradingStart; lockAt; expiry
+        openDeadline; closeDeadline; refundAfter
+        policyVersion = pv.version; printSource = pv.printSource
+        minDelaySec = pv.minDelaySec; barLenSec = pv.barLenSec; tieUp = True
+        oracles = s.oracles; quorum = s.quorum; maxDeviationBps = s.maxDeviationBps
+        closeAdmissionSec = Some pv.closeAdmissionSec
+  termsCid <- create terms
+  pure (termsCid, terms)
 
 increasing : [PolicyVersion] -> Bool
 increasing (a :: b :: rest) = a.version < b.version && a.effectiveFrom < b.effectiveFrom && increasing (b :: rest)

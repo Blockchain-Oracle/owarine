@@ -19,6 +19,7 @@ export declare type Publication = {
   outcome: PM_Types.Side,
   lots: damlTypes.Int,
   backingShare: damlTypes.Int,
+  product: damlTypes.Optional<string>,
 }
 
 export declare interface PublicationInterface {
@@ -39,6 +40,18 @@ export declare type Publication_Retract = {
 
 export declare const Publication_Retract:
   damlTypes.Serializable<Publication_Retract>
+
+export declare type ReceiptDetail = {
+  reserveId: string,
+  marketIds: string[],
+  pick: string,
+  stake: damlTypes.Int,
+  toReserve: damlTypes.Int,
+  result: string,
+}
+
+export declare const ReceiptDetail:
+  damlTypes.Serializable<ReceiptDetail>
 
 export declare type Receipt_Dismiss = {
 }
@@ -66,6 +79,8 @@ export declare type SettlementReceipt = {
   cost: damlTypes.Int,
   payout: damlTypes.Int,
   fee: damlTypes.Int,
+  product: damlTypes.Optional<string>,
+  detail: damlTypes.Optional<ReceiptDetail>,
 }
 
 export declare interface SettlementReceiptInterface {

@@ -290,7 +290,7 @@ importers:
       '@daml.js/abu-pm-main':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main
-      '@daml.js/abu-pm-main-0.3.0':
+      '@daml.js/abu-pm-main-0.4.0':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main
       '@daml.js/abu-pm-tickets':

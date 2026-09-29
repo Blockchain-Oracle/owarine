@@ -15,6 +15,9 @@ template Publication
     outcome : Side
     lots : Int
     backingShare : Int
+    product : Optional Text
+      -- ^ 0.4.0: None for a pair leg; the ticket product otherwise (as on
+      -- the receipt it was published from)
   where
     signatory venue, owner
 
@@ -22,10 +25,27 @@ template Publication
       controller owner
       do pure ()
 
--- | The ledger's record of a user's leg once it settled or was claimed (K-028):
--- `Leg_Settle` and `Leg_Claim` archive the leg, so this is what a settled call
--- is published from and what portfolio history reads. Bilateral, like the leg.
--- `resolved` is the Window's outcome (None = void); `cost` is backing plus fee.
+-- | The ledger's record of a user's position once it settled or was claimed
+-- (K-028): `Leg_Settle` and `Leg_Claim` archive the leg, so this is what a
+-- settled call is published from and what portfolio history reads.
+-- Bilateral, like the position. `resolved` is the Window's outcome (None =
+-- void).
+--
+-- A pair leg (`product = None`, the 0.3.0 shape): `cost` is backing plus
+-- fee, `payout` what the owner received, `fee` what the venue recognised.
+--
+-- 0.4.0 (K-030): tickets (abu-pm-tickets 0.1.1) create the same receipt on
+-- settle and claim, with `product` naming the ticket and `detail` carrying
+-- what a pair leg does not have. For a ticket:
+--   boost / short   marketId, pairId, outcome = the side, lots, cashUnit as
+--                   the position; backingShare = the pair cost C; cost = the
+--                   owner's stake; payout = what the owner got back; fee = the
+--                   premium recognised (0 on void)
+--   range / moonshot  pairId = ""; outcome Up = Inside, Down = Outside;
+--   parlay          pairId = ""; marketId and outcome = the leg that decided
+--                   the ticket; every leg's market is in `detail.marketIds`
+--   both            lots = 1, cashUnit = 1, backingShare = cost = the stake,
+--                   payout = what the owner got, fee = 0
 template SettlementReceipt
   with
     venue : Party
@@ -40,17 +60,47 @@ template SettlementReceipt
     cost : Int
     payout : Int
     fee : Int
+    product : Optional Text
+      -- ^ 0.4.0: None = a pair leg; "range", "moonshot", "boost", "short",
+      -- "parlay"
+    detail : Optional ReceiptDetail
+      -- ^ 0.4.0: a ticket's reserve, markets, pick and payout breakdown
   where
     signatory venue, owner
+    -- The 0.3.0 precondition, unchanged so the upgrade adds no ensure
+    -- clause; tickets build `detail` with `receiptDetailOk` in mind.
     ensure owner /= venue && lots > 0 && cost >= 0 && payout >= 0 && fee >= 0
 
-    -- The same `Publication` shape `Leg_Publish` creates, from the settled leg's figures.
+    -- The same `Publication` shape `Leg_Publish` creates, from the settled figures.
     nonconsuming choice Receipt_Publish : ContractId Publication
       with
         handle : Text
       controller owner
-      do create Publication with venue; owner; handle; marketId; pairId; outcome; lots; backingShare
+      do create Publication with venue; owner; handle; marketId; pairId; outcome; lots; backingShare; product
 
     choice Receipt_Dismiss : ()
       controller owner
       do pure ()
+
+-- | A ticket's settlement beyond the pair-leg fields.
+data ReceiptDetail = ReceiptDetail
+  with
+    reserveId : Text
+      -- ^ the reserve that banked the ticket
+    marketIds : [Text]
+      -- ^ every Window the ticket rode (one, or a parlay's legs)
+    pick : Text
+      -- ^ what the owner picked, for display: "Inside 100..200", "Up,Down,Up",
+      -- "Up 2.0x"
+    stake : Int
+      -- ^ what the owner put in (premium included for a boost)
+    toReserve : Int
+      -- ^ what the settlement paid back into the reserve
+    result : Text
+      -- ^ "won", "lost" or "void"
+  deriving (Eq, Show)
+
+receiptDetailOk : ReceiptDetail -> Bool
+receiptDetailOk d =
+  d.reserveId /= "" && not (null d.marketIds) && d.stake >= 0 && d.toReserve >= 0
+    && d.result `elem` ["won", "lost", "void"]

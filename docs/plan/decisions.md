@@ -234,6 +234,16 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - a general `SettlementReceipt` that covers tickets;
   - an explicit close-admission field on `MarketTerms`.
 - **Until then:** the Gap lane shows its honest not-listed state, and event markets reuse the price path.
+- **Built (C2c, `abu-pm-main` 0.4.0, `abu-pm-tickets` 0.1.1):** `dpm upgrade-check --both` passes with no warnings for 0.3.0 → 0.4.0 and 0.1.0 → 0.1.1. No field or choice was removed or renamed, and no precondition changed. Tests: `Test.Gap`, `Test.Event`, `Test.Admission`, `Test.Tickets.Receipts` and new reserve refusals. `dpm test` passes all 155 scripts.
+  - **Gap.** `Series_OpenWindowSpan {index, tradingStart, lockAt, expiry}` runs the same `nextIndex` and policy-coverage checks as `Series_OpenWindow`, over a span of at most four days. Refusals: `bad-span`, `span-too-long`, `window-overlap`. Both opens refuse a Window that starts before the last one's expiry. `Series.lastExpiry : Optional Time` is new, and `None` means the grid start of `nextIndex`.
+  - **Events.** `Series_OpenEvent {index, question, tradingStart, lockAt, closeTime}` creates the ordinary `MarketTerms`, an `EventTerms` (the committee is the Series' oracles and quorum) and a single-use `EventState`. It creates no `WindowState`. Committee members create `EventAttestation {answer: Bool, attestedAt, statementHash}`.
+    - `Event_Resolve` needs a quorum. Unanimous YES gives a `Resolution` Up, and unanimous NO gives Down. A mix of YES and NO voids as `SourceDisagreement CloseSlot`.
+    - After the deadline, `Event_Void` names one of `MissingPrint`, `QuorumNotMet`, `SourceDisagreement` or `ResolverAbsent`.
+    - An `EventVerdict` records the question and the attestations counted.
+    - Legs settle unchanged.
+  - **Reserve.** `Nav_IssueWithdraw` keeps its signature and refuses a shard outside `reserve:<id>` (`bad-shard`). It was tightened in place instead of being duplicated, because nothing is on a participant yet. `Earn_IssueWithdraw` now simply forwards the call.
+  - **Receipts.** `SettlementReceipt` gains `product : Optional Text` (None = pair leg) and `detail : Optional ReceiptDetail`, and `Publication` gains `product`. Ticket settle and claim create the receipt; field meanings are in `PM/Publication.daml`.
+  - **Close admission.** `MarketTerms.closeAdmissionSec : Optional Int` is set at every open. Readers use `closeAdmissionOf`, which falls back to closeDeadline − expiry. The Boost knock-out uses it.
 - **Approval:** default; overrulable.
 
 ## Open questions

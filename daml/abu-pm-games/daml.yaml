@@ -6,6 +6,6 @@ dependencies:
   - daml-prim
   - daml-stdlib
 data-dependencies:
-  - ../abu-pm-main/.daml/dist/abu-pm-main-0.3.0.dar
+  - ../abu-pm-main/.daml/dist/abu-pm-main-0.4.0.dar
 build-options:
   - --ghc-option=-Wunused-imports

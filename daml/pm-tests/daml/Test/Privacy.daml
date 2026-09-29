@@ -86,7 +86,8 @@ populated = do
     exerciseCmd nav0 Nav_Publish with newAsOf = now; newAssets = 100; newShares = 100
   _ <- submit w.venue do
     exerciseCmd nav1 Nav_IssueSupply with provider = w.bob; cashIn = 50; validUntil = plus now 20
-  wsh <- shard w 40
+  wsh <- submit w.venue do
+    createCmd VenueCash with venue = w.venue; owner = w.venue; amount = 40; bucket = reserveBucket "R"
   _ <- submit w.venue do
     exerciseCmd nav1 Nav_IssueWithdraw with
       provider = w.alice; lpShareCid = lp; sharesIn = 40; shardCid = wsh; validUntil = plus now 20

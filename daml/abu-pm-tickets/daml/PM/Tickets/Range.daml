@@ -29,6 +29,7 @@ import DA.Time (addRelTime, seconds)
 import PM.Leg (fetchResolutionFor)
 import PM.Market
 import PM.Money
+import PM.Publication (ReceiptDetail(..))
 import PM.Quote (expireSlackSec)
 import PM.Tickets.Common
 import PM.Types
@@ -159,4 +160,14 @@ payRound : RangeRound -> ContractId Resolution -> Update Paid
 payRound r resolutionCid = do
   res <- fetchResolutionFor r.venue r.termsCid resolutionCid
   let (toOwner, toReserve) = roundPayout r res
-  payBoth r.venue r.owner r.reserveId toOwner toReserve "payout"
+      decided = case (res.outcome, res.closePriceE8) of
+        (Some _, Some _) -> Some (toOwner > 0)
+        _ -> None
+  paid <- payBoth r.venue r.owner r.reserveId toOwner toReserve "payout"
+  recordReceipt $ stakeReceipt r.venue r.owner (if r.kind == Moonshot then "moonshot" else "range") r.marketId
+    (if r.side == Inside then SideUp else SideDown) res.outcome r.stake toOwner
+    ReceiptDetail with
+      reserveId = r.reserveId; marketIds = [r.marketId]
+      pick = show r.side <> " " <> show r.lowE8 <> ".." <> show r.highE8
+      stake = r.stake; toReserve; result = resultText decided
+  pure paid

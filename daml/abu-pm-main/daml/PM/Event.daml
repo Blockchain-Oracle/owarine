@@ -1,0 +1,213 @@
+-- | Yes/no event markets decided by a committee's attestations (0.4.0,
+-- K-030; an Addition, the reference has none).
+--
+-- An event is one Window of a Series, opened by `Series_OpenEvent`: the
+-- ordinary `MarketTerms` (so quotes, Legs, grants and tickets work
+-- unchanged), plus
+--   EventTerms        venue-signed, resolver observer: the question, the
+--                     close time, the committee (the Series' oracles) and
+--                     its quorum. Never archived, so the question stays
+--                     readable after the outcome.
+--   EventState        the single-use marker, consumed by exactly one of
+--                     `Event_Resolve` or `Event_Void`. There is no
+--                     `WindowState`, so the price path (`Terms_RecordOpen`,
+--                     `Terms_Void`) can never decide an event.
+--   EventAttestation  one committee member's YES or NO, signed by that
+--                     member alone, venue and resolver observers.
+--
+-- The outcome is the same `Resolution` a price Window gets (Up = YES,
+-- Down = NO, no prices, no price evidence), so every Leg and ticket settles
+-- unchanged. Its attestations are recorded beside it in an `EventVerdict`.
+--
+-- Rules, from the price path (K-021):
+--   * an attestation counts iff it names this event's market and venue,
+--     comes from a committee member, and is dated inside
+--     [closeTime, closeDeadline]; anything else is ignored, not fatal; one
+--     per member is kept (the earliest);
+--   * `Event_Resolve` runs from closeTime until closeDeadline (inclusive)
+--     and needs `quorum` counted attestations: all YES resolves Up, all NO
+--     resolves Down, both at once voids as `SourceDisagreement CloseSlot`
+--     (the committee's deviation limit is zero);
+--   * `Event_Void` runs from closeDeadline + 1 s and names the reason as a
+--     price void does: no attestation `MissingPrint`, fewer than the quorum
+--     `QuorumNotMet`, a conflict `SourceDisagreement`, else
+--     `ResolverAbsent` (all at `CloseSlot`).
+module PM.Event where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.List (sortOn, unique)
+import DA.Time (addRelTime)
+import PM.Market
+import PM.Oracle (oneSecond)
+import PM.Types
+
+-- | The longest event `Series_OpenEvent` lists: 92 days.
+maxEventSpanSec : Int
+maxEventSpanSec = 92 * 86400
+
+template EventTerms
+  with
+    venue : Party
+    resolver : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    question : Text
+    closeTime : Time
+      -- ^ the terms' expiry: attestations count from here
+    closeDeadline : Time
+      -- ^ the terms' close deadline: the last moment `Event_Resolve` runs
+    attestors : [Party]
+    quorum : Int
+  where
+    signatory venue
+    observer resolver
+    ensure question /= "" && closeDeadline >= closeTime
+      && quorum >= 1 && quorum <= length attestors && unique attestors
+
+    nonconsuming choice Event_Resolve : (ContractId Resolution, ContractId EventVerdict)
+      with
+        stateCid : ContractId EventState
+        attestationCids : [ContractId EventAttestation]
+      controller resolver
+      do
+        assertDeadlineExceeded "event-close" closeTime
+        assertWithinDeadline "event-deadline" (addRelTime closeDeadline oneSecond)
+        consumeEventState this stateCid
+        ev <- collectAttestations this attestationCids
+        require "quorum-not-met" "fewer counted attestations than the quorum" (length ev >= quorum)
+        decide this ev (verdictOf ev)
+
+    -- Void an event nobody resolved by its deadline. The attestations
+    -- offered (possibly none) only name the reason; they cannot block it.
+    nonconsuming choice Event_Void : (ContractId Resolution, ContractId EventVerdict)
+      with
+        stateCid : ContractId EventState
+        attestationCids : [ContractId EventAttestation]
+      controller resolver
+      do
+        assertDeadlineExceeded "event-void" (addRelTime closeDeadline oneSecond)
+        consumeEventState this stateCid
+        ev <- collectAttestations this attestationCids
+        let reason
+              | conflicted ev = SourceDisagreement CloseSlot
+              | null ev = MissingPrint CloseSlot
+              | length ev < quorum = QuorumNotMet CloseSlot
+              | otherwise = ResolverAbsent CloseSlot
+        decide this ev (Left reason)
+
+-- | The single-use marker of one event's resolution.
+template EventState
+  with
+    venue : Party
+    resolver : Party
+    termsCid : ContractId MarketTerms
+  where
+    signatory venue
+    observer resolver
+
+-- | One committee member's answer: `answer = True` is YES. The member
+-- hashes their full statement (question, answer, time) into
+-- `statementHash`.
+template EventAttestation
+  with
+    attestor : Party
+    venue : Party
+    resolver : Party
+    marketId : Text
+    answer : Bool
+    attestedAt : Time
+    statementHash : Text
+  where
+    signatory attestor
+    observer venue, resolver
+
+    -- Retention, as `PriceQuote_Retire`: the verdict embeds the evidence.
+    choice Attestation_Retire : ()
+      controller attestor
+      do pure ()
+
+-- | What a verdict records about each counted attestation.
+data AttestationEvidence = AttestationEvidence
+  with
+    attestor : Party
+    answer : Bool
+    attestedAt : Time
+    statementHash : Text
+    attestationCid : ContractId EventAttestation
+  deriving (Eq, Show)
+
+-- | The event's outcome beside its `Resolution`: the question, the answer
+-- (None = void, with the reason) and the attestations counted. Signed by
+-- resolver and venue, like the Resolution.
+template EventVerdict
+  with
+    venue : Party
+    resolver : Party
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    question : Text
+    answer : Optional Bool
+    voidReason : Optional VoidReason
+    attestations : [AttestationEvidence]
+    resolutionCid : ContractId Resolution
+  where
+    signatory resolver, venue
+    ensure (answer == None) == (voidReason /= None)
+
+-- ---------------------------------------------------------------------------
+
+consumeEventState : EventTerms -> ContractId EventState -> Update ()
+consumeEventState e stateCid = do
+  st <- fetch stateCid
+  require "wrong-event" "event state belongs to another event" (st.termsCid == e.termsCid && st.venue == e.venue)
+  archive stateCid
+
+-- | An attestation counts iff it is for this event and venue, from a
+-- committee member, dated inside [closeTime, closeDeadline].
+attestationCounts : EventTerms -> EventAttestation -> Bool
+attestationCounts e a =
+  a.marketId == e.marketId && a.venue == e.venue && a.attestor `elem` e.attestors
+    && a.attestedAt >= e.closeTime && a.attestedAt <= e.closeDeadline
+
+-- | Fetch the offered attestations and keep the counting ones, one per
+-- member (earliest first, then NO before YES, so the choice is
+-- deterministic).
+collectAttestations : EventTerms -> [ContractId EventAttestation] -> Update [AttestationEvidence]
+collectAttestations e cids = do
+  as <- mapA (\c -> do a <- fetch c; pure (c, a)) cids
+  let valid = [ AttestationEvidence with
+                  attestor = a.attestor; answer = a.answer; attestedAt = a.attestedAt
+                  statementHash = a.statementHash; attestationCid = c
+              | (c, a) <- as, attestationCounts e a ]
+  pure (firstPerAttestor (sortOn (\x -> (x.attestor, x.attestedAt, x.answer)) valid))
+
+firstPerAttestor : [AttestationEvidence] -> [AttestationEvidence]
+firstPerAttestor = reverse . foldl step []
+  where
+    step acc x = case acc of
+      (p :: _) | p.attestor == x.attestor -> acc
+      _ -> x :: acc
+
+conflicted : [AttestationEvidence] -> Bool
+conflicted ev = any (.answer) ev && any (not . (.answer)) ev
+
+-- | A counted quorum's verdict: the unanimous answer, or a conflict.
+verdictOf : [AttestationEvidence] -> Either VoidReason Bool
+verdictOf ev
+  | conflicted ev = Left (SourceDisagreement CloseSlot)
+  | otherwise = Right (any (.answer) ev)
+
+-- | Create the Resolution (Up = YES) and the verdict beside it.
+decide : EventTerms -> [AttestationEvidence] -> Either VoidReason Bool -> Update (ContractId Resolution, ContractId EventVerdict)
+decide e ev v = do
+  let (outcome, reason, answer) = case v of
+        Left r -> (None, Some r, None)
+        Right yes -> (Some (if yes then SideUp else SideDown), None, Some yes)
+  res <- create Resolution with
+    venue = e.venue; resolver = e.resolver; termsCid = e.termsCid; marketId = e.marketId
+    outcome; voidReason = reason; openPriceE8 = None; closePriceE8 = None
+    openEvidence = []; closeEvidence = []; signers = length ev
+  verdict <- create EventVerdict with
+    venue = e.venue; resolver = e.resolver; termsCid = e.termsCid; marketId = e.marketId
+    question = e.question; answer; voidReason = reason; attestations = ev; resolutionCid = res
+  pure (res, verdict)

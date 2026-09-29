@@ -8,7 +8,9 @@
 --   SupplyQuote / WithdrawQuote
 --                 firm per-provider quotes the venue issues FROM the live
 --                 statement, so the ledger computes the price; the provider
---                 alone accepts, fetching only their own cash or share.
+--                 alone accepts, fetching only their own cash or share. A
+--                 withdraw locks its payout from a shard of the reserve's
+--                 own bucket (`reserve:<id>`, required since 0.4.0).
 --
 -- Pricing at NAV = assets / shares, integer only, both directions rounded
 -- down, i.e. in the venue's (the remaining holders') favour:
@@ -116,6 +118,10 @@ template NavStatement
           (sharesIn > 0 && sharesIn <= lp.shares)
         let cashOut = cashFor this sharesIn
         require "below-one-unit" "these shares redeem for nothing at this NAV" (cashOut > 0)
+        -- 0.4.0 (K-030): a withdrawal is paid from this reserve's own cash only.
+        shard <- fetch shardCid
+        require "bad-shard" "a withdrawal is paid from the reserve's own cash (a reserve:<id> shard)"
+          (shard.bucket == reserveBucket reserveId)
         change <- lockFromShard venue shardCid cashOut
         q <- create WithdrawQuote with
           venue; provider; reserveId; navSeq = seq; lpShareCid; sharesIn; cashOut; validUntil
