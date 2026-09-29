@@ -1,0 +1,87 @@
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
+import { DEFAULT_CLUSTER } from "@agari/core/constants";
+import { COMPOSER_PERMANENCE } from "@agari/core/copy";
+import type { TickerSymbol } from "@agari/core/market";
+import { addressSchema, marketIdSchema, type Address, type MarketId, type Side } from "@agari/core/types";
+import { z } from "zod";
+
+/** One confident sentence, not an essay — the reference's own cap (`lib/sui/takes.ts` L23). */
+export const TAKE_MAX_CAPTION = 240;
+/** A signature is only good for a few minutes, so a captured one cannot be replayed later. */
+export const TAKE_SIGNATURE_TTL_MS = 5 * 60_000;
+/** How many takes the reel weaves in — the reference reads 30 (`app/reels/page.tsx` L267). */
+export const TAKES_FEED_LIMIT = 30;
+/** The most rows one `GET /api/takes` returns, and the most authors one `?authors=` names. */
+export const TAKES_PAGE_MAX = 100;
+export const TAKES_AUTHORS_MAX = 50;
+
+/** Trim + hard-cap, as the reference's `normalizeCaption`, so a take stays a take. */
+export function normalizeCaption(raw: string): string {
+  return raw.replace(/\s+/g, " ").trim().slice(0, TAKE_MAX_CAPTION);
+}
+
+/**
+ * The exact text the wallet signs to publish a call.
+ *
+ * Built here so the browser and the route produce the same string from the same
+ * fields. The reference's spine is an on-chain `TakePosted` event (author, market,
+ * side, order id); ours is this signature over the same facts, stored with the row
+ * so anyone can re-verify who said what about which Window. It names what it is
+ * not, because a prompt that does not explain itself trains people to click through
+ * the ones that matter — and it repeats the permanence line so nobody signs a
+ * public record thinking it is a private note.
+ */
+export function takeMessage(input: { marketId: string; side: Side; caption: string; address: string; issuedAtMs: number }): string {
+  return [
+    `${SIGNED_MESSAGE_BRAND} — post a take`,
+    "",
+    `Market: ${input.marketId}`,
+    `Call: ${input.side.toUpperCase()}`,
+    `Words: ${input.caption || "(no note)"}`,
+    // Base58 is case-sensitive: the wallet is named exactly as it signs (D-010).
+    `Wallet: ${input.address}`,
+    networkLine(DEFAULT_CLUSTER),
+    `Issued: ${new Date(input.issuedAtMs).toISOString()}`,
+    "",
+    `Signing proves this take is yours. It is not a transaction, it moves no funds, and it costs nothing. ${COMPOSER_PERMANENCE}`,
+  ].join("\n");
+}
+
+export const takePostRequestSchema = z.object({
+  marketId: marketIdSchema,
+  side: z.enum(["up", "down"]),
+  // Exactly the words that were signed: the row stores the caption verbatim so the
+  // signature re-verifies from the row, so the client normalises before signing and
+  // the route refuses anything it would have had to alter.
+  caption: z.string().max(TAKE_MAX_CAPTION).refine((caption) => caption === normalizeCaption(caption)),
+  address: addressSchema,
+  issuedAtMs: z.number().int().positive(),
+  signature: messageSignatureSchema,
+});
+
+export type TakePostRequest = z.infer<typeof takePostRequestSchema>;
+
+/** One take as the reel renders it — the wire shape of `GET /api/takes`. */
+export interface FeedTake {
+  id: string;
+  marketId: MarketId;
+  author: Address;
+  side: Side;
+  caption: string;
+  asset: string;
+  intervalSec: number;
+  expirySec: number;
+  /** The opening print on the oracle scale, as a decimal string; null when posted before the print landed. */
+  lineRaw: string | null;
+  /** Held a position on the Window when the call was posted — a chain read the server made. */
+  backed: boolean;
+  createdAtMs: number;
+  /** The registry tickers it is filed under (`parseCashtags`), alphabetical; absent on fixtures. */
+  tags?: TickerSymbol[];
+}
+
+export interface TakesFeed {
+  /** False when this deployment has no social store; the reel then carries markets alone and the composer says why. */
+  configured: boolean;
+  takes: FeedTake[];
+}

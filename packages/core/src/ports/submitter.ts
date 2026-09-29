@@ -1,0 +1,231 @@
+import type { Diagnosis } from "../types/diagnosis";
+import type { EventMarket, MarketId, OutcomeIdx, Side } from "../types/market";
+import type { Address, Signature } from "../types/primitives";
+import type { ExitQuote, Quote } from "../types/trading";
+import type { ArenaIntent } from "../games/arena";
+import type { ParlayIntent } from "../parlay/types";
+import type { RangeIntent } from "../range/types";
+import type { MakerIntent } from "../maker/types";
+import type { LeverageIntent } from "../leverage/types";
+import type { PrivateIntent } from "../private/types";
+import type { StrategyIntent } from "../strategies/types";
+import type { GrantKind, VaultCaps } from "../vault/types";
+
+/** The write-path state machine every surface renders (EXPERIENCE.md). */
+export type WritePhase = "composing" | "submitted" | "confirming" | "confirmed" | "reverted" | "unknown";
+
+export type PhaseListener = (phase: WritePhase, detail?: { txHash?: Signature }) => void;
+
+/**
+ * The order lane's third dimension (AD-3): the wallet signs its own venue order, or the same
+ * intent goes through the EventVault — from the owner's Trading Balance, or from a grant's
+ * budget by the grant's actor. One interface, neither route implemented twice.
+ */
+export type OrderRoute = { kind: "wallet" } | { kind: "vault" } | { kind: "vault-grant"; grantId: bigint };
+
+export interface OrderRequest {
+  market: EventMarket;
+  side: Side;
+  stakeBase: bigint;
+  /** The quote the user confirmed; its `maxCostBase` is the cap — a fresh quote whose `maxCostBase` exceeds it is surfaced as a requote, never silently accepted. */
+  displayedQuote: Quote;
+  wallet: Address;
+  /** Defaults to the wallet route. */
+  route?: OrderRoute;
+  /** `take` (default): an IOC at the quote. `rest`: a post-only call at the quote's limit that rests until it fills, is cancelled or expires (D-088). */
+  entry?: "take" | "rest";
+  /** A resting call's expiry: `bell` (default, `trading_start + 90 s`) or `lock` (`lock_at`). */
+  restUntil?: "bell" | "lock";
+}
+
+export interface BookedOrder {
+  marketId: MarketId;
+  side: Side;
+  contractsRaw: bigint;
+  costBase: bigint;
+  avgPriceBps: number;
+  txHash: Signature;
+  fillCount: number;
+  /** A sell (plain cash-out, L-35): what the fill paid out. A sell books `costBase: 0` (tap-trading.md §1.4). */
+  proceedsBase?: bigint;
+}
+
+/** A post-only call that rested (D-088): its handle on the Book, its size, its YES-terms price and the escrow it holds. */
+export interface RestedOrder {
+  marketId: MarketId;
+  side: Side;
+  txHash: Signature;
+  node: number;
+  seq: bigint;
+  lots: bigint;
+  priceTicks: number;
+  contractsRaw: bigint;
+  escrowBase: bigint;
+  expireSec: number;
+}
+
+export type OrderOutcome =
+  | { status: "confirmed"; booked: BookedOrder }
+  /** The post-only call rests on the Book; nothing filled yet (D-088). */
+  | { status: "resting"; rested: RestedOrder }
+  /** The tx mined but crossed nothing: the book moved before the IOC landed; the stake was never taken. */
+  | { status: "nothingFilled"; txHash: Signature }
+  /** The fresh quote's `maxCostBase` exceeds the confirmed one — the surface shows the new cost and asks again. */
+  | { status: "requote"; quote: Quote }
+  | { status: "refused"; diagnosis: Diagnosis }
+  | { status: "reverted"; diagnosis: Diagnosis; txHash: Signature }
+  | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
+
+/**
+ * Plain cash-out (L-35): sell a held side back into the Book with an IOC before lock. The confirmed exit quote's
+ * `minProceedsBase` is the floor: a fresh quote below it is surfaced as a requote, never silently accepted.
+ */
+export interface CashOutRequest {
+  market: EventMarket;
+  side: Side;
+  /** How many contracts to sell, at most the holding on that route. */
+  contractsRaw: bigint;
+  displayedExit: ExitQuote;
+  wallet: Address;
+  /** Defaults to the wallet route. */
+  route?: OrderRoute;
+}
+
+/** An order outcome, except that a cash-out requote carries the fresh exit quote, and a sell never rests. */
+export type CashOutOutcome = Exclude<OrderOutcome, { status: "requote" } | { status: "resting" }> | { status: "requote"; exit: ExitQuote };
+
+export interface GrantTerms {
+  kind: GrantKind;
+  actor: Address;
+  caps: VaultCaps;
+  expiresAtSec: number;
+  budgetBase: bigint;
+}
+
+/** EventVault writes: every one journals, simulates, sends and books through the same lane as a redeem. */
+export type VaultIntent =
+  | { kind: "vault-deposit"; amountBase: bigint }
+  | { kind: "vault-withdraw"; amountBase: bigint }
+  | { kind: "vault-move-private"; amountBase: bigint }
+  | { kind: "vault-withdraw-private"; amountBase: bigint }
+  /** Re-key or re-terms; `keyTopUpLamports` rides along when no sponsor pays the new key's fees (tap-trading.md §4 `vault-grant`). */
+  | { kind: "vault-grant"; terms: GrantTerms; keyTopUpLamports?: bigint }
+  /** Deposit and grant in one transaction, so no grant ever exists without its budget (Story 6.1). */
+  | {
+      kind: "vault-deposit-and-grant";
+      amountBase: bigint;
+      terms: GrantTerms;
+      /** SOL moved from the owner to `terms.actor` in the same transaction, only when no sponsor pays the key's fees (tap-trading.md §2). */
+      keyTopUpLamports?: bigint;
+    }
+  | { kind: "vault-fund-grant"; grantId: bigint; amountBase: bigint }
+  | { kind: "vault-revoke"; grantId: bigint }
+  /** Owner → session key SOL transfer for an armed, unsponsored key (the manager's top-up button). */
+  | { kind: "vault-key-top-up"; key: Address; lamports: bigint }
+  /** Permissionless: anyone may crank a settled Window into its owner's balance. */
+  | { kind: "vault-crank-settle"; owner: Address; marketId: MarketId }
+  | { kind: "vault-sweep"; pool: Address };
+
+export type TxIntent =
+  | { kind: "faucet"; amountBase: bigint }
+  /** `user_redeem` on a terminal Window: the outcome and lots to redeem (a PROGRAM seat may redeem part). */
+  | { kind: "redeem"; marketId: MarketId; outcomeIdx: OutcomeIdx; amountRaw: bigint }
+  /** `user_cancel_orders` on the wallet's own resting calls (D-088); `withdraw` pays the refunded escrow and any credit out. */
+  | { kind: "cancel-orders"; marketId: MarketId; handles: { node: number; seq: bigint }[]; withdraw: boolean }
+  | VaultIntent
+  | StrategyIntent
+  | ParlayIntent
+  | RangeIntent
+  | MakerIntent
+  | LeverageIntent
+  | PrivateIntent
+  | ArenaIntent;
+
+export function isVaultIntent(intent: TxIntent): intent is VaultIntent {
+  return intent.kind.startsWith("vault-");
+}
+
+export function isStrategyIntent(intent: TxIntent): intent is StrategyIntent {
+  return intent.kind.startsWith("strategy-");
+}
+
+export function isParlayIntent(intent: TxIntent): intent is ParlayIntent {
+  return intent.kind.startsWith("parlay-");
+}
+
+export function isRangeIntent(intent: TxIntent): intent is RangeIntent {
+  return intent.kind.startsWith("range-");
+}
+
+export function isMakerIntent(intent: TxIntent): intent is MakerIntent {
+  return intent.kind.startsWith("maker-");
+}
+
+export function isLeverageIntent(intent: TxIntent): intent is LeverageIntent {
+  return intent.kind.startsWith("leverage-");
+}
+
+export function isPrivateIntent(intent: TxIntent): intent is PrivateIntent {
+  return intent.kind.startsWith("private-");
+}
+
+export function isArenaIntent(intent: TxIntent): intent is ArenaIntent {
+  return intent.kind.startsWith("arena-");
+}
+
+export type TxOutcome =
+  | { status: "confirmed"; txHash: Signature }
+  | { status: "reverted"; diagnosis: Diagnosis; txHash?: Signature }
+  | { status: "refused"; diagnosis: Diagnosis }
+  | { status: "unknown"; diagnosis: Diagnosis; txHash?: Signature };
+
+/** The ONE write pipeline, two lanes (AD-3). */
+export interface Submitter {
+  submitOrder(request: OrderRequest, onPhase?: PhaseListener): Promise<OrderOutcome>;
+  submitTx(intent: TxIntent, onPhase?: PhaseListener): Promise<TxOutcome>;
+  submitCashOut(request: CashOutRequest, onPhase?: PhaseListener): Promise<CashOutOutcome>;
+  hasSigner(): boolean;
+}
+
+export type StopDecision = { ok: true; reservationId: string } | { ok: false; reason: string };
+
+/** Daily-Stop gate — a mandatory pre-send step of the order lane; allow-all until Epic 5 (AD-9). */
+export interface StopGate {
+  checkAndReserve(wallet: Address, costBase: bigint): Promise<StopDecision>;
+  reconcile(reservationId: string, bookedCostBase: bigint): Promise<void>;
+}
+
+export interface Attribution {
+  builder?: Address;
+  builderFeeBpsTimes1k?: bigint;
+}
+
+/** Builder-tag hook, no-op in v1 (AD-11). */
+export type AttributionHook = (request: OrderRequest) => Attribution;
+
+export type IntentState = "recorded" | "sent" | "confirmed" | "failed" | "unknown";
+
+export interface IntentRecord {
+  id: string;
+  kind: TxIntent["kind"] | "order";
+  wallet: Address;
+  createdAtMs: number;
+  state: IntentState;
+  txHash?: Signature;
+  summary: string;
+  /** The pool and Window an order was aimed at — what a send with no digest is reconciled against. */
+  pool?: Address;
+  marketId?: MarketId;
+  /** Solana: the blockhash's last valid block height. Past it, a signature with no status never landed (D-033). */
+  lastValidBlockHeight?: number;
+}
+
+/** Intent is journaled before send so a no-digest timeout can be reconciled instead of retried (AD-3). */
+export interface IntentJournal {
+  record(entry: Omit<IntentRecord, "id" | "state" | "createdAtMs">): Promise<IntentRecord>;
+  markSent(id: string, txHash: Signature, lastValidBlockHeight?: number): Promise<void>;
+  markConfirmed(id: string): Promise<void>;
+  markFailed(id: string, reason: string): Promise<void>;
+  markUnknown(id: string): Promise<void>;
+  listUnresolved(wallet: Address): Promise<IntentRecord[]>;
+}

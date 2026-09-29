@@ -1,0 +1,38 @@
+{
+  "name": "@agari/clients",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./agari-arena": "./agari-arena/src/generated/index.ts",
+    "./agari-arena/idl.json": "./agari-arena/idl.json",
+    "./agari-desk": "./agari-desk/src/generated/index.ts",
+    "./agari-desk/idl.json": "./agari-desk/idl.json",
+    "./agari-events": "./agari-events/src/generated/index.ts",
+    "./agari-events/idl.json": "./agari-events/idl.json",
+    "./agari-leverage": "./agari-leverage/src/generated/index.ts",
+    "./agari-leverage/idl.json": "./agari-leverage/idl.json",
+    "./agari-maker": "./agari-maker/src/generated/index.ts",
+    "./agari-maker/idl.json": "./agari-maker/idl.json",
+    "./agari-parlay": "./agari-parlay/src/generated/index.ts",
+    "./agari-parlay/idl.json": "./agari-parlay/idl.json",
+    "./agari-private": "./agari-private/src/generated/index.ts",
+    "./agari-private/idl.json": "./agari-private/idl.json",
+    "./agari-range": "./agari-range/src/generated/index.ts",
+    "./agari-range/idl.json": "./agari-range/idl.json",
+    "./agari-strategy": "./agari-strategy/src/generated/index.ts",
+    "./agari-strategy/idl.json": "./agari-strategy/idl.json",
+    "./agari-vault": "./agari-vault/src/generated/index.ts",
+    "./agari-vault/idl.json": "./agari-vault/idl.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@solana/kit": "^8.3.0"
+  },
+  "devDependencies": {
+    "typescript": "catalog:"
+  }
+}

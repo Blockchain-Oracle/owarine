@@ -1,0 +1,67 @@
+{
+  "name": "@agari/markets",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./faucet": "./src/faucet/index.ts",
+    ".": "./src/index.ts",
+    "./chain": "./src/chain.ts",
+    "./env": "./src/env.ts",
+    "./games": "./src/games/index.ts",
+    "./holdings": "./src/holdings/index.ts",
+    "./identity": "./src/identity.ts",
+    "./leverage": "./src/leverage/index.ts",
+    "./maker": "./src/maker/index.ts",
+    "./parlay": "./src/parlay/index.ts",
+    "./perf": "./src/perf/index.ts",
+    "./private": "./src/private/index.ts",
+    "./range": "./src/range/index.ts",
+    "./react": "./src/react/index.ts",
+    "./runtime": "./src/runtime/index.ts",
+    "./sessions": "./src/sessions/index.ts",
+    "./sessions/mobile": "./src/sessions/mobile/index.ts",
+    "./sponsor": "./src/sponsor/index.ts",
+    "./strategies": "./src/strategies/index.ts",
+    "./vault": "./src/vault/index.ts",
+    "./x": "./src/x/index.ts",
+    "./deploy": "./src/deploy/index.ts",
+    "./prices/legacy": "./src/prices/legacy/index.ts",
+    "./ops": "./src/ops/index.ts",
+    "./ops/*": "./src/ops/*/index.ts",
+    "./proof": "./src/proof/index.ts",
+    "./desk": "./src/desk/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agari/clients": "workspace:*",
+    "@agari/core": "workspace:*",
+    "@noble/hashes": "1.8.0",
+    "@pythnetwork/pyth-solana-receiver": "0.16.0",
+    "@solana-program/compute-budget": "0.18.1",
+    "@solana-program/system": "0.14.1",
+    "@solana-program/token": "0.16.1",
+    "@solana/kit": "^8.3.0",
+    "@solana/kit-plugin-rpc": "0.19.0",
+    "@solana/kit-plugin-signer": "0.19.0",
+    "@solana/wallet-account-signer": "8.3.0",
+    "@solana/web3.js": "1.98.4",
+    "@switchboard-xyz/common": "5.8.5",
+    "@switchboard-xyz/on-demand": "3.10.6",
+    "@tanstack/react-query": "catalog:",
+    "tweetnacl": "1.0.3",
+    "undici": "7.29.0",
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,144 @@
+"use client";
+
+import { isOk } from "@agari/core/schemas";
+import { marketsProvider } from "@agari/markets";
+import { keys, usePositions } from "@agari/markets/react";
+import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { Fragment, useState } from "react";
+import { Pager, SectionHeader } from "@/components/chrome";
+import { ReadingBoundary } from "@/components/states";
+import { LEVERAGE, useLeverageBetItems } from "@/features/leverage";
+import { useVaultBetItems } from "@/features/vault";
+import { PORTFOLIO } from "@/lib/copy";
+import { SESSION_COPY } from "@/lib/copy-session";
+import { type ListItem, usePager } from "@/lib/use-pager";
+import { cn } from "@/lib/utils";
+import { useWalletSession } from "@/lib/wallet-session";
+import { HistoryRows, type HistoryReading } from "../history";
+import { useMarketSession } from "../session";
+import { useChainNowMs } from "../useChainNow";
+import { BetRow } from "./BetRow";
+import { useRestingItems } from "./RestingRows";
+import { useSessionPhrase } from "@/lib/when";
+
+const PAGE_SIZE = 8;
+type Tab = "open" | "history";
+
+interface BetsPanelProps {
+  symbol: string | undefined;
+  index: string;
+  history: HistoryReading;
+}
+
+function TabButton({ tab, current, count, label, onPick }: { tab: Tab; current: Tab; count: number | null; label: string; onPick: (tab: Tab) => void }) {
+  const on = tab === current;
+  return (
+    <button type="button" role="tab" aria-selected={on} className={cn("bets-tab", on && "bets-tab--on")} onClick={() => onPick(tab)} data-cursor="hover">
+      {label}
+      {count !== null && <span className="bets-tab-count numbers">{count}</span>}
+    </button>
+  );
+}
+
+/**
+ * Your bets — Yosuku's own portfolio spec (`PORTFOLIO_UX_SPEC.md` §Section 4, which its pinned page
+ * never finished): one bordered plate, two tabs. **Open** is every position still running — the
+ * wallet's, off `getOpenPositionsWithPnL` (the venue's own cost basis, mark and unrealised PnL), the
+ * vault's, and the live boosts. **History** is every settled Window from the fill projection, then
+ * the boosts that settled, knocked out or cashed out. Eight rows a page with a pager, in place of the
+ * endless scroll the owner refused (2026-09-04).
+ *
+ * Two sources for the wallet's rows on purpose. The venue's engine clamps a sell beyond inventory to
+ * zero and drops the complement, so an open short would read as no position; the projection books it
+ * as the other side (verified against chain balances). A settled row therefore never depends on the
+ * open-position engine, and the two cannot disagree about a Window that has closed.
+ */
+export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
+  const { address } = useWalletSession();
+  const nowMs = useChainNowMs();
+  const phrase = useSessionPhrase();
+  const reading = usePositions(address);
+  const vault = useVaultBetItems(symbol);
+  const boosts = useLeverageBetItems(symbol);
+  // Scheduled calls lead the Open tab (D-088): what rests for the open sits above what is already held.
+  const resting = useRestingItems(symbol);
+  const queryClient = useQueryClient();
+  const session = useMarketSession();
+  const [tab, setTab] = useState<Tab>("open");
+  const settledCount = history.reading?.ok ? history.reading.value.rounds.length + boosts.done.length : null;
+  // An empty Open tab never dead-ends (D-086): in session, make a call; closed, see what lists next and when. A wallet
+  // whose History holds settled Windows has bet before, so its prompt is the next call, never the first (the user, 09-22).
+  const nothing = (settledCount ?? 0) > 0 ? PORTFOLIO.nothingOpen : PORTFOLIO.noBets;
+  const empty =
+    session && !session.open
+      ? { why: `${nothing} ${SESSION_COPY.portfolio.closed(phrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
+      : { why: nothing, nextAction: { label: (settledCount ?? 0) > 0 ? PORTFOLIO.nextCall : PORTFOLIO.firstCall, href: "/markets" } };
+  const retry = () => {
+    if (address) void queryClient.invalidateQueries({ queryKey: keys.positions(address) });
+  };
+
+  const positionItems: ListItem[] =
+    reading && isOk(reading) ? reading.value.map((position) => ({ key: `wallet:${position.marketId}`, node: <BetRow position={position} symbol={symbol} nowMs={nowMs} /> })) : [];
+  const openItems = [...resting.items, ...positionItems, ...vault.items, ...boosts.live];
+  const pager = usePager(openItems, PAGE_SIZE);
+  // The tab answers once every source has: a wallet read alone said "0 open" while an X trade (a vault bet) was still
+  // being read, then the row appeared seconds later (09-24). Until then it is loading, never empty.
+  const sourcesPending = resting.pending || vault.pending || boosts.pending;
+  const openReading = sourcesPending && openItems.length === 0 ? null : reading;
+  const openCount = openReading && isOk(openReading) && !sourcesPending ? openItems.length : null;
+
+  return (
+    <section className="flex flex-col gap-4" aria-label={PORTFOLIO.betsTitle}>
+      <SectionHeader
+        index={index}
+        title={PORTFOLIO.betsTitle}
+        aside={
+          <div className="bets-tabs" role="tablist" aria-label={PORTFOLIO.betsTitle}>
+            <TabButton tab="open" current={tab} count={openCount} label={PORTFOLIO.tabs.open} onPick={setTab} />
+            <TabButton tab="history" current={tab} count={settledCount} label={PORTFOLIO.tabs.history} onPick={setTab} />
+          </div>
+        }
+      />
+      <div className="bets-plate" role="tabpanel">
+        {tab === "open" ? (
+          <ReadingBoundary
+            reading={openReading}
+            shape="row"
+            retry={retry}
+            isEmpty={() => openItems.length === 0}
+            empty={empty}
+          >
+            {() => (
+              <>
+                <ul className="bets-list">
+                  {pager.slice.map((item) => (
+                    <Fragment key={item.key}>{item.node}</Fragment>
+                  ))}
+                </ul>
+                <Pager pager={pager} />
+              </>
+            )}
+          </ReadingBoundary>
+        ) : (
+          <>
+            <HistoryRows history={history} symbol={symbol} />
+            {boosts.done.length > 0 && (
+              <div className="bets-sublist">
+                <span className="type-label-micro text-ink-muted">{LEVERAGE.bets.history}</span>
+                <ul className="bets-list">
+                  {boosts.done.map((item) => (
+                    <Fragment key={item.key}>{item.node}</Fragment>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+      <Link href="/markets" data-cursor="hover" className="type-caption text-accent">
+        {PORTFOLIO.toMarkets} →
+      </Link>
+    </section>
+  );
+}

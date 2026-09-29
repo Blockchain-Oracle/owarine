@@ -1,0 +1,152 @@
+import type { MarketId, OutcomeIdx, Side } from "../types/market";
+import type { Address, Hex, Signature } from "../types/primitives";
+import type { VaultCaps } from "../vault/types";
+
+/** A creator's strategy expressed as DATA the fixed runner evaluates — never code (reference `StrategySpec`). */
+export type PresetKey = "momentum" | "reversion" | "agent" | "mirror";
+
+/** How hard the gate leans on an agent's call: the confidence floor, the price cap, the breaker. */
+export type AgentPosture = "guarded" | "balanced" | "active";
+
+/** The house model's data: how far back it reads and how big a move earns a bet. */
+export interface OracleFollowSpec {
+  preset: "momentum" | "reversion";
+  /** How many recent price samples the runner reads (2–12). */
+  lookback: number;
+  /** The smallest move, in bps, worth a bet; below it the runner sits the round out. */
+  thresholdBps: number;
+}
+
+/**
+ * An agent's data: a persona a language model reads, a posture the gate enforces, the cadences it
+ * may trade. No model name lives here — the model actually used is recorded per decision, so the
+ * spec hash never pins a vendor string.
+ */
+export interface AgentSpec {
+  preset: "agent";
+  /** The creator's brief, 1–600 characters. Untrusted input to the prompt; never a rule the gate reads. */
+  persona: string;
+  posture: AgentPosture;
+  /** Window cadences it may read, in seconds — unique, ascending, drawn from `AGENT_CADENCES_SEC`. */
+  cadences: number[];
+}
+
+/**
+ * Copy one named wallet (A-3b): the signal is that trader's own calls on the Window, as the index recorded them.
+ * There is no model and no threshold here — the only judgement is whose calls to copy and how fresh one has to be.
+ */
+export interface MirrorSpec {
+  preset: "mirror";
+  /** The wallet whose calls this strategy copies. */
+  trader: Address;
+  /** How recently that wallet must have traded a Window for it to be worth copying, in seconds. */
+  withinSec: number;
+}
+
+export type StrategySpec = OracleFollowSpec | AgentSpec | MirrorSpec;
+
+/** What the registry holds on-chain for one strategy, decoded. */
+export interface StrategyRecord {
+  strategyId: bigint;
+  creator: Address;
+  runner: Address;
+  specHash: Hex;
+  /** The plain metadata string the creator published; `parseStrategyMetadata` reads it. */
+  metadata: string;
+  envelope: VaultCaps;
+  feeBase: bigint;
+  active: boolean;
+  createdAtSec: number;
+  subscribers: number;
+  revision: number;
+}
+
+/** The creator's published words and spec, as carried in `StrategyRecord.metadata`. */
+export interface StrategyMetadata {
+  name: string;
+  description: string;
+  spec: StrategySpec;
+  /** Plain text, stored by Masayume in the open. Nothing here is encrypted. */
+  playbook?: string;
+}
+
+export interface StrategySubscription {
+  strategyId: bigint;
+  subscriber: Address;
+  grantId: bigint;
+  subscribedAtSec: number;
+  /** Consent is on record. */
+  active: boolean;
+  /** Consent on record AND a live grant to the runner — what the runner may act on now. */
+  live: boolean;
+  /**
+   * A-1c: the consent is to be copied **in the opposite direction** — the runner places the other side of whatever
+   * this strategy decides, for this wallet only. It is a different record on chain (`FadeSubscription`), not a
+   * setting on this one, because following a strategy is not consent to trade the opposite of it.
+   */
+  fade: boolean;
+}
+
+/** The side the runner actually sends for one subscriber: a fade turns the strategy's call around. */
+export function sideForSubscriber(decided: Side, fade: boolean): Side {
+  return fade ? (decided === "up" ? "down" : "up") : decided;
+}
+
+/** One fill the runner executed for a subscriber, as the runner recorded it. */
+export interface StrategyFill {
+  txHash: Signature;
+  strategyId: bigint;
+  grantId: bigint;
+  owner: Address;
+  marketId: MarketId;
+  side: Side;
+  cashDeltaBase: bigint;
+  tokenDeltaRaw: bigint;
+  atSec: number;
+  dryRun: boolean;
+}
+
+/** The settlement facts a fill needs to be scored. */
+export interface FillSettlement {
+  settled: boolean;
+  voided: boolean;
+  winningOutcome: OutcomeIdx | null;
+}
+
+export type RunnerHealthKind = "never-started" | "alive" | "stale" | "unknown";
+
+export interface RunnerHealth {
+  kind: RunnerHealthKind;
+  lastTickMs: number | null;
+  intervalMs: number | null;
+  /** The runner's own words for its last cycle, or null before it has ever spoken. */
+  why: string | null;
+}
+
+/** The runner's decision for one Window — the model contract's envelope (reference plan §Model contract). */
+export interface Decision {
+  side: Side | null;
+  moveBps: number;
+  thresholdBps: number;
+  reason: string;
+}
+
+/** Registry writes: every one journals, simulates, sends and books through the same lane shape as a vault write. */
+export type StrategyIntent =
+  | { kind: "strategy-publish"; runner: Address; spec: StrategySpec; metadata: StrategyMetadata; envelope: VaultCaps; feeBase: bigint }
+  | { kind: "strategy-update"; strategyId: bigint; spec: StrategySpec; metadata: StrategyMetadata; feeBase: bigint }
+  | { kind: "strategy-subscribe"; strategyId: bigint; grantId: bigint; feeBase: bigint }
+  | { kind: "strategy-unsubscribe"; strategyId: bigint }
+  /** A-1c: the same consent, the other way round. A wallet may hold one of the two at a time, and the program says so. */
+  | { kind: "strategy-fade"; strategyId: bigint; grantId: bigint; feeBase: bigint }
+  | { kind: "strategy-unfade"; strategyId: bigint }
+  | { kind: "strategy-deactivate"; strategyId: bigint };
+
+/** Where the registry lives on one chain — regenerated from `contracts/deployments` (AD-10). */
+export interface RegistryDeployment {
+  chainId: number;
+  strategyRegistry: Address;
+  fromBlock: bigint;
+}
+
+export const REGISTRY_NOT_DEPLOYED = "StrategyRegistry is not deployed on this network yet" as const;

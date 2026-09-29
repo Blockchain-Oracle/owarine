@@ -1,0 +1,158 @@
+/* /tickers/[SYMBOL] (S13d): /news's frame and the profile's figure bar (profile.css); the session chip is the markets
+ * hero's (market-session.css). Only the eyebrow row and the quiet board line are new. */
+
+.tkh-live {
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+/* The asset's mark leads the title (S18c, D-085): 48 px beside the display face, 40 px on a phone. */
+.tkh-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tkh-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 9999px;
+}
+
+.tkh-mark.generic {
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 24px;
+}
+
+[data-theme="light"] .tkh-mark.generic {
+  background: rgba(20, 18, 16, 0.1);
+}
+
+@media (max-width: 767px) {
+  .tkh-mark {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.tkh-page .prf-actions .mh-room {
+  margin: 0;
+}
+
+.tkh-pending {
+  margin-top: 0;
+  line-height: 1.7;
+}
+
+.tkh-link {
+  color: var(--vermilion);
+  white-space: nowrap;
+}
+
+/* The headlines list takes the activity list's rhythm under its section head. */
+.tkh-headlines {
+  margin-top: 24px;
+}
+
+/* A basket's hub (S19, D-081): the members table under the facts bar, then the live Window and what the wallet holds.
+   The table takes the wire's row rhythm and the profile bar's mono figures. */
+.tkh-members {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+.tkh-members th,
+.tkh-members td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--hairline);
+  text-align: right;
+  white-space: nowrap;
+}
+.tkh-members th {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.tkh-members th:first-child,
+.tkh-members td:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.tkh-members td:last-child,
+.tkh-members th:last-child {
+  padding-right: 0;
+}
+.tkh-member {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.tkh-member-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+}
+.tkh-member-name {
+  font-weight: 600;
+}
+.tkh-member-tag {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--vermilion);
+  margin-left: 6px;
+}
+.tkh-move.up { color: var(--up); }
+.tkh-move.down { color: var(--down); }
+.tkh-held-yes { color: var(--up); font-weight: 600; }
+.tkh-hold {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.tkh-hold-line {
+  flex: 1 1 240px;
+}
+.tkh-hold-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+.tkh-window {
+  margin-top: 16px;
+  max-width: 420px;
+}
+
+/* S23: the members table scrolls inside its own frame on a phone instead of pushing the page sideways, and a long
+   facts line (the basket's "moved" stat) gets real leading when it wraps. */
+.tkh-members-scroll {
+  margin-top: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  background: var(--market-card-surface);
+  scrollbar-width: thin;
+}
+.tkh-members-scroll:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.tkh-members-scroll .tkh-members { margin-top: 0; min-width: 520px; }
+.tkh-members-scroll .tkh-members tr:last-child td { border-bottom: 0; }
+.tkh-members-scroll .tkh-members th:first-child,
+.tkh-members-scroll .tkh-members td:first-child { padding-left: 16px; text-align: left; }
+.tkh-members-scroll .tkh-members th:last-child,
+.tkh-members-scroll .tkh-members td:last-child { padding-right: 16px; }
+.tkh-members-scroll .tkh-members tbody tr { transition: background-color 120ms ease; }
+.tkh-members-scroll .tkh-members tbody tr:hover { background: var(--color-surface-2); }
+.tkh-stat-long .big { font-size: 22px; line-height: 1.2; }
+@media (max-width: 640px) {
+  .tkh-members-scroll .tkh-members { min-width: 440px; }
+  .tkh-stat-long .big { font-size: 18px; }
+}

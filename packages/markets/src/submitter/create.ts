@@ -1,0 +1,107 @@
+import type { AttributionHook, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
+import type { ArenaIntent } from "@agari/core/games";
+import type { LeverageIntent } from "@agari/core/leverage";
+import type { ParlayIntent } from "@agari/core/parlay";
+import type { RangeIntent } from "@agari/core/range";
+import type { RangeOpenOutcome } from "../range/read";
+import type { Address } from "@agari/core/types";
+import type { TransactionSigner } from "@solana/kit";
+import { nowMs as chainNowMs } from "../provider/clock";
+import type { Enqueue } from "../sessions/nonce-queue";
+import { noopAttribution } from "./attribution";
+import { indexEvidence, type WriteEvidence } from "./evidence";
+import { checkGas, type FeeLane, type GasCheck } from "./fees";
+import { createMemoryJournal } from "./journal-memory";
+import { chainReconcilerWith, type Reconciler } from "./recovery";
+import type { WriteRpc } from "./steps/message";
+import { submitRangeOpenWrite } from "../range/writes";
+import { submitArenaPickWrite, type ArenaPickOutcome } from "../games/write";
+import type { LeverageOpenOutcome } from "../leverage/types";
+import { submitLeverageOpenWrite } from "../leverage/writes";
+import type { ParlayOpenOutcome } from "../parlay/types";
+import { submitParlayOpenWrite } from "../parlay/writes";
+import { submitCashOut } from "./cash-out";
+import { submitOrder } from "./order-lane";
+import { submitRest } from "./rest-lane";
+import type { WriteContext } from "./settle-write";
+import { allowAllStopGate } from "./stop-gate";
+import { submitTx } from "./tx-lane";
+import { solana } from "../runtime/solana";
+import type { SponsorCosigner } from "../vault/cosign";
+
+export interface SubmitterDeps {
+  /** The single account this submitter signs for. */
+  wallet: Address;
+  /** The session's Kit signer for `wallet`: a Wallet Standard wallet or a keypair (first-call.md §3.4). */
+  signer: TransactionSigner;
+  /** Serialises sends so one account never races itself. */
+  enqueue: Enqueue;
+  /** Defaults to the read runtime's RPC. */
+  rpc?: WriteRpc;
+  /** Defaults to the index with the Ledger's history as fallback. */
+  evidence?: WriteEvidence;
+  stopGate?: StopGate;
+  journal?: IntentJournal;
+  attribution?: AttributionHook;
+  nowMs?: () => number;
+  /** The fee-payer co-signer for sponsorable vault writes (tap-trading.md §3); absent, this account pays its own fees. */
+  sponsor?: SponsorCosigner;
+}
+
+/** The core Submitter plus the pre-send checks a surface needs before it opens a wallet popup. */
+export interface MarketsSubmitter extends Submitter {
+  readonly journal: IntentJournal;
+  readonly stopGate: StopGate;
+  readonly attribution: AttributionHook;
+  readonly wallet: Address;
+  /** Recovery's reconciler over this session's RPC and indexer: what `recoverUnresolved` asks about open intents. */
+  readonly reconciler: Reconciler;
+  /** The range reserve's open, bound to this session's signer like every other lane (S10b). */
+  submitRangeOpen: (intent: Extract<RangeIntent, { kind: "range-open" }>, onPhase?: PhaseListener) => Promise<RangeOpenOutcome>;
+  /** The parlay reserve's open, bound to this session's signer like every other lane (S10a). */
+  submitParlayOpen: (intent: Extract<ParlayIntent, { kind: "parlay-open" }>, onPhase?: PhaseListener) => Promise<ParlayOpenOutcome>;
+  /** The leverage reserve's open, bound to this session's signer like every other lane (S10c). */
+  submitLeverageOpen: (intent: Extract<LeverageIntent, { kind: "leverage-open" }>, onPhase?: PhaseListener) => Promise<LeverageOpenOutcome>;
+  /** One duel pick, the wallet's own or a seat key's, reporting what the chain says filled (S12b). */
+  submitArenaPick: (intent: Extract<ArenaIntent, { kind: "arena-pick" | "arena-pick-for" }>, onPhase?: PhaseListener) => Promise<ArenaPickOutcome>;
+  checkGas(lane: FeeLane): Promise<GasCheck>;
+}
+
+/**
+ * Binds the two write lanes to ONE account and ONE signer. There is no "is a signer connected?" question left at send
+ * time: a submitter exists only because a session bound a signer, so `hasSigner` is constantly true.
+ */
+export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
+  const { wallet, enqueue } = deps;
+  const nowMs = deps.nowMs ?? chainNowMs;
+  const journal = deps.journal ?? createMemoryJournal(nowMs);
+  const stopGate = deps.stopGate ?? allowAllStopGate;
+  const attribution = deps.attribution ?? noopAttribution;
+  // Resolved per write, so a read runtime rebuilt onto other endpoints is picked up by the next send.
+  const context = (): WriteContext => {
+    const rpc = deps.rpc ?? solana().rpc;
+    return { wallet, signer: deps.signer, rpc, journal, evidence: evidenceOf(deps, rpc), nowMs, ...(deps.sponsor ? { sponsor: deps.sponsor } : {}) };
+  };
+  return {
+    journal,
+    stopGate,
+    attribution,
+    wallet,
+    reconciler: (owner, record) => chainReconcilerWith(context())(owner, record),
+    hasSigner: () => true,
+    submitTx: (intent, onPhase) => enqueue(() => submitTx(context(), intent, onPhase)),
+    // A pre-open call (`entry: "rest"`, D-088) takes the rest lane; everything else is the taker's IOC lane.
+    submitOrder: (request, onPhase) => enqueue(() => (request.entry === "rest" ? submitRest : submitOrder)({ ...context(), stopGate, attribution }, request, onPhase)),
+    submitCashOut: (request, onPhase) => enqueue(() => submitCashOut({ ...context(), stopGate, attribution }, request, onPhase)),
+    submitRangeOpen: (intent, onPhase) => enqueue(() => submitRangeOpenWrite(context(), intent, onPhase)),
+    submitParlayOpen: (intent, onPhase) => enqueue(() => submitParlayOpenWrite(context(), intent, onPhase)),
+    submitLeverageOpen: (intent, onPhase) => enqueue(() => submitLeverageOpenWrite(context(), intent, onPhase)),
+    submitArenaPick: (intent, onPhase) => enqueue(() => submitArenaPickWrite(context(), intent, onPhase)),
+    checkGas: (lane) => checkGas(deps.rpc ?? solana().rpc, wallet, lane),
+  };
+}
+
+/** The evidence a submitter reconciles with, from its deps. */
+export function evidenceOf(deps: Pick<SubmitterDeps, "evidence">, rpc: WriteRpc): WriteEvidence {
+  return deps.evidence ?? indexEvidence(rpc);
+}

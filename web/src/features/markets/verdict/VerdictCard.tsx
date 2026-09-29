@@ -1,0 +1,112 @@
+"use client";
+
+import { OUTCOME_TO_SIDE, type EventMarket, type Resolution, type Signature, type Verdict } from "@agari/core/types";
+import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
+import { txUrl } from "@agari/core/urls";
+import { Money } from "@/components/data";
+import { Receipt, ReceiptRow } from "@/components/receipt";
+import { oraclePriceText } from "@/features/markets/hero";
+import { ShareTradeButton, type TradeCard } from "@/features/share";
+import { MARKETS, VERDICT_UI, formatCadence, verdictAnnouncement, verdictStrings } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
+import { proofHref } from "@/lib/routes";
+import { ClaimWinnings } from "./ClaimWinnings";
+import { PnlFigure } from "./PnlFigure";
+import { printSourceText } from "./print-source";
+import { useAnnounceOnce } from "./useAnnounceOnce";
+import { VerdictLegs } from "./VerdictLegs";
+import { VerdictStamp } from "./VerdictStamp";
+
+/** A settled round from the fill projection carries its asset as plain text, so a verdict takes any asset name. */
+export type VerdictMarket = Pick<EventMarket, "marketId" | "intervalSec" | "expirySec" | "openingPriceRaw"> & { asset: string };
+
+export interface VerdictCardProps {
+  verdict: Verdict;
+  market: VerdictMarket;
+  /** null while the settlement record is still landing; the receipt then shows its proof rows as pending. */
+  resolution: Resolution | null;
+  symbol: string;
+  /** What the fill projection knows and a live verdict does not: the entry tx, and whether the round closed on the book before expiry. */
+  provenance?: { entryTxHash?: Signature; closedEarly?: boolean };
+}
+
+const SIDE_WORD = { up: MARKETS.up, down: MARKETS.down } as const;
+
+function windowLine(market: VerdictMarket, verdict: Verdict): string {
+  const sides = verdict.legs.map((leg) => SIDE_WORD[OUTCOME_TO_SIDE[leg.outcomeIdx]]).join(" + ");
+  return `${market.asset} · ${formatCadence(market.intervalSec)} · ${sides}`;
+}
+
+/** The share card's input — every field the verdict, the Window and the settlement record already hold. */
+function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolution | null, symbol: string, settledAtMs: number, provenance?: VerdictCardProps["provenance"]): TradeCard {
+  return {
+    asset: market.asset,
+    intervalSec: market.intervalSec,
+    sides: verdict.legs.map((leg) => OUTCOME_TO_SIDE[leg.outcomeIdx]),
+    outcome: provenance?.closedEarly ? "closed" : verdict.outcome,
+    lineRaw: resolution?.openingRaw ?? market.openingPriceRaw,
+    closeRaw: resolution?.closingRaw ?? null,
+    stakeBase: verdict.costBasisBase,
+    payoutBase: verdict.payoutBase,
+    pnlBase: verdict.pnlBase,
+    decimals: verdict.decimals,
+    symbol,
+    expirySec: market.expirySec,
+    settledAtMs,
+    entryTxHash: provenance?.entryTxHash ?? null,
+    settlementTxHash: resolution?.settlementTxHash ?? null,
+    printSource: resolution?.printSource ?? null,
+    singleSource: resolution?.singleSource ?? false,
+    voidReason: resolution?.voidReason ?? null,
+  };
+}
+
+/** Settlement as an unambiguous stamped verdict: 上がり in vermilion, 放銃 as a fact, 無効 with its reason — and the receipt to audit it (FR-10). */
+export function VerdictCard({ verdict, market, resolution, symbol, provenance }: VerdictCardProps) {
+  const strings = verdictStrings(verdict.outcome);
+  const announced = useAnnounceOnce(verdictAnnouncement(verdict.outcome, `${formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })} ${symbol}`));
+  const settledAtMs = verdict.settledAtMs ?? resolution?.settledAtMs ?? secToMs(market.expirySec);
+  const settlementTx = resolution?.settlementTxHash ?? null;
+  const source = printSourceText(resolution, market.expirySec, market.asset);
+
+  return (
+    <article
+      aria-label={`${VERDICT_UI.title}: ${strings.line}`}
+      className="flex flex-col gap-5 rounded-(--market-card-radius) border border-(--market-card-border) bg-(--market-card-surface) p-4"
+    >
+      <span role="status" aria-live="polite" className="sr-only">
+        {announced}
+      </span>
+      <header className="flex items-start justify-between gap-4">
+        <VerdictStamp outcome={verdict.outcome} />
+        <PnlFigure verdict={verdict} symbol={symbol} />
+      </header>
+      {verdict.outcome === "void" && <p className="type-body text-ink-secondary">{strings.line}</p>}
+      <VerdictLegs legs={verdict.legs} decimals={verdict.decimals} symbol={symbol} />
+      {/* The reference's one settled-result card with the claim on it (ClaimWinnings.tsx, mounted from Verdict.tsx L106). */}
+      <ClaimWinnings verdict={verdict} marketId={market.marketId} symbol={symbol} />
+      <Receipt
+        title={VERDICT_UI.receiptTitle}
+        figure={<Money value={verdict.payoutBase} decimals={verdict.decimals} symbol={symbol} className="text-cream-ink" />}
+        figureLabel={VERDICT_UI.paidOut}
+        settledAtMs={settledAtMs}
+        stamp={<VerdictStamp outcome={verdict.outcome} size="compact" />}
+      >
+        <ReceiptRow label={VERDICT_UI.window}>{windowLine(market, verdict)}</ReceiptRow>
+        <ReceiptRow label={VERDICT_UI.openingPrint}>{oraclePriceText(resolution?.openingRaw ?? market.openingPriceRaw, market.asset)}</ReceiptRow>
+        <ReceiptRow label={VERDICT_UI.closingPrint}>{oraclePriceText(resolution?.closingRaw ?? null, market.asset)}</ReceiptRow>
+        <ReceiptRow label={VERDICT_UI.settlementTx} href={settlementTx ? txUrl(settlementTx, webEnv.markets.cluster) : null} degradedLabel={VERDICT_UI.pendingTx}>
+          {settlementTx ? shortHex(settlementTx, 10, 4) : "—"}
+        </ReceiptRow>
+        {/* The print proof page (proof-analytics.md §2.6): archive evidence and the on-chain Pyth replay beside each print. */}
+        <ReceiptRow label={VERDICT_UI.oracleGraph} href={source ? proofHref(market.marketId) : null} degradedLabel={VERDICT_UI.noQuestion}>
+          {source ? VERDICT_UI.question(source) : "—"}
+        </ReceiptRow>
+      </Receipt>
+      {/* The reference's receipt footer share slot (TradeReceipt L321–325): the Earned Heat card, real fields only. */}
+      <div className="flex justify-end">
+        <ShareTradeButton card={toTradeCard(verdict, market, resolution, symbol, settledAtMs, provenance)} />
+      </div>
+    </article>
+  );
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@agari/scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "invariants": "node invariants/run.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@agari/core": "workspace:*",
+    "@agari/markets": "workspace:*",
+    "@agari/db": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

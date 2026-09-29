@@ -1,0 +1,99 @@
+{
+  "_doc": [
+    "D-003 price-source matrix (plan PD-1). Each ticker lists immutable policy versions; the roller picks the highest version whose [validFrom, validUntil] (inclusive, UTC) covers BOTH boundaries of a Window, and lists nothing when none does (honest 'paused: no signed source').",
+    "Versions become on-chain Series policy versions via scripts/deploy/set-policies.mjs (S3). Never edit an existing version: append a new one.",
+    "validUntil null = open-ended. Times are the NYSE close in UTC (16:00 ET = 20:00Z in EDT)."
+  ],
+  "defaults": {
+    "pyth": { "graceSec": 5, "maxConfBps": 50, "admissionSec": 900 },
+    "redstone": { "strictSec": 300, "admissionSec": 900, "threshold": 3 },
+    "switchboard": { "minDelaySec": 10, "admissionSec": 60, "maxSlotAge": 20, "minOracles": 3 },
+    "attested": { "minDelaySec": 60, "admissionSec": 900, "barLenSec": 60 },
+    "crossCheck": { "maxDivergenceBps": 25, "checkAdmissionSec": 120 },
+    "gapOpenAdmission": "until the Gap Window's lock_at: primary.open_admission_sec = ADMIT_UNTIL_LOCK (u32::MAX), see gap._doc"
+  },
+  "gap": {
+    "_doc": [
+      "S6 Monday Gap lane (session-lanes.md §1.2, D-054). No separate versions: a Gap Series (basis 1, cadence seed 604800) takes its ticker's versions below with primary.open_admission_sec = ADMIT_UNTIL_LOCK, so Friday's 16:00:00 ET print is admissible until Sunday 20:00 ET; a check keeps check_admission_sec on both boundaries. Built by policyVersions(symbol, sources, \"gap\") in @agari/markets/deploy.",
+      "Both prints come from the one version covering the whole Window (Friday close T → Monday open T). The 09-18 Gap is on v1 for every ticker; the 09-25 Gap is TSLA v2 (RedStone) only, QQQ/VOO have no covering version (paused: no signed source).",
+      "The Monday print uses the regular RedStone data feed id (TSLA, not TSLA---EXTENDED) at T + 0: the first regular-session print at 09:30:00 ET, not the opening cross (D-052, archived 09-14 open).",
+      "Listing set for 09-18 (Q-S6-1, stage-owner default pending the user): all nine tickers; a RedStone name lists only if every archived open 09-14..09-17 had >= 3 signers at 09:30:00 ET (MSFT/META/AMZN/GOOGL had exactly 3 on 09-14)."
+    ]
+  },
+  "redstone": {
+    "gateway": "https://oracle-gateway-2.a.redstone.finance",
+    "dataServiceId": "redstone-primary-prod",
+    "signersObserved_2026-09-13": [
+      "0xdEB22f54738d54976C4c0fe5ce6d408E40d88499",
+      "0xDD682daEC5A90dD295d14DA4b0bec9281017b5bE",
+      "0x51Ce04Be4b3E32572C4Ec9135221d0691Ba7d202",
+      "0x9c5AE89C4Af6aA32cE58588DBaF90d18a855B6de",
+      "0x8BB8F32Df04c8b654987DAaeD53D6B6091e3B774"
+    ],
+    "signersAuthoritative": "confirmed D-002: identical to signersObserved, threshold 3 (redstone-oracles-monorepo@519cd10 solana-price-adapter config_prod.rs)"
+  },
+  "pythTrial": {
+    "hermes": "https://hermes.pyth.network",
+    "lastCoveredClose": "2026-09-25T20:00:00Z",
+    "trialEnds": "about 2026-09-27 (14 days from activation on 2026-09-13; exact time in Pyth Terminal)"
+  },
+  "pythIndex": {
+    "_doc": [
+      "S20 (D-125): Pyth's 24/7 Equity.Index.<NAME>/USD valuation indices for the pre-IPO names, each on its own valuation lane (OPENAIV 930, ANTHROPICV 931; basis token, 60 m). Feed ids are NEVER written here: they come from the registry (packages/core/src/market/valuation.ts, Ticker.pythIndexFeedId) through pythIndexPolicyVersions() in @agari/markets/deploy, and never join tickers.<SYM>.pythFeedId above.",
+      "Entitlement is per key and per group (verified 2026-09-22: the trial key answers 403 `pyth-indices` for both indices, 200 for TSLA). ops' pyth-entitlement actor probes each feed hourly; the relay refuses an unentitled index before fetching, the roller lists a valuation lane only while entitled (`paused: no signed source (Pyth feed not entitled)` otherwise), and scripts/deploy/init-valuation-series.ts refuses to register while denied. Nothing here switches a lane on: a key with `pyth-indices` does, with no deploy.",
+      "defaults: graceSec 60 (the index publishes at its own cadence, unmeasured until entitled; tightened once measured), maxConfBps 200 (a valuation index is wider than an equity print), admissionSec 900. One open-ended version per lane."
+    ],
+    "defaults": { "graceSec": 60, "maxConfBps": 200, "admissionSec": 900 },
+    "tickers": {
+      "OPENAIV": { "versions": [{ "version": 1, "validFrom": "2026-09-22T00:00:00Z", "validUntil": null, "primary": "pyth", "check": null }] },
+      "ANTHROPICV": { "versions": [{ "version": 1, "validFrom": "2026-09-22T00:00:00Z", "validUntil": null, "primary": "pyth", "check": null }] }
+    }
+  },
+  "tickers": {
+    "TSLA": {
+      "pythFeedId": "16dad506d7db8da01c87581c87ca897a012a153557d4d578c3b9c9e1bc0632f1",
+      "redstoneFeedId": "TSLA",
+      "xstockMint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+      "surgeSymbol": "TSLAX/USD",
+      "versions": [
+        { "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": "2026-09-25T20:00:00Z", "primary": "pyth", "check": "redstone" },
+        { "version": 2, "validFrom": "2026-09-25T20:00:00Z", "validUntil": null, "primary": "redstone", "check": null }
+      ]
+    },
+    "QQQ": {
+      "pythFeedId": "9695e2b96ea7b3859da9ed25b7a46a920a776e2fdae19a7bcfdf2b219230452d",
+      "xstockMint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ",
+      "surgeSymbol": "QQQX/USD",
+      "versions": [
+        { "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": "2026-09-25T20:00:00Z", "primary": "pyth", "check": null }
+      ],
+      "afterTrial": "paused (attested demo data only by user opt-in; Stork key requested 2026-09-13)"
+    },
+    "VOO": {
+      "pythFeedId": "236b30dd09a9c00dfeec156c7b1efd646c0f01825a1758e3e4a0679e3bdff179",
+      "versions": [
+        { "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": "2026-09-25T20:00:00Z", "primary": "pyth", "check": null }
+      ],
+      "afterTrial": "paused (attested demo data only by user opt-in)"
+    },
+    "NVDA": { "redstoneFeedId": "NVDA", "xstockMint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "AAPL": { "redstoneFeedId": "AAPL", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "MSFT": { "redstoneFeedId": "MSFT", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "META": { "redstoneFeedId": "META", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "AMZN": { "redstoneFeedId": "AMZN", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] },
+    "GOOGL": { "redstoneFeedId": "GOOGL", "versions": [{ "version": 1, "validFrom": "2026-09-11T00:00:00Z", "validUntil": null, "primary": "redstone", "check": null }] }
+  },
+  "tokenLane": {
+    "_doc": "S6. Switchboard Surge quotes (batched); verified xStock mints only. feedHash = sha256 of the length-delimited OracleFeed protobuf { name: agari-surge-<surgeSymbol>, jobs: [[switchboardSurgeTask { source: WEIGHTED, symbol }]], minJobResponses 1, minOracleSamples 1, maxJobRangePct 0 } (@agari/markets/prices/legacy surgeFeed; any field change is a new hash and a new version), pinned by spike (a) (D-053). Basis: TSLAx/USD per token (UI amount).",
+    "spike_2026-09-15": "Devnet queue EYiAmGSd…, 06:37-06:43Z (Tue pre-market), 3 rounds + 1 probe: numSignatures 5 always answered with 4 distinct oracles (idx 0,1,4,6); asking 3 or 4 sometimes returned 1 fewer; 2 and 6 answered HTTP 500 (2 intermittently). Signed slot age at receipt 1-14 slots. Values within 13-28 bps of Jupiter usdPrice. Relay: request 5, send up to 4, require >= switchboard_min_oracles (3).",
+    "versions": [
+      { "version": 1, "validFrom": "2026-09-15T00:00:00Z", "validUntil": null, "primary": "switchboard", "check": null }
+    ],
+    "tickers": {
+      "TSLAx": { "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB", "surgeSymbol": "TSLAX/USD", "feedHash": "86eaad1d9bc2365013c5cb27930c19356c716a5b932b147f0ec57fdfb030c94f" },
+      "NVDAx": { "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh", "surgeSymbol": "NVDAX/USD", "feedHash": "cd9af3920a4b689e046ee4749fd059a7dffd804467f484cded8cc652539d3b6d" },
+      "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD", "feedHash": "e7387f905604e86dca90c3d6f890ae21527f643e069e1035b758e22029d5c10c" },
+      "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD", "feedHash": "9aa22f14991485e6431dc2cdb17e130550c2414f83d4f0d20687e43d0aefefa3" }
+    }
+  }
+}

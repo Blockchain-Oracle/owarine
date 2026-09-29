@@ -1,0 +1,65 @@
+import { settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
+import type { Address, MarketId } from "@agari/core/types";
+import { oneUnit } from "@agari/core/units";
+import { ok, type Reading } from "@agari/core";
+import type { BoardData } from "@/features/leaderboard";
+import { DECIMALS, FIXED_NOW_MS, TX_HASH } from "../states/fixtures";
+import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
+
+const ONE = oneUnit(DECIMALS);
+const MIN_MS = 60_000;
+/** The session before `FIXED_NOW_MS`: Monday 2026-08-31 closed at 16:00 ET (20:00Z, EDT). */
+const LAST_CLOSE_MS = Date.UTC(2026, 7, 31, 20, 0);
+
+const id = (n: number): MarketId => fixtureMarketId(n);
+/** Round n closes 45 min before round n − 1, so the nine rounds reach every Trader Edge session bucket (16:00 back to 10:00 ET). */
+const expiryMsOf = (n: number): number => LAST_CLOSE_MS - (n - 1) * 45 * MIN_MS;
+
+function ledger(n: number, over: Partial<MarketLedger>): MarketLedger {
+  return { marketId: id(n), heldUpRaw: 10n * ONE, heldDownRaw: 0n, costBase: 4n * ONE, proceedsBase: 0n, sidesTraded: [0], fillCount: 1, shortCount: 0, firstAtMs: expiryMsOf(n) - 4 * MIN_MS, lastAtMs: expiryMsOf(n) - MIN_MS, entryTxHash: TX_HASH, ...over };
+}
+
+function market(n: number, over: Partial<RoundMarket>): RoundMarket {
+  const expirySec = expiryMsOf(n) / 1000;
+  return { marketId: id(n), asset: "TSLA", intervalSec: 300, expirySec, decimals: DECIMALS, settled: true, voided: false, winningOutcome: 0, resolvedAtMs: expirySec * 1000 + 4_000, ...over };
+}
+
+function round(n: number, l: Partial<MarketLedger>, m: Partial<RoundMarket>, live: { upRaw: bigint; downRaw: bigint } | null, feeBps = 0): SettledRound {
+  const value = settleRound({ ledger: ledger(n, l), market: market(n, m), feeBps, liveHoldings: live });
+  if (!value) throw new Error("fixture must settle");
+  return value;
+}
+
+/** Newest first, as the reading orders them: paid win, win to collect, loss, void, closed early, short, hedge. */
+export const ROUNDS: SettledRound[] = [
+  round(1, {}, {}, { upRaw: 0n, downRaw: 0n }),
+  round(2, { heldUpRaw: 6n * ONE, costBase: 3n * ONE }, { asset: "NVDA", intervalSec: 900 }, { upRaw: 6n * ONE, downRaw: 0n }, 100),
+  round(3, { heldUpRaw: 0n, heldDownRaw: 8n * ONE, costBase: 5n * ONE, sidesTraded: [1] }, {}, { upRaw: 0n, downRaw: 8n * ONE }),
+  round(4, { heldDownRaw: 2n * ONE, costBase: 6n * ONE, sidesTraded: [0, 1] }, { voided: true, winningOutcome: null }, null),
+  round(5, { heldUpRaw: 0n, proceedsBase: 5n * ONE }, { intervalSec: 3_600 }, null),
+  round(6, { heldUpRaw: 0n, heldDownRaw: 5n * ONE, costBase: 205_000n, shortCount: 1, sidesTraded: [1] }, { winningOutcome: 1 }, { upRaw: 0n, downRaw: 0n }),
+  round(7, { heldUpRaw: 4n * ONE, heldDownRaw: 10n * ONE, costBase: 7n * ONE, sidesTraded: [0, 1] }, { intervalSec: 86_400 }, { upRaw: 4n * ONE, downRaw: 0n }),
+  round(8, {}, { asset: "NVDA" }, { upRaw: 0n, downRaw: 0n }),
+  round(9, { heldUpRaw: 0n, heldDownRaw: 3n * ONE, costBase: 2n * ONE, sidesTraded: [1] }, {}, null),
+];
+
+export const FIXTURE_ADDRESS: Address = fixtureAddress("0x8ba1f109551bD432803012645Ac136ddd64DBA72");
+
+const owners = [fixtureAddress("0x93e3aaaa000000000000000000000000000059cf"), fixtureAddress("0x333c0000000000000000000000000000000d0795"), fixtureAddress("0xe1180000000000000000000000000000000daeb4"), "0xfd9c00000000000000000000000000000005cd9", FIXTURE_ADDRESS, fixtureAddress("0x428100000000000000000000000000000000cc34"), fixtureAddress("0x1111000000000000000000000000000000002222"), fixtureAddress("0x3333000000000000000000000000000000004444"), fixtureAddress("0x5555000000000000000000000000000000006666")] as const;
+
+export const BOARD: Reading<BoardData> = ok(
+  {
+    rankings: owners.map((owner, i) => ({
+      owner: owner as Address,
+      pnlBase: (120n - BigInt(i) * 23n) * ONE,
+      roiBps: 3_000 - i * 400,
+      winRatePct: 71 - i * 4,
+      tradeCount: 40 - i * 3,
+      settledTrades: 36 - i * 3,
+      bestStreak: 6 - Math.floor(i / 2),
+      volumeBase: (400n - BigInt(i) * 30n) * ONE,
+    })),
+    meta: { period: "24h", ticker: null, session: null, windowStartMs: FIXED_NOW_MS - 86_400_000, windowEndMs: FIXED_NOW_MS, computedAtMs: FIXED_NOW_MS, rankedTraders: 9, totalWallets: 9, closedCalls: 231, totalVolumeBase: 2_520n * ONE, complete: true, decimals: DECIMALS, symbol: "tUSDC" },
+  },
+  FIXED_NOW_MS,
+);

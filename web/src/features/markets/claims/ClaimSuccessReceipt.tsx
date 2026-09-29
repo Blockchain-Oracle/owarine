@@ -1,0 +1,46 @@
+import { formatCadence } from "@agari/core/copy";
+import type { MarketId } from "@agari/core/types";
+import { txUrl } from "@agari/core/urls";
+import type { ReactNode } from "react";
+import { Money } from "@/components/data";
+import { Receipt, ReceiptRow } from "@/components/receipt";
+import { CLAIM } from "@/lib/copy";
+import { webEnv } from "@/lib/env";
+import { confirmedItems, distinctMarketIds, legWords, paidTotal } from "./claim-run";
+import type { ClaimItem } from "./types";
+
+interface ClaimSuccessReceiptProps {
+  items: readonly ClaimItem[];
+  decimals: number;
+  finishedAtMs: number;
+  /** Settlement tx + price source rows for one market — live from the port, or canned in fixtures. */
+  marketRows: (marketId: MarketId) => ReactNode;
+  className?: string;
+}
+
+/** The cream stub for what actually landed: one row per redemption with its tx, then the settlement proofs per Window. */
+export function ClaimSuccessReceipt({ items, decimals, finishedAtMs, marketRows, className }: ClaimSuccessReceiptProps) {
+  const confirmed = confirmedItems(items);
+  if (confirmed.length === 0) return null;
+
+  return (
+    <Receipt
+      title={CLAIM.receipt.title}
+      figure={<Money value={paidTotal(confirmed)} decimals={decimals} />}
+      figureLabel={CLAIM.receipt.figureLabel}
+      settledAtMs={finishedAtMs}
+      className={className}
+    >
+      {confirmed.map((item) => (
+        <ReceiptRow key={item.key} label={`${item.asset} · ${formatCadence(item.intervalSec)} · ${legWords(item)}`} href={item.txHash ? txUrl(item.txHash, webEnv.markets.cluster) : null}>
+          <Money value={item.payoutBase} decimals={item.decimals} />
+        </ReceiptRow>
+      ))}
+      {distinctMarketIds(confirmed).map((marketId) => (
+        <div key={marketId} className="flex flex-col gap-2 border-t border-dotted border-cream-hairline pt-2">
+          {marketRows(marketId)}
+        </div>
+      ))}
+    </Receipt>
+  );
+}

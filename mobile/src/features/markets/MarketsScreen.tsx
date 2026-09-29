@@ -1,0 +1,113 @@
+import { isMarketId, type EventMarket, type Side } from "@agari/core/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { useLanesState } from "@/features/markets/lanes/useLanes";
+import { useChainNowMs } from "@/features/markets/useChainNow";
+import { useVenue } from "@/features/markets/useVenue";
+import { SECTIONS } from "@/lib/copy";
+import { usePullRefresh } from "~/components/kit";
+import { SectionHeader } from "~/features/explore/SectionHeader";
+import { LiveHedgeCard } from "~/features/hedge/LiveHedgeCard";
+import { MarketRoomSheet } from "~/features/room/MarketRoomSheet";
+import { useTheme } from "~/theme";
+import { CHROME } from "~/theme/chrome";
+import { LaneBoard } from "./board/LaneBoard";
+import { roomCallLabel } from "./board/MarketCard";
+import { WordBoard } from "./board/WordBoard";
+import { MarketsHero } from "./hero/MarketsHero";
+import { useHeroSelection } from "./hero/useHeroSelection";
+import { openWindow, selectWindow } from "./openWindow";
+import { SessionChip } from "./parts/SessionChip";
+import { SenseiDock } from "./sensei-dock/SenseiDock";
+import { LiveVerdict } from "./verdict/LiveVerdict";
+
+/**
+ * web's MarketsScreen at phone width — the market you are betting on is the page. The hero carries the question, the
+ * chart and the call together; below it, the cover banner when this wallet holds a stock token, the hero Window's
+ * verdict once it has one, §01 the lanes that change the hero, §02 the same Windows in plain words. The Sensei dock
+ * rides above the page and the Room opens over it. `/markets/<id>` is this page with that Window in the hero, as on web.
+ */
+export function MarketsScreen() {
+  const { color } = useTheme();
+  const queryClient = useQueryClient();
+  const venue = useVenue();
+  const nowMs = useChainNowMs();
+  const lanes = useLanesState(venue.venueId);
+  const selection = useHeroSelection(lanes.laneSet, lanes.activeLane, lanes.ticker, nowMs);
+  const scroll = useRef<ScrollView>(null);
+  const params = useLocalSearchParams<{ m?: string; dir?: string; k?: string; t?: string; sensei?: string }>();
+
+  // `?m=&dir=`: the Window is already in the hero (the address is the selection) and the page comes to it; a side, or
+  // a pick made on this page, opens the ticket drawer on it — once per request, so those are dropped from the address.
+  useEffect(() => {
+    if (!params.m || !isMarketId(params.m)) return;
+    // A tap (`k`) brings the page to the hero; an in-place rewrite (a successor, a side switch) leaves the scroll alone.
+    if (params.k) scroll.current?.scrollTo({ y: 0, animated: true });
+    const dir: Side | null = params.dir === "up" || params.dir === "down" ? params.dir : null;
+    if (!dir && params.t !== "1") return;
+    router.setParams({ dir: undefined, k: undefined, t: undefined });
+    router.push({ pathname: "/ticket", params: dir ? { m: params.m, dir } : { m: params.m } });
+  }, [params.m, params.dir, params.k, params.t]);
+  // `?sensei=1`: the nav's way to Sensei (web's SenseiDock reads it and opens the drawer).
+  useEffect(() => {
+    if (params.sensei !== "1") return;
+    router.setParams({ sensei: undefined });
+    router.push("/sensei");
+  }, [params.sensei]);
+  // Held at the page, as web holds it: a cadence switch can never leave it open on a Window the page no longer shows.
+  const [roomMarket, setRoomMarket] = useState<EventMarket | null>(null);
+  const refreshControl = usePullRefresh();
+  const failure = lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure;
+
+  return (
+    <View style={[styles.fill, { backgroundColor: color.ground }]}>
+      <ScrollView
+        ref={scroll}
+        contentContainerStyle={styles.page}
+        refreshControl={refreshControl}
+      >
+        <MarketsHero selection={selection} lanes={lanes} onSelect={selectWindow} onOpenRoom={() => setRoomMarket(selection.market)} />
+        <View style={styles.container}>
+          <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={selectWindow} />
+          {selection.marketId ? <LiveVerdict marketId={selection.marketId} /> : null}
+          <View style={styles.section} accessibilityLabel={SECTIONS.lanes.title}>
+            <SectionHeader index={SECTIONS.lanes.index} title={SECTIONS.lanes.title} aside={<SessionChip />} />
+            <LaneBoard state={lanes} boot={venue.boot} venueId={venue.venueId} nowMs={nowMs} selectedMarketId={selection.marketId} onSelect={selectWindow} onOpenRoom={setRoomMarket} />
+          </View>
+          <View style={styles.section} accessibilityLabel={SECTIONS.words.title}>
+            <SectionHeader index={SECTIONS.words.index} title={SECTIONS.words.title} desc={SECTIONS.words.desc} />
+            <WordBoard laneSet={lanes.laneSet} failure={failure} ticker={lanes.ticker} nowMs={nowMs} />
+          </View>
+        </View>
+      </ScrollView>
+      <SenseiDock laneSet={lanes.laneSet} nowMs={nowMs} />
+      {/* web mounts the price-alert evaluator in its providers; the landing tab stays mounted, so it watches from here. */}
+      {roomMarket ? (
+        <MarketRoomSheet
+          visible
+          marketId={roomMarket.marketId}
+          callLabel={roomCallLabel(roomMarket)}
+          asset={roomMarket.asset}
+          onClose={() => setRoomMarket(null)}
+          // What unlocks the Room is a position, so "place a bet" selects this Window rather than sending the reader to find it.
+          onBet={() => {
+            const id = roomMarket.marketId;
+            setRoomMarket(null);
+            selectWindow(id);
+          }}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  // `main.page-shell`'s 112 px floor for the floating dock.
+  page: { paddingBottom: CHROME.dockClearance },
+  container: { paddingHorizontal: 18 },
+  // `.markets-section`: 32 px of top padding, a 16 px column.
+  section: { paddingTop: 32, gap: 16 },
+});

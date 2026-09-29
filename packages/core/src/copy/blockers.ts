@@ -1,0 +1,183 @@
+import { DAILY_STOP_HIT, PLACING, SETTLING } from "./strings";
+
+export const BLOCKER_KINDS = [
+  "disconnected",
+  "connecting",
+  "wrong-chain",
+  "syncing",
+  "placing",
+  "upcoming",
+  "pending-opening-print",
+  "no-entry-buffer",
+  "locked",
+  "settling",
+  "no-funds",
+  "out-of-gas",
+  "no-side",
+  "no-stake",
+  "below-min-stake",
+  "over-balance",
+  "quoting",
+  "no-liquidity-at-size",
+  /** The book fills part of this stake: the guard names the ceiling and the amount stays the user's (the reference never clamps). */
+  "over-book",
+  "outside-band-low",
+  "outside-band-high",
+  "stale-quote",
+  /** D-119: the venue's book has not traded near the live price, so the reserve would price from a stale centre. */
+  "stale-basis",
+  "quote-refused",
+  "boost-refused",
+  "daily-stop",
+  "stop-unverified",
+  "no-exit",
+  // The private route's own ladder — the reference's `privBlocker` (`Ticket624Drawer.tsx` L443–448).
+  "private-probing",
+  "private-unavailable",
+  "private-below-min",
+  "private-over-cap",
+  "private-unreadable",
+  "private-refused",
+  // S6 session lanes (session-lanes.md §5): the Window can't take a call for a session, source or corporate reason.
+  "session-closed",
+  "halted",
+  "lane-paused",
+  "gap-listed",
+  "corporate-action",
+  // S18 pre-open calls (D-088): a post-only call on a listed Window.
+  "rest-would-cross",
+  "no-price",
+  "too-many-resting",
+  "pre-open-taker",
+  // S15 geofence (D-095): the venue reads everywhere and funds only where it may.
+  "region",
+] as const;
+
+export type BlockerKind = (typeof BLOCKER_KINDS)[number];
+
+export interface BlockerContext {
+  chainName?: string;
+  minStakeText?: string;
+  spendableText?: string;
+  quotedCents?: number;
+  cadence?: string;
+  nextStartText?: string;
+  fillableStakeText?: string;
+  quoteAgeSec?: number;
+  privateMinText?: string;
+  privateCapText?: string;
+  /** "Mon 09:30 ET" (session-closed) or "Fri 16:00 ET" (gap-listed). */
+  opensText?: string;
+  /** `halted` for a stale signed price rather than a trading halt (Q-S6-9: only `pyth-wide`/`issuer-halt` say "Trading halted"). */
+  haltStale?: boolean;
+  /** The composed crossing sentence for `rest-would-cross` ("Someone wants UP at 55¢ — rest DOWN at 44¢ or less, or wait for the bell"). */
+  crossingText?: string;
+  /** The Window opened moments ago: an empty book is quotes still arriving after the opening print, not an absent counterparty. */
+  freshBook?: boolean;
+  /** A 24/7 Window nobody is quoting at all (S23): said as that, with when the next Window starts, not as a size problem. */
+  emptyBook?: boolean;
+  /** "23:00" · "Wed 00:00 (19:00 ET)": when the lane's next Window starts. */
+  nextWindowText?: string;
+}
+
+const DEFAULT_CHAIN = "Solana devnet";
+const DEFAULT_MIN_STAKE = "1 tUSDC";
+
+/** The blocker IS the control's label — one derived string for the CTA and its accessible name. */
+export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): string {
+  switch (kind) {
+    case "stale-basis":
+      return "The book has not traded near the live price — no band can be priced fairly";
+    case "quote-refused":
+      return "The reserve refused this band — see why above";
+    case "boost-refused":
+      return "The reserve refused this boost — see why above";
+    case "disconnected":
+      return "Connect a wallet to bet";
+    case "connecting":
+      return "Connecting…";
+    case "wrong-chain":
+      return `Switch to ${ctx.chainName ?? DEFAULT_CHAIN}`;
+    case "syncing":
+      return "Syncing the chain clock…";
+    case "placing":
+      return PLACING;
+    case "upcoming":
+      return "Opens soon — not trading yet";
+    case "pending-opening-print":
+      return "Waiting for the opening print";
+    case "no-entry-buffer":
+      return ctx.nextStartText
+        ? `Between rounds — next ${ctx.cadence ? `${ctx.cadence} ` : ""}Window opens in ${ctx.nextStartText}`
+        : "Between rounds";
+    case "locked":
+      return "Window locked — settling next";
+    case "settling":
+      return SETTLING;
+    case "no-funds":
+      return "No tUSDC yet — mint from the faucet";
+    case "out-of-gas":
+      return "Out of SOL for fees — top up first";
+    case "no-side":
+      return "Pick UP or DOWN";
+    case "no-stake":
+      return "Enter a stake";
+    case "below-min-stake":
+      return `Minimum stake ${ctx.minStakeText ?? DEFAULT_MIN_STAKE} — below this the venue rounds your order to nothing`;
+    case "over-balance":
+      return ctx.spendableText ? `Stake exceeds your ${ctx.spendableText} balance` : "Stake exceeds your balance";
+    case "quoting":
+      return "Quoting…";
+    case "no-liquidity-at-size":
+      if (ctx.emptyBook) return `Nobody is quoting this Window right now${ctx.nextWindowText ? ` · next Window ${ctx.nextWindowText}` : ""}`;
+      return ctx.freshBook
+        ? "Quotes are still arriving on this Window — the maker posts within a minute or two of the opening print"
+        : "No liquidity at this size — nobody is on the other side of this book";
+    case "over-book":
+      return ctx.fillableStakeText ? `Above what the book can fill — up to ${ctx.fillableStakeText}` : "Above what the book can fill";
+    case "outside-band-low":
+      return `Too close to impossible — this book is quoting ${ctx.quotedCents ?? 1}¢`;
+    case "outside-band-high":
+      return `Too close to certain — this book is quoting ${ctx.quotedCents ?? 99}¢`;
+    case "stale-quote":
+      return ctx.quoteAgeSec === undefined ? "Quote is stale — requoting" : `Quote is ${ctx.quoteAgeSec}s old — requoting`;
+    case "daily-stop":
+      return DAILY_STOP_HIT;
+    case "stop-unverified":
+      return "Can't verify your Daily Stop — try again";
+    case "no-exit":
+      return "No exit right now — no bids at this size";
+    case "private-probing":
+      return "Checking private mode…";
+    case "private-unavailable":
+      return "Private mode is not available right now";
+    case "private-below-min":
+      return `Private bets start at ${ctx.privateMinText ?? DEFAULT_MIN_STAKE}`;
+    case "private-over-cap":
+      return ctx.privateCapText ? `Private bets are capped at ${ctx.privateCapText}` : "Over the private cap";
+    case "private-unreadable":
+      return "Could not read your private balance just now — try again in a moment";
+    case "private-refused":
+      return "The desk refused this bet — see why above";
+    case "session-closed":
+      return ctx.opensText ? `Market closed — opens ${ctx.opensText}` : "Market closed";
+    case "halted":
+      return ctx.haltStale ? "Signed price stale — no new calls" : "Trading halted — no new calls";
+    case "lane-paused":
+      return "Paused: no signed price source";
+    case "gap-listed":
+      return ctx.opensText ? `Calls open ${ctx.opensText}` : "Calls open at the Friday close";
+    case "corporate-action":
+      return "Paused: corporate action";
+    case "rest-would-cross":
+      return ctx.crossingText ?? "Your price would fill now — rest under the book or wait for the bell";
+    case "no-price":
+      return "Pick a price between 1¢ and 99¢";
+    case "too-many-resting":
+      return "16 calls already rest on this Window — cancel one first";
+    case "pre-open-taker":
+      return "Nothing fills before the open — schedule a resting call instead";
+    case "region":
+      return "Not available in your region";
+  }
+}
