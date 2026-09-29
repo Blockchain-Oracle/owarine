@@ -46,6 +46,24 @@ export const TICKET_CANTON = {
     close: "Close",
     ranOut: (from: number, to: number) => `${to}¢ now · ${from}¢ ran out`,
   },
+  /** The cash-out's write (C7a): the same four steps, in a sale's words. */
+  sale: {
+    progressLabel: "Selling back",
+    steps: [
+      { label: "Price", hint: "held for you" },
+      { label: "Sent", hint: "to the ledger" },
+      { label: "Confirming", hint: "the venue buys back" },
+      { label: "Sold", hint: "on the ledger" },
+    ],
+    status: {
+      composing: "Holding your price…",
+      submitted: "Sent to the ledger…",
+      confirming: "Waiting for the venue to buy it back…",
+      confirmed: "Sold. Ledger update",
+      reverted: "The venue did not take this sale. Nothing was sold.",
+      unknown: "No answer yet. We are checking the ledger, so don't sell it again: your history will show it either way.",
+    } satisfies Record<WritePhase, string>,
+  },
   demo: {
     play: "Place it",
     fail: "Make the venue refuse it",

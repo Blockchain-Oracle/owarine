@@ -14,6 +14,8 @@ export interface SeatLedgerConfig {
   /** The venue party, used ONLY to read market metadata (terms, resolutions); nothing is ever submitted as it. */
   venueParty: Party;
   journal: CommandJournal;
+  /** The venue ladder's mids (terms id → 2 × mid YES ticks) for the positions' live mark; none = marks at entry. */
+  marks?: () => Promise<ReadonlyMap<string, number>>;
   now?: () => number;
 }
 
@@ -76,7 +78,9 @@ export function createSeatLedger(cfg: SeatLedgerConfig): SeatLedger {
     },
     async positions(party) {
       const snap = await seats.read(party);
-      return wrap(snap, openPositions(snap.legs, await termsFor(snap)));
+      // A ladder that cannot be read marks at entry: the position still shows, just not at the live mid.
+      const [terms, marks] = await Promise.all([termsFor(snap), snap.legs.length && cfg.marks ? cfg.marks().catch(() => new Map<string, number>()) : new Map<string, number>()]);
+      return wrap(snap, openPositions(snap.legs, terms, undefined, marks));
     },
     async claimables(party) {
       const snap = await seats.read(party);

@@ -6,6 +6,13 @@ import { StepProgress } from "@/components/ui/desk-kit";
 import { TICKET_CANTON } from "./copy";
 
 const T = TICKET_CANTON;
+/** The words a write's steps speak; a sale (C7a cash-out) passes its own. */
+export interface WriteWords {
+  progressLabel: string;
+  steps: readonly { label: string; hint: string }[];
+  status: Record<WritePhase, string>;
+  step: (n: number, total: number, label: string) => string;
+}
 const noop = () => undefined;
 
 /** Where each of `WritePhase`'s six values sits on the four steps; the two failures stop at the step they failed on. */
@@ -16,7 +23,8 @@ const STEP_OF: Record<WritePhase, number> = { composing: 1, submitted: 2, confir
  * with reverted and unknown drawn as an error on the step they stopped at. The steps are a picture (inert: a placed
  * call has nothing to revisit); the one status line under them is what a screen reader hears.
  */
-export function WriteProgress({ phase, updateId, variant = "inline" }: { phase: WritePhase; updateId?: string; variant?: "inline" | "block" | "receipt" }) {
+export function WriteProgress({ phase, updateId, variant = "inline", words = T }: { phase: WritePhase; updateId?: string; variant?: "inline" | "block" | "receipt"; words?: WriteWords }) {
+  const T = words;
   const current = STEP_OF[phase];
   const error = phase === "reverted" || phase === "unknown";
   const label = T.steps[Math.min(current, T.steps.length) - 1]?.label ?? "";

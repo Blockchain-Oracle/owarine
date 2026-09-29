@@ -1,4 +1,4 @@
-import type { AttributionHook, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
+import type { AttributionHook, CashOutOutcome, CashOutRequest, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
 import type { ArenaIntent } from "@agari/core/games";
 import type { LeverageIntent } from "@agari/core/leverage";
 import type { ParlayIntent } from "@agari/core/parlay";
@@ -20,6 +20,7 @@ import { indexEvidence, type WriteEvidence } from "./evidence";
 import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
+import { submitSeatCashOut, type HeldExitListener } from "./cash-out";
 import { commandVerdict, submitLegExit, submitSeatOrder } from "./seat-lane";
 import { allowAllStopGate } from "./stop-gate";
 import type { WriteRpc } from "./write-rpc";
@@ -58,6 +59,8 @@ export interface MarketsSubmitter extends Submitter {
   /** One tap exits a Window's legs: its claim, or the stale refund once `refundAfter` has passed with no resolution. */
   exitLegs(o: { marketId: MarketId; mode: "claim" | "refund" }, onPhase?: PhaseListener): Promise<TxOutcome>;
   checkGas(lane: FeeLane): Promise<GasCheck>;
+  /** The port's cash-out, plus the firm buy-back's held price for the surface's ring (C7a). */
+  submitCashOut(request: CashOutRequest, onPhase?: PhaseListener, onHeld?: HeldExitListener): Promise<CashOutOutcome>;
 }
 
 /** Product lanes stay refused until their packages pass their money gates (C7a–C9); orders and claims are live (C4). */
@@ -65,11 +68,10 @@ const PRODUCTS_NOT_LIVE = cantonNotLive("product writes");
 /** A resting call (D-088) becomes a bilateral `RestingCall` in C6; the vault route is C7a. */
 const REST_NOT_LIVE = cantonNotLive("resting calls");
 const VAULT_ROUTE_NOT_LIVE = cantonNotLive("trading balance orders");
-const CASH_OUT_NOT_LIVE = cantonNotLive("cash-out");
 
 /**
  * Binds every write lane to ONE seat. Orders go through the seat lane (`seat-lane.ts`: firm quote, journal, accept
- * as the seat's party, book from the created Leg); claims and stale refunds through the legs routes. Product lanes
+ * as the seat's party, book from the created Leg); cash-outs through `cash-out.ts` (firm buy-back, journal, accept); claims and stale refunds through the legs routes. Product lanes
  * still refuse before anything is journaled, with the not-deployed diagnosis the surfaces render as "Not live on this
  * network yet". Every write queues through `enqueue`, so one seat never races itself (and two tabs share the server's
  * per-command idempotency).
@@ -104,7 +106,7 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
       return enqueue(() => submitSeatOrder(lane, request, onPhase));
     },
     exitLegs: (o, onPhase) => enqueue(() => submitLegExit(lane, o, onPhase)),
-    submitCashOut: () => refuse(CASH_OUT_NOT_LIVE),
+    submitCashOut: (request, onPhase, onHeld) => enqueue(() => submitSeatCashOut(lane, request, onPhase, onHeld)),
     submitRangeOpen: () => refuse(PRODUCTS_NOT_LIVE),
     submitParlayOpen: () => refuse(PRODUCTS_NOT_LIVE),
     submitLeverageOpen: () => refuse(PRODUCTS_NOT_LIVE),

@@ -5,7 +5,7 @@
  * LEDGER_EFFECTS lists every node the venue witnessed, flat, in node order; an exercise's subtree is the nodes in
  * `(nodeId, lastDescendantNodeId]`. Exercised events are what tell the exits apart (the ACS delta cannot): the choice on
  * a consumed `Leg` says settled, claimed, stale refund, merged or closed out; an `Archive` of a user leg inside
- * `BuyQuote_Accept` is a sale. Amounts come from the `VenueCash` the exit created, by bucket.
+ * `BuyQuote_Accept` is a sale (whole or, since 0.3.0, partial). Amounts come from the `VenueCash` the exit created, by bucket.
  *
  * Daml-LF JSON: Int arrives as a decimal string, Time as ISO-8601 (microseconds), an enum as its constructor name, a
  * variant as `{tag, value}`, an Optional as null or the value, a tuple as `{_1, _2, …}`.
@@ -283,12 +283,17 @@ function exercisedFacts(
       if (x.choice === "BuyQuote_Accept") {
         const sub = within(x);
         const sold = sub.find((n) => n.exercised && templateName(n.exercised.templateId) === "PM.Leg:Leg" && n.exercised.consuming);
-        const venueLeg = sub.find((n) => n.created && templateName(n.created.templateId) === "PM.Leg:Leg");
+        // The venue's slice (owner = venue); a partial sale (0.3.0) also re-creates the user's remainder leg.
+        const venueLeg = sub.find((n) => {
+          if (!n.created || templateName(n.created.templateId) !== "PM.Leg:Leg") return false;
+          const a = n.created.createArgument as Rec;
+          return str(a.owner) === str(a.venue);
+        });
         const saleBase = sum(cashBy(x), ["sale"]);
         if (sold?.exercised && venueLeg?.created) {
           const l = venueLeg.created.createArgument as Rec;
           const unit = BigInt(str(l.lots)) * BigInt(str(l.cashUnit));
-          out.push({ kind: "sale", nodeId: x.nodeId, buyQuoteCid: cid, legCid: sold.exercised.contractId, priceTicks: Number(BigInt(saleBase) / unit), saleBase });
+          out.push({ kind: "sale", nodeId: x.nodeId, buyQuoteCid: cid, legCid: sold.exercised.contractId, priceTicks: Number(BigInt(saleBase) / unit), saleBase, lots: str(l.lots) });
         }
       }
       return out;

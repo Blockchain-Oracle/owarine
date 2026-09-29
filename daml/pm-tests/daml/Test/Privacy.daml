@@ -66,7 +66,7 @@ populated = do
   _ <- issue w win w.bob SideUp 300 1 0 (plus now 20) "p3"
   sh <- shard w 1000
   _ <- submit w.venue do
-    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = ua; priceTicks = 600; validUntil = plus now 20
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = ua; priceTicks = 600; validUntil = plus now 20; sellLots = None
   offer <- submit w.venue do createCmd GrantOffer with venue = w.venue; owner = w.bob
   gc <- fund w w.bob 900
   _ <- submit w.bob do

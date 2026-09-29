@@ -32,6 +32,7 @@ export const TEMPLATE_IDS = {
   Leg: PM.Leg.Leg.templateId,
   NettedResidual: PM.Leg.NettedResidual.templateId,
   Publication: PM.Publication.Publication.templateId,
+  SettlementReceipt: PM.Publication.SettlementReceipt.templateId,
   GrantOffer: PM.Grant.GrantOffer.templateId,
   AgentGrant: PM.Grant.AgentGrant.templateId,
   NavStatement: PM.Reserve.NavStatement.templateId,

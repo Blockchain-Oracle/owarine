@@ -19,7 +19,7 @@ var PM_Money = require('../../PM/Money/module');
 exports.LpShare = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Reserve:LpShare',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Reserve:LpShare',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Reserve:LpShare',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -65,7 +65,7 @@ exports.LpShare = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.LpShare, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.LpShare, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.LpShare_Merge = {
   decoder: damlTypes.lazyMemo(function () {
@@ -83,7 +83,7 @@ exports.LpShare_Merge = {
 exports.NavStatement = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Reserve:NavStatement',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Reserve:NavStatement',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Reserve:NavStatement',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -159,7 +159,7 @@ exports.NavStatement = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.NavStatement, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.NavStatement, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.Nav_IssueSupply = {
   decoder: damlTypes.lazyMemo(function () {
@@ -219,7 +219,7 @@ exports.Nav_Publish = {
 exports.SupplyQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Reserve:SupplyQuote',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Reserve:SupplyQuote',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Reserve:SupplyQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -295,7 +295,7 @@ exports.SupplyQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.SupplyQuote, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.SupplyQuote, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.Supply_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -336,7 +336,7 @@ exports.Supply_Withdraw = {
 exports.WithdrawQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Reserve:WithdrawQuote',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Reserve:WithdrawQuote',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Reserve:WithdrawQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -414,7 +414,7 @@ exports.WithdrawQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.WithdrawQuote, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.WithdrawQuote, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.Withdraw_Accept = {
   decoder: damlTypes.lazyMemo(function () {

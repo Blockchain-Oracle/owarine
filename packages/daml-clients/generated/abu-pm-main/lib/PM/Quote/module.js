@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.BuyQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:BuyQuote',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Quote:BuyQuote',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Quote:BuyQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -106,7 +106,7 @@ exports.BuyQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BuyQuote, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.BuyQuote, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.BuyQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -148,6 +148,7 @@ exports.Desk_IssueBuyQuote = {
       legCid: damlTypes.ContractId(PM_Leg.Leg).decoder,
       priceTicks: damlTypes.Int.decoder,
       validUntil: damlTypes.Time.decoder,
+      sellLots: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Int).decoder),
     });
   }),
   encode: function (__typed__) {
@@ -156,6 +157,7 @@ exports.Desk_IssueBuyQuote = {
       legCid: damlTypes.ContractId(PM_Leg.Leg).encode(__typed__.legCid),
       priceTicks: damlTypes.Int.encode(__typed__.priceTicks),
       validUntil: damlTypes.Time.encode(__typed__.validUntil),
+      sellLots: damlTypes.Optional(damlTypes.Int).encode(__typed__.sellLots),
     };
   },
 };
@@ -240,7 +242,7 @@ exports.Desk_SettleBatch = {
 exports.Quote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:Quote',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Quote:Quote',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Quote:Quote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -328,7 +330,7 @@ exports.Quote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Quote, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Quote, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);
 
 exports.Quote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -386,7 +388,7 @@ exports.SettleBatchResult = {
 exports.VenueDesk = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:VenueDesk',
-    templateIdWithPackageId: '#2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef:PM.Quote:VenueDesk',
+    templateIdWithPackageId: '#a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794:PM.Quote:VenueDesk',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -462,4 +464,4 @@ exports.VenueDesk = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.VenueDesk, ['2359d13841214bda7b42529ffdb6e99fb4fff907648552fb27e25ec6f044deef', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.VenueDesk, ['a494772c3dd3c2063da44055a410b7184976b2d0e5d818c554d1bde555443794', '#abu-pm-main']);

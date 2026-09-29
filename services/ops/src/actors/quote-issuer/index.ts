@@ -2,7 +2,7 @@
  * The quote issuer and its shard pool (plan "Venue operations": `quote.ts` becomes the issuer, an in-process FIFO over
  * K venue cash shards). `startQuoteIssuer` rebuilds the pool from the venue's active contracts at boot, keeps it in
  * step every few seconds (new change and expiry refunds join, consumed shards leave, quarantined ones resolve), and
- * returns the `POST /internal/quotes` handler. The expiry sweeper, rebalancer and netting take the same `pool`.
+ * returns the `POST /internal/quotes` and `POST /internal/exit-quotes` handlers. The expiry sweeper, rebalancer and netting take the same `pool`.
  */
 import { diagnosis } from "@agari/core/types";
 import { TEMPLATE_IDS } from "@agari/daml";
@@ -11,6 +11,7 @@ import { runActor } from "../../runtime/actor";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import { readPricerSettings, type PricerSettings } from "../market-maker/seat/pricer";
 import type { VenueContext } from "../venue/context";
+import { issueExitQuote, parseExitRequest } from "./exit-issuer";
 import { issueQuote, latencySummary, parseQuoteRequest } from "./issuer";
 import { ShardPool } from "./pool";
 import { resolveQuarantine } from "./pooled-submit";
@@ -22,6 +23,8 @@ export { submitWithShards, venueCashCreated } from "./pooled-submit";
 export interface QuoteIssuerHandle {
   pool: ShardPool;
   handle: (body: unknown) => Promise<{ status: number; body: unknown }>;
+  /** `POST /internal/exit-quotes`: a firm buy-back of the seat's held side (C7a). */
+  handleExit: (body: unknown) => Promise<{ status: number; body: unknown }>;
   stop: () => void;
 }
 
@@ -61,6 +64,11 @@ export async function startQuoteIssuer(input: { venue: VenueContext; board: Ladd
       const req = parseQuoteRequest(body);
       if (typeof req === "string") return { status: 400, body: { diagnosis: diagnosis("unknown", `bad quote request: ${req}`) } };
       return issueQuote(deps, req);
+    },
+    handleExit: async (body) => {
+      const req = parseExitRequest(body);
+      if (typeof req === "string") return { status: 400, body: { diagnosis: diagnosis("unknown", `bad exit quote request: ${req}`) } };
+      return issueExitQuote(deps, req);
     },
     stop: keeper.stop,
   };

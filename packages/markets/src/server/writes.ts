@@ -62,6 +62,12 @@ export type AcceptResult =
   | { kind: "refused"; diagnosis: Diagnosis }
   | { kind: "unknown"; diagnosis: Diagnosis };
 
+/** A sale's booking: `costBase` 0, `proceedsBase` what the accept paid the seat (tap-trading.md §1.4). */
+export type SellResult =
+  | { kind: "confirmed"; booked: BookedOrder & { proceedsBase: bigint }; updateId: Signature; recovered: boolean }
+  | { kind: "refused"; diagnosis: Diagnosis }
+  | { kind: "unknown"; diagnosis: Diagnosis };
+
 export type LegsResult =
   | { kind: "confirmed"; updateId: Signature; payoutBase: bigint; legs: number; recovered: boolean }
   | { kind: "refused"; diagnosis: Diagnosis }
@@ -69,6 +75,13 @@ export type LegsResult =
 
 /** A deadline for commands with none of their own (claims, refunds): submit time plus this (research 05 §E). */
 export const DEFAULT_COMMAND_DEADLINE_MS = 180_000;
+
+/**
+ * A sale is read with the ledger effects: the seat is the actor of `BuyQuote_Accept`, so it witnesses the whole action,
+ * including the venue's new leg (which an ACS delta, stakeholder-only, leaves out) whose lots the booking needs.
+ */
+type TxShape = "TRANSACTION_SHAPE_ACS_DELTA" | "TRANSACTION_SHAPE_LEDGER_EFFECTS";
+const EFFECTS: TxShape = "TRANSACTION_SHAPE_LEDGER_EFFECTS";
 
 const createdEvents = (tx: JsTransaction): CreatedEvent[] => tx.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : []));
 
@@ -86,6 +99,33 @@ export function bookedFrom(tx: JsTransaction, party: Party): BookedOrder {
     avgPriceBps: Number(ticks) * 10,
     txHash: tx.updateId as Signature,
     fillCount: 1,
+  };
+}
+
+/**
+ * The sale from a `BuyQuote_Accept` transaction (research 05 §C): the `sale` cash paid to the seat and the lots the venue's
+ * new legs took. Built from the transaction, never from the request.
+ */
+export function bookedSaleFrom(tx: JsTransaction, party: Party): BookedOrder & { proceedsBase: bigint } {
+  const created = createdEvents(tx);
+  const proceedsBase = created
+    .filter((e) => isEntity(e, "VenueCash") && (e.createArgument as { owner?: unknown }).owner === party)
+    .map((e) => cashView(e))
+    .filter((c) => c.bucket === "sale")
+    .reduce((sum, c) => sum + c.amount, 0n);
+  const sold = created.filter((e) => isEntity(e, "Leg") && (e.createArgument as { owner?: unknown }).owner !== party).map((e) => legView(e));
+  const first = sold[0];
+  if (!first) throw new Error(`transaction ${tx.updateId} bought back no leg from the seat`);
+  const lots = sold.reduce((sum, l) => sum + l.lots, 0n);
+  return {
+    marketId: first.marketId,
+    side: first.side,
+    contractsRaw: contractsOf(lots, first.cashUnit),
+    costBase: 0n,
+    proceedsBase,
+    avgPriceBps: Number((proceedsBase * 10n) / (lots * first.cashUnit)),
+    txHash: tx.updateId as Signature,
+    fillCount: sold.length,
   };
 }
 
@@ -113,12 +153,12 @@ export function createSeatWriter(deps: SeatWriteDeps) {
   const now = deps.now ?? Date.now;
 
   /** The earlier transaction of a command that already landed, if it did. */
-  async function landedTx(row: CommandRow | null, party: Party): Promise<JsTransaction | null> {
+  async function landedTx(row: CommandRow | null, party: Party, shape: TxShape = "TRANSACTION_SHAPE_ACS_DELTA"): Promise<JsTransaction | null> {
     if (!row) return null;
     let updateId = row.updateId;
     if (!updateId) updateId = (await client.findAcceptedCompletion(row.commandId, [party], row.beginOffset))?.updateId ?? null;
     if (!updateId) return null;
-    const tx = await client.updateById(updateId, { transactionShape: "TRANSACTION_SHAPE_ACS_DELTA", eventFormat: { filtersByParty: { [party]: { cumulative: [{ identifierFilter: { WildcardFilter: { value: {} } } }] } }, verbose: true } });
+    const tx = await client.updateById(updateId, { transactionShape: shape, eventFormat: { filtersByParty: { [party]: { cumulative: [{ identifierFilter: { WildcardFilter: { value: {} } } }] } }, verbose: true } });
     if (tx && row.state !== "landed") await journal.finish(row.commandId, { state: "landed", updateId });
     return tx ?? null;
   }
@@ -130,9 +170,9 @@ export function createSeatWriter(deps: SeatWriteDeps) {
     return row;
   }
 
-  async function submit(actor: SeatActor, commandId: string, commands: Command[], disclosed: DisclosedContract[], ctx: RejectionContext) {
+  async function submit(actor: SeatActor, commandId: string, commands: Command[], disclosed: DisclosedContract[], ctx: RejectionContext, shape: TxShape = "TRANSACTION_SHAPE_ACS_DELTA") {
     try {
-      const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands, ...(disclosed.length ? { disclosedContracts: disclosed } : {}) });
+      const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands, transactionShape: shape, ...(disclosed.length ? { disclosedContracts: disclosed } : {}) });
       return { ok: true as const, tx: r.transaction, recovered: r.recovered };
     } catch (error) {
       return { ok: false as const, error, diagnosis: classifyRejection(error, ctx) };
@@ -188,6 +228,49 @@ export function createSeatWriter(deps: SeatWriteDeps) {
     } catch (error) {
       if (error instanceof SeatRefusal) return { kind: "refused", diagnosis: error.diagnosis };
       const d = classifyRejection(error, { step: "accept", quoteCid: o.quoteCid });
+      return d.kind === "send-unknown" ? { kind: "unknown", diagnosis: d } : { kind: "refused", diagnosis: d };
+    }
+  }
+
+  /**
+   * The seat sells back (C7a): `BuyQuote_Accept` on every buy-back of one exit quote, in one command, `actAs` = the seat
+   * only, under the commandId it journaled. A gone buy-back is the held price lapsing (`order-expired`), answered with
+   * the original transaction when this very command already landed.
+   */
+  async function sell(actor: SeatActor, o: { journalId: string; buyQuoteCids: readonly string[] }): Promise<SellResult> {
+    const commandId = seatCommandId("sell", o.journalId);
+    const ctx = { step: "sell" as const, buyQuoteCids: o.buyQuoteCids };
+    try {
+      const prior = await owned(commandId, actor);
+      const earlier = prior?.state === "landed" || prior?.state === "unknown" ? await landedTx(prior, actor.party, EFFECTS) : null;
+      if (earlier) return { kind: "confirmed", booked: bookedSaleFrom(earlier, actor.party), updateId: earlier.updateId as Signature, recovered: true };
+
+      const snap = await seats.read(actor.party, { fresh: true });
+      const quotes = o.buyQuoteCids.map((cid) => (snap.buyQuotes ?? []).find((q) => q.cid === cid));
+      if (quotes.some((q) => q === undefined)) {
+        const landed = await landedTx(prior, actor.party, EFFECTS);
+        if (landed) return { kind: "confirmed", booked: bookedSaleFrom(landed, actor.party), updateId: landed.updateId as Signature, recovered: true };
+        throw refuse("order-expired", "the buy-back is no longer open for this seat (accepted, expired or superseded)");
+      }
+      const held = quotes as NonNullable<(typeof quotes)[number]>[];
+      if (new Set(held.map((q) => `${q.termsCid}|${q.side}`)).size !== 1) throw refuse("contract-revert", "one sale sells one side of one Window");
+      const deadlineMs = Math.min(...held.map((q) => q.validUntilMs));
+      if (deadlineMs <= now()) throw refuse("order-expired", `the buy-back expired at ${new Date(deadlineMs).toISOString()}`);
+      const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "sell", beginOffset: snap.offset, deadlineMs }, now());
+      const commands: Command[] = held.map((q) => ({ ExerciseCommand: { templateId: TEMPLATE_IDS.BuyQuote, contractId: q.cid, choice: "BuyQuote_Accept", choiceArgument: {} } }));
+      const result = await submit(actor, commandId, commands, [], { ...ctx, legCids: held.map((q) => q.legCid) }, EFFECTS);
+      if (!result.ok) {
+        if (result.diagnosis.kind === "order-expired") {
+          const landed = await landedTx(row, actor.party, EFFECTS);
+          if (landed) return { kind: "confirmed", booked: bookedSaleFrom(landed, actor.party), updateId: landed.updateId as Signature, recovered: true };
+        }
+        return await settleFailure(commandId, result.diagnosis);
+      }
+      await journal.finish(commandId, { state: "landed", updateId: result.tx.updateId });
+      return { kind: "confirmed", booked: bookedSaleFrom(result.tx, actor.party), updateId: result.tx.updateId as Signature, recovered: result.recovered };
+    } catch (error) {
+      if (error instanceof SeatRefusal) return { kind: "refused", diagnosis: error.diagnosis };
+      const d = classifyRejection(error, ctx);
       return d.kind === "send-unknown" ? { kind: "unknown", diagnosis: d } : { kind: "refused", diagnosis: d };
     }
   }
@@ -269,7 +352,7 @@ export function createSeatWriter(deps: SeatWriteDeps) {
     return snap.cash.length;
   }
 
-  return { accept, exitLegs, status, sweepCash };
+  return { accept, sell, exitLegs, status, sweepCash };
 }
 
 export type SeatWriter = ReturnType<typeof createSeatWriter>;

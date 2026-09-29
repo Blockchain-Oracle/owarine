@@ -36,11 +36,13 @@ export function balanceSheet(snap: SeatSnapshot, decimals = CASH_DECIMALS): Bala
 }
 
 /**
- * One row per Window the seat holds legs in. The mark is the entry price (what the legs' backing is worth at the
- * price paid) until the venue ladder feeds a live mark, so unrealized P&L reads as the fee paid, never an invented
- * price. Legs whose terms the venue read cannot find are skipped rather than shown without times.
+ * One row per Window the seat holds legs in. The mark is the venue ladder's mid while the Window is quoting (`marks`,
+ * keyed by terms id, as `2 × midYesTicks` so a half tick stays exact): Up lots are worth `contracts × mid2 / 2000`,
+ * Down lots `contracts × (2000 − mid2) / 2000`, floored. With no ladder (not yet open, locked, settling) the mark is the
+ * entry (the legs' backing), so unrealized P&L reads as the fee paid, never an invented price. Legs whose terms the
+ * venue read cannot find are skipped rather than shown without times.
  */
-export function openPositions(legs: readonly LegView[], termsById: ReadonlyMap<string, TermsView>, decimals = CASH_DECIMALS): OpenPosition[] {
+export function openPositions(legs: readonly LegView[], termsById: ReadonlyMap<string, TermsView>, decimals = CASH_DECIMALS, marks: ReadonlyMap<string, number> = new Map()): OpenPosition[] {
   const one = 10n ** BigInt(decimals);
   const byMarket = new Map<MarketId, LegView[]>();
   for (const leg of legs) byMarket.set(leg.marketId, [...(byMarket.get(leg.marketId) ?? []), leg]);
@@ -51,7 +53,8 @@ export function openPositions(legs: readonly LegView[], termsById: ReadonlyMap<s
     const up = sum(group.filter((l) => l.side === "up").map((l) => contractsOf(l.lots, l.cashUnit)));
     const down = sum(group.filter((l) => l.side === "down").map((l) => contractsOf(l.lots, l.cashUnit)));
     const costBasisBase = sum(group.map((l) => l.backingShare + l.feePaid));
-    const markValueBase = sum(group.map((l) => l.backingShare));
+    const mid2 = marks.get(group[0]!.termsCid);
+    const markValueBase = mid2 === undefined ? sum(group.map((l) => l.backingShare)) : (up * BigInt(mid2) + down * BigInt(2000 - mid2)) / 2000n;
     const held = up + down;
     rows.push({
       marketId,
@@ -69,6 +72,18 @@ export function openPositions(legs: readonly LegView[], termsById: ReadonlyMap<s
     });
   }
   return rows.sort((a, b) => a.expirySec - b.expirySec);
+}
+
+/**
+ * The ladder's mid in YES ticks, doubled (`bestAskUp + bestBidUp`, where Up's best bid is `1000 − bestAskDown`); with
+ * one side only, the pricer's fair value doubled; null when the Window is not quoting.
+ */
+export function ladderMid2(l: { up: readonly (readonly [number, unknown])[]; down: readonly (readonly [number, unknown])[]; fairTicks?: number | null | undefined; state: string }): number | null {
+  if (l.state !== "quoting") return null;
+  const ask = l.up[0]?.[0];
+  const downAsk = l.down[0]?.[0];
+  if (ask !== undefined && downAsk !== undefined) return ask + (1000 - downAsk);
+  return typeof l.fairTicks === "number" ? 2 * l.fairTicks : null;
 }
 
 /** What a leg pays its owner under a resolution (`PM.Leg.legPayout`); null resolution = void. */
@@ -150,6 +165,6 @@ export function openQuotes(quotes: readonly QuoteView[]): OpenQuoteRow[] {
 }
 
 /** When the seat is next idle: its last open leg's refund deadline or live quote's expiry (the lease's busy clock). */
-export function busyUntilMs(snap: Pick<SeatSnapshot, "legs" | "quotes">): number {
-  return Math.max(0, ...snap.legs.map((l) => l.refundAfterMs), ...snap.quotes.map((q) => q.validUntilMs));
+export function busyUntilMs(snap: Pick<SeatSnapshot, "legs" | "quotes" | "buyQuotes">): number {
+  return Math.max(0, ...snap.legs.map((l) => l.refundAfterMs), ...snap.quotes.map((q) => q.validUntilMs), ...(snap.buyQuotes ?? []).map((q) => q.validUntilMs));
 }

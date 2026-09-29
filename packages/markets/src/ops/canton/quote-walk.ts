@@ -5,7 +5,7 @@
  * A firm quote has one price for all its lots: the depth-weighted average over the levels it consumes, rounded up
  * (`vwapOverDepth` rounds cost up, in the venue's favour by at most one tick). Integers only.
  */
-import { vwapOverDepth, type BookLevel } from "@agari/core/market";
+import { exitWalk, vwapOverDepth, type BookLevel } from "@agari/core/market";
 
 export const PAIR_TICKS = 1000n;
 export const FEE_DENOMINATOR = 10_000_000_000n;
@@ -64,4 +64,52 @@ export function walkStake(levels: readonly BookLevel[], stakeBase: bigint, cashU
     } else hi = mid - 1n;
   }
   return best;
+}
+
+/**
+ * The bid side of a venue ladder for selling `side` back (C7a exit): the venue buys Up at `1000 − t` where it sells Down at
+ * `t`, so Up's bids are the Down ladder mirrored (best first stays best first), and Down's bids are the Up ladder mirrored.
+ */
+export function bidLevels(ladder: { up: readonly BookLevel[]; down: readonly BookLevel[] }, side: "up" | "down"): BookLevel[] {
+  const opposite = side === "up" ? ladder.down : ladder.up;
+  return opposite.map(([ticks, lots]) => [Number(PAIR_TICKS) - ticks, lots] as BookLevel);
+}
+
+export interface WalkedExit {
+  lots: bigint;
+  /** One price for every lot of the buy-back, in the sold side's own terms: the walk's average, rounded down. */
+  priceTicks: number;
+  /** What the user receives: `lots × priceTicks × cashUnit` (what the `BuyQuote` locks). */
+  proceedsBase: bigint;
+}
+
+/**
+ * Walks the bid side with core's `exitWalk` for up to `wantLots`: `lots = min(want, fillable)`, one price (the average,
+ * floored, in the venue's favour by under a tick, the mirror of the buy walk's ceiling). Null when nothing fills.
+ */
+export function walkExit(bids: readonly BookLevel[], wantLots: bigint, cashUnit: bigint): WalkedExit | null {
+  if (wantLots <= 0n || cashUnit <= 0n) return null;
+  const { proceeds, filled } = exitWalk(bids, wantLots);
+  const lots = filled < wantLots ? filled : wantLots;
+  if (lots === 0n) return null;
+  const priceTicks = Number(proceeds / lots);
+  if (priceTicks < 1 || priceTicks > 999) return null;
+  return { lots, priceTicks, proceedsBase: lots * BigInt(priceTicks) * cashUnit };
+}
+
+/**
+ * Which legs a buy-back of `lots` takes, and how many lots of each: largest legs first, whole legs while they fit, then
+ * part of the next (a partial buy-back, `sellLots`). At most `maxLegs` legs; fewer lots when they run out. Pure.
+ */
+export function allocateLegs<L extends { cid: string; lots: bigint }>(legs: readonly L[], lots: bigint, maxLegs: number): Array<{ leg: L; sell: bigint }> {
+  const out: Array<{ leg: L; sell: bigint }> = [];
+  let left = lots;
+  const sorted = [...legs].sort((a, b) => (a.lots === b.lots ? a.cid.localeCompare(b.cid) : a.lots > b.lots ? -1 : 1));
+  for (const leg of sorted) {
+    if (left <= 0n || out.length >= maxLegs) break;
+    const sell = leg.lots < left ? leg.lots : left;
+    out.push({ leg, sell });
+    left -= sell;
+  }
+  return out;
 }

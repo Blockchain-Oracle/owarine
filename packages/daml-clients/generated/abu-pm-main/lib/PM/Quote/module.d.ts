@@ -71,6 +71,7 @@ export declare type Desk_IssueBuyQuote = {
   legCid: damlTypes.ContractId<PM_Leg.Leg>,
   priceTicks: damlTypes.Int,
   validUntil: damlTypes.Time,
+  sellLots: damlTypes.Optional<damlTypes.Int>,
 }
 
 export declare const Desk_IssueBuyQuote:

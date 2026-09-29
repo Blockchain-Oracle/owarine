@@ -1,0 +1,4 @@
+/* The cash-out's write under a bet row (C7a): direction B's held-price row and the write steps, full width. */
+.co-write { display: flex; flex-direction: column; gap: 8px; padding: 8px 0 4px; }
+.co-held-note { margin-left: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-secondary); font-variant-numeric: tabular-nums; }
+.co-write .cx-b-held { flex-wrap: wrap; }

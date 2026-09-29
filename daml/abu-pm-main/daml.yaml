@@ -1,7 +1,7 @@
 sdk-version: 3.5.2
 name: abu-pm-main
 source: daml
-version: 0.2.0
+version: 0.3.0
 dependencies:
   - daml-prim
   - daml-stdlib

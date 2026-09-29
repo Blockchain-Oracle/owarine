@@ -292,9 +292,12 @@ step w st0 = do
       case ml of
         None -> pure st2
         Some (lc, l) -> do
-          (sh, st3) <- shardFor w (userStakeOf l.lots (tk + 1) l.cashUnit) st2
+          -- whole legs and partial sells (1..lots) mixed in
+          let (k, st2b) = roll l.lots st2
+              sold = k + 1
+          (sh, st3) <- shardFor w (userStakeOf sold (tk + 1) l.cashUnit) st2b
           r <- trySubmit w.venue do
-            exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = lc; priceTicks = tk + 1; validUntil = plus now 20
+            exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = lc; priceTicks = tk + 1; validUntil = plus now 20; sellLots = Some sold
           case r of
             Left _ -> pure (bump "buy-issue!refused" st3)
             Right (bq, _) -> attempt "buy-back" st3 =<< trySubmit l.owner do exerciseCmd bq BuyQuote_Accept

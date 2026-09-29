@@ -10,11 +10,13 @@ import { LedgerError } from "@agari/ledger";
 import { ReadingError } from "../errors/reading-error";
 
 /** Which seat action failed: a submit's outcome can be unknown, a read's never is. */
-export type SeatStep = "accept" | "claim" | "refund" | "read" | "quote";
+export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote";
 
 export interface RejectionContext {
   step: SeatStep;
   quoteCid?: string;
+  /** A sale's `BuyQuote`s (C7a exit): one gone means the price lapsed or was superseded. */
+  buyQuoteCids?: readonly string[];
   cashCids?: readonly string[];
   legCids?: readonly string[];
   resolutionCids?: readonly string[];
@@ -32,6 +34,7 @@ const BY_ERROR_ID: Record<string, DiagnosisKind> = {
   "abu-pm/bad-amount": "invalid-price",
   "abu-pm/shard-too-small": "no-liquidity",
   "abu-pm/bad-shard": "contract-revert",
+  "abu-pm/bad-lots": "invalid-price",
 };
 
 const NOT_DEPLOYED_CODES = new Set(["PACKAGE_NAMES_NOT_FOUND", "PACKAGE_NOT_FOUND", "TEMPLATES_OR_INTERFACES_NOT_FOUND", "NO_TEMPLATES_OR_INTERFACES_FOR_PACKAGE_NAME"]);
@@ -45,7 +48,7 @@ export function missingContractId(error: LedgerError): string | null {
   return inactive ?? null;
 }
 
-const isSubmit = (step: SeatStep) => step === "accept" || step === "claim" || step === "refund";
+const isSubmit = (step: SeatStep) => step === "accept" || step === "sell" || step === "claim" || step === "refund";
 
 function technical(error: LedgerError): string {
   const trace = error.traceId ? ` [tid ${error.traceId}]` : "";
@@ -58,6 +61,11 @@ function contractGone(error: LedgerError, ctx: RejectionContext): DiagnosisKind 
     if (cid !== null && cid === ctx.quoteCid) return "order-expired";
     if (cid !== null && ctx.cashCids?.includes(cid)) return "insufficient-collateral";
     return cid === null ? "order-expired" : "contract-revert";
+  }
+  if (ctx.step === "sell") {
+    // The buy-back is gone (swept, superseded) or no id was named: the held price lapsed. A leg gone first was settled or claimed.
+    if (cid === null || ctx.buyQuoteCids?.includes(cid)) return "order-expired";
+    return ctx.legCids?.includes(cid) ? "already-claimed" : "contract-revert";
   }
   if (ctx.step === "claim" || ctx.step === "refund") {
     if (cid !== null && ctx.resolutionCids?.includes(cid)) return "not-settled";
@@ -73,7 +81,7 @@ function fromLedger(error: LedgerError, ctx: RejectionContext): Diagnosis {
   if (error.code && CONTENTION_CODES.has(error.code)) return d(isSubmit(ctx.step) ? "send-unknown" : "rpc-down");
   const errorId = error.context.error_id;
   if (errorId) {
-    if (errorId === "stdlib.daml.com/deadline-exceeded") return d(ctx.step === "accept" ? "order-expired" : "not-settled");
+    if (errorId === "stdlib.daml.com/deadline-exceeded") return d(ctx.step === "accept" || ctx.step === "sell" ? "order-expired" : "not-settled");
     if (errorId === "stdlib.daml.com/deadline-not-exceeded") return d("not-settled");
     const kind = BY_ERROR_ID[errorId];
     if (kind) return d(kind);

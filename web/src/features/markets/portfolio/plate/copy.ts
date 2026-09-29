@@ -1,6 +1,16 @@
 /** The plate's words, the reference's own where they are still true (`BalancePlate.tsx`, `PoolRows.tsx`, `useMoney.ts`). */
 export const PLATE = {
   eyebrow: "Ready to bet",
+  /** The one number (C7a): credits, open positions at the venue's mid, and what is waiting to be collected. */
+  balanceEyebrow: "Your balance",
+  readyToBet: "ready to bet",
+  legs: {
+    credits: "Demo credits",
+    positions: "Open positions · at the venue mid",
+    collect: "To collect",
+  },
+  /** Named, never summed into the figure (FR-5). */
+  notSummed: "not in this figure",
   yours: "yours",
   elsewhere: "elsewhere",
   addMoney: "Add money",

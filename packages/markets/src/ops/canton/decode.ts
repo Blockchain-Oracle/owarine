@@ -184,6 +184,20 @@ export interface QuoteC {
   refundAfterSec: number;
 }
 
+export interface BuyQuoteC {
+  venue: Party;
+  user: Party;
+  legCid: ContractId;
+  termsCid: ContractId;
+  pairId: string;
+  outcome: Side;
+  lots: bigint;
+  cashUnit: bigint;
+  priceTicks: number;
+  locked: bigint;
+  validUntilSec: number;
+}
+
 export interface LegC {
   venue: Party;
   owner: Party;
@@ -312,6 +326,15 @@ export function decodeQuote(v: unknown): QuoteC {
     venue: text(r, "venue"), user: text(r, "user"), termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), pairId: text(r, "pairId"),
     side: side(r.side), priceTicks: small(r, "priceTicks"), lots: big(r, "lots"), cashUnit: big(r, "cashUnit"), fee: big(r, "fee"),
     validUntilSec: sec(r, "validUntil"), lockAtSec: sec(r, "lockAt"), refundAfterSec: sec(r, "refundAfter"),
+  };
+}
+
+export function decodeBuyQuote(v: unknown): BuyQuoteC {
+  const r = obj(v, "BuyQuote");
+  return {
+    venue: text(r, "venue"), user: text(r, "user"), legCid: text(r, "legCid"), termsCid: text(r, "termsCid"), pairId: text(r, "pairId"),
+    outcome: side(r.outcome), lots: big(r, "lots"), cashUnit: big(r, "cashUnit"), priceTicks: small(r, "priceTicks"), locked: big(r, "locked"),
+    validUntilSec: sec(r, "validUntil"),
   };
 }
 
