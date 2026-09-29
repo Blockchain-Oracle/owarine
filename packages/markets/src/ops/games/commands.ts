@@ -4,7 +4,7 @@
  * server half submits as the leased seat's party only. Same Daml-LF JSON encoding as `../canton/commands.ts`.
  */
 import { GAMES_TEMPLATE_IDS } from "@agari/daml";
-import { assertCommandId, toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger";
+import { assertCommandId, toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
 import { isoOfSec } from "../canton/decode";
 import { digest } from "../canton/ids";
 import type { ArenaParamsC, TierC } from "./decode";

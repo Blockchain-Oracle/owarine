@@ -6,7 +6,7 @@
  * could not trade it; only the owner's wallet lifts that.
  */
 import { deskCopy } from "@agari/core/desk";
-import { cantonChainHead, checkpoint, DeskSendError, DeskSendUnknownError, pauseIx } from "@agari/markets/desk";
+import { cantonChainHead, checkpoint, DeskSendError, DeskSendUnknownError, pauseIx } from "@agari/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import { appendPlainRecord } from "./commit";
 import { DEADLINE_SEC } from "./consider";

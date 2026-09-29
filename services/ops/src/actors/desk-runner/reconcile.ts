@@ -13,7 +13,7 @@ import { MIN_TRADE_E6 } from "@agari/core/desk";
 import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
 import { isUpdateId } from "@agari/core/types";
 import type { DeskRow } from "@agari/db";
-import { deskStateOf, findMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@agari/markets/desk";
+import { deskStateOf, findMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@agari/markets/desk/server";
 import type { DeskMandateC } from "@agari/markets/ops/agents";
 import type { Ladder } from "@agari/markets/runtime";
 import { errorText } from "../../runtime/env";

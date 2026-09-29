@@ -6,7 +6,7 @@
  * Party ids contain `::`, and a batch is a set of contract ids, so both enter an id as a short sha-256 digest.
  */
 import { createHash } from "node:crypto";
-import { assertCommandId, openWindowCommandId, printCommandId, resolveCommandId } from "@agari/ledger";
+import { assertCommandId, openWindowCommandId, printCommandId, resolveCommandId } from "@agari/ledger/pure";
 
 export { openWindowCommandId, printCommandId, resolveCommandId };
 

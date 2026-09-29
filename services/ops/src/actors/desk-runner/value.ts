@@ -7,7 +7,7 @@
  */
 import { valueDesk, type DeskHoldingInput, type DeskMandate, type DeskValuation } from "@agari/core/desk";
 import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, readDeskMints } from "@agari/markets/desk";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, readDeskMints } from "@agari/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import type { PreStocksSample, PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import type { DeskStanding, MintCache, RunnerContext } from "./types";
