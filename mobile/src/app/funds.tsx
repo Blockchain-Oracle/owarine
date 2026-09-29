@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X } from "lucide-react-native";
 import { FUNDING } from "@/features/funding/copy";
+import { useSeatCredit } from "@/features/funding/useSeatCredit";
 import { useWalletSession } from "@/lib/wallet-session";
 import { CreditWelcome } from "~/components/funding/CreditWelcome";
 import { FootLine, FundingFacts } from "~/components/funding/FundingFacts";
@@ -22,14 +23,15 @@ const F = SEAT.funds;
  * web `AddFunds` in the app's bottom drawer (the owner's call, 09-25: Add funds rises from the bottom on a phone) — web's
  * card paper, border, 28 of padding and gray-600 X, over the blurred scrim — for a seat: the glowing eyebrow, "Demo
  * credits", what they are (no cash value, nothing to buy, sell or withdraw), the seat row that copies, the credits and
- * their cash value, and the grant pill. The grant is a signed route that is not live yet, so the pill is shown
- * disabled with the reason under it; there is no faucet, no network-fee line and no outside link.
+ * their cash value, and the grant pill. The grant is the seat funding its lease asks for (web's `useSeatCredit`), so the
+ * pill leases or re-leases the seat; there is no faucet, no network-fee line and no outside link.
  */
 export default function FundsModal() {
   const { color, name } = useTheme();
   const t = walletTokens(name);
   const session = useWalletSession();
   const { address } = session;
+  const credit = useSeatCredit();
   const [copied, setCopied] = useState(false);
   const drawer = useRef<DrawerClose | null>(null);
   const close = (after?: () => void) => (drawer.current ? drawer.current(after) : (dismiss(), after?.()));
@@ -84,17 +86,22 @@ export default function FundsModal() {
             <FundingFacts />
 
             <View style={styles.rows}>
-              <View
-                accessibilityRole="button"
-                accessibilityState={{ disabled: true }}
-                accessibilityHint={F.notLive}
-                style={[styles.pill, styles.pillRow, styles.inert, { backgroundColor: t.ctaWhite }]}
-              >
-                <TUsdcMark size={16} />
-                <Text style={[styles.pillText, { color: t.ctaWhiteInk }]}>{F.request}</Text>
-              </View>
-              <View style={styles.center}>
-                <FootLine text={F.notLive} />
+              {credit.status === "funded" ? (
+                <WebButton label={FUNDING.seat.trade} onPress={() => close(() => router.push("/markets"))} style={styles.center} />
+              ) : (
+                <Pressable
+                  onPress={() => void credit.request()}
+                  disabled={credit.busy}
+                  accessibilityRole="button"
+                  accessibilityState={{ disabled: credit.busy, busy: credit.busy }}
+                  style={({ pressed }) => [styles.pill, styles.pillRow, { backgroundColor: t.ctaWhite }, (pressed || credit.busy) && styles.inert]}
+                >
+                  <TUsdcMark size={16} />
+                  <Text style={[styles.pillText, { color: t.ctaWhiteInk }]}>{credit.busy ? FUNDING.seat.requesting : credit.status === "unleased" ? FUNDING.seat.lease : F.request}</Text>
+                </Pressable>
+              )}
+              <View style={styles.center} accessibilityLiveRegion="polite">
+                <FootLine text={credit.status === "funded" ? FUNDING.seat.funded : credit.status === "unleased" ? FUNDING.seat.unleased : FUNDING.seat.unfunded} />
               </View>
             </View>
           </>

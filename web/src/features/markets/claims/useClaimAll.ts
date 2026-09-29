@@ -1,9 +1,9 @@
 "use client";
 
 import type { TxOutcome } from "@agari/core/ports";
-import { diagnosis, type ClaimableRow, type Diagnosis } from "@agari/core/types";
-import { diagnose, marketsProvider, nowMs, unwrap, type MarketsSubmitter } from "@agari/markets";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
+import type { ClaimableRow, Diagnosis } from "@agari/core/types";
+import { diagnose, nowMs, type MarketsSubmitter } from "@agari/markets";
+import { invalidateAfterWrite, useExitLegs, useSigner, useSubmitter } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { IDLE_RUN, itemsFromRows } from "./claim-run";
@@ -34,31 +34,30 @@ function fromOutcome(outcome: TxOutcome): StepResult {
   }
 }
 
-/** One leg: gate on the head-fresh chain view (canon #1), then redeem with its explicit outcomeIdx (canon #11). */
+/** A Window's exit on Canton (C4): a claim against its Resolution, or the stale refund when none came in time. */
+export const exitModeOf = (item: Pick<ClaimItem, "kind">): "claim" | "refund" => (item.kind === "stale-refund" ? "refund" : "claim");
+
+/**
+ * One Window: the seat's legs exit through the legs routes (`exitLegs`). The claimables read already came from the
+ * ledger with the Resolutions applied, and the route re-checks, so there is no separate settlement gate: a Window
+ * without a Resolution past its `refundAfter` is refunded, never left stranded behind a "not settled" read.
+ */
 export async function redeemOne(submitter: MarketsSubmitter, item: ClaimItem): Promise<StepResult> {
   try {
-    const onchain = unwrap(await marketsProvider.getOnchain(item.marketId));
-    if (!onchain.isResolved && !onchain.isVoided) return stopWith(diagnosis("not-settled", `${item.marketId} has no settlement on chain yet`));
+    return fromOutcome(await submitter.exitLegs({ marketId: item.marketId, mode: exitModeOf(item) }));
   } catch (error) {
     return stopWith(diagnose(error));
   }
-  // Outcome balances live in the Window's Ledger seat, not a token: the redeem names the Window and the outcome (D-011).
-  const outcome = await submitter.submitTx({
-    kind: "redeem",
-    marketId: item.marketId,
-    outcomeIdx: item.outcomeIdx,
-    amountRaw: item.amountRaw,
-  });
-  return fromOutcome(outcome);
 }
 
 /**
- * Claim-all on wallet gas: one signature per redemption, per-item outcomes, never one collapsed verdict (AD-15).
+ * Claim-all: one exit per Window (claim, or the stale refund), per-item outcomes, never one collapsed verdict (AD-15).
  * The sum the plate shows comes from the claimables reading, whose fee the port read at read time; the Epic 8
  * relayer re-reads settlementFeeBps at execution and must keep this surface's per-item contract unchanged.
  */
 export function useClaimAll() {
   const submitter = useSubmitter();
+  const exit = useExitLegs();
   const { address, hasSigner } = useSigner();
   const queryClient = useQueryClient();
   const [run, setRun] = useState<ClaimRun>(IDLE_RUN);
@@ -85,7 +84,8 @@ export function useClaimAll() {
 
       for (const item of items) {
         patchItem(item.key, { status: "claiming" });
-        const result = await redeemOne(submitter, item);
+        // One exit per Window through the seat's write scope (useExitLegs): no retries, journaled first.
+        const result = await exit.mutateAsync({ marketId: item.marketId, mode: exitModeOf(item) }).then(fromOutcome, (error: unknown) => stopWith(diagnose(error)));
         patchItem(item.key, result.patch);
         if (result.patch.status === "confirmed" || result.patch.status === "paid") await invalidateAfterWrite(queryClient, { wallet: address, marketId: item.marketId });
         if (result.stop) {
@@ -96,7 +96,7 @@ export function useClaimAll() {
       setRun((current) => ({ ...current, status: "done", finishedAtMs: nowMs() }));
       inFlight.current = false;
     },
-    [address, patchItem, queryClient, submitter],
+    [address, exit, patchItem, queryClient, submitter],
   );
 
   const reset = useCallback(() => setRun(IDLE_RUN), []);

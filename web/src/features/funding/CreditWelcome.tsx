@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { CREDITED_EVENT, FUNDING } from "./copy";
 import type { CreditedDetail } from "./credited";
 import "./funding.css";
+import { useSeatCreditAnnouncer } from "./useSeatCredit";
 
 /**
  * The reference's `CreditWelcome`: a one-time celebratory card when an address is credited for the first
@@ -15,6 +16,8 @@ import "./funding.css";
 export function CreditWelcome() {
   const reduced = useReducedMotion();
   const [credit, setCredit] = useState<CreditedDetail | null>(null);
+  // On Canton the credit is the seat funding its first lease asked for; the moment fires once it has landed.
+  useSeatCreditAnnouncer();
 
   useEffect(() => {
     const onCredited = (event: Event) => {

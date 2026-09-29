@@ -52,7 +52,6 @@ export const SEAT = {
     cashValue: "Cash value",
     none: "None",
     request: "Get demo credits",
-    notLive: "Not live yet: the grant opens when trading opens. Nothing is placed until then.",
   },
   /** Where the reference's tap-trading chip sat: the seat itself signs every call, so there is nothing to arm. */
   fast: { label: "one tap", why: "a seat already trades in one tap" },

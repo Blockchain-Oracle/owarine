@@ -5,6 +5,7 @@ import { DeviceEventEmitter, Pressable, StyleSheet, Text, View } from "react-nat
 import Animated, { useReducedMotion, ZoomIn } from "react-native-reanimated";
 import { BottomDrawer, type DrawerClose } from "~/components/drawer/BottomDrawer";
 import { CREDITED_EVENT, FUNDING, OPEN_FUNDS_EVENT } from "@/features/funding/copy";
+import { useSeatCreditAnnouncer } from "@/features/funding/useSeatCredit";
 import { haptic } from "~/components/kit";
 import type { CreditedDetail } from "~/web-shims/credited";
 import { FONT, useTheme } from "~/theme";
@@ -83,6 +84,8 @@ export function CreditWelcome({ local = false }: { local?: boolean }) {
  * the Add-money modal, and a first credit anywhere else raises the welcome. Mounted once, above every screen.
  */
 export function FundingHost() {
+  // The seat's grant landing is the credit moment (web's announcer, over the app's event emitter).
+  useSeatCreditAnnouncer();
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener(OPEN_FUNDS_EVENT, () => router.push("/funds"));
     return () => sub.remove();

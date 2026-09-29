@@ -1,12 +1,10 @@
 "use client";
 
-import { FAUCET_UNITS, SOL_FAUCETS } from "@agari/core/constants";
-import { collateralOrNull } from "@agari/markets";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Hash } from "@/components/data";
 import { TUsdcMark } from "@/components/icons/AssetMarks";
-import { useFaucet } from "@/features/markets/faucet";
 import { ConnectButton } from "@/features/markets/wallet";
 import { RegionNote } from "@/features/region/RegionNote";
 import { blockerLabel, diagnosisCopy } from "@/lib/copy";
@@ -14,19 +12,22 @@ import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
 import { FUNDING } from "./copy";
 import "./funding.css";
-import { FundingProgress } from "./FundingProgress";
+import { useSeatCredit } from "./useSeatCredit";
 
+const F = FUNDING.seat;
 const short = (a: string) => `${a.slice(0, 8)}…${a.slice(-6)}`;
 
-/** Shared test-funds dialog: eligible devnet SOL top-up, then the server-sent tUSDC mint, behind one free signature (D-034). */
+/**
+ * The reference's Add funds dialog, for a seat on Canton (plan §4): the glowing eyebrow, "Demo credits" and what they
+ * are, the seat row that copies, the seat's party and its credits (no cash value), and the grant pill. The grant is the
+ * seat funding the lease asks for, so the pill leases (or re-leases) the seat; the server funds a leased seat once.
+ */
 export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { address, isRightChain } = useWalletSession();
-  const faucet = useFaucet();
+  const { address } = useWalletSession();
+  const credit = useSeatCredit();
   const [copied, setCopied] = useState(false);
-  const symbol = collateralOrNull()?.symbol ?? "credits";
-  // The geofence (D-095): the dialog still explains the test funds; only the mint is held.
+  // The geofence (D-095): the dialog still explains the credits; only the grant is held.
   const regionHeld = useRegionRestricted();
-  const amountText = String(FAUCET_UNITS);
 
   useEffect(() => {
     if (!open) return;
@@ -43,9 +44,7 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
   }, [open, onClose]);
 
   if (!open) return null;
-  const minting = faucet.busy;
-  const done = faucet.state.phase === "confirmed";
-  const diagnosis = faucet.state.diagnosis;
+  const funded = credit.status === "funded";
 
   return (
     <div className="fund-modal-root">
@@ -57,23 +56,26 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
 
         <div className="fund-eyebrow-row">
           <span className="fund-eyebrow-dot" />
-          <span className="fund-eyebrow">{FUNDING.modal.eyebrow}</span>
+          <span className="fund-eyebrow">{F.eyebrow}</span>
         </div>
         <h2 id="add-funds-title" className="fund-title">
-          {FUNDING.modal.title}
+          {F.title}
         </h2>
-        <p className="fund-body">{FUNDING.modal.body}</p>
+        <p className="fund-body">{F.body}</p>
 
         {!address ? (
-          <div className="fund-connect-first"><p>{FUNDING.modal.connectFirst}</p><ConnectButton /></div>
+          <div className="fund-connect-first">
+            <p>{F.takeSeatFirst}</p>
+            <ConnectButton />
+          </div>
         ) : (
           <>
             <div className="fund-account">
-              <span className="fund-account-label">{FUNDING.modal.account}</span>
+              <span className="fund-account-label">{F.account}</span>
               <button
                 type="button"
                 className="fund-account-addr"
-                aria-label="Copy account address"
+                aria-label="Copy seat address"
                 onClick={() => {
                   void navigator.clipboard.writeText(address);
                   setCopied(true);
@@ -84,37 +86,43 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
                 {copied ? FUNDING.modal.copied : `${short(address)} ⧉`}
               </button>
             </div>
+            <dl className="fund-facts">
+              {credit.party && (
+                <div>
+                  <dt>{F.party}</dt>
+                  <dd>
+                    <Hash value={credit.party} lead={credit.party.indexOf("::") + 6} tail={4} />
+                  </dd>
+                </div>
+              )}
+              <div>
+                <dt>{F.credits}</dt>
+                <dd>{credit.balanceText ?? "—"}</dd>
+              </div>
+              <div>
+                <dt>{F.cashValue}</dt>
+                <dd>{F.none}</dd>
+              </div>
+            </dl>
 
-            <FundingProgress address={address} faucet={faucet} />
-            {!isRightChain && <ConnectButton />}
-
-            {done ? (
+            {funded ? (
               <Link href="/markets" onClick={onClose} className="fund-cta-vermilion" data-cursor="hover">
-                {FUNDING.modal.trade}
+                {F.trade}
               </Link>
             ) : (
               <div className="fund-rows">
-                <p className="fund-foot-line">{FUNDING.modal.sequence(FAUCET_UNITS.toLocaleString("en-US"), symbol)}</p>
-                <button type="button" onClick={() => void faucet.mint()} disabled={regionHeld || minting || !faucet.hasSigner} className="fund-cta-white" data-cursor="hover">
+                <button type="button" onClick={() => void credit.request()} disabled={regionHeld || credit.busy} aria-busy={credit.busy} className="fund-cta-white" data-cursor="hover">
                   <TUsdcMark className="fund-cta-mark" />
-                  {regionHeld ? blockerLabel("region") : minting ? faucet.label : FUNDING.modal.request(amountText, symbol)}
+                  {regionHeld ? blockerLabel("region") : credit.busy ? F.requesting : credit.status === "unleased" ? F.lease : F.request}
                 </button>
                 {regionHeld && <RegionNote />}
               </div>
             )}
 
-            {done && <p className="fund-msg fund-msg--ok">{FUNDING.modal.done(amountText, symbol)}</p>}
-            {done && <button type="button" className="fund-foot-link" onClick={faucet.resetCompleted}>Get more test funds</button>}
-            {diagnosis && !done && <p className="fund-msg fund-msg--err">{diagnosisCopy(diagnosis.kind).headline}</p>}
-
-            <div className="fund-foot">
-              {faucet.state.gasShort && <p className="fund-foot-line">{FUNDING.modal.gasFirst}</p>}
-              {SOL_FAUCETS.map((f) => (
-                <a key={f.url} href={f.url} target="_blank" rel="noreferrer" className="fund-foot-link" data-cursor="hover">
-                  {faucet.state.gasShort ? `${f.name} ↗` : FUNDING.modal.needMore}
-                </a>
-              )).slice(0, faucet.state.gasShort ? SOL_FAUCETS.length : 1)}
-            </div>
+            <p className={funded ? "fund-msg fund-msg--ok" : "fund-msg"} role="status">
+              {funded ? F.funded : credit.status === "unleased" ? F.unleased : F.unfunded}
+            </p>
+            {credit.refusal && <p className="fund-msg fund-msg--err">{diagnosisCopy(credit.refusal.kind).headline}</p>}
           </>
         )}
       </div>
