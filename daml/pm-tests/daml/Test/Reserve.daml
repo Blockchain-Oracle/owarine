@@ -32,11 +32,16 @@ withdrawQuote : World -> ContractId NavStatement -> Party -> ContractId LpShare 
 withdrawQuote w nav who lp n = do
   now <- getTime
   Some navS <- queryContractId w.venue nav
-  sh <- shard w (cashFor navS n)
+  sh <- reserveShardOf w rid (cashFor navS n)
   (q, _) <- submit w.venue do
     exerciseCmd nav Nav_IssueWithdraw with
       provider = who; lpShareCid = lp; sharesIn = n; shardCid = sh; validUntil = plus now 20
   pure q
+
+-- | A venue shard of a reserve's own bucket (`reserve:<id>`).
+reserveShardOf : World -> Text -> Int -> Script (ContractId VenueCash)
+reserveShardOf w reserveId amount = submit w.venue do
+  createCmd VenueCash with venue = w.venue; owner = w.venue; amount; bucket = reserveBucket reserveId
 
 -- Σ LpShare as the venue sees it.
 sharesOutstanding : World -> Script Int
@@ -137,6 +142,18 @@ testReserveIssueRefusals = script do
   refusedWith (refusal "wrong-share") =<< trySubmit w.venue do
     exerciseCmd nav1 Nav_IssueWithdraw with
       provider = w.bob; lpShareCid = la; sharesIn = 1; shardCid = sh; validUntil = plus now 20
+  -- 0.4.0: the payout is locked from this reserve's own cash only
+  refusedWith (refusal "bad-shard") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueWithdraw with
+      provider = w.alice; lpShareCid = la; sharesIn = 1; shardCid = sh; validUntil = plus now 20
+  other <- reserveShardOf w "R2" 100
+  refusedWith (refusal "bad-shard") =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueWithdraw with
+      provider = w.alice; lpShareCid = la; sharesIn = 1; shardCid = other; validUntil = plus now 20
+  own <- reserveShardOf w rid 100
+  _ <- succeeded =<< trySubmit w.venue do
+    exerciseCmd nav1 Nav_IssueWithdraw with
+      provider = w.alice; lpShareCid = la; sharesIn = 1; shardCid = own; validUntil = plus now 20
   refusedWith (refusal "stale-nav") =<< trySubmit w.venue do
     exerciseCmd nav1 Nav_Publish with newAsOf = plus t0 (-1); newAssets = 30; newShares = 10
   -- the superseded statement cannot price anything

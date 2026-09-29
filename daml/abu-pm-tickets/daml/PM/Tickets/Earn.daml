@@ -15,9 +15,10 @@
 --                     and counted once. Losses and gains the products have
 --                     settled are therefore in the NAV by construction.
 --   Earn_IssueWithdraw a withdraw quote that locks only the reserve's own
---                     liquid cash (a reserve-bucket shard), so a provider can
---                     never be paid out of capital backing live tickets or
---                     out of other venue money.
+--                     liquid cash (a reserve-bucket shard, enforced by
+--                     `Nav_IssueWithdraw` since abu-pm-main 0.4.0), so a
+--                     provider can never be paid out of capital backing live
+--                     tickets or out of other venue money.
 --
 -- What the ledger still cannot prove is completeness: without contract
 -- keys it cannot tell that the venue passed EVERY live ticket and LpShare.
@@ -132,8 +133,7 @@ template EarnDesk
         validUntil : Time
       controller venue
       do
-        nav <- fetch navCid
-        shard <- fetch shardCid
-        require "bad-shard" "a withdrawal is paid from the reserve's liquid cash only"
-          (shard.owner == venue && shard.venue == venue && shard.bucket == reserveBucket nav.reserveId)
+        -- abu-pm-main 0.4.0's `Nav_IssueWithdraw` itself refuses a shard
+        -- outside the reserve's bucket (`bad-shard`), so this is a plain
+        -- forward, kept so ops has one Earn entry point.
         exercise navCid Nav_IssueWithdraw with provider; lpShareCid; sharesIn; shardCid; validUntil
