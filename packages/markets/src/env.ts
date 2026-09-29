@@ -28,7 +28,8 @@ export const marketsEnvSchema = z.object({
    * web). A path resolves against the page's origin in the browser, and against this server over loopback on the
    * server (`indexer-base.ts`).
    */
-  indexerUrl: urlOrPath.optional(),
+  /** Same-origin by default: the web serves the projection at `/api/index` (the phone passes its site URL). */
+  indexerUrl: urlOrPath.default("/api/index"),
   /** The venue's id as the app keys it (a base58 value derived from the venue party); absent until the venue boots (C2). */
   venueId: addressSchema.optional(),
   /** ops' spot SSE endpoint (`/prices/latest`, `/prices/stream`). */

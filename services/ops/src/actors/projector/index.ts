@@ -5,6 +5,7 @@
  * Env: `DATABASE_URL`; the `@agari/ledger` variables (`LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE`, …); `VENUE_PARTY` (the
  * projected party); optional `PROJECTOR_STREAM` (cursor row, default `venue`) and `PROJECTOR_HEARTBEAT_MS`.
  */
+import { roleParty } from "../../runtime/keys";
 import { ensureSchema, getDb, indexReader, type Db } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient, type WebSocketCtor } from "@agari/ledger";
 import { runActor, type VenueDeps } from "../../runtime";
@@ -37,7 +38,8 @@ export async function startProjector(
     deps.log("DATABASE_URL is not set: the projector has nowhere to write; idle");
     return null;
   }
-  const party = o.party ?? env.VENUE_PARTY;
+  // The venue party from VENUE_PARTY, else the same parties file every other ops actor reads (K-026).
+  const party = o.party ?? env.VENUE_PARTY ?? roleParty("venue", env) ?? undefined;
   if (!party) {
     deps.log("VENUE_PARTY is not set: the projector has no party to project; idle");
     return null;

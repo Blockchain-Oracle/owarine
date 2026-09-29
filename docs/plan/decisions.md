@@ -225,6 +225,17 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - An explicit close-admission field on `MarketTerms`.
 - **Approval:** default; overrulable.
 
+### K-030 — Engine 0.4.0 before R1: Gap windows, events, and the recorded engine follow-ups
+- **Date / owner:** 2026-09-29 · stage owner (C6, K-028, K-029 findings)
+- **Rule:** before R1 (the first DevNet upload), `abu-pm-main` gets one upgrade-compatible 0.4.0 carrying:
+  - a Series open choice that takes a Window's own start, lock and expiry, so the Monday Gap (Friday close to Monday open, locking Sunday 20:00 ET) lists;
+  - a dedicated yes/no event template with an attest choice, in place of the price encoding;
+  - `Nav_IssueWithdraw` requiring a reserve shard;
+  - a general `SettlementReceipt` that covers tickets;
+  - an explicit close-admission field on `MarketTerms`.
+- **Until then:** the Gap lane shows its honest not-listed state, and event markets reuse the price path.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
