@@ -9,7 +9,7 @@
 import { missingDeskCredentialHint, resolveDeskModel } from "@agari/brain";
 import { PRE_IPO_SYMBOLS } from "@agari/core/market";
 import { deskQueries, getDb, type DeskRow, type WakeTrigger } from "@agari/db";
-import { createDeskLedgerRpc, createDeskOperatorClient } from "@agari/markets/desk";
+import { createDeskLedgerRpc, createDeskOperatorClient } from "@agari/markets/desk/server";
 import { opsQuoteSource, routeQuoteSource, type QuoteSource } from "@agari/markets/ops/agents";
 import { ORACLE_ROLES } from "../../runtime/keys";
 import { parseLadder, type Ladder } from "@agari/markets/runtime";

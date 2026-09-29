@@ -12,6 +12,7 @@ export * from "./bettors";
 export * from "./client";
 export * from "./comments";
 export * from "./decks";
+export * from "./seasons";
 export * from "./games";
 export * from "./lucky";
 export * from "./migrate";

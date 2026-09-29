@@ -23,8 +23,18 @@ import { emitVenueEvent } from "../venue/events";
 export const POST_DELAY_SEC = 10;
 /** A symbol whose candle is not final yet is waited for until T + this, then the rest is posted without it. */
 export const WAIT_ALL_SEC = 20;
-/** Past T + this the boundary is abandoned (a 1-minute lane's close admission ends at T + 40). */
-export const GIVE_UP_SEC = 35;
+/**
+ * The widest admission of any exchange-printed Window: the 1-minute lane's close admits to T + 40, every other crypto
+ * lane's open and close to T + 60 (`scripts/bootstrap-local.ts` `cryptoLanes`).
+ */
+export const WIDEST_ADMISSION_SEC = 60;
+/**
+ * Past T + this the boundary is abandoned. It leaves the resolver 10 s inside the widest admission. A print posted past
+ * a 1-minute lane's T + 40 simply does not count there, but a 5 m or 15 m close at the same T still needs it: a feeder
+ * that wakes late (a host sleep, a stalled loop) must not drop a print those Windows can still use (C9c: both 15 m duel
+ * cards voided `MissingPrint(CloseSlot)` when the feeder woke at T + 39 and gave up at T + 35).
+ */
+export const GIVE_UP_SEC = WIDEST_ADMISSION_SEC - 10;
 export const BAR_SEC = 60;
 
 export interface FeederSettings {

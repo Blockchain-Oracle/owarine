@@ -12,7 +12,7 @@
  */
 import { costBpsFor, gapOf, PAPER_FEE_BPS, rawFor, valueE6, type DeskCandidate, type DeskMarketRead } from "@agari/core/desk";
 import type { PreIpoSymbol } from "@agari/core/market";
-import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, quotingWindow, USDC_MAINNET, type JupiterQuote } from "@agari/markets/desk";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, quotingWindow, USDC_MAINNET, type JupiterQuote } from "@agari/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import type { DeskStanding, RunnerContext } from "./types";
 import { priceView } from "./value";

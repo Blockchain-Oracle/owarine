@@ -15,7 +15,7 @@
  * either package never changes a caller.
  */
 import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger";
+import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
 import { isoOfSec, type Side } from "../canton/decode";
 import type { DeskModeC, EnvelopeC, GrantCapsC, SubKindC } from "./decode";
 

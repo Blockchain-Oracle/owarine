@@ -31,6 +31,7 @@
     "./ops/*": "./src/ops/*/index.ts",
     "./proof": "./src/proof/index.ts",
     "./desk": "./src/desk/index.ts",
+    "./desk/server": "./src/desk/server.ts",
     "./server": "./src/server/index.ts"
   },
   "scripts": {

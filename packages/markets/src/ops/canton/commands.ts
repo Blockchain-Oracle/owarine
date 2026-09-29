@@ -5,7 +5,7 @@
  * compatible upgrade of the package never changes an actor.
  */
 import { TEMPLATE_IDS, type PM } from "@agari/daml";
-import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger";
+import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
 import { isoOfSec, type Side } from "./decode";
 
 const exercise = (templateId: string, contractId: ContractId, choice: string, choiceArgument: unknown): Command => ({

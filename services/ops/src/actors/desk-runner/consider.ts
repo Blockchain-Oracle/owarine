@@ -14,7 +14,7 @@ import {
 } from "@agari/core/desk";
 import type { DeferralRow } from "@agari/db";
 import { DESK_MODE_CODE } from "@agari/core/desk";
-import type { JupiterQuote } from "@agari/markets/desk";
+import type { JupiterQuote } from "@agari/markets/desk/server";
 import { askTiming, MODEL_STUB_NAME } from "./decide";
 import { readMarket, SLIPPAGE_BPS, type MarketRead } from "./market";
 import type { RunnerContext, WakeFrame } from "./types";

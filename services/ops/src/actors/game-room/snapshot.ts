@@ -70,6 +70,7 @@ function incompleteOf(match: ArenaMatch): readonly Address[] {
 }
 
 function refundReasonOf(match: ArenaMatch): RefundReason {
+  if (match.refundReason) return match.refundReason;
   if (match.joinedAtSec === 0) return "creator-cancelled";
   if (match.revealedAtSec === 0) return "reveal-unavailable";
   return "both-incomplete";

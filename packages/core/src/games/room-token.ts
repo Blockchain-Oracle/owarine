@@ -72,7 +72,7 @@ export function roomAuthMessage(claims: Pick<RoomTokenClaims, "wallet" | "key" |
     `Arena: ${claims.arena} on ${clusterLabelOfId(claims.chainId)}`,
     `Issued: ${new Date(claims.issuedAtMs).toISOString()}`,
     "",
-    "This browser's own key signs this, not the wallet. It opens the wallet's duel rooms; the entry transaction is what names the key on chain. It is not a transaction, it moves no funds, and it costs nothing.",
+    "Your seat's own key signs this. It opens this seat's duel rooms; every pick after it is a ledger command the same seat places. It is not a transaction, it moves no funds, and it costs nothing.",
   ].join("\n");
 }
 
