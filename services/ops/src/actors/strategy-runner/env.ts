@@ -1,8 +1,9 @@
-import { readSecretKey } from "../secret-key";
-
 export interface RunnerEnv {
-  /** The role's 64-byte Solana keypair. */
-  privateKey: Uint8Array | null;
+  /**
+   * Whether this process may act as a runner at all (C8f): the agent party (`RUNNER_PARTY`, else the parties file's
+   * `agent-runner`) is resolved by the agents' session; `RUNNER_ENABLED=0` makes the runner scan and report only.
+   */
+  canSend: boolean;
   strategyIds: bigint[];
   intervalMs: number;
   dryRun: boolean;
@@ -24,14 +25,13 @@ function intEnv(env: NodeJS.ProcessEnv, name: string, fallback: number, min: num
 
 /** Read once at boot; a missing key or an empty strategy list is logged as "not configured", never guessed. */
 export function readRunnerEnv(env: NodeJS.ProcessEnv = process.env): RunnerEnv {
-  const key = env.RUNNER_PRIVATE_KEY;
   const ids = (env.STRATEGY_IDS ?? "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean)
     .map((s) => BigInt(s));
   return {
-    privateKey: readSecretKey(key),
+    canSend: env.RUNNER_ENABLED !== "0" && env.RUNNER_ENABLED !== "false",
     strategyIds: ids,
     intervalMs: intEnv(env, "RUNNER_INTERVAL_MS", DEFAULT_INTERVAL_MS, 5_000),
     dryRun: env.DRY_RUN === "1" || env.DRY_RUN === "true",
