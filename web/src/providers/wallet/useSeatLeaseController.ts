@@ -30,6 +30,11 @@ export function useSeatLeaseController({ signer, cluster }: { signer: SeatSigner
   const [leasing, setLeasing] = useState(false);
   const [closing, setClosing] = useState<SeatLeaseState["closing"]>(null);
   const inFlight = useRef<Promise<SeatLeaseView | null> | null>(null);
+  /**
+   * The last pool-full answer while this page waits in line. A lease read (`GET /api/seat`) answers "none" for a seat
+   * that holds no lease yet, which must not end the wait: only a lease, a refusal or a reset does.
+   */
+  const [waiting, setWaiting] = useState<Extract<SeatLeaseView, { kind: "pool-full" }> | null>(null);
 
   // The phone proves its seat with the signed read header; register the key before the first read goes out.
   useEffect(() => {
@@ -37,7 +42,8 @@ export function useSeatLeaseController({ signer, cluster }: { signer: SeatSigner
   }, [signer]);
 
   const query = useSeatLease(signer !== null);
-  const view = signer === null ? null : (query.data ?? null);
+  const read = signer === null ? null : (query.data ?? null);
+  const view = waiting && (read === null || read.kind === "none") ? waiting : read;
 
   const leaseWith = useCallback(
     (key: SeatSigner) => {
@@ -46,6 +52,7 @@ export function useSeatLeaseController({ signer, cluster }: { signer: SeatSigner
       const run = (async () => {
         try {
           const next = refusedView(await leaseSeat(key, cluster));
+          setWaiting(next.kind === "pool-full" ? next : null);
           queryClient.setQueryData(keys.seatLease(), next);
           return next;
         } finally {
@@ -70,6 +77,7 @@ export function useSeatLeaseController({ signer, cluster }: { signer: SeatSigner
 
   const release = useCallback(async () => {
     const held = view?.kind === "leased" ? view : null;
+    setWaiting(null);
     if (held) await releaseSeat();
     queryClient.setQueryData<SeatLeaseView>(keys.seatLease(), { kind: "none" });
     if (held && held.openLegs > 0) setClosing({ openCalls: held.openLegs, atMs: null });
