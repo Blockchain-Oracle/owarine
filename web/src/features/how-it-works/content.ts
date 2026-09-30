@@ -141,7 +141,7 @@ export interface SettlementStep {
 
 export const SETTLEMENT_STEPS: readonly SettlementStep[] = [
   { step: "1", label: "Window Closes", desc: "The round reaches its scheduled expiry — the second its settlement price is asked about." },
-  { step: "2", label: "The Print Is Recorded", desc: "Three oracle parties each post a signed 1-minute candle close for that boundary, from Coinbase, Kraken and Bitstamp data. The Window needs at least 2 of the 3 to agree; a price with no quorum is never used." },
+  { step: "2", label: "The Print Is Recorded", desc: "Three oracle parties each post a signed print for that boundary: a 1-minute candle close from Coinbase, Kraken and Bitstamp for BTC and ETH, and the lane's own source (RedStone, Alpaca, Jupiter Price v3 or PreStocks) for the rest. The Window needs at least 2 of the 3 to agree; a price with no quorum is never used." },
   { step: "3", label: "Settlement", desc: "The resolver party compares the closing print with the opening one, once: a Window resolves or voids exactly once. Close at or above the open pays UP, and a close exactly on the line pays UP; anything below pays DOWN. Prints that disagree by more than the policy allows void the Window instead." },
   { step: "4", label: "Payout", desc: "Winning contracts pay 1 credit less the settlement fee. The venue settles every leg itself, so you are paid without signing anything; Portfolio shows each payout." },
 ];
@@ -261,7 +261,7 @@ export const DESK_PROGRAM_ENFORCES: readonly [string, string][] = [
   ["Caps", "a cap per action and a cap per fixed 24-hour window, counted on the ledger"],
   ["Names", "only the companies you allowed can be bought; a disallowed one can still be sold"],
   ["The reference", "a venue-attested price no older than 15 minutes, or nothing trades"],
-  ["The premium", "a buy may not pay more than your ceiling above the PreStocks mark, or above Pyth's valuation index if you require it"],
+  ["The premium", "a buy may not pay more than your ceiling above the reference the oracle parties attest"],
   ["The band", "at least 92% of the fair amount must come back, or the command fails"],
   ["Exact spend", "the desk's balance must change by exactly the amount sent, and a desk account slipped into the route fails the trade"],
   ["The record", "every action, the did-nothing checkpoint included, advances a sealed hash chain in the same command"],

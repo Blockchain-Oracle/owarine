@@ -50,7 +50,7 @@ export const LUCKY = {
 
   deal: {
     title: "The deal",
-    honesty: "One real order on the book, at the live quote below. It settles on the Window's own close like any other order; if the side is wrong the stake is lost.",
+    honesty: "One real call at the venue's firm quote below. It settles on the Window's own close like any other call; if the side is wrong the stake is lost.",
     proof: {
       label: "Provably drawn",
       commitment: "Commitment",

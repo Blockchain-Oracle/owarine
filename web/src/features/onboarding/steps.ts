@@ -35,7 +35,7 @@ export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     title: "How a Window works",
     description:
-      "A Window opens at a print and settles on the oracle price at its close. Some run every few minutes, some once a day — whatever the venue is listing. Tap UP or DOWN. Each side is its own contract with its own live price from the book, so the two sides do not add up to $1. The ticket shows the exact cost before you sign.",
+      "A Window opens at a print and settles on the oracle price at its close. Some run every few minutes, some once a day — whatever the venue is listing. Tap UP or DOWN. Each side is its own contract with its own live price from the venue's ladder, so the two sides do not add up to $1. The ticket shows the exact cost before you sign.",
   },
   {
     title: "Your seat",

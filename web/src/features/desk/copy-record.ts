@@ -170,9 +170,9 @@ export const RECORD = {
   },
   hooks: {
     stocks: { inWallet: (tokens: string) => `In your seat ${tokens}`, inDesk: (tokens: string) => `In your desk ${tokens}`, hold: "Let a desk hold this basket", holdWhy: "A desk holds the basket for you inside your limits. Practice today; the live desk is planned." },
-    agents: { body: "Strategies bet test money on Windows for you. Your desk holds real PreStocks tokens for you.", cta: "Open your desk →" },
+    agents: { body: "Strategies bet demo credits on Windows for you. Your desk holds pre-IPO calls for you, in demo credits.", cta: "Open your desk →" },
     reel: { badge: "YOUR DESK", title: "Your desk", voice: (line: string) => line, cta: "Read the decision →", foot: "Your own desk's latest decision, from its record." },
     sensei: { starter: "Why did my desk wait?" },
-    tutorial: " A desk can also hold a basket of PreStocks for you, with real money, inside your limits.",
+    tutorial: " A desk can also hold a basket of pre-IPO names for you, in demo credits, inside your limits.",
   },
 } as const;

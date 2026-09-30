@@ -40,10 +40,10 @@ export function Mechanics() {
         <h2 className="hiw-label">{HOW_IT_WORKS.sections.pricing}</h2>
         <div className="hiw-card hiw-card-wide hiw-rise" style={riseDelay(0, 450)}>
           <p className="hiw-body" style={{ marginBottom: 24 }}>
-            Nothing here is modelled. The price of <span className="text-ink">UP</span> is the best offer resting on the
-            book, in cents — which is also the market&apos;s probability. <span className="text-ink">DOWN</span> is the same
-            book seen from the other side. A UP buy and a DOWN buy that add up to one dollar can match into a freshly
-            minted pair, so a quote exists from the first second without a market maker.
+            The price of <span className="text-ink">UP</span> is the venue&apos;s firm quote for it, in cents — read as the
+            market&apos;s probability. <span className="text-ink">DOWN</span> is the same Window priced from the other side.
+            The venue is the house: it publishes a price ladder for every live Window and quotes each seat off it, so
+            there is a price from the first second, and no order book.
           </p>
           <div className="hiw-formula" role="figure" aria-label={HOW_IT_WORKS.sections.pricing}>
             <span>{HOW_IT_WORKS.formula.identity}</span>

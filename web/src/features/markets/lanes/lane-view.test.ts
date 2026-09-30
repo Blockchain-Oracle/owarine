@@ -5,16 +5,17 @@ import { pausedCopy, priceSourceLine } from "./lane-view";
 const window = (asset: "TSLA" | "OPENAI" | "AILABS" | "BTC", lane: "regular" | "token") => ({ asset, lane, tradingStartSec: 1_790_000_000, expirySec: 1_790_003_600 }) as const;
 
 describe("priceSourceLine (S19: the source is the asset's kind, not the lane)", () => {
-  it("names Switchboard only for an xStock, the PreStocks read for a pre-IPO name, and the index for a basket", () => {
-    expect(priceSourceLine(window("TSLA", "token"))).toContain("Switchboard TSLAx");
+  it("names the Jupiter Price v3 median only for an xStock, the PreStocks read for a pre-IPO name, and the index for a basket", () => {
+    expect(priceSourceLine(window("TSLA", "token"))).toContain("Jupiter Price v3 median of three TSLAx");
+    expect(priceSourceLine(window("TSLA", "token"))).not.toContain("Switchboard");
     const openai = priceSourceLine(window("OPENAI", "token"));
     expect(openai).toContain("PreStocks OpenAI token price");
-    expect(openai).not.toContain("Switchboard");
+    expect(openai).not.toContain("Jupiter");
     const ailabs = priceSourceLine(window("AILABS", "token"));
     expect(ailabs).toContain("AI Labs index, in points");
     expect(ailabs).toContain("OpenAI, Anthropic");
-    expect(ailabs).not.toContain("Switchboard");
-    expect(priceSourceLine(window("TSLA", "regular"))).not.toContain("Switchboard");
+    expect(ailabs).not.toContain("Jupiter");
+    expect(priceSourceLine(window("TSLA", "regular"))).not.toContain("Jupiter");
   });
 
   it("C6: every lane names its attested source; crypto names the three exchanges", () => {
