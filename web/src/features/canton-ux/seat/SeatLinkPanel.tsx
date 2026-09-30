@@ -94,6 +94,7 @@ export function SeatLinkPanel({ initialCode }: { initialCode: string | null }) {
         onFresh={() => void fresh()}
         verify={verify}
         joinDefault={joinDefault}
+        headingLevel={1}
       />
       {problem ? (
         <div className="cx-link-problem">

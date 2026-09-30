@@ -43,6 +43,8 @@ interface SeatLinkCardProps {
   verify: (code: string) => Promise<boolean | string>;
   /** Fixtures only: the entry's first state. */
   joinDefault?: { value: string; status: OtpStatus };
+  /** The title's heading level: 2 among a fixture page's sections, 1 when the card is the page (`/seat/link`). */
+  headingLevel?: 1 | 2;
 }
 
 function CopyCode({ code, disabled }: { code: string; disabled: boolean }) {
@@ -152,8 +154,9 @@ function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seat
   );
 }
 
-export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linkedDevice = "Your iPhone", waitingKey = null, onDecide, onFresh, verify, joinDefault }: SeatLinkCardProps) {
+export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linkedDevice = "Your iPhone", waitingKey = null, onDecide, onFresh, verify, joinDefault, headingLevel = 2 }: SeatLinkCardProps) {
   const titleId = useId();
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   const now = useNowMs();
   const leftSec = expiresAtSec !== null && now > 0 ? Math.max(0, Math.ceil(expiresAtSec - now / 1000)) : null;
   // A code that runs out on screen turns into the expired state by itself; it never shows a stale code as live.
@@ -164,9 +167,9 @@ export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linke
         <span className="cx-link-mark" aria-hidden>
           <Link2 />
         </span>
-        <h2 id={titleId} className="cx-link-title">
+        <Heading id={titleId} className="cx-link-title">
           {L.title}
-        </h2>
+        </Heading>
         <p className="cx-link-sub">{L.subtitle}</p>
       </header>
 
