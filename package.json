@@ -18,7 +18,9 @@
     "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",
     "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "archive:start": "bash scripts/archive/start.sh",
-    "ops:start": "pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/main.ts"
+    "ops:start": "pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/main.ts",
+    "devnet:preflight": "pnpm --filter @agari/scripts exec tsx --env-file-if-exists=$HOME/.config/agari/canton/devnet.env devnet-preflight.ts",
+    "devnet:bootstrap": "pnpm --filter @agari/scripts exec tsx --env-file-if-exists=$HOME/.config/agari/canton/devnet.env bootstrap-devnet.ts"
   },
   "devDependencies": {
     "tsx": "catalog:",

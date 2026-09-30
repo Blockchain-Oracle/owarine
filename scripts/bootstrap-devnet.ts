@@ -50,8 +50,10 @@ if (local && !flag("--allow-local")) {
 const client = ledgerClientFromEnv(env);
 const dryRun = flag("--dry-run");
 const seats = Number(arg("--seats", String(DEFAULT_SEATS)));
-const input = resolve(arg("--parties", process.env.AGARI_PARTIES_FILE || DEFAULT_FILE));
-const out = resolve(arg("--out", input.endsWith(".json") ? input : DEFAULT_FILE));
+/** `~/…` expanded: an env file does not expand it, and a relative path would resolve inside the repo. */
+const home = (p: string) => resolve(p.replace(/^~(?=\/|$)/, homedir()));
+const input = home(arg("--parties", process.env.AGARI_PARTIES_FILE || DEFAULT_FILE));
+const out = home(arg("--out", input.endsWith(".json") ? input : DEFAULT_FILE));
 const commit = (() => {
   try {
     return execFileSync("git", ["rev-parse", "--short", "HEAD"], { cwd: REPO, encoding: "utf8" }).trim();
