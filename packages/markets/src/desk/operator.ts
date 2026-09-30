@@ -215,7 +215,7 @@ async function mandateFor(client: DeskOperatorClient, owner: Address): Promise<{
 
 /** One sealing command as the operator, disclosed, under its deterministic id; the seal read back from the result. */
 async function seal(client: DeskOperatorClient, m: { cid: string; data: DeskMandateC }, step: string, decisionHash: Hash32, commands: ReturnType<typeof acmd.deskCheckpoint>[], disclosed: DisclosedContract[]): Promise<SwapResult> {
-  const address = deskAddressOf(m.data.owner, m.data.venue);
+  const address = deskAddressOf(m.data);
   const commandId = deskCommandId(address, decisionHash, step);
   try {
     const out = await submit(client.config.operator, { commandId, commands, ...(disclosed.length ? { disclosedContracts: disclosed } : {}) });
@@ -309,7 +309,7 @@ export async function checkpoint(client: DeskOperatorClient, a: CheckpointAction
 
 async function pauseDesk(client: DeskOperatorClient, owner: Address, step: string): Promise<DeskSendResult> {
   const m = await mandateFor(client, owner);
-  const commandId = `desk:${deskAddressOf(m.data.owner, m.data.venue)}:${step}:${m.cid.slice(0, 40)}`;
+  const commandId = `desk:${deskAddressOf(m.data)}:${step}:${m.cid.slice(0, 40)}`;
   const out = await submit(client.config.operator, { commandId, commands: [acmd.pauseDesk(m.cid, client.address as string)] });
   if (out.kind !== "done") throw new DeskSendError("simulation", new Error(out.note), null);
   return { signature: out.transaction.updateId as Signature, slot: BigInt(out.transaction.offset), computeUnitLimit: 0, unitsConsumed: 0, bytes: 0, events: [] };

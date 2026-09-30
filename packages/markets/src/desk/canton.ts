@@ -135,7 +135,7 @@ export function heldLotsBySymbol(m: DeskMandateC, nowSec: number): Map<PreIpoSym
 
 export function deskStateOf(i: DeskStateInput): DeskState {
   const m = i.mandate;
-  const address = deskAddressOf(m.owner, m.venue);
+  const address = deskAddressOf(m);
   const { spent, windowStartSec } = spentToday(m, i.nowSec);
   const daily = m.grant.caps.maxDailySpend;
   const held = heldLotsBySymbol(m, i.nowSec);

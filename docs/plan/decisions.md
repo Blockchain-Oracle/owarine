@@ -492,6 +492,17 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the entry's shared-desk card and link show a real desk on this network, or no card at all; never a dead link.
 - **Approval:** default; overrulable.
 
+### K-210 — A desk is its owner's only under the owner's current lease; its address names its opening (overflow block)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding H2)
+- **Evidence:** a desk's address was SHA-256(venue · owner party), and a seat party is recycled, so visitor A's index row pointed at visitor B's live desk on the same party: `GET /api/desk/<A>?viewer=A` returned B's desk, and the runner could trade A's record on B's mandate. Tests: `packages/markets/src/desk/lease-bound.test.ts`, `services/ops/src/actors/desk-runner/lease-bound.test.ts`, `web/src/features/desk/chain-lease.test.ts`, `packages/db/src/desk-lease.test.ts` (Postgres).
+- **Rule:**
+  - The web's `readChain` and the runner's `reconcileLive` look a row's mandate up only among the mandates of the party the row's owner leases NOW (`findLeasedMandate`); an owner with no lease gets nothing, and the runner closes that row ("the seat this desk belonged to was reset or passed on").
+  - The seat drain closes the draining lease's index rows (the holder's, a joined key's, and any row on the party's pre-C4d address) with a `state_set` event (`closeLeaseDesks`).
+  - A desk's address is SHA-256(venue · owner party · its opening), the opening being the embedded grant's expiry, which `DeskOffer_Open` sets once from the server's clock and every later choice keeps. **Trade-off:** the review asked for the lease id in the address; the ledger does not know lease ids, and every writer of a desk address (the operator's command ids, the discovery pass, a decision's history) derives it from the mandate alone. An opening always falls inside one lease (the drain must close the mandate before `readSeatHoldings` lets the party be freed), so the opening is a lease-bound identity the ledger can reproduce. A row written before C4d keeps the old address, which resolves only for the party's current lessee.
+  - A desk's history is the live mandate's own hash chain walked back from its head, so an earlier lessee's decisions on the same party are never counted.
+- **User-visible:** none for a visitor's own desk. A recycled seat's next visitor never sees, and is never traded through, the previous visitor's desk; the previous visitor's desk page reads "closed".
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

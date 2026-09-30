@@ -48,3 +48,5 @@ export * from "./desk-series";
 export * from "./desk-queries";
 export * from "./take-tags";
 export * from "./idx/social-gate";
+// C4d (K-210): a draining seat's desks are closed in the index with it.
+export * from "./desk-lease";
