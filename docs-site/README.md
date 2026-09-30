@@ -20,7 +20,7 @@ Step-by-step guides for Agari on **Canton Network**: taking a seat, demo-credit 
 | See how attested prints are made | [PreStocks and Pyth in Agari](content/docs/architecture/prestocks-and-pyth.mdx) |
 | Check prerequisites and open limitations | [Availability](content/docs/help/availability.mdx) |
 
-The guides' screenshots are cropped from the lanes' own local-sandbox screenshots; the [Canton capture manifest](public/captures/provenance-canton-2026-09-30.json) names each file's source, route and crop. Earlier captures and three walkthrough recordings of the build before the Canton port remain in `public/captures/` and `public/videos/` with their own manifests; no guide embeds them, because they show that build's screens.
+The guides' screenshots are cropped from the lanes' own local-sandbox screenshots; the [Canton capture manifest](public/captures/provenance-canton-2026-09-30.json) names each file's source, route and crop.
 
 The three diagrams are rendered from [Agari architecture data](lib/architecture.json) with `node scripts/export-architecture.mjs`; the live diagrams also expose each stage's authority boundary.
 
