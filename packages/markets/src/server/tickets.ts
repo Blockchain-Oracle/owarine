@@ -43,6 +43,13 @@ export interface TicketSeatConfig {
 
 const FACTS_CACHE_MS = 3_000;
 
+/** The seat acting: its party, its lease, and the lease's start offset (C4d H3; contracts before it are not its own). */
+export interface TicketActor {
+  party: Party;
+  leaseId: string;
+  fromOffset?: number;
+}
+
 const sideOf = (s: "SideUp" | "SideDown"): "up" | "down" => (s === "SideUp" ? "up" : "down");
 
 
@@ -53,9 +60,10 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   let facts: { at: number; value: Promise<{ resolutions: Map<string, WindowFacts>; byMarket: Map<string, MarketFacts>; opens: Map<string, bigint> }> } | null = null;
   const markets = createMarketReader(client, cfg.venueParty, { now });
 
-  async function read(party: Party): Promise<TicketSeatSnapshot> {
+  /** The seat's ticket contracts from `fromOffset` (its lease's start, C4d H3) on; cash whatever its offset. */
+  async function read(party: Party, fromOffset = 0): Promise<TicketSeatSnapshot> {
     const r = await client.activeContracts({ parties: [party], templateIds: [...SEAT_TICKET_TEMPLATES] });
-    return toTicketSnapshot(party, r.contracts.map((c) => c.createdEvent), r.activeAtOffset);
+    return toTicketSnapshot(party, r.contracts.map((c) => c.createdEvent), r.activeAtOffset, fromOffset);
   }
 
   /** Every Window's Resolution (with its disclosure) and live opening print, read as the venue, read-only. */
@@ -88,10 +96,10 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
     return value;
   }
 
-  async function mine(party: Party): Promise<{ value: TicketsMine; offset: number; busyUntilMs: number }> {
+  async function mine(party: Party, fromOffset = 0): Promise<{ value: TicketsMine; offset: number; busyUntilMs: number }> {
     const noLadders = new Map<string, { up: readonly BookLevel[]; down: readonly BookLevel[] }>();
     const [snap, f, fair, ladders] = await Promise.all([
-      read(party), windowFacts(), cfg.fairTicks ? cfg.fairTicks().catch(() => new Map<string, number>()) : Promise.resolve(new Map<string, number>()),
+      read(party, fromOffset), windowFacts(), cfg.fairTicks ? cfg.fairTicks().catch(() => new Map<string, number>()) : Promise.resolve(new Map<string, number>()),
       cfg.ladders ? cfg.ladders().catch(() => noLadders) : Promise.resolve(noLadders),
     ]);
     const rounds = snap.rounds.map(({ cid, data: r }) => {
@@ -152,7 +160,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
     return out;
   }
 
-  async function owned(commandId: string, actor: { party: Party; leaseId: string }): Promise<CommandRow | null> {
+  async function owned(commandId: string, actor: TicketActor): Promise<CommandRow | null> {
     const row = await journal.get(commandId);
     if (row && (row.party !== actor.party || row.leaseId !== actor.leaseId)) throw refuse("contract-revert", "this command id belongs to another seat");
     return row;
@@ -180,14 +188,14 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   }
 
   /** One seat command, journaled first, recovered by its id: the shape `writes.ts` gives accepts and claims. */
-  async function runCommand(actor: { party: Party; leaseId: string }, intent: Exclude<SeatIntent, "duel">, journalId: string, plan: (snap: TicketSeatSnapshot) => Plan | Promise<Plan>): Promise<TicketWriteReply> {
+  async function runCommand(actor: TicketActor, intent: Exclude<SeatIntent, "duel">, journalId: string, plan: (snap: TicketSeatSnapshot) => Plan | Promise<Plan>): Promise<TicketWriteReply> {
     const commandId = seatCommandId(intent, journalId);
     let ctx: RejectionContext = { step: intent === "agent" ? "accept" : intent };
     try {
       const prior = await owned(commandId, actor);
       const earlier = prior?.state === "landed" || prior?.state === "unknown" ? await landedTx(prior, actor.party) : null;
       if (earlier) return confirmed(earlier, actor.party, true);
-      const snap = await read(actor.party);
+      const snap = await read(actor.party, actor.fromOffset);
       let p: Plan;
       try {
         p = await plan(snap);
@@ -209,7 +217,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
       };
       let result = await send(p.commands);
       if (!result.ok && p.retryWith && result.diagnosis.kind === "insufficient-collateral" && result.error instanceof LedgerError && result.error.kind === "not-found") {
-        result = await send(p.retryWith(await read(actor.party)));
+        result = await send(p.retryWith(await read(actor.party, actor.fromOffset)));
       }
       if (!result.ok) {
         if (result.diagnosis.kind === "order-expired" || result.diagnosis.kind === "already-claimed") {
@@ -236,7 +244,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   };
 
   /** The seat takes a quote the venue issued it: a ticket, a boost exit, or a liquidity quote. */
-  function accept(actor: { party: Party; leaseId: string }, product: TicketProduct, o: { journalId: string; quoteCid: string }): Promise<TicketWriteReply> {
+  function accept(actor: TicketActor, product: TicketProduct, o: { journalId: string; quoteCid: string }): Promise<TicketWriteReply> {
     return runCommand(actor, "accept", o.journalId, (snap) => {
       const gone = () => refuse("order-expired", "the quote is no longer open for this seat (accepted, expired or withdrawn)");
       const live = (validUntilSec: number) => {
@@ -281,7 +289,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
    * refund / void) once its deadline has passed with no resolution. A claim with no resolution yet falls back to the
    * refund when that deadline has passed, as the legs' claim does.
    */
-  function exit(actor: { party: Party; leaseId: string }, product: Exclude<TicketProduct, "earn">, mode: "claim" | "refund", o: { journalId: string; ticketCid: string }): Promise<TicketWriteReply> {
+  function exit(actor: TicketActor, product: Exclude<TicketProduct, "earn">, mode: "claim" | "refund", o: { journalId: string; ticketCid: string }): Promise<TicketWriteReply> {
     return runCommand(actor, mode, o.journalId, async (snap) => {
       const nowSec = Math.floor(now() / 1000);
       const f = await windowFacts();
@@ -315,8 +323,8 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   }
 
   /** Before a withdrawal: the seat's shares of one reserve merged into one contract (its own `LpShare_Merge`). */
-  async function mergeShares(actor: { party: Party; leaseId: string }, reserve: EarnReserveId): Promise<void> {
-    const snap = await read(actor.party);
+  async function mergeShares(actor: TicketActor, reserve: EarnReserveId): Promise<void> {
+    const snap = await read(actor.party, actor.fromOffset);
     const mine = snap.lpShares.filter((s) => s.data.reserveId === reserve);
     if (mine.length < 2) return;
     const [head, ...rest] = mine;
