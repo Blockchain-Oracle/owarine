@@ -179,6 +179,29 @@ template CcWithdrawal
         receipt <- create this with state = WdRefunded; instructionCid = None
         pure (receipt, cash, allowance)
 
+    -- The owner rejected the transfer (or it was cancelled by the registry) and the
+    -- coin came back to the venue: the instruction is gone, so there is nothing to
+    -- take back. The venue restores the cash and the allowance on its own word, but
+    -- must name unlocked holdings of the instrument worth at least what was sent, so
+    -- it cannot refund a transfer it holds nothing for. (That the coin is the
+    -- returned coin is the auditor's check: the statement shows a shortfall if not.)
+    choice Withdrawal_RefundReturned : (ContractId CcWithdrawal, ContractId VenueCash, ContractId CcAllowance)
+      with
+        accountCid : ContractId VenueAccount
+        allowanceCid : Optional (ContractId CcAllowance)
+        returned : [ContractId H.Holding]
+      controller venue
+      do
+        require "not-sent" "only a withdrawal in flight can be refunded" (state == WdSent)
+        held <- holdingsAtomic venue instrumentAdmin instrumentId True returned
+        require "not-returned" "the named holdings do not cover the coin that was sent" (held >= sentAtomic)
+        acct <- fetch accountCid
+        require "wrong-account" "the account is not the owner's" (acct.venue == venue && acct.owner == owner)
+        cash <- exercise accountCid VenueAccount_Credit with amount = units; bucket = refundBucket listingId
+        allowance <- raiseAllowance venue auditor owner listingId allowanceCid units
+        receipt <- create this with state = WdRefunded; instructionCid = None
+        pure (receipt, cash, allowance)
+
 -- ---------------------------------------------------------------------------
 -- Reserve statement
 

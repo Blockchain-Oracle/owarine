@@ -15,12 +15,13 @@ var pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c = requir
 var pkg4ded6b668cb3b64f7a88a30874cd41c75829f5e064b3fbbadf41ec7e8363354f = require('@daml.js/splice-api-token-metadata-v1-1.0.0');
 var pkg55ba4deb0ad4662c4168b39859738a0e91388d252286480c7331b3f71a517281 = require('@daml.js/splice-api-token-transfer-instruction-v1-1.0.0');
 var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
+var pkg718a0f77e505a8de22f188bd4c87fe74101274e9d4cb1bfac7d09aec7158d35b = require('@daml.js/splice-api-token-holding-v1-1.0.0');
 var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
 
 exports.CcAllowance = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-cc:PM.CC.Records:CcAllowance',
-    templateIdWithPackageId: '#3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a:PM.CC.Records:CcAllowance',
+    templateIdWithPackageId: '#7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da:PM.CC.Records:CcAllowance',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -56,12 +57,12 @@ exports.CcAllowance = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.CcAllowance, ['3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a', '#abu-pm-cc']);
+damlTypes.registerTemplate(exports.CcAllowance, ['7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da', '#abu-pm-cc']);
 
 exports.CcDeposit = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-cc:PM.CC.Records:CcDeposit',
-    templateIdWithPackageId: '#3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a:PM.CC.Records:CcDeposit',
+    templateIdWithPackageId: '#7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da:PM.CC.Records:CcDeposit',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -109,12 +110,12 @@ exports.CcDeposit = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.CcDeposit, ['3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a', '#abu-pm-cc']);
+damlTypes.registerTemplate(exports.CcDeposit, ['7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da', '#abu-pm-cc']);
 
 exports.CcReserveStatement = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-cc:PM.CC.Records:CcReserveStatement',
-    templateIdWithPackageId: '#3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a:PM.CC.Records:CcReserveStatement',
+    templateIdWithPackageId: '#7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da:PM.CC.Records:CcReserveStatement',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -166,12 +167,12 @@ exports.CcReserveStatement = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.CcReserveStatement, ['3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a', '#abu-pm-cc']);
+damlTypes.registerTemplate(exports.CcReserveStatement, ['7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da', '#abu-pm-cc']);
 
 exports.CcWithdrawal = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-cc:PM.CC.Records:CcWithdrawal',
-    templateIdWithPackageId: '#3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a:PM.CC.Records:CcWithdrawal',
+    templateIdWithPackageId: '#7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da:PM.CC.Records:CcWithdrawal',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -244,10 +245,22 @@ exports.CcWithdrawal = damlTypes.assembleTemplate(
       }),
       resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.CcWithdrawal), damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash), damlTypes.ContractId(exports.CcAllowance)).encode(__typed__); },
     },
+    Withdrawal_RefundReturned: {
+      template: function () { return exports.CcWithdrawal; },
+      choiceName: 'Withdrawal_RefundReturned',
+      argumentDecoder: damlTypes.lazyMemo(function () {
+        return exports.Withdrawal_RefundReturned.decoder;
+      }),
+      argumentEncode: function (__typed__) { return exports.Withdrawal_RefundReturned.encode(__typed__); },
+      resultDecoder: damlTypes.lazyMemo(function () {
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.CcWithdrawal), damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash), damlTypes.ContractId(exports.CcAllowance)).decoder;
+      }),
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.CcWithdrawal), damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash), damlTypes.ContractId(exports.CcAllowance)).encode(__typed__); },
+    },
   },
 );
 
-damlTypes.registerTemplate(exports.CcWithdrawal, ['3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a', '#abu-pm-cc']);
+damlTypes.registerTemplate(exports.CcWithdrawal, ['7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da', '#abu-pm-cc']);
 
 exports.WithdrawalState = {
   WdSent: 'WdSent',
@@ -287,6 +300,23 @@ exports.Withdrawal_Refund = {
       accountCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueAccount).encode(__typed__.accountCid),
       allowanceCid: damlTypes.Optional(damlTypes.ContractId(exports.CcAllowance)).encode(__typed__.allowanceCid),
       extraArgs: pkg4ded6b668cb3b64f7a88a30874cd41c75829f5e064b3fbbadf41ec7e8363354f.Splice.Api.Token.MetadataV1.ExtraArgs.encode(__typed__.extraArgs),
+    };
+  },
+};
+
+exports.Withdrawal_RefundReturned = {
+  decoder: damlTypes.lazyMemo(function () {
+    return jtv.object({
+      accountCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueAccount).decoder,
+      allowanceCid: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(exports.CcAllowance)).decoder),
+      returned: damlTypes.List(damlTypes.ContractId(pkg718a0f77e505a8de22f188bd4c87fe74101274e9d4cb1bfac7d09aec7158d35b.Splice.Api.Token.HoldingV1.Holding)).decoder,
+    });
+  }),
+  encode: function (__typed__) {
+    return {
+      accountCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueAccount).encode(__typed__.accountCid),
+      allowanceCid: damlTypes.Optional(damlTypes.ContractId(exports.CcAllowance)).encode(__typed__.allowanceCid),
+      returned: damlTypes.List(damlTypes.ContractId(pkg718a0f77e505a8de22f188bd4c87fe74101274e9d4cb1bfac7d09aec7158d35b.Splice.Api.Token.HoldingV1.Holding)).encode(__typed__.returned),
     };
   },
 };

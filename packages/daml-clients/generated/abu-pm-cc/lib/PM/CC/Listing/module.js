@@ -23,7 +23,7 @@ var PM_CC_Records = require('../../../PM/CC/Records/module');
 exports.CcListing = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-cc:PM.CC.Listing:CcListing',
-    templateIdWithPackageId: '#3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a:PM.CC.Listing:CcListing',
+    templateIdWithPackageId: '#7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da:PM.CC.Listing:CcListing',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -103,7 +103,7 @@ exports.CcListing = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.CcListing, ['3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a', '#abu-pm-cc']);
+damlTypes.registerTemplate(exports.CcListing, ['7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da', '#abu-pm-cc']);
 
 exports.Listing_Attest = {
   decoder: damlTypes.lazyMemo(function () {

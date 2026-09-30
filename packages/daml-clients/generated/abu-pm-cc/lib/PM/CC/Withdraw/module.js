@@ -24,7 +24,7 @@ var PM_CC_Records = require('../../../PM/CC/Records/module');
 exports.CcWithdrawProposal = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-cc:PM.CC.Withdraw:CcWithdrawProposal',
-    templateIdWithPackageId: '#3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a:PM.CC.Withdraw:CcWithdrawProposal',
+    templateIdWithPackageId: '#7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da:PM.CC.Withdraw:CcWithdrawProposal',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -96,7 +96,7 @@ exports.CcWithdrawProposal = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.CcWithdrawProposal, ['3a36b786a702f6601ca9f92f3a356dab86c7a62c191ac83b4e3e1ad742814a9a', '#abu-pm-cc']);
+damlTypes.registerTemplate(exports.CcWithdrawProposal, ['7ca1f7acc93430751f92f451d63d4ffe30443c8d326a2ceb13929132afc297da', '#abu-pm-cc']);
 
 exports.Proposal_Accept = {
   decoder: damlTypes.lazyMemo(function () {

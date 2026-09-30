@@ -223,3 +223,37 @@ testProposalCancelAndDecline = script do
   submit c.w.venue do exerciseCmd p2 Proposal_Decline with reason = "over the daily limit"
   ps <- query @CcWithdrawProposal c.w.alice
   length ps === 0
+
+-- The owner rejects the transfer: the coin comes back to the venue, the instruction
+-- is gone, and `Withdrawal_Refund` can no longer take it back. The venue restores
+-- the cash and the allowance with `Withdrawal_RefundReturned`, naming holdings that
+-- cover the coin it sent; it cannot do it without them.
+testRejectedTransferRefundedAgainstReturnedCoin = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 2.0
+  prop <- proposeWithdraw c c.w.alice 200000 "rejected"
+  Right (wd, _) <- acceptWithdraw c c.registry prop c.w.alice acct
+  Some w <- queryContractId c.w.venue wd
+  Some instr <- pure w.instructionCid
+  -- before the reject the coin is locked: no holding covers it
+  none <- unlockedOf c.w.venue
+  refusedWith (refusal "not-returned") =<< trySubmit c.w.venue do
+    exerciseCmd wd Withdrawal_RefundReturned with accountCid = acct; allowanceCid = None; returned = none
+  _ <- submit c.w.alice do exerciseCmd instr T.TransferInstruction_Reject with extraArgs = noExtra
+  coinOf c.w.venue >>= (=== atomicOf 2.0)
+  -- the instruction is gone: the ordinary refund has nothing to take back
+  fails =<< trySubmit c.w.venue do
+    exerciseCmd wd Withdrawal_Refund with accountCid = acct; allowanceCid = None; extraArgs = noExtra
+  back <- unlockedOf c.w.venue
+  (refunded, _, restored) <- submit c.w.venue do
+    exerciseCmd wd Withdrawal_RefundReturned with accountCid = acct; allowanceCid = None; returned = back
+  cashOf c.w.alice >>= (=== 200000)
+  expectUnits c c.w.alice 200000
+  Some r <- queryContractId c.w.venue refunded
+  r.state === WdRefunded
+  Some a <- queryContractId c.w.alice restored
+  a.units === 200000
+  -- once refunded it is final
+  fails =<< trySubmit c.w.venue do
+    exerciseCmd refunded Withdrawal_RefundReturned with accountCid = acct; allowanceCid = Some restored; returned = back

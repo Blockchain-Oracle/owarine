@@ -10,6 +10,7 @@ import * as pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c 
 import * as pkg4ded6b668cb3b64f7a88a30874cd41c75829f5e064b3fbbadf41ec7e8363354f from '@daml.js/splice-api-token-metadata-v1-1.0.0';
 import * as pkg55ba4deb0ad4662c4168b39859738a0e91388d252286480c7331b3f71a517281 from '@daml.js/splice-api-token-transfer-instruction-v1-1.0.0';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
+import * as pkg718a0f77e505a8de22f188bd4c87fe74101274e9d4cb1bfac7d09aec7158d35b from '@daml.js/splice-api-token-holding-v1-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
 export declare type CcAllowance = {
@@ -106,6 +107,9 @@ export declare interface CcWithdrawalInterface {
   Withdrawal_Refund: 
     damlTypes.Choice<CcWithdrawal, Withdrawal_Refund, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<CcWithdrawal>, damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>, damlTypes.ContractId<CcAllowance>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<CcWithdrawal, undefined>>;
+  Withdrawal_RefundReturned: 
+    damlTypes.Choice<CcWithdrawal, Withdrawal_RefundReturned, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<CcWithdrawal>, damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>, damlTypes.ContractId<CcAllowance>>, undefined> &
+    damlTypes.ChoiceFrom<damlTypes.Template<CcWithdrawal, undefined>>;
 }
 export declare const CcWithdrawal:
   damlTypes.Template<CcWithdrawal, undefined, '#abu-pm-cc:PM.CC.Records:CcWithdrawal'> &
@@ -135,3 +139,12 @@ export declare type Withdrawal_Refund = {
 
 export declare const Withdrawal_Refund:
   damlTypes.Serializable<Withdrawal_Refund>
+
+export declare type Withdrawal_RefundReturned = {
+  accountCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueAccount>,
+  allowanceCid: damlTypes.Optional<damlTypes.ContractId<CcAllowance>>,
+  returned: damlTypes.ContractId<pkg718a0f77e505a8de22f188bd4c87fe74101274e9d4cb1bfac7d09aec7158d35b.Splice.Api.Token.HoldingV1.Holding>[],
+}
+
+export declare const Withdrawal_RefundReturned:
+  damlTypes.Serializable<Withdrawal_RefundReturned>
