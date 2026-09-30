@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { parseShareInstruments, HoldingsReadError, readHoldings } from "@agari/markets/holdings";
 import { webEnv } from "@/lib/env";
 import { seatFromRequest } from "@/lib/seat.server";
-import { admitIp, cachedHoldings, clientIp, OWNER_CACHE_MS } from "./gate";
+import { admitIp, cachedHoldings, clientIp } from "./gate";
 
 /**
  * `GET /api/holdings` (C7b): the leased seat's verified tokenised share holdings on Canton, read-only, with integers as
@@ -18,15 +18,17 @@ const refuse = (status: number, error: string) => Response.json({ error }, { sta
 
 export async function GET(request: NextRequest) {
   const nowMs = Date.now();
-  if (!admitIp(clientIp(request), nowMs)) return refuse(429, "Too many holdings reads — try again in a minute.");
   const auth = await seatFromRequest(request, { write: false });
   if (!auth.ok) return auth.response;
+  // After the proof, so anonymous traffic behind a shared address cannot spend a real seat's budget.
+  if (!admitIp(clientIp(request), nowMs)) return refuse(429, "Too many holdings reads — try again in a minute.");
   const { server, lease } = auth.seat;
   try {
-    const body = await cachedHoldings(lease.party, nowMs, () =>
+    // Keyed by the lease as well as the party: a recycled seat's next visitor is never answered the last one's read.
+    const body = await cachedHoldings(`${lease.leaseId}:${lease.party}`, nowMs, () =>
       readHoldings({ client: server.client, party: lease.party, instruments: parseShareInstruments(process.env.CIP56_SHARE_INSTRUMENTS), cluster: webEnv.markets.cluster, nowSec: Math.floor(nowMs / 1000) }),
     );
-    return Response.json(body, { headers: { "Cache-Control": `private, max-age=${OWNER_CACHE_MS / 1000}` } });
+    return Response.json(body, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     // HoldingsReadError messages carry no URL or credential by construction; anything else is summarized, never echoed.
     console.error("api/holdings:", error instanceof HoldingsReadError ? error.message : error instanceof Error ? error.name : "unknown");

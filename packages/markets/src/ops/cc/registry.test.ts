@@ -43,13 +43,30 @@ describe("registry client (C7b; from the OpenAPI, run against fixtures only)", (
   it("refuses an answer that does not match the token standard, and reports a registry error without echoing arguments", async () => {
     const bad = createRegistryClient({ baseUrl: "https://r.example", fetch: (async () => json({ factoryId: "x" })) as unknown as typeof fetch });
     await expect(bad.transferFactory({})).rejects.toThrow(/did not match/);
-    const down = createRegistryClient({ baseUrl: "https://r.example", fetch: (async () => json({ error: "no such instrument" }, 404)) as unknown as typeof fetch });
-    await expect(down.transferFactory({ secret: "s3cret" })).rejects.toMatchObject({ status: 404, message: expect.stringContaining("no such instrument") });
-    await expect(down.transferFactory({ secret: "s3cret" })).rejects.not.toThrow(/s3cret/);
+    const down = createRegistryClient({ baseUrl: "https://r.example", fetch: (async () => json({ error: "no party alice::1220 for contract 00abc" }, 404)) as unknown as typeof fetch });
+    // only the status survives: the body can echo party and contract ids
+    await expect(down.transferFactory({ secret: "s3cret" })).rejects.toMatchObject({ status: 404, message: "the registry answered 404" });
     const dead = createRegistryClient({ baseUrl: "https://r.example", fetch: (async () => { throw new TypeError("connect ECONNREFUSED 10.0.0.1"); }) as unknown as typeof fetch });
     const error = await dead.transferFactory({}).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(RegistryError);
     expect(String((error as Error).message)).not.toContain("10.0.0.1");
+  });
+});
+
+describe("the registry endpoint is a trust root (C7b)", () => {
+  it("must be https, except a loopback stub", () => {
+    expect(() => createRegistryClient({ baseUrl: "http://registry.example" })).toThrow(/https/);
+    expect(() => createRegistryClient({ baseUrl: "ftp://registry.example" })).toThrow(/https/);
+    expect(() => createRegistryClient({ baseUrl: "https://registry.example" })).not.toThrow();
+    expect(() => createRegistryClient({ baseUrl: "http://127.0.0.1:8080" })).not.toThrow();
+    expect(() => createRegistryClient({ baseUrl: "http://localhost:8080/api" })).not.toThrow();
+  });
+
+  it("refuses an answer larger than a megabyte, declared or not", async () => {
+    const declared = createRegistryClient({ baseUrl: "https://r.example", fetch: (async () => new Response("{}", { status: 200, headers: { "content-length": "5000000" } })) as unknown as typeof fetch });
+    await expect(declared.transferFactory({})).rejects.toThrow(/too large/);
+    const big = createRegistryClient({ baseUrl: "https://r.example", fetch: (async () => new Response(`{"x":"${"a".repeat(1_100_000)}"}`, { status: 200 })) as unknown as typeof fetch });
+    await expect(big.transferFactory({})).rejects.toThrow(/too large/);
   });
 });
 

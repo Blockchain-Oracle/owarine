@@ -17,6 +17,7 @@ const created = (templateId: string, contractId: string, createArgument: unknown
   createdEvent: { offset: ++offset, nodeId: 0, contractId, templateId: `${PKG}:${templateId.slice(templateId.indexOf(":") + 1)}`, packageName: "x", createArgument, witnessParties: [VENUE], signatories: [VENUE], "createdAt": "2026-10-01T12:00:00Z", ...more },
 });
 
+const TERMS = { instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE };
 const LISTING = created(CC_TEMPLATE_IDS.CcListing, "listing", {
   venue: VENUE, auditor: "aud::1", listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE, minDepositUnits: "100", maxDepositUnits: "100000000000", depositsOpen: true,
 });
@@ -71,7 +72,7 @@ describe("the rail's venue pass (C7b, against a fake ledger and a fake registry)
       templates: [LISTING, ACCOUNT],
       views: [
         withViews("pkg:Splice.Amulet:AmuletTransferInstruction", "instr1", [{ interfaceId: CIP56_INTERFACE_IDS.TransferInstruction, viewValue: instrView(ALICE, VENUE, "12.5000000000") }], { signatories: [ALICE, ADMIN] }),
-        withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "3.0000000000") }]),
+        withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "3.0000000000") }], { signatories: [VENUE, ADMIN] }),
         withViews("pkg:Splice.Amulet:Amulet", "alices", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(ALICE, "9.0000000000") }]),
       ],
     });
@@ -131,11 +132,11 @@ describe("the rail's venue pass (C7b, against a fake ledger and a fake registry)
     const h = harness({
       templates: [
         LISTING, ACCOUNT,
-        created(CC_TEMPLATE_IDS.CcAllowance, "al-alice", { venue: VENUE, auditor: "aud::1", owner: ALICE, listingId: "cc-1", units: "1000000" }),
-        created(CC_TEMPLATE_IDS.CcWithdrawProposal, "prop1", { owner: ALICE, venue: VENUE, listingId: "cc-1", units: "400000", ref: "w-1" }, { signatories: [ALICE] }),
+        created(CC_TEMPLATE_IDS.CcAllowance, "al-alice", { venue: VENUE, auditor: "aud::1", owner: ALICE, listingId: "cc-1", ...TERMS, units: "1000000" }),
+        created(CC_TEMPLATE_IDS.CcWithdrawProposal, "prop1", { owner: ALICE, venue: VENUE, listingId: "cc-1", ...TERMS, units: "400000", "validUntil": "2026-10-01T13:00:00Z", ref: "w-1" }, { signatories: [ALICE] }),
         created(TEMPLATE_IDS.VenueCash, "cash1", { venue: VENUE, owner: ALICE, amount: "1000000", bucket: "cc:cc-1" }),
       ],
-      views: [withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "10.0000000000") }])],
+      views: [withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "10.0000000000") }], { signatories: [VENUE, ADMIN] })],
     });
     const reg = registry();
     const r = await railPass(deps(h, reg));
@@ -148,16 +149,91 @@ describe("the rail's venue pass (C7b, against a fake ledger and a fake registry)
     expect(c.contractId).toBe("prop1");
     expect(c.choiceArgument).toMatchObject({ listingCid: "listing", accountCid: "acct-alice", cashCids: ["cash1"], allowanceCid: "al-alice", factoryCid: "00factory", inputHoldingCids: ["hold1"] });
     expect(accept?.disclosedContracts).toEqual(ctx.disclosedContracts);
+    // the venue reads as the owner too, so the ledger can check the owner holds the coin a registry says it delivered
+    expect((accept as unknown as { readAs?: string[] }).readAs).toEqual([ALICE]);
+  });
+
+  it("never picks a look-alike holding as a transfer input, and does not count it in the statement", async () => {
+    const h = harness({
+      templates: [
+        LISTING, ACCOUNT,
+        created(CC_TEMPLATE_IDS.CcAllowance, "al-alice", { venue: VENUE, auditor: "aud::1", owner: ALICE, listingId: "cc-1", ...TERMS, units: "1000000" }),
+        created(CC_TEMPLATE_IDS.CcWithdrawProposal, "prop1", { owner: ALICE, venue: VENUE, listingId: "cc-1", ...TERMS, units: "400000", "validUntil": "2026-10-01T13:00:00Z", ref: "w-1" }, { signatories: [ALICE] }),
+        created(TEMPLATE_IDS.VenueCash, "cash1", { venue: VENUE, owner: ALICE, amount: "1000000", bucket: "cc:cc-1" }),
+      ],
+      views: [
+        withViews("evil:Fake:Holding", "fake", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "9999999.0000000000") }], { signatories: [VENUE, "attacker::1"] }),
+        withViews("pkg:Splice.Amulet:Amulet", "real", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "10.0000000000") }], { signatories: [VENUE, ADMIN] }),
+      ],
+    });
+    const reg = registry();
+    await railPass(deps(h, reg));
+    const asked = (reg.transferFactory.mock.calls[0] as unknown[])[0] as { transfer: { inputHoldingCids: string[] } };
+    expect(asked.transfer.inputHoldingCids).toEqual(["real"]);
+    const attest = h.submitted.find((s) => choiceOf(s.commands[0] as Command) === "Listing_Attest");
+    const arg = (attest?.commands[0] as { ExerciseCommand: { choiceArgument: { holdingCids: string[] } } }).ExerciseCommand.choiceArgument;
+    expect(arg.holdingCids).toEqual(["real"]);
+  });
+
+  it("spends at most maxRejectsPerPass rejects, after every settle, so a flood of dust from known senders cannot starve real work", async () => {
+    const dust = (n: number) => withViews("pkg:Splice.Amulet:AmuletTransferInstruction", `dust${n}`, [{ interfaceId: CIP56_INTERFACE_IDS.TransferInstruction, viewValue: instrView(ALICE, VENUE, "1.0000010000") }], { signatories: [ALICE, ADMIN] });
+    const h = harness({ templates: [LISTING, ACCOUNT], views: [dust(1), dust(2), dust(3), dust(4)] });
+    const reg = registry();
+    const r = await railPass(deps(h, reg, { maxRejectsPerPass: 2 }));
+    expect(r.rejected).toBe(2);
+    expect(reg.instructionContext).toHaveBeenCalledTimes(2);
+  });
+
+  it("skips a seat that was re-leased while the pass was running (K-224)", async () => {
+    const h = harness({
+      templates: [LISTING, ACCOUNT],
+      views: [withViews("pkg:Splice.Amulet:AmuletTransferInstruction", "instr1", [{ interfaceId: CIP56_INTERFACE_IDS.TransferInstruction, viewValue: instrView(ALICE, VENUE, "12.5000000000") }], { signatories: [ALICE, ADMIN] })],
+    });
+    const reg = registry();
+    const r = await railPass(deps(h, reg, { leaseOf: () => ({ startOffset: 1 }), freshLease: async () => ({ startOffset: 10_000 }) }));
+    expect(r.settled).toBe(0);
+    expect(reg.instructionContext).not.toHaveBeenCalled();
+  });
+
+  it("alerts, and sends nothing, for a transfer the owner rejected outside the receipt", async () => {
+    const withdrawal = created(CC_TEMPLATE_IDS.CcWithdrawal, "wd1", {
+      venue: VENUE, owner: ALICE, auditor: "aud::1", listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE, units: "200000", sentAtomic: "20000000000",
+      state: "WdSent", instructionCid: "gone1", openedAt: "2026-10-01T11:00:00Z", ref: "w",
+    });
+    const log = vi.fn();
+    const h = harness({ templates: [LISTING, ACCOUNT, withdrawal], views: [] });
+    const r = await railPass(deps(h, registry(), { log, history: async (cids) => new Map(cids.map((c) => [c, "rejected" as const])) }));
+    expect(r.orphaned).toBe(1);
+    expect(r.refunded).toBe(0);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("ALERT"));
+    expect(h.submitted.map((s) => choiceOf(s.commands[0] as Command))).not.toContain("Withdrawal_RefundReturned");
+  });
+
+  it("folds an owner's allowance in pieces into one", async () => {
+    const h = harness({
+      templates: [
+        LISTING, ACCOUNT,
+        created(CC_TEMPLATE_IDS.CcAllowance, "al-1", { venue: VENUE, auditor: "aud::1", owner: ALICE, listingId: "cc-1", ...TERMS, units: "100" }),
+        created(CC_TEMPLATE_IDS.CcAllowance, "al-2", { venue: VENUE, auditor: "aud::1", owner: ALICE, listingId: "cc-1", ...TERMS, units: "50" }),
+      ],
+      views: [],
+    });
+    const r = await railPass(deps(h, registry()));
+    expect(r.merged).toBe(1);
+    const m = h.submitted.find((s) => choiceOf(s.commands[0] as Command) === "Allowance_Merge");
+    const c = (m?.commands[0] as { ExerciseCommand: { contractId: string; choiceArgument: { others: string[] } } }).ExerciseCommand;
+    expect(c.contractId).toBe("al-1");
+    expect(c.choiceArgument.others).toEqual(["al-2"]);
   });
 
   it("declines what the owner did not deposit and never asks the registry", async () => {
     const h = harness({
       templates: [
         LISTING, ACCOUNT,
-        created(CC_TEMPLATE_IDS.CcWithdrawProposal, "prop1", { owner: ALICE, venue: VENUE, listingId: "cc-1", units: "400000", ref: "w-1" }, { signatories: [ALICE] }),
+        created(CC_TEMPLATE_IDS.CcWithdrawProposal, "prop1", { owner: ALICE, venue: VENUE, listingId: "cc-1", ...TERMS, units: "400000", "validUntil": "2026-10-01T13:00:00Z", ref: "w-1" }, { signatories: [ALICE] }),
         created(TEMPLATE_IDS.VenueCash, "cash1", { venue: VENUE, owner: ALICE, amount: "9000000", bucket: "payout" }),
       ],
-      views: [withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "10.0000000000") }])],
+      views: [withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "10.0000000000") }], { signatories: [VENUE, ADMIN] })],
     });
     const reg = registry();
     const r = await railPass(deps(h, reg));

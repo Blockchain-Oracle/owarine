@@ -39,11 +39,11 @@ Read the `cc-rail` lines in the ops log: `created listing cc-1: Amulet of … at
 1. Give a seat's party some Canton Coin (DevNet tap, or a wallet transfer to the party).
 2. Set `CC_RAIL_CAPABILITY` to `live` **locally and not committed**, run web against DevNet, and `POST /api/ledger/cc/deposit {"commandId":"<uuid>","amount":"12.5"}` as the seat. The registry is asked for the factory and the choice context; the seat instructs `TransferFactory_Transfer` to the venue.
 3. Set `DRY_RUN=0`. The actor accepts the instruction with the registry's accept context and credits the seat's cash in one transaction. Check: the seat's `VenueCash` (bucket `cc:cc-1`) is exactly `amount x 100000 / coin`; a `CcAllowance` of the same units and a `CcDeposit` receipt exist; the venue's holdings on Scan grew by `amount`.
-4. Try a dust amount (`1.000001` at the default rate): `depositAmount` and the route refuse it before signing; a transfer of it made outside the app is rejected back by the actor.
+4. Try a dust amount (`1.000001` at the default rate): `depositAmount` and the route refuse it before signing; a transfer of it made outside the app, from a seat that has a venue account, is rejected back by the actor. Check the holdings the actor counts: their signatories must include the DSO party, or every one is ignored.
 
 ## 5. A real withdrawal
 
-`POST /api/ledger/cc/withdraw {"commandId":"<uuid>","units":"400000"}` as the seat. The actor answers the proposal: the cash is debited, the allowance lowered, the transfer instructed. Two cases to see: the seat has a `TransferPreapproval` (the transfer completes at once, receipt `WdCompleted`), and it does not (the transfer is `Pending`; the seat accepts it, and the actor's history read records it completed; a transfer nobody accepts is taken back after `CC_REFUND_AFTER_SEC` and refunded).
+`POST /api/ledger/cc/withdraw {"commandId":"<uuid>","units":"400000"}` as the seat. The actor answers the proposal: the cash is debited, the allowance lowered, the transfer instructed. Two cases to see: the seat has a `TransferPreapproval` (the transfer completes at once, receipt `WdCompleted`), and it does not (the transfer is `Pending`; the seat accepts it, and the actor's history read records it completed; a transfer nobody accepts is taken back after `CC_REFUND_AFTER_SEC` and refunded; a pending transfer the owner does not want is rejected through the receipt, `Withdrawal_OwnerReject`, which returns cash and allowance in the same transaction. A transfer rejected in a wallet stays `Sent` and the actor logs an ALERT).
 
 ## 6. The reserve
 
@@ -62,12 +62,12 @@ Add the run's evidence to `docs/evidence/c7b-canton-coin.md` (update ids, screen
 | `CC_INSTRUMENT_ID` | `Amulet` | the instrument id |
 | `CC_UNITS_PER_COIN` | `100000` | the fixed rate; must divide 10^10 |
 | `CC_MIN_DEPOSIT_UNITS`, `CC_MAX_DEPOSIT_UNITS` | `100000`, `1000000000` | the listing's deposit bounds, in cash units |
-| `CC_REGISTRY_URL` | none | the token registry base; without it the actor reads and reports only |
+| `CC_REGISTRY_URL` | none | the token registry base (https only); without it the actor reads and reports only |
 | `CC_ALLOWED_PACKAGE_IDS` | any | package ids the registry's instruction templates may come from |
 | `CC_CREATE_LISTING` | off | create the listing when absent |
 | `CC_REQUIRE_LEASE` | on | credit and pay only seats with a live lease (K-224); off only for a LocalNet with no seat pool |
 | `CC_RAIL_EVERY_MS` | `15000` | pass interval |
-| `CC_REFUND_AFTER_SEC`, `CC_TRANSFER_WINDOW_SEC` | `86400` | how long a transfer the venue sent stays open, and when an unaccepted one is taken back |
+| `CC_REFUND_AFTER_SEC`, `CC_TRANSFER_WINDOW_SEC` | `86400` (at least 600) | when an unaccepted transfer is taken back, and how long one the venue sent stays open |
 | `CC_ATTEST_EVERY_SEC` | `300` | at least this often when anything moved |
 | `NEXT_PUBLIC_CIP56_HOLDINGS` | off | client flag: read the seat's CIP-56 holdings |
 | `CIP56_SHARE_INSTRUMENTS` | none | JSON `[{admin,id,symbol}]`: which instruments are verified share tokens |

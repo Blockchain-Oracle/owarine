@@ -58,6 +58,8 @@ export interface Cip56Holding {
   contractId: string;
   /** The created event's template (package-id form): whose registry carries the holding. */
   templateId: string;
+  /** Who signed it. An interface view is what a template says, so a holding counts only when its instrument's admin signed it. */
+  signatories: readonly Party[];
   instrumentAdmin: Party;
   instrumentId: string;
   /** Atomic units of 10^-10 of the instrument: exact, never a float. */
@@ -87,7 +89,7 @@ export async function readCip56Holdings(client: Pick<LedgerClient, "activeContra
     try {
       const v = decodeHoldingView(raw);
       if (v.owner !== party) continue;
-      out.push({ contractId: c.createdEvent.contractId, templateId: c.createdEvent.templateId, instrumentAdmin: v.instrumentAdmin, instrumentId: v.instrumentId, amountAtomic: v.amountAtomic, locked: v.lock !== null, offset: c.createdEvent.offset });
+      out.push({ contractId: c.createdEvent.contractId, templateId: c.createdEvent.templateId, signatories: c.createdEvent.signatories, instrumentAdmin: v.instrumentAdmin, instrumentId: v.instrumentId, amountAtomic: v.amountAtomic, locked: v.lock !== null, offset: c.createdEvent.offset });
     } catch {
       /* a view this build cannot read is not a holding it can show */
     }
@@ -110,6 +112,7 @@ export async function readHoldings(input: HoldingsInput): Promise<HoldingsBody> 
   const held = new Map<string, bigint>();
   for (const h of all) {
     if (h.locked) continue; // locked coin is committed elsewhere; the cover card sizes only what the party can use
+    if (!h.signatories.includes(h.instrumentAdmin)) continue; // a look-alike Holding the instrument's admin did not sign is not a holding
     const key = `${h.instrumentAdmin}\n${h.instrumentId}`;
     held.set(key, (held.get(key) ?? 0n) + h.amountAtomic);
   }

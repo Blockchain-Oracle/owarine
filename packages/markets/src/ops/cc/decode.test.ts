@@ -9,13 +9,14 @@ describe("abu-pm-cc payloads (C7b)", () => {
   });
 
   it("reads allowances, proposals and statements", () => {
-    expect(decodeAllowance({ venue: "v", auditor: "a", owner: "o", listingId: "cc-1", units: "42" }).units).toBe(42n);
-    expect(decodeProposal({ owner: "o", venue: "v", listingId: "cc-1", units: "7", ref: "r" }).units).toBe(7n);
+    expect(decodeAllowance({ venue: "v", auditor: "a", owner: "o", listingId: "cc-1", instrumentAdmin: "d", instrumentId: "Amulet", unitsPerCoin: "100000", units: "42" })).toMatchObject({ units: 42n, unitsPerCoin: 100_000n, instrumentId: "Amulet" });
+    const p = decodeProposal({ owner: "o", venue: "v", listingId: "cc-1", instrumentAdmin: "d", instrumentId: "Amulet", unitsPerCoin: "100000", units: "7", "validUntil": "2026-10-01T13:00:00Z", ref: "r" });
+    expect(p).toMatchObject({ units: 7n, unitsPerCoin: 100_000n, validUntilSec: Date.parse("2026-10-01T13:00:00Z") / 1000 });
     const s = decodeStatement({
       venue: "v", auditor: "a", listingId: "cc-1", instrumentAdmin: "d", instrumentId: "Amulet", unitsPerCoin: "100000", seq: "3", "asOf": "2026-10-01T12:00:00Z",
-      heldAtomic: "600000000", heldUnits: "6000", liabilityUnits: "5000", allowanceCount: "2", covered: true,
+      heldAtomic: "600000000", heldUnits: "6000", liabilityAtomic: "500000000", liabilityUnits: "5000", allowanceCount: "2", covered: true,
     });
-    expect(s).toMatchObject({ seq: 3, heldAtomic: 600_000_000n, covered: true, allowanceCount: 2, asOfSec: Date.parse("2026-10-01T12:00:00Z") / 1000 });
+    expect(s).toMatchObject({ seq: 3, heldAtomic: 600_000_000n, liabilityAtomic: 500_000_000n, covered: true, allowanceCount: 2, asOfSec: Date.parse("2026-10-01T12:00:00Z") / 1000 });
   });
 
   it("reads a withdrawal's state and instruction", () => {

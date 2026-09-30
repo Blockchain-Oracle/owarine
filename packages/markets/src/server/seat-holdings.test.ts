@@ -76,6 +76,11 @@ describe("seat holdings (C9d)", () => {
     expect(isSeatEmpty(holdingsOf(SEAT, [ev(AGENT_TEMPLATE_IDS.Strategy, { creator: SEAT, active: false })], NOW))).toBe(true);
   });
 
+  it("a token-standard transfer the seat instructed and nobody accepted is coin in flight and holds it (C7b)", () => {
+    expect(holdingsOf(SEAT, [], NOW, 2).counts.coin).toBe(2);
+    expect(isSeatEmpty(holdingsOf(SEAT, [], NOW, 0))).toBe(true);
+  });
+
   it("a Canton Coin claim holds the seat: the venue owes it coin, or a request or a transfer to it is open (C7b)", () => {
     const h = holdingsOf(SEAT, [
       ev(CC_TEMPLATE_IDS.CcAllowance, { owner: SEAT, units: "1000000" }),

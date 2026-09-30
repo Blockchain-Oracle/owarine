@@ -16,8 +16,7 @@ export const declineWithdrawalCommandId = (proposalCid: string) => assertCommand
 /** `ccdone:<digest(withdrawal)>`, `ccrefund:<…>`: closing one withdrawal in flight. */
 export const completeWithdrawalCommandId = (withdrawalCid: string) => assertCommandId(`ccdone:${digest(withdrawalCid)}`);
 export const refundWithdrawalCommandId = (withdrawalCid: string) => assertCommandId(`ccrefund:${digest(withdrawalCid)}`);
+/** `ccmerge:<digest(keep, others)>`: folding one owner's duplicate allowances. */
+export const mergeAllowancesCommandId = (keep: string, others: readonly string[]) => assertCommandId(`ccmerge:${digest(keep, ...[...others].sort())}`);
 /** `ccattest:<listing>:<seq>`: the statement after `seq` (the previous statement is consumed, so one per seq). */
 export const attestCommandId = (listingId: string, seq: number) => assertCommandId(`ccattest:${digest(listingId)}:${seq}`);
-/** `ccdeposit:<uuid>`, `ccwithdraw:<uuid>`: a seat's own write under the journal id the client chose (`agent:<uuid>`'s sibling). */
-export const seatDepositCommandId = (journalId: string) => assertCommandId(`ccdeposit:${digest(journalId)}`);
-export const seatWithdrawCommandId = (journalId: string) => assertCommandId(`ccwithdraw:${digest(journalId)}`);

@@ -22,11 +22,17 @@ describe("the Canton Coin rail's configuration (C7b)", () => {
     expect(() => readCcRailEnv({ CC_MIN_DEPOSIT_UNITS: "0" })).toThrow();
   });
 
+  it("keeps the time settings from stranding or snatching a transfer", () => {
+    expect(() => readCcRailEnv({ CC_REFUND_AFTER_SEC: "0" })).toThrow(/at least 600/);
+    expect(() => readCcRailEnv({ CC_TRANSFER_WINDOW_SEC: "30" })).toThrow(/at least 600/);
+    expect(() => readCcRailEnv({ CC_RAIL_EVERY_MS: "10" })).toThrow(/at least 1000/);
+  });
+
   it("reads a configured rail", () => {
     const c = readCcRailEnv({
       CC_LISTING_ID: "cc-2", CC_INSTRUMENT_ADMIN: "dso::1220", CC_INSTRUMENT_ID: "USDCx", CC_UNITS_PER_COIN: "1000000", CC_REGISTRY_URL: "https://scan.example",
-      CC_ALLOWED_PACKAGE_IDS: "aa, bb ,", CC_CREATE_LISTING: "1", CC_REQUIRE_LEASE: "0", CC_REFUND_AFTER_SEC: "60",
+      CC_ALLOWED_PACKAGE_IDS: "aa, bb ,", CC_CREATE_LISTING: "1", CC_REQUIRE_LEASE: "0", CC_REFUND_AFTER_SEC: "600",
     });
-    expect(c).toMatchObject({ listingId: "cc-2", instrumentAdmin: "dso::1220", instrumentId: "USDCx", unitsPerCoin: 1_000_000n, registryUrl: "https://scan.example", allowedPackageIds: ["aa", "bb"], createListing: true, requireLease: false, refundAfterSec: 60 });
+    expect(c).toMatchObject({ listingId: "cc-2", instrumentAdmin: "dso::1220", instrumentId: "USDCx", unitsPerCoin: 1_000_000n, registryUrl: "https://scan.example", allowedPackageIds: ["aa", "bb"], createListing: true, requireLease: false, refundAfterSec: 600 });
   });
 });

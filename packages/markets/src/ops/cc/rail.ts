@@ -1,14 +1,21 @@
 /**
  * The Canton Coin rail's venue-side pass (C7b): read what the venue can see, plan with `policy.ts`, execute the plan.
- * The order matters: what is already in flight is settled first (a refund frees allowance and cash), then deposits (they
- * raise the allowance a withdrawal needs), then withdrawals, then the reserve statement. Every command has a stable id
- * (`ids.ts`), so a crash between reading and executing repeats nothing.
+ * The order matters, and the snapshot is read again between the phases that change what the next one needs:
+ *
+ *   1. what is in flight (a refund restores cash and allowance) and duplicate allowances (merged);
+ *   2. withdrawals (they debit cash and lower an allowance a deposit may then raise), then deposits: every settle first,
+ *      then a bounded number of rejects, so a flood of dust from strangers cannot starve real work;
+ *   3. the reserve statement.
+ *
+ * Every command has a stable id (`ids.ts`), so a crash between reading and executing repeats nothing. `railPass` catches
+ * a failed command and goes on; only its first read can throw (the actor catches that).
  *
  * Nothing here contacts a node in a test: the session's client and the registry client are injected. It is built from the
  * JSON Ledger API and registry API specifications and has not run against a participant (`docs/evidence/c7b-canton-coin.md`).
  */
 import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { ContractId, DisclosedContract, Party } from "@agari/ledger";
+import type { ContractId, CreatedEvent, DisclosedContract, Party } from "@agari/ledger";
+import { atomicPerCashUnit } from "@agari/ledger/pure";
 import { decodeVenueAccount, decodeVenueCash } from "../canton/decode";
 import { failureText, pick, submit, type RoleSession } from "../canton/session";
 import * as cmd from "./commands";
@@ -18,12 +25,13 @@ import {
 } from "./decode";
 import * as ids from "./ids";
 import {
-  planAttest, planDeposits, unlockedHoldings, planInFlight, planWithdrawals, type CashRow, type HoldingRow, type InstructionRow, type LeaseOf, type Row,
+  planAttest, planDeposits, planInFlight, planMerges, planWithdrawals, unlockedHoldings, type CashRow, type HoldingRow, type InstructionRow, type LeaseOf, type Row,
 } from "./policy";
 import type { RegistryClient } from "./registry";
 
 export interface RailSnapshot {
   listing: Row<ListingC> | null;
+  /** Every allowance of the venue, of any listing: the planners pick the ones under a listing's terms; a statement counts the instrument's. */
   allowances: Row<AllowanceC>[];
   proposals: (Row<ProposalC> & { createdOffset: number })[];
   withdrawals: (Row<WithdrawalC> & { createdOffset: number })[];
@@ -35,7 +43,7 @@ export interface RailSnapshot {
   incoming: InstructionRow[];
   /** Transfer instructions the venue sent, by cid. */
   outgoing: Map<ContractId, { executeBeforeSec: number }>;
-  /** The venue's own holdings of any instrument (the plans filter to the listed one). */
+  /** The venue's own holdings of any instrument (the plans keep the registry-signed ones of the listed instrument). */
   holdings: HoldingRow[];
 }
 
@@ -43,6 +51,8 @@ const RAIL_TEMPLATES = [
   CC_TEMPLATE_IDS.CcListing, CC_TEMPLATE_IDS.CcAllowance, CC_TEMPLATE_IDS.CcWithdrawProposal, CC_TEMPLATE_IDS.CcWithdrawal, CC_TEMPLATE_IDS.CcReserveStatement,
   TEMPLATE_IDS.VenueAccount, TEMPLATE_IDS.VenueCash,
 ] as const;
+
+const signedBy = (e: CreatedEvent, party: Party): boolean => e.signatories.includes(party);
 
 /** Read the rail's state as the venue sees it: two paged snapshots (templates, then the CIP-56 interfaces). */
 export async function readRail(venue: RoleSession, listingId: string): Promise<RailSnapshot> {
@@ -52,11 +62,13 @@ export async function readRail(venue: RoleSession, listingId: string): Promise<R
     await venue.client.activeContracts({ parties: [me], interfaceIds: [CIP56_INTERFACE_IDS.Holding, CIP56_INTERFACE_IDS.TransferInstruction], maxPageSize: 500 })
   ).contracts;
 
-  const listings = pick(acs, CC_TEMPLATE_IDS.CcListing, decodeListing).filter((l) => l.data.venue === me && l.data.listingId === listingId);
-  const statements = pick(acs, CC_TEMPLATE_IDS.CcReserveStatement, decodeStatement).filter((s) => s.data.listingId === listingId);
-  const proposalEvents = new Map(acs.map((c) => [c.createdEvent.contractId, c.createdEvent.offset]));
+  // A rail record counts only if the venue signed it: a stranger can name the venue as an observer of anything.
+  const mine = acs.filter((c) => signedBy(c.createdEvent, me));
+  const listings = pick(mine, CC_TEMPLATE_IDS.CcListing, decodeListing).filter((l) => l.data.venue === me && l.data.listingId === listingId);
+  const statements = pick(mine, CC_TEMPLATE_IDS.CcReserveStatement, decodeStatement).filter((s) => s.data.venue === me && s.data.listingId === listingId);
+  const offsets = new Map(acs.map((c) => [c.createdEvent.contractId, c.createdEvent.offset]));
   const accounts = new Map<Party, ContractId>();
-  for (const a of pick(acs, TEMPLATE_IDS.VenueAccount, decodeVenueAccount)) if (a.data.venue === me) accounts.set(a.data.owner, a.cid);
+  for (const a of pick(mine, TEMPLATE_IDS.VenueAccount, decodeVenueAccount)) if (a.data.venue === me) accounts.set(a.data.owner, a.cid);
 
   const incoming: InstructionRow[] = [];
   const outgoing = new Map<ContractId, { executeBeforeSec: number }>();
@@ -77,7 +89,7 @@ export async function readRail(venue: RoleSession, listingId: string): Promise<R
     if (holdView) {
       try {
         const v = decodeHoldingView(holdView);
-        if (v.owner === me) holdings.push({ cid: e.contractId, view: v });
+        if (v.owner === me) holdings.push({ cid: e.contractId, templateId: e.templateId, signatories: e.signatories, view: v });
       } catch {
         /* likewise */
       }
@@ -85,16 +97,16 @@ export async function readRail(venue: RoleSession, listingId: string): Promise<R
   }
   return {
     listing: listings[0] ?? null,
-    allowances: pick(acs, CC_TEMPLATE_IDS.CcAllowance, decodeAllowance).filter((a) => a.data.venue === me && a.data.listingId === listingId),
+    allowances: pick(mine, CC_TEMPLATE_IDS.CcAllowance, decodeAllowance).filter((a) => a.data.venue === me),
     proposals: pick(acs, CC_TEMPLATE_IDS.CcWithdrawProposal, decodeProposal)
       .filter((p) => p.data.venue === me && p.data.listingId === listingId)
-      .map((p) => ({ ...p, createdOffset: proposalEvents.get(p.cid) ?? 0 })),
-    withdrawals: pick(acs, CC_TEMPLATE_IDS.CcWithdrawal, decodeWithdrawal)
+      .map((p) => ({ ...p, createdOffset: offsets.get(p.cid) ?? 0 })),
+    withdrawals: pick(mine, CC_TEMPLATE_IDS.CcWithdrawal, decodeWithdrawal)
       .filter((w) => w.data.venue === me && w.data.listingId === listingId)
-      .map((w) => ({ ...w, createdOffset: proposalEvents.get(w.cid) ?? 0 })),
+      .map((w) => ({ ...w, createdOffset: offsets.get(w.cid) ?? 0 })),
     statement: statements.sort((a, b) => b.data.seq - a.data.seq)[0] ?? null,
     accounts,
-    cash: pick(acs, TEMPLATE_IDS.VenueCash, decodeVenueCash).filter((c) => c.data.venue === me && c.data.owner !== me).map((c) => ({ cid: c.cid, owner: c.data.owner, amount: c.data.amount })),
+    cash: pick(mine, TEMPLATE_IDS.VenueCash, decodeVenueCash).filter((c) => c.data.venue === me && c.data.owner !== me).map((c) => ({ cid: c.cid, owner: c.data.owner, amount: c.data.amount })),
     incoming,
     outgoing,
     holdings,
@@ -109,17 +121,21 @@ export interface RailDeps {
   nowSec: () => number;
   log: (why: string) => void;
   leaseOf?: LeaseOf;
+  /** Read a party's lease again just before its command goes out (K-224: a seat can be re-leased mid-pass). Null = none live. */
+  freshLease?: (party: Party) => Promise<{ startOffset: number } | null>;
   allowedPackageIds?: readonly string[];
   /** Take an unaccepted withdrawal back this long after it was sent. */
   refundAfterSec: number;
   /** How long a transfer the venue instructs stays open. */
   transferWindowSec: number;
-  /** Who archived the gone instructions (`archivedByExercise` in a deployment), from an offset; without it a gone instruction waits. */
+  /** Who archived the gone instruction, searched from the given offset (`archivedByExercise` in a deployment); without it a gone instruction waits. */
   history?: (instructionCids: readonly ContractId[], fromOffset: number) => Promise<ReadonlyMap<ContractId, "accepted" | "rejected">>;
   /** The most input holdings one transfer may use. */
   maxInputs?: number;
   /** Attest at least this often when anything moved; 0 = every pass. */
   attestEverySec: number;
+  /** The most rejects one pass sends: a flood of unwanted transfers cannot starve the real work. */
+  maxRejectsPerPass?: number;
 }
 
 export interface RailPassResult {
@@ -130,27 +146,32 @@ export interface RailPassResult {
   declined: number;
   completed: number;
   refunded: number;
+  merged: number;
+  /** Transfers the owner rejected outside the receipt: the coin is back, nothing refunds it, an operator must look. */
+  orphaned: number;
   attested: boolean;
   failures: string[];
 }
 
-const blank = (): RailPassResult => ({ settled: 0, rejected: 0, held: 0, accepted: 0, declined: 0, completed: 0, refunded: 0, attested: false, failures: [] });
+const blank = (): RailPassResult => ({ settled: 0, rejected: 0, held: 0, accepted: 0, declined: 0, completed: 0, refunded: 0, merged: 0, orphaned: 0, attested: false, failures: [] });
 
-let lastAttestSec = 0;
+/** When each listing's last statement went out, by venue and listing: not one clock for the whole process. */
+const lastAttest = new Map<string, number>();
 /** Test seam: forget when the last statement went out. */
 export const resetRailClock = (): void => {
-  lastAttestSec = 0;
+  lastAttest.clear();
 };
 
-/** One pass. Reads once, executes every plan, never throws: a failed command is counted and logged, the pass goes on. */
+/** One pass. Executes every plan; a failed command is counted and logged and the pass goes on. Only its first read can throw. */
 export async function railPass(deps: RailDeps): Promise<RailPassResult> {
   const out = blank();
-  const snap = await readRail(deps.venue, deps.listingId);
+  let snap = await readRail(deps.venue, deps.listingId);
   if (!snap.listing) {
     deps.log(`cc-rail: no listing ${deps.listingId} for ${deps.venue.party}; nothing to do`);
     return out;
   }
   const listing = snap.listing;
+  const me = deps.venue.party;
   const now = deps.nowSec();
   const attempt = async (what: string, run: () => Promise<void>): Promise<boolean> => {
     try {
@@ -163,25 +184,56 @@ export async function railPass(deps: RailDeps): Promise<RailPassResult> {
       return false;
     }
   };
-  const send = async (commandId: string, command: ReturnType<typeof cmd.settleDeposit>, ctx: { disclosedContracts: readonly DisclosedContract[] } | null) => {
-    await submit(deps.venue, { commandId, commands: [command], ...(ctx && ctx.disclosedContracts.length > 0 ? { disclosedContracts: [...ctx.disclosedContracts] } : {}) });
-  };
-
-  // 1. what is in flight; a transfer that is gone is explained by the ledger's history, never guessed
-  const gone = snap.withdrawals.filter((w) => w.data.state === "WdSent" && w.data.instructionCid && !snap.outgoing.has(w.data.instructionCid));
-  let explained: ReadonlyMap<ContractId, "accepted" | "rejected"> = new Map();
-  if (gone.length > 0 && deps.history) {
-    await attempt("history", async () => {
-      explained = await deps.history!(gone.map((w) => w.data.instructionCid!), Math.min(...gone.map((w) => w.createdOffset)) - 1);
+  const send = async (commandId: string, command: cmd.RailCommand, ctx: { disclosedContracts: readonly DisclosedContract[] } | null, readAs?: readonly Party[]) => {
+    await submit(deps.venue, {
+      commandId,
+      commands: [command],
+      ...(ctx && ctx.disclosedContracts.length > 0 ? { disclosedContracts: [...ctx.disclosedContracts] } : {}),
+      ...(readAs ? { readAs } : {}),
     });
+  };
+  const reread = async (): Promise<boolean> => {
+    try {
+      snap = await readRail(deps.venue, deps.listingId);
+      return snap.listing !== null;
+    } catch (error) {
+      out.failures.push(`re-read: ${failureText(error)}`);
+      return false;
+    }
+  };
+  /** A seat re-leased since the plan was made is no longer the one that asked (K-224): skip its command. */
+  const stillLeased = async (owner: Party, createdOffset: number): Promise<boolean> => {
+    if (!deps.freshLease) return true;
+    const lease = await deps.freshLease(owner).catch(() => null);
+    return lease !== null && createdOffset >= lease.startOffset;
+  };
+  let listingCid = listing.cid;
+
+  // 1a. what is in flight; a transfer that is gone is explained by the ledger's history, never guessed
+  const gone = snap.withdrawals.filter((w) => w.data.state === "WdSent" && w.data.instructionCid && !snap.outgoing.has(w.data.instructionCid));
+  const explained = new Map<ContractId, "accepted" | "rejected">();
+  if (gone.length > 0 && deps.history) {
+    // Each from its own offset: one old receipt whose archive is beyond the scan cannot hide the others.
+    for (const w of gone) {
+      await attempt(`history ${w.cid}`, async () => {
+        const found = await deps.history!([w.data.instructionCid!], w.createdOffset - 1);
+        for (const [cid, by] of found) explained.set(cid, by);
+      });
+    }
   }
+  const stuck = gone.filter((w) => !explained.has(w.data.instructionCid!)).length;
+  if (stuck > 0) deps.log(`cc-rail: ${stuck} transfer(s) in flight are gone from the registry and the ledger's history does not say why; they wait`);
   const inFlight = planInFlight({
-    withdrawals: snap.withdrawals, liveInstructions: snap.outgoing, accounts: snap.accounts, allowances: snap.allowances,
+    withdrawals: snap.withdrawals, liveInstructions: snap.outgoing, accounts: snap.accounts, allowances: snap.allowances, listing: listing.data,
     archivedBy: (cid) => explained.get(cid) ?? "unknown", refundAfterSec: deps.refundAfterSec, nowSec: now,
   });
+  let changed = false;
   for (const p of inFlight) {
     if (p.kind === "complete") {
-      if (await attempt(`complete ${p.withdrawalCid}`, () => send(ids.completeWithdrawalCommandId(p.withdrawalCid), cmd.completeWithdrawal(p.withdrawalCid), null))) out.completed += 1;
+      if (await attempt(`complete ${p.withdrawalCid}`, () => send(ids.completeWithdrawalCommandId(p.withdrawalCid), cmd.completeWithdrawal(p.withdrawalCid), null))) {
+        out.completed += 1;
+        changed = true;
+      }
     } else if (p.kind === "refund") {
       const w = snap.withdrawals.find((x) => x.cid === p.withdrawalCid);
       if (!w?.data.instructionCid || !deps.registry) {
@@ -197,54 +249,41 @@ export async function railPass(deps: RailDeps): Promise<RailPassResult> {
         })
       ) {
         out.refunded += 1;
+        changed = true;
       }
     } else if (p.kind === "orphan") {
-      const returned = unlockedHoldings(deps.venue.party, listing.data, snap.holdings).map((h) => h.cid);
-      if (await attempt(`refund returned ${p.withdrawalCid}`, () => send(ids.refundWithdrawalCommandId(p.withdrawalCid), cmd.refundReturned(p.withdrawalCid, { accountCid: p.accountCid, allowanceCid: p.allowanceCid, returned }), null))) {
-        out.refunded += 1;
-      }
+      out.orphaned += 1;
+      deps.log(`cc-rail ALERT: ${p.owner} ${p.why}: the coin is back with the venue and the cash is not refunded; the owner's own way is Withdrawal_OwnerReject, an operator decides the rest (${p.withdrawalCid})`);
     }
   }
-
-  // 2. deposits
-  const deposits = planDeposits({
-    venue: deps.venue.party, listing: listing.data, instructions: snap.incoming, accounts: snap.accounts, allowances: snap.allowances,
-    ...(deps.allowedPackageIds ? { allowedPackageIds: deps.allowedPackageIds } : {}), ...(deps.leaseOf ? { leaseOf: deps.leaseOf } : {}), nowSec: now,
-  });
-  for (const p of deposits) {
-    if (p.kind === "hold") {
-      out.held += 1;
-      continue;
-    }
-    if (!deps.registry) continue;
-    const registry = deps.registry;
-    if (p.kind === "settle") {
-      if (
-        await attempt(`settle ${p.instructionCid}`, async () => {
-          const ctx = await registry.instructionContext("accept", p.instructionCid);
-          await send(ids.settleDepositCommandId(p.instructionCid), cmd.settleDeposit(listing.cid, { instructionCid: p.instructionCid, accountCid: p.accountCid, allowanceCid: p.allowanceCid, context: ctx }), ctx);
-        })
-      ) {
-        out.settled += 1;
-      }
-    } else if (
-      await attempt(`reject ${p.instructionCid} (${p.reason})`, async () => {
-        const ctx = await registry.instructionContext("reject", p.instructionCid);
-        await send(ids.rejectDepositCommandId(p.instructionCid), cmd.rejectTransfer(p.instructionCid, ctx), ctx);
-      })
-    ) {
-      out.rejected += 1;
+  // 1b. duplicate allowances of one owner fold into one, so a withdrawal is never declined for being in pieces
+  for (const m of planMerges(snap.allowances, listing.data)) {
+    if (await attempt(`merge allowances ${m.keep}`, () => send(ids.mergeAllowancesCommandId(m.keep, m.others), cmd.mergeAllowances(m.keep, m.others), null))) {
+      out.merged += 1;
+      changed = true;
     }
   }
+  if (changed) {
+    if (!(await reread())) return out;
+    listingCid = snap.listing!.cid;
+    changed = false;
+  }
+  const at = snap.listing!;
 
-  // 3. withdrawals
+  // 2a. withdrawals
   const wds = planWithdrawals({
-    venue: deps.venue.party, listing: listing.data, proposals: snap.proposals, accounts: snap.accounts, allowances: snap.allowances, cash: snap.cash,
-    holdings: unlockedHoldings(deps.venue.party, listing.data, snap.holdings),
+    venue: me, listing: at.data, proposals: snap.proposals, accounts: snap.accounts, allowances: snap.allowances, cash: snap.cash,
+    holdings: unlockedHoldings(me, at.data, snap.holdings, deps.allowedPackageIds), nowSec: now,
     ...(deps.leaseOf ? { leaseOf: deps.leaseOf } : {}), ...(deps.maxInputs ? { maxInputs: deps.maxInputs } : {}),
   });
   for (const p of wds) {
     if (p.kind === "hold") {
+      out.held += 1;
+      continue;
+    }
+    const proposal = snap.proposals.find((x) => x.cid === p.proposalCid);
+    if (!proposal) continue;
+    if (!(await stillLeased(proposal.data.owner, proposal.createdOffset))) {
       out.held += 1;
       continue;
     }
@@ -254,48 +293,98 @@ export async function railPass(deps: RailDeps): Promise<RailPassResult> {
     }
     if (!deps.registry) continue;
     const registry = deps.registry;
-    const proposal = snap.proposals.find((x) => x.cid === p.proposalCid);
-    if (!proposal) continue;
     if (
       await attempt(`accept ${p.proposalCid}`, async () => {
         const args = {
-          sender: deps.venue.party, receiver: p.owner, instrumentAdmin: listing.data.instrumentAdmin, instrumentId: listing.data.instrumentId,
-          amountAtomic: p.units * (10n ** 10n / listing.data.unitsPerCoin), requestedAtSec: now - 60, executeBeforeSec: now + deps.transferWindowSec,
+          sender: me, receiver: p.owner, instrumentAdmin: at.data.instrumentAdmin, instrumentId: at.data.instrumentId,
+          amountAtomic: p.units * atomicPerCashUnit(at.data.unitsPerCoin), requestedAtSec: now - 60, executeBeforeSec: now + deps.transferWindowSec,
           inputHoldingCids: p.inputHoldingCids, ref: proposal.data.ref,
         };
         const answer = await registry.transferFactory(cmd.transferChoiceArguments(args));
         await send(
           ids.acceptWithdrawalCommandId(p.proposalCid),
           cmd.acceptWithdrawal(p.proposalCid, {
-            listingCid: listing.cid, accountCid: p.accountCid, cashCids: p.cashCids, allowanceCid: p.allowanceCid, factoryCid: answer.factoryId,
+            listingCid, accountCid: p.accountCid, cashCids: p.cashCids, allowanceCid: p.allowanceCid, factoryCid: answer.factoryId,
             inputHoldingCids: p.inputHoldingCids, requestedAtSec: args.requestedAtSec, executeBeforeSec: args.executeBeforeSec, context: answer.context,
           }),
           answer.context,
+          [p.owner],
         );
       })
     ) {
       out.accepted += 1;
+      changed = true;
+    }
+  }
+  if (changed) {
+    if (!(await reread())) return out;
+    listingCid = snap.listing!.cid;
+    changed = false;
+  }
+
+  // 2b. deposits: settles first, then a bounded number of rejects
+  const deposits = planDeposits({
+    venue: me, listing: snap.listing!.data, instructions: snap.incoming, accounts: snap.accounts, allowances: snap.allowances,
+    ...(deps.allowedPackageIds ? { allowedPackageIds: deps.allowedPackageIds } : {}), ...(deps.leaseOf ? { leaseOf: deps.leaseOf } : {}), nowSec: now,
+  });
+  const byCid = new Map(snap.incoming.map((r) => [r.cid, r]));
+  let rejects = 0;
+  const maxRejects = deps.maxRejectsPerPass ?? 20;
+  for (const p of deposits.filter((d) => d.kind === "settle")) {
+    if (p.kind !== "settle" || !deps.registry) continue;
+    const registry = deps.registry;
+    if (!(await stillLeased(p.owner, byCid.get(p.instructionCid)?.createdOffset ?? 0))) {
+      out.held += 1;
+      continue;
+    }
+    if (
+      await attempt(`settle ${p.instructionCid}`, async () => {
+        const ctx = await registry.instructionContext("accept", p.instructionCid);
+        await send(ids.settleDepositCommandId(p.instructionCid), cmd.settleDeposit(listingCid, { instructionCid: p.instructionCid, accountCid: p.accountCid, allowanceCid: p.allowanceCid, context: ctx }), ctx);
+      })
+    ) {
+      out.settled += 1;
+      changed = true;
+    }
+  }
+  for (const p of deposits) {
+    if (p.kind === "hold") {
+      out.held += 1;
+      continue;
+    }
+    if (p.kind !== "reject" || !deps.registry) continue;
+    if (rejects >= maxRejects) {
+      out.held += 1;
+      continue;
+    }
+    rejects += 1;
+    const registry = deps.registry;
+    if (
+      await attempt(`reject ${p.instructionCid} (${p.reason})`, async () => {
+        const ctx = await registry.instructionContext("reject", p.instructionCid);
+        await send(ids.rejectDepositCommandId(p.instructionCid), cmd.rejectTransfer(p.instructionCid, ctx), ctx);
+      })
+    ) {
+      out.rejected += 1;
     }
   }
 
-  // 4. the reserve statement, when something moved or it has been a while
-  const moved = out.settled + out.accepted + out.completed + out.refunded > 0;
-  const due = deps.attestEverySec === 0 || now - lastAttestSec >= deps.attestEverySec;
+  // 3. the reserve statement, when something moved (or none exists yet) and it is due
+  const moved = out.settled + out.accepted + out.completed + out.refunded + out.merged > 0;
+  const clock = `${me}\n${deps.listingId}`;
+  const due = deps.attestEverySec === 0 || now - (lastAttest.get(clock) ?? 0) >= deps.attestEverySec;
   if ((moved || snap.statement === null) && due) {
-    const fresh = await readRail(deps.venue, deps.listingId);
-    if (fresh.listing) {
-      const plan = planAttest({ venue: deps.venue.party, listing: fresh.listing.data, holdings: fresh.holdings, allowances: fresh.allowances });
+    if (changed && !(await reread())) return out;
+    await attempt("attest", async () => {
+      const fresh = snap;
+      if (!fresh.listing) return;
+      const plan = planAttest({ venue: me, listing: fresh.listing.data, holdings: fresh.holdings, allowances: fresh.allowances, ...(deps.allowedPackageIds ? { allowedPackageIds: deps.allowedPackageIds } : {}) });
       const seq = fresh.statement ? fresh.statement.data.seq + 1 : 0;
-      if (
-        await attempt("attest", () =>
-          send(ids.attestCommandId(deps.listingId, seq), cmd.attestReserve(fresh.listing!.cid, { holdingCids: plan.holdingCids, allowanceCids: plan.allowanceCids, previous: fresh.statement?.cid ?? null, asOfSec: now }), null),
-        )
-      ) {
-        out.attested = true;
-        lastAttestSec = now;
-        if (!plan.covered) deps.log(`cc-rail ALERT: the reserve is short: ${plan.heldUnits} cash units of coin held against ${plan.liabilityUnits} owed`);
-      }
-    }
+      await send(ids.attestCommandId(deps.listingId, seq), cmd.attestReserve(fresh.listing.cid, { holdingCids: plan.holdingCids, allowanceCids: plan.allowanceCids, previous: fresh.statement?.cid ?? null }), null);
+      out.attested = true;
+      lastAttest.set(clock, now);
+      if (!plan.covered) deps.log(`cc-rail ALERT: the reserve is short: ${plan.heldAtomic} atomic units of coin held against ${plan.liabilityAtomic} owed`);
+    });
   }
   return out;
 }

@@ -6,9 +6,14 @@
  *   authenticity  an interface view is what the contract's own template SAYS. A transfer instruction is settled only if
  *                 its signatories include the listing's `instrumentAdmin` (a look-alike template on a shared participant
  *                 cannot have the registry's party sign it), and its template's package is on the allow-list when there is one.
+ *   holdings      the same rule for the venue's OWN coin: a holding counts, is spent or is attested only if the registry party
+ *                 signed it, so a look-alike Holding naming the venue as owner cannot be picked as a transfer input or
+ *                 inflate a reserve statement.
  *   lease         a deposit is credited to the party that sent it; if that seat's lease began after the instruction was
- *                 created the party has a new visitor (K-224), so the coin is rejected back instead of credited.
- *   dust, bounds  refused before a settle is tried (the ledger refuses too; the instruction is rejected back to the sender).
+ *                 created the party has a new visitor (K-224). The coin is HELD, never rejected back: a rejection returns it
+ *                 to the party, which is now the new visitor's. With no lease at all (no database) it is held too.
+ *   dust, bounds  refused before a settle is tried (the ledger refuses too; the instruction is rejected back to the sender),
+ *                 but only for a sender with a venue account: a stranger with none costs the venue nothing.
  *
  * Nothing here talks to a ledger; `rail.ts` reads the snapshot and executes the plan.
  */
@@ -32,14 +37,17 @@ export interface InstructionRow {
 
 export interface HoldingRow {
   cid: ContractId;
+  /** The created event's template (package-id form) and signatories: what makes a holding the registry's. */
+  templateId: string;
+  signatories: readonly Party[];
   view: HoldingViewC;
 }
 
 /** A seat's lease, for the K-224 rule: the instruction or proposal must be at or after `startOffset`. */
 export type LeaseOf = (party: Party) => { startOffset: number } | null;
 
-export type RejectReason = "dust" | "below-minimum" | "above-maximum" | "listing-closed" | "stale-lease" | "expired";
-export type HoldReason = "not-to-venue" | "not-pending" | "forged" | "no-account" | "package-not-allowed" | "not-a-listing-transfer";
+export type RejectReason = "dust" | "below-minimum" | "above-maximum" | "listing-closed" | "expired";
+export type HoldReason = "not-to-venue" | "not-pending" | "forged" | "no-account" | "package-not-allowed" | "not-a-listing-transfer" | "stale-lease" | "no-lease";
 
 export type DepositPlan =
   | { kind: "settle"; instructionCid: ContractId; owner: Party; accountCid: ContractId; allowanceCid: ContractId | null; units: bigint; amountAtomic: bigint }
@@ -61,6 +69,28 @@ export interface DepositInput {
 
 const packageOf = (templateId: string): string => templateId.slice(0, templateId.indexOf(":"));
 
+/** An allowance is this listing's only under the terms the listing states now. */
+export const sameTerms = (a: AllowanceC, l: ListingC): boolean =>
+  a.listingId === l.listingId && a.instrumentAdmin === l.instrumentAdmin && a.instrumentId === l.instrumentId && a.unitsPerCoin === l.unitsPerCoin;
+
+/** The owner's allowance under the listing's terms; the largest when there are several (duplicates are merged separately). */
+export function allowanceFor(allowances: readonly Row<AllowanceC>[], owner: Party, l: ListingC): Row<AllowanceC> | undefined {
+  return allowances.filter((a) => a.data.owner === owner && sameTerms(a.data, l)).sort((a, b) => (a.data.units === b.data.units ? 0 : a.data.units > b.data.units ? -1 : 1))[0];
+}
+
+/** Owners with more than one allowance under the listing's terms: fold the rest into the largest (`Allowance_Merge`). */
+export function planMerges(allowances: readonly Row<AllowanceC>[], l: ListingC): { keep: ContractId; others: ContractId[] }[] {
+  const byOwner = new Map<Party, Row<AllowanceC>[]>();
+  for (const a of allowances) if (sameTerms(a.data, l)) byOwner.set(a.data.owner, [...(byOwner.get(a.data.owner) ?? []), a]);
+  const out: { keep: ContractId; others: ContractId[] }[] = [];
+  for (const rows of byOwner.values()) {
+    if (rows.length < 2) continue;
+    const [keep, ...others] = [...rows].sort((a, b) => (a.data.units === b.data.units ? 0 : a.data.units > b.data.units ? -1 : 1));
+    out.push({ keep: keep!.cid, others: others.map((o) => o.cid) });
+  }
+  return out;
+}
+
 /** One plan per instruction the venue can see. Pure and total: every instruction is settled, rejected back or held. */
 export function planDeposits(i: DepositInput): DepositPlan[] {
   const out: DepositPlan[] = [];
@@ -73,8 +103,7 @@ export function planDeposits(i: DepositInput): DepositPlan[] {
       continue;
     }
     if (v.instrumentAdmin !== i.listing.instrumentAdmin || v.instrumentId !== i.listing.instrumentId) {
-      // An instrument the venue does not list. Not a listing transfer at all: reject it back only if the registry is the
-      // right one; otherwise it is somebody else's noise and is left alone.
+      // An instrument the venue does not list: not a listing transfer at all. It is left alone, never accepted or rejected.
       out.push({ kind: "hold", instructionCid: row.cid, reason: "not-a-listing-transfer", detail: `${v.instrumentId} of ${v.instrumentAdmin} is not this listing's instrument` });
       continue;
     }
@@ -91,17 +120,30 @@ export function planDeposits(i: DepositInput): DepositPlan[] {
       continue;
     }
     const owner = v.sender;
+    // A sender with no venue account is not the venue's business yet: hold it, never spend a reject on it.
+    const accountCid = i.accounts.get(owner);
+    if (!accountCid) {
+      out.push({ kind: "hold", instructionCid: row.cid, reason: "no-account", detail: "the sender has no venue account yet" });
+      continue;
+    }
+    if (i.leaseOf) {
+      const lease = i.leaseOf(owner);
+      if (!lease) {
+        out.push({ kind: "hold", instructionCid: row.cid, reason: "no-lease", detail: "the sending party has no live lease (or leases could not be read)" });
+        continue;
+      }
+      if (row.createdOffset < lease.startOffset) {
+        // Rejecting would hand the coin to the party's new visitor; holding leaves it to expire (K-224).
+        out.push({ kind: "hold", instructionCid: row.cid, reason: "stale-lease", detail: "the sending seat was leased again since this transfer (K-224)" });
+        continue;
+      }
+    }
     if (v.executeBeforeSec <= i.nowSec) {
       out.push({ kind: "reject", instructionCid: row.cid, owner, reason: "expired", detail: "the transfer's window has closed" });
       continue;
     }
     if (!i.listing.depositsOpen) {
       out.push({ kind: "reject", instructionCid: row.cid, owner, reason: "listing-closed", detail: "the listing takes no new deposits" });
-      continue;
-    }
-    const lease = i.leaseOf?.(owner) ?? null;
-    if (i.leaseOf && (!lease || row.createdOffset < lease.startOffset)) {
-      out.push({ kind: "reject", instructionCid: row.cid, owner, reason: "stale-lease", detail: "the sending seat was leased again since this transfer (K-224)" });
       continue;
     }
     let units: bigint;
@@ -122,15 +164,9 @@ export function planDeposits(i: DepositInput): DepositPlan[] {
       out.push({ kind: "reject", instructionCid: row.cid, owner, reason: "above-maximum", detail: `${units} cash units is above the maximum ${i.listing.maxDepositUnits}` });
       continue;
     }
-    const accountCid = i.accounts.get(owner);
-    if (!accountCid) {
-      out.push({ kind: "hold", instructionCid: row.cid, reason: "no-account", detail: "the sender has no venue account yet" });
-      continue;
-    }
     if (settledOwners.has(owner)) continue; // next pass: this owner's allowance moves with the first settle
     settledOwners.add(owner);
-    const allowance = i.allowances.find((a) => a.data.owner === owner && a.data.listingId === i.listing.listingId);
-    out.push({ kind: "settle", instructionCid: row.cid, owner, accountCid, allowanceCid: allowance?.cid ?? null, units, amountAtomic: v.amountAtomic });
+    out.push({ kind: "settle", instructionCid: row.cid, owner, accountCid, allowanceCid: allowanceFor(i.allowances, owner, i.listing)?.cid ?? null, units, amountAtomic: v.amountAtomic });
   }
   return out;
 }
@@ -170,6 +206,7 @@ export interface WithdrawInput {
   leaseOf?: LeaseOf;
   /** The most input holdings one transfer may use (Canton Coin: 100). */
   maxInputs?: number;
+  nowSec: number;
 }
 
 /** Cover `needAtomic` from the venue's unlocked holdings, fewest and largest first; null when they do not cover it. */
@@ -227,19 +264,39 @@ export function planWithdrawals(i: WithdrawInput): WithdrawPlan[] {
       out.push({ kind: "decline", proposalCid: p.cid, owner: d.owner, reason: "the amount is outside the rail's bounds" });
       continue;
     }
-    const lease = i.leaseOf?.(d.owner) ?? null;
-    if (i.leaseOf && (!lease || p.createdOffset < lease.startOffset)) {
-      out.push({ kind: "decline", proposalCid: p.cid, owner: d.owner, reason: "the seat was leased again since this request" });
+    if (d.validUntilSec <= i.nowSec) {
+      out.push({ kind: "decline", proposalCid: p.cid, owner: d.owner, reason: "the ask has lapsed" });
       continue;
+    }
+    if (d.instrumentAdmin !== i.listing.instrumentAdmin || d.instrumentId !== i.listing.instrumentId || d.unitsPerCoin !== i.listing.unitsPerCoin) {
+      out.push({ kind: "decline", proposalCid: p.cid, owner: d.owner, reason: "the listing no longer states the terms this ask was signed against" });
+      continue;
+    }
+    if (i.leaseOf) {
+      const lease = i.leaseOf(d.owner);
+      if (!lease) {
+        out.push({ kind: "hold", proposalCid: p.cid, reason: "the owner has no live lease (or leases could not be read)" });
+        continue;
+      }
+      if (p.createdOffset < lease.startOffset) {
+        out.push({ kind: "decline", proposalCid: p.cid, owner: d.owner, reason: "the seat was leased again since this request" });
+        continue;
+      }
     }
     const accountCid = i.accounts.get(d.owner);
     if (!accountCid) {
       out.push({ kind: "hold", proposalCid: p.cid, reason: "the owner has no venue account" });
       continue;
     }
-    const allowance = i.allowances.find((a) => a.data.owner === d.owner && a.data.listingId === d.listingId);
-    if (!allowance || allowance.data.units < d.units) {
+    const mine0 = i.allowances.filter((a) => a.data.owner === d.owner && sameTerms(a.data, i.listing));
+    const allowance = allowanceFor(i.allowances, d.owner, i.listing);
+    const owedTotal = mine0.reduce((sum, a) => sum + a.data.units, 0n);
+    if (!allowance || owedTotal < d.units) {
       out.push({ kind: "decline", proposalCid: p.cid, owner: d.owner, reason: "only coin that was deposited and not yet taken back can be withdrawn" });
+      continue;
+    }
+    if (allowance.data.units < d.units) {
+      out.push({ kind: "hold", proposalCid: p.cid, reason: "this owner's allowance is in pieces; they are merged first" });
       continue;
     }
     if (spentAllowance.has(allowance.cid)) {
@@ -275,7 +332,8 @@ export function planWithdrawals(i: WithdrawInput): WithdrawPlan[] {
 export type InFlightPlan =
   | { kind: "complete"; withdrawalCid: ContractId; owner: Party }
   | { kind: "refund"; withdrawalCid: ContractId; owner: Party; accountCid: ContractId; allowanceCid: ContractId | null; why: string }
-  | { kind: "orphan"; withdrawalCid: ContractId; owner: Party; accountCid: ContractId; allowanceCid: ContractId | null; why: string }
+  /** The owner rejected the transfer outside the receipt: the coin is back with the venue and nothing on the ledger can prove it, so nothing is sent (an alert). */
+  | { kind: "orphan"; withdrawalCid: ContractId; owner: Party; why: string }
   | { kind: "wait"; withdrawalCid: ContractId };
 
 export interface InFlightInput {
@@ -284,6 +342,8 @@ export interface InFlightInput {
   liveInstructions: ReadonlyMap<ContractId, { executeBeforeSec: number }>;
   accounts: ReadonlyMap<Party, ContractId>;
   allowances: readonly Row<AllowanceC>[];
+  /** The listing the withdrawals were made under, to pick the owner's allowance under its terms. */
+  listing: ListingC;
   /** Ask the ledger's history who archived a gone instruction: accepted by the owner, or rejected. */
   archivedBy: (instructionCid: ContractId) => "accepted" | "rejected" | "unknown";
   /** Take an unaccepted transfer back this long after it was sent. */
@@ -293,8 +353,9 @@ export interface InFlightInput {
 
 /**
  * A withdrawal in state Sent: still pending and past its window (or older than `refundAfterSec`) → take it back and
- * refund; gone because the owner accepted → record it completed; gone because the owner rejected → refund against the
- * returned coin (`orphan`); gone for an unknown reason → wait, and let the operator look (it is never guessed).
+ * refund; gone because the owner accepted → record it completed; gone because the owner rejected it outside the receipt
+ * → `orphan` (an alert: nothing on the ledger can prove the coin came back, so the venue does not refund on its own word;
+ * the owner's own way is `Withdrawal_OwnerReject`); gone for an unknown reason → wait, and let the operator look.
  */
 export function planInFlight(i: InFlightInput): InFlightPlan[] {
   const out: InFlightPlan[] = [];
@@ -302,7 +363,7 @@ export function planInFlight(i: InFlightInput): InFlightPlan[] {
     const d = w.data;
     if (d.state !== "WdSent" || !d.instructionCid) continue;
     const accountCid = i.accounts.get(d.owner);
-    const allowance = i.allowances.find((a) => a.data.owner === d.owner && a.data.listingId === d.listingId);
+    const allowance = allowanceFor(i.allowances, d.owner, i.listing);
     const live = i.liveInstructions.get(d.instructionCid);
     if (live) {
       const late = live.executeBeforeSec <= i.nowSec || d.openedAtSec + i.refundAfterSec <= i.nowSec;
@@ -312,7 +373,7 @@ export function planInFlight(i: InFlightInput): InFlightPlan[] {
     }
     const by = i.archivedBy(d.instructionCid);
     if (by === "accepted") out.push({ kind: "complete", withdrawalCid: w.cid, owner: d.owner });
-    else if (by === "rejected" && accountCid) out.push({ kind: "orphan", withdrawalCid: w.cid, owner: d.owner, accountCid, allowanceCid: allowance?.cid ?? null, why: "the owner rejected the transfer" });
+    else if (by === "rejected") out.push({ kind: "orphan", withdrawalCid: w.cid, owner: d.owner, why: "the owner rejected the transfer outside the receipt" });
     else out.push({ kind: "wait", withdrawalCid: w.cid });
   }
   return out;
@@ -325,22 +386,42 @@ export interface AttestPlan {
   allowanceCids: ContractId[];
   /** What the statement will say, computed here the way the ledger computes it: the check before sending. */
   heldAtomic: bigint;
-  liabilityUnits: bigint;
+  liabilityAtomic: bigint;
   heldUnits: bigint;
+  liabilityUnits: bigint;
   covered: boolean;
 }
 
-/** The venue's own holdings of the listed instrument that are not locked: what a withdrawal can spend and a statement counts. */
-export function unlockedHoldings(venue: Party, listing: ListingC, holdings: readonly HoldingRow[]): HoldingRow[] {
-  return holdings.filter((h) => h.view.owner === venue && h.view.instrumentAdmin === listing.instrumentAdmin && h.view.instrumentId === listing.instrumentId && h.view.lock === null);
+/**
+ * The venue's own holdings of the listed instrument that are not locked and that the registry signed: what a withdrawal
+ * can spend and a statement counts. A holding whose signatories lack the registry's party is a look-alike and is never
+ * spent or counted; with `allowedPackageIds`, its template's package must be on the list too.
+ */
+export function unlockedHoldings(venue: Party, listing: ListingC, holdings: readonly HoldingRow[], allowedPackageIds: readonly string[] = []): HoldingRow[] {
+  return holdings.filter(
+    (h) =>
+      h.view.owner === venue && h.view.instrumentAdmin === listing.instrumentAdmin && h.view.instrumentId === listing.instrumentId && h.view.lock === null &&
+      h.signatories.includes(listing.instrumentAdmin) && (allowedPackageIds.length === 0 || allowedPackageIds.includes(h.templateId.slice(0, h.templateId.indexOf(":")))),
+  );
 }
 
-/** Every unlocked holding of the instrument the venue owns and every allowance of the listing, and what they add up to. */
-export function planAttest(a: { venue: Party; listing: ListingC; holdings: readonly HoldingRow[]; allowances: readonly Row<AllowanceC>[] }): AttestPlan {
-  const mine = unlockedHoldings(a.venue, a.listing, a.holdings);
-  const owed = a.allowances.filter((x) => x.data.listingId === a.listing.listingId);
+/**
+ * Every unlocked holding of the instrument the venue owns and every allowance of ANY listing of that instrument (each at
+ * its own rate, in atomic units: two listings draw on one pool of coin), and what they add up to.
+ */
+export function planAttest(a: { venue: Party; listing: ListingC; holdings: readonly HoldingRow[]; allowances: readonly Row<AllowanceC>[]; allowedPackageIds?: readonly string[] }): AttestPlan {
+  const mine = unlockedHoldings(a.venue, a.listing, a.holdings, a.allowedPackageIds);
+  const owed = a.allowances.filter((x) => x.data.venue === a.venue && x.data.instrumentAdmin === a.listing.instrumentAdmin && x.data.instrumentId === a.listing.instrumentId);
   const heldAtomic = mine.reduce((s, h) => s + h.view.amountAtomic, 0n);
-  const liabilityUnits = owed.reduce((s, x) => s + x.data.units, 0n);
-  const heldUnits = heldAtomic / atomicPerCashUnit(a.listing.unitsPerCoin);
-  return { holdingCids: mine.map((h) => h.cid), allowanceCids: owed.map((x) => x.cid), heldAtomic, liabilityUnits, heldUnits, covered: heldUnits >= liabilityUnits };
+  const liabilityAtomic = owed.reduce((s, x) => s + x.data.units * atomicPerCashUnit(x.data.unitsPerCoin), 0n);
+  const per = atomicPerCashUnit(a.listing.unitsPerCoin);
+  return {
+    holdingCids: mine.map((h) => h.cid),
+    allowanceCids: owed.map((x) => x.cid),
+    heldAtomic,
+    liabilityAtomic,
+    heldUnits: heldAtomic / per,
+    liabilityUnits: (liabilityAtomic + per - 1n) / per,
+    covered: heldAtomic >= liabilityAtomic,
+  };
 }

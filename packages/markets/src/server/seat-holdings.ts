@@ -20,9 +20,10 @@
  *
  * Its `VenueCash` is not a blocker: the recycler withdraws it as the seat's own choice before the seat is freed.
  */
-import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
+import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
 import { templateSuffix } from "../ops/canton/decode";
+import { decodeTransferInstructionView, interfaceViewOf } from "../ops/cc/decode";
 
 export type HoldingKind = "legs" | "quotes" | "tickets" | "shares" | "duels" | "agents" | "creator" | "coin";
 
@@ -82,8 +83,9 @@ const LP = templateSuffix(TEMPLATE_IDS.LpShare);
 const emptyCounts = (): Record<HoldingKind, number> => ({ legs: 0, quotes: 0, tickets: 0, shares: 0, duels: 0, agents: 0, creator: 0, coin: 0 });
 
 /** Pure over the seat's active contracts: what it holds at `nowMs`. Contracts naming another party are ignored. */
-export function holdingsOf(party: Party, events: readonly CreatedEvent[], nowMs: number): SeatHoldings {
+export function holdingsOf(party: Party, events: readonly CreatedEvent[], nowMs: number, pendingTransfers = 0): SeatHoldings {
   const out: SeatHoldings = { party, counts: emptyCounts(), cash: [], lpShares: [] };
+  out.counts.coin += pendingTransfers;
   for (const e of events) {
     const suffix = templateSuffix(e.templateId);
     const arg = (e.createArgument ?? {}) as Record<string, unknown>;
@@ -138,5 +140,22 @@ export async function readSeatHoldings(client: LedgerClient, party: Party, nowMs
       if (!isUnknownPackage(error)) throw error;
     }
   }
-  return holdingsOf(party, events, nowMs);
+  // C7b: a token-standard transfer this party instructed and nobody has accepted yet is coin in flight (a pending deposit).
+  let pending = 0;
+  try {
+    const r = await client.activeContracts({ parties: [party], interfaceIds: [CIP56_INTERFACE_IDS.TransferInstruction] });
+    for (const c of r.contracts) {
+      const raw = interfaceViewOf(c.createdEvent, CIP56_INTERFACE_IDS.TransferInstruction);
+      if (!raw) continue;
+      try {
+        if (decodeTransferInstructionView(raw).sender === party) pending += 1;
+      } catch {
+        // A view this build cannot read: holding the seat a little longer is the safe mistake.
+        pending += 1;
+      }
+    }
+  } catch (error) {
+    if (!isUnknownPackage(error)) throw error;
+  }
+  return holdingsOf(party, events, nowMs, pending);
 }

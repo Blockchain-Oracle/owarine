@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AllowanceC, HoldingViewC, ListingC, ProposalC, WithdrawalC } from "./decode";
-import { coverCash, coverHoldings, planAttest, planDeposits, planInFlight, planWithdrawals, type CashRow, type HoldingRow, type InstructionRow, type Row } from "./policy";
+import { allowanceFor, coverCash, coverHoldings, planAttest, planDeposits, planInFlight, planMerges, planWithdrawals, unlockedHoldings, type CashRow, type HoldingRow, type InstructionRow, type Row } from "./policy";
 
 const VENUE = "venue::1";
 const ADMIN = "dso::1";
@@ -33,7 +33,7 @@ const base = {
 
 describe("planDeposits (C7b)", () => {
   it("settles a genuine, exact, in-bounds transfer and names the owner's allowance", () => {
-    const allowance: Row<AllowanceC> = { cid: "al-a", data: { venue: VENUE, auditor: "a", owner: ALICE, listingId: "cc-1", units: 5n } };
+    const allowance: Row<AllowanceC> = { cid: "al-a", data: { venue: VENUE, auditor: "a", owner: ALICE, listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE, units: 5n } };
     const [p] = planDeposits({ ...base, instructions: [instruction("i1")], allowances: [allowance] });
     expect(p).toMatchObject({ kind: "settle", instructionCid: "i1", owner: ALICE, accountCid: "acct-a", allowanceCid: "al-a", units: 1_250_000n });
   });
@@ -86,14 +86,25 @@ describe("planDeposits (C7b)", () => {
     expect(late).toMatchObject({ kind: "reject", reason: "expired" });
   });
 
-  it("does not credit a seat that was leased again since the transfer (K-224)", () => {
+  it("holds, never rejects, the coin of a seat that was leased again since the transfer (K-224): a reject would hand it to the new visitor", () => {
     const leaseOf = (p: string) => (p === ALICE ? { startOffset: 500 } : null);
     const [stale] = planDeposits({ ...base, leaseOf, instructions: [instruction("i1", { offset: 400 })] });
-    expect(stale).toMatchObject({ kind: "reject", reason: "stale-lease" });
+    expect(stale).toMatchObject({ kind: "hold", reason: "stale-lease" });
     const [fresh] = planDeposits({ ...base, leaseOf, instructions: [instruction("i2", { offset: 600 })] });
     expect(fresh?.kind).toBe("settle");
+  });
+
+  it("holds when leases cannot be read at all, instead of turning every deposit away", () => {
     const [gone] = planDeposits({ ...base, leaseOf: () => null, instructions: [instruction("i3")] });
-    expect(gone).toMatchObject({ kind: "reject", reason: "stale-lease" });
+    expect(gone).toMatchObject({ kind: "hold", reason: "no-lease" });
+  });
+
+  it("spends no reject on a sender with no venue account: a flood of dust from strangers costs the venue nothing", () => {
+    const plans = planDeposits({
+      ...base, accounts: new Map(),
+      instructions: [instruction("d1", { sender: "stranger::1", amountAtomic: 1n }), instruction("d2", { sender: "stranger::1", executeBeforeSec: 1 }), instruction("d3", { sender: "stranger::2", amountAtomic: 99n * 100_000n })],
+    });
+    expect(plans.every((p) => p.kind === "hold" && p.reason === "no-account")).toBe(true);
   });
 
   it("rejects everything while the listing is closed", () => {
@@ -109,14 +120,20 @@ describe("planDeposits (C7b)", () => {
 
 const proposal = (cid: string, units: bigint, o: Partial<ProposalC> & { offset?: number } = {}): Row<ProposalC> & { createdOffset: number } => {
   const { offset, ...rest } = o;
-  return { cid, createdOffset: offset ?? 100, data: { owner: ALICE, venue: VENUE, listingId: "cc-1", units, ref: `r-${cid}`, ...rest } };
+  return {
+    cid, createdOffset: offset ?? 100,
+    data: { owner: ALICE, venue: VENUE, listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE, units, validUntilSec: 9_999, ref: `r-${cid}`, ...rest },
+  };
 };
-const allowanceOf = (owner: string, units: bigint): Row<AllowanceC> => ({ cid: `al-${owner}`, data: { venue: VENUE, auditor: "a", owner, listingId: "cc-1", units } });
-const holding = (cid: string, atomic: bigint, o: Partial<HoldingViewC> = {}): HoldingRow => ({
-  cid, view: { owner: VENUE, instrumentAdmin: ADMIN, instrumentId: "Amulet", amountAtomic: atomic, lock: null, meta: {}, ...o },
+const allowanceOf = (owner: string, units: bigint, o: Partial<AllowanceC> = {}): Row<AllowanceC> => ({
+  cid: `al-${owner}${o.listingId ? `-${o.listingId}` : ""}${o.units ? "x" : ""}`,
+  data: { venue: VENUE, auditor: "a", owner, listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE, units, ...o },
+});
+const holding = (cid: string, atomic: bigint, o: Partial<HoldingViewC> = {}, signatories: string[] = [VENUE, ADMIN]): HoldingRow => ({
+  cid, templateId: "pkgA:Splice.Amulet:Amulet", signatories, view: { owner: VENUE, instrumentAdmin: ADMIN, instrumentId: "Amulet", amountAtomic: atomic, lock: null, meta: {}, ...o },
 });
 const cash = (cid: string, owner: string, amount: bigint): CashRow => ({ cid, owner, amount });
-const wbase = { venue: VENUE, listing, accounts: base.accounts };
+const wbase = { venue: VENUE, listing, accounts: base.accounts, nowSec: 2_000 };
 
 describe("planWithdrawals (C7b)", () => {
   it("accepts a covered withdrawal and picks exact inputs", () => {
@@ -162,10 +179,33 @@ describe("planWithdrawals (C7b)", () => {
     expect(a && b && a.kind === "accept" && b.kind === "accept" && a.inputHoldingCids[0] !== b.inputHoldingCids[0]).toBe(true);
   });
 
-  it("does not honour a proposal from before the seat's current lease (K-224)", () => {
-    const leaseOf = () => ({ startOffset: 500 });
-    const [p] = planWithdrawals({ ...wbase, leaseOf, proposals: [proposal("p1", 1n, { offset: 400 })], allowances: [allowanceOf(ALICE, 1n)], cash: [cash("c1", ALICE, 1n)], holdings: [holding("h1", 10n ** 12n)] });
+  it("does not honour a proposal from before the seat's current lease (K-224), and holds when leases cannot be read", () => {
+    const [p] = planWithdrawals({ ...wbase, leaseOf: () => ({ startOffset: 500 }), proposals: [proposal("p1", 1n, { offset: 400 })], allowances: [allowanceOf(ALICE, 1n)], cash: [cash("c1", ALICE, 1n)], holdings: [holding("h1", 10n ** 12n)] });
     expect(p).toMatchObject({ kind: "decline" });
+    const [none] = planWithdrawals({ ...wbase, leaseOf: () => null, proposals: [proposal("p1", 1n)], allowances: [allowanceOf(ALICE, 1n)], cash: [cash("c1", ALICE, 1n)], holdings: [holding("h1", 10n ** 12n)] });
+    expect(none).toMatchObject({ kind: "hold" });
+  });
+
+  it("declines an ask that has lapsed, and one signed against terms the listing no longer states", () => {
+    const base = { ...wbase, allowances: [allowanceOf(ALICE, 100n)], cash: [cash("c1", ALICE, 100n)], holdings: [holding("h1", 10n ** 12n)] };
+    const [late] = planWithdrawals({ ...base, proposals: [proposal("p1", 1n, { validUntilSec: 2_000 })] });
+    expect(late).toMatchObject({ kind: "decline", reason: "the ask has lapsed" });
+    const [rate] = planWithdrawals({ ...base, proposals: [proposal("p2", 1n, { unitsPerCoin: 1_000_000n })] });
+    expect(rate).toMatchObject({ kind: "decline" });
+    const [inst] = planWithdrawals({ ...base, proposals: [proposal("p3", 1n, { instrumentId: "Other" })] });
+    expect(inst).toMatchObject({ kind: "decline" });
+  });
+
+  it("spends only an allowance made under the listing's terms, and holds while an owner's allowance is in pieces", () => {
+    const other = allowanceOf(ALICE, 9_999n, { unitsPerCoin: 1_000_000n, listingId: "cc-1" });
+    const [wrong] = planWithdrawals({ ...wbase, proposals: [proposal("p1", 10n)], allowances: [other], cash: [cash("c1", ALICE, 100n)], holdings: [holding("h1", 10n ** 12n)] });
+    expect(wrong).toMatchObject({ kind: "decline" });
+    const pieces = [allowanceOf(ALICE, 60n, { listingId: "cc-1" }), { ...allowanceOf(ALICE, 50n), cid: "al-second" }];
+    const [split] = planWithdrawals({ ...wbase, proposals: [proposal("p2", 100n)], allowances: pieces, cash: [cash("c1", ALICE, 500n)], holdings: [holding("h1", 10n ** 12n)] });
+    expect(split).toMatchObject({ kind: "hold" });
+    expect(allowanceFor(pieces, ALICE, listing)?.data.units).toBe(60n);
+    expect(planMerges(pieces, listing)).toEqual([{ keep: pieces[0]!.cid, others: ["al-second"] }]);
+    expect(planMerges([pieces[0]!], listing)).toEqual([]);
   });
 
   it("declines a withdrawal outside the rail's bounds", () => {
@@ -193,7 +233,7 @@ const withdrawal = (cid: string, o: Partial<WithdrawalC> = {}): Row<WithdrawalC>
 });
 
 describe("planInFlight (C7b)", () => {
-  const common = { accounts: base.accounts, allowances: [] as Row<AllowanceC>[], refundAfterSec: 3_600, nowSec: 2_000 };
+  const common = { accounts: base.accounts, allowances: [] as Row<AllowanceC>[], refundAfterSec: 3_600, nowSec: 2_000, listing };
 
   it("waits on a live transfer inside its window and takes it back after", () => {
     const w = withdrawal("w1");
@@ -205,11 +245,14 @@ describe("planInFlight (C7b)", () => {
     expect(old[0]).toMatchObject({ kind: "refund" });
   });
 
-  it("records a transfer the owner accepted, refunds one they rejected, and never guesses", () => {
+  it("records a transfer the owner accepted, alerts on one they rejected elsewhere, and never guesses", () => {
     const w = withdrawal("w1");
     const args = { ...common, withdrawals: [w], liveInstructions: new Map() };
     expect(planInFlight({ ...args, archivedBy: () => "accepted" })[0]).toMatchObject({ kind: "complete" });
-    expect(planInFlight({ ...args, archivedBy: () => "rejected" })[0]).toMatchObject({ kind: "orphan" });
+    // rejected outside the receipt: an alert only, nothing is refunded on the venue's word
+    const orphan = planInFlight({ ...args, archivedBy: () => "rejected" })[0];
+    expect(orphan).toMatchObject({ kind: "orphan" });
+    expect(orphan).not.toHaveProperty("accountCid");
     expect(planInFlight({ ...args, archivedBy: () => "unknown" })[0]).toMatchObject({ kind: "wait" });
   });
 
@@ -219,26 +262,50 @@ describe("planInFlight (C7b)", () => {
   });
 });
 
-describe("planAttest (C7b)", () => {
-  it("counts only the venue's unlocked holdings of the instrument, against every allowance, and floors the assets", () => {
+describe("planAttest and unlockedHoldings (C7b)", () => {
+  it("counts only the venue's unlocked, registry-signed holdings of the instrument, against every allowance of the instrument, and floors the assets", () => {
     const plan = planAttest({
       venue: VENUE, listing,
       holdings: [
         holding("h1", 100_000_000_000n), holding("locked", 5n, { lock: { holders: [VENUE], expiresAtSec: null, context: null } }),
         holding("other", 7n, { instrumentId: "Other" }), holding("alices", 9n, { owner: ALICE }), holding("dust", 99_999n),
+        holding("fake", 10n ** 18n, {}, [VENUE, "attacker::1"]),
       ],
-      allowances: [allowanceOf(ALICE, 600_000n), allowanceOf(BOB, 400_000n), { cid: "x", data: { venue: VENUE, auditor: "a", owner: BOB, listingId: "cc-2", units: 9n } }],
+      allowances: [allowanceOf(ALICE, 600_000n), allowanceOf(BOB, 400_000n), allowanceOf(BOB, 9n, { instrumentId: "Other" })],
     });
     expect(plan.holdingCids).toEqual(["h1", "dust"]);
     expect(plan.allowanceCids).toEqual(["al-alice::1", "al-bob::1"]);
     expect(plan.heldAtomic).toBe(100_000_099_999n);
     expect(plan.heldUnits).toBe(1_000_000n);
+    expect(plan.liabilityAtomic).toBe(1_000_000n * 100_000n);
     expect(plan.liabilityUnits).toBe(1_000_000n);
     expect(plan.covered).toBe(true);
+  });
+
+  it("counts the allowances of every listing of the instrument, each at its own rate: two listings share one pool", () => {
+    const second = allowanceOf(BOB, 10_000_000n, { listingId: "cc-2", unitsPerCoin: 1_000_000n });
+    const plan = planAttest({ venue: VENUE, listing, holdings: [holding("h1", 100n * 10n ** 10n)], allowances: [allowanceOf(ALICE, 100n * 100_000n), second] });
+    // alice: 10,000,000 units at 10^5 atomic each = 100 coin; bob: 10,000,000 units at 10^4 atomic each = 10 coin; the pool holds 100
+    expect(plan.liabilityAtomic).toBe(110n * 10n ** 10n);
+    expect(plan.covered).toBe(false);
+    expect(plan.allowanceCids).toHaveLength(2);
+  });
+
+  it("rounds owed units UP and held units DOWN, so a statement never flatters the venue", () => {
+    const plan = planAttest({ venue: VENUE, listing: { ...listing }, holdings: [holding("h1", 199_999n)], allowances: [allowanceOf(ALICE, 1n, { unitsPerCoin: 1_000_000n })] });
+    expect(plan.heldUnits).toBe(1n);
+    expect(plan.liabilityAtomic).toBe(10_000n);
+    expect(plan.liabilityUnits).toBe(1n);
   });
 
   it("reports a shortfall rather than hiding it", () => {
     const plan = planAttest({ venue: VENUE, listing, holdings: [holding("h1", 100n * 100_000n)], allowances: [allowanceOf(ALICE, 101n)] });
     expect(plan.covered).toBe(false);
+  });
+
+  it("honours a package allow-list for holdings too", () => {
+    const hs = [holding("ok", 5n), { ...holding("bad", 5n), templateId: "pkgZ:X:Y" }];
+    expect(unlockedHoldings(VENUE, listing, hs, ["pkgA"]).map((h) => h.cid)).toEqual(["ok"]);
+    expect(unlockedHoldings(VENUE, listing, hs).map((h) => h.cid)).toEqual(["ok", "bad"]);
   });
 });

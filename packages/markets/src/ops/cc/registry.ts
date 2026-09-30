@@ -54,10 +54,19 @@ export interface RegistryClientConfig {
   timeoutMs?: number;
 }
 
+/** The most of an answer read: a registry's choice context is kilobytes, and a hostile endpoint must not fill memory. */
+const MAX_BODY_BYTES = 1_048_576;
+
+const isLoopback = (host: string): boolean => host === "localhost" || host === "127.0.0.1" || host === "[::1]";
+
 export function createRegistryClient(cfg: RegistryClientConfig): RegistryClient {
   const doFetch = cfg.fetch ?? fetch;
   const base = cfg.baseUrl.replace(/\/+$/, "");
   const timeoutMs = cfg.timeoutMs ?? 15_000;
+  // The registry's answer names the factory the venue then exercises with its own authority, so the endpoint is the trust
+  // root: it must be the one the deployment configured, over TLS (a loopback stub for a local run is the only exception).
+  const url = new URL(base);
+  if (url.protocol !== "https:" && !(url.protocol === "http:" && isLoopback(url.hostname))) throw new RegistryError("the registry URL must be https");
 
   async function post(path: string, body: unknown): Promise<unknown> {
     let response: Response;
@@ -71,19 +80,19 @@ export function createRegistryClient(cfg: RegistryClientConfig): RegistryClient 
     } catch (error) {
       throw new RegistryError(`the registry did not answer: ${error instanceof Error ? error.name : "error"}`);
     }
-    if (!response.ok) {
-      // The error body names the registry's reason; it can echo our arguments, so only its `error` text is kept, bounded.
-      let reason = "";
-      try {
-        const j = (await response.json()) as { error?: unknown };
-        if (typeof j.error === "string") reason = j.error.slice(0, 200);
-      } catch {
-        /* no body */
-      }
-      throw new RegistryError(`the registry answered ${response.status}${reason ? `: ${reason}` : ""}`, response.status);
-    }
+    // The error body names the registry's reason, and it can echo our arguments (party and contract ids), so only the status is kept.
+    if (!response.ok) throw new RegistryError(`the registry answered ${response.status}`, response.status);
+    const declared = Number(response.headers.get("content-length") ?? "0");
+    if (declared > MAX_BODY_BYTES) throw new RegistryError("the registry's answer is too large", response.status);
+    let text: string;
     try {
-      return await response.json();
+      text = await response.text();
+    } catch {
+      throw new RegistryError("the registry's answer could not be read", response.status);
+    }
+    if (text.length > MAX_BODY_BYTES) throw new RegistryError("the registry's answer is too large", response.status);
+    try {
+      return JSON.parse(text) as unknown;
     } catch {
       throw new RegistryError("the registry's answer was not JSON", response.status);
     }

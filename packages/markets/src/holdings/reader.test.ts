@@ -9,9 +9,9 @@ const ADMIN = "issuer::1220bb";
 const TOKEN = SHARE_TOKENS[0]!;
 
 const view = (owner: string, admin: string, id: string, amount: string, lock: unknown = null) => ({ owner, instrumentId: { admin, id }, amount, lock, meta: { values: {} } });
-const contract = (cid: string, v: unknown, offset = 1, status = 0) => ({
+const contract = (cid: string, v: unknown, offset = 1, status = 0, signatories: string[] | null = null) => ({
   synchronizerId: "s",
-  createdEvent: { contractId: cid, templateId: "pkg:Any.Registry:AnyHolding", offset, createArgument: {}, interfaceViews: [{ interfaceId: "abcd:Splice.Api.Token.HoldingV1:Holding", viewStatus: { code: status }, viewValue: v }] },
+  createdEvent: { contractId: cid, templateId: "pkg:Any.Registry:AnyHolding", offset, createArgument: {}, signatories: signatories ?? [((v as { instrumentId?: { admin?: string } }).instrumentId?.admin) ?? "x", ME], interfaceViews: [{ interfaceId: "abcd:Splice.Api.Token.HoldingV1:Holding", viewStatus: { code: status }, viewValue: v }] },
 });
 const clientOf = (contracts: unknown[]) => {
   const calls: unknown[] = [];
@@ -26,10 +26,12 @@ describe("CIP-56 holdings (C7b; fake ledger)", () => {
       contract("h2", view(ME, ADMIN, "AAPLt", "0.0000000001", { holders: [ME], expiresAt: null, expiresAfter: null, context: null })),
       contract("offer", view("someone::1", ADMIN, "AAPLt", "99.0000000000", { holders: ["x"], expiresAt: null, expiresAfter: null, context: null })),
       contract("bad", { nonsense: true }),
+      contract("forged", view(ME, ADMIN, "AAPLt", "999.0000000000"), 1, 0, [ME, "attacker::1"]),
       contract("unrendered", view(ME, ADMIN, "AAPLt", "1.0"), 1, 3),
     ]);
     const hs = await readCip56Holdings(client, ME);
-    expect(hs.map((h) => [h.contractId, h.amountAtomic, h.locked])).toEqual([["h1", 25_000_000_000n, false], ["h2", 1n, true]]);
+    expect(hs.map((h) => [h.contractId, h.amountAtomic, h.locked])).toEqual([["h1", 25_000_000_000n, false], ["h2", 1n, true], ["forged", 9_990_000_000_000n, false]]);
+    expect(hs.find((h) => h.contractId === "forged")?.signatories).not.toContain(ADMIN);
     expect(calls).toEqual([{ parties: [ME], interfaceIds: [CIP56_INTERFACE_IDS.Holding], maxPageSize: 500 }]);
   });
 
@@ -46,6 +48,8 @@ describe("CIP-56 holdings (C7b; fake ledger)", () => {
       contract("b", view(ME, ADMIN, "AAPLt", "0.2500000000")),
       contract("locked", view(ME, ADMIN, "AAPLt", "9.0000000000", { holders: [ME], expiresAt: null, expiresAfter: null, context: null })),
       contract("coin", view(ME, "dso::1", "Amulet", "500.0000000000")),
+      // a look-alike the instrument's admin did not sign is not a holding, whatever its view says
+      contract("forged", view(ME, ADMIN, "AAPLt", "1000000.0000000000"), 1, 0, [ME, "attacker::1"]),
     ]);
     const body = await readHoldings({ client, party: ME, instruments: [{ admin: ADMIN, id: "AAPLt", symbol: TOKEN.symbol }], cluster: "devnet" as never, nowSec: 1_000 });
     expect(body.owner).toBe(ME);

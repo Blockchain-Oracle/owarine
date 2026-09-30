@@ -51,13 +51,20 @@ export interface AllowanceC {
   venue: Party;
   auditor: Party;
   owner: Party;
+  /** The terms the coin was deposited under: a listing that no longer states them cannot spend it. */
   listingId: string;
+  instrumentAdmin: Party;
+  instrumentId: string;
+  unitsPerCoin: bigint;
   units: bigint;
 }
 
 export function decodeAllowance(v: unknown): AllowanceC {
   const r = obj(v, "CcAllowance");
-  return { venue: text(r, "venue"), auditor: text(r, "auditor"), owner: text(r, "owner"), listingId: text(r, "listingId"), units: big(r, "units") };
+  return {
+    venue: text(r, "venue"), auditor: text(r, "auditor"), owner: text(r, "owner"), listingId: text(r, "listingId"),
+    instrumentAdmin: text(r, "instrumentAdmin"), instrumentId: text(r, "instrumentId"), unitsPerCoin: big(r, "unitsPerCoin"), units: big(r, "units"),
+  };
 }
 
 export interface DepositC {
@@ -122,6 +129,8 @@ export interface StatementC {
   asOfSec: number;
   heldAtomic: bigint;
   heldUnits: bigint;
+  /** What every allowance of the instrument comes to, each at its own rate, in atomic units. */
+  liabilityAtomic: bigint;
   liabilityUnits: bigint;
   allowanceCount: number;
   covered: boolean;
@@ -132,7 +141,7 @@ export function decodeStatement(v: unknown): StatementC {
   return {
     venue: text(r, "venue"), auditor: text(r, "auditor"), listingId: text(r, "listingId"), instrumentAdmin: text(r, "instrumentAdmin"),
     instrumentId: text(r, "instrumentId"), unitsPerCoin: big(r, "unitsPerCoin"), seq: Number(big(r, "seq")), asOfSec: sec(r, "asOf"),
-    heldAtomic: big(r, "heldAtomic"), heldUnits: big(r, "heldUnits"), liabilityUnits: big(r, "liabilityUnits"),
+    heldAtomic: big(r, "heldAtomic"), heldUnits: big(r, "heldUnits"), liabilityAtomic: big(r, "liabilityAtomic"), liabilityUnits: big(r, "liabilityUnits"),
     allowanceCount: Number(big(r, "allowanceCount")), covered: bool(r, "covered"),
   };
 }
@@ -140,14 +149,23 @@ export function decodeStatement(v: unknown): StatementC {
 export interface ProposalC {
   owner: Party;
   venue: Party;
+  /** The terms the owner signed against. */
   listingId: string;
+  instrumentAdmin: Party;
+  instrumentId: string;
+  unitsPerCoin: bigint;
   units: bigint;
+  /** The ask lapses after this. */
+  validUntilSec: number;
   ref: string;
 }
 
 export function decodeProposal(v: unknown): ProposalC {
   const r = obj(v, "CcWithdrawProposal");
-  return { owner: text(r, "owner"), venue: text(r, "venue"), listingId: text(r, "listingId"), units: big(r, "units"), ref: text(r, "ref") };
+  return {
+    owner: text(r, "owner"), venue: text(r, "venue"), listingId: text(r, "listingId"), instrumentAdmin: text(r, "instrumentAdmin"),
+    instrumentId: text(r, "instrumentId"), unitsPerCoin: big(r, "unitsPerCoin"), units: big(r, "units"), validUntilSec: sec(r, "validUntil"), ref: text(r, "ref"),
+  };
 }
 
 // ---- CIP-56 V1 views (the token standard's own shapes) -------------------------------------------

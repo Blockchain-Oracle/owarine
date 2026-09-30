@@ -36,7 +36,7 @@ export function startCcRail(input: { venue: VenueContext; log: (why: string) => 
   }
   const registry = input.registry === undefined ? (cfg.registryUrl ? createRegistryClient({ baseUrl: cfg.registryUrl }) : null) : input.registry;
   if (!registry) input.log("no CC_REGISTRY_URL: the rail reads and reports, and attempts no deposit or withdrawal");
-  if (!isDbConfigured() && cfg.requireLease) input.log("no database: with CC_REQUIRE_LEASE on, no seat has a live lease, so every deposit is rejected back and every withdrawal declined (K-224)");
+  if (!isDbConfigured() && cfg.requireLease) input.log("no database: with CC_REQUIRE_LEASE on, no seat has a live lease, so every deposit and every withdrawal is held, and none is settled or paid (K-224)");
 
   async function ensureListing(): Promise<void> {
     const acs = await readActive(session!, [CC_TEMPLATE_IDS.CcListing]);
@@ -66,6 +66,14 @@ export function startCcRail(input: { venue: VenueContext; log: (why: string) => 
         await ensureListing();
         const db = getDb();
         const leases = cfg.requireLease ? (db ? await seatHolderLeases(db) : new Map<string, { address: string; fromOffset: number }>()) : null;
+        // Read again just before a command goes out: a seat can be re-leased while the pass is on (K-224).
+        const freshLease =
+          cfg.requireLease && db
+            ? async (party: string) => {
+                const l = (await seatHolderLeases(db, { parties: [party] })).get(party);
+                return l ? { startOffset: l.fromOffset } : null;
+              }
+            : undefined;
         const result = await railPass({
           venue: session,
           registry,
@@ -73,6 +81,7 @@ export function startCcRail(input: { venue: VenueContext; log: (why: string) => 
           nowSec: () => Math.floor(Date.now() / 1000),
           log: input.log,
           ...(leases ? { leaseOf: (party: string) => (leases.has(party) ? { startOffset: leases.get(party)!.fromOffset } : null) } : {}),
+          ...(freshLease ? { freshLease } : {}),
           allowedPackageIds: cfg.allowedPackageIds,
           refundAfterSec: cfg.refundAfterSec,
           transferWindowSec: cfg.transferWindowSec,

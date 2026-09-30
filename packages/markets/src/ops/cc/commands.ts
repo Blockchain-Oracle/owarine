@@ -8,6 +8,9 @@ import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, type Cc } from "@agari/daml";
 import { atomicToCc, toDamlInt, type Command, type ContractId, type DisclosedContract, type Party } from "@agari/ledger/pure";
 import { isoOfSec } from "../canton/decode";
 
+/** One ledger command of the rail. */
+export type RailCommand = Command;
+
 const exercise = (templateId: string, contractId: ContractId, choice: string, choiceArgument: unknown): Command => ({
   ExerciseCommand: { templateId, contractId, choice, choiceArgument },
 });
@@ -88,13 +91,17 @@ export const refundWithdrawal = (withdrawalCid: ContractId, a: { accountCid: Con
     extraArgs: extraArgsOf(a.context),
   } satisfies Wire<Cc.PM.CC.Records.Withdrawal_Refund>);
 
-/** The owner rejected the transfer and the coin came back: restore the cash and the allowance against the returned holdings. */
-export const refundReturned = (withdrawalCid: ContractId, a: { accountCid: ContractId; allowanceCid: ContractId | null; returned: readonly ContractId[] }): Command =>
-  exercise(CC_TEMPLATE_IDS.CcWithdrawal, withdrawalCid, "Withdrawal_RefundReturned", {
+/** The owner rejects a pending transfer through the receipt: the token standard's own Reject, and the cash and allowance come back in the same transaction. */
+export const ownerRejectWithdrawal = (withdrawalCid: ContractId, a: { accountCid: ContractId; allowanceCid: ContractId | null; context: RegistryContext | null }): Command =>
+  exercise(CC_TEMPLATE_IDS.CcWithdrawal, withdrawalCid, "Withdrawal_OwnerReject", {
     accountCid: a.accountCid,
     allowanceCid: a.allowanceCid,
-    returned: [...a.returned],
-  } satisfies Wire<Cc.PM.CC.Records.Withdrawal_RefundReturned>);
+    extraArgs: extraArgsOf(a.context),
+  } satisfies Wire<Cc.PM.CC.Records.Withdrawal_OwnerReject>);
+
+/** Fold an owner's duplicate allowances (same terms) into one. */
+export const mergeAllowances = (allowanceCid: ContractId, others: readonly ContractId[]): Command =>
+  exercise(CC_TEMPLATE_IDS.CcAllowance, allowanceCid, "Allowance_Merge", { others: [...others] } satisfies Wire<Cc.PM.CC.Records.Allowance_Merge>);
 
 /** The venue rejects a deposit it will not take (dust, out of bounds): the registry returns the coin to the sender. */
 export const rejectTransfer = (instructionCid: ContractId, context: RegistryContext | null): Command =>
@@ -102,13 +109,12 @@ export const rejectTransfer = (instructionCid: ContractId, context: RegistryCont
 
 export const attestReserve = (
   listingCid: ContractId,
-  a: { holdingCids: readonly ContractId[]; allowanceCids: readonly ContractId[]; previous: ContractId | null; asOfSec: number },
+  a: { holdingCids: readonly ContractId[]; allowanceCids: readonly ContractId[]; previous: ContractId | null },
 ): Command =>
   exercise(CC_TEMPLATE_IDS.CcListing, listingCid, "Listing_Attest", {
     holdingCids: [...a.holdingCids],
     allowanceCids: [...a.allowanceCids],
     previous: a.previous,
-    "asOf": isoOfSec(a.asOfSec),
   } satisfies Wire<Cc.PM.CC.Listing.Listing_Attest>);
 
 export const setDeposits = (listingCid: ContractId, open: boolean): Command =>
@@ -141,13 +147,31 @@ export const createListing = (l: ListingInput): Command =>
 
 // ---- the seat ----------------------------------------------------------------------------------------
 
-/** The seat's ask: `units` of its cash back in coin. A plain create signed by the owner; the venue answers it. */
-export const createWithdrawProposal = (p: { owner: Party; venue: Party; listingId: string; units: bigint; ref: string }): Command =>
+/**
+ * The seat's ask: `units` of its cash back in coin, under the terms it saw (listing id, instrument, rate) and standing
+ * until `validUntilSec`. A plain create signed by the owner; the venue answers it. The terms are what stops a venue that
+ * re-creates a listing under the same id with another rate from answering it.
+ */
+export const createWithdrawProposal = (p: {
+  owner: Party;
+  venue: Party;
+  listingId: string;
+  instrumentAdmin: Party;
+  instrumentId: string;
+  unitsPerCoin: bigint;
+  units: bigint;
+  validUntilSec: number;
+  ref: string;
+}): Command =>
   create(CC_TEMPLATE_IDS.CcWithdrawProposal, {
     owner: p.owner,
     venue: p.venue,
     listingId: p.listingId,
+    instrumentAdmin: p.instrumentAdmin,
+    instrumentId: p.instrumentId,
+    unitsPerCoin: toDamlInt(p.unitsPerCoin),
     units: toDamlInt(p.units),
+    "validUntil": isoOfSec(p.validUntilSec),
     ref: p.ref,
   } satisfies Wire<Cc.PM.CC.Withdraw.CcWithdrawProposal>);
 

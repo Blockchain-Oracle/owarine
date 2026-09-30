@@ -33,9 +33,9 @@ const bigint = (v: string | undefined, fallback: bigint, what: string): bigint =
   if (!/^\d+$/.test(v)) throw new Error(`${what} must be a non-negative integer, got ${JSON.stringify(v)}`);
   return BigInt(v);
 };
-const int = (v: string | undefined, fallback: number, what: string): number => {
+const int = (v: string | undefined, fallback: number, what: string, min = 0): number => {
   const n = v === undefined || v === "" ? fallback : Number(v);
-  if (!Number.isSafeInteger(n) || n < 0) throw new Error(`${what} must be a non-negative integer, got ${JSON.stringify(v)}`);
+  if (!Number.isSafeInteger(n) || n < min) throw new Error(`${what} must be an integer of at least ${min}, got ${JSON.stringify(v)}`);
   return n;
 };
 
@@ -54,9 +54,10 @@ export function readCcRailEnv(env: NodeJS.ProcessEnv = process.env): CcRailEnv {
     maxDepositUnits,
     registryUrl: env.CC_REGISTRY_URL || null,
     allowedPackageIds: (env.CC_ALLOWED_PACKAGE_IDS ?? "").split(",").map((s) => s.trim()).filter(Boolean),
-    everyMs: int(env.CC_RAIL_EVERY_MS, 15_000, "CC_RAIL_EVERY_MS"),
-    refundAfterSec: int(env.CC_REFUND_AFTER_SEC, 86_400, "CC_REFUND_AFTER_SEC"),
-    transferWindowSec: int(env.CC_TRANSFER_WINDOW_SEC, 86_400, "CC_TRANSFER_WINDOW_SEC"),
+    everyMs: int(env.CC_RAIL_EVERY_MS, 15_000, "CC_RAIL_EVERY_MS", 1_000),
+    // A transfer the venue instructed is taken back only after the owner has had time to accept it: at least ten minutes.
+    refundAfterSec: int(env.CC_REFUND_AFTER_SEC, 86_400, "CC_REFUND_AFTER_SEC", 600),
+    transferWindowSec: int(env.CC_TRANSFER_WINDOW_SEC, 86_400, "CC_TRANSFER_WINDOW_SEC", 600),
     attestEverySec: int(env.CC_ATTEST_EVERY_SEC, 300, "CC_ATTEST_EVERY_SEC"),
     createListing: env.CC_CREATE_LISTING === "1",
     requireLease: env.CC_REQUIRE_LEASE !== "0",
