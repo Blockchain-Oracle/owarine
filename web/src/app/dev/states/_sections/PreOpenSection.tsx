@@ -102,7 +102,7 @@ export function PreOpenSection() {
             {LADDER.map(({ label, input, ctx }) => (
               <div key={label} className="flex flex-col gap-1">
                 <span className="type-label-micro text-ink-muted">{label}</span>
-                <BlockedButton blocker={deriveScheduleBlocker(input)} ctx={ctx ?? {}} tone="up" className="w-full justify-start" onClick={noop}>
+                <BlockedButton blocker={deriveScheduleBlocker(input)} ctx={ctx ?? {}} tone="up" className="h-auto min-h-(--ticket-cta-height) w-full justify-start whitespace-normal py-2 text-left leading-snug text-balance" onClick={noop}>
                   {PREOPEN.ticket.cta(SIDE_WORD.up)} <Money value={READY.sized!.ok ? READY.sized!.quote.maxCostBase : 0n} decimals={DECIMALS} symbol={SYMBOL} />
                 </BlockedButton>
               </div>
