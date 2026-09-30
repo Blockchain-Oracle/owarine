@@ -200,7 +200,7 @@ testVenueCannotAcceptForUser = script do
     createCmd Leg with
       venue = w.venue; owner = w.alice; termsCid = win.terms; marketId = win.t.marketId
       pairId = "x"; outcome = SideUp; lots = 1; cashUnit = 1; backingShare = 600; feePaid = 0
-      refundAfter = win.t.refundAfter; beneficiaryRef = None
+      refundAfter = win.t.refundAfter; beneficiaryRef = None; bookCost = None
   unauthorized mint
   cashOf w.alice >>= (=== 600)
 

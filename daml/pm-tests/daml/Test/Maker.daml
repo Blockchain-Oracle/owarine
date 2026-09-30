@@ -1,0 +1,470 @@
+-- | The maker vault (abu-pm-main 0.5.0, K-092, K-200): a `PM.Reserve` whose
+-- cash quotes pairs as a book, and its on-ledger statement
+-- (`Maker_PublishNav`). The money gate for it:
+--
+--   conservation   supply → quote → accept → settle / void → NAV → withdraw:
+--                  every unit is somewhere at every step (`ledgerTotal`),
+--                  and the book's cash never leaves `reserve:maker` except
+--                  to a provider or to a winning user
+--   never over     the statement never counts a position above its cost,
+--                  above what its Resolution pays, or at all once its
+--                  Window expired unresolved; foreign contracts, stale
+--                  dates and duplicates are refused
+--   locked         a provider is paid only from the book's liquid cash
+--   void returns   expiry, withdrawal and a void Window give the lock back
+--                  to the book's bucket, not to the venue desk's
+--   exactly once   settle, merge, accept and withdraw each pay once
+module Test.Maker where
+
+import Daml.Script
+import DA.Action (void)
+import DA.Assert ((===))
+import DA.List (sortOn)
+import PM.Book
+import PM.Leg
+import PM.Maker
+import PM.Market
+import PM.Money
+import PM.Quote
+import PM.Reserve
+import PM.Types
+import Test.Conservation (ledgerTotal)
+import Test.Setup
+
+mk : Text
+mk = "maker"
+
+mkBook : Text
+mkBook = reserveBucket mk
+
+data Vault = Vault
+  with
+    w : World
+    win : Win
+    op : ContractId OpenPrint
+    desk : ContractId MakerDesk
+    nav : ContractId NavStatement
+
+-- | World, window 0 with its open recorded (t0 + 10 s), an empty maker
+-- statement and the venue's maker desk.
+mkVault : Script Vault
+mkVault = do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win 100
+  desk <- submit w.venue do createCmd MakerDesk with venue = w.venue
+  nav <- submit w.venue do
+    createCmd NavStatement with
+      venue = w.venue; auditor = w.auditor; reserveId = mk; seq = 0; asOf = t0; assets = 0; shares = 0
+  pure Vault with ..
+
+-- | Everything the venue sees that is this book's, as ops passes it.
+bookInputs : World -> Script MakerNavInputs
+bookInputs w = do
+  cash <- query @VenueCash w.venue
+  lps <- query @LpShare w.venue
+  wqs <- query @WithdrawQuote w.venue
+  qs <- query @Quote w.venue
+  bqs <- query @BuyQuote w.venue
+  legs <- query @Leg w.venue
+  rs <- query @NettedResidual w.venue
+  res <- query @Resolution w.venue
+  let bookLegs = [(c, l) | (c, l) <- legs, legBook l == Some mkBook]
+      bookRes = [(c, r) | (c, r) <- rs, r.book == Some mkBook]
+      terms = map (\(_, l) -> l.termsCid) bookLegs ++ map (\(_, r) -> r.termsCid) bookRes
+  pure MakerNavInputs with
+    cash = [c | (c, x) <- cash, x.owner == w.venue, x.bucket == mkBook]
+    lpShares = [c | (c, x) <- lps, x.reserveId == mk]
+    withdrawQuotes = [c | (c, x) <- wqs, x.reserveId == mk]
+    quotes = [c | (c, x) <- qs, x.book == Some mkBook]
+    buyQuotes = [c | (c, x) <- bqs, x.book == Some mkBook]
+    legs = map fst bookLegs
+    residuals = map fst bookRes
+    resolutions = [c | (c, r) <- res, r.termsCid `elem` terms]
+
+-- | Publish the book's statement now; returns it and its (assets, shares).
+publish : Vault -> Script (Vault, Int, Int)
+publish v = do
+  now <- getTime
+  i <- bookInputs v.w
+  next <- submit v.w.venue do exerciseCmd v.desk Maker_PublishNav with navCid = v.nav; asOf = now; inputs = i
+  Some s <- queryContractId v.w.venue next
+  pure ((v with nav = next), s.assets, s.shares)
+
+-- | The book's liquid cash.
+bookCash : World -> Script Int
+bookCash w = do
+  cs <- query @VenueCash w.venue
+  pure (sum [c.amount | (_, c) <- cs, c.owner == w.venue, c.bucket == mkBook])
+
+-- | The venue desk's own trading cash (never the book's).
+deskCash : World -> Script Int
+deskCash w = do
+  cs <- query @VenueCash w.venue
+  pure (sum [c.amount | (_, c) <- cs, c.owner == w.venue, c.bucket `elem` ["shard", "payout", "netting", "change"]])
+
+-- | ledgerTotal plus cash locked for providers (the one lock it leaves out).
+universe : World -> Script Int
+universe w = do
+  t <- ledgerTotal w
+  wqs <- query @WithdrawQuote w.venue
+  pure (t + sum [q.cashOut | (_, q) <- wqs])
+
+-- | A provider supplies `amount` at the live statement.
+supplyMaker : Vault -> Party -> Int -> Script (ContractId LpShare, Int)
+supplyMaker v who amount = do
+  now <- getTime
+  q <- submit v.w.venue do exerciseCmd v.nav Nav_IssueSupply with provider = who; cashIn = amount; validUntil = plus now 20
+  Some sq <- queryContractId who q
+  c <- fund v.w who amount
+  (lp, _, _) <- submit who do exerciseCmd q Supply_Accept with cash = [c]
+  pure (lp, sq.sharesOut)
+
+-- | The largest book shard.
+bookShard : World -> Script (ContractId VenueCash, Int)
+bookShard w = do
+  cs <- query @VenueCash w.venue
+  case sortOn (\(_, c) -> negate c.amount) [(c, x) | (c, x) <- cs, x.owner == w.venue, x.bucket == mkBook] of
+    ((c, x) :: _) -> pure (c, x.amount)
+    [] -> abort "the book has no cash"
+
+-- | The book's cash pieces merged into one (ops' keeper does the same).
+mergeBook : World -> Script ()
+mergeBook w = do
+  cs <- query @VenueCash w.venue
+  case [c | (c, x) <- cs, x.owner == w.venue, x.bucket == mkBook] of
+    (c :: rest@(_ :: _)) -> void $ submit w.venue do exerciseCmd c VenueCash_Merge with others = rest
+    _ -> pure ()
+
+-- | The book quotes `user` a side at `ticks` (the user's price) for `lots`.
+bookQuote : Vault -> Party -> Side -> Int -> Int -> Int -> Text -> Script (ContractId Quote)
+bookQuote v user side ticks lots fee pairId = do
+  now <- getTime
+  (sh, _) <- bookShard v.w
+  (q, _) <- submit v.w.venue do
+    exerciseCmd v.w.desk Desk_IssueQuote with
+      shardCid = sh; user; termsCid = v.win.terms; pairId; side; priceTicks = ticks; lots; fee
+      validUntil = plus now 20
+  pure q
+
+-- | The user takes a book quote, paying exactly stake plus fee.
+takeQuote : Vault -> Party -> ContractId Quote -> Script (ContractId Leg, ContractId Leg)
+takeQuote v user q = do
+  Some x <- queryContractId user q
+  c <- fund v.w user (userStakeOf x.lots x.priceTicks x.cashUnit + x.fee)
+  (u, b, _) <- submit user do exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = None
+  pure (u, b)
+
+-- | A provider's withdraw quote, locked from the largest book shard.
+withdrawMaker : Vault -> Party -> ContractId LpShare -> Int -> Script (ContractId WithdrawQuote)
+withdrawMaker v who lp n = do
+  now <- getTime
+  mergeBook v.w
+  (sh, _) <- bookShard v.w
+  (q, _) <- submit v.w.venue do
+    exerciseCmd v.nav Nav_IssueWithdraw with provider = who; lpShareCid = lp; sharesIn = n; shardCid = sh; validUntil = plus now 20
+  pure q
+
+settleAll : Vault -> ContractId Resolution -> [ContractId Leg] -> Script ()
+settleAll v res legs = do
+  _ <- submit v.w.venue do exerciseCmd v.w.desk Desk_SettleBatch with legCids = legs; resolutionCid = res
+  pure ()
+
+receipts : World -> Script [BookReceipt]
+receipts w = map snd <$> query @BookReceipt w.venue
+
+-- ---------------------------------------------------------------------------
+
+-- The whole cycle with the book LOSING: supply → quote from the book →
+-- accept → resolve against the book → NAV → settle → withdraw. The
+-- statement moves only when the Window resolves (not when the maker
+-- quotes, not when the user accepts, not at settle), and every step
+-- conserves the universe.
+testMakerCycleLoss = script do
+  v0 <- mkVault
+  let w = v0.w
+  (la, sa) <- supplyMaker v0 w.alice 10000
+  sa === 10000
+  (v1, a1, s1) <- publish v0
+  (a1, s1) === (10000, 10000)
+  u0 <- universe w
+  desk0 <- deskCash w
+  -- Bob buys Up 5 lots at 600 from the book: the book locks 5 × 400.
+  q <- bookQuote v1 w.bob SideUp 600 5 10 "m1"
+  Some qx <- queryContractId w.venue q
+  qx.book === Some mkBook
+  bookCash w >>= (=== 8000)
+  (v1', a2, _) <- publish v1
+  a2 === 10000                                  -- quoting does not move the price
+  universe w >>= (=== u0)
+  (bobLeg, bookLeg) <- takeQuote v1' w.bob q
+  Some bl <- queryContractId w.venue bookLeg
+  bl.beneficiaryRef === Some mkBook
+  bl.backingShare === 2000
+  universe w >>= (=== u0 + 3010)                 -- only Bob's funding is new
+  (v2, a3, _) <- publish v1'
+  a3 === 10000                                  -- nor does the accept
+  -- The Window closes Up: the book's Down leg will be paid nothing.
+  res <- resolveAt w v2.win v2.op 150
+  (v3, a4, _) <- publish v2
+  a4 === 8000                                   -- the loss, recognised at the resolution
+  settleAll v3 res [bobLeg, bookLeg]
+  bookCash w >>= (=== 8000)
+  deskCash w >>= (=== desk0)                     -- the desk's cash never moved
+  (v4, a5, s5) <- publish v3
+  (a5, s5) === (8000, 10000)                    -- and not again at settle
+  [r] <- receipts w
+  (r.kind, r.cost, r.proceeds, r.resolved) === ("settled", 2000, 0, Some SideUp)
+  -- Alice exits in full at NAV 0.8.
+  wq <- withdrawMaker v4 w.alice la 10000
+  Some wqx <- queryContractId w.alice wq
+  wqx.cashOut === 8000
+  aliceBefore <- cashOf w.alice
+  _ <- submit w.alice do exerciseCmd wq Withdraw_Accept
+  cashOf w.alice >>= (=== aliceBefore + 8000)
+  bookCash w >>= (=== 0)
+  (_, a6, s6) <- publish v4
+  (a6, s6) === (0, 0)
+
+-- The same cycle with the book WINNING: the gain is not counted before the
+-- cash is in the bucket (the mark stays at cost), then it is.
+testMakerCycleGain = script do
+  v0 <- mkVault
+  let w = v0.w
+  (la, _) <- supplyMaker v0 w.alice 10000
+  (v1, _, _) <- publish v0
+  q <- bookQuote v1 w.bob SideUp 600 5 10 "m1"
+  (bobLeg, bookLeg) <- takeQuote v1 w.bob q
+  u0 <- universe w
+  res <- resolveAt w v1.win v1.op 50                -- closes Down: the book's leg wins
+  (v2, a2, _) <- publish v1
+  a2 === 10000                                  -- a known win still counts at cost
+  settleAll v2 res [bobLeg, bookLeg]
+  universe w >>= (=== u0)
+  bookCash w >>= (=== 13000)                    -- 8000 + the pair's 5000
+  (v3, a3, s3) <- publish v2
+  (a3, s3) === (13000, 10000)
+  -- Bob, a second provider, supplies at NAV 1.3 and gets floor(1300/1.3) shares.
+  (lb, sb) <- supplyMaker v3 w.bob 1300
+  sb === 1000
+  (v4, a4, s4) <- publish v3
+  (a4, s4) === (14300, 11000)
+  -- Alice takes her 10000 shares: 13000.
+  wq <- withdrawMaker v4 w.alice la 10000
+  Some x <- queryContractId w.alice wq
+  x.cashOut === 13000
+  _ <- submit w.alice do exerciseCmd wq Withdraw_Accept
+  (v5, a5, s5) <- publish v4
+  (a5, s5) === (1300, 1000)
+  wqb <- withdrawMaker v5 w.bob lb 1000
+  Some xb <- queryContractId w.bob wqb
+  xb.cashOut === 1300
+
+-- A void Window, an expired quote and a withdrawn quote each give the lock
+-- back to the book's bucket; the statement never moves.
+testMakerVoidReturns = script do
+  v0 <- mkVault
+  let w = v0.w
+  _ <- supplyMaker v0 w.alice 5000
+  (v1, _, _) <- publish v0
+  -- expired
+  q1 <- bookQuote v1 w.bob SideUp 700 2 0 "e1"
+  bookCash w >>= (=== 4400)
+  now <- getTime
+  at (plus now 26)
+  r1 <- submit w.venue do exerciseCmd q1 Quote_Expire
+  Some c1 <- queryContractId w.venue r1
+  c1.bucket === mkBook
+  -- withdrawn
+  q2 <- bookQuote v1 w.bob SideDown 300 3 0 "e2"
+  r2 <- submit w.venue do exerciseCmd q2 Quote_Withdraw with reason = "halt"
+  Some c2 <- queryContractId w.venue r2
+  c2.bucket === mkBook
+  bookCash w >>= (=== 5000)
+  (v2, a2, _) <- publish v1
+  a2 === 5000
+  -- accepted, then the Window voids: both legs refunded, the book's backing to the book
+  q3 <- bookQuote v2 w.bob SideUp 550 4 20 "e3"
+  (bobLeg, bookLeg) <- takeQuote v2 w.bob q3
+  u0 <- universe w
+  res <- voidClose w v2.win v2.op
+  (v3, a3, _) <- publish v2
+  a3 === 5000
+  bobBefore <- cashOf w.bob
+  settleAll v3 res [bobLeg, bookLeg]
+  cashOf w.bob >>= (=== bobBefore + 4 * 550 + 20)   -- stake plus fee back
+  bookCash w >>= (=== 5000)
+  universe w >>= (=== u0)
+  (_, a4, _) <- publish v3
+  a4 === 5000
+  [r] <- receipts w
+  (r.kind, r.cost, r.proceeds, r.resolved) === ("settled", 1800, 1800, None)
+
+-- A provider is paid only from the book's liquid cash: capital locked in
+-- quotes and legs cannot be redeemed, and no other bucket can pay.
+testMakerLockedNotWithdrawable = script do
+  v0 <- mkVault
+  let w = v0.w
+  (la, _) <- supplyMaker v0 w.alice 1000
+  (v1, _, _) <- publish v0
+  q <- bookQuote v1 w.bob SideUp 200 1 0 "l1"     -- locks 800
+  _ <- takeQuote v1 w.bob q
+  (v2, a2, s2) <- publish v1
+  (a2, s2) === (1000, 1000)
+  bookCash w >>= (=== 200)
+  -- All 1000 shares redeem for 1000, but only 200 is liquid.
+  now <- getTime
+  (sh, 200) <- bookShard w
+  r <- trySubmit w.venue do
+    exerciseCmd v2.nav Nav_IssueWithdraw with provider = w.alice; lpShareCid = la; sharesIn = 1000; shardCid = sh; validUntil = plus now 20
+  refusedWith (refusal "shard-too-small") r
+  -- The venue desk's own cash cannot pay a provider either.
+  desk <- shard w 5000
+  r2 <- trySubmit w.venue do
+    exerciseCmd v2.nav Nav_IssueWithdraw with provider = w.alice; lpShareCid = la; sharesIn = 1000; shardCid = desk; validUntil = plus now 20
+  refusedWith (refusal "bad-shard") r2
+  -- What is liquid is.
+  wq <- withdrawMaker v2 w.alice la 200
+  Some x <- queryContractId w.alice wq
+  x.cashOut === 200
+  _ <- submit w.alice do exerciseCmd wq Withdraw_Accept
+  bookCash w >>= (=== 0)
+  (_, a3, s3) <- publish v2
+  (a3, s3) === (800, 800)
+
+-- The statement never overstates.
+testMakerNavNeverOverstates = script do
+  v0 <- mkVault
+  let w = v0.w
+  _ <- supplyMaker v0 w.alice 10000
+  (v1, _, _) <- publish v0
+  -- (1) A buy-back counts at what the book paid, not at the seller's backing.
+  q <- bookQuote v1 w.bob SideUp 800 5 0 "b1"     -- Bob's Up leg backs 4000; the book's Down 1000
+  (bobLeg, _) <- takeQuote v1 w.bob q
+  now <- getTime
+  (sh, _) <- bookShard w
+  (bq, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = bobLeg; priceTicks = 300; validUntil = plus now 20; sellLots = Some 5
+  Some bqx <- queryContractId w.venue bq
+  (bqx.book, bqx.locked) === (Some mkBook, 1500)
+  (v2, a2, _) <- publish v1
+  a2 === 10000                                  -- the lock at 1500
+  (_, bought, _) <- submit w.bob do exerciseCmd bq BuyQuote_Accept
+  Some bl <- queryContractId w.venue bought
+  (bl.backingShare, bl.bookCost, bl.beneficiaryRef) === (4000, Some 1500, Some mkBook)
+  (v3, a3, _) <- publish v2
+  a3 === 10000                                  -- 7500 cash + 1000 + 1500, not + 4000
+  -- (2) Once the Window has expired unresolved, its legs count nothing.
+  at (plus v3.win.t.expiry 1)
+  (v4, a4, _) <- publish v3
+  a4 === 7500
+
+-- Contracts that are not the book's are refused, and so are a stale date
+-- and a contract passed twice.
+testMakerNavRefusals = script do
+  v0 <- mkVault
+  let w = v0.w
+  _ <- supplyMaker v0 w.alice 10000
+  (v1, _, _) <- publish v0
+  deskQ <- issue w v1.win w.bob SideUp 500 1 0 (plus t0 60) "d1"
+  -- a user's own leg carrying the book's name is still the user's
+  bq <- bookQuote v1 w.bob SideUp 600 1 0 "d2"
+  c <- fund w w.bob 600
+  (userLeg, bookLeg, _) <- submit w.bob do exerciseCmd bq Quote_Accept with cash = [c]; beneficiaryRef = Some mkBook
+  (_, deskVenue) <- trade w v1.win w.bob SideDown 500 1 0 "d3"
+  deskShard <- shard w 100
+  i <- bookInputs w
+  now <- getTime
+  let publishWith ins = trySubmit w.venue do exerciseCmd v1.desk Maker_PublishNav with navCid = v1.nav; asOf = now; inputs = ins
+  publishWith (i with quotes = deskQ :: i.quotes) >>= refusedWith (refusal "wrong-reserve")
+  publishWith (i with legs = userLeg :: i.legs) >>= refusedWith (refusal "wrong-reserve")
+  publishWith (i with legs = deskVenue :: i.legs) >>= refusedWith (refusal "wrong-reserve")
+  publishWith (i with cash = deskShard :: i.cash) >>= refusedWith (refusal "wrong-reserve")
+  publishWith (i with legs = bookLeg :: i.legs) >>= refusedWith (refusal "duplicate")
+  -- a statement dated more than five minutes before the ledger's time
+  r <- trySubmit w.venue do exerciseCmd v1.desk Maker_PublishNav with navCid = v1.nav; asOf = plus now (-301); inputs = i
+  refusedWith deadlineExceeded r
+  -- the book's own inputs publish
+  (_, a, _) <- publish v1
+  a === 10000
+
+-- Each money path pays once: a settled leg cannot settle again, a merge
+-- consumes both legs, supply and withdraw quotes accept once; and a book
+-- never nets against the venue desk.
+testMakerExactlyOnce = script do
+  v0 <- mkVault
+  let w = v0.w
+  now0 <- getTime
+  sq <- submit w.venue do exerciseCmd v0.nav Nav_IssueSupply with provider = w.alice; cashIn = 4000; validUntil = plus now0 20
+  c <- fund w w.alice 4000
+  (la, _, _) <- submit w.alice do exerciseCmd sq Supply_Accept with cash = [c]
+  c2 <- fund w w.alice 4000
+  trySubmit w.alice (exerciseCmd sq Supply_Accept with cash = [c2]) >>= fails
+  (v1, _, _) <- publish v0
+  -- The book sells Bob Up, then buys it back: it holds both halves of the pair.
+  q <- bookQuote v1 w.bob SideUp 600 2 0 "x1"
+  (bobLeg, bookDown) <- takeQuote v1 w.bob q
+  now <- getTime
+  (sh, _) <- bookShard w
+  (bq, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = bobLeg; priceTicks = 650; validUntil = plus now 20; sellLots = None
+  (_, bookUp, _) <- submit w.bob do exerciseCmd bq BuyQuote_Accept
+  trySubmit w.bob (exerciseCmd bq BuyQuote_Accept) >>= fails
+  -- A desk leg of the other side does not net against the book.
+  (_, deskUp) <- trade w v1.win w.bob SideDown 500 2 0 "x2"
+  trySubmit w.venue (exerciseCmd bookDown Leg_Merge with otherCid = deskUp) >>= refusedWith (refusal "book-mismatch")
+  u0 <- universe w
+  before <- bookCash w
+  (cash, resid) <- submit w.venue do exerciseCmd bookDown Leg_Merge with otherCid = bookUp
+  resid === None
+  Some cashCid <- pure cash
+  Some cx <- queryContractId w.venue cashCid
+  (cx.bucket, cx.amount) === (mkBook, 2000)
+  bookCash w >>= (=== before + 2000)
+  universe w >>= (=== u0)
+  trySubmit w.venue (exerciseCmd bookDown Leg_Merge with otherCid = bookUp) >>= fails
+  [r] <- receipts w
+  (r.kind, r.cost, r.proceeds) === ("merged", 800 + 1300, 2000)
+  -- The book paid 800 + 1300 for a pair that returned 2000: a realised loss of 100.
+  (v2, a2, _) <- publish v1
+  a2 === 3900
+  -- A withdraw quote accepts once.
+  wq <- withdrawMaker v2 w.alice la 1000
+  _ <- submit w.alice do exerciseCmd wq Withdraw_Accept
+  trySubmit w.alice (exerciseCmd wq Withdraw_Accept) >>= fails
+  -- A settled book leg settles once (settle and a second batch).
+  q2 <- bookQuote v2 w.bob SideDown 400 1 0 "x3"
+  (bl2, book2) <- takeQuote v2 w.bob q2
+  res <- resolveAt w v2.win v2.op 150
+  settleAll v2 res [bl2, book2]
+  trySubmit w.venue (exerciseCmd w.desk Desk_SettleBatch with legCids = [book2]; resolutionCid = res) >>= fails
+  rs <- receipts w
+  length [x | x <- rs, x.kind == "settled"] === 1
+
+-- A cross-pair merge inside the book leaves a residual that pays back into
+-- the book at resolution, with its receipt; the statement counts it at the
+-- lesser of its two values until then.
+testMakerResidual = script do
+  v0 <- mkVault
+  let w = v0.w
+  _ <- supplyMaker v0 w.alice 10000
+  (v1, _, _) <- publish v0
+  qa <- bookQuote v1 w.bob SideUp 600 2 0 "r1"      -- the book holds Down backing 800
+  (_, bookDown) <- takeQuote v1 w.bob qa
+  qb <- bookQuote v1 w.alice SideDown 300 2 0 "r2"  -- the book holds Up backing 1400
+  (_, bookUp) <- takeQuote v1 w.alice qb
+  u0 <- universe w
+  (cash, Some resid) <- submit w.venue do exerciseCmd bookDown Leg_Merge with otherCid = bookUp
+  Some rx <- queryContractId w.venue resid
+  (rx.book, rx.heldIfVoid, rx.owedIfResolved) === (Some mkBook, 200, 0)
+  universe w >>= (=== u0)
+  (v2, a2, _) <- publish v1
+  a2 === 10000 - 200                               -- min(200, 0) until resolved
+  res <- voidClose w v2.win v2.op
+  (v3, a3, _) <- publish v2
+  a3 === 10000                                     -- a void pays the 200 back
+  _ <- submit w.venue do exerciseCmd resid Residual_Settle with resolutionCid = res
+  bookCash w >>= (=== 10000)
+  rs <- receipts w
+  sortOn fst [(r.kind, r.proceeds) | r <- rs] === [("merged", 2000), ("residual", 200)]
+  (_, a4, _) <- publish v3
+  a4 === 10000
