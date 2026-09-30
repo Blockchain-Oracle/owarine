@@ -6,7 +6,9 @@
  *              shares from it: a firm `SupplyQuote` the seat alone accepts, its cash landing in `reserve:maker`
  *   withdraw   `Nav_IssueWithdraw` at the fresh statement, its cash locked from a `reserve:maker` shard: capital out in
  *              quotes and positions is not there to be taken (the ledger refuses any other shard)
- *   merge      the book's opposite legs on one Window netted now (`Leg_Merge`, pair first, then across pairs)
+ *   merge      the book's opposite legs on one Window netted now (`Leg_Merge`, pair first, then across pairs); legs of
+ *              different sizes are split first (`Leg_Split`, K-201), so the crank nets min(up, down) as the reference's
+ *              `public_merge` does
  *   settle     the book's legs and residuals on one resolved Window settled now (`Desk_SettleBatch`, `Residual_Settle`),
  *              and any of its legs past `refundAfter` refunded into the book (`Leg_RefundStale`, the venue's own)
  */
@@ -108,6 +110,22 @@ export function planBookMerges(legs: readonly Active<LegC>[]): Array<[Active<Leg
   return out;
 }
 
+/**
+ * K-201: when no two opposite book legs on one Window are the same size, the split that makes a pair: the larger of an
+ * Up and a Down (same terms and cash unit) cut to the smaller's lots. Legs a merge plan already uses are left alone. Pure.
+ */
+export function planBookSplit(legs: readonly Active<LegC>[]): { leg: Active<LegC>; lots: bigint } | null {
+  const used = new Set(planBookMerges(legs).flatMap(([a, b]) => [a.cid, b.cid]));
+  const free = legs.filter((l) => !used.has(l.cid));
+  for (const a of free) {
+    if (a.data.outcome !== "SideUp") continue;
+    const b = free.find((x) => x.data.outcome !== "SideUp" && x.data.termsCid === a.data.termsCid && x.data.cashUnit === a.data.cashUnit && x.data.lots !== a.data.lots);
+    if (!b) continue;
+    return a.data.lots > b.data.lots ? { leg: a, lots: b.data.lots } : { leg: b, lots: a.data.lots };
+  }
+  return null;
+}
+
 async function crank(v: MakerVault, op: "merge" | "settle", marketId: string, deskCid: () => Promise<string>): Promise<Answer> {
   const snap = await v.refresh();
   const onWindow = <X extends { marketId: string }>(xs: Active<X>[]) => xs.filter((x) => marketIdFromDaml(x.data.marketId) === marketId);
@@ -115,20 +133,38 @@ async function crank(v: MakerVault, op: "merge" | "settle", marketId: string, de
   const residuals = onWindow(snap.residuals);
   let done = 0;
   const notes: string[] = [];
-  const run = async (commandId: string, commands: Parameters<typeof submit>[1]["commands"], what: string) => {
+  let splits = 0;
+  const run = async (commandId: string, commands: Parameters<typeof submit>[1]["commands"], what: string, counts = true): Promise<boolean> => {
     try {
       const out = await submit(v.venue, { commandId, commands });
-      if (out.kind === "done") done++;
-      else notes.push(out.note);
+      if (out.kind === "done") {
+        if (counts) done++;
+        return true;
+      }
+      notes.push(out.note);
     } catch (error) {
       // Gone: the settler or netting got there first, which is the same outcome.
       if (!isInactive(error)) notes.push(`${what}: ${failureText(error).slice(0, 160)}`);
     }
+    return false;
   };
   if (op === "merge") {
     const resolved = new Set(snap.resolutions.keys());
-    for (const [a, b] of planBookMerges(legs.filter((l) => !resolved.has(l.data.termsCid))).slice(0, MAX_CRANK)) {
-      await run(netLegsCommandId(a.cid, b.cid), [cmd.mergeLegs(a.cid, b.cid)], "merge");
+    let open = legs.filter((l) => !resolved.has(l.data.termsCid));
+    // Merge what pairs; else split the larger of an unequal Up/Down to the smaller's size, re-read, and merge that.
+    for (let round = 0; round < MAX_CRANK && done < MAX_CRANK; round++) {
+      const merges = planBookMerges(open).slice(0, MAX_CRANK - done);
+      if (merges.length > 0) {
+        let landed = false;
+        for (const [a, b] of merges) landed = (await run(netLegsCommandId(a.cid, b.cid), [cmd.mergeLegs(a.cid, b.cid)], "merge")) || landed;
+        if (!landed) break;
+      } else {
+        const split = planBookSplit(open);
+        if (!split) break;
+        if (!(await run(`msplit:${split.leg.cid}`, [bcmd.splitBookLeg(split.leg.cid, split.lots)], "split", false))) break;
+        splits++;
+      }
+      open = onWindow((await v.refresh()).legs).filter((l) => !resolved.has(l.data.termsCid));
     }
   } else {
     const nowSec = Math.floor(Date.now() / 1000);
@@ -151,7 +187,12 @@ async function crank(v: MakerVault, op: "merge" | "settle", marketId: string, de
   }
   if (done > 0) await v.refresh();
   if (done === 0 && notes.length) return refused("contract-revert", notes.join("; "));
-  const note = done > 0 ? `${op === "merge" ? "merged" : "settled"} ${done}` : op === "merge" ? "nothing to merge on this Window" : "nothing on this Window is ready to settle";
+  const note =
+    done > 0
+      ? `${op === "merge" ? "merged" : "settled"} ${done}${splits > 0 ? ` (after ${splits} split${splits > 1 ? "s" : ""})` : ""}`
+      : op === "merge"
+        ? "nothing to merge on this Window"
+        : "nothing on this Window is ready to settle";
   v.log(`maker ${op} ${marketId}: ${note}`);
   return reply({ kind: "maker-op", op, done, note });
 }

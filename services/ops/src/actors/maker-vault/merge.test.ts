@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Active, LegC } from "@agari/markets/ops/canton";
 import { planNetting } from "../netting";
-import { planBookMerges } from "./earn";
+import { planBookMerges, planBookSplit } from "./earn";
 
 const V = "venue::1";
 const BOOK = "reserve:maker";
@@ -22,6 +22,21 @@ describe("the maker's merge crank", () => {
   });
   it("never nets different sizes or Windows", () => {
     expect(planBookMerges([leg("a", {}), leg("b", { outcome: "SideDown", lots: 3n }), leg("c", { outcome: "SideDown", termsCid: "t2" })])).toEqual([]);
+  });
+});
+
+describe("the maker's split before a merge (K-201)", () => {
+  it("cuts the larger of an unequal Up/Down to the smaller's lots", () => {
+    const up = leg("u", { outcome: "SideUp", lots: 6n });
+    const down = leg("d", { outcome: "SideDown", lots: 18n });
+    expect(planBookSplit([up, down])).toEqual({ leg: down, lots: 6n });
+    expect(planBookSplit([leg("u2", { lots: 5n }), leg("d2", { outcome: "SideDown", lots: 2n })])).toEqual({ leg: expect.objectContaining({ cid: "u2" }), lots: 2n });
+  });
+  it("leaves legs a merge already pairs, other Windows, other cash units and one-sided books alone", () => {
+    expect(planBookSplit([leg("a", {}), leg("b", { outcome: "SideDown" })])).toBeNull();
+    expect(planBookSplit([leg("a", {}), leg("b", { outcome: "SideDown", lots: 3n, termsCid: "t2" })])).toBeNull();
+    expect(planBookSplit([leg("a", {}), leg("b", { outcome: "SideDown", lots: 3n, cashUnit: 2n })])).toBeNull();
+    expect(planBookSplit([leg("a", {}), leg("b", { lots: 3n })])).toBeNull();
   });
 });
 

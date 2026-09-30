@@ -39,4 +39,10 @@ export const issueMakerWithdraw = (navCid: ContractId, o: { provider: Party; lpS
 /** The book's own escape past `refundAfter` (the venue owns the leg): its backing back into `reserve:<id>`. */
 export const refundBookLeg = (legCid: ContractId): Command => exercise(TEMPLATE_IDS.Leg, legCid, "Leg_RefundStale", {});
 
+/**
+ * K-201: a venue-held leg split in two on the same terms (`Leg_Split`), so the book can net opposite legs of different
+ * sizes: split the larger to the smaller's lots, then `Leg_Merge`. Backing, fee and cost split pro rata on the ledger.
+ */
+export const splitBookLeg = (legCid: ContractId, splitLots: bigint): Command => exercise(TEMPLATE_IDS.Leg, legCid, "Leg_Split", { splitLots: int(splitLots) });
+
 export const pruneBookReceipt = (cid: ContractId): Command => exercise(TEMPLATE_IDS.BookReceipt, cid, "BookReceipt_Prune", {});
