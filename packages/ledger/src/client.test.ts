@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { noAuth, passwordGrant } from "./auth";
-import { createLedgerClient } from "./client";
+import { createLedgerClient, eventFormat } from "./client";
 import { LedgerError, errorFromResponse, parseRetryInfo } from "./errors";
 
 // Bodies captured from a Canton 3.5.17 sandbox on 2026-09-29 (party ids shortened).
@@ -183,5 +183,24 @@ describe("activeContracts paging", () => {
     expect(bodies[0]).toMatchObject({ activeAtOffset: 40, maxPageSize: 2 });
     expect(bodies[0]).not.toHaveProperty("pageToken");
     expect(bodies[1]).toMatchObject({ activeAtOffset: 40, pageToken: "p2", maxPageSize: 2 });
+  });
+});
+
+describe("eventFormat", () => {
+  it("is a wildcard with neither templates nor interfaces", () => {
+    const f = eventFormat({ parties: ["p"] });
+    expect(f.filtersByParty?.p?.cumulative).toEqual([{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: false } } } }]);
+  });
+  it("asks for the interface view of a CIP-56 Holding (C7b)", () => {
+    const id = "#splice-api-token-holding-v1:Splice.Api.Token.HoldingV1:Holding";
+    const f = eventFormat({ parties: ["p"], interfaceIds: [id] });
+    expect(f.filtersByParty?.p?.cumulative).toEqual([
+      { identifierFilter: { InterfaceFilter: { value: { interfaceId: id, includeInterfaceView: true, includeCreatedEventBlob: false } } } },
+    ]);
+  });
+  it("combines templates and interfaces cumulatively", () => {
+    const f = eventFormat({ parties: ["p", "q"], templateIds: ["#a:M:T"], interfaceIds: ["#b:M:I"], includeCreatedEventBlob: true });
+    expect(f.filtersByParty?.q?.cumulative).toHaveLength(2);
+    expect(f.filtersByParty?.p?.cumulative?.[0]).toEqual({ identifierFilter: { TemplateFilter: { value: { templateId: "#a:M:T", includeCreatedEventBlob: true } } } });
   });
 });

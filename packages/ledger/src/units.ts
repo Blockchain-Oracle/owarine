@@ -120,3 +120,94 @@ export function parseBaseUnits(v: string, what = "amount"): bigint {
   if (!/^\d+$/.test(v)) throw new UnitsError(`${what} ${JSON.stringify(v)} must be a non-negative integer string`);
   return BigInt(v);
 }
+
+// ---- The Canton Coin rail at the CIP-56 edge (C7b, K-245) ---------------------------------------
+//
+// The mirror of `daml/abu-pm-cc/daml/PM/CC/Units.daml`, vector for vector (`units.test.ts`). A CIP-56 amount is a Daml
+// `Decimal` = `Numeric 10`: a whole number of atomic units of 10^-10 of the instrument. A listing states its rate as
+// `unitsPerCoin`, cash base units per one whole coin, and the rate divides 10^10, so one cash unit is a whole number of
+// atomic units and nothing here ever rounds: a deposit that is not a whole number of cash units is refused as dust. The
+// one rounding is `floorCashUnits`, for the ASSETS side of a reserve statement, which may understate and never overstate.
+
+/** Atomic units per whole coin: a Decimal has 10 places. */
+export const ATOMIC_PER_COIN = 10n ** BigInt(DECIMAL_SCALE);
+/** The largest whole-coin amount one conversion carries (so an atomic amount stays below 10^17, inside int64). */
+export const MAX_WHOLE_COINS = 10_000_000n;
+export const MAX_ATOMIC = MAX_WHOLE_COINS * ATOMIC_PER_COIN;
+/** The bound on any total the rail sums (allowances, liabilities), mirroring `maxTotalUnits`. */
+export const MAX_TOTAL_UNITS = 4_000_000_000_000_000_000n;
+
+/** A stated rate: positive, at most 10^10, dividing 10^10 exactly (so cash units convert with no rounding). */
+export function ccRateOk(unitsPerCoin: bigint): boolean {
+  return unitsPerCoin > 0n && unitsPerCoin <= ATOMIC_PER_COIN && ATOMIC_PER_COIN % unitsPerCoin === 0n;
+}
+
+function assertRate(unitsPerCoin: bigint): bigint {
+  if (!ccRateOk(unitsPerCoin)) throw new UnitsError(`rate ${unitsPerCoin} does not divide 10^10 (cash units per whole coin)`);
+  return unitsPerCoin;
+}
+
+/** Atomic units in one cash base unit at this rate. */
+export function atomicPerCashUnit(unitsPerCoin: bigint): bigint {
+  return ATOMIC_PER_COIN / assertRate(unitsPerCoin);
+}
+
+/** The most cash units one conversion may carry at this rate. */
+export function maxCashUnits(unitsPerCoin: bigint): bigint {
+  return MAX_ATOMIC / atomicPerCashUnit(unitsPerCoin);
+}
+
+/**
+ * A CIP-56 `Decimal` string → atomic units. Exact: throws on more than 10 places, on a non-positive amount and on one
+ * above `MAX_WHOLE_COINS` (the Daml `toAtomic` answers None for the last two).
+ */
+export function ccToAtomic(amount: unknown, what = "amount"): bigint {
+  const atomic = fromDamlNumeric(amount, DECIMAL_SCALE, what);
+  if (atomic <= 0n) throw new UnitsError(`${what} ${String(amount)} must be positive`);
+  if (atomic > MAX_ATOMIC) throw new UnitsError(`${what} ${String(amount)} is above ${MAX_WHOLE_COINS} coins`);
+  return atomic;
+}
+
+/** Atomic units → the `Decimal` string a CIP-56 command carries. */
+export function atomicToCc(atomic: bigint): string {
+  if (atomic < 0n || atomic > MAX_ATOMIC) throw new UnitsError(`atomic amount ${atomic} is outside 0..${MAX_ATOMIC}`);
+  return toDamlNumeric(atomic, DECIMAL_SCALE);
+}
+
+/** True when this atomic amount is a whole number of cash units at the rate (the deposit rule). */
+export function isWholeCashUnits(atomic: bigint, unitsPerCoin: bigint): boolean {
+  return atomic > 0n && atomic % atomicPerCashUnit(unitsPerCoin) === 0n;
+}
+
+/** Cash units for exactly this atomic amount; throws `UnitsError("dust …")` when it is not a whole number of units. */
+export function atomicToCashUnitsExact(atomic: bigint, unitsPerCoin: bigint): bigint {
+  const per = atomicPerCashUnit(unitsPerCoin);
+  if (atomic <= 0n) throw new UnitsError(`atomic amount ${atomic} must be positive`);
+  if (atomic % per !== 0n) throw new UnitsError(`dust: ${atomic} atomic units is not a whole number of cash units at ${unitsPerCoin} per coin`);
+  return atomic / per;
+}
+
+/** A CIP-56 amount string → cash units, exact or refused as dust. */
+export function ccToCashUnitsExact(amount: unknown, unitsPerCoin: bigint): bigint {
+  return atomicToCashUnitsExact(ccToAtomic(amount), unitsPerCoin);
+}
+
+/** Cash units → the coin amount string a withdrawal transfers. Always exact; bounded. */
+export function cashUnitsToCc(units: bigint, unitsPerCoin: bigint): string {
+  if (units <= 0n || units > maxCashUnits(unitsPerCoin)) throw new UnitsError(`${units} cash units is outside the rail's bounds at ${unitsPerCoin} per coin`);
+  return atomicToCc(units * atomicPerCashUnit(unitsPerCoin));
+}
+
+/** Cash units of an atomic amount, rounded DOWN: the assets side of a reserve statement (never overstates). */
+export function floorCashUnits(atomic: bigint, unitsPerCoin: bigint): bigint {
+  if (atomic < 0n) throw new UnitsError("atomic amount must not be negative");
+  return atomic / atomicPerCashUnit(unitsPerCoin);
+}
+
+/** The largest amount (as a `Decimal` string) at most `desired` that the rail accepts: what a form rounds a typed amount DOWN to. */
+export function largestAcceptedCc(desired: unknown, unitsPerCoin: bigint): string | null {
+  const atomic = fromDamlNumeric(desired, DECIMAL_SCALE, "amount");
+  const per = atomicPerCashUnit(unitsPerCoin);
+  const floored = (atomic / per) * per;
+  return floored > 0n && floored <= MAX_ATOMIC ? atomicToCc(floored) : null;
+}

@@ -49,6 +49,12 @@ export interface EventFormatOptions {
   parties: Party[];
   /** Package-name form `#pkg:Module:Template`. Omit for a wildcard. */
   templateIds?: string[];
+  /**
+   * Package-name form `#pkg:Module:Interface` (C7b: the CIP-56 `Holding` interface). Each is an `InterfaceFilter` with
+   * the interface view included, so a contract of ANY template that implements it comes back with `interfaceViews`.
+   * With both lists the filters are cumulative; with neither, a wildcard.
+   */
+  interfaceIds?: string[];
   includeCreatedEventBlob?: boolean;
   verbose?: boolean;
 }
@@ -114,10 +120,11 @@ export type LedgerClient = ReturnType<typeof createLedgerClient>;
 
 export function eventFormat(o: EventFormatOptions): EventFormat {
   const blob = o.includeCreatedEventBlob ?? false;
-  const cumulative =
-    o.templateIds && o.templateIds.length > 0
-      ? o.templateIds.map((templateId) => ({ identifierFilter: { TemplateFilter: { value: { templateId, includeCreatedEventBlob: blob } } } }))
-      : [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: blob } } } }];
+  const templates = (o.templateIds ?? []).map((templateId) => ({ identifierFilter: { TemplateFilter: { value: { templateId, includeCreatedEventBlob: blob } } } }));
+  const interfaces = (o.interfaceIds ?? []).map((interfaceId) => ({
+    identifierFilter: { InterfaceFilter: { value: { interfaceId, includeInterfaceView: true, includeCreatedEventBlob: blob } } },
+  }));
+  const cumulative = templates.length + interfaces.length > 0 ? [...templates, ...interfaces] : [{ identifierFilter: { WildcardFilter: { value: { includeCreatedEventBlob: blob } } } }];
   const filtersByParty: EventFormat["filtersByParty"] = {};
   for (const p of o.parties) filtersByParty[p] = { cumulative };
   return { filtersByParty, verbose: o.verbose ?? true };
