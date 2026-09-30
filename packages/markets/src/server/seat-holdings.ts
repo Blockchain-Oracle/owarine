@@ -8,7 +8,9 @@
  *   - tickets    an open `RangeRound`, `ParlayTicket` or `BoostPosition` (the ticket keeper settles or refunds them),
  *   - shares     an Earn `LpShare` (ops' drain redeems them through the Earn desk),
  *   - duels      a `DuelOpen` or `DuelMatch` it plays in (the duel settler finalises or refunds it),
- *   - agents     an `AgentGrant` it gave, a `Subscription` it holds or a `DeskMandate` it owns (ops' drain ends them).
+ *   - agents     an `AgentGrant` it gave, a `Subscription` it holds or a `DeskMandate` it owns (ops' drain ends them),
+ *   - creator    (C8i) an active `Strategy` it published or a `CreatorPayout` made to it (ops' drain deactivates the one
+ *                and claims the other into the seat's cash), so the next visitor inherits neither.
  *
  * Its `VenueCash` is not a blocker: the recycler withdraws it as the seat's own choice before the seat is freed.
  */
@@ -16,7 +18,7 @@ import { AGENT_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_I
 import { LedgerError, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
 import { templateSuffix } from "../ops/canton/decode";
 
-export type HoldingKind = "legs" | "quotes" | "tickets" | "shares" | "duels" | "agents";
+export type HoldingKind = "legs" | "quotes" | "tickets" | "shares" | "duels" | "agents" | "creator";
 
 export interface SeatHoldings {
   party: Party;
@@ -28,7 +30,7 @@ export interface SeatHoldings {
   lpShares: Array<{ cid: string; reserveId: string; shares: bigint }>;
 }
 
-type Rule = { kind: HoldingKind; field: string | readonly string[]; live?: boolean };
+type Rule = { kind: HoldingKind; field: string | readonly string[]; live?: boolean; when?: (arg: Record<string, unknown>) => boolean };
 
 /** Template suffix (`:Module:Entity`) → which kind it is and which field names the seat. */
 const RULES = new Map<string, Rule>([
@@ -50,6 +52,9 @@ const RULES = new Map<string, Rule>([
   [templateSuffix(TEMPLATE_IDS.AgentGrant), { kind: "agents", field: "owner" }],
   [templateSuffix(AGENT_TEMPLATE_IDS.Subscription), { kind: "agents", field: "subscriber" }],
   [templateSuffix(AGENT_TEMPLATE_IDS.DeskMandate), { kind: "agents", field: "owner" }],
+  // A deactivated Strategy stays on the ledger (nothing archives it) but can no longer trade, change or take subscribers.
+  [templateSuffix(AGENT_TEMPLATE_IDS.Strategy), { kind: "creator", field: "creator", when: (a) => a.active !== false }],
+  [templateSuffix(AGENT_TEMPLATE_IDS.CreatorPayout), { kind: "creator", field: "creator" }],
 ]);
 
 /** One query per package, so a package this participant never vetted reads as holding nothing of it. */
@@ -57,13 +62,13 @@ export const SEAT_HOLDING_QUERIES: ReadonlyArray<readonly string[]> = [
   [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote, TEMPLATE_IDS.SupplyQuote, TEMPLATE_IDS.WithdrawQuote, TEMPLATE_IDS.LpShare, TEMPLATE_IDS.AgentGrant],
   [TICKET_TEMPLATE_IDS.RangeQuote, TICKET_TEMPLATE_IDS.RangeRound, TICKET_TEMPLATE_IDS.ParlayQuote, TICKET_TEMPLATE_IDS.ParlayTicket, TICKET_TEMPLATE_IDS.BoostQuote, TICKET_TEMPLATE_IDS.BoostPosition, TICKET_TEMPLATE_IDS.BoostExitQuote],
   [GAMES_TEMPLATE_IDS.DuelOpen, GAMES_TEMPLATE_IDS.DuelMatch],
-  [AGENT_TEMPLATE_IDS.Subscription, AGENT_TEMPLATE_IDS.DeskMandate],
+  [AGENT_TEMPLATE_IDS.Subscription, AGENT_TEMPLATE_IDS.DeskMandate, AGENT_TEMPLATE_IDS.Strategy, AGENT_TEMPLATE_IDS.CreatorPayout],
 ];
 
 const CASH = templateSuffix(TEMPLATE_IDS.VenueCash);
 const LP = templateSuffix(TEMPLATE_IDS.LpShare);
 
-const emptyCounts = (): Record<HoldingKind, number> => ({ legs: 0, quotes: 0, tickets: 0, shares: 0, duels: 0, agents: 0 });
+const emptyCounts = (): Record<HoldingKind, number> => ({ legs: 0, quotes: 0, tickets: 0, shares: 0, duels: 0, agents: 0, creator: 0 });
 
 /** Pure over the seat's active contracts: what it holds at `nowMs`. Contracts naming another party are ignored. */
 export function holdingsOf(party: Party, events: readonly CreatedEvent[], nowMs: number): SeatHoldings {
@@ -79,6 +84,7 @@ export function holdingsOf(party: Party, events: readonly CreatedEvent[], nowMs:
     if (!rule) continue;
     const fields = typeof rule.field === "string" ? [rule.field] : rule.field;
     if (!fields.some((f) => arg[f] === party)) continue;
+    if (rule.when && !rule.when(arg)) continue;
     if (rule.live) {
       const until = Date.parse(String(arg.validUntil));
       // An offer whose time cannot be read counts as live: holding a seat a little longer is the safe mistake.
@@ -97,6 +103,7 @@ export const isSeatEmpty = (h: SeatHoldings): boolean => holdingsTotal(h) === 0;
 export function holdingsText(h: SeatHoldings): string {
   const names: Record<HoldingKind, [string, string]> = {
     legs: ["leg", "legs"], quotes: ["live quote", "live quotes"], tickets: ["ticket", "tickets"], shares: ["Earn share", "Earn shares"], duels: ["duel", "duels"], agents: ["agent grant", "agent grants"],
+    creator: ["live strategy or fee payout", "live strategies or fee payouts"],
   };
   const parts = (Object.keys(names) as HoldingKind[]).filter((k) => h.counts[k] > 0).map((k) => `${h.counts[k]} ${names[k][h.counts[k] === 1 ? 0 : 1]}`);
   return parts.length ? parts.join(", ") : "nothing";

@@ -35,6 +35,8 @@ export const keys = {
   /** The Trading Balance and its grants; holdings nest under it so one invalidation refreshes both. */
   vault: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "vault", wallet] as const,
   vaultHoldings: (wallet: string | null, marketId: string | null) => [QUERY_KEY_SCOPE, APP, "vault", wallet, "holdings", marketId] as const,
+  /** A creator's waiting fee payouts (C8i), under the vault so a claim's invalidation refreshes them with the balance. */
+  creatorPayouts: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "vault", wallet, "creatorPayouts"] as const,
   /** The reserve's own sheet, and one wallet's tickets. */
   parlayReserve: () => [QUERY_KEY_SCOPE, APP, "parlayReserve"] as const,
   parlays: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "parlays", wallet] as const,

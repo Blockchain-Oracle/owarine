@@ -1,23 +1,27 @@
 import "server-only";
-import { getDb, seatHolders } from "@agari/db";
+import { getDb, seatHolderLeases } from "@agari/db";
+import type { CreatorLabels } from "@agari/markets/server";
 
 /**
  * The seat addresses of leased parties (C8f): a strategy's creator is a party on the ledger, and the screens know a
  * seat by its base58 address, so a creator who holds a lease is shown (and recognised as "you") by that address. A
  * party with no live lease stays a party. Read-only, from the seat pool the lease routes own, through the shared seat
- * key resolution (`@agari/db` `seatHolders`, C4c). `caller` relabels the calling seat's own party with the key that
- * proved itself, so a device joined by a seat link (its own key) still finds its own listings as "yours".
+ * key resolution (`@agari/db`, C4c). Each label carries its lease's start offset (C8i): a strategy an earlier visitor
+ * of the same recycled party published is never labelled as the current lessee's, so it is not "yours" on the screens
+ * and the playbook route refuses its notes. `caller` relabels the calling seat's own party with the key that proved
+ * itself (a device joined by a seat link finds its own listings), from ITS lease's start, never from offset 0.
  */
-export async function leasedAddresses(caller?: { party: string; address: string } | null): Promise<Map<string, string>> {
+export async function leasedAddresses(caller?: { party: string; address: string; fromOffset: number } | null): Promise<CreatorLabels> {
   const db = getDb();
-  if (!db) return caller ? new Map([[caller.party, caller.address]]) : new Map();
-  let labels: Map<string, string>;
-  try {
-    labels = await seatHolders(db, { leasedOnly: true });
-  } catch {
-    labels = new Map();
+  const labels = new Map<string, { address: string; fromOffset: number }>();
+  if (db) {
+    try {
+      for (const [party, label] of await seatHolderLeases(db)) labels.set(party, label);
+    } catch {
+      // unreadable: every creator stays a party
+    }
   }
-  if (caller) labels.set(caller.party, caller.address);
+  if (caller) labels.set(caller.party, { address: caller.address, fromOffset: caller.fromOffset });
   return labels;
 }
 

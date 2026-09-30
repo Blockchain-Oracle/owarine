@@ -232,6 +232,23 @@ export const STRATEGIES = {
     close: "Close",
   },
   health: { neverStarted: "never started", alive: "alive", stale: "dead", unknown: "status unknown — ops offline", storeOff: "status unknown — no heartbeat store on this deployment" },
+  /**
+   * C8i: a creator's fees. On Canton the venue holds each subscriber's fee and pays the creator one pooled payout an
+   * hour (a total and a count, never who paid, K-086); the creator claims it into its own seat.
+   */
+  creatorFees: {
+    eyebrow: "Your fees",
+    waiting: (amount: string) => `${amount} waiting`,
+    count: (n: number) => `from ${n} subscriber ${n === 1 ? "fee" : "fees"}, pooled by the venue each hour`,
+    none: "No fees waiting. Subscribers' fees are pooled once an hour.",
+    claim: "Claim to your seat",
+    claiming: "Claiming…",
+    claimed: (amount: string) => `Claimed ${amount} into your seat.`,
+    receipt: "Receipt ↗",
+    unreadable: "Your fees could not be read right now.",
+    failed: (why: string) => `Not claimed: ${why}`,
+    note: "Who paid stays between each subscriber and the venue.",
+  },
   picker: { label: "Manage a strategy", choose: "Choose a strategy", published: "Published by you", copying: "Copying", fading: "Fading", paused: "Paused", pending: "Setup unfinished" },
   errors: { read: "The registry could not be read right now.", fills: "The fill store could not be read right now." },
 } as const;

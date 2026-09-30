@@ -4,13 +4,18 @@ import { DESK_MODES, deskMandateWireSchema, OUTCOME_COLUMN, type OutcomeColumn }
 import { PRE_IPO_SYMBOLS } from "@agari/core/market";
 import { addressSchema, hash32Schema } from "@agari/core/types";
 import { z } from "zod";
+import { webEnv } from "@/lib/env";
 
 /**
  * What the desk's routes answer and accept (S21 C5, D-126). Shared by the routes and the hooks so the two cannot
  * drift; validated on both sides because everything here crosses a browser. Money and token amounts travel as
  * integer strings (base units) or plain decimal strings (a record's own form); never a float, never a bigint.
  */
-export const DESK_CLUSTER: Cluster = "mainnet";
+/**
+ * The Canton network this deployment's desks run on (C8i): `NEXT_PUBLIC_CANTON_NETWORK`, the same network every other
+ * signed line and proof link names. A desk's row, its signed texts and the runner that looks after it all agree on it.
+ */
+export const DESK_CLUSTER: Cluster = webEnv.markets.cluster;
 /** A signature is good for a few minutes, so a captured one cannot be replayed later (the X link's rule). */
 export const DESK_SIGNATURE_TTL_MS = 5 * 60_000;
 /** Six own practice checks and the record opened unlock Go live (desk.md §7). */

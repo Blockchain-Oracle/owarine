@@ -12,7 +12,7 @@ import { submitStrategyLane } from "./writes";
 
 export { downsample, readAgentContext } from "./agent-context";
 export { openingOnFeedScale } from "./price-basis";
-export { getStrategy, installStrategyReader, listLiveSubscribers, listStrategies, listStrategySubscribers, listSubscriptionsOf, STRATEGIES_NOT_LIVE, type StrategyReader } from "./reads";
+export { getCreatorPayouts, getStrategy, installStrategyReader, listLiveSubscribers, listStrategies, listStrategySubscribers, listSubscriptionsOf, STRATEGIES_NOT_LIVE, type CreatorPayouts, type StrategyReader } from "./reads";
 export { planRevision, STRATEGY_METADATA_MAX_BYTES, submitStrategyLane } from "./writes";
 export { claimCreatorPayoutsLane, setStrategyRunnerLane, SAME_CASH } from "../submitter/agents-lane";
 

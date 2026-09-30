@@ -20,7 +20,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ac
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;
-  const seat = { party: lease.party, leaseId: lease.leaseId, address: lease.address };
+  const seat = { party: lease.party, leaseId: lease.leaseId, address: lease.address, fromOffset: lease.startOffset };
   const raw = await jsonBody(request);
   if (action === "open") {
     const b = grantOpenRequestWire.safeParse(raw);

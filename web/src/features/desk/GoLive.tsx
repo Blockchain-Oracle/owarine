@@ -16,7 +16,7 @@ const STEPS: LiveStage[] = ["open-pending", "allow-pending", "mandate-pending", 
 const STEP_COPY = { "open-pending": GO_LIVE.steps.open, "allow-pending": GO_LIVE.steps.allow, "mandate-pending": GO_LIVE.steps.attach, "deposit-pending": GO_LIVE.steps.deposit } as const;
 
 /**
- * Go live (plan §5.4 step 04, §5.5): open the desk on Solana mainnet, allow the basket's companies, link the desk to
+ * Go live (plan §5.4 step 04, §5.5): open the desk on this deployment's Canton network (a `DeskMandate`), allow the basket's companies, link the desk to
  * its record, put money in. A durable stage machine (`go-live.ts`): each step is written to this browser before its
  * confirmation, and on return the chain is read first so nothing is asked for twice.
  */
@@ -84,6 +84,8 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
       if (!linked.ok) return setProblem(linked.reason);
       save({ stage: "deposit-pending", address });
     } else {
+      // The link step leaves the shared write phase at "done"; the sheet would open on that and hide its confirm (C8i).
+      actions.reset();
       setMoney(true);
     }
   };

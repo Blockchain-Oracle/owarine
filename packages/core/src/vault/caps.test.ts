@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capQuoteToGrant, simulateCaps, utcDayOf } from "./caps";
+import { capQuoteToGrant, capsAtQuotePrice, simulateCaps, utcDayOf } from "./caps";
 import type { VaultGrant } from "./types";
 import { testAddress } from "../testing/ids";
 
@@ -112,5 +112,20 @@ describe("capQuoteToGrant", () => {
     const verdict = (q: typeof walked) => simulateCaps({ grant, nowSec: NOW_SEC, sidePriceRaw: q.limitPriceRaw, quantityRaw: q.contractsRaw, spendBase: q.expectedCostBase, one, opensNewPosition: true });
     expect(verdict(walked).ok).toBe(false);
     expect(verdict(capQuoteToGrant(walked, "up", cap, one, tick)).ok).toBe(true);
+  });
+});
+
+describe("capsAtQuotePrice: the caps on Canton, at the quote's own price (C8i)", () => {
+  const grant = (over: Partial<VaultGrant> = {}): VaultGrant => ({
+    grantId: 1n, owner: testAddress(1), actor: testAddress(2), kind: "strategy", revoked: false, expiresAtSec: NOW_SEC + 86_400, spentDay: utcDayOf(NOW_SEC), spentTodayBase: 0n, openPositions: 0,
+    caps: { maxStakePerTradeBase: 1_000_000n, maxDailySpendBase: 5_000_000n, maxOpenPositions: 1, maxPriceRaw: 850_000n }, budgetBase: 5_000_000n, ...over,
+  });
+  it("checks the price per contract, not a cushioned limit: 0.80 a contract fits a 0.85 cap", () => {
+    expect(capsAtQuotePrice({ grant: grant(), nowSec: NOW_SEC, contractsRaw: 1_000_000n, costBase: 800_000n, one: ONE, opensNewPosition: true })).toEqual({ ok: true, headroomBase: 4_200_000n });
+  });
+  it("refuses a price over the cap, and a new position at the open-position cap", () => {
+    expect(capsAtQuotePrice({ grant: grant(), nowSec: NOW_SEC, contractsRaw: 1_000_000n, costBase: 900_000n, one: ONE, opensNewPosition: true })).toMatchObject({ ok: false, refusal: { kind: "price" } });
+    expect(capsAtQuotePrice({ grant: grant({ openPositions: 1 }), nowSec: NOW_SEC, contractsRaw: 1_000_000n, costBase: 500_000n, one: ONE, opensNewPosition: true })).toMatchObject({ ok: false, refusal: { kind: "positions", cap: 1 } });
+    expect(capsAtQuotePrice({ grant: grant({ openPositions: 1 }), nowSec: NOW_SEC, contractsRaw: 1_000_000n, costBase: 500_000n, one: ONE, opensNewPosition: false }).ok).toBe(true);
   });
 });

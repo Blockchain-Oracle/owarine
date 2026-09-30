@@ -11,10 +11,11 @@ import { acmd, decodeCreatorLicense, decodeStrategyFee, sha256Hex } from "@agari
 /** One payout per creator per this many seconds (the reference paid at subscribe; K-086 made it periodic). */
 export const PAYOUT_PERIOD_SEC = Number(process.env.AGENTS_PAYOUT_PERIOD_SEC ?? 3_600);
 
-export async function payCreators(venue: RoleSession, nowSec: number, log: (why: string) => void): Promise<{ paid: number; creators: number }> {
+/** `only` pays one creator now, whatever the period (C8i: the seat drain, before the seat's party is recycled). */
+export async function payCreators(venue: RoleSession, nowSec: number, log: (why: string) => void, only?: string): Promise<{ paid: number; creators: number }> {
   const A = AGENT_TEMPLATE_IDS;
   const acs = await readActive(venue, [A.StrategyFee, A.CreatorLicense]);
-  const fees = pick(acs, A.StrategyFee, decodeStrategyFee).filter((f) => f.data.venue === venue.party);
+  const fees = pick(acs, A.StrategyFee, decodeStrategyFee).filter((f) => f.data.venue === venue.party && (only === undefined || f.data.creator === only));
   const licenses = pick(acs, A.CreatorLicense, decodeCreatorLicense);
   const byCreator = new Map<string, string[]>();
   for (const f of fees) byCreator.set(f.data.creator, [...(byCreator.get(f.data.creator) ?? []), f.cid]);

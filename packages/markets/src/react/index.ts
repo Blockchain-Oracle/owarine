@@ -64,6 +64,7 @@ export {
   useSettlementFee,
   useVaultHoldings,
   useVaultSnapshot,
+  useCreatorPayouts,
   usePublishedCalls,
   usePublishedHistory,
   useWalletHistory,

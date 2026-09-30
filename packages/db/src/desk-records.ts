@@ -9,6 +9,7 @@
 import { hashRecord, verifyRecord, ZERO_HASH } from "@agari/core/desk";
 import type { Db } from "./client";
 import { storageKey } from "./keys";
+import { liveSinceSql } from "./desk-series";
 import { ensureSchema } from "./migrate";
 
 export interface RecordSlot {
@@ -228,8 +229,9 @@ export function deskRecordQueries(db: Db) {
     },
     async didSameTradeSince(i: { deskId: string; symbol: string; side: "buy" | "sell"; sinceSec: number }): Promise<boolean> {
       await ready();
+      // A practice "would have" before going live is not a trade the live desk just made (C8i).
       const rows = await db<{ n: string }[]>`SELECT count(*) AS n FROM desk_records WHERE desk_id = ${i.deskId}::uuid AND symbol = ${i.symbol} AND side = ${i.side} AND decided_at_sec >= ${i.sinceSec}
-        AND outcome IN ('ACTED', 'ACTED_IN_PART', 'ACTED_BY_OVERRIDE', 'WOULD_HAVE_ACTED', 'ASKED')`;
+        AND decided_at_sec >= ${liveSinceSql(db, i.deskId)} AND outcome IN ('ACTED', 'ACTED_IN_PART', 'ACTED_BY_OVERRIDE', 'WOULD_HAVE_ACTED', 'ASKED')`;
       return Number(rows[0]?.n ?? 0) > 0;
     },
     async markSealed(i: { deskId: string; seq: number; signature: string; chainSeq: number }): Promise<void> {
@@ -270,10 +272,17 @@ export function deskRecordQueries(db: Db) {
       const rows = await db<{ total: string | null }[]>`SELECT SUM(counted_e6::numeric)::text AS total FROM desk_actions WHERE desk_id = ${i.deskId}::uuid AND state = 'confirmed' AND kind IN ('buy', 'sell') AND confirmed_at_sec > ${i.sinceSec}`;
       return rows[0]?.total ?? "0";
     },
+    /**
+     * The open deferral on a name, from the desk's current life only (C8i): a practice "would have" or "wait" does not
+     * bind the live desk, which decides afresh once it has gone live.
+     */
     async standingDeferral(i: { deskId: string; symbol: string }): Promise<DeferralRow | null> {
       await ready();
       const rows = await db<{ id: string; symbol: string; kind: DeferralRow["kind"]; baseline: Record<string, unknown>; decision_seq: string; revisit_at_sec: string }[]>`
-        SELECT id, symbol, kind, baseline, decision_seq, revisit_at_sec FROM desk_deferrals WHERE desk_id = ${i.deskId}::uuid AND symbol = ${i.symbol} AND ended_at_sec IS NULL ORDER BY id DESC LIMIT 1`;
+        SELECT d.id, d.symbol, d.kind, d.baseline, d.decision_seq, d.revisit_at_sec FROM desk_deferrals d
+        JOIN desk_records r ON r.desk_id = d.desk_id AND r.seq = d.decision_seq
+        WHERE d.desk_id = ${i.deskId}::uuid AND d.symbol = ${i.symbol} AND d.ended_at_sec IS NULL AND r.decided_at_sec >= ${liveSinceSql(db, i.deskId)}
+        ORDER BY d.id DESC LIMIT 1`;
       const r = rows[0];
       return r ? { id: Number(r.id), symbol: r.symbol, kind: r.kind, baseline: r.baseline, decisionSeq: Number(r.decision_seq), revisitAtSec: Number(r.revisit_at_sec) } : null;
     },

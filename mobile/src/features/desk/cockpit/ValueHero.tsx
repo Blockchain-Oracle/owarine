@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COCKPIT } from "@/features/desk/cockpit/copy-cockpit";
 import { DESK } from "@/features/desk/copy";
-import { ago, pctSigned, usd, usdSigned } from "@/features/desk/format";
+import { ago, creditsSigned, pctSigned, usd, usdSigned } from "@/features/desk/format";
 import { seriesInRange, type ChartRange } from "@/features/desk/view";
 import { haptic } from "~/components/kit";
 import { FONT } from "~/theme";
@@ -38,6 +38,8 @@ export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) 
   const P = DESK.page.plate;
   const H = COCKPIT.hero;
   const { plate } = view;
+  // C8i: a live desk speaks the seat's credits (no dollar sign), and its figures count from going live.
+  const live = view.isLive;
   const [range, setRange] = useState<ChartRange>("all");
   const inRange = useMemo(() => seriesInRange(view.series, range, nowSec), [view.series, range, nowSec]);
   const points = useMemo(() => inRange.points.map((p) => ({ timeSec: p.atSec, value: dollars(p.totalE6) })), [inRange.points]);
@@ -61,12 +63,13 @@ export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) 
       <View style={styles.top}>
         <View style={styles.figures}>
           <Text style={[DT.panelTitle, { color: color.inkMuted }]}>{P.total}</Text>
-          <Text style={[styles.total, { color: color.ink }]} accessibilityLabel={`$${plain(dollars(plate.totalE6))}`}>
-            <Text>$</Text>
+          <Text style={[styles.total, { color: color.ink }]} accessibilityLabel={live ? `${plain(dollars(plate.totalE6))} ${P.unit}` : `$${plain(dollars(plate.totalE6))}`}>
+            {live ? null : <Text>$</Text>}
             <Text>{plain(dollars(plate.totalE6))}</Text>
+            {live ? <Text style={[styles.unit, { color: color.inkSecondary }]}>{` ${P.unit}`}</Text> : null}
           </Text>
           <View style={styles.moves}>
-            {plate.sinceE6 !== null ? <Move value={usdSigned(plate.sinceE6)} label={P.since.toLowerCase()} tone={toneOf(plate.sinceE6)} /> : null}
+            {plate.sinceE6 !== null ? <Move value={live ? creditsSigned(plate.sinceE6) : usdSigned(plate.sinceE6)} label={P.since.toLowerCase()} tone={toneOf(plate.sinceE6)} /> : null}
             {inRange.deltaE6 !== null && inRange.bps !== null ? <Move value={pctSigned(inRange.bps)} label={H.rangeMove[range]} tone={toneOf(inRange.deltaE6)} /> : null}
           </View>
         </View>
@@ -106,7 +109,7 @@ export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) 
         </View>
         <Text style={[DT.caption, styles.footText, { color: color.inkMuted }]}>
           {graded ? `${P.timingValue(pctSigned(plate.timing.bps), plate.timing.graded)}. ${P.timingNote}` : P.timingNone}
-          {plate.valuedAtSec !== null ? ` ${P.valued(ago(plate.valuedAtSec, nowSec))}` : ""}
+          {plate.valuedAtSec !== null ? ` ${(live ? P.valuedLive : P.valued)(ago(plate.valuedAtSec, nowSec))}` : ""}
         </Text>
       </View>
     </View>
@@ -118,6 +121,7 @@ const styles = StyleSheet.create({
   top: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   figures: { gap: 4, flexGrow: 1 },
   total: { fontFamily: FONT.headingHeavy, fontSize: 38, lineHeight: 50, letterSpacing: -1.33, fontVariant: ["tabular-nums"] },
+  unit: { fontFamily: FONT.bodyStrong, fontSize: 16, letterSpacing: 0 },
   moves: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   move: { flexDirection: "row", alignItems: "baseline", gap: 6, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 9999 },
   moveValue: { fontFamily: FONT.bodyStrong, fontSize: 13, lineHeight: 20.8 },

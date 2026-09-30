@@ -3,7 +3,7 @@ import type { Address } from "@agari/core/types";
 import { readSealsOf, type DeskRpc, type DeskState, type SealedAction } from "@agari/markets/desk";
 import { seatServer } from "@/lib/ledger.server";
 import { deskStore } from "./desk.server";
-import type { ChainStateWire } from "./protocol";
+import { DESK_CLUSTER, type ChainStateWire } from "./protocol";
 
 /**
  * The server's own ledger reads for the desk routes (C8f, K-090): a live desk's `DeskMandate` beside the index's rows,
@@ -31,7 +31,7 @@ export function operatorAddress(): string | null {
 export async function indexModeOf(address: string): Promise<DeskMode | null> {
   const store = deskStore();
   if (!store) return null;
-  const desk = await store.getDeskByOwner("mainnet", address).catch(() => null);
+  const desk = await store.getDeskByOwner(DESK_CLUSTER, address).catch(() => null);
   return desk?.mode === "ask_first" || desk?.mode === "on_its_own" ? desk.mode : null;
 }
 

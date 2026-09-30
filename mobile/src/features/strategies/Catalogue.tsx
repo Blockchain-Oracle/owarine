@@ -5,6 +5,7 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { STRATEGIES } from "@/features/strategies/copy";
 import { STRATEGY_MARKETS } from "@/features/strategies/identity";
 import type { StrategiesPayload } from "@/features/strategies/protocol";
+import { useCreatorFees } from "@/features/strategies/useCreatorFees";
 import { useDesk } from "@/features/strategies/useDesk";
 import { FONT } from "~/theme";
 import { CopyDrawer } from "./CopyDrawer";
@@ -38,6 +39,8 @@ export function Catalogue({ payload, writes, view, onCreate, requested }: {
   const own = strategies.filter((s) => s.creator === writes.address || desk.subscriptionOf(s.strategyId) || writes.pending?.strategyId === s.strategyId);
   const visible = view === "yours" ? own : strategies;
   const drawer = strategies.find((s) => s.strategyId === drawerId) ?? null;
+  const isCreator = Boolean(writes.address && desk.featured?.creator === writes.address);
+  const fees = useCreatorFees(writes, isCreator);
   useEffect(() => {
     if (requested && strategies.some((card) => card.strategyId === requested)) {
       setSelected(requested);
@@ -61,7 +64,7 @@ export function Catalogue({ payload, writes, view, onCreate, requested }: {
           {view === "yours" && own.length > 0 ? (
             <StrategyPicker strategies={own} selected={selected} onSelect={setSelected} subscriptionOf={desk.subscriptionOf} wallet={writes.address} pendingId={writes.pending?.strategyId ?? null} />
           ) : null}
-          {view === "yours" && selected ? <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} /> : null}
+          {view === "yours" && selected ? <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} fees={isCreator ? fees : null} /> : null}
           {writes.pending ? <PrimaryButton label={`Review unfinished copy of #${writes.pending.strategyId} →`} onPress={() => setDrawerId(writes.pending!.strategyId)} style={styles.mt20} /> : null}
           {view === "yours" && !desk.readable ? (
             <Text style={[warn, styles.progressText, { color: color.ink }]}>Your subscriptions and permissions have not been verified yet. Renew your seat and retry if this continues.</Text>

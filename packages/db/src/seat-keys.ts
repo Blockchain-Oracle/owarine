@@ -64,3 +64,18 @@ export async function seatHolders(db: Db, o: { parties?: readonly string[]; leas
       ${parties ? db`AND party = ANY(${parties as string[]})` : db``}`;
   return new Map(rows.filter((r) => r.address).map((r) => [r.party, r.address as string]));
 }
+
+/**
+ * `seatHolders` for live leases, with each lease's start offset (C8i): the address a creator party is shown by, and
+ * the ledger offset from which its strategies are that lessee's. A strategy created before the offset is an earlier
+ * visitor's on the same recycled party, and is never labelled (or writable) as the current lessee's.
+ */
+export async function seatHolderLeases(db: Db, o: { parties?: readonly string[] } = {}): Promise<Map<string, { address: string; fromOffset: number }>> {
+  const parties = o.parties ? [...new Set(o.parties)] : null;
+  if (parties && parties.length === 0) return new Map();
+  const rows = await db<{ party: string; address: string | null; start_offset: string | number | null }[]>`
+    SELECT party, address, start_offset FROM seat_pool
+    WHERE address IS NOT NULL AND state = 'leased' AND start_offset IS NOT NULL
+      ${parties ? db`AND party = ANY(${parties as string[]})` : db``}`;
+  return new Map(rows.filter((r) => r.address).map((r) => [r.party, { address: r.address as string, fromOffset: Number(r.start_offset) }]));
+}

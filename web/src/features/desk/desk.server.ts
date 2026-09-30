@@ -2,7 +2,7 @@ import * as dbModule from "@agari/db";
 import { getDb, type Db } from "@agari/db";
 import { OUTCOME_COLUMN, type DeskMandateWire, type DeskMode } from "@agari/core/desk";
 import type { Hash32 } from "@agari/core/types";
-import type { ApprovalWire, ChainStateWire, DeskRowWire, DeskViewWire, GradeWire, MandateVersionWire, RecordSummaryWire, SnapshotWire } from "./protocol";
+import { DESK_CLUSTER, type ApprovalWire, type ChainStateWire, type DeskRowWire, type DeskViewWire, type GradeWire, type MandateVersionWire, type RecordSummaryWire, type SnapshotWire } from "./protocol";
 
 /**
  * THE ONE FILE that talks to the desk's database (S21 C5 ↔ C4). C4 ships `deskQueries(db)` in `@agari/db`; this
@@ -111,9 +111,8 @@ export const toSnapshot = (s: DbSnapshot): SnapshotWire => ({
 
 /** The desk by its owner's address or by its id: `/desk/[id]` accepts both, and so does every route. */
 export async function findDesk(store: DeskQueries, key: string, isAddress: boolean): Promise<DbDesk | null> {
-  return isAddress ? store.getDeskByOwner(DESK_CLUSTER_ID, key) : store.getDeskById(key);
+  return isAddress ? store.getDeskByOwner(DESK_CLUSTER, key) : store.getDeskById(key);
 }
-const DESK_CLUSTER_ID = "mainnet";
 
 /** Approvals still waiting, plus the ones that expired unanswered in the last day (the page says so). */
 async function approvalsFor(store: DeskQueries, deskId: string, nowSec: number): Promise<ApprovalWire[]> {

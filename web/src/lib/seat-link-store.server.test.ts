@@ -139,8 +139,9 @@ describe.skipIf(!URL_)("seat link store (Postgres)", () => {
       expect(await seatPartyFor(db, key)).toBe(party);
     }
     // The registry labels a seat by the key that took it; the calling device's own key labels its own party.
-    expect(await leasedAddresses()).toEqual(new Map([[a.party, "web-a"], [b.party, "web-b"]]));
-    expect((await leasedAddresses({ party: a.party, address: "phone-a" })).get(a.party)).toBe("phone-a");
+    // Each label counts from its lease's start (C8i), the caller's included: never from offset 0.
+    expect(await leasedAddresses()).toEqual(new Map([[a.party, { address: "web-a", fromOffset: 1 }], [b.party, { address: "web-b", fromOffset: 1 }]]));
+    expect((await leasedAddresses({ party: a.party, address: "phone-a", fromOffset: a.startOffset })).get(a.party)).toEqual({ address: "phone-a", fromOffset: 1 });
 
     await store.release(a.leaseId, T0 + 3, "released");
     expect(await seatPartyFor(db, "phone-a")).toBeNull();
@@ -154,6 +155,6 @@ describe.skipIf(!URL_)("seat link store (Postgres)", () => {
       expect(await store.byAddress(old)).toBeNull();
       expect(await seatPartyFor(db, old)).toBeNull();
     }
-    expect(await leasedAddresses()).toEqual(new Map([[a.party, "web-c"], [b.party, "web-b"]]));
+    expect(await leasedAddresses()).toEqual(new Map([[a.party, { address: "web-c", fromOffset: 1 }], [b.party, { address: "web-b", fromOffset: 1 }]]));
   });
 });

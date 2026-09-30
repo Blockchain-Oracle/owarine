@@ -36,7 +36,7 @@ interface CreateStepProps {
 
 /**
  * Step 04 (plan §5.4): Practice needs no transaction, one signature and the desk exists; Live is Go live's four
- * mainnet steps, offered once the practice rule is met. Editing an existing desk signs a new mandate version.
+ * Canton steps, offered once the practice rule is met. Editing an existing desk signs a new mandate version.
  */
 export function CreateStep({ draft, mandate, owner, view, writes, editing, problems, onConnect, onCreated, zone, nowSec }: CreateStepProps) {
   const [choice, setChoice] = useState<"practice" | "live">("practice");

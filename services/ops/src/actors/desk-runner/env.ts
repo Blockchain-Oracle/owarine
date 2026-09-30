@@ -41,9 +41,20 @@ function intEnv(env: NodeJS.ProcessEnv, name: string, fallback: number, min: num
   return Number.isFinite(value) && value >= min ? Math.floor(value) : fallback;
 }
 
-/** `DESK_CLUSTER=localnet` runs the desk against LocalNet (the rehearsal); Canton MainNet otherwise. */
-function clusterOf(env: NodeJS.ProcessEnv): DeskCluster {
-  return env.DESK_CLUSTER === "localnet" ? "localnet" : env.DESK_CLUSTER === "devnet" ? "devnet" : "mainnet";
+const DESK_CLUSTERS: readonly DeskCluster[] = ["mainnet", "testnet", "devnet", "localnet"];
+const clusterName = (v: string | undefined): DeskCluster | null => {
+  const name = v?.trim();
+  return name && (DESK_CLUSTERS as readonly string[]).includes(name) ? (name as DeskCluster) : null;
+};
+
+/**
+ * The Canton network whose desks this runner looks after (C8i): `DESK_CLUSTER` when set, else ops' own network
+ * (`NEXT_PUBLIC_CANTON_NETWORK`, which the web writes each desk under), else DevNet, the same default as every other
+ * agent in ops. It used to fall back to "mainnet", which the web also hard-coded, so a LocalNet runner could not see
+ * the desks it was meant to run and the model stub never reached them.
+ */
+export function clusterOf(env: NodeJS.ProcessEnv): DeskCluster {
+  return clusterName(env.DESK_CLUSTER) ?? clusterName(env.NEXT_PUBLIC_CANTON_NETWORK) ?? "devnet";
 }
 
 export function deskRpcUrl(env: NodeJS.ProcessEnv = process.env): string {

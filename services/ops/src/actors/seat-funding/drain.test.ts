@@ -3,7 +3,7 @@
  * web's lease route, which only looked when the pool was already full, so empty seats sat `draining`).
  */
 import { describe, expect, it } from "vitest";
-import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
+import { AGENT_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import type { RecycleCheck, RecycleOutcome } from "@agari/db";
 import type { ActiveContract, LedgerClient } from "@agari/ledger";
 import type { RoleSession } from "@agari/markets/ops/canton";
@@ -170,5 +170,38 @@ describe("seat drain recycles (C9d)", () => {
     // Both legs are gone, so the same pass frees the seat.
     expect(s.states.get(SEAT)).toBe("free");
   });
-});
 
+  describe("a creator's seat (C8i): nothing it published or earned passes to the next visitor", () => {
+    const ENVELOPE = { maxStakePerTrade: "5000000", maxDailySpend: "20000000", maxOpenPositions: "2", maxPriceTicks: "0" };
+    const terms = { venue: VENUE, creator: SEAT, strategyId: "7", runner: "runner::1220dd", envelope: ENVELOPE, fee: "500000", specHash: "ab", version: "0", active: true, publishedAt: null };
+    const creatorSide = (withLicence: boolean) => [
+      { templateId: AGENT_TEMPLATE_IDS.Strategy, cid: "s-7", arg: { ...terms, spec: "{}" }, stakeholders: [VENUE, SEAT] },
+      { templateId: AGENT_TEMPLATE_IDS.StrategyListing, cid: "l-7", arg: { ...terms, strategyCid: "s-7" }, stakeholders: [VENUE, SEAT] },
+      { templateId: AGENT_TEMPLATE_IDS.CreatorPayout, cid: "p-1", arg: { venue: VENUE, creator: SEAT, period: "497428", feeCount: "1", amount: "500000" }, stakeholders: [VENUE, SEAT] },
+      { templateId: AGENT_TEMPLATE_IDS.StrategyFee, cid: "fee-1", arg: { venue: VENUE, creator: SEAT, strategyId: "7", amount: "500000" }, stakeholders: [VENUE] },
+      ...(withLicence ? [{ templateId: AGENT_TEMPLATE_IDS.CreatorLicense, cid: "lic-1", arg: { venue: VENUE, creator: SEAT, nextIndex: "8" }, stakeholders: [VENUE, SEAT] }] : []),
+    ];
+    const choices = (fake: Fake) => fake.submitted.map((x) => [x.actAs.join(","), x.commands.map((c) => (c as { ExerciseCommand?: { choice: string } }).ExerciseCommand?.choice).join("+")]);
+
+    it("pays out the fees the venue holds, deactivates the seat's live strategy and claims its payout into its cash, then frees", async () => {
+      const s = setup(creatorSide(true));
+      await s.pass();
+      const done = choices(s.fake);
+      expect(done).toContainEqual([VENUE, "License_Payout"]);
+      expect(done).toContainEqual([SEAT, "Strategy_Deactivate"]);
+      expect(done).toContainEqual([SEAT, "Payout_Claim"]);
+      // Every creator step is done before the seat's cash is swept and the seat is freed.
+      const sweep = done.findIndex(([, c]) => c === "VenueCash_Withdraw");
+      expect(sweep).toBeGreaterThan(done.findIndex(([, c]) => c === "Payout_Claim"));
+      expect(s.states.get(SEAT)).toBe("free");
+    });
+
+    it("a seat whose held fees cannot be paid out yet stays draining", async () => {
+      const s = setup(creatorSide(false));
+      const r = await s.pass();
+      expect(s.states.get(SEAT)).toBe("draining");
+      expect(r.why).toContain("creator fees not yet ended");
+      expect(choices(s.fake).some(([, c]) => c === "VenueCash_Withdraw")).toBe(false);
+    });
+  });
+});

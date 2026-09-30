@@ -15,6 +15,7 @@ import type { StrategiesPayload } from "./protocol";
 import { RecentCopyTrades } from "./RecentCopyTrades";
 import { StrategyGrid } from "./StrategyGrid";
 import { StrategyPicker } from "./StrategyPicker";
+import { useCreatorFees } from "./useCreatorFees";
 import { useDesk } from "./useDesk";
 import { useDeskWrites } from "./useDeskWrites";
 import { useRefreshStrategies, useStrategies } from "./useStrategies";
@@ -62,6 +63,8 @@ function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPay
   const own = strategies.filter((s) => s.creator === writes.address || desk.subscriptionOf(s.strategyId) || writes.pending?.strategyId === s.strategyId);
   const visible = view === "yours" ? own : strategies;
   const drawer = strategies.find((s) => s.strategyId === drawerId) ?? null;
+  const isCreator = Boolean(writes.address && desk.featured?.creator === writes.address);
+  const fees = useCreatorFees(writes, isCreator);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("strategy");
     if (requested && strategies.some((card) => card.strategyId === requested)) { setSelected(requested); setDrawerId(requested); }
@@ -69,7 +72,7 @@ function Catalogue({ payload, writes, view, onCreate }: { payload: StrategiesPay
   return <>
     {view === "yours" && !writes.address ? <div className="strat-empty"><h2 className="strat-h2 mb-3">Your strategies, in one place.</h2><p className="mb-5 text-ink-secondary">Take the seat that created or copied them.</p><ConnectButton /></div> : <>
       {view === "yours" && own.length > 0 && <StrategyPicker strategies={own} selected={selected} onSelect={setSelected} subscriptionOf={desk.subscriptionOf} wallet={writes.address} pendingId={writes.pending?.strategyId ?? null} />}
-      {view === "yours" && selected && <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} />}
+      {view === "yours" && selected && <LiveDesk payload={payload} desk={desk} nowMs={nowMs} onManage={() => desk.featured && setDrawerId(desk.featured.strategyId)} fees={isCreator ? fees : null} />}
       {writes.pending && <button type="button" className="desk-btn-primary mt-5" onClick={() => setDrawerId(writes.pending!.strategyId)}>Review unfinished copy of #{writes.pending.strategyId} →</button>}
       {view === "yours" && !desk.readable && <p className="copy-progress">Your subscriptions and permissions have not been verified yet. Renew your seat and retry if this continues.</p>}
       {view === "yours" && desk.readable && own.length === 0 && <div className="strat-empty"><h2 className="strat-h2">No strategies here yet.</h2><p className="my-3 text-ink-secondary">Publish a strategy, or copy one with this seat.</p><button type="button" className="desk-btn-primary" onClick={onCreate}>Create your first strategy →</button></div>}

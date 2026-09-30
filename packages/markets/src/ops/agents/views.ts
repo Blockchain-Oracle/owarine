@@ -13,7 +13,7 @@
 import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
 import type { Address } from "@agari/core/types";
 import type { GrantKind, VaultCaps, VaultGrant } from "@agari/core/vault";
-import type { AgentGrantC, EnvelopeC, GrantCapsC, StrategyC, StrategyListingC, SubscriptionC } from "./decode";
+import type { AgentGrantC, CreatorPayoutC, EnvelopeC, GrantCapsC, StrategyC, StrategyListingC, SubscriptionC } from "./decode";
 import { capFromDaml, capToDaml, DAML_NO_CAP, grantIdOf, rawOfTicks, strategyNumOf, ticksOfRaw } from "./ids";
 
 export const AGENT_DECIMALS = 6;
@@ -120,4 +120,21 @@ export function grantFor(grants: readonly AgentGrantC[], owner: string, runner: 
   return grants
     .filter((g) => g.owner === owner && g.agent === runner && grantKindOf(g) === "strategy" && g.expiresAtSec >= nowSec)
     .sort((a, b) => (a.budget === b.budget ? 0 : a.budget > b.budget ? -1 : 1))[0] ?? null;
+}
+
+/** A creator's fees waiting on the ledger (C8i): the venue's aggregate payouts, each a period's total and fee count. */
+export interface CreatorPayoutsView {
+  totalBase: bigint;
+  feeCount: number;
+  payouts: { period: number; feeCount: number; amountBase: bigint }[];
+}
+
+/** The payouts made to `creator`, oldest period first; another creator's never count. */
+export function creatorPayoutsView(payouts: readonly CreatorPayoutC[], creator: string): CreatorPayoutsView {
+  const mine = payouts.filter((p) => p.creator === creator).sort((a, b) => a.period - b.period);
+  return {
+    totalBase: mine.reduce((sum, p) => sum + p.amount, 0n),
+    feeCount: mine.reduce((sum, p) => sum + p.feeCount, 0),
+    payouts: mine.map((p) => ({ period: p.period, feeCount: p.feeCount, amountBase: p.amount })),
+  };
 }

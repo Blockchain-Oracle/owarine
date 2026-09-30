@@ -547,6 +547,66 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** ticket previews work on the phone; nothing else changes.
 - **Approval:** default; overrulable (Abu may ask for the X badge to be hidden unless the visitor opts in).
 
+### K-220 — A desk names this deployment's Canton network, never "mainnet" (overflow block)
+- **Date / owner:** 2026-09-30 · C8i lane
+- **Evidence:** `docs/evidence/c8g-agents-ux.md` gap 2 and `docs/evidence/c8i-agents-gaps.md`. The web wrote every desk row, and every desk signed text's network line, as `mainnet` (a Solana-era constant); the runner defaulted to `mainnet` too, so a LocalNet runner could not see the desks it should run, and `DESK_MODEL_STUB` (localnet only) never reached them. `services/ops/src/actors/desk-runner/env.test.ts`.
+- **Rule:**
+  - The web's `DESK_CLUSTER` is `NEXT_PUBLIC_CANTON_NETWORK` (the same network the proof links name). The runner reads `DESK_CLUSTER`, else ops' `NEXT_PUBLIC_CANTON_NETWORK`, else DevNet, the same default as every other agent in ops.
+  - `desks.cluster` allows `testnet` beside `mainnet`, `devnet` and `localnet`. The schema replaces the CHECK only while it lacks `testnet`, so a boot does not lock the desks table every time.
+  - `DESK_MODEL_STUB` stays honoured only on a LocalNet deployment; it now reaches that deployment's desks.
+  - A database an earlier build wrote desks into as `mainnet` (a LocalNet or DevNet drive) re-labels them once: `UPDATE desks SET cluster = '<network>' WHERE cluster = 'mainnet'`.
+  - Identifiers inherited from the reference (`DeskMainnetSession`, `USDC_MAINNET`, `MAINNET_RPC_PATH`) keep their names; nothing a desk stores, signs or shows says mainnet.
+- **User-visible:** a desk's signed texts name the deployment's network; the desk page and its runner agree on which desks exist.
+- **Approval:** default; overrulable.
+
+### K-221 — A creator claims its fees from its own strategy's desk (overflow block)
+- **Date / owner:** 2026-09-30 · C8i lane
+- **Evidence:** `docs/evidence/c8g-agents-ux.md` gap 1. The keeper pooled fees into a `CreatorPayout` and `Payout_Claim` had a route, but no screen called it, so a creator's fees waited on the ledger. `packages/markets/src/server/agents-payouts.test.ts`.
+- **Rule:**
+  - When the seat published the selected strategy, "Your strategies" shows "Your fees" in the desk's numbers row (the reference's LiveDesk kit): the waiting total, the fee count, and "Claim to your seat". Web and phone share `useCreatorFees` and `useDeskWrites().claimFees`.
+  - `GET /api/ledger/agents/payouts` reads the seat's `CreatorPayout`s AS the leased party only. The claim is the `strategy-claim-fees` intent → `POST /api/ledger/agents/strategies/claim`, one seat command with a `Payout_Claim` per waiting payout, journaled by its command id.
+  - A payout is a period's total and fee count for all the creator's strategies; it never names a subscriber (K-086, K-089). The card says so.
+  - The reference paid creators at subscribe, so it had no claim; Y-18 (builder-code creator earnings) stays excluded and is a different thing.
+- **User-visible:** a creator sees the fees waiting and moves them into its seat in one tap, with a receipt link.
+- **Approval:** default; overrulable.
+
+### K-222 — A live desk's figures count from going live (overflow block)
+- **Date / owner:** 2026-09-30 · C8i lane
+- **Evidence:** `docs/evidence/c8g-agents-ux.md` gap 3: after a 50-credit deposit the plate read "+$47.50 since your money went in" and "−95.0% since the first check". The runner compared the live desk with the last practice snapshot ($1,000 of paper), read the paper as money that had left, and scaled the loss baseline to 2.50; the chart ran on from the practice series. `packages/db/src/desk-golive.test.ts` (real Postgres).
+- **Rule:**
+  - A desk's snapshots count from its last `went_live` event: `latestSnapshot` (the runner's reconcile and the page's value) and `snapshotSeries` (the chart). The practice record stays readable in its own records.
+  - Going live clears the loss baseline (`attachLiveDesk` already did; a practice row the runner discovers live now does too, once, with a `went_live` event). The first priced live valuation sets it afresh; a deposit then scales it as before.
+  - A practice deferral ("would have", "wait") and a practice "did this minutes ago" do not bind the live desk: both count records from the desk's current life only. C8i's drive caught the live desk skipping its first buy as "the desk would already have bought OpenAI" from practice.
+  - A live desk's plate speaks the seat's credits: no `$`, the move since the money went in in credits, and "Valued … at each Window's attested fair price" (K-090). A practice desk keeps dollars.
+- **User-visible:** after going live with 50 credits the plate reads 50.00 credits and +0.00 credits since the money went in; the chart starts at going live.
+- **Approval:** default; overrulable.
+
+### K-223 — The strategy runner holds a Window the grant's caps would refuse (overflow block)
+- **Date / owner:** 2026-09-30 · C8i lane
+- **Evidence:** `docs/evidence/c8g-agents-ux.md` gap 4: the runner sent while a grant was at its open-position cap, the ledger refused `abu-pm/over-position-cap`, and the Window was marked "refused, not resending". The grant executor skipped the position check on purpose. `services/ops/src/actors/strategy-runner/reliability.test.ts` runs the runner's check over the reference's caps vectors.
+- **Rule:**
+  - Before reserving an attempt, the runner asks core `capsAtQuotePrice`: `simulateCaps` (the ledger's `capRefusal` in the same order, golden-tested on the reference's caps vectors) at the quote's own price. On Canton the agent accepts the owner's firm quote with its price as the limit, so the side price is the quote's cost per contract, not the reference's cushioned IOC limit. A cap the grant is at is a skipped Window, with the reason in the runner report, so the Window may be entered once a position closes.
+  - The grant executor asks the same `capsAtQuotePrice` before it sends, so the two cannot disagree (C8i's drive caught one Window the executor refused on the cushioned limit after the runner passed it). It no longer lets the position check through: it counts `opensNew` exactly as the ledger does (no open position on this Window's side under the grant).
+  - The ledger stays the guard; nothing here can move money.
+- **User-visible:** the runner report says "the grant is at its open-position cap (N open); holding until one closes" instead of a ledger refusal.
+- **Approval:** default; overrulable.
+
+### K-224 — A recycled seat inherits no strategy, fee payout or runner of an earlier visitor (overflow block)
+- **Date / owner:** 2026-09-30 · C8i lane (security review H1, L5)
+- **Evidence:** the review found that the next visitor on a recycled seat party saw the previous visitor's strategies and creator payouts. It could claim those payouts (`POST /api/ledger/agents/strategies/claim`) and revise, re-run or deactivate the strategies. `POST /api/strategies/playbook` accepted it because the creator was labelled as the party's current lessee. `setRunner` took any party. Tests: `packages/markets/src/server/agents-payouts.test.ts`, `seat-holdings.test.ts`, `services/ops/src/actors/seat-funding/drain.test.ts`.
+- **Rule:**
+  - A seat's agents reads and writes are one lease's. A grant, consent, strategy or fee payout counts only if it was created at or after the lease's start offset (`seat_pool.start_offset`, the ledger end when the lease began). Claim, update, runner change and deactivate refuse anything older. The venue's standing offers and the seat's cash are the party's.
+  - A creator is shown by its lessee's address only for strategies created in that lease. An older strategy on the same party shows the party, is not "yours", and its playbook cannot be written.
+  - A seat is not recycled while it has a live strategy it published or a creator payout made to it. Before the cash sweep, the drain has the venue pay out the fees it still holds for the seat, deactivates the seat's live strategies and claims its payouts into its cash. A seat whose held fees cannot be paid out waits.
+  - A strategy runs on the house runner (the agent-runner party) or on its creator's own seat; publish and runner changes refuse any other party.
+- **User-visible:** a visitor on a recycled seat starts with no strategies and no fees. A creator's last fees are paid into its seat before the seat is freed.
+- **Approval:** default; overrulable.
+
+### K-225 — A live trade's cost is measured against its own price (overflow block)
+- **Date / owner:** 2026-09-30 · C8i lane
+- **Evidence:** C8i's drive (`docs/evidence/c8i-agents-gaps.md` §2): gpt-5.4 answered ACT_NOW (84%) for a 20-credit OpenAI buy and the desk blocked it as "more than 2.5% against the price". `services/ops/src/actors/desk-runner/market.test.ts`.
+- **Rule:** on the live leg (K-090) a trade's cost is its fill against the Window's best ask (a buy) or best bid (a sell): the venue's 1% fee and any walk down the ladder, under the reference's 2.5% limit. The ask's distance from the Window's fair price is the premium, which the owner's premium ceiling bounds on the ledger. Measuring cost against fair counted the venue's half-spread twice, and a 30-tick spread (6% at 0.50) put every live buy over the limit. Practice desks are unchanged.
+- **User-visible:** a live desk can buy when the model says act now and the premium is inside the owner's ceiling.
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

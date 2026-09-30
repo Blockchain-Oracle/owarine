@@ -34,7 +34,7 @@ interface Props {
 
 /**
  * Step 04 (web's CreateStep.tsx): Practice needs no transaction, one signature and the desk exists; Live is Go live's
- * mainnet steps, offered once the practice rule is met. Editing an existing desk signs a new mandate version. The
+ * Canton steps, offered once the practice rule is met. Editing an existing desk signs a new mandate version. The
  * button asks the wallet directly; its prompt is the confirmation.
  */
 export function CreateStep({ draft, mandate, owner, view, writes, editing, problems, onConnect, onCreated, zone, nowSec }: Props) {

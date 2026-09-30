@@ -18,7 +18,9 @@ export async function GET(request: NextRequest) {
   if (!state.ok) return refusal("not-deployed", state.reason, 503);
   try {
     const auth = await seatFromRequest(request, { write: false });
-    const caller = auth.ok ? { party: auth.seat.lease.party, address: auth.seat.caller } : null;
+    // The caller's own label counts from its lease's start (C8i): a recycled seat is never the creator of the previous
+    // visitor's strategy, whatever key it proves.
+    const caller = auth.ok ? { party: auth.seat.lease.party, address: auth.seat.caller, fromOffset: auth.seat.lease.startOffset } : null;
     return replyWith({ strategies: await state.server.agents.strategies(await leasedAddresses(caller)) });
   } catch (error) {
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);

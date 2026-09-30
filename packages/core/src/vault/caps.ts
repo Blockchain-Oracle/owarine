@@ -70,6 +70,18 @@ export function simulateCaps(input: CapCheckInput): CapVerdict {
   return { ok: true, headroomBase: dailyHeadroomBase(grant, nowSec) - spendBase };
 }
 
+/**
+ * The caps on Canton, at a quote's own price (C8i). The agent accepts the owner's firm quote with the quote's price as
+ * its limit, so the ledger's price cap and escrow read that price and the charge is the quote's cost: the side price is
+ * the cost per contract (rounded up), never the reference's cushioned IOC limit, which is Solana's. The strategy
+ * runner (before it reserves a Window) and the grant executor (before it sends) both ask this, so they cannot disagree.
+ */
+export function capsAtQuotePrice(i: { grant: VaultGrant; nowSec: number; contractsRaw: bigint; costBase: bigint; one: bigint; opensNewPosition: boolean }): CapVerdict {
+  if (i.contractsRaw <= 0n) return { ok: false, refusal: { kind: "escrow", worstBase: i.costBase, budgetBase: i.grant.budgetBase } };
+  const sidePriceRaw = (i.costBase * i.one + i.contractsRaw - 1n) / i.contractsRaw;
+  return simulateCaps({ grant: i.grant, nowSec: i.nowSec, sidePriceRaw, quantityRaw: i.contractsRaw, spendBase: i.costBase, one: i.one, opensNewPosition: i.opensNewPosition });
+}
+
 export interface CappableQuote {
   /** The IOC limit in YES terms, padded by the cadence's crossing cushion. */
   limitPriceRaw: bigint;

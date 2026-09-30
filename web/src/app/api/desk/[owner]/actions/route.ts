@@ -5,7 +5,7 @@ import { deskOwnerActionText, ownerActionRequestSchema } from "@/features/desk/p
 /**
  * `POST /api/desk/[owner]/actions { kind: "sell_all" | "close" }`: the two things the owner asks the DESK to do,
  * because only the operator can sell through the program (plan §5.5). The owner's own withdrawals never come here:
- * they are the owner's mainnet transactions. Beyond the C4 contract (`requestOwnerAction`): refused with a 501
+ * they are the owner's own seat commands on Canton. Beyond the C4 contract (`requestOwnerAction`): refused with a 501
  * until the index carries it, and the card says so.
  */
 export const runtime = "nodejs";

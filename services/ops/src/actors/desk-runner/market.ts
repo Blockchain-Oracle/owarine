@@ -29,6 +29,18 @@ export const REFERENCE_REFRESH_SEC = 300;
 /** The slippage every preview carries as its own floor; the ledger's 92 % floor on a sale is the outer one. */
 export const SLIPPAGE_BPS = 200;
 
+/**
+ * A live trade's cost against its own price (C8i): the fill against the Window's best ask (a buy) or best bid (a sell),
+ * so the venue's 1% fee and any walk down the ladder count. The ask's distance from the Window's fair price is the
+ * premium, which the owner's premium ceiling bounds on the ledger; measuring cost against fair too counted the venue's
+ * half-spread twice, and a 30-tick spread (6% at 0.50) put every live buy over the 2.5% cost limit.
+ */
+export function liveCostBps(side: "buy" | "sell", amountIn: bigint, quoteOut: bigint, bestTicks: number | null, fairTicks: number | null, cashUnit: bigint): number | null {
+  const priceTicks = bestTicks ?? fairTicks;
+  if (!priceTicks || quoteOut <= 0n) return null;
+  return costBpsFor(side, amountIn, quoteOut, lotPriceE8(priceTicks, cashUnit), DESK_LOT_MULTIPLIER_E12);
+}
+
 export interface MarketRead {
   market: DeskMarketRead;
   quote: JupiterQuote | null;
@@ -97,7 +109,7 @@ export async function readMarket(ctx: RunnerContext, standing: DeskStanding, can
     // The ask over the Window's fair price: what the mandate's premium ceiling bounds on a buy.
     premiumBps: fair && best ? Math.round(((best - fair) * 10_000) / fair) : null,
     quoteOut: quote?.outAmount ?? null,
-    costBps: quote && fairE8 && quote.outAmount > 0n ? costBpsFor(candidate.side, amountIn, quote.outAmount, fairE8, DESK_LOT_MULTIPLIER_E12) : null,
+    costBps: quote && window ? liveCostBps(candidate.side, amountIn, quote.outAmount, best, fair, window.cashUnit) : null,
     accountFrozen: standing.frozen[symbol] ?? false,
   };
   return { market, quote, reference };

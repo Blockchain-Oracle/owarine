@@ -92,6 +92,14 @@ export const subscriptionWire = z.object({
 /** `GET /api/ledger/agents/subscriptions?ids=`: the seat's own consents. */
 export const subscriptionsReplyWire = z.object({ subscriptions: z.array(subscriptionWire) });
 
+/** `GET /api/ledger/agents/payouts`: the creator fees waiting for the seat (C8i), a total and a count per period. */
+export const creatorPayoutsReplyWire = z.object({
+  totalBase: uint,
+  feeCount: z.number().int().nonnegative(),
+  payouts: z.array(z.object({ period: z.number().int(), feeCount: z.number().int().positive(), amountBase: uint })),
+});
+export type CreatorPayoutsReply = z.output<typeof creatorPayoutsReplyWire>;
+
 // ---- writes ------------------------------------------------------------------------------------------
 
 export const agentsWriteReplyWire = z.discriminatedUnion("kind", [

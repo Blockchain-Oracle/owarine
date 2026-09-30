@@ -53,7 +53,7 @@ describe("seat holdings (C9d)", () => {
       ev(AGENT_TEMPLATE_IDS.Subscription, { subscriber: SEAT, creator: OTHER }),
       ev(AGENT_TEMPLATE_IDS.DeskMandate, { owner: SEAT }),
     ], NOW);
-    expect(h.counts).toEqual({ legs: 0, quotes: 0, tickets: 3, shares: 1, duels: 2, agents: 3 });
+    expect(h.counts).toEqual({ legs: 0, quotes: 0, tickets: 3, shares: 1, duels: 2, agents: 3, creator: 0 });
     expect(h.lpShares).toEqual([{ cid: expect.any(String), reserveId: "range", shares: 1200n }]);
     expect(holdingsText(h)).toBe("3 tickets, 1 Earn share, 2 duels, 3 agent grants");
   });
@@ -61,5 +61,18 @@ describe("seat holdings (C9d)", () => {
   it("a subscription the seat CREATED as a strategy's creator is not the seat's consent", () => {
     const h = holdingsOf(SEAT, [ev(AGENT_TEMPLATE_IDS.Subscription, { subscriber: OTHER, creator: SEAT })], NOW);
     expect(isSeatEmpty(h)).toBe(true);
+  });
+
+  it("a live strategy the seat published, or a fee payout made to it, holds the seat; a deactivated strategy does not (C8i)", () => {
+    const h = holdingsOf(SEAT, [
+      ev(AGENT_TEMPLATE_IDS.Strategy, { creator: SEAT, active: true }),
+      ev(AGENT_TEMPLATE_IDS.Strategy, { creator: SEAT, active: false }),
+      ev(AGENT_TEMPLATE_IDS.Strategy, { creator: OTHER, active: true }),
+      ev(AGENT_TEMPLATE_IDS.CreatorPayout, { creator: SEAT, amount: "500000", feeCount: "1" }),
+      ev(AGENT_TEMPLATE_IDS.CreatorPayout, { creator: OTHER, amount: "500000", feeCount: "1" }),
+    ], NOW);
+    expect(h.counts.creator).toBe(2);
+    expect(holdingsText(h)).toBe("2 live strategies or fee payouts");
+    expect(isSeatEmpty(holdingsOf(SEAT, [ev(AGENT_TEMPLATE_IDS.Strategy, { creator: SEAT, active: false })], NOW))).toBe(true);
   });
 });
