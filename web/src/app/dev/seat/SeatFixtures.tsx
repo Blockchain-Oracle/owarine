@@ -5,7 +5,7 @@ import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";
 import { DrainingPlate, PoolFullPlate, SEAT, SeatAccountMenu, LINK_TTL_SEC, SeatLinkCard } from "@/features/canton-ux/seat";
 import { webEnv } from "@/lib/env";
-import { DRAIN_LEFT_SEC, DRAIN_SPAN_SEC, DRAINING, LEASE_LEFT_SEC, LEASE_SPAN_SEC, LEASED, LINK_CODE, LINK_LEFT_SEC, linkUrl, POOL_LEFT_SEC, POOL_SPAN_SEC } from "./fixtures";
+import { DRAIN_LEFT_SEC, DRAIN_SPAN_SEC, DRAINING, LEASE_LEFT_SEC, LEASE_SPAN_SEC, LEASED, LINK_CODE, LINK_LEFT_SEC, linkUrl, POOL_LEFT_SEC, POOL_SPAN_SEC, WAITING_KEY } from "./fixtures";
 
 const noop = () => undefined;
 const URL_TEXT = linkUrl(webEnv.appOrigin, LINK_CODE);
@@ -81,7 +81,13 @@ export function SeatFixtures() {
             <LiveLink />
           </Fixture>
           <Fixture label="Expired — and a refused code below">
-            <SeatLinkCard state="expired" code={LINK_CODE} url={URL_TEXT} expiresAtSec={null} seatNumber={LEASED.seatNumber} onFresh={noop} verify={verify} joinDefault={{ value: "Q4TZ9B", status: "error" }} />
+            <SeatLinkCard state="expired" code={LINK_CODE} url={URL_TEXT} expiresAtSec={null} seatNumber={LEASED.seatNumber} onFresh={noop} verify={verify} joinDefault={{ value: "Q4TZ9BX2", status: "error" }} />
+          </Fixture>
+          <Fixture label="Allow — a device used the code and waits for this one (C4c)">
+            <SeatLinkCard state="confirm" code={LINK_CODE} url={URL_TEXT} expiresAtSec={null} seatNumber={LEASED.seatNumber} waitingKey={WAITING_KEY} onDecide={() => new Promise((r) => setTimeout(r, 900))} onFresh={noop} verify={verify} />
+          </Fixture>
+          <Fixture label="Not allowed — this device refused it">
+            <SeatLinkCard state="declined" code={LINK_CODE} url={URL_TEXT} expiresAtSec={null} seatNumber={LEASED.seatNumber} onFresh={noop} verify={verify} />
           </Fixture>
           <Fixture label="Linked — the other device joined">
             <SeatLinkCard state="linked" code={LINK_CODE} url={URL_TEXT} expiresAtSec={null} seatNumber={LEASED.seatNumber} linkedDevice="Your iPhone" onFresh={noop} verify={verify} />

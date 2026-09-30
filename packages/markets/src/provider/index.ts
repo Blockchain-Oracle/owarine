@@ -76,20 +76,25 @@ export * from "./agents-wire";
 export { leaseSeat, readSeatLease, releaseSeat, SEAT_LEASE_TTL_MS, seatLeaseRequestWire, seatLeaseText, seatLeaseWire, type SeatLeaseView } from "./seat";
 export {
   createSeatLink,
+  decideSeatLink,
+  formatSeatLinkCode,
   joinSeatLink,
   normalizeSeatLinkCode,
   readSeatLink,
   SEAT_LINK_ALPHABET,
   SEAT_LINK_CODE_LENGTH,
+  SEAT_LINK_CONFIRM_MS,
   SEAT_LINK_JOIN_TTL_MS,
   SEAT_LINK_TTL_MS,
   seatLinkCodeWire,
+  seatLinkDecisionWire,
   seatLinkJoinWire,
   seatLinkPath,
   seatLinkStateWire,
   seatLinkText,
   type SeatLinkCode,
   type SeatLinkCodeState,
+  type SeatLinkReading,
 } from "./seat-link";
 export { listOpenQuotes } from "./wallet";
 export { marketFactsWire, venueClockWire, venueFactsWire, venueRequest, type VenueClockWire, type VenueFactsWire } from "./venue-api";

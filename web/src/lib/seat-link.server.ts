@@ -9,9 +9,11 @@ import type { LeaseRow } from "./seat-store.server";
 
 /**
  * The server half of the seat link (plan, iOS step 2b): the leased device asks for a one-time code, the other device's
- * key signs `seatLinkText` naming it, and the key joins the same lease (`seat_linked_keys`). Codes come from the OS
- * CSPRNG over 31 unambiguous characters (31^6 ≈ 8.9 × 10^8), live 60 s and work once; the join route is rate-limited
- * per IP, so guessing a live code is out of reach.
+ * key signs `seatLinkText` naming it, and once the holder's device allows it the key joins the same lease
+ * (`seat_linked_keys`). Codes come from the OS CSPRNG over 31 unambiguous characters, eight of them (31^8 ≈ 8.5 × 10^11,
+ * C4c), live 60 s and work once; the join route is rate-limited per IP (IPv6 per /64), and every miss counts against
+ * every live code (locked after `LINK_CODE_MAX_FAILURES`), so guessing a live code is out of reach from any number of
+ * addresses, and a correct guess still needs the holder to allow it.
  */
 
 /** Codes one seat may ask for per minute: "Show a new code" is a tap, not a loop. */
@@ -43,7 +45,7 @@ export async function checkJoinRequest(body: unknown, nowMs: number): Promise<Jo
   if (!parsed.success) return { ok: false, reason: "expected {code, address, issuedAtMs, signature}" };
   const { address, issuedAtMs, signature } = parsed.data;
   const code = normalizeSeatLinkCode(parsed.data.code);
-  if (!code) return { ok: false, reason: "a link code is six letters and numbers" };
+  if (!code) return { ok: false, reason: `a link code is ${SEAT_LINK_CODE_LENGTH} letters and numbers` };
   if (!isAddress(address) || !isEd25519Signature(signature)) return { ok: false, reason: "malformed address or signature" };
   if (issuedAtMs > nowMs + 30_000 || nowMs - issuedAtMs > SEAT_LINK_JOIN_TTL_MS) return { ok: false, reason: "the join request is stale; sign a fresh one" };
   const text = seatLinkText(address, code, issuedAtMs, webEnv.markets.cluster);

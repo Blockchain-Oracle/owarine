@@ -1,10 +1,11 @@
 "use client";
 
 import { diagnosisCopy } from "@agari/core/copy";
-import { createSeatLink, readSeatLink, type SeatLinkCode } from "@agari/markets";
+import { createSeatLink, decideSeatLink, readSeatLink, type SeatLinkCode } from "@agari/markets";
 import { useCallback, useEffect, useState } from "react";
 import { leasedOf, seatNumberOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
+import { SEAT } from "./copy";
 import { appSeatLinkUrl } from "./link";
 import { SeatLinkCard, type SeatLinkState } from "./SeatLinkCard";
 
@@ -23,6 +24,7 @@ export function SeatLinkPanel({ initialCode }: { initialCode: string | null }) {
   const holder = leased !== null && shell.address !== null && leased.address === shell.address;
   const [issued, setIssued] = useState<SeatLinkCode | null>(null);
   const [state, setState] = useState<Exclude<SeatLinkState, "join">>("showing");
+  const [waitingKey, setWaitingKey] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
   const fresh = useCallback(async () => {
@@ -30,6 +32,7 @@ export function SeatLinkPanel({ initialCode }: { initialCode: string | null }) {
     if (answer.ok) {
       setIssued(answer.value);
       setState("showing");
+      setWaitingKey(null);
       setProblem(null);
     } else setProblem(diagnosisCopy(answer.diagnosis.kind).headline);
   }, []);
@@ -38,20 +41,38 @@ export function SeatLinkPanel({ initialCode }: { initialCode: string | null }) {
     if (holder && issued === null) void fresh();
   }, [holder, issued, fresh]);
 
+  // While the code shows, and while a device waits on it, the holder's screen follows it (C4c: it asks before linking).
   useEffect(() => {
-    if (!issued || state !== "showing") return;
+    if (!issued || (state !== "showing" && state !== "confirm")) return;
     const timer = setInterval(() => {
       void readSeatLink(issued.code).then((answer) => {
-        if (answer.ok && answer.value !== "showing") setState(answer.value);
+        if (!answer.ok) return;
+        const next = answer.value.state === "pending" ? "confirm" : answer.value.state;
+        if (next === "confirm") setWaitingKey(answer.value.device);
+        if (next !== state) setState(next);
       });
     }, POLL_MS);
     return () => clearInterval(timer);
   }, [issued, state]);
 
+  const decide = useCallback(
+    async (allow: boolean) => {
+      if (!issued) return;
+      const answer = await decideSeatLink(issued.code, allow);
+      if (answer.ok) setState(answer.value.state);
+      else {
+        setState("expired");
+        setProblem(diagnosisCopy(answer.diagnosis.kind).headline);
+      }
+    },
+    [issued],
+  );
+
   const verify = useCallback(
     async (code: string) => {
       const joined = await shell.joinSeat(code);
       if (joined.ok) return joined.value.kind === "leased";
+      if (joined.status === 403) return SEAT.link.joinDeclined;
       return joined.status === 410 ? false : joined.diagnosis.technical;
     },
     [shell],
@@ -66,6 +87,8 @@ export function SeatLinkPanel({ initialCode }: { initialCode: string | null }) {
         url={issued ? appSeatLinkUrl(issued.code) : ""}
         expiresAtSec={issued ? Math.floor(issued.expiresAtMs / 1000) : null}
         seatNumber={(leased && seatNumberOf(leased.party)) ?? 0}
+        waitingKey={waitingKey}
+        onDecide={decide}
         onFresh={() => void fresh()}
         verify={verify}
         joinDefault={joinDefault}
