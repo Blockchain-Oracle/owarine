@@ -6,9 +6,11 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 
+var Book = require('./Book');
 var Event = require('./Event');
 var Grant = require('./Grant');
 var Leg = require('./Leg');
+var Maker = require('./Maker');
 var Market = require('./Market');
 var Money = require('./Money');
 var Oracle = require('./Oracle');
@@ -18,9 +20,11 @@ var Reserve = require('./Reserve');
 var Series = require('./Series');
 var Types = require('./Types');
 
+exports.Book = Book;
 exports.Event = Event;
 exports.Grant = Grant;
 exports.Leg = Leg;
+exports.Maker = Maker;
 exports.Market = Market;
 exports.Money = Money;
 exports.Oracle = Oracle;

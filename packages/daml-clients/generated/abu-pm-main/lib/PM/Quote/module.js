@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.BuyQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:BuyQuote',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Quote:BuyQuote',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Quote:BuyQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -38,6 +38,7 @@ exports.BuyQuote = damlTypes.assembleTemplate(
         priceTicks: damlTypes.Int.decoder,
         locked: damlTypes.Int.decoder,
         validUntil: damlTypes.Time.decoder,
+        book: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -53,6 +54,7 @@ exports.BuyQuote = damlTypes.assembleTemplate(
         priceTicks: damlTypes.Int.encode(__typed__.priceTicks),
         locked: damlTypes.Int.encode(__typed__.locked),
         validUntil: damlTypes.Time.encode(__typed__.validUntil),
+        book: damlTypes.Optional(damlTypes.Text).encode(__typed__.book),
       };
     },
     Archive: {
@@ -106,7 +108,7 @@ exports.BuyQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BuyQuote, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.BuyQuote, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.BuyQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -242,7 +244,7 @@ exports.Desk_SettleBatch = {
 exports.Quote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:Quote',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Quote:Quote',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Quote:Quote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -260,6 +262,7 @@ exports.Quote = damlTypes.assembleTemplate(
         validUntil: damlTypes.Time.decoder,
         lockAt: damlTypes.Time.decoder,
         refundAfter: damlTypes.Time.decoder,
+        book: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -277,6 +280,7 @@ exports.Quote = damlTypes.assembleTemplate(
         validUntil: damlTypes.Time.encode(__typed__.validUntil),
         lockAt: damlTypes.Time.encode(__typed__.lockAt),
         refundAfter: damlTypes.Time.encode(__typed__.refundAfter),
+        book: damlTypes.Optional(damlTypes.Text).encode(__typed__.book),
       };
     },
     Archive: {
@@ -330,7 +334,7 @@ exports.Quote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Quote, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Quote, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.Quote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -388,7 +392,7 @@ exports.SettleBatchResult = {
 exports.VenueDesk = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:VenueDesk',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Quote:VenueDesk',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Quote:VenueDesk',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -464,4 +468,4 @@ exports.VenueDesk = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.VenueDesk, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.VenueDesk, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);

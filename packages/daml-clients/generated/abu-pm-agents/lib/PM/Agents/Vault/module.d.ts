@@ -7,8 +7,8 @@ import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
-import * as pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d from '@daml.js/abu-pm-main-0.4.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550 from '@daml.js/abu-pm-main-0.5.0';
 
 export declare type GrantDesk = {
   venue: damlTypes.Party,
@@ -20,10 +20,10 @@ export declare interface GrantDeskInterface {
     damlTypes.Choice<GrantDesk, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<GrantDesk, undefined>>;
   GrantDesk_Fund: 
-    damlTypes.Choice<GrantDesk, GrantDesk_Fund, damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Grant.AgentGrant>, undefined> &
+    damlTypes.Choice<GrantDesk, GrantDesk_Fund, damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Grant.AgentGrant>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<GrantDesk, undefined>>;
   GrantDesk_Open: 
-    damlTypes.Choice<GrantDesk, GrantDesk_Open, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Grant.AgentGrant>, damlTypes.Optional<damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<GrantDesk, GrantDesk_Open, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Grant.AgentGrant>, damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<GrantDesk, undefined>>;
 }
 export declare const GrantDesk:
@@ -32,8 +32,8 @@ export declare const GrantDesk:
   GrantDeskInterface
 
 export declare type GrantDesk_Fund = {
-  grantCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Grant.AgentGrant>,
-  cash: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>[],
+  grantCid: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Grant.AgentGrant>,
+  cash: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>[],
 }
 
 export declare const GrantDesk_Fund:
@@ -41,11 +41,11 @@ export declare const GrantDesk_Fund:
 
 export declare type GrantDesk_Open = {
   agent: damlTypes.Party,
-  caps: pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Grant.GrantCaps,
+  caps: pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Grant.GrantCaps,
   expiresAt: damlTypes.Time,
   dayZero: damlTypes.Time,
   budget: damlTypes.Int,
-  cash: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>[],
 }
 
 export declare const GrantDesk_Open:

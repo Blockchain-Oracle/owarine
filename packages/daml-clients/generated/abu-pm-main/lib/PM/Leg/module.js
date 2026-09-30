@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.Leg = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Leg:Leg',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Leg:Leg',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Leg:Leg',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -39,6 +39,7 @@ exports.Leg = damlTypes.assembleTemplate(
         feePaid: damlTypes.Int.decoder,
         refundAfter: damlTypes.Time.decoder,
         beneficiaryRef: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
+        bookCost: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Int).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -55,6 +56,7 @@ exports.Leg = damlTypes.assembleTemplate(
         feePaid: damlTypes.Int.encode(__typed__.feePaid),
         refundAfter: damlTypes.Time.encode(__typed__.refundAfter),
         beneficiaryRef: damlTypes.Optional(damlTypes.Text).encode(__typed__.beneficiaryRef),
+        bookCost: damlTypes.Optional(damlTypes.Int).encode(__typed__.bookCost),
       };
     },
     Archive: {
@@ -144,7 +146,7 @@ exports.Leg = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Leg, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Leg, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.Leg_Claim = {
   decoder: damlTypes.lazyMemo(function () {
@@ -224,7 +226,7 @@ exports.Leg_Settle = {
 exports.NettedResidual = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Leg:NettedResidual',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Leg:NettedResidual',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Leg:NettedResidual',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -236,6 +238,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
         pairB: damlTypes.Text.decoder,
         heldIfVoid: damlTypes.Int.decoder,
         owedIfResolved: damlTypes.Int.decoder,
+        book: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -247,6 +250,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
         pairB: damlTypes.Text.encode(__typed__.pairB),
         heldIfVoid: damlTypes.Int.encode(__typed__.heldIfVoid),
         owedIfResolved: damlTypes.Int.encode(__typed__.owedIfResolved),
+        book: damlTypes.Optional(damlTypes.Text).encode(__typed__.book),
       };
     },
     Archive: {
@@ -276,7 +280,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.NettedResidual, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.NettedResidual, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.Residual_Settle = {
   decoder: damlTypes.lazyMemo(function () {

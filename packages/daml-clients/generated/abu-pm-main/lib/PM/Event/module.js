@@ -51,7 +51,7 @@ exports.Attestation_Retire = {
 exports.EventAttestation = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Event:EventAttestation',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Event:EventAttestation',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Event:EventAttestation',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -103,12 +103,12 @@ exports.EventAttestation = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.EventAttestation, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.EventAttestation, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.EventState = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Event:EventState',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Event:EventState',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Event:EventState',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -140,12 +140,12 @@ exports.EventState = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.EventState, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.EventState, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.EventTerms = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Event:EventTerms',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Event:EventTerms',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Event:EventTerms',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -213,12 +213,12 @@ exports.EventTerms = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.EventTerms, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.EventTerms, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.EventVerdict = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Event:EventVerdict',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Event:EventVerdict',
+    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Event:EventVerdict',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -262,7 +262,7 @@ exports.EventVerdict = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.EventVerdict, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.EventVerdict, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
 
 exports.Event_Resolve = {
   decoder: damlTypes.lazyMemo(function () {

@@ -27,6 +27,7 @@ export declare type Leg = {
   feePaid: damlTypes.Int,
   refundAfter: damlTypes.Time,
   beneficiaryRef: damlTypes.Optional<string>,
+  bookCost: damlTypes.Optional<damlTypes.Int>,
 }
 
 export declare interface LegInterface {
@@ -106,6 +107,7 @@ export declare type NettedResidual = {
   pairB: string,
   heldIfVoid: damlTypes.Int,
   owedIfResolved: damlTypes.Int,
+  book: damlTypes.Optional<string>,
 }
 
 export declare interface NettedResidualInterface {
