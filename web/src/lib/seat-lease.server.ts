@@ -81,8 +81,8 @@ export async function takeSeat(server: SeatServer, address: Address, nowMs: numb
     // Ops frees an empty seat within a pass; this covers a pool that filled before its next pass.
     if (stats.free === 0 && stats.draining > 0) await recycleDrained(server, nowMs);
   }
-  const startOffset = existing ? existing.startOffset : await server.client.ledgerEnd();
-  const outcome = await server.store.lease(address, nowMs, { startOffset, leaseId: randomUUID(), rules });
+  // C4c (review L2): the ledger end is read inside the lease, once the free row is locked, never before it is taken.
+  const outcome = await server.store.lease(address, nowMs, { startOffset: () => server.client.ledgerEnd(), leaseId: randomUUID(), rules });
   if (outcome.kind === "pool-full") return outcome;
   let lease = outcome.lease;
   if (lease.fundedAtMs === null) {
