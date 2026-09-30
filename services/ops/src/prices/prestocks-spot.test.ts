@@ -47,7 +47,7 @@ describe("joinPreStocksSpot", () => {
   };
 
   it("answers a pre-IPO name from the catalogue as source prestocks and leaves the rest to the base feed", async () => {
-    const feed = createPreStocksSpotFeed({ log: () => undefined, read: async () => readOf([{ symbol: "OPENAI", mint: OPENAI_MINT, token: 112_738_444_694n, mark: 98_115_613_670n }], Math.floor(Date.now() / 1000)) });
+    const feed = createPreStocksSpotFeed({ log: () => undefined, bootSpreadMs: 0, read: async () => readOf([{ symbol: "OPENAI", mint: OPENAI_MINT, token: 112_738_444_694n, mark: 98_115_613_670n }], Math.floor(Date.now() / 1000)) });
     const seen: SpotQuote[] = [];
     const joined = joinPreStocksSpot(base, feed);
     const off = joined.subscribe((q) => seen.push(q));
@@ -62,7 +62,7 @@ describe("joinPreStocksSpot", () => {
   });
 
   it("has no quote for a pre-IPO name before a read lands, and never falls back to the base for it", () => {
-    const feed = createPreStocksSpotFeed({ log: () => undefined, read: async () => readOf([]) });
+    const feed = createPreStocksSpotFeed({ log: () => undefined, bootSpreadMs: 0, read: async () => readOf([]) });
     const joined = joinPreStocksSpot(base, feed);
     expect(joined.latest("OPENAI")).toBeNull();
     expect(feed.at("OPENAI", NOW)).toBeNull();
@@ -74,7 +74,7 @@ describe("baskets over snapshots (S19)", () => {
 
   it("keeps every read whole and answers a basket symbol with its index in points from that one read", async () => {
     const nowSec = Math.floor(Date.now() / 1000);
-    const feed = createPreStocksSpotFeed({ log: () => undefined, read: async () => readOf(ailabs, nowSec) });
+    const feed = createPreStocksSpotFeed({ log: () => undefined, bootSpreadMs: 0, read: async () => readOf(ailabs, nowSec) });
     const joined = joinPreStocksSpot(null, feed);
     const seen: SpotQuote[] = [];
     const off = joined.subscribe((q) => seen.push(q));
@@ -101,13 +101,27 @@ describe("baskets over snapshots (S19)", () => {
 });
 
 describe("nextDelayMs", () => {
-  it("polls at the base rate while reads succeed, then backs off 30 s doubling to a 5 min cap", async () => {
+  it("polls at the base rate while reads succeed, then backs off 30 s doubling to a 5 min cap, with equal jitter (C4c)", async () => {
     const { nextDelayMs } = await import("./prestocks-spot");
+    const top = { random: () => 1 };
+    const bottom = { random: () => 0 };
     expect(nextDelayMs(0, 10_000)).toBe(10_000);
-    expect(nextDelayMs(1)).toBe(30_000);
-    expect(nextDelayMs(2)).toBe(60_000);
-    expect(nextDelayMs(4)).toBe(240_000);
-    expect(nextDelayMs(5)).toBe(300_000);
-    expect(nextDelayMs(40)).toBe(300_000);
+    expect(nextDelayMs(1, 10_000, top)).toBe(30_000);
+    expect(nextDelayMs(1, 10_000, bottom)).toBe(15_000);
+    expect(nextDelayMs(2, 10_000, top)).toBe(60_000);
+    expect(nextDelayMs(2, 10_000, { random: () => 0.5 })).toBe(45_000);
+    expect(nextDelayMs(4, 10_000, top)).toBe(240_000);
+    expect(nextDelayMs(5, 10_000, top)).toBe(300_000);
+    expect(nextDelayMs(40, 10_000, bottom)).toBe(150_000);
+    for (let i = 0; i < 50; i += 1) expect(nextDelayMs(3)).toBeGreaterThanOrEqual(60_000);
+  });
+
+  it("waits what the server's Retry-After asked instead, never past the cap", async () => {
+    const { nextDelayMs } = await import("./prestocks-spot");
+    expect(nextDelayMs(1, 10_000, { retryAfterMs: 2_000, random: () => 1 })).toBe(2_000);
+    expect(nextDelayMs(3, 10_000, { retryAfterMs: 90_000 })).toBe(90_000);
+    expect(nextDelayMs(1, 10_000, { retryAfterMs: 3_600_000 })).toBe(300_000);
+    // Retry-After speaks only to a failure: a good read returns to the base poll.
+    expect(nextDelayMs(0, 10_000, { retryAfterMs: 60_000 })).toBe(10_000);
   });
 });

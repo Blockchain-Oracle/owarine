@@ -31,7 +31,7 @@ import { startOpsHttp } from "./http/server";
 import type { SpotFeed } from "./prices/spot";
 import { createXStockSpotFeed, joinXStockSpot } from "./prices/xstock-spot";
 import { createSwitchboardSpotFeed, joinSwitchboardSpot } from "./prices/switchboard-spot";
-import { createPreStocksSpotFeed, joinPreStocksSpot, PRESTOCKS_SPOT_EVERY_MS, type PreStocksSpotHandle } from "./prices/prestocks-spot";
+import { createPreStocksSpotFeed, joinPreStocksSpot, PRESTOCKS_BOOT_SPREAD_MS, PRESTOCKS_SPOT_EVERY_MS, type PreStocksSpotHandle } from "./prices/prestocks-spot";
 import { createPythIndexSpotFeed, joinPythIndexSpot, type PythIndexSpotHandle } from "./prices/pyth-index-spot";
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, errorText, heartbeats, readOpsEnv, redact, type VenueDeps } from "./runtime";
 import { createSourceHealthStore } from "./runtime/source-health";
@@ -126,7 +126,7 @@ if (actors.has("venue") || actors.has("http") || actors.has("desk-runner")) {
   // Plan Step 1 (D-100): the PreStocks catalogue prices the pre-IPO names for the holdings card, the maker and /prestocks/latest.
   prestocksSpot = createPreStocksSpotFeed({ log: log("prestocks-spot") });
   prestocksSpot.start();
-  log("prestocks-spot")(`polling the PreStocks catalogue every ${PRESTOCKS_SPOT_EVERY_MS / 1000} s for ${prestocksSpot.symbols().join(",")}`);
+  log("prestocks-spot")(`polling the PreStocks catalogue every ${PRESTOCKS_SPOT_EVERY_MS / 1000} s for ${prestocksSpot.symbols().join(",")} (first read within ${PRESTOCKS_BOOT_SPREAD_MS / 1000} s; a 429 waits its Retry-After, else a jittered backoff)`);
   // S20: the valuation indices, polled only while entitled, joined under the valuation lanes' symbols (OPENAIV, ANTHROPICV).
   pythIndexSpot = createPythIndexSpotFeed({ store: pythIndex, key: process.env.PYTH_API_KEY || undefined, log: log("pyth-index-spot") });
   pythIndexSpot.start();
