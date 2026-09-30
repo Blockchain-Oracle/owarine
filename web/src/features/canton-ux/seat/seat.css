@@ -82,6 +82,13 @@
   .cx-link-otp .otp-cell { width: 30px; height: 42px; }
 }
 .cx-link-problem { display: flex; max-width: 440px; flex-direction: column; align-items: center; gap: 8px; }
+/* Below 353 the card's inside (screen - 32 page gutter - 2 border - 36 padding) is under the 283 those cells and their gap need, and the
+   last cells ran out of the card (14px at 320). 26px cells (still over the 24px target floor) take 240. */
+@media (max-width: 352px) {
+  .cx-link-otp .otp-cells { gap: 4px; }
+  .cx-link-otp .otp-cell { width: 26px; height: 40px; }
+  .cx-link-otp .otp-cell[data-gap] { margin-left: 4px; }
+}
 .cx-link-foot { font-size: 12px; line-height: 1.5; text-align: center; color: var(--color-ink-muted); }
 
 @media (max-width: 400px) {
