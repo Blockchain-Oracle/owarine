@@ -33,7 +33,7 @@ export const LANDING = {
       figure: "Windows settled on PreStocks prices",
       what: (names: string, baskets: number) => {
         const groups = baskets > 0 ? `${baskets} basket${baskets === 1 ? "" : "s"}` : "";
-        return `${[names, groups].filter(Boolean).join(" and ")}, 24/7. Each price read from PreStocks and signed by the venue's oracle parties (planned on Canton).`;
+        return `${[names, groups].filter(Boolean).join(" and ")}, 24/7. Each price read from PreStocks by each of the venue's three oracle parties and signed before the print is recorded.`;
       },
     },
     pyth: {
