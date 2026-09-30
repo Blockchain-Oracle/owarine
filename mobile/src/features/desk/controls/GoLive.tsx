@@ -86,6 +86,8 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
       if (!linked.ok) return setProblem(linked.reason);
       save({ stage: "deposit-pending", address });
     } else {
+      // web's GoLive: the link step leaves the write phase at "done", which would hide the sheet's confirm (C8i).
+      actions.reset();
       setMoney(true);
     }
   };

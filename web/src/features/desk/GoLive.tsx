@@ -84,6 +84,8 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
       if (!linked.ok) return setProblem(linked.reason);
       save({ stage: "deposit-pending", address });
     } else {
+      // The link step leaves the shared write phase at "done"; the sheet would open on that and hide its confirm (C8i).
+      actions.reset();
       setMoney(true);
     }
   };
