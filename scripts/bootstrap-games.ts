@@ -19,18 +19,30 @@ import { decodeArenaTerms, decodeSeasonPool, gcmd } from "@agari/markets/ops/gam
 import { DECK_POLICY_VERSION } from "../services/ops/src/actors/matchmaker/deckmaster";
 import { arg } from "./drive/cli";
 
-const GAMES_DAR = resolve(import.meta.dirname, "..", arg("--games-dar", "daml/abu-pm-games/.daml/dist/abu-pm-games-0.1.0.dar"));
+export const GAMES_DAR = resolve(import.meta.dirname, "..", arg("--games-dar", "daml/abu-pm-games/.daml/dist/abu-pm-games-0.1.0.dar"));
 const CREDIT = 1_000_000n;
 
-export async function bootstrapGames(o: { client: LedgerClient; venue: RoleSession; run: string; log: (s: string) => void }): Promise<void> {
+export async function bootstrapGames(o: {
+  client: LedgerClient;
+  venue: RoleSession;
+  run: string;
+  log: (s: string) => void;
+  /** Upload abu-pm-games first (local sandbox only; on DevNet Abu uploads it in the Console). Default true. */
+  upload?: boolean;
+  /** How writes go out (C2y: the DevNet bootstrap's recording, dry-run-aware writer). Default: submit and wait. */
+  write?: (role: string, party: string, commandId: string, commands: Command[]) => Promise<CreatedEvent[]>;
+}): Promise<void> {
   const { client, venue, run, log } = o;
   const submitAs = async (party: string, commandId: string, commands: Command[]): Promise<CreatedEvent[]> => {
+    if (o.write) return o.write("venue", party, commandId, commands);
     const r = await client.submitAndWaitForTransaction({ actAs: [party], commandId, commands });
     return r.transaction.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : []));
   };
-  if (!existsSync(GAMES_DAR)) throw new Error(`${GAMES_DAR} is missing: run \`dpm build --all\` in daml/ first`);
-  await client.uploadDar(readFileSync(GAMES_DAR));
-  log(`uploaded ${GAMES_DAR.split("/").slice(-1)[0]}`);
+  if (o.upload ?? true) {
+    if (!existsSync(GAMES_DAR)) throw new Error(`${GAMES_DAR} is missing: run \`dpm build --all\` in daml/ first`);
+    await client.uploadDar(readFileSync(GAMES_DAR));
+    log(`uploaded ${GAMES_DAR.split("/").slice(-1)[0]}`);
+  }
 
   const acs = await readActive(venue, [GAMES_TEMPLATE_IDS.ArenaTerms, GAMES_TEMPLATE_IDS.SeasonPool]);
   const arenaId = arg("--arena-id", process.env.GAME_ARENA_ID ?? "arena-1");
@@ -46,7 +58,7 @@ export async function bootstrapGames(o: { client: LedgerClient; venue: RoleSessi
     // The reference's tiers (core STAKE_TIERS): free carries no pot and is unranked; each tier caps one card's order.
     const tiers = STAKE_TIERS.map((t) => ({ tierId: t.id, potEach: BigInt(t.potUnits) * CREDIT, perCardCap: BigInt(t.perCardCapUnits) * CREDIT, ranked: t.mode === "ranked", enabled: true }));
     await submitAs(venue.party, `bootstrap:arena:${arenaId}:${run}`, [gcmd.createArenaTerms({ venue: venue.party, arenaId, policyVersion: DECK_POLICY_VERSION, params, tiers })]);
-    log(`created ArenaTerms ${arenaId} (policy ${DECK_POLICY_VERSION}; join ${params.joinWindowSec} s, reveal ${params.revealWindowSec} s, pick ${params.pickWindowSec} s; tiers ${tiers.map((t) => t.tierId).join(",")})`);
+    log(`${venue.dryRun ? "would create" : "created"} ArenaTerms ${arenaId} (policy ${DECK_POLICY_VERSION}; join ${params.joinWindowSec} s, reveal ${params.revealWindowSec} s, pick ${params.pickWindowSec} s; tiers ${tiers.map((t) => t.tierId).join(",")})`);
   } else {
     log(`ArenaTerms ${arenas.map((a) => a.data.arenaId).join(",")} already on the ledger`);
   }
@@ -61,6 +73,7 @@ export async function bootstrapGames(o: { client: LedgerClient; venue: RoleSessi
   const created = await submitAs(venue.party, `bootstrap:season:${seasonId}:${run}`, [gcmd.createSeasonPool({ venue: venue.party, seasonId, endsAtSec })]);
   const poolCid = created.find((e) => e.templateId.endsWith(":PM.Games.Season:SeasonPool"))?.contractId;
   const seed = BigInt(arg("--season-seed", "500")) * CREDIT;
+  if (venue.dryRun) return log(`would create SeasonPool ${seasonId}${seed === 0n ? "" : ` and fund it with ${seed} base units from a new venue shard`}`);
   if (!poolCid || seed === 0n) return log(`created SeasonPool ${seasonId} (unfunded)`);
   const shard = await submitAs(venue.party, `bootstrap:season-shard:${seasonId}:${run}`, [cmd.createShard(venue.party, seed, "season-seed")]);
   const cash = shard.filter((e) => e.templateId.endsWith(":PM.Money:VenueCash") && decodeVenueCash(e.createArgument).bucket === "season-seed").map((e) => e.contractId);
