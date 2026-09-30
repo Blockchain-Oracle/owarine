@@ -1,29 +1,29 @@
 ---
 title: "Pre-open calls"
-description: "Rest a call on a Window before it opens for trading; taker orders are refused until the bell."
+description: "What you can do with a Window before it opens, and why a resting pre-open call is not on Canton yet."
 ---
 
-> **Planned on Canton.** This page describes how a pre-open call works in Agari. On Canton it becomes a resting call between you and the venue, filled at the open; that contract is not on the ledger yet, and the stock Windows it serves are planned too.
+> **Not on Canton yet.** Resting a call on a Window before it opens is planned: on Canton it becomes a resting call between you and the venue, filled at the open. That contract is not on the ledger yet, so today the pre-open ticket refuses the call before anything is signed or held.
 
-Because Windows are prelisted ahead of time (see [Sessions and lanes](/trading/sessions-and-lanes)), you can place a call before the market — or the Monday Gap, or a Window's own trading start — actually opens. This is a **resting**, post-only call, not an instant trade: nothing fills before the Window's trading start, by design.
+Because Windows are prelisted ahead of time (see [Sessions and lanes](/trading/sessions-and-lanes)), you can see a Window before the market — or the Monday Gap, or a Window's own trading start — actually opens: its ticker, its length, its opening time and how it will settle. What you cannot do yet is leave a call on it that fills at the bell.
 
 ## Where to schedule one
 
-While the stock market is closed, the `/markets` board lists each company's next Windows under **Schedule a call**. Choose a Window length, then **Call Up** or **Call Down** to open the pre-open ticket at your price. On <AppLink href="/short">Short</AppLink>, a stock Window that opens later offers **Schedule a Down call** on the same terms.
+While the stock market is closed, the `/markets` board lists each company's next Windows under **Schedule a call**. Choose a Window length, then **Call Up** or **Call Down** to open the pre-open ticket, which asks for your own price per contract. On <AppLink href="/short">Short</AppLink>, a stock Window that opens later offers **Schedule a Down call** on the same terms. On Canton, pressing the ticket's final button answers that resting calls are not on Canton yet; no command reaches the ledger and no credits move.
 
 ## How it works
 
-A Window before its trading start is in a **Listed** state. In that state, the venue only accepts **PostOnly** orders — an order that rests on the book rather than taking. A taker-type order (IOC, FOK, or a Normal order that would cross immediately) is refused outright with a `PreOpenTakerRefused` error, so nobody can jump the queue by trading against a resting pre-open call before the bell.
+A Window before its trading start is in a **Listed** state. The venue does not quote a Listed Window: there is no firm quote to accept until the Window opens, so an ordinary Up or Down call has to wait for the bell. Canton has no order book to rest an order on either. The venue is the house, and every fill is a firm quote it issues to one seat, so a pre-open call needs its own contract: your stake held against the venue's promise to fill at your price or better once the Window opens.
 
 ## What happens at the open
 
-Once the Window opens for trading, resting pre-open calls become ordinary resting orders: the venue's own seed maker or any other trader can fill them at their resting price, same as any other order on the book.
+Once the Window opens for trading, the venue starts quoting it and the ordinary ticket works: ask for a firm quote, accept it, and your position exists. A call placed a few seconds after the bell is the closest thing to a pre-open call today.
 
-- **Default expiry:** a scheduled call expires 90 seconds after the trading start if nothing has filled it — "fills within the first minute after the bell, or your stake returns." This is the default so a stale call from hours earlier doesn't linger unexpectedly.
-- **Resting until the lock** is available as an explicit opt-in, if you'd rather leave the call open for the whole Window instead of just the first minute.
+- **At the bell:** the first quote appears when the venue's pricer has the Window's opening print and a price; until then the card reads **No quotes yet**.
+- **The Monday Gap** is different only in timing: it is listed two days ahead, trades from Friday's close, and takes calls until it locks on Sunday at 20:00 ET, well before Monday's bell.
 
 ## What's guaranteed and what isn't
 
-- Nothing fills before the open boundary — that's enforced by the venue's rules, not just the UI.
-- No fill is promised. A pre-open call is an offer at your price; it fills only if the book comes to it.
-- If the Window voids for any reason, an unfilled pre-open call loses nothing — cancel it any time before it fills, and the escrow comes straight back.
+- Nothing fills before the open boundary: the venue issues no quote for a Listed Window.
+- No fill is promised at the open either. A quote is the venue's offer at its price, for the size its ladder can take.
+- If the Window voids for any reason, every call on it gets its stake and fee back.

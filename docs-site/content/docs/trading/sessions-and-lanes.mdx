@@ -3,39 +3,40 @@ title: "Sessions and lanes"
 description: "Regular NYSE-hours Windows, the Monday Gap, and the lanes that trade around the clock."
 ---
 
-> **On Canton today** the lanes are crypto Windows (BTC and ETH), trading around the clock. The stock, Monday Gap, xStock, PreStocks and basket lanes below are **planned**: their prices will be posted by the same oracle parties once those feeds are wired.
+> **Where this runs.** Every lane below has opened and resolved Windows on a local Canton sandbox; none is on a shared test network yet. The stock lanes list only when the venue can read the NYSE calendar (from Alpaca), and the pre-IPO and basket lanes pause while PreStocks refuses the venue's reads.
 
-Agari lists Windows in different lanes, because a stock doesn't trade the same way around the clock.
+Agari lists Windows in different lanes, because a stock doesn't trade the same way around the clock. Every lane settles on its three oracle parties' prints, and each receipt names the source.
 
 ## Regular (NYSE hours)
 
-Nine tickers (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL, QQQ, VOO) each list 5-minute, 15-minute and 60-minute Windows while the market is open, as long as a registered price source covers the Window (see [price sources](/architecture/price-sources)). The app shows the session as a plain word rather than a raw status code: Pre-market, Open, Early close, Halted, After hours, Closed, Weekend or Holiday. The next open or close is named in **your own clock** with the ET time beside it and a countdown, for example "Pre-market · opens 14:30 (09:30 ET), in 4h 04m" for a reader in UTC+1.
+Nine tickers (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL, QQQ, VOO) each list 5-minute, 15-minute and 60-minute Windows while the market is open, as long as a registered price source covers the Window (see [price sources](/architecture/price-sources)). The seven single stocks settle on **RedStone**; QQQ and VOO settle on **Alpaca (last IEX trade)**. The app shows the session as a plain word rather than a raw status code: Pre-market, Open, Early close, Halted, After hours, Closed, Weekend or Holiday. The next open or close is named in **your own clock** with the ET time beside it and a countdown, for example "Pre-market · opens 14:30 (09:30 ET), in 4h 04m" for a reader in UTC+1.
 
 ## Monday Gap
 
-One Window spans the whole weekend: it opens on Friday's 16:00 ET close print and settles on the following Monday's 09:30 ET open print. This is the lane for a view that only matters over a gap a normal intraday Window can't span — earnings after Friday's close, a weekend news cycle, and so on. It lists Friday afternoon and locks at the open, so a call has to be placed (or rested — see [Pre-open calls](/trading/pre-open-calls)) before Monday's bell.
+One Window per ticker spans the whole weekend: it opens on Friday's 16:00 ET close print and settles on the following Monday's 09:30 ET open print (Tuesday's, after a Monday holiday). This is the lane for a view that only matters over a gap a normal intraday Window can't span — earnings after Friday's close, a weekend news cycle, and so on. The venue lists it 48 hours before Friday's close, and it locks on Sunday at 20:00 ET, so a call has to be placed before then.
 
 ## 24/7 lanes
 
-Three kinds of one-hour Window trade around the clock, including weekend evenings and market holidays:
+Four kinds of Window trade around the clock, including weekend evenings and market holidays:
 
 | Lane | Names | Price source |
 | --- | --- | --- |
-| Tokenized stocks (xStocks) | TSLAx, NVDAx, SPYx, QQQx | Switchboard On-Demand quotes, not the NYSE tape |
-| PreStocks | OpenAI (`OPENAI-60m`) | The PreStocks token price, to be posted by the oracle parties |
-| Baskets | AI Labs, Frontier AI, Prediction Markets, Defense & Space, All PreStocks | An index in points from one PreStocks read, to be posted by the oracle parties |
+| Crypto | BTC and ETH, in 1-minute (a demo lane), 5-minute, 15-minute, 1-hour, 4-hour and 1-day Windows | Coinbase, Kraken and Bitstamp 1-minute candle closes, one exchange per oracle party |
+| Tokenized stocks (xStocks) | TSLAx, NVDAx, SPYx, QQQx, in 5-, 15- and 60-minute Windows | Jupiter Price v3 (median of three samples), not the NYSE tape |
+| Pre-IPO | OpenAI, Anthropic, SpaceX, Neuralink, Anduril, Kalshi, Polymarket and Figure AI, one-hour Windows | The PreStocks token price, read by each oracle party |
+| Baskets | AI Labs, Frontier AI, Prediction Markets, Defense & Space, All PreStocks, one-hour Windows | An index in points from one PreStocks read |
 
-Cards on these lanes carry a **24/7** chip (for example "24/7 · pre-IPO" or "24/7 · basket"). [Baskets](/trading/baskets) explains the index, and [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers the PreStocks lanes.
+Cards on these lanes carry a **24/7** chip (for example "24/7 · pre-IPO" or "24/7 · basket"). A 4-hour or 1-day Window is listed a whole cadence ahead, so its card reads "Listed · opens …" while the current one trades. [Baskets](/trading/baskets) explains the index, and [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers the pre-IPO lanes. Committee-attested **events** (a YES/NO question) sit in their own section of the board, not in a lane.
 
 ## When the stock market is closed
 
 `/markets` never goes blank because the bell hasn't rung. It shows the last price, the last full session's chart, and a strip such as "US stocks · After hours · reopens …" with "Pre-IPO names and baskets trade around the clock." The board then splits in two:
 
-- **24/7 Windows** keep trading, grouped by how soon they close. A Window nobody is quoting says **No quotes yet** rather than waiting on an empty book, and its ticket names the next Window.
-- **Stock Windows listed before their bell** sit under **Schedule a call**, one card per company. Pick the Window length, then **Call Up** or **Call Down** opens the pre-open ticket. These cards have no closing countdown and no Yes/No prices, because there is no book to trade against yet. See [Pre-open calls](/trading/pre-open-calls).
+- **24/7 Windows** keep trading, grouped by how soon they close. A Window nobody is quoting says **No quotes yet** rather than showing an empty price, and its ticket names the next Window. A lane no source can sign reads **paused: no signed source**, with the reason.
+- **Stock Windows listed before their bell** sit under **Schedule a call**, one card per company, with no closing countdown and no Up/Down prices, because the venue does not quote a Window before it opens. Resting a call on one of them is not on Canton yet; see [Pre-open calls](/trading/pre-open-calls).
 
-A Window whose opening print is more than two minutes late (a paused xStock, or a Window that will void) drops off the board and the pickers instead of waiting there. Its own lifecycle is unchanged: it still settles or voids by its rules.
+A Window whose opening print is more than two minutes late drops off the board and the pickers instead of waiting there. Its own lifecycle is unchanged: it still settles or voids by its rules.
 
 ## Windows exist before the bell
 
-Agari's roller prelists the next session's first Window ahead of time rather than waiting for the exact open — a Regular Window can exist hours ahead, and a Gap Window exists from Friday afternoon. That's what makes it possible to place a call before the market opens at all; see [Pre-open calls](/trading/pre-open-calls) for exactly how that works.
+Agari's roller opens Windows ahead of time rather than waiting for the exact boundary — the next session's first Regular Window is prelisted at the previous close, a 24/7 Window a couple of minutes ahead, and a Gap Window two days ahead. See [Pre-open calls](/trading/pre-open-calls) for what you can and cannot do with a Window before it opens.

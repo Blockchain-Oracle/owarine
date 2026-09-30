@@ -1,28 +1,39 @@
 ---
 title: "How Agari fits together"
-description: "A prediction market on Canton Network: Daml contracts hold the money rules, parties hold the privacy, and demo credits are the only money."
+description: "A prediction market on Canton Network: four Daml packages hold the money rules, parties hold the privacy, and demo credits are the only money."
 ---
 
-Agari is a prediction market on **Canton Network** for short price calls: will a price close its Window up or down. The money rules live in a **Daml package** (`abu-pm-main`), not in the web app. The venue lists Windows and quotes a firm price for each side; you accept a quote from your seat; three oracle parties sign the prices; a separate resolver party settles each Window exactly once. Everything runs on a Canton test network with **demo credits** that are worth nothing anywhere else.
+Agari is a prediction market on **Canton Network** for short price calls: will a price close its Window up or down. The money rules live in **Daml packages**, not in the web app. The venue quotes a firm price for each side; you accept from your seat; three oracle parties sign the prices; a resolver party resolves each Window exactly once; the venue's settler pays. It all runs end to end on a **local Canton sandbox** with **demo credits**; nothing is on DevNet or a hosted URL yet.
+
+<Architecture name="venue" />
 
 | Layer | Responsibility |
 | --- | --- |
-| Web app and phone app | Show markets, the ticket, positions, receipts and proof. Your seat's signing key lives in the browser (or the phone) and cannot be exported. |
+| Web app and iPhone app | Show markets, the ticket, positions, receipts and proof. Your seat's signing key lives in the browser (or the iPhone Keychain) and cannot be exported. |
 | `packages/core` | Pure market, registry and money rules; integer arithmetic. |
-| `packages/markets`, `packages/ledger` | The only code that talks to the Canton ledger: it builds Daml commands and reads contracts through the JSON Ledger API. |
-| Daml package `abu-pm-main` | The contracts: Series, Window terms, oracle prints, quotes, positions (legs), cash and the resolution chain. See [The Daml engine](/architecture/programs). |
-| Ops and the projector | Open Windows, post oracle prints, price and issue quotes, resolve, settle and fund seats; the projector turns the venue's ledger view into the tables the app reads. See [Ops and the projector](/architecture/ops-and-indexer). |
+| `packages/markets`, `packages/ledger` | The only code that talks to the ledger: it builds Daml commands and reads contracts through the JSON Ledger API v2. |
+| Daml packages | `abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents` and `abu-pm-games`. See [The Daml packages](/architecture/programs). |
+| Ops and the projector | Open Windows, post prints, quote, resolve, settle and fund seats; the projector writes the venue's view into Postgres for the app. See [Ops and the projector](/architecture/ops-and-indexer). |
 
 ## Who can see what
 
-Canton shows a contract only to the parties on it. A position (a `Leg`) is signed by the venue and its owner, so **only your seat's party and the venue can see it**. Another visitor, an oracle or the resolver does not. Prices and Window terms are shared with the parties that need them. The app's **Who can see this** notes and the view switcher on a market page show the same rule on screen.
+Canton shows a contract only to its stakeholders. Your position (a `Leg`) and your cash (`VenueCash`) each have two: **the venue and your seat's party**. Another visitor, an oracle and the resolver see nothing of yours.
+
+The app shows the rule rather than asserting it. The **Who can see this** chip sits on the held price and each position, and the view switcher on a market page runs the same live query as you, Alice, Bob and an outsider, printing the literal query it sent. In the local rehearsal the outsider got 0 rows while a seat held its position; the venue, as counterparty, saw both seats' legs.
 
 ## Seats instead of wallets
 
-There is no wallet app to install. **Take a seat** makes a signing key in your browser that cannot leave it, and the venue leases you a Canton party of your own, funded with demo credits. A seat is released after it has been idle and has no open positions; before it is reused, its positions settle and its cash is swept, so the next visitor starts from an empty party. Canton charges no network fee, so there is no gas to buy. [Your seat](/start/wallet) has the details.
+There is no wallet app to install. **Take a seat** makes a signing key in your browser that cannot leave it, and the venue leases you a Canton party of your own, funded with 1,000 demo credits. An idle seat with nothing open is released; before reuse its positions close at cost and its cash is swept, so the next visitor starts empty. There is no network fee. [Your seat](/start/wallet) has the details.
 
-## One money path today
+## The trust boundary
 
-**Predict:** demo credits on a Canton test network. You accept a firm quote; the stake and a fee are locked in your position; the Window settles from the oracle parties' signed prints. A void returns the stake and the fee.
+Every party Agari uses (venue, resolver, oracles, seats) is hosted on one shared participant, where one ledger user can act as all of them. So **our code decides which party a seat acts as**:
 
-**Planned:** the desk's live leg, holder cover that reads real holdings, and the other products (Range, Boost, Parlay, Earn, games) are being ported onto the same contracts. Until each one lands, its screens say so. A read-only visitor can browse markets and proof without a seat. Use <AppLink href="/status">Status</AppLink> to see what is running now, and [Price sources](/architecture/price-sources) for how a price becomes a settlement.
+- A seat route takes the party from the seat's current lease, never from the request; the `no-party-from-request` invariant fails the build otherwise.
+- Everything a seat reads or acts on is bound to its current lease's start offset, so a recycled party never exposes a previous visitor's positions.
+
+The Daml guarantees hold whoever submits: a Window resolves or voids exactly once, resolution needs the resolver and an oracle quorum, the venue cannot confiscate a position or accept a quote for you, and the `pm-tests` scripts check that money is conserved after every step.
+
+## What runs today
+
+On the local sandbox, each with an evidence note in `docs/evidence/`: calls on crypto, stock, xStock, pre-IPO, basket, Monday Gap and event Windows; Range, Moonshot, Parlay, Boost and shorts; Earn and the maker vault; strategies; duels, rank and seasons. Not yet: a desk that has traded live, private mode, the Canton Coin rail and holdings-based cover; the iPhone app is built for Canton but has not run on a device. Use <AppLink href="/status">Status</AppLink> to see what is running, and [Price sources](/architecture/price-sources) for how a price becomes a settlement.

@@ -1,23 +1,36 @@
 ---
 title: "Price sources and signed prints"
-description: "Three oracle parties post each boundary price; a quorum resolves the Window, and every print can be checked on the proof page."
+description: "Three oracle parties post each boundary price; a quorum resolves the Window, the original source is named on every receipt, and every print can be checked."
 ---
 
-A Window settles from its opening and closing **boundary prints**. The web app never picks a winner from a latest-price tile: the resolver party resolves the Window on the ledger, from the oracle parties' signed quotes, under the terms the Window opened with.
+A Window settles from its opening and closing **boundary prints**. The web app never picks a winner from a latest-price tile: the resolver party resolves the Window on the ledger, from the oracle parties' signed quotes, under the price policy the Window opened with.
+
+<Architecture name="prints" />
 
 | Step | What happens |
 | --- | --- |
-| Oracle quotes | Three oracle parties — one each for Coinbase, Kraken and Bitstamp — post the close of their exchange's 1-minute candle at each boundary as a `PriceQuote`. Each quote is signed by its oracle party. |
-| Evidence | The exchange's raw response is archived byte for byte, and its hash is written on the quote, so anyone can re-derive the price from the archive or from the exchange. |
-| Quorum | The Window resolves only when at least 2 of its 3 oracles have a valid quote for the boundary. Fewer, and it voids. |
-| Agreement | If the quotes differ by more than the Series' deviation limit (1% today), the Window voids instead of paying anyone. |
-| Once | The resolution chain is single-use, so a Window resolves or voids exactly once. A void returns every stake plus its fee. |
+| Oracle quotes | Three oracle parties each read the Window's named source themselves and post a `PriceQuote` per boundary. |
+| Evidence | The raw response is archived byte for byte and its sha-256 is on the quote, so the price can be re-derived. |
+| Quorum | At least 2 of the 3 oracles need a valid quote inside the boundary's admission window. Fewer, and it voids. |
+| Agreement | A spread over 1% of the quotes' median voids the Window instead of paying anyone. |
+| Once | A Window resolves or voids exactly once. A void returns every stake plus its fee. |
 | Tie | A close equal to the open pays Up. |
 
-Policy versions are append-only on the Series, and a Window keeps the policy it opened under.
+## The named sources
 
-These are three feeders the venue runs itself. They give an honest, re-derivable price from three independent exchanges, but they are not independent oracles; the page says so rather than claim more.
+Each Series' policy text names its source, and every receipt and proof page repeats it.
 
-**Planned:** stock, xStock, PreStocks basket and Pyth-valued lanes. Their prices would be fetched off the ledger and posted onto the same attested path by the oracle parties, with the original source named on every receipt. Until then those lanes do not settle on Canton. [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) has the plan.
+| Lane | Source | State on the local sandbox |
+| --- | --- | --- |
+| BTC, ETH | Coinbase, Kraken and Bitstamp 1-minute candle closes | Resolved from 1-minute to 1-hour Windows; 4-hour and 1-day Windows listed. |
+| TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL | RedStone, admitted up to 15 minutes after the boundary | Resolved in session, with the Alpaca calendar keys set. |
+| QQQ, VOO | Alpaca (last IEX trade) in the 5 minutes before the boundary | Resolved in session. |
+| TSLAx, NVDAx, SPYx, QQQx | Jupiter Price v3 (median of three samples in the last 40 s) | Resolved; Switchboard Surge is down upstream. |
+| Eight pre-IPO names, five baskets | PreStocks catalogue; a basket is an index in points from one read of every member | Resolved hourly; paused while PreStocks rate-limits the host. |
+| Events | A committee of the three oracle parties, quorum 2 | Resolved YES, and voided on a split. |
 
-The [proof walkthrough](/trading/proof) shows how each print, its oracle and its evidence appear in the app, and <AppLink href="/status">Status</AppLink> shows whether the feeders are posting now. [Halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints.
+Policy versions are append-only on the Series, and a Window keeps the version it opened under: QQQ and VOO moved to Alpaca, and the xStocks to Jupiter Price v3, as new versions. Pyth is not used, because there is no entitled key.
+
+These are feeders the venue runs itself: three independent exchanges for crypto, one named source attested three times for the rest. Neither is an independent oracle network, and the pages say so.
+
+The [proof walkthrough](/trading/proof) shows each print, its oracle and its evidence in the app; <AppLink href="/status">Status</AppLink> shows whether the feeders are posting now. [Halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints, and [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers those two sources.

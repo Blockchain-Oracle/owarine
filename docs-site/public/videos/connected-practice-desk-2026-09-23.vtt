@@ -6,12 +6,12 @@ Read a practice desk. The connected Frontier AI desk shows a paper value chart a
 
 2
 00:00:04.891 --> 00:00:11.265
-Inspect Activity. Each check has a reason and opens a full decision record. These paper records are not on-chain seals.
+Inspect Activity. Each check has a reason and opens a full decision record. These paper records are not sealed on the ledger.
 
 3
 00:00:11.265 --> 00:00:16.519
-Inspect Rules. Rule cards say which limits the future on-chain program enforces and which the desk runner enforces.
+Inspect Rules. Rule cards say which limits a live desk's own contract would enforce and which the desk runner enforces.
 
 4
 00:00:16.519 --> 00:00:20.203
-Read the promise. The promise copy currently describes live on-chain sealing even on this practice page. Practice itself has no chain transaction; this mismatch is reported.
+Read the promise. The promise copy describes a live desk's sealed record even on this practice page. Practice itself writes nothing to the ledger; this mismatch was reported.

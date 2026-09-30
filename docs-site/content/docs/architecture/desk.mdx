@@ -1,22 +1,30 @@
 ---
 title: "How the desk decides"
-description: "The owner, the runner and the ledger have distinct jobs; practice desks are paper, and the live leg is planned."
+description: "The owner, the runner and the ledger have distinct jobs; practice desks are paper, and a live desk is a Daml mandate that trades this venue's own markets."
 ---
 
-The desk spans the browser, an off-chain runner and, when it goes live, a Daml mandate on Canton. The owner picks the basket and the limits. The runner reads prices and proposes a buy, a sell or a checkpoint. Every decision is written down as a `desk.v1` record and fingerprinted before anything moves.
+The desk spans the browser, an off-ledger runner and, when live, a Daml mandate on Canton. The owner picks the names and limits. The runner reads prices and proposes a buy, a sell or a checkpoint. Every decision is written down as a `desk.v1` record and fingerprinted before anything moves.
+
+<Architecture name="desk" />
 
 | Part | Authority |
 | --- | --- |
-| Owner (your seat) | Picks the basket and limits; approves practice decisions by signing a message. Only the owner could ever withdraw. |
-| Desk runner | Chooses timing and proposes allowed actions. It cannot change the owner's limits or withdraw. |
-| Price reference | The oracle parties' quorum price, the same signed prints that settle Windows. |
+| Owner (your seat) | Picks the names and limits; approves practice decisions by signing a message. Only the owner can unpause, change limits, withdraw or close. |
+| Desk runner | Chooses timing and proposes allowed actions, as the operator party. It can pause the desk but cannot unpause it, change the owner's limits or withdraw. |
+| Price reference | For a live desk, the Window's fair price posted as marks by the oracle parties: the lower median of at least two, none older than 15 minutes. |
 
-## Practice desks today
+## Practice desks
 
-A practice desk is a **paper ledger**: the same decision pipeline on real prices, with a paper cash balance and no ledger transaction. **Check it** recomputes a record's fingerprint and compares it with the stored one. A practice desk has no ledger seal, so the check can only compare its paper record.
+A practice desk is a **paper ledger**: the same decision pipeline on real PreStocks prices, with paper cash and no ledger transaction. **Check it** recomputes a record's fingerprint and compares it with the stored one. Going live needs six hourly practice checks.
 
-## The live leg (planned)
+## The live desk
 
-On Canton the live desk is planned as a **mandate built on an agent grant**. `AgentGrant` is already in the engine: an owner moves a budget into a grant, and the agent may trade only within its caps — price, per trade, per day, budget and open positions — checked inside the ledger choice, not by the runner. A desk mandate would add the basket's allowed markets, a premium ceiling, pause and unpause by the owner, and a hash-chained checkpoint contract for every decision, so a record could be checked against the ledger.
+A live desk is a `DeskMandate` the owner opens with their own demo credits, signed by the owner and the venue. It holds the allowed names, a premium ceiling and an **agent grant** with its caps (per trade, per day, budget, open positions), kept inside the mandate so the operator never holds a standing grant.
 
-The live leg would trade **this venue's own markets** with venue cash, and only once the Canton Coin rail lands. There is no external exchange route and no real-money desk on Canton yet; every desk screen that mentions going live says so. See [Build a desk](/agents/desk) for the studio and [Source map](/builders/source-map) for where the code lives.
+- **Buy** (`Mandate_Trade`): Up lots on an allowed name's current Window, from the owner's firm quote, within the premium ceiling and every grant cap. The ledger refuses anything else.
+- **Sell** (`Mandate_Sell`): only lots the desk bought, through a venue buy-back quote worth at least 92% of the attested value; proceeds go back to the desk's budget.
+- **Record**: every trade, sale or daily checkpoint leaves a `DeskDecision` and advances a hash chain, so the record can be re-verified and a forked one is refused.
+
+A bought lot is an ordinary position of the owner's party, and a settled Window pays the owner's seat. There is no external exchange route and no real money: the desk trades **this venue's own markets** with demo credits.
+
+On a local Canton sandbox a live desk has been opened, funded, paused, resumed, checkpointed and shared through the real screens. It has not traded yet: the timing question needs a model key, and without one each check records that it could not decide. See [Build a desk](/agents/desk) for the studio and [Source map](/builders/source-map) for where the code lives.

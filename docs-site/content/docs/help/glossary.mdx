@@ -5,22 +5,30 @@ description: "A plain explanation of the words Agari uses."
 
 | Term | Meaning |
 | --- | --- |
-| **Canton** | Canton Network, the ledger Agari runs on. A contract there is visible only to the parties on it. |
+| **Canton** | Canton Network, the ledger Agari runs on. A contract there is visible only to its stakeholders. |
 | **Party** | An identity on Canton. The venue, the resolver and each oracle are parties; so is each seat. |
-| **Seat** | Your place at the venue: a signing key in your browser that cannot leave it, and a Canton party the venue leases to you. See [your seat](/start/wallet). |
-| **Demo credits** | The venue's test money on a Canton test network. Worth nothing anywhere else. |
+| **Stakeholder** | A party on a contract. Your cash and positions have two: your seat's party and the venue. Nobody else sees them. |
+| **Seat** | Your place at the venue: an ed25519 signing key in your browser (or the iPhone Keychain) that cannot leave it, and a Canton party the venue leases to you. See [your seat](/start/wallet). |
+| **Lease** | The time a seat's party is yours. It renews while you use it; when it ends, the venue closes out and sweeps the party before the next visitor gets it. |
+| **Demo credits** | The venue's test money: 1,000 per lease, no cash value, never leaves the venue. There is no network fee. |
 | **Window** | One tradeable period on one ticker: an opening print, a closing print, one cadence. |
 | **Series** | A ticker + cadence pair (for example BTC-5m). Holds the oracle list, the quorum and the price policy its Windows use. |
-| **Quote** | The venue's firm offer: one side of one Window at one price, valid for a few seconds. Accepting it opens your position. |
+| **Price ladder** | The prices the venue publishes for each live Window. The venue is the house; there is no order book. |
+| **Firm quote** | The venue's offer from its ladder: one side of one Window at one price, held for about 20 seconds and only for your seat. Accepting it opens your position. |
 | **Position (leg)** | Your side of a call. Only your seat's party and the venue can see it. |
-| **Print** | A price for one boundary (open or close) of a Window, posted and signed by an oracle party. See [price sources](/architecture/price-sources). |
-| **Oracle party** | One of three parties that post prices, one per exchange. A Window needs a quorum of 2. |
-| **Resolver** | The party that settles or voids each Window, exactly once, from the oracle prints. |
-| **Policy version** | A Series' price-source rule for a date range. Registered in advance; never edited once written. |
-| **Void** | A Window that settles no winner, because too few prints arrived or they disagreed too much. Your stake and your fee return. |
-| **Proof page** | `/proof`: every settled Window with its prints, the oracle that signed each, and the evidence behind them. |
-| **24/7 lane** | Windows that trade around the clock. Today these are the crypto lanes. |
+| **Print** | A price for one boundary (open or close) of a Window, posted by an oracle party. See [price sources](/architecture/price-sources). |
+| **Oracle party** | One of three parties that post prices. For crypto, each reads one exchange (Coinbase, Kraken, Bitstamp). A Window needs a quorum of 2. |
+| **Attested print** | A price an oracle party reads from a named source (RedStone, Alpaca, Jupiter Price v3, PreStocks) and posts with a hash of the raw response. The source is named on every receipt. |
+| **Resolver** | The party that records the open and resolves or voids each Window from the oracle prints. |
+| **Resolution** | The contract that records a Window's result, signed by the resolver and the venue. There is exactly one per Window. |
+| **Policy version** | A Series' price-source rule for a date range. Appended in advance; never edited once written. |
+| **Void** | A Window that settles no winner: a missing print, a quorum not met, or prints more than 1% apart. Your stake and your fee return. |
+| **Update id** | The ledger's id for the update a write landed in (it starts `1220…`). Receipts and proof pages name it. |
+| **Proof page** | `/proof`: every settled Window with its prints, the oracle that posted each, and a re-verify that checks them against the archived responses. |
+| **Projector** | The service that follows the venue's ledger updates and writes the tables the public pages read. |
+| **Daml package** | The contract code on the ledger: `abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents` and `abu-pm-games`. See [the Daml packages](/architecture/programs). |
+| **24/7 lane** | Windows that trade around the clock: crypto, xStocks, pre-IPO names and baskets. |
 | **Cover** | A Down call a holder takes as insurance on tokens they hold. **Planned** on Canton: a seat holds no outside tokens yet. |
-| **Schedule a call** | A call rested on a Window before it opens; see [pre-open calls](/trading/pre-open-calls). |
-| **Short** | A Down position with an exit at any time and a knock-out line; see [Short a fall](/trading/shorts). **Planned** on Canton. |
+| **Schedule a call** | A call rested on a Window before it opens; see [pre-open calls](/trading/pre-open-calls). **Planned** on Canton. |
+| **Short** | A Down position with an exit at any time and a knock-out line; see [Short a fall](/trading/shorts). |
 | **Halt** | A wide or issuer-level trading halt signal. Shown as "Trading halted." A merely stale price print is shown as "Signed price stale" instead — a different, more common state. |

@@ -1,17 +1,21 @@
 ---
 title: "Portfolio"
-description: "Read your open and settled positions, and see what you were paid."
+description: "Read your open and settled positions, sell one back before the close, and see what you were paid."
 ---
 
-Portfolio is where a position's life ends up: a call you accepted, or a call scheduled before its Window opened. It reads the ledger as your seat's party, so it shows exactly what Canton lets your seat see.
+Portfolio is where a position's life ends up: a call you accepted, or a ticket such as Range, Parlay or Boost. It reads the ledger as your seat's party, from the start of your lease, so it shows exactly what Canton lets your seat see and never a previous visitor's positions.
+
+<GuideCapture name="portfolioBalance" caption="The balance card with one open position: demo credits, the open position valued at the venue\'s mid, and nothing waiting to collect." />
 
 ## Open positions
 
-An open position sits on a live Window. A quote you have not accepted yet is not a position; it expires on its own after a few seconds.
+An open position sits on a live Window. A quote you have not accepted yet is not a position; it expires on its own after about 20 seconds. Before the close, **Cash out** or **Sell half** sells a position back to the venue at a firm exit price, and the proceeds land in your cash.
 
 ## Settled positions
 
-Once a Window resolves (or voids), the venue's settler pays its positions in batches. A winning position pays its full amount; a losing position pays nothing; a voided Window returns your stake and your fee. You do not need to claim. History shows each result with its receipt, and each receipt opens its Window's proof page.
+Once a Window resolves (or voids), the venue's settler pays its positions in batches, without you signing. A winning position pays its full amount; a losing position pays nothing; a voided Window returns your stake and your fee. You do not need to claim. History shows each result with its receipt, an event reads as its question, and each receipt opens its Window's proof page.
+
+<GuideCapture name="portfolioHistory" caption="History after six settled rounds, each read from its settlement receipt: a Parlay, a Moonshot and a Range ticket, and three boosted positions, one of them cashed out early." />
 
 If the venue has not settled by the Window's refund time, Portfolio offers to take your stake back yourself.
 

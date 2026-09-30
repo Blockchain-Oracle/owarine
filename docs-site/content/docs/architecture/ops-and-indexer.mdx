@@ -1,34 +1,38 @@
 ---
 title: "Ops and the projector"
-description: "The off-chain actors that run the venue's clock, prices and settlement, and the projector the app reads from."
+description: "The venue's own actors that run the clock, prices and settlement, and the Postgres projector the app reads from."
 ---
 
-Nothing in `services/ops` holds a visitor's key. Its actors act as the venue's own parties — the venue, the resolver and the three oracles — each a single writer, run from one process. Every command carries a fixed id (`open:<series>:<index>`, `print:<oracle>:<T>`, `resolve:<terms>`), so a retry never does the same thing twice.
+Nothing in `services/ops` holds a visitor's key. Its actors act as the venue's own parties (venue, resolver, three oracles, agent runner), each a single writer, from one process. Every command carries a fixed id (`open:<series>:<index>`, `print:<oracle>:<T>`, `resolve:<terms>`), so a retry or restart never does the same thing twice. In the local gate run ops was killed mid-Window and restarted; every actor resumed from the ledger and every due Window resolved.
 
 | Actor | What it does |
 | --- | --- |
-| Roller | Opens each Window on its Series' cadence with `Series_OpenWindow`. Today's lanes are BTC and ETH Windows on a 5-minute cadence and a 1-minute demo cadence. |
+| Roller | Opens each Window on its Series' cadence with `Series_OpenWindow`: crypto from 1 minute to 1 day, stocks and xStocks at 5, 15 and 60 minutes, pre-IPO names and baskets hourly. A Monday Gap lists 48 hours ahead; stock Windows follow the market calendar, which needs the Alpaca keys. |
 | Oracle feeders | Three oracle parties, one per exchange (Coinbase, Kraken, Bitstamp). At each minute boundary each posts the close of its exchange's 1-minute candle as a `PriceQuote`. The raw response is archived byte for byte, and its hash goes on the quote. |
-| Resolver | Records the opening print and, after the close, resolves or voids the Window from the oracle quotes (a quorum of 2 of the 3 oracles; quotes more than 1% apart void the Window). |
-| Pricer | Publishes the venue's price ladder for each Window. It writes nothing to the ledger. |
-| Issuer | Turns a seat's request into a firm `Quote` at a ladder price, from one of the venue's cash shards. |
-| Sweeper and rebalancer | Expire quotes nobody accepted and keep the venue's cash shards the right size. |
-| Netting and settler | Merge the venue's matching positions, then settle each resolved Window's legs in batches with `Desk_SettleBatch`. |
-| Seat funding and drain | Fund a newly leased seat with demo credits; when a seat is released, withdraw its open quotes, close its open legs at cost and sweep its cash. |
-| Reserve reporter | Reports what the venue holds against what it owes. |
+| Lane feeders | The same oracle parties, for every other lane: each reads the named source itself and posts its own quote. See [Price sources](/architecture/price-sources). |
+| Resolver | Records the opening print and, after the close, resolves or voids from the oracle quotes (a quorum of 2 of 3; a spread over 1% of the median voids). It also resolves committee events from their members' attestations. |
+| Pricer | Publishes the venue's price ladder for each Window over a stream. It writes nothing to the ledger. |
+| Issuer | Turns a seat's request into a firm `Quote` (or a buy-back `BuyQuote`) at a ladder price, from a venue or maker-vault cash shard. |
+| Sweeper, rebalancer, netting | Expire quotes nobody accepted, keep the cash shards the right size, and merge the venue's opposite legs. |
+| Settler | Settles each resolved Window's legs in batches with `Desk_SettleBatch`; the owners sign nothing. |
+| Seat funding and drain | Fund a new seat with 1,000 demo credits. For each released seat: withdraw its quotes, close its legs at cost, redeem Earn shares, sweep its cash, and free it after two empty reads. |
+| Tickets, agents, games | Issue and settle tickets and Earn, enrol grants and pay creator fees, reveal and score duels and pay seasons. |
+| Reserve reporter | Publishes what the venue and the maker vault hold against what they owe. |
+
+With `OPS_ACTORS=all`, the strategy runner and X relay also run, placing calls through owners' grants as the agent-runner party. The desk runner starts only by name.
 
 ## The projector
 
-The app does not read the ledger row by row. The **projector** follows the venue's stream of ledger updates and writes them into database tables: Windows, prints, quotes, positions, resolutions. The web app's `/api/index` routes read those tables. It is the venue's view as counterparty, and the screens say so. A rebuild replays the ledger into a fresh database and must match the live one. Leaderboards and takes read only calls their owners chose to publish.
+The app does not read the ledger row by row. The **projector** follows the venue's ledger updates (`/v2/updates`) and writes Windows, prints, quotes, fills, positions, resolutions, receipts and duels into Postgres, which the web app's `/api/index` routes read. It takes the place of the reference's indexer and never submits.
 
-Your own positions and cash are read from the ledger **as your seat's party**, so the app shows you exactly what Canton lets your party see.
+Two checks keep it honest. `verify-projection` compares each template's contracts on the ledger with the tables, and a rebuild replays the ledger from offset 0 into a fresh database and must equal the live one. Both came back with zero differences on the local gate run.
+
+Your own cash, positions and receipts are read **as your seat's party, from your lease's start**: exactly what Canton lets your party see, and nothing a previous holder did. Leaderboards and profiles read only published calls.
 
 ## Always on, even when the market is closed
 
-`/markets` never goes blank: the crypto Windows trade around the clock, and a last known reading is shown with its age rather than hidden. [Sessions and lanes](/trading/sessions-and-lanes) describes the board.
+`/markets` never goes blank: crypto, xStock, pre-IPO and basket Windows trade around the clock, and a last known reading is shown with its age rather than hidden. [Sessions and lanes](/trading/sessions-and-lanes) describes the board.
 
 ## What this buys you, and what it doesn't
 
-An ops actor can open a Window, post a print or settle — it cannot spend your credits, accept a quote for you or resolve a Window alone: resolution needs the resolver's choice and an oracle quorum, and the tests prove the venue cannot confiscate a position. If ops is down, no new Windows open; a Window whose prints never arrive voids, and after its refund time you can take your stake back yourself. [Status](/help/status) shows the running actors.
-
-**Planned:** the stock, xStock, PreStocks and Pyth-valued lanes (their prices posted by the same oracle parties), the strategy and desk runners, and the game actors are not wired onto Canton yet.
+An ops actor can open a Window, post a print or settle; it cannot spend your credits, accept a quote for you or resolve a Window alone, because resolution needs the resolver's choice and an oracle quorum, and the tests prove the venue cannot confiscate a position. If ops is down, no new Windows open and nothing resolves or settles. From a Window's refund time you can take your stake and fee back yourself with `Leg_RefundStale`, which needs no operator at all. [Status](/help/status) shows the running actors.

@@ -1,37 +1,37 @@
 ---
 title: "PreStocks and Pyth in Agari"
-description: "How PreStocks and Pyth prices are planned to reach Canton Windows, and what each one would and would not do."
+description: "How PreStocks prices reach Canton Windows as attested prints, and why Pyth is not used on Canton today."
 ---
 
 <SponsorLogos />
 
-On Canton, every Window settles from prints signed by the venue's **oracle parties** ([Price sources](/architecture/price-sources)). Today those parties post crypto prices from three exchanges. **PreStocks** and **Pyth** prices are **planned** to arrive the same way: the oracle feeders fetch them off the ledger and post them as signed quotes, with the original source named on every receipt. None of the lanes on this page settles on Canton yet. Dates are UTC.
+On Canton, every Window settles from prints signed by the venue's **oracle parties** ([Price sources](/architecture/price-sources)). For the pre-IPO names and the baskets, each oracle party reads **PreStocks** itself and posts what it read as a signed quote, with PreStocks named on every receipt. This runs on a local Canton sandbox. **Pyth** is not used on Canton today. Dates are UTC.
 
-## PreStocks (planned)
+## PreStocks
 
-[PreStocks](https://prestocks.com) publishes tokenized pre-IPO stocks and a public catalogue, [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks), with each name's token price and the SPV's mark price. The catalogue is unsigned, so a PreStocks print on Canton would be the venue's oracle parties attesting what they read from PreStocks — an honest, re-derivable read of PreStocks data, not an independent oracle.
+[PreStocks](https://prestocks.com) publishes tokenized pre-IPO stocks and a public catalogue, [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks), with each name's token price and the SPV's mark price. The catalogue is unsigned, so a PreStocks print on Canton is the venue's oracle parties attesting what they read from PreStocks: an honest, re-derivable read of PreStocks data, archived byte for byte with its hash on the quote, not an independent oracle.
 
 The eight names are OpenAI, Anthropic, SpaceX, Neuralink, Anduril, Kalshi, Polymarket and Figure AI. PreStocks states that its tokens are not affiliated with, endorsed by or issued by the companies they reference, and are not available in the U.S.
 
-| Where | What PreStocks would supply |
+| Where | What PreStocks supplies |
 | --- | --- |
-| The OpenAI 24/7 lane | A one-hour Up/Down Window on the OpenAI token price, every hour of every day. |
+| Eight 24/7 pre-IPO lanes | A one-hour Up/Down Window on each name's token price, every hour of every day. Each oracle party reads the catalogue between 10 and 45 seconds after the boundary. |
 | Five baskets | Equal-weight indices in points (base 1,000 at frozen base prices) over PreStocks names, each computed from one catalogue read of every member; a partial read produces no print. See [Baskets](/trading/baskets). |
-| The desk's premium ceiling | A desk never buys a name more than its owner's ceiling above the PreStocks mark. See [How the desk decides](/architecture/desk). |
-| Pre-IPO pages | Each name's page shows the token price, the PreStocks mark and the premium or discount between them. These read the catalogue today and settle nothing. |
+| The desk | The desk runner reads the token price and the PreStocks mark to decide timing. A live desk's premium ceiling is measured against the Window's fair price, posted as oracle marks. See [How the desk decides](/architecture/desk). |
+| Pre-IPO pages | Each name's page shows the token price, the PreStocks mark and the premium or discount between them. These read the catalogue and settle nothing. |
 
-**Cover what you hold** needs to read a holder's tokens. A seat holds no outside tokens, so cover shows its "no holdings" state until Canton Coin and CIP-56 token holdings are wired (planned).
+On the local sandbox, the hourly pre-IPO and basket Windows opened, printed from three of three oracle reads, and resolved: for example OpenAI 1431.467 → 1431.874 (Up) and AI Labs 1133.699 → 1137.325 points (Up) on 29 September. PreStocks rate-limits the development host (HTTP 429), and while it does those lanes read **paused** rather than trading on a stale price. The feed waits PreStocks' `Retry-After`, or backs off with jitter up to 5 minutes, and resumes by itself.
+
+**Cover what you hold** needs to read a holder's tokens. A seat holds no outside tokens, so cover shows its "no holdings" state until Canton Coin and token holdings are wired (planned).
 
 Open in the app: <AppLink href="/baskets">Baskets</AppLink>, <AppLink href="/tickers/OPENAI">OpenAI</AppLink>, <AppLink href="/desk">Desk</AppLink>.
 
-## Pyth (planned)
+## Pyth (not used on Canton)
 
-Pyth publishes equity prices (for example [TSLA/USD](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD), [QQQ/USD](https://app.pyth.com/explore/Equity.US.QQQ%2FUSD), [VOO/USD](https://app.pyth.com/explore/Equity.US.VOO%2FUSD)) and pre-IPO valuation indices for [OpenAI](https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD) and [Anthropic](https://app.pyth.com/explore/Equity.Index.ANTHROPIC%2FUSD). There is no Pyth contract on Canton, and none is needed for an attested print: the plan is for the oracle feeders to fetch the Pyth update for the exact boundary second, archive it byte for byte, and post it through the same quorum as every other print.
+Pyth publishes equity prices (for example [TSLA/USD](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD), [QQQ/USD](https://app.pyth.com/explore/Equity.US.QQQ%2FUSD), [VOO/USD](https://app.pyth.com/explore/Equity.US.VOO%2FUSD)) and pre-IPO valuation indices for [OpenAI](https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD) and [Anthropic](https://app.pyth.com/explore/Equity.Index.ANTHROPIC%2FUSD). There is no Pyth contract on Canton, and none would be needed: an oracle feeder could fetch the update for the exact boundary second, archive it and post it through the same quorum as every other print. The code path exists; the key does not.
 
-The same rules would apply as for crypto: a missing print or a disagreement past the Series' limit voids the Window instead of paying anyone, and a Window keeps the price policy it opened under.
-
-The valuation indices need an entitlement the venue's current key does not have. While the key is refused, no valuation Window is listed, and the index rows are left off the pages rather than shown dead. The index measures company valuation while a token Window settles on the token price, so Agari never uses one as a cross-check for the other.
+The reference's Pyth trial ended on 25 September, and no key entitled to these feeds is available. So QQQ and VOO, whose only source was Pyth, now settle on Alpaca's last IEX trade (the other stocks read RedStone), and the valuation lanes (`OPENAIV`, `ANTHROPICV`) are not registered. They are listed only once a key reads the indices, and the index rows are left off the pages rather than shown dead. The index measures company valuation while a token Window settles on the token price, so Agari never uses one as a cross-check for the other.
 
 ## Where to check the current state
 
-<AppLink href="/status">Status</AppLink> shows the price pipelines and the Pyth entitlement probe as they are now. <AppLink href="/proof">Proof</AppLink> lists every settled Window with its prints and the oracle that signed each one.
+<AppLink href="/status">Status</AppLink> shows the price pipelines, each source's health and the Pyth entitlement probe as they are now. <AppLink href="/proof">Proof</AppLink> lists every settled Window with its prints, the oracle that signed each one and the source it read.

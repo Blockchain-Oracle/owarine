@@ -7,7 +7,7 @@ import { captures, type CaptureName } from '@/lib/captures';
 
 export function GuideCapture({ name, caption }: { name: CaptureName; caption?: string }) {
   const capture = captures[name];
-  const annotations = 'annotations' in capture ? capture.annotations : [];
+  const annotations = capture.annotations ?? [];
   const dialog = useRef<HTMLDialogElement>(null);
   const id = useId();
   const arrowId = `guide-arrow-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
@@ -31,7 +31,7 @@ export function GuideCapture({ name, caption }: { name: CaptureName; caption?: s
   </div>;
   const notes = <div className="guide-capture-meta">
     <p className="guide-capture-state"><strong>Capture state:</strong> {capture.state}</p>
-    <p className="guide-capture-date">Captured 23 September 2026.</p>
+    <p className="guide-capture-date">Captured {capture.date} on a local Canton sandbox.</p>
   </div>;
 
   return <figure className="guide-shot not-prose">

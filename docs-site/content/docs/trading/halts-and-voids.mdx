@@ -3,21 +3,21 @@ title: "Halts and voids"
 description: "What it means when a Window can't settle cleanly, and what you get back."
 ---
 
-Most Windows settle cleanly: at least 2 of the 3 oracle parties post both the opening and the closing print, and their prices agree closely enough. When that doesn't happen, Agari voids the Window rather than guessing — a void returns every stake and every fee, so nobody is worse off for a price problem that wasn't theirs.
+Most Windows settle cleanly: at least 2 of the 3 oracle parties post both the opening and the closing print, and their prices agree within 1%. When that doesn't happen, Agari voids the Window rather than guessing — a void returns every stake and every fee, so nobody is worse off for a price problem that wasn't theirs.
 
 ## The void reasons
 
-- **Missing print** — no oracle posted a valid price for a boundary before its deadline. The app labels this "Signed price stale" rather than "Trading halted"; it just means nobody posted a verifiable price in time.
+- **Missing print** — no oracle posted a valid price for a boundary before its deadline. A source that had nothing to read at the boundary ends here; a point that was never read is never attested.
 - **Quorum not met** — some oracles posted, but fewer than the quorum of 2.
 - **Resolver absent** — a quorum existed, but the resolver did not record it before the deadline.
-- **Source disagreement** — the oracle prices were further apart than the Series allows, so the Window voided rather than picking one arbitrarily.
+- **Source disagreement** — the oracle prices were further apart than the Series allows, so the Window voided rather than picking one. An event whose committee answers both YES and NO voids the same way.
 
 The ledger lets each Window resolve or void exactly once, and the proof page names the specific reason.
 
 ## "Trading halted" vs. "Signed price stale"
 
-The app only shows **"Trading halted"** for a real exchange-wide or issuer-specific halt signal. Everything else that keeps a Window from settling on time shows the more accurate "signed price stale" label instead.
+The app only shows **"Trading halted"** for a real halt signal, such as a tokenized stock's issuer flagging it halted. A stale source or failing token quotes show the more accurate **"Signed price stale"** instead. The venue's halt watcher never signs anything: while an asset is halted, no new Window lists for it and the ticket takes no new calls. A lane no source can sign at all reads **paused: no signed source**, with the reason.
 
 ## What you get back from a void
 
-Your stake and your fee, in full — a void is a wash, not a loss. The venue's settler pays it back to your seat the same way it pays a settled Window; see <AppLink href="/portfolio">Portfolio</AppLink>.
+Your stake and your fee, in full — a void is a wash, not a loss. The venue's settler pays it back to your seat the same way it pays a settled Window; see <AppLink href="/portfolio">Portfolio</AppLink>. A voided Boost or short also returns your stake.

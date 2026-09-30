@@ -14,17 +14,17 @@ const clips = {
   'connected-basket-ticket': {
     raw: 'basket-ticket', route: '/baskets → /markets',
     chapters: [
-      { frame: 0, title: 'Choose a basket', text: 'The connected AI Labs basket shows its index in points. Predict opens a devnet Window; Cover needs two member tokens in this wallet; Hold starts a separate desk draft.', focus: [480, 460], zoom: 1 },
+      { frame: 0, title: 'Choose a basket', text: 'The connected AI Labs basket shows its index in points. Predict opens a test-network Window; Cover needs two member tokens held by the viewer; Hold starts a separate desk draft.', focus: [480, 460], zoom: 1 },
       { frame: 15, title: 'Open the live Window', text: 'Predict opens the AI Labs 24/7 Window. Read the opening line, remaining time and price source before choosing a side.', focus: [565, 450], zoom: 1 },
       { frame: 42, title: 'Choose Down', text: 'Down is selected in the ticket. This is only a choice on the page; no order has been sent.', focus: [850, 410], zoom: 1.13, pointer: [983, 304] },
-      { frame: 55, title: 'Preview a quote', text: 'Enter 5 tUSDC and compare current cost, return and maximum loss. The recording stops before Buy and before any wallet signature.', focus: [850, 510], zoom: 1.18, pointer: [868, 572] },
+      { frame: 55, title: 'Preview a quote', text: 'Enter a stake of 5 and compare current cost, return and maximum loss. The recording stops before Buy and before any signature.', focus: [850, 510], zoom: 1.18, pointer: [868, 572] },
     ],
   },
   'connected-portfolio': {
     raw: 'portfolio', route: '/portfolio',
     chapters: [
-      { frame: 0, title: 'Read the balances', text: 'The connected Portfolio separates ready-to-bet tUSDC from the Private balance held elsewhere.', focus: [565, 400], zoom: 1 },
-      { frame: 11, title: 'Open Trading Balance', text: 'Expand Trading Balance to see wallet funds, available balance, grants and deposit or withdraw controls. No funds move in this recording.', focus: [565, 525], zoom: 1.1, pointer: [542, 610] },
+      { frame: 0, title: 'Read the balances', text: 'The connected Portfolio separates the ready-to-bet balance from the Private balance held elsewhere.', focus: [565, 400], zoom: 1 },
+      { frame: 11, title: 'Open Trading Balance', text: 'Expand Trading Balance to see the spendable balance, available funds, grants and deposit or withdraw controls. No funds move in this recording.', focus: [565, 525], zoom: 1.1, pointer: [542, 610] },
       { frame: 34, title: 'Open History', text: 'History shows settled results and receipt links. A win marked Paid automatically needs no manual claim.', focus: [565, 525], zoom: 1.1, pointer: [829, 405] },
     ],
   },
@@ -32,9 +32,9 @@ const clips = {
     raw: 'desk', route: '/desk',
     chapters: [
       { frame: 0, title: 'Read a practice desk', text: 'The connected Frontier AI desk shows a paper value chart and its next real-price check. Practice spends no money.', focus: [565, 440], zoom: 1 },
-      { frame: 18, title: 'Inspect Activity', text: 'Each check has a reason and opens a full decision record. These paper records are not on-chain seals.', focus: [565, 530], zoom: 1.1, pointer: [377, 396] },
-      { frame: 45, title: 'Inspect Rules', text: 'Rule cards say which limits the future on-chain program enforces and which the desk runner enforces.', focus: [565, 530], zoom: 1.1, pointer: [497, 396] },
-      { frame: 65, title: 'Read the promise', text: 'The promise copy currently describes live on-chain sealing even on this practice page. Practice itself has no chain transaction; this mismatch is reported.', focus: [565, 450], zoom: 1.1, pointer: [481, 438] },
+      { frame: 18, title: 'Inspect Activity', text: 'Each check has a reason and opens a full decision record. These paper records are not sealed on the ledger.', focus: [565, 530], zoom: 1.1, pointer: [377, 396] },
+      { frame: 45, title: 'Inspect Rules', text: 'Rule cards say which limits a live desk's own contract would enforce and which the desk runner enforces.', focus: [565, 530], zoom: 1.1, pointer: [497, 396] },
+      { frame: 65, title: 'Read the promise', text: 'The promise copy describes a live desk's sealed record even on this practice page. Practice itself writes nothing to the ledger; this mismatch was reported.', focus: [565, 450], zoom: 1.1, pointer: [481, 438] },
     ],
   },
 };

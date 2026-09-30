@@ -1,8 +1,8 @@
 ---
 title: "For builders"
-description: "Follow the package boundaries from the Daml engine to the app, and verify a claim against source and evidence."
+description: "Follow the package boundaries from the Daml packages to the app, and verify a claim against source and evidence."
 ---
 
-This documentation site lives in the Agari application repository at `docs-site/`. The app is a prediction market on Canton Network: the rules are a Daml package in `daml/`, the venue's actors are in `services/ops/`, and the web and phone apps read and write through `packages/markets` and `packages/ledger`.
+This documentation site lives in the Agari application repository at `docs-site/`. The app is a prediction market on Canton Network: the rules are four Daml packages in `daml/`, the venue's actors are in `services/ops/`, and the web and phone apps read and write through `packages/markets` and `packages/ledger`.
 
-Use [Local setup](/builders/local-setup) for the actual commands, [Source map](/builders/source-map) to locate each system, [The Daml engine](/architecture/programs) for the contracts, and [Price sources](/architecture/price-sources) for the oracle path. A local sandbox run and a test-network run are different kinds of evidence; the acceptance ledger in `docs/evidence/` says which one each row is.
+Use [Local setup](/builders/local-setup) for the actual commands, [Source map](/builders/source-map) to locate each system, [The Daml packages](/architecture/programs) for the contracts, and [Price sources](/architecture/price-sources) for the oracle path. A local sandbox run and a DevNet run are different kinds of evidence: `docs/plan/capabilities.json` marks each capability `local` or `live`, and every `local` entry names its evidence note in `docs/evidence/`. Today nothing is `live`.

@@ -1,18 +1,18 @@
 ---
 title: "Tap-trading"
-description: "A seat already trades in one tap, so there is no session key to arm and no fee to sponsor."
+description: "A seat already trades in one tap, so there is no session key to arm, no deposit and no fee to sponsor."
 ---
 
 On the earlier version of Agari, tap-trading was an opt-in: a separate session key, a deposit and a fee sponsor, so that each order did not need its own approval popup. On Canton none of that is needed.
 
 ## Why a seat is already one tap
 
-Your seat's signing key lives in this browser and signs each call directly, with no popup and no extension. Canton charges no network fee, so there is no fee payer, no sponsor and no budget to top up. The app's fast-mode chip says so rather than offering a setup that does nothing.
+Your seat's signing key lives in this browser (or in the iPhone's Keychain) and signs each call directly, with no popup and no extension. Canton charges no network fee, so there is no fee payer, no sponsor, no second key and no budget to top up. On the phone, the ticket's chip reads **one tap** and cannot be pressed, because there is nothing to arm.
 
 ## What stays the same
 
 - Each call is still a firm quote you accept, with the exact cost shown first.
-- Your positions are yours: only your seat's party and the venue can see them, and the venue cannot accept a quote for you.
+- Your positions are yours: each one has two stakeholders, your seat's party and the venue, and the venue cannot accept a quote for you.
 - **Reset seat** deletes the key; nothing else can sign for your seat.
 
-**Planned:** agent grants — letting a published strategy place calls for you inside caps you set — use the engine's `AgentGrant` contract and arrive with the strategy runner. See [Copy a strategy](/agents/copy-strategies).
+**Agent grants are a different thing.** Letting a published strategy place calls for you moves a budget into an `AgentGrant` with caps you set, and the strategy's runner places inside them; the ledger checks the caps, not the runner. That works on a local Canton sandbox today. See [Copy a strategy](/agents/copy-strategies).

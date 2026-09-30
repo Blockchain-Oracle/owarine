@@ -5,11 +5,13 @@ description: "What your test money is, where it sits, and what happens to it whe
 
 ## Demo credits are test money
 
-Every stake and ticket on Agari is sized in **demo credits**: the venue's test money on a Canton test network. They have no market value and cannot be moved off the venue. A new seat is funded with them when you take it; see [Your seat and demo credits](/start/wallet).
+Every stake and ticket on Agari is sized in **demo credits**: the venue's test money on Canton. They have no cash value and cannot be moved off the venue. The venue credits a seat once per lease, 1,000 demo credits by default, when you take it; see [Your seat and demo credits](/start/wallet).
+
+<GuideCapture name="demoCredits" caption="The demo-credits card from the header balance: the seat, its party, its demo credits and a cash value of None. Credits are granted once per lease." />
 
 ## Where your credits sit
 
-Your credits are cash contracts signed by the venue and your seat's party, so only the two of you can see them. Accepting a quote spends from them: the stake and the fee move into your position, and any change comes back as a new cash contract. When a Window settles, the venue pays the result back into your cash. There is no separate vault to deposit into, and no network fee to keep a balance for.
+Your credits are cash contracts signed by both the venue and your seat's party, so neither can create or seize them alone, and only the two of you can see them. Accepting a quote spends from them: the stake and the fee move into your position, and any change comes back as a new cash contract. When a Window settles, the venue pays the result back into your cash. On Canton your seat's cash **is** your Trading Balance: there is nothing to deposit, and no network fee to keep a balance for. The one thing that sets cash aside is a grant: [copying a strategy](/agents/copy-strategies) moves a budget into a grant its runner may spend inside your caps, and revoking returns the rest.
 
 Nothing about where the money sits changes how a position settles: Up if the close is at or above the open, and a void returns your stake and your fee.
 
@@ -17,4 +19,4 @@ Nothing about where the money sits changes how a position settles: Up if the clo
 
 Before a released seat is reused, its open positions close at what they cost and its cash is swept back to the venue, so the next visitor starts empty. Your balance does not follow you to a new seat; a new seat starts from fresh demo credits.
 
-**Planned:** a Private balance and a real-money rail on Canton Coin are not on Canton yet. See [Portfolio](/trading/portfolio) for where a settled position shows up.
+**Not on Canton yet:** a Private balance and a real-money rail on Canton Coin. See [Portfolio](/trading/portfolio) for where a settled position shows up.
