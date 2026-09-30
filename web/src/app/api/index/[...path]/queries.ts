@@ -98,6 +98,11 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
       const q = parse(z.object({ market: address.optional(), open: flag, limit: optionalInt }), query);
       return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.orders({ owner, market: q.market, openOnly: q.open, limit: q.limit, lease: lease ?? null }) };
     }
+    case "resting": {
+      // 0.5.1 (K-235): the seat's resting calls, live and ended, in the `orders` row shape core's `restingOrderView` reads.
+      const q = parse(z.object({ market: address.optional(), open: flag, limit: optionalInt }), query);
+      return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.restingCalls({ owner, market: q.market, openOnly: q.open, limit: q.limit, lease: lease ?? null }) };
+    }
     default:
       return null;
   }

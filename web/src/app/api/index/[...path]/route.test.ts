@@ -39,7 +39,7 @@ describe("/api/index wallet scope (plan §5: a seat reads only its own rows)", (
   });
   afterEach(() => vi.unstubAllEnvs());
 
-  it.each(["fills", "positions", "actions", "orders", "receipts"])("refuses %s with no proof", async (resource) => {
+  it.each(["fills", "positions", "actions", "orders", "receipts", "resting"])("refuses %s with no proof", async (resource) => {
     const res = await get(`wallet/${alice.address}/${resource}`);
     expect(res.status).toBe(403);
     expect(res.headers.get("cache-control")).toBe("private, no-store");

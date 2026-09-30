@@ -28,8 +28,10 @@ export interface RestingOrderRow {
   expire_ts_sec: string;
   ts_sec: string;
   status: "done" | "open" | "filled" | "cancelled" | "expired";
-  rested_node: number | null;
-  rested_seq: string | null;
+  /** Canton: the call's stable reference across a partial fill's re-creations (the cancel names it). */
+  call_ref: string | null;
+  /** Canton: the escrow that came back as venue credit when the call was cancelled or expired (0 otherwise). */
+  refunded_base?: string;
 }
 
 export interface RestingOrderWindow {
@@ -66,14 +68,18 @@ export interface RestingOrderView {
   remainingLots: bigint;
   /** `remainingLots × lotBase`: what still rests, in outcome base units. */
   contractsRaw: bigint;
+  /** `lots × lotBase`: what the call was placed for, so an ended row still says how big it was. */
+  placedContractsRaw: bigint;
   /** `remainingLots × ownTicks × cashUnit`: what the resting remainder still holds. */
   escrowBase: bigint;
   status: RestingStatus;
   placedSec: number;
   expireSec: number;
   restUntil: RestUntil;
-  /** The Book handle a cancel names; null once the order is off the Book. */
-  handle: { node: number; seq: bigint } | null;
+  /** What came back as venue credit when the call was cancelled or swept unfilled (0 while it rests or after a full fill). */
+  refundedBase: bigint;
+  /** What a cancel names; null once the call is off the Book. */
+  handle: { callRef: string } | null;
 }
 
 const BUY_YES = 0;
@@ -126,12 +132,14 @@ export function restingOrderView(row: RestingOrderRow, w: RestingOrderWindow, no
     filledLots: BigInt(row.filled_lots),
     remainingLots,
     contractsRaw: remainingLots * w.grid.lotBase,
+    placedContractsRaw: BigInt(row.lots) * w.grid.lotBase,
     escrowBase: isBuy(row.kind) ? remainingLots * BigInt(ownTicks) * w.grid.cashUnit : 0n,
     status,
     placedSec: Number(row.ts_sec),
     expireSec,
     restUntil: restUntilOf(expireSec, w),
-    handle: onBook && row.rested_node !== null && row.rested_seq !== null ? { node: row.rested_node, seq: BigInt(row.rested_seq) } : null,
+    refundedBase: BigInt(row.refunded_base ?? "0"),
+    handle: onBook && row.call_ref !== null ? { callRef: row.call_ref } : null,
   };
 }
 

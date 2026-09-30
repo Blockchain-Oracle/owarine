@@ -152,9 +152,39 @@ export type IdxFact =
       feePaid: string;
       refundAfterSec: number;
       origin: "accept" | "buyback" | "closeout" | "snapshot" | "other";
-      /** For `accept`: the Quote_Accept exercise (its node keys the fill) and the quote. */
+      /** For `accept`: the Quote_Accept (or, when `resting`, the Rest_Fill) exercise (its node keys the fill) and the quote (or call). */
       acceptNodeId: number | null;
       quoteCid: string | null;
+      /** 0.5.1: the leg came from a resting call's fill: an ordinary accept-origin position, and the seat's activity says so. */
+      resting?: boolean;
+    }
+  | {
+      /**
+       * 0.5.1: a resting call now exists or changed. `placed`: created by `RestOffer_Place` (a new row); otherwise the
+       * remainder a partial fill re-created (the row keeps its `callRef`, takes the new contract id and lots).
+       */
+      kind: "rest-call";
+      contractId: string;
+      callRef: string;
+      user: string;
+      termsCid: string;
+      marketKey: string;
+      side: Side;
+      priceTicks: number;
+      lotsPlaced: string;
+      lots: string;
+      cashUnit: string;
+      escrow: string;
+      tradingStartSec: number;
+      expiresAtSec: number;
+      placed: boolean;
+    }
+  | {
+      /** 0.5.1: a resting call's contract ended: filled completely, cancelled by its owner, or expired unfilled (`refundedBase` back). */
+      kind: "rest-closed";
+      contractId: string;
+      how: "filled" | "cancelled" | "expired";
+      refundedBase: string;
     }
   | {
       /** A user's leg sold back through BuyQuote_Accept: one SELL fill, keyed by that exercise's node. */

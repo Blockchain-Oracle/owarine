@@ -240,6 +240,27 @@ export function indexReader(sql: Sql) {
         ORDER BY q.issued_ts_sec DESC, q.issued_offset DESC LIMIT ${clamp(q.limit)}`;
     },
 
+    /**
+     * A seat's resting calls (0.5.1) in the reference's `idx_orders` row shape (`RestingOrderRow`), newest first: what rests,
+     * and how each ended (filled, cancelled, expired unfilled with its refund). Per-user, under the caller's lease like
+     * `orders`. An UP call is a BUY_YES at its price (kind 0), a DOWN call a BUY_NO at the pair's complement (kind 2).
+     */
+    async restingCalls(q: { owner?: string; market?: string; openOnly?: boolean; limit?: number; lease?: IdxSeatLease | null }): Promise<IdxRow[]> {
+      return sql`
+        SELECT r.placed_update_id AS signature, r.call_ref, r.call_cid, r.market, COALESCE(r.user_address, r.user_party) AS owner, 0 AS seat,
+          (CASE WHEN r.side = 0 THEN 0 ELSE 2 END) AS kind, 3 AS order_type,
+          (CASE WHEN r.side = 0 THEN r.price_ticks ELSE 1000 - r.price_ticks END) AS limit_price, r.price_ticks AS side_ticks,
+          r.lots_placed::text AS lots, (r.lots_placed - r.lots_remaining)::text AS filled_lots, r.lots_placed::text AS rested_lots,
+          (CASE WHEN r.status = 'open' THEN r.lots_remaining ELSE 0 END)::text AS remaining_lots, r.expires_at_sec::text AS expire_ts_sec,
+          r.placed_ts_sec::text AS ts_sec, r.status AS status,
+          r.refunded_base::text AS refunded_base, r.closed_ts_sec::text AS closed_ts_sec
+        FROM idx_resting r
+        WHERE true ${q.owner ? sql`AND (r.user_address = ${q.owner} OR r.user_party = ${q.owner}
+          ${q.lease ? sql`OR (r.user_party = ${q.lease.party} AND r.placed_offset >= ${q.lease.fromOffset})` : sql``})` : sql``}
+          ${q.market ? sql`AND r.market = ${q.market}` : sql``} ${q.openOnly ? sql`AND r.status = 'open'` : sql``}
+        ORDER BY r.placed_ts_sec DESC, r.placed_offset DESC LIMIT ${clamp(q.limit)}`;
+    },
+
     /** One Window's minute candles, only above the k floor. */
     async candles(market: string, fromSec: number, toSec: number): Promise<IdxRow[]> {
       return sql`SELECT c.bucket_sec::text, c.open_ticks, c.high_ticks, c.low_ticks, c.close_ticks, c.volume_lots::text, c.trades
