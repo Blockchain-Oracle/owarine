@@ -21,9 +21,12 @@ export const GAMES = {
     open: "Open",
     pendingBadge: "Not connected",
     liveBadge: "Live",
-    /** S23: the stock market is shut, so only the 24/7 lanes (OPENAI and the baskets) have Windows to play on. */
+    /**
+     * S23: the stock market is shut, so only the 24/7 lanes have Windows to play on. On Canton those are BTC and ETH
+     * (Coinbase, Kraken and Bitstamp closes) and the pre-IPO names and baskets (PreStocks), `docs/evidence/c6-lanes-*`.
+     */
     afterHoursBadge: "24/7 only",
-    afterHours: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · pre-IPO and baskets only`,
+    afterHours: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · BTC, ETH, pre-IPO and baskets only`,
     unavailableBadge: "Unavailable",
     waitingOn: (dependency: string) => `Waiting on ${dependency}`,
     paused: "Paused by the operator",
