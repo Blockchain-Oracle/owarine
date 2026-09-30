@@ -122,8 +122,9 @@ export function checkWebServerEnv(source: Record<string, string | undefined> = p
     const parties = seatParties(env);
     if (!parties.venue) problems.push("AGARI_VENUE_PARTY: required (or `venue` in AGARI_PARTIES_FILE)");
     if (parties.seats.length === 0) problems.push("AGARI_SEAT_PARTIES: at least one seat party (or `seats` in AGARI_PARTIES_FILE)");
-    const infra = new Set([parties.venue, ...Object.values(parties.personas)].filter(Boolean));
-    if (parties.seats.some((s) => infra.has(s))) problems.push("AGARI_SEAT_PARTIES: a seat party is also the venue or a persona");
+    // C4d L5: a visitor acts as their seat party, so a seat party must never be one the venue's own actors act as.
+    const infra = new Set([parties.venue, parties.agentRunner, ...parties.oracles, ...Object.values(parties.personas)].filter(Boolean));
+    if (parties.seats.some((s) => infra.has(s))) problems.push("AGARI_SEAT_PARTIES: a seat party is also the venue, the agent runner, an oracle or a persona");
   } catch (error) {
     problems.push(`AGARI_PARTIES_FILE: ${error instanceof Error ? error.message.split("\n")[0] : "unreadable"}`);
   }

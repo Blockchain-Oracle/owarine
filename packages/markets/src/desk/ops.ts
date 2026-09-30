@@ -15,10 +15,10 @@ import type { ActiveContract, CreatedEvent, LedgerClient, Party } from "@agari/l
 import { ReadingError } from "../errors/reading-error";
 import { activeOf, decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import { decodeDeskDecision, decodeDeskMandate, decodeDeskMark, type DeskDecisionC, type DeskMandateC, type DeskMarkC } from "../ops/agents/decode";
-import { deskAddressOf } from "../ops/agents/ids";
+import { deskAddressOf, legacyDeskAddressOf } from "../ops/agents/ids";
 import { ledgerRequest } from "../provider/ledger-api";
 import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
-import { deskCommandId, deskEventOf, deskStateOf, DESK_LOT_MULTIPLIER_E12, sealedOf, symbolOfSeries } from "./canton";
+import { deskCommandId, deskEventOf, deskStateOf, DESK_LOT_MULTIPLIER_E12, GENESIS_HEAD_HEX, hexOfHash, sealedOf, symbolOfSeries } from "./canton";
 import { deskClientWrites } from "./session";
 import {
   DESK_MINTS,
@@ -96,11 +96,27 @@ export async function readMandates(l: DeskLedgerAccess): Promise<{ mandates: { c
 export async function findMandate(l: DeskLedgerAccess, key: string): Promise<{ cid: string; data: DeskMandateC; marks: DeskMarkC[]; offset: number } | null> {
   const { mandates, marks, offset } = await readMandates(l);
   let party: string | null = key.includes("::") ? key : null;
-  let hit = mandates.find((m) => m.data.owner === party || deskAddressOf(m.data.owner, m.data.venue) === key);
+  let hit = mandates.find((m) => m.data.owner === party || deskAddressOf(m.data) === key);
   if (!hit && !party && l.resolveOwner) {
     party = await l.resolveOwner(key);
     if (party) hit = mandates.find((m) => m.data.owner === party);
   }
+  return hit ? { ...hit, marks, offset } : null;
+}
+
+/**
+ * The desk an index row names, only while its owner still leases the mandate's party (C4d, K-210): `party` is the row
+ * owner's CURRENT lease party (null = no lease, so nothing), and the mandate must be that party's and carry the row's
+ * address, or, for a row written before C4d, the party's old address. A row of an earlier lessee therefore never reaches
+ * the next visitor's desk on a recycled party, for a read or for a trade.
+ */
+export async function findLeasedMandate(
+  l: DeskLedgerAccess,
+  o: { party: string | null; address: string },
+): Promise<{ cid: string; data: DeskMandateC; marks: DeskMarkC[]; offset: number } | null> {
+  if (!o.party) return null;
+  const { mandates, marks, offset } = await readMandates(l);
+  const hit = mandates.find((m) => m.data.owner === o.party && (deskAddressOf(m.data) === o.address || legacyDeskAddressOf(m.data.owner, m.data.venue) === o.address));
   return hit ? { ...hit, marks, offset } : null;
 }
 
@@ -167,16 +183,36 @@ export async function readDeskEventsOf(rpc: DeskRpc, signature: Signature): Prom
 }
 
 /**
+ * The decisions of ONE desk, newest first: the owner party's decisions on its live mandate's own hash chain, walked back
+ * from the mandate's head to genesis (C4d, K-210). A decision carries only the owner party, and a party is recycled to
+ * later visitors, so a decision of an earlier lessee's desk (its own chain from genesis) is never counted as this one's.
+ * Pure.
+ */
+export function chainOfMandate<T extends { d: DeskDecisionC }>(mandate: DeskMandateC, rows: readonly T[]): T[] {
+  const byHead = new Map<string, T>();
+  for (const r of rows) if (r.d.owner === mandate.owner && r.d.venue === mandate.venue) byHead.set(hexOfHash(r.d.head), r);
+  const out: T[] = [];
+  let head = hexOfHash(mandate.head);
+  while (head !== GENESIS_HEAD_HEX && out.length < byHead.size) {
+    const r = byHead.get(head);
+    if (!r) break;
+    out.push(r);
+    head = hexOfHash(r.d.prevHead);
+  }
+  return out;
+}
+
+/**
  * A desk's sealed decisions, newest first, each with the update it landed in (found by the operator's deterministic
- * command id, `deskCommandId`). A decision whose update cannot be found (sealed by another operator) is left out.
+ * command id, `deskCommandId`). A decision whose update cannot be found (sealed by another operator) is left out. The
+ * desk is its live mandate (by address); a closed desk has no history here.
  */
 export async function readDeskHistory(rpc: DeskRpc, desk: Address, options: { limit?: number; before?: Signature } = {}): Promise<DeskHistoryEntry[]> {
   const l = ledgerOf(rpc);
-  const r = await acs(l, [AGENT_TEMPLATE_IDS.DeskDecision]);
-  const rows = r.contracts
-    .map((c) => ({ e: c.createdEvent, d: decodeDeskDecision(c.createdEvent.createArgument) }))
-    .filter(({ d }) => deskAddressOf(d.owner, d.venue) === (desk as string))
-    .sort((a, b) => b.d.seq - a.d.seq);
+  const [{ mandates }, r] = await Promise.all([readMandates(l), acs(l, [AGENT_TEMPLATE_IDS.DeskDecision])]);
+  const mandate = mandates.find((m) => deskAddressOf(m.data) === (desk as string));
+  if (!mandate) return [];
+  const rows = chainOfMandate(mandate.data, r.contracts.map((c) => ({ e: c.createdEvent, d: decodeDeskDecision(c.createdEvent.createArgument) })));
   const out: DeskHistoryEntry[] = [];
   let skipping = options.before !== undefined;
   for (const { e, d } of rows) {
@@ -203,7 +239,7 @@ export async function listDesksByOperator(rpc: DeskRpc, operator: Address): Prom
   return mandates
     .filter((m) => m.data.operator === (operator as string))
     .map(({ data: m }) => ({
-      address: deskAddressOf(m.owner, m.venue),
+      address: deskAddressOf(m),
       owner: m.owner as Address,
       operator: m.operator as Address | null,
       mode: m.mode === "DeskShadow" ? "practice" : "on_its_own",
@@ -245,10 +281,13 @@ export function sealedActionsOf(events: readonly DeskEvent[]): SealedAction[] {
 
 // ---- addresses -------------------------------------------------------------------------------------------------
 
-/** The desk's address-shaped id for an owner party (and the venue, which every desk names). */
+/**
+ * An owner party's pre-C4d desk address (venue · owner only). A desk's address now names its opening too
+ * (`deskAddressOf`, K-210), which only its mandate knows: read the desk's state for it.
+ */
 export async function deskAddress(owner: Address, venue?: string): Promise<Address> {
   if (!venue) throw NO_COUNTERPART("a desk address without its venue");
-  return deskAddressOf(owner as string, venue);
+  return legacyDeskAddressOf(owner as string, venue);
 }
 /** No token accounts on Canton: the desk itself holds its budget and its holdings. */
 export async function associatedTokenAddress(owner: Address, _mint: Address, _tokenProgram: Address): Promise<Address> {

@@ -43,7 +43,9 @@ export async function ensureStrategyReader(): Promise<void> {
       try {
         return ok(await server.agents.strategies(await leasedAddresses()), Date.now());
       } catch (error) {
-        return err(diagnosis("rpc-down", `registry unreadable: ${error instanceof Error ? error.message : String(error)}`));
+        // The ledger's own text names parties and contracts: it stays in the server log (C4d M4).
+        console.error(`[agents] registry unreadable: ${error instanceof Error ? error.message : String(error)}`);
+        return err(diagnosis("rpc-down", "registry unreadable"));
       }
     },
   });

@@ -3,6 +3,7 @@
  * on failure, and a heartbeat either way. Identical consecutive whys are logged once a minute, so idle is a heartbeat,
  * never silence and never spam.
  */
+import { randomBytes } from "node:crypto";
 import { errorText } from "./env";
 import { registerHeartbeat, type Heartbeat } from "./heartbeat";
 
@@ -53,8 +54,10 @@ export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat }
         beat.everyMs = Math.max(spec.everyMs, delay);
       } catch (error) {
         beat.failures += 1;
-        beat.lastWhy = `pass failed: ${errorText(error)}`;
-        say(beat.lastWhy);
+        // `/health` is public (C4d L4): it names the failure by a reference only; the log keeps the full text.
+        const ref = randomBytes(4).toString("hex");
+        beat.lastWhy = `pass failed (ref ${ref})`;
+        say(`${beat.lastWhy}: ${errorText(error)}`);
         delay = Math.min(spec.everyMs * 2 ** beat.failures, MAX_BACKOFF_MS);
       }
       beat.lastPassMs = Date.now();

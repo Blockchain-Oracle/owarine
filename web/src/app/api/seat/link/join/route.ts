@@ -4,7 +4,7 @@ import { seatServer } from "@/lib/ledger.server";
 import { mintSeatCookie, SEAT_COOKIE, SEAT_COOKIE_TTL_MS } from "@/lib/seat-cookie.server";
 import { leaseRules, leaseView } from "@/lib/seat-lease.server";
 import { checkJoinRequest } from "@/lib/seat-link.server";
-import { jsonBody, refusal, replyWith, requestOrigin } from "@/lib/seat.server";
+import { jsonBody, refusal, replyWith, requestOrigin, serverFault } from "@/lib/seat.server";
 
 /**
  * The seat link, joiner's half (plan, iOS step 2b): this device's key signs `seatLinkText` naming the code another
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     outcome = await server.store.links.redeem(check.code, check.address, now);
   } catch (error) {
-    return refusal("indexer-down", `seat store unreachable: ${error instanceof Error ? error.message : String(error)}`, 503);
+    return serverFault("indexer-down", "seat store unreachable", error, 503);
   }
   if (outcome.kind === "invalid") return refusal("signer-required", "that code has expired or was already used; ask the other device for a new one", 410);
   if (outcome.kind === "own-seat") return refusal("signer-required", "this device holds a seat of its own; reset it here first, then join", 409);

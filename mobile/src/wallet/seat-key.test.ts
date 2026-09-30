@@ -1,9 +1,10 @@
-import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, seatReadText } from "@agari/core/auth";
+import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_WRITE_HEADER, seatReadText } from "@agari/core/auth";
 import { encodeBase58, toSignature } from "@agari/core/types";
-import { seatLeaseText } from "@agari/markets";
+import { configureMarkets, parseMarketsEnv, registerSeatSigner, seatLeaseText, seatWriteHeaderValue } from "@agari/markets";
 import { SEAT_KEY_BYTES, seatSession } from "@agari/markets/sessions/mobile";
 import { describe, expect, it } from "vitest";
 import { seatCaller } from "@/lib/auth/seat-caller.server";
+import { seatWriter } from "@/lib/auth/seat-write.server";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { newSeatKey } from "./seat-key";
 
@@ -40,5 +41,31 @@ describe("the phone's seat key against the server's verifier", () => {
     await expect(seatCaller(headers, CLUSTER, NOW + 1_000)).resolves.toBe(seat.address);
     await expect(seatCaller(headers, CLUSTER, NOW + 6 * 60_000)).resolves.toBeNull();
     await expect(seatCaller(headers, "mainnet", NOW + 1_000)).resolves.toBeNull();
+  });
+
+  it("signs a write proof (C4d M2b) the server takes once, for that request only, within 30 seconds", async () => {
+    configureMarkets(parseMarketsEnv({ cluster: CLUSTER, ledgerApiPath: "https://site.test/api/ledger" }));
+    const seat = await seatSession(await newSeatKey());
+    registerSeatSigner({ address: seat.address, signMessage: (bytes) => seat.signMessage(bytes) });
+    try {
+      const url = "https://site.test/api/seat/link";
+      const body = JSON.stringify({ a: 1 });
+      const header = await seatWriteHeaderValue("POST", url, body, NOW);
+      const req = (o: { url?: string; body?: string; method?: string } = {}) =>
+        new Request(o.url ?? url, { method: o.method ?? "POST", headers: { [SEAT_WRITE_HEADER]: header ?? "" }, body: o.body ?? body });
+      await expect(seatWriter(req(), CLUSTER, NOW + 1_000)).resolves.toBe(seat.address);
+      // The same proof again: a replay.
+      await expect(seatWriter(req(), CLUSTER, NOW + 2_000)).resolves.toBeNull();
+      const fresh = await seatWriteHeaderValue("POST", url, body, NOW);
+      const other = (o: { url?: string; body?: string; method?: string }) =>
+        new Request(o.url ?? url, { method: o.method ?? "POST", headers: { [SEAT_WRITE_HEADER]: fresh ?? "" }, body: o.body ?? body });
+      await expect(seatWriter(other({ url: "https://site.test/api/seat" , method: "DELETE" }), CLUSTER, NOW + 1_000)).resolves.toBeNull();
+      await expect(seatWriter(other({ body: JSON.stringify({ a: 2 }) }), CLUSTER, NOW + 1_000)).resolves.toBeNull();
+      await expect(seatWriter(other({}), CLUSTER, NOW + 31_000)).resolves.toBeNull();
+      // Untouched, the fresh proof still works once.
+      await expect(seatWriter(other({}), CLUSTER, NOW + 1_000)).resolves.toBe(seat.address);
+    } finally {
+      registerSeatSigner(null);
+    }
   });
 });

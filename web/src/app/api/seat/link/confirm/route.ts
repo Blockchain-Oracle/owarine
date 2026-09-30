@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server";
 import { normalizeSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
 import { z } from "zod";
-import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { jsonBody, refusal, replyWith, seatFromRequest, serverFault } from "@/lib/seat.server";
 
 /**
  * The seat link, the holder's answer (C4c, security review L1): a code another device used only claims it, and the key
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
   try {
     decided = await server.store.links.decide(code, lease.leaseId, parsed.data.allow, Date.now());
   } catch (error) {
-    return refusal("indexer-down", `seat store unreachable: ${error instanceof Error ? error.message : String(error)}`, 503);
+    return serverFault("indexer-down", "seat store unreachable", error, 503);
   }
   if (decided === "gone") return refusal("signer-required", "no device is waiting on that code any more; show a new one", 410);
   return replyWith({ state: decided });

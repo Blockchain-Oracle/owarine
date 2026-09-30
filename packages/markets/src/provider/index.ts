@@ -69,7 +69,7 @@ export {
   type VenueTraction,
 } from "./tape";
 export * from "./proof";
-export { ledgerBase, ledgerRequest, registerSeatSigner, registeredSeatAddress, seatAuthHeaders, SEAT_CSRF_HEADER, seatReadHeaderValue, type LedgerCallResult, type LedgerRequestOptions } from "./ledger-api";
+export { ledgerBase, ledgerRequest, registerSeatSigner, registeredSeatAddress, seatAuthHeaders, SEAT_CSRF_HEADER, seatReadHeaderValue, seatWriteHeaderValue, type LedgerCallResult, type LedgerRequestOptions } from "./ledger-api";
 export * from "./ledger-wire";
 export * from "./ticket-wire";
 export * from "./agents-wire";

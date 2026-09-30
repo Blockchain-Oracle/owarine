@@ -50,6 +50,11 @@ export async function wakeDesk(ctx: RunnerContext, input: WakeInput): Promise<Wa
     await refreshMints(ctx, nowSec);
     // 1. reconcile: is this still our desk, and does the chain agree with the database?
     const reconciled = await reconcile(ctx, desk, nowSec, say);
+    if (reconciled.ended) {
+      if (!dry) await ctx.q.setDeskState({ deskId: desk.id, state: "closed", reason: reconciled.ended, actor: "desk", nowSec });
+      say(`closed: ${reconciled.ended}`);
+      return finish("skipped", reconciled.ended);
+    }
     if (reconciled.trouble) {
       if (!dry) await ctx.q.setDeskState({ deskId: desk.id, state: "needs_attention", reason: reconciled.trouble, actor: "desk", nowSec });
       return finish("failed", reconciled.trouble);

@@ -23,7 +23,7 @@ import { messageBytes, formatSeatReadHeader, seatReadText, SEAT_READ_HEADER } fr
 import { encodeBase58, type Address, type Signature } from "@agari/core/types";
 import { createLedgerClient, fee, noAuth } from "@agari/ledger";
 import { parseMarketsEnv, seatLeaseText, toWire } from "@agari/markets";
-import { appMarketId, OPS_QUOTES_PATH, OPS_SEAT_FUND_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
+import { appMarketId, OPS_NONCE_HEADER, OPS_QUOTES_PATH, OPS_SEAT_FUND_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
 import { sandboxWorld, waitForLedger, type Window } from "./lib/sandbox-world";
 
 const LEDGER = process.env.LEDGER_JSON_API_URL ?? "http://localhost:7595";
@@ -96,7 +96,7 @@ function mockOps(w: Awaited<ReturnType<typeof world.setup>>, windows: Window[]) 
       res.writeHead(status, { "content-type": "application/json" });
       res.end(JSON.stringify(toWire(value)));
     };
-    const signed = verifyOpsSignature(OPS_SECRET, { ts: req.headers[OPS_TS_HEADER] as string, sig: req.headers[OPS_SIG_HEADER] as string, method: req.method ?? "", path: req.url ?? "", body });
+    const signed = verifyOpsSignature(OPS_SECRET, { ts: req.headers[OPS_TS_HEADER] as string, nonce: (req.headers[OPS_NONCE_HEADER] as string) ?? null, sig: req.headers[OPS_SIG_HEADER] as string, method: req.method ?? "", path: req.url ?? "", body });
     if (!signed) return reply(401, { diagnosis: { kind: "rpc-down", retryable: false, technical: "bad ops signature" } });
     const r = JSON.parse(body);
     try {

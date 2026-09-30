@@ -104,7 +104,7 @@ describe("DeskMandate → the reference's DeskState", () => {
     const s = deskStateOf({ mandate: mandate(), offset: 77, nowSec: T0 + 3_600, mintOf: (x) => DESK_MINTS[x], marks: [
       { attestor: "o1::1220dd", venue, marketId: "SPACEX-60m:11", side: "SideUp", refTicks: 610, fetchedAtSec: T0 + 3_500 },
     ] });
-    expect(s.address).toBe(deskAddressOf(owner, venue));
+    expect(s.address).toBe(deskAddressOf({ owner, venue, grant: { expiresAtSec: mandate().grant.expiresAtSec } }));
     expect([s.perActionCapE6, s.dailyCapE6, s.spentInWindowE6, s.remainingDailyCapE6]).toEqual([700_000n, 1_000_000n, 600_000n, 400_000n]);
     expect([s.mode, s.paused, s.seq, s.head, s.slot, s.usdc.raw]).toEqual(["on_its_own", false, 3n, `0x${"ab".repeat(32)}`, 77n, 2_000_000n]);
     // ANTHROPIC's Window reached refundAfter: it settled into the owner's seat and is no longer the desk's.

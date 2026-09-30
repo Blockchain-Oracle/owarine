@@ -3,7 +3,7 @@ import { addressSchema } from "@agari/core/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { mintFromSignature, renewFromToken, roomArena, seatVouch } from "@/features/games/room-token.server";
-import { seatFromRequest } from "@/lib/seat.server";
+import { jsonBody, seatFromRequest } from "@/lib/seat.server";
 
 /**
  * `POST /api/games/room-token` — the browser key's signature, turned into a room credential. The wallet
@@ -46,11 +46,11 @@ const requestSchema = z.union([
 ]);
 
 export async function POST(req: NextRequest) {
-  const parsed = requestSchema.safeParse(await req.json().catch(() => null));
+  const parsed = requestSchema.safeParse(await jsonBody(req));
   if (!parsed.success) return NextResponse.json({ error: "That is not a room token request." }, { status: 400 });
 
   // C4c (M1): only a seat the request proves can vouch for the wallet a token names.
-  const auth = await seatFromRequest(req, { write: false });
+  const auth = await seatFromRequest(req, { write: true });
   if (!auth.ok) return NextResponse.json({ error: "Take a seat first: the duel room admits seats." }, { status: auth.response.status === 503 ? 503 : 401 });
   const vouch = seatVouch(auth.seat);
 

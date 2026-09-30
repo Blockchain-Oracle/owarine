@@ -51,12 +51,18 @@ export interface WindowFacts {
   disclosure: DisclosedContract | null;
 }
 
-export function toTicketSnapshot(party: Party, events: readonly CreatedEvent[], offset: number): TicketSeatSnapshot {
+/**
+ * `fromOffset` is the lease's start (C4d H3): a seat party is recycled, so a ticket, quote, share or receipt created
+ * before this lease began is an earlier visitor's and is left out, for the reads and for every action that picks its
+ * contract from this snapshot. Cash is fungible and swept at recycle, so it is kept whatever its offset.
+ */
+export function toTicketSnapshot(party: Party, events: readonly CreatedEvent[], offset: number, fromOffset = 0): TicketSeatSnapshot {
   const s: TicketSeatSnapshot = { party, offset, cash: [], rangeQuotes: [], rounds: [], parlayQuotes: [], tickets: [], boostQuotes: [], positions: [], exitQuotes: [], lpShares: [], supplyQuotes: [], withdrawQuotes: [], receipts: [] };
   const is = (e: CreatedEvent, templateId: string) => templateSuffix(e.templateId) === templateSuffix(templateId);
   for (const e of events) {
     const cid = e.contractId;
     const v = e.createArgument;
+    if (!is(e, TEMPLATE_IDS.VenueCash) && Number(e.offset ?? 0) < fromOffset) continue;
     // Only what is the party's own: a seat is a stakeholder of nothing else, but the filter is stated anyway.
     if (is(e, TEMPLATE_IDS.VenueCash)) {
       const c = decodeVenueCash(v);

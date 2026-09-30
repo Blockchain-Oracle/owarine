@@ -5,6 +5,7 @@ import { z } from "zod";
 import { ROOM_ERRORS } from "@/features/room/copy";
 import { clientIp, ROOM_LIMITS } from "@/features/room/limits.server";
 import { parseRoomId } from "@/features/room/room-id";
+import { provesAddress } from "@/lib/auth/proven-seat.server";
 import { webEnv } from "@/lib/env";
 
 /**
@@ -12,7 +13,8 @@ import { webEnv } from "@/lib/env";
  *
  * `GET ?marketId&address` answers "has this wallet ever bet here" from the registry and the index — the affordance
  * the sheet needs before it asks for a signature; `marketId` may be any room id, `$TSLA` included. It never reads
- * the chain; the join does that.
+ * the chain; the join does that. Only the seat itself is told (C4d M3: its cookie or signed read header proves the
+ * address); anyone else asking about an address gets "unknown", which the join then decides.
  *
  * `POST` records a seat, and only once the indexer holds a confirmed fill in that transaction, on that Window, with
  * that wallet as taker or maker. A client cannot register itself with a hash that is not its own fill: the worst a
@@ -43,6 +45,7 @@ export async function GET(req: Request) {
   const room = parseRoomId(url.searchParams.get("marketId") ?? "");
   const address = url.searchParams.get("address");
   if (!room || !isAddress(address)) return refuse(ROOM_ERRORS.badRequest, 400);
+  if (!(await provesAddress(req, address))) return NextResponse.json({ configured: true, hasBet: null }, { headers: NO_STORE });
   const { chainId } = webEnv.markets;
   try {
     const registry = room.kind === "window" ? await hasBet(chainId, room.marketId, address) : await hasBetOnSymbol(chainId, room.symbol, address);

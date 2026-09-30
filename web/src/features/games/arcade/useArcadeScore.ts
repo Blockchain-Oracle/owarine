@@ -59,10 +59,11 @@ export function useArcadeScore(game: ArcadeGame, auth: RoomAuth) {
     async (end: RunEnd): Promise<PostOutcome> => {
       if (auth.kind !== "ready" || !board) return { kind: "refused", why: "no room token to post with" };
       try {
+        const score = JSON.stringify({ game, token: auth.token, seed: end.seed, engineVersion: board.engineVersion, durationMs: end.durationMs, score: end.score, calm: end.calm, trace: end.trace });
         const response = await fetch(SCORE_ENDPOINT, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-agari-device": deviceId(), ...(await seatAuthHeaders()) },
-          body: JSON.stringify({ game, token: auth.token, seed: end.seed, engineVersion: board.engineVersion, durationMs: end.durationMs, score: end.score, calm: end.calm, trace: end.trace }),
+          headers: { "content-type": "application/json", "x-agari-device": deviceId(), ...(await seatAuthHeaders({ method: "POST", url: SCORE_ENDPOINT, body: score })) },
+          body: score,
         });
         const body = (await response.json()) as ScoreAcceptedWire & { error?: string };
         if (!response.ok) return { kind: "refused", why: body.error ?? `the server answered ${response.status}` };

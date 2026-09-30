@@ -44,6 +44,18 @@ describe("classifyRejection (research 05 §E, measured bodies)", () => {
     expect(d.technical).toContain("[tid 83916f9f4aca2aeaeccc848d9d126dd7]");
   });
 
+  it("never hands a client the Canton text: no party id, no contract id, only the error name, a reference and the trace (C4d M4)", () => {
+    const party = "seat-7::1220f00dfeedbeef";
+    const d = classifyRejection(damlFailure("abu-pm/foreign-cash", `cash of ${party} at ${CASH} belongs to another owner`), accept);
+    expect(d.technical).not.toContain(party);
+    expect(d.technical).not.toContain(CASH);
+    expect(d.technical).not.toContain("Interpretation error");
+    expect(d.technical).toMatch(/^ledger abu-pm\/foreign-cash \(ref [0-9a-f]{8}\) \[tid 83916f9f4aca2aeaeccc848d9d126dd7\]$/);
+    const other = classifyRejection(new Error(`connect ECONNREFUSED to ${party}`), accept);
+    expect(other.technical).not.toContain(party);
+    expect(other.technical).toMatch(/^unexpected server error \(ref [0-9a-f]{8}\)$/);
+  });
+
   it("keeps the Canton error id as the diagnosis' errorName", () => {
     expect(classifyRejection(damlFailure("abu-pm/insufficient-cash", "x"), accept).errorName).toBe("abu-pm/insufficient-cash");
     expect(classifyRejection(notFound(QUOTE), accept).errorName).toBe("CONTRACT_NOT_FOUND");

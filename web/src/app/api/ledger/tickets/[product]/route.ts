@@ -32,7 +32,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
   const { server, lease } = auth.seat;
   const seat = { party: lease.party, leaseId: lease.leaseId };
   // A withdrawal redeems from one share contract: the seat's own shares of that reserve are merged first.
-  if (product === "earn" && req.op === "withdraw") await server.tickets.mergeShares(seat, req.reserve).catch(() => undefined);
+  if (product === "earn" && req.op === "withdraw") await server.tickets.mergeShares({ ...seat, fromOffset: lease.startOffset }, req.reserve).catch(() => undefined);
   const reply = await server.ops.ticket(product, { ...req, ...(WRITES.has(req.op) ? seat : {}) });
   if (reply.kind !== "refused" && WRITES.has(req.op)) server.ledger.seats.invalidate(lease.party);
   return replyWith(reply);

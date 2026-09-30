@@ -499,6 +499,47 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** a phone joined to a web seat can grant, duel and run a desk as that seat. A season payout to a player whose seat has since ended is refused (its party may belong to the next visitor) instead of crediting a recycled seat.
 - **Approval:** default; overrulable.
 
+### K-210 — A desk is its owner's only under the owner's current lease; its address names its opening (overflow block)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding H2)
+- **Evidence:** a desk's address was SHA-256(venue · owner party), and a seat party is recycled, so visitor A's index row pointed at visitor B's live desk on the same party: `GET /api/desk/<A>?viewer=A` returned B's desk, and the runner could trade A's record on B's mandate. Tests: `packages/markets/src/desk/lease-bound.test.ts`, `services/ops/src/actors/desk-runner/lease-bound.test.ts`, `web/src/features/desk/chain-lease.test.ts`, `packages/db/src/desk-lease.test.ts` (Postgres).
+- **Rule:**
+  - The web's `readChain` and the runner's `reconcileLive` look a row's mandate up only among the mandates of the party the row's owner leases NOW (`findLeasedMandate`); an owner with no lease gets nothing, and the runner closes that row ("the seat this desk belonged to was reset or passed on").
+  - The seat drain closes the draining lease's index rows (the holder's, a joined key's, and any row on the party's pre-C4d address) with a `state_set` event (`closeLeaseDesks`).
+  - A desk's address is SHA-256(venue · owner party · its opening), the opening being the embedded grant's expiry, which `DeskOffer_Open` sets once from the server's clock and every later choice keeps. **Trade-off:** the review asked for the lease id in the address; the ledger does not know lease ids, and every writer of a desk address (the operator's command ids, the discovery pass, a decision's history) derives it from the mandate alone. An opening always falls inside one lease (the drain must close the mandate before `readSeatHoldings` lets the party be freed), so the opening is a lease-bound identity the ledger can reproduce. A row written before C4d keeps the old address, which resolves only for the party's current lessee.
+  - A desk's history is the live mandate's own hash chain walked back from its head, so an earlier lessee's decisions on the same party are never counted.
+- **User-visible:** none for a visitor's own desk. A recycled seat's next visitor never sees, and is never traded through, the previous visitor's desk; the previous visitor's desk page reads "closed".
+- **Approval:** default; overrulable.
+
+### K-211 — A phone write carries its own one-request proof; the read header reads only (overflow block)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding M2b)
+- **Evidence:** the signed read header (`x-agari-seat-read`) was reused for four minutes and also passed `seatFromRequest({ write: true })`, so one captured header could `POST /api/seat/link` and take the seat over. Tests: `web/src/lib/seat-write-auth.test.ts`, `mobile/src/wallet/seat-key.test.ts` (the phone's key against the server verifier), `packages/markets/src/submitter/seat-lane.test.ts`.
+- **Rule:** on the phone every write (any method but GET) carries `x-agari-seat-write: address.issuedAtMs.nonce.signature`, the seat key's signature over the method, the path with its query, the SHA-256 of the exact body bytes, a 16-byte nonce and the time (`@agari/core/auth` `seatWriteText`). The server takes it within 30 s (5 s skew), for that request only, once: it keeps each verified nonce until the proof goes stale. The read header is honoured for reads only. The web keeps its cookie with the same-origin and `x-agari-seat: 1` rule.
+- **Trade-off:** the nonce cache is in the web process's memory (`globalThis`), which is every replica the single Coolify container has. A second web process would need a shared store (the database) before it scales out.
+- **User-visible:** none; each phone write costs one local signature.
+- **Approval:** default; overrulable.
+
+### K-212 — The app's X handoff is a confirmed, one-time PKCE code, never the session in a URL (overflow block; amends K-145)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding M2a)
+- **Evidence:** `/native-auth?state=` redirected a signed-in browser's X session token straight to `<scheme>://x-auth?session=`, with no tap: any iOS app opening that page in its own ASWebAuthenticationSession (which shares Safari's cookies) and naming our scheme as its callback could collect it. Tests: `web/src/features/x/native-handoff.test.ts`, `web/src/app/api/x/native-code/route.test.ts`, `mobile/src/features/x/x-sign-in.test.ts`.
+- **Rule:** the app opens `/native-auth?state=<nonce>&challenge=<S256 of its verifier>`. Signed in, the page asks "Continue in the app as @handle"; only that tap (a same-origin form post, `/api/x/native-code`, Origin and Sec-Fetch-Site checked, with the SameSite=Lax X cookie) answers 303 `<scheme>://x-auth?code=&state=`. The code is 32 random bytes, 60 s, one exchange, burned by a wrong verifier. The app POSTs `{ code, verifier }` to `/api/x/native-exchange` for the session and keeps it in the Keychain as before. A request without a nonce and a challenge still never redirects into an app scheme.
+- **Trade-off:** codes live in the web process's memory, like K-211's nonces (one container). An app that starts its own handoff holds its own verifier, so PKCE alone does not stop it; the confirmation tap (and iOS's own "wants to use … to sign in" prompt) is what does.
+- **User-visible:** one extra tap ("Continue in the app") on the phone's X sign-in sheet.
+- **Approval:** default; overrulable.
+
+### K-213 — Ops' internal calls are single-use; the season admin has its own secret (overflow block; amends K-105)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding L4)
+- **Evidence:** `/internal/*` accepted a captured call again within its 30 s window, a handler's crash answered with its own error text, the public `/health` served a failed pass's raw ledger error, and `season/distribute` was signed with the web's `OPS_INTERNAL_SECRET`. Tests: `services/ops/src/http/internal.test.ts`, `services/ops/src/runtime/actor-health.test.ts`, `packages/markets/src/server/ops-client.test.ts`.
+- **Rule:** the web → ops signature is `v2` over `<ts>.<nonce>.<METHOD>.<path>.<body>` with `x-agari-ops-nonce` (16 random bytes); ops takes each verified nonce once and keeps it for twice the skew (in memory: ops is one container, AD-4). `season/distribute` and `season/withdraw` verify under `OPS_ADMIN_SECRET` (ops only, never the web; unset = closed), which `scripts/season-admin.ts` signs with. A handler's crash answers "ops could not complete this call (ref …)"; a failed pass reads "pass failed (ref …)" on `/health`; both texts go to the log under the reference. The runbook takes `/internal/*` off the public router (`!PathPrefix(/internal)`).
+- **User-visible:** none. The season admin needs `OPS_ADMIN_SECRET` instead of the web's secret.
+- **Approval:** default; overrulable.
+
+### K-214 — A duel-room credential and an arcade score are seat writes (overflow block; joins K-204 and K-211)
+- **Date / owner:** 2026-09-30 · lead, at the C4c + C4d merge
+- **Evidence:** C4c made `/api/games/room-token` and `/api/games/arcade/score` check the seat (`seatFromRequest({ write: false })`) and sent the phone's read header with them; C4d then limited the read header to reads (K-211). A captured read header could still mint a room credential or post a score as the seat for up to five minutes.
+- **Rule:** both routes call `seatFromRequest({ write: true })` and read the body through `jsonBody` (so the write proof hashes the same bytes); `seatAuthHeaders({ method, url, body })` sends the site header for the web's cookie path and the one-request write proof for the phone.
+- **User-visible:** none; each mint, renewal and score costs the phone one local signature.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

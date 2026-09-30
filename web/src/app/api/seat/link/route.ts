@@ -1,7 +1,7 @@
 import { type NextRequest } from "next/server";
 import { issueSeatLink } from "@/lib/seat-link.server";
 import { normalizeSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
-import { refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { refusal, replyWith, seatFromRequest, serverFault } from "@/lib/seat.server";
 
 /**
  * The seat link, holder's half (plan, iOS step 2b): `POST` gives the seat this device holds a one-time code (60 s,
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   try {
     issued = await issueSeatLink(server, lease, Date.now());
   } catch (error) {
-    return refusal("indexer-down", `seat store unreachable: ${error instanceof Error ? error.message : String(error)}`, 503);
+    return serverFault("indexer-down", "seat store unreachable", error, 503);
   }
   if (!issued.ok) return refusal("faucet-refused", issued.reason, 429);
   return replyWith({ code: issued.code, expiresAtMs: issued.expiresAtMs });

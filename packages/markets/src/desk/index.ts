@@ -40,7 +40,9 @@ export * from "./canton";
 export * from "./wire";
 export { DeskSendError, DeskSendUnknownError } from "./errors";
 export {
+  chainOfMandate,
   createDeskLedgerRpc,
+  findLeasedMandate,
   findMandate,
   mintOf,
   namesOfAllowList,

@@ -38,6 +38,8 @@ export interface RunnerContext {
   /** Desks holding new sends until an unknown one is reconciled by signature. */
   holding: Set<string>;
   log: Log;
+  /** The party a desk owner's address leases now, or null (C4d, K-210); the lease table by default (`lease.ts`). */
+  leasePartyOf?: (address: string) => Promise<string | null>;
 }
 
 /** A live desk's chain state as reconcile read it, or a practice desk's paper ledger standing in for it. */
