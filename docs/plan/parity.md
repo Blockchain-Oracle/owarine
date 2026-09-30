@@ -167,7 +167,7 @@ Status as of 30 Sep (C10d): rows proven on the local sandbox are Partial and cit
 | C-MKT-09 | `/api/sentiment` crowd flow | Adapted | Pending | C5 | Opt-in `Publication`s only, k = 5 floor, privacy note on hover | new | — |
 | C-MKT-10 | `/api/proof/pyth` | Adapted | Pending | C5 | Becomes re-verify an archived price from its payload and `payloadHash` | new | — |
 | C-MKT-11 | `/api/dev/verify-message` | Adapted | Pending | C1 | Checks seat signatures | new | — |
-| C-MKT-12 | Holdings-dependent UX: cover and hedge cards, "Your stocks", drop bell, landing Cover | Adapted | Pending | C7b | Reference's no-holdings state until C7b; then CIP-56 holdings | new | — |
+| C-MKT-12 | Holdings-dependent UX: cover and hedge cards, "Your stocks", drop bell, landing Cover | Adapted | Shell | C7b | Reference's no-holdings state until a deployment names a tokenised-share instrument; `/api/holdings` now reads the seat's CIP-56 `Holding`s as the leased party, behind `NEXT_PUBLIC_CIP56_HOLDINGS` (off) | new | unit tests: [c7b-canton-coin](../evidence/c7b-canton-coin.md) |
 | C-MKT-13 | X grammar `<btc|eth>` | Adapted | Pending | C13 | X grammar gains BTC and ETH | new | — |
 
 ## Daml programs
@@ -179,7 +179,7 @@ Status as of 30 Sep (C10d): rows proven on the local sandbox are Partial and cit
 | C-DAML-03 | Product dependents (`product_add_dependent` / `release_dependent`) | Adapted | Pending | C8 | Products carry `termsCid`; terms never archived before dependents settle | new | — |
 | C-DAML-04 | Strategy `creator_seal` (sealed spec), `set_runner`, `deactivate` | Adapted | Partial | C8 | `Strategy.specHash`, `SetRunner`, `Deactivate` | new | local sandbox: [c8f-agents](../evidence/c8f-agents.md) |
 | C-DAML-05 | Season prize pool and arena tiers | Adapted | Partial | C9 | `SeasonPool` in `abu-pm-games`; tiers as a table in `Arena` terms | new | local sandbox: [c9b-games](../evidence/c9b-games.md) · [c9d-seats-games](../evidence/c9d-seats-games.md) |
-| C-DAML-06 | Canton Coin rail (CIP-56 allocation) | Adapted | Pending | C7b | If vetted on Noders | new | — |
+| C-DAML-06 | Canton Coin rail (CIP-56 allocation) | Adapted | Shell | C7b | `abu-pm-cc` 0.1.0 on the token standard V1: a deposit is the owner's TransferInstruction accepted and credited in one transaction, a withdrawal a TransferFactory transfer, an allowance and an auditor-visible reserve statement; the allocation (V2) route is not built. Proved in Daml Script and unit tests, not on a network: `not-live` in code until DevNet proves it with a real wallet | new | Daml Script + unit tests: [c7b-canton-coin](../evidence/c7b-canton-coin.md) |
 
 ## Ops actors
 
