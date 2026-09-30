@@ -11,8 +11,16 @@ anchor/target
 anchor/.anchor
 .surfpool
 **/*.log
-.env
-.env.*
-!.env.example
+# Every env file at any depth (C10a): services/ops/.env.local holds real keys, and `.env.*` alone matched only the root.
+**/.env
+**/.env.*
+!**/.env.example
 .vercel
 docs-site
+# Evidence screenshots, native build output, Daml build output and the fetched geo table (the web build fetches its
+# own) are not read by either service.
+docs/evidence
+mobile/ios
+mobile/android
+daml/**/.daml
+web/data/geo
