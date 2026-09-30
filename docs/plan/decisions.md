@@ -298,6 +298,52 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
 - **Approval:** default; Abu creates the app record when the iOS build reaches it.
 
+### K-140 — A seat's own history is read under its lease; anyone else's only from its publications (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Evidence:** the projector keys a seat's rows by party and never writes `owner_address` (`packages/db/src/idx/apply.ts`; `c9d-seats-games.md`), and a seat party is recycled to later visitors. Before C13a, `/api/index/wallet/<address>/{fills,actions,positions,orders}` matched nothing for a seat address, `/u/<address>` answered 403 for anyone else, and the activity inbox read publications even for the seat itself. Tests: `packages/db/src/idx/read-lease.test.ts` (Postgres, 8), `web/src/app/api/index/[...path]/queries-lease.test.ts`, `web/src/app/api/activity/route.test.ts`.
+- **Rule:**
+  - Every `wallet/*` index read runs under the caller's lease: a row of the leased party counts only from the lease's start offset (fills by `ledger_offset`, exits by the leg's `created_offset`, quotes by `issued_offset`, receipts by `created_offset`). An address with no lease reads nothing.
+  - A position row sums one (Window, party), so under a lease it counts only when the party had no fill in that Window before the lease began; a Window the previous visitor also traded is withheld rather than merged. The visitor's receipts and live contracts still show it.
+  - The seat's own inbox (`/api/activity` when the caller proves the seat) is its own fills and verdicts under the lease, published or not.
+  - Anyone else's profile, record, badges and open calls come from opt-in `Publication`s only (`/api/index/published/<address>/*`). An open published call is marked at the Window's last price only where the venue shows it (k ≥ 5); below that its value is the stake and no P&L is claimed.
+- **User-visible:** a recycled seat never shows the previous visitor's history; another trader's profile shows only what they published, and says so.
+- **Approval:** default; overrulable.
+
+### K-141 — Blinks answer with a signed Window share link (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane (the plan's "Adapted" disposition, as built)
+- **Evidence:** `packages/core/src/x/share-link.ts`, `share-link.test.ts`; routes `/actions.json`, `/api/actions/w/[marketId]`, `/api/actions/t/[symbol]/[cadence]`, `/api/share/window`, `/.well-known/apple-app-site-association`.
+- **Rule:**
+  - The URLs and the card stay (Up and Down, each with its amount field). The buttons are `external-link` actions; the `POST` runs the reference's pre-build checks (phase, stake floor, the 451 region answer) and answers `{ type: "external-link", externalLink, message }`. No chain id and no Actions version header.
+  - The link is `<origin>/markets/<id>?dir=&stake=&exp=&sig=`: HMAC-SHA256 over the Window, side, stake and expiry (the Window's close), under a key derived from `AGARI_SEAT_COOKIE_SECRET` with its own label (no new variable). A valid link pre-fills the ticket's stake once through the reference's own stake preset (the hedge card's path), so the ticket is unchanged; an edited, foreign or expired link opens as a plain deep link (side only).
+  - The app opens the same https path as a universal link and asks `/api/share/window` whether it verifies. The association file claims `/markets/*` for `IOS_APP_ID` (`<Team ID>.<bundle id>`) and answers 404 until it is set.
+- **User-visible:** a shared Window card opens that Window's ticket, on the web or in the app, with the chosen side and stake; nothing is placed until the viewer confirms.
+- **Needs (C11, not this lane):** `IOS_APP_ID` on the host and `ios.associatedDomains: ["applinks:<domain>"]` in the app config once the domain and app record exist.
+- **Approval:** default; overrulable (Abu may still exclude Blinks by a dated word, plan "optional exclusions").
+
+### K-142 — A desk's owner view needs the seat's proof (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane (found through Sensei's desk read; the C8 desk owner may amend)
+- **Evidence:** `/api/desk/[owner]{,/records,/records/[seq],/feed}` granted the owner view, with the owner's private notes and the mandate's live state, to any request whose `?viewer=` equalled the owner's address. `web/src/features/desk/proven-viewer.test.ts`.
+- **Rule:** `provenViewer` takes `?viewer=` only when `seatCaller` proves the caller is that seat (web cookie or the phone's signed read header, which the desk client now sends). An unproven viewer is a visitor.
+- **User-visible:** none for the owner; a typed address no longer opens someone else's unshared desk.
+- **Approval:** default; overrulable.
+
+### K-143 — The desk's timing prompt is `desk-timing.v2` on Canton (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Rule:** v2 states the Canton desk (K-090, K-091): units on the venue's hourly pre-IPO markets bought with demo venue cash, or paper units; the 2-of-3 oracle reference; the ledger's own refusals (premium ceiling over the reference, 92 % sale floor, 15-minute reference age); cost as the quote's gap plus the practice ledger's 1 % fee. The four answers, the priorities and the rules for when are word for word v1's, so the decision logic is unchanged. v1 was only the reference's Solana prompt; no Canton record names it, so it is not carried. The evidence message speaks credits and units; its keys are unchanged.
+- **Approval:** default; overrulable.
+
+### K-144 — The X relay's public reply names Canton and links an absolute proof page (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Rule:** the network label is `CLUSTER_LABEL` of `NEXT_PUBLIC_CANTON_NETWORK` ("Canton DevNet" by default); the receipt link is `<site>/proof?update=<id>`; a rejected command reads "The ledger rejected the trade. Nothing was booked and no fee was taken." The relay's placement path (C8f, `Grant_AcceptQuote` as the agent-runner party) is unchanged; a binding is the seat address, which resolves to a party only while it holds a lease.
+- **Approval:** default; overrulable.
+
+### K-145 — `/native-auth` is the X sign-in handoff into the app (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Rule:** the app opens `/native-auth?state=<16-byte hex nonce>` in an auth session (`WebBrowser.openAuthSessionAsync`, ASWebAuthenticationSession on iOS) with a return URL on its own scheme read from the app config (never spelled in code). Not signed in, the page runs the ordinary X sign-in (`/api/x/start?return=/native-auth?state=…`); signed in, it redirects to `<scheme>://x-auth?session=<signed X session>&state=<nonce>`; a failure goes back as `error=<known word>`. The web's scheme is C11a's `APP_LINK_SCHEME`, which its `mobile-identity` invariant keeps equal to the app identity's. The app accepts only its own nonce, keeps the session in the Keychain and sends it back in `X_SESSION_HEADER`, which the X gate validates exactly like the cookie (HMAC, 30-day TTL). A request without a nonce never redirects into an app scheme. The seat still signs its own link text; the forwarded session only names an X account.
+- **Built:** the gate's header and the handoff's decisions (`77b1a29`). The page and the app's sign-in pill land when `APP_LINK_SCHEME` is on main (C11a); until then the phone keeps the reference's "link on the web" note.
+- **User-visible:** "Sign in with X" works on the phone, in a sheet, and comes straight back.
+- **Approval:** default; overrulable.
+
 ### K-020 — Quote issuance lives on a venue-only `VenueDesk`
 - **Date / owner:** 2026-09-29 · C2 lane
 - **Evidence:** Daml forbids import cycles: `VenueCash_IssueQuote` would create a `Quote` whose `Quote_Accept` consumes `VenueCash`. `daml/abu-pm-main/daml/PM/Quote.daml`.

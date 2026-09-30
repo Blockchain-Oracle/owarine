@@ -11,7 +11,8 @@ import { presetStake } from "./stake-preset";
  */
 export function SharedStakePreset({ marketId, stakeBase }: { marketId: MarketId; stakeBase: string }) {
   const done = useRef(false);
-  if (!done.current) {
+  // Browser only: the preset is module state the ticket's effect takes, and server rendering has no ticket to take it.
+  if (!done.current && typeof window !== "undefined") {
     done.current = true;
     presetStake(marketId, BigInt(stakeBase));
   }
