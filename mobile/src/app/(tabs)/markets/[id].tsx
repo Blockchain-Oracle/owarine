@@ -4,6 +4,9 @@ import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { presetStake } from "@/features/markets/ticket/stake-preset";
 
+/** How long the signed-link check may take before the Window opens without its stake preset. */
+const CHECK_TIMEOUT_MS = 8_000;
+
 type Params = { id: string; dir?: string; stake?: string; exp?: string; sig?: string };
 
 /**
@@ -23,15 +26,23 @@ export default function MarketRoute() {
     if (!signed) return;
     const q = new URLSearchParams({ m: id, dir: dir ?? "", [SHARE_STAKE_PARAM]: stake ?? "", [SHARE_EXPIRES_PARAM]: exp ?? "", [SHARE_SIG_PARAM]: sig ?? "" });
     let live = true;
-    fetch(`/api/share/window?${q.toString()}`)
+    // The route shows nothing until this settles, so a check that hangs must not strand the person on a blank screen.
+    const abort = new AbortController();
+    const timer = setTimeout(() => abort.abort(), CHECK_TIMEOUT_MS);
+    fetch(`/api/share/window?${q.toString()}`, { signal: abort.signal })
       .then((r) => (r.ok ? (r.json() as Promise<{ share: { stakeBase: string } | null }>) : { share: null }))
       .then((body) => {
         if (live && body.share) presetStake(toMarketId(id), BigInt(body.share.stakeBase));
       })
       .catch(() => undefined)
-      .finally(() => live && setChecked(true));
+      .finally(() => {
+        clearTimeout(timer);
+        if (live) setChecked(true);
+      });
     return () => {
       live = false;
+      clearTimeout(timer);
+      abort.abort();
     };
   }, [signed, id, dir, stake, exp, sig]);
 
