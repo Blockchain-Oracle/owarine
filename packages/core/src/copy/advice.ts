@@ -4,5 +4,5 @@
  * placed wherever Agari offers a read, a strategy or a shareable call.
  */
 export const ADVICE_COPY = {
-  notAdvice: "Calls, reads and strategies here are not investment advice. Devnet test balances only.",
+  notAdvice: "Calls, reads and strategies here are not investment advice. Demo credits on a test network only.",
 } as const;

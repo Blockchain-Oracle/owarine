@@ -38,7 +38,7 @@ export async function statusGate(market: EventMarket, nowMs: number, admit: Gate
   if (!account) throw notTrading(`Window ${market.marketId} not found`);
   const onchain = toOnchainSnapshot(account, series, venue, msToSec(nowMs));
   const listed = admit === "listed-or-trading" && onchain.status === ONCHAIN_STATUS.Listed;
-  if (onchain.status !== ONCHAIN_STATUS.Trading && !listed) throw notTrading(`on-chain status ${onchain.status} is not Trading (${ONCHAIN_STATUS.Trading})${admit === "listed-or-trading" ? " or Listed" : ""}`);
+  if (onchain.status !== ONCHAIN_STATUS.Trading && !listed) throw notTrading(`ledger status ${onchain.status} is not Trading (${ONCHAIN_STATUS.Trading})${admit === "listed-or-trading" ? " or Listed" : ""}`);
   if (venue.mode !== MODE_NORMAL) throw notTrading(`the venue is in mode ${venue.mode}, not Normal`);
   if (insideNoEntryBuffer(nowMs, { lockAtSec: onchain.lockAtSec, intervalSec: market.intervalSec })) throw notTrading("inside the no-entry buffer before the Window locks");
   return { onchain, series, venue, tradingStartSec: Number(account.data.tradingStartSec) };

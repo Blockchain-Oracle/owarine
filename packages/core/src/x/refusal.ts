@@ -3,7 +3,7 @@ import { describeRefusal, type XRefusalReason } from "./parse";
 
 /** Safe, shared recovery copy for public replies and the app's receipt list. */
 export const X_REFUSAL_DETAILS: Record<XRefusalCode, string> = {
-  "account-not-linked": "Link your X account to your wallet in the app.",
+  "account-not-linked": "Link your X account to your seat in the app.",
   "instruction-invalid": "Use a listed stock such as TSLA, UP or DOWN, an amount, and a Window.",
   "balance-unavailable": "Your X trading balance could not be checked. Try again shortly.",
   "not-deployed": "Trading is unavailable on this network.",

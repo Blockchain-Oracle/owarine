@@ -49,7 +49,7 @@ const VAULT_ERRORS = new Map<number, readonly [string, DiagnosisKind, string?]>(
   [7203, ["NothingToSettle", "already-claimed"]],
   [7204, ["BadOutcome", "contract-revert"]],
   [7205, ["BadPrice", "invalid-price"]],
-  [7206, ["VaultNotRegistered", "not-deployed", "agari-vault is not registered as a program authority on this venue yet"]],
+  [7206, ["VaultNotRegistered", "not-deployed", "the Trading Balance is not registered on this venue yet"]],
   [7207, ["WindowPredatesVault", "market-not-trading", WINDOW_PREDATES_VAULT]],
   [7208, ["PositionSlotsFull", "contract-revert", "settle a finished Window first"]],
   [7209, ["EngineResultMissing", "contract-revert"]],
