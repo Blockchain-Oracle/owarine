@@ -29,7 +29,7 @@ export const INSTALL = {
     { label: "iPhone", note: "not built on Canton yet · add the web app to your Home Screen" },
     { label: "Canton test network", note: "demo credits, real mechanics" },
   ],
-  film: { label: "The launch film", poster: "/media/agari-launch-poster.jpg", src: "/media/agari-launch.mp4" },
+  film: { label: "The launch film · before the Canton port", poster: "/media/agari-launch-poster.jpg", src: "/media/agari-launch.mp4" },
   android: {
     eyebrow: "Android",
     title: "The Android app",
