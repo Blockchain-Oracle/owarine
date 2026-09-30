@@ -110,32 +110,6 @@ export function socialActivityReader(sql: Sql) {
         ORDER BY m.resolved_ts_sec DESC NULLS LAST LIMIT ${clamp(q.limit)}`;
     },
 
-    /**
-     * A seat's own calls, private or published (the push drain's inbox, C11): the fills recorded under the address the
-     * seat's lease was taken with, in the published feed's row shape. Only the server reads these, for that seat's phone.
-     */
-    async seatFills(address: string, q: SocialActivityQuery = {}): Promise<SocialFillRow[]> {
-      return sql<SocialFillRow[]>`
-        SELECT f.update_id AS signature, 0 AS outer_ix, f.node_id AS inner_ix, 0 AS fill_ix, f.market, f.owner_address AS wallet, f.kind, 'taker' AS seat,
-          m.symbol, m.cadence_sec, f.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit)::text AS amount_base, f.ts_sec::text AS ts_sec
-        FROM idx_fills f JOIN idx_markets m ON m.market = f.market
-        WHERE f.owner_address = ${address} AND f.kind IN (0, 2) AND m.symbol IS NOT NULL ${since(sql`f.ts_sec`, q.sinceSec)}
-        ORDER BY f.ts_sec DESC, f.ledger_offset DESC LIMIT ${clamp(q.limit)}`;
-    },
-
-    /** A seat's own legs on terminal Windows, private or published, newest settlement first (the push drain's verdicts). */
-    async seatSettlements(address: string, q: SocialActivityQuery = {}): Promise<SocialSettlementRow[]> {
-      return sql<SocialSettlementRow[]>`
-        SELECT l.market, l.owner_address AS owner, m.symbol, m.cadence_sec, m.state, m.winner, m.resolved_ts_sec::text, m.expiry_sec::text,
-          (CASE WHEN l.outcome = 0 THEN l.lots ELSE 0 END)::text AS held_yes_lots, (CASE WHEN l.outcome = 1 THEN l.lots ELSE 0 END)::text AS held_no_lots,
-          (m.cash_unit * 1000)::text AS lot_base, (l.backing_share + l.fee_paid)::text AS cost_base, '0' AS proceeds_base,
-          (l.status <> 'open') AS redeemed, (l.status = 'settled') AS redeemed_by_crank,
-          COALESCE(l.payout_base, 0)::text AS payout_base, l.closed_update_id AS last_signature, l.closed_ts_sec::text AS last_ts_sec
-        FROM idx_legs l JOIN idx_markets m ON m.market = l.market
-        WHERE l.owner_address = ${address} AND NOT l.is_venue AND m.state <> 'open' AND m.symbol IS NOT NULL ${since(sql`m.resolved_ts_sec`, q.sinceSec)}
-        ORDER BY m.resolved_ts_sec DESC NULLS LAST LIMIT ${clamp(q.limit)}`;
-    },
-
     /** The published calls on one ticker's Windows. */
     async tickerFills(symbol: string, q: SocialActivityQuery = {}): Promise<SocialFillRow[]> {
       return sql<SocialFillRow[]>`

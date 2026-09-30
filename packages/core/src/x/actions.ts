@@ -12,7 +12,7 @@ import type { XRefusalCode } from "./receipt";
  * A Blink is a link a wallet unfurls into a signable transaction: the client `GET`s this metadata, renders the
  * buttons, then `POST`s `{ account }` and signs whatever transaction comes back. These are the spec's shapes, kept
  * here in `packages/core` for one reason — `@solana/actions` is an `@solana/*` module, and only `packages/markets`
- * may import those (plan §6, `ledger-import-boundary`). The route stays a pure wire; the transaction is built in
+ * may import those (plan §6, `kit-import-boundary`). The route stays a pure wire; the transaction is built in
  * `@agari/markets/x`.
  *
  * Refusal copy is never invented here: a Blink that cannot trade says exactly what an X reply would say, out of

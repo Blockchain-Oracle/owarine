@@ -17,12 +17,15 @@ import { PUSH_KIND_OF, type PushData } from "./protocol";
  * journalled so the next drain never repeats one. Ops calls this on a clock; nothing here runs on its own.
  */
 
-/** The address a registered phone's seat was leased under, or null when the seat tier is off or it holds no lease. */
-async function holderAddress(wallet: string): Promise<Address | null> {
+/**
+ * The lease a registered phone's seat holds (a phone joined by a seat link resolves to its seat's lease), or null when
+ * the seat tier is off or the address holds none.
+ */
+async function seatLeaseOf(wallet: string): Promise<{ holder: Address; lease: { party: string; startOffset: number } } | null> {
   const tier = seatServer();
   if (!tier.ok) return null;
   const lease = await tier.server.store.byAddress(wallet).catch(() => null);
-  return lease ? (lease.address as Address) : null;
+  return lease ? { holder: lease.address as Address, lease: { party: lease.party, startOffset: lease.startOffset } } : null;
 }
 
 /** One drain's reach: enough devices for the whole beta; the oldest registrations are served first. */
@@ -121,10 +124,10 @@ export async function drainPush(nowMs: number): Promise<DrainReport> {
   const perWallet = await inPool([...byWallet.entries()], READ_CONCURRENCY, async ([wallet, owned]) => {
     const oldest = Math.min(...owned.map((d) => d.sinceSec));
     const since = Math.max(oldest - LATE_SEC, nowSec - LOOKBACK_SEC);
-    // A leased seat's phone hears about its own calls, private ones included (the Canton projection by the lease's
-    // address; a phone joined by a seat link reads the holder's); any other address hears its published calls.
-    const holder = await holderAddress(wallet);
-    const feed = holder ? await seatInboxFeed(holder, since) : await inboxFeed(wallet as Address, since);
+    // A leased seat's phone hears about its own calls through its lease (a phone joined by a seat link, its seat's);
+    // any other address hears its published calls. seatInboxFeed is a stub until C13a's seat reader lands (see it).
+    const seat = await seatLeaseOf(wallet);
+    const feed = seat ? await seatInboxFeed(seat.holder, seat.lease, since) : await inboxFeed(wallet as Address, since);
     return owned.map((device) => messagesFor(device, feed.items, sentByToken.get(device.expoToken) ?? new Set(), units));
   });
 

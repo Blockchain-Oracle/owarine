@@ -15,16 +15,6 @@ async function leaseOf(address: string): Promise<SeatLeaseScope | null> {
 }
 
 /**
- * The address a seat's own rows are recorded under: the key that took the lease. A key joined to that seat by a seat
- * link (iOS step 2b) reads the same rows as the holder, so "the same seat on web and phone" shows the same calls.
- */
-async function holderOf(address: string): Promise<string | null> {
-  const tier = seatServer();
-  if (!tier.ok) return null;
-  return (await tier.server.store.byAddress(address).catch(() => null))?.address ?? null;
-}
-
-/**
  * The projection's read API (first-call.md §5): lists, Window rows with prints, a seat's fills, positions and actions,
  * print history, candles and freshness, straight from Postgres. Never gates a write. Public answers ride a 2 s shared
  * cache; a seat's own rows need its signed read header (`x-agari-seat-read`) and are never cached.
@@ -57,8 +47,6 @@ export async function GET(request: NextRequest, context: { params: Promise<{ pat
     if (caller === null || caller !== resolved.owner) {
       return NextResponse.json({ error: "a seat reads only its own rows" }, { status: 403, headers: { "cache-control": PRIVATE_CACHE } });
     }
-    const holder = await holderOf(caller);
-    if (holder && holder !== caller) resolved = resolveIndexQuery(["wallet", holder, ...path.slice(2)], query, webEnv.markets.packageName) ?? resolved;
   }
 
   const db = getDb();
