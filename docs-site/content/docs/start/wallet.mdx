@@ -1,6 +1,6 @@
 ---
 title: "Your seat and demo credits"
-description: "Take a seat, get demo credits, and what happens when a seat is released or reset."
+description: "Take a seat, get demo credits, use it on another device, and what happens when a seat is released or reset."
 ---
 
 Agari has no wallet to connect. Choose **Take a seat** in the header and you are ready to call: there is no extension to install, no network to switch and no fee to pay.
@@ -9,22 +9,26 @@ Agari has no wallet to connect. Choose **Take a seat** in the header and you are
 
 Taking a seat does two things:
 
-- **This browser makes a signing key** that cannot be exported — the page itself cannot read its private half. Every call you place is signed with it.
-- **The venue leases you a Canton party of your own.** Your cash and your positions are contracts that only your seat's party and the venue can see. Another visitor cannot, and neither can the oracles.
+- **This browser makes an ed25519 signing key** that cannot be exported; the page itself cannot read its private half. On the iPhone app the key lives in the Keychain, for that phone only. Every call you place is signed with it.
+- **The venue leases you a Canton party of your own.** Your cash and your positions are contracts with two stakeholders, your seat's party and the venue, so only the two of you can see them. Another visitor cannot, and neither can the oracles or an outsider. The **Who can see this** chip and the view switcher on a market page show it with the literal ledger query.
 
-The seat is leased only when you click; browsing <AppLink href="/markets">Markets</AppLink> and <AppLink href="/proof">Proof</AppLink> needs no seat.
+The seat menu shows your party id, the time left on the lease and your demo cash. The seat is leased only when you click; browsing <AppLink href="/markets">Markets</AppLink> and <AppLink href="/proof">Proof</AppLink> needs no seat.
 
 ## Demo credits
 
-A new seat is funded with **demo credits**, the venue's test money on a Canton test network. They size every call and ticket, and they are worth nothing anywhere else; there is no way to move them off the venue. Canton charges no network fee, so there is nothing else to top up.
+The venue credits a new lease with **1,000 demo credits**, once per lease. They size every call and ticket, have no cash value, and cannot be moved off the venue. Canton charges no network fee, so there is nothing else to top up.
+
+## Use it on another device
+
+**Use on another device** in the seat menu shows a QR code and an eight-character code (such as `K7M2 QF4H`). A code lasts 60 seconds and works once. On the other device, scan it (the iPhone camera opens the app) or type it at <AppLink href="/seat/link">Seat link</AppLink>; that device signs the code with its own key. Your first device then asks **Allow this device?** with the new key's short form; choose **Allow**, or **Not mine** if it is not yours. Both devices then see the same positions. A code that collects 25 wrong guesses stops working. This link is built and tested; it has not yet been run end to end between two devices.
 
 ## When a seat is released
 
-Seats come from a small shared pool. A seat you have left idle, with no open positions, goes back to the pool. Before it is reused, its open quotes are withdrawn, any open positions close at what they cost, and its cash is swept, so the next visitor starts from an empty party and never sees yours. A seat with open positions is not released before they settle. If every seat is taken, the page says when the next one frees and takes it for you.
+Seats come from a small shared pool. The idle clock is 15 minutes and counts only while the seat holds no open position and no live quote. A lease lasts about 4 hours, or until its last position settles if that is later; a seat left silent for a day whose next position settles more than a day out is closed too. Before a seat is reused, the venue withdraws its open quotes, closes any position on an unresolved Window at what it cost, redeems any Earn shares and sweeps its cash. It frees the seat only after two empty reads of the ledger, and the next visitor's history starts after that sweep, so they never see yours. If every seat is taken, the page shows your place in line and when the next seat frees, and takes it for you.
 
 ## Resetting a seat
 
-**Reset seat** in the seat menu lets the seat go and deletes this browser's key. The key cannot be recovered, and a new seat starts from fresh demo credits.
+**Reset seat** in the seat menu lets the lease go and deletes this browser's key. The key cannot be recovered, and a new seat starts from fresh demo credits. On a device that joined through a code, Reset seat removes only that device.
 
 ## If a call does not go through
 

@@ -1,24 +1,24 @@
 ---
 title: "Make your first call"
-description: "Go from browsing to a settled result with demo credits."
+description: "Take a seat, get demo credits, and go from browsing to a settled result."
 ---
 
-A call is a prediction about a listed price during a **Window**: one asset, one open, one close, one cadence. Choose Up or Down, pay the amount shown, then wait for the closing print to settle it.
+A call is a prediction about a listed price during a **Window**: one asset, one open, one close, one cadence. Choose Up or Down, accept the price shown, then wait for the closing print to settle it.
 
-Agari runs on a **Canton test network**. The money is **demo credits**, worth nothing anywhere else. You can browse <AppLink href="/markets">Markets</AppLink> and read every price without a seat.
+Agari runs on **Canton**. The money is **demo credits**, worth nothing anywhere else. You can browse <AppLink href="/markets">Markets</AppLink> and read every price without a seat. Today the whole path below runs on a local Canton sandbox; there is no hosted URL yet.
 
 <Steps>
 <Step>
 ### Take a seat
 
-Open <AppLink href="/markets">Markets</AppLink> and choose **Take a seat**. This browser makes a signing key that cannot leave it, and the venue leases you a Canton party of your own. There is no wallet to install and no network to switch. [Your seat](/start/wallet) explains what that means.
+Open <AppLink href="/markets">Markets</AppLink> and choose **Take a seat**. This browser makes an ed25519 signing key that cannot be exported, and the venue leases you a Canton party of your own. There is no wallet to install and no network to switch. [Your seat](/start/wallet) explains what that means.
 
 Taking a seat does not place a call.
 </Step>
 <Step>
 ### Your demo credits
 
-A new seat starts with demo credits. Canton charges no network fee, so there is nothing else to top up.
+The venue credits a new seat with 1,000 demo credits, once per lease. Canton charges no network fee, so there is nothing else to top up.
 </Step>
 <Step>
 ### Choose a Window and a side
@@ -28,13 +28,13 @@ Pick a ticker and a live Window. **Up** wins when the closing print is at or abo
 <Step>
 ### Review and place
 
-Enter your stake and side. The venue gives you a **firm quote**: one price, valid for a few seconds. The ticket shows the exact cost, fee included, before you accept. Accepting creates your position, which only your seat and the venue can see.
+Enter your stake and side. The venue gives you a **firm quote** from its published price ladder: one price, held for about 20 seconds and only for your seat. The ticket shows the exact cost, fee included, before you accept. Accepting creates your position, which only your seat and the venue can see; the ticket names the ledger update it landed in.
 </Step>
 <Step>
 ### Watch and collect
 
-Open <AppLink href="/portfolio">Portfolio</AppLink> to watch the Window. When it closes, the resolver settles it from the oracle parties' signed prints — or voids it if too few prints arrived or they disagreed too much, and a void returns your stake and your fee. The venue pays settled positions to your seat; each result's evidence opens on the proof page.
+Open <AppLink href="/portfolio">Portfolio</AppLink> to watch the Window. When it closes, the resolver and the venue record the result from the oracle parties' prints, or void it if too few prints arrived or they disagreed by more than 1%; a void returns your stake and your fee. The venue's settler pays your seat without you signing anything, and each result opens its proof page.
 </Step>
 </Steps>
 
-[Your first call, in full](/trading/first-trade) covers what a void looks like. [What is available](/help/availability) explains which parts of the app are running now and which are planned.
+[Your first call, in full](/trading/first-trade) covers what a void looks like. [What is available](/help/availability) explains which parts of the app run now, and what each one needs.

@@ -1,21 +1,22 @@
 ---
 title: "Get the app"
-description: "Agari on your phone: the web app today, and the native app that is planned for Canton."
+description: "Agari on your phone: the web app in a phone browser, and the iPhone app built for Canton that is not on TestFlight yet."
 ---
 
-Agari runs on a phone in the browser today: open the site in Safari or Chrome and add it to your Home Screen. It is the same product as the website, on the same Canton test network, with the same demo credits.
+The web app works on a phone: open it in Safari or Chrome and add it to your Home Screen. It is the same product as on a desktop, on the same venue, with the same seat and demo credits. Today it runs against a local Canton sandbox; there is no hosted URL to open yet.
 
-## The native app (planned)
+## The iPhone app (built, not on TestFlight yet)
 
-A native app for iPhone and Android is being ported to Canton. It will be offered through a public TestFlight link and a downloadable APK once it is ready; until then there is no Canton build to install, and earlier builds of the app do not work with this venue.
+A native iPhone app is built for Canton: it has its own identity, typechecks with every change and its iOS build exports cleanly. It is **not on TestFlight yet**. Its App Store Connect record does not exist yet, and the app has not yet been run on a phone or simulator against a Canton venue. There is no Android APK. Earlier builds of the app do not work with this venue.
 
 ## Your seat on a phone
 
-There is no wallet app to open. **Take a seat** works the same way as on the web: the phone makes a signing key and keeps it in its secure storage, for this device only (never synced or restored onto another phone), and the venue leases a Canton party for it. [Your seat](/start/wallet) explains what that means. There is no network fee.
+There is no wallet app to open. **Take a seat** works as on the web: the phone makes an ed25519 signing key and keeps it in the iPhone Keychain, for this device only (never synced or restored onto another phone), and the venue leases a Canton party for it. The first-run pages end with the demo-credits terms, and accepting them takes the seat. To use a seat you already hold on the web, choose **Have a seat on the web? Link this phone** and enter or scan the code from **Use on another device**. [Your seat](/start/wallet) explains both. There is no network fee.
 
 ## What the native app does differently
 
 - **A first-run walkthrough.** Short screens explain a Window, how it settles and demo credits.
 - **Bottom drawers.** The Up/Down ticket and your account rise from the bottom of the screen, and the ticket shows its receipt in place.
-- **One tap.** A seat already places a call with one tap; there is no separate session key to arm.
+- **One tap.** The ticket's chip reads **one tap**: a seat already places a call with one tap, so there is no second key to arm.
+- **Who can see this.** The same chip and per-party view as the web show that only your seat and the venue can see your positions.
 - **Pull to refresh** on every page.

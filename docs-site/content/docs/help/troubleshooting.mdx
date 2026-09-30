@@ -5,24 +5,28 @@ description: "Common problems and what they actually mean."
 
 ## All guest seats are taken
 
-Seats come from a small shared pool. The page says when the next one frees and takes it for you; browsing and proof stay open meanwhile.
+Seats come from a small shared pool. The page shows your place in line and when the next seat frees, and takes it for you; browsing and proof stay open meanwhile.
 
 ## My seat is gone
 
-An idle seat with no open positions goes back to the pool, and **Reset seat** deletes this browser's key for good. Take a new seat; it starts from fresh demo credits. A seat with open positions is never released before they settle.
+A seat idle for 15 minutes with no open position or live quote goes back to the pool, and **Reset seat** deletes this browser's key for good. Take a new seat; it starts from fresh demo credits. Idle time does not count while a position is open.
+
+## My other device won't join
+
+A seat-link code lasts 60 seconds and works once, and the device that holds the seat must choose **Allow** within 45 seconds. If it expired, was used, or collected too many wrong guesses, choose **Show a new code** on the first device. A device that already holds its own seat cannot join another one.
 
 ## A call's outcome is unclear
 
-A signed call is not the same as a filled one. Wait for the ticket's result, or check Portfolio, before retrying — retrying a call that actually landed can open a second position. A quote is valid for a few seconds; an expired quote fills nothing.
+A signed call is not the same as a filled one. Wait for the ticket's result, or check Portfolio, before retrying: retrying a call that actually landed can open a second position. A firm quote is held for about 20 seconds; an expired quote fills nothing.
 
 ## A Window shows "paused: no signed source"
 
-This is expected, not a bug. A Series only lists a Window when a registered price policy version covers both its opening and closing boundary. If none does, the lane pauses honestly rather than trading on an unverified price.
+This is expected, not a bug. A lane lists a Window only when a registered price source can be attested for it. If the source is down or refuses the venue's host (PreStocks rate-limits it at times), the lane pauses honestly and the card names the reason, rather than trading on an unverified price.
 
 ## A Window voided instead of settling
 
-Either fewer than the quorum of oracle prints arrived in time, or the oracle quotes disagreed beyond the Series' limit. Either way your stake and your fee return — see [halts and voids](/trading/halts-and-voids). This is not a lost trade.
+Either fewer than two of the three oracle parties posted a print in time, or their prints were more than 1% apart. Either way your stake and your fee return; see [halts and voids](/trading/halts-and-voids). This is not a lost trade.
 
 ## A feature seems to be missing entirely
 
-Check [what's available](/help/availability) and <AppLink href="/status">Status</AppLink>. Several products are still being ported to Canton, and their screens say so.
+Check [what's available](/help/availability) and <AppLink href="/status">Status</AppLink>. Some screens wait on a key or a service this deployment does not have, and they say so.

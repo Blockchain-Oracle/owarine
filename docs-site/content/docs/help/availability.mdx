@@ -1,19 +1,35 @@
 ---
 title: "What is available"
-description: "Check the network, funds and current source before acting."
+description: "What runs today, what each path needs, and what is planned."
 ---
 
-This page is a snapshot of the source, not a promise that a particular Window, game or quote is live every minute. Read <AppLink href="/status">Status</AppLink> and the screen's current state before placing a call.
+This page is a snapshot of the source and its evidence notes, not a promise that a particular Window, game or quote is live every minute. **Local** below means proven end to end on a local Canton sandbox with the real venue operations; nothing is on Canton DevNet or a hosted URL yet. Read <AppLink href="/status">Status</AppLink> and the screen's current state before placing a call.
 
 | Path | Network and prerequisites | State |
 | --- | --- | --- |
-| Browse markets and proof | No seat; the venue's projection | Public routes available. |
-| Predict (Up/Down calls) | A seat on the Canton test network, demo credits, a trading Window and a quote | Built: crypto Windows with three oracle parties, firm quotes, settlement and voids. |
-| Cover what you hold | Canton Coin and CIP-56 token holdings | **Planned.** A seat holds no outside tokens, so cover shows its "no holdings" state. |
-| Stock, xStock, PreStocks and basket lanes | Their prices posted by the oracle parties | **Planned.** |
-| Earn, specialist tickets, agents, X trading and games | Their own Daml contracts | **Planned**; each screen says what is not on Canton yet. |
-| Practice desk | Paper cash, real price reads | Paper ledger only; moves no money. |
-| Go live with a desk | A desk mandate on Canton and the Canton Coin rail | **Planned.** There is no real-money desk. |
-| Pyth pre-IPO valuation lane | `pyth-indices` entitlement for OpenAI/Anthropic | Key refused; no lane listed while refused. |
+| Browse markets and proof | No seat; the venue's projection | **Local.** Proof re-verifies each print against its archive. |
+| Take a seat, demo credits, Reset seat | A free seat in the pool | **Local.** 1,000 demo credits per lease. |
+| Use a seat on another device | A code from the device that holds the seat | Built and tested; not yet run end to end between two devices. |
+| Predict: BTC and ETH, 1 minute to 1 day | Three oracle parties reading Coinbase, Kraken and Bitstamp | **Local.** |
+| Stock Windows (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL, QQQ, VOO) and the Monday Gap | US market hours and a session calendar (Alpaca keys on the venue's ops) | **Local**, on RedStone prints and Alpaca's last IEX trade for QQQ and VOO. Without the keys these lanes read closed. |
+| xStock Windows (TSLAx, NVDAx, SPYx, QQQx) | Jupiter Price v3, median of three samples | **Local.** Switchboard Surge, their first source, is down upstream. |
+| Pre-IPO names and baskets | The PreStocks catalogue | **Local.** They pause while PreStocks rate-limits the venue's host. |
+| Event markets | A committee of the three oracle parties, quorum 2 | **Local.** |
+| Pyth valuation lanes (OpenAI, Anthropic) | A Pyth key entitled to the valuation indices | Not listed: no entitled key. |
+| Sell back part or all of a position | A firm exit quote from the venue | **Local.** |
+| Range, Moonshot, Parlay, Boost and Short | The venue's ticket reserves | **Local.** A Boost knock-out is covered by the Daml tests, not yet seen in a run. |
+| Earn: reserve shares and the maker vault | A seat | **Local.** |
+| Pre-open calls (Schedule a call) | A resting call contract | **Planned.** |
+| Cover what you hold | Token holdings on Canton (the Canton Coin rail) | **Planned.** A seat holds no outside tokens, so Cover shows its "no holdings" state. |
+| Private mode | A private balance apart from your seat's cash | **Planned.** |
+| Strategies: publish, copy, fade, top up, revoke | The venue's strategy runner | **Local.** A creator's fee waits on the ledger; there is no claim button yet. |
+| Practice desk | Paper cash, real price reads | **Local.** Paper only; moves no money. |
+| Live desk | A desk mandate funded from your seat, and a model key for the timing call | Opened, paused, resumed and checkpointed locally; it has not traded, because no model key was set. |
+| Duel, rank, season pool and the Room | Windows the venue is quoting, to deal a deck | **Local.** |
+| Lucky | A quoting stock, pre-IPO or basket Window of 15 minutes or longer | Built; a spin placed from its screen is still owed. |
+| Practice and arcade games | No stake | Built; no Canton run recorded yet. |
+| X trading | X API keys on the server | Not configured; the screen says so. |
+| Sensei | A model key on the server | Built; not yet run with a key. |
+| iPhone app | An App Store Connect record | Built for Canton; not on TestFlight yet. No Android APK. |
 
-If a price source is unavailable, a Window whose required prints do not arrive voids, and its stakes and fees return. A stopped lane is not a confirmed loss. A signed call is not itself proof that it filled; check Portfolio before retrying.
+If a price source is unavailable, a Window whose required prints do not arrive voids, and its stakes and fees return. A paused lane is not a confirmed loss. A signed call is not itself proof that it filled; check Portfolio before retrying.
