@@ -23,6 +23,11 @@ export function accentIndex(seed: string): number {
 }
 
 export const shortAddress = (a: string) => (a && a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a);
+/** A party as `hint::1220ab…` shortened to its hint and the fingerprint's last four (a seat address falls back to `shortAddress`). */
+export const shortParty = (p: string) => {
+  const at = p.indexOf("::");
+  return at < 0 ? shortAddress(p) : `${p.slice(0, at)}::…${p.slice(-4)}`;
+};
 
 /** `ago` ported: "no trades yet" for never, else s/m/h/d. */
 export function ago(thenMs: number, nowMs: number): string {

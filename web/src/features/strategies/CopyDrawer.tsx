@@ -3,7 +3,7 @@
 import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
 import type { VaultGrant } from "@agari/core/vault";
 import type { Address } from "@agari/core/types";
-import { addressUrl, txUrl } from "@agari/core/urls";
+import { txUrl } from "@agari/core/urls";
 import { XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
@@ -16,7 +16,8 @@ import { checkCopyForm } from "./copy-form";
 import { COPY_FORM } from "./copy-form-copy";
 import { CopyFormFields } from "./CopyFormFields";
 import { capsFor, money, parseAmount } from "./format";
-import { strategyIdentity } from "./identity";
+import { runnerHref, strategyIdentity } from "./identity";
+import { shortParty } from "./names";
 import { STRATEGIES, STRATEGY_DIRECTION } from "./copy";
 import { copyStateOf, COPY_STATE_LABEL } from "./lifecycle";
 import type { StrategyWire } from "./protocol";
@@ -120,7 +121,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
     <button type="button" className="strat-drawer-scrim" aria-label="Close strategy" tabIndex={-1} onClick={onClose} />
     <div ref={panel} tabIndex={-1} className="strat-drawer" role="dialog" aria-modal="true" aria-labelledby="copy-strategy-title">
       <button type="button" onClick={onClose} aria-label="Close strategy" className="strat-drawer-close"><XIcon aria-hidden="true" /></button>
-      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2><a href={addressUrl(card.runner as Address)} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner on the proof page ↗</a></div></div>
+      <div className="mb-5 flex items-center gap-3 pr-8"><AgentPortrait seed={seed} name={name} /><div className="min-w-0"><h2 id="copy-strategy-title" className="strat-drawer-name">{name}</h2>{runnerHref(card.runner) ? <a href={runnerHref(card.runner)!} target="_blank" rel="noreferrer" className="strat-meta text-ink-muted">Runner's profile ↗</a> : <span className="strat-meta block truncate text-ink-muted" title={card.runner}>Runner {shortParty(card.runner)}</span>}</div></div>
       <p className="strat-drawer-body mb-5">{meta?.description || "A published strategy with enforced trading limits."} Markets: {asset}.</p>
       <RecordCard record={card.record} decimals={decimals} symbol={symbol} />
       {tabs.length > 1 && <div className="strat-drawer-tabs mt-5" role="tablist" aria-label={name}>{tabs.map((key) => <button key={key} type="button" role="tab" id={`strat-tab-${key}`} aria-controls={`strat-panel-${key}`} aria-selected={tab === key} onClick={() => setTab(key)}>{key === "decisions" ? `${T.decisions} · ${card.agent?.decisions.length ?? 0}` : key === "playbook" ? T.playbook : sub ? T.manage : T.copy}</button>)}</div>}
@@ -152,7 +153,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
             </div>
             <p className="strat-drawer-body mt-2">{directionLocked ? (copying ? STRATEGY_DIRECTION.lockedFade : STRATEGY_DIRECTION.lockedCopy) : copying ? STRATEGY_DIRECTION.fadeNote : STRATEGY_DIRECTION.copyNote}</p>
           </div>
-          <CopyFormFields check={check} budget={budget} perTrade={perTrade} setBudget={setBudget} setPerTrade={setPerTrade} fixed={pending ? { budget: money(targetBase, decimals), perTrade: money(ceilingBase, decimals) } : null} fieldsDisabled={Boolean(pending) || disabled} decimals={decimals} symbol={symbol} walletBase={walletBase} vaultAvailableBase={availableBase} feeBase={currentFee.fee} confirmBusy={writes.busy === "join"} onConfirm={confirm} confirmLabel={writes.busy === "join" ? "Checking seat steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : copying ? "Fund permission and fade" : "Fund permission and copy"}>
+          <CopyFormFields check={check} budget={budget} perTrade={perTrade} setBudget={setBudget} setPerTrade={setPerTrade} fixed={pending ? { budget: money(targetBase, decimals), perTrade: money(ceilingBase, decimals) } : null} fieldsDisabled={Boolean(pending) || disabled} decimals={decimals} symbol={symbol} walletBase={walletBase} vaultAvailableBase={availableBase} feeBase={currentFee.fee} confirmBusy={writes.busy === "join"} onConfirm={confirm} confirmLabel={writes.busy === "join" ? "Checking wallet steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : copying ? "Fund permission and fade" : "Fund permission and copy"}>
           <p className="strat-drawer-body">Strategy maximum: {money(envelope.maxStakePerTradeBase, decimals, symbol)} per trade. Your limit must fit within your budget. This permission lasts 30 days.</p>
           {valid && <p className="strat-drawer-body">Your permission: {money(caps.maxStakePerTradeBase, decimals, symbol)} per trade, {money(caps.maxDailySpendBase, decimals, symbol)} per day, {caps.maxOpenPositions} open position{caps.maxOpenPositions === 1 ? "" : "s"}, {caps.maxPriceRaw === 0n ? "without an entry-price ceiling" : `with a maximum entry price of ${money(caps.maxPriceRaw, decimals, symbol)} per share`}.</p>}
           <div className="copy-progress"><p><strong>Subscription fee: {currentFee.fee === null ? "checking…" : money(currentFee.fee, decimals, symbol)}</strong></p><p>This fee is charged each time you subscribe, including a resume or a change to your limits. The vault budget is separate.</p>{currentFee.error && <p role="alert">{currentFee.error}</p>}<button type="button" className="desk-pill mt-2" disabled={Boolean(writes.busy)} onClick={currentFee.refresh}>Refresh fee</button></div>
@@ -162,7 +163,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
         </div>}
         {sub?.active && <button className="strat-pause mt-5" disabled={disabled || Boolean(pending)} onClick={() => void perform(() => writes.pause(BigInt(card.strategyId), sub.grantId, sub.fade))}>{sub.fade ? "Pause this fade" : "Pause future copies"}</button>}
         {ownGrant && (state === "copying" || state === "unfunded") && <details className="mt-5"><summary className="strat-meta cursor-pointer">Add budget without changing limits</summary><p className="strat-drawer-body my-3">Move up to {money(availableBase, decimals, symbol)} of available Vault funds into this permission. One transaction; no subscription fee. Deposit more in your <a className="text-vermilion" href="/portfolio">Trading Balance</a> first if needed.</p><label className="desk-field-label block">Amount · {symbol}<input className="strat-input mt-2" inputMode="decimal" value={fundAmount} onChange={(e) => setFundAmount(e.target.value)} /></label><button className="desk-pill mt-3" disabled={disabled || Boolean(pending) || fundBase <= 0n || fundBase > availableBase} onClick={() => void perform(() => writes.fundBudget(ownGrant.grantId, fundBase))}>Move Vault funds into budget</button></details>}
-        <details className="mt-5"><summary className="strat-meta cursor-pointer">Withdraw available funds</summary><p className="strat-drawer-body my-3">Up to {money(withdrawable, decimals, symbol)} is available including this copy's unspent budget. Withdrawing from its budget revokes this permission first. Open positions settle separately.</p><label className="desk-field-label block">Amount · {symbol}<input className="strat-input mt-2" inputMode="decimal" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} /></label><button className="desk-pill mt-3" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onClick={() => void perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))}>Withdraw to seat</button></details>
+        <details className="mt-5"><summary className="strat-meta cursor-pointer">Withdraw available funds</summary><p className="strat-drawer-body my-3">Up to {money(withdrawable, decimals, symbol)} is available including this copy's unspent budget. Withdrawing from its budget revokes this permission first. Open positions settle separately.</p><label className="desk-field-label block">Amount · {symbol}<input className="strat-input mt-2" inputMode="decimal" value={withdrawAmount} onChange={(e) => setWithdrawAmount(e.target.value)} /></label><button className="desk-pill mt-3" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onClick={() => void perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))}>Withdraw to your seat</button></details>
       </>}
       </div>
       {card.agent && <div role="tabpanel" id="strat-panel-decisions" aria-labelledby="strat-tab-decisions" className="mt-5" hidden={tab !== "decisions"}><AgentMemory agent={card.agent} agentName={name} storeConnected={decisionsStore} decimals={decimals} symbol={symbol} nowMs={nowMs} /></div>}

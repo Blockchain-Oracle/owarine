@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";
 import { GO_LIVE } from "@/features/desk/copy-controls";
-import { pct, usd } from "@/features/desk/format";
+import { credits, pct } from "@/features/desk/format";
 import { loadLiveProgress, resumeStage, saveLiveProgress, type LiveProgress, type LiveStage } from "@/features/desk/go-live";
 import type { DeskActions } from "@/features/desk/useDeskWrites";
 import { FONT } from "~/theme";
@@ -93,7 +93,7 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
   const current = STEPS.indexOf(stage);
   const bodyOf = (s: LiveStage): string =>
     s === "open-pending"
-      ? GO_LIVE.steps.open.body(usd(mandate.perActionCapE6, 0), usd(mandate.dailyCapE6, 0), pct(mandate.maxPremiumBps))
+      ? GO_LIVE.steps.open.body(credits(mandate.perActionCapE6, 0), credits(mandate.dailyCapE6, 0), pct(mandate.maxPremiumBps))
       : s === "allow-pending"
         ? GO_LIVE.steps.allow.body(mandate.targets.tokens.map((t) => t.symbol).join(", "))
         : (STEP_COPY[s].body as string);

@@ -58,8 +58,12 @@ export const grantReplyWire = z.object({ grant: vaultGrantWire.nullable() });
 
 export const strategyRecordWire = z.object({
   strategyId: uint,
-  /** The registry's own id, `<creator party>/<index>`. */
-  textId: z.string(),
+  /**
+   * The registry's own id, `<creator party>/<index>`. Optional (C8g): the public route sends the reference's
+   * `StrategyRecord`, which has no text id, and requiring it failed every client read of the registry (the copy
+   * drawer could never verify the subscription fee).
+   */
+  textId: z.string().optional(),
   creator: who,
   runner: who,
   specHash: z.string(),

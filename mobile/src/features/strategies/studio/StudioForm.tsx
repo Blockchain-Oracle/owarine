@@ -102,7 +102,7 @@ export function StudioForm({ form, setForm, symbol, asset, houseRunner, step }: 
         {form.hosting === "self" ? (
           <View style={styles.mt16}>
             <Field label="Runner party">
-              <StratInput value={form.agent} autoCapitalize="none" autoCorrect={false} onChangeText={(agent) => setForm((f) => ({ ...f, agent }))} placeholder="0x…" />
+              <StratInput value={form.agent} autoCapitalize="none" autoCorrect={false} onChangeText={(agent) => setForm((f) => ({ ...f, agent }))} placeholder="your-runner::1220…" />
             </Field>
           </View>
         ) : null}

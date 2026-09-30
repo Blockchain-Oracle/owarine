@@ -53,8 +53,13 @@ export const lotsToRaw = (lots: bigint): bigint => lots * DESK_LOT_RAW;
 export const rawToLots = (raw: bigint): bigint => raw / DESK_LOT_RAW;
 /** A lot's price at `ticks` in the pipeline's E8 terms. */
 export const lotPriceE8 = (ticks: number, cashUnit: bigint = DEFAULT_CASH_UNIT): bigint => BigInt(ticks) * cashUnit * 100n;
-/** A lot price back to ticks (floored). */
-export const ticksOfLotPriceE8 = (priceE8: bigint, cashUnit: bigint = DEFAULT_CASH_UNIT): number => Number(priceE8 / (cashUnit * 100n));
+/** A lot price back to ticks (floored, integer division; a tick count is at most 1000 so it is a safe `number`). */
+export function ticksOfLotPriceE8(priceE8: bigint, cashUnit: bigint = DEFAULT_CASH_UNIT): number {
+  if (priceE8 < 0n) throw new RangeError("ticksOfLotPriceE8: negative price");
+  const ticks = priceE8 / (cashUnit * 100n);
+  if (ticks > BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError("ticksOfLotPriceE8: ticks out of range");
+  return Number(ticks);
+}
 /** What `lots` are worth at `ticks` in base units (the Daml `userStakeOf`). */
 export const lotValue = (lots: bigint, ticks: number, cashUnit: bigint = DEFAULT_CASH_UNIT): bigint => lots * BigInt(ticks) * cashUnit;
 
