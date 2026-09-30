@@ -95,8 +95,15 @@ export function ledgerKit(client: LedgerClient, roles: Roles, run: string) {
 
   /** A Window with the drive's own boundaries, at the Series' next index. */
   async function openSpan(seriesKey: string, symbol: string, w: { lockInSec: number }): Promise<{ terms: Row<TermsC>; stateCid: string; updateId: string }> {
-    const series = await ensureSeries(seriesKey, symbol);
-    const start = Math.max(nowSec() - 1, series.data.lastExpirySec ?? 0);
+    let series = await ensureSeries(seriesKey, symbol);
+    // A Window may not start before the last one's expiry, and its open print only counts after its start: when the
+    // previous run's Window is still live, wait it out so this one starts in the past.
+    const last = series.data.lastExpirySec ?? 0;
+    if (last >= nowSec() - 1) {
+      await sleep((last - nowSec() + 2) * 1000);
+      series = await ensureSeries(seriesKey, symbol);
+    }
+    const start = nowSec() - 1;
     const lockAtSec = start + w.lockInSec;
     const out = await write("venue", roles.venue, `open-${seriesKey}`, [cmd.openWindowSpan(series.cid, { index: series.data.nextIndex, tradingStartSec: start, lockAtSec, expirySec: lockAtSec + 1 })]);
     const t = createdOf(out.created, TEMPLATE_IDS.MarketTerms)!;
