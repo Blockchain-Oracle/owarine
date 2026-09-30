@@ -1,0 +1,203 @@
+/**
+ * The seat's side of the Canton Coin path (C7b). Reads AS the leased party (its allowance, receipts, requests, cash and
+ * token-standard holdings) plus the venue's listing and latest reserve statement read-only; writes with `actAs` = the
+ * seat only, journaled by the client's commandId like every other seat write. Nothing is ever submitted as the venue
+ * from here: the venue answers a request through its own ops actor (`services/ops` `cc-rail`).
+ *
+ * The path is gated on `CC_RAIL_CAPABILITY` (`@agari/core/cc`), `not-live` in code until DevNet proves it. While it is,
+ * `status` says so and why, and every write refuses before anything is journaled or signed. A seat's reads count only
+ * what was created at or after its lease's start offset (K-224): an allowance, receipt or request on the same party
+ * from an earlier visitor is not this seat's.
+ */
+import { CC_RAIL_WAITING_ON, type CcRailCapability, type CcRailView } from "@agari/core/cc";
+import { diagnosis, type Diagnosis } from "@agari/core/types";
+import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
+import { UnitsError, cashUnitsToCc, type ContractId, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
+import { ccCmd, decodeAllowance, decodeDeposit, decodeHoldingView, decodeListing, decodeProposal, decodeStatement, decodeWithdrawal, interfaceViewOf } from "../ops/cc";
+import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";
+import type { CcWriteReply } from "../provider/cc-wire";
+import { seatCommandId } from "./ids";
+import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, type CommandJournal } from "./writes";
+import type { SeatRef } from "./agents";
+
+export interface CcSeatConfig {
+  client: LedgerClient;
+  /** Read-only: the venue's listing and its latest reserve statement. Nothing is ever submitted as the venue from here. */
+  venueParty: Party;
+  journal: CommandJournal;
+  listingId: string;
+  capability: CcRailCapability;
+  now?: () => number;
+}
+
+const RAIL = [CC_TEMPLATE_IDS.CcAllowance, CC_TEMPLATE_IDS.CcDeposit, CC_TEMPLATE_IDS.CcWithdrawal, CC_TEMPLATE_IDS.CcWithdrawProposal, TEMPLATE_IDS.VenueCash] as const;
+const is = (templateId: string, want: string) => templateSuffix(templateId) === templateSuffix(want);
+
+const NOT_LIVE = `The Canton Coin path is not live: waiting on ${CC_RAIL_WAITING_ON}.`;
+
+export function createCcSeat(cfg: CcSeatConfig) {
+  const { client, journal } = cfg;
+  const now = cfg.now ?? Date.now;
+
+  async function venueView() {
+    const acs = (await client.activeContracts({ parties: [cfg.venueParty], templateIds: [CC_TEMPLATE_IDS.CcListing, CC_TEMPLATE_IDS.CcReserveStatement], maxPageSize: 200 })).contracts;
+    let listing: ReturnType<typeof decodeListing> | null = null;
+    let statement: ReturnType<typeof decodeStatement> | null = null;
+    for (const c of acs) {
+      try {
+        if (is(c.createdEvent.templateId, CC_TEMPLATE_IDS.CcListing)) {
+          const l = decodeListing(c.createdEvent.createArgument);
+          if (l.listingId === cfg.listingId && l.venue === cfg.venueParty) listing = l;
+        } else if (is(c.createdEvent.templateId, CC_TEMPLATE_IDS.CcReserveStatement)) {
+          const s = decodeStatement(c.createdEvent.createArgument);
+          if (s.listingId === cfg.listingId && (!statement || s.seq > statement.seq)) statement = s;
+        }
+      } catch {
+        /* a payload this build cannot read is not the rail's */
+      }
+    }
+    return { listing, statement };
+  }
+
+  /** The seat's Canton Coin path: never throws on an empty seat; a failed read is the caller's to report (`status` rejects). */
+  async function status(seat: SeatRef): Promise<CcRailView> {
+    const [venue, mine, coin] = await Promise.all([
+      venueView(),
+      client.activeContracts({ parties: [seat.party], templateIds: [...RAIL], maxPageSize: 500 }),
+      client.activeContracts({ parties: [seat.party], interfaceIds: [CIP56_INTERFACE_IDS.Holding], maxPageSize: 500 }),
+    ]);
+    const view: CcRailView = {
+      capability: cfg.capability,
+      reason: null,
+      listing: venue.listing && {
+        listingId: venue.listing.listingId, instrumentAdmin: venue.listing.instrumentAdmin, instrumentId: venue.listing.instrumentId,
+        unitsPerCoin: venue.listing.unitsPerCoin.toString(), minDepositUnits: venue.listing.minDepositUnits.toString(),
+        maxDepositUnits: venue.listing.maxDepositUnits.toString(), depositsOpen: venue.listing.depositsOpen,
+      },
+      allowanceUnits: "0",
+      cashUnits: "0",
+      holdings: [],
+      deposits: [],
+      withdrawals: [],
+      proposals: [],
+      reserve: venue.statement && { covered: venue.statement.covered, asOfSec: venue.statement.asOfSec, heldUnits: venue.statement.heldUnits.toString(), liabilityUnits: venue.statement.liabilityUnits.toString() },
+    };
+    let allowance = 0n;
+    let cash = 0n;
+    for (const c of mine.contracts) {
+      const e = c.createdEvent;
+      // K-224: a record on this party from before the lease began is an earlier visitor's. Cash is the party's.
+      const own = e.offset >= seat.fromOffset;
+      try {
+        if (is(e.templateId, TEMPLATE_IDS.VenueCash)) {
+          const x = decodeVenueCash(e.createArgument);
+          if (x.owner === seat.party) cash += x.amount;
+        } else if (own && is(e.templateId, CC_TEMPLATE_IDS.CcAllowance)) {
+          const a = decodeAllowance(e.createArgument);
+          if (a.owner === seat.party && a.listingId === cfg.listingId) allowance += a.units;
+        } else if (own && is(e.templateId, CC_TEMPLATE_IDS.CcDeposit)) {
+          const d = decodeDeposit(e.createArgument);
+          if (d.owner === seat.party) view.deposits.push({ units: d.units.toString(), receivedAtomic: d.receivedAtomic.toString(), settledAtSec: d.settledAtSec, ref: d.ref });
+        } else if (own && is(e.templateId, CC_TEMPLATE_IDS.CcWithdrawal)) {
+          const w = decodeWithdrawal(e.createArgument);
+          if (w.owner === seat.party) {
+            const state = w.state === "WdSent" ? "sent" : w.state === "WdCompleted" ? "completed" : "refunded";
+            view.withdrawals.push({ units: w.units.toString(), sentAtomic: w.sentAtomic.toString(), state, openedAtSec: w.openedAtSec, ref: w.ref });
+          }
+        } else if (own && is(e.templateId, CC_TEMPLATE_IDS.CcWithdrawProposal)) {
+          const p = decodeProposal(e.createArgument);
+          if (p.owner === seat.party) view.proposals.push({ units: p.units.toString(), ref: p.ref });
+        }
+      } catch {
+        /* skip a payload this build cannot read */
+      }
+    }
+    view.allowanceUnits = allowance.toString();
+    view.cashUnits = cash.toString();
+    const totals = new Map<string, { instrumentAdmin: string; instrumentId: string; unlocked: bigint; locked: bigint }>();
+    for (const c of coin.contracts) {
+      const raw = interfaceViewOf(c.createdEvent, CIP56_INTERFACE_IDS.Holding);
+      if (!raw) continue;
+      try {
+        const h = decodeHoldingView(raw);
+        if (h.owner !== seat.party) continue; // a transfer offered to the seat shows as a locked holding of its sender
+        const key = `${h.instrumentAdmin}\n${h.instrumentId}`;
+        const t = totals.get(key) ?? { instrumentAdmin: h.instrumentAdmin, instrumentId: h.instrumentId, unlocked: 0n, locked: 0n };
+        if (h.lock) t.locked += h.amountAtomic;
+        else t.unlocked += h.amountAtomic;
+        totals.set(key, t);
+      } catch {
+        /* likewise */
+      }
+    }
+    view.holdings = [...totals.values()].map((t) => ({ instrumentAdmin: t.instrumentAdmin, instrumentId: t.instrumentId, unlockedAtomic: t.unlocked.toString(), lockedAtomic: t.locked.toString() }));
+    view.reason = cfg.capability === "not-live" ? NOT_LIVE : !view.listing ? "The venue has not listed Canton Coin yet." : !view.listing.depositsOpen ? "The venue is not taking new Canton Coin deposits." : null;
+    return view;
+  }
+
+  const notLive = (): Diagnosis => diagnosis("not-deployed", NOT_LIVE);
+
+  /**
+   * The seat's ask: `units` of its cash back in coin. Checked here before anything is signed (the ledger refuses the same
+   * things again at the venue's answer): the path is live, the listing exists, the amount converts exactly and is inside
+   * the rail's bounds, the seat has that much coin owed to it and that much cash, and no earlier ask is still waiting.
+   */
+  async function requestWithdraw(seat: SeatRef, o: { journalId: string; units: bigint }): Promise<CcWriteReply> {
+    if (cfg.capability !== "live") return { kind: "refused", diagnosis: notLive() };
+    const commandId = seatCommandId("cc", o.journalId);
+    const ctx: RejectionContext = { step: "accept" };
+    try {
+      const prior = await journal.get(commandId);
+      if (prior && (prior.party !== seat.party || prior.leaseId !== seat.leaseId)) throw refuse("contract-revert", "this command id belongs to another seat");
+      if (prior && (prior.state === "landed" || prior.state === "unknown")) {
+        const updateId = prior.updateId ?? (await client.findAcceptedCompletion(prior.commandId, [seat.party], prior.beginOffset))?.updateId ?? null;
+        if (updateId) {
+          if (prior.state !== "landed") await journal.finish(commandId, { state: "landed", updateId });
+          return { kind: "requested", updateId, recovered: true };
+        }
+      }
+      const view = await status(seat);
+      if (!view.listing) throw refuse("not-deployed", "the venue has not listed Canton Coin");
+      const unitsPerCoin = BigInt(view.listing.unitsPerCoin);
+      try {
+        cashUnitsToCc(o.units, unitsPerCoin);
+      } catch (error) {
+        if (error instanceof UnitsError) throw refuse("invalid-price", "that amount is outside what the Canton Coin path converts");
+        throw error;
+      }
+      if (o.units > BigInt(view.allowanceUnits)) throw refuse("insufficient-collateral", "only coin you deposited and have not taken back can be withdrawn");
+      if (o.units > BigInt(view.cashUnits)) throw refuse("insufficient-collateral", "your cash does not cover this withdrawal");
+      if (view.proposals.length > 0) throw refuse("grant-refused", "an earlier Canton Coin withdrawal is still waiting for the venue");
+      const beginOffset = await client.ledgerEnd();
+      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "cc", beginOffset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      let tx: JsTransaction;
+      let recovered: boolean;
+      try {
+        const r = await client.submitAndWaitForTransaction({
+          actAs: [seat.party], commandId,
+          commands: [ccCmd.createWithdrawProposal({ owner: seat.party, venue: cfg.venueParty, listingId: cfg.listingId, units: o.units, ref: o.journalId })],
+          ...inFlightBounds(row),
+        });
+        tx = r.transaction;
+        recovered = r.recovered;
+      } catch (error) {
+        const d = classifyRejection(error, ctx);
+        const state = d.kind === "send-unknown" ? "unknown" : "failed";
+        await journal.finish(commandId, { state, diagnosis: d });
+        return state === "unknown" ? { kind: "unknown", diagnosis: d } : { kind: "refused", diagnosis: d };
+      }
+      await journal.finish(commandId, { state: "landed", updateId: tx.updateId });
+      return { kind: "requested", updateId: tx.updateId, recovered };
+    } catch (error) {
+      if (error instanceof SeatRefusal) return { kind: "refused", diagnosis: error.diagnosis };
+      const d: Diagnosis = classifyRejection(error, ctx);
+      return d.kind === "send-unknown" ? { kind: "unknown", diagnosis: d } : { kind: "refused", diagnosis: d };
+    }
+  }
+
+  return { status, requestWithdraw };
+}
+
+export type CcSeat = ReturnType<typeof createCcSeat>;
+export type { ContractId };

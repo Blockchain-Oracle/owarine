@@ -14,7 +14,7 @@ const RATE = "100000";
 let offset = 100;
 const created = (templateId: string, contractId: string, createArgument: unknown, more: Partial<CreatedEvent> = {}): ActiveContract => ({
   synchronizerId: "sync::1",
-  createdEvent: { offset: ++offset, nodeId: 0, contractId, templateId: `${PKG}:${templateId.slice(templateId.indexOf(":") + 1)}`, packageName: "x", createArgument, witnessParties: [VENUE], signatories: [VENUE], createdAt: "2026-10-01T12:00:00Z", ...more },
+  createdEvent: { offset: ++offset, nodeId: 0, contractId, templateId: `${PKG}:${templateId.slice(templateId.indexOf(":") + 1)}`, packageName: "x", createArgument, witnessParties: [VENUE], signatories: [VENUE], "createdAt": "2026-10-01T12:00:00Z", ...more },
 });
 
 const LISTING = created(CC_TEMPLATE_IDS.CcListing, "listing", {

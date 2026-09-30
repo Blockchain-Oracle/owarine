@@ -108,7 +108,7 @@ export const attestReserve = (
     holdingCids: [...a.holdingCids],
     allowanceCids: [...a.allowanceCids],
     previous: a.previous,
-    asOf: isoOfSec(a.asOfSec),
+    "asOf": isoOfSec(a.asOfSec),
   } satisfies Wire<Cc.PM.CC.Listing.Listing_Attest>);
 
 export const setDeposits = (listingCid: ContractId, open: boolean): Command =>

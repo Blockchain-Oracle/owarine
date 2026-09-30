@@ -73,6 +73,7 @@ export { ledgerBase, ledgerRequest, registerSeatSigner, registeredSeatAddress, s
 export * from "./ledger-wire";
 export * from "./ticket-wire";
 export * from "./agents-wire";
+export * from "./cc-wire";
 export { leaseSeat, readSeatLease, releaseSeat, SEAT_LEASE_TTL_MS, seatLeaseRequestWire, seatLeaseText, seatLeaseWire, type SeatLeaseView } from "./seat";
 export {
   createSeatLink,

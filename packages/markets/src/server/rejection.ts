@@ -10,7 +10,7 @@ import { LedgerError } from "@agari/ledger";
 import { ReadingError } from "../errors/reading-error";
 
 /** Which seat action failed: a submit's outcome can be unknown, a read's never is. */
-export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote";
+export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote" | "cc";
 
 export interface RejectionContext {
   step: SeatStep;

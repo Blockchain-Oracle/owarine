@@ -17,8 +17,8 @@ export function appMarketId(damlMarketId: string): MarketId {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** `duel`: a seat's own choice on a duel (open, join, record a pick, a crank), C9b. `agent`: the seat's own grant,
- * registry and desk writes (C8f). */
-export type SeatIntent = "accept" | "sell" | "claim" | "refund" | "duel" | "agent";
+ * registry and desk writes (C8f). `cc`: the seat's Canton Coin withdrawal request (C7b). */
+export type SeatIntent = "accept" | "sell" | "claim" | "refund" | "duel" | "agent" | "cc";
 
 export function isJournalId(value: unknown): value is string {
   return typeof value === "string" && UUID_RE.test(value);
