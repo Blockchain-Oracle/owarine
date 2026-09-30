@@ -7,6 +7,7 @@
  */
 import { TICKERS, TOKEN_LANE_TICKERS, XSTOCK_SYMBOLS, type XStockSymbol } from "@agari/core/market";
 import { fetchJupiterPrices } from "@agari/markets/ops/prints";
+import { recordQuoteResult } from "../actors/halt-watch/quote-failures";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
 import type { SpotFeed, SpotQuote } from "./spot";
@@ -67,12 +68,16 @@ export function createXStockSpotFeed(input: { log: (why: string) => void; apiKey
           const price = prices.get(mint);
           if (price) push({ xstock, priceE8: price.usdPriceE8, sampledSec, source: "jupiter" });
         }
+        // C6f: halt-watch's `quote-unavailable` counts this poll's misses (an xStock Jupiter did not price), three in a row.
+        recordQuoteResult(MINTS.filter((m) => prices.has(m.mint)).map((m) => m.xstock), true, sampledSec);
+        recordQuoteResult(MINTS.filter((m) => !prices.has(m.mint)).map((m) => m.xstock), false, sampledSec);
         beat.lastOkMs = beat.lastPassMs = Date.now();
         beat.failures = 0;
         beat.lastWhy = `${prices.size}/${MINTS.length} mints priced${input.apiKey ? "" : " (keyless lite-api, 0.5 RPS)"}`;
         beat.detail = { key: input.apiKey ? "JUPITER_API_KEY" : "keyless", ...Object.fromEntries([...history].map(([x, list]) => [x, list.at(-1)!.priceE8.toString()])) };
         loggedFailure = false;
       } catch (error) {
+        recordQuoteResult(MINTS.map((m) => m.xstock), false);
         beat.failures += 1;
         beat.lastPassMs = Date.now();
         beat.lastWhy = `Jupiter Price v3 failed: ${errorText(error)}`;

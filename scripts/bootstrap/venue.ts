@@ -9,18 +9,17 @@
  * executed; a write that needs an earlier write's contract (the LP's accept, the reserve's supplies, the first NAV
  * statement, the season funding) is named in the log and not prepared.
  */
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import type { Command, CreatedEvent, LedgerClient } from "@agari/ledger";
 import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import {
   attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
-  SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS, type AttestedSource,
+  SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS,
 } from "@agari/core/market";
 import { GAP_CADENCE_SEC } from "@agari/core/types";
 import { cmd, decodeSeries, decodeVenueCash, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
 import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
 import { ORACLE_ROLES, type CantonRole } from "../../services/ops/src/runtime/keys";
+import { basketVersions, equityVersions, loadPriceSources, preIpoVersions, tokenLaneVersions, valuationVersions, type LaneVersion } from "../../services/ops/src/prices/lane-versions";
 import { bootstrapGames } from "../bootstrap-games";
 import { bootstrapMaker } from "../bootstrap-maker";
 
@@ -108,31 +107,18 @@ function cryptoLanes(nowSec: number): LaneSpec[] {
   );
 }
 
-/** The reference's price-source matrix (D-003): each Regular ticker's dated versions and the token lane's pinned Surge feeds. */
-type Sources = {
-  tickers: Record<string, { pythFeedId?: string; redstoneFeedId?: string; surgeSymbol?: string; versions: Array<{ validFrom: string; validUntil: string | null; primary: "pyth" | "redstone" }> }>;
-  tokenLane: { versions: Array<{ validFrom: string }>; tickers: Record<string, { surgeSymbol: string }> };
-  /** C6e (K-070): Canton-only versions appended after a ticker's (Regular and Gap) and after the token lane's. */
-  cantonVersions?: {
-    tickers?: Record<string, Array<{ validFrom: string; validUntil: string | null; primary: "alpaca" }>>;
-    tokenLane?: Array<{ validFrom: string; validUntil: string | null; primary: "jupiter" }>;
-  };
-};
-const SOURCES = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "..", "services/ops/config/price-sources.json"), "utf8")) as Sources;
-const isoSec = (iso: string) => Math.floor(Date.parse(iso) / 1000);
+/** The reference's price-source matrix (D-003) and the Canton-only versions (C6e, K-070): one table, `lane-versions.ts`, shared with halt-watch. */
+const SOURCES = loadPriceSources();
 
-/** One attested version: the source's bar, delay and admission (core `SOURCE_TIMING`), from `fromSec` until `untilSec`. */
-function attested(source: Exclude<AttestedSource, "exchanges">, feed: string, fromSec: number, untilSec: number | null): LaneSpec["versions"][number] {
-  const t = SOURCE_TIMING[source];
-  return { effectiveFromSec: fromSec, validUntilSec: untilSec, printSource: attestedPrintSource(source, feed), minDelaySec: t.minDelaySec, barLenSec: BAR_LEN_SEC[source], openAdmissionSec: t.admissionSec, closeAdmissionSec: t.admissionSec };
+/** One attested version: the source's bar, delay and admission (core `SOURCE_TIMING`), from the lane version's start until its end. */
+function attested(v: LaneVersion): LaneSpec["versions"][number] {
+  const t = SOURCE_TIMING[v.primary];
+  return { effectiveFromSec: v.validFromSec, validUntilSec: v.validUntilSec, printSource: attestedPrintSource(v.primary, v.feed), minDelaySec: t.minDelaySec, barLenSec: BAR_LEN_SEC[v.primary], openAdmissionSec: t.admissionSec, closeAdmissionSec: t.admissionSec };
 }
 
 /** The reference's Regular, token, pre-IPO and basket cadences (session-lanes.md §2; D-100, S19): 5/15/60 m, and 60 m for the PreStocks lanes. */
 const REGULAR_CADENCES_SEC = [300, 900, 3_600];
 const LOCK_LEAD_SEC: Record<number, number> = { 300: 30, 900: 60, 3_600: 120 };
-/** D-100 (pre-IPO mints verified) and S19 (basket bases) dates: the attested PreStocks versions start there. */
-const PRESTOCKS_FROM_SEC = isoSec("2026-09-19T00:00:00Z");
-const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
 
 /**
  * The equity families (C6): every reference lane on the attested path, each version naming its original source.
@@ -151,15 +137,6 @@ const BASKETS_FROM_SEC = isoSec("2026-09-22T00:00:00Z");
  *             cadence is a week (`GAP_CADENCE_SEC`) and only names the lane: the roller opens each Window through
  *             `Series_OpenWindowSpan` with its own Friday close, Sunday 20:00 ET lock and Monday open (`gapWindows`).
  */
-/** A Regular ticker's dated versions: the reference's (Pyth, RedStone), then the Canton-only ones (C6e, Alpaca for QQQ/VOO). */
-function tickerVersions(symbol: string): LaneSpec["versions"] {
-  const row = SOURCES.tickers[symbol]!;
-  const reference = row.versions.map((v) =>
-    attested(v.primary, v.primary === "pyth" ? row.pythFeedId! : row.redstoneFeedId!, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null));
-  const canton = (SOURCES.cantonVersions?.tickers?.[symbol] ?? []).map((v) => attested(v.primary, symbol, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null));
-  return [...reference, ...canton];
-}
-
 function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
   const out: LaneSpec[] = [];
   const lane = (symbol: string, key: string, cadenceSec: number, versions: LaneSpec["versions"]) =>
@@ -167,33 +144,29 @@ function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
   if (families.has("regular")) {
     for (const symbol of LAUNCH_TICKERS) {
       if (!SOURCES.tickers[symbol]) continue;
-      const versions = tickerVersions(symbol);
+      const versions = equityVersions(symbol).map(attested);
       for (const cadenceSec of REGULAR_CADENCES_SEC) lane(symbol, laneKey(symbol, "regular", cadenceSec), cadenceSec, versions);
     }
   }
   if (families.has("token")) {
     for (const symbol of TOKEN_LANE_TICKERS) {
       const xstock = TICKERS[symbol].xstock!;
-      const from = isoSec(SOURCES.tokenLane.versions[0]!.validFrom);
-      // C6e (K-070): then the Jupiter median version, the reference's attested fallback while Surge cannot sign.
-      const versions = [
-        attested("switchboard", xstock.surgeSymbol, from, null),
-        ...(SOURCES.cantonVersions?.tokenLane ?? []).map((v) => attested(v.primary, xstock.symbol, isoSec(v.validFrom), v.validUntil ? isoSec(v.validUntil) : null)),
-      ];
+      // C6e (K-070): the pinned Surge version, then the Jupiter median the reference fell back to while Surge cannot sign.
+      const versions = tokenLaneVersions(xstock).map(attested);
       for (const cadenceSec of REGULAR_CADENCES_SEC) lane(xstock.symbol, laneKey(symbol, "token", cadenceSec), cadenceSec, versions);
     }
   }
   if (families.has("gap")) {
     for (const symbol of LAUNCH_TICKERS) {
       if (!SOURCES.tickers[symbol]) continue;
-      const versions = tickerVersions(symbol).map((v) => ({ ...v, openAdmissionSec: -1 }));
+      const versions = equityVersions(symbol).map(attested).map((v) => ({ ...v, openAdmissionSec: -1 }));
       out.push({ seriesKey: laneKey(symbol, "gap", GAP_CADENCE_SEC), symbol, cadenceSec: GAP_CADENCE_SEC, lockLeadSec: 0, versions });
     }
   }
-  if (families.has("preipo")) for (const symbol of PRE_IPO_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("prestocks", symbol, PRESTOCKS_FROM_SEC, null)]);
-  if (families.has("basket")) for (const symbol of BASKET_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("basket", symbol, BASKETS_FROM_SEC, null)]);
+  if (families.has("preipo")) for (const symbol of PRE_IPO_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, preIpoVersions(symbol).map(attested));
+  if (families.has("basket")) for (const symbol of BASKET_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, basketVersions(symbol).map(attested));
   if (families.has("valuation")) {
-    for (const symbol of VALUATION_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, [attested("pyth-index", TICKERS[symbol].pythIndexFeedId!.replace(/^0x/, "").toLowerCase(), isoSec("2026-09-22T00:00:00Z"), null)]);
+    for (const symbol of VALUATION_TICKERS) lane(symbol, laneKey(symbol, "token", 3_600), 3_600, valuationVersions(TICKERS[symbol].pythIndexFeedId!).map(attested));
   }
   return out;
 }
