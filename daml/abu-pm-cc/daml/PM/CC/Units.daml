@@ -48,14 +48,36 @@ maxUnitsFor rate = maxAtomic / atomicPerUnit rate
 maxTotalUnits : Int
 maxTotalUnits = 4000000000000000000
 
+-- | The largest whole-coin amount ONE holding may carry when a reserve statement
+-- counts it. Wider than a conversion's bound (a venue on MainNet can hold far
+-- more than 10^7 coin in one holding), still inside Int64: 10^8 coin is 10^18
+-- atomic units.
+maxHoldingCoins : Int
+maxHoldingCoins = 100000000
+
+-- | The most seconds ahead of now a transfer the venue instructs may stay open.
+maxTransferSec : Int
+maxTransferSec = 604800
+
+-- | Sum non-negative Ints without ever overflowing Int64: Numeric 0 holds 38 digits.
+-- None when the total passes `bound`.
+sumWithin : Int -> [Int] -> Optional Int
+sumWithin bound xs =
+  let total : Numeric 0 = sum (map intToNumeric xs)
+  in if total <= intToNumeric bound then Some (truncate total) else None
+
 cashUnitsOk : Int -> Int -> Bool
 cashUnitsOk rate units = units > 0 && units <= maxUnitsFor rate
 
 -- | Decimal -> atomic units. Exact (a Decimal has at most 10 places). None for a
 -- non-positive amount or one above `maxWholeCoins`.
 toAtomic : Decimal -> Optional Int
-toAtomic amount
-  | amount <= 0.0 || amount > intToDecimal maxWholeCoins = None
+toAtomic = toAtomicUpTo maxWholeCoins
+
+-- | The same, with the largest whole-coin amount named by the caller.
+toAtomicUpTo : Int -> Decimal -> Optional Int
+toAtomicUpTo maxCoins amount
+  | amount <= 0.0 || amount > intToDecimal maxCoins = None
   | otherwise =
       let whole = truncate amount
           fraction = truncate ((amount - intToDecimal whole) * 10000000000.0)
@@ -72,6 +94,12 @@ unitsExact : Int -> Int -> Optional Int
 unitsExact rate atomic =
   let per = atomicPerUnit rate
   in if atomic > 0 && atomic % per == 0 then Some (atomic / per) else None
+
+-- | Cash units of an atomic amount, rounded UP: the liabilities side of a reserve
+-- statement, which may overstate what is owed and never understate it. Call only
+-- with atomic <= maxTotalUnits.
+unitsCeil : Int -> Int -> Int
+unitsCeil rate atomic = let per = atomicPerUnit rate in (atomic + per - 1) / per
 
 -- | Atomic units of `units` cash units, exact. Call only after `cashUnitsOk`.
 atomicOfUnits : Int -> Int -> Int

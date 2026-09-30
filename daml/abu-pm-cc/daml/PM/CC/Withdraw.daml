@@ -1,25 +1,37 @@
 -- | The Canton Coin withdrawal (C7b, K-245 to K-247).
 --
 -- The owner asks: they create a `CcWithdrawProposal` (owner-signed, the venue an
--- observer) naming how many cash units they want back in coin. The venue answers
+-- observer) naming how many cash units they want back in coin, under which terms
+-- (listing id, instrument, rate) and until when the ask stands. The venue answers
 -- with `Proposal_Accept`, which does ALL of it in one transaction:
 --
---   1. debits exactly `units` of the owner's `VenueCash` (the owner's authority is
+--   1. checks the listing still says what the owner signed, and the ask has not lapsed;
+--   2. debits exactly `units` of the owner's `VenueCash` (the owner's authority is
 --      the proposal's signatory), through the engine's own merge, split and
 --      withdraw choices, so the change goes back to the owner;
---   2. lowers the owner's `CcAllowance` by `units` (refused when it is not covered:
+--   3. lowers the owner's `CcAllowance` by `units` (refused when it is not covered:
 --      only coin that was deposited and not yet taken back can leave);
---   3. instructs the token-standard transfer of `units * atomicPerUnit` atomic
+--   4. instructs the token-standard transfer of `units * atomicPerUnit` atomic
 --      units from the venue to the owner (`TransferFactory_Transfer`);
---   4. by what the registry answers: `Completed` (a receipt, done), `Pending` (the
---      owner must accept; a receipt in state Sent holds the instruction), or
---      `Failed` (the cash and the allowance are restored, and the receipt says so).
+--   5. by what the registry answers, and only if the answer holds up: `Completed`
+--      (the holdings it names must be the owner's and cover the amount), `Pending` (the
+--      instruction it names must be this transfer: venue to owner, this amount and
+--      instrument), or `Failed` (the cash and the allowance are restored, and the
+--      receipt says so).
 --
 -- The cash is therefore never debited without the transfer being instructed, and
 -- a transfer that fails immediately never leaves the owner short. A transfer that
--- stays pending is taken back (or completed) by the receipt's own choices.
+-- stays pending is taken back by the venue, rejected by the owner, or accepted by
+-- them, through the receipt's own choices.
+--
+-- Trust that remains: the venue chooses the factory it exercises. A look-alike
+-- factory that answers the way the checks above accept cannot be told from the
+-- registry's by Daml, and the owner is then relying on the venue to pay, as with any
+-- custodian. What makes a failure to pay visible is the receipt (auditor-visible)
+-- and the owner's own holdings against it.
 module PM.CC.Withdraw where
 
+import DA.Time (addRelTime, seconds)
 import PM.CC.Listing
 import PM.CC.Records
 import PM.CC.Units
@@ -35,13 +47,19 @@ template CcWithdrawProposal
     owner : Party
     venue : Party
     listingId : Text
+    instrumentAdmin : Party
+    instrumentId : Text
+    unitsPerCoin : Int
     units : Int
+    validUntil : Time
+      -- ^ the ask lapses after this; a stale signed ask cannot be answered later
     ref : Text
       -- ^ the owner's own reference, echoed in the transfer's metadata
   where
     signatory owner
     observer venue
-    ensure units > 0 && ref /= "" && owner /= venue && listingId /= ""
+    ensure rateOk unitsPerCoin && cashUnitsOk unitsPerCoin units && ref /= "" && owner /= venue
+      && listingId /= "" && instrumentId /= ""
 
     choice Proposal_Cancel : ()
       controller owner
@@ -66,45 +84,58 @@ template CcWithdrawProposal
         extraArgs : ExtraArgs
       controller venue
       do
+        now <- getTime
+        require "proposal-expired" "the ask has lapsed" (now <= validUntil)
         l <- fetch listingCid
-        require "wrong-listing" "the proposal is for another listing" (l.venue == venue && l.listingId == listingId)
-        require "bad-units" "the withdrawal is outside the rail's bounds" (cashUnitsOk l.unitsPerCoin units)
+        let terms = Terms with listingId; instrumentAdmin; instrumentId; unitsPerCoin
+        require "terms-changed" "the listing no longer states what this ask was signed against"
+          (l.venue == venue && termsOf l == terms)
+        require "bad-window" "the transfer must be requested in the past and stay open for at most a week"
+          (requestedAt <= now && executeBefore > now && executeBefore <= addRelTime now (seconds maxTransferSec))
         acct <- fetch accountCid
         require "wrong-account" "the account is not the owner's" (acct.venue == venue && acct.owner == owner)
 
         debitCash venue owner cashCids units
-        left <- lowerAllowance venue owner listingId allowanceCid units
+        left <- lowerAllowance venue owner terms allowanceCid units
 
-        let sentAtomic = atomicOfUnits l.unitsPerCoin units
+        let sentAtomic = atomicOfUnits unitsPerCoin units
+            instrument = H.InstrumentId with admin = instrumentAdmin; id = instrumentId
             transfer = T.Transfer with
               sender = venue
               receiver = owner
               amount = fromAtomic sentAtomic
-              instrumentId = H.InstrumentId with admin = l.instrumentAdmin; id = l.instrumentId
+              instrumentId = instrument
               requestedAt
               executeBefore
               inputHoldingCids
               meta = Metadata with values = TextMap.fromList [(refMetaKey, ref)]
         res <- exercise factoryCid T.TransferFactory_Transfer with
-          expectedAdmin = l.instrumentAdmin
+          expectedAdmin = instrumentAdmin
           transfer
           extraArgs
-        openedAt <- getTime
         let receipt state instructionCid = CcWithdrawal with
-              venue; owner; auditor = l.auditor; listingId
-              instrumentAdmin = l.instrumentAdmin; instrumentId = l.instrumentId
-              unitsPerCoin = l.unitsPerCoin; units; sentAtomic; state; instructionCid; openedAt; ref
+              venue; owner; auditor = l.auditor; listingId; instrumentAdmin; instrumentId
+              unitsPerCoin; units; sentAtomic; state; instructionCid; openedAt = now; ref
         case res.output of
-          T.TransferInstructionResult_Completed _ -> do
+          T.TransferInstructionResult_Completed delivered -> do
+            -- The coin must already be the owner's: fetching a holding is authorised by the
+            -- owner's signature on this ask.
+            got <- holdingsAtomic owner instrumentAdmin instrumentId False maxHoldingCoins delivered
+            require "not-delivered" "the registry says the transfer completed but the owner does not hold the coin" (got >= sentAtomic)
             w <- create (receipt WdCompleted None)
             pure (w, left)
           T.TransferInstructionResult_Pending instr -> do
+            i <- fetch instr
+            let v = view i
+            require "wrong-instruction" "the pending instruction is not this transfer"
+              (v.transfer.sender == venue && v.transfer.receiver == owner && v.transfer.instrumentId == instrument
+                && toAtomic v.transfer.amount == Some sentAtomic)
             w <- create (receipt WdSent (Some instr))
             pure (w, left)
           T.TransferInstructionResult_Failed -> do
             -- The registry took nothing: give back the cash and the allowance.
             _ <- exercise accountCid VenueAccount_Credit with amount = units; bucket = refundBucket listingId
-            restored <- raiseAllowance venue l.auditor owner listingId left units
+            restored <- raiseAllowance venue l.auditor owner terms left units
             w <- create (receipt WdRefunded None)
             pure (w, Some restored)
 

@@ -173,8 +173,12 @@ deposit c owner acct amount = do
   pure a
 
 proposeWithdraw : CC -> Party -> Int -> Text -> Script (ContractId CcWithdrawProposal)
-proposeWithdraw c owner units ref = submit owner do
-  createCmd CcWithdrawProposal with owner; venue = c.w.venue; listingId = listingKey; units; ref
+proposeWithdraw c owner units ref = do
+  now <- getTime
+  submit owner do
+    createCmd CcWithdrawProposal with
+      owner; venue = c.w.venue; listingId = listingKey; instrumentAdmin = c.admin; instrumentId = "TestCoin"
+      unitsPerCoin = rate; units; validUntil = addRelTime now (seconds 3600); ref
 
 -- | The venue answers a proposal with everything the choice needs, fresh.
 acceptWithdraw : CC -> Registry -> ContractId CcWithdrawProposal -> Party -> ContractId VenueAccount
@@ -184,10 +188,25 @@ acceptWithdraw c reg prop owner acct = do
   Some (allowance, _) <- allowanceOf c owner
   inputs <- unlockedOf c.w.venue
   now <- getTime
-  trySubmit (actAs c.w.venue <> disclose reg.disclosure) do
+  -- The venue reads as the owner too: when the registry says a transfer completed, the choice
+  -- checks the owner holds the coin, and a submitter can only use contracts it can see.
+  trySubmit (actAs c.w.venue <> readAs owner <> disclose reg.disclosure) do
     exerciseCmd prop Proposal_Accept with
       listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
       factoryCid = reg.factory; inputHoldingCids = inputs
+      requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
+      extraArgs = noExtra
+
+-- | A Proposal_Accept the registry aborts: no input holdings named, so the mock registry
+-- cannot fund the transfer.
+abortingAccept : CC -> ContractId CcWithdrawProposal -> ContractId VenueAccount -> [ContractId VenueCash] -> ContractId CcAllowance
+  -> Script (Either SubmitError (ContractId CcWithdrawal, Optional (ContractId CcAllowance)))
+abortingAccept c prop acct cash allowance = do
+  now <- getTime
+  trySubmit (actAs c.w.venue <> disclose c.registry.disclosure) do
+    exerciseCmd prop Proposal_Accept with
+      listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
+      factoryCid = c.registry.factory; inputHoldingCids = []
       requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
       extraArgs = noExtra
 
@@ -201,7 +220,7 @@ rawAccept c prop acct cash allowance = do
     exerciseCmd prop Proposal_Accept with
       listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
       factoryCid = c.registry.factory; inputHoldingCids = inputs
-      requestedAt = now; executeBefore = now
+      requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
       extraArgs = noExtra
 
 -- | The venue's statement of what it holds against what it owes, from the
@@ -210,10 +229,9 @@ attest : CC -> Optional (ContractId CcReserveStatement) -> Script (ContractId Cc
 attest c prev = do
   hs <- unlockedOf c.w.venue
   as <- query @CcAllowance c.w.venue
-  now <- getTime
   submit c.w.venue do
     exerciseCmd c.listing Listing_Attest with
-      holdingCids = hs; allowanceCids = map fst as; previous = prev; asOf = now
+      holdingCids = hs; allowanceCids = map fst as; previous = prev
 
 statementOf : Party -> ContractId CcReserveStatement -> Script CcReserveStatement
 statementOf p cid = do

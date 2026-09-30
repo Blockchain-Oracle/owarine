@@ -7,10 +7,14 @@ module Test.CC.Withdraw where
 import Daml.Script
 import DA.Assert ((===))
 import DA.Optional (isSome)
+import DA.Time (addRelTime, seconds)
 import PM.CC.Records
 import PM.CC.Withdraw
 import PM.Money
+import Splice.Api.Token.HoldingV1 qualified as H
 import Splice.Api.Token.TransferInstructionV1 qualified as T
+import PM.CC.Listing
+import PM.CC.Units
 import Test.CC.Fixture
 import Test.CC.Registries
 import Test.Setup
@@ -198,8 +202,8 @@ testAcceptedCannotBeRefunded = script do
   cashOf c.w.alice >>= (=== 0)
   expectUnits c c.w.alice 0
 
--- A registry that aborts (here: the transfer's window is already closed, since
--- `rawAccept` asks for executeBefore = now) rolls the whole withdrawal back.
+-- A registry that aborts (here: no input holdings named, so the mock cannot fund the
+-- transfer) rolls the whole withdrawal back.
 testRegistryAbortRollsBack = script do
   c <- mkCC
   acct <- openAccount c c.w.alice
@@ -207,7 +211,7 @@ testRegistryAbortRollsBack = script do
   prop <- proposeWithdraw c c.w.alice 100000 "late"
   cash <- cashCidsOf c.w.alice
   Some (allowance, _) <- allowanceOf c c.w.alice
-  fails =<< rawAccept c prop acct cash allowance
+  fails =<< abortingAccept c prop acct cash allowance
   cashOf c.w.alice >>= (=== 200000)
   expectUnits c c.w.alice 200000
   coinOf c.w.venue >>= (=== atomicOf 2.0)
@@ -224,36 +228,159 @@ testProposalCancelAndDecline = script do
   ps <- query @CcWithdrawProposal c.w.alice
   length ps === 0
 
--- The owner rejects the transfer: the coin comes back to the venue, the instruction
--- is gone, and `Withdrawal_Refund` can no longer take it back. The venue restores
--- the cash and the allowance with `Withdrawal_RefundReturned`, naming holdings that
--- cover the coin it sent; it cannot do it without them.
-testRejectedTransferRefundedAgainstReturnedCoin = script do
+-- The owner rejects the transfer through the receipt: the token standard's own Reject
+-- (the receiver's choice) runs, the registry hands the coin back to the venue, and the
+-- cash and the allowance are restored in the same transaction, on the owner's word
+-- and the ledger's check. The venue cannot do it, and it cannot be done twice.
+testOwnerRejectRefunds = script do
   c <- mkCC
   acct <- openAccount c c.w.alice
   _ <- deposit c c.w.alice acct 2.0
   prop <- proposeWithdraw c c.w.alice 200000 "rejected"
   Right (wd, _) <- acceptWithdraw c c.registry prop c.w.alice acct
-  Some w <- queryContractId c.w.venue wd
-  Some instr <- pure w.instructionCid
-  -- before the reject the coin is locked: no holding covers it
-  none <- unlockedOf c.w.venue
-  refusedWith (refusal "not-returned") =<< trySubmit c.w.venue do
-    exerciseCmd wd Withdrawal_RefundReturned with accountCid = acct; allowanceCid = None; returned = none
-  _ <- submit c.w.alice do exerciseCmd instr T.TransferInstruction_Reject with extraArgs = noExtra
-  coinOf c.w.venue >>= (=== atomicOf 2.0)
-  -- the instruction is gone: the ordinary refund has nothing to take back
-  fails =<< trySubmit c.w.venue do
-    exerciseCmd wd Withdrawal_Refund with accountCid = acct; allowanceCid = None; extraArgs = noExtra
-  back <- unlockedOf c.w.venue
-  (refunded, _, restored) <- submit c.w.venue do
-    exerciseCmd wd Withdrawal_RefundReturned with accountCid = acct; allowanceCid = None; returned = back
+  cashOf c.w.alice >>= (=== 0)
+  expectUnits c c.w.alice 0
+  inFlightOf c.w.venue >>= (=== atomicOf 2.0)
+  -- the venue cannot exercise the owner's choice
+  unauthorized =<< trySubmit c.w.venue do
+    exerciseCmd wd Withdrawal_OwnerReject with accountCid = acct; allowanceCid = None; extraArgs = noExtra
+  (refunded, _, restored) <- submit c.w.alice do
+    exerciseCmd wd Withdrawal_OwnerReject with accountCid = acct; allowanceCid = None; extraArgs = noExtra
   cashOf c.w.alice >>= (=== 200000)
   expectUnits c c.w.alice 200000
+  coinOf c.w.venue >>= (=== atomicOf 2.0)
+  inFlightOf c.w.venue >>= (=== 0)
+  coinOf c.w.alice >>= (=== 0)
   Some r <- queryContractId c.w.venue refunded
   r.state === WdRefunded
   Some a <- queryContractId c.w.alice restored
   a.units === 200000
-  -- once refunded it is final
+  -- once refunded it is final, either way
+  fails =<< trySubmit c.w.alice do
+    exerciseCmd refunded Withdrawal_OwnerReject with accountCid = acct; allowanceCid = Some restored; extraArgs = noExtra
   fails =<< trySubmit c.w.venue do
-    exerciseCmd refunded Withdrawal_RefundReturned with accountCid = acct; allowanceCid = Some restored; returned = back
+    exerciseCmd refunded Withdrawal_Refund with accountCid = acct; allowanceCid = Some restored; extraArgs = noExtra
+
+-- Once the venue has recorded the transfer as completed, the owner's reject through the
+-- receipt is closed; the transfer is still hers to accept.
+testCompleteClosesOwnerReject = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 2.0
+  prop <- proposeWithdraw c c.w.alice 200000 "done"
+  Right (wd, _) <- acceptWithdraw c c.registry prop c.w.alice acct
+  done <- submit c.w.venue do exerciseCmd wd Withdrawal_Complete
+  fails =<< trySubmit c.w.alice do
+    exerciseCmd done Withdrawal_OwnerReject with accountCid = acct; allowanceCid = None; extraArgs = noExtra
+
+-- The ask carries the terms it was signed under: a listing archived and created again
+-- under the same id with another rate or instrument cannot answer it, and cannot spend
+-- an allowance made under the old terms.
+testTermsChangedRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 2.0
+  prop <- proposeWithdraw c c.w.alice 100000 "old-terms"
+  Some (allowance, _) <- allowanceOf c c.w.alice
+  cash <- cashCidsOf c.w.alice
+  -- the venue swaps the listing for one with the same id and ten times the rate
+  submit c.w.venue do archiveCmd c.listing
+  swapped <- submit c.w.venue do createCmd (listingFor c.w c.admin) with unitsPerCoin = 1000000
+  let c2 = c with listing = swapped
+  refusedWith (refusal "terms-changed") =<< rawAccept c2 prop acct cash allowance
+  cashOf c.w.alice >>= (=== 200000)
+  -- a new deposit under the swapped terms cannot fold into the old allowance
+  instr <- depositInstruction c2 c.w.alice 1.0
+  refusedWith (refusal "foreign-allowance") =<< trySubmit c.w.venue do settleCmd c2 instr acct (Some allowance)
+  -- without naming it, a second allowance under the new terms stands beside the old
+  _ <- submit c.w.venue do settleCmd c2 instr acct None
+  as <- query @CcAllowance c.w.venue
+  length as === 2
+  -- and the old ask answers under the old listing, if the venue puts it back
+  submit c.w.venue do archiveCmd swapped
+  restored <- submit c.w.venue do createCmd (listingFor c.w c.admin)
+  _ <- succeeded =<< rawAccept (c with listing = restored) prop acct cash allowance
+  pure ()
+
+-- An ask lapses; the transfer window is bounded; a transfer cannot be requested in the future.
+testProposalWindow = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 4.0
+  Some (allowance, _) <- allowanceOf c c.w.alice
+  cash <- cashCidsOf c.w.alice
+  now <- getTime
+  -- a stale ask
+  stale <- submit c.w.alice do
+    createCmd CcWithdrawProposal with
+      owner = c.w.alice; venue = c.w.venue; listingId = listingKey; instrumentAdmin = c.admin; instrumentId = "TestCoin"
+      unitsPerCoin = rate; units = 1000; validUntil = addRelTime now (seconds 10); ref = "stale"
+  at (addRelTime now (seconds 20))
+  refusedWith (refusal "proposal-expired") =<< rawAccept c stale acct cash allowance
+  now2 <- getTime
+  prop <- proposeWithdraw c c.w.alice 1000 "window"
+  inputs <- unlockedOf c.w.venue
+  let accept req exec = trySubmit (actAs c.w.venue <> disclose c.registry.disclosure) do
+        exerciseCmd prop Proposal_Accept with
+          listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
+          factoryCid = c.registry.factory; inputHoldingCids = inputs
+          requestedAt = addRelTime now2 (seconds req); executeBefore = addRelTime now2 (seconds exec)
+          extraArgs = noExtra
+  refusedWith (refusal "bad-window") =<< accept 60 3600
+  refusedWith (refusal "bad-window") =<< accept (-60) 0
+  refusedWith (refusal "bad-window") =<< accept (-60) (maxTransferSec + 1)
+  _ <- succeeded =<< accept (-60) maxTransferSec
+  pure ()
+
+-- A registry that says "Completed" must have put the coin in the owner's hands, and one
+-- that says "Pending" must name this very transfer.
+testRegistryAnswersMustHoldUp = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 4.0
+  -- a registry that claims completion, delivering only 1 of the 2 coin owed
+  short <- mint c c.w.alice 1.0
+  shortRules <- submit c.admin do createCmd CompletingRules with admin = c.admin; delivered = [short]
+  shortReg <- registryOf c.admin shortRules
+  prop <- proposeWithdraw c c.w.alice 200000 "short"
+  refusedWith (refusal "not-delivered") =<< acceptWithdraw c shortReg prop c.w.alice acct
+  cashOf c.w.alice >>= (=== 400000)
+  -- one that delivers what it says is accepted, and the receipt says Completed
+  whole <- mint c c.w.alice 2.0
+  wholeRules <- submit c.admin do createCmd CompletingRules with admin = c.admin; delivered = [whole]
+  wholeReg <- registryOf c.admin wholeRules
+  Right (wd, _) <- acceptWithdraw c wholeReg prop c.w.alice acct
+  Some w <- queryContractId c.w.venue wd
+  w.state === WdCompleted
+  -- a registry that names a pending instruction for a different transfer
+  now <- getTime
+  other <- submit (actAs [c.w.venue, c.admin]) do
+    createCmd StuckOffer with transfer = transferOf c.admin c.w.venue c.w.alice 0.5 now []
+  lyingRules <- submit c.admin do createCmd LyingRules with admin = c.admin; instruction = toInterfaceContractId other
+  lyingReg <- registryOf c.admin lyingRules
+  prop2 <- proposeWithdraw c c.w.alice 100000 "lie"
+  refusedWith (refusal "wrong-instruction") =<< acceptWithdraw c lyingReg prop2 c.w.alice acct
+
+-- Duplicate allowances of one owner under the same terms fold into one.
+testAllowanceMerge = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- openAccount c c.w.bob
+  _ <- deposit c c.w.alice acct 1.0
+  -- a second deposit that does not name the first leaves two
+  instr <- depositInstruction c c.w.alice 2.0
+  _ <- submit c.w.venue do settleCmd c instr acct None
+  as <- query @CcAllowance c.w.venue
+  length as === 2
+  let [(a1, _), (a2, _)] = as
+  refusedWith (refusal "no-others") =<< trySubmit c.w.venue do exerciseCmd a1 Allowance_Merge with others = []
+  refusedWith (refusal "duplicate-allowance") =<< trySubmit c.w.venue do exerciseCmd a1 Allowance_Merge with others = [a2, a2]
+  unauthorized =<< trySubmit c.w.alice do exerciseCmd a1 Allowance_Merge with others = [a2]
+  merged <- submit c.w.venue do exerciseCmd a1 Allowance_Merge with others = [a2]
+  Some m <- queryContractId c.w.venue merged
+  m.units === 300000
+  length <$> query @CcAllowance c.w.venue >>= (=== 1)
+  -- another owner's allowance cannot be merged in
+  bobAcct <- openAccount c c.w.bob
+  ab <- deposit c c.w.bob bobAcct 1.0
+  refusedWith (refusal "foreign-allowance") =<< trySubmit c.w.venue do exerciseCmd merged Allowance_Merge with others = [ab]

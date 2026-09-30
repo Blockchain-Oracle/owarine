@@ -198,7 +198,7 @@ testOverflowBounds = script do
   c <- mkCC
   acct <- openAccount c c.w.alice
   huge <- depositInstruction c c.w.alice 10000001.0
-  refusedWith (refusal "bad-holding-amount") =<< trySubmit c.w.venue do settleCmd c huge acct None
+  refusedWith (refusal "bad-amount") =<< trySubmit c.w.venue do settleCmd c huge acct None
   cashOf c.w.alice >>= (=== 0)
   let l = listingFor c.w c.admin
   fails =<< trySubmit c.w.venue do createCmd l with unitsPerCoin = 3

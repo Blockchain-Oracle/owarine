@@ -47,13 +47,9 @@ testStatementCovered = script do
   -- the previous statement is consumed: one live statement per listing
   ss <- query @CcReserveStatement c.w.venue
   length ss === 1
-  -- time does not run backwards
+  -- the statement's time is the ledger's own
   now <- getTime
-  hs <- unlockedOf c.w.venue
-  as <- query @CcAllowance c.w.venue
-  refusedWith (refusal "stale-statement") =<< trySubmit c.w.venue do
-    exerciseCmd c.listing Listing_Attest with
-      holdingCids = hs; allowanceCids = map fst as; previous = Some s1; asOf = addRelTime now (seconds (-10))
+  x1.asOf === now
 
 -- A withdrawal in flight has left the holdings and lowered the allowance: the
 -- statement still balances without counting the locked coin.
@@ -95,10 +91,9 @@ testStatementRefusals = script do
   -- an unsettled deposit is a holding the venue can see, but not its own
   pending <- depositInstruction c c.w.alice 1.0
   as <- query @CcAllowance c.w.venue
-  now <- getTime
   let attestWith hs as' = trySubmit c.w.venue do
         exerciseCmd c.listing Listing_Attest with
-          holdingCids = hs; allowanceCids = as'; previous = None; asOf = now
+          holdingCids = hs; allowanceCids = as'; previous = None
   own <- unlockedOf c.w.venue
   refusedWith (refusal "foreign-holding") =<< attestWith [coerceInterfaceContractId @H.Holding pending] (map fst as)
   -- a withdrawal's coin in flight is the venue's, but locked
@@ -113,9 +108,11 @@ testStatementRefusals = script do
     [] -> abort "the venue holds no coin"
   Some (al2, _) <- allowanceOf c c.w.alice
   refusedWith (refusal "duplicate-allowance") =<< attestWith own' [al2, al2]
-  -- an allowance under another listing is not this listing's to count
+  -- an allowance of another instrument is not this pool's to count
   other <- submit c.w.venue do
-    createCmd CcAllowance with venue = c.w.venue; auditor = c.w.auditor; owner = c.w.alice; listingId = "cc-2"; units = 5
+    createCmd CcAllowance with
+      venue = c.w.venue; auditor = c.w.auditor; owner = c.w.alice; listingId = "cc-2"; instrumentAdmin = c.admin
+      instrumentId = "OtherCoin"; unitsPerCoin = rate; units = 5
   refusedWith (refusal "foreign-allowance") =<< attestWith own' [other]
   -- and the honest statement goes through
   ok <- attestWith own' [al2]
@@ -326,3 +323,64 @@ randomRun seed = do
   s <- attest c None
   x <- statementOf c.w.auditor s
   x.covered === True
+
+-- Two listings of one instrument at different rates draw on ONE pool of coin: a statement
+-- counts the allowances of both, each at its own rate, so neither can report the whole
+-- pool as its own.
+testStatementAcrossListings = script do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  b <- openAccount c c.w.bob
+  _ <- deposit c c.w.alice a 10.0
+  -- a second listing of the same instrument at ten times the rate (1 coin = 1,000,000 units)
+  second <- submit c.w.venue do
+    createCmd (listingFor c.w c.admin) with listingId = "cc-2"; unitsPerCoin = 1000000
+  let c2 = c with listing = second
+  instr <- depositInstruction c2 c.w.bob 10.0
+  _ <- submit c.w.venue do settleCmd c2 instr b None
+  -- the venue holds 20 coin; alice is owed 10, bob is owed 10: covered, and both statements say so
+  hs <- unlockedOf c.w.venue
+  as <- query @CcAllowance c.w.venue
+  length as === 2
+  s1 <- submit c.w.venue do
+    exerciseCmd c.listing Listing_Attest with holdingCids = hs; allowanceCids = map fst as; previous = None
+  x1 <- statementOf c.w.auditor s1
+  x1.liabilityAtomic === atomicOf 20.0
+  x1.heldAtomic === atomicOf 20.0
+  x1.covered === True
+  -- the second listing's statement counts the same pool and the same two allowances
+  s2 <- submit c.w.venue do
+    exerciseCmd second Listing_Attest with holdingCids = hs; allowanceCids = map fst as; previous = None
+  x2 <- statementOf c.w.auditor s2
+  x2.liabilityAtomic === atomicOf 20.0
+  x2.liabilityUnits === 20000000
+  -- if the venue moves 5 coin out, both say uncovered: nobody hides behind the other
+  r <- sendCoin c c.w.venue c.w.outsider 5.0 hs
+  instrOut <- pendingOf r
+  _ <- submit c.w.outsider do exerciseCmd instrOut T.TransferInstruction_Accept with extraArgs = noExtra
+  hs2 <- unlockedOf c.w.venue
+  s3 <- submit c.w.venue do
+    exerciseCmd c.listing Listing_Attest with holdingCids = hs2; allowanceCids = map fst as; previous = None
+  x3 <- statementOf c.w.auditor s3
+  x3.covered === False
+
+-- One holding of more than 10^7 coin (a real reserve can hold that) is countable; the
+-- rail's whole-coin bound applies to a conversion, not to a holding; and a holding past
+-- 10^8 coin is refused rather than overflowing.
+testWideHoldingsAttest = script do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice a 1.0
+  big <- mint c c.w.venue 50000000.0
+  hs <- unlockedOf c.w.venue
+  as <- query @CcAllowance c.w.venue
+  s <- submit c.w.venue do
+    exerciseCmd c.listing Listing_Attest with holdingCids = hs; allowanceCids = map fst as; previous = None
+  x <- statementOf c.w.auditor s
+  x.heldAtomic === 50000001 * atomicPerCoin
+  x.covered === True
+  huge <- mint c c.w.venue 100000001.0
+  hs2 <- unlockedOf c.w.venue
+  refusedWith (refusal "bad-holding-amount") =<< trySubmit c.w.venue do
+    exerciseCmd c.listing Listing_Attest with holdingCids = hs2; allowanceCids = map fst as; previous = Some s
+  pure (big, huge)
