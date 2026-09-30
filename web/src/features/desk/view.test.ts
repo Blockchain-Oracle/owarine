@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { seriesInRange } from "./view";
+import { deskStateOf, seriesInRange } from "./view";
 
 const at = (h: number, usd: number) => ({ atSec: 1_000_000 + h * 3_600, totalE6: BigInt(usd) * 1_000_000n });
 
@@ -23,5 +23,16 @@ describe("seriesInRange (S22 value chart)", () => {
   it("has no move with fewer than two points", () => {
     expect(seriesInRange([at(0, 1000)], "all", nowSec)).toEqual({ points: [at(0, 1000)], deltaE6: null, bps: null });
     expect(seriesInRange([], "1w", nowSec).deltaE6).toBeNull();
+  });
+});
+
+describe("deskStateOf (C8g): an owner's pause lives on the ledger", () => {
+  it("shows an active row over a paused mandate as paused by you, so Resume is offered", () => {
+    expect(deskStateOf("active", { paused: true })).toBe("paused_by_owner");
+  });
+  it("keeps the row's state when the mandate is not paused, or there is no chain (practice)", () => {
+    expect(deskStateOf("active", { paused: false })).toBe("active");
+    expect(deskStateOf("active", null)).toBe("active");
+    expect(deskStateOf("stopped_by_loss_limit", { paused: true })).toBe("stopped_by_loss_limit");
   });
 });
