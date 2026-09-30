@@ -32,6 +32,7 @@ These are the drafts for the five judging criteria that score more than code, pl
 | `deck-outline.md` | 10 slides | Pitch |
 | `demo-script.md` | The 90-second demo, adjusted to the evidence | MVP, Pitch |
 | `prior-work-disclosure.md` | The verbatim rule, the tag, the diff stat, and a README section draft | MVP (eligibility) |
+| `bitsafe.md` | The BitSafe add-on: governed resolution, the criteria verbatim with evidence, the LocalNet run plan, go/no-go | BitSafe sponsor challenge (Contribution pool) |
 
 ## What Abu does
 

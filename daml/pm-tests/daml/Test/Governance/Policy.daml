@@ -1,0 +1,134 @@
+-- | Governed oracle-set rotation: the committee approves new rules for a
+-- Series, the venue applies them through the engine's own
+-- `Series_AddPolicyVersion`, and the governed resolver resolves only
+-- Windows listed under approved rules. A rotation the venue makes alone
+-- yields Windows that can only be voided (every user refunded).
+module Test.Governance.Policy where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.List (last)
+import Governance.Action
+import PM.Governance.Policy
+import PM.Governance.Resolve
+import PM.Governance.Rules
+import PM.Leg
+import PM.Market
+import PM.Series
+import PM.Types
+import Test.Governance.Fixture
+import Test.Governance.Resolve (propose)
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+testRotateOracleSet = script do
+  (g, s1, w0, ar) <- mkGovWin
+  let w = g.w
+      rules2 = (genesisRules g) with oracles = [w.o1, w.o2, g.o4]; quorum = 3; maxDeviationBps = 25
+  now <- getTime
+  pp <- submit w.venue do
+    createCmd PolicyProposal with
+      governanceParty = g.gov; proposer = w.venue; venue = w.venue
+      change = ApproveRules with seriesKey = "BTC-300"; rules = rules2
+      rationale = "oracle3 out, oracle4 in, quorum 3"; expiresAt = plus now 3600
+  let p = toInterfaceContractId @GovernableAction pp
+  c1 <- confirm g g.m1 p
+  tryExecute g g.m2 p [c1] >>= failsWith enoughConfirmations
+  c3 <- confirm g g.m3 p
+  _ <- execute g g.m2 p [c1, c3]
+  approved <- query @ApprovedRules w.venue
+  [ar2] <- pure [c | (c, a) <- approved, a.rules == rules2]
+  -- the venue applies it: policy version 2 from the next unopened Window
+  s2 <- submit w.venue do exerciseCmd ar2 Rules_Apply with seriesCid = s1
+  Some s <- queryContractId w.venue s2
+  map (.version) s.policyVersions === [1, 2]
+  (last s.policyVersions).effectiveFrom === w0.t.expiry
+  s.oracles === [w.o1, w.o2, g.o4]
+  s.quorum === 3
+  -- window 0 keeps the committee it was listed with; window 1 has the new one
+  w0.t.oracles === [w.o1, w.o2, w.o3]
+  (_, w1) <- openWin w s2 1
+  w1.t.policyVersion === 2
+  w1.t.oracles === [w.o1, w.o2, g.o4]
+  w1.t.quorum === 3
+  -- the old rules no longer cover window 1; the new ones do
+  at (plus w1.t.tradingStart 10)
+  oq <- mapA (\o -> quoteV g o w1.t.tradingStart px 2) [w.o1, w.o2, g.o4]
+  let openWith rulesCid = RecordOpen with termsCid = w1.terms; stateCid = w1.state; quoteCids = oq; rulesCid
+  old <- propose g w.venue w1.t.marketId (openWith ar) "old rules"
+  passFails g old >>= refusedWith (refusal "rules-not-approved")
+  new <- propose g w.venue w1.t.marketId (openWith ar2) "new rules"
+  _ <- pass g new
+  [(op, _)] <- query @OpenPrint w.venue
+  -- the retired oracle's print no longer counts toward the new quorum of 3
+  at (plus w1.t.expiry 10)
+  stale <- mapA (\o -> quoteV g o w1.t.expiry (px + 5) 2) [w.o1, w.o2, w.o3]
+  let closeWith qs = ResolvePrice with
+        termsCid = w1.terms; openCid = op; quoteCids = qs; rulesCid = ar2; expected = Some SideUp
+  p3 <- propose g w.venue w1.t.marketId (closeWith stale) "close without oracle4"
+  passFails g p3 >>= refusedWith (refusal "quorum-not-met")
+  fresh <- mapA (\o -> quoteV g o w1.t.expiry (px + 5) 2) [g.o4]
+  p4 <- propose g w.venue w1.t.marketId (closeWith (stale ++ fresh)) "close with the new committee"
+  _ <- pass g p4
+  [r] <- resolutionsOf g w1.terms
+  r.outcome === Some SideUp
+  r.signers === 3
+  -- rules can be retired by vote; the venue cannot write or apply someone else's
+  bad <- trySubmit w.venue do
+    createCmd ApprovedRules with
+      governanceParty = g.gov; venue = w.venue; seriesKey = "BTC-300"; rules = rules2; approvedAt = t0
+  unauthorized bad
+  now2 <- getTime
+  rp <- submit w.venue do
+    createCmd PolicyProposal with
+      governanceParty = g.gov; proposer = w.venue; venue = w.venue
+      change = (RetireRules with rulesCid = ar); rationale = "no Window uses the genesis rules"
+      expiresAt = plus now2 3600
+  _ <- pass g (toInterfaceContractId rp)
+  left <- query @ApprovedRules w.venue
+  map fst left === [ar2]
+
+-- The venue changes its own Series alone (a new policy version, quorum 1):
+-- it may, it signs the Series. Alice even trades on the Window it opens.
+-- The governed resolver will not record its open or resolve it, because it
+-- was listed under rules nobody approved; after the open deadline a vote
+-- voids it and Alice gets her stake and fee back.
+testUnilateralRotationOnlyVoids = script do
+  (g, s1, _, ar) <- mkGovWin
+  let w = g.w
+  s2 <- submit w.venue do
+    exerciseCmd s1 Series_AddPolicyVersion with pv = (policy1 with version = 2; effectiveFrom = plus t0 300)
+  Some s <- queryContractId w.venue s2
+  s3 <- submit w.venue (archiveCmd s2 *> createCmd s with quorum = 1)
+  (s4, w1) <- openWin w s3 1
+  w1.t.quorum === 1
+  at (plus w1.t.tradingStart 5)
+  (a, v) <- trade w w1 w.alice SideUp 620 10 37 "u1"
+  cashOf w.alice >>= (=== 0)
+  at (plus w1.t.tradingStart 10)
+  oq <- mapA (\o -> quoteV g o w1.t.tradingStart px 2) [w.o1]
+  let openWith rulesCid = RecordOpen with termsCid = w1.terms; stateCid = w1.state; quoteCids = oq; rulesCid
+  p <- propose g w.venue w1.t.marketId (openWith ar) "the venue's quorum of one"
+  passFails g p >>= refusedWith (refusal "rules-not-approved")
+  -- approved rules apply only to their own Series; on this one they move
+  -- the venue back onto approved rules from Window 2 on
+  eth <- submit w.venue do createCmd (seriesFor w) with seriesKey = "ETH-300"; symbol = "ETH"
+  wrong <- trySubmit w.venue do exerciseCmd ar Rules_Apply with seriesCid = eth
+  refusedWith (refusal "wrong-series") wrong
+  back <- submit w.venue do exerciseCmd ar Rules_Apply with seriesCid = s4
+  Some sb <- queryContractId w.venue back
+  sb.quorum === 2
+  at (plus w1.t.openDeadline 1)
+  pv <- propose g w.venue w1.t.marketId
+    (VoidPrice with termsCid = w1.terms; stage = BeforeOpen w1.state; quoteCids = oq) "listed under unapproved rules"
+  _ <- pass g pv
+  [r] <- resolutionsOf g w1.terms
+  -- a quorum of the venue's own rules existed; the governed resolver
+  -- declined to record it
+  r.voidReason === Some (ResolverAbsent OpenSlot)
+  [(res, _)] <- filter (\(_, x) -> x.termsCid == w1.terms) <$> query @Resolution w.venue
+  _ <- submit w.venue do exerciseCmd a Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 6200 + 37)

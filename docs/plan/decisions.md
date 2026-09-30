@@ -607,6 +607,19 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Evidence:** C8i's drive (`docs/evidence/c8i-agents-gaps.md` §2): gpt-5.4 answered ACT_NOW (84%) for a 20-credit OpenAI buy and the desk blocked it as "more than 2.5% against the price". `services/ops/src/actors/desk-runner/market.test.ts`.
 - **Rule:** on the live leg (K-090) a trade's cost is its fill against the Window's best ask (a buy) or best bid (a sell): the venue's 1% fee and any walk down the ladder, under the reference's 2.5% limit. The ask's distance from the Window's fair price is the premium, which the owner's premium ceiling bounds on the ledger. Measuring cost against fair counted the venue's half-spread twice, and a 30-tick spread (6% at 0.50) put every live buy over the limit. Practice desks are unchanged.
 - **User-visible:** a live desk can buy when the model says act now and the premium is inside the owner's ceiling.
+
+### K-150 — The resolver is a governed party; approval by content; no engine change (BitSafe block)
+- **Date / owner:** 2026-09-30 · B2 lane (BitSafe add-on)
+- **Evidence:** `daml/abu-pm-governance` 0.1.0; `daml/pm-tests/daml/Test/Governance/` (14 Daml Script tests on BitSafe's vendored `governance-core-v1`); `docs/business/bitsafe.md`.
+- **Rule:**
+  - On LocalNet the market's `resolver` is a Decentralized Party whose committee (3 members, threshold 2) acts through BitSafe's `GovernanceRules`; every proposal implements BitSafe's released `GovernableAction` (`daml/vendor/bitsafe/`, byte for byte). On Noders the resolver stays an ordinary party (the shared sandbox cannot host a Decentralized Party), so the choice is per network and made before markets are listed.
+  - Governed actions: record the open print, resolve or void a price Window or an event (the vote names the expected outcome); approve or retire a Series' rules; move the venue mode; appoint or revoke the ops delegate. Nothing on the hot path is governed.
+  - Rules are approved by content, not by Series contract id (the roller consumes the Series every Window). The venue applies them with `Rules_Apply` (the engine's `Series_AddPolicyVersion`); a governed open or resolve needs the Window listed under approved rules, so a rotation the venue makes alone can only end in a void. Voids never need approval.
+  - Routine price Windows go through a `ResolverDelegation` the committee grants; events never do; any single guardian can hold a market for the committee.
+  - `abu-pm-main` stays 0.5.0: `VenueMode` is not read by `Desk_IssueQuote`; the issuer check is ops policy (C-DAML-02).
+- **User-visible:** none until the LocalNet demo; a settled market reads the same either way (`Parity.testGovernedSettlesLikePlain`).
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

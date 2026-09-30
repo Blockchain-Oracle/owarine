@@ -11,3 +11,6 @@ data-dependencies:
   - ../abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.3.dar
   - ../abu-pm-games/.daml/dist/abu-pm-games-0.1.1.dar
   - ../abu-pm-agents/.daml/dist/abu-pm-agents-0.2.1.dar
+  - ../abu-pm-governance/.daml/dist/abu-pm-governance-0.1.0.dar
+  - ../vendor/bitsafe/governance-action-v1-0.1.0.dar
+  - ../vendor/bitsafe/governance-core-v1-0.1.0.dar

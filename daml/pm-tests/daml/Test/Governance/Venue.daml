@@ -1,0 +1,80 @@
+-- | The venue's mode (open, reduce-only, paused) moves only by vote: the
+-- venue can read it but not write, archive or replace it; a pause below
+-- threshold fails; a stale vote on a replaced mode fails; reopening needs
+-- another vote. A pause never touches user exits.
+module Test.Governance.Venue where
+
+import Daml.Script
+import DA.Assert ((===))
+import Governance.Action
+import PM.Governance.Venue
+import PM.Leg
+import PM.Market (Resolution(..))
+import PM.Types
+import Test.Governance.Fixture
+import Test.Governance.Resolve (closeProposal, govOpen)
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+proposeMode : Gov -> Party -> ContractId VenueMode -> Mode -> Text -> Script (ContractId GovernableAction)
+proposeMode g who current mode reason = do
+  now <- getTime
+  p <- submit who do
+    createCmd VenueModeProposal with
+      governanceParty = g.gov; proposer = who; venue = g.w.venue; current; mode; reason
+      expiresAt = plus now 3600
+  pure (toInterfaceContractId p)
+
+liveMode : Gov -> Script (ContractId VenueMode, VenueMode)
+liveMode g = do
+  ms <- query @VenueMode g.w.venue
+  case ms of
+    [m] -> pure m
+    _ -> abort ("expected one live mode, found " <> show (length ms))
+
+testPauseByVote = script do
+  (g, _, win, ar) <- mkGovWin
+  let w = g.w
+  op <- govOpen g win ar px
+  (u, v) <- trade w win w.alice SideUp 620 10 37 "p1"
+  -- the venue cannot set its own mode, in either direction
+  r1 <- trySubmit w.venue do
+    createCmd VenueMode with
+      governanceParty = g.gov; venue = w.venue; mode = ModeOpen; reason = "self-declared"; since = t0; seq = 9
+  unauthorized r1
+  r2 <- trySubmit w.venue do archiveCmd g.mode
+  fails r2
+  -- a member proposes a pause; one confirmation is not enough
+  p <- proposeMode g g.m1 g.mode ModePaused "oracle incident"
+  c1 <- confirm g g.m1 p
+  tryExecute g g.m1 p [c1] >>= failsWith enoughConfirmations
+  (_, m0) <- liveMode g
+  m0.mode === ModeOpen
+  c2 <- confirm g g.m3 p
+  _ <- execute g g.m1 p [c1, c2]
+  (paused, m1) <- liveMode g
+  m1.mode === ModePaused
+  m1.seq === 1
+  m1.reason === "oracle incident"
+  -- a second vote naming the replaced mode cannot execute
+  staleVote <- proposeMode g w.venue g.mode ModeReduceOnly "stale"
+  passFails g staleVote >>= fails
+  -- nor a vote to the mode it is already in
+  same <- proposeMode g g.m2 paused ModePaused "again"
+  passFails g same >>= refusedWith (refusal "mode-unchanged")
+  -- user exits never check the mode: the market still resolves and settles
+  cp <- closeProposal g win op ar (px + 5) (Some SideUp)
+  _ <- pass g cp
+  [(res, _)] <- filter (\(_, r) -> r.termsCid == win.terms) <$> query @Resolution w.venue
+  d <- disclosureOf w.venue res
+  _ <- submit (actAs w.alice <> disclose d) do exerciseCmd u Leg_Claim with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashOf w.alice >>= (=== 10000)
+  -- reopening is another vote (the venue, as additional proposer, files it)
+  reopen <- proposeMode g w.venue paused ModeOpen "incident closed"
+  _ <- pass g reopen
+  (_, m2) <- liveMode g
+  m2.mode === ModeOpen
+  m2.seq === 2
