@@ -34,9 +34,10 @@ interface ScheduleTicketProps {
 /**
  * The Ticket in schedule mode (D-088): the same panel, block for block — side · amount · the strip · the gates ·
  * the CTA · the footnote — with the live quote replaced by the user's own price and a resting horizon. A listed
- * Window has no quote yet, so the strip carries what the call would hold. On Canton no call can rest yet (no
- * `RestingCall`), so the button carries the `rest-not-live` blocker and says so rather than send; the receipt with its
- * Cancel is the reference's rested state, unreachable here until then.
+ * Window has no quote yet, so the strip carries what the call would hold. On Canton the call is a bilateral `RestingCall`
+ * (K-235): the venue offers to hold it, the seat places its own cash into it, and the receipt with its Cancel is the
+ * reference's rested state. The minimum the line names is the call's own (one lot at its price), the same number the
+ * button's blocker names, not the taker's general minimum.
  */
 export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
   const when = useWhen();
@@ -82,7 +83,8 @@ export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
             balanceBase={s.availableBase}
             decimals={decimals}
             symbol={symbol}
-            belowMin={stakeBase > 0n && belowMinStake(stakeBase, decimals)}
+            belowMin={stakeBase > 0n && (s.sized?.sizing ? stakeBase < s.sized.sizing.minStakeBase : belowMinStake(stakeBase, decimals))}
+            minBase={s.sized?.sizing?.minStakeBase ?? null}
             leverage={null}
             costBase={quote?.maxCostBase ?? null}
           />
@@ -115,7 +117,7 @@ export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
           </BlockedButton>
           {s.blocker === "region" && <RegionNote />}
           <p className="tk-foot">
-            {PREOPEN.ticket.footnote(s.bondText)}
+            {PREOPEN.ticket.footnote}
             {s.session.isConnected && s.depositBase > 0n ? ` ${TICKET.seatDeposit(`${formatBaseUnits(s.depositBase, decimals)} ${symbol}`)}` : null}
           </p>
         </>

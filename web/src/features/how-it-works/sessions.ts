@@ -54,16 +54,17 @@ export const SESSION_WORDS: readonly [string, string][] = [
 ];
 
 /**
- * D-088 as Canton runs it (`web/src/lib/copy-preopen.ts`): the Windows list at the close, but a call cannot rest on
- * one yet (no `RestingCall`; the submitter refuses a rest). Nothing here is softened, and nothing is promised.
+ * D-088 as Canton runs it (`web/src/lib/copy-preopen.ts`): the Windows list at the close, and a call can rest on one at
+ * the caller's own price. It is a bilateral `RestingCall` (K-235): the stake is held in the contract, the venue fills it at
+ * exactly that price after the bell when its own price reaches it, and an unfilled call returns the stake.
  */
 export const PRE_OPEN = {
   title: "Calls before the bell",
-  body: "The venue lists tomorrow's first Windows at tonight's close, so you can see them while the market is shut. On Canton a call cannot rest on a listed Window yet: the Window takes calls from the bell.",
+  body: "The venue lists tomorrow's first Windows at tonight's close, so you can see them while the market is shut. Under Schedule a call you rest a call on one at your own price, and it fills within the first minute after the bell if the venue's price comes to yours.",
   points: [
-    "Nothing is signed and none of your credits are held before the bell. The ticket's Schedule button says so instead of sending.",
-    "At the bell the Window trades like any other: your seat takes the venue's firm quote in one tap.",
-    "Resting a call at your own price, with its 90-second expiry and its opt-in rest until the Window locks, is not on Canton yet.",
+    "Your stake is held from the moment you schedule: it sits inside a contract that only your seat and the venue can see, and it is yours to cancel until it fills.",
+    "Nothing fills before the bell. After it, the venue takes your call at exactly your price, in whole or in part, whenever its own price reaches it.",
+    "An unfilled call expires 90 seconds after the bell and the stake comes back as venue credit; you can opt in to rest until the Window locks. A Window that voids costs an unfilled call nothing.",
   ],
 } as const;
 

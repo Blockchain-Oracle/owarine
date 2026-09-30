@@ -62,7 +62,7 @@ export const SHORT = {
     multipleHint: (premiumPct: string) => `The reserve fronts the rest of the position and charges ${premiumPct} on what it fronts. Your loss is still capped at your stake.`,
     pickWindow: "Pick a window first.",
     opensTitle: (name: string, when: string) => `${name} opens ${when}`,
-    opensBody: "A short opens once its Window is trading. Scheduling a plain Down call before then is not on Canton yet, so come back at the open.",
+    opensBody: "A short opens once its Window is trading. Until then you can schedule a plain Down call: it rests at your price and fills after the bell if the venue's price comes to it.",
     scheduleDown: "Schedule a Down call",
     thinNone: "Nobody is offering Down on this Window right now.",
     thinSome: (max: string, symbol: string) => `The venue quotes up to about ${max} ${symbol} at this multiple.`,

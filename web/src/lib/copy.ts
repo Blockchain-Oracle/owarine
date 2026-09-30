@@ -274,6 +274,8 @@ export const PORTFOLIO = {
   value: "Worth now",
   bothSides: "UP + DOWN",
   toMarkets: "Go to Markets",
+  /** History's sub-list of scheduled calls that ended: filled, swept unfilled, or cancelled (D-088). */
+  scheduledCalls: "Scheduled calls",
   collectTitle: "To collect",
   recordTitle: "Your record",
 } as const;

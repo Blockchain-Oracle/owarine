@@ -136,6 +136,16 @@ export function BetsPanel({ symbol, index, history: allHistory }: BetsPanelProps
         ) : (
           <>
             <HistoryRows history={history} symbol={symbol} />
+            {resting.ended.length > 0 && (
+              <div className="bets-sublist">
+                <span className="type-label-micro text-ink-muted">{PORTFOLIO.scheduledCalls}</span>
+                <ul className="bets-list">
+                  {resting.ended.map((item) => (
+                    <Fragment key={item.key}>{item.node}</Fragment>
+                  ))}
+                </ul>
+              </div>
+            )}
             {boosts.done.length > 0 && (
               <div className="bets-sublist">
                 <span className="type-label-micro text-ink-muted">{LEVERAGE.bets.history}</span>

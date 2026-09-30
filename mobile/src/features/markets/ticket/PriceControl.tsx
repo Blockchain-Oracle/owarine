@@ -41,7 +41,7 @@ export function PriceControl({ priceCents, onChange, side, symbol }: { priceCent
         <Text style={[tkType.chip, { color: tk.balance }]}>{PREOPEN.ticket.pays(symbol)}</Text>
       </View>
       <View style={styles.field}>
-        <Chip label="−" wide disabled={priceCents <= MIN_CENTS} onPress={() => step(-1)} />
+        <Chip label="−" wide accessibilityLabel={PREOPEN.ticket.step.down} disabled={priceCents <= MIN_CENTS} onPress={() => step(-1)} />
         <TextInput
           value={text}
           onChangeText={type}
@@ -53,7 +53,7 @@ export function PriceControl({ priceCents, onChange, side, symbol }: { priceCent
           style={[styles.input, { color: tk.ink }]}
         />
         <Text style={[styles.unit, { color: tk.balance }]}>¢</Text>
-        <Chip label="+" wide disabled={priceCents >= MAX_CENTS} onPress={() => step(1)} />
+        <Chip label="+" wide accessibilityLabel={PREOPEN.ticket.step.up} disabled={priceCents >= MAX_CENTS} onPress={() => step(1)} />
       </View>
       <View style={styles.row} accessibilityLabel={PREOPEN.ticket.priceChips}>
         {PRICE_CHIPS.map((cents) => (

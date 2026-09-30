@@ -1,10 +1,10 @@
 /**
- * The pre-open call's words (S18 lane 18f, D-088). In the reference a post-only call rests on a listed Window at the
- * user's own price. On Canton that is a bilateral `RestingCall` that does not exist yet: the submitter refuses a rest
- * (`packages/markets/src/submitter/create.ts`, `REST_NOT_LIVE`) and the schedule button carries the `rest-not-live`
- * blocker, so every line a user can reach says a listed Window takes calls from the bell, at the venue's firm quote.
- * The receipt and rows below describe a rested call, which Canton cannot produce yet. Split from `copy-ticket.ts` for
- * the 400-line rule; re-exported through `@/lib/copy`. Money and prices arrive formatted; nothing here does arithmetic.
+ * The pre-open call's words (S18 lane 18f, D-088). A post-only call rests on a listed Window at the user's own price and
+ * fills within the first minute after the bell if the venue's price comes to it. On Canton it is a bilateral
+ * `RestingCall` (abu-pm-main 0.5.1, K-235): the seat's stake is held inside the contract, the venue fills it at exactly
+ * the price named, in whole or in part, and an unfilled call returns the stake as venue credit. A Canton seat posts no
+ * bond, so no line here mentions one. Split from `copy-ticket.ts` for the 400-line rule; re-exported through `@/lib/copy`.
+ * Money and prices arrive formatted; nothing here does arithmetic.
  */
 export const PREOPEN = {
   ticket: {
@@ -16,9 +16,9 @@ export const PREOPEN = {
     step: { down: "1¢ less", up: "1¢ more" },
     /** The price is what a contract costs the caller and what it implies: "55¢ a contract · pays 1.00 if right". */
     pays: (symbol: string) => `pays 1 ${symbol} a contract if right`,
-    /** The strip's caption once the call is sized: what it would hold, and that it cannot rest on Canton yet. */
-    rests: (cents: number) => `At ${cents}¢ · resting calls aren't on Canton yet; the Window takes calls from the bell`,
-    restsUntilLock: (cents: number) => `At ${cents}¢ until the Window locks · resting calls aren't on Canton yet`,
+    /** The strip's caption once the call is sized. */
+    rests: (cents: number) => `Rests at ${cents}¢ · fills in the first minute after the bell if the venue's price comes to you`,
+    restsUntilLock: (cents: number) => `Rests at ${cents}¢ · until the Window locks, if the venue's price ever comes to you`,
     sizing: "Enter a stake to size the call",
     reading: "Reading the Series grid…",
     held: "Held",
@@ -27,10 +27,10 @@ export const PREOPEN = {
     cta: (side: string) => `Schedule ${side} for`,
     ctaPlain: "Schedule a call",
     untilLock: "Keep it resting until the Window locks",
-    untilLockNote: "Off, a call would expire 90 s after the bell; on, it would rest until the Window locks. Neither runs on Canton yet: nothing rests before the bell.",
-    /** The promise, D-088 r2, as Canton runs today: nothing is signed or held on a listed Window (a Canton seat posts no bond). */
-    footnote: (_bondText: string) =>
-      "Resting calls aren't on Canton yet, so nothing here is signed and none of your credits are held. At the bell this Window trades like any other: your seat takes the venue's firm quote in one tap.",
+    untilLockNote: "Off, an unfilled call expires 90 s after the bell and the stake comes back. On, it rests through the Window and may be taken whenever the venue's price reaches yours.",
+    /** The promise, D-088 r2: every clause is true of the contract as deployed. A Canton seat posts no bond. */
+    footnote:
+      "Your seat signs. Your stake is held from now until it fills, you cancel, or it expires, and then comes back as venue credit. No fill is promised: the venue takes a resting call at your price only when its own price reaches it, and nothing fills before the open. An unfilled call loses nothing if the Window voids.",
     /** The outcome line after a rest lands. */
     resting: (contractsText: string, side: string, cents: number) => `Resting ${contractsText} ${side} at ${cents}¢`,
     restingToast: (contractsText: string, side: string, cents: number) => `Scheduled ${contractsText} ${side} at ${cents}¢ — resting for the open`,
@@ -52,16 +52,18 @@ export const PREOPEN = {
     cancel: "Cancel the call",
     cancelling: "Cancelling…",
     cancelled: "Cancelled — the stake is back in your venue credit.",
+    /** The seat cancelled a call that had already ended: nothing was sent. */
+    ended: "That call already ended: it filled, expired or was cancelled.",
     portfolio: "Portfolio",
     another: "Schedule another",
   },
   card: {
     clock: "listed",
-    /** "Listed · opens Wed 09:30 ET". */
-    headline: (opens: string) => `Listed · opens ${opens}`,
-    why: "Calls open at the bell, at the venue's firm quote. Resting one at your own price before then isn't on Canton yet.",
+    /** "Schedule a call · opens Wed 09:30 ET". */
+    headline: (opens: string) => `Schedule a call · opens ${opens}`,
+    why: "Rest a post-only call at your price now; it fills within the first minute after the bell if the venue's price comes to you.",
     cta: "Schedule a call",
-    hint: "not on Canton yet",
+    hint: "post-only · your price",
     aria: (asset: string) => `Schedule a call on this ${asset} Window`,
   },
   /** The closed hero while a listed Window is selected (D-088): its head names the Window under the last price. */
@@ -81,9 +83,16 @@ export const PREOPEN = {
   rows: {
     restingForOpen: "Resting for the open",
     resting: "Resting",
+    /** Ended states (the portfolio keeps them): filled, filled in part, swept unfilled, cancelled by the seat. */
+    filled: "Filled",
+    partlyFilled: "Partly filled",
     expired: "Didn't fill",
     expiredWhy: "stake returns as venue credit",
     cancelled: "Cancelled",
+    cancelledWhy: "stake is back as venue credit",
+    filledWhy: "filled at your price",
+    partlyWhy: "the rest came back as venue credit",
+    returned: "Back in venue credit",
     /** "UP at 55¢ · 10 contracts". */
     call: (side: string, cents: number, contractsText: string) => `${side} at ${cents}¢ · ${contractsText} contracts`,
     held: "Held",

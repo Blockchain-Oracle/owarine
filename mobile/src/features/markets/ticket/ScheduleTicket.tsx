@@ -21,8 +21,9 @@ import { tkType, useTk } from "./tk";
 
 /**
  * web's ScheduleTicket (D-088) in the phone drawer, on a Window listed before its bell — the same panel block for block
- * (side · amount · the price · the strip · the gates · rest until lock · the CTA · the footnote). On Canton no call can
- * rest yet, so the CTA carries web's `rest-not-live` blocker; the receipt with its Cancel stays for when one can.
+ * (side · amount · the price · the strip · the gates · rest until lock · the CTA · the footnote). On Canton the call is a
+ * bilateral `RestingCall` (K-235): the venue offers to hold it, the seat places its own cash into it, and the receipt
+ * carries its Cancel. The minimum the amount line names is the call's own (one lot at its price), as the blocker's.
  */
 export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
   const tk = useTk();
@@ -58,7 +59,8 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
             balanceBase={s.availableBase}
             decimals={decimals}
             symbol={symbol}
-            belowMin={stakeBase > 0n && belowMinStake(stakeBase, decimals)}
+            belowMin={stakeBase > 0n && (s.sized?.sizing ? stakeBase < s.sized.sizing.minStakeBase : belowMinStake(stakeBase, decimals))}
+            minBase={s.sized?.sizing?.minStakeBase ?? null}
             leverage={null}
           />
           <PriceControl priceCents={s.priceCents} onChange={s.setPriceCents} side={side} symbol={symbol} />
@@ -80,7 +82,7 @@ export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
           <BlockedButton blocker={s.blocker} ctx={s.ctx} tone={side ?? "primary"} label={side && quote ? `${PREOPEN.ticket.cta(SIDE_WORD[side])} ${money(quote.maxCostBase)}` : PREOPEN.ticket.ctaPlain} onPress={s.place} />
           {s.blocker === "region" ? <RegionNote /> : null}
           <Text style={[tkType.caption, { color: tk.foot }]}>
-            {PREOPEN.ticket.footnote(s.bondText)}
+            {PREOPEN.ticket.footnote}
             {s.session.isConnected && s.depositBase > 0n ? ` ${TICKET.seatDeposit(money(s.depositBase))}` : ""}
           </Text>
         </>

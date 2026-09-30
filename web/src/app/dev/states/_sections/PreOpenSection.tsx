@@ -23,7 +23,7 @@ import { RESTED_UP, RESTING_ROWS } from "../preopen-fixtures";
 import { Fixture, FixtureGrid } from "./Fixture";
 
 const noop = () => undefined;
-/** A devnet Series grid: 1,000-base lots, 1-base ticks, a cash unit of 1, `min_lots` 1,000, a 0.25 tUSDC bond. */
+/** A Series grid: 1,000-base lots, 1-base ticks, a cash unit of 1, `min_lots` 1,000 (a Canton Window's is 1 lot). */
 const GRID = { lotBase: 1_000n, tickBase: 1n, cashUnit: 1n, minLots: 1_000n };
 const STAKE = 5_500_000n;
 const SESSION = { isConnected: true, isConnecting: false, isRightChain: true, address: null } as unknown as ScheduleBlockerInput["session"];
@@ -37,7 +37,7 @@ const READY: ScheduleBlockerInput = {
   priceCents: 55,
   stakeBase: STAKE,
   availableBase: 12_000_000n,
-  depositBase: 250_000n,
+  depositBase: 0n,
   sized: restingQuote({ side: "up", priceCents: 55, stakeBase: STAKE, grid: GRID, decimals: DECIMALS, quotedAtMs: 0 }),
   crossing: null,
   restingCount: 0,
@@ -52,7 +52,7 @@ const LADDER: ReadonlyArray<{ label: string; input: ScheduleBlockerInput; ctx?: 
     input: { ...READY, stakeBase: 300_000n, sized: restingQuote({ side: "up", priceCents: 55, stakeBase: 300_000n, grid: GRID, decimals: DECIMALS, quotedAtMs: 0 }) },
     ctx: { minStakeText: `0.55 ${SYMBOL}` },
   },
-  { label: "over-balance — escrow plus the seat bond past the balance", input: { ...READY, availableBase: 5_600_000n } },
+  { label: "over-balance — the escrow past the balance", input: { ...READY, availableBase: 5_600_000n } },
 ];
 
 function ScheduleComposer() {
@@ -66,7 +66,7 @@ function ScheduleComposer() {
       <BlockedButton blocker={null} ctx={{}} tone="up" size="lg" className="w-full" onClick={noop}>
         {PREOPEN.ticket.cta(SIDE_WORD.up)} {quote && <Money value={quote.maxCostBase} decimals={DECIMALS} symbol={SYMBOL} />}
       </BlockedButton>
-      <p className="tk-foot">{PREOPEN.ticket.footnote(`0.25 ${SYMBOL}`)}</p>
+      <p className="tk-foot">{PREOPEN.ticket.footnote}</p>
     </div>
   );
 }
