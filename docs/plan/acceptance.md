@@ -2,7 +2,7 @@
 
 Evidence for stage gates, parity rows and the capability registry. **Every command sent to Noders gets a row, including failed ones, with its update id or trace id** (Noders returns only a trace id on errors). Newest last. Times are UTC.
 
-The reference's own public evidence page, imported unchanged, is `docs/evidence/acceptance.md` (Solana devnet, 23 Sep); it is prior work, not this ledger.
+The reference's own public evidence page, imported unchanged, is `docs/evidence/prior-work/agari-solana-acceptance.md` (Solana devnet, 23 Sep); it is prior work, not this ledger.
 
 | UTC | Stage | Scenario | Parity rows | Commit | Ledger evidence (update id / trace id / artifact) | Result |
 |---|---|---|---|---|---|---|
