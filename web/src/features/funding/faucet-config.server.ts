@@ -22,7 +22,7 @@ export function faucetConfig() {
   if (!loaded.keys) return null;
   return { ...loaded.keys, enabled: ["1", "true"].includes(process.env.SOL_FAUCET_ENABLED ?? "") && isDbConfigured() };
 }
-export function unavailableFaucetStatus(address: string | null, message = "In-app test funds are unavailable. You can use an external SOL faucet."): FaucetStatus {
+export function unavailableFaucetStatus(address: string | null, message = "In-app test funds are unavailable here. Canton charges no network fee, so a seat needs nothing but its demo credits."): FaucetStatus {
   return { configured: false, ready: false, address, fundingBalanceLamports: null, walletBalanceLamports: null, dailyRemainingLamports: null, targetLamports: SOL_FAUCET_POLICY.targetLamports.toString(), thresholdLamports: SOL_FAUCET_POLICY.thresholdLamports.toString(), claim: null, tusdc: unavailableTusdcStatus(), message };
 }
 export function faucetForRequest(request: Request) {
@@ -30,7 +30,7 @@ export function faucetForRequest(request: Request) {
   const suppliedOrigin = request.headers.get("origin");
   if (suppliedOrigin && suppliedOrigin !== origin) throw new FaucetError("origin-invalid", "Open the faucet from Agari.", 403);
   const config = faucetConfig();
-  if (!config?.enabled) throw new FaucetError("unavailable", "In-app test funds are unavailable. Please use an external SOL faucet.", 503);
+  if (!config?.enabled) throw new FaucetError("unavailable", "In-app test funds are unavailable here. Please try again later.", 503);
   // The proxy named by TRUSTED_PROXY vouches for the IP (client-ip.server.ts); with none named, production refuses.
   const ip = clientIp(request);
   if (!ip) throw new FaucetError("connection-unverified", "The faucet could not verify this connection.", 503);

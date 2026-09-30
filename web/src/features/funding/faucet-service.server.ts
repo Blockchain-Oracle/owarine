@@ -21,8 +21,8 @@ export interface FaucetServiceDeps {
 /** The funder must keep its reserve after paying a new ATA's rent and both signatures of a mint (first-call.md §4). */
 export const TUSDC_FUNDING_FLOOR_LAMPORTS = POLICY.reserveLamports + TUSDC.ataRentLamports + TUSDC.maxMintFeeLamports;
 const RULES = {
-  sol: { cooldownMs: POLICY.cooldownMs, maxPerIp: POLICY.maxPerIpPerDay, cooldown: "This wallet can request another SOL top-up 24 hours after its last request.", ip: "This connection has reached its daily SOL allocation.", pending: "A SOL transfer is still being checked. Please try again shortly." },
-  tusdc: { cooldownMs: TUSDC.cooldownMs, maxPerIp: TUSDC.maxPerIpPerDay, cooldown: "This wallet can claim demo credits again 24 hours after its last claim.", ip: "This connection has reached its daily demo credits claims.", pending: "A credits claim is still being checked. Please try again shortly." },
+  sol: { cooldownMs: POLICY.cooldownMs, maxPerIp: POLICY.maxPerIpPerDay, cooldown: "This seat can request another top-up 24 hours after its last request.", ip: "This connection has reached its daily top-up allocation.", pending: "A top-up is still being checked. Please try again shortly." },
+  tusdc: { cooldownMs: TUSDC.cooldownMs, maxPerIp: TUSDC.maxPerIpPerDay, cooldown: "This seat can claim demo credits again 24 hours after its last claim.", ip: "This connection has reached its daily demo credits claims.", pending: "A credits claim is still being checked. Please try again shortly." },
 } as const;
 const TUSDC_AMOUNT_TEXT = `${TUSDC.amountUnits.toLocaleString("en-US")} demo credits`;
 
@@ -46,13 +46,13 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
     try { await deps.chain.broadcast(current); } catch { /* A lost acknowledgement never creates a new transfer. */ }
     return inspect(current).catch(() => current);
   }
-  const refill = () => new FaucetError("refill-needed", "Our SOL faucet is waiting for a refill. Please use an external faucet for now.", 503);
+  const refill = () => new FaucetError("refill-needed", "The faucet is waiting for a refill. Please try again later.", 503);
   /** A new SOL top-up's amount and signed bytes, inside the reservation lock. */
   async function reserveSol(wallet: string, usedLamports: bigint) {
     const balance = await deps.chain.balance(wallet);
     const amountLamports = faucetTopUpLamports(balance);
-    if (amountLamports === 0n) throw new FaucetError("already-funded", "You already have enough SOL for fees. Continue to get demo credits.");
-    if (usedLamports + amountLamports > POLICY.dailyLamports) throw new FaucetError("daily-limit", "Today's SOL allocation is used up. Try later or use an external faucet.", 429);
+    if (amountLamports === 0n) throw new FaucetError("already-funded", "Canton charges no network fee, so there is nothing to top up. Continue to get demo credits.");
+    if (usedLamports + amountLamports > POLICY.dailyLamports) throw new FaucetError("daily-limit", "Today's top-up allocation is used up. Please try again later.", 429);
     const funding = await deps.chain.balance(deps.chain.address);
     if (funding < POLICY.reserveLamports + amountLamports) throw refill();
     const prepared = await deps.chain.prepare(wallet, amountLamports);
@@ -64,7 +64,7 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
     const { decimals } = await deps.chain.mint();
     const amountBase = tusdcBaseUnits(TUSDC.amountUnits, decimals);
     if (usedBase + amountBase > tusdcBaseUnits(TUSDC.dailyUnits, decimals)) throw new FaucetError("daily-limit", "Today's demo credits allocation is used up. Please try again later.", 429);
-    if (await deps.chain.balance(deps.chain.address) < TUSDC_FUNDING_FLOOR_LAMPORTS) throw new FaucetError("refill-needed", "Our faucet is waiting for a SOL refill, so credits claims are paused. Please try again later.", 503);
+    if (await deps.chain.balance(deps.chain.address) < TUSDC_FUNDING_FLOOR_LAMPORTS) throw new FaucetError("refill-needed", "The faucet is waiting for a refill, so credits claims are paused. Please try again later.", 503);
     const prepared = await deps.chain.prepareMint(wallet, amountBase);
     return { asset: "tusdc" as const, amountBase: amountBase.toString(), ...prepared };
   }
@@ -81,8 +81,8 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
     const nextMs = current ? current.createdAtMs + TUSDC.cooldownMs : null;
     const message = current?.status === "prepared" ? "Your credits claim is confirming. It will not be minted twice."
       : current?.status === "conflict" ? "Your credits claim needs operator review."
-      : nextMs !== null && nextMs > deps.now() ? "This wallet has claimed its demo credits for the last 24 hours."
-      : !funded ? "Our faucet is waiting for a SOL refill, so credits claims are paused."
+      : nextMs !== null && nextMs > deps.now() ? "This seat has claimed its demo credits for the last 24 hours."
+      : !funded ? "The faucet is waiting for a refill, so credits claims are paused."
       : remaining < amount ? "Today's demo credits allocation is used up. Please try again later."
       : `The same free signature adds ${TUSDC_AMOUNT_TEXT}. There is no transaction to approve and no fee.`;
     return { configured: true, ready: funded && remaining >= amount, mint: facts.address, decimals: facts.decimals, amountBase: amount.toString(), walletBalanceBase: balance?.toString() ?? null, dailyRemainingBase: remaining.toString(), claim: current ? tusdcClaimView(current) : null, message };
@@ -100,13 +100,13 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
       const funded = funding >= POLICY.reserveLamports + amount + POLICY.maxTransferFeeLamports;
       const ready = funded && remaining >= amount;
       const nextMs = current ? current.createdAtMs + POLICY.cooldownMs : null;
-      const message = current?.status === "prepared" ? "Your SOL transfer is confirming. It will not be paid twice."
-        : current?.status === "conflict" ? "Your SOL transfer needs operator review. Use an external faucet meanwhile."
-        : balance !== null && amount === 0n ? "You already have enough SOL for fees. Continue to get demo credits."
-        : nextMs !== null && nextMs > deps.now() ? "This wallet has used its SOL top-up for the last 24 hours."
-        : !funded ? "Our SOL faucet is waiting for a refill. External faucets are available below."
-        : remaining < amount ? "Today's SOL allocation is used up. Try later or use an external faucet."
-        : "Verify with a free wallet signature. Our faucet pays the transfer fee, then adds your credits.";
+      const message = current?.status === "prepared" ? "Your top-up is confirming. It will not be paid twice."
+        : current?.status === "conflict" ? "Your top-up needs operator review."
+        : balance !== null && amount === 0n ? "Canton charges no network fee, so there is nothing to top up. Continue to get demo credits."
+        : nextMs !== null && nextMs > deps.now() ? "This seat has used its top-up for the last 24 hours."
+        : !funded ? "The faucet is waiting for a refill. Please try again later."
+        : remaining < amount ? "Today's top-up allocation is used up. Please try again later."
+        : "Verify with a free seat signature, then the faucet adds your demo credits. There is no network fee.";
       return { configured: true, ready, address: deps.chain.address, fundingBalanceLamports: funding.toString(), walletBalanceLamports: balance?.toString() ?? null, dailyRemainingLamports: remaining.toString(), targetLamports: POLICY.targetLamports.toString(), thresholdLamports: POLICY.thresholdLamports.toString(), claim: current ? faucetClaimView(current) : null, tusdc, message };
     },
     async challenge(wallet: string, ipHash: string, origin: string) {
@@ -127,11 +127,11 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
       const claims = journal(store, asset);
       const rules = RULES[asset];
       const challenge = await store.challenge(id);
-      if (!challenge) throw new FaucetError("challenge-missing", "Request a new wallet verification message.", 400);
+      if (!challenge) throw new FaucetError("challenge-missing", "Request a new seat verification message.", 400);
       const existing = await claims.claim(id);
-      if (!existing && challenge.expiresAtMs <= deps.now()) throw new FaucetError("challenge-expired", "Wallet verification expired. Please try again.", 400);
+      if (!existing && challenge.expiresAtMs <= deps.now()) throw new FaucetError("challenge-expired", "Seat verification expired. Please try again.", 400);
       if (!existing && challenge.ipHash !== ipHash) throw new FaucetError("request-changed", "Your connection changed. Please request a new verification message.", 400);
-      if (!await deps.verify(challenge.wallet, challenge.message, signature)) throw new FaucetError("signature-invalid", "The signature does not match this wallet request.", 403);
+      if (!await deps.verify(challenge.wallet, challenge.message, signature)) throw new FaucetError("signature-invalid", "The signature does not match this seat's request.", 403);
 
       // A signed retry may recover its existing transfer even after the message expired.
       if (existing) return anyClaimView(await deliver(existing));
@@ -143,7 +143,7 @@ export function createFaucetService(chain: FaucetChain, overrides: Partial<Fauce
         const duplicate = await lockedClaims.claim(id);
         if (duplicate) return duplicate;
         const nowMs = deps.now();
-        if (challenge.expiresAtMs <= nowMs) throw new FaucetError("challenge-expired", "Wallet verification expired. Please try again.", 400);
+        if (challenge.expiresAtMs <= nowMs) throw new FaucetError("challenge-expired", "Seat verification expired. Please try again.", 400);
         if (await lockedClaims.pending()) throw new FaucetError("pending-transfer", rules.pending);
         const previous = await lockedClaims.latest(challenge.wallet);
         if (previous && previous.createdAtMs + rules.cooldownMs > nowMs) throw new FaucetError("cooldown", rules.cooldown, 429);
