@@ -4,6 +4,7 @@ import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/l
 import { err, ok } from "@agari/core/schemas";
 import { CC_RAIL_CAPABILITY } from "@agari/core/cc";
 import { registerArenaSource } from "@agari/markets/games";
+import { createRegistryClient } from "@agari/markets/ops/cc";
 import {
   createAgentsSeat, createCcSeat, createDeskSeat, createGamesSeat, createOpsClient, createSeatLedger, createTicketSeat,
   type AgentsSeat, type CcSeat, type DeskSeat, type GamesSeat, type OpsClient, type SeatLedger, type TicketSeat,
@@ -56,7 +57,7 @@ export function seatServer(): SeatServerState {
   const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands, marks: () => ops.ladderMarks() });
   const tickets = createTicketSeat({ client, venueParty: parties.venue!, journal: store.commands, fairTicks: () => ops.fairTicks(), ladders: () => ops.quotingLadders() });
   const agents = createAgentsSeat({ client, venueParty: parties.venue!, agentRunner: parties.agentRunner, journal: store.commands, ops });
-  const cc = createCcSeat({ client, venueParty: parties.venue!, journal: store.commands, listingId: process.env.CC_LISTING_ID || "cc-1", capability: CC_RAIL_CAPABILITY });
+  const cc = createCcSeat({ client, venueParty: parties.venue!, journal: store.commands, listingId: process.env.CC_LISTING_ID || "cc-1", capability: CC_RAIL_CAPABILITY, registry: process.env.CC_REGISTRY_URL ? createRegistryClient({ baseUrl: process.env.CC_REGISTRY_URL }) : null });
   const desk = createDeskSeat({ client, venueParty: parties.venue!, operator: parties.agentRunner, attestors: parties.oracles, journal: store.commands, ops });
   const games = createGamesSeat({ client, venueParty: parties.venue!, journal: store.commands, ledger, ops });
   // The web server's own `@agari/markets/games` reads (the season page, the room token, the sponsor) go to ops' arena

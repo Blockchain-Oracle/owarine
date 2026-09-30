@@ -12,8 +12,9 @@
 import { CC_RAIL_WAITING_ON, type CcRailCapability, type CcRailView } from "@agari/core/cc";
 import { diagnosis, type Diagnosis } from "@agari/core/types";
 import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { UnitsError, cashUnitsToCc, type ContractId, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
-import { ccCmd, decodeAllowance, decodeDeposit, decodeHoldingView, decodeListing, decodeProposal, decodeStatement, decodeWithdrawal, interfaceViewOf } from "../ops/cc";
+import { UnitsError, atomicToCashUnitsExact, cashUnitsToCc, ccToAtomic, type ContractId, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
+import { readCip56Holdings } from "../holdings/reader";
+import { ccCmd, coverHoldings, decodeAllowance, decodeDeposit, decodeHoldingView, decodeListing, decodeProposal, decodeStatement, decodeWithdrawal, interfaceViewOf, RegistryError, type RegistryClient } from "../ops/cc";
 import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import type { CcWriteReply } from "../provider/cc-wire";
 import { seatCommandId } from "./ids";
@@ -28,6 +29,10 @@ export interface CcSeatConfig {
   journal: CommandJournal;
   listingId: string;
   capability: CcRailCapability;
+  /** The token registry's client, for the seat's deposit instruction; null = none configured, so a deposit refuses. */
+  registry?: RegistryClient | null;
+  /** How long a deposit the seat instructs stays open for the venue to accept. */
+  transferWindowSec?: number;
   now?: () => number;
 }
 
@@ -196,7 +201,84 @@ export function createCcSeat(cfg: CcSeatConfig) {
     }
   }
 
-  return { status, requestWithdraw };
+  /**
+   * The seat's deposit: a token-standard transfer of `amount` (a `Decimal` string) of the listed instrument from the seat to
+   * the venue, instructed as the seat with the registry's factory, choice context and disclosed contracts. It stays a
+   * pending `TransferInstruction` until the venue's ops actor accepts it and credits the cash in one transaction. Refused
+   * before anything is signed: while not-live, without a registry, for an amount that is not a whole number of cash units
+   * (dust is refused, never rounded) or is out of the listing's bounds, or that the seat's unlocked coin does not cover.
+   */
+  async function requestDeposit(seat: SeatRef, o: { journalId: string; amount: string }): Promise<CcWriteReply> {
+    if (cfg.capability !== "live") return { kind: "refused", diagnosis: notLive() };
+    const commandId = seatCommandId("cc", o.journalId);
+    const ctx: RejectionContext = { step: "accept" };
+    try {
+      const prior = await journal.get(commandId);
+      if (prior && (prior.party !== seat.party || prior.leaseId !== seat.leaseId)) throw refuse("contract-revert", "this command id belongs to another seat");
+      if (prior && (prior.state === "landed" || prior.state === "unknown")) {
+        const updateId = prior.updateId ?? (await client.findAcceptedCompletion(prior.commandId, [seat.party], prior.beginOffset))?.updateId ?? null;
+        if (updateId) {
+          if (prior.state !== "landed") await journal.finish(commandId, { state: "landed", updateId });
+          return { kind: "requested", updateId, recovered: true };
+        }
+      }
+      if (!cfg.registry) throw refuse("not-deployed", "no token registry is configured for this deployment");
+      const { listing } = await venueView();
+      if (!listing) throw refuse("not-deployed", "the venue has not listed Canton Coin");
+      if (!listing.depositsOpen) throw refuse("market-not-trading", "the venue is not taking new Canton Coin deposits");
+      let amountAtomic: bigint;
+      try {
+        amountAtomic = ccToAtomic(o.amount);
+        const units = atomicToCashUnitsExact(amountAtomic, listing.unitsPerCoin);
+        if (units < listing.minDepositUnits || units > listing.maxDepositUnits) throw refuse("invalid-price", "that amount is outside the listing's deposit limits");
+      } catch (error) {
+        if (error instanceof UnitsError) throw refuse("invalid-price", error.message.startsWith("dust") ? "that amount is not a whole number of cash units at the listing's rate; it would be sent back, so it is not sent" : "that is not an amount the Canton Coin path converts");
+        throw error;
+      }
+      const mine = (await readCip56Holdings(client, seat.party)).filter((h) => !h.locked && h.instrumentAdmin === listing.instrumentAdmin && h.instrumentId === listing.instrumentId);
+      const cover = coverHoldings(mine.map((h) => ({ cid: h.contractId, view: { owner: seat.party, instrumentAdmin: h.instrumentAdmin, instrumentId: h.instrumentId, amountAtomic: h.amountAtomic, lock: null, meta: {} } })), amountAtomic);
+      if (!cover) throw refuse("insufficient-collateral", "your unlocked coin does not cover this deposit");
+      const nowSec = Math.floor(now() / 1000);
+      const args = {
+        sender: seat.party, receiver: cfg.venueParty, instrumentAdmin: listing.instrumentAdmin, instrumentId: listing.instrumentId, amountAtomic,
+        requestedAtSec: nowSec - 60, executeBeforeSec: nowSec + (cfg.transferWindowSec ?? 86_400), inputHoldingCids: cover.map((h) => h.cid), ref: o.journalId,
+      };
+      let answer;
+      try {
+        answer = await cfg.registry.transferFactory(ccCmd.transferChoiceArguments(args));
+      } catch (error) {
+        if (error instanceof RegistryError) throw refuse("rpc-down", "the token registry did not answer; nothing was sent");
+        throw error;
+      }
+      const beginOffset = await client.ledgerEnd();
+      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "cc", beginOffset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      let tx: JsTransaction;
+      let recovered: boolean;
+      try {
+        const r = await client.submitAndWaitForTransaction({
+          actAs: [seat.party], commandId,
+          commands: [ccCmd.instructDeposit({ ...args, factoryCid: answer.factoryId, context: answer.context })],
+          ...(answer.context.disclosedContracts.length > 0 ? { disclosedContracts: answer.context.disclosedContracts } : {}),
+          ...inFlightBounds(row),
+        });
+        tx = r.transaction;
+        recovered = r.recovered;
+      } catch (error) {
+        const d = classifyRejection(error, ctx);
+        const state = d.kind === "send-unknown" ? "unknown" : "failed";
+        await journal.finish(commandId, { state, diagnosis: d });
+        return state === "unknown" ? { kind: "unknown", diagnosis: d } : { kind: "refused", diagnosis: d };
+      }
+      await journal.finish(commandId, { state: "landed", updateId: tx.updateId });
+      return { kind: "requested", updateId: tx.updateId, recovered };
+    } catch (error) {
+      if (error instanceof SeatRefusal) return { kind: "refused", diagnosis: error.diagnosis };
+      const d: Diagnosis = classifyRejection(error, ctx);
+      return d.kind === "send-unknown" ? { kind: "unknown", diagnosis: d } : { kind: "refused", diagnosis: d };
+    }
+  }
+
+  return { status, requestWithdraw, requestDeposit };
 }
 
 export type CcSeat = ReturnType<typeof createCcSeat>;

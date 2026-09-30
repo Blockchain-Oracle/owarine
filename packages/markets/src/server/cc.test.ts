@@ -1,6 +1,7 @@
 import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import type { Command, LedgerClient, Party } from "@agari/ledger";
 import { describe, expect, it } from "vitest";
+import { RegistryError, type RegistryClient } from "../ops/cc";
 import { createCcSeat } from "./cc";
 import type { CommandJournal, CommandRow } from "./writes";
 
@@ -66,10 +67,24 @@ function memoryJournal() {
   return { journal, rows };
 }
 
-const seatOf = (rows: Row[], capability: "not-live" | "live") => {
+const CTX = { choiceContextData: { values: {} }, disclosedContracts: [{ templateId: "p:M:T", contractId: "00c", createdEventBlob: "b", synchronizerId: "s" }] };
+const registryOf = (fail = false): RegistryClient & { asked: unknown[] } => {
+  const asked: unknown[] = [];
+  return {
+    asked,
+    transferFactory: async (args) => {
+      asked.push(args);
+      if (fail) throw new RegistryError("down");
+      return { factoryId: "00factory", transferKind: "offer", context: CTX };
+    },
+    instructionContext: async () => CTX,
+  };
+};
+
+const seatOf = (rows: Row[], capability: "not-live" | "live", registry: RegistryClient | null = null) => {
   const l = ledger(rows);
   const j = memoryJournal();
-  return { ...l, ...j, cc: createCcSeat({ client: l.client, venueParty: VENUE, journal: j.journal, listingId: "cc-1", capability, now: () => 1_000_000 }) };
+  return { ...l, ...j, cc: createCcSeat({ client: l.client, venueParty: VENUE, journal: j.journal, listingId: "cc-1", capability, registry, now: () => 1_000_000_000 }) };
 };
 
 describe("the seat's Canton Coin path (C7b)", () => {
@@ -160,5 +175,55 @@ describe("the seat's Canton Coin path (C7b)", () => {
     expect(t.sent).toHaveLength(1);
     const other = await t.cc.requestWithdraw({ ...SEAT, party: B, leaseId: "lease-b" }, { journalId: J1, units: 1n });
     expect(other).toMatchObject({ kind: "refused" });
+  });
+});
+
+describe("the seat's deposit instruction (C7b)", () => {
+  const coin = holding("h1", [A], A, "50.0000000000");
+  const live = (rows: Row[] = [listingRow, coin], reg: RegistryClient | null = registryOf()) => seatOf(rows, "live", reg);
+
+  it("refuses while not-live, before asking the registry or signing", async () => {
+    const reg = registryOf();
+    const t = seatOf([listingRow, coin], "not-live", reg);
+    expect(await t.cc.requestDeposit(SEAT, { journalId: J1, amount: "1.0" })).toMatchObject({ kind: "refused", diagnosis: { kind: "not-deployed" } });
+    expect(reg.asked).toHaveLength(0);
+    expect(t.sent).toHaveLength(0);
+  });
+
+  it("instructs the token-standard transfer as the seat only, with the registry's context and exact amounts", async () => {
+    const reg = registryOf();
+    const t = live([listingRow, coin], reg);
+    const r = await t.cc.requestDeposit(SEAT, { journalId: J1, amount: "12.5" });
+    expect(r).toMatchObject({ kind: "requested", recovered: false });
+    const asked = reg.asked[0] as { expectedAdmin: string; transfer: { sender: string; receiver: string; amount: string; inputHoldingCids: string[]; meta: { values: Record<string, string> } } };
+    expect(asked.expectedAdmin).toBe(ADMIN);
+    expect(asked.transfer).toMatchObject({ sender: A, receiver: VENUE, amount: "12.5000000000", inputHoldingCids: ["h1"] });
+    expect(asked.transfer.meta.values["abu-pm.io/ref"]).toBe(J1);
+    expect(t.sent[0]?.actAs).toEqual([A]);
+    const cmd = t.sent[0]?.commands[0] as { ExerciseCommand: { templateId: string; contractId: string; choice: string } };
+    expect(cmd.ExerciseCommand).toMatchObject({ templateId: CIP56_INTERFACE_IDS.TransferFactory, contractId: "00factory", choice: "TransferFactory_Transfer" });
+    expect((t.sent[0] as unknown as { disclosedContracts: unknown }).disclosedContracts).toEqual(CTX.disclosedContracts);
+  });
+
+  it("refuses dust and out-of-bounds amounts before signing: they would only be sent back", async () => {
+    const t = live();
+    expect(await t.cc.requestDeposit(SEAT, { journalId: J1, amount: "1.000001" })).toMatchObject({ kind: "refused", diagnosis: { kind: "invalid-price" } });
+    expect(await t.cc.requestDeposit(SEAT, { journalId: J2, amount: "0.5" })).toMatchObject({ kind: "refused", diagnosis: { kind: "invalid-price" } });
+    expect(t.sent).toHaveLength(0);
+  });
+
+  it("refuses without a registry, without enough unlocked coin, and when the registry is down", async () => {
+    expect(await live([listingRow, coin], null).cc.requestDeposit(SEAT, { journalId: J1, amount: "1.0" })).toMatchObject({ kind: "refused", diagnosis: { kind: "not-deployed" } });
+    expect(await live([listingRow, coin]).cc.requestDeposit(SEAT, { journalId: J1, amount: "60.0" })).toMatchObject({ kind: "refused", diagnosis: { kind: "insufficient-collateral" } });
+    const locked = holding("h2", [A], A, "50.0000000000", { holders: [A], expiresAt: null, expiresAfter: null, context: null });
+    expect(await live([listingRow, locked]).cc.requestDeposit(SEAT, { journalId: J1, amount: "1.0" })).toMatchObject({ kind: "refused", diagnosis: { kind: "insufficient-collateral" } });
+    const down = live([listingRow, coin], registryOf(true));
+    expect(await down.cc.requestDeposit(SEAT, { journalId: J1, amount: "1.0" })).toMatchObject({ kind: "refused" });
+    expect(down.sent).toHaveLength(0);
+  });
+
+  it("refuses a closed listing", async () => {
+    const closed = { ...listingRow, data: { ...listing, depositsOpen: false } };
+    expect(await live([closed, coin]).cc.requestDeposit(SEAT, { journalId: J1, amount: "1.0" })).toMatchObject({ kind: "refused" });
   });
 });

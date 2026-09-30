@@ -37,6 +37,9 @@ export type CcRailReply = z.output<typeof ccRailWire>;
 /** `POST /api/ledger/cc/withdraw`: the seat's own ask, cash units back in coin. The party is the lease's, never the body's. */
 export const ccWithdrawRequestWire = z.strictObject({ commandId, units: digits });
 
+/** `POST /api/ledger/cc/deposit`: `amount` is a `Decimal` string (`"12.5"`), exact or refused; the seat is the lease's. */
+export const ccDepositRequestWire = z.strictObject({ commandId, amount: z.string().regex(/^\d{1,8}(\.\d{1,10})?$/, "a decimal amount with at most 10 places") });
+
 export const ccWriteReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("requested"), updateId: z.string(), recovered: z.boolean() }),
   z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),

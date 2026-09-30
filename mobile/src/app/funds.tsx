@@ -6,6 +6,7 @@ import { X } from "lucide-react-native";
 import { FUNDING } from "@/features/funding/copy";
 import { useSeatCredit } from "@/features/funding/useSeatCredit";
 import { useWalletSession } from "@/lib/wallet-session";
+import { CcRailCard } from "~/components/funding/CcRailCard";
 import { CreditWelcome } from "~/components/funding/CreditWelcome";
 import { FootLine, FundingFacts } from "~/components/funding/FundingFacts";
 import { BottomDrawer, type DrawerClose } from "~/components/drawer/BottomDrawer";
@@ -104,6 +105,7 @@ export default function FundsModal() {
                 <FootLine text={credit.status === "funded" ? FUNDING.seat.funded : credit.status === "unleased" ? FUNDING.seat.unleased : FUNDING.seat.unfunded} />
               </View>
             </View>
+            <CcRailCard />
           </>
         )}
       </BottomDrawer>
