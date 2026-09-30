@@ -47,6 +47,11 @@ The binding resolves a seat address to a party only while that address holds a l
 | `f626598` | C13a.8 Sensei: desk proof, copy, Brake pinned |
 | `f3055b9` | C13a.9 X grammar: credits, BTC/ETH lane routing |
 | `77b1a29` | C13a.10 forwarded X session header and handoff decisions |
+| `e1d39b3`, `55c1b7b` | C13a.11 evidence and decisions K-140 to K-145 |
+| `e04584f` | merge of main `4831a49` (C8g) |
+| `f0ad6da` | merge of main `5288573` (C11a); decisions K-126 and K-140 to K-145 both kept |
+| `091dcdd` | C13a.12 C11a's push inbox (`seatInboxFeed`) reads the seat's own rows by lease |
+| `aac2257` | C13a.13 `/native-auth` page and the app's Sign in with X |
 
 ## Tests added
 
@@ -66,13 +71,13 @@ The binding resolves a seat address to a party only while that address holds a l
 
 ## Gates
 
-The run on `77b1a29` plus this lane's docs gave 261 test files and 2,136 tests passed, and 1 invariants warning in C8's file. After main `4831a49` (C8g) was merged (`e04584f`), the tree was gated again:
+Final run on HEAD `aac2257`, with main `5288573` (C11a) merged:
 
 | Gate | Result |
 |---|---|
 | `pnpm typecheck` (all projects, including `@agari/mobile`) | pass |
-| `pnpm invariants` | 0 errors, 0 warnings. C8g removed the `Number(priceE8` warning |
-| `pnpm test` | 264 files passed and 7 skipped (271); 2,147 tests passed and 33 skipped; 0 failed. The known load timeouts in `api/venue/routes.test.ts` and `reply-card.test.ts` did not occur |
+| `pnpm invariants` | 0 errors, 0 warnings |
+| `pnpm test` | 270 files passed and 8 skipped (278); 2,161 tests passed and 36 skipped; 0 failed. The known load timeouts in `api/venue/routes.test.ts` and `reply-card.test.ts` did not occur |
 | `read-lease.test.ts` on Postgres (`SEAT_PG_URL=postgres://localhost/pm_c13a`) | 8 passed |
 
 No sandbox drive was run. The host load was 25–65 all session, and each re-pointed read is covered by a Postgres test against the real schema SQL (`SCHEMA_SQL`) or a route unit test.
@@ -104,6 +109,7 @@ No sandbox drive was run. The host load was 25–65 all session, and each re-poi
 - **Stage owner.**
   - `capabilities.json` and `parity.md` are not advanced here: they advance at gates.
   - Capability A-3e still reads "Blinks: every Window as a Solana Action".
+- **A crafted handoff link.** If a person already signed in with X on the site opens a crafted `/native-auth?state=…` in Safari, the site redirects to the app's scheme with their X session. Agari ignores a handoff it did not start. An app that registered the same scheme could keep the token. That token names an X account only: the seat still signs its own link text, and unlinking needs the bound seat's signature.
 - **Not changed.**
   - The X link and unlink texts still say `Wallet: <address>`. They are signed silently by the seat key and never shown, and changing them would invalidate in-flight signatures.
   - Sensei's line "a live desk is planned" follows the desk's honest state (C8).
