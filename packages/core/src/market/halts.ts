@@ -51,7 +51,10 @@ export const REDSTONE_STALE_SEC = 60;
  * lists a Window up to its 120 s lead ahead of `T`. A last trade over 120 s old at listing can therefore be over 240 s old
  * at `T`, still inside the 300 s bound; a newest trade past 120 s (also where the spot feed stops calling an IEX trade the
  * last price, `ALPACA_MAX_AGE_SEC`) says the trades have stopped, and a Window listed on it could void. Deliberately not
- * tighter: VOO's IEX volume is thin, and a quiet minute is not a halt.
+ * tighter: VOO's IEX volume is thin, and a quiet minute is not a halt. Measured on Alpaca's IEX trades of the 2026-09-29
+ * regular session (13:30Z to 20:00Z): the longest gap between trades was 77 s for QQQ (3 gaps over 60 s) and 96 s for
+ * VOO (19 gaps over 60 s); none over 120 s for either, so a 60 s limit would have halted VOO 19 times that day and 120 s
+ * never. The first trade of the day came 0.2 s (QQQ) and 0.4 s (VOO) after the open.
  */
 export const ALPACA_STALE_SEC = 120;
 /**
