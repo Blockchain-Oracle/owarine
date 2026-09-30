@@ -3,7 +3,7 @@ import { isOk } from "@agari/core/schemas";
 import { useLeverageMark, useMarket, useMyLeveragePositions } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useLeverageWrites } from "@/features/leverage";
+import { useLeverageWrites } from "@/features/leverage/useLeverageWrites";
 import { SHORT } from "@/features/short/copy";
 import { useWalletSession } from "@/lib/wallet-session";
 import { FONT, useTheme } from "~/theme";

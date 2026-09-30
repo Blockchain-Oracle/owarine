@@ -22,6 +22,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { idlNoDestination, ledgerImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { capabilitiesEvidence } from "./lib/capabilities-evidence.mjs";
+import { mobileBundleReach } from "./lib/mobile-bundle-reach.mjs";
 import { mobileIdentity } from "./lib/mobile-identity.mjs";
 import { mobileReviewHygiene } from "./lib/mobile-review.mjs";
 import { mobileShimPaths } from "./lib/mobile-shim-paths.mjs";
@@ -132,6 +133,7 @@ export const rules = [
   },
   { id: "mobile-identity", description: "the app never carries the reference app's EAS project, update URL or App Store Connect id, and every identifier comes from mobile/app.identity.json (K-126)", check: mobileIdentity },
   { id: "mobile-review-hygiene", description: "App Review hygiene in the binary: no export-compliance encryption, the first-run gate's demo-credits words, no purchase or real-money path (plan iOS \"Review hygiene\")", check: mobileReviewHygiene },
+  { id: "mobile-bundle-reach", description: "no module Metro bundles into the phone app imports a DOM-, Next-, server- or Node-only package (a web barrel import drags them in while tsc stays green; iOS step 9b)", check: mobileBundleReach },
   { id: "mobile-shim-paths", description: "every path in the app's Metro shim map (mobile/web-shims.map.cjs) exists: a moved web file would silently bundle the browser version (iOS step 9b)", check: mobileShimPaths },
   { id: "mobile-tight-leading", description: "no app text with a lineHeight under its fontSize — iOS clips the glyph tops; use lineHeight = fontSize and a negative margin (S26)", check: mobileTightLeading },
   {
