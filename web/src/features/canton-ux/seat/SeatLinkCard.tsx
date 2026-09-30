@@ -107,7 +107,7 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
         onComplete={(v) => void submit(v)}
         className="cx-link-otp"
       />
-      <Button type="submit" className="w-full" disabled={value.length !== LINK_CODE_LENGTH || busy || status === "success"} aria-busy={busy}>
+      <Button type="submit" className="cx-link-submit w-full" disabled={value.length !== LINK_CODE_LENGTH || busy || status === "success"} aria-busy={busy}>
         {busy ? L.joining : L.join}
       </Button>
     </form>
@@ -123,17 +123,23 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
  */
 function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seatNumber: number; onDecide: (allow: boolean) => Promise<void> }) {
   const [busy, setBusy] = useState(false);
+  const titleId = useId();
+  const bodyId = useId();
   const answer = (allow: boolean) => {
     setBusy(true);
     void onDecide(allow).finally(() => setBusy(false));
   };
   return (
-    <div className="cx-link-done" role="alertdialog" aria-live="assertive">
+    <div className="cx-link-done" role="alertdialog" aria-live="assertive" aria-labelledby={titleId} aria-describedby={bodyId}>
       <span className="cx-link-done-mark" aria-hidden>
         <ShieldQuestion />
       </span>
-      <p className="cx-link-done-title">{L.confirmTitle}</p>
-      <p className="cx-link-done-body">{L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}</p>
+      <p id={titleId} className="cx-link-done-title">
+        {L.confirmTitle}
+      </p>
+      <p id={bodyId} className="cx-link-done-body">
+        {L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}
+      </p>
       <div className="flex w-full gap-2">
         <Button type="button" variant="secondary" className="flex-1" disabled={busy} onClick={() => answer(false)}>
           {L.decline}
@@ -167,7 +173,7 @@ export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linke
       {state === "join" ? null : state === "confirm" && waitingKey && onDecide ? (
         <Decide waitingKey={waitingKey} seatNumber={seatNumber} onDecide={onDecide} />
       ) : state === "declined" ? (
-        <div className="cx-link-done" role="status">
+        <div className="cx-link-done" data-tone="declined" role="status">
           <p className="cx-link-done-title">{L.declinedTitle}</p>
           <p className="cx-link-done-body">{L.declinedBody}</p>
           <Button type="button" variant="secondary" size="sm" onClick={onFresh}>
