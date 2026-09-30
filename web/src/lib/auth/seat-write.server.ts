@@ -29,16 +29,26 @@ interface NonceCache {
 const cache: NonceCache = ((globalThis as { __agariSeatWriteNonces?: NonceCache }).__agariSeatWriteNonces ??= { seen: new Map() });
 const KEEP_MS = SEAT_WRITE_TTL_MS + SEAT_WRITE_SKEW_MS;
 
+/** A ceiling on remembered nonces: past it a write is refused rather than the map growing without bound. */
+const MAX_NONCES = 200_000;
+
 /** True the first time a nonce is offered while it could still be fresh; false for every replay. */
 export function takeNonce(key: string, nowMs: number): boolean {
-  for (const [k, until] of cache.seen) if (until <= nowMs) cache.seen.delete(k);
-  if (cache.seen.has(key)) return false;
+  // Entries go in with a fixed lifetime, so the map is in expiry order: stop at the first live one.
+  for (const [k, until] of cache.seen) {
+    if (until > nowMs) break;
+    cache.seen.delete(k);
+  }
+  if (cache.seen.has(key) || cache.seen.size >= MAX_NONCES) return false;
   cache.seen.set(key, nowMs + KEEP_MS);
   return true;
 }
 
-/** The seat address that signed this exact write, or null. Never throws on input. */
-export async function seatWriter(request: Request, cluster: Cluster, nowMs: number = Date.now()): Promise<Address | null> {
+/**
+ * The seat address that signed this exact write, or null. Never throws on input. `admit` (the seat store's "does this
+ * key hold a live lease") runs before the nonce is spent, so a proof from a self-made key cannot fill the nonce map.
+ */
+export async function seatWriter(request: Request, cluster: Cluster, nowMs: number = Date.now(), admit?: (address: Address) => Promise<boolean>): Promise<Address | null> {
   const proof = parseSeatWriteHeader(request.headers.get(SEAT_WRITE_HEADER));
   if (!proof || !seatWriteFresh(proof.issuedAtMs, nowMs)) return null;
   const body = await requestText(request);
@@ -51,6 +61,8 @@ export async function seatWriter(request: Request, cluster: Cluster, nowMs: numb
   }
   const text = seatWriteText({ address: proof.address, issuedAtMs: proof.issuedAtMs, nonce: proof.nonce, method: request.method, path: `${url.pathname}${url.search}`, bodySha256: bodySha256(body) }, cluster);
   if (!(await verifyWalletMessage({ text, signature: proof.signature, signer: proof.address }))) return null;
-  // Only a proof that verified can spend a nonce, so a stranger cannot burn a seat's nonces.
+  // Only a proof that verified, from a key that holds a seat, can spend a nonce, so a stranger cannot burn a seat's
+  // nonces or grow the map.
+  if (admit && !(await admit(proof.address))) return null;
   return takeNonce(`${proof.address}.${proof.nonce}`, nowMs) ? proof.address : null;
 }

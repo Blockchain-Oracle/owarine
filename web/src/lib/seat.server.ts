@@ -90,9 +90,12 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
         return { ok: false, response: refusal("signer-required", "a seat write must come from this site with the seat header", 403) };
       }
     }
-    if (!lease && (o.write ? request.headers.get(SEAT_WRITE_HEADER) : request.headers.get(SEAT_READ_HEADER))) {
-      // A write never rides the read header: only the write proof bound to this very request (C4d M2b).
-      const address: Address | null = o.write ? await seatWriter(request, webEnv.markets.cluster, now) : await seatCaller(request.headers, webEnv.markets.cluster, now);
+    const writeProof = request.headers.get(SEAT_WRITE_HEADER);
+    if (!lease && (writeProof || (!o.write && request.headers.get(SEAT_READ_HEADER)))) {
+      // A write never rides the read header: only the write proof bound to this very request (C4d M2b). A read accepts
+      // either, since the phone signs every POST (a ticket preview, a range basis) with the stronger one-request proof.
+      const holdsSeat = async (a: Address) => (await server.store.byAddress(a)) !== null;
+      const address: Address | null = writeProof ? await seatWriter(request, webEnv.markets.cluster, now, holdsSeat) : await seatCaller(request.headers, webEnv.markets.cluster, now);
       if (address) {
         lease = await server.store.byAddress(address);
         via = "header";

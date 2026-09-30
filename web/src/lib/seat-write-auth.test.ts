@@ -55,4 +55,17 @@ describe("seatFromRequest: the read header reads, only the write proof writes (C
     expect(first.ok && first.seat.caller).toBe(seat.address);
     expect((await seatFromRequest(req(), { write: true })).ok).toBe(false);
   });
+
+  it("a POST read (a ticket preview) from the phone passes on its write proof, once", async () => {
+    const seat = await seatWithLease();
+    const url = "https://site.test/api/ledger/tickets/range";
+    const body = JSON.stringify({ op: "preview" });
+    configureMarkets(parseMarketsEnv({ cluster: "devnet", ledgerApiPath: "https://site.test/api/ledger" }));
+    registerSeatSigner({ address: seat.address as never, signMessage: (b) => seat.signMessage(b) });
+    const header = (await seatWriteHeaderValue("POST", url, body)) ?? "";
+    const req = () => new NextRequest(url, { method: "POST", headers: { [SEAT_WRITE_HEADER]: header }, body });
+    const read = await seatFromRequest(req(), { write: false });
+    expect(read.ok && read.seat.caller).toBe(seat.address);
+    expect((await seatFromRequest(req(), { write: false })).ok).toBe(false);
+  });
 });

@@ -1,3 +1,4 @@
+import { SEAT_LINK_CONFIRM_MS } from "@agari/markets";
 import { type NextRequest } from "next/server";
 import { ipBucket, rateLimitKey } from "@/lib/client-ip.server";
 import { seatServer } from "@/lib/ledger.server";
@@ -48,8 +49,10 @@ export async function POST(request: NextRequest) {
   if (outcome.kind === "own-seat") return refusal("signer-required", "this device holds a seat of its own; reset it here first, then join", 409);
   if (outcome.kind === "pending") {
     // The key maps only once the holder's device allows it: wait here for that answer.
+    // Bounded by the confirm window (plus a poll of slack): a store fault never holds the request open forever.
+    const until = Date.now() + SEAT_LINK_CONFIRM_MS + DECISION_POLL_MS;
     let answer = "pending";
-    while (answer === "pending") {
+    while (answer === "pending" && Date.now() < until) {
       await new Promise((r) => setTimeout(r, DECISION_POLL_MS));
       answer = await server.store.links.claimState(check.code, check.address, Date.now()).catch(() => "pending");
       if (request.signal.aborted) return refusal("signer-required", "the join was abandoned", 499);
