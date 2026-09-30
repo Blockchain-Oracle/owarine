@@ -91,7 +91,8 @@ export const PREOPEN = {
     cancelled: "Cancelled",
     cancelledWhy: "stake is back as venue credit",
     filledWhy: "filled at your price",
-    partlyWhy: "the rest came back as venue credit",
+    /** A call filled in part: how much of it filled, before what came back. */
+    partlyWhy: (filledText: string, totalText: string) => `${filledText} of ${totalText} contracts filled at your price`,
     returned: "Back in venue credit",
     /** "UP at 55¢ · 10 contracts". */
     call: (side: string, cents: number, contractsText: string) => `${side} at ${cents}¢ · ${contractsText} contracts`,

@@ -22,7 +22,10 @@ function statusWord(view: RestingOrderView): string {
 function endedLine(view: RestingOrderView, money: (base: bigint) => string): string {
   if (view.status === "filled") return PREOPEN.rows.filledWhy;
   const returned = view.refundedBase > 0n ? `${PREOPEN.rows.returned} ${money(view.refundedBase)}` : view.status === "expired" ? PREOPEN.rows.expiredWhy : PREOPEN.rows.cancelledWhy;
-  return view.filledLots > 0n ? `${PREOPEN.rows.partlyWhy} · ${returned}` : returned;
+  if (view.filledLots === 0n) return returned;
+  // What filled of a call that filled in part, in contracts: the placed size pro rata to the lots that filled.
+  const filled = formatBaseUnits(view.lots > 0n ? (view.placedContractsRaw * view.filledLots) / view.lots : 0n, view.decimals, { minDp: 0 });
+  return `${PREOPEN.rows.partlyWhy(filled, formatBaseUnits(view.placedContractsRaw, view.decimals, { minDp: 0 }))} · ${returned}`;
 }
 
 /**

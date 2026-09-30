@@ -109,7 +109,7 @@ export function BetsPanel({ symbol, index, history: allHistory }: BetsPanelProps
         aside={
           <div className="bets-tabs" role="tablist" aria-label={PORTFOLIO.betsTitle}>
             <TabButton tab="open" current={tab} count={openCount} label={PORTFOLIO.tabs.open} onPick={setTab} />
-            <TabButton tab="history" current={tab} count={settledCount} label={PORTFOLIO.tabs.history} onPick={setTab} />
+            <TabButton tab="history" current={tab} count={settledCount === null ? null : settledCount + resting.ended.length} label={PORTFOLIO.tabs.history} onPick={setTab} />
           </div>
         }
       />

@@ -61,6 +61,8 @@ export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
   const when = useWhen();
   const live = onBook(view);
   const contractsText = formatBaseUnits(view.placedContractsRaw, view.decimals, { minDp: 0 });
+  // What filled of a call that filled in part, in contracts: the placed size pro rata to the lots that filled.
+  const filledText = formatBaseUnits(view.lots > 0n ? (view.placedContractsRaw * view.filledLots) / view.lots : 0n, view.decimals, { minDp: 0 });
   return (
     <li className="bets-row" data-status={view.status}>
       <span className={cn("type-label-micro shrink-0", live ? "text-ink-secondary" : "text-ink")}>
@@ -95,11 +97,13 @@ export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
             PREOPEN.rows.filledWhy
           ) : (
             <>
-              {view.filledLots > 0n ? `${PREOPEN.rows.partlyWhy} ` : view.refundedBase === 0n ? `${view.status === "expired" ? PREOPEN.rows.expiredWhy : PREOPEN.rows.cancelledWhy}` : ""}
-              {view.refundedBase > 0n && (
+              {view.filledLots > 0n ? `${PREOPEN.rows.partlyWhy(filledText, contractsText)} · ` : ""}
+              {view.refundedBase > 0n ? (
                 <>
                   {PREOPEN.rows.returned} <Money value={view.refundedBase} decimals={view.decimals} symbol={symbol} />
                 </>
+              ) : (
+                view.status === "expired" ? PREOPEN.rows.expiredWhy : PREOPEN.rows.cancelledWhy
               )}
             </>
           )}

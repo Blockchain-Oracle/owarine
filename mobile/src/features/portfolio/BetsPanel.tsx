@@ -109,7 +109,7 @@ export function BetsPanel({ symbol, index, history }: { symbol: string | undefin
         aside={
           <View style={[styles.tabs, { borderColor: color.hairline }]} accessibilityRole="tablist" accessibilityLabel={PORTFOLIO.betsTitle}>
             <TabButton tab="open" current={tab} count={openCount} label={PORTFOLIO.tabs.open} onPick={setTab} />
-            <TabButton tab="history" current={tab} count={settledCount} label={PORTFOLIO.tabs.history} onPick={setTab} />
+            <TabButton tab="history" current={tab} count={settledCount === null ? null : settledCount + endedResting.length} label={PORTFOLIO.tabs.history} onPick={setTab} />
           </View>
         }
       />
