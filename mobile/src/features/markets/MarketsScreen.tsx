@@ -90,7 +90,7 @@ export function MarketsScreen() {
           {/* §03 (C6e, K-070): committee events, from the same lane set; Yes/No opens the ticket drawer on the event. */}
           <View style={styles.section} accessibilityLabel={SECTIONS.events.title}>
             <SectionHeader index={SECTIONS.events.index} title={SECTIONS.events.title} desc={SECTIONS.events.desc} />
-            <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} nowMs={nowMs} />
+            <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} failure={failure} nowMs={nowMs} />
           </View>
           {/* §04 on `/markets/<id>` (web's LedgerViewSection): the same ledger query as Alice, Bob, an outsider and this seat. */}
           {selection.marketId ? (

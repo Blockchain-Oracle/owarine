@@ -86,7 +86,7 @@ export function MarketsScreen({ renderTicket, renderVerdict, renderLedgerView }:
           {/* §03 (C6e, K-070): committee events, from the same market stream; a tap selects the event into the hero and ticket. */}
           <section className="markets-section flex flex-col gap-4" aria-label={SECTIONS.events.title} id="events">
             <SectionHeader index={SECTIONS.events.index} title={SECTIONS.events.title} desc={SECTIONS.events.desc} />
-            <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} nowMs={nowMs} onSelect={setSelection} />
+            <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} failure={lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure} nowMs={nowMs} onSelect={setSelection} />
           </section>
 
           {renderLedgerView?.(selection)}
