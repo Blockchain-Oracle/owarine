@@ -6,7 +6,7 @@ const SAMPLES: readonly { utility: string; sample: string; ja?: boolean }[] = [
   { utility: "type-title", sample: "Will TSLA close above its open?" },
   { utility: "type-body", sample: "Calm, precise, honest. Numbers do the persuading." },
   { utility: "type-body-strong", sample: "Your stake is your max loss — always." },
-  { utility: "type-caption", sample: "calculated in your browser from on-chain history" },
+  { utility: "type-caption", sample: "calculated in your browser from your seat's history on the ledger" },
   { utility: "type-label-micro", sample: "01 · Live now" },
   { utility: "type-data", sample: "62¢ · 5Kd3…Nw2x · 14:35:00 UTC" },
   { utility: "type-data-lg", sample: "10.00 credits" },
