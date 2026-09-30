@@ -4,7 +4,7 @@ import { answer, DESK_ERRORS, loadDesk, readJson, refuse } from "@/features/desk
 
 /**
  * `POST /api/desk/[owner]/opened { owner }`: the owner opened the whole record (one of Go live's two conditions).
- * Unsigned on purpose: it unlocks nothing on its own, since going live is the owner's own mainnet transaction.
+ * Unsigned on purpose: it unlocks nothing on its own, since going live is the owner's own seat command on Canton.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

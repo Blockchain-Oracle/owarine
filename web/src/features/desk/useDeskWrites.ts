@@ -12,9 +12,9 @@ import { useInvalidateDesk } from "./useDesk";
 
 /**
  * Every desk write, one at a time, in the `useVaultWrite` shape: a signed message to a route (practice desk, an
- * approval, check now, sharing, the mode, a request) or one mainnet transaction through `createDeskMainnetSession`
+ * approval, check now, sharing, the mode, a request) or one seat command on Canton through `createDeskMainnetSession`
  * (open, allow, deposit, withdraw, pause, resume, mode, revoke). The phase is reported so a card can say "Confirm in
- * your wallet…" then "Sent. Waiting for Solana mainnet…"; nothing is ever re-sent, and every desk read is refetched
+ * your wallet…" then "Sent. Waiting for the ledger…"; nothing is ever re-sent, and every desk read is refetched
  * after a write lands.
  */
 export type DeskBusy = "mandate" | "approval" | "check-now" | "share" | "mode" | "action" | "open" | "allow" | "deposit" | "withdraw" | "pause" | "unpause" | "set-mode" | "set-limits" | "revoke" | null;

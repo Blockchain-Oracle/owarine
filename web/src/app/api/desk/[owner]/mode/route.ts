@@ -5,9 +5,9 @@ import { chainMatches } from "@/features/desk/chain.server";
 import { deskModeText, modeRequestSchema } from "@/features/desk/protocol";
 
 /**
- * `POST /api/desk/[owner]/mode`: the index's copy of the desk's mode, after the owner's mainnet transaction set it.
+ * `POST /api/desk/[owner]/mode`: the index's copy of the desk's mode, after the owner's seat command set it on Canton.
  * With `attach`, Go live's last step: the practice row becomes a live desk at the PDA the owner just opened, and the
- * server confirms on mainnet that a desk for this owner exists at that address with that operator before it
+ * server confirms on the ledger that a desk for this owner exists at that address with that operator before it
  * believes the signature. Only a live desk changes mode; a practice desk goes live through `attach`.
  */
 export const runtime = "nodejs";

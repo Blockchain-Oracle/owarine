@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS desks (
   address               TEXT,
   owner                 TEXT        NOT NULL,
   operator              TEXT,
-  cluster               TEXT        NOT NULL CHECK (cluster IN ('mainnet', 'devnet', 'localnet')),
+  cluster               TEXT        NOT NULL CHECK (cluster IN ('mainnet', 'testnet', 'devnet', 'localnet')),
   mode                  TEXT        NOT NULL CHECK (mode IN ('practice', 'ask_first', 'on_its_own')),
   state                 TEXT        NOT NULL CHECK (state IN ('active', 'paused', 'stopped_by_loss', 'needs_attention', 'closed')),
   state_reason          TEXT,
@@ -68,6 +68,9 @@ CREATE TABLE IF NOT EXISTS desk_wakes (
 CREATE INDEX IF NOT EXISTS desk_wakes_open_idx ON desk_wakes (desk_id, status, scheduled_for_sec DESC);
 
 -- Upgrade a database that created desk_wakes before owner requests existed.
+-- C8i: a desk names the deployment's Canton network, TestNet included.
+ALTER TABLE desks DROP CONSTRAINT IF EXISTS desks_cluster_check;
+ALTER TABLE desks ADD CONSTRAINT desks_cluster_check CHECK (cluster IN ('mainnet', 'testnet', 'devnet', 'localnet'));
 ALTER TABLE desk_wakes DROP CONSTRAINT IF EXISTS desk_wakes_trigger_check;
 ALTER TABLE desk_wakes ADD CONSTRAINT desk_wakes_trigger_check CHECK (trigger IN ('hour', 'deposit', 'move', 'check_now', 'test_read', 'checkpoint', 'owner_request'));
 
