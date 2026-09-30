@@ -4,8 +4,9 @@
  *   POST /internal/tickets/range   basis · preview · issue (`Book_IssueRange`)            ticket:range:<requestId>
  *   POST /internal/tickets/parlay  preview · issue (`Book_IssueParlay`)                     ticket:parlay:<requestId>
  *   POST /internal/tickets/boost   preview · issue (`Book_IssueBoost`) · exit (`Boost_OfferExit`)
- *   POST /internal/tickets/earn    supply (`Nav_IssueSupply`) · withdraw (`Earn_IssueWithdraw`)
- *   POST /internal/tickets/state   the three reserves' statements, books and liquid cash
+ *   POST /internal/tickets/earn    supply (`Nav_IssueSupply`) · withdraw (`Earn_IssueWithdraw`); `reserve: "maker"` goes to the
+ *                                  maker vault (supply · withdraw · merge · settle, `../maker-vault`)
+ *   POST /internal/tickets/state   the three reserves' statements, books and liquid cash, and the maker vault's
  *   keeper                          settle · resolve legs · knock-out · expire · prune · NAV · merge (`keeper.ts`)
  *
  * Venue-only authority: every accept, claim, stale refund and liquidity accept is the seat's own, through the web.
@@ -14,6 +15,7 @@ import { diagnosis } from "@agari/core/types";
 import { runActor } from "../../runtime/actor";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import type { ShardPool } from "../quote-issuer/pool";
+import type { MakerVault } from "../maker-vault/vault";
 import type { VenueContext } from "../venue/context";
 import { createDesk, type Desk } from "./desk";
 import { handleEarn } from "./earn";
@@ -32,11 +34,12 @@ export interface TicketDeskHandle {
 
 export const TICKET_ROUTES = ["/internal/tickets/range", "/internal/tickets/parlay", "/internal/tickets/boost", "/internal/tickets/earn", "/internal/tickets/state"] as const;
 
-/** The public face of the three reserves (every figure the ledger's): what `/api/ledger/tickets/state` serves. */
+/** The public face of the three reserves and the maker vault (every figure the ledger's): what `/api/ledger/tickets/state` serves. */
 export function deskState(d: Desk) {
   const snap = d.snap;
   return {
     asOfMs: snap?.atMs ?? 0,
+    maker: d.maker?.state() ?? null,
     reserves: TICKET_RESERVES.flatMap((reserveId) => {
       if (!snap) return [];
       const nav = snap.navs.get(reserveId);
@@ -64,6 +67,7 @@ export async function startTicketDesk(input: {
   pool: ShardPool | null;
   log: (why: string) => void;
   draining?: ReadonlySet<string>;
+  maker?: MakerVault | null;
   everyMs?: number;
 }): Promise<TicketDeskHandle | null> {
   const session = input.venue.session("venue");
@@ -73,6 +77,7 @@ export async function startTicketDesk(input: {
   }
   const desk = createDesk({
     venue: session, board: input.board, venuePool: input.pool, infrastructure: new Set(Object.values(input.venue.parties)), log: input.log,
+    maker: input.maker ?? null, deskCid: input.venue.deskCid,
     ...(input.draining ? { draining: input.draining } : {}),
   });
   const snap = await desk.refresh();

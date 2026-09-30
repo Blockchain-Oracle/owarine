@@ -10,6 +10,8 @@
  *   4. (C8c) uploads abu-pm-tickets and creates the ticket reserves: per reserve (range, parlay, boost) a
  *      `NavStatement` (auditor-visible) and a `RiskBook`, one `EarnDesk`, and seeds each reserve from the LP party
  *      (`--reserve-seed` credits in 4 supplies, then the first `Earn_PublishNav`),
+ *   4b. (C2d) creates the maker vault: its `MakerDesk` and `maker` statement, seeded from the LP party (`--maker-seed`
+ *      credits in 4 supplies into `reserve:maker`), then the first `Maker_PublishNav` (`bootstrap-maker.ts`),
  *   5. (C9b) uploads abu-pm-games and creates the duel arena (`ArenaTerms`, the reference's stake tiers) and a funded
  *      season prize pool (`bootstrap-games.ts`; `--no-games` skips it),
  *   6. (C8f) uploads abu-pm-agents (grants' desk, the strategy registry, the agent desk); the venue's per-seat offers
@@ -19,7 +21,7 @@
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing.
  *
  *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
- *     [--reserve-seed 10000] [--no-tickets] [--no-games] [--agents-dar path] [--no-agents] [--fresh]
+ *     [--reserve-seed 10000] [--no-tickets] [--maker-seed 10000] [--no-maker] [--no-games] [--agents-dar path] [--no-agents] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -35,14 +37,15 @@ import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParam
 import { CANTON_ROLES, ORACLE_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
 import { bootstrapGames } from "./bootstrap-games";
+import { bootstrapMaker } from "./bootstrap-maker";
 
 const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs against an unauthenticated local sandbox only");
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
-const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.4.0.dar"));
-const AGENTS_DAR = resolve(import.meta.dirname, "..", arg("--agents-dar", "daml/abu-pm-agents/.daml/dist/abu-pm-agents-0.2.0.dar"));
-const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.2.dar"));
+const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.5.0.dar"));
+const AGENTS_DAR = resolve(import.meta.dirname, "..", arg("--agents-dar", "daml/abu-pm-agents/.daml/dist/abu-pm-agents-0.2.1.dar"));
+const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.3.dar"));
 /** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
 const RESERVE_SEED_BASE = BigInt(arg("--reserve-seed", "10000")) * 1_000_000n;
 const SHARDS = Number(arg("--shards", process.env.VENUE_SHARDS ?? "16"));
@@ -274,6 +277,7 @@ async function main(): Promise<void> {
   }
 
   if (!flag("--no-tickets")) await bootstrapTickets(venue, parties.auditor!, parties.lp!);
+  if (!flag("--no-maker")) await bootstrapMaker({ client, venue: vs, auditor: parties.auditor!, lp: parties.lp!, run, log });
   if (!flag("--no-agents")) {
     if (!existsSync(AGENTS_DAR)) throw new Error(`${AGENTS_DAR} is missing: run \`dpm build --all\` in daml/ first`);
     await client.uploadDar(readFileSync(AGENTS_DAR));

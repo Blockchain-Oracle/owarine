@@ -7,6 +7,7 @@ import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import { activeOf, inactiveCids, isInactive, isIndefinite, submit, templateSuffix, type RoleSession, type SubmitInput, type SubmitOutcome } from "@agari/markets/ops/canton";
 import { TICKET_RESERVES, type TicketReserveId } from "@agari/markets/ops/tickets";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
+import type { MakerVault } from "../maker-vault/vault";
 import { ShardPool, type Lease } from "../quote-issuer/pool";
 import { archivedCids, venueCashCreated } from "../quote-issuer/pooled-submit";
 import { readDesk, reserveBucket, type DeskSnapshot } from "./state";
@@ -28,6 +29,10 @@ export interface Desk {
   earnDeskCid: string | null;
   infrastructure: ReadonlySet<string>;
   draining?: ReadonlySet<string>;
+  /** The maker vault (abu-pm-main 0.5.0): Earn's `reserve: "maker"` goes to it, and `/state` carries it. */
+  maker?: MakerVault | null;
+  /** The venue's `VenueDesk` (the maker's settle crank settles through it). */
+  deskCid?: () => Promise<string>;
   log: (why: string) => void;
   /** The last snapshot (the keeper refreshes it every pass). */
   snap: DeskSnapshot | null;
@@ -37,7 +42,16 @@ export interface Desk {
   refresh(): Promise<DeskSnapshot>;
 }
 
-export function createDesk(input: { venue: RoleSession; board: LadderBoard; venuePool: ShardPool | null; infrastructure: ReadonlySet<string>; draining?: ReadonlySet<string>; log: (why: string) => void }): Desk {
+export function createDesk(input: {
+  venue: RoleSession;
+  board: LadderBoard;
+  venuePool: ShardPool | null;
+  infrastructure: ReadonlySet<string>;
+  draining?: ReadonlySet<string>;
+  maker?: MakerVault | null;
+  deskCid?: () => Promise<string>;
+  log: (why: string) => void;
+}): Desk {
   const queues = new Map<TicketReserveId, Promise<unknown>>();
   const reservePools = new Map<TicketReserveId, ShardPool>();
   const live = new Map<TicketReserveId, Live>();

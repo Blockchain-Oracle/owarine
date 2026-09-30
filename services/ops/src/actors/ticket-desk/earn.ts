@@ -9,6 +9,7 @@ import { diagnosis } from "@agari/core/types";
 import { decodeSupplyQuote, decodeWithdrawQuote, tcmd } from "@agari/markets/ops/tickets";
 import { earnRequestWire } from "@agari/markets/server";
 import { createdOne, type Desk } from "./desk";
+import { handleMakerEarn } from "../maker-vault/earn";
 import { DeskRefusal, failed, isAnswer, lease, nowSec, onReserve, refused, reply, seatOf, split, type Answer } from "./common";
 
 export const LIQUIDITY_QUOTE_LIFE_SEC = 30;
@@ -21,6 +22,12 @@ export async function handleEarn(d: Desk, body: unknown): Promise<Answer> {
   const req = parsed.data;
   const seat = seatOf(d, parts.seat);
   if (isAnswer(seat)) return seat;
+  // abu-pm-main 0.5.0 (K-200): the maker vault is its own book, not a ticket reserve.
+  if (req.reserve === "maker") {
+    if (!d.maker || !d.deskCid) return refused("not-deployed", "no maker vault in this ops process");
+    return handleMakerEarn(d.maker, req, seat, d.deskCid);
+  }
+  if (req.op !== "supply" && req.op !== "withdraw") return refused("unknown", "merge and settle are the maker vault's");
   const reserve = req.reserve;
   const validUntilSec = nowSec() + LIQUIDITY_QUOTE_LIFE_SEC;
   const requestId = randomUUID();

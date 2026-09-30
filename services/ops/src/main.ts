@@ -21,7 +21,6 @@ import { createVenueContext } from "./actors/venue/context";
 import { onVenueEvent } from "./actors/venue/events";
 import { appendFileSync } from "node:fs";
 import { startLeverageKeeper } from "./actors/leverage-keeper";
-import { startMarketMaker } from "./actors/market-maker";
 import { startPriceRelay } from "./actors/price-relay";
 import { startPythEntitlement } from "./actors/pyth-entitlement";
 import { startStrategyRunner } from "./actors/strategy-runner";
@@ -176,8 +175,8 @@ if (actors.has("earnings")) void boot("earnings", () => startEarnings(deps("earn
 // "indexer" is the pre-Canton name for the projector; either starts it.
 if (actors.has("projector") || actors.has("indexer"))
   void boot("projector", () => startProjector(deps("projector"), process.env, { onApplied: createDuelProjection(log("duel-projector")) }));
-// The earn vault's market maker (MAKER_MODE=vault) is a C8 product; the venue's own pricer lives in "venue".
-if (actors.has("maker") && process.env.MAKER_MODE === "vault") void boot("market-maker", () => startMarketMaker(log("market-maker")));
+// The Earn vault's market maker (MAKER_MODE=vault, C2d): on Canton the vault is a book inside the venue (abu-pm-main
+// 0.5.0), so the venue's issuer quotes for it from `reserve:maker` shards; "venue" runs it (`actors/maker-vault`).
 
 // S21 (D-126): the desk reads the in-process PreStocks feed, so it starts after the feed; on Canton (C8f) its live leg
 // uses this process's ledger sessions, and the venue's ladder and issuer when the venue runs here.

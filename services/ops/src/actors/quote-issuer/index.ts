@@ -10,6 +10,7 @@ import { decodeVenueCash, pick, readActive } from "@agari/markets/ops/canton";
 import { runActor } from "../../runtime/actor";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import { readPricerSettings, type PricerSettings } from "../market-maker/seat/pricer";
+import type { MakerVault } from "../maker-vault/vault";
 import type { VenueContext } from "../venue/context";
 import { issueExitQuote, parseExitRequest } from "./exit-issuer";
 import { issueQuote, latencySummary, parseQuoteRequest } from "./issuer";
@@ -28,7 +29,15 @@ export interface QuoteIssuerHandle {
   stop: () => void;
 }
 
-export async function startQuoteIssuer(input: { venue: VenueContext; board: LadderBoard; log: (why: string) => void; settings?: PricerSettings; draining?: ReadonlySet<string> }): Promise<QuoteIssuerHandle | null> {
+export async function startQuoteIssuer(input: {
+  venue: VenueContext;
+  board: LadderBoard;
+  log: (why: string) => void;
+  settings?: PricerSettings;
+  draining?: ReadonlySet<string>;
+  /** The maker vault's book (`MAKER_MODE=vault`): quotes inside its bounds lock from `reserve:maker` shards. */
+  maker?: MakerVault | null;
+}): Promise<QuoteIssuerHandle | null> {
   const session = input.venue.session("venue");
   if (!session) {
     input.log("VENUE_PARTY and the parties file are missing: no quotes are issued");
@@ -41,7 +50,7 @@ export async function startQuoteIssuer(input: { venue: VenueContext; board: Ladd
   input.log(`issuer as ${session.party.split("::")[0]}: pool rebuilt from the ledger, ${s0.free} shards, ${s0.totalBase} base`);
   const settings = input.settings ?? readPricerSettings();
   const infrastructure = new Set(Object.values(input.venue.parties));
-  const deps = { venue: session, deskCid: input.venue.deskCid, board: input.board, pool, settings, infrastructure, log: input.log, ...(input.draining ? { draining: input.draining } : {}) };
+  const deps = { venue: session, deskCid: input.venue.deskCid, board: input.board, pool, settings, infrastructure, log: input.log, maker: input.maker ?? null, ...(input.draining ? { draining: input.draining } : {}) };
   const keeper = runActor({
     name: "shard-pool",
     log: input.log,
