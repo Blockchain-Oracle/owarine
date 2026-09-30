@@ -54,7 +54,7 @@ export function LandingHeroShowcase() {
           </div>
           <h2 id="lp-preview-proof-heading">Proof</h2>
           <p>Every settled Window, with the prints that decided it.</p>
-          <div className="lp-preview-filters" aria-hidden="true"><span>All</span><span>PreStocks</span><span>Pyth</span></div>
+          <div className="lp-preview-filters" aria-hidden="true"><span>All</span><span>PreStocks</span></div>
           <div className="lp-preview-proof-table">
             <div className="lp-preview-table-label">{recentRows.length > 0 ? "Recent settlements" : "Examples · how a settlement reads"}</div>
             {proofRows.map((row) => (

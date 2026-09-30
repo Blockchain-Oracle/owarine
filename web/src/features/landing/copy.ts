@@ -21,25 +21,31 @@ export const LANDING = {
     folioLeft: "Agari / Prediction exchange",
     folioRight: "Canton prediction markets",
   },
-  /** S25: the band under the hero, naming the two data sources the venue settles on, each with its own count and proof. */
+  /**
+   * S25: the band under the hero, one column for each original source the venue's Windows have closed on (the index's
+   * print mix, so a source appears when a Window settles on it). Each source goes by its plain name; `how` is what the
+   * oracle parties read from it, and every price is signed by them before the print is recorded.
+   */
   builtOn: {
     label: "Built on",
-    since: "since 11 Sep",
     reading: "Counting settled Windows…",
     unread: "The index is not answering; the count returns when it does.",
+    none: "No Window has settled yet.",
     proof: "Latest print proof →",
-    prestocks: {
-      name: "PreStocks",
-      figure: "Windows settled on PreStocks prices",
-      what: (names: string, baskets: number) => {
-        const groups = baskets > 0 ? `${baskets} basket${baskets === 1 ? "" : "s"}` : "";
-        return `${[names, groups].filter(Boolean).join(" and ")}, 24/7. Each price read from PreStocks by each of the venue's three oracle parties and signed before the print is recorded.`;
-      },
+    figure: "Windows settled",
+    signed: "read by the venue's oracle parties and signed before the print is recorded",
+    sources: {
+      exchanges: { name: "Coinbase, Kraken and Bitstamp", how: "One-minute candle closes from the three exchanges" },
+      redstone: { name: "RedStone", how: "RedStone's primary data feed" },
+      alpaca: { name: "Alpaca", how: "The last IEX trade, from Alpaca market data" },
+      jupiter: { name: "Jupiter Price v3", how: "The median of three samples taken around the close" },
+      prestocks: { name: "PreStocks", how: "PreStocks catalogue prices" },
+      pyth: { name: "Pyth", how: "Pyth prices" },
+      switchboard: { name: "Switchboard", how: "Switchboard Surge prices" },
     },
-    pyth: {
-      name: "Pyth",
-      figure: "Windows settled on Pyth prices",
-      what: (names: string) => `${names}. Each Pyth value signed by the oracle parties before the print is recorded (planned on Canton).`,
+    what: (names: string, how: string, signed: string, baskets: number) => {
+      const groups = baskets > 0 ? `${baskets} basket${baskets === 1 ? "" : "s"}` : "";
+      return `${[names, groups].filter(Boolean).join(" and ")}. ${how}, ${signed}.`;
     },
   },
   steps: {
