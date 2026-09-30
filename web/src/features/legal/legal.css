@@ -1,0 +1,11 @@
+/* /legal: the news page's shell (news.css: title, intro, the 36rem measure) with the notice blocks it did not style. Tailwind's reset
+   leaves an h2 the size of the body and a paragraph without a margin, and an anchor the colour of its text, so a notice read as
+   one run of copy and its two credit links could not be told from prose. */
+
+.legal-section { margin-top: 40px; }
+.legal-heading { margin-bottom: 8px; font-family: var(--font-display); font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; color: var(--color-ink); }
+.legal-section .news-intro + .news-intro { margin-top: 8px; }
+.legal-credits a { color: var(--color-accent); text-decoration: underline; text-decoration-color: var(--color-accent-dim); text-underline-offset: 3px; transition: text-decoration-color 160ms var(--ease); }
+.legal-credits a:hover { text-decoration-color: var(--color-accent); }
+.legal-credits a:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm); }
+.legal-notices { margin-top: 40px; }
