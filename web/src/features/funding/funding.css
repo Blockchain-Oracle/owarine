@@ -34,8 +34,6 @@
 .fund-rows { display: flex; flex-direction: column; gap: 10px; }
 /* w-full bg-white text-black font-semibold rounded-full py-3 hover:scale-[1.02] active:scale-[0.97] */
 .fund-cta-white { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; background: var(--white); color: #000; font-weight: 600; padding-block: 12px; transition: transform 150ms var(--ease); }
-/* The collateral's own mark on the mint, at the label's cap height. */
-.fund-cta-mark { width: 16px; height: 16px; flex: none; }
 .fund-cta-white:hover:not(:disabled) { transform: scale(1.02); }
 .fund-cta-white:active:not(:disabled) { transform: scale(0.97); }
 .fund-cta-white:disabled { opacity: 0.6; cursor: not-allowed; }

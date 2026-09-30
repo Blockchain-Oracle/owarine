@@ -11,7 +11,6 @@ import { CcRailCard } from "~/components/funding/CcRailCard";
 import { CreditWelcome } from "~/components/funding/CreditWelcome";
 import { FootLine, FundingFacts, fundStyles } from "~/components/funding/FundingFacts";
 import { BottomDrawer, type DrawerClose } from "~/components/drawer/BottomDrawer";
-import { TUsdcMark } from "~/components/marks/TUsdcMark";
 import { WebButton } from "~/components/portfolio/web";
 import { dismiss } from "~/components/wallet/WalletSheet";
 import { FONT, useTheme } from "~/theme";
@@ -96,9 +95,8 @@ export default function FundsModal() {
                   disabled={credit.busy}
                   accessibilityRole="button"
                   accessibilityState={{ disabled: credit.busy, busy: credit.busy }}
-                  style={({ pressed }) => [styles.pill, styles.pillRow, { backgroundColor: t.ctaWhite }, (pressed || credit.busy) && styles.inert]}
+                  style={({ pressed }) => [styles.pill, { backgroundColor: t.ctaWhite }, (pressed || credit.busy) && styles.inert]}
                 >
-                  <TUsdcMark size={16} />
                   <Text style={[styles.pillText, { color: t.ctaWhiteInk }]}>{credit.busy ? FUNDING.seat.requesting : credit.status === "unleased" ? FUNDING.seat.lease : F.request}</Text>
                 </Pressable>
               )}
@@ -138,7 +136,6 @@ const styles = StyleSheet.create({
   addr: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2 },
   rows: { gap: 10 },
   pill: { alignSelf: "stretch", borderRadius: 999, paddingVertical: 12, alignItems: "center", justifyContent: "center" },
-  pillRow: { flexDirection: "row", gap: 8 },
   pillText: { fontFamily: FONT.bodyStrong, fontSize: 15, lineHeight: 24 },
   inert: { opacity: 0.6 },
 });
