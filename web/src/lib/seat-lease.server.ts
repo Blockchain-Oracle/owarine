@@ -70,6 +70,11 @@ export async function recycleDrained(server: SeatServer, nowMs: number, limit = 
 export async function takeSeat(server: SeatServer, address: Address, nowMs: number): Promise<SeatLeaseView> {
   const rules = leaseRules(server);
   const existing = await server.store.byAddress(address);
+  // A key joined to another device's seat (seat link) uses that seat: it never takes one of its own.
+  if (existing && existing.address !== address) {
+    await server.store.touch(existing.leaseId, nowMs);
+    return leaseView(existing, rules);
+  }
   if (!existing) {
     await server.store.expire(nowMs, rules);
     const stats = await server.store.stats(nowMs, rules);

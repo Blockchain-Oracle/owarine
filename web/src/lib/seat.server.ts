@@ -15,12 +15,15 @@ import type { LeaseRow } from "./seat-store.server";
  *
  * Two proofs, one answer: the HttpOnly seat cookie (web) names a lease id, or the signed seat header (the phone)
  * names an address; either way the lease row must be live and match. A cookie-authenticated write must also come from
- * our own origin and carry `x-agari-seat: 1`, which a cross-site form cannot send.
+ * our own origin and carry `x-agari-seat: 1`, which a cross-site form cannot send. A key joined to the lease by a seat
+ * link (iOS step 2b) proves itself the same two ways and answers the same lease.
  */
 export interface SeatContext {
   server: SeatServer;
   lease: LeaseRow;
   via: "cookie" | "header";
+  /** The key that proved itself: the lease's own address, or a key joined to it by a seat link. */
+  caller: string;
 }
 
 export const PRIVATE = { "cache-control": "private, no-store" } as const;
@@ -64,10 +67,11 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
   const cookie = readSeatCookie(server.env.AGARI_SEAT_COOKIE_SECRET, request.cookies.get(SEAT_COOKIE)?.value ?? seatCookieFrom(request.headers), now);
   let lease: LeaseRow | null = null;
   let via: SeatContext["via"] = "cookie";
+  let caller: string | null = cookie?.address ?? null;
   try {
     if (cookie) {
       lease = await server.store.byLease(cookie.leaseId);
-      if (lease && lease.address !== cookie.address) lease = null;
+      if (lease && lease.address !== cookie.address && !(await server.store.links.isLinked(cookie.address, lease.leaseId))) lease = null;
       if (lease && o.write && (!sameOrigin(request) || request.headers.get(CSRF_HEADER) !== "1")) {
         return { ok: false, response: refusal("signer-required", "a seat write must come from this site with the seat header", 403) };
       }
@@ -77,6 +81,7 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
       if (address) {
         lease = await server.store.byAddress(address);
         via = "header";
+        caller = address;
       }
     }
   } catch (error) {
@@ -84,7 +89,7 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
   }
   if (!lease) return { ok: false, response: refusal("signer-required", cookie ? "this seat's lease has ended; take a seat again" : "take a seat first", 401) };
   if (now - lease.lastSeenMs > TOUCH_EVERY_MS) await server.store.touch(lease.leaseId, now).catch(() => undefined);
-  return { ok: true, seat: { server, lease, via } };
+  return { ok: true, seat: { server, lease, via, caller: caller ?? lease.address } };
 }
 
 /** After a read or write that saw the seat's contracts: its busy clock (open legs, live quotes) goes on the lease row. */
