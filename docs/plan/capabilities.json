@@ -1353,9 +1353,10 @@
       "parityRow": "C-S23b",
       "acceptanceRow": null,
       "evidence": [
-        "commit:c7c17d3",
-        "daml/pm-tests/daml/Test/Resting.daml",
-        "docs/plan/acceptance.md"
+        "docs/evidence/c7c-resting-call.md",
+        "docs/evidence/probes/c7c-resting-it-run2.log",
+        "docs/evidence/ux/c7c",
+        "daml/pm-tests/daml/Test/Resting.daml"
       ]
     },
     {
