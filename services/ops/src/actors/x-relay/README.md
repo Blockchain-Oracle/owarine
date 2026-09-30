@@ -74,7 +74,7 @@ An error saving the X acknowledgement is also ambiguous. Do not reset `unknown` 
 | `X_REPLY_IMAGES_ENABLED` | `0` or `false` disables images. Otherwise images are enabled when posting is enabled. |
 | `X_POLL_MS` | Financial mention poll interval; default 20,000 ms, minimum 5,000 ms. |
 
-Run one ops machine only, as required by `services/ops/fly.toml`. No signer, permission, spending cap or transaction retry policy is changed by the image switch. The first-ever poll still establishes the cursor without executing earlier mentions.
+Run one ops machine only, as required by `services/ops/Dockerfile` (one container, no replicas). No signer, permission, spending cap or transaction retry policy is changed by the image switch. The first-ever poll still establishes the cursor without executing earlier mentions.
 
 ## Known limits
 

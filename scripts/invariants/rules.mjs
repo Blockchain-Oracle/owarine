@@ -21,7 +21,9 @@ import { finding } from "./lib/report.mjs";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
+import { capabilitiesEvidence } from "./lib/capabilities-evidence.mjs";
 import { mobileShimPaths } from "./lib/mobile-shim-paths.mjs";
+import { noLedgerInClient } from "./lib/no-ledger-in-client.mjs";
 import { noSolana } from "./lib/no-solana.mjs";
 import { noSolanaCopy } from "./lib/no-solana-copy.mjs";
 import { pnpmOnly } from "./lib/pnpm-only.mjs";
@@ -205,5 +207,7 @@ export const rules = [
   },
   { id: "venue-identity", description: "no reference asset, brand or chain (BTC, ETH, Masayume, Somnia…) in live code or copy; comments and tests may name them", check: venueIdentity },
   { id: "no-solana-copy", description: "the product never claims Solana: no Solana, devnet SOL, lamport, Phantom, Solflare or tUSDC in user-visible copy (apps, shared copy, docs); lineage lines allowlisted with a reason", check: noSolanaCopy },
+  { id: "no-ledger-in-client", description: "no module reachable from a web \"use client\" entry imports @agari/ledger's root at runtime: it pulls the HTTP client and node:crypto into the browser bundle (96caadf); use @agari/ledger/pure", check: noLedgerInClient },
+  { id: "capabilities-evidence", description: "docs/plan/capabilities.json never claims more than its evidence: `local` and `live` need existing evidence paths, `live` also an acceptance row (honest state)", check: capabilitiesEvidence },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];

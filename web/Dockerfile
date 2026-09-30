@@ -20,12 +20,17 @@ WORKDIR /app
 
 # Every workspace member's manifest, so the lockfile's importer set matches and this layer is cached until a
 # dependency changes.
+# The Daml bindings' generated packages are linked (`link:`/`file:`) by `@agari/daml`, so they come before the install.
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY web/package.json ./web/
+COPY mobile/package.json ./mobile/
 COPY scripts/package.json ./scripts/
 COPY packages/brain/package.json ./packages/brain/
 COPY packages/core/package.json ./packages/core/
+COPY packages/daml-clients/package.json ./packages/daml-clients/
+COPY packages/daml-clients/generated ./packages/daml-clients/generated
 COPY packages/db/package.json ./packages/db/
+COPY packages/ledger/package.json ./packages/ledger/
 COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
 RUN --mount=type=cache,id=agari-pnpm-store,target=/pnpm/store \
@@ -36,13 +41,20 @@ RUN --mount=type=cache,id=agari-pnpm-store,target=/pnpm/store \
 # `services/ops/config` and a few ops modules, so the tree comes whole rather than as a list that goes stale.
 COPY . .
 
+# The region hold's IP-to-country table (DB-IP Lite, CC BY 4.0, ~4.5 MB; K-003). Best effort: a failed download
+# leaves the hold reading visitors as open and never fails the build.
+RUN node scripts/geo/fetch-dbip.mjs
+
 # `NEXT_PUBLIC_*` values are inlined here, so the deploy passes them as build arguments (Coolify injects every
 # build-time variable as an ARG in front of this line).
 RUN --mount=type=cache,id=agari-next-cache,target=/app/web/.next/cache \
     pnpm --filter web build
 
+# Coolify's Traefik is the only proxy in front (K-003, no Cloudflare): trust the hop it appends to X-Forwarded-For and
+# its X-Forwarded-Proto/Host. Override per app only if the proxy changes.
 ENV NODE_ENV=production \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    TRUSTED_PROXY=forwarded
 EXPOSE 3000
 CMD ["pnpm", "--filter", "web", "start"]

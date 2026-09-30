@@ -12,7 +12,7 @@ The product name is not chosen yet; the code still carries the reference's ident
 - The design system's stylesheets, in the repo byte-identical.
 - The plan, decisions, parity ledger, acceptance ledger and capability registry in [`docs/plan/`](docs/plan/). Start with [`docs/plan/00-plan.md`](docs/plan/00-plan.md) and [`docs/plan/STATUS.md`](docs/plan/STATUS.md).
 
-Nothing on Canton runs yet. Every capability is marked `not-live` in [`docs/plan/capabilities.json`](docs/plan/capabilities.json) until its stage gate passes and an acceptance row records the evidence.
+Everything proven so far runs on a local Canton sandbox, not yet on Noders DevNet or a hosted URL. In [`docs/plan/capabilities.json`](docs/plan/capabilities.json), 49 of 221 capabilities are `local` (each cites its evidence note) and none is `live`: a capability becomes `live` only when its DevNet acceptance row exists. [`docs/plan/STATUS.md`](docs/plan/STATUS.md) has the numbers.
 
 ## Prior work vs work in the HackCanton window
 

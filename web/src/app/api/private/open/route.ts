@@ -9,6 +9,7 @@ import { getDesk } from "@/features/private/desk.server";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { gate } from "@/features/session/sponsor.server";
+import { rateLimitKey } from "@/lib/client-ip.server";
 
 /**
  * Open a private bet. Proof that the caller IS the owner comes first: the route rebuilds the exact message
@@ -37,7 +38,7 @@ export async function POST(req: Request) {
   const nowMs = Date.now();
   const byOwner = gate("address", body.owner, OPENS_PER_OWNER_PER_HOUR, nowMs);
   if (!byOwner.ok) return refuse(429, byOwner.reason);
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
+  const ip = rateLimitKey(req);
   const byIp = gate("device", ip, OPENS_PER_IP_PER_HOUR, nowMs);
   if (!byIp.ok) return refuse(429, byIp.reason);
 

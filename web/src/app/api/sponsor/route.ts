@@ -2,6 +2,7 @@ import type { Address } from "@agari/core/types";
 import { createDbCosignLedger } from "@agari/db";
 import { createSponsorService, gateVerdict, SPONSOR_ALLOWLIST, type SponsorService } from "@agari/markets/sponsor";
 import { NextResponse } from "next/server";
+import { clientIp } from "@/lib/client-ip.server";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { vaultProgramFromProcess } from "@/features/session/sponsor.server";
 import type { SponsorWire } from "@/features/session/useSponsorStatus";
@@ -74,8 +75,8 @@ export async function POST(request: Request) {
   } catch {
     return refuse(400, "request is not valid JSON");
   }
-  // The first forwarded hop names the caller for the attempt limit; which proxies to trust is S16's decision.
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
+  // The trusted proxy names the caller for the attempt limit (`TRUSTED_PROXY`, K-003); never the raw header.
+  const ip = clientIp(request) ?? "";
   const vault = await vaultProgram();
   if ("unreadable" in vault) return refuse(502, UNREADABLE);
   const result = await sponsor().cosign(vault.program, body, request.headers.get("x-agari-device") ?? "", ip);
