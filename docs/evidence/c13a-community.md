@@ -21,7 +21,8 @@ Date: 2026-09-30 · lane C13a (`slice/C13a-community`, from main `afc7b3b`, main
 | X grammar (`<btc|eth>`) | Parsed; no test that routing is correct; "credits" after a stake was refused | Accepts "credit(s)"; a BTC mention is tested to take its 24/7 lane, never Regular | `packages/core/src/x/parse.ts`, `window.test.ts` |
 | Blinks | GET card with `X-Blockchain-Ids: solana:…`; every POST refused `not-deployed` | Same URLs and card (Up and Down, each with an amount field) as `external-link` actions. The POST answers a signed Window share link to the ticket (web, or the app through the same https path). No chain id. The three `no-solana-copy` allowlist lines are gone (K-141) | `packages/core/src/x/{actions,share-link}.ts`, `packages/markets/src/x/action-order.ts`, `web/src/app/{actions.json,api/actions,api/share,markets/[id],.well-known}`, `mobile/src/app/(tabs)/markets/[id].tsx` |
 | Desk timing prompt | "PreStocks tokens on Solana", USDC and tokens | `desk-timing.v2`: the Canton desk (K-090, K-091) with the same answers, priorities and rules for when. The allowlist line is gone (K-143) | `packages/core/src/desk/prompt.ts` |
-| `/native-auth` | The reference's blocked plate | The web half is built: the X gate accepts the app's forwarded session header, and the handoff's decisions are written and tested. The page and the app's pill wait on C11a's `APP_LINK_SCHEME` (below; K-145) | `web/src/features/x/{gate.server,native-handoff,session.server}.ts`, `packages/core/src/x/link.ts` |
+| `/native-auth` | The reference's blocked plate | The X sign-in handoff into the app: the web runs X's sign-in in an auth session and hands the session back on the app's scheme (`APP_LINK_SCHEME`). The app keeps it and sends it in a header the X gate validates like the cookie (K-145) | `web/src/app/native-auth/page.tsx`, `web/src/features/x/{gate.server,native-handoff}.ts`, `mobile/src/features/x/{x-sign-in,x-session,useXLink}.ts`, `mobile/src/lib/external.ts` |
+| Push (C11a's `seatInboxFeed`) | A marked stub answering published calls only, so a private call's settle sent no push | The leased party's own fills and verdicts from the lease's start offset (`ownInboxFeed`) | `web/src/features/activity/feed.server.ts` |
 
 The `no-solana-copy` allowlist is now empty.
 
@@ -76,29 +77,30 @@ The run on `77b1a29` plus this lane's docs gave 261 test files and 2,136 tests p
 
 No sandbox drive was run. The host load was 25–65 all session, and each re-pointed read is covered by a Postgres test against the real schema SQL (`SCHEMA_SQL`) or a route unit test.
 
-## Pending on C11a: `/native-auth` (ready to apply)
+## `/native-auth`: the X sign-in handoff (built after C11a reached main)
 
-The web half is committed (`77b1a29`). Two pieces wait for `APP_LINK_SCHEME` (`web/src/features/canton-ux/seat/link.ts`, C11a) to reach main. Per the brief, no scheme is spelled here and C11a's branch was not merged.
-
-1. **`web/src/app/native-auth/page.tsx`** replaces the blocked plate. It reads the X session cookie and asks `nativeHandoffStep` for the next step:
-   - `begin`: `redirect(step.to)`;
-   - `app`: `redirect(\`${APP_LINK_SCHEME}://${step.path}\`)`;
-   - `page`: an `EmptyState` saying the page is the app's sign-in, with "Sign in on the web instead" linking to `/trade-from-x`.
-
-   The draft is about 30 lines. `readXConfig(process.env.NEXT_PUBLIC_APP_ORIGIN ?? "")` is only the configured check.
-2. **The app:**
-   - `mobile/src/features/x/x-session.ts` keeps the forwarded session in SecureStore under `${APP_KEY_PREFIX}x.session` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`) and supplies `xSessionHeaders()`.
-   - `mobile/src/features/x/x-sign-in.ts` has `signInWithX()`. It makes a 16-byte hex nonce with `crypto.getRandomValues`, then calls `WebBrowser.openAuthSessionAsync(\`${SITE_URL}/native-auth?state=…\`, appUrl("x-auth"))` (C11a's helper; `Linking.createURL("x-auth")` reads the same config). It checks the nonce, then stores the session or maps the error.
-   - `useXLink` sends `xSessionHeaders()` on `/api/x/status|bind|unlink` and gains `signIn`/`signOut`.
-   - The X pill in `LinkStep.tsx` and `recovery/ClaimFlow.tsx` calls `link.signIn()`. `X_SIGN_IN_ON_PHONE` becomes "Opens X's sign-in in a secure sheet, then brings you straight back here."
-
-After `git merge main`, applying these is a two-import change plus the files above. The gate is mobile typecheck, the X tests, and one simulator run once C11 has a build.
+- **Web** (`77b1a29`, then this step):
+  - The X gate reads the session from the cookie or from `X_SESSION_HEADER`, validated by the same `readSession`.
+  - `nativeHandoffStep` decides each step.
+  - `web/src/app/native-auth/page.tsx` replaces the blocked plate:
+    - no app nonce: an `EmptyState` explaining the page, never an app redirect;
+    - not signed in: `/api/x/start?return=/native-auth?state=…`;
+    - signed in: `redirect(\`${APP_LINK_SCHEME}://x-auth?session=…&state=…\`)`;
+    - a failure: `error=<known word>`.
+- **App:**
+  - `features/x/x-sign-in.ts` (`signInWithX`) makes a 16-byte hex nonce and opens `external.ts`'s `openXSignIn`, which calls `WebBrowser.openAuthSessionAsync` and is the one door the `mobile-no-web-handoff` invariant allows. It returns on `appUrl("x-auth")`, checks the nonce, and stores the session.
+  - `features/x/x-session.ts` keeps the session in SecureStore under `appKey("x.session")` (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`) and sends it in `X_SESSION_HEADER`.
+  - `useXLink` gains `signIn` and `signOut`. The X pill in `LinkStep` and in `recovery/ClaimFlow` signs in.
+  - `app/x-auth.tsx` lands a delivered callback on the X screen.
+- **Tests:**
+  - `web/src/features/x/native-handoff.test.ts` and `gate-forwarded.test.ts`;
+  - `mobile/src/features/x/x-sign-in.test.ts`: a fresh nonce each time, the session kept only for its own nonce, failure words mapped.
+- **Not run:** a device or simulator run of the sheet. It needs C11's build and a host with X keys; the owner check is to sign in with X on TestFlight.
 
 ## Gaps and notes for other owners (named, not hidden)
 
 - **C11 (universal links).** Set `IOS_APP_ID` (`<Team ID>.<bundle id>`) on the host, and add `ios.associatedDomains: ["applinks:<domain>"]` to the app config. Until then `/.well-known/apple-app-site-association` answers 404 and share links open on the web.
-- **C11a (push drain).** Its `socialActivityReader.seatFills`/`seatSettlements` filter on `owner_address`, which nothing writes. `seatActivityReader` (this lane) reads the same shapes by lease. Main has been told.
-- **C11a merge.** C11a's one-line comment edit in `packages/core/src/x/actions.ts` will conflict with this lane's rewrite; keep this lane's version.
+- **C11a (push drain).** Its `socialActivityReader.seatFills`/`seatSettlements` filter on `owner_address`, which nothing writes. They are unused now that `seatInboxFeed` reads by lease; the owner may remove them.
 - **Stage owner.**
   - `capabilities.json` and `parity.md` are not advanced here: they advance at gates.
   - Capability A-3e still reads "Blinks: every Window as a Solana Action".

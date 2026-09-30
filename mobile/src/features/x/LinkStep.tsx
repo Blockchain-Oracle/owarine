@@ -7,11 +7,11 @@ import { Dot, Tick } from "./StepSpine";
 import type { XLinkState } from "./useXLink";
 
 /**
- * Sign-in with X is an OAuth round-trip whose session lives in a web cookie; the phone cannot receive it, and the app
- * never hands a product route to a browser. The durable route is read by wallet, so an account linked on the web
- * shows here, and a session present on this phone links with one signature.
+ * Sign-in with X is an OAuth round-trip whose session lives in a web cookie. On the phone it runs in an auth session,
+ * and the web hands the session back on the app's scheme (`/native-auth`, C13a), so the pill signs in right here; a
+ * session present on this phone then links with one signature. An account linked on the web still shows here too.
  */
-export const X_SIGN_IN_ON_PHONE = "Link your X account on useagari.xyz from a computer; it appears here once linked.";
+export const X_SIGN_IN_ON_PHONE = "Opens X's sign-in in a secure sheet, then brings you straight back here.";
 
 /** web's LinkStep.tsx `XGlyph`: the X mark, 14 px, in the pill's ink. */
 function XGlyph({ color }: { color: string }) {
@@ -41,9 +41,10 @@ export function LinkStep({ link, enabled }: { link: XLinkState; enabled: boolean
     return (
       <>
         <Text style={[styles.lede, { color: t.gray400 }]}>{TRADE_FROM_X.linkLede}</Text>
-        {/* web's `aria-disabled` X pill: the OAuth session cannot reach the app, so it re-reads the route instead. */}
+        {/* web's X pill: signs in through the `/native-auth` handoff, then re-reads the route. */}
         <Pressable
-          onPress={() => void link.refresh()}
+          onPress={() => void link.signIn()}
+          disabled={link.busy !== ""}
           accessibilityRole="button"
           accessibilityHint={X_SIGN_IN_ON_PHONE}
           style={({ pressed }) => [styles.pill, { backgroundColor: t.ink }, !enabled && styles.muted, pressed && styles.pressed]}
