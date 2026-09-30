@@ -19,11 +19,6 @@
       "file": "packages/core/src/x/actions.ts",
       "match": "testnet: \"solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z\"",
       "why": "As above: a Solana Actions protocol id, pending C13."
-    },
-    {
-      "file": "packages/core/src/desk/prompt.ts",
-      "match": "PreStocks tokens on Solana",
-      "why": "The desk model's system prompt, not page copy. Rewording it changes what the model does; it moves with the live desk on Canton (C-S21, not live), which holds positions on the names rather than tokens. Needs Abu's call (C10b report)."
     }
   ]
 }

@@ -20,10 +20,12 @@ describe("our own words", () => {
   });
 
   it("the prompt names what it must and never a name we are not", () => {
-    expect(findHardBannedWords(DESK_TIMING_SYSTEM_PROMPT.replace(/^- (Never write|Say "PreStocks token").*$/gm, ""))).toEqual([]);
-    expect(DESK_TIMING_SYSTEM_PROMPT).toContain("PreStocks token");
+    expect(findHardBannedWords(DESK_TIMING_SYSTEM_PROMPT.replace(/^- (Never write|Say "units").*$/gm, ""))).toEqual([]);
+    expect(DESK_TIMING_SYSTEM_PROMPT).toContain("hourly pre-IPO markets on Canton");
+    expect(DESK_TIMING_SYSTEM_PROMPT).toContain("demo venue cash");
     expect(DESK_TIMING_SYSTEM_PROMPT).toContain("above its mark");
     expect(DESK_TIMING_SYSTEM_PROMPT).toContain("1 percent fee");
+    expect(DESK_TIMING_SYSTEM_PROMPT).not.toMatch(/solana|usdc|on chain/i);
     expect(DESK_TIMING_SYSTEM_PROMPT).not.toMatch(/robinhood|shijima|chainlink|uniswap/i);
   });
 
@@ -90,7 +92,8 @@ describe("evidence", () => {
     expect(pack.ruleIds).toEqual(["r1", "r2"]);
     expect(pack.userMessage).toContain("15.2% above its mark");
     expect(pack.userMessage).toContain('r1 "Never buy on a Sunday."');
-    expect(pack.userMessage).not.toMatch(/robinhood|shijima/i);
+    expect(pack.userMessage).not.toMatch(/robinhood|shijima|usdc|solana/i);
+    expect(pack.userMessage).toContain("credits of OpenAI");
     expect(findBannedWords(pack.userMessage)).toEqual([]);
   });
 });
