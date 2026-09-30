@@ -3,7 +3,7 @@ import { clientIp } from "@/lib/client-ip.server";
 import { seatServer } from "@/lib/ledger.server";
 import { mintSeatCookie, SEAT_COOKIE, SEAT_COOKIE_TTL_MS } from "@/lib/seat-cookie.server";
 import { checkLeaseRequest, leaseRules, leaseView, takeSeat } from "@/lib/seat-lease.server";
-import { jsonBody, PRIVATE, refusal, replyWith, requestOrigin, seatFromRequest } from "@/lib/seat.server";
+import { jsonBody, PRIVATE, refusal, replyWith, requestOrigin, seatFromRequest, serverFault } from "@/lib/seat.server";
 
 /**
  * The guest seat (plan §4): `POST` takes or renews a lease on an explicit, seat-signed request; `GET` reads it;
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   try {
     view = await takeSeat(state.server, check.address, now);
   } catch (error) {
-    return refusal("rpc-down", `could not take a seat: ${error instanceof Error ? error.message : String(error)}`, 503);
+    return serverFault("rpc-down", "could not take a seat", error, 503);
   }
   if (view.kind !== "leased") return replyWith(view, view.kind === "pool-full" ? 409 : 200);
   const response = replyWith(view);

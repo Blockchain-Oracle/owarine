@@ -135,9 +135,20 @@ export function missingContractId(error: LedgerError): string | null {
 
 const isSubmit = (step: SeatStep) => step === "accept" || step === "sell" || step === "claim" || step === "refund";
 
+/**
+ * What a client is told about a ledger failure (C4d M4): the error's name, a short error reference and the participant's
+ * trace id, never the Canton text itself, which spells out full party ids, contract ids and command payloads. The full
+ * text is logged here, server-side, under the same reference, so a report is still matched to both logs.
+ */
+export function errorRef(): string {
+  return Array.from(globalThis.crypto.getRandomValues(new Uint8Array(4)), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function technical(error: LedgerError): string {
+  const ref = errorRef();
   const trace = error.traceId ? ` [tid ${error.traceId}]` : "";
-  return `${error.message}${trace}`;
+  console.warn(`[ledger] ref ${ref}${trace}: ${error.message}`);
+  return `ledger ${error.context.error_id ?? error.code ?? error.kind} (ref ${ref})${trace}`;
 }
 
 function contractGone(error: LedgerError, ctx: RejectionContext): DiagnosisKind {
@@ -200,7 +211,9 @@ export function classifyRejection(error: unknown, ctx: RejectionContext): Diagno
   if (error instanceof ReadingError) return error.diagnosis;
   if (error instanceof LedgerError) return fromLedger(error, ctx);
   if (error instanceof SeatRefusal) return error.diagnosis;
-  return diagnosis("unknown", error instanceof Error ? error.message : String(error));
+  const ref = errorRef();
+  console.warn(`[seat] ref ${ref}: ${error instanceof Error ? error.message : String(error)}`);
+  return diagnosis("unknown", `unexpected server error (ref ${ref})`);
 }
 
 /** A refusal decided before anything is submitted (no cash, nothing to claim): nothing was sent. */

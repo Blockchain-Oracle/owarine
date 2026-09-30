@@ -45,3 +45,23 @@ export async function viewAs(client: LedgerClient, party: Party): Promise<PartyV
   }));
   return { party, request, activeAtOffset, rows, total: contracts.length };
 }
+
+/** A Canton party id: `<hint>::<fingerprint>` (the fingerprint hex). */
+const PARTY_ID = /^[^\s:]+::[0-9a-f]{8,}$/;
+
+/**
+ * The rows with every party id named by its role instead (C4d M4): signatories, observers and any party inside the
+ * payload become `venue`, `alice`, `you`, `a seat`, … from `labels`, and any other party-shaped text `another party`.
+ * The view shows WHO holds what by role; the ids themselves (the venue's above all) are not handed to an unauthenticated
+ * page. The literal query body and the queried party stay as they were: that is the request this page shows.
+ */
+export function relabelView(view: PartyView, labels: ReadonlyMap<string, string>): PartyView {
+  const name = (p: string) => labels.get(p) ?? "another party";
+  const walk = (v: unknown): unknown => {
+    if (typeof v === "string") return labels.has(v) || PARTY_ID.test(v) ? name(v) : v;
+    if (Array.isArray(v)) return v.map(walk);
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, walk(x)]));
+    return v;
+  };
+  return { ...view, rows: view.rows.map((r) => ({ ...r, signatories: r.signatories.map(name), observers: r.observers.map(name), payload: walk(r.payload) })) };
+}
