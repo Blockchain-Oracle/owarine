@@ -1,18 +1,20 @@
 # X receipt delivery
 
-Each new mention is claimed once in Postgres before execution. A completed receipt can produce one short reply with a branded 1200 × 600 PNG and a clickable transaction link. The image uses the same validated receipt facts as the text. Rendering uses the bundled licensed fonts and exact Agari mark; it needs no image-generation service.
+Each new mention is claimed once in Postgres before execution. A completed receipt can produce one short reply with a branded 1200 × 600 PNG and a clickable proof link.
+
+On Canton (C8f, C13a) the relay places a bound seat's call through that seat's `AgentGrant` (`Grant_AcceptQuote`, acting as the agent-runner party only), and the binding is the seat address: it resolves to a party only while that address holds a lease, so a recycled seat never inherits another visitor's X link. The image uses the same validated receipt facts as the text. Rendering uses the bundled licensed fonts and exact Agari mark; it needs no image-generation service.
 
 ## Receipt facts
 
 `stakeBase` is the requested budget. `bookedCostBase`, `bookedContractsRaw` and `avgPriceBps` come from the booked order. Resolved market fields retain the asset, Window interval and exact UTC end time. These optional fields live in the additive `x_receipts.details` JSONB column. Older rows remain readable; missing historical fill amounts are not reconstructed from the requested budget.
 
-The public formatter uses fixed status and refusal copy, validated amounts and a complete explorer URL. It never publishes raw provider diagnostics, private keys or grant data. It preserves small amounts such as `0.000001 tUSDC`. ASCII text and the known complete URLs stay within 280 raw characters, which also bounds X's weighted length for this restricted output.
+The public formatter uses fixed status and refusal copy, validated amounts and a complete, absolute proof-page URL (Canton updates are private, so the product's own `/proof` page re-reads the update; the reply names the Canton network). It never publishes raw provider diagnostics, private keys or grant data. It preserves small amounts such as `0.000001 credits`. ASCII text and the known complete URLs stay within 280 raw characters, which also bounds X's weighted length for this restricted output.
 
 | Receipt | Reply heading | Meaning |
 | --- | --- | --- |
 | `filled` with a valid hash | Order filled | A booked fill was confirmed. `Spent` uses actual booked cost when retained. The market result comes later. |
 | `nothing-filled` with a valid hash | No fill | The confirmed transaction booked no position. |
-| `reverted` with a valid hash | Order reverted | The transaction reverted; gas may still have been spent. |
+| `reverted` with a valid hash | Order reverted | The ledger rejected the command; nothing was booked and no fee was taken. |
 | `unknown`, or a chain-result row without a valid hash | Status needs checking | Check the linked transaction or the app before another instruction. This can include receipt or bookkeeping failures. |
 | `refused` | Order not confirmed | One safe next step from a fixed refusal category. |
 | `submitted` | Instruction received | Initial claim only; it is not eligible for automatic reply delivery. |
@@ -21,7 +23,7 @@ A lower filled cost does not prove a partial fill: a better price can also cost 
 
 ## X balance and permission updates
 
-The X allocation is the monetary spending boundary. New X permissions use the deployed vault's `uint128` ceiling for both monetary cap fields, so an initial deposit or later top-up does not introduce a separate per-trade or daily allowance. The permission still expires after 30 days, permits up to eight open positions per grant, and cannot spend the owner's unallocated Trading Balance. There are no optional monetary-limit controls in the X setup.
+The X allocation is the monetary spending boundary. New X permissions set both monetary cap fields of the `AgentGrant` to the no-cap ceiling (`X_MONETARY_CEILING`, carried to the ledger as the largest Daml `Int`, `ops/agents/ids.ts`), so the allocated budget is the boundary and an initial deposit or later top-up does not introduce a separate per-trade or daily allowance. The permission still expires after 30 days, permits up to eight open positions per grant, and cannot spend the owner's unallocated Trading Balance. There are no optional monetary-limit controls in the X setup.
 
 Legacy grants need the owner's explicit wallet update. Portfolio and `/trade-from-x#x-trading` share this action: revoke the old grant, verify its `GrantRevoked.returned` amount, then allocate exactly that amount to the new permission. This uses no additional deposit, preserves existing positions, and does not silently take other Trading Balance funds if an order spends money during confirmation. Browser progress is saved before each transaction; uncertain sends are checked by receipt before continuing. If the second confirmation is cancelled, users can continue or keep the returned funds in Trading Balance.
 
@@ -29,7 +31,7 @@ Release the web recovery controls before updating the relay. The relay refuses o
 
 ## Window timing and instruction recovery
 
-All entry surfaces share a 30-second buffer before the Window ends. The relay still requires the requested asset and duration, a ready opening price, an enterable market, a fresh quote and the order lane's current on-chain checks. It never substitutes another timeframe or queues a refused instruction for a later Window.
+All entry surfaces share a 30-second buffer before the Window ends. The relay still requires the requested asset and duration, a ready opening price, an enterable market, a fresh quote and the order lane's current ledger checks. It never substitutes another timeframe or queues a refused instruction for a later Window.
 
 The parser accepts casing, token order, UP/LONG and DOWN/SHORT, written durations such as `5 minutes`, and `1d`/`24h`. Missing or ambiguous inputs produce the specific safe correction in both reply text and image. Market-read failure is retried once as a read and then reported separately from closed entries, a future Window, a pending opening price or no matching market. Known cutoff/start times are retained in receipt details. `/trade-from-x#x-instruction` builds a copyable instruction from the same live selection rule and shows its cutoff; X delivery latency means eligibility is checked again on arrival.
 
@@ -69,7 +71,7 @@ An error saving the X acknowledgement is also ambiguous. Do not reset `unknown` 
 | `DATABASE_URL` | Required durable claim, receipt and delivery storage. |
 | `X_RETTIWT_API_KEY` | Existing account-session credential. Server-only. |
 | `X_HANDLE` | Account whose mentions are polled. |
-| `X_EXECUTOR_PRIVATE_KEY` | Isolated signer named by the user's existing EXECUTOR grant. Server-only. |
+| `X_EXECUTOR_PARTY` | Optional override of the agent-runner party the relay acts as; by default the venue parties file's `agent-runner`. The ledger credential stays server-only. |
 | `X_POSTING_ENABLED` | `1` or `true` permits receipt replies. Any other value disables all reply publication. It does not disable instruction execution. |
 | `X_REPLY_IMAGES_ENABLED` | `0` or `false` disables images. Otherwise images are enabled when posting is enabled. |
 | `X_POLL_MS` | Financial mention poll interval; default 20,000 ms, minimum 5,000 ms. |
@@ -80,7 +82,7 @@ Run one ops machine only, as required by `services/ops/Dockerfile` (one containe
 
 The existing transport is Rettiwt 7.1.3 using the account session. This is not a migration to the official X API. X's published [automation rules](https://help.x.com/en/rules-and-policies/x-automation) prohibit non-API website scripting; the transport remains a platform-policy gap. A supported transport replacement needs separate credentials and validation. The current Rettiwt media method also has no alt-text parameter. All essential facts therefore remain in the adjacent plain-text reply; the SVG's description is not claimed to become PNG alt metadata on X.
 
-The worker's intent journal is still process-local. Known broadcast hashes survive receipt and local bookkeeping failures while execution can return a final receipt. A process crash between the durable mention claim and final receipt persistence can leave `submitted` with no stored wallet or hash. It will not execute again or receive an automatic reply. This release does **not** implement durable mention-to-intent reconciliation. Inspect the account's transaction history and claim before considering another instruction.
+The worker's intent journal is still process-local. Known broadcast hashes survive receipt and local bookkeeping failures while execution can return a final receipt. A process crash between the durable mention claim and final receipt persistence can leave `submitted` with no stored wallet or hash. It will not execute again or receive an automatic reply. This release does **not** implement durable mention-to-intent reconciliation. Inspect the seat's history (its receipts on `/portfolio`) and claim before considering another instruction.
 
 ## Verification
 

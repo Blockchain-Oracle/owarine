@@ -110,7 +110,7 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
         canExecute: async () => {
           if (!await xHasUnresolvedBroadcast(session.address)) return true;
           await xSetStageHealth("execution", "error");
-          log("execution paused: an earlier broadcast has no confirmed hash; nonce will not be reused");
+          log("execution paused: an earlier broadcast has no confirmed hash; the attempt will not be sent again");
           return false;
         },
         save: async receipt => {

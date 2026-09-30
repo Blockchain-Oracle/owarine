@@ -1,3 +1,4 @@
+import { CLUSTER_LABEL, DEFAULT_CLUSTER, PROOF_BASE_PATH, type Cluster } from "@agari/core/constants";
 import { assetTicker } from "@agari/core/market";
 import { isSignature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
@@ -12,8 +13,16 @@ export const REPLY_LIMIT = 280;
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://useagari.xyz").replace(/\/+$/, "");
 export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
 export const TRADE_FROM_X_URL = `${SITE_URL}/trade-from-x`;
-/** The network every receipt names; the card's banner is its uppercase. */
-export const NETWORK_LABEL = "Solana devnet";
+/** The Canton network the venue runs on, from the same variable the markets env reads (C13a). */
+export const RELAY_CLUSTER: Cluster =
+  (["mainnet", "testnet", "devnet", "localnet"] as const).find((c) => c === process.env.NEXT_PUBLIC_CANTON_NETWORK?.trim()) ?? DEFAULT_CLUSTER;
+/** The network every receipt names ("Canton DevNet"); the card's banner is its uppercase. */
+export const NETWORK_LABEL = CLUSTER_LABEL[RELAY_CLUSTER];
+/**
+ * A receipt's proof page, absolute: a public X reply is read off-site, so a same-origin `/proof` path would link
+ * nowhere (C13a). Canton updates are private; the product's own proof page re-reads the update.
+ */
+export const receiptUrl = (hash: Parameters<typeof txUrl>[0]): string => txUrl(hash, RELAY_CLUSTER, `${SITE_URL}${PROOF_BASE_PATH}`);
 
 export { X_REFUSAL_DETAILS as REFUSAL_DETAILS } from "@agari/core/x";
 
@@ -33,7 +42,7 @@ const CADENCES: Record<number, string> = { 60: "1m", 300: "5m", 900: "15m", 3600
 
 function amount(value: string | null | undefined, decimals: number): string | null {
   if (typeof value !== "string" || !BASE_UNITS.test(value) || !Number.isInteger(decimals) || decimals < 0 || decimals > 18) return null;
-  // Every supported fractional unit survives: a 0.000001 tUSDC fill must never say 0.00.
+  // Every supported fractional unit survives: a 0.000001 credit fill must never say 0.00.
   return formatBaseUnits(BigInt(value), decimals, { maxDp: decimals, minDp: 0, group: false });
 }
 
@@ -56,7 +65,7 @@ export function createReplyPresentation(receipt: XReceipt, decimals: number, sym
   // A corrupt historical row must not produce a chain-result claim without a usable receipt link.
   if (!hash && (status === "filled" || status === "nothing-filled" || status === "reverted")) status = "unknown";
   const context = marketContext(receipt);
-  const url = hash ? txUrl(hash) : TRADE_FROM_X_URL;
+  const url = hash ? receiptUrl(hash) : TRADE_FROM_X_URL;
   // The receipt's original author snapshot is immutable; never resolve a current profile here.
   const sender = typeof receipt.handle === "string" && /^[A-Za-z0-9_]{1,15}$/.test(receipt.handle)
     ? `@${receipt.handle}` : /^\d{1,30}$/.test(receipt.authorId) ? `X user ${receipt.authorId}` : null;
@@ -70,7 +79,7 @@ export function createReplyPresentation(receipt: XReceipt, decimals: number, sym
     case "nothing-filled":
       return { ...base, title: "No fill", detail: "No position was booked.", footer: "A successful transaction does not guarantee a fill." };
     case "reverted":
-      return { ...base, title: "Order reverted", detail: "The trade reverted on-chain.", footer: "The network fee may still have been spent." };
+      return { ...base, title: "Order reverted", detail: "The ledger rejected the trade.", footer: "Nothing was booked and no fee was taken." };
     case "unknown":
       return hash
         ? { ...base, title: "Status needs checking", detail: "Check the linked transaction for the latest result.", footer: "Check this transaction before trying again." }
