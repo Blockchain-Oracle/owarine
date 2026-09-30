@@ -60,8 +60,12 @@ const KEEP_MS = 2 * OPS_SKEW_MS;
 
 /** True the first time a (verified) nonce is offered; false for a replay. Exported for the unit test. */
 export function takeOpsNonce(nonce: string, nowMs: number = Date.now()): boolean {
-  for (const [n, until] of seen) if (until <= nowMs) seen.delete(n);
-  if (seen.has(nonce)) return false;
+  // Fixed lifetime, so the map is in expiry order: stop at the first live entry.
+  for (const [n, until] of seen) {
+    if (until > nowMs) break;
+    seen.delete(n);
+  }
+  if (seen.has(nonce) || seen.size >= 100_000) return false;
   seen.set(nonce, nowMs + KEEP_MS);
   return true;
 }

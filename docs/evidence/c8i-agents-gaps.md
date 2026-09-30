@@ -74,7 +74,11 @@ Raised by the coordinator's security review during this lane and fixed here by a
 - A strategy is labelled with its lessee's address only when it was created in that lease, so the playbook route no longer accepts the next visitor.
 - A live strategy or a waiting payout blocks recycling; the drain has the venue pay out held fees, deactivates the seat's strategies and claims its payouts into its cash before the sweep.
 - L5: publish and runner changes accept only the house runner or the creator's own seat.
-- Tests: `agents-payouts.test.ts` (8), `seat-holdings.test.ts`, `drain.test.ts`. The claim above ran on the rebuilt web with this in place. The recycle path itself was not driven on the sandbox.
+- Tests: `agents-payouts.test.ts`, `seat-holdings.test.ts`, `drain.test.ts`. The claim above ran on the rebuilt web with this in place. The recycle path itself was not driven on the sandbox.
+
+**Merging main (C4c + C4d at `b22b1b0`, then C4e at `a4d2e2d`) without reopening H1.** C4c labels creators through `seatHolders`, which carries no lease start, and relabels the caller's party by the key it proves. `seatHolderLeases` (a sibling in `@agari/db`) returns each live lease's `start_offset`; `leasedAddresses` returns lease-scoped labels; and the caller's own label counts from `lease.startOffset`, never from 0. A recycled seat proving its own key is therefore still not the creator of the previous visitor's strategy, and the playbook route (which resolves the creator through the same labels) refuses it. Tests: "a recycled seat proving its own key is never shown as creator of the previous visitor's strategy" (`agents-payouts.test.ts`), and the seat link store's Postgres test with lease-scoped labels.
+
+**Finding 5 (re-review).** `openGrant` took the grant's agent from the request body. A grant now names only the house agent-runner party, which is the strategy runner and the X executor (K-087). `runnerOf` accepts only the house runner: a pooled seat party is refused as a strategy's runner, because subscribers' grants naming it would survive into the next lease. The studio's "Run your own bot" option stays on screen and is answered with that reason (gap 8). Tests: `agents-payouts.test.ts` refuses B, the seat itself and the venue as a grant's agent, and the seat itself as a runner, with nothing sent.
 
 ## Found and fixed while driving
 
@@ -96,18 +100,20 @@ Raised by the coordinator's security review during this lane and fixed here by a
 | `f622de6` | C8i.5 X card cold load |
 | `65bda6f` | C8i.6 security H1 and L5 (forked copy of this lane) |
 | `312721d`, `ab41252`, `ff8072c`, `ea741d1` | C8i.7–C8i.10, found while driving (above) |
-| this commit | C8i.11 decisions K-220 – K-225 and this evidence |
+| `15c91d1` | C8i.11 decisions K-220 – K-225 and this evidence |
+| `f2781c3` | merge of main `b22b1b0` (C4c, C4d): H1 kept closed through `seatHolderLeases`; finding 5 |
+| the next merge | main `a4d2e2d` (C4e); decisions beside K-215 |
 
-Decision numbers: K-202 is C2z's, K-204 is C4c's and K-210 – K-213 are C4d's, so this lane uses K-220 – K-225.
+Decision numbers: K-202 is C2z's, K-204 is C4c's and K-210 – K-215 are C4d's and C4e's, so this lane uses K-220 – K-225.
 
 ## Gates
 
-On the tree at `ea741d1`:
+On the tree after merging main `a4d2e2d`:
 
-- `pnpm typecheck`: clean for every package. `pnpm --filter @agari/mobile typecheck` (mobile `tsc`): clean.
+- `pnpm typecheck`: clean for every package. Mobile `tsc`: clean.
 - `pnpm invariants`: 0 errors, 0 warnings.
-- `pnpm test`: **260 files passed, 7 skipped; 2,150 tests passed, 29 skipped.**
-- The desk DB tests against real Postgres (`DATABASE_URL=…/pm_c8i`, skipped in `pnpm test` without one): `desk.test.ts` 3 and `desk-golive.test.ts` 4, all pass.
+- `pnpm test`: **292 files passed, 12 skipped; 2,268 tests passed, 52 skipped.** (Before the merges, at `ea741d1`: 260 files, 2,150 tests.)
+- Against real Postgres (skipped in `pnpm test` without a URL): `desk.test.ts` and `desk-golive.test.ts`, 7 tests; `seat-link-store.server.test.ts`, 6 tests. All pass.
 - No Daml changed. DARs were built locally only, to boot the sandbox.
 
 ## Gaps (named, not waived)
@@ -119,6 +125,7 @@ On the tree at `ea741d1`:
 5. **The phone was typechecked, not run**: the claim control and the live plate on the native app follow the shared hooks.
 6. **The studio's "View publication transaction" link carries no `network=`** (`CreatorStudio` calls `txUrl` without the cluster). It was noticed, not fixed.
 7. **Inherited identifiers** (`DeskMainnetSession`, `USDC_MAINNET`, `MAINNET_RPC_PATH`) keep their reference names (K-220); nothing a desk stores, signs or shows says mainnet.
+8. **Self-hosting a strategy from a seat is refused** (finding 5): a pooled seat party is recycled, so it cannot be a strategy's runner. The studio still offers "Run your own bot" and the publish is refused with the reason. A self-hosted runner needs a party that is not a pooled seat, which does not exist on this deployment.
 
 ## Screenshots (`docs/evidence/ux/c8i/`, 390 and 1440, dark and light)
 

@@ -540,6 +540,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** none; each mint, renewal and score costs the phone one local signature.
 - **Approval:** default; overrulable.
 
+### K-215 — Re-review follow-ups: a POST read takes the write proof; nonces are bounded; a verified X link stays public (overflow block)
+- **Date / owner:** 2026-09-30 · lead, after the security re-review of main b22b1b0
+- **Evidence:** the re-review found (1) the phone's ticket previews and range basis answered 401: the phone signs every POST with the one-request write proof (K-211), and a read looked only for the read header; (3) the write-proof nonce map swept every entry on every call and stored nonces from self-made keys; (4) `/api/x/status?wallet=` answers a wallet's verified X handle to anyone; (6) the link join could wait forever on a store fault.
+- **Rule:** `seatFromRequest` accepts the write proof for a read as well as a write (never the read header for a write); `seatWriter` spends a nonce only for a key that holds a live lease, the sweep stops at the first live entry and the map is capped (ops' internal nonces too); the join waits at most the confirm window. (4) is kept as the reference has it: a verified X link is a public badge the visitor chose (`/u/[address]` shows it server-side), so the route stays open by wallet.
+- **User-visible:** ticket previews work on the phone; nothing else changes.
+- **Approval:** default; overrulable (Abu may ask for the X badge to be hidden unless the visitor opts in).
+
 ### K-220 — A desk names this deployment's Canton network, never "mainnet" (overflow block)
 - **Date / owner:** 2026-09-30 · C8i lane
 - **Evidence:** `docs/evidence/c8g-agents-ux.md` gap 2 and `docs/evidence/c8i-agents-gaps.md`. The web wrote every desk row, and every desk signed text's network line, as `mainnet` (a Solana-era constant); the runner defaulted to `mainnet` too, so a LocalNet runner could not see the desks it should run, and `DESK_MODEL_STUB` (localnet only) never reached them. `services/ops/src/actors/desk-runner/env.test.ts`.
