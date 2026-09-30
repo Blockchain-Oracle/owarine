@@ -21,7 +21,7 @@ For Abu, planned for Mon 5 – Tue 6 Oct. Run it on the hosted URL (M1) in a bro
 | 1 | "You have one minute. Place a call that BTC goes up in the next minute." | A call confirmed with a receipt, within 60 s | Do they find "Take a seat"? Do they understand demo credits? Where do they hesitate? |
 | 2 | "Who else can see the call you just placed?" | They open "Who can see this" and read the Outsider view as empty | Do they believe it? Ask: "What would convince you?" |
 | 3 | "You changed your mind. Get half your money out before the close." | "Sell half" completes and the position halves | Do they understand the bid is lower than what they paid? |
-| 4 | "The window has closed. Did you win, and where is your money?" | They find the result and the credits, and notice they did not sign anything | Do they look for a "claim" button that does not exist? |
+| 4 | "The window has closed. Did you win, and where is your money?" | They find the result and the credits, and notice they did not sign anything | Do they expect to claim? (The venue settles and pays; claiming is only a fallback.) |
 | 5 (phone) | "Do the same call on the phone." | A call confirmed on the phone | Differences from the web that confuse them |
 
 ## After the tasks (3 min)
