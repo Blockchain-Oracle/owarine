@@ -79,7 +79,7 @@ export const LUCKY = {
       requoting: "requoting…",
       getting: "Getting the live quote…",
       none: "No liquidity at this size right now.",
-      offline: "The live book is not connected — the quote may be stale.",
+      offline: "The live price ladder is not connected — the quote may be stale.",
       price: "Price",
       pays: "Pays",
       contracts: "Est. contracts",
@@ -87,7 +87,7 @@ export const LUCKY = {
       slippage: "Slippage cap",
       payout: "If right",
       drift: (dealt: string, live: string) =>
-        `The live multiple is ${live}, not the ${dealt} the reel dealt — the book moved. Placing takes the live quote; the reach is the book's, not the reel's.`,
+        `The live multiple is ${live}, not the ${dealt} the reel dealt — the price moved. Placing takes the live quote; the reach is the venue's, not the reel's.`,
     },
     /** The key stays `gas` (the reference's "who pays" line); on Canton the answer is nobody: the venue submits the order. */
     gas: {
@@ -104,11 +104,11 @@ export const LUCKY = {
   refused: {
     title: "No deal",
     noWindow: (asset: string, side: string, m: number) =>
-      `The draw was fair — ${asset}, ${side}, ${m}× — but the venue has no live ${asset} Window the book could fill at this stake right now. Nothing was placed.`,
+      `The draw was fair — ${asset}, ${side}, ${m}× — but the venue has no live ${asset} Window the venue's price ladder could fill at this stake right now. Nothing was placed.`,
     unreadable: "The venue could not be read, so no Window could be chosen. Nothing was placed.",
     declined: "You skipped this deal. Nothing was placed.",
     laneRefused: "The order lane refused it before anything was sent. Nothing was taken.",
-    nothingFilled: "The order landed but crossed nothing — the book moved first. Your stake was never taken.",
+    nothingFilled: "The order landed but filled nothing — the price moved first. Your stake was never taken.",
     reverted: "The ledger refused the order. Nothing was taken.",
     gone: "The Window closed before the order could be placed. Nothing was taken.",
   },
@@ -135,7 +135,7 @@ export const LUCKY = {
     pays: (contracts: string, symbol: string) => `pays ${contracts} ${symbol} before the settlement fee`,
     lostLine: (cost: string, symbol: string) => `${cost} ${symbol} staked`,
     voidLine: "the Window was voided — both sides get their stake and fee back",
-    cashedLine: "closed on the book before the Window settled",
+    cashedLine: "closed at the venue's price before the Window settled",
     streak: (n: number) => `Streak ${n}`,
     claim: "Collect it from your portfolio",
     close: "Close",
@@ -165,7 +165,7 @@ export const LUCKY = {
     cost: (amount: string, symbol: string) => `cost ${amount} ${symbol}`,
     contracts: (n: string) => `${n} contracts`,
     refusal: {
-      "no-window": "no Window the book could fill",
+      "no-window": "no Window the venue's ladder could fill",
       "venue-unreadable": "the venue could not be read",
       declined: "skipped",
       "lane-refused": "refused before sending",

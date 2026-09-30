@@ -146,7 +146,7 @@ export async function executeForSubscriber(input: {
       return { status: "filled", fill };
     }
     // A strategy never asks to rest (`entry: "rest"` is the ticket's pre-open call, D-088), so a resting outcome is a refusal here.
-    const reason = outcome.status === "nothingFilled" ? "the book moved; nothing filled" : outcome.status === "requote" ? "quote moved past the cap" : outcome.status === "resting" ? "a resting call is not a strategy fill" : outcome.diagnosis.technical;
+    const reason = outcome.status === "nothingFilled" ? "the price moved; nothing filled" : outcome.status === "requote" ? "quote moved past the cap" : outcome.status === "resting" ? "a resting call is not a strategy fill" : outcome.diagnosis.technical;
     const state = outcome.status === "nothingFilled" ? "nothing-filled" : outcome.status === "requote" || outcome.status === "resting" ? "refused" : outcome.status;
     await finishStrategyAttempt(key, state, "txHash" in outcome ? outcome.txHash ?? null : null, reason);
     return { status: state === "unknown" ? "unknown" : state === "nothing-filled" ? "skipped" : "refused", reason };

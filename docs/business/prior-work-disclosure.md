@@ -15,7 +15,7 @@
 |---|---|
 | **Agari** (Abu's own) | His prediction market on **Solana**: web app, native iOS app (Expo), shared packages, ops services and docs site, from branch `codex/mobile-takeover` at `661a24ee` (27 Sep). It was imported by `git archive` without `anchor/` (the Solana programs), which Daml replaces |
 | Agari's own history | Agari was built for a separate Solana hackathon (Stocklana). Some of its commits, 14–27 Sep, fall inside this window's dates. **They are still prior work here**: they were made for Solana and another event, not for HackCanton |
-| Agari's evidence | `docs/evidence/acceptance.md` and `docs/submission/tracks.md` are Agari's Solana devnet records, imported unchanged. They are not evidence for this entry |
+| Agari's evidence | `docs/evidence/prior-work/agari-solana-acceptance.md` and `docs/submission/tracks.md` are Agari's Solana devnet records, imported unchanged. They are not evidence for this entry |
 | Masayume (Abu's own) | Agari descends from it. See `docs/plan/references.md` |
 | Design system lineage | `web/src/styles/yosuku/**` is byte-identical from `661a24ee` and descends from third-party Yosuku. Game patterns from PIPS and Flicky are used as ideas only. See `THIRD_PARTY_NOTICES.md` |
 

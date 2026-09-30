@@ -59,7 +59,8 @@ export const ONBOARDING_UI = {
     opening: "opening print",
     closing: "closing print",
     verdict: "UP wins",
-    sources: "+ two more price feeds",
+    // The sources the venue's prints are read from (web's Built on band and `printSourceName`), as plain names.
+    sources: { label: "Prices read from", names: "Coinbase · Kraken · Bitstamp · RedStone · Alpaca · Jupiter Price v3 · PreStocks" },
   },
   games: [
     { name: "Lucky", line: "A call drawn for you" },

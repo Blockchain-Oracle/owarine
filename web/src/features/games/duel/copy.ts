@@ -173,13 +173,13 @@ export const DUEL = {
     now: "now",
     stake: "stake",
     cost: "This buys",
-    costPending: "Reading the book…",
+    costPending: "Reading the price…",
     left: "Left to pick",
     deadline: "Pick deadline",
     /** The arena's own gate, not our client buffer — see `picking.ts`. */
     tooLate: "This card is too close to its settlement for the arena to take an order on it. It cannot be played.",
     placing: (attempt: number) => (attempt === 1 ? "Placing your pick…" : `Asking again — attempt ${attempt}`),
-    raceNote: "Both players draw on the same book, so a pick can lose a race. Asking again is normal and costs nothing extra.",
+    raceNote: "Both players draw on the same venue price ladder, so a pick can lose a race. Asking again is normal and costs nothing extra.",
     failed: "That card did not fill before the deadline. The pot still settles on the cards that did.",
     opponentDeciding: "Your opponent is on this card",
     /** The room's presence, said plainly: an absent opponent is a fact, not a verdict. */

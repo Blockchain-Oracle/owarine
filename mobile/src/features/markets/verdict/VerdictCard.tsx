@@ -142,6 +142,7 @@ function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolu
     entryTxHash: null,
     settlementTxHash: resolution?.settlementTxHash ?? null,
     printSource: resolution?.printSource ?? null,
+    printSourceText: resolution?.printSourceText ?? null,
     singleSource: resolution?.singleSource ?? false,
     voidReason: resolution?.voidReason ?? null,
   };

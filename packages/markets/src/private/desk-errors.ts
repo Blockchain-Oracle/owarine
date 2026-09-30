@@ -36,7 +36,7 @@ export function refusalName(error: unknown): string | null {
 export function refusalWords(name: string | null): string {
   switch (name) {
     case "BelowMinQuantity":
-      return "The book moved under your quote. Your stake is back in your private balance. Quote again.";
+      return "The price moved under your quote. Your stake is back in your private balance. Quote again.";
     case "NothingFilled":
       return "Nobody is on the other side at this size right now. Your stake is back in your private balance.";
     case "WindowNotTrading":

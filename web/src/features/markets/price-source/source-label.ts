@@ -9,7 +9,7 @@
  * A source that the ticker cannot have (Pyth on a name with no Pyth feed, Switchboard off the token lane), or no source at
  * all (a Series whose policy was not read), yields no line rather than a wrong one.
  */
-import { basketOf, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { basketOf, parsePrintSource, TICKERS, type AttestedSource, type TickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet, PrintSource } from "@agari/core/types";
 
 export type SourceProvider = "pyth" | "redstone" | "switchboard" | "prestocks";
@@ -98,11 +98,36 @@ export function isPreStocksAsset(asset: string | null): boolean {
 const PRINT_SOURCE_NAME: Record<Exclude<PrintSource, "attested">, string> = { pyth: "Pyth", redstone: "RedStone", switchboard: "Switchboard" };
 
 /**
- * The name a recorded print's source goes by on every surface (the proof page, the verdict, the share card): an attested
- * print on a PreStocks asset is PreStocks' price under Agari's signature; only an attested print on anything else is the
- * opt-in demo-data path (D-056).
+ * An attested print's original source, as a verdict names it: the source its Window's policy `printSource` text reads
+ * (core `parsePrintSource`), so a lane whose policy changes source is named by the new one with no edit here. A basket's
+ * index is PreStocks' prices, so it goes by PreStocks too.
  */
-export function printSourceName(source: PrintSource, asset: string | null): string {
+export const ATTESTED_SOURCE_NAME: Record<AttestedSource, string> = {
+  exchanges: "Coinbase/Kraken/Bitstamp quorum",
+  redstone: "RedStone",
+  pyth: "Pyth",
+  switchboard: "Switchboard",
+  prestocks: "PreStocks",
+  basket: "PreStocks",
+  "pyth-index": "Pyth index",
+  committee: "Oracle committee",
+  alpaca: "Alpaca IEX",
+  jupiter: "Jupiter Price v3 median",
+};
+
+/** An attested print whose Window's policy text was not read: what it is, never a guessed source. */
+export const ATTESTED_UNNAMED = "Oracle-attested";
+
+/**
+ * The name a recorded print's source goes by on every surface (the proof page, the verdict, the share card). On Canton
+ * every print is attested by the oracle parties, and the Window's policy `printSource` text names the original source
+ * (Coinbase, Kraken and Bitstamp for crypto, RedStone or Alpaca IEX for stocks, the Jupiter Price v3 median for xStocks,
+ * PreStocks for pre-IPO names and baskets). Without that text a PreStocks asset is still PreStocks by construction
+ * (D-100, D-124); anything else says only that the oracle parties attested it.
+ */
+export function printSourceName(source: PrintSource, asset: string | null, printSourceText?: string | null): string {
   if (source !== "attested") return PRINT_SOURCE_NAME[source];
-  return isPreStocksAsset(asset) ? "PreStocks" : "Attested demo";
+  const parts = printSourceText ? parsePrintSource(printSourceText) : null;
+  if (parts) return ATTESTED_SOURCE_NAME[parts.source];
+  return isPreStocksAsset(asset) ? "PreStocks" : ATTESTED_UNNAMED;
 }

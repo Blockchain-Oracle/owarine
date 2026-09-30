@@ -1,12 +1,10 @@
 import { phase } from "@agari/core/lifecycle";
 import type { EventMarket } from "@agari/core/types";
-import { Image } from "expo-image";
 import { ChartNoAxesCombined, Dices, Handshake, Layers3, Mountain, Rocket, type LucideIcon } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
-import { BRAND_LOGOS } from "~/components/logos/brand-logos";
 import { TUsdcMark } from "~/components/marks/TUsdcMark";
 import { MarketCard } from "~/features/markets/board/MarketCard";
 import { FONT, useTheme } from "~/theme";
@@ -49,7 +47,7 @@ function CallVisual() {
 
 /** Screen 2: the two prints a Window is judged between, the stamp, and where the price comes from. */
 function SettleVisual() {
-  const { name, color } = useTheme();
+  const { color } = useTheme();
   const w = ONBOARDING_UI.settle;
   return (
     <View style={[styles.plate, { backgroundColor: color.surface1, borderColor: color.hairline }]}>
@@ -66,8 +64,8 @@ function SettleVisual() {
         <Text style={[styles.stampText, { color: color.accent }]}>{w.verdict}</Text>
       </View>
       <View style={[styles.sources, { borderTopColor: color.hairline }]}>
-        <Image source={BRAND_LOGOS.pyth[name]} style={styles.pyth} contentFit="contain" accessible={false} />
-        <Text style={[styles.mono, { color: color.inkMuted }]}>{w.sources}</Text>
+        <Text style={[styles.mono, { color: color.inkMuted }]}>{w.sources.label}</Text>
+        <Text style={[styles.sourceNames, { color: color.inkSecondary }]}>{w.sources.names}</Text>
       </View>
     </View>
   );
@@ -132,8 +130,8 @@ const styles = StyleSheet.create({
   rule: { height: 1, marginLeft: 8, width: "70%" },
   stamp: { alignSelf: "flex-end", borderWidth: 2, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6, transform: [{ rotate: "-6deg" }] },
   stampText: { fontFamily: FONT.stamp, fontSize: 22, lineHeight: 28, letterSpacing: 1 },
-  sources: { flexDirection: "row", alignItems: "center", gap: 12, paddingTop: 14, borderTopWidth: 1 },
-  pyth: { width: 62, height: 15 },
+  sources: { gap: 6, paddingTop: 14, borderTopWidth: 1 },
+  sourceNames: { fontFamily: FONT.body, fontSize: 13, lineHeight: 19 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   game: { width: "48%", flexGrow: 1, borderRadius: 14, borderWidth: 1, padding: 14, gap: 6 },
   gameIcon: { width: 34, height: 34, borderRadius: 8, borderWidth: 1, alignItems: "center", justifyContent: "center", marginBottom: 4 },

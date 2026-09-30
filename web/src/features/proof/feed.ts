@@ -17,6 +17,8 @@ export interface SettledRowWire {
   winner: number | null;
   void_reason: number | null;
   expiry_sec: string;
+  /** The Window's policy `printSource` text (`attested:redstone:TSLA`): the attested print's original source. */
+  print_source?: string | null;
   prints?: Record<string, { source: number; price: string } | undefined> | null;
 }
 
@@ -64,7 +66,7 @@ export function toFeedRow(row: SettledRowWire): FeedRow | null {
     openE8: open ? BigInt(open.price) : null,
     closeE8: close ? BigInt(close.price) : null,
     source,
-    sourceName: source ? printSourceName(source, row.symbol) : null,
+    sourceName: source ? printSourceName(source, row.symbol, row.print_source) : null,
     sourceHref: label?.href ?? null,
   };
 }
@@ -77,7 +79,7 @@ export function toFeed(rows: readonly SettledRowWire[]): FeedRow[] {
 }
 
 /** The chips' order; a source the rows never name gets no chip, and a name outside this list trails it. */
-const CHIP_ORDER = ["PreStocks", "Pyth", "RedStone", "Switchboard"];
+const CHIP_ORDER = ["Coinbase/Kraken/Bitstamp quorum", "RedStone", "Alpaca IEX", "Jupiter Price v3 median", "PreStocks", "Pyth", "Switchboard"];
 
 /** The source filter chips the rows support, in a fixed order: "All" is the caller's. */
 export function sourceChips(rows: readonly FeedRow[]): string[] {
