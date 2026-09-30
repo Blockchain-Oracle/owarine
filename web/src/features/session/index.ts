@@ -1,5 +1,6 @@
 export { CAPS_DEFAULTS, EXPIRY_CHOICES, termsFromForm, workedExample, type CapsForm } from "./caps";
 export { SESSION } from "./copy";
+export { FastChip } from "./FastChip";
 export { RouteControl } from "./RouteControl";
 export { SessionChip } from "./SessionChip";
 export { SessionControl } from "./SessionControl";

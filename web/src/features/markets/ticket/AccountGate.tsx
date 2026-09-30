@@ -4,7 +4,7 @@ import { FAUCET_UNITS } from "@agari/core/constants";
 import { formatBaseUnits } from "@agari/core/units";
 import Link from "next/link";
 import { OPEN_FUNDS_EVENT } from "@/features/funding";
-import { RouteControl, SessionControl, type FundingSource } from "@/features/session";
+import { FastChip, RouteControl, type FundingSource } from "@/features/session";
 import { diagnosisCopy, FAUCET, TICKET } from "@/lib/copy";
 import type { WalletSession } from "@/lib/wallet-session";
 import { useFaucet } from "../faucet";
@@ -38,7 +38,8 @@ interface AccountGateProps {
  * reference's third gate ("First bet sets you up") has no counterpart — a wallet bet needs no account.
  *
  * Two things of ours live here because this is where the reference keeps its account split: the
- * Wallet / Trading Balance choice when a Trading Balance exists, and the tap-trading chip. The faucet
+ * Wallet / Trading Balance choice when a Trading Balance exists, and the one-tap chip where the reference's tap-trading
+ * chip sat (a seat already trades in one tap; no key to arm, as on the phone). The faucet
  * used to appear only at exactly zero and *replaced* the bet button; now it is one of the top-up's actions.
  */
 export function AccountGate({ session, availableBase, stakeBase, depositBase, decimals, symbol, balanceSource, route }: AccountGateProps) {
@@ -90,7 +91,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
           ) : (
             <span />
           )}
-          {balanceSource !== "private" && <SessionControl symbol={symbol} />}
+          {balanceSource !== "private" && <FastChip />}
         </div>
       )}
     </>
