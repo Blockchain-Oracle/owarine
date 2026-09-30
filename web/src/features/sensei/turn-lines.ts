@@ -62,18 +62,18 @@ export function positionLines(positions: readonly SenseiPosition[]): string[] {
 const ISSUER = { xstocks: "xStocks", ondo: "Ondo", prestocks: "PreStocks" } as const;
 
 /**
- * What the wallet holds, stated as a fact with its one allowed use: a Window on the same name is cover, with test
- * funds. The token itself stays behind the advice line in the system prompt; this line only reminds the model of it.
+ * What the seat holds, stated as a fact with its one allowed use: a Window on the same name is cover, with demo
+ * credits. The token itself stays behind the advice line in the system prompt; this line only reminds the model of it.
  */
 export function holdingsLine(holdings: readonly SenseiHolding[]): string {
   if (holdings.length === 0) return "Their seat holds no stock tokens (a seat holds none until the Canton Coin rail).";
   const rows = holdings.map((h) => `${h.tokens} ${h.symbol} (${h.name}, ${ISSUER[h.issuer]})${h.valueCents === null ? "" : ` about ${centsText(h.valueCents)}`}`);
-  return `Their wallet holds, real tokens read-only, not test funds: ${rows.join("; ")}. A DOWN Window on that name is cover with test funds; UP adds to it.${basketCoverLine(holdings)} Never advise on the tokens themselves.`;
+  return `Their seat holds, real tokens read-only, not demo credits: ${rows.join("; ")}. A DOWN Window on that name is cover with demo credits; UP adds to it.${basketCoverLine(holdings)} Never advise on the tokens themselves.`;
 }
 
 /**
  * S19: two or more held members of one basket can be covered together. A PreStocks holding's symbol is the member's
- * ticker itself, so the registry answers which baskets the wallet could cover; nothing else is inferred.
+ * ticker itself, so the registry answers which baskets the seat could cover; nothing else is inferred.
  */
 export function basketCoverLine(holdings: readonly SenseiHolding[]): string {
   const held = new Set(holdings.filter((h) => h.issuer === "prestocks").map((h) => h.symbol));

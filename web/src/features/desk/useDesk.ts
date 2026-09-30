@@ -1,9 +1,11 @@
 "use client";
 
 import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { SEAT_READ_HEADER } from "@agari/core/auth";
 import type { PreIpoSymbol } from "@agari/core/market";
 import type { Address } from "@agari/core/types";
 import { createBrowserDeskRpc, readOwnerDeskBalances, type DeskRpc, type OwnerDeskBalances } from "@agari/markets/desk";
+import { seatReadHeaderValue } from "@agari/markets";
 import { useReadingQuery } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -36,7 +38,10 @@ export const deskKeys = {
 const viewerQuery = (viewer: string | null): string => (viewer ? `viewer=${encodeURIComponent(viewer)}` : "");
 
 async function readRoute<T>(url: string, schema: z.ZodType<T>): Promise<Reading<T>> {
-  const response = await fetch(url, { cache: "no-store" });
+  // C13a: the owner view is granted only to the proven seat (the route's `provenViewer`): the web's seat cookie rides
+  // along, and the phone signs a read header.
+  const signed = url.includes("viewer=") ? await seatReadHeaderValue().catch(() => null) : null;
+  const response = await fetch(url, { cache: "no-store", credentials: "include", ...(signed ? { headers: { [SEAT_READ_HEADER]: signed } } : {}) });
   if (response.status === 503) return err(diagnosis("not-deployed", DESK_NOT_CONFIGURED));
   if (response.status === 404) {
     const body = (await response.json().catch(() => null)) as { error?: string } | null;
