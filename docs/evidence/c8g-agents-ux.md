@@ -13,6 +13,7 @@ and committed C8g's uncommitted runner change (C8g.9), and drove every remaining
 - **Web.** `next build` + `next start` on :3160.
 - **Browser.** One headless Chrome with its own profile. Two browser contexts served as two seats: seat A (`CJp1…goqA`, ledger `seat-1`) and seat B (`73HK…wjL7`, ledger `seat-3`). A seat's signing key lives in its browser storage, so each seat keeps its own context.
 - **Host.** Load average stayed between 95 and 120 throughout.
+- **Ops exit.** The ops process ended at 04:48Z with no exit line in its log. The cause is unknown; an outside kill is possible, since other lanes were running on the host. Every write recorded below landed before then (the last one, the fade fill, at 04:21Z). The web and the ledger stayed up.
 
 ## Strategies: publish → copy → runner places → top-up → settle → revoke → fade
 
