@@ -6,11 +6,11 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550 from '@daml.js/abu-pm-main-0.5.0';
+import * as pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c from '@daml.js/abu-pm-main-0.5.0';
 
 export declare type Paid = {
-  toOwner: damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>,
-  toReserve: damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>,
+  toOwner: damlTypes.Optional<damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>>,
+  toReserve: damlTypes.Optional<damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>>,
 }
 
 export declare const Paid:
@@ -22,15 +22,15 @@ export declare type TicketReceipt = {
   product: string,
   marketId: string,
   pairId: string,
-  outcome: pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Types.Side,
-  resolved: damlTypes.Optional<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Types.Side>,
+  outcome: pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Types.Side,
+  resolved: damlTypes.Optional<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Types.Side>,
   lots: damlTypes.Int,
   cashUnit: damlTypes.Int,
   backingShare: damlTypes.Int,
   cost: damlTypes.Int,
   payout: damlTypes.Int,
   fee: damlTypes.Int,
-  detail: pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Publication.ReceiptDetail,
+  detail: pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Publication.ReceiptDetail,
 }
 
 export declare const TicketReceipt:

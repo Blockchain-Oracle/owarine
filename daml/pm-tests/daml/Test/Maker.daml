@@ -468,3 +468,26 @@ testMakerResidual = script do
   sortOn fst [(r.kind, r.proceeds) | r <- rs] === [("merged", 2000), ("residual", 200)]
   (_, a4, _) <- publish v3
   a4 === 10000
+
+-- Past `refundAfter` with no settle, the book's own leg refunds into the
+-- book's bucket (never the desk's `refund`), with its receipt; the
+-- statement counted it at 0 once its Window expired, and counts the cash.
+testMakerStaleRefund = script do
+  v0 <- mkVault
+  let w = v0.w
+  _ <- supplyMaker v0 w.alice 5000
+  (v1, _, _) <- publish v0
+  q <- bookQuote v1 w.bob SideUp 600 2 0 "s1"
+  (_, bookLeg) <- takeQuote v1 w.bob q
+  at v1.win.t.refundAfter
+  (v2, a2, _) <- publish v1
+  a2 === 4200                                      -- expired unresolved: the leg counts nothing
+  desk0 <- deskCash w
+  Some r <- submit w.venue do exerciseCmd bookLeg Leg_RefundStale
+  Some cx <- queryContractId w.venue r
+  (cx.bucket, cx.amount) === (mkBook, 800)
+  deskCash w >>= (=== desk0)
+  [rc] <- receipts w
+  (rc.kind, rc.cost, rc.proceeds) === ("refunded", 800, 800)
+  (_, a3, _) <- publish v2
+  a3 === 5000

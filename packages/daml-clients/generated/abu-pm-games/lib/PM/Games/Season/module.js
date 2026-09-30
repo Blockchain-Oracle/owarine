@@ -13,18 +13,18 @@ var damlTypes = require('@daml/types');
 
 var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
 var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
-var pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550 = require('@daml.js/abu-pm-main-0.5.0');
+var pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c = require('@daml.js/abu-pm-main-0.5.0');
 
 exports.Payout = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      account: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueAccount).decoder,
+      account: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueAccount).decoder,
       amount: damlTypes.Int.decoder,
     });
   }),
   encode: function (__typed__) {
     return {
-      account: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueAccount).encode(__typed__.account),
+      account: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueAccount).encode(__typed__.account),
       amount: damlTypes.Int.encode(__typed__.amount),
     };
   },
@@ -33,7 +33,7 @@ exports.Payout = {
 exports.SeasonPool = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-games:PM.Games.Season:SeasonPool',
-    templateIdWithPackageId: '#8aec7d3eb895d1eb3ffffc0c981109197cc308b79527871b2cfd64d792807347:PM.Games.Season:SeasonPool',
+    templateIdWithPackageId: '#c67809e1d88c24f0047f91b3724ba2fde4acf59ee4aac791427d74deca97f87b:PM.Games.Season:SeasonPool',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -76,9 +76,9 @@ exports.SeasonPool = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Season_Distribute.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.SeasonPool), damlTypes.List(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash))).decoder;
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.SeasonPool), damlTypes.List(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash))).decoder;
       }),
-      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.SeasonPool), damlTypes.List(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash))).encode(__typed__); },
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.SeasonPool), damlTypes.List(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash))).encode(__typed__); },
     },
     Season_Fund: {
       template: function () { return exports.SeasonPool; },
@@ -100,14 +100,14 @@ exports.SeasonPool = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Season_WithdrawRemainder.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).decoder);
+        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).decoder);
       }),
-      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).encode(__typed__); },
+      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).encode(__typed__); },
     },
   },
 );
 
-damlTypes.registerTemplate(exports.SeasonPool, ['8aec7d3eb895d1eb3ffffc0c981109197cc308b79527871b2cfd64d792807347', '#abu-pm-games']);
+damlTypes.registerTemplate(exports.SeasonPool, ['c67809e1d88c24f0047f91b3724ba2fde4acf59ee4aac791427d74deca97f87b', '#abu-pm-games']);
 
 exports.Season_Distribute = {
   decoder: damlTypes.lazyMemo(function () {
@@ -125,12 +125,12 @@ exports.Season_Distribute = {
 exports.Season_Fund = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      cash: damlTypes.List(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).decoder,
+      cash: damlTypes.List(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).decoder,
     });
   }),
   encode: function (__typed__) {
     return {
-      cash: damlTypes.List(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).encode(__typed__.cash),
+      cash: damlTypes.List(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).encode(__typed__.cash),
     };
   },
 };

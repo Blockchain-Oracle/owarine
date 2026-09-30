@@ -13,16 +13,16 @@ var damlTypes = require('@daml/types');
 
 var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
 var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
-var pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550 = require('@daml.js/abu-pm-main-0.5.0');
+var pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c = require('@daml.js/abu-pm-main-0.5.0');
 
 var PM_Tickets_Common = require('../../../PM/Tickets/Common/module');
 
 exports.ParlayLeg = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      termsCid: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.MarketTerms).decoder,
+      termsCid: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.MarketTerms).decoder,
       marketId: damlTypes.Text.decoder,
-      side: pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Types.Side.decoder,
+      side: pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Types.Side.decoder,
       expiry: damlTypes.Time.decoder,
       refundAfter: damlTypes.Time.decoder,
       won: damlTypes.Bool.decoder,
@@ -30,9 +30,9 @@ exports.ParlayLeg = {
   }),
   encode: function (__typed__) {
     return {
-      termsCid: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.MarketTerms).encode(__typed__.termsCid),
+      termsCid: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.MarketTerms).encode(__typed__.termsCid),
       marketId: damlTypes.Text.encode(__typed__.marketId),
-      side: pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Types.Side.encode(__typed__.side),
+      side: pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Types.Side.encode(__typed__.side),
       expiry: damlTypes.Time.encode(__typed__.expiry),
       refundAfter: damlTypes.Time.encode(__typed__.refundAfter),
       won: damlTypes.Bool.encode(__typed__.won),
@@ -43,7 +43,7 @@ exports.ParlayLeg = {
 exports.ParlayQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Parlay:ParlayQuote',
-    templateIdWithPackageId: '#7ff257d8da0a2ad7e3cd75be15140b8c9b46d51ca55d7522877b9fb7d21bc0ba:PM.Tickets.Parlay:ParlayQuote',
+    templateIdWithPackageId: '#ba653c55a865a2e7141d3cca4f39afa3dbd3329408bc461595337988b2b74b5c:PM.Tickets.Parlay:ParlayQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -90,9 +90,9 @@ exports.ParlayQuote = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.ParlayQuote_Accept.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.ParlayTicket), damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash))).decoder;
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.ParlayTicket), damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash))).decoder;
       }),
-      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.ParlayTicket), damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash))).encode(__typed__); },
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.ParlayTicket), damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash))).encode(__typed__); },
     },
     ParlayQuote_Expire: {
       template: function () { return exports.ParlayQuote; },
@@ -102,9 +102,9 @@ exports.ParlayQuote = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.ParlayQuote_Expire.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).decoder);
+        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).decoder);
       }),
-      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).encode(__typed__); },
+      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).encode(__typed__); },
     },
     ParlayQuote_Withdraw: {
       template: function () { return exports.ParlayQuote; },
@@ -114,24 +114,24 @@ exports.ParlayQuote = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.ParlayQuote_Withdraw.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).decoder);
+        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).decoder);
       }),
-      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).encode(__typed__); },
+      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).encode(__typed__); },
     },
   },
 );
 
-damlTypes.registerTemplate(exports.ParlayQuote, ['7ff257d8da0a2ad7e3cd75be15140b8c9b46d51ca55d7522877b9fb7d21bc0ba', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.ParlayQuote, ['ba653c55a865a2e7141d3cca4f39afa3dbd3329408bc461595337988b2b74b5c', '#abu-pm-tickets']);
 
 exports.ParlayQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      cash: damlTypes.List(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).decoder,
+      cash: damlTypes.List(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).decoder,
     });
   }),
   encode: function (__typed__) {
     return {
-      cash: damlTypes.List(damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash)).encode(__typed__.cash),
+      cash: damlTypes.List(damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash)).encode(__typed__.cash),
     };
   },
 };
@@ -242,7 +242,7 @@ exports.ParlayStep = {
 exports.ParlayTicket = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Parlay:ParlayTicket',
-    templateIdWithPackageId: '#7ff257d8da0a2ad7e3cd75be15140b8c9b46d51ca55d7522877b9fb7d21bc0ba:PM.Tickets.Parlay:ParlayTicket',
+    templateIdWithPackageId: '#ba653c55a865a2e7141d3cca4f39afa3dbd3329408bc461595337988b2b74b5c:PM.Tickets.Parlay:ParlayTicket',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -318,17 +318,17 @@ exports.ParlayTicket = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.ParlayTicket, ['7ff257d8da0a2ad7e3cd75be15140b8c9b46d51ca55d7522877b9fb7d21bc0ba', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.ParlayTicket, ['ba653c55a865a2e7141d3cca4f39afa3dbd3329408bc461595337988b2b74b5c', '#abu-pm-tickets']);
 
 exports.Ticket_ClaimLeg = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      resolutionCid: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.Resolution).decoder,
+      resolutionCid: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.Resolution).decoder,
     });
   }),
   encode: function (__typed__) {
     return {
-      resolutionCid: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.Resolution).encode(__typed__.resolutionCid),
+      resolutionCid: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.Resolution).encode(__typed__.resolutionCid),
     };
   },
 };
@@ -336,12 +336,12 @@ exports.Ticket_ClaimLeg = {
 exports.Ticket_ResolveLeg = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      resolutionCid: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.Resolution).decoder,
+      resolutionCid: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.Resolution).decoder,
     });
   }),
   encode: function (__typed__) {
     return {
-      resolutionCid: damlTypes.ContractId(pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.Resolution).encode(__typed__.resolutionCid),
+      resolutionCid: damlTypes.ContractId(pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.Resolution).encode(__typed__.resolutionCid),
     };
   },
 };

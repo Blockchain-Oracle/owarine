@@ -8,7 +8,7 @@ import * as damlTypes from '@daml/types';
 
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
-import * as pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550 from '@daml.js/abu-pm-main-0.5.0';
+import * as pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c from '@daml.js/abu-pm-main-0.5.0';
 
 export declare type ArenaParams = {
   joinWindowSec: damlTypes.Int,
@@ -34,7 +34,7 @@ export declare interface ArenaTermsInterface {
     damlTypes.Choice<ArenaTerms, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<ArenaTerms, undefined>>;
   Arena_OpenDuel: 
-    damlTypes.Choice<ArenaTerms, Arena_OpenDuel, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DuelOpen>, damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<ArenaTerms, Arena_OpenDuel, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DuelOpen>, damlTypes.Optional<damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<ArenaTerms, undefined>>;
   Arena_Update: 
     damlTypes.Choice<ArenaTerms, Arena_Update, damlTypes.ContractId<ArenaTerms>, undefined> &
@@ -54,7 +54,7 @@ export declare type Arena_OpenDuel = {
   deckSize: damlTypes.Int,
   clientSeeds: string[],
   joinDeadline: damlTypes.Time,
-  cash: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>[],
 }
 
 export declare const Arena_OpenDuel:
@@ -69,7 +69,7 @@ export declare const Arena_Update:
   damlTypes.Serializable<Arena_Update>
 
 export declare type Card = {
-  termsCid: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.MarketTerms>,
   marketId: string,
   lockAt: damlTypes.Time,
   refundAfter: damlTypes.Time,
@@ -149,13 +149,13 @@ export declare interface DuelOpenInterface {
     damlTypes.Choice<DuelOpen, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DuelOpen, undefined>>;
   Open_Cancel: 
-    damlTypes.Choice<DuelOpen, Open_Cancel, damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<DuelOpen, Open_Cancel, damlTypes.Optional<damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DuelOpen, undefined>>;
   Open_Join: 
-    damlTypes.Choice<DuelOpen, Open_Join, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DuelMatch>, damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<DuelOpen, Open_Join, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DuelMatch>, damlTypes.Optional<damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DuelOpen, undefined>>;
   Open_RefundUnjoined: 
-    damlTypes.Choice<DuelOpen, Open_RefundUnjoined, damlTypes.Optional<damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<DuelOpen, Open_RefundUnjoined, damlTypes.Optional<damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DuelOpen, undefined>>;
 }
 export declare const DuelOpen:
@@ -246,7 +246,7 @@ export declare const Duel_Lock:
 export declare type Duel_RecordPick = {
   player: damlTypes.Party,
   cardIndex: damlTypes.Int,
-  legCid: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Leg.Leg>,
+  legCid: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Leg.Leg>,
 }
 
 export declare const Duel_RecordPick:
@@ -269,7 +269,7 @@ export declare const Duel_RefundUnrevealed:
 export declare type Duel_Reveal = {
   actor: damlTypes.Party,
   seed: string,
-  cardCids: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.MarketTerms>[],
+  cardCids: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.MarketTerms>[],
   newPickDeadline: damlTypes.Time,
 }
 
@@ -291,7 +291,7 @@ export declare const Open_Cancel:
   damlTypes.Serializable<Open_Cancel>
 
 export declare type Open_Join = {
-  cash: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Money.VenueCash>[],
   revealDeadline: damlTypes.Time,
 }
 
@@ -308,8 +308,8 @@ export declare const Open_RefundUnjoined:
 export declare type Pick = {
   seat: damlTypes.Int,
   cardIndex: damlTypes.Int,
-  legCid: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Leg.Leg>,
-  leg: pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Leg.Leg,
+  legCid: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Leg.Leg>,
+  leg: pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Leg.Leg,
   cost: damlTypes.Int,
   payout: damlTypes.Optional<damlTypes.Int>,
 }
@@ -329,7 +329,7 @@ export declare const RefundReason:
 export declare type ScoreItem = {
   seat: damlTypes.Int,
   cardIndex: damlTypes.Int,
-  resolutionCid: damlTypes.ContractId<pkgceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkgad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c.PM.Market.Resolution>,
 }
 
 export declare const ScoreItem:

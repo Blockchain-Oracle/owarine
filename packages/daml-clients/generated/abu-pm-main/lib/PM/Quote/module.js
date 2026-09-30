@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.BuyQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:BuyQuote',
-    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Quote:BuyQuote',
+    templateIdWithPackageId: '#ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c:PM.Quote:BuyQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -108,7 +108,7 @@ exports.BuyQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BuyQuote, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.BuyQuote, ['ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c', '#abu-pm-main']);
 
 exports.BuyQuote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -244,7 +244,7 @@ exports.Desk_SettleBatch = {
 exports.Quote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:Quote',
-    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Quote:Quote',
+    templateIdWithPackageId: '#ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c:PM.Quote:Quote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -334,7 +334,7 @@ exports.Quote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Quote, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Quote, ['ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c', '#abu-pm-main']);
 
 exports.Quote_Accept = {
   decoder: damlTypes.lazyMemo(function () {
@@ -392,7 +392,7 @@ exports.SettleBatchResult = {
 exports.VenueDesk = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Quote:VenueDesk',
-    templateIdWithPackageId: '#ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550:PM.Quote:VenueDesk',
+    templateIdWithPackageId: '#ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c:PM.Quote:VenueDesk',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -468,4 +468,4 @@ exports.VenueDesk = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.VenueDesk, ['ceeb21a38b4773094ffae7f86c65d5c4a4580f73f2a42939e9f89fa4f851d550', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.VenueDesk, ['ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c', '#abu-pm-main']);

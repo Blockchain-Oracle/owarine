@@ -38,8 +38,9 @@ paidFor backingShare bookCost = optional backingShare identity bookCost
 
 -- | The ledger's record of one book position turning back into cash.
 --   kind       "settled" (Leg_Settle / Leg_Claim against a Resolution),
---              "merged" (Leg_Merge of two book legs) or "residual"
---              (a cross-pair merge's `NettedResidual` paid at resolution)
+--              "merged" (Leg_Merge of two book legs), "residual" (a
+--              cross-pair merge's `NettedResidual` paid at resolution) or
+--              "refunded" (the stale refund after `refundAfter`)
 --   lots       the position's size (a merge: one side's lots)
 --   cost       what the book paid for what was closed (both legs of a
 --              merge; 0 for a residual, whose cost the merge recorded)
@@ -61,7 +62,7 @@ template BookReceipt
   where
     signatory venue
     ensure bookOf book == Some book && lots >= 0 && cost >= 0 && proceeds >= 0
-      && kind `elem` ["settled", "merged", "residual"]
+      && kind `elem` ["settled", "merged", "residual", "refunded"]
 
     -- Ops keeps the history it serves bounded; the record is the venue's.
     choice BookReceipt_Prune : ()

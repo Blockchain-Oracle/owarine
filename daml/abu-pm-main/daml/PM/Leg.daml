@@ -67,7 +67,12 @@ template Leg
       controller owner
       do
         assertDeadlineExceeded "refund-after" refundAfter
-        payIfPositive venue owner (backingShare + feePaid) "refund"
+        -- 0.5.0: a book's own leg refunds into the book's bucket, with its receipt.
+        let book = legBook this
+        forA_ book \b -> create BookReceipt with
+          venue; book = b; marketId; pairId; outcome; resolved = None; kind = "refunded"; lots
+          cost = paidFor backingShare bookCost; proceeds = backingShare + feePaid
+        payIfPositive venue owner (backingShare + feePaid) (bucketOr "refund" book)
 
     -- Net two venue-held legs of opposite outcome in one market. Releases
     -- min(shareA + shareB, quantity) now; a pair (shares summing to the
