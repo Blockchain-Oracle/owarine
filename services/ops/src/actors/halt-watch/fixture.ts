@@ -1,6 +1,7 @@
 /**
  * An injected halt fixture (`HALT_WATCH_FIXTURE=<json>`, dev proof only; session-lanes.md §6 "plus an injected
- * fixture"): raw source observations that replace the live ones for the assets it names, so the real rules decide.
+ * fixture"): raw source observations that replace the live ones for the assets it names, so the real rules decide,
+ * and each lane is still judged on the source it really settles on (a Pyth tick for a lane on RedStone changes nothing).
  * Every pass that uses one says FIXTURE in its why-string. See `fixtures/halted-session.json`.
  */
 import { readFileSync } from "node:fs";
@@ -13,6 +14,10 @@ export interface HaltFixture {
   session: "regular" | null;
   pyth: Record<string, { price: string; conf: string; ageSec: number }>;
   redstone: Record<string, { ageSec: number }>;
+  /** The newest IEX trade of QQQ or VOO, `ageSec` before now. */
+  alpaca: Record<string, { ageSec: number }>;
+  /** The newest PreStocks read that priced a pre-IPO name or basket, `ageSec` before now; naming one watches the PreStocks lanes. */
+  prestocks: Record<string, { ageSec: number }>;
   issuer: Record<string, boolean>;
   quoteFailures: Record<string, number>;
 }
@@ -28,6 +33,8 @@ export function loadHaltFixture(path: string | undefined): HaltFixture | null {
     session: raw.session === "regular" ? "regular" : null,
     pyth: raw.pyth ?? {},
     redstone: raw.redstone ?? {},
+    alpaca: raw.alpaca ?? {},
+    prestocks: raw.prestocks ?? {},
     issuer: raw.issuer ?? {},
     quoteFailures: raw.quoteFailures ?? {},
   };
@@ -42,6 +49,12 @@ export function applyFixture(o: Observations, f: HaltFixture): void {
     if (isTickerSymbol(symbol)) o.pyth[symbol] = { price: BigInt(t.price), conf: BigInt(t.conf), publishTimeSec: o.nowSec - t.ageSec };
   }
   for (const [symbol, r] of Object.entries(f.redstone)) if (isTickerSymbol(symbol)) o.redstoneNewestSec[symbol] = o.nowSec - r.ageSec;
+  for (const [symbol, r] of Object.entries(f.alpaca)) if (isTickerSymbol(symbol)) o.alpacaNewestSec[symbol] = o.nowSec - r.ageSec;
+  for (const [symbol, r] of Object.entries(f.prestocks)) {
+    if (!isTickerSymbol(symbol)) continue;
+    o.prestocksNewestSec[symbol] = o.nowSec - r.ageSec;
+    o.watchingPrestocks = true;
+  }
   for (const [xstock, halted] of Object.entries(f.issuer)) if (isXStock(xstock)) o.issuer[xstock] = halted;
   for (const [xstock, n] of Object.entries(f.quoteFailures)) if (isXStock(xstock)) o.quoteFailures[xstock] = n;
 }

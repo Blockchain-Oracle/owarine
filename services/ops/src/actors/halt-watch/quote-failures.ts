@@ -1,7 +1,9 @@
 /**
- * The token lane's quote outcomes (session-lanes.md §3.1 `quote-unavailable`): the relay's Switchboard pass (lane 6b)
- * reports every quote it tried, halt-watch reads the streaks. In process only, like the halt board: halt-watch stays
- * the board's single writer, and a restart starts every streak at zero.
+ * The token lane's quote outcomes (session-lanes.md §3.1 `quote-unavailable`): the process's Jupiter xStock feed reports
+ * every 5 s poll (C6f: the Canton token lane settles on the Jupiter median, and `xstock-spot.ts` is what reads it), and the
+ * reference's Switchboard pass (dormant on Canton) reported its quotes the same way; halt-watch reads the streaks, and
+ * counts them only while the xStock's lane settles on Jupiter. In process only, like the halt board: halt-watch stays the
+ * board's single writer, and a restart starts every streak at zero.
  *
  * D-099: a streak that has reached the halt threshold is re-tested by a read-only quote every `PROBE_EVERY_SEC`
  * (`xstocksToProbe`), because once the lane is halted the roller opens no Window, so no print ever tries a quote
