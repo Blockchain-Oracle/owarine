@@ -67,6 +67,7 @@ An interface view is what the contract's own template says. On a shared particip
 
 - **The ops actor settles an instruction only if the listing's `instrumentAdmin` is among the created event's `signatories`** (a look-alike cannot have the registry's party sign it), and, when `CC_ALLOWED_PACKAGE_IDS` is set, only if its template's package is on the list. Tested: `planDeposits` never touches a forged instruction, and `railPass` never asks the registry about one.
 - **Completeness of the statement** (that the venue names every holding and every allowance) is the auditor's check, since the auditor observes every allowance. For Canton Coin the holdings are public on Scan.
+- **That the venue pays.** Withdrawing, the venue chooses the factory it instructs the transfer through. A venue that names a look-alike factory that answers `Completed` and moves nothing would debit the owner's cash and record a completed withdrawal; the ledger cannot tell that factory from the registry's either. The owner's check is their own holdings (on Scan, for Canton Coin) against the auditor-visible `CcWithdrawal` receipts. The rail is custodial: the owner trusts the venue to pay, and the receipts and the reserve statement are what make a failure to pay visible.
 - **That a gone instruction was accepted or rejected** is read from the ledger's history (`POST /v2/updates`, `history.ts`); without it, or when it cannot say, the planner waits and never guesses.
 
 ## What waits for DevNet (and a real wallet)

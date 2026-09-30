@@ -1,7 +1,9 @@
 "use client";
 
 import { CC_RAIL_CAPABILITY } from "@agari/core/cc";
-import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { diagnosisCopy } from "@agari/core/copy";
+import { err, ok, type Reading } from "@agari/core";
+import type { Diagnosis } from "@agari/core/types";
 import { postCcDeposit, postCcWithdraw, readCcRail, type CcRailReply, type CcWriteReply } from "@agari/markets";
 import { useReadingQuery } from "@agari/markets/react";
 import { useCallback, useState } from "react";
@@ -27,8 +29,16 @@ export interface CcRailState {
   withdraw: (units: bigint) => Promise<void>;
 }
 
+/**
+ * The seat side refuses in its own sentences for these kinds (an amount that is not exact, coin or cash that does not
+ * cover, an ask already waiting, the path not live); those are shown as written. Any other refusal is a ledger's or a
+ * network's, whose technical text is for a report and never for a screen: it gets the shared headline.
+ */
+const OWN_WORDS = new Set<string>(["invalid-price", "insufficient-collateral", "grant-refused", "not-deployed", "market-not-trading"]);
+const wordsOf = (d: Diagnosis, failed: string): string => (OWN_WORDS.has(d.kind) && d.technical ? d.technical : diagnosisCopy(d.kind).headline || failed);
+
 const describe = (r: CcWriteReply, ok: string, failed: string): { tone: "ok" | "err"; text: string } =>
-  r.kind === "requested" ? { tone: "ok", text: ok } : { tone: "err", text: r.kind === "refused" ? r.diagnosis.technical || failed : failed };
+  r.kind === "requested" ? { tone: "ok", text: ok } : { tone: "err", text: wordsOf(r.diagnosis, failed) };
 
 /**
  * The Canton Coin path for the funds screens (C7b). While `CC_RAIL_CAPABILITY` is not-live it reads nothing (there is no
@@ -55,7 +65,7 @@ export function useCcRail(): CcRailState {
     setBusy(true);
     try {
       const r = await call();
-      setNotice(r.ok ? describe(r.value, okText, failText) : { tone: "err", text: r.diagnosis.technical || failText });
+      setNotice(r.ok ? describe(r.value, okText, failText) : { tone: "err", text: wordsOf(r.diagnosis, failText) });
     } catch {
       setNotice({ tone: "err", text: failText });
     } finally {
@@ -66,7 +76,7 @@ export function useCcRail(): CcRailState {
     panel: ccPanel({ capability: CC_RAIL_CAPABILITY, view }),
     view,
     loading: live && reading === null,
-    readError: live && reading && !reading.ok ? diagnosis("unknown", reading.error.technical).technical : null,
+    readError: live && reading && !reading.ok ? diagnosisCopy(reading.error.kind).headline : null,
     busy,
     notice,
     deposit: (amount) => run(() => postCcDeposit(amount), "Sent. The venue answers within a minute or so.", "That did not go through. Nothing moved."),
