@@ -23,7 +23,7 @@ import { seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
 import { exactCash } from "./exact-cash";
-import { DEFAULT_COMMAND_DEADLINE_MS, selectCash, type CommandJournal, type CommandRow } from "./writes";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, selectCash, type CommandJournal, type CommandRow } from "./writes";
 
 export interface AgentsSeatConfig {
   client: LedgerClient;
@@ -162,11 +162,11 @@ export function createAgentsSeat(cfg: AgentsSeatConfig) {
         p = await plan(snap);
       }
       ctx = p.ctx ?? ctx;
-      await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "agent", beginOffset: snap.offset, deadlineMs: p.deadlineMs ?? now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "agent", beginOffset: snap.offset, deadlineMs: p.deadlineMs ?? now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
       let tx: JsTransaction;
       let recovered: boolean;
       try {
-        const r = await client.submitAndWaitForTransaction({ actAs: [seat.party], commandId, commands: p.commands, ...(p.disclosed?.length ? { disclosedContracts: p.disclosed } : {}) });
+        const r = await client.submitAndWaitForTransaction({ actAs: [seat.party], commandId, commands: p.commands, ...inFlightBounds(row), ...(p.disclosed?.length ? { disclosedContracts: p.disclosed } : {}) });
         tx = r.transaction;
         recovered = r.recovered;
       } catch (error) {

@@ -76,6 +76,16 @@ export type LegsResult =
 /** A deadline for commands with none of their own (claims, refunds): submit time plus this (research 05 §E). */
 export const DEFAULT_COMMAND_DEADLINE_MS = 180_000;
 
+/** Past a command's deadline plus this sequencing margin it cannot land any more (research 05 §E). */
+export const LANDING_MARGIN_MS = 60_000;
+
+/**
+ * The ledger client's SUBMISSION_ALREADY_IN_FLIGHT bounds for a journaled command: its completion is searched after the
+ * row's `beginOffset` (read before the FIRST submission; `journal.begin` keeps the first row across retries), and the
+ * wait ends where the command can no longer land. A wait that ends there answers `send-unknown`; `status()` settles it.
+ */
+export const inFlightBounds = (row: Pick<CommandRow, "beginOffset" | "deadlineMs">) => ({ beginOffset: row.beginOffset, deadlineMs: row.deadlineMs + LANDING_MARGIN_MS });
+
 /**
  * A sale is read with the ledger effects: the seat is the actor of `BuyQuote_Accept`, so it witnesses the whole action,
  * including the venue's new leg (which an ACS delta, stakeholder-only, leaves out) whose lots the booking needs.
@@ -170,9 +180,16 @@ export function createSeatWriter(deps: SeatWriteDeps) {
     return row;
   }
 
-  async function submit(actor: SeatActor, commandId: string, commands: Command[], disclosed: DisclosedContract[], ctx: RejectionContext, shape: TxShape = "TRANSACTION_SHAPE_ACS_DELTA") {
+  async function submit(actor: SeatActor, row: CommandRow, commands: Command[], disclosed: DisclosedContract[], ctx: RejectionContext, shape: TxShape = "TRANSACTION_SHAPE_ACS_DELTA") {
     try {
-      const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands, transactionShape: shape, ...(disclosed.length ? { disclosedContracts: disclosed } : {}) });
+      const r = await client.submitAndWaitForTransaction({
+        actAs: [actor.party],
+        commandId: row.commandId,
+        commands,
+        transactionShape: shape,
+        ...inFlightBounds(row),
+        ...(disclosed.length ? { disclosedContracts: disclosed } : {}),
+      });
       return { ok: true as const, tx: r.transaction, recovered: r.recovered };
     } catch (error) {
       return { ok: false as const, error, diagnosis: classifyRejection(error, ctx) };
@@ -210,7 +227,7 @@ export function createSeatWriter(deps: SeatWriteDeps) {
         const cashCids = selectCash(cash, cost);
         if (!cashCids) throw refuse("insufficient-collateral", `the seat holds ${cash.reduce((s, c) => s + c.amount, 0n)} and the call costs ${cost}`);
         const command: Command = { ExerciseCommand: { templateId: TEMPLATE_IDS.Quote, contractId: quote.cid, choice: "Quote_Accept", choiceArgument: { cash: cashCids, beneficiaryRef: o.beneficiaryRef ?? null } } };
-        return submit(actor, commandId, [command], [], { step: "accept", quoteCid: quote.cid, cashCids });
+        return submit(actor, row, [command], [], { step: "accept", quoteCid: quote.cid, cashCids });
       };
       let result = await acceptWith(snap.cash);
       // Cash spent by another tab between the read and the submit: re-select once from a fresh read (research 05 §E).
@@ -259,7 +276,7 @@ export function createSeatWriter(deps: SeatWriteDeps) {
       if (deadlineMs <= now()) throw refuse("order-expired", `the buy-back expired at ${new Date(deadlineMs).toISOString()}`);
       const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "sell", beginOffset: snap.offset, deadlineMs }, now());
       const commands: Command[] = held.map((q) => ({ ExerciseCommand: { templateId: TEMPLATE_IDS.BuyQuote, contractId: q.cid, choice: "BuyQuote_Accept", choiceArgument: {} } }));
-      const result = await submit(actor, commandId, commands, [], { ...ctx, legCids: held.map((q) => q.legCid) }, EFFECTS);
+      const result = await submit(actor, row, commands, [], { ...ctx, legCids: held.map((q) => q.legCid) }, EFFECTS);
       if (!result.ok) {
         if (result.diagnosis.kind === "order-expired") {
           const landed = await landedTx(row, actor.party, EFFECTS);
@@ -307,8 +324,8 @@ export function createSeatWriter(deps: SeatWriteDeps) {
         disclosed.set(p.resolution.cid, p.resolution.disclosure);
         return { ExerciseCommand: { templateId: TEMPLATE_IDS.Leg, contractId: p.leg.cid, choice: "Leg_Claim", choiceArgument: { resolutionCid: p.resolution.cid } } };
       });
-      await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: intent, beginOffset: snap.offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
-      const result = await submit(actor, commandId, commands, [...disclosed.values()], {
+      const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: intent, beginOffset: snap.offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const result = await submit(actor, row, commands, [...disclosed.values()], {
         step: chosen[0]!.kind === "claim" ? "claim" : "refund",
         legCids: chosen.map((p) => p.leg.cid),
         resolutionCids: [...disclosed.keys()],
@@ -335,7 +352,7 @@ export function createSeatWriter(deps: SeatWriteDeps) {
       return { status: "landed", updateId: done.updateId, diagnosis: null };
     }
     // Past the command's own deadline plus a sequencing margin, it cannot land any more (research 05 §E).
-    if (now() > row.deadlineMs + 60_000) {
+    if (now() > row.deadlineMs + LANDING_MARGIN_MS) {
       const d = diagnosis("send-unknown", "no completion before the command's deadline, so it did not land");
       await journal.finish(commandId, { state: "failed", diagnosis: d });
       return { status: "absent", updateId: null, diagnosis: d };
