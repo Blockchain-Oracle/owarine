@@ -31,10 +31,11 @@ export async function openExternal(url: string): Promise<void> {
 
 /**
  * X's sign-in through the web's `/native-auth` handoff, in an auth session (ASWebAuthenticationSession on iOS), which
- * returns the callback URL on `returnUrl`'s scheme to the caller instead of routing it. Only this one path opens.
+ * returns the callback URL on `returnUrl`'s scheme to the caller instead of routing it. Only this one path opens. The
+ * `challenge` is the PKCE S256 of a verifier only the caller holds (C4d M2a): the page answers with a one-time code.
  */
-export async function openXSignIn(state: string, returnUrl: string): Promise<{ type: "success"; url: string } | { type: "cancel" }> {
-  const result = await WebBrowser.openAuthSessionAsync(`${SITE_URL}/native-auth?state=${encodeURIComponent(state)}`, returnUrl);
+export async function openXSignIn(state: string, challenge: string, returnUrl: string): Promise<{ type: "success"; url: string } | { type: "cancel" }> {
+  const result = await WebBrowser.openAuthSessionAsync(`${SITE_URL}/native-auth?${new URLSearchParams({ state, challenge }).toString()}`, returnUrl);
   return result.type === "success" ? { type: "success", url: result.url } : { type: "cancel" };
 }
 

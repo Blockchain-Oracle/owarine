@@ -511,6 +511,14 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** none; each phone write costs one local signature.
 - **Approval:** default; overrulable.
 
+### K-212 — The app's X handoff is a confirmed, one-time PKCE code, never the session in a URL (overflow block; amends K-145)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding M2a)
+- **Evidence:** `/native-auth?state=` redirected a signed-in browser's X session token straight to `<scheme>://x-auth?session=`, with no tap: any iOS app opening that page in its own ASWebAuthenticationSession (which shares Safari's cookies) and naming our scheme as its callback could collect it. Tests: `web/src/features/x/native-handoff.test.ts`, `web/src/app/api/x/native-code/route.test.ts`, `mobile/src/features/x/x-sign-in.test.ts`.
+- **Rule:** the app opens `/native-auth?state=<nonce>&challenge=<S256 of its verifier>`. Signed in, the page asks "Continue in the app as @handle"; only that tap (a same-origin form post, `/api/x/native-code`, Origin and Sec-Fetch-Site checked, with the SameSite=Lax X cookie) answers 303 `<scheme>://x-auth?code=&state=`. The code is 32 random bytes, 60 s, one exchange, burned by a wrong verifier. The app POSTs `{ code, verifier }` to `/api/x/native-exchange` for the session and keeps it in the Keychain as before. A request without a nonce and a challenge still never redirects into an app scheme.
+- **Trade-off:** codes live in the web process's memory, like K-211's nonces (one container). An app that starts its own handoff holds its own verifier, so PKCE alone does not stop it; the confirmation tap (and iOS's own "wants to use … to sign in" prompt) is what does.
+- **User-visible:** one extra tap ("Continue in the app") on the phone's X sign-in sheet.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
