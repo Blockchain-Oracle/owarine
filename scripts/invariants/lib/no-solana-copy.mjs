@@ -20,15 +20,27 @@ import { readText, walkFiles } from "./walk.mjs";
  * `packages/core` and `packages/markets` (their error and refusal texts reach the page) and the PWA manifest. Jupiter
  * is also a named price source, so `Jupiter Price v3` / `jupiter-price-v3` (PRICE_SOURCES) pass without an entry.
  * Words with a true Canton meaning (seat signature, transaction, network fee, the venue's sponsor refusals) are not here.
+ *
+ * C10c widened the docs scope from `docs-site/content` to everything a docs reader sees: the pages, the site's own
+ * strings (`app`, `components`, `lib`, including `llms.txt`, capture captions and the architecture graphs), the scripts
+ * that render diagrams and walkthrough captions, the diagrams themselves (SVG text), the video captions (VTT) and chapter
+ * files, the capture provenance, and the README and CONTRIBUTING. Brand marks and font tooling are not copy.
  */
 export const FORBIDDEN = /\b(solana|devnet sol|lamports?|phantom|solflare|backpack|helius|solscan|jupiter|tusdc|on[- ]chain|onchain|block explorers?|gas fees?|out of gas)\b/i;
 /** The SOL ticker: case-sensitive, so identifiers and prose that merely contain "sol" never trip it. */
 export const FORBIDDEN_TICKER = /\bSOL\b/;
 /** Named price sources that share a word with FORBIDDEN; removed from a string before it is checked. */
 export const PRICE_SOURCES = /\bJupiter Price v3\b|\bjupiter-price-v3\b/gi;
-const SCOPES = ["web/src", "web/public/manifest.webmanifest", "mobile/src", "packages/core/src", "packages/markets/src", "docs-site/content"];
+const SCOPES = ["web/src", "web/public/manifest.webmanifest", "mobile/src", "packages/core/src", "packages/markets/src", "docs-site"];
 const CODE = [".ts", ".tsx"];
 const PROSE = [".md", ".mdx", ".webmanifest"];
+/** The docs site is scanned whole: its scripts' strings are copy (`.mjs`), and diagrams, captions and JSON are prose. */
+const DOCS = "docs-site";
+const DOCS_CODE = [...CODE, ".mjs"];
+const DOCS_PROSE = [...PROSE, ".svg", ".vtt", ".json"];
+/** Not copy: the sponsors' and brand marks (path data), font preparation, and package manifests. */
+const DOCS_EXCLUDE = ["docs-site/public/brand", "docs-site/scripts/assets"];
+const DOCS_SKIP = /^docs-site\/(package|tsconfig|vercel)\.json$|\.(?:d\.ts)$/;
 const SKIP_FILE = /\.test\.tsx?$|\/__tests__\//;
 /**
  * One lowercase token (letters, digits, `_`, `-`, one optional `:` part, which may be a template's open end such as
@@ -129,12 +141,16 @@ export function noSolanaCopy(rule, ctx) {
   };
   for (const scope of SCOPES) {
     const abs = join(ctx.root, scope);
-    const files = existsSync(abs) && statSync(abs).isFile() ? [{ rel: scope, abs }] : walkFiles(ctx.root, scope, [...CODE, ...PROSE]);
+    const docs = scope === DOCS;
+    const prose = docs ? DOCS_PROSE : PROSE;
+    const files = existsSync(abs) && statSync(abs).isFile()
+      ? [{ rel: scope, abs }]
+      : walkFiles(ctx.root, scope, docs ? [...DOCS_CODE, ...DOCS_PROSE] : [...CODE, ...PROSE], docs ? DOCS_EXCLUDE : []);
     for (const { rel, abs } of files) {
-      if (SKIP_FILE.test(rel)) continue;
+      if (SKIP_FILE.test(rel) || (docs && DOCS_SKIP.test(rel))) continue;
       const text = readText(abs);
       const lines = text.split("\n");
-      if (PROSE.some((ext) => rel.endsWith(ext))) {
+      if (prose.some((ext) => rel.endsWith(ext))) {
         lines.forEach((raw, index) => check(rel, index + 1, raw, raw));
         continue;
       }
