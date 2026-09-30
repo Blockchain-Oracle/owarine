@@ -1,4 +1,4 @@
-import { createSeatLink, normalizeSeatLinkCode, readSeatLink, seatLinkPath, type SeatLinkCode } from "@agari/markets";
+import { createSeatLink, decideSeatLink, normalizeSeatLinkCode, readSeatLink, seatLinkPath, type SeatLinkCode } from "@agari/markets";
 import { diagnosisCopy } from "@agari/core/copy";
 import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -9,6 +9,7 @@ import { Button, Screen } from "~/components/kit";
 import { SeatLinkCard, type SeatLinkCardState } from "~/features/seat-link/SeatLinkCard";
 import { appUrl } from "~/lib/identity";
 import { FONT, useTheme } from "~/theme";
+import { SEAT as WEB_SEAT } from "@/features/canton-ux/seat/copy";
 import { SEAT } from "~/wallet/seat-copy";
 import { useSeat } from "~/wallet/SeatProvider";
 
@@ -31,6 +32,7 @@ export default function SeatLinkScreen() {
   const holder = leased !== null && shell.address !== null && leased.address === shell.address;
   const [issued, setIssued] = useState<SeatLinkCode | null>(null);
   const [state, setState] = useState<Exclude<SeatLinkCardState, "join">>("showing");
+  const [waitingKey, setWaitingKey] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
   const fresh = useCallback(async () => {
@@ -38,6 +40,7 @@ export default function SeatLinkScreen() {
     if (answer.ok) {
       setIssued(answer.value);
       setState("showing");
+      setWaitingKey(null);
       setProblem(null);
     } else setProblem(diagnosisCopy(answer.diagnosis.kind).headline);
   }, []);
@@ -46,20 +49,38 @@ export default function SeatLinkScreen() {
     if (holder && issued === null) void fresh();
   }, [holder, issued, fresh]);
 
+  // While the code shows, and while a device waits on it, this phone follows it (C4c: it asks before linking).
   useEffect(() => {
-    if (!issued || state !== "showing") return;
+    if (!issued || (state !== "showing" && state !== "confirm")) return;
     const timer = setInterval(() => {
       void readSeatLink(issued.code).then((answer) => {
-        if (answer.ok && answer.value !== "showing") setState(answer.value);
+        if (!answer.ok) return;
+        const next = answer.value.state === "pending" ? "confirm" : answer.value.state;
+        if (next === "confirm") setWaitingKey(answer.value.device);
+        if (next !== state) setState(next);
       });
     }, POLL_MS);
     return () => clearInterval(timer);
   }, [issued, state]);
 
+  const decide = useCallback(
+    async (allow: boolean) => {
+      if (!issued) return;
+      const answer = await decideSeatLink(issued.code, allow);
+      if (answer.ok) setState(answer.value.state);
+      else {
+        setState("expired");
+        setProblem(diagnosisCopy(answer.diagnosis.kind).headline);
+      }
+    },
+    [issued],
+  );
+
   const verify = useCallback(
     async (code: string) => {
       const joined = await shell.joinSeat(code);
       if (joined.ok) return joined.value.kind === "leased";
+      if (joined.status === 403) return WEB_SEAT.link.joinDeclined;
       return joined.status === 410 ? false : joined.diagnosis.technical;
     },
     [shell],
@@ -79,6 +100,8 @@ export default function SeatLinkScreen() {
         url={issued ? appUrl(seatLinkPath(issued.code)) : ""}
         expiresAtMs={issued?.expiresAtMs ?? null}
         seatNumber={(leased && seatNumberOf(leased.party)) ?? 0}
+        waitingKey={waitingKey}
+        onDecide={decide}
         onFresh={() => void fresh()}
         verify={verify}
         initialCode={initialCode}

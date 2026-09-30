@@ -15,6 +15,8 @@ export const POOL_LEFT_SEC = 3 * 60 + 41;
 export const DRAIN_SPAN_SEC = 5 * 60;
 export const DRAIN_LEFT_SEC = 4 * 60 + 10;
 
-export const LINK_CODE = "K7M2QF";
+export const LINK_CODE = "K7M2QF4H";
+/** C4c: the key that used the code and waits for this device to allow it. */
+export const WAITING_KEY = "7pWq3Rk2vN8sX4mTbY6cZ1dF5gH9jL2aQeUoPiEr3Ws";
 export const LINK_LEFT_SEC = 48;
 export const linkUrl = (origin: string, code: string) => `${origin}/seat/link?code=${code}`;

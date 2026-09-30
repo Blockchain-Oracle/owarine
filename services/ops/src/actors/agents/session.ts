@@ -20,7 +20,7 @@ import { err, ok, type Reading } from "@agari/core/schemas";
 import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
 import { diagnosis, type Address, type OnchainSnapshot } from "@agari/core/types";
 import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@agari/core/vault";
-import { getDb } from "@agari/db";
+import { getDb, seatPartyFor, type Db } from "@agari/db";
 import { TEMPLATE_IDS } from "@agari/daml";
 import type { LedgerClient, Party } from "@agari/ledger";
 import { cantonVaultDeployment, installVaultExecutionResolver, installVaultReader } from "@agari/markets/vault";
@@ -62,13 +62,17 @@ export interface AgentSessionConfig {
   now?: () => number;
 }
 
-/** A leased seat's party by its address (the X link binds an address), read from the web's seat pool. */
-async function partyOfAddress(address: string): Promise<Party | null> {
-  const db = getDb();
+/**
+ * The owner's party behind an owner label (the X link binds an address; a strategy names its subscriber's): a party id
+ * is itself; a seat key maps through the shared resolution (`@agari/db` `seatPartyFor`, C4c), so the key that took the
+ * lease and a key joined to that live lease by a seat link both answer the seat's party, and a key whose lease ended
+ * answers nothing.
+ */
+export async function ownerPartyOf(owner: string, db: Db | null = getDb()): Promise<Party | null> {
+  if (PARTY_ID.test(owner)) return owner;
   if (!db) return null;
   try {
-    const rows = await db<{ party: string }[]>`SELECT party FROM seat_pool WHERE state = 'leased' AND address = ${address} LIMIT 1`;
-    return rows[0]?.party ?? null;
+    return await seatPartyFor(db, owner);
   } catch {
     return null;
   }
@@ -89,7 +93,7 @@ export function createAgentSession(cfg: AgentSessionConfig): AgentSession {
   const deployment = cantonVaultDeployment(CLUSTER_ID[cfg.cluster ?? "localnet"]);
   const reader = cfg.venue ?? agent;
 
-  const ownerParty = async (owner: string): Promise<Party | null> => (PARTY_ID.test(owner) ? owner : partyOfAddress(owner));
+  const ownerParty = (owner: string): Promise<Party | null> => ownerPartyOf(owner);
   const grantsOf = async (owner: Party): Promise<{ cid: string; data: AgentGrantC }[]> => (await executor.grantsNamingMe()).filter((g) => g.data.owner === owner);
 
   // ---- the vault reads, for this agent's grants ----

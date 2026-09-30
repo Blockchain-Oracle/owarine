@@ -35,6 +35,8 @@ export * from "./schema-sponsor";
 export * from "./follows";
 // C9d: recycling a drained guest seat, shared by ops and the web.
 export * from "./seat-recycle";
+// C4c: the one address → party resolution for seat keys (a lease's own key, or a key joined to that live lease).
+export * from "./seat-keys";
 // S26.4: phone push devices and the sent journal.
 export * from "./push";
 // S21 (D-126): the desk's records, paper ledger, approvals and grades.

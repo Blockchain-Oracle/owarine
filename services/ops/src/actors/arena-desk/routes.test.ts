@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { GAMES_TEMPLATE_IDS } from "@agari/daml";
 import type { LedgerClient } from "@agari/ledger";
 import type { SeasonClosure } from "@agari/db";
+import type { Address } from "@agari/core/types";
 import { createArenaDesk, type SeasonClosureStore } from "./desk";
 import { arenaRoutes, ARENA_ROUTES } from "./routes";
 import { createSeatDirectory } from "./seats";
@@ -76,4 +77,43 @@ describe("the season admin's withdrawal (K-105)", () => {
     walk(root);
     expect(hits).toEqual([]);
   }, 30_000);
+});
+
+describe("the creator's open, by party (C4c: a key joined by a seat link queues and opens as its seat)", () => {
+  const SEAT_A = "agari-user-seat-1::1220aaaa0001";
+  const SEAT_B = "agari-user-seat-2::1220bbbb0002";
+  const MATCH = `0x${"ab".repeat(32)}`;
+  const PHONE_A = "PhoneA11111111111111111111111111111111111111" as Address;
+  const WEB_B = "WebB2222222222222222222222222222222222222222" as Address;
+
+  function dealt() {
+    const w = world({ distributed: false });
+    // The pairings the lease table proves (here pinned: no database); the phone is the key that queued for seat A.
+    w.desk.seats.pin(SEAT_A, PHONE_A);
+    w.desk.seats.pin(SEAT_B, WEB_B);
+    w.desk.hold({ matchId: MATCH, creator: PHONE_A, challenger: WEB_B, tierId: "t1", arenaId: "a1", deckHash: "00", deckSize: 2, clientSeeds: [] });
+    return w;
+  }
+
+  it("opens for the lease whose joined key queued, though the web names the lease's own key", async () => {
+    const w = dealt();
+    const r = await w.routes["/internal/games/open"]!({ matchId: MATCH, party: SEAT_A, address: "WebA-holder-key" });
+    // Past both seat checks: this one-pool ledger has no ArenaTerms, which is the next thing the open reads.
+    expect(r.status).toBe(503);
+    expect(JSON.stringify(r.body)).toContain("not-deployed");
+  });
+
+  it("refuses another seat's lease, and a pairing whose creator key no longer maps", async () => {
+    const w = dealt();
+    const other = await w.routes["/internal/games/open"]!({ matchId: MATCH, party: SEAT_B, address: WEB_B });
+    expect(other.status).toBe(409);
+    expect(JSON.stringify(other.body)).toContain("only the pairing's creator opens the match");
+
+    const gone = world({ distributed: false });
+    gone.desk.hold({ matchId: MATCH, creator: PHONE_A, challenger: WEB_B, tierId: "t1", arenaId: "a1", deckHash: "00", deckSize: 2, clientSeeds: [] });
+    const r = await gone.routes["/internal/games/open"]!({ matchId: MATCH, party: SEAT_A, address: "WebA-holder-key" });
+    expect(r.status).toBe(409);
+    expect(JSON.stringify(r.body)).toContain("no longer holds a seat");
+    expect(gone.submitAndWaitForTransaction).not.toHaveBeenCalled();
+  });
 });

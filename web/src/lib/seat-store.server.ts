@@ -1,4 +1,4 @@
-import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
+import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, seatLeaseRowFor, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
 import type { Diagnosis } from "@agari/core/types";
 import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@agari/markets/server";
 import { createSeatLinkStore, SEAT_LINK_SCHEMA_SQL, type SeatLinkStore } from "./seat-link-store.server";
@@ -53,7 +53,11 @@ export interface SeatBusy {
 
 export interface SeatStore {
   ready(): Promise<void>;
-  lease(address: string, nowMs: number, o: { startOffset: number; leaseId: string; rules?: LeaseRules }): Promise<LeaseOutcome>;
+  /**
+   * Takes or renews this address's lease. `startOffset` may be a reader (C4c L2): it is then read only once a free row
+   * is locked for this lease, so it is at or past the drain's final sweep and the new visitor sees none of it.
+   */
+  lease(address: string, nowMs: number, o: { startOffset: number | (() => Promise<number>); leaseId: string; rules?: LeaseRules }): Promise<LeaseOutcome>;
   byLease(leaseId: string): Promise<LeaseRow | null>;
   /** The live lease this key holds, or joined through a seat link (a joined key answers its seat's row). */
   byAddress(address: string): Promise<LeaseRow | null>;
@@ -233,11 +237,14 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
               return { kind: "pool-full" as const, total: num(s?.total), inUse: num(s?.in_use), nextFreeAtMs: s?.next_free === null || s?.next_free === undefined ? null : num(s.next_free), position: waiting + 1 };
             }
             const party = String(free.party);
+            // The row is ours and was freed only after its final sweep (`recycleDrainingSeat`): the ledger end read now
+            // is past everything the last visitor did, so the new lease's reads start after it.
+            const startOffset = typeof o.startOffset === "function" ? await o.startOffset() : o.startOffset;
             const [taken] = await tx<Row[]>`
               UPDATE seat_pool SET state = 'leased', lease_id = ${o.leaseId}, address = ${address}, leased_at_ms = ${nowMs}, last_seen_ms = ${nowMs},
-                hard_cap_at_ms = ${nowMs + rules.hardCapMs}, busy_until_ms = 0, next_settle_ms = 0, open_legs = 0, start_offset = ${o.startOffset}, funded_at_ms = NULL
+                hard_cap_at_ms = ${nowMs + rules.hardCapMs}, busy_until_ms = 0, next_settle_ms = 0, open_legs = 0, start_offset = ${startOffset}, funded_at_ms = NULL
               WHERE party = ${party} RETURNING *`;
-            await tx`INSERT INTO seat_leases (lease_id, party, address, started_at_ms, start_offset) VALUES (${o.leaseId}, ${party}, ${address}, ${nowMs}, ${o.startOffset})`;
+            await tx`INSERT INTO seat_leases (lease_id, party, address, started_at_ms, start_offset) VALUES (${o.leaseId}, ${party}, ${address}, ${nowMs}, ${startOffset})`;
             await tx`DELETE FROM seat_waitlist WHERE address = ${address}`;
             return { kind: "leased" as const, lease: lease(taken!), fresh: true };
           });
@@ -259,8 +266,8 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     },
     async byAddress(address) {
       await ready();
-      const [r] = await db<Row[]>`SELECT * FROM seat_pool WHERE state = 'leased' AND (address = ${address}
-        OR lease_id = (SELECT lease_id FROM seat_linked_keys WHERE address = ${address})) ORDER BY (address = ${address}) DESC LIMIT 1`;
+      // C4c: the one address → party resolution ops shares (`@agari/db` `seatLeaseRowFor`): own lease or a joined key.
+      const r = await seatLeaseRowFor(db, address);
       return r ? lease(r) : null;
     },
     async touch(leaseId, nowMs, busy) {

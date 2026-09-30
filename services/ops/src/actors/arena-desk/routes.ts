@@ -6,7 +6,7 @@
  *   season               the newest season pool, or the one named
  *   open                 what a creator's `Arena_OpenDuel` needs from the sealed deck: only for that pairing's creator,
  *                        and only while the matchmaker holds it (WHO comes from the web's lease, never a body field
- *                        the browser wrote)
+ *                        the browser wrote; the pairing's key must act as that lease's party, C4c)
  *   season/distribute    the season admin's payout: seat addresses → their venue accounts → one `Season_Distribute`
  *   season/withdraw      the season admin's close: what is left after the payout back to the venue, one
  *                        `Season_WithdrawRemainder` (K-105). An admin act: no web route forwards it, so no seat reaches it
@@ -43,9 +43,11 @@ export function arenaRoutes(desk: ArenaDesk): Record<string, Handler> {
       if (!matchId || !party || !address) return { status: 400, body: { diagnosis: diagnosis("unknown", "expected {matchId, party, address}") } };
       const deal = desk.pendingDeal(matchId);
       if (!deal) return refused(diagnosis("order-expired", "no sealed deck is waiting for that match (opened already, dissolved, or never dealt)"));
-      if (deal.creator !== address) return refused(diagnosis("signer-required", "only the pairing's creator opens the match"));
-      const creatorParty = await desk.seats.partyOf(address);
-      if (creatorParty !== party) return refused(diagnosis("signer-required", "the creator's lease does not match the seat that was paired"));
+      // C4c: the pairing names the key that queued, which is the lease's own key or a key joined to it by a seat link;
+      // either acts as the lease's party. So the creator is checked by party, never by comparing two keys of one seat.
+      const creatorParty = await desk.seats.partyOf(deal.creator);
+      if (creatorParty === null) return refused(diagnosis("signer-required", "the pairing's creator no longer holds a seat"));
+      if (creatorParty !== party) return refused(diagnosis("signer-required", "only the pairing's creator opens the match"));
       const challenger = await desk.seats.partyOf(deal.challenger);
       if (!challenger) return refused(diagnosis("order-expired", "the opponent's seat is no longer leased"));
       const snap = await desk.snapshot();

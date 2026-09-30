@@ -14,7 +14,7 @@ import {
 import { arcadeRankOf, bestArcadeOf, gamesStoreConfigured, listArcadeBoard, recordArcadeScore } from "@agari/db";
 import { z } from "zod";
 import { gate } from "@/features/session/sponsor.server";
-import { walletFromRoomToken } from "../room-token.server";
+import { walletFromRoomToken, type Vouch } from "../room-token.server";
 import type { BoardWire, ScoreAcceptedWire } from "./wire";
 
 /**
@@ -69,10 +69,10 @@ export async function readBoard(game: ArcadeGame, address: string | null): Promi
   return { configured: true, seed, engineVersion, rows, me };
 }
 
-export async function acceptScore(claim: ScoreClaim, device: string, nowMs: number): Promise<ScoreVerdict> {
+export async function acceptScore(claim: ScoreClaim, device: string, nowMs: number, vouch: Vouch): Promise<ScoreVerdict> {
   if (!gamesStoreConfigured()) return { ok: false, status: 503, error: "This deployment keeps no scores." };
 
-  const identity = await walletFromRoomToken(claim.token, nowMs);
+  const identity = await walletFromRoomToken(claim.token, nowMs, vouch);
   if (!identity.ok) return identity;
   const wallet = identity.wallet;
 

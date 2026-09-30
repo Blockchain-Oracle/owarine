@@ -6,7 +6,7 @@ import { FONT, RADIUS, useTheme } from "~/theme";
 export type LinkCodeStatus = "idle" | "error" | "success";
 
 /**
- * web's adapted OTP Input (21st #23543, `components/ui/otp-input.tsx`) on the phone: six boxes over one hidden field,
+ * web's adapted OTP Input (21st #23543, `components/ui/otp-input.tsx`) on the phone: one box per character (eight, C4c) over one hidden field,
  * letters and numbers, upper-cased as typed, so the system keyboard, paste and autofill all work. The box under the
  * caret takes the accent ring; an error or success tints every box and says why underneath.
  */
@@ -75,8 +75,9 @@ export function LinkCodeInput({
 
 const styles = StyleSheet.create({
   wrap: { gap: 8 },
-  row: { flexDirection: "row", justifyContent: "center", gap: 8 },
-  box: { width: 44, height: 52, borderWidth: 1, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center" },
+  row: { flexDirection: "row", justifyContent: "center", gap: 6 },
+  // Eight boxes share the card's width (C4c), each at most the old 44.
+  box: { flex: 1, maxWidth: 44, height: 52, borderWidth: 1, borderRadius: RADIUS.md, alignItems: "center", justifyContent: "center" },
   char: { fontFamily: FONT.dataStrong, fontSize: 22, lineHeight: 26 },
   hidden: { position: "absolute", opacity: 0, width: 1, height: 1 },
   note: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18, textAlign: "center" },

@@ -4,7 +4,7 @@
  *   docker run -d --name pm-c4a-pg -e POSTGRES_PASSWORD=pm -p 5434:5432 postgres:16
  *   SEAT_PG_URL=postgres://postgres:pm@localhost:5434/pm_c4a pnpm --filter web exec vitest run src/lib/seat-store.server.test.ts
  */
-import { getDb } from "@agari/db";
+import { getDb, RECYCLE_SETTLE_MS } from "@agari/db";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { createSeatStore, DEFAULT_RULES, type LeaseRules } from "./seat-store.server";
@@ -126,10 +126,11 @@ describe.skipIf(!URL_)("seat store (Postgres)", () => {
     expect(await store.recycle(a.lease.party, T0 + 400, async () => ({ free: false, why: "1 leg" }))).toEqual({ kind: "held", why: "1 leg" });
     expect(await store.draining(5)).toEqual([b.lease.party, a.lease.party]);
     expect(await store.stats(T0 + 450, RULES)).toMatchObject({ draining: 2, oldestDrainingNote: "1 leg" });
-    // b holds nothing: freed, and leasable again.
-    expect(await store.recycle(b.lease.party, T0 + 500, async () => ({ free: true }))).toEqual({ kind: "freed" });
-    expect(await store.stats(T0 + 600, RULES)).toMatchObject({ total: 3, free: 1, leased: 1, draining: 1 });
-    expect(await lease(store, "rd", T0 + 700)).toMatchObject({ kind: "leased", fresh: true, lease: { party: b.lease.party } });
+    // b holds nothing: the first empty read only stamps it (C4c L2); a second one past the settle window frees it.
+    expect(await store.recycle(b.lease.party, T0 + 500, async () => ({ free: true }))).toMatchObject({ kind: "held", why: expect.stringContaining("empty") });
+    expect(await store.recycle(b.lease.party, T0 + 500 + RECYCLE_SETTLE_MS, async () => ({ free: true }))).toEqual({ kind: "freed" });
+    expect(await store.stats(T0 + 600 + RECYCLE_SETTLE_MS, RULES)).toMatchObject({ total: 3, free: 1, leased: 1, draining: 1 });
+    expect(await lease(store, "rd", T0 + 700 + RECYCLE_SETTLE_MS)).toMatchObject({ kind: "leased", fresh: true, lease: { party: b.lease.party } });
     // A failing check (the ledger unreadable) is a hold, not a free, and not an error.
     expect(await store.recycle(a.lease.party, T0 + 800, async () => { throw new Error("ledger down"); })).toMatchObject({ kind: "held", why: expect.stringContaining("ledger down") });
     // Not draining (leased, or already free): nothing to do.
@@ -154,8 +155,39 @@ describe.skipIf(!URL_)("seat store (Postgres)", () => {
     expect((await store.byAddress("cb"))!.party).not.toBe(a.lease.party);
     expect(await store.recycle(a.lease.party, T0 + 40, async () => ((secondRan = true), { free: true }))).toEqual({ kind: "busy" });
     release();
-    expect(await first).toEqual({ kind: "freed" });
+    expect(await first).toMatchObject({ kind: "held", why: expect.stringContaining("empty") });
     expect(secondRan).toBe(false);
+    expect(await store.recycle(a.lease.party, T0 + 20 + RECYCLE_SETTLE_MS, async () => ({ free: true }))).toEqual({ kind: "freed" });
+  });
+
+  it("C4c L2: the start offset is read inside the lease, once a free row is ours, and never for a renewal", async () => {
+    let reads = 0;
+    const end = async () => ((reads += 1), 7_700 + reads);
+    const first = await store.lease("so", T0, { startOffset: end, leaseId: randomUUID(), rules: RULES });
+    expect(first).toMatchObject({ kind: "leased", fresh: true, lease: { startOffset: 7_701 } });
+    const again = await store.lease("so", T0 + 1, { startOffset: end, leaseId: randomUUID(), rules: RULES });
+    expect(again).toMatchObject({ kind: "leased", fresh: false, lease: { startOffset: 7_701 } });
+    expect(reads).toBe(1);
+    const log = await db`SELECT start_offset FROM seat_leases WHERE lease_id = ${first.kind === "leased" ? first.lease.leaseId : ""}`;
+    expect(Number(log[0]!.start_offset)).toBe(7_701);
+  });
+
+  it("C4c L2: a write in flight holds the seat, and a late write between the two empty reads starts the wait again", async () => {
+    const a = await lease(store, "la");
+    if (a.kind !== "leased") throw new Error("lease failed");
+    // A command the seat journalled before its release, still inside its deadline.
+    await store.commands.begin({ commandId: "accept:late", leaseId: a.lease.leaseId, party: a.lease.party, kind: "accept", beginOffset: 1, deadlineMs: T0 + 60_000 }, T0);
+    await store.release(a.lease.leaseId, T0 + 10, "released");
+    let reads = 0;
+    const empty = async () => ((reads += 1), { free: true as const });
+    expect(await store.recycle(a.lease.party, T0 + 20, empty)).toMatchObject({ kind: "held", why: "1 write still in flight" });
+    expect(reads).toBe(0);
+    // Past its deadline the write has landed or never will: the ledger read decides from here.
+    expect(await store.recycle(a.lease.party, T0 + 60_001, empty)).toMatchObject({ kind: "held", why: expect.stringContaining("empty") });
+    // The late write landed a leg after that read: the stamp is cleared, and the next empty read starts the wait again.
+    expect(await store.recycle(a.lease.party, T0 + 70_000, async () => ({ free: false, why: "1 leg" }))).toEqual({ kind: "held", why: "1 leg" });
+    expect(await store.recycle(a.lease.party, T0 + 60_001 + RECYCLE_SETTLE_MS, empty)).toMatchObject({ kind: "held", why: expect.stringContaining("empty") });
+    expect(await store.recycle(a.lease.party, T0 + 60_001 + 2 * RECYCLE_SETTLE_MS, empty)).toEqual({ kind: "freed" });
   });
 
   it("keeps a command journal row per command id, owned by its lease", async () => {

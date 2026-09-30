@@ -1,6 +1,7 @@
-import { formatClock } from "@agari/core/units";
+import { formatClock, shortHex } from "@agari/core/units";
+import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
 import * as Clipboard from "expo-clipboard";
-import { Check, Copy, Link2, RefreshCw } from "lucide-react-native";
+import { Check, Copy, Link2, RefreshCw, ShieldQuestion } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";
@@ -15,8 +16,11 @@ const L = SEAT.link;
 const COPIED_MS = 1_500;
 const QR_SIZE = 128;
 
-/** `join`: this phone holds no seat of its own to show, so the card is only the code entry (web's same states). */
-export type SeatLinkCardState = "showing" | "expired" | "linked" | "join";
+/**
+ * `join`: this phone holds no seat of its own to show, so the card is only the code entry (web's same states).
+ * `confirm`: a device used this seat's code and waits for this phone to allow it (C4c); `declined`: this phone refused.
+ */
+export type SeatLinkCardState = "showing" | "expired" | "confirm" | "linked" | "declined" | "join";
 
 interface Props {
   state: SeatLinkCardState;
@@ -25,6 +29,9 @@ interface Props {
   url: string;
   expiresAtMs: number | null;
   seatNumber: number;
+  /** `confirm`: the key waiting on this seat's code, and this phone's answer to it. */
+  waitingKey?: string | null;
+  onDecide?: (allow: boolean) => Promise<void>;
   onFresh: () => void;
   /** True joins; false or a sentence refuses (the sentence replaces the generic error line). */
   verify: (code: string) => Promise<boolean | string>;
@@ -37,7 +44,34 @@ interface Props {
  * the QR beside the manual code with copy and its countdown, then the code entry and one button. The top half is this
  * seat's code for another device; the bottom half joins another device's seat.
  */
-export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, onFresh, verify, initialCode }: Props) {
+function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seatNumber: number; onDecide: (allow: boolean) => Promise<void> }) {
+  const { color } = useTheme();
+  const [busy, setBusy] = useState(false);
+  const answer = (allow: boolean) => {
+    haptic.select();
+    setBusy(true);
+    void onDecide(allow).finally(() => setBusy(false));
+  };
+  return (
+    <View style={styles.done} accessibilityRole="alert" accessibilityLiveRegion="assertive">
+      <View style={[styles.doneMark, { backgroundColor: color.accentWash }]}>
+        <ShieldQuestion size={22} color={color.accent} />
+      </View>
+      <Text style={[styles.doneTitle, { color: color.ink }]}>{L.confirmTitle}</Text>
+      <Text style={[styles.sub, { color: color.inkSecondary }]}>{L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}</Text>
+      <View style={styles.decide}>
+        <View style={styles.decideCell}>
+          <Button label={L.decline} variant="secondary" disabled={busy} onPress={() => answer(false)} />
+        </View>
+        <View style={styles.decideCell}>
+          <Button label={busy ? L.deciding : L.allow} loading={busy} disabled={busy} onPress={() => answer(true)} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitingKey = null, onDecide, onFresh, verify, initialCode }: Props) {
   const { color } = useTheme();
   const now = useNowMs();
   const leftSec = expiresAtMs !== null && now > 0 ? Math.max(0, Math.ceil((expiresAtMs - now) / 1000)) : null;
@@ -54,7 +88,15 @@ export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, onFres
         <Text style={[styles.sub, { color: color.inkSecondary }]}>{L.subtitle}</Text>
       </View>
 
-      {state === "join" ? null : state === "linked" ? (
+      {state === "join" ? null : state === "confirm" && waitingKey && onDecide ? (
+        <Decide waitingKey={waitingKey} seatNumber={seatNumber} onDecide={onDecide} />
+      ) : state === "declined" ? (
+        <View style={styles.done} accessibilityRole="summary" accessibilityLiveRegion="polite">
+          <Text style={[styles.doneTitle, { color: color.ink }]}>{L.declinedTitle}</Text>
+          <Text style={[styles.sub, { color: color.inkSecondary }]}>{L.declinedBody}</Text>
+          <Button label={L.fresh} icon={RefreshCw} variant="secondary" size="sm" block={false} onPress={onFresh} />
+        </View>
+      ) : state === "linked" ? (
         <View style={styles.done} accessibilityRole="summary" accessibilityLiveRegion="polite">
           <View style={[styles.doneMark, { backgroundColor: color.profitWash }]}>
             <Check size={22} color={color.profit} />
@@ -113,7 +155,7 @@ function CopyCode({ code, disabled }: { code: string; disabled: boolean }) {
   return (
     <View style={[styles.code, { borderColor: color.hairline, backgroundColor: color.surface2 }]}>
       <Text style={[styles.codeValue, { color: color.ink }]} accessibilityLabel={`${L.code}: ${disabled ? "none" : code.split("").join(" ")}`}>
-        {disabled ? "––––––" : `${code.slice(0, 3)} ${code.slice(3)}`}
+        {disabled ? "–––– ––––" : formatSeatLinkCode(code)}
       </Text>
       <Pressable
         disabled={disabled}
@@ -137,9 +179,9 @@ function Join({ verify, initialCode }: { verify: Props["verify"]; initialCode: s
   const [status, setStatus] = useState<LinkCodeStatus>("idle");
   const [why, setWhy] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const complete = value.length === 6;
+  const complete = value.length === SEAT_LINK_CODE_LENGTH;
   const submit = async (code: string) => {
-    if (code.length !== 6 || busy) return;
+    if (code.length !== SEAT_LINK_CODE_LENGTH || busy) return;
     setBusy(true);
     const answer = await verify(code);
     setBusy(false);
@@ -199,6 +241,8 @@ const styles = StyleSheet.create({
   expiry: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18 },
   clock: { fontFamily: FONT.data },
   done: { alignItems: "center", gap: 8 },
+  decide: { flexDirection: "row", gap: 8, alignSelf: "stretch" },
+  decideCell: { flex: 1 },
   doneMark: { width: 44, height: 44, borderRadius: RADIUS.full, alignItems: "center", justifyContent: "center" },
   doneTitle: { fontFamily: FONT.bodyBold, fontSize: 16, lineHeight: 22 },
   join: { gap: 12, paddingTop: 20, borderTopWidth: 1 },

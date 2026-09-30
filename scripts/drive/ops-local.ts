@@ -1,6 +1,7 @@
 /**
  * Runs the Canton venue actors together against a LOCAL sandbox, the way `services/ops/src/main.ts` wires them: the
- * crypto spot feed, every C3 actor over one ledger client and one shard pool, and the ops HTTP server with
+ * spot feeds (crypto always; with the Alpaca keys in the environment also the equity and PreStocks feeds, so stock,
+ * pre-IPO and basket Windows quote and Lucky can deal them, C4c), every C3 actor over one ledger client and one shard pool, and the ops HTTP server with
  * `/ladders/*`, `/reserve` and `POST /internal/*`; with `ROOM_TOKEN_SECRET` the duel room and matchmaker, and with
  * `DATABASE_URL` the projector and its duel projection (C9b). Every venue event is appended to `OPS_EVENTS_FILE` (JSONL) for the
  * drive report. Kill it at any moment and start it again: every actor reconciles from the ledger, and every write
@@ -20,7 +21,7 @@ import { startProjector } from "../../services/ops/src/actors/projector";
 import { onVenueEvent } from "../../services/ops/src/actors/venue/events";
 import { createSessionService } from "../../services/ops/src/calendar/session-service";
 import { startOpsHttp } from "../../services/ops/src/http/server";
-import { createCryptoSpotFeed } from "../../services/ops/src/prices/crypto-spot";
+import { createLocalSpot } from "../../services/ops/src/prices/local-spot";
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, heartbeats, readOpsEnv } from "../../services/ops/src/runtime";
 
 const env = readOpsEnv();
@@ -30,14 +31,15 @@ const log = (actor: string) => (why: string) => console.log(`${stamp()} [${actor
 const eventsFile = process.env.OPS_EVENTS_FILE;
 if (eventsFile) onVenueEvent((e) => appendFileSync(eventsFile, `${JSON.stringify({ ...e, pid: process.pid })}\n`));
 
-const spot = createCryptoSpotFeed({ log: log("crypto-spot") });
-spot.start();
+const local = createLocalSpot({ log });
+log("ops")(local.summary);
+const spot = local.spot;
 const deps = {
   env, log: log("ops"), sessions: createSessionService(), spot, halts: createHaltBoard(), events: createSessionEvents(),
   pythIndex: createPythEntitlementStore({ key: undefined, log: log("pyth-entitlement") }),
 };
 const venue = await startCantonVenue({ deps, spot, log });
-await startOpsHttp({ port: env.httpPort, spot, ladders: venue.board, internal: venue.internal, reserve: venue.reserve, env, log: log("http") });
+await startOpsHttp({ port: env.httpPort, spot, prestocks: local.prestocks, ladders: venue.board, internal: venue.internal, reserve: venue.reserve, env, log: log("http") });
 // C9b: the duel room with its matchmaker (only with ROOM_TOKEN_SECRET), and the projector carrying the duel projection
 // (only with DATABASE_URL), wired as main.ts wires them.
 if (process.env.DATABASE_URL) await startProjector({ log: log("projector") }, process.env, { onApplied: createDuelProjection(log("duel-projector")) });
@@ -47,7 +49,7 @@ log("ops")(`boot pid ${process.pid}: ${env.dryRun ? "DRY RUN" : "live"}, http :$
 const stop = (signal: string) => {
   log("ops")(`${signal}: stopping`);
   venue.stop();
-  spot.stop();
+  local.stop();
   process.exit(0);
 };
 process.on("SIGINT", () => stop("SIGINT"));

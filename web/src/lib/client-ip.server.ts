@@ -37,6 +37,22 @@ export function rateLimitKey(request: Request): string {
 }
 
 /**
+ * The bucket an address counts under for a limit that must hold across addresses one visitor controls (C4c, review L1):
+ * an IPv6 address by its /64, the block one subscriber is routed (anyone holding one has 2^64 addresses to rotate); an
+ * IPv4 address, or anything that is not an address, as itself.
+ */
+export function ipBucket(ip: string): string {
+  const bare = ip.replace(/^\[|\](:\d+)?$/g, "").split("%")[0]!;
+  if (!bare.includes(":") || /^::ffff:\d+\.\d+\.\d+\.\d+$/i.test(bare)) return bare.replace(/^::ffff:/i, "");
+  const [head = "", tail = ""] = bare.split("::");
+  const left = head ? head.split(":") : [];
+  const right = tail ? tail.split(":") : [];
+  const groups = bare.includes("::") ? [...left, ...Array(Math.max(0, 8 - left.length - right.length)).fill("0"), ...right] : left;
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/i.test(g))) return bare;
+  return `${groups.slice(0, 4).map((g) => g.toLowerCase().replace(/^0+(?=.)/, "")).join(":")}::/64`;
+}
+
+/**
  * The origin a browser sees for this request. Behind a proxy that ends TLS, `request.url` is the scheme the server
  * itself spoke — `http://useagari.xyz` inside the container — while the browser sent `Origin: https://useagari.xyz`,
  * and a same-origin check against `request.url` refused every claim with "Open the faucet from Agari." When a

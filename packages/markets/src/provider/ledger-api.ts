@@ -57,6 +57,20 @@ async function seatHeader(nowMs: number): Promise<string | null> {
   return value;
 }
 
+/**
+ * The signed seat header for a call that is not a ledger call (the duel room's credential, an arcade score: C4c), so
+ * the route can check the seat that asks. Empty when no seat key is registered or it would not sign; on the web the
+ * seat cookie still goes with a same-origin request.
+ */
+export async function seatAuthHeaders(): Promise<Record<string, string>> {
+  try {
+    const signed = await seatHeader(Date.now());
+    return signed ? { [SEAT_READ_HEADER]: signed } : {};
+  } catch {
+    return {};
+  }
+}
+
 /** `/api/ledger` (or the phone's absolute URL); `root` gives its parent, where `/seat` and `/view` live. */
 export function ledgerBase(root = false): string {
   const configured = (peekClient()?.ledgerApiPath ?? "/api/ledger").replace(/\/$/, "");
