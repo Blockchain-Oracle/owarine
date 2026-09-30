@@ -114,6 +114,50 @@ describe.skipIf(!URL_)("seat store (Postgres)", () => {
     expect(log[0]!.end_reason).toBe("released");
   });
 
+  it("C9d: recycles an empty draining seat to free, keeps a held one draining with its note, and counts the pool truthfully", async () => {
+    const a = await lease(store, "ra");
+    const b = await lease(store, "rb");
+    const c = await lease(store, "rc");
+    if (a.kind !== "leased" || b.kind !== "leased" || c.kind !== "leased") throw new Error("lease failed");
+    await store.release(a.lease.leaseId, T0 + 100, "released");
+    await store.release(b.lease.leaseId, T0 + 200, "released");
+    expect(await store.stats(T0 + 300, RULES)).toMatchObject({ total: 3, free: 0, leased: 1, draining: 2, oldestDrainingSinceMs: T0 + 100, oldestDrainingNote: null, waitlist: 0 });
+    // a still holds a leg: it stays draining, its note says so, and it moves behind b for the next check.
+    expect(await store.recycle(a.lease.party, T0 + 400, async () => ({ free: false, why: "1 leg" }))).toEqual({ kind: "held", why: "1 leg" });
+    expect(await store.draining(5)).toEqual([b.lease.party, a.lease.party]);
+    expect(await store.stats(T0 + 450, RULES)).toMatchObject({ draining: 2, oldestDrainingNote: "1 leg" });
+    // b holds nothing: freed, and leasable again.
+    expect(await store.recycle(b.lease.party, T0 + 500, async () => ({ free: true }))).toEqual({ kind: "freed" });
+    expect(await store.stats(T0 + 600, RULES)).toMatchObject({ total: 3, free: 1, leased: 1, draining: 1 });
+    expect(await lease(store, "rd", T0 + 700)).toMatchObject({ kind: "leased", fresh: true, lease: { party: b.lease.party } });
+    // A failing check (the ledger unreadable) is a hold, not a free, and not an error.
+    expect(await store.recycle(a.lease.party, T0 + 800, async () => { throw new Error("ledger down"); })).toMatchObject({ kind: "held", why: expect.stringContaining("ledger down") });
+    // Not draining (leased, or already free): nothing to do.
+    expect(await store.recycle(c.lease.party, T0 + 900, async () => ({ free: true }))).toEqual({ kind: "busy" });
+    expect(await store.byLease(c.lease.leaseId)).not.toBeNull();
+  });
+
+  it("C9d: two recyclers never work one seat at once, so a re-leased seat's credit is never swept", async () => {
+    const a = await lease(store, "ca");
+    if (a.kind !== "leased") throw new Error("lease failed");
+    await store.release(a.lease.leaseId, T0 + 10, "released");
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    let secondRan = false;
+    const first = store.recycle(a.lease.party, T0 + 20, async () => {
+      await gate;
+      return { free: true };
+    });
+    await new Promise((r) => setTimeout(r, 50));
+    // While the first holds the row, the seat cannot be leased (it is still draining) and a second recycler skips it.
+    expect(await lease(store, "cb", T0 + 30)).toMatchObject({ kind: "leased" });
+    expect((await store.byAddress("cb"))!.party).not.toBe(a.lease.party);
+    expect(await store.recycle(a.lease.party, T0 + 40, async () => ((secondRan = true), { free: true }))).toEqual({ kind: "busy" });
+    release();
+    expect(await first).toEqual({ kind: "freed" });
+    expect(secondRan).toBe(false);
+  });
+
   it("keeps a command journal row per command id, owned by its lease", async () => {
     const row = { commandId: "accept:0b6f3a7e-58a1-4d4e-9b1a-2f1f6c1f0a11", leaseId: randomUUID(), party: PARTIES[0]!, kind: "accept" as const, beginOffset: 42, deadlineMs: T0 + 20_000 };
     const a = await store.commands.begin(row, T0);

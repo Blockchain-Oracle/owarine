@@ -22,3 +22,4 @@ export * from "./agents-read";
 export * from "./desk-seat";
 export * from "../provider/games-wire";
 export * from "./games";
+export * from "./seat-holdings";

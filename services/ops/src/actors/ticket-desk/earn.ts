@@ -75,3 +75,29 @@ export async function handleEarn(d: Desk, body: unknown): Promise<Answer> {
   }
 }
 
+
+/**
+ * C9d, a draining seat's Earn shares: each share is quoted for withdrawal at the live NAV (the same `Earn_IssueWithdraw`
+ * a seat asks for) and the quote is accepted as the seat (`Withdraw_Accept`), so the seat's cash, not its shares, is
+ * what the recycle then sweeps. A reserve whose liquid cash cannot pay now is tried again on the next pass.
+ */
+export async function redeemSeatShares(d: Desk, seat: string, shares: ReadonlyArray<{ cid: string; reserveId: string; shares: bigint }>): Promise<string[]> {
+  const notes: string[] = [];
+  const who = seat.split("::")[0];
+  for (const share of shares) {
+    const answer = await handleEarn(d, { party: seat, leaseId: "seat-drain", op: "withdraw", reserve: share.reserveId, shares: share.shares.toString() });
+    const body = answer.body as { kind?: string; quoteCid?: string; cashOut?: bigint; diagnosis?: { technical?: string } };
+    if (body.kind !== "withdraw-quote" || !body.quoteCid) {
+      notes.push(`${who}: ${share.reserveId} shares not redeemed yet: ${body.diagnosis?.technical ?? `status ${answer.status}`}`);
+      continue;
+    }
+    if (d.venue.dryRun) continue;
+    try {
+      await d.venue.client.submitAndWaitForTransaction({ actAs: [seat], commandId: `drain-earn:${body.quoteCid.slice(0, 48)}`, commands: [tcmd.acceptWithdraw(body.quoteCid)] });
+      notes.push(`${who}: redeemed ${share.shares} ${share.reserveId} shares for ${body.cashOut}`);
+    } catch (error) {
+      notes.push(`${who}: accepting the ${share.reserveId} withdraw quote failed: ${error instanceof Error ? error.message.slice(0, 160) : String(error)}`);
+    }
+  }
+  return notes;
+}

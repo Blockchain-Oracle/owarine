@@ -33,3 +33,35 @@ describe("Canton status rows", () => {
     ]);
   });
 });
+
+describe("guest seat pool row (C9d)", () => {
+  const NOW_MS = 1_790_000_000_000;
+  const base = { total: 6, free: 2, leased: 3, draining: 1, oldestDrainingSinceMs: NOW_MS - 190_000, oldestDrainingNote: "1 leg", waitlist: 0 };
+
+  it("counts the pool as the table has it, and says what the longest-draining seat holds", async () => {
+    const { seatPoolRow } = await import("./rows-canton");
+    const row = seatPoolRow(base, NOW_MS);
+    expect(row).toMatchObject({ id: "seats", ok: true, grade: "good" });
+    expect(row.detail).toBe("6 seats · 2 free · 3 leased · 1 draining · longest draining 3m 10s, holds 1 leg");
+  });
+
+  it("turns amber when no seat is free and names the waiting visitors", async () => {
+    const { seatPoolRow } = await import("./rows-canton");
+    const row = seatPoolRow({ ...base, free: 0, leased: 5, waitlist: 2 }, NOW_MS);
+    expect(row).toMatchObject({ ok: true, grade: "warn" });
+    expect(row.detail).toContain("2 visitors waiting");
+  });
+
+  it("turns amber when a draining seat's checks have been failing for over five minutes", async () => {
+    const { seatPoolRow } = await import("./rows-canton");
+    expect(seatPoolRow({ ...base, oldestDrainingSinceMs: NOW_MS - 6 * 60_000, oldestDrainingNote: "check failed: ledger down" }, NOW_MS).grade).toBe("warn");
+    // Holding a leg for an hour is normal (it waits on settlement): still good while seats are free.
+    expect(seatPoolRow({ ...base, oldestDrainingSinceMs: NOW_MS - 3_600_000 }, NOW_MS).grade).toBe("good");
+  });
+
+  it("is red with no seat at all, and reads a pool with none draining plainly", async () => {
+    const { seatPoolRow } = await import("./rows-canton");
+    expect(seatPoolRow({ ...base, total: 0, free: 0, leased: 0, draining: 0 }, NOW_MS).ok).toBe(false);
+    expect(seatPoolRow({ ...base, draining: 0, free: 3, oldestDrainingSinceMs: null, oldestDrainingNote: null }, NOW_MS).detail).toBe("6 seats · 3 free · 3 leased · 0 draining");
+  });
+});
