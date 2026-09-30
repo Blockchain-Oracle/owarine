@@ -1,3 +1,4 @@
+import { seatReadHeaders } from "@/lib/seat-fetch";
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
 import { router, type Href } from "expo-router";
@@ -53,7 +54,8 @@ export function DuelHistorySection({ address, reload }: { address: string | null
     }
     let alive = true;
     const load = () =>
-      fetch(`/api/games/history?address=${address}`)
+      seatReadHeaders()
+        .then((headers) => fetch(`/api/games/history?address=${address}`, { headers }))
         .then((r) => r.json() as Promise<NonNullable<Feed>>)
         .then((body) => {
           if (alive && Array.isArray(body.rows)) setFeed(body);

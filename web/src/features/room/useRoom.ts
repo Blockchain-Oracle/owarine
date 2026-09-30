@@ -1,5 +1,6 @@
 "use client";
 
+import { seatReadHeaders } from "@/lib/seat-fetch";
 import { isOk } from "@agari/core/schemas";
 import { usePositions } from "@agari/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -68,7 +69,9 @@ export function useRoom(marketId: RoomId | null, open: boolean): Room {
     if (!open || !address || !marketId) return;
     let alive = true;
     const key = `${address}:${marketId}`;
-    void fetch(`/api/room/bet?marketId=${encodeURIComponent(marketId)}&address=${encodeURIComponent(address)}`)
+    // C4d M3: only the seat itself is told; the cookie proves it on the web, the signed read header on the phone.
+    void seatReadHeaders()
+      .then((headers) => fetch(`/api/room/bet?marketId=${encodeURIComponent(marketId)}&address=${encodeURIComponent(address)}`, { headers }))
       .then((response) => response.json() as Promise<{ hasBet?: boolean | null }>)
       .then((body) => {
         if (alive) setSeatAnswer({ key, hasBet: body.hasBet ?? null });

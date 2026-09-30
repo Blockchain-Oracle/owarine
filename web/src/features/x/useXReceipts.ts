@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { seatReadHeaders } from "@/lib/seat-fetch";
 import type { XReceiptsFeed } from "./protocol";
 
 const POLL_MS = 15_000;
@@ -10,7 +11,7 @@ export function useXReceipts(wallet: string | null): XReceiptsFeed | null {
   const query = useQuery({
     queryKey: ["agari", "x-receipts", wallet],
     queryFn: async () => {
-      const response = await fetch(`/api/x/receipts?wallet=${encodeURIComponent(wallet as string)}`, { cache: "no-store" });
+      const response = await fetch(`/api/x/receipts?wallet=${encodeURIComponent(wallet as string)}`, { cache: "no-store", headers: await seatReadHeaders() });
       if (!response.ok) throw new Error(`receipts ${response.status}`);
       return (await response.json()) as XReceiptsFeed;
     },

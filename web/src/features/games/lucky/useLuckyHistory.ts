@@ -1,5 +1,6 @@
 "use client";
 
+import { seatReadHeaders } from "@/lib/seat-fetch";
 import type { Address } from "@agari/core/types";
 import { useCallback, useEffect, useState } from "react";
 import type { LuckyBoardWire, LuckyHistoryWire } from "./lucky-wire";
@@ -23,7 +24,8 @@ export function useLuckyHistory(wallet: Address | null): { feed: LuckyHistoryWir
     }
     let alive = true;
     const load = () =>
-      fetch(`/api/games/lucky/history?address=${wallet}`)
+      seatReadHeaders()
+        .then((headers) => fetch(`/api/games/lucky/history?address=${wallet}`, { headers }))
         .then((r) => r.json() as Promise<LuckyHistoryWire>)
         .then((body) => {
           if (alive && Array.isArray(body.rows)) setFeed(body);
