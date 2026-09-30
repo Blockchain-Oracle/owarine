@@ -13,6 +13,7 @@ export * from "./rejection";
 export * from "./seat-ledger";
 export * from "./view";
 export * from "./writes";
+export * from "./rest-writes";
 export * from "./publish";
 export * from "../provider/ticket-wire";
 export * from "./tickets";

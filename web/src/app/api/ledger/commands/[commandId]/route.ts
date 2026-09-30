@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // A duel pick journals its accept and its record under one id: the record ("duel") is asked first, it is the later step.
-const INTENTS: SeatIntent[] = ["duel", "accept", "claim", "refund", "sell", "agent"];
+const INTENTS: SeatIntent[] = ["duel", "accept", "claim", "refund", "sell", "agent", "rest", "rest-cancel"];
 
 export async function GET(request: NextRequest, context: { params: Promise<{ commandId: string }> }) {
   const { commandId } = await context.params;

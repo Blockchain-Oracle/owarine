@@ -49,8 +49,6 @@ export const BLOCKER_KINDS = [
   "no-price",
   "too-many-resting",
   "pre-open-taker",
-  /** A listed Window on Canton: no `RestingCall` contract exists yet, so the schedule button says so rather than send. */
-  "rest-not-live",
   // S15 geofence (D-095): the venue reads everywhere and funds only where it may.
   "region",
 ] as const;
@@ -179,8 +177,6 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
       return "16 calls already rest on this Window — cancel one first";
     case "pre-open-taker":
       return "Nothing fills before the open — calls open at the bell";
-    case "rest-not-live":
-      return "Resting calls aren't on Canton yet — calls open at the bell";
     case "region":
       return "Not available in your region";
   }

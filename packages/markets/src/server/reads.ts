@@ -9,7 +9,10 @@
  */
 import { TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type ActiveContract, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
-import { buyQuoteView, cashView, isEntity, legView, quoteView, resolutionView, termsView, type BuyQuoteView, type CashView, type LegView, type QuoteView, type ResolutionView, type TermsView } from "./contracts";
+import {
+  buyQuoteView, cashView, isEntity, legView, quoteView, resolutionView, restingCallView, restingOfferView, termsView,
+  type BuyQuoteView, type CashView, type LegView, type QuoteView, type ResolutionView, type RestingCallView, type RestingOfferView, type TermsView,
+} from "./contracts";
 
 export interface SeatSnapshot {
   party: Party;
@@ -20,10 +23,14 @@ export interface SeatSnapshot {
   quotes: QuoteView[];
   /** Live buy-backs of the seat's legs (C7a exits). Optional so hand-built snapshots in tests stay valid. */
   buyQuotes?: BuyQuoteView[];
+  /** The venue's offers to hold a resting call, not yet placed (C7c). Optional like `buyQuotes`. */
+  restingOffers?: RestingOfferView[];
+  /** The seat's resting calls, each holding its escrow (C7c). Optional like `buyQuotes`. */
+  restingCalls?: RestingCallView[];
 }
 
 export const SEAT_CACHE_MS = 1_500;
-const SEAT_TEMPLATES = [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote];
+const SEAT_TEMPLATES = [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote, TEMPLATE_IDS.RestingOffer, TEMPLATE_IDS.RestingCall];
 
 export interface SeatReader {
   read(party: Party, o?: { fresh?: boolean }): Promise<SeatSnapshot>;
@@ -32,7 +39,7 @@ export interface SeatReader {
 }
 
 export function toSnapshot(party: Party, contracts: readonly ActiveContract[], offset: number): SeatSnapshot {
-  const snap: SeatSnapshot = { party, offset, cash: [], legs: [], quotes: [], buyQuotes: [] };
+  const snap: SeatSnapshot = { party, offset, cash: [], legs: [], quotes: [], buyQuotes: [], restingOffers: [], restingCalls: [] };
   for (const { createdEvent: e } of contracts) {
     if (isEntity(e, "VenueCash")) {
       // A seat also witnesses nothing else's cash, but the filter is stated anyway: only the party's own money counts.
@@ -47,6 +54,12 @@ export function toSnapshot(party: Party, contracts: readonly ActiveContract[], o
     } else if (isEntity(e, "BuyQuote")) {
       const { user, ...bq } = buyQuoteView(e);
       if (user === party) snap.buyQuotes!.push(bq);
+    } else if (isEntity(e, "RestingOffer")) {
+      const { owner, ...offer } = restingOfferView(e);
+      if (owner === party) snap.restingOffers!.push(offer);
+    } else if (isEntity(e, "RestingCall")) {
+      const { owner, ...call } = restingCallView(e);
+      if (owner === party) snap.restingCalls!.push(call);
     }
   }
   return snap;

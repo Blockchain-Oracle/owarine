@@ -59,6 +59,41 @@ export interface BuyQuoteView {
   validUntilMs: number;
 }
 
+/** The venue's short-lived offer to hold one call (C7c): the seat places it with its own cash. Money in ticks, lots and cash units. */
+export interface RestingOfferView {
+  cid: string;
+  callRef: string;
+  damlMarketId: string;
+  marketId: MarketId;
+  termsCid: string;
+  side: Side;
+  lots: bigint;
+  priceTicks: bigint;
+  cashUnit: bigint;
+  tradingStartMs: number;
+  lockAtMs: number;
+  expiresAtMs: number;
+  validUntilMs: number;
+}
+
+/** One of the seat's resting calls: `lots` still rest at `priceTicks` (own-side ticks), `escrow` held for them. */
+export interface RestingCallView {
+  cid: string;
+  callRef: string;
+  damlMarketId: string;
+  marketId: MarketId;
+  termsCid: string;
+  side: Side;
+  priceTicks: bigint;
+  lotsPlaced: bigint;
+  lots: bigint;
+  cashUnit: bigint;
+  escrow: bigint;
+  tradingStartMs: number;
+  lockAtMs: number;
+  expiresAtMs: number;
+}
+
 export interface TermsView {
   cid: string;
   damlMarketId: string;
@@ -91,6 +126,8 @@ const ENTITY = {
   Leg: entityOf(TEMPLATE_IDS.Leg),
   Quote: entityOf(TEMPLATE_IDS.Quote),
   BuyQuote: entityOf(TEMPLATE_IDS.BuyQuote),
+  RestingOffer: entityOf(TEMPLATE_IDS.RestingOffer),
+  RestingCall: entityOf(TEMPLATE_IDS.RestingCall),
   MarketTerms: entityOf(TEMPLATE_IDS.MarketTerms),
   Resolution: entityOf(TEMPLATE_IDS.Resolution),
 } as const;
@@ -162,6 +199,47 @@ export function buyQuoteView(e: CreatedEvent): BuyQuoteView & { user: string } {
     priceTicks: fromDamlInt(q.priceTicks, "BuyQuote.priceTicks"),
     locked: fromDamlInt(q.locked, "BuyQuote.locked"),
     validUntilMs: ms(q.validUntil, "BuyQuote.validUntil"),
+  };
+}
+
+export function restingOfferView(e: CreatedEvent): RestingOfferView & { owner: string } {
+  const o = PM.Resting.RestingOffer.decoder.runWithException(e.createArgument);
+  return {
+    cid: e.contractId,
+    owner: o.owner,
+    callRef: o.callRef,
+    damlMarketId: o.marketId,
+    marketId: appMarketId(o.marketId),
+    termsCid: o.termsCid,
+    side: sideOf(o.side),
+    lots: fromDamlInt(o.lots, "RestingOffer.lots"),
+    priceTicks: fromDamlInt(o.priceTicks, "RestingOffer.priceTicks"),
+    cashUnit: fromDamlInt(o.cashUnit, "RestingOffer.cashUnit"),
+    tradingStartMs: ms(o.tradingStart, "RestingOffer.tradingStart"),
+    lockAtMs: ms(o.lockAt, "RestingOffer.lockAt"),
+    expiresAtMs: ms(o.expiresAt, "RestingOffer.expiresAt"),
+    validUntilMs: ms(o.validUntil, "RestingOffer.validUntil"),
+  };
+}
+
+export function restingCallView(e: CreatedEvent): RestingCallView & { owner: string } {
+  const c = PM.Resting.RestingCall.decoder.runWithException(e.createArgument);
+  return {
+    cid: e.contractId,
+    owner: c.owner,
+    callRef: c.callRef,
+    damlMarketId: c.marketId,
+    marketId: appMarketId(c.marketId),
+    termsCid: c.termsCid,
+    side: sideOf(c.side),
+    priceTicks: fromDamlInt(c.priceTicks, "RestingCall.priceTicks"),
+    lotsPlaced: fromDamlInt(c.lotsPlaced, "RestingCall.lotsPlaced"),
+    lots: fromDamlInt(c.lots, "RestingCall.lots"),
+    cashUnit: fromDamlInt(c.cashUnit, "RestingCall.cashUnit"),
+    escrow: fromDamlInt(c.escrow, "RestingCall.escrow"),
+    tradingStartMs: ms(c.tradingStart, "RestingCall.tradingStart"),
+    lockAtMs: ms(c.lockAt, "RestingCall.lockAt"),
+    expiresAtMs: ms(c.expiresAt, "RestingCall.expiresAt"),
   };
 }
 

@@ -10,11 +10,15 @@ import { LedgerError } from "@agari/ledger";
 import { ReadingError } from "../errors/reading-error";
 
 /** Which seat action failed: a submit's outcome can be unknown, a read's never is. */
-export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote";
+export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote" | "rest" | "rest-cancel";
 
 export interface RejectionContext {
   step: SeatStep;
   quoteCid?: string;
+  /** The venue's offer a `rest` places (C7c): gone means it lapsed before the seat placed it. */
+  offerCid?: string;
+  /** The resting calls a `rest-cancel` names: gone means one filled, expired or was cancelled first. */
+  callCids?: readonly string[];
   /** A sale's `BuyQuote`s (C7a exit): one gone means the price lapsed or was superseded. */
   buyQuoteCids?: readonly string[];
   cashCids?: readonly string[];
@@ -35,6 +39,10 @@ const BY_ERROR_ID: Record<string, DiagnosisKind> = {
   "abu-pm/shard-too-small": "no-liquidity",
   "abu-pm/bad-shard": "contract-revert",
   "abu-pm/bad-lots": "invalid-price",
+  // C7c: the pre-open resting call (PM.Resting).
+  "abu-pm/bad-call-ref": "contract-revert",
+  "abu-pm/bad-rest-expiry": "invalid-price",
+  "abu-pm/bad-fill": "contract-revert",
   // C8c: the ticket reserves' caps and a ticket's own order.
   "abu-pm/over-ticket-cap": "reserve-cap",
   "abu-pm/over-expiry-cap": "reserve-cap",
@@ -133,7 +141,7 @@ export function missingContractId(error: LedgerError): string | null {
   return inactive ?? null;
 }
 
-const isSubmit = (step: SeatStep) => step === "accept" || step === "sell" || step === "claim" || step === "refund";
+const isSubmit = (step: SeatStep) => step === "accept" || step === "sell" || step === "claim" || step === "refund" || step === "rest" || step === "rest-cancel";
 
 /**
  * What a client is told about a ledger failure (C4d M4): the error's name, a short error reference and the participant's
@@ -158,6 +166,12 @@ function contractGone(error: LedgerError, ctx: RejectionContext): DiagnosisKind 
     if (cid !== null && ctx.cashCids?.includes(cid)) return "insufficient-collateral";
     return cid === null ? "order-expired" : "contract-revert";
   }
+  if (ctx.step === "rest") {
+    // The offer lapsed (its window is over, or the venue swept it) or was already placed; a cash contract gone first is another tab spending it.
+    if (cid !== null && ctx.cashCids?.includes(cid)) return "insufficient-collateral";
+    return cid === null || cid === ctx.offerCid ? "order-expired" : "contract-revert";
+  }
+  if (ctx.step === "rest-cancel") return cid === null || ctx.callCids?.includes(cid) ? "order-expired" : "contract-revert";
   if (ctx.step === "sell") {
     // The buy-back is gone (swept, superseded) or no id was named: the held price lapsed. A leg gone first was settled or claimed.
     if (cid === null || ctx.buyQuoteCids?.includes(cid)) return "order-expired";
@@ -180,7 +194,7 @@ function fromLedger(error: LedgerError, ctx: RejectionContext): Diagnosis {
   if (error.code === "UNKNOWN_CONTRACT_SYNCHRONIZERS") return d(contractGone(error, ctx));
   const errorId = error.context.error_id;
   if (errorId) {
-    if (errorId === "stdlib.daml.com/deadline-exceeded") return d(ctx.step === "accept" || ctx.step === "sell" ? "order-expired" : "not-settled");
+    if (errorId === "stdlib.daml.com/deadline-exceeded") return d(ctx.step === "accept" || ctx.step === "sell" || ctx.step === "rest" ? "order-expired" : "not-settled");
     if (errorId === "stdlib.daml.com/deadline-not-exceeded") return d("not-settled");
     const kind = BY_ERROR_ID[errorId];
     if (kind) return d(kind);
