@@ -6,6 +6,7 @@ import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { TICKET } from "@/lib/copy";
 import { SIDE_WORD } from "../side-styles";
+import { ON_FILL_UNIT } from "./on-fill";
 
 interface TicketCtaProps {
   blocker: BlockerKind | null;
@@ -26,7 +27,7 @@ export function TicketCta({ blocker, ctx, side, costBase, decimals, symbol, onCl
     <BlockedButton blocker={blocker} ctx={ctx} tone={side ?? "primary"} size="lg" className="w-full" onClick={onClick}>
       {side && costBase !== null ? (
         <>
-          {TICKET.buy(words[side])} <Money value={costBase} decimals={decimals} symbol={symbol} />
+          {TICKET.buy(words[side])} <Money value={costBase} decimals={decimals} symbol={symbol} className={ON_FILL_UNIT} />
         </>
       ) : (
         TICKET.buyPlain

@@ -4,6 +4,7 @@ import type { WritePhase } from "@agari/core/ports";
 import { Money } from "@/components/data/Money";
 import { BlockedButton } from "@/components/states";
 import { Button } from "@/components/ui/button";
+import { ON_FILL_UNIT } from "@/features/markets/ticket/on-fill";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { TICKET } from "@/lib/copy";
 import { TICKET_CANTON } from "./copy";
@@ -45,7 +46,7 @@ function Cta({ state, quote, maxCostBase, onPlace }: Pick<DirectionProps, "state
   const writing = state.phase !== null && WRITING.has(state.phase);
   return (
     <BlockedButton blocker={writing ? "placing" : null} tone="up" size="lg" className="w-full" onClick={onPlace ?? (() => undefined)}>
-      {state.expired ? T.expired.cta(UP, state.expired.toCents) : TICKET.buy(UP)} <Money value={maxCostBase} decimals={quote.decimals} symbol={quote.symbol} />
+      {state.expired ? T.expired.cta(UP, state.expired.toCents) : TICKET.buy(UP)} <Money value={maxCostBase} decimals={quote.decimals} symbol={quote.symbol} className={ON_FILL_UNIT} />
     </BlockedButton>
   );
 }
