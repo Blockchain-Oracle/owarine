@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { isAddress, isEd25519Signature, type Address } from "@agari/core/types";
 import { seatLeaseRequestWire, seatLeaseText, SEAT_LEASE_TTL_MS, type SeatLeaseView } from "@agari/markets";
+import { holdingsText, isSeatEmpty, readSeatHoldings } from "@agari/markets/server";
 import { verifyWalletMessage } from "./auth/verify-signed-message.server";
 import { webEnv } from "./env";
 import type { SeatServer } from "./ledger.server";
@@ -10,8 +11,8 @@ import { DEFAULT_RULES, freeAtMs, type LeaseRow, type LeaseRules } from "./seat-
 /**
  * Taking, renewing and recycling seats (plan §4). A lease is taken only on an explicit, signed request; the first
  * lease of a seat asks ops to fund it (demo cash into `VenueCash`); a drained seat is recycled only when the ledger,
- * read as that party, shows no open leg, no live quote and no grant, consent or desk (C8f), and its leftover cash is withdrawn by the seat itself, so
- * the next visitor starts from an empty party.
+ * read as that party, shows it holds nothing (`readSeatHoldings`, C9d), and its leftover cash is withdrawn by the seat
+ * itself, so the next visitor starts from an empty party.
  */
 export function leaseRules(server: SeatServer): LeaseRules {
   return { ...DEFAULT_RULES, idleTtlMs: server.env.AGARI_SEAT_IDLE_TTL_SEC * 1000, hardCapMs: server.env.AGARI_SEAT_HARD_CAP_SEC * 1000 };
@@ -45,22 +46,23 @@ export async function checkLeaseRequest(body: unknown, nowMs: number): Promise<L
   return valid ? { ok: true, address } : { ok: false, reason: "the signature is not this seat key's" };
 }
 
-/** At most `limit` drained seats checked per call: empty ones are swept and freed; ones still holding legs wait for ops. */
-export async function recycleDrained(server: SeatServer, nowMs: number, limit = 2): Promise<number> {
+/**
+ * The fallback recycler (ops' seat drain is the primary one, every pass): at most `limit` draining seats, the one checked
+ * longest ago first, each claimed under its row lock. A seat holding nothing (legs, live quotes, tickets, Earn shares,
+ * duels, agent grants; `@agari/markets/server` `readSeatHoldings`) has its cash withdrawn by the seat itself and is freed.
+ */
+export async function recycleDrained(server: SeatServer, nowMs: number, limit = 6): Promise<number> {
   let freed = 0;
   for (const party of await server.store.draining(limit)) {
-    try {
-      const snap = await server.ledger.seats.read(party, { fresh: true });
-      const live = snap.quotes.filter((q) => q.validUntilMs > nowMs);
-      if (snap.legs.length > 0 || live.length > 0) continue;
-      // C8f: a grant, a consent or a desk still on the party is ended by ops' drain first (its budget returns to cash).
-      const agents = await server.agents.read(party);
-      if (agents.grants.some((g) => g.data.owner === party) || agents.subscriptions.some((x) => x.data.subscriber === party) || (await server.agents.hasDesk(party))) continue;
-      await server.ledger.writer.sweepCash(party, `${nowMs}-${randomUUID().slice(0, 8)}`);
-      if (await server.store.markFree(party, nowMs)) freed += 1;
-    } catch {
-      // A seat that cannot be read or swept now stays draining; the next lease attempt tries again.
-    }
+    const outcome = await server.store
+      .recycle(party, nowMs, async () => {
+        const held = await readSeatHoldings(server.client, party, Date.now());
+        if (!isSeatEmpty(held)) return { free: false, why: holdingsText(held) };
+        await server.ledger.writer.sweepCash(party, `${nowMs}-${randomUUID().slice(0, 8)}`);
+        return { free: true };
+      })
+      .catch(() => null);
+    if (outcome?.kind === "freed") freed += 1;
   }
   return freed;
 }
@@ -71,6 +73,7 @@ export async function takeSeat(server: SeatServer, address: Address, nowMs: numb
   if (!existing) {
     await server.store.expire(nowMs, rules);
     const stats = await server.store.stats(nowMs, rules);
+    // Ops frees an empty seat within a pass; this covers a pool that filled before its next pass.
     if (stats.free === 0 && stats.draining > 0) await recycleDrained(server, nowMs);
   }
   const startOffset = existing ? existing.startOffset : await server.client.ledgerEnd();

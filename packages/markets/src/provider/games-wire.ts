@@ -86,6 +86,8 @@ export const arenaMatchViewWire = z.object({
       picks: z.array(arenaPickWire),
       creatorPnlBase: baseUnits,
       challengerPnlBase: baseUnits,
+      /** C9d: the ledger's own winner of a decided match (null on a tie); absent while live or refunded. */
+      decidedWinner: address.nullable().optional(),
       serverSeed: z.string().nullable(),
       clientSeeds: z.array(z.string()),
       arenaId: z.string(),

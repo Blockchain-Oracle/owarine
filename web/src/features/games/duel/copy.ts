@@ -7,6 +7,13 @@
  * **nobody pays a network fee** — on Canton the venue submits every ledger write a duel makes, so a pick costs its
  * stake and fee on the Window and nothing else (`06-game-architecture.md` §Actors, keys, gas and security).
  */
+/**
+ * An amount with its unit, the reference's `n === 1 ? "1 x" : `${n} xs`` rule applied to the collateral's name: the
+ * port's collateral is "credits", so exactly one reads "1 credit". Any other symbol (a ticker) is left as it is.
+ */
+export const withUnit = (amount: string | number, symbol: string): string =>
+  `${amount} ${symbol === "credits" && String(amount) === "1" ? "credit" : symbol}`;
+
 export const DUEL = {
   eyebrow: "Head to head on live Windows",
   title: "Duel",
@@ -60,12 +67,12 @@ export const DUEL = {
     freeBlurb: "No side-pot. Every pick is still a real order you own.",
     rankedBlurb: "A side-pot both players escrow, plus the same real orders. Only Ranked moves a rating.",
     tierFree: "No pot",
-    tierUnits: (units: number, symbol: string) => `${units} ${symbol}`,
+    tierUnits: (units: number, symbol: string) => withUnit(units, symbol),
     cost: "What this costs",
-    costPot: (amount: string, symbol: string) => `${amount} ${symbol} escrowed as your half of the side-pot, returned or won at the end.`,
+    costPot: (amount: string, symbol: string) => `${withUnit(amount, symbol)} escrowed as your half of the side-pot, returned or won at the end.`,
     costNoPot: "No side-pot is escrowed.",
     costCards: (cap: string, symbol: string) =>
-      `Up to ${cap} ${symbol} per card, spent as a real order on that Window. You keep what those positions pay, win or lose the pot.`,
+      `Up to ${withUnit(cap, symbol)} per card, spent as a real order on that Window. You keep what those positions pay, win or lose the pot.`,
     /** Who pays for the duel's writes, said before anything is asked of the seat (doc 04: show the payer first). */
     costFee: "No network fee: the venue submits every ledger write this duel makes, and your seat signs no per-card prompt.",
     /** The chosen stake's own queue, so "nobody is here" is never said about the wrong one. */
@@ -79,7 +86,7 @@ export const DUEL = {
     tierDisabled: "That stake is not enabled on the deployed arena.",
     notDeployed: "No GameArena is deployed on this network.",
     balance: "Your balance",
-    balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${need} ${symbol} and this seat holds ${have}.`,
+    balanceShort: (need: string, have: string, symbol: string) => `This entry needs ${withUnit(need, symbol)} and this seat holds ${have}.`,
   },
 
   queue: {
@@ -116,10 +123,10 @@ export const DUEL = {
     openBody: (pot: string, symbol: string) =>
       pot === "0"
         ? "You opened this search, so the match is yours to put on the ledger. This transaction escrows nothing and publishes the sealed deck's hash."
-        : `You opened this search, so the match is yours to put on the ledger. This transaction escrows your ${pot} ${symbol} and publishes the sealed deck's hash.`,
+        : `You opened this search, so the match is yours to put on the ledger. This transaction escrows your ${withUnit(pot, symbol)} and publishes the sealed deck's hash.`,
     joinCta: "Join the match",
     joinBody: (pot: string, symbol: string) =>
-      pot === "0" ? "The match is on the ledger and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on the ledger and waiting for you. Joining escrows your ${pot} ${symbol} and starts the reveal.`,
+      pot === "0" ? "The match is on the ledger and waiting for you. Joining escrows nothing and starts the reveal." : `The match is on the ledger and waiting for you. Joining escrows your ${withUnit(pot, symbol)} and starts the reveal.`,
     waitingCreate: "Waiting for the other player to put the match on the ledger.",
     /** The creator's own match has landed: the next move is the challenger's (the reference reused `waitingCreate` here). */
     waitingJoin: "Your match is on the ledger. Waiting for the other player to join.",
@@ -190,7 +197,7 @@ export const DUEL = {
     autoPlayed: "played for you at the deadline",
     autoNote: (side: string) => `Time ran out on that card, so your seat played the favoured side — ${side}.`,
     yourPicks: "Your picks",
-    filled: (size: string, cost: string, symbol: string) => `${size} for ${cost} ${symbol}`,
+    filled: (size: string, cost: string, symbol: string) => `${size} for ${withUnit(cost, symbol)}`,
   },
 
   settling: {

@@ -1,0 +1,52 @@
+/**
+ * C9d: a decided duel reads as the ledger decided it. A `DuelResult` keeps no picks, so the room's replay saw empty
+ * masks ("neither finished") and showed a decisive duel as "Level — the pot was split".
+ */
+import { afterEach, describe, expect, it } from "vitest";
+import { ok } from "@agari/core/schemas";
+import type { Address, Hash32 } from "@agari/core/types";
+import { registerArenaSource } from "@agari/markets/games";
+import { viewOfResult, type DuelResultC } from "@agari/markets/ops/games";
+import { buildMatchSnapshot } from "./snapshot";
+
+const CREATOR = "3fVU8xir147UgUv7hgtbMDWLfZTmBZ6CwB5znhq1jALk" as Address;
+const CHALLENGER = "6ZFBapEWpHokmiWCRXUqPJyf778BkiTGfhcJQwWFZo33" as Address;
+const MATCH = "0x89fed006b1261efc676f5caafb0bdbe52955ce54938f21bae50e55d7ea747785" as Hash32;
+const addressOf = (p: string) => (p.startsWith("creator") ? CREATOR : CHALLENGER);
+
+function result(outcome: DuelResultC["outcome"], creatorPnl: bigint, challengerPnl: bigint): DuelResultC {
+  return {
+    venue: "venue::1220ff", creator: "creator::1220aa", challenger: "challenger::1220bb", arenaId: "arena-1", matchId: MATCH.slice(2), tierId: "t1", ranked: true,
+    outcome, creatorPnl, challengerPnl, toCreator: 0n, toChallenger: 2_000_000n, serverSeed: null, cards: ["ETH-15m:5", "BTC-15m:5"],
+  };
+}
+
+function serve(r: DuelResultC) {
+  const view = viewOfResult(r, addressOf, { deckHash: "0".repeat(64), deckSize: 2, policyVersion: 6, potEach: 1_000_000n, perCardCap: 1_000_000n });
+  registerArenaSource({
+    state: async () => { throw new Error("unused"); },
+    season: async () => ok(null, 0),
+    match: async () => ok({ ...view, serverSeed: null, clientSeeds: [], arenaId: "arena-1" }, 0),
+  });
+}
+
+afterEach(() => registerArenaSource(null));
+
+describe("a decided duel's snapshot (C9d)", () => {
+  it("names the ledger's winner, with the ledger's PnL, and raises no replay warning", async () => {
+    serve(result({ tag: "Won", winner: "challenger::1220bb" }, -1_210_784n, 2_162_083n));
+    const snap = await buildMatchSnapshot(MATCH, 203);
+    expect(snap.ok).toBe(true);
+    if (!snap.ok || snap.state.phase !== "finalized") throw new Error("not finalized");
+    expect(snap.state.outcome.winner).toBe(CHALLENGER);
+    expect(snap.state.outcome.pnlBase).toEqual({ [CREATOR]: -1_210_784n, [CHALLENGER]: 2_162_083n });
+    expect(snap.warning).toBeUndefined();
+  });
+
+  it("reads a ledger tie as a tie", async () => {
+    serve(result({ tag: "Tied" }, 0n, 0n));
+    const snap = await buildMatchSnapshot(MATCH, 203);
+    if (!snap.ok || snap.state.phase !== "finalized") throw new Error("not finalized");
+    expect(snap.state.outcome.winner).toBeNull();
+  });
+});

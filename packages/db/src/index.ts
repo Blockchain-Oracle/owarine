@@ -33,6 +33,8 @@ export * from "./proofs";
 export * from "./sponsor";
 export * from "./schema-sponsor";
 export * from "./follows";
+// C9d: recycling a drained guest seat, shared by ops and the web.
+export * from "./seat-recycle";
 // S26.4: phone push devices and the sent journal.
 export * from "./push";
 // S21 (D-126): the desk's records, paper ledger, approvals and grades.

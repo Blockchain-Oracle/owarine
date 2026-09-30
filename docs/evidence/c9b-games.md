@@ -28,6 +28,8 @@ Lane C9b wires the duel arena, the season pool, the rank, Lucky and the room ont
 Local stack: a `dpm sandbox` (Canton 3.5.17) with JSON API on :7575; `bootstrap-local.ts --seats 4 --lanes crypto --join-sec 40 --reveal-sec 30 --pick-sec 90` (creates `ArenaTerms arena-1`, policy 6, tiers free/t1/t5/t10, and a funded `SeasonPool s1`); `drive/ops-local.ts` on :8777 with the room on :8857 and the projector; Postgres `pm_c9b`. Then `drive/games-duel-it.ts` (tier t1: pot 1 credit, per-card cap 1 credit):
 
 ```
+FAIL  seat 1 leased and funded  {"party":"agari-user-seat-3-mumquzaw","fund":"refused"}
+FAIL  seat 2 leased and funded  {"party":"agari-user-seat-4-mumquzaw","fund":"refused"}
 PASS  the matchmaker paired the two seats  0x2a17ad26…abe5b0
 PASS  the deckmaster sealed a deck and published its commitment  {"hash":"0xd1387095…a883d4","size":2,"policyVersion":6}
 PASS  the creator opened the duel (Arena_OpenDuel with the pot)  update 1220fcdf…f6d087
@@ -46,7 +48,11 @@ PASS  a second payout is refused  abu-pm/already-distributed
 PASS  each winner was credited to their seat
 PASS  the pool shows it distributed, holding the remainder  amount 10000000 of 100000000
 PASS  the venue withdrew the remainder and the pool closed
+
+2 FAILURE(S)  match 0x2a17ad26…abe5b0
 ```
+
+Correction (C9d): an earlier version of this note left out the two FAIL lines at the top of the drive log and the run's "2 FAILURE(S)" verdict. They are restored above. Both FAILs are the funding reply, not the funding. The drive's `/internal/seats/fund` call timed out after its 10 s budget while ops was busy, so the reply read `refused`. Ops then credited both seats, and its log shows the credit landing: `14:15:33.113 funded agari-user-seat-4-mumquzaw with 1000000000 base` and `14:15:33.137 … seat-3 …`. The drive's own cash line reads `cash before 1000000000 / 1000000000`. Since C9c, the drive checks the seat's cash on the ledger rather than the reply. The run as recorded still exited with two failures.
 
 What ops logged for the match:
 

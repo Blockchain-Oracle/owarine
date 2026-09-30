@@ -5,6 +5,7 @@ import { SESSION_OPEN_STATES } from "./grade";
 import { readOpsHealth, readOpsSession, type OpsRead, type OpsSession } from "./ops.server";
 import { probeIndex, relayCounters } from "./probes-index.server";
 import { heartbeatRows, indexerRow, lanesRow, pythIndexRow, pythTrialRow } from "./probes-ops.server";
+import { probeSeats } from "./probes-seats.server";
 import { PRICE_ASSETS_CAP, probeFaucet, probePrice, probeRpc, probeSensei, probeStore, sponsorRow, switchboardRow } from "./probes.server";
 import { countsTowardOverall, HEALTHY_LAG_SEC, type StatusPayload, type StatusPipeline } from "./protocol";
 import type { PrintScope } from "./rows-prints";
@@ -60,11 +61,12 @@ async function run(env: MarketsEnv): Promise<StatusPayload> {
     : null;
   const scopeWhy = session.ok ? "ops /session lists no session that has opened" : session.why;
 
-  const [rpc, store, faucet, sponsor, prices] = await Promise.all([
+  const [rpc, store, faucet, sponsor, seats, prices] = await Promise.all([
     rpcRun,
     probeStore(),
     probeFaucet(checkedAtMs),
     sponsorRow(),
+    probeSeats(checkedAtMs),
     Promise.all(priceAssets(session).map((asset) => probePrice(asset, checkedAtMs, view.inSession))),
   ]);
   const index = await probeIndex({ db, rpcSlot: rpc.slot, health, scope, scopeWhy });
@@ -83,6 +85,7 @@ async function run(env: MarketsEnv): Promise<StatusPayload> {
     lanesRow(ops),
     faucet,
     sponsor,
+    seats,
     store,
     ...heartbeatRows(ops),
     ...prices,

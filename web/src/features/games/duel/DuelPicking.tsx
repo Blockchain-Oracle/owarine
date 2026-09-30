@@ -24,7 +24,7 @@ import { useWindowSpotPriceById } from "@/features/markets/hero/useOracleSpot";
 import { webEnv } from "@/lib/env";
 import { clockUrgency, StageFace } from "../stage/StageFace";
 import { SwipeDeck, type DeckPlace } from "../stage/SwipeDeck";
-import { DUEL } from "./copy";
+import { DUEL, withUnit } from "./copy";
 import { useArenaOdds } from "./useArenaOdds";
 import { useArenaWrites } from "./useArenaWrites";
 import type { DuelRoom } from "./useDuelRoom";
@@ -137,7 +137,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   const money = (base: bigint | null) => (base === null || decimals === null ? "—" : formatBaseUnits(base, decimals, { maxDp: 2, minDp: 0 }));
 
   const renderFace = useCallback(
-    (card: DeckCard, place: DeckPlace) => <DuelFace card={card} place={place} nowMs={nowMs || undefined} stake={`${money(stakeBase)} ${symbol}`} />,
+    (card: DeckCard, place: DeckPlace) => <DuelFace card={card} place={place} nowMs={nowMs || undefined} stake={withUnit(money(stakeBase), symbol)} />,
     [nowMs, stakeBase, symbol, decimals],
   );
   // The active card's two quotes, read where the deck can refuse a throw on them rather than after the chain has.
