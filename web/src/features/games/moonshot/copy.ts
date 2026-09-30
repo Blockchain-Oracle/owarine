@@ -18,7 +18,7 @@ export const MOONSHOT = {
   how: [
     { n: "①", t: "The reach is the multiple", d: "×5 means the house solves a level the print has to finish past for the round to pay five times your stake. Further out is less likely, and pays more." },
     { n: "②", t: "One level, one print", d: "Long wins if the Window closes at or above the level; short if it closes at or below it. The oracle's print decides — the same one its Up/Down settles on." },
-    { n: "③", t: "The same house, aimed one way", d: "The level comes from where the book sits and how much the asset moves in the time left: the Range model with one edge open. The full payout is set aside up front." },
+    { n: "③", t: "The same house, aimed one way", d: "The level comes from where the venue's price ladder sits and how much the asset moves in the time left: the Range model with one edge open. The full payout is set aside up front." },
   ],
   notDeployed: {
     eyebrow: "Moonshot",

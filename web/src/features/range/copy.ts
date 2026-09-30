@@ -29,7 +29,7 @@ export const RANGE = {
   connect: { title: "Take a seat to call a band", sub: "No wallet app and no network fee. Demo credits are free" },
   band: {
     /** D-119: the reserve prices around its own centre, which a quiet book can leave away from the spot. */
-    spotOutside: (spot: string) => `${spot} is the live price, and your band does not cover it. The reserve prices this Window from the venue's own book, which has not traded near that price yet.`,
+    spotOutside: (spot: string) => `${spot} is the live price, and your band does not cover it. The reserve prices this Window from the venue's price ladder, which is not quoting near that price yet.`,
     /** The reference: "Winning range" · "BTC must finish inside". */
     label: "Winning range",
     mustFinish: (asset: string, side: "inside" | "outside") => `${asset} must finish ${side}`,
@@ -98,7 +98,7 @@ export const RANGE = {
     footnote: "The full payout is set aside up front. Your stake leaves your seat, and the rest is covered for you.",
     reserve: (liquid: string, symbol: string, utilizationPct: string) => `Reserve: ${liquid} ${symbol} liquid · ${utilizationPct}% in play`,
     reservePaused: "The reserve is paused: no new rounds until it reopens. Settlement and claims still run.",
-    basis: (opening: string, centerPct: string) => `Opening print ${opening} · the book puts ${centerPct}% on a close above it`,
+    basis: (opening: string, centerPct: string) => `Opening print ${opening} · the venue's price puts ${centerPct}% on a close above it`,
     tryAgain: "Try again",
     technical: "technical details",
     viewTx: "Open on the proof page",

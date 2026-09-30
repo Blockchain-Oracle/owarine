@@ -40,14 +40,14 @@ export async function freshQuote(input: QuoteInput & { displayed: Quote }, nowMs
   const quote = await readFreshQuote(input, nowMs);
   if (!quote) throw new OrderRefusedError(diagnosis("no-liquidity", `nothing fillable for ${input.stakeBase} on the ${input.side} side`));
   const band = admissibilityBlocker(quote.avgPriceBps);
-  if (band) throw new OrderRefusedError(diagnosis("outside-band", `${band}: the book quotes ${quote.avgPriceBps} bps`));
+  if (band) throw new OrderRefusedError(diagnosis("outside-band", `${band}: the venue quotes ${quote.avgPriceBps} bps`));
   if (quote.maxCostBase > input.displayed.maxCostBase) throw new RequoteError(quote);
   return quote;
 }
 
-/** After an IOC that would fill nothing: the book moved, so ask again (first-call.md §3.1, 6110 in simulation). */
+/** After an IOC that would fill nothing: the price moved, so ask again (first-call.md §3.1, 6110 in simulation). */
 export async function requoteAfterNoFill(input: QuoteInput, nowMs: number): Promise<Quote> {
   const quote = await readFreshQuote(input, nowMs);
-  if (!quote) throw new OrderRefusedError(diagnosis("no-liquidity", `the book moved: nothing fillable for ${input.stakeBase} on the ${input.side} side`));
+  if (!quote) throw new OrderRefusedError(diagnosis("no-liquidity", `the price moved: nothing fillable for ${input.stakeBase} on the ${input.side} side`));
   throw new RequoteError(quote);
 }

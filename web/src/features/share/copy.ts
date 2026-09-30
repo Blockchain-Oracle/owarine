@@ -80,7 +80,7 @@ export const SHARE = {
     singleSource: " · SINGLE SOURCE",
     settledAt: (utc: string) => `SETTLED · ${utc}`,
     voided: (utc: string, reason: VoidReason | null) => `${reason ? VOID_WORD[reason] : "VOIDED"} · BOTH SIDES PAID 0.5 · ${utc}`,
-    closedEarly: (utc: string) => `CLOSED ON THE BOOK BEFORE EXPIRY · ${utc}`,
+    closedEarly: (utc: string) => `CLOSED AT THE VENUE'S PRICE BEFORE EXPIRY · ${utc}`,
     kind: { settled: "ORACLE-SETTLED", voided: "VOIDED", closed: "CLOSED EARLY" },
     entry: (short: string) => `ENTRY ${short}`,
     settlementTx: (short: string) => `SETTLEMENT ${short}`,

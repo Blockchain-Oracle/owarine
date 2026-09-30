@@ -31,7 +31,7 @@ export const PROFILE = {
     open: "Open edge report →",
     none: "The edge report fills in once Windows settle.",
   },
-  calls: { number: "03", title: "Open calls", desc: "Positions on Windows still running, marked to the book.", none: "No calls running right now." },
+  calls: { number: "03", title: "Open calls", desc: "Positions on Windows still running, marked to the venue's price.", none: "No calls running right now." },
   takes: { number: "04", title: "Takes", desc: "Signed calls this seat posted, newest first.", none: "No takes posted yet." },
   failed: "This part of the profile couldn't be read just now. It retries on its own.",
 } as const;

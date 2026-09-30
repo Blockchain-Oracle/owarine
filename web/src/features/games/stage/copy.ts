@@ -11,7 +11,7 @@ export const STAGE = {
   hint: "Swipe up or down — the arrow keys and the buttons do the same.",
   hintHeld: "This card is not playable right now. The reason is above.",
   /** Flicky's `UNPLACEABLE_HINT`, for a side whose quote the arena refuses: the book cannot fill it at this stake. */
-  hintLocked: (side: "up" | "down") => `${side === "up" ? "Up" : "Down"} cannot be placed on this card right now — the book is too thin on that side for this stake. Swipe the other side.`,
+  hintLocked: (side: "up" | "down") => `${side === "up" ? "Up" : "Down"} cannot be placed on this card right now — the venue's price ladder is too thin on that side for this stake. Swipe the other side.`,
   /** The odds slot on a side the arena would refuse. */
   locked: "locked",
   cardOf: (n: number, total: number) => `Card ${n} of ${total}`,
