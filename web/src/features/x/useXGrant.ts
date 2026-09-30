@@ -11,6 +11,7 @@ import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from 
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { X_CARD, X_HANDLE } from "./copy";
+import { xPermissionOf } from "./permission-state";
 import { parseXUpdate, updateXPermission, type XUpdateProgress } from "./update-permission";
 
 export { X_GRANT } from "@agari/core/x";
@@ -77,6 +78,9 @@ export function useXGrant(): XGrantState {
   const saved = useSyncExternalStore(subscribeProgress, readProgress, () => null);
   const pendingUpdate = parseXUpdate(saved);
   const executing = useRef(false);
+  // Whether this screen has read the seat's vault once: a 401 before that is the seat's key not signed yet (C8i).
+  const everRead = useRef(false);
+  if (readable) everRead.current = true;
   const begin = () => {
     if (!submitter || !address || executing.current || activeWrites.has(address)) return false;
     executing.current = true;
@@ -89,12 +93,8 @@ export function useXGrant(): XGrantState {
     setBusy("");
     if (address) await invalidateAfterWrite(queryClient, { wallet: address }).catch(() => undefined);
   };
-  const permission = (executor: string | null): XPermissionState => {
-    if (!snapshot) return "checking";
-    if (!readable || saved && !pendingUpdate) return "unavailable";
-    if (pendingUpdate) return "update";
-    return xPermissionState(current, executor, Math.floor(Date.now() / 1000));
-  };
+  const permission = (executor: string | null): XPermissionState =>
+    xPermissionOf({ snapshot, readable, everRead: everRead.current, saved, pendingUpdate, current, executor, nowSec: Math.floor(Date.now() / 1000) });
 
   const clear = useCallback(() => {
     setError("");
