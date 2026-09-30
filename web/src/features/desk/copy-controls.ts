@@ -47,7 +47,8 @@ export const MONEY = {
   sheetTitle: "Put money in",
   eyebrow: "LIVE DESK",
   intro: "Money goes straight to the desk's own account, never through Agari. Only you can take it out.",
-  network: "Your seat signs one Canton command. No network fee.",
+  /** Follows `who.wallet` on the card (" · "), so it names only what the reference's Phantom line named: the network. */
+  network: "No network fee on Canton.",
   /** The live desk trades the seat's demo credits (K-090), not USDC. */
   unit: "credits",
   usdc: { title: "Cash from your seat", amount: "Amount in credits", have: (amount: string) => `Your seat holds ${amount} credits.`, none: "Your seat holds no credits yet. Take a seat with demo credits first." },
