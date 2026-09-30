@@ -21,9 +21,12 @@ export const GAMES = {
     open: "Open",
     pendingBadge: "Not connected",
     liveBadge: "Live",
-    /** S23: the stock market is shut, so only the 24/7 lanes (OPENAI and the baskets) have Windows to play on. */
+    /**
+     * S23: the stock market is shut, so only the 24/7 lanes have Windows to play on. On Canton those are BTC and ETH
+     * (Coinbase, Kraken and Bitstamp closes) and the pre-IPO names and baskets (PreStocks), `docs/evidence/c6-lanes-*`.
+     */
     afterHoursBadge: "24/7 only",
-    afterHours: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · pre-IPO and baskets only`,
+    afterHours: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · BTC, ETH, pre-IPO and baskets only`,
     unavailableBadge: "Unavailable",
     waitingOn: (dependency: string) => `Waiting on ${dependency}`,
     paused: "Paused by the operator",
@@ -68,7 +71,7 @@ export const GAMES = {
   howTo: {
     practice: ["Five live Windows come as cards. Swipe up if you think the price settles above its line, down if below.", "Nothing is staked; the round scores you against a bot on the real closing prints.", "Every Window's clock is real — the round ends when the last card settles."],
     duel: ["Pick a stake, find an opponent, and sign once: the entry names a key that places your picks.", "Both of you play the same sealed deck. Each swipe is a real order on that Window, at most the card's cap.", "When every card settles, the higher measured PnL takes the side-pot. Your positions are yours either way."],
-    lucky: ["A live Window and a side are drawn for you from a seed you can check.", "You see the real quote before anything is placed; one tap places one order.", "It settles like any other order on the book."],
+    lucky: ["A live Window and a side are drawn for you from a seed you can check.", "You see the real quote before anything is placed; one tap places one order.", "It settles like any other call on the venue."],
     range: ["Choose a band around the price and a Window.", "The house prices the band; you win the full payout if the print closes inside it.", "Outside the band, the stake is lost — and the odds say so up front."],
     moonshot: ["Pick a multiple. A level is solved so that hitting it pays that multiple.", "It is one band with a far edge, priced by the same house model as Range.", "Hit it and the payout is the multiple; miss and the stake is lost."],
     "line-rider": ["A line scrolls in from the right, drawn from a seed you can see. Drag on the screen, scroll, or hold the arrow keys to keep the dot on it.", "Hugging the line builds a combo and refills your grip; drifting off drains it. Grip empty, run over.", "No stake and nothing on the ledger. Your inputs are recorded and the server replays the run before it records the score."],

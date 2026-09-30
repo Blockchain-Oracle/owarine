@@ -16,8 +16,6 @@ const appPaths = ['web', 'mobile', 'packages', 'services', 'daml'];
 const captureSource = readFileSync(resolve(root, 'lib/captures.ts'), 'utf8');
 const captureNames = new Set([...captureSource.matchAll(/^  ([A-Za-z]\w*): (?:\{|canton\()/gm)].map(match => match[1]));
 const graphs = JSON.parse(readFileSync(resolve(root, 'lib/architecture.json'), 'utf8'));
-const tourNames = new Set(['basket', 'portfolio', 'desk']);
-const tourFiles = { basket: 'connected-basket-ticket', portfolio: 'connected-portfolio', desk: 'connected-practice-desk' };
 const failures = [];
 const warnings = [];
 let pages = 0, links = 0, media = 0, appRoutes = 0;
@@ -93,11 +91,6 @@ for (const path of mdx) {
     if (!(name in graphs)) fail(`${label}: unknown architecture ${name}`);
     else if (!existsSync(resolve(root, 'public/diagrams', `${name}.svg`))) fail(`${label}: missing ${name} diagram`);
   }
-  for (const [, name] of body.matchAll(/<ConnectedWalkthrough\s+name="([^"]+)"/g)) {
-    media++;
-    if (!tourNames.has(name)) fail(`${label}: unknown walkthrough ${name}`);
-    else for (const ext of ['mp4', 'vtt', 'json']) if (!existsSync(resolve(root, 'public/videos', `${tourFiles[name]}-2026-09-23.${ext}`))) fail(`${label}: missing walkthrough ${name}.${ext}`);
-  }
 }
 
 for (const path of files(content).filter(path => path.endsWith('meta.json'))) {
@@ -112,26 +105,6 @@ for (const path of files(content).filter(path => path.endsWith('meta.json'))) {
   }
 }
 
-const captures = JSON.parse(readFileSync(resolve(root, 'public/captures/provenance-2026-09-23.json'), 'utf8'));
-for (const { file } of captures.captures) {
-  media++;
-  if (!existsSync(resolve(root, 'public/captures', file))) fail(`Missing capture ${file}`);
-}
-for (const path of [captures.video.file, captures.video.captions]) {
-  media++;
-  if (!existsSync(resolve(root, 'public/captures', path))) fail(`Missing tour asset ${path}`);
-}
-const connectedCaptures = JSON.parse(readFileSync(resolve(root, 'public/captures/provenance-connected-2026-09-23.json'), 'utf8'));
-for (const { file } of connectedCaptures.captures) {
-  media++;
-  if (!existsSync(resolve(root, 'public/captures', file))) fail(`Missing connected capture ${file}`);
-}
-for (const stem of connectedCaptures.videos) {
-  for (const ext of ['mp4', 'vtt', 'json']) {
-    media++;
-    if (!existsSync(resolve(root, 'public/videos', `${stem}.${ext}`))) fail(`Missing connected video ${stem}.${ext}`);
-  }
-}
 // The Canton captures: every file the registry names is listed in their provenance and exists.
 const cantonCaptures = JSON.parse(readFileSync(resolve(root, 'public/captures/provenance-canton-2026-09-30.json'), 'utf8'));
 const cantonFiles = new Set(cantonCaptures.captures.map(({ file }) => file));

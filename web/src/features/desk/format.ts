@@ -36,6 +36,14 @@ export function usdText(decimal: string | null | undefined): string {
   return `${decimal.startsWith("-") ? "−" : ""}$${Number(whole).toLocaleString("en-US")}.${cents}`;
 }
 export const usdcDecimal = (e6: bigint): string => formatUsdc(e6);
+/**
+ * A record's decimal cash figure in the desk's own unit: paper dollars on a practice desk ("$120.50"), the seat's demo
+ * credits on a live one ("120.50 credits", K-090). Nothing on Canton is USDC.
+ */
+export function cashText(decimal: string | null | undefined, practice: boolean): string {
+  const dollars = usdText(decimal);
+  return practice || dollars === "—" ? dollars : `${dollars.replace("$", "")} credits`;
+}
 /** "4.158 OPENAI" style figures: raw 9 dp shown to four places, trailing zeros dropped. */
 export const tokens = (raw: bigint): string => formatBaseUnits(raw, TOKEN_DP, { maxDp: TOKEN_SHOWN_DP, minDp: 0 });
 /** A record's decimal token string trimmed to four places. */

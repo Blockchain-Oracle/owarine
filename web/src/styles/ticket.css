@@ -101,8 +101,9 @@
   color: var(--white);
 }
 
-/* border-vermilion/70 bg-vermilion/[0.08] text-vermilion */
-.tk-lev[aria-pressed="true"] {
+/* border-vermilion/70 bg-vermilion/[0.08] text-vermilion; `data-on` is the ticket's one-tap chip, on and not pressable */
+.tk-lev[aria-pressed="true"],
+.tk-lev[data-on] {
   border-color: color-mix(in srgb, var(--vermilion) 70%, transparent);
   background: color-mix(in srgb, var(--vermilion) 8%, transparent);
   color: var(--vermilion);

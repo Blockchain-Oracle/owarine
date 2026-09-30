@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { COCKPIT } from "@/features/desk/cockpit/copy-cockpit";
 import { DESK } from "@/features/desk/copy";
-import { pct, tokens, usd } from "@/features/desk/format";
+import { credits, pct, tokens, usd } from "@/features/desk/format";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { FONT } from "~/theme";
 import type { NativeDeskView as DeskView, NativeHolding } from "../native-view";
@@ -85,7 +85,7 @@ function HoldingCard({ h, index }: { h: NativeHolding; index: number }) {
   );
 }
 
-/** Item 5: the USDC the desk holds, as its own card. */
+/** Item 5: the cash the desk holds, as its own card (demo credits live, paper dollars in practice). */
 function CashCard({ view, index }: { view: DeskView; index: number }) {
   const { color, t } = useDeskTheme();
   const C = DESK.page.cash;
@@ -100,7 +100,7 @@ function CashCard({ view, index }: { view: DeskView; index: number }) {
   return (
     <HoldingFrame index={index} brand={color.inkMuted} disc={disc} name={K.cashName} sym={K.cashTitle} value={usd(view.plate.cashE6)}>
       {share !== null ? <Weight nowText={pct(share)} targetText={pct(target)} nowBps={share} targetBps={target} fill={color.inkMuted} /> : null}
-      <Text style={[DT.caption, { color: color.inkSecondary }]}>{view.isLive ? C.line(usd(view.plate.cashE6)) : C.practiceLine(usd(view.plate.cashE6))}</Text>
+      <Text style={[DT.caption, { color: color.inkSecondary }]}>{view.isLive ? C.line(credits(view.plate.cashE6)) : C.practiceLine(usd(view.plate.cashE6))}</Text>
     </HoldingFrame>
   );
 }

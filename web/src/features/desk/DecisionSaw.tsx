@@ -6,7 +6,7 @@ import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { RECORD } from "./copy-record";
 import { DECISION } from "./decision/copy-decision";
 import { PriceStrip } from "./decision/PriceStrip";
-import { pct, tokensText, usdText } from "./format";
+import { cashText, pct, tokensText, usdText } from "./format";
 
 const D = RECORD.decision;
 type Body = DeskRecordBody;
@@ -150,15 +150,15 @@ function Leg({ symbol, label, value }: { symbol: string | null; label: string; v
 }
 
 /** Section 6: the cost, shown before acting — the spend flowing into what it should receive, then the fine print. */
-export function CostShown({ body }: { body: Body }) {
+export function CostShown({ body, practice }: { body: Body; practice: boolean }) {
   const C = D.cost;
   const p = body.preview;
   const c = body.candidate;
   const sell = c?.side === "sell";
   if (!p) return null;
   const sym = c?.symbol ?? "";
-  const spend = sell ? `${tokensText(p.amountIn)} ${sym}` : `${usdText(p.amountIn)} USDC`;
-  const receive = sell ? `${usdText(p.expectedOut)} USDC` : `${tokensText(p.expectedOut)} ${sym}`;
+  const spend = sell ? `${tokensText(p.amountIn)} ${sym}` : cashText(p.amountIn, practice);
+  const receive = sell ? cashText(p.expectedOut, practice) : `${tokensText(p.expectedOut)} ${sym}`;
   return (
     <div className="dc-cost">
       <div className="dc-flow" aria-label={DECISION.flow}>
@@ -167,7 +167,7 @@ export function CostShown({ body }: { body: Body }) {
         <Leg symbol={sell ? null : sym} label={C.receive} value={receive} />
       </div>
       <dl className="dc-facts">
-        <div className="dc-fact"><dt>{C.least}</dt><dd>{sell ? `${usdText(p.minOut)} USDC` : `${tokensText(p.minOut)} ${sym}`}</dd></div>
+        <div className="dc-fact"><dt>{C.least}</dt><dd>{sell ? cashText(p.minOut, practice) : `${tokensText(p.minOut)} ${sym}`}</dd></div>
         <div className="dc-fact"><dt>{C.slippage}</dt><dd>{pct(p.slippageBps)}</dd></div>
       </dl>
     </div>

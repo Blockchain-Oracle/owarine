@@ -109,7 +109,7 @@ export function DecisionSections({ decision, base, nowSec, zone, isLive, ceiling
         <Section n={n()} title={D.sections.options} icon={<Split />}>{body ? <Options body={body} /> : <p className="type-body text-ink-secondary">{D.options.noModel}</p>}</Section>
         <Section n={n()} title={D.sections.limits} icon={<ShieldCheck />}>{body ? <LimitsCheck body={body} /> : <p className="type-body text-ink-secondary">{D.limits.nothing}</p>}</Section>
         {body?.preview && (
-          <Section n={n()} title={D.sections.cost} icon={<Receipt />}><CostShown body={body} /></Section>
+          <Section n={n()} title={D.sections.cost} icon={<Receipt />}><CostShown body={body} practice={record.mode === "practice"} /></Section>
         )}
 
         <Section n={n()} title={D.sections.happened} icon={<Zap />}>
@@ -122,7 +122,7 @@ export function DecisionSections({ decision, base, nowSec, zone, isLive, ceiling
                   <div className="dc-ledger-row">
                     <span className="dc-leg-usdc" aria-hidden>$</span>
                     <span>{DECISION.cash}</span>
-                    <b>{usdText(body.paper.cash)} USDC</b>
+                    <b>{usdText(body.paper.cash)}</b>
                   </div>
                   {Object.entries(body.paper.positions).map(([symbol, raw]) => (
                     <div key={symbol} className="dc-ledger-row">

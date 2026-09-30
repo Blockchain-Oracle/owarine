@@ -20,9 +20,9 @@ import { TicketDrawer } from "./TicketDrawer";
 import { tkType, useTk } from "./tk";
 
 /**
- * web's ScheduleTicket (D-088) in the phone drawer: on a Window listed before its bell, a post-only call rests at the
- * user's own price — the same panel block for block (side · amount · the price · the strip the chain will hold · the
- * gates · rest until lock · the CTA · the footnote), and once it rests, the receipt with its Cancel.
+ * web's ScheduleTicket (D-088) in the phone drawer, on a Window listed before its bell — the same panel block for block
+ * (side · amount · the price · the strip · the gates · rest until lock · the CTA · the footnote). On Canton no call can
+ * rest yet, so the CTA carries web's `rest-not-live` blocker; the receipt with its Cancel stays for when one can.
  */
 export function ScheduleTicket({ selection }: { selection: TicketSelection }) {
   const tk = useTk();

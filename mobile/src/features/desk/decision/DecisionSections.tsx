@@ -107,7 +107,7 @@ export function DecisionSections({ decision, base, nowSec, zone, ceilingBps }: {
         <Section n={n()} title={D.sections.limits} icon={ShieldCheck}>{body ? <LimitsCheck body={body} /> : muted(D.limits.nothing)}</Section>
         {body?.preview ? (
           <Section n={n()} title={D.sections.cost} icon={Receipt}>
-            <CostShown body={body} />
+            <CostShown body={body} practice={record.mode === "practice"} />
           </Section>
         ) : null}
 
@@ -125,7 +125,7 @@ export function DecisionSections({ decision, base, nowSec, zone, ceilingBps }: {
                       </View>
                     }
                     label={DECISION.cash}
-                    value={`${usdText(body.paper.cash)} USDC`}
+                    value={usdText(body.paper.cash)}
                   />
                   {Object.entries(body.paper.positions).map(([symbol, raw]) => (
                     <LedgerRow key={symbol} mark={<AssetDisc asset={symbol} size={24} />} label={nameOf(symbol as PreIpoSymbol)} value={`${tokensText(raw)} ${symbol}`} />

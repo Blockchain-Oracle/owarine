@@ -3,7 +3,7 @@ import { ArrowRight, Check, CircleCheck, CircleX, OctagonAlert, X } from "lucide
 import { StyleSheet, Text, View } from "react-native";
 import { RECORD } from "@/features/desk/copy-record";
 import { DECISION } from "@/features/desk/decision/copy-decision";
-import { pct, tokensText, usdText } from "@/features/desk/format";
+import { cashText, pct, tokensText, usdText } from "@/features/desk/format";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { FONT } from "~/theme";
 import { DT, LinearWash, useDeskTheme } from "../kit";
@@ -173,7 +173,7 @@ function Leg({ symbol, label, value }: { symbol: string | null; label: string; v
 }
 
 /** Section 6: the cost shown before acting — the spend flowing into what it should receive, then the fine print. */
-export function CostShown({ body }: { body: Body }) {
+export function CostShown({ body, practice }: { body: Body; practice: boolean }) {
   const { color } = useDeskTheme();
   const C = D.cost;
   const p = body.preview;
@@ -184,13 +184,13 @@ export function CostShown({ body }: { body: Body }) {
   return (
     <View style={styles.cost}>
       <View style={styles.flow} accessibilityLabel={DECISION.flow}>
-        <Leg symbol={sell ? sym : null} label={C.spend} value={sell ? `${tokensText(p.amountIn)} ${sym}` : `${usdText(p.amountIn)} USDC`} />
+        <Leg symbol={sell ? sym : null} label={C.spend} value={sell ? `${tokensText(p.amountIn)} ${sym}` : cashText(p.amountIn, practice)} />
         <View style={[styles.arrow, { backgroundColor: color.surface2 }]}>
           <ArrowRight size={16} color={color.accent} />
         </View>
-        <Leg symbol={sell ? null : sym} label={C.receive} value={sell ? `${usdText(p.expectedOut)} USDC` : `${tokensText(p.expectedOut)} ${sym}`} />
+        <Leg symbol={sell ? null : sym} label={C.receive} value={sell ? cashText(p.expectedOut, practice) : `${tokensText(p.expectedOut)} ${sym}`} />
       </View>
-      <Facts rows={[[C.least, sell ? `${usdText(p.minOut)} USDC` : `${tokensText(p.minOut)} ${sym}`], [C.slippage, pct(p.slippageBps)]]} />
+      <Facts rows={[[C.least, sell ? cashText(p.minOut, practice) : `${tokensText(p.minOut)} ${sym}`], [C.slippage, pct(p.slippageBps)]]} />
     </View>
   );
 }

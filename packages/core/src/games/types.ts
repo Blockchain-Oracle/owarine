@@ -38,7 +38,7 @@ export interface GameDescriptor {
 const DESCRIPTORS: Readonly<Record<GameId, GameDescriptor>> = {
   practice: { id: "practice", group: "duel", economicKind: "none", economicLabel: "Practice · no stake" },
   duel: { id: "duel", group: "duel", economicKind: "market-order-and-pot", economicLabel: "Market picks plus side-pot" },
-  lucky: { id: "lucky", group: "prediction", economicKind: "market-order", economicLabel: "One real order on the book" },
+  lucky: { id: "lucky", group: "prediction", economicKind: "market-order", economicLabel: "One real call at the venue's quote" },
   range: { id: "range", group: "prediction", economicKind: "house-position", economicLabel: "A band priced by the house" },
   moonshot: { id: "moonshot", group: "prediction", economicKind: "house-position", economicLabel: "A reach priced by the house" },
   "line-rider": { id: "line-rider", group: "arcade", economicKind: "none", economicLabel: "Arcade score · not on the ledger" },

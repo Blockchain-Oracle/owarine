@@ -48,7 +48,7 @@ export const DESK = {
       presets: "Start from a basket",
       weights: "Weights",
       cash: "Cash sleeve",
-      cashNote: "Cash waits in the desk as USDC and is what the desk buys with.",
+      cashNote: "Cash waits in the desk and is what the desk buys with: the seat's demo credits on a live desk, paper dollars on a practice one.",
       total: (pct: string) => `${pct} of 100%`,
       mustAddUp: "The weights and the cash must add up to 100%.",
       side: (amount: string, parts: string) => `${amount} → ${parts}`,
@@ -190,7 +190,7 @@ export const DESK = {
       premium: (pct: string) => `${pct} above its mark`,
       discount: (pct: string) => `${pct} below its mark`,
     },
-    cash: { title: "Cash", line: (amount: string) => `${amount} USDC in the desk`, practiceLine: (amount: string) => `${amount} practice USDC` },
+    cash: { title: "Cash", line: (amount: string) => `${amount} in the desk`, practiceLine: (amount: string) => `${amount} of practice cash` },
     limits: {
       title: "Limits in use",
       spentToday: "Spent today",

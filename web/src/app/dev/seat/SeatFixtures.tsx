@@ -68,7 +68,7 @@ export function SeatFixtures() {
           <Fixture label="Pool full — waiting, next in line">
             <PoolFullPlate atSec={poolAt} spanSec={POOL_SPAN_SEC} ahead={1} />
           </Fixture>
-          <Fixture label="Draining — open calls settle first">
+          <Fixture label="Draining — open calls closed out at cost">
             <DrainingPlate atSec={drainAt} spanSec={DRAIN_SPAN_SEC} openCalls={2} />
           </Fixture>
         </FixtureGrid>

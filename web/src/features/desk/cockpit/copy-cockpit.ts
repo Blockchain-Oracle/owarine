@@ -48,7 +48,7 @@ export const COCKPIT = {
     now: "Now",
     target: "Target",
     week: "Price, recent checks",
-    cashTitle: "USDC",
+    cashTitle: "Demo cash",
     cashName: "Cash in the desk",
   },
   rules: {

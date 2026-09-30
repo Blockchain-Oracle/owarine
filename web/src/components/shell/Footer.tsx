@@ -4,7 +4,7 @@ import { DOCS_URL } from "@/lib/docs-url";
  * S25: where the prices come from, in one factual line. On Canton the venue's oracle parties sign every print, and each
  * one is re-checkable on the proof page; the upstream sources are named neutrally, as data, not as a chain.
  */
-const CREDIT = "Prices signed by the venue's oracle parties from exchange, PreStocks, Pyth, RedStone and Switchboard data · every print checkable on the proof page";
+const CREDIT = "Prices signed by the venue's oracle parties from Coinbase, Kraken, Bitstamp, RedStone, Alpaca, Jupiter Price v3 and PreStocks data · every print checkable on the proof page";
 
 export default function Footer() {
   return (

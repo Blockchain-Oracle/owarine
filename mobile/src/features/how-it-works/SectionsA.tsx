@@ -147,10 +147,9 @@ export function MechanicsSection() {
         <Rise baseMs={450}>
           <Card>
             <Body style={styles.bodyGap}>
-              Nothing here is modelled. The price of <Text style={ink}>UP</Text> is the best offer resting on the book, in cents — which is
-              also the market&apos;s probability. <Text style={ink}>DOWN</Text> is the same book seen from the other side. A UP buy and a DOWN
-              buy that add up to one dollar can match into a freshly minted pair, so a quote exists from the first second without a market
-              maker.
+              The price of <Text style={ink}>UP</Text> is the venue&apos;s firm quote for it, in cents — read as the market&apos;s probability.{" "}
+              <Text style={ink}>DOWN</Text> is the same Window priced from the other side. The venue is the house: it publishes a price ladder
+              for every live Window and quotes each seat off it, so there is a price from the first second, and no order book.
             </Body>
             <View style={[styles.formula, { backgroundColor: t.formula, borderColor: t.line }]} accessibilityRole="image" accessibilityLabel={W.sections.pricing}>
               {[W.formula.identity, W.formula.cost, W.formula.payout].map((line) => (
@@ -161,9 +160,9 @@ export function MechanicsSection() {
             </View>
             <Params rows={QUOTE_FIELDS} />
             <Body dim style={styles.foot}>
-              Every quote is read off the live book for your exact stake, so the cost you see is the cost the book would charge now. Orders go
-              in immediate-or-cancel at a protective limit: what crosses fills, the rest is cancelled, and the escrow locked at that limit is
-              the most a fill can ever cost.
+              Every quote is priced off the venue&apos;s live ladder for your exact stake, so the cost you see is the cost you would pay now.
+              The quote is firm while you take it: it fills at that price or not at all, and the price you confirmed is the most a fill can
+              ever cost.
             </Body>
           </Card>
         </Rise>

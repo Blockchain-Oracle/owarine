@@ -9,14 +9,17 @@ import { LEVERAGE_NOT_DEPLOYED } from "@agari/core/leverage";
  * reference does not have, in the venue's own voice.
  *
  * The premium and the knock-out line are the reserve's parameters, not constants, so every sentence that names
- * one takes it from the reserve that is actually deployed.
+ * one takes it from the reserve that is actually deployed. On Canton (`abu-pm-tickets` `PM.Tickets.Boost`, K-029) a
+ * position is marked at the venue ladder's fair price (`packages/markets/src/leverage/reads.ts`, re-read every 5 s),
+ * closes at the venue's firm buy-back quote, is knocked out only by the venue with an oracle quorum at a barrier pinned
+ * at issue, and a void returns the whole stake — there is no book, so no sentence here names one.
  */
 export const SHORT = {
   title: "Short",
   eyebrow: "Sell the fall · exit whenever",
-  lede: "A short here is a Down position the reserve holds for you. It is marked against the book every second, you can close it at any time, and the most you can lose is what you put in.",
+  lede: "A short here is a Down position the reserve holds for you. It is marked at the venue's published price every few seconds, you can close it whenever the venue is quoting, and the most you can lose is what you put in.",
   sections: {
-    open: { number: "01", title: "Open a short", desc: "Pick the stock, pick the window, size it. The reserve prices it against its own book before you sign." },
+    open: { number: "01", title: "Open a short", desc: "Pick the stock, pick the window, size it. The venue prices it from its published ladder before your seat signs." },
     positions: { number: "02", title: "Your shorts", desc: "What each one is worth right now, and how far it is from the line it knocks out at." },
     how: { number: "03", title: "How a short works here" },
   },
@@ -59,18 +62,18 @@ export const SHORT = {
     multipleHint: (premiumPct: string) => `The reserve fronts the rest of the position and charges ${premiumPct} on what it fronts. Your loss is still capped at your stake.`,
     pickWindow: "Pick a window first.",
     opensTitle: (name: string, when: string) => `${name} opens ${when}`,
-    opensBody: "A short opens once its Window is trading. Until then you can schedule a plain Down call on this Window; it is placed the moment it opens.",
+    opensBody: "A short opens once its Window is trading. Scheduling a plain Down call before then is not on Canton yet, so come back at the open.",
     scheduleDown: "Schedule a Down call",
     thinNone: "Nobody is offering Down on this Window right now.",
-    thinSome: (max: string, symbol: string) => `The book takes up to about ${max} ${symbol} at this multiple.`,
+    thinSome: (max: string, symbol: string) => `The venue quotes up to about ${max} ${symbol} at this multiple.`,
     useMax: (max: string, symbol: string) => `Use ${max} ${symbol}`,
-    thinExit: "The book could not take this position back whole, so the reserve will not open it. Try a smaller stake or a lower multiple.",
+    thinExit: "The venue could not quote this position back whole, so the reserve will not open it. Try a smaller stake or a lower multiple.",
     enterAmount: "Enter a stake.",
-    pricing: "Pricing against the book…",
+    pricing: "Pricing on the venue's ladder…",
     refused: "The reserve refused this short — see why above.",
     /** The chain sizes to the venue's lot, so the charge can be under the typed stake. */
     sized: (charged: string, symbol: string) => `Sized to the venue's lot: ${charged} ${symbol} is charged, the rest stays in your seat.`,
-    requote: (contracts: string) => `The book moved — your stake now buys ${contracts} contracts. Confirm again at the new size.`,
+    requote: (contracts: string) => `The venue's price moved — your stake now buys ${contracts} contracts. Confirm again at the new size.`,
     paused: "The reserve is paused: no new shorts. Live ones still settle, close and knock out.",
     cells: { contracts: "Contracts", entry: "Entry", back: "Back if it falls" },
     knockNote: (line: string, symbol: string) => `Knocks out at ${line} ${symbol}.`,
@@ -83,18 +86,18 @@ export const SHORT = {
   positions: {
     connect: "Take a seat to see your shorts.",
     empty: "No short open.",
-    emptyBody: "Open one above and it appears here, marked against the book.",
+    emptyBody: "Open one above and it appears here, marked at the venue's price.",
     totals: (priced: number, live: number) => (priced === live ? `${live} open` : `${live} open · ${priced} priced`),
     staked: "Staked",
     worth: "Worth now",
-    unpriced: "No bids to mark against",
-    unpricedWhy: "The book cannot take the whole position right now, so there is no honest mark and no exit.",
+    unpriced: "No venue quote to mark against",
+    unpricedWhy: "The venue is not quoting this Window right now, so there is no honest mark and no exit. It marks at settlement.",
     entry: "Entry",
     now: "Now",
     size: "Size",
-    /** The number an owner acts on: how far the mark may fall before anyone may close the position. */
+    /** The number an owner acts on: how far the mark may fall before the venue may knock the position out. */
     drop: (pct: string) => `${pct} fall reaches the line`,
-    atLine: "At the line — anyone may close this now",
+    atLine: "At the line — the venue may knock this out on an oracle quorum",
     noLine: "No line · nothing fronted",
     line: (amount: string, symbol: string) => `line ${amount} ${symbol}`,
     close: "Close",
@@ -116,7 +119,7 @@ export const SHORT = {
     {
       n: "①",
       t: "A position, not a bet",
-      d: "Shorting buys Down contracts and leaves them with the reserve. What they are worth moves with the book every second, and you can sell them back into it whenever you like — you do not have to wait for the bell.",
+      d: "Shorting buys Down contracts and leaves them with the reserve. What they are worth moves with the venue's published price, re-read every few seconds, and you can sell them back to the venue at its firm quote whenever it is quoting — you do not have to wait for the bell.",
     },
     {
       n: "②",
@@ -126,14 +129,14 @@ export const SHORT = {
     {
       n: "③",
       t: "The line it knocks out at",
-      d: `The reserve is repaid before you are, so once the book would pay less than ${maintenancePct} of what it fronted, anyone may close the position. Your card shows the fall that reaches that line. A void pays every contract half its face, so a short opened above 50¢ comes back short of its stake.`,
+      d: `The reserve is repaid before you are. The line is fixed when the short opens, at ${maintenancePct} of what the reserve fronted, and only the venue can knock the position out — with the Window's oracle quorum printing past it. Your card shows the fall that reaches that line. A void returns your whole stake.`,
     },
   ],
 
   notDeployed: {
     eyebrow: "Inverse",
     title: "Short",
-    body: "A Down position the reserve holds and marks against its own book, with a knock-out line and an exit at any time.",
+    body: "A Down position the reserve holds and marks at the venue's published price, with a knock-out line and an exit whenever the venue is quoting.",
     why: LEVERAGE_NOT_DEPLOYED,
     dependency: "the Boost contracts of abu-pm-tickets on this network (proven on the local sandbox, not yet on DevNet)",
   },

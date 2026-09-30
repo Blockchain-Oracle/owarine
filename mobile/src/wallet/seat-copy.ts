@@ -28,7 +28,7 @@ export const SEAT = {
     reset: "Reset seat",
     resetConfirm: "Reset for good",
     resetCancel: "Keep this seat",
-    resetWarning: "Resetting forgets this seat's key. Its calls and credits stay with the old seat, and this phone cannot get them back.",
+    resetWarning: "Resetting forgets this seat's key, and this phone cannot get it back. A seat this phone took is closed: calls on Windows still trading are closed out at what you paid, fee included, and its credits go back to the venue. A seat joined from another device stays there.",
     /** The lease is the server's half: a ledger party for this key, leased over a signed request. */
     party: "Canton party",
     leaseReading: "Reading this seat's lease…",
