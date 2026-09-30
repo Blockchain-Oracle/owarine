@@ -26,7 +26,7 @@ export function summarizeVault(intent: VaultIntent, decimals: number): string {
     case "vault-revoke":
       return `revoke grant #${intent.grantId}`;
     case "vault-key-top-up":
-      return `top up the session key ${intent.key} with ${intent.lamports} lamports`;
+      return `top up the session key ${intent.key} (${intent.lamports} base units)`;
     case "vault-crank-settle":
       return `settle ${intent.marketId} into ${intent.owner}'s Trading Balance`;
     case "vault-sweep":

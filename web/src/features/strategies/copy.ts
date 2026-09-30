@@ -241,7 +241,7 @@ export const AGENTS = {
   crumb: { root: "Agari", here: "Agents" },
   headline: "Agent Leaderboard",
   intro:
-    "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects on-chain copy-trades to date, read straight from the chain and the runner's receipts.",
+    "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects copy-trades on the ledger to date, read straight from the ledger and the runner's receipts.",
   reading: "reading the chain…",
   stats: { agents: "Agents", strategies: "Strategies", subscribers: "Subscribers", subscribersSub: "across all strategies", volume: "Capital deployed", volumeSub: "credits notional" },
   desk: { index: "01", title: "The runners", meta: (n: number) => `${n} agents`, top: "Top Desk", strategies: (n: number) => `${n} strateg${n === 1 ? "y" : "ies"}`, subscribers: (n: number) => `${n} subscriber${n === 1 ? "" : "s"}`, entrusted: "Capital entrusted", copyTrades: "Copy-trades", maxPerTrade: "Max per trade", lastActive: "Last active" },
