@@ -1,19 +1,22 @@
 "use client";
 
+import { partyLead } from "@agari/core/units";
 import { UserX } from "lucide-react";
 import { useState } from "react";
 import { Hash } from "@/components/data/Hash";
+import { TapHash } from "@/components/data/TapHash";
+import { ID_LABEL } from "../id-label";
 import { CodeBlock } from "@/components/ui/code-block";
 import { EmptyState, TabsPanel, UnderlineTabs } from "@/components/ui/desk-kit";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { PRIVACY } from "./copy";
-import { partyLead, type PartyView } from "./party-views";
+import type { PartyView } from "./party-views";
 import { WhoCanSee } from "./WhoCanSee";
 import "./privacy.css";
 
 const S = PRIVACY.switcher;
 
-export { partyLead, type PartyPosition, type PartyView } from "./party-views";
+export { type PartyPosition, type PartyView } from "./party-views";
 
 function Positions({ view }: { view: PartyView }) {
   if (view.status?.kind === "loading") {
@@ -79,7 +82,7 @@ export function ViewSwitcher({ views, initial, onSelect }: { views: readonly Par
           <TabsPanel key={view.value} value={view.value} className="cx-switcher-panel">
             <div className="cx-switcher-head">
               <span className="cx-muted">{S.asParty}</span>
-              <Hash value={view.party} lead={partyLead(view.party)} tail={4} className="cx-party" />
+              <TapHash value={view.party} lead={partyLead(view.party)} tail={4} label={ID_LABEL.party} className="cx-party" />
               {!view.status && <span className="cx-switcher-count">{S.returned(view.positions.length)}</span>}
             </div>
             <Positions view={view} />

@@ -24,8 +24,12 @@ export interface SeatActions {
   /** The demo-credits terms were accepted on this install (the gate every seat passes). */
   termsAccepted: boolean;
   acceptTerms(): void;
-  /** Loads this phone's seat key, or creates one, and leases it a party; refuses until the terms are accepted. */
-  takeSeat(): Promise<void>;
+  /**
+   * Loads this phone's seat key, or creates one, and leases it a party; refuses until the terms are accepted. It resolves
+   * with the lease's answer: a leased party, or `pool-full` (the key is kept, and the lease controller keeps asking); a
+   * refusal or a network that is not taking seats throws.
+   */
+  takeSeat(): Promise<SeatLeaseView | null>;
   /**
    * Lets the lease go (the server drains the party; a phone joined to another device's seat only leaves it), then
    * forgets the seat key for good; the next seat is a new key.
@@ -63,7 +67,7 @@ async function sessionOf(secretKey: Uint8Array): Promise<WalletSession> {
 export function SeatProvider({ children }: { children: ReactNode }) {
   const [termsAccepted, setTermsAccepted] = useState(() => storage.getBoolean(DEMO_TERMS_KEY) === true);
   const [state, setState] = useState<WalletShellState>(() => (termsAccepted ? { ...READY_EMPTY, status: "restoring" } : READY_EMPTY));
-  const inFlight = useRef<Promise<void> | null>(null);
+  const inFlight = useRef<Promise<SeatLeaseView | null> | null>(null);
   const lease = useSeatLeaseController({ signer: state.wallet?.signer ?? null, cluster: marketsEnv.cluster });
   const { leaseWith, release } = lease;
 
@@ -101,6 +105,7 @@ export function SeatProvider({ children }: { children: ReactNode }) {
         setState({ status: "ready", connecting: false, address: wallet.address, wallet });
         if (view?.kind === "refused") throw new Error(view.diagnosis.technical);
         if (view?.kind === "not-live") throw new Error(view.reason);
+        return view;
       } catch (error) {
         setState((s) => ({ ...s, status: "ready", connecting: false }));
         throw error;

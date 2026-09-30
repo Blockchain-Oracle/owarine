@@ -20,8 +20,5 @@ export const EXCHANGE_NAME: Readonly<Record<Exchange, string>> = { coinbase: "Co
 /** "Coinbase", or the party's hint when it names no exchange. */
 export const oracleName = (exchange: Exchange | null, party: string): string => (exchange ? EXCHANGE_NAME[exchange] : (party.split("::")[0] ?? party));
 
-/** Where a party id's fingerprint starts, so `Hash` keeps the readable hint and a few fingerprint characters. */
-export const partyLead = (party: string): number => Math.max(8, party.indexOf("::") + 6);
-
 /** "T + 10 s" after a boundary. */
 export const afterT = (sec: number, boundarySec: number): string => `T + ${sec - boundarySec} s`;

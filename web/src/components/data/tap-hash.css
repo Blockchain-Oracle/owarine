@@ -1,0 +1,22 @@
+/* TapHash: the reference's `Hash` (short form, dotted underline) with a tap to show the whole id and copy it. Tokens only. */
+
+.taphash { display: inline; }
+
+/* Reads as the id's own text: colour and size come from the line it sits in, the face from `numbers` as `Hash` has it. */
+.taphash-toggle { position: relative; display: inline; padding: 0; border: 0; background: none; color: inherit; text-align: inherit; text-decoration: underline dotted; text-underline-offset: 4px; cursor: pointer; }
+/* The line is short, the thumb is not: an invisible hit area of about 44px, without moving the text. */
+.taphash-toggle::after { content: ""; position: absolute; inset: -12px -6px; }
+.taphash-toggle:hover { color: var(--color-accent); }
+.taphash-toggle:focus-visible { outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+/* Open, the whole id wraps anywhere inside its column instead of running out of it (a party id is about 70 characters). */
+.taphash[data-open] { white-space: normal; }
+/* An id that wraps over lines makes the box the hit area is measured from a tall rectangle that would cover the Copy button beside it: open, the id is
+   already a big target and needs no extra, and Copy sits above regardless. */
+.taphash[data-open] .taphash-toggle::after { content: none; }
+.taphash[data-open] .taphash-toggle { overflow-wrap: anywhere; word-break: break-all; text-decoration: none; }
+
+.taphash-copy { position: relative; z-index: 1; display: inline-grid; flex: none; place-items: center; width: 24px; height: 24px; margin-left: 4px; vertical-align: middle; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-ink-secondary); cursor: pointer; }
+.taphash-copy:hover { background: var(--color-surface-2); color: var(--color-ink); }
+.taphash-copy:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
+.taphash-copy svg { width: 12px; height: 12px; }

@@ -1,8 +1,10 @@
-import { Hash } from "@/components/data";
+import { partyLead } from "@agari/core/units";
+import { Hash, TapHash } from "@/components/data";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import type { CantonProofView } from "./canton-proof";
 import { PROOF } from "./copy";
-import { partyLead, priceE8Text } from "./format";
+import { priceE8Text } from "./format";
 
 const R = PROOF.receipt;
 
@@ -26,12 +28,12 @@ export function ResolutionReceipt({ view }: { view: CantonProofView }) {
       <ReceiptRow label={R.rows.outcome}>{r.kind === "resolved" ? r.side.toUpperCase() : "VOID"}</ReceiptRow>
       {view.signatories && (
         <ReceiptRow label={R.rows.resolver}>
-          <Hash value={view.signatories.resolver} lead={partyLead(view.signatories.resolver)} tail={4} />
+          <TapHash value={view.signatories.resolver} lead={partyLead(view.signatories.resolver)} tail={4} label={ID_LABEL.party} />
         </ReceiptRow>
       )}
       {view.signatories?.venue && (
         <ReceiptRow label={R.rows.venue}>
-          <Hash value={view.signatories.venue} lead={partyLead(view.signatories.venue)} tail={4} />
+          <TapHash value={view.signatories.venue} lead={partyLead(view.signatories.venue)} tail={4} label={ID_LABEL.party} />
         </ReceiptRow>
       )}
       {r.updateId && (

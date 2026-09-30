@@ -3,8 +3,8 @@ import { VAULT_NOT_DEPLOYED } from "@agari/core/vault";
 /** Session-key tap-trading, the sponsor rail and the Ticket's funding source. */
 export const SESSION = {
   notDeployed: VAULT_NOT_DEPLOYED,
-  /** The ticket's chip where the reference's tap-trading chip sat: the seat itself signs every call, so there is nothing to arm (as the phone's `SEAT.fast`). */
-  fast: { label: "one tap", why: "a seat already trades in one tap" },
+  /** The ticket's label where the reference's tap-trading chip sat: the seat itself signs every call, so there is nothing to arm (as the phone's `SEAT.fast`). */
+  fast: { label: "one tap" },
   chip: {
     on: "tap-trading on",
     off: "tap-trading",

@@ -1,5 +1,5 @@
 import { parseStrategyMetadata } from "@agari/core/strategies";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
 import { money } from "@/features/strategies/format";
 import { strategyIdentity, STRATEGY_MARKETS } from "@/features/strategies/identity";
@@ -15,6 +15,8 @@ import { StrategyActivity } from "./StrategyActivity";
 import { DeskPill, PrimaryButton, ST, useStrat } from "./ui";
 
 const F = STRATEGIES.creatorFees;
+/** Below this width (every phone) the fee cells stack; an iPad keeps web's two. */
+const STACK_BELOW_PT = 600;
 
 /**
  * web's features/strategies/LiveDesk.tsx (desk.css `.desk`): the selected strategy, its consent state, the runner's
@@ -76,16 +78,20 @@ function CreatorFees({ fees, decimals, symbol }: { fees: CreatorFeesModel; decim
   const { t, color } = useStrat();
   const waiting = fees.waitingBase ?? 0n;
   const last = fees.last;
+  // web's row is two 224px cells; on a phone each is about 95 to 130pt, where the uppercase claim pill and the 24pt amount wrap to two or three
+  // lines. Under a tablet's width the two cells stack, the divider turning from the left edge to the top, and each takes the card's width.
+  const stacked = useWindowDimensions().width < STACK_BELOW_PT;
   return (
-    <View accessibilityLabel={F.eyebrow} style={[styles.numbers, { borderColor: t.ink(0.08), backgroundColor: t.ink(0.02) }]}>
-      <View style={styles.numberCell}>
+    <View accessibilityLabel={F.eyebrow} style={[styles.numbers, stacked && styles.numbersStacked, { borderColor: t.ink(0.08), backgroundColor: t.ink(0.02) }]}>
+      <View style={[styles.numberCell, stacked && styles.cellStacked]}>
         <Text style={[ST.deskEyebrow, { color: color.ink }]}>{F.eyebrow}</Text>
         <Text style={[styles.figure, { color: color.ink }]}>{fees.waitingBase === null ? "—" : F.waiting(money(waiting, decimals, symbol))}</Text>
         <Text style={[ST.deskFine, styles.mt6, { color: color.ink }]}>{!fees.readable ? F.unreadable : waiting > 0n ? F.count(fees.feeCount) : F.none}</Text>
       </View>
-      <View style={[styles.numberCell, { borderLeftWidth: 1, borderLeftColor: t.ink(0.06) }]}>
+      <View style={[styles.numberCell, stacked ? [styles.cellStacked, { borderTopWidth: 1, borderTopColor: t.ink(0.06) }] : { borderLeftWidth: 1, borderLeftColor: t.ink(0.06) }]}>
         <Text style={[ST.deskFine, { color: color.ink }]}>{F.note}</Text>
-        <DeskPill label={fees.claiming ? F.claiming : `${F.claim} →`} disabled={!fees.readable || waiting === 0n || fees.claiming} onPress={() => void fees.claim()} on style={styles.mt8} />
+        {/* A money action: the pill is held to the 44pt target (it is about 34 at its own padding). */}
+        <DeskPill label={fees.claiming ? F.claiming : `${F.claim} →`} disabled={!fees.readable || waiting === 0n || fees.claiming} onPress={() => void fees.claim()} on style={[styles.mt8, styles.claim]} />
         {last ? (
           last.ok ? (
             <View style={styles.mt8}>
@@ -119,6 +125,9 @@ const styles = StyleSheet.create({
   pulse: { marginTop: 20, paddingLeft: 12, paddingVertical: 2 },
   numbers: { flexDirection: "row", borderWidth: 1, marginTop: 20 },
   numberCell: { flex: 1, padding: 12 },
+  numbersStacked: { flexDirection: "column" },
+  cellStacked: { flex: 0, alignSelf: "stretch" },
+  claim: { minHeight: 44, justifyContent: "center" },
   figure: { fontFamily: FONT.headingHeavy, fontSize: 24, lineHeight: 24, fontVariant: ["tabular-nums"] },
   limits: { fontFamily: FONT.dataRegular, fontSize: 14, lineHeight: 22.4, fontVariant: ["tabular-nums"] },
 });

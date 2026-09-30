@@ -1,10 +1,11 @@
 "use client";
 
+import { partyLead } from "@agari/core/units";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Hash } from "@/components/data";
-import { TUsdcMark } from "@/components/icons/AssetMarks";
+import { TapHash } from "@/components/data";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { ConnectButton } from "@/features/markets/wallet";
 import { RegionNote } from "@/features/region/RegionNote";
 import { blockerLabel, diagnosisCopy } from "@/lib/copy";
@@ -92,7 +93,7 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
                 <div>
                   <dt>{F.party}</dt>
                   <dd>
-                    <Hash value={credit.party} lead={credit.party.indexOf("::") + 6} tail={4} />
+                    <TapHash value={credit.party} lead={partyLead(credit.party)} tail={4} label={ID_LABEL.party} />
                   </dd>
                 </div>
               )}
@@ -113,7 +114,6 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
             ) : (
               <div className="fund-rows">
                 <button type="button" onClick={() => void credit.request()} disabled={regionHeld || credit.busy} aria-busy={credit.busy} className="fund-cta-white" data-cursor="hover">
-                  <TUsdcMark className="fund-cta-mark" />
                   {regionHeld ? blockerLabel("region") : credit.busy ? F.requesting : credit.status === "unleased" ? F.lease : F.request}
                 </button>
                 {regionHeld && <RegionNote />}

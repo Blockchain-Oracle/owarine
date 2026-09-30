@@ -4,13 +4,12 @@ import { Dialog } from "@base-ui/react/dialog";
 import { ErrorState } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { DrainingPlate, PoolFullPlate } from "@/features/canton-ux/seat";
+import { POOL_SPAN_SEC, poolFullOf } from "@/features/canton-ux/seat/pool";
 import { WALLET_MODAL } from "./copy";
 import { useSeatLeaseState } from "./seat-lease-context";
 import { CloseButton, WalletDialog } from "./wallet-modal-parts";
 
 const L = WALLET_MODAL.lease;
-/** The span the pool ring is drawn against: the idle lease a seat frees on (`AGARI_SEAT_IDLE_TTL_SEC`'s default). */
-const POOL_SPAN_SEC = 900;
 const toSec = (ms: number | null) => (ms === null ? null : Math.ceil(ms / 1000));
 
 /**
@@ -41,7 +40,7 @@ export function SeatLeaseDialog({ asked, onDismiss }: { asked: boolean; onDismis
           {closing ? (
             <DrainingPlate atSec={toSec(closing.atMs)} spanSec={POOL_SPAN_SEC} openCalls={closing.openCalls} />
           ) : view?.kind === "pool-full" ? (
-            <PoolFullPlate atSec={toSec(view.nextFreeAtMs)} spanSec={POOL_SPAN_SEC} ahead={Math.max(1, view.position)} />
+            <PoolFullPlate {...poolFullOf(view)} />
           ) : view?.kind === "refused" ? (
             <ErrorState diagnosis={view.diagnosis} retry={() => void lease.lease()} />
           ) : view?.kind === "not-live" || view?.kind === "none" ? (

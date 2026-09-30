@@ -132,7 +132,7 @@ function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seat
     void onDecide(allow).finally(() => setBusy(false));
   };
   return (
-    <div className="cx-link-done" role="alertdialog" aria-live="assertive" aria-labelledby={titleId} aria-describedby={bodyId}>
+    <div className="cx-link-done" data-tone="ask" role="alertdialog" aria-live="assertive" aria-labelledby={titleId} aria-describedby={bodyId}>
       <span className="cx-link-done-mark" aria-hidden>
         <ShieldQuestion />
       </span>
