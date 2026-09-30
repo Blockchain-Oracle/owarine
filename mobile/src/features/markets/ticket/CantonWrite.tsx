@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { WritePhase } from "@agari/core/ports";
-import { StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { QUOTE_TTL_SEC, TICKET_CANTON } from "@/features/canton-ux/ticket/copy";
 import { StepProgress } from "~/features/desk/kit";
@@ -75,10 +75,18 @@ export function WriteProgress({ phase }: { phase: WritePhase }) {
   const current = STEP_OF[phase];
   const error = phase === "reverted" || phase === "unknown";
   const tone = phase === "unknown" ? color.warning : error ? color.loss : color.inkSecondary;
+  // As web's `WriteProgress`: the steps are a picture (inert there) and the one status line is what is heard, with the step named.
+  const heard = `${T.step(Math.min(current, T.steps.length), T.steps.length, T.steps[Math.min(current, T.steps.length) - 1]?.label ?? "")}. ${T.status[phase]}`;
+  // `accessibilityLiveRegion` is Android-only: VoiceOver hears a placement move on only if it is announced.
+  useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(heard);
+  }, [heard]);
   return (
     <View style={[styles.write, { borderColor: tk.hairline, backgroundColor: color.surface2 }]} pointerEvents="none">
-      <StepProgress steps={T.steps} current={current} onPick={noop} label={T.progressLabel} />
-      <Text style={[tkType.body, { color: tone }]} accessibilityLiveRegion="polite">
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <StepProgress steps={T.steps} current={current} onPick={noop} label={T.progressLabel} />
+      </View>
+      <Text style={[tkType.body, { color: tone }]} accessible accessibilityLabel={heard} accessibilityLiveRegion="polite">
         {T.status[phase]}
       </Text>
     </View>
