@@ -9,7 +9,7 @@
  *   WindowState created / consumed  → window_state_cid set / cleared
  *   OpenPrint created / consumed    → open print columns / open_print_cid cleared
  *   Resolution created              → state resolved (winner 0/1) or voided (winner 2, void_reason 1|2), close print
- *   PriceQuote created / retired    → idx_prints row (earliest fetch per oracle, symbol, boundary) / retired
+ *   PriceQuote created / retired    → idx_prints row per contract, the resolution's one per (oracle, symbol, boundary) `chosen` / retired
  *   Quote, BuyQuote created         → idx_quotes 'issued'; quotes_issued + 1
  *   Quote(_)Accept                  → 'accepted'; Expire / Withdraw → row deleted, quotes_expired / _withdrawn + 1
  *   Leg created                     → idx_legs; a user leg from Quote_Accept also writes the fill (MINT), the position,
@@ -30,7 +30,7 @@ import type postgres from "postgres";
 import { LANE_BASES } from "@agari/core/types";
 import { parseLaneKey } from "@agari/core/market";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
-import type { IdxFact, IdxUpdate } from "./types";
+import type { IdxEvidence, IdxFact, IdxUpdate } from "./types";
 
 type Tx = postgres.TransactionSql;
 type Fact<K extends IdxFact["kind"]> = Extract<IdxFact, { kind: K }>;
@@ -103,25 +103,42 @@ async function resolution(c: Ctx, f: Fact<"resolution">): Promise<void> {
       resolution_cid = ${f.contractId}, resolved_ts_sec = ${c.tsSec}, resolved_update_id = ${c.u.updateId}, resolved_at_ms = ${f.createdAtMs},
       resolution_blob = ${f.createdEventBlob}, resolution_template_id = ${f.templateId}, synchronizer_id = ${f.synchronizerId}
     WHERE terms_cid = ${f.termsCid} AND resolution_cid IS NULL`;
+  await citeEvidence(c, [...f.openEvidence, ...f.closeEvidence]);
 }
 
 async function price(c: Ctx, f: Fact<"price">): Promise<void> {
   const row = {
     oracle: f.oracle, symbol: f.symbol, boundary_sec: f.boundarySec, contract_id: f.contractId, price_e8: f.priceE8, bar_start_sec: f.barStartSec,
     bar_len_sec: f.barLenSec, fetched_at_sec: f.fetchedAtSec, payload_hash: f.payloadHash, policy_version: f.policyVersion,
-    recorded_ts_sec: c.tsSec, update_id: c.u.updateId,
+    recorded_ts_sec: c.tsSec, update_id: c.u.updateId, chosen: false,
   };
-  const inserted = await c.tx`INSERT INTO idx_prints ${c.tx(row)} ON CONFLICT (oracle, symbol, boundary_sec) DO NOTHING RETURNING 1`;
-  if (inserted.length > 0) return;
-  // A second post for the same key: keep the earliest fetch, then the lowest price (Oracle.collectEvidence's order).
+  const inserted = await c.tx`INSERT INTO idx_prints ${c.tx(row)} ON CONFLICT (contract_id) DO NOTHING RETURNING 1`;
+  if (inserted.length > 0) await rechoose(c, [f.contractId]);
+}
+
+/**
+ * C6e (K-070): re-flags the (oracle, symbol, boundary) keys of these quotes. Every post stays a row; the `chosen` one is
+ * the quote the ledger cited as evidence (an OpenPrint or Resolution), else the resolver's own rule (`evidenceFor`, the
+ * Daml's `collectEvidence`): the earliest fetch, then the lowest price, then the contract id so a replay picks the same.
+ */
+async function rechoose(c: Ctx, contractIds: readonly string[]): Promise<void> {
   await c.tx`
-    UPDATE idx_prints SET duplicates = duplicates + 1,
-      contract_id = CASE WHEN earlier THEN ${f.contractId} ELSE contract_id END, price_e8 = CASE WHEN earlier THEN ${f.priceE8}::numeric ELSE price_e8 END,
-      fetched_at_sec = CASE WHEN earlier THEN ${f.fetchedAtSec}::bigint ELSE fetched_at_sec END,
-      payload_hash = CASE WHEN earlier THEN ${f.payloadHash} ELSE payload_hash END, update_id = CASE WHEN earlier THEN ${c.u.updateId} ELSE update_id END
-    FROM (SELECT (${f.fetchedAtSec}::bigint, ${f.priceE8}::numeric) < (fetched_at_sec, price_e8) AS earlier FROM idx_prints
-          WHERE oracle = ${f.oracle} AND symbol = ${f.symbol} AND boundary_sec = ${f.boundarySec}) cmp
-    WHERE oracle = ${f.oracle} AND symbol = ${f.symbol} AND boundary_sec = ${f.boundarySec}`;
+    WITH keys AS (SELECT DISTINCT oracle, symbol, boundary_sec FROM idx_prints WHERE contract_id = ANY(${contractIds as string[]}::text[])),
+    ranked AS (
+      SELECT p.contract_id,
+        row_number() OVER (PARTITION BY p.oracle, p.symbol, p.boundary_sec ORDER BY p.evidence DESC, p.fetched_at_sec, p.price_e8, p.contract_id) AS rn,
+        count(*) OVER (PARTITION BY p.oracle, p.symbol, p.boundary_sec) AS n
+      FROM idx_prints p JOIN keys k USING (oracle, symbol, boundary_sec))
+    UPDATE idx_prints p SET chosen = (r.rn = 1), duplicates = CASE WHEN r.rn = 1 THEN r.n - 1 ELSE 0 END
+    FROM ranked r WHERE p.contract_id = r.contract_id`;
+}
+
+/** The quotes an OpenPrint or Resolution counted: flagged as evidence, and their keys re-chosen around them. */
+async function citeEvidence(c: Ctx, evidence: readonly IdxEvidence[]): Promise<void> {
+  const cids = evidence.map((e) => e.quoteCid);
+  if (cids.length === 0) return;
+  await c.tx`UPDATE idx_prints SET evidence = true WHERE contract_id = ANY(${cids}::text[])`;
+  await rechoose(c, cids);
 }
 
 async function quote(c: Ctx, f: Fact<"quote">): Promise<void> {
@@ -319,6 +336,7 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
         UPDATE idx_markets SET open_print_cid = ${f.contractId}, open_price_e8 = ${f.openPriceE8}::numeric, open_signers = ${f.signers},
           open_evidence = ${c.tx.json(f.evidence as unknown as postgres.JSONValue)}, open_recorded_ts_sec = ${c.tsSec}, open_update_id = ${c.u.updateId}
         WHERE terms_cid = ${f.termsCid}`;
+      await citeEvidence(c, f.evidence);
       return;
     case "open-print-consumed":
       await c.tx`UPDATE idx_markets SET open_print_cid = NULL WHERE open_print_cid = ${f.contractId}`;

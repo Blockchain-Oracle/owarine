@@ -179,7 +179,10 @@ template BoostPosition
       controller owner
       do
         assertDeadlineExceeded "refund-after" refundAfter
-        exitWith this (costOf this + premium) 0 "refund"
+        paid <- exitWith this (costOf this + premium) 0 "refund"
+        -- 0.1.2: a stale refund leaves the same receipt as a void (K-093)
+        recordReceipt $ boostReceipt this None (costOf this + premium) 0 "void"
+        pure paid
 
     -- The oracle-quorum knock-out. `observedAt` is the print boundary the
     -- quotes attest; the quotes must count under the Window's own rule
@@ -213,6 +216,8 @@ template BoostPosition
         require "still-healthy" "the quorum's print is not beyond the barrier" beyond
         change <- lockFromShard venue shardCid knockOutProceeds
         paid <- exitWith this knockOutProceeds premium "knock-out"
+        -- 0.1.2: the knock-out leaves its receipt (K-093)
+        recordReceipt $ boostReceipt this None knockOutProceeds premium "knocked-out"
         leg <- create (houseTakesSide this)
         pure (paid, leg, change)
 
@@ -257,6 +262,8 @@ template BoostExitQuote
           (p.owner == user && p.venue == venue && p.pairId == pairId)
         archive positionCid
         paid <- exitWith p proceeds p.premium "sale"
+        -- 0.1.2: the sale back to the venue leaves its receipt (K-093)
+        recordReceipt $ boostReceipt p None proceeds p.premium "sold"
         leg <- create (houseTakesSide p)
         pure (paid, leg)
 
@@ -295,18 +302,8 @@ settleBoost : BoostPosition -> ContractId Resolution -> Update Paid
 settleBoost p resolutionCid = do
   r <- fetchResolutionFor p.venue p.termsCid resolutionCid
   let (proceeds, fee) = boostPayout p r
-      reclaimed = min proceeds p.fronted
   paid <- exitWith p proceeds fee "payout"
-  recordReceipt TicketReceipt with
-    venue = p.venue; owner = p.owner; product = if p.side == SideUp then "boost" else "short"
-    marketId = p.marketId; pairId = p.pairId; outcome = p.side; resolved = r.outcome
-    lots = p.lots; cashUnit = p.cashUnit; backingShare = costOf p; cost = p.stake
-    payout = proceeds - reclaimed; fee
-    detail = ReceiptDetail with
-      reserveId = p.reserveId; marketIds = [p.marketId]
-      pick = sideText p.side <> " @" <> show p.leverageBps <> "bps"
-      stake = p.stake; toReserve = reclaimed + fee
-      result = resultText ((== p.side) <$> r.outcome)
+  recordReceipt $ boostReceipt p r.outcome proceeds fee (resultText ((== p.side) <$> r.outcome))
   pure paid
 
 -- | The user's side of the pair, now held by the venue at its backing, so
@@ -316,3 +313,20 @@ houseTakesSide p = Leg with
   venue = p.venue; owner = p.venue; termsCid = p.termsCid; marketId = p.marketId; pairId = p.pairId
   outcome = p.side; lots = p.lots; cashUnit = p.cashUnit; backingShare = costOf p; feePaid = 0
   refundAfter = p.refundAfter; beneficiaryRef = None
+
+-- | A position's receipt for every way it ends: settle and claim ("won",
+-- "lost", "void"), and since 0.1.2 the stale refund ("void"), the knock-out
+-- ("knocked-out") and the sale back to the venue ("sold"). `payout` is what
+-- the owner took, `toReserve` the front reclaimed plus the premium.
+boostReceipt : BoostPosition -> Optional Side -> Int -> Int -> Text -> TicketReceipt
+boostReceipt p resolved proceeds fee result =
+  let reclaimed = min proceeds p.fronted
+  in TicketReceipt with
+    venue = p.venue; owner = p.owner; product = if p.side == SideUp then "boost" else "short"
+    marketId = p.marketId; pairId = p.pairId; outcome = p.side; resolved
+    lots = p.lots; cashUnit = p.cashUnit; backingShare = costOf p; cost = p.stake
+    payout = proceeds - reclaimed; fee
+    detail = ReceiptDetail with
+      reserveId = p.reserveId; marketIds = [p.marketId]
+      pick = sideText p.side <> " @" <> show p.leverageBps <> "bps"
+      stake = p.stake; toReserve = reclaimed + fee; result

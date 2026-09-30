@@ -105,15 +105,37 @@ export function solveStrike(input: SolveStrikeInput): MoonshotBand {
   const std = stdE8(sigmaE8, tauSec);
   const mu = probitE4(centerQE6);
   const zK = mu + (direction === "long" ? probitE4(P_ONE - p) : probitE4(p));
-  let strikePrint = openingPrint + (openingPrint * zK * std) / (10_000n * E8);
+  const start = openingPrint + (openingPrint * zK * std) / (10_000n * E8);
   const step = direction === "long" ? 1n : -1n;
-  for (let i = 0; i < MAX_NUDGE_CENTS; i++) {
+  const holdsAt = (strikePrint: bigint): MoonshotBand | null => {
     const edges = moonshotBandEdges(direction, openingPrint, strikePrint);
-    if (edges.highPrint > edges.lowPrint) {
-      const probRaw = sideProbRaw(bandProbE6(openingPrint, edges.lowPrint, edges.highPrint, centerQE6, sigmaE8, tauSec), "inside", one);
-      if (rungHolds(probRaw, multiple, one, marginBps)) return { direction, multiple, strikePrint, ...edges, side: "inside" };
+    if (edges.highPrint <= edges.lowPrint) return null;
+    const probRaw = sideProbRaw(bandProbE6(openingPrint, edges.lowPrint, edges.highPrint, centerQE6, sigmaE8, tauSec), "inside", one);
+    return rungHolds(probRaw, multiple, one, marginBps) ? { direction, multiple, strikePrint, ...edges, side: "inside" } : null;
+  };
+  for (let i = 0; i < MAX_NUDGE_CENTS; i++) {
+    const band = holdsAt(start + step * BigInt(i));
+    if (band) return band;
+  }
+  // Prints are E8, so a unit nudge moves the strike by nothing: when the closed form lands far off (a centre near
+  // either end, where the probit table is coarse) search outward in growing steps, then bisect back to the strike
+  // nearest the closed form that still holds the rung — the same answer the unit nudge gives, found in ~60 reads.
+  let failing = start + step * BigInt(MAX_NUDGE_CENTS - 1);
+  let reach = openingPrint / 1_000_000n > 1n ? openingPrint / 1_000_000n : 1n;
+  for (let i = 0; i < 64; i++, reach *= 2n) {
+    const candidate = failing + step * reach;
+    if (candidate <= 0n) break;
+    if (!holdsAt(candidate)) {
+      failing = candidate;
+      continue;
     }
-    strikePrint += step;
+    let holding = candidate;
+    while ((holding - failing) * step > 1n) {
+      const mid = (holding + failing) / 2n;
+      if (holdsAt(mid)) holding = mid;
+      else failing = mid;
+    }
+    return holdsAt(holding)!;
   }
   throw new Error(`the Moonshot strike did not converge for ${direction} ×${multiple} at ${openingPrint}`);
 }

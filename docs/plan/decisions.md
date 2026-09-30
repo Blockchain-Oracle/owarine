@@ -138,6 +138,19 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - Leaderboards: pair-leg publications (`product` null) keep the reference's fill replay, and every pair-leg read now filters on `product IS NULL`. A published ticket ranks on its receipt's settled figures (`tape/tickets`), beside the wallet's pair legs.
 - **Approval:** default; overrulable.
 
+### K-070 — Stock lanes with keys, two new attested sources, events on the board, one row per print (C6 block)
+- **Date / owner:** 2026-09-29 · C6e lane
+- **Evidence:** `services/ops/src/runtime/load-env.ts`, `services/ops/src/prices/attested-read.ts` (+ `attested-read.test.ts`), `services/ops/config/price-sources.json` `cantonVersions`, `packages/db/src/idx/prints.it.test.ts`, `packages/markets/src/server/publish.test.ts`, `web/src/features/markets/events/`, `mobile/src/features/markets/events/`, `docs/evidence/c6e-stocks-events.md`.
+- **Rule:**
+  - **Env.** Ops loads `services/ops/.env.local`, then the root `.env.local` (the reference's `ops:start`), as its first import in `main.ts`, `runner-main.ts` and `scripts/drive/ops-local.ts`. A variable already set is never overridden; `OPS_ENV_FILES=0` turns it off; only names are logged.
+  - **QQQ and VOO** settle on `attested:alpaca:<T>`: the last IEX trade in `[T − 300 s, T]` from Alpaca market data with the ops keys (headers only), read from T + 5 s, admitted 900 s. It is appended as version 2 from 2026-09-29 (Regular and Gap) in the Canton-only `cantonVersions` block; the spot feed polls the same source for the pricer. The reference's own QQQ/VOO source was the Pyth trial, which ended 09-25.
+  - **xStocks** settle on `attested:jupiter:<xStock>`: the median of Jupiter Price v3 samples at T − 40, T − 20 and T, the reference's own token-lane fallback (`jupiter-attest.ts`). It is appended as version 2 from 2026-09-29 because the ledger always takes the highest covering version and Switchboard Surge answers "IPFS fetch temporarily unavailable". A missing sample misses the print, and the Window voids. When Surge signs again, a Switchboard version is appended the same way (`Series_AddPolicyVersion`).
+  - **Events on the board.** `LaneSet.events` carries live committee events beside the lanes, from the same market stream. `EventMarket.kind = "event"` trades from its start without an opening print (core `phase`) and reads 24/7. The board's §03 "Events" lists them as the reference's word card (`wq-*`), with Yes/No selecting the event into the hero and ticket. `/markets/<id>` shows an event hero (question, clock to the lock, how it settles), and the ticket reads Yes/No with no range band, leverage or chart. The phone's markets tab has the same §03 and event hero.
+  - **Prints.** `idx_prints` keeps one row per `PriceQuote` contract. Per (oracle, symbol, boundary), `chosen` marks the quote an OpenPrint or Resolution cited (`evidence`), else the resolver's rule (earliest fetch, then lowest price, then contract id). The chart, proof and resolution-evidence reads take the chosen row, and `verify-projection` compares every contract.
+  - **Retract** is per product: `{ marketId, product? }`, where null means the pair legs. A pair-leg retract never takes a ticket's publication on the same Window, and a ticket retract never takes the pair legs'.
+- **User-visible:** the stock, QQQ/VOO, xStock and Gap lanes list on a keyed ops; QQQ/VOO receipts name "Alpaca (last IEX trade)" and the xStock receipts "Jupiter Price v3 (median of three samples)". Events have their own board section and page.
+- **Approval:** default; overrulable.
+
 ### K-085 — The Canton desk's live leg trades our own markets (C8 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; the live leg trades this venue's markets with venue cash and is gated on C7b.
@@ -191,6 +204,37 @@ A default recorded early for a later stage sits in that stage's block; its owner
 ### K-091 — Practice desks price at the attested token print (C8 block)
 - **Date / owner:** 2026-09-29 · C8f lane
 - **Rule:** practice desks stay paper ledgers, filled at the PreStocks token print the lanes attest, less the reference's paper fee, one paper unit per token (no mint multiplier and no Jupiter route on Canton).
+
+### K-092 — The maker vault (Earn's maker tab) needs three things `abu-pm-main` 0.4.0 does not have (C8 block)
+- **Date / owner:** 2026-09-29 · C8e lane
+- **Evidence:** `web/src/features/earn/MakerEarn.tsx` renders the reference's not-deployed state because `packages/markets/src/maker/{reads,writes}.ts` are stubs. What the ledger has: `PM.Reserve` gives any reserve id a `NavStatement`, `LpShare`s and firm `SupplyQuote`/`WithdrawQuote`s, so a `maker` reserve could take supplies today. What it lacks is a truthful NAV for a book that quotes pairs:
+  1. **No on-ledger NAV for the pair book.** `Earn_PublishNav` (`PM.Tickets.Earn`) counts only ticket contracts (`NavInputs`: reserve cash, LP shares, withdraw quotes, range/parlay/boost quotes and tickets). The maker's capital sits in `Quote` locks (`Quote.daml`, the venue stake locked at issue), in the venue's own `Leg`s after an accept, and in `BuyQuote` locks. Nothing can count those into a statement.
+  2. **The pair book's cash is not kept apart.** The issuer's pool locks from `shard` buckets (`services/ops/src/actors/quote-issuer/pool.ts`), and a venue-owned leg is paid into the `payout` bucket (`PM.Leg.payOut`) or `netting` (`Leg_Merge`). The same buckets carry the house side of boosts (`houseTakesSide`), exit buy-backs and seat funding. A venue leg carries `beneficiaryRef = None` (`Quote.daml:201`, `Leg.daml:109`), so a maker leg cannot be told from any other venue leg.
+  3. **The issuer does not draw from the reserve.** Quotes lock from venue `shard` cash. For LP money to be what the maker quotes with, the issuer must lock from `reserve:maker` shards, and the proceeds must come back to that bucket.
+- **Rule:** the maker tab stays in the reference's not-deployed state (`EARN.notDeployed`), which says so on screen. Nothing is claimed that the ledger cannot show (D-015). Because every missing piece is in `abu-pm-main` (`Quote`, `Leg`), this lane does not change main.
+- **Design for `abu-pm-main` 0.5.0 (upgrade-compatible):**
+  - `Quote` gains `book : Optional Text` (None = the venue desk, as now). `Desk_IssueQuote` takes the shard's bucket as the book when it is `reserve:<id>`. `Quote_Accept` creates the venue leg with `beneficiaryRef = book`.
+  - `payOut` and `Leg_Merge` pay a leg whose `beneficiaryRef` is `Some "reserve:<id>"` into that bucket instead of `payout`/`netting`. `BuyQuote` locks from, and returns to, the same bucket.
+  - `abu-pm-tickets` (or a new `abu-pm-maker`) adds `MakerDesk.Maker_PublishNav`. Like `Earn_PublishNav`, it fetches and checks each input: `reserve:maker` cash, open maker `Quote`/`BuyQuote` locks at their locked amount, and maker-tagged venue `Leg`s at their backing until resolved. The auditor observes the statement, as for the ticket reserves.
+  - Ops: a second `ShardPool` over the `reserve:maker` bucket (the pool already takes a bucket filter, C8c). The pricer quotes the maker's lanes from it. `maker/{reads,writes}.ts` then read the maker statement and the seat's `LpShare`s, and route `maker-supply` and `maker-withdraw` through the existing Earn lane, the way the ticket reserves do.
+- **User-visible:** until 0.5.0, the maker tab shows the reference's not-deployed Earn panel (`EARN.notDeployed`). The range, parlay and boost Earn tabs are live.
+- **Approval:** default; overrulable.
+
+### K-093 — Every way a ticket ends leaves a receipt (`abu-pm-tickets` 0.1.2) (C8 block)
+- **Date / owner:** 2026-09-29 · C8e lane
+- **Evidence:** in 0.1.1, only settle and claim wrote a `SettlementReceipt` (K-030). The reference's portfolio History lists boosts that settled, knocked out or were cashed out, and its range and parlay screens keep ended tickets. `Test.Tickets.ExitReceipts` has 5 new money-gate scripts. `dpm test` passes all 160 scripts. `dpm upgrade-check --both` passes 0.1.1 → 0.1.2 with no warnings.
+- **Rule:**
+  - `Boost_KnockOut`, `BoostExit_Accept`, `Boost_RefundStale`, `Round_RefundStale` and `Ticket_VoidStale` each write the owner's receipt.
+  - `detail.result` gains two words beyond won/lost/void: `"knocked-out"` and `"sold"`. A stale refund or stale void is `"void"` with `resolved = None`.
+  - A stale parlay void is named by the first leg still undecided.
+  - For a boost, `payout` is what the owner took; `fee` is the premium, or 0 on a void or refund; `toReserve` is the front reclaimed plus the fee.
+  - `receiptDetailOk` (main) still names only the first three results. It is a helper, not a precondition, so main is unchanged.
+  - The seat's `/api/ledger/tickets/mine` returns the receipts. `@agari/markets` maps them to the reference's ended states:
+    - range, moonshot and parlay: `claimed`, `lost` or `void`;
+    - boost and short: `settled`, `closed` (cashed out) or `knocked-out`.
+- **User-visible:** a settled, voided, refunded, knocked-out or cashed-out ticket stays in "Your rounds", the parlay list and the portfolio's History, with the amounts it paid.
+- **Approval:** default; overrulable.
+
 ### K-100 — Games wired on `abu-pm-games` 0.1.0 as built; no Daml change (C9 block)
 - **Date / owner:** 2026-09-29 · C9b lane
 - **Evidence:** `daml/pm-tests/daml/Test/Games/{Duel,Season,Gate}.daml`, 18 games scripts green (`dpm test --files …`); `scripts/drive/games-duel-it.ts`; `docs/evidence/c9b-games.md`.

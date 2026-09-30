@@ -9,6 +9,7 @@ import type { Address } from "@agari/core/types";
 import { registeredSeatAddress } from "../provider/ledger-api";
 import { cantonNotLive } from "../stub/not-deployed";
 import { readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";
+import { endedParlays } from "../tickets/receipt-views";
 import { parlayReserveOf, parlayTicketOf, sharesOf } from "../tickets/views";
 
 /** Kept for the reference's export: what a parlay surface says where the ticket desk is not reachable. */
@@ -21,14 +22,16 @@ export async function getParlayReserveState(): Promise<Reading<ParlayReserveStat
 
 export async function listParlaysOf(wallet: Address): Promise<Reading<ParlayTicket[]>> {
   const mine = await readTicketsMine();
-  return mine.ok ? ok(mine.value.parlays.map((t) => parlayTicketOf(t, wallet)), mine.asOfMs) : mine;
+  // Live tickets, then the ended ones from their receipts (newest first).
+  return mine.ok ? ok([...mine.value.parlays.map((t) => parlayTicketOf(t, wallet)), ...endedParlays(mine.value.receipts, wallet)], mine.asOfMs) : mine;
 }
 
 export async function getParlay(parlayId: bigint): Promise<Reading<ParlayTicket | null>> {
   const mine = await readTicketsMine();
   if (!mine.ok) return mine;
+  const owner = registeredSeatAddress() ?? ("" as Address);
   const t = mine.value.parlays.find((x) => ticketIdOf(x.cid) === parlayId);
-  return ok(t ? parlayTicketOf(t, registeredSeatAddress() ?? ("" as Address)) : null, mine.asOfMs);
+  return ok(t ? parlayTicketOf(t, owner) : (endedParlays(mine.value.receipts, owner).find((x) => x.parlayId === parlayId) ?? null), mine.asOfMs);
 }
 
 export async function getParlaySharesOf(_wallet: Address): Promise<Reading<ProviderShares>> {

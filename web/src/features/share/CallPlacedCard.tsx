@@ -4,7 +4,7 @@ import { ADVICE_COPY } from "@agari/core/copy";
 import { formatBaseUnits, formatClock, formatUtc, remainingSec, secToMs } from "@agari/core/units";
 import { txUrl } from "@agari/core/urls";
 import type { ReactNode } from "react";
-import { callBandLabel, callDirLabel, callMultiple, callWinBase, shortCallId, type CallCard } from "./call-card";
+import { callBandLabel, callDirLabel, callMultiple, callWinBase, callWinsIf, shortCallId, type CallCard } from "./call-card";
 import { SHARE } from "./copy";
 import { ShareCallButton } from "./ShareCallButton";
 
@@ -56,7 +56,7 @@ export function CallPlacedCard({ card, nowMs, actions }: CallPlacedCardProps) {
             <span className="call-eyebrow-note">{SHARE.call.placed}</span>
           </div>
           <h3 className="call-band">{callBandLabel(card)}</h3>
-          <p className="call-wins-if">{SHARE.call.winsIf(card.asset, card.side)}</p>
+          <p className="call-wins-if">{callWinsIf(card)}</p>
 
           <div className="call-wager">
             <div className="min-w-0">

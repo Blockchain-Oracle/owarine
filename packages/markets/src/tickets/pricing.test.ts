@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { leverageParams, parlayParams, rangeParams, riskParamsFor, TICKET_ONE } from "./params";
-import { barrierFor, boostMark, boostTermsOk, priceBoost, priceParlay, priceRange, validUntilFor, type TicketWindow } from "./pricing";
+import { barrierFor, boostMark, boostMarkBase, boostTermsOk, priceBoost, priceParlay, priceRange, validUntilFor, type TicketWindow } from "./pricing";
 
 const NOW = 1_790_000_000;
 const ONE = TICKET_ONE;
@@ -108,5 +108,20 @@ describe("params and quote life", () => {
   });
   it("puts no barrier on a position with nothing fronted", () => {
     expect(barrierFor(window(), "up", 0n, 10n, NOW)).toBe(0n);
+  });
+});
+
+describe("boostMarkBase (C8e: the mark a cash-out can get)", () => {
+  // The venue quotes fair ± 30 ticks: at fair 870 it sells Up at 900 and Down at 160, so it buys Up back at 840.
+  const ladder = { up: [[900, 100n]] as [number, bigint][], down: [[160, 100n]] as [number, bigint][] };
+  const up = { side: "up" as const, lots: 87n, cashUnit: 1000n };
+  it("marks at the venue's bids, so the 97% cash-out floor sits under what the exit pays", () => {
+    expect(boostMarkBase(up, ladder, 870)).toBe(87n * 840n * 1000n);
+    expect((boostMarkBase(up, ladder, 870)! * 9_700n) / 10_000n).toBeLessThanOrEqual(87n * 840n * 1000n);
+  });
+  it("falls back to the fair mid when the bids cannot take the whole position, and to nothing without either", () => {
+    expect(boostMarkBase({ ...up, lots: 500n }, ladder, 870)).toBe(500n * 870n * 1000n);
+    expect(boostMarkBase({ side: "down", lots: 10n, cashUnit: 1000n }, undefined, 870)).toBe(10n * 130n * 1000n);
+    expect(boostMarkBase(up, undefined, undefined)).toBeNull();
   });
 });

@@ -8,6 +8,8 @@ interface HeroYesNoProps {
   upCents: number | null;
   downCents: number | null;
   onSelect: (marketId: MarketId, side: Side) => void;
+  /** The side words; UP/DOWN by default, Yes/No on a committee event (C6e). */
+  words?: { up: string; down: string };
 }
 
 const price = (cents: number | null): string => (cents === null ? HERO_HEAD.noPrice : `${cents}¢`);
@@ -19,7 +21,7 @@ const price = (cents: number | null): string => (cents === null ? HERO_HEAD.noPr
  * part-04.css shows them at exactly that breakpoint. Tapping one is the choice:
  * it selects the side, which opens the ticket drawer.
  */
-export function HeroYesNo({ marketId, upCents, downCents, onSelect }: HeroYesNoProps) {
+export function HeroYesNo({ marketId, upCents, downCents, onSelect, words = { up: MARKETS.up, down: MARKETS.down } }: HeroYesNoProps) {
   return (
     <div className="hero-yesno">
       <button
@@ -29,7 +31,7 @@ export function HeroYesNo({ marketId, upCents, downCents, onSelect }: HeroYesNoP
         onClick={() => onSelect(marketId, "up")}
         data-cursor="hover"
       >
-        <span className="hyn-label">{MARKETS.up}</span>
+        <span className="hyn-label">{words.up}</span>
         <span className="hyn-price">{price(upCents)}</span>
       </button>
       <button
@@ -39,7 +41,7 @@ export function HeroYesNo({ marketId, upCents, downCents, onSelect }: HeroYesNoP
         onClick={() => onSelect(marketId, "down")}
         data-cursor="hover"
       >
-        <span className="hyn-label">{MARKETS.down}</span>
+        <span className="hyn-label">{words.down}</span>
         <span className="hyn-price">{price(downCents)}</span>
       </button>
     </div>

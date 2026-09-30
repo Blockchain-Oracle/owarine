@@ -1,7 +1,7 @@
 import { cardPnl, type CardReceipt, type DeckCard, type MatchOutcome } from "@agari/core/games";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { DUEL } from "@/features/games/duel/copy";
+import { DUEL, withUnit } from "@/features/games/duel/copy";
 import { PulseDot } from "~/features/games/frame";
 import { FONT } from "~/theme";
 import { cadenceLabel } from "../stage";
@@ -73,7 +73,7 @@ export function ReceiptRows({ receipts, cards, you, money, symbol }: {
               <Key>{card ? cadenceLabel(card.intervalSec) : ""}</Key>
               <Key>{receipt.player === you ? DUEL.result.you : DUEL.result.opponent}</Key>
               <Text style={[styles.foot, styles.wide, { color: color.inkSecondary }]}>
-                {DUEL.result.cost} {money(receipt.costBase)} · {DUEL.result.payout} {settled ? money(receipt.payoutBase) : DUEL.result.unsettled} {symbol}
+                {DUEL.result.cost} {money(receipt.costBase)} · {DUEL.result.payout} {settled ? withUnit(money(receipt.payoutBase), symbol) : `${DUEL.result.unsettled} ${symbol}`}
               </Text>
               {pnl !== null ? <Text style={[styles.foot, { color: pnl > 0n ? color.profit : pnl < 0n ? color.loss : color.inkSecondary }]}>{signed(pnl, money)}</Text> : null}
             </View>

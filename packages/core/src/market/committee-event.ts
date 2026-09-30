@@ -26,6 +26,12 @@ export type EventOutcome = "yes" | "no";
 
 export const isEventKey = (key: string): boolean => key.startsWith(EVENT_KEY_PREFIX);
 
+/** Whether a listed Window is a committee event (its Series key, which the app carries as `asset`, is `EVT-…`). */
+export const isCommitteeMarket = (market: { asset: string; kind?: "price" | "event" }): boolean => market.kind === "event" || isEventKey(market.asset);
+
+/** An event's display id: `EVT-DEMO-1` → `DEMO-1`. */
+export const eventLabelOf = (key: string): string => (isEventKey(key) ? key.slice(EVENT_KEY_PREFIX.length) : key);
+
 /** The event outcome a resolved Window's side means (Up = YES); null for a void. */
 export const eventOutcomeOf = (side: "SideUp" | "SideDown" | null): EventOutcome | null => (side === null ? null : side === "SideUp" ? "yes" : "no");
 

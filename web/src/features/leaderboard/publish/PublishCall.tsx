@@ -31,7 +31,7 @@ export function PublishCall({ marketId, address, source, ticket }: PublishCallPr
           ✓
         </span>
         {PUBLISH.published}{" "}
-        <button type="button" className="type-caption text-accent underline" disabled={retract.isPending} onClick={() => retract.mutate({ marketId })} data-cursor="hover">
+        <button type="button" className="type-caption text-accent underline" disabled={retract.isPending} onClick={() => retract.mutate({ marketId, product: ticket?.product ?? null })} data-cursor="hover">
           {retract.isPending ? PUBLISH.retracting : PUBLISH.retract}
         </button>
       </span>

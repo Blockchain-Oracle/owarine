@@ -11,6 +11,7 @@ import { nowMs } from "../provider/clock";
 import { registeredSeatAddress } from "../provider/ledger-api";
 import { asReading, rangeCall, readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";
 import { rangeParams } from "../tickets/params";
+import { endedRounds } from "../tickets/receipt-views";
 import { rangeReserveOf, rangeRoundOf, sharesOf } from "../tickets/views";
 import type { RangeCapacity } from "./moonshot";
 import type { RangeBand, RangePreview, RangeWindowBasis } from "./read";
@@ -23,14 +24,16 @@ export async function getRangeReserveState(): Promise<Reading<RangeReserveState 
 export async function listRangesOf(wallet: Address): Promise<Reading<RangeRound[]>> {
   const mine = await readTicketsMine();
   if (!mine.ok) return mine;
-  return ok(mine.value.rounds.map((r) => rangeRoundOf(r, wallet)), mine.asOfMs);
+  // Live rounds, then the ended ones from their receipts (newest first), so a settled round stays in history.
+  return ok([...mine.value.rounds.map((r) => rangeRoundOf(r, wallet)), ...endedRounds(mine.value.receipts, wallet)], mine.asOfMs);
 }
 
 export async function getRange(roundId: bigint): Promise<Reading<RangeRound | null>> {
   const mine = await readTicketsMine();
   if (!mine.ok) return mine;
+  const owner = registeredSeatAddress() ?? ("" as Address);
   const r = mine.value.rounds.find((x) => ticketIdOf(x.cid) === roundId);
-  return ok(r ? rangeRoundOf(r, registeredSeatAddress() ?? ("" as Address)) : null, mine.asOfMs);
+  return ok(r ? rangeRoundOf(r, owner) : (endedRounds(mine.value.receipts, owner).find((x) => x.roundId === roundId) ?? null), mine.asOfMs);
 }
 
 export async function getRangeSharesOf(_wallet: Address): Promise<Reading<ProviderShares>> {

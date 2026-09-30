@@ -3,6 +3,8 @@ import { BPS_PER_X } from "@agari/core/leverage";
 import { belowMinStake } from "@agari/core/sizing";
 import { formatBaseUnits } from "@agari/core/units";
 import { Pressable, StyleSheet, Text } from "react-native";
+import { isCommitteeMarket } from "@agari/core/market";
+import { EVENT_SIDE_WORD } from "@/features/markets/events/copy";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import type { TicketSelection } from "@/features/markets/ticket/types";
 import { useTicketComposer } from "@/features/markets/ticket/useTicketComposer";
@@ -28,6 +30,10 @@ import { TicketDrawer } from "./TicketDrawer";
 import { tkType, useTk } from "./tk";
 
 const NOT_PLACED = "Not placed";
+
+
+/** C6e (K-070): a committee event reads Yes/No (Up = YES); it has no price to band or knock out, so range and leverage stay off. */
+const sideWords = (market: { asset: string; kind?: "price" | "event" }) => (isCommitteeMarket(market) ? EVENT_SIDE_WORD : SIDE_WORD);
 
 /**
  * web's Ticket in its phone drawer (`Ticket.tsx` over `useTicketComposer`), block for block: mode · side (or the
@@ -61,11 +67,11 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
   ) : c.isRange && !c.regionHeld ? (
     <BlockedButton blocker={c.range.blocker} ctx={c.range.ctx} tone="primary" label={rangeCtaLabel(c)} onPress={() => said(c.range.place())} />
   ) : c.boosted ? (
-    <BlockedButton blocker={c.blocker} ctx={c.ctx} tone={c.side ?? "primary"} label={c.side && c.boost.quote ? `${LEVERAGE.cta.buy(SIDE_WORD[c.side], c.multiple)} ${money(c.boost.quote.stakeBase)}` : TICKET.buyPlain} onPress={() => said(c.placeBoost())} />
+    <BlockedButton blocker={c.blocker} ctx={c.ctx} tone={c.side ?? "primary"} label={c.side && c.boost.quote ? `${LEVERAGE.cta.buy(sideWords(c.market)[c.side], c.multiple)} ${money(c.boost.quote.stakeBase)}` : TICKET.buyPlain} onPress={() => said(c.placeBoost())} />
   ) : c.privateMode ? (
     <PrivateCta priv={c.priv} side={c.side} decimals={c.decimals} symbol={c.symbol} ctx={c.ctx} />
   ) : (
-    <BlockedButton blocker={c.blocker} ctx={c.ctx} tone={c.side ?? "primary"} label={c.side && c.displayed ? `${TICKET.buy(SIDE_WORD[c.side])} ${money(c.displayed.maxCostBase)}` : TICKET.buyPlain} onPress={c.place} />
+    <BlockedButton blocker={c.blocker} ctx={c.ctx} tone={c.side ?? "primary"} label={c.side && c.displayed ? `${TICKET.buy(sideWords(c.market)[c.side])} ${money(c.displayed.maxCostBase)}` : TICKET.buyPlain} onPress={c.place} />
   );
   const note = [c.boosted ? LEVERAGE.strip.knockout(c.multiple) : null, c.laneGuard.earnings].filter(Boolean).join(" ") || null;
 
@@ -77,12 +83,12 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
         <RangePlaced placed={c.range.placed} onAnother={c.reset} />
       ) : (
         <>
-          <BetModes mode={c.mode} onChange={c.setMode} rangeAvailable={c.rangeReserve !== null} />
+          <BetModes mode={c.mode} onChange={c.setMode} rangeAvailable={c.rangeReserve !== null && !isCommitteeMarket(c.market)} />
           {c.isRange ? (
             <RangeBand c={c} />
           ) : (
             <>
-              <SideSegments side={c.side} onSelect={c.t.selectSide} />
+              <SideSegments side={c.side} onSelect={c.t.selectSide} words={sideWords(c.market)} />
               <BetAgainstToggle />
             </>
           )}
@@ -95,7 +101,7 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
             decimals={c.decimals}
             symbol={c.symbol}
             belowMin={c.stakeBase > 0n && belowMinStake(c.stakeBase, c.decimals)}
-            leverage={c.isRange ? null : { value: c.multiple, onChange: c.setMultiple, available: c.leverageReserve !== null, maxMultiple: c.leverageReserve ? c.leverageReserve.params.maxLeverageBps / BPS_PER_X : 1, lockedReason: c.leverageLock }}
+            leverage={c.isRange ? null : { value: c.multiple, onChange: c.setMultiple, available: c.leverageReserve !== null && !isCommitteeMarket(c.market), maxMultiple: c.leverageReserve ? c.leverageReserve.params.maxLeverageBps / BPS_PER_X : 1, lockedReason: c.leverageLock }}
           />
           {!c.boosted && !c.privateMode && !c.isRange && c.displayed?.partial && c.displayed.fillableStakeBase > 0n ? (
             <Pressable onPress={() => c.t.setStakeBase(c.displayed!.fillableStakeBase)} accessibilityRole="button" style={styles.depth}>

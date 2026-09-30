@@ -95,6 +95,11 @@ export interface DuelViewOf {
   picks: ArenaPick[];
   creatorPnlBase: bigint;
   challengerPnlBase: bigint;
+  /**
+   * C9d: a decided match's winner as the ledger recorded it (`DuelResult.outcome`: `Won` → the winner, `Tied` → null).
+   * A result keeps no picks, so its winner cannot be replayed from them; absent on a live match and on a refund.
+   */
+  decidedWinner?: Address | null;
 }
 
 export function viewOfOpen(o: DuelOpenC, addressOf: AddressOf): DuelViewOf {
@@ -145,5 +150,6 @@ export function viewOfResult(r: DuelResultC, addressOf: AddressOf, deck?: { deck
     picks: [],
     creatorPnlBase: r.creatorPnl,
     challengerPnlBase: r.challengerPnl,
+    ...(r.outcome.tag === "Won" ? { decidedWinner: addressOf(r.outcome.winner) } : r.outcome.tag === "Tied" ? { decidedWinner: null } : {}),
   };
 }

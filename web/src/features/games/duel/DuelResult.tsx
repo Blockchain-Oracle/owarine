@@ -10,7 +10,7 @@ import { useVenue } from "@/features/markets";
 import { LockedInMark } from "../art/PixelArt";
 import { useGames } from "../GamesProvider";
 import { cadenceLabel } from "../stage/SwipeDeck";
-import { DUEL } from "./copy";
+import { DUEL, withUnit } from "./copy";
 import type { DuelCard } from "./duel-card";
 import { DuelResultModal } from "./DuelResultModal";
 import { useArenaWrites } from "./useArenaWrites";
@@ -269,7 +269,7 @@ function Row({
       <span className="du-k">{card ? cadenceLabel(card.intervalSec) : ""}</span>
       <span className="du-k">{receipt.player === you ? DUEL.result.you : DUEL.result.opponent}</span>
       <span className="du-foot">
-        {DUEL.result.cost} {money(receipt.costBase)} · {DUEL.result.payout} {receipt.payoutBase === null ? DUEL.result.unsettled : money(receipt.payoutBase)} {symbol}
+        {DUEL.result.cost} {money(receipt.costBase)} · {DUEL.result.payout} {receipt.payoutBase === null ? `${DUEL.result.unsettled} ${symbol}` : withUnit(money(receipt.payoutBase), symbol)}
       </span>
       <span className={`du-foot ${sign(pnl)}`}>{pnl === null ? "" : signed(pnl, money)}</span>
     </li>

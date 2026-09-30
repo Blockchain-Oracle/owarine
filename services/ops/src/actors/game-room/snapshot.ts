@@ -110,12 +110,14 @@ function outcomeOf(view: ArenaMatchView, receipts: readonly CardReceipt[]): { ou
     potPerPlayerBase: match.potBase,
     incomplete: incompleteOf(match),
   });
+  // C9d: a decided match names its winner on the ledger (`DuelResult`), and a result keeps no picks to replay: its
+  // masks read empty, which the replay took for "neither finished" and showed a decisive duel as a split pot.
   const chain: MatchOutcome = {
-    winner: settled.outcome.winner,
+    winner: view.decidedWinner !== undefined ? view.decidedWinner : settled.outcome.winner,
     pnlBase: { [match.creator]: view.creatorPnlBase, [match.challenger]: view.challengerPnlBase },
   };
   const mine = settled.outcome.pnlBase;
-  const agrees = mine[match.creator] === view.creatorPnlBase && mine[match.challenger] === view.challengerPnlBase;
+  const agrees = view.picks.length === 0 || (mine[match.creator] === view.creatorPnlBase && mine[match.challenger] === view.challengerPnlBase);
   const warning = agrees
     ? null
     : `${match.matchId}: replayed PnL ${mine[match.creator]}/${mine[match.challenger]} disagrees with the arena's ${view.creatorPnlBase}/${view.challengerPnlBase}`;

@@ -20,6 +20,8 @@ export interface ArenaMatchView {
   picks: readonly ArenaPick[];
   creatorPnlBase: bigint;
   challengerPnlBase: bigint;
+  /** C9d: a decided match's winner as the ledger recorded it (null on a tie); absent while live or refunded. */
+  decidedWinner?: Address | null;
 }
 
 /** The arena's tunables, its priced tiers and whether it is taking new matches. */
@@ -71,8 +73,8 @@ export async function getArenaMatch(matchId: Hash32): Promise<Reading<ArenaMatch
   const r = await arenaSource().match(matchId);
   if (!r.ok) return r;
   if (!r.value) return ok(null, r.asOfMs);
-  const { match, cards, picks, creatorPnlBase, challengerPnlBase } = r.value;
-  return ok({ match, cards, picks, creatorPnlBase, challengerPnlBase }, r.asOfMs);
+  const { match, cards, picks, creatorPnlBase, challengerPnlBase, decidedWinner } = r.value;
+  return ok({ match, cards, picks, creatorPnlBase, challengerPnlBase, ...(decidedWinner !== undefined ? { decidedWinner } : {}) }, r.asOfMs);
 }
 
 /**

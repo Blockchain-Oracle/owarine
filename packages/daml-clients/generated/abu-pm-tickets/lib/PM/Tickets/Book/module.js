@@ -165,7 +165,7 @@ exports.Product = {
 exports.RiskBook = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Book:RiskBook',
-    templateIdWithPackageId: '#933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b:PM.Tickets.Book:RiskBook',
+    templateIdWithPackageId: '#f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d:PM.Tickets.Book:RiskBook',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -261,7 +261,7 @@ exports.RiskBook = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.RiskBook, ['933bea39951fd68c75f70508cdfd5db3b7fb233ada8a9bf4c8b88d3d9221783b', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.RiskBook, ['f5a944b16b225d2a28b847fc165b20f3b23b6fcaace4a66a11186788a74fb56d', '#abu-pm-tickets']);
 
 exports.RiskParams = {
   decoder: damlTypes.lazyMemo(function () {

@@ -38,6 +38,7 @@ export const STATUS = {
     paused: "Lanes · paused",
     faucet: "Faucet budget · SOL and credits",
     sponsor: "Sponsor budget",
+    seats: "Guest seats · pool",
     ops: (actor: string) => `Ops · ${actor}`,
     price: (asset: string) => `Price feed · ${asset}`,
     store: "Database · index, archive and social store",
@@ -55,6 +56,7 @@ export const STATUS = {
     { id: "resolver", actor: "resolver", name: "resolver" },
     { id: "pricer", actor: "pricer", name: "pricer" },
     { id: "settler", actor: "settler", name: "settler" },
+    { id: "seat-drain", actor: "seat-drain", name: "seat drain" },
     { id: "projector", actor: "projector", name: "projector" },
     { id: "price-archive", actor: "price-archive", name: "price archive" },
   ],
@@ -132,6 +134,13 @@ export const STATUS = {
     noLanes: "the roller reports no lanes",
 
     faucetOff: "not set up on this deployment",
+
+    /** C9d: "6 seats · 2 free · 3 leased · 1 draining · longest draining 3m 10s, holds 1 leg". */
+    seats: (total: number, free: number, leased: number, draining: number) => `${plural(total, "seat")} · ${n(free)} free · ${n(leased)} leased · ${n(draining)} draining`,
+    seatsDraining: (age: string | null, note: string | null) => `longest draining${age === null ? "" : ` ${age}`}${note === null ? ", not checked yet" : `, holds ${note}`}`,
+    seatsWaiting: (count: number) => `${plural(count, "visitor")} waiting`,
+    seatsNone: "no guest seat in the pool",
+    seatsOff: (why: string) => `no seat pool on this deployment · ${why}`,
     faucet: (sol: string, solLeft: string, tusdcLeft: string | null) =>
       `${sol} SOL · ${solLeft} SOL left today · ${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
   },

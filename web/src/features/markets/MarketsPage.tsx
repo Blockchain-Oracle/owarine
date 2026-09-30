@@ -27,10 +27,10 @@ function renderVerdict(selection: MarketsSelection) {
   return <LiveVerdict marketId={selection.marketId} />;
 }
 
-/** §03 on `/markets/<id>`: the same ledger query as Alice, Bob, an outsider and (once leased) your own seat. */
+/** §04 on `/markets/<id>` (§03 is the events board, C6e): the same ledger query as Alice, Bob, an outsider and (once leased) your own seat. */
 function LedgerViewSection({ selection }: { selection: MarketsSelection }) {
   const lease = useSeatLeaseState();
-  return <LiveViewSwitcher index="03" marketId={selection.marketId} symbol={collateralOrNull()?.symbol ?? "credits"} withSeat={leasedOf(lease.view) !== null} />;
+  return <LiveViewSwitcher index="04" marketId={selection.marketId} symbol={collateralOrNull()?.symbol ?? "credits"} withSeat={leasedOf(lease.view) !== null} />;
 }
 
 const renderLedgerView = (selection: MarketsSelection) => <LedgerViewSection selection={selection} />;

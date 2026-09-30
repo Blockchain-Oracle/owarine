@@ -1,0 +1,112 @@
+-- | abu-pm-tickets 0.1.2 (K-093): every way a ticket ends leaves its owner
+-- a `SettlementReceipt`, not only a settle or claim. A boost knocked out or
+-- sold back to the venue, and a stale refund or void of any ticket, keep
+-- the ticket in the owner's history with the money it moved.
+module Test.Tickets.ExitReceipts where
+
+import Daml.Script
+import DA.Assert ((===))
+import PM.Publication
+import PM.Tickets.Book
+import PM.Tickets.Boost
+import PM.Tickets.Parlay
+import PM.Tickets.Range
+import PM.Types
+import Test.Setup
+import Test.Tickets.Boost (barrier, boostUp, printsFrom)
+import Test.Tickets.Fixture
+import Test.Tickets.Range (hi, lo)
+import Test.Tickets.Receipts (detailOf, receiptsOf)
+
+-- The owner's single receipt, and the cash it says they took is the cash
+-- they hold.
+onlyReceipt : Party -> Script (SettlementReceipt, ReceiptDetail)
+onlyReceipt p = do
+  [r] <- receiptsOf p
+  d <- detailOf r
+  cashOf p >>= (=== r.payout)
+  pure (r, d)
+
+testKnockOutReceipt = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- boostUp tw book w.alice "b1"
+  (p, _) <- acceptBoost w w.alice q 1026
+  let b = plus t0 60
+  at (plus b 10)
+  qs <- printsFrom w [w.o1, w.o2, w.o3] b [barrier - 1, barrier - 1, barrier]
+  sh <- shard w 1100
+  _ <- submit w.venue do exerciseCmd p Boost_KnockOut with observedAt = b; quoteCids = qs; shardCid = sh
+  (r, d) <- onlyReceipt w.alice
+  (r.product, r.pairId, r.outcome, r.resolved) === (Some "boost", "b1", SideUp, None)
+  (r.cost, r.payout, r.fee, r.backingShare) === (1026, 1100 - 1025, 51, 2000)
+  (d.pick, d.stake, d.toReserve, d.result) === ("Up @20000bps", 1026, 1025 + 51, "knocked-out")
+
+testSaleReceipt = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- boostUp tw book w.alice "b1"
+  (p, _) <- acceptBoost w w.alice q 1026
+  sh <- shard w 2400
+  (xq, _) <- submit w.venue do exerciseCmd p Boost_OfferExit with shardCid = sh; exitTicks = 600; validUntil = plus t0 60
+  _ <- submit w.alice do exerciseCmd xq BoostExit_Accept
+  (r, d) <- onlyReceipt w.alice
+  (r.product, r.resolved, r.cost, r.payout, r.fee) === (Some "boost", None, 1026, 2400 - 1025, 51)
+  (d.toReserve, d.result) === (1025 + 51, "sold")
+
+testBoostStaleReceipt = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw BoostProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- boostUp tw book w.alice "b1"
+  (p, _) <- acceptBoost w w.alice q 1026
+  at tw.win.t.refundAfter
+  _ <- submit w.alice do exerciseCmd p Boost_RefundStale
+  (r, d) <- onlyReceipt w.alice
+  (r.resolved, r.payout, r.fee) === (None, 1026, 0)
+  (d.toReserve, d.result) === (1025, "void")
+
+testRangeStaleReceipt = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw RangeProduct
+  _ <- recordOpen w tw.win px
+  (_, q) <- issueRange tw book w.alice RangeTicket Inside lo hi 400 1000 (plus t0 40)
+  ra <- acceptRange w w.alice q 400
+  Some round <- queryContractId w.alice ra
+  at round.refundAfter
+  _ <- submit w.alice do exerciseCmd ra Round_RefundStale
+  (r, d) <- onlyReceipt w.alice
+  (r.product, r.marketId, r.outcome, r.resolved) === (Some "range", tw.win.t.marketId, SideUp, None)
+  (r.cost, r.payout) === (400, 400)
+  d === ReceiptDetail with
+    reserveId = rid; marketIds = [tw.win.t.marketId]; pick = "Inside " <> show lo <> ".." <> show hi
+    stake = 400; toReserve = 600; result = "void"
+  assert (receiptDetailOk d)
+
+testParlayStaleReceipt = script do
+  tw <- mkTickets
+  let w = tw.w
+  book <- mkBook tw ParlayProduct
+  op0 <- recordOpen w tw.win px
+  (_, q) <- issueParlay tw book w.alice [(tw.win.terms, SideUp), (tw.win1.terms, SideDown)] 200 1000 (plus t0 40)
+  t <- acceptParlay w w.alice q 200
+  _ <- recordOpen w tw.win1 px
+  -- the first leg wins; the second never resolves
+  r0 <- resolveAt w tw.win op0 (px + 5)
+  LegWon t <- submit w.venue do exerciseCmd t Ticket_ResolveLeg with resolutionCid = r0
+  Some ticket <- queryContractId w.alice t
+  at ticket.voidAfter
+  _ <- submit w.alice do exerciseCmd t Ticket_VoidStale
+  (r, d) <- onlyReceipt w.alice
+  -- named by the first leg still undecided
+  (r.product, r.marketId, r.outcome, r.resolved) === (Some "parlay", tw.win1.t.marketId, SideDown, None)
+  (r.cost, r.payout) === (200, 200)
+  d === ReceiptDetail with
+    reserveId = rid; marketIds = [tw.win.t.marketId, tw.win1.t.marketId]; pick = "Up,Down"
+    stake = 200; toReserve = 800; result = "void"

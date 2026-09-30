@@ -4,7 +4,7 @@
  */
 import { diagnosis, type DiagnosisKind } from "@agari/core/types";
 import type { Command } from "@agari/ledger";
-import { failureText, isInactive, isIndefinite, refusalId } from "@agari/markets/ops/canton";
+import { failureText, inactiveCids, isInactive, isIndefinite, refusalId } from "@agari/markets/ops/canton";
 import type { TicketReserveId } from "@agari/markets/ops/tickets";
 import type { LadderEntry } from "../market-maker/seat/ladder-board";
 import { PoolBusyError, type Lease, type ShardPool } from "../quote-issuer/pool";
@@ -68,7 +68,8 @@ export async function onReserve(d: Desk, reserve: TicketReserveId, held: Readonl
         return out;
       } catch (error) {
         // The book or statement moved under us (a publish from another process): read again, once.
-        if (attempt === 0 && isInactive(error) && [l.navCid, l.bookCid].some((c) => c && failureText(error).includes(c))) {
+        // (Read from the whole rejection: the logged `failureText` is cut at 240 characters, mid contract id.)
+        if (attempt === 0 && isInactive(error) && inactiveCids(error, [l.navCid, l.bookCid].filter((c): c is string => c !== null)).length > 0) {
           await d.refresh();
           continue;
         }

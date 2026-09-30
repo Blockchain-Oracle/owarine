@@ -26,7 +26,8 @@ export function findMarket(lanes: LaneSet | null, marketId: MarketId | null): Ev
     const hit = lane.markets.find((m) => m.marketId === marketId);
     if (hit) return hit;
   }
-  return null;
+  // C6e (K-070): committee events ride the same lane set beside the lanes; a tap on one selects it at once.
+  return lanes.events?.find((m) => m.marketId === marketId) ?? null;
 }
 
 function isDead(market: EventMarket, nowMs: number): boolean {

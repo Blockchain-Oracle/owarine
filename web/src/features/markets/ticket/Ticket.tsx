@@ -14,6 +14,8 @@ import { BandControl, RANGE, RangePlaced, usdBand } from "@/features/range";
 import { RegionNote } from "@/features/region/RegionNote";
 import { TICKET } from "@/lib/copy";
 import { CLOSED } from "@/lib/copy-closed";
+import { isCommitteeMarket } from "@agari/core/market";
+import { EVENT_SIDE_WORD } from "../events/copy";
 import { SIDE_WORD } from "../side-styles";
 import { AccountGate } from "./AccountGate";
 import { AmountBlock } from "./AmountBlock";
@@ -53,6 +55,10 @@ export function Ticket({ selection, drawer }: TicketProps) {
 
   // K-010a (direction B) on the plain order lane: the firm price on its own row with its ring, and StepProgress in
   // the Buy button's place while the write is open, so nothing can be pressed twice.
+  // C6e (K-070): a committee event is a Yes/No call on the ladder. It has no price to band (range) or knock out (boost)
+  // and no chart, so those controls stay off and the sides read Yes/No.
+  const event = isCommitteeMarket(market);
+  const words = event ? EVENT_SIDE_WORD : SIDE_WORD;
   const plain = !isRange && !boosted && !privateMode;
   const writing = plain && bet.state.pending;
   const held = plain ? bet.state.held : null;
@@ -75,7 +81,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
     <BlockedButton blocker={blocker} ctx={ctx} tone={side ?? "primary"} size="lg" className="w-full" onClick={() => void placeBoost()}>
       {side && boost.quote ? (
         <>
-          {LEVERAGE.cta.buy(SIDE_WORD[side], multiple)} <Money value={boost.quote.stakeBase} decimals={decimals} symbol={symbol} />
+          {LEVERAGE.cta.buy(words[side], multiple)} <Money value={boost.quote.stakeBase} decimals={decimals} symbol={symbol} />
         </>
       ) : (
         TICKET.buyPlain
@@ -84,7 +90,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
   ) : privateMode ? (
     <PrivateCta {...privParts} ctx={ctx} />
   ) : (
-    <TicketCta blocker={blocker} ctx={ctx} side={side} costBase={displayed?.maxCostBase ?? null} decimals={decimals} symbol={symbol} onClick={place} />
+    <TicketCta blocker={blocker} ctx={ctx} side={side} costBase={displayed?.maxCostBase ?? null} decimals={decimals} symbol={symbol} onClick={place} words={words} />
   );
 
   return (
@@ -97,7 +103,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
           <div className="tk-drawer-head">
             <TicketHeader market={market} phase={phase} nowMs={t.nowMs} />
           </div>
-          <TicketMiniChart market={market} />
+          {!event && <TicketMiniChart market={market} />}
         </>
       )}
       {booked ? (
@@ -106,12 +112,12 @@ export function Ticket({ selection, drawer }: TicketProps) {
         <RangePlaced placed={range.placed} onAnother={reset} />
       ) : (
         <>
-          <BetModes mode={mode} onChange={setMode} rangeAvailable={rangeReserve !== null} />
+          <BetModes mode={mode} onChange={setMode} rangeAvailable={rangeReserve !== null && !event} />
           {isRange ? (
             <BandControl asset={market.asset} intervalSec={market.intervalSec} draft={range.draft} side="inside" spot={range.spot} />
           ) : (
             <>
-              <SideSegments side={side} onSelect={t.selectSide} />
+              <SideSegments side={side} onSelect={t.selectSide} words={words} />
               {/* A-1a: the bearish mode. A band has no side to put first, so it is offered only on a direction call. */}
               <BetAgainstToggle />
             </>
@@ -125,7 +131,7 @@ export function Ticket({ selection, drawer }: TicketProps) {
             decimals={decimals}
             symbol={symbol}
             belowMin={stakeBase > 0n && belowMinStake(stakeBase, decimals)}
-            leverage={isRange ? null : { value: multiple, onChange: setMultiple, available: leverageReserve !== null, maxMultiple: leverageReserve ? leverageReserve.params.maxLeverageBps / BPS_PER_X : 1, lockedReason: leverageLock }}
+            leverage={isRange ? null : { value: multiple, onChange: setMultiple, available: leverageReserve !== null && !event, maxMultiple: leverageReserve ? leverageReserve.params.maxLeverageBps / BPS_PER_X : 1, lockedReason: leverageLock }}
             costBase={costForSr}
           />
           {!boosted && !privateMode && !isRange && displayed?.partial && displayed.fillableStakeBase > 0n && (

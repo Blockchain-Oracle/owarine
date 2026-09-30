@@ -3,7 +3,7 @@ import type { Hash32 } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
 import { useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { DUEL } from "@/features/games/duel/copy";
+import { DUEL, withUnit } from "@/features/games/duel/copy";
 import type { DuelRoom } from "@/features/games/duel/useDuelRoom";
 import { Cta, PulseDot } from "~/features/games/frame";
 import { FONT } from "~/theme";
@@ -23,7 +23,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   const p = usePicking(state, wallet, room);
   const { busy, progress, canSign, lock } = p.writes;
   const money = (base: bigint | null) => (base === null || p.decimals === null ? "—" : formatBaseUnits(base, p.decimals, { maxDp: 2, minDp: 0 }));
-  const stake = `${money(p.stakeBase)} ${p.symbol}`;
+  const stake = withUnit(money(p.stakeBase), p.symbol);
   const nowMs = p.nowMs || undefined;
   const renderFace = useCallback((card: DeckCard, place: DeckPlace) => <DuelFace card={card} place={place} nowMs={nowMs} stake={stake} />, [nowMs, stake]);
 

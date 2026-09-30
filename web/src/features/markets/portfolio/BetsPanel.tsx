@@ -1,11 +1,11 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
+import { ok, isOk } from "@agari/core/schemas";
 import { marketsProvider } from "@agari/markets";
 import { keys, usePositions } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { Fragment, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Pager, SectionHeader } from "@/components/chrome";
 import { ReadingBoundary } from "@/components/states";
 import { LEVERAGE, useLeverageBetItems } from "@/features/leverage";
@@ -56,7 +56,18 @@ function TabButton({ tab, current, count, label, onPick }: { tab: Tab; current: 
  * as the other side (verified against chain balances). A settled row therefore never depends on the
  * open-position engine, and the two cannot disagree about a Window that has closed.
  */
-export function BetsPanel({ symbol, index, history }: BetsPanelProps) {
+/** Boost and short receipts are shown once, in the reference's boost rows below the Windows, not again as rounds (K-093). */
+const BOOST_PRODUCTS: ReadonlySet<string> = new Set(["boost", "short"]);
+
+function withoutBoostRounds(history: HistoryReading): HistoryReading {
+  const r = history.reading;
+  if (!r || !r.ok || !r.value.rounds.some((x) => x.receipt?.product && BOOST_PRODUCTS.has(x.receipt.product))) return history;
+  const rounds = r.value.rounds.filter((x) => !(x.receipt?.product && BOOST_PRODUCTS.has(x.receipt.product)));
+  return { ...history, reading: ok({ ...r.value, rounds }, r.asOfMs) };
+}
+
+export function BetsPanel({ symbol, index, history: allHistory }: BetsPanelProps) {
+  const history = useMemo(() => withoutBoostRounds(allHistory), [allHistory]);
   const { address } = useWalletSession();
   const nowMs = useChainNowMs();
   const phrase = useSessionPhrase();

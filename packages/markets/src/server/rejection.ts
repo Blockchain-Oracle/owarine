@@ -126,7 +126,8 @@ const CONTENTION_CODES = new Set(["LOCAL_VERDICT_LOCKED_CONTRACTS", "LOCAL_VERDI
 
 /** The contract id a `CONTRACT_NOT_FOUND` / inactive-contracts rejection names, when it names one. */
 export function missingContractId(error: LedgerError): string | null {
-  const fromCause = /Contract could not be found with id ([0-9a-f]+)/.exec(error.canton?.cause ?? error.message)?.[1];
+  const cause = error.canton?.cause ?? error.message;
+  const fromCause = /Contract could not be found with id ([0-9a-f]+)/.exec(cause)?.[1] ?? /have been archived: List\(([0-9a-f]+)/.exec(cause)?.[1];
   if (fromCause) return fromCause;
   const inactive = /([0-9a-f]{64,})/.exec(error.context.contract_id ?? error.context.inactive_contracts ?? "")?.[1];
   return inactive ?? null;
@@ -163,6 +164,9 @@ function fromLedger(error: LedgerError, ctx: RejectionContext): Diagnosis {
   const d = (kind: DiagnosisKind) => diagnosis(kind, technical(error), extra);
   if (error.code && NOT_DEPLOYED_CODES.has(error.code)) return d("not-deployed");
   if (error.code && CONTENTION_CODES.has(error.code)) return d(isSubmit(ctx.step) ? "send-unknown" : "rpc-down");
+  // Canton 3.5 routes before it interprets: an input archived by then is `UNKNOWN_CONTRACT_SYNCHRONIZERS`, not
+  // `CONTRACT_NOT_FOUND` (C8e: a ticket quote that expired between the price and the accept).
+  if (error.code === "UNKNOWN_CONTRACT_SYNCHRONIZERS") return d(contractGone(error, ctx));
   const errorId = error.context.error_id;
   if (errorId) {
     if (errorId === "stdlib.daml.com/deadline-exceeded") return d(ctx.step === "accept" || ctx.step === "sell" ? "order-expired" : "not-settled");

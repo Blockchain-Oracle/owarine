@@ -6,6 +6,7 @@
  * `OPS_INTERNAL_SECRET`); the ledger is reached with this process's own credential (`LEDGER_*`). See "Run your own bot"
  * in the studio.
  */
+import "./runtime/load-env";
 import { startStrategyRunner } from "./actors/strategy-runner";
 
 const HEARTBEAT_MS = 30_000;

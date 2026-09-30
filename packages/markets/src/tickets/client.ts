@@ -78,7 +78,7 @@ export function readTicketsMine(o: { fresh?: boolean } = {}): Promise<Reading<Ti
   if (!o.fresh && mineCache && Date.now() - mineCache.atMs < MINE_CACHE_MS) return mineCache.value;
   const value = ledgerRequest("/tickets/mine", { method: "GET", wire: meReplyWire }).then((r): Reading<TicketsMine> => {
     if (!r.ok) {
-      if (r.diagnosis.kind === "signer-required" || r.diagnosis.kind === "not-deployed") return ok({ rounds: [], parlays: [], positions: [], shares: [] }, nowMs());
+      if (r.diagnosis.kind === "signer-required" || r.diagnosis.kind === "not-deployed") return ok({ rounds: [], parlays: [], positions: [], shares: [], receipts: [] }, nowMs());
       return err(r.diagnosis);
     }
     const parsed = ticketsMineWire.safeParse(r.value.value);

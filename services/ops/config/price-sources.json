@@ -95,5 +95,13 @@
       "SPYx": { "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W", "surgeSymbol": "SPYX/USD", "feedHash": "e7387f905604e86dca90c3d6f890ae21527f643e069e1035b758e22029d5c10c" },
       "QQQx": { "mint": "Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ", "surgeSymbol": "QQQX/USD", "feedHash": "9aa22f14991485e6431dc2cdb17e130550c2414f83d4f0d20687e43d0aefefa3" }
     }
+  },
+  "cantonVersions": {
+    "_doc": "C6e (K-070). Versions appended on Canton only, read by scripts/bootstrap-local.ts after each ticker's `versions` (Regular and Gap) and after `tokenLane.versions` (the token lane). Each becomes a Series PolicyVersion whose printSource names the source (core attestedPrintSource). The Solana-era deploy readers never see this block. Never edit a version: append one. alpaca = the last IEX trade at or before T (Alpaca market data, the ops keys); jupiter = the median of Jupiter Price v3 at T-40/T-20/T, the reference's token-lane attested fallback (session-lanes.md 2.5), used while Switchboard Surge answers 'IPFS fetch temporarily unavailable'. A later Switchboard version is appended the same way once Surge signs again.",
+    "tickers": {
+      "QQQ": [{ "validFrom": "2026-09-29T00:00:00Z", "validUntil": null, "primary": "alpaca" }],
+      "VOO": [{ "validFrom": "2026-09-29T00:00:00Z", "validUntil": null, "primary": "alpaca" }]
+    },
+    "tokenLane": [{ "validFrom": "2026-09-29T00:00:00Z", "validUntil": null, "primary": "jupiter" }]
   }
 }

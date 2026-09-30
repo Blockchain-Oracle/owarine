@@ -13,7 +13,7 @@ import { Countdown } from "../parts/Countdown";
 import { openTicket, openWindow, useWords, wq, WqButton, WqCard } from "./parts";
 
 /** The share of the two asks that sits on UP, as a whole percent; null unless both sides rest. */
-function impliedUpShare(upCents: number | null, downCents: number | null): number | null {
+export function impliedUpShare(upCents: number | null, downCents: number | null): number | null {
   if (upCents === null || downCents === null) return null;
   const total = upCents + downCents;
   return total === 0 ? null : Math.round((upCents / total) * 100);

@@ -39,6 +39,8 @@ export interface CallCard {
   expirySec: number;
   txHash: Signature;
   placedAtMs: number;
+  /** C6e (K-070): a committee event's question; the card then reads YES/NO on it instead of a price line. */
+  eventQuestion?: string | null;
 }
 
 /** Baselines down the record panel. */
@@ -65,12 +67,19 @@ export function callMultiple(card: CallCard): number {
 
 /** "BTC OVER $64,316" / "BTC UNDER $64,316" / "BTC VS THE OPENING PRINT". */
 export function callBandLabel(card: CallCard): string {
+  if (card.eventQuestion) return card.eventQuestion;
   if (card.lineRaw === null) return SHARE.call.noLine(card.asset);
   return card.side === "up" ? SHARE.call.over(card.asset, assetPriceLine(card.asset, card.lineRaw)) : SHARE.call.under(card.asset, assetPriceLine(card.asset, card.lineRaw));
 }
 
 export function callDirLabel(card: CallCard): string {
+  if (card.eventQuestion) return card.side === "up" ? SHARE.call.yes : SHARE.call.no;
   return card.side === "up" ? SHARE.call.up : SHARE.call.down;
+}
+
+/** "Wins if TSLA closes at or above the line." / on an event, "Wins if the committee attests YES." */
+export function callWinsIf(card: CallCard): string {
+  return card.eventQuestion ? SHARE.call.winsIfEvent(card.side) : SHARE.call.winsIf(card.asset, card.side);
 }
 
 /** Folio / filename id: the first 6 characters of the entry signature, exactly as written (base58 is case-sensitive, D-010). */
@@ -125,7 +134,7 @@ export async function renderCallShareCard(card: CallCard): Promise<Blob> {
 
   ctx.font = font(400, 20, fonts.mono);
   ctx.fillStyle = "rgba(255,255,255,0.55)";
-  ctx.fillText(SHARE.call.winsIf(card.asset, card.side), CARD_MARGIN, WINS_IF_Y);
+  ctx.fillText(callWinsIf(card), CARD_MARGIN, WINS_IF_Y);
 
   // wager: stake → return (the return carries the vermilion)
   ctx.font = font(600, 15, fonts.mono);

@@ -88,7 +88,7 @@ export const EARN = {
     title: "Earn",
     body: "Commit capital to market making, then inspect the real inventory, exposure, and exit accounting behind your share — not an advertised yield.",
     why: MAKER_NOT_DEPLOYED,
-    dependency: "the maker vault program (planned after the hackathon deadline)",
+    dependency: "the maker reserve on the ledger (the next engine release)",
     /** A house reserve whose program is not on the cluster the app is pointed at. */
     reserve: (label: string) => `${label} is not on this cluster. Point the app at a cluster where the reserve is deployed and this tab reads it.`,
   },
