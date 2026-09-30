@@ -36,4 +36,7 @@ export const issueMakerWithdraw = (navCid: ContractId, o: { provider: Party; lpS
     provider: o.provider, lpShareCid: o.lpShareCid, sharesIn: int(o.sharesIn), shardCid: o.shardCid, validUntil: isoOfSec(o.validUntilSec),
   });
 
+/** The book's own escape past `refundAfter` (the venue owns the leg): its backing back into `reserve:<id>`. */
+export const refundBookLeg = (legCid: ContractId): Command => exercise(TEMPLATE_IDS.Leg, legCid, "Leg_RefundStale", {});
+
 export const pruneBookReceipt = (cid: ContractId): Command => exercise(TEMPLATE_IDS.BookReceipt, cid, "BookReceipt_Prune", {});

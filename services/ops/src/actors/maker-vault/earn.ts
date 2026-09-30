@@ -7,7 +7,8 @@
  *   withdraw   `Nav_IssueWithdraw` at the fresh statement, its cash locked from a `reserve:maker` shard: capital out in
  *              quotes and positions is not there to be taken (the ledger refuses any other shard)
  *   merge      the book's opposite legs on one Window netted now (`Leg_Merge`, pair first, then across pairs)
- *   settle     the book's legs and residuals on one resolved Window settled now (`Desk_SettleBatch`, `Residual_Settle`)
+ *   settle     the book's legs and residuals on one resolved Window settled now (`Desk_SettleBatch`, `Residual_Settle`),
+ *              and any of its legs past `refundAfter` refunded into the book (`Leg_RefundStale`, the venue's own)
  */
 import { randomUUID } from "node:crypto";
 import { TEMPLATE_IDS } from "@agari/daml";
@@ -130,8 +131,13 @@ async function crank(v: MakerVault, op: "merge" | "settle", marketId: string, de
       await run(netLegsCommandId(a.cid, b.cid), [cmd.mergeLegs(a.cid, b.cid)], "merge");
     }
   } else {
+    const nowSec = Math.floor(Date.now() / 1000);
+    // Past `refundAfter` a leg cannot settle; the venue owns it, so it takes its own stale refund into the book.
+    for (const l of legs.filter((x) => nowSec >= x.data.refundAfterSec).slice(0, MAX_CRANK)) {
+      await run(`mrefund:${l.cid}`, [bcmd.refundBookLeg(l.cid)], "stale refund");
+    }
     const byTerms = new Map<string, string[]>();
-    for (const l of legs) byTerms.set(l.data.termsCid, [...(byTerms.get(l.data.termsCid) ?? []), l.cid]);
+    for (const l of legs.filter((x) => nowSec < x.data.refundAfterSec)) byTerms.set(l.data.termsCid, [...(byTerms.get(l.data.termsCid) ?? []), l.cid]);
     for (const [termsCid, cids] of byTerms) {
       const res = snap.resolutions.get(termsCid);
       if (!res) continue;

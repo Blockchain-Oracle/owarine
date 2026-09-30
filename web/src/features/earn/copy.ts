@@ -14,7 +14,8 @@ export const EARN = {
     /** The reference: "Closed pool · 4-16" / "Predict PLP" — its own truth correction for a retired pool. Ours is live, or says why not. */
     live: "Live · maker vault",
     paused: "Paused · maker vault",
-    noMaker: "No maker key · quotes off",
+    /** Canton: the venue's issuer quotes for the vault only while `MAKER_MODE=vault` is on. */
+    noMaker: "Maker off · no new quotes",
     brand: "Agari MM",
     perShare: "/ share",
     sinceLaunch: "Up from 1.0000 at launch",
@@ -67,7 +68,7 @@ export const EARN = {
     unsettledNote: "A Window has closed but is not settled yet. Withdrawing settles it first — anyone may.",
   },
   windows: {
-    empty: "The maker has no Window open. Quotes go out on the venue's live lanes when the actor runs.",
+    empty: "The vault holds nothing on any Window. It takes the venue's quotes on its lanes while the maker is on.",
     window: "Window",
     deployed: "Deployed",
     inventory: "Holding",
@@ -88,7 +89,7 @@ export const EARN = {
     title: "Earn",
     body: "Commit capital to market making, then inspect the real inventory, exposure, and exit accounting behind your share — not an advertised yield.",
     why: MAKER_NOT_DEPLOYED,
-    dependency: "the maker reserve on the ledger (the next engine release)",
+    dependency: "the maker vault's statement on this participant (the bootstrap creates it)",
     /** A house reserve whose program is not on the cluster the app is pointed at. */
     reserve: (label: string) => `${label} is not on this cluster. Point the app at a cluster where the reserve is deployed and this tab reads it.`,
   },

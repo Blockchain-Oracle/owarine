@@ -23,7 +23,8 @@ async function crank(op: "merge" | "settle", marketId: string): Promise<TxOutcom
   if (q.kind === "refused") return { status: "refused", diagnosis: q.diagnosis };
   if (q.kind !== "maker-op") return { status: "refused", diagnosis: diagnosis("unknown", `unexpected ${q.kind} reply to a maker ${op}`) };
   forgetTicketReads();
-  if (q.done === 0) return { status: "refused", diagnosis: diagnosis("unknown", q.note) };
+  // Nothing due to merge is the user's question answered; nothing left to settle is the Window already settled.
+  if (q.done === 0 && op === "merge") return { status: "refused", diagnosis: diagnosis("unknown", q.note) };
   // The venue signed the crank; there is no seat transaction to point at.
   return { status: "confirmed", txHash: "" as never };
 }

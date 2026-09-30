@@ -6,7 +6,7 @@
  *                    for every position it holds, and the cost its receipts recorded for every position it closed
  *   escrowBackBase   0: an unaccepted quote's lock goes straight back to the reserve bucket and is not counted out
  *   mergedBase       what its merges released into the bucket (`BookReceipt` "merged")
- *   payoutBase       what its settles and residuals paid into the bucket ("settled", "residual")
+ *   payoutBase       what its settles, residuals and stale refunds paid into the bucket ("settled", "residual", "refunded")
  *   deployedBase     today's mark of what is still out (the statement's rule)
  *   quoteCount       quotes resting plus positions taken (a merge closes two)
  *   openedAtSec / settledAtSec   not on the ledger: 0 / null
@@ -30,7 +30,7 @@ export interface BookWindow {
   noRaw: bigint;
   deployedBase: bigint;
   realizedBase: bigint | null;
-  /** The Window has a Resolution the book's legs or residuals can settle against now. */
+  /** The Window has a Resolution the book's legs or residuals can settle against now, or a leg past its refund deadline. */
   settleable: boolean;
   /** The book holds both sides here, so a merge would release cash now. */
   mergeable: boolean;
@@ -77,7 +77,7 @@ export function bookWindows(s: MakerSnapshot, asOfSec: number): { open: BookWind
   for (const r of s.receipts) {
     const m = at(r.data.marketId);
     m.receipts.push(r.data);
-    m.count += r.data.kind === "merged" ? 2 : r.data.kind === "settled" ? 1 : 0;
+    m.count += r.data.kind === "merged" ? 2 : r.data.kind === "residual" ? 0 : 1;
   }
   const expiryOf = (marketId: string, terms: ReadonlySet<string>) => {
     for (const t of terms) {
@@ -113,7 +113,7 @@ export function bookWindows(s: MakerSnapshot, asOfSec: number): { open: BookWind
       noRaw: sum(down.map((l) => quantityOf(l.data))),
       deployedBase: sum(m.quotes) + sum(legMarks) + sum(m.residuals),
       realizedBase: settled ? merged + payout - escrowOut : null,
-      settleable: (m.legs.length > 0 || m.residuals.length > 0) && [...m.terms].some((t) => res(t) !== null),
+      settleable: ((m.legs.length > 0 || m.residuals.length > 0) && [...m.terms].some((t) => res(t) !== null)) || m.legs.some((l) => l.data.refundAfterSec <= asOfSec),
       mergeable: up.length > 0 && down.length > 0,
     };
     (still ? open : history).push(view);

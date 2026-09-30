@@ -14,13 +14,13 @@ export interface BookReceiptC {
   pairId: string;
   outcome: Side;
   resolved: Side | null;
-  kind: "settled" | "merged" | "residual";
+  kind: "settled" | "merged" | "residual" | "refunded";
   lots: bigint;
   cost: bigint;
   proceeds: bigint;
 }
 
-const RECEIPT_KINDS = ["settled", "merged", "residual"] as const;
+const RECEIPT_KINDS = ["settled", "merged", "residual", "refunded"] as const;
 
 export function decodeBookReceipt(v: unknown): BookReceiptC {
   const r = obj(v, "BookReceipt");

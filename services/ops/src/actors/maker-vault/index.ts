@@ -6,13 +6,14 @@
  *                   (`MAKER_MODE=vault`), else from the venue desk's       quote:<requestId>, exitquote:<requestId>
  *   reserve         the reserve reporter publishes the statement (`Maker_PublishNav`)        mnav:<seq>
  *   earn            supply · withdraw · merge · settle over `POST /internal/tickets/earn`   earn:*, net:*, settle:*
- *   keeper (here)   expires the vault's unaccepted supply and withdraw quotes, and merges the book's small cash pieces
- *                                                                                            texp:<cid>, mmerge:<digest>
+ *   keeper (here)   expires the vault's unaccepted supply and withdraw quotes, takes the stale refund of the book's legs
+ *                   past `refundAfter` into the book, and merges its small cash pieces   texp:<cid>, mrefund:<cid>, mmerge:<digest>
  *
  * Settle and netting of the book's legs are the venue's own actors (the settler settles every leg; netting pairs a
  * book's legs only with the same book's); the ledger pays each back into `reserve:maker`.
  */
 import { cmd, digest, failureText, isInactive, submit } from "@agari/markets/ops/canton";
+import { bcmd } from "@agari/markets/ops/book";
 import { tcmd } from "@agari/markets/ops/tickets";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { submitWithShards } from "../quote-issuer/pooled-submit";
@@ -45,7 +46,17 @@ export async function keeperPass(v: MakerVault): Promise<PassResult> {
   };
   for (const q of snap.supplyQuotes) if (due(q.data.validUntilSec)) await expire(q.cid, tcmd.expireSupplyQuote(q.cid));
   for (const q of snap.withdrawQuotes) if (due(q.data.validUntilSec)) await expire(q.cid, tcmd.expireWithdrawQuote(q.cid));
-  if (expired > 0) await v.refresh();
+  // The book's legs past `refundAfter` (never settled): the venue owns them, so it takes the stale refund into the book.
+  let refunded = 0;
+  for (const l of snap.legs.filter((x) => now >= x.data.refundAfterSec).slice(0, 10)) {
+    try {
+      const out = await submit(v.venue, { commandId: `mrefund:${l.cid}`, commands: [bcmd.refundBookLeg(l.cid)] });
+      if (out.kind === "done") refunded++;
+    } catch (error) {
+      if (!isInactive(error)) v.log(`maker stale refund failed: ${failureText(error)}`);
+    }
+  }
+  if (expired > 0 || refunded > 0) await v.refresh();
   const free = v.pool.all().filter((s) => s.state === "free");
   if (free.length > MERGE_ABOVE) {
     const leases = v.pool.leaseWhere(() => true, 10, "merge maker");
@@ -62,9 +73,9 @@ export async function keeperPass(v: MakerVault): Promise<PassResult> {
   const st = v.state();
   return {
     why: st
-      ? `maker ${st.assetsBase}/${st.shares} (seq ${st.navSeq}), liquid ${st.liquidBase}, ${st.open.length} Window(s) open${v.env.enabled ? "" : " · not quoting (MAKER_MODE≠vault)"}${expired ? ` · expired ${expired}` : ""}${merged ? ` · merged ${merged} cash` : ""}`
+      ? `maker ${st.assetsBase}/${st.shares} (seq ${st.navSeq}), liquid ${st.liquidBase}, ${st.open.length} Window(s) open${v.env.enabled ? "" : " · not quoting (MAKER_MODE≠vault)"}${expired ? ` · expired ${expired}` : ""}${merged ? ` · merged ${merged} cash` : ""}${refunded ? ` · refunded ${refunded} stale` : ""}`
       : "no snapshot yet",
-    detail: { expired, merged, open: st?.open.length ?? 0 },
+    detail: { expired, merged, refunded, open: st?.open.length ?? 0 },
   };
 }
 
