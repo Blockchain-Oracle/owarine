@@ -3,11 +3,11 @@ title: "The Daml packages"
 description: "The four packages behind Agari, who signs each contract, and what the ledger enforces."
 ---
 
-Agari's rules are four Daml packages (Daml SDK 3.5), tested by the `pm-tests` Daml Script suite (186 scripts pass). Every contract names the parties that sign it and the parties that may see it; the ledger enforces both. The release files, with package ids and hashes, are in `daml/released/`, and `dpm upgrade-check` passes from the previous versions.
+Agari's rules are four Daml packages (Daml SDK 3.5), tested by the `pm-tests` Daml Script suite (227 scripts pass). Every contract names the parties that sign it and the parties that may see it; the ledger enforces both. The release files, with package ids and hashes, are in `daml/released/`, and `dpm upgrade-check` passes from the previous versions.
 
 | Package | Version | What it holds |
 | --- | --- | --- |
-| `abu-pm-main` | 0.5.0 | Windows, prints, quotes, positions, cash, resolution, events, grants, reserves and the maker vault. The others depend on it. |
+| `abu-pm-main` | 0.5.1 | Windows, prints, quotes, positions, cash, resolution, events, grants, reserves, the maker vault and pre-open resting calls. The others depend on it. |
 | `abu-pm-tickets` | 0.1.3 | Range and Moonshot, Parlay, Boost (a short is Boost on Down) and Earn. |
 | `abu-pm-agents` | 0.2.1 | Strategies, subscriptions, creator fees, grant top-ups and the desk mandate. |
 | `abu-pm-games` | 0.1.1 | Duels, their results and the season prize pool. |
@@ -23,6 +23,7 @@ Agari's rules are four Daml packages (Daml SDK 3.5), tested by the `pm-tests` Da
 | `Quote`, `BuyQuote` | venue · the quoted seat | The venue's firm offer to sell you a side, or buy one back, at one price until a set time. |
 | `Leg` | venue and owner | A position. Accepting a quote creates a pair: your leg and the venue's opposite one. |
 | `VenueAccount`, `VenueCash` | venue and owner | A seat's account and its demo credits. |
+| `RestingDesk` → `RestingOffer` → `RestingCall` | venue, then venue and owner | A pre-open call: the venue's offer to hold it (before the bell only), then your stake held inside a call only you and the venue see. |
 | `Publication`, `SettlementReceipt` | venue and owner | An opt-in public record of a call, and the receipt a finished position leaves. |
 | `EventTerms` → `EventVerdict` | venue, then resolver and venue | A committee event and its one verdict. |
 
@@ -34,6 +35,8 @@ Agari's rules are four Daml packages (Daml SDK 3.5), tested by the `pm-tests` Da
 4. The resolver records the open (`Terms_RecordOpen`), then resolves (`Terms_Resolve`) from the oracle quotes, or voids (`Terms_Void`) if the quorum is missing or the quotes disagree.
 5. The settler pays the Window's legs in batches with `Desk_SettleBatch`; you sign nothing. A won leg pays its full quantity; a void returns stake plus fee.
 6. If the venue never settles, you can claim against the resolution yourself (`Leg_Claim`), or from the refund time take back stake and fee with `Leg_RefundStale`, which needs no operator.
+
+A call rested before the bell is different: the venue makes an offer (`RestDesk_Offer`), you place it with your own cash (`RestOffer_Place`), and after the bell the venue fills it at exactly your price (`Rest_Fill`), in whole or in part, with the same two `Leg`s. You can cancel it any time (`Rest_Cancel`), and the venue returns an unfilled one at its expiry (`Rest_Expire`).
 
 Selling early is a `BuyQuote` you accept (`BuyQuote_Accept`). Draining a released seat closes its legs at cost with `Leg_CloseOut`, which needs both the venue and the seat.
 

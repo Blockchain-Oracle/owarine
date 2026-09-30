@@ -144,7 +144,7 @@ Status as of 30 Sep (C10d): rows proven on the local sandbox are Partial and cit
 | C-S21d | `DeskWatcher` toasts; judges' shared read-only desk | Exact | Pending | C8 | Unchanged over the adapter | new | — |
 | C-S22 | Desk UX kit from 21st components (D-127), web and native | Exact | Pending | C8 | Reused first for every new surface | new | — |
 | C-S23a | Closed market: word board and ticket out of hours, 24/7 chips, "No quotes yet", games tell the truth out of hours | Exact | Pending | C6 | Session logic ported as it is | new | — |
-| C-S23b | Pre-open resting call ("Schedule a call") | Adapted | Pending | C6 | Bilateral `RestingCall` | new | — |
+| C-S23b | Pre-open resting call ("Schedule a call") | Adapted | Partial | C6, C7c | Bilateral `RestingCall` in `abu-pm-main` 0.5.1 (K-235): the venue offers, the seat places with its own cash, the venue fills at the call's price after the bell (K-236), unfilled calls are swept and refunded | new | local sandbox: [c7c-resting-call](../evidence/c7c-resting-call.md) · `c7c17d3` |
 | C-S24a | Dark-mode balance controls; compact `/short` | Exact | Pending | C6, C8 | UI unchanged | new | — |
 | C-S24b | Strategy runner rests while no Window trades; `isStalledOpening` drops a Window whose opening print is over 2 min late | Exact | Pending | C6, C8 | Runner and stalled-opening logic in ops/core | new | — |
 | C-S25 | Sponsor visibility: "Built on" band, per-price source line (S25b), docs sponsor page, footer credit | Adapted | Pending | C10 | Re-pointed to Canton, Noders and BitSafe; written permission for any third-party mark | new | — |
@@ -283,4 +283,4 @@ Status as of 30 Sep (C10d): rows proven on the local sandbox are Partial and cit
 | C-X02 | Mobile removals of 25 Sep: install strip, News, Pitch, Demo, Print proof, Stats, Market Surface, Download, the /more and /notifications nav entries | Excluded (Abu 2026-09-25; carried by K-005) | Excluded | — | Web keeps these pages | new | — |
 | C-X03 | Friends and follows (removed in the reference, `fb782348`) | Excluded (reference removal; carried by K-005) | Excluded | — | — | new | — |
 
-Totals: 221 rows (103 reference + 118 new). Done: 0 of 221. Partial (local sandbox): 58 of 221. Excluded: 18 of 221. Pending: 145 of 221.
+Totals: 221 rows (103 reference + 118 new). Done: 0 of 221. Partial (local sandbox): 59 of 221. Excluded: 18 of 221. Pending: 144 of 221.

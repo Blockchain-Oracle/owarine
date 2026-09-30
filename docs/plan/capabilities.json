@@ -1346,13 +1346,17 @@
     {
       "id": "C-S23b",
       "capability": "Pre-open resting call (\"Schedule a call\")",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C6"
       ],
       "parityRow": "C-S23b",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "commit:c7c17d3",
+        "daml/pm-tests/daml/Test/Resting.daml",
+        "docs/plan/acceptance.md"
+      ]
     },
     {
       "id": "C-S24a",
