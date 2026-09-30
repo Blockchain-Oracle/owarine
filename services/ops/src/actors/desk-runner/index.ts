@@ -1,14 +1,15 @@
 /**
  * desk-runner (S21 C4, plan §8; Canton C8f): the actor that looks after every desk on this cluster. A 60 s tick; per
  * desk, a wake when its top of the hour is unclaimed or an event fired (money arrived, a held name moved 3 % within the
- * hour, the owner pressed Check now); the daily checkpoint at 00:05 UTC for live desks; grades for records a day old;
+ * hour, the owner pressed Check now) — a live desk's hour and move wakes wait for the hour's Windows (`schedule.ts`,
+ * K-230); the daily checkpoint at 00:05 UTC for live desks; grades for records a day old;
  * and the hourly PreStocks marks for all eight names (`/api/desk/marks`). One operator party (the agent-runner, K-087),
  * one sender, one desk at a time. The runner reads the process's PreStocks feed and never fetches the catalogue
  * itself; a live desk trades the venue's own markets through its `DeskMandate` (K-090).
  */
 import { missingDeskCredentialHint, resolveDeskModel } from "@agari/brain";
-import { PRE_IPO_SYMBOLS } from "@agari/core/market";
-import { deskQueries, getDb, type DeskRow, type WakeTrigger } from "@agari/db";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import { deskQueries, getDb, type DeskRow, type SnapshotRow, type WakeTrigger } from "@agari/db";
 import { createDeskLedgerRpc, createDeskOperatorClient } from "@agari/markets/desk/server";
 import { opsQuoteSource, routeQuoteSource, type QuoteSource } from "@agari/markets/ops/agents";
 import { ORACLE_ROLES } from "../../runtime/keys";
@@ -28,6 +29,7 @@ import { discoverDesks } from "./discover";
 import { readDeskRunnerEnv, type DeskRunnerEnv } from "./env";
 import { gradeDue } from "./grade";
 import { hourSlotSec, recordMarks } from "./marks";
+import { hourCheckWaitsFor, HOUR_WINDOWS_GRACE_SEC } from "./schedule";
 import type { RunnerContext, WakeReport } from "./types";
 import { feedWarm, heldMoveBps, MOVE_WAKE_BPS, refreshMints } from "./value";
 import { wakeDesk } from "./wake";
@@ -111,15 +113,44 @@ const MOVE_COOLDOWN_SEC = 10 * 60;
 
 const isPractice = (d: DeskRow) => d.mode === "practice" || !d.address;
 
-/** Everything that may wake one desk this tick, in order: a check-now request, the hour, money, a move. */
-async function wakesDue(ctx: RunnerContext, desk: DeskRow, nowSec: number): Promise<{ trigger: WakeTrigger; scheduledForSec: number; wakeId: string | null }[]> {
-  const due: { trigger: WakeTrigger; scheduledForSec: number; wakeId: string | null }[] = [];
+type DueWake = { trigger: WakeTrigger; scheduledForSec: number; wakeId: string | null };
+
+/** The names a live desk holds or targets: the ones its hour check must be able to price. */
+async function deskNames(ctx: RunnerContext, desk: DeskRow, snapshot: SnapshotRow | null): Promise<PreIpoSymbol[]> {
+  const mandate = await ctx.q.currentMandate(desk.id);
+  const targets = ((mandate?.body as { targets?: { tokens?: { symbol: PreIpoSymbol }[] } } | undefined)?.targets?.tokens ?? []).map((t) => t.symbol);
+  const held = (snapshot?.holdings ?? []).filter((h) => BigInt(h.raw) > 0n).map((h) => h.symbol as PreIpoSymbol);
+  return [...new Set([...targets, ...held])].filter((s) => (PRE_IPO_SYMBOLS as readonly string[]).includes(s));
+}
+
+/** A live desk's names still waiting for the hour's Windows (`schedule.ts`); empty once its scheduled checks may run. */
+async function liveHourWait(ctx: RunnerContext, desk: DeskRow, snapshot: SnapshotRow | null, hourSec: number, nowSec: number): Promise<PreIpoSymbol[]> {
+  if (nowSec - hourSec >= HOUR_WINDOWS_GRACE_SEC) return [];
+  const names = await deskNames(ctx, desk, snapshot);
+  if (names.length === 0) return [];
+  let ladders: readonly Ladder[] = [];
+  try {
+    ladders = await ctx.ladders();
+  } catch (error) {
+    ctx.log(`ladders unreadable: ${errorText(error)}`);
+  }
+  return hourCheckWaitsFor({ ladders, names, hourSec, nowSec });
+}
+
+/**
+ * Everything that may wake one desk this tick, in order: a check-now request, the hour, money, a move. A live desk's
+ * hour and move wakes wait (unclaimed, so a later tick takes them) until its names' Windows for the hour are quoting.
+ */
+export async function wakesDue(ctx: RunnerContext, desk: DeskRow, nowSec: number): Promise<{ due: DueWake[]; waitingFor: PreIpoSymbol[] }> {
+  const due: DueWake[] = [];
   const requested = await ctx.q.takeRequestedWake({ deskId: desk.id, nowSec });
   if (requested) due.push({ trigger: requested.trigger, scheduledForSec: requested.scheduledForSec, wakeId: requested.id });
   const hourSec = hourSlotSec(nowSec);
+  const snapshot = await ctx.q.latestSnapshot(desk.id);
+  const waitingFor = isPractice(desk) ? [] : await liveHourWait(ctx, desk, snapshot, hourSec, nowSec);
+  if (waitingFor.length > 0) return { due, waitingFor };
   const hour = await ctx.q.claimWake({ deskId: desk.id, scheduledForSec: hourSec, trigger: "hour", nowSec });
   if (hour) due.push({ trigger: "hour", scheduledForSec: hourSec, wakeId: hour.id });
-  const snapshot = await ctx.q.latestSnapshot(desk.id);
   if (snapshot) {
     const positions = Object.fromEntries(snapshot.holdings.map((h) => [h.symbol, BigInt(h.raw)]));
     const move = heldMoveBps(ctx.feed, positions, nowSec);
@@ -139,7 +170,7 @@ async function wakesDue(ctx: RunnerContext, desk: DeskRow, nowSec: number): Prom
       }
     }
   }
-  return due;
+  return { due, waitingFor };
 }
 
 export async function startDeskRunner(deps: DeskRunnerDeps): Promise<{ stop: () => void }> {
@@ -175,7 +206,9 @@ export async function startDeskRunner(deps: DeskRunnerDeps): Promise<{ stop: () 
         const live = !isPractice(desk);
         try {
           if (warm) {
-            for (const due of await wakesDue(ctx, desk, nowSec)) {
+            const { due: dueNow, waitingFor } = await wakesDue(ctx, desk, nowSec);
+            if (waitingFor.length > 0) notes.push(`${desk.id.slice(0, 8)} hour: waiting for the hour's Windows (${waitingFor.join(", ")}), at most until :${String(HOUR_WINDOWS_GRACE_SEC / 60).padStart(2, "0")}`);
+            for (const due of dueNow) {
               // A live desk in a dry run is read, valued and asked exactly as a real check, and nothing is written or sent.
               const report: WakeReport = await wakeDesk(ctx, { desk, trigger: due.trigger, scheduledForSec: due.scheduledForSec, wakeId: due.wakeId, dry: live && env.dryRun });
               wakes += 1;

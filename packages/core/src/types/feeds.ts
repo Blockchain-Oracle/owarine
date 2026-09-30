@@ -30,6 +30,11 @@ export interface Resolution {
   closingRaw: bigint | null;
   settlementTxHash: Signature | null;
   printSource: PrintSource | null;
+  /**
+   * The Window's policy `printSource` text on Canton (`attested:alpaca:QQQ`, core `parsePrintSource`): which original source
+   * the oracle parties attested, so every verdict names it. Absent or null where the reader has none.
+   */
+  printSourceText?: string | null;
   /** Settled on the primary source alone because the check prints never arrived in time. */
   singleSource: boolean;
   settledAtMs: number | null;

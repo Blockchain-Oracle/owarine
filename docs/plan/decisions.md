@@ -151,6 +151,17 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the stock, QQQ/VOO, xStock and Gap lanes list on a keyed ops; QQQ/VOO receipts name "Alpaca (last IEX trade)" and the xStock receipts "Jupiter Price v3 (median of three samples)". Events have their own board section and page.
 - **Approval:** default; overrulable.
 
+### K-071 — Halts follow the source a lane settles on (C6 block)
+- **Date / owner:** 2026-09-30 · C6f lane
+- **Evidence:** `services/ops/src/prices/lane-versions.ts` (+ `.test.ts`), `scripts/bootstrap/lane-sources.test.ts`, `services/ops/src/actors/halt-watch/` (`decide.ts`, `signals.ts`, `index.ts` and their tests), `packages/core/src/market/halts.ts`, `services/ops/src/prices/xstock-spot.ts`, `web/src/features/how-it-works/sessions.ts`, `docs-site/content/docs/trading/halts-and-voids.mdx`. The Alpaca limit was measured on the 2026-09-29 regular session's IEX trades (`halts.ts`, `ALPACA_STALE_SEC`).
+- **Rule:** D-057 says a lane is halted when the signed price it settles on stops being printable; on Canton that source is the lane's `printSource`, not the reference's `tickers.<SYM>.versions`.
+  - **One table.** `lane-versions.ts` holds which original source each lane settles on and from when (`price-sources.json` `versions`, then `cantonVersions`, plus the PreStocks, basket and valuation dates). The bootstrap builds every Series' policy texts from it (the output for all lane families is unchanged), and halt-watch takes each asset's newest covering version from it (`primarySourceAt`), so the two cannot disagree. Only that source's health counts.
+  - **Limits.** RedStone: newest package over 60 s (`redstone-stale`, TSLA and the six other single names). Alpaca: newest IEX trade over 120 s (`alpaca-stale`, QQQ and VOO). PreStocks: newest catalogue read over 60 s (`prestocks-stale`, the eight pre-IPO names and the five baskets, watched at every hour, and only in a process that runs the PreStocks feed). xStocks: the issuer flag, and three failed Jupiter Price v3 polls in a row (`quote-unavailable`, counted only while the lane settles on Jupiter; the xStock feed now reports each 5 s poll, where before only the dormant Switchboard pass did). Each new reason reads "Signed price stale".
+  - **Pyth** is read only for a lane whose primary is Pyth. None is today, so halt-watch makes no Hermes call. **Crypto is not covered**: the reference had no crypto lane, and BTC and ETH trade 24/7 on three exchanges, so a bad print voids the Window. Valuation lanes stay with the roller's entitlement gate.
+  - **Void band.** The verdict line for an oracle disagreement names the Series' 1% band (`DEFAULT_ORACLE_DEVIATION_BPS` 100), not the reference's 0.25% cross-check.
+- **User-visible:** QQQ, VOO, the pre-IPO names and the baskets can now show "Signed price stale"; the how-it-works sources and Halts copy, and the docs' halts and price-sources pages, say the same thing.
+- **Approval:** default; overrulable.
+
 ### K-085 — The Canton desk's live leg trades our own markets (C8 block)
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; the live leg trades this venue's markets with venue cash and is gated on C7b.
@@ -664,6 +675,16 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - Routine price Windows go through a `ResolverDelegation` the committee grants; events never do; any single guardian can hold a market for the committee.
   - `abu-pm-main` stays 0.5.0: `VenueMode` is not read by `Desk_IssueQuote`; the issuer check is ops policy (C-DAML-02).
 - **User-visible:** none until the LocalNet demo; a settled market reads the same either way (`Parity.testGovernedSettlesLikePlain`).
+- **Approval:** default; overrulable.
+
+### K-230 — A live desk's hourly check waits for the hour's Windows (overflow block)
+- **Date / owner:** 2026-09-30 · C8j lane
+- **Evidence:** `docs/evidence/c8i-agents-gaps.md` §2 records 5 and 6, gap 2: the live desk checked at 06:00:0x and 07:00:0x, a few seconds before the roller opened the hour's pre-IPO Windows, and read "could not price OpenAI and Anthropic". `services/ops/src/actors/desk-runner/schedule.test.ts`.
+- **Rule:**
+  - The reference's desk checked on the hour against a market that never closes (PreStocks tokens through Jupiter), and its only wait was for its data ("feed warming … wakes wait"). A live desk here trades each name's hourly Window (K-090), which quotes only once the roller has opened it on the hour's opening print; the previous Window stopped quoting at :58. So the live desk waits for its market the way the reference waits for its feed.
+  - A live desk's hour and move wakes stay unclaimed while any name it targets or holds has no quoting Window starting this hour on the venue's ladder; the next 60 s tick looks again. They run anyway at :10 (`HOUR_WINDOWS_GRACE_SEC`), so a lane the roller never opens is still checked and the record names what could not be priced. The wake keeps the hour as its scheduled time.
+  - Practice desks (priced at the feed, K-091) and a check the owner asks for run when due, as before.
+- **User-visible:** a live desk's hourly record lands a minute or so after the hour, once its names are quoting, instead of "could not price" at the top of the hour. The heartbeat names the names it waits for.
 - **Approval:** default; overrulable.
 
 ## Open questions

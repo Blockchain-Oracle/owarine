@@ -10,7 +10,7 @@ type Sql = postgres.Sql;
 
 const CROSS_CHECK_ROWS_MAX = 2_000;
 
-/** `status/prints` (plain types, so rows pass as `IdxRow`): one row per lane (`symbol`, `cadence_sec`), print slot `which` and `source`. */
+/** `status/prints` (plain types, so rows pass as `IdxRow`): one row per lane (`symbol`, `cadence_sec`), print slot `which`, `source` and the Windows' policy `print_source` text. */
 export type PrintMixRow = {
   symbol: string | null;
   cadence_sec: number;
@@ -18,6 +18,8 @@ export type PrintMixRow = {
   which: number | null;
   /** 1 Pyth, 2 RedStone, 3 Switchboard, 4 Attested; null with `which`. */
   source: number | null;
+  /** The Windows' policy `printSource` text (`attested:alpaca:QQQ`): the original source an attested print was read from. */
+  print_source: string | null;
   /** Windows holding this print (or, on the null row, holding none). */
   windows: number;
   /** Slowest `recorded_ts − source_ts` over prints the relay posted itself (copied opens excluded). */
@@ -44,19 +46,19 @@ export function statusReader(sql: Sql) {
     async printMix(fromSec: number): Promise<PrintMixRow[]> {
       return sql<PrintMixRow[]>`
         WITH w AS (
-          SELECT market, symbol, cadence_sec, state, void_reason FROM idx_markets
+          SELECT market, symbol, cadence_sec, print_source, state, void_reason FROM idx_markets
           WHERE expiry_sec >= ${fromSec} AND trading_start_sec >= ${fromSec}
         ), v AS (
           SELECT symbol, cadence_sec, (count(*) FILTER (WHERE state = 'voided' AND void_reason = 1))::int AS missing_void
           FROM w GROUP BY symbol, cadence_sec
         )
-        SELECT w.symbol, w.cadence_sec, p.which, p.source, count(DISTINCT w.market)::int AS windows,
+        SELECT w.symbol, w.cadence_sec, p.which, p.source, w.print_source, count(DISTINCT w.market)::int AS windows,
           (max(p.recorded_ts_sec - p.source_ts_sec) FILTER (WHERE NOT p.copied))::int AS max_record_lag_sec,
           max(p.source_ts_sec)::text AS last_source_ts_sec, v.missing_void
         FROM w LEFT JOIN idx_market_prints p ON p.market = w.market
           JOIN v ON v.symbol IS NOT DISTINCT FROM w.symbol AND v.cadence_sec = w.cadence_sec
-        GROUP BY w.symbol, w.cadence_sec, p.which, p.source, v.missing_void
-        ORDER BY w.cadence_sec, w.symbol, p.which, p.source`;
+        GROUP BY w.symbol, w.cadence_sec, p.which, p.source, w.print_source, v.missing_void
+        ORDER BY w.cadence_sec, w.symbol, p.which, p.source, w.print_source`;
     },
 
     /** Newest first, at most 2,000 pairs (a full session holds ≈ 220). */

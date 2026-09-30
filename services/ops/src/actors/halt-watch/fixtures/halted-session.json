@@ -1,8 +1,10 @@
 {
-  "_doc": "HALT_WATCH_FIXTURE proof (session-lanes.md §6): forces regular hours and injects raw observations; the real rules decide. TSLA's tick is the archived 2026-09-11 16:00 ET price with conf one unit past 50 bps (pyth-wide, 'Trading halted'); NVDA's newest RedStone package is 90 s old (redstone-stale); NVDAx carries the issuer's halt flag (issuer-halt); QQQx has 3 failed quotes (quote-unavailable). Every other asset stays live.",
+  "_doc": "HALT_WATCH_FIXTURE proof (session-lanes.md §6): forces regular hours and injects raw observations; the real rules decide, and each lane is judged on the source it settles on (C6f). NVDA's newest RedStone package is 90 s old (redstone-stale, NVDA settles on RedStone); QQQ's newest IEX trade is 200 s old (alpaca-stale, QQQ settles on Alpaca); OPENAI's newest PreStocks read is 90 s old (prestocks-stale); NVDAx carries the issuer's halt flag (issuer-halt); QQQx has 3 failed Jupiter quotes (quote-unavailable). TSLA's tick, a wide Pyth confidence, halts nothing: TSLA settles on RedStone, so Pyth is not consulted for it. Every other asset stays live.",
   "session": "regular",
   "pyth": { "TSLA": { "price": "36547600", "conf": "182739", "ageSec": 1 } },
   "redstone": { "NVDA": { "ageSec": 90 } },
+  "alpaca": { "QQQ": { "ageSec": 200 } },
+  "prestocks": { "OPENAI": { "ageSec": 90 } },
   "issuer": { "NVDAx": true },
   "quoteFailures": { "QQQx": 3 }
 }

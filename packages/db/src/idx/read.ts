@@ -54,7 +54,7 @@ export function marketCols(sql: Sql) {
   const k = K_ANON_FLOOR;
   return sql`
     m.market, m.market_key, m.terms_cid, m.series, m.series_key, m.symbol, m.cadence_sec, m.basis, m.market_index::text, m.trading_start_sec::text,
-    m.lock_at_sec::text, m.expiry_sec::text, m.open_deadline_sec::text, m.close_deadline_sec::text, m.refund_after_sec::text, m.policy_version,
+    m.lock_at_sec::text, m.expiry_sec::text, m.open_deadline_sec::text, m.close_deadline_sec::text, m.refund_after_sec::text, m.policy_version, m.print_source,
     m.terms_cid AS book, NULL::text AS ledger, m.state, m.winner,
     (CASE WHEN m.state = 'resolved' THEN (CASE WHEN m.winner = 0 THEN m.cash_unit * 1000 ELSE 0 END) END)::text AS payout_yes,
     (CASE WHEN m.state = 'resolved' THEN (CASE WHEN m.winner = 1 THEN m.cash_unit * 1000 ELSE 0 END) END)::text AS payout_no,

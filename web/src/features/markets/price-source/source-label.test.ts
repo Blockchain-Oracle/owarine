@@ -1,3 +1,4 @@
+import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@agari/core/market";
 import type { EventMarket, LaneSet } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { assetSourceLabel, printSourceName, windowSourceLabel } from "./source-label";
@@ -53,11 +54,32 @@ describe("assetSourceLabel (no Window in view)", () => {
 });
 
 describe("printSourceName (one name per recorded print on every surface)", () => {
-  it("calls an attested print PreStocks on a pre-IPO name or basket, and demo data only elsewhere", () => {
-    expect(printSourceName("attested", "OPENAI")).toBe("PreStocks");
-    expect(printSourceName("attested", "AILABS")).toBe("PreStocks");
-    expect(printSourceName("attested", "TSLA")).toBe("Attested demo");
-    expect(printSourceName("attested", null)).toBe("Attested demo");
+  it("names the original source an attested print's policy text reads, per lane", () => {
+    expect(printSourceName("attested", "BTC", EXCHANGE_PRINT_SOURCE)).toBe("Coinbase/Kraken/Bitstamp quorum");
+    expect(printSourceName("attested", "TSLA", attestedPrintSource("redstone", "TSLA"))).toBe("RedStone");
+    expect(printSourceName("attested", "QQQ", attestedPrintSource("alpaca", "QQQ"))).toBe("Alpaca IEX");
+    expect(printSourceName("attested", "VOO", attestedPrintSource("alpaca", "VOO"))).toBe("Alpaca IEX");
+    expect(printSourceName("attested", "TSLA", attestedPrintSource("jupiter", "TSLAx"))).toBe("Jupiter Price v3 median");
+    expect(printSourceName("attested", "OPENAI", attestedPrintSource("prestocks", "OPENAI"))).toBe("PreStocks");
+    expect(printSourceName("attested", "AILABS", attestedPrintSource("basket", "AILABS"))).toBe("PreStocks");
+  });
+
+  it("follows the policy, not the asset: an entitled Pyth read is named Pyth, with no edit here", () => {
+    expect(printSourceName("attested", "TSLA", attestedPrintSource("pyth", "16dad506"))).toBe("Pyth");
+    expect(printSourceName("attested", "OPENAIV", attestedPrintSource("pyth-index", "abcd"))).toBe("Pyth index");
+  });
+
+  it("never calls a price demo data: without the policy text a PreStocks asset is PreStocks, anything else only attested", () => {
+    for (const text of [undefined, null, "", "not a policy"]) {
+      expect(printSourceName("attested", "OPENAI", text)).toBe("PreStocks");
+      expect(printSourceName("attested", "AILABS", text)).toBe("PreStocks");
+      expect(printSourceName("attested", "TSLA", text)).toBe("Oracle-attested");
+      expect(printSourceName("attested", null, text)).toBe("Oracle-attested");
+    }
+    for (const asset of ["TSLA", "BTC", "QQQ", "OPENAI", null]) expect(printSourceName("attested", asset).toLowerCase()).not.toContain("demo");
+  });
+
+  it("keeps a directly signed print's own name", () => {
     expect(printSourceName("pyth", "TSLA")).toBe("Pyth");
     expect(printSourceName("redstone", null)).toBe("RedStone");
   });

@@ -1,3 +1,4 @@
+import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@agari/core/market";
 import { describe, expect, it } from "vitest";
 import { sourceChips, toFeed, type SettledRowWire } from "./feed";
 
@@ -24,6 +25,18 @@ describe("toFeed (S25: /proof's rows)", () => {
 
   it("offers a chip per source the rows hold, in a fixed order", () => {
     const feed = toFeed([row({ market: "A", prints: { "1": { source: 2, price: "1" } } }), row({ market: "B", symbol: "OPENAI", basis: 2, prints: { "1": { source: 4, price: "1" } } })]);
-    expect(sourceChips(feed)).toEqual(["PreStocks", "RedStone"]);
+    expect(sourceChips(feed)).toEqual(["RedStone", "PreStocks"]);
+  });
+
+  it("C10e: names a Canton Window's attested source from its policy text, never demo data", () => {
+    const attested = { "0": { source: 4, price: "1" }, "1": { source: 4, price: "2" } };
+    const feed = toFeed([
+      row({ market: "BTC", symbol: "BTC", expiry_sec: "400", print_source: EXCHANGE_PRINT_SOURCE, prints: attested }),
+      row({ market: "QQQ", symbol: "QQQ", expiry_sec: "300", print_source: attestedPrintSource("alpaca", "QQQ"), prints: attested }),
+      row({ market: "TSLAx", basis: 2, expiry_sec: "200", print_source: attestedPrintSource("jupiter", "TSLAx"), prints: attested }),
+      row({ market: "TSLA", expiry_sec: "100", print_source: attestedPrintSource("redstone", "TSLA"), prints: attested }),
+    ]);
+    expect(feed.map((r) => r.sourceName)).toEqual(["Coinbase/Kraken/Bitstamp quorum", "Alpaca IEX", "Jupiter Price v3 median", "RedStone"]);
+    expect(sourceChips(feed)).toEqual(["Coinbase/Kraken/Bitstamp quorum", "RedStone", "Alpaca IEX", "Jupiter Price v3 median"]);
   });
 });

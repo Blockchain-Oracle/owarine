@@ -8,11 +8,12 @@ import type { LaneBasis, PrintSource, VoidReason } from "./market";
  */
 
 /**
- * Why a lane is halted off-chain (§3.1). No licensed halt feed exists (C:02 §B), so these are signed-source health
- * signals plus the xStocks issuer flag. A halt never changes the chain: an open Window voids by itself when its print
- * can't be recorded.
+ * Why a lane is halted off-chain (§3.1). No licensed halt feed exists (C:02 §B), so these are health signals of the
+ * source a lane actually settles on (C6f: `alpaca-stale` for QQQ and VOO, `prestocks-stale` for the pre-IPO names and
+ * baskets, next to the reference's Pyth and RedStone ones) plus the xStocks issuer flag. A halt never changes the chain:
+ * an open Window voids by itself when its print can't be recorded.
  */
-export const HALT_REASONS = ["pyth-wide", "pyth-stale", "redstone-stale", "issuer-halt", "quote-unavailable"] as const;
+export const HALT_REASONS = ["pyth-wide", "pyth-stale", "redstone-stale", "alpaca-stale", "prestocks-stale", "issuer-halt", "quote-unavailable"] as const;
 export type HaltReason = (typeof HALT_REASONS)[number];
 
 /** Only these say "Trading halted"; the stale and quote reasons say "Signed price stale" (Q-S6-9). */

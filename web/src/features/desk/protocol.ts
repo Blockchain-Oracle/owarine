@@ -252,7 +252,13 @@ export function deskModeText(i: { owner: string; mode: (typeof DESK_MODES)[numbe
   ].join("\n");
 }
 
+/**
+ * The owner's request to sell everything or close the desk. The signer (`useDeskWrites.requestAction`) and the verifier
+ * (`/api/desk/[owner]/actions`) both build it here, so they cannot drift; the text carries no version marker, and a
+ * signature made over an older wording is refused (401) and signed again. Nothing on Canton is USDC: the desk trades
+ * the seat's credits.
+ */
 export function deskOwnerActionText(i: { owner: string; kind: OwnerActionKind; signedAtIso: string }): string {
-  const ask = i.kind === "sell_all" ? "Sell every holding in my desk to USDC at its next check. Nothing leaves my desk's account." : "Close my desk: sell every holding, send everything to my own seat, and stop the checks. The record stays readable.";
+  const ask = i.kind === "sell_all" ? "Sell every holding in my desk for credits at its next check. Nothing leaves my desk's account." : "Close my desk: sell every holding, send everything to my own seat, and stop the checks. The record stays readable.";
   return [`${SIGNED_MESSAGE_BRAND} desk request`, "", ask, "", `Owner: ${i.owner}`, `Signed at: ${i.signedAtIso}`, networkLine(DESK_CLUSTER)].join("\n");
 }

@@ -16,7 +16,7 @@ export const CLOSED = {
   callUp: "Call Up",
   callDown: "Call Down",
   cadencesAria: "Window length",
-  /** The ticket's Max when the stake is more than the book holds: "Use 12.40 tUSDC, all the book can fill". */
-  useDepth: (text: string) => `Use ${text}, all the book can fill`,
+  /** The ticket's Max when the stake is more than the venue's price ladder holds: "Use 12.40 credits, the most the venue's price ladder can fill". */
+  useDepth: (text: string) => `Use ${text}, the most the venue's price ladder can fill`,
   windows: (n: number) => (n === 1 ? "1 Window" : `${n} Windows`),
 } as const;
