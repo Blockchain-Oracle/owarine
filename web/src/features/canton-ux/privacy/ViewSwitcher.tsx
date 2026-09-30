@@ -1,5 +1,6 @@
 "use client";
 
+import { partyLead } from "@agari/core/units";
 import { UserX } from "lucide-react";
 import { useState } from "react";
 import { Hash } from "@/components/data/Hash";
@@ -7,13 +8,13 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { EmptyState, TabsPanel, UnderlineTabs } from "@/components/ui/desk-kit";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { PRIVACY } from "./copy";
-import { partyLead, type PartyView } from "./party-views";
+import type { PartyView } from "./party-views";
 import { WhoCanSee } from "./WhoCanSee";
 import "./privacy.css";
 
 const S = PRIVACY.switcher;
 
-export { partyLead, type PartyPosition, type PartyView } from "./party-views";
+export { type PartyPosition, type PartyView } from "./party-views";
 
 function Positions({ view }: { view: PartyView }) {
   if (view.status?.kind === "loading") {

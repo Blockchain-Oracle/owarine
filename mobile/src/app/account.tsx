@@ -1,3 +1,4 @@
+import { partyLead, shortHex } from "@agari/core/units";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -98,8 +99,7 @@ function leaseLine(view: SeatLeaseView | null, spoken: boolean): string {
   if (view === null) return T.leaseReading;
   switch (view.kind) {
     case "leased": {
-      const lead = view.party.indexOf("::") + 6;
-      return `${T.party}: ${spoken ? view.party : `${view.party.slice(0, lead)}…${view.party.slice(-4)}`}`;
+      return `${T.party}: ${spoken ? view.party : shortHex(view.party, partyLead(view.party), 4)}`;
     }
     case "pool-full":
       return T.leasePoolFull;

@@ -1,6 +1,6 @@
 "use client";
 
-import { shortHex } from "@agari/core/units";
+import { partyLead, shortHex } from "@agari/core/units";
 import { Check, Copy } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
@@ -39,9 +39,6 @@ export interface SeatMenuProps {
   unleasedReason?: string | null;
   onOpenMenu?: () => void;
 }
-
-/** A party id keeps its readable hint and the fingerprint's first four characters. */
-const partyLead = (party: string) => party.indexOf("::") + 6;
 
 /**
  * The connected account (L-02): the reference's address pill and `addr-dot` avatar opening the reference's

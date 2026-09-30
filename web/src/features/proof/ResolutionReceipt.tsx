@@ -1,8 +1,9 @@
+import { partyLead } from "@agari/core/units";
 import { Hash } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import type { CantonProofView } from "./canton-proof";
 import { PROOF } from "./copy";
-import { partyLead, priceE8Text } from "./format";
+import { priceE8Text } from "./format";
 
 const R = PROOF.receipt;
 

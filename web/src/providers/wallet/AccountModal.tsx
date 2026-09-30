@@ -1,5 +1,6 @@
 "use client";
 
+import { partyLead } from "@agari/core/units";
 import { Dialog } from "@base-ui/react/dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { WALLET_MODAL } from "./copy";
@@ -88,7 +89,7 @@ function LeaseLine() {
   if (leased) {
     return (
       <Dialog.Description className="wm-t14m wm-group-muted" title={leased.party}>
-        {S.party}: <Hash value={leased.party} lead={leased.party.indexOf("::") + 6} tail={4} />
+        {S.party}: <Hash value={leased.party} lead={partyLead(leased.party)} tail={4} />
       </Dialog.Description>
     );
   }

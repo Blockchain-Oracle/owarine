@@ -27,6 +27,15 @@ export function shortHex(hex: string, lead = 6, tail = 4): string {
   return hex.length <= lead + tail + 1 ? hex : `${hex.slice(0, lead)}…${hex.slice(-tail)}`;
 }
 
+/**
+ * Where a Canton party id's fingerprint starts, so `shortHex(party, partyLead(party), 4)` keeps the readable hint and the
+ * fingerprint's first four characters (`alice::1220…9f3b`). The one place that arithmetic lives; an id with no `::` keeps
+ * its first eight characters.
+ */
+export function partyLead(party: string): number {
+  return Math.max(8, party.indexOf("::") + 6);
+}
+
 export interface FormatUtcOptions {
   withSeconds?: boolean;
   withDate?: boolean;

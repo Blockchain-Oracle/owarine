@@ -1,6 +1,6 @@
 "use client";
 
-import { formatUtc } from "@agari/core/units";
+import { formatUtc, partyLead } from "@agari/core/units";
 import { Ban, CircleDot, Flag, Radio, RadioTower, Sigma } from "lucide-react";
 import type { ReactNode } from "react";
 import { Hash } from "@/components/data/Hash";
@@ -26,7 +26,6 @@ export interface ResolutionEvidence {
   outcome: { kind: "resolved"; side: string; word: "above" | "under"; closeText: string; atMs: number; updateId: string } | { kind: "voided"; reason: keyof typeof P.voidReason; atMs: number; updateId: string };
 }
 
-const partyLead = (party: string) => party.indexOf("::") + 6;
 const time = (ms: number) => formatUtc(ms);
 
 function Meta({ updateId, party, atMs }: { updateId?: string | null; party?: string; atMs?: number | null }) {

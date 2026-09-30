@@ -1,7 +1,8 @@
+import { partyLead } from "@agari/core/units";
 import { Hash } from "@/components/data";
 import type { CantonProofView, OraclePrintView, SlotView } from "./canton-proof";
 import { PROOF } from "./copy";
-import { afterT, oracleName, partyLead, priceE8Text } from "./format";
+import { afterT, oracleName, priceE8Text } from "./format";
 
 type Tone = "good" | "warn" | "bad" | "off";
 

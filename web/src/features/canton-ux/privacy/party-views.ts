@@ -36,9 +36,6 @@ export interface PartyView {
   note?: string;
 }
 
-/** A party id keeps its readable hint and the fingerprint's first four characters: `alice::1220…9f3b`. */
-export const partyLead = (party: string) => party.indexOf("::") + 6;
-
 const REQUEST = "POST /v2/state/active-contracts-page";
 /** A leg pays 1000 × cashUnit base units per lot if it wins (`@agari/markets/server` contractsOf). */
 const PAIR_TICKS = 1000n;

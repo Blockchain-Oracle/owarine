@@ -1,11 +1,12 @@
 import type { MarketId } from "@agari/core/types";
+import { partyLead, shortHex } from "@agari/core/units";
 import { useLedgerViews, type LedgerViewAs } from "@agari/markets/react";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy, RefreshCw, UserX } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PRIVACY } from "@/features/canton-ux/privacy/copy";
-import { partyLead, viewOf, type PartyView } from "@/features/canton-ux/privacy/party-views";
+import { viewOf, type PartyView } from "@/features/canton-ux/privacy/party-views";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { Button, haptic } from "~/components/kit";
 import { EmptyState, UnderlineTabs } from "~/features/desk/kit";
@@ -15,7 +16,7 @@ import { WhoCanSee } from "./WhoCanSee";
 
 const S = PRIVACY.switcher;
 const COPIED_MS = 1_500;
-const short = (party: string) => (party ? `${party.slice(0, partyLead(party))}…${party.slice(-4)}` : "…");
+const short = (party: string) => (party ? shortHex(party, partyLead(party), 4) : "…");
 
 /**
  * web's `LiveViewSwitcher` + `ViewSwitcher` (C-ADD-02) ported literally for the phone's `/markets/<id>` page: the same
