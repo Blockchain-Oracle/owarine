@@ -64,6 +64,10 @@
 .cx-link-done { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 16px; border: 1px solid color-mix(in srgb, var(--color-profit) 40%, transparent); border-radius: var(--radius-lg); background: var(--color-profit-wash); text-align: center; }
 /* A refusal is not a success: the "Not allowed" plate wears the warning hue, as the ticket's expired note does. */
 .cx-link-done[data-tone="declined"] { border-color: color-mix(in srgb, var(--color-warning) 40%, transparent); background: color-mix(in srgb, var(--color-warning) 8%, transparent); }
+/* A question is not an answer: "Allow this device?" is the kit's neutral confirmation plate (the balance plate's inset surface, a hairline), and
+   the shield takes the accent wash as its attention cue, as the phone's plate does. Green is for a link that was made. */
+.cx-link-done[data-tone="ask"] { border-color: var(--color-hairline); background: var(--color-surface-2); }
+.cx-link-done[data-tone="ask"] .cx-link-done-mark { border: 1px solid var(--color-accent-dim); background: var(--color-accent-wash); color: var(--color-accent); }
 .cx-link-done-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: var(--color-profit); color: var(--color-cream-ink); }
 .cx-link-done-mark svg { width: 18px; height: 18px; }
 .cx-link-done-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--color-ink); }
