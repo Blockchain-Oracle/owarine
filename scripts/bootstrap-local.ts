@@ -30,6 +30,7 @@ import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
 import { CANTON_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
 import { GAMES_DAR } from "./bootstrap-games";
+import { valuationGate, valuationRefusal } from "./bootstrap/valuation-gate";
 import { bootstrapVenue, POLICY_VERSION } from "./bootstrap/venue";
 
 const env = parseLedgerEnv(process.env);
@@ -84,6 +85,12 @@ async function upload(path: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  // `--lanes crypto,regular,gap,token,preipo,basket` (the default); `valuation` registers only with an entitled Pyth key
+  // (C8j.2): refused before anything is written, as the reference's init-valuation-series refuses.
+  const lanes = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
+  const gate = await valuationGate(lanes, { key: process.env.PYTH_API_KEY || undefined });
+  if (gate.requested && !gate.entitled) throw new Error(valuationRefusal(gate));
+  if (gate.requested) log(`valuation lanes: ${gate.lines.join(" · ")}`);
   await waitReady();
   log(`sandbox ${env.LEDGER_JSON_API_URL} (${(await client.version()).version})`);
   await upload(DAR);
@@ -115,8 +122,6 @@ async function main(): Promise<void> {
   if (!flag("--no-agents")) await upload(AGENTS_DAR);
   if (games) await upload(GAMES_DAR);
 
-  // `--lanes crypto,regular,gap,token,preipo,basket` (the default); add `valuation` only with an entitled Pyth key.
-  const lanes = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
   await bootstrapVenue({
     client, parties: parties as Record<CantonRole, string>, dryRun: false, run, shards: SHARDS, shardBase: SHARD_BASE, lanes,
     reserveSeedBase: RESERVE_SEED_BASE, tickets, maker: !flag("--no-maker"), games, log,

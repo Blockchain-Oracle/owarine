@@ -50,7 +50,7 @@ export function CheckStrip({ view, zone, nowSec, onGoLive }: { view: DeskView; z
       <View style={styles.main}>
         <CountdownRing fraction={(atSec - nowSec) / 3_600}>{span(atSec - nowSec)}</CountdownRing>
         <View style={styles.text}>
-          <Text style={[styles.lead, { color: active ? color.ink : color.warning }]}>{upperFirst(active ? C.lead(clock(atSec, zone), span(atSec - nowSec)) : view.stateText)}</Text>
+          <Text style={[styles.lead, { color: active ? color.ink : color.warning }]}>{upperFirst(active ? (view.isLive ? C.leadLive : C.lead)(clock(atSec, zone), span(atSec - nowSec)) : view.stateText)}</Text>
           <Text style={[DT.caption, { color: color.inkSecondary }]}>{view.nextCheck.lastAtSec === null ? C.noCheck : C.lastCheck(ago(view.nextCheck.lastAtSec, nowSec))}</Text>
         </View>
       </View>

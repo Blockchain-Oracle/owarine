@@ -620,6 +620,16 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** none until the LocalNet demo; a settled market reads the same either way (`Parity.testGovernedSettlesLikePlain`).
 - **Approval:** default; overrulable.
 
+### K-230 — A live desk's hourly check waits for the hour's Windows (overflow block)
+- **Date / owner:** 2026-09-30 · C8j lane
+- **Evidence:** `docs/evidence/c8i-agents-gaps.md` §2 records 5 and 6, gap 2: the live desk checked at 06:00:0x and 07:00:0x, a few seconds before the roller opened the hour's pre-IPO Windows, and read "could not price OpenAI and Anthropic". `services/ops/src/actors/desk-runner/schedule.test.ts`.
+- **Rule:**
+  - The reference's desk checked on the hour against a market that never closes (PreStocks tokens through Jupiter), and its only wait was for its data ("feed warming … wakes wait"). A live desk here trades each name's hourly Window (K-090), which quotes only once the roller has opened it on the hour's opening print; the previous Window stopped quoting at :58. So the live desk waits for its market the way the reference waits for its feed.
+  - A live desk's hour and move wakes stay unclaimed while any name it targets or holds has no quoting Window starting this hour on the venue's ladder; the next 60 s tick looks again. They run anyway at :10 (`HOUR_WINDOWS_GRACE_SEC`), so a lane the roller never opens is still checked and the record names what could not be priced. The wake keeps the hour as its scheduled time.
+  - Practice desks (priced at the feed, K-091) and a check the owner asks for run when due, as before.
+- **User-visible:** a live desk's hourly record lands a minute or so after the hour, once its names are quoting, instead of "could not price" at the top of the hour. The heartbeat names the names it waits for.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

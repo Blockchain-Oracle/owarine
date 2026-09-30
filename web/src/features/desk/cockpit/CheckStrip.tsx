@@ -36,7 +36,7 @@ export function CheckStrip({ view, zone, nowSec, onGoLive }: { view: DeskView; z
           <span className="cp-ring-text">{span(atSec - nowSec)}</span>
         </CountdownRing>
         <div className="cp-check-text">
-          <p className={active ? "cp-check-lead" : "cp-check-lead dk-warn"}>{active ? C.lead(clock(atSec, zone), span(atSec - nowSec)) : view.stateText}</p>
+          <p className={active ? "cp-check-lead" : "cp-check-lead dk-warn"}>{active ? (view.isLive ? C.leadLive : C.lead)(clock(atSec, zone), span(atSec - nowSec)) : view.stateText}</p>
           <p className="type-caption text-ink-secondary">{view.nextCheck.lastAtSec === null ? C.noCheck : C.lastCheck(ago(view.nextCheck.lastAtSec, nowSec))}</p>
         </div>
       </div>

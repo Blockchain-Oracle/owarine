@@ -78,14 +78,20 @@ export interface RepoDar {
 }
 
 /**
- * The four packages of this repo at the versions their `daml.yaml` names, main first (the upload order of
- * `devnet-r1.md` step 5). The DAR is looked up in `daml/released/` (what Abu uploads), then in `.daml/dist/`.
+ * The DevNet release set, in upload order (`devnet-r1.md` step 5). Only these go to Noders: `abu-pm-governance` is the
+ * BitSafe add-on's LocalNet package (K-150) and is never part of a DevNet release, so it is not listed here.
+ */
+export const RELEASE_PACKAGES = ["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games"] as const;
+
+/**
+ * The release set's packages at the versions their `daml.yaml` names, main first. The DAR is looked up in
+ * `daml/released/` (what Abu uploads), then in `.daml/dist/`.
  */
 export function repoDars(root = resolve(import.meta.dirname, "..", "..")): RepoDar[] {
   const daml = join(root, "daml");
-  const order = ["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games"];
-  const dirs = readdirSync(daml).filter((d) => existsSync(join(daml, d, "daml.yaml")) && d.startsWith("abu-pm-"));
-  dirs.sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+  const order: readonly string[] = RELEASE_PACKAGES;
+  const dirs = readdirSync(daml).filter((d) => existsSync(join(daml, d, "daml.yaml")) && order.includes(d));
+  dirs.sort((a, b) => order.indexOf(a) - order.indexOf(b));
   return dirs.map((d) => {
     const yaml = readFileSync(join(daml, d, "daml.yaml"), "utf8");
     const name = yaml.match(/^name:\s*(\S+)/m)?.[1] ?? d;
