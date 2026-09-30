@@ -1,0 +1,231 @@
+-- | Governed resolution, money-gate style: propose -> confirm (2 of 3) ->
+-- execute, the below-threshold failure, one confirmation per member, stale
+-- confirmations and proposals, execute exactly once, and the venue (or any
+-- one member) unable to resolve alone.
+module Test.Governance.Resolve where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List (sort)
+import DA.Text (isInfixOf)
+import Governance.Action
+import Governance.Confirmation
+import Governance.ExecutionResult
+import Governance.Rules
+import PM.Governance.Resolve
+import PM.Governance.Rules
+import PM.Market
+import PM.Types
+import Test.Governance.Fixture
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- | Propose a resolution action as `who`, valid one hour.
+propose : Gov -> Party -> Text -> ResolveAction -> Text -> Script (ContractId GovernableAction)
+propose g who marketId action rationale = do
+  now <- getTime
+  p <- submit who do
+    createCmd ResolveMarketProposal with
+      governanceParty = g.gov; proposer = who; venue = g.w.venue; marketId; action; rationale
+      expiresAt = plus now 3600
+  pure (toInterfaceContractId p)
+
+-- | The open print of window `win`, by vote, at tradingStart + 10 s.
+govOpen : Gov -> Win -> ContractId ApprovedRules -> Int -> Script (ContractId OpenPrint)
+govOpen g win ar price = do
+  at (plus win.t.tradingStart 10)
+  qs <- prints g.w win.t.tradingStart [price, price, price]
+  p <- propose g g.w.venue win.t.marketId
+    (RecordOpen with termsCid = win.terms; stateCid = win.state; quoteCids = qs; rulesCid = ar) "open print"
+  _ <- pass g p
+  ops <- query @OpenPrint g.w.venue
+  case [c | (c, o) <- ops, o.termsCid == win.terms] of
+    [c] -> pure c
+    _ -> abort "expected one open print"
+
+-- | A close proposal at expiry + 10 s with three agreeing prints.
+closeProposal : Gov -> Win -> ContractId OpenPrint -> ContractId ApprovedRules -> Int -> Optional Side -> Script (ContractId GovernableAction)
+closeProposal g win op ar price expected = do
+  at (plus win.t.expiry 10)
+  qs <- prints g.w win.t.expiry [price, price, price]
+  propose g g.w.venue win.t.marketId
+    (ResolvePrice with termsCid = win.terms; openCid = op; quoteCids = qs; rulesCid = ar; expected)
+    "close print"
+
+-- The headline: execute fails at 0 and 1 confirmations with BitSafe's own
+-- "Enough confirmations to execute action", succeeds at 2, and leaves a
+-- permanent audit record naming both confirmers and the executor.
+testProposeConfirmExecute = script do
+  (g, _, win, ar) <- mkGovWin
+  op <- govOpen g win ar px
+  p <- closeProposal g win op ar (px + 5) (Some SideUp)
+  tryExecute g g.m3 p [] >>= failsWith enoughConfirmations
+  c1 <- confirm g g.m1 p
+  tryExecute g g.m3 p [c1] >>= failsWith enoughConfirmations
+  resolutionsOf g win.terms >>= (=== [])
+  c2 <- confirm g g.m2 p
+  auditCid <- execute g g.m3 p [c1, c2]
+  [r] <- resolutionsOf g win.terms
+  r.outcome === Some SideUp
+  r.resolver === g.gov
+  Some audit <- queryContractId g.gov auditCid
+  audit.actionLabel === "ResolveMarket"
+  sort audit.confirmers === sort [g.m1, g.m2]
+  audit.executor === g.m3
+  assertMsg "the audit names the market" (win.t.marketId `isInfixOf` audit.description)
+  -- the confirmations were consumed by the execution
+  cs <- query @GovernanceConfirmation g.gov
+  cs === []
+
+-- A member's second confirmation never counts, the same confirmation
+-- cannot be spent twice, and non-members cannot confirm (or even see the
+-- committee without hosting the governed party). A proposal from outside
+-- the member and additional-proposer lists cannot be confirmed at all.
+testOneConfirmationPerMember = script do
+  (g, _, win, ar) <- mkGovWin
+  let w = g.w
+  at (plus t0 10)
+  qs <- prints w t0 [px, px, px]
+  let action = RecordOpen with termsCid = win.terms; stateCid = win.state; quoteCids = qs; rulesCid = ar
+  p <- propose g w.venue win.t.marketId action "open print"
+  c1 <- confirm g g.m1 p
+  c1again <- confirm g g.m1 p
+  tryExecute g g.m1 p [c1, c1again] >>= failsWith "No duplicate confirmers"
+  tryExecute g g.m1 p [c1, c1] >>= fails
+  -- the venue and a user: no view of the committee, and no vote with one
+  forA_ [w.venue, w.alice] \x -> do
+    r1 <- trySubmit x do
+      exerciseCmd g.rules GovernanceRules_ConfirmAction with confirmer = x; actionProposalCid = p
+    fails r1
+    r2 <- trySubmit (actAs x <> readAs g.gov) do
+      exerciseCmd g.rules GovernanceRules_ConfirmAction with confirmer = x; actionProposalCid = p
+    failsWith "Confirmer is a governance member" r2
+  -- a user's own proposal cannot be confirmed
+  pa <- propose g w.alice win.t.marketId action "user proposal"
+  r3 <- trySubmit (asMember g g.m1) do
+    exerciseCmd g.rules GovernanceRules_ConfirmAction with confirmer = g.m1; actionProposalCid = pa
+  failsWith "Proposer is authorized (member or additional proposer)" r3
+  -- nothing happened; one more real member completes the vote
+  ops <- query @OpenPrint w.venue
+  ops === []
+  c2 <- confirm g g.m2 p
+  _ <- execute g g.m2 p [c1, c2]
+  ops' <- query @OpenPrint w.venue
+  length ops' === 1
+
+-- Confirmations lapse after the committee's timeout (one hour), and the
+-- proposal itself lapses at its expiry (here two hours): fresh
+-- confirmations cannot revive it. Its proposer withdraws it; a new vote
+-- then voids the market.
+testStaleProposalExpires = script do
+  (g, _, win, _) <- mkGovWin
+  let w = g.w
+  at (plus win.t.openDeadline 1)
+  now <- getTime
+  pv <- submit w.venue do
+    createCmd ResolveMarketProposal with
+      governanceParty = g.gov; proposer = w.venue; venue = w.venue; marketId = win.t.marketId
+      action = VoidPrice with termsCid = win.terms; stage = BeforeOpen win.state; quoteCids = []
+      rationale = "no open print"; expiresAt = plus now 7200
+  let p = toInterfaceContractId @GovernableAction pv
+  c1 <- confirm g g.m1 p
+  c2 <- confirm g g.m2 p
+  at (plus now 3601)
+  tryExecute g g.m3 p [c1, c2] >>= failsWith "Confirmation has expired"
+  forA_ [c1, c2] \c -> submit (asMember g g.m3) do
+    exerciseCmd g.rules GovernanceRules_ExpireConfirmation with member = g.m3; staleConfirmationCid = c
+  at (plus now 7201)
+  c3 <- confirm g g.m1 p
+  c4 <- confirm g g.m2 p
+  tryExecute g g.m3 p [c3, c4] >>= refusedWith (refusal "proposal-expired")
+  resolutionsOf g win.terms >>= (=== [])
+  submit w.venue do exerciseCmd p GovernableAction_ProposerCancel
+  -- the market is still voidable, by a fresh vote
+  fresh <- propose g w.venue win.t.marketId
+    (VoidPrice with termsCid = win.terms; stage = BeforeOpen win.state; quoteCids = []) "no open print"
+  _ <- pass g fresh
+  [r] <- resolutionsOf g win.terms
+  r.voidReason === Some (MissingPrint OpenSlot)
+
+-- An executed proposal is gone: it cannot be confirmed or executed again,
+-- and a second vote on the same market (resolve or void) fails in the
+-- engine's single-use chain. One Resolution, one audit record.
+testExecuteExactlyOnce = script do
+  (g, _, win, ar) <- mkGovWin
+  op <- govOpen g win ar px
+  p <- closeProposal g win op ar (px + 5) (Some SideUp)
+  c1 <- confirm g g.m1 p
+  c2 <- confirm g g.m2 p
+  _ <- execute g g.m3 p [c1, c2]
+  tryExecute g g.m1 p [c1, c2] >>= fails
+  r <- trySubmit (asMember g g.m3) do
+    exerciseCmd g.rules GovernanceRules_ConfirmAction with confirmer = g.m3; actionProposalCid = p
+  fails r
+  again <- closeProposal g win op ar (px + 5) (Some SideUp)
+  passFails g again >>= fails
+  at (plus win.t.closeDeadline 1)
+  voidAgain <- propose g g.w.venue win.t.marketId
+    (VoidPrice with termsCid = win.terms; stage = AfterOpen op; quoteCids = []) "void after resolve"
+  passFails g voidAgain >>= fails
+  rs <- resolutionsOf g win.terms
+  length rs === 1
+  audits <- query @GovernanceExecutionResult g.gov
+  length [a | (_, a) <- audits, a.actionLabel == "ResolveMarket"] === 1
+
+-- The venue alone cannot resolve: not through the engine, not by writing a
+-- Resolution, not by executing its own proposal, not as an executor. Nor
+-- can any single member: reading as the governed party grants no
+-- authority, and a member cannot forge another member's confirmation.
+testVenueAloneCannotResolve = script do
+  (g, _, win, ar) <- mkGovWin
+  let w = g.w
+  op <- govOpen g win ar px
+  p <- closeProposal g win op ar (px + 5) (Some SideUp)
+  qs <- prints w win.t.expiry [px + 5, px + 5, px + 5]
+  r1 <- trySubmit w.venue do
+    exerciseCmd win.terms Terms_Resolve with openCid = op; quoteCids = qs
+  fails r1
+  r2 <- trySubmit w.venue do
+    createCmd Resolution with
+      venue = w.venue; resolver = g.gov; termsCid = win.terms; marketId = win.t.marketId
+      outcome = Some SideDown; voidReason = None; openPriceE8 = Some px; closePriceE8 = Some 1
+      openEvidence = []; closeEvidence = []; signers = 3
+  unauthorized r2
+  r3 <- trySubmit w.venue do exerciseCmd p GovernableAction_Execute
+  unauthorized r3
+  r4 <- trySubmit (actAs w.venue <> readAs g.gov) do
+    exerciseCmd g.rules GovernanceRules_ExecuteConfirmedAction with
+      executor = w.venue; actionProposalCid = p; confirmations = []
+  failsWith "Executor is a governance member" r4
+  r5 <- trySubmit (asMember g g.m1) do exerciseCmd p GovernableAction_Execute
+  unauthorized r5
+  r6 <- trySubmit (asMember g g.m1) do
+    createCmd GovernanceConfirmation with
+      governanceParty = g.gov; confirmer = g.m2; actionProposalCid = p
+      actionLabel = "ResolveMarket"; expiresAt = plus win.t.expiry 3600
+  unauthorized r6
+  resolutionsOf g win.terms >>= (=== [])
+  _ <- pass g p
+  [r] <- resolutionsOf g win.terms
+  r.outcome === Some SideUp
+
+-- The committee votes on an outcome: evidence that resolves differently
+-- fails the whole execution. A proposal is bound to its market.
+testOutcomeAndMarketBound = script do
+  (g, _, win, ar) <- mkGovWin
+  op <- govOpen g win ar px
+  wrongSide <- closeProposal g win op ar (px + 5) (Some SideDown)
+  passFails g wrongSide >>= refusedWith (refusal "outcome-mismatch")
+  qs <- prints g.w win.t.expiry [px + 5, px + 5, px + 5]
+  otherMarket <- propose g g.w.venue "BTC-300:7"
+    (ResolvePrice with termsCid = win.terms; openCid = op; quoteCids = qs; rulesCid = ar; expected = Some SideUp)
+    "names another market"
+  passFails g otherMarket >>= refusedWith (refusal "wrong-market")
+  resolutionsOf g win.terms >>= (=== [])
+  ok <- closeProposal g win op ar (px + 5) (Some SideUp)
+  _ <- pass g ok
+  [r] <- resolutionsOf g win.terms
+  r.outcome === Some SideUp
