@@ -140,7 +140,12 @@ export type StrategyIntent =
   /** A-1c: the same consent, the other way round. A wallet may hold one of the two at a time, and the program says so. */
   | { kind: "strategy-fade"; strategyId: bigint; grantId: bigint; feeBase: bigint }
   | { kind: "strategy-unfade"; strategyId: bigint }
-  | { kind: "strategy-deactivate"; strategyId: bigint };
+  | { kind: "strategy-deactivate"; strategyId: bigint }
+  /**
+   * C8i (Canton): a creator collects its fees. The venue pools every subscriber's fee into one `CreatorPayout` per
+   * period (a total and a count, never a subscriber, K-086); this claims every one waiting into the creator's seat.
+   */
+  | { kind: "strategy-claim-fees" };
 
 /** Where the registry lives on one chain — regenerated from `contracts/deployments` (AD-10). */
 export interface RegistryDeployment {

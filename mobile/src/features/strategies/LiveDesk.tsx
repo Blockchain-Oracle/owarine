@@ -1,18 +1,26 @@
 import { parseStrategyMetadata } from "@agari/core/strategies";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { STRATEGIES } from "@/features/strategies/copy";
 import { money } from "@/features/strategies/format";
 import { strategyIdentity, STRATEGY_MARKETS } from "@/features/strategies/identity";
 import { COPY_STATE_LABEL } from "@/features/strategies/lifecycle";
 import type { StrategiesPayload } from "@/features/strategies/protocol";
+import type { CreatorFeesModel } from "@/features/strategies/useCreatorFees";
 import type { DeskModel } from "@/features/strategies/useDesk";
+import { openExternal, proofUrl } from "~/lib/external";
 import { FONT } from "~/theme";
 import { AgentPortrait } from "./AgentPortrait";
 import { RecordCard } from "./RecordCard";
 import { StrategyActivity } from "./StrategyActivity";
-import { PrimaryButton, ST, useStrat } from "./ui";
+import { DeskPill, PrimaryButton, ST, useStrat } from "./ui";
 
-/** web's features/strategies/LiveDesk.tsx (desk.css `.desk`): the selected strategy, its consent state, the runner's report. */
-export function LiveDesk({ payload, desk, nowMs, onManage }: { payload: StrategiesPayload; desk: DeskModel; nowMs: number; onManage: () => void }) {
+const F = STRATEGIES.creatorFees;
+
+/**
+ * web's features/strategies/LiveDesk.tsx (desk.css `.desk`): the selected strategy, its consent state, the runner's
+ * report, and (C8i) the creator's own fees when the seat published it.
+ */
+export function LiveDesk({ payload, desk, nowMs, onManage, fees = null }: { payload: StrategiesPayload; desk: DeskModel; nowMs: number; onManage: () => void; fees?: CreatorFeesModel | null }) {
   const { t, color } = useStrat();
   const card = desk.featured;
   if (!card) return null;
@@ -54,10 +62,45 @@ export function LiveDesk({ payload, desk, nowMs, onManage }: { payload: Strategi
           </View>
         </View>
       ) : null}
+      {fees ? <CreatorFees fees={fees} decimals={decimals} symbol={symbol} /> : null}
       <PrimaryButton label={`${desk.subscriptionOf(card.strategyId) ? "Manage this copy" : "Review and copy"} →`} onPress={onManage} style={styles.mt20} />
       <Text style={[ST.deskNote, styles.mt12, { color: color.inkMuted }]}>
         Copying enabled means permission is in place. Each trade still needs a market signal, fresh risk checks, and a confirmed receipt.
       </Text>
+    </View>
+  );
+}
+
+/** web's `CreatorFees` (the desk's numbers row): what waits for the creator, and one claim into the seat. */
+function CreatorFees({ fees, decimals, symbol }: { fees: CreatorFeesModel; decimals: number; symbol: string }) {
+  const { t, color } = useStrat();
+  const waiting = fees.waitingBase ?? 0n;
+  const last = fees.last;
+  return (
+    <View accessibilityLabel={F.eyebrow} style={[styles.numbers, { borderColor: t.ink(0.08), backgroundColor: t.ink(0.02) }]}>
+      <View style={styles.numberCell}>
+        <Text style={[ST.deskEyebrow, { color: color.ink }]}>{F.eyebrow}</Text>
+        <Text style={[styles.figure, { color: color.ink }]}>{fees.waitingBase === null ? "—" : F.waiting(money(waiting, decimals, symbol))}</Text>
+        <Text style={[ST.deskFine, styles.mt6, { color: color.ink }]}>{!fees.readable ? F.unreadable : waiting > 0n ? F.count(fees.feeCount) : F.none}</Text>
+      </View>
+      <View style={[styles.numberCell, { borderLeftWidth: 1, borderLeftColor: t.ink(0.06) }]}>
+        <Text style={[ST.deskFine, { color: color.ink }]}>{F.note}</Text>
+        <DeskPill label={fees.claiming ? F.claiming : `${F.claim} →`} disabled={!fees.readable || waiting === 0n || fees.claiming} onPress={() => void fees.claim()} on style={styles.mt8} />
+        {last ? (
+          last.ok ? (
+            <View style={styles.mt8}>
+              <Text accessibilityRole="text" style={[ST.deskFine, { color: color.ink }]}>{F.claimed(money(last.amountBase, decimals, symbol))}</Text>
+              {last.txHash ? (
+                <Pressable accessibilityRole="link" hitSlop={8} onPress={() => void openExternal(proofUrl(last.txHash as string))}>
+                  <Text style={[ST.deskFine, { color: color.accent }]}>{F.receipt}</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : (
+            <Text accessibilityRole="alert" style={[ST.deskFine, styles.mt8, { color: color.accent }]}>{F.failed(last.reason)}</Text>
+          )
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -71,6 +114,8 @@ const styles = StyleSheet.create({
   mt24: { marginTop: 24 },
   mt20: { marginTop: 20 },
   mt12: { marginTop: 12 },
+  mt8: { marginTop: 8 },
+  mt6: { marginTop: 6 },
   pulse: { marginTop: 20, paddingLeft: 12, paddingVertical: 2 },
   numbers: { flexDirection: "row", borderWidth: 1, marginTop: 20 },
   numberCell: { flex: 1, padding: 12 },

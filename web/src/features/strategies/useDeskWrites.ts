@@ -16,7 +16,7 @@ import { copyProgressKey, parseCopyProgress, type CopyProgress } from "./copy-pr
 import { completeCopySetup, type CopySetupInput, type CopyWriteResult } from "./copy-setup";
 import { releaseCopyPermission } from "./copy-release";
 
-export type DeskBusy = "join" | "add" | "withdraw" | "caps" | "pause" | "resume" | "publish" | null;
+export type DeskBusy = "join" | "add" | "withdraw" | "caps" | "pause" | "resume" | "publish" | "claim" | null;
 
 export type DeskWriteResult = CopyWriteResult;
 
@@ -209,6 +209,9 @@ export function useDeskWrites() {
     [run, registry],
   );
 
+  /** A creator claims every fee payout the venue made it into its own seat (C8i): one seat command, `Payout_Claim` each. */
+  const claimFees = useCallback(() => run("claim", () => registry({ kind: "strategy-claim-fees" })), [run, registry]);
+
   const releasePending = useCallback(() => run("pause", async (): Promise<DeskWriteResult> => {
     if (!pending || !address || !submitter) return { ok: false, reason: "No unfinished copy is selected." };
     return releaseCopyPermission(pending, address, {
@@ -220,5 +223,5 @@ export function useDeskWrites() {
     });
   }), [run, pending, address, submitter, remember]);
 
-  return { busy, join, pause, addMoney, fundBudget, withdraw, publish, pending, releasePending, snapshot, address, canSign: Boolean(submitter && wallet) };
+  return { busy, join, pause, addMoney, fundBudget, withdraw, publish, claimFees, pending, releasePending, snapshot, address, canSign: Boolean(submitter && wallet) };
 }

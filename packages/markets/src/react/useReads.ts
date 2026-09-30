@@ -37,6 +37,7 @@ import {
   syncClock,
 } from "../provider/reads";
 import { getRangeReserveState, getRangeSharesOf, listRangesOf, previewRangeBasis, type RangeWindowBasis } from "../range/read";
+import { getCreatorPayouts, type CreatorPayouts } from "../strategies/reads";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";
 
@@ -141,6 +142,11 @@ export function useClock(): Reading<ClockSync> | null {
 /** The Trading Balance and the live grant per kind; `null` inside the reading where no vault is deployed. */
 export function useVaultSnapshot(wallet: Address | null): Reading<VaultSnapshot | null> | null {
   return useReadingQuery(keys.vault(wallet), () => getVaultSnapshot(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: wallet !== null });
+}
+
+/** A creator's fee payouts waiting on the ledger (C8i); refreshed with the vault after any write of the seat's. */
+export function useCreatorPayouts(wallet: Address | null, enabled = true): Reading<CreatorPayouts> | null {
+  return useReadingQuery(keys.creatorPayouts(wallet), () => getCreatorPayouts(wallet as Address), { ...PRODUCT, pollMs: MARKETS_POLL_MS, enabled: enabled && wallet !== null });
 }
 
 /** The reserve's sheet and tunables; `null` inside the reading where no reserve is deployed. */

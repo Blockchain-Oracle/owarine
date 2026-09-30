@@ -8,7 +8,7 @@
 import { err, ok, type Reading } from "@agari/core/schemas";
 import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
 import type { Address } from "@agari/core/types";
-import { strategiesReplyWire, subscriptionsReplyWire } from "../provider/agents-wire";
+import { creatorPayoutsReplyWire, strategiesReplyWire, subscriptionsReplyWire } from "../provider/agents-wire";
 import { nowMs } from "../provider/clock";
 import { ledgerRequest } from "../provider/ledger-api";
 import { cantonNotLive } from "../stub/not-deployed";
@@ -50,6 +50,20 @@ export async function listSubscriptionsOf(wallet: Address, strategyIds: readonly
   const r = await ledgerRequest("/agents/subscriptions", { method: "GET", wire: subscriptionsReplyWire, query: { ids: strategyIds.join(",") } });
   if (!r.ok) return r.diagnosis.kind === "signer-required" ? ok([], nowMs()) : err(r.diagnosis);
   return ok(r.value.subscriptions.map((s) => ({ ...s, subscriber: s.subscriber as Address })), nowMs());
+}
+
+/** A creator's fees waiting on the ledger (C8i): the venue's aggregate payouts to this seat, a total and a count. */
+export interface CreatorPayouts {
+  totalBase: bigint;
+  feeCount: number;
+  payouts: { period: number; feeCount: number; amountBase: bigint }[];
+}
+
+/** The seat's own waiting creator payouts (`/api/ledger/agents/payouts`, read AS the leased party). */
+export async function getCreatorPayouts(_wallet: Address): Promise<Reading<CreatorPayouts>> {
+  const r = await ledgerRequest("/agents/payouts", { method: "GET", wire: creatorPayoutsReplyWire });
+  if (!r.ok) return err(r.diagnosis);
+  return ok(r.value, nowMs());
 }
 
 /** Live consents to act on: the runner's (or the venue's) read. A seat's session cannot list other seats. */

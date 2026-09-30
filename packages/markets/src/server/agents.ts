@@ -16,7 +16,7 @@ import { AGENT_TEMPLATE_IDS } from "@agari/daml";
 import type { Command, DisclosedContract, JsTransaction, LedgerClient, Party } from "@agari/ledger";
 import { acmd } from "../ops/agents";
 import { grantIdOf, sha256Hex, strategyNumOf, utcDayStartSec } from "../ops/agents/ids";
-import { AGENT_DECIMALS, capsToDaml, envelopeToDaml, goneGrantView, grantFor, grantIdOfC, grantKindOf, grantsByKind, grantView, strategyView, subscriptionView } from "../ops/agents/views";
+import { AGENT_DECIMALS, capsToDaml, creatorPayoutsView, envelopeToDaml, goneGrantView, grantFor, grantIdOfC, grantKindOf, grantsByKind, grantView, strategyView, subscriptionView, type CreatorPayoutsView } from "../ops/agents/views";
 import type { AgentsWriteReply } from "../provider/agents-wire";
 import { readAgentsAs, readRegistry, type AgentsSnapshot, type Registry } from "./agents-read";
 import { seatCommandId } from "./ids";
@@ -110,6 +110,12 @@ export function createAgentsSeat(cfg: AgentsSeatConfig) {
       .filter((s) => s.data.subscriber === seat.party)
       .map((s) => subscriptionView(s.data, grantFor(mine, seat.party, s.data.runner, t), t, s.createdAtSec, seat.address))
       .filter((s) => want.size === 0 || want.has(s.strategyId.toString()));
+  }
+
+  /** The creator fees waiting for the seat: every `CreatorPayout` the venue made it, not yet claimed (C8i). */
+  async function payouts(seat: SeatRef): Promise<CreatorPayoutsView> {
+    const snap = await read(seat.party);
+    return creatorPayoutsView(snap.payouts.map((p) => p.data), seat.party);
   }
 
   // ---- the command lane ------------------------------------------------------------------------------
@@ -359,7 +365,7 @@ export function createAgentsSeat(cfg: AgentsSeatConfig) {
     return r.contracts.some((c) => (c.createdEvent.createArgument as { owner?: unknown }).owner === party);
   }
 
-  return { read, hasDesk, venueRegistry, vault, grant, strategies, subscriptions, openGrant, fundGrant, revokeGrant, publish, update, setRunner, deactivate, subscribe, unsubscribe, claimPayouts };
+  return { read, hasDesk, venueRegistry, vault, grant, strategies, subscriptions, payouts, openGrant, fundGrant, revokeGrant, publish, update, setRunner, deactivate, subscribe, unsubscribe, claimPayouts };
 }
 
 export type AgentsSeat = ReturnType<typeof createAgentsSeat>;

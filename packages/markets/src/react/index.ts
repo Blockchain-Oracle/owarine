@@ -64,6 +64,7 @@ export {
   useSettlementFee,
   useVaultHoldings,
   useVaultSnapshot,
+  useCreatorPayouts,
   useWalletHistory,
 } from "./useReads";
 export { invalidateAfterWrite, type WriteScope } from "./invalidate";

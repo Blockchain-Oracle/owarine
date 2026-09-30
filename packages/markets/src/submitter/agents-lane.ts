@@ -104,13 +104,16 @@ export function agentsStrategyLane(deps: SeatLaneDeps, intent: StrategyIntent, o
       return w(`stop fading strategy #${intent.strategyId}`, "unsubscribe", { strategyId: intent.strategyId, fade: true });
     case "strategy-deactivate":
       return w(`deactivate strategy #${intent.strategyId}`, "deactivate", { strategyId: intent.strategyId });
+    case "strategy-claim-fees":
+      return w("claim creator fee payouts", "claim", {});
   }
 }
 
-/** Creator-only writes the port's intents do not name: rotating the runner, and claiming aggregate fee payouts. */
+/** A creator-only write the port's intents do not name: rotating the runner. */
 export function setStrategyRunnerLane(deps: SeatLaneDeps, strategyId: bigint, runner: string, onPhase?: PhaseListener): Promise<TxOutcome> {
   return journaled(deps, { kind: "strategy-update", summary: `set strategy #${strategyId}'s runner to ${runner}` }, "/agents/strategies/runner", { strategyId, runner }, onPhase);
 }
+/** The same write as the `strategy-claim-fees` intent, for a caller holding a lane rather than a submitter. */
 export function claimCreatorPayoutsLane(deps: SeatLaneDeps, onPhase?: PhaseListener): Promise<TxOutcome> {
-  return journaled(deps, { kind: "strategy-update", summary: "claim creator fee payouts" }, "/agents/strategies/claim", {}, onPhase);
+  return agentsStrategyLane(deps, { kind: "strategy-claim-fees" }, onPhase);
 }
