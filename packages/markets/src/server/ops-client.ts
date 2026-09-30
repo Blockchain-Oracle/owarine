@@ -14,7 +14,10 @@ import { diagnosis, diagnosisSchema, type Diagnosis } from "@agari/core/types";
 import { z } from "zod";
 import { ladderLatestWire, parseLadder, type Ladder } from "../runtime/ladder";
 import { ladderMid2 } from "./map";
-import { exitQuoteReplyWire, quoteReplyWire, toWire, type ExitQuoteReply, type ExitQuoteRequest, type QuoteReply, type QuoteRequest } from "../provider/ledger-wire";
+import {
+  exitQuoteReplyWire, quoteReplyWire, restingOfferReplyWire, toWire,
+  type ExitQuoteReply, type ExitQuoteRequest, type QuoteReply, type QuoteRequest, type RestingOfferReply, type RestingRequest,
+} from "../provider/ledger-wire";
 import {
   boostTicketReplyWire, earnReplyWire, parlayTicketReplyWire, rangeTicketReplyWire, ticketStateReplyWire,
   type BoostTicketReply, type EarnReply, type ParlayTicketReply, type RangeTicketReply, type TicketStateReply,
@@ -28,6 +31,8 @@ export const OPS_SKEW_MS = 30_000;
 export const OPS_QUOTES_PATH = "/internal/quotes";
 export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
 export const OPS_EXIT_QUOTES_PATH = "/internal/exit-quotes";
+/** C7c: the venue's offer to hold a pre-open resting call (`RestDesk_Offer`), checked post-only against the Window. */
+export const OPS_RESTING_OFFERS_PATH = "/internal/resting-offers";
 /** C8f: create a seat's missing standing offers for agents (grant desk, subscriber invitation, creator licence, desk offer). */
 export const OPS_AGENTS_ENROL_PATH = "/internal/agents/enrol";
 /** The ticket desk (C8c): `range`, `parlay`, `boost`, `earn` and `state` under this prefix. */
@@ -73,6 +78,12 @@ export interface OpsQuoteRequest extends QuoteRequest {
 
 /** What the web sends ops for a sale: the exit as the seat confirmed it, plus WHO, taken from the lease only. */
 export interface OpsExitQuoteRequest extends ExitQuoteRequest {
+  party: string;
+  leaseId: string;
+}
+
+/** What the web sends ops for a resting call: the request as the seat confirmed it, plus WHO, taken from the lease only. */
+export interface OpsRestingRequest extends RestingRequest {
   party: string;
   leaseId: string;
 }
@@ -198,6 +209,13 @@ export function createOpsClient(cfg: OpsClientConfig) {
       if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };
       const parsed = quoteReplyWire.safeParse(r.json);
       return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown(`ops quote reply did not parse: ${parsed.error.message.slice(0, 200)}`) };
+    },
+    /** The venue's offer to hold a pre-open resting call, a requote when the Window's grid sizes it differently, or a refusal (C7c). */
+    async restingOffer(request: OpsRestingRequest): Promise<RestingOfferReply> {
+      const r = await post(OPS_RESTING_OFFERS_PATH, request);
+      if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };
+      const parsed = restingOfferReplyWire.safeParse(r.json);
+      return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown(`ops resting offer reply did not parse: ${parsed.error.message.slice(0, 200)}`) };
     },
     /** A firm buy-back of the seat's held side, a requote below the confirmed floor, or a refusal (C7a). */
     async exitQuote(request: OpsExitQuoteRequest): Promise<ExitQuoteReply> {

@@ -249,3 +249,44 @@ export const acceptInvite = (inviteCid: ContractId): Command => exercise(TEMPLAT
 
 export const creditAccount = (accountCid: ContractId, amount: bigint, bucket = "demo"): Command =>
   exercise(TEMPLATE_IDS.VenueAccount, accountCid, "VenueAccount_Credit", { amount: int(amount), bucket } satisfies Wire<PM.Money.VenueAccount_Credit>);
+
+// ---- the pre-open resting call (0.5.1, K-235) ------------------------------------------------------
+
+/** The venue's desk for resting calls: created once (bootstrap or ops' first start), venue-only. */
+export const createRestingDesk = (venue: Party): Command => create(TEMPLATE_IDS.RestingDesk, { venue } satisfies Wire<PM.Resting.RestingDesk>);
+
+export interface OfferRestInput {
+  owner: Party;
+  termsCid: ContractId;
+  callRef: string;
+  side: Side;
+  lots: bigint;
+  /** The owner's own-side price in ticks of 1000. */
+  priceTicks: number;
+  expiresAtSec: number;
+  validUntilSec: number;
+}
+
+/** The venue's offer to hold one call before the bell: the desk fetches the terms, so the offer carries the Window's own times and grid. */
+export const offerRest = (deskCid: ContractId, o: OfferRestInput): Command =>
+  exercise(TEMPLATE_IDS.RestingDesk, deskCid, "RestDesk_Offer", {
+    owner: o.owner, termsCid: o.termsCid, callRef: o.callRef, side: o.side, lots: int(o.lots), priceTicks: int(o.priceTicks),
+    expiresAt: isoOfSec(o.expiresAtSec), validUntil: isoOfSec(o.validUntilSec),
+  } satisfies Wire<PM.Resting.RestDesk_Offer>);
+
+/** `fillLots` of a call at exactly its own price, the venue's opposite stake locked from `shardCid`; the rest keeps resting. */
+export const fillRest = (callCid: ContractId, f: { shardCid: ContractId; fillLots: bigint }): Command =>
+  exercise(TEMPLATE_IDS.RestingCall, callCid, "Rest_Fill", { shardCid: f.shardCid, fillLots: int(f.fillLots) } satisfies Wire<PM.Resting.Rest_Fill>);
+
+/** The venue's sweep of an unfilled call once its `expiresAt` has passed: the escrow of the lots still resting back to the owner. */
+export const expireRest = (callCid: ContractId): Command => exercise(TEMPLATE_IDS.RestingCall, callCid, "Rest_Expire", {});
+
+/** The owner's own cancel. Built for drive scripts and the web's server half; ops never submits it. */
+export const cancelRest = (callCid: ContractId): Command => exercise(TEMPLATE_IDS.RestingCall, callCid, "Rest_Cancel", {});
+
+/** The owner's own place of the venue's offer. Built for drive scripts and the web's server half; ops never submits it. */
+export const placeRest = (offerCid: ContractId, cash: readonly ContractId[]): Command =>
+  exercise(TEMPLATE_IDS.RestingOffer, offerCid, "RestOffer_Place", { cash: [...cash] } satisfies Wire<PM.Resting.RestOffer_Place>);
+
+/** An offer nobody placed, swept once its window and slack are over. */
+export const expireRestOffer = (offerCid: ContractId): Command => exercise(TEMPLATE_IDS.RestingOffer, offerCid, "RestOffer_Expire", {});

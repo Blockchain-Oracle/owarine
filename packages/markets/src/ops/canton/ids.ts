@@ -74,3 +74,18 @@ export const openEventCommandId = (series: string, index: number) => assertComma
 
 /** `retireatt:<digest(sorted cids)>`: an attestor archiving its counted attestations once the verdict embeds them. */
 export const retireAttestationsCommandId = (cids: readonly string[]) => assertCommandId(`retireatt:${digest(...[...cids].sort())}`);
+
+/** `restdesk:<digest(venue)>`: the venue's `RestingDesk`, created once. */
+export const restDeskCommandId = (venue: string) => assertCommandId(`restdesk:${digest(venue)}`);
+
+/** `restoffer:<requestId>`: one offer to hold a resting call, per web request. */
+export const restOfferCommandId = (requestId: string) => assertCommandId(`restoffer:${safe(requestId, "requestId")}`);
+
+/** `restfill:<callCid>:<lots>`: one fill of a call for that many lots (a landed one consumed the call, so a retry cannot double it). */
+export const restFillCommandId = (callCid: string, lots: bigint) => assertCommandId(`restfill:${safe(callCid, "callCid")}:${lots}`);
+
+/** `restexp:<callCid>`: the sweeper's `Rest_Expire`. */
+export const restExpireCommandId = (callCid: string) => assertCommandId(`restexp:${safe(callCid, "callCid")}`);
+
+/** `restoexp:<offerCid>`: the sweeper's `RestOffer_Expire`. */
+export const restOfferExpireCommandId = (offerCid: string) => assertCommandId(`restoexp:${safe(offerCid, "offerCid")}`);
