@@ -31,7 +31,7 @@ suite("a desk's live figures count from going live (real Postgres)", () => {
 
   afterAll(async () => {
     for (const id of made) {
-      for (const table of ["desk_events", "desk_wakes", "desk_snapshots", "desk_paper", "desk_mandates"]) await db.unsafe(`DELETE FROM ${table} WHERE desk_id = '${id}'`);
+      for (const table of ["desk_deferrals", "desk_records", "desk_events", "desk_wakes", "desk_snapshots", "desk_paper", "desk_mandates"]) await db.unsafe(`DELETE FROM ${table} WHERE desk_id = '${id}'`);
       await db`DELETE FROM desks WHERE id = ${id}::uuid`;
     }
     await db.end();
@@ -53,6 +53,22 @@ suite("a desk's live figures count from going live (real Postgres)", () => {
     await snap(desk.id, t0 + 8_060, "50000000");
     expect((await q.latestSnapshot(desk.id))?.totalE6).toBe("50000000");
     expect((await q.snapshotSeries(desk.id)).map((p) => p.totalE6)).toEqual(["50000000"]);
+  });
+
+  it("a practice deferral or 'would have' does not bind the live desk; one made live does", async () => {
+    const desk = await practice(`golive-r${tag}`);
+    const body = (slot: { seq: number; prevHash: string }) => ({ schemaVersion: "desk.v1", seq: slot.seq, prevHash: slot.prevHash, outcome: "WOULD_HAVE_ACTED", desk: desk.id });
+    const first = await q.appendRecord({ deskId: desk.id, body, privateNotes: null, outcome: "WOULD_HAVE_ACTED", summary: "I would have bought $50 of OpenAI.", mode: "practice", symbol: "OPENAI", side: "buy", wakeId: null, decidedAtSec: t0 + 7_300 });
+    await q.createDeferral({ deskId: desk.id, symbol: "OPENAI", kind: "would_have", baseline: { kind: "would_have" }, decisionSeq: first.seq, revisitAtSec: t0 + 20_000 });
+    expect((await q.standingDeferral({ deskId: desk.id, symbol: "OPENAI" }))?.kind).toBe("would_have");
+    expect(await q.didSameTradeSince({ deskId: desk.id, symbol: "OPENAI", side: "buy", sinceSec: t0 + 7_000 })).toBe(true);
+    await q.attachLiveDesk({ deskId: desk.id, address: `addr-r${tag}`, operator: `op-${tag}`, mode: "on_its_own", nowSec: t0 + 7_400 });
+    // C8i's drive: the live desk's first buy was skipped as "the desk would already have bought OpenAI" from practice.
+    expect(await q.standingDeferral({ deskId: desk.id, symbol: "OPENAI" })).toBeNull();
+    expect(await q.didSameTradeSince({ deskId: desk.id, symbol: "OPENAI", side: "buy", sinceSec: t0 + 7_000 })).toBe(false);
+    const live = await q.appendRecord({ deskId: desk.id, body, privateNotes: null, outcome: "WAITED", summary: "waited", mode: "on_its_own", symbol: "OPENAI", side: "buy", wakeId: null, decidedAtSec: t0 + 7_500 });
+    await q.createDeferral({ deskId: desk.id, symbol: "OPENAI", kind: "wait", baseline: { kind: "wait" }, decisionSeq: live.seq, revisitAtSec: t0 + 20_000 });
+    expect((await q.standingDeferral({ deskId: desk.id, symbol: "OPENAI" }))?.kind).toBe("wait");
   });
 
   it("a practice row the runner discovers live starts afresh the same way, once", async () => {
