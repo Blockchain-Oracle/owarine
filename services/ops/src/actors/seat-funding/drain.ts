@@ -7,7 +7,10 @@
  *
  *   - (C8f) ends its agents, as the seat's own choices: revokes each `AgentGrant` it opened (the budget returns to its
  *     cash), ends each consent (`Subscriber_Unsubscribe`) and closes its desk (`Mandate_Close`, the budget returns),
- *     so no later lessee of this party inherits a grant, a consent or a desk (`drain-agent:<cid>`).
+ *     so no later lessee of this party inherits a grant, a consent or a desk (`drain-agent:<cid>`). (C8i) As creator it
+ *     deactivates each live strategy it published (`Strategy_Deactivate`), and the venue pays out the fees it still
+ *     holds for it (`License_Payout`), which the seat then claims into its cash (`Payout_Claim`) before the cash sweep,
+ *     so no later lessee inherits a strategy or a visitor's earnings. A seat whose fees could not be paid out waits.
  *
  *   - (C9d) exits each leg past its `refundAfter` as the seat's own choice: `Leg_Claim` against the Window's
  *     resolution (disclosed) when there is one, else `Leg_RefundStale`. Past that deadline the venue can no longer
@@ -32,6 +35,7 @@ import {
 import { AGENT_TEMPLATE_IDS } from "@agari/daml";
 import { acmd, decodeDeskMandate } from "@agari/markets/ops/agents";
 import { holdingsText, isSeatEmpty, readAgentsAs, readSeatHoldings, type SeatHoldings } from "@agari/markets/server";
+import { payCreators } from "../agents/fees";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { submitWithShards, venueCashCreated } from "../quote-issuer/pooled-submit";
@@ -166,17 +170,26 @@ export function createSeatDrainPass(input: SeatDrainInput): () => Promise<PassRe
         notes.push(`exit of stale ${l.data.marketId} failed: ${failureText(error)}`);
       }
     }
+    // A seat whose agents (or held creator fees) could not be ended this pass is not recycled this pass (C8i).
+    const unfinished = new Set<string>();
     for (const seat of draining) {
       try {
-        counters.agentsEnded += await endAgents(input.venue, seat, notes);
+        const ended = await endAgents(input.venue, seat, notes);
+        counters.agentsEnded += ended.count;
+        if (ended.feesHeld) unfinished.add(seat);
       } catch (error) {
         counters.failed++;
+        unfinished.add(seat);
         notes.push(`agents of ${seat.split("::")[0]} not ended: ${failureText(error)}`);
       }
     }
     const held: string[] = [];
     if (recycle) {
       for (const seat of draining) {
+        if (unfinished.has(seat)) {
+          held.push(`${seat.split("::")[0]} holds agents or creator fees not yet ended`);
+          continue;
+        }
         try {
           const out = await recycle(seat, Date.now(), () => recycleCheck(input.venue, seat, Date.now(), input.redeemShares?.() ?? undefined, notes));
           if (out.kind === "freed") {
@@ -201,10 +214,14 @@ export function createSeatDrainPass(input: SeatDrainInput): () => Promise<PassRe
 }
 
 /**
- * The seat's grants, consents and desk, ended by the seat's own choices (the venue's process may act as any party of
- * its account, the same authority `Leg_CloseOut` uses for the seat half). Each under its own deterministic command id.
+ * The seat's grants, consents, desk and (C8i) creator side, ended by the seat's own choices (the venue's process may
+ * act as any party of its account, the same authority `Leg_CloseOut` uses for the seat half). Each under its own
+ * deterministic command id. The venue first pays out the fees it holds for the seat as creator, so the claim below
+ * collects them; `feesHeld` says some could not be (no licence, or the payout failed) and the seat must wait.
  */
-async function endAgents(venue: RoleSession, seat: string, notes: string[]): Promise<number> {
+async function endAgents(venue: RoleSession, seat: string, notes: string[]): Promise<{ count: number; feesHeld: boolean }> {
+  const fees = await payCreators(venue, Math.floor(Date.now() / 1000), (why) => notes.push(why), seat);
+  const feesHeld = fees.creators > fees.paid && !venue.dryRun;
   const snap = await readAgentsAs(venue.client, seat);
   const desks = await venue.client.activeContracts({ parties: [seat], templateIds: [AGENT_TEMPLATE_IDS.DeskMandate] });
   const jobs: Array<{ id: string; command: ReturnType<typeof acmd.revokeGrant>; what: string }> = [];
@@ -215,6 +232,11 @@ async function endAgents(venue: RoleSession, seat: string, notes: string[]): Pro
     const sub = snap.subscriptions.find((x) => x.data.subscriber === seat);
     if (sub) jobs.push({ id: `drain-agent:${sub.cid.slice(0, 48)}`, command: acmd.unsubscribe(book.cid, sub.cid), what: `ended a consent to ${sub.data.strategyId}` });
   }
+  for (const s of snap.strategies.filter((x) => x.data.creator === seat && x.data.active)) {
+    const listing = snap.listings.find((l) => l.data.strategyId === s.data.strategyId);
+    if (listing) jobs.push({ id: `drain-agent:${s.cid.slice(0, 48)}`, command: acmd.deactivateStrategy(s.cid, listing.cid), what: `deactivated its strategy ${s.data.strategyId}` });
+  }
+  for (const p of snap.payouts.filter((x) => x.data.creator === seat)) jobs.push({ id: `drain-agent:${p.cid.slice(0, 48)}`, command: acmd.claimPayout(p.cid), what: `claimed a creator payout of ${p.data.amount} (${p.data.feeCount} fees) into its cash` });
   for (const c of desks.contracts) {
     try {
       const m = decodeDeskMandate(c.createdEvent.createArgument);
@@ -237,5 +259,5 @@ async function endAgents(venue: RoleSession, seat: string, notes: string[]): Pro
       if (!isInactive(error)) throw error;
     }
   }
-  return ended;
+  return { count: ended, feesHeld };
 }

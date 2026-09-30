@@ -13,6 +13,7 @@ import {
   type SubscriberInviteC, type SubscriptionC,
 } from "../ops/agents/decode";
 import { strategyNumOf } from "../ops/agents/ids";
+import { refuse } from "./rejection";
 
 export const AGENT_SEAT_TEMPLATES = [
   TEMPLATE_IDS.AgentGrant, TEMPLATE_IDS.VenueCash,
@@ -53,7 +54,15 @@ function bucket<T>(contracts: readonly ActiveContract[], templateId: string, dec
   return out;
 }
 
-export function toAgentsSnapshot(party: Party, contracts: readonly ActiveContract[], offset: number): AgentsSnapshot {
+/**
+ * The party's snapshot. With `fromOffset` (C8i, the lease's start) it is one lease's view: a grant it gave, a consent it
+ * holds, a strategy it published and a fee payout made to it count only when created at or after that offset, so the
+ * next visitor on a recycled seat never sees, claims or changes what an earlier visitor of the same party left. The
+ * venue's standing offers (grant desk, invitation, book, licence, desk offer) and the seat's cash are the party's.
+ */
+export function toAgentsSnapshot(party: Party, all: readonly ActiveContract[], offset: number, fromOffset = 0): AgentsSnapshot {
+  const scoped = new Set([TEMPLATE_IDS.AgentGrant, AGENT_TEMPLATE_IDS.Subscription, AGENT_TEMPLATE_IDS.Strategy, AGENT_TEMPLATE_IDS.CreatorPayout].map(templateSuffix));
+  const contracts = fromOffset <= 0 ? all : all.filter((c) => !scoped.has(templateSuffix(c.createdEvent.templateId)) || Number(c.createdEvent.offset) >= fromOffset);
   const subsWant = templateSuffix(AGENT_TEMPLATE_IDS.Subscription);
   const subscriptions: SubscriptionRow[] = [];
   for (const c of contracts) {
@@ -82,10 +91,10 @@ export function toAgentsSnapshot(party: Party, contracts: readonly ActiveContrac
   };
 }
 
-/** Everything of the agents' templates `party` sees, one snapshot (blobs when a disclosure may be needed). */
-export async function readAgentsAs(client: LedgerClient, party: Party, o: { blobs?: boolean } = {}): Promise<AgentsSnapshot> {
+/** Everything of the agents' templates `party` sees, one snapshot (blobs when a disclosure may be needed); `fromOffset` scopes it to a lease. */
+export async function readAgentsAs(client: LedgerClient, party: Party, o: { blobs?: boolean; fromOffset?: number } = {}): Promise<AgentsSnapshot> {
   const r = await client.activeContracts({ parties: [party], templateIds: [...AGENT_SEAT_TEMPLATES], includeCreatedEventBlob: o.blobs ?? false });
-  return toAgentsSnapshot(party, r.contracts, r.activeAtOffset);
+  return toAgentsSnapshot(party, r.contracts, r.activeAtOffset, o.fromOffset ?? 0);
 }
 
 /** A contract as a disclosure (its created-event blob, read by a stakeholder). */
@@ -103,6 +112,8 @@ export interface RegistryEntry {
   /** Live consents on record for this strategy (a count; who stays between venue and subscriber). */
   subscribers: number;
   numId: bigint;
+  /** Where the Strategy (else the listing) was last created: a creator's label applies only from its lease on (C8i). */
+  createdOffset: number;
 }
 
 export interface Registry {
@@ -122,6 +133,7 @@ export async function readRegistry(client: LedgerClient, reader: Party, nowMs: n
   });
   const snap = toAgentsSnapshot(reader, r.contracts, r.activeAtOffset);
   const blobs = new Map(r.contracts.map((c) => [c.createdEvent.contractId, disclosureOf(c)]));
+  const offsets = new Map(r.contracts.map((c) => [c.createdEvent.contractId, Number(c.createdEvent.offset)]));
   const counts = new Map<string, number>();
   for (const s of snap.subscriptions) counts.set(s.data.strategyId, (counts.get(s.data.strategyId) ?? 0) + 1);
   const strategyByCid = new Map(snap.strategies.map((s) => [s.cid, s]));
@@ -131,12 +143,32 @@ export async function readRegistry(client: LedgerClient, reader: Party, nowMs: n
   const selfListed: Active<StrategyListingC>[] = snap.strategies
     .filter((s) => !listed.has(s.data.strategyId))
     .map((s) => ({ cid: "", data: { venue: s.data.venue, creator: s.data.creator, strategyId: s.data.strategyId, strategyCid: s.cid, runner: s.data.runner, envelope: s.data.envelope, fee: s.data.fee, specHash: s.data.specHash, version: s.data.version, active: s.data.active, publishedAtSec: s.data.publishedAtSec } }));
-  const entries = [...snap.listings, ...selfListed].map((listing): RegistryEntry => ({
-    listing,
-    strategy: strategyByCid.get(listing.data.strategyCid) ?? strategyById.get(listing.data.strategyId) ?? null,
-    disclosure: listing.cid ? (blobs.get(listing.cid) ?? null) : null,
-    subscribers: counts.get(listing.data.strategyId) ?? 0,
-    numId: strategyNumOf(listing.data.strategyId),
-  }));
+  const entries = [...snap.listings, ...selfListed].map((listing): RegistryEntry => {
+    const strategy = strategyByCid.get(listing.data.strategyCid) ?? strategyById.get(listing.data.strategyId) ?? null;
+    return {
+      listing,
+      strategy,
+      disclosure: listing.cid ? (blobs.get(listing.cid) ?? null) : null,
+      subscribers: counts.get(listing.data.strategyId) ?? 0,
+      numId: strategyNumOf(listing.data.strategyId),
+      createdOffset: offsets.get(strategy?.cid ?? listing.cid) ?? 0,
+    };
+  });
   return { atMs: nowMs, entries, byNum: new Map(entries.map((e) => [e.numId.toString(), e])), subscriptions: snap.subscriptions };
+}
+
+/** A creator party's current lessee: shown by its address for strategies created from its lease's start on (C8i). */
+export type CreatorLabels = ReadonlyMap<string, { address: string; fromOffset: number }>;
+
+/** The creator a registry entry shows: the lessee's address only when the strategy was created in that lease (C8i). */
+export function creatorLabel(e: RegistryEntry, labels: CreatorLabels): string {
+  const label = labels.get(e.listing.data.creator);
+  return label && e.createdOffset >= label.fromOffset ? label.address : e.listing.data.creator;
+}
+
+/** Who may run a creator's strategy (C8i): the house runner, or the creator's own seat (its address or party) to self-host. */
+export function runnerOf(seat: { party: Party; address: string }, requested: string, houseRunner: Party | null): Party {
+  const runner = requested === seat.address || requested === seat.party ? seat.party : requested;
+  if (runner !== seat.party && (houseRunner === null || runner !== houseRunner)) throw refuse("grant-refused", "a strategy runs on the house runner or on its creator's own seat");
+  return runner;
 }

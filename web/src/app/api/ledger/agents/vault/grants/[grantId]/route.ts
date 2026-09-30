@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ gra
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;
   try {
-    return replyWith({ grant: await server.agents.grant({ party: lease.party, leaseId: lease.leaseId, address: lease.address }, BigInt(grantId)) });
+    return replyWith({ grant: await server.agents.grant({ party: lease.party, leaseId: lease.leaseId, address: lease.address, fromOffset: lease.startOffset }, BigInt(grantId)) });
   } catch (error) {
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);
   }

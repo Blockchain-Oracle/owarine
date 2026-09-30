@@ -1,17 +1,20 @@
 import "server-only";
 import { getDb } from "@agari/db";
+import type { CreatorLabels } from "@agari/markets/server";
 
 /**
  * The seat addresses of leased parties (C8f): a strategy's creator is a party on the ledger, and the screens know a
  * seat by its base58 address, so a creator who holds a lease is shown (and recognised as "you") by that address. A
- * party with no live lease stays a party. Read-only, from the seat pool the lease routes own.
+ * party with no live lease stays a party. Read-only, from the seat pool the lease routes own. Each label carries the
+ * lease's start offset (C8i): a strategy an earlier visitor of the same recycled party published is never labelled as
+ * the current lessee's, so it is not "yours" on the screens and the playbook route refuses its notes.
  */
-export async function leasedAddresses(): Promise<Map<string, string>> {
+export async function leasedAddresses(): Promise<CreatorLabels> {
   const db = getDb();
   if (!db) return new Map();
   try {
-    const rows = await db<{ party: string; address: string | null }[]>`SELECT party, address FROM seat_pool WHERE state = 'leased' AND address IS NOT NULL`;
-    return new Map(rows.filter((r) => r.address).map((r) => [r.party, r.address as string]));
+    const rows = await db<{ party: string; address: string | null; start_offset: string | number }[]>`SELECT party, address, start_offset FROM seat_pool WHERE state = 'leased' AND address IS NOT NULL`;
+    return new Map(rows.filter((r) => r.address).map((r) => [r.party, { address: r.address as string, fromOffset: Number(r.start_offset) }]));
   } catch {
     return new Map();
   }

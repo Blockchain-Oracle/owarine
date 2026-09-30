@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;
   try {
-    return replyWith({ subscriptions: await server.agents.subscriptions({ party: lease.party, leaseId: lease.leaseId, address: lease.address }, ids.map(BigInt)) });
+    return replyWith({ subscriptions: await server.agents.subscriptions({ party: lease.party, leaseId: lease.leaseId, address: lease.address, fromOffset: lease.startOffset }, ids.map(BigInt)) });
   } catch (error) {
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);
   }

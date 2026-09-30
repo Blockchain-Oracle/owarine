@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;
   try {
-    return replyWith(await server.agents.payouts({ party: lease.party, leaseId: lease.leaseId, address: lease.address }));
+    return replyWith(await server.agents.payouts({ party: lease.party, leaseId: lease.leaseId, address: lease.address, fromOffset: lease.startOffset }));
   } catch (error) {
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);
   }
