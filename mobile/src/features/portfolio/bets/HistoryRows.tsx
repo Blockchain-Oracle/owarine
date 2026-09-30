@@ -17,6 +17,7 @@ import { openLedgerLink } from "~/lib/external";
 import { useTheme } from "~/theme";
 import { WEB_TYPE } from "~/theme/web/portfolio";
 import { HistoryReceipt } from "../HistoryReceipt";
+import { PublishCall } from "./PublishCall";
 import { BetsRow, Break, Call, Caption, Micro, MoneyText } from "./RowParts";
 
 const PAGE_SIZE = 8;
@@ -39,7 +40,7 @@ interface RowProps {
 }
 
 /** web `HistoryRow`: the outcome word, what it paid, how long ago, the net in pnl ink, the receipt and the proof link. */
-function HistoryRow({ round, symbol, nowMs, first, onReceipt, onCrank, cranking }: RowProps) {
+function HistoryRow({ round, symbol, nowMs, first, onReceipt, onCrank, cranking, address }: RowProps & { address: string | null }) {
   const { color } = useTheme();
   const t = usePortfolioTokens();
   const claimLine = round.paidByCrank ? HISTORY.paidAutomatically : HISTORY.claim[round.claim];
@@ -83,6 +84,15 @@ function HistoryRow({ round, symbol, nowMs, first, onReceipt, onCrank, cranking 
           <Text style={[styles.proof, { color: t.vermilion }]}>↗</Text>
         </Pressable>
       ) : null}
+      {/* web's HistoryRows: a settled call is published from its receipt (C5); the vault's rounds are not the seat's own. */}
+      {!vault ? (
+        <PublishCall
+          marketId={round.marketId}
+          address={address}
+          source="receipt"
+          {...(round.receipt?.product ? { ticket: { receiptId: round.receipt.receiptIds[0]!, product: round.receipt.product } } : {})}
+        />
+      ) : null}
     </BetsRow>
   );
 }
@@ -106,7 +116,7 @@ export function HistoryRows({ history, symbol }: { history: HistoryReading; symb
           {!value.complete ? <Text style={[WEB_TYPE.caption, styles.partial, { color: color.warning }]}>{HISTORY.partial}</Text> : null}
           {pager.slice.map((round, i) => (
             <HistoryRow
-              key={`${round.source}:${round.marketId}`}
+              key={`${round.source}:${round.marketId}:${round.receipt?.product ? round.receipt.receiptIds[0] : ""}`}
               round={round}
               symbol={symbol}
               nowMs={nowMs}
@@ -114,6 +124,7 @@ export function HistoryRows({ history, symbol }: { history: HistoryReading; symb
               onReceipt={setReceiptFor}
               onCrank={crank}
               cranking={vaultWrite.busy === "vault-crank-settle"}
+              address={address ?? null}
             />
           ))}
           <Pager pager={pager} />
