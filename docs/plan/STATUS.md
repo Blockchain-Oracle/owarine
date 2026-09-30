@@ -59,7 +59,7 @@ Blocked on Abu: DevNet (R1) waits on Noders onboarding; iOS on device waits on t
 ## Needs Abu
 
 1. **Every day:** press "claim mana" on the HackCanton dashboard. It takes 10 separate days to reach 1,000, so no day can be skipped. Write the evening journal entry in your own words.
-2. **DevNet, once (about 20 minutes):** onboard the Noders wallet, sign in to the Console with Authfactory, create the 19 parties, save the party list on this Mac, then upload the 4 DARs in order (main 0.5.0, tickets 0.1.3, agents 0.2.1, games 0.1.1). The clicks are in `docs/plan/runbooks/devnet-r1.md`. Then tell me "done".
+2. **DevNet, once (about 20 minutes):** onboard the Noders wallet, sign in to the Console with Authfactory, create the 19 parties, save the party list on this Mac, then upload the 4 DARs in order (main 0.5.1, tickets 0.1.3, agents 0.2.1, games 0.1.1). The clicks are in `docs/plan/runbooks/devnet-r1.md`. Then tell me "done".
 3. **iPhone app:** confirm the name "Agari Canton" and the bundle id `xyz.useagari.canton` (they cannot change later). Then register the App Group and the two App IDs in the Apple Developer portal, create the App Store Connect record, and send me its Apple ID number. The steps are in `docs/evidence/c11a-ios.md`, "What Abu must do".
 4. **Website:** choose the domain, add the 5 A records at Namecheap (`@`, `www`, `ops`, `room`, `docs`), and tell me whether I may use a Coolify API token or you prefer to click the deploy steps. See `docs/plan/runbooks/coolify-deploy.md` §1.
 5. **At the end:** record the video and send the submission form (delivery closes 9 Oct 23:59 UTC).
