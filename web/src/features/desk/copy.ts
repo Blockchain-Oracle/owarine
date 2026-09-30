@@ -162,6 +162,8 @@ export const DESK = {
     nextCheck: {
       title: "Next check",
       lead: (clock: string, inText: string) => `At the top of the hour, ${clock} · in ${inText}`,
+      /** A live desk trades the hour's Windows, so its check runs once they open, a minute or so after the hour (K-230). */
+      leadLive: (clock: string, inText: string) => `When the ${clock} Windows open · in ${inText}`,
       note: { practice: "Real prices, no money moves.", ask_first: "Asks before it acts.", on_its_own: "Acts inside your limits." } as Record<string, string>,
       also: "Also on deposits and 3% moves.",
       lastCheck: (ago: string) => `Last check ${ago}.`,

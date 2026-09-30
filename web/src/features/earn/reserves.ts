@@ -81,7 +81,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     paused: "Paused · parlay reserve",
     valueLabel: "Reserve value",
     noun: "reserve",
-    blurb: "Every leg is priced off the venue's book, with a floor for legs that settle at the same instant. The reserve keeps the stake when a ticket misses a leg.",
+    blurb: "Every leg is priced off the venue's price ladder, with a floor for legs that settle at the same instant. The reserve keeps the stake when a ticket misses a leg.",
     supplyTitle: "Supply the reserve",
     supplyMeta: "withdraw what no live ticket is holding",
     committed: "Locked",

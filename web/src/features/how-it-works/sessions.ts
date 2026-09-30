@@ -8,10 +8,11 @@ import { CalendarClockIcon, ClockIcon, MoonIcon, OctagonAlertIcon, ScaleIcon, Wa
  * D-093): "Sessions & Lanes" after Getting Started, and "Halts, Voids & Your Money" after the Settlement Process.
  *
  * Sources, asserted rather than assumed: `docs/plan/specs/session-lanes.md` §1–§3 (the Gap and token lanes, halts,
- * voids), `services/ops/config/price-sources.json` (feeds, thresholds, the 25 bps band), `packages/core/src/copy/
- * session-words.ts` (D-087 words), `web/src/lib/copy-preopen.ts` (D-088, as Canton runs it), `packages/core/src/
- * market/halts.ts` (D-057 / Q-S6-9 labels), `packages/core/src/market/void-reason.ts` (the void line),
- * `web/src/features/session/copy.ts` (the Trading Balance and its caps).
+ * voids), `services/ops/src/prices/lane-versions.ts` and `services/ops/config/price-sources.json` (which source each lane
+ * settles on), `daml/abu-pm-main/daml/PM/Oracle.daml` and `scripts/bootstrap/venue.ts` (quorum 2 of 3, the 1% spread
+ * band), `packages/core/src/copy/session-words.ts` (D-087 words), `web/src/lib/copy-preopen.ts` (D-088, as Canton
+ * runs it), `packages/core/src/market/halts.ts` (D-057 / Q-S6-9 labels and the C6f thresholds), `packages/core/src/
+ * market/void-reason.ts` (the void line), `web/src/features/session/copy.ts` (the Trading Balance and its caps).
  */
 
 export interface Lane {
@@ -38,7 +39,7 @@ export const LANES: readonly Lane[] = [
   {
     name: "Token",
     clock: "24/7 · xStocks",
-    body: "Tokenised stock — TSLAx, NVDAx, SPYx, QQQx — keeps trading when the exchange does not, so these Windows run every hour of every day on the same 5m, 15m and 60m cadences. They settle on the token's quote as signed by the oracle parties (planned on Canton), not the exchange's print.",
+    body: "Tokenised stock — TSLAx, NVDAx, SPYx, QQQx — keeps trading when the exchange does not, so these Windows run every hour of every day on the same 5m, 15m and 60m cadences. They settle on the token's own price, the median of three Jupiter Price v3 samples taken just before the boundary and attested by the three oracle parties, not the exchange's print.",
     icon: CalendarClockIcon,
   },
 ];
@@ -73,12 +74,18 @@ export interface BasisRow {
   detail: string;
 }
 
-/** `price-sources.json`: which signed source each Window settles on, and what the program checks before it counts. */
+/**
+ * Which source each Window settles on (`lane-versions.ts`, the table the venue registers every Series from) and what
+ * the ledger checks before a price counts (`Oracle.daml`, the Series' quorum 2 of 3 and `maxDeviationBps` 100). Every
+ * source here runs; the receipt names it.
+ */
 export const BASIS_ROWS: readonly BasisRow[] = [
-  { source: "Pyth", detail: "planned on Canton, signed by the oracle parties: a price for TSLA, QQQ and VOO, admitted at the boundary second with a confidence no wider than 50 bps" },
-  { source: "RedStone", detail: "planned on Canton, signed by the oracle parties: the seven single names, the source named on every receipt" },
-  { source: "Switchboard", detail: "planned on Canton, signed by the oracle parties: the token lane's quote, the source named on every receipt" },
-  { source: "Cross-check", detail: "where a policy names a second source, both boundaries are compared; more than 25 bps apart and the Window voids" },
+  { source: "Coinbase, Kraken and Bitstamp", detail: "BTC and ETH: the close of each exchange's 1-minute candle at the boundary, one exchange per oracle party" },
+  { source: "RedStone", detail: "TSLA, NVDA, AAPL, MSFT, META, AMZN and GOOGL: the median of RedStone's signed price packages at the boundary, from at least 3 of its 5 signers" },
+  { source: "Alpaca", detail: "QQQ and VOO: the last IEX trade at or before the boundary, no more than five minutes old" },
+  { source: "Jupiter Price v3", detail: "TSLAx, NVDAx, SPYx and QQQx: the median of three samples, taken 40 seconds and 20 seconds before the boundary and at it" },
+  { source: "PreStocks", detail: "the eight pre-IPO names: the PreStocks token price read just after the boundary; a basket is an index computed from one read of every member" },
+  { source: "Cross-check", detail: "the three oracle parties each post their own print; at least 2 must post, and if the prints are more than 1% apart, measured against their median, the Window voids at that boundary" },
 ];
 
 export interface Aside {
@@ -91,12 +98,12 @@ export interface Aside {
 export const ASIDES: readonly Aside[] = [
   {
     title: "Halts",
-    body: "There is no licensed halt feed here, so a lane is halted when the signed price it settles on stops being printable. A Pyth tick wider than 50 bps, or an xStock the issuer has flagged, says “Trading halted”. A feed that has simply stopped — no Pyth tick for 15 s, a RedStone package older than 60 s, three failed token quotes — says “Signed price stale”. Either way the venue lists nothing new and the maker pulls its quotes. A halt never touches the ledger, and it is never given as the reason a Window resolved.",
+    body: "There is no licensed halt feed here, so a lane is halted when the signed price it settles on stops being printable, judged on that lane's own source and nothing else: no RedStone package for 60 s (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL), no IEX trade from Alpaca for 120 s (QQQ, VOO), no PreStocks read for 60 s (a pre-IPO name or basket), or three failed Jupiter Price v3 quotes in a row (an xStock). Each says “Signed price stale”. An xStock its issuer has flagged as halted says “Trading halted”. Stock lanes are watched while the exchange is open, the others at every hour; BTC and ETH have no halt, since a missing or disagreeing print voids their Window. A halted lane gets no new Windows and the maker pulls its quotes. A halt never touches the ledger, and it is never given as the reason a Window resolved.",
     icon: OctagonAlertIcon,
   },
   {
     title: "Voids",
-    body: "If no reliable print lands inside the settlement window, the Window voids and both sides get back what they paid, stake and fee. The verdict says “Void — no reliable print, both sides get their stake and fee back”, and one line under it says why: a missing print names the source, the boundary and the deadline it passed; a cross-check divergence names the 0.25% band the two sources fell outside. Redemption credits the venue, the same as a win.",
+    body: "If no reliable print lands inside the settlement window, the Window voids and both sides get back what they paid, stake and fee. The verdict says “Void — no reliable print, both sides get their stake and fee back”, and one line under it says why: a missing print names the source, the boundary and the deadline it passed; a disagreement names the 1% band the oracle parties' prints fell outside. Redemption credits the venue, the same as a win.",
     icon: ScaleIcon,
   },
   {

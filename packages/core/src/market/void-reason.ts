@@ -32,8 +32,13 @@ const isDivergenceKind = (reason: VoidReason): boolean => reason === "cross-chec
 
 /** D-003 admission defaults (`price-sources.json` `defaults`), used only when the caller can't pass the Market's frozen deadlines. */
 const DEFAULT_ADMISSION_SEC: Readonly<Record<PrintSource, number>> = { pyth: 900, redstone: 900, attested: 900, switchboard: 60 };
-/** `crossCheck.maxDivergenceBps` (D-003). */
+/** `crossCheck.maxDivergenceBps` (D-003): the reference's Pyth-against-RedStone band. */
 export const DEFAULT_MAX_DIVERGENCE_BPS = 25;
+/** The Series' `maxDeviationBps` on every Canton price lane (`scripts/bootstrap/venue.ts`; `disagrees` in `Oracle.daml`): the spread of the oracle prints, as a share of their median. */
+export const DEFAULT_ORACLE_DEVIATION_BPS = 100;
+
+/** The band a void's reason is measured against when the caller does not pass the Series' own: 1% for the oracles disagreeing, 0.25% for the reference's cross-check. */
+const defaultBandBps = (reason: VoidReason): number => (reason === "source-disagreement" ? DEFAULT_ORACLE_DEVIATION_BPS : DEFAULT_MAX_DIVERGENCE_BPS);
 
 const SOURCE_NAME: Readonly<Record<PrintSource, string>> = { pyth: "Pyth", redstone: "RedStone", switchboard: "Switchboard", attested: "attested" };
 
@@ -94,7 +99,7 @@ export function voidDetail(input: VoidInput): VoidDetail | null {
     };
   }
   if (!isDivergenceKind(reason)) return { reason, slot: null, source: input.primarySource, boundarySec: null, deadlineSec: null };
-  const bps = input.maxDivergenceBps ?? DEFAULT_MAX_DIVERGENCE_BPS;
+  const bps = input.maxDivergenceBps ?? defaultBandBps(reason);
   const slot: VoidSlot | null = diverges(input.openE8, input.checkOpenE8, bps) ? "open" : diverges(input.closeE8, input.checkCloseE8, bps) ? "close" : null;
   return {
     reason,
@@ -129,7 +134,7 @@ export function voidReasonLine(detail: VoidDetail, options: { checkSource?: Prin
   if (detail.reason === "operator-void") return "The venue voided this Window by a recorded decision.";
   if (detail.reason === "source-disagreement") {
     const at = detail.boundarySec === null ? "" : ` at ${etClockWithSeconds(detail.boundarySec)} ET`;
-    return `The oracles' prices differed by more than ${bpsPercent(options.maxDivergenceBps ?? DEFAULT_MAX_DIVERGENCE_BPS)}${at}.`;
+    return `The oracles' prices differed by more than ${bpsPercent(options.maxDivergenceBps ?? DEFAULT_ORACLE_DEVIATION_BPS)}${at}.`;
   }
   if (detail.reason === "quorum-not-met") {
     if (detail.boundarySec === null) return "Too few oracles signed a price before its deadline.";

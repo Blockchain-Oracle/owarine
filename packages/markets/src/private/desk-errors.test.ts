@@ -14,7 +14,7 @@ describe("what the desk tells an owner about a refused send", () => {
   it("is the program's own words, not the transport's boilerplate (the devnet refund of 2026-09-20)", () => {
     expect(refusalName(refused)).toBe("BelowMinQuantity");
     expect(refusalTechnical(refused)).toBe("BelowMinQuantity (6022): the book fills fewer contracts than the owner's guard");
-    expect(refusalWords(refusalName(refused))).toContain("The book moved under your quote");
+    expect(refusalWords(refusalName(refused))).toContain("The price moved under your quote");
   });
 
   it("reads the reason out of a cause chain, and falls back to the first line when no program spoke", () => {

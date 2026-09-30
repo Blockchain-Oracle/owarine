@@ -113,7 +113,7 @@ export const STRATEGIES = {
       traderInvalid: "That is not a seat address. Paste it exactly as the profile shows it.",
       withinLabel: "How fresh their call has to be",
       withinHelp: "Older than this and the Window has usually moved on; the runner sits it out rather than chase.",
-      caveat: "Your order goes in after theirs, at whatever the book holds then — never at their price, and sometimes not at all. Your own limits still decide the size.",
+      caveat: "Your order goes in after theirs, at whatever price the venue quotes then — never at their price, and sometimes not at all. Your own limits still decide the size.",
     },    eyebrow: "Creator studio",
     title: "Launch an agent",
     soon: "Coming soon",

@@ -87,7 +87,7 @@ const DEFAULT_MIN_STAKE = "1 credit";
 export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): string {
   switch (kind) {
     case "stale-basis":
-      return "The book has not traded near the live price — no band can be priced fairly";
+      return "The venue is not quoting near the live price — no band can be priced fairly";
     case "quote-refused":
       return "The reserve refused this band — see why above";
     case "boost-refused":
@@ -132,13 +132,13 @@ export function blockerLabel(kind: BlockerKind, ctx: BlockerContext = {}): strin
       if (ctx.emptyBook) return `Nobody is quoting this Window right now${ctx.nextWindowText ? ` · next Window ${ctx.nextWindowText}` : ""}`;
       return ctx.freshBook
         ? "Quotes are still arriving on this Window — the maker posts within a minute or two of the opening print"
-        : "No liquidity at this size — nobody is on the other side of this book";
+        : "No liquidity at this size — the venue's price ladder does not reach it";
     case "over-book":
-      return ctx.fillableStakeText ? `Above what the book can fill — up to ${ctx.fillableStakeText}` : "Above what the book can fill";
+      return ctx.fillableStakeText ? `Above what the venue's price ladder can fill — up to ${ctx.fillableStakeText}` : "Above what the venue's price ladder can fill";
     case "outside-band-low":
-      return `Too close to impossible — this book is quoting ${ctx.quotedCents ?? 1}¢`;
+      return `Too close to impossible — the venue is quoting ${ctx.quotedCents ?? 1}¢`;
     case "outside-band-high":
-      return `Too close to certain — this book is quoting ${ctx.quotedCents ?? 99}¢`;
+      return `Too close to certain — the venue is quoting ${ctx.quotedCents ?? 99}¢`;
     case "stale-quote":
       return ctx.quoteAgeSec === undefined ? "Quote is stale — requoting" : `Quote is ${ctx.quoteAgeSec}s old — requoting`;
     case "daily-stop":

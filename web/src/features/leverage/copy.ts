@@ -18,7 +18,7 @@ export const LEVERAGE = {
     /** The reference's exact sentence under the quote strip. */
     knockout: (x: number) => `${x}× can knock out before expiry.`,
     sized: (charged: string, symbol: string) => `Sized to the venue's lot: ${charged} ${symbol} is charged, the rest stays in your seat.`,
-    requote: (contracts: string) => `The book moved — your stake now buys ${contracts} contracts. Confirm again at the new size.`,
+    requote: (contracts: string) => `The price moved — your stake now buys ${contracts} contracts. Confirm again at the new size.`,
   },
   cta: {
     buy: (side: string, x: number) => `Buy ${side} ${x}× for`,
@@ -29,7 +29,7 @@ export const LEVERAGE = {
     yours: "Yours now",
     line: (line: string) => `knocks out at ${line}`,
     knockable: "at the knock-out line — anyone may close it now",
-    unpriced: "no bids to mark against",
+    unpriced: "no bid on the ladder to mark against",
     cashOut: "Cash out",
     cashingOut: "Cashing out…",
     settle: "Settle",

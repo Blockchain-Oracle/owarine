@@ -21,7 +21,7 @@ export const SECTIONS = {
 export const LANE_CARD = {
   openTicket: (asset: string) => `Open the ticket for this ${asset} Window`,
   oddsLive: "LIVE ODDS",
-  oddsLoading: "READING THE BOOK…",
+  oddsLoading: "READING THE PRICES…",
   noQuotes: "NO QUOTES YET",
   closing: "CLOSING · NEXT ROUND SOON",
   priceLoading: "···",
@@ -35,7 +35,7 @@ export const WORD_BOARD = {
   closes: (clock: string) => `closes ${clock}`,
   /** The two asks are independent contracts, so the bar is a stated derivation, never "the odds". */
   implied: (share: number) => `${share}% implied on Yes`,
-  noLean: "no book on both sides yet",
+  noLean: "no price on both sides yet",
   open: "Open",
 } as const;
 
@@ -120,7 +120,7 @@ export const MARKETS = {
   down: "DOWN",
   estimated: "estimated",
   volume: "vol",
-  noBook: "no book",
+  noBook: "no price",
   live: (n: number) => `${n} live`,
   trades: (n: number) => `${n} ${n === 1 ? "trade" : "trades"}`,
   fixedStrikeHidden: (n: number) => `${n} fixed-strike ${n === 1 ? "Window" : "Windows"} hidden — v1 lists up/down Windows only.`,
@@ -161,10 +161,10 @@ export const HERO = {
   needs: { before: "needs", after: (side: string) => `for ${side}` },
   leading: (side: string) => `${side} is winning right now`,
   source: "Settles on RedStone prints (Alpaca for QQQ and VOO) at open and close, attested by three oracle parties · chart follows spot",
-  depthTitle: "Top of book",
+  depthTitle: "Top of the price ladder",
   buyUp: "Buy UP",
   buyDown: "Buy DOWN",
-  noDepth: "no resting offers",
+  noDepth: "no prices on the ladder",
   contracts: "contracts",
   chartLabel: (asset: string, opening: string, live: string) => `${asset} price: opening print ${opening}, live ${live}`,
   notFound: { why: "This window is gone.", nextAction: { label: "Pick a live window", href: "/markets" } },

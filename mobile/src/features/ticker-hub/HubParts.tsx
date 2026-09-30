@@ -2,11 +2,9 @@ import { sessionStateWord } from "@agari/core/copy";
 import { haltLabel } from "@agari/core/market";
 import { marketsProvider } from "@agari/markets";
 import { useTick } from "@agari/markets/react";
-import { Image } from "expo-image";
 import { useEffect, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
-import Svg, { Path } from "react-native-svg";
 import type { SourceLabel } from "@/features/markets/price-source/source-label";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { useSessionPhrase } from "@/lib/when";
@@ -40,37 +38,18 @@ export function StatBar({ children, foot, actions }: { children: ReactNode; foot
   );
 }
 
-/** Pyth's "P" (web SponsorLogos PYTH_PATHS), inked in the line's colour. */
-const PYTH_P = [
-  "M11.857 9.599c0 1.325-1.072 2.4-2.394 2.4v2.4a4.794 4.794 0 0 0 4.787-4.8c0-2.651-2.144-4.8-4.787-4.8A4.797 4.797 0 0 0 4.676 9.6v12L7.07 24V9.6c0-1.325 1.071-2.4 2.393-2.4a2.397 2.397 0 0 1 2.394 2.4Z",
-  "M9.464 0a9.51 9.51 0 0 0-4.787 1.285 9.591 9.591 0 0 0-2.393 1.966A9.577 9.577 0 0 0-.11 9.6v7.2l2.394 2.4V9.6a7.189 7.189 0 0 1 7.18-7.2c3.966 0 7.18 3.224 7.18 7.2s-3.216 7.2-7.18 7.2v2.4c5.288 0 9.573-4.298 9.573-9.6S14.752 0 9.464 0Z",
-] as const;
-const PRESTOCKS_MARK = require("../../../../web/public/brand/sponsors/prestocks-mark.svg");
-const MARK = 14;
-
 /**
- * The hub's caption (`.type-caption.text-ink-muted`) carrying web's price-source `SourceLine`: the sponsor mark, the
- * feed's page as an underlined link with its ↗ where one is pinned, then the trailing words.
+ * The hub's caption (`.type-caption.text-ink-muted`) carrying web's price-source `SourceLine`: the source by its plain
+ * name, the feed's page as an underlined link with its ↗ where one is pinned, then the trailing words.
  */
 export function SourceCaption({ label, tail }: { label: SourceLabel | null; tail?: string }) {
   const { name, color } = useTheme();
   if (!label && !tail) return null;
   const ink = color.inkMuted;
-  const mark =
-    label?.provider === "pyth" ? (
-      <Svg width={MARK * (20 / 24)} height={MARK} viewBox="0 0 20 24" style={styles.mark}>
-        {PYTH_P.map((d) => (
-          <Path key={d.slice(0, 12)} d={d} fill={ink} />
-        ))}
-      </Svg>
-    ) : label?.provider === "prestocks" ? (
-      <Image source={PRESTOCKS_MARK} style={[styles.mark, styles.hex]} contentFit="contain" accessible={false} />
-    ) : null;
   const href = label?.href ?? null;
   return (
     <View style={styles.captionRow}>
       <Text style={[styles.caption, { color: ink }]}>
-        {mark ? <View style={styles.markWrap}>{mark}</View> : null}
         {label ? (
           href ? (
             <Text
@@ -188,9 +167,6 @@ const styles = StyleSheet.create({
   actions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 20 },
   captionRow: { flexDirection: "row" },
   caption: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18.85, flexShrink: 1 },
-  markWrap: { paddingRight: 5, transform: [{ translateY: 2 }] },
-  mark: { width: MARK, height: MARK },
-  hex: { borderRadius: 3 },
   arrow: { fontSize: 11.7 },
   chip: { flexDirection: "row", alignItems: "center", gap: 6 },
   chipDot: { width: 5, height: 5, borderRadius: 2.5 },

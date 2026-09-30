@@ -88,7 +88,9 @@ describe("the Canton void reasons", () => {
   it("names the diverging pair when the oracles disagreed", () => {
     const detail = voidDetail({ ...attested, voidReason: "source-disagreement", closeE8: 36_547_600_000n, checkOpenE8: 30_000_000_000n })!;
     expect(detail.slot).toBe("open");
-    expect(voidReasonLine(detail)).toBe("The oracles' prices differed by more than 0.25% at 16:00:00 ET.");
+    // The Canton Series' band is 100 bps of the median, not the reference's 25 bps Pyth-against-RedStone one.
+    expect(voidReasonLine(detail)).toBe("The oracles' prices differed by more than 1% at 16:00:00 ET.");
+    expect(voidReasonLine(detail, { maxDivergenceBps: 50 })).toBe("The oracles' prices differed by more than 0.5% at 16:00:00 ET.");
   });
   it("names no slot for a reason that is not about a print", () => {
     for (const reason of ["resolver-absent", "source-halted", "operator-void"] as const) {

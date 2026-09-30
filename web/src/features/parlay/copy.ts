@@ -63,7 +63,7 @@ export const PARLAY = {
     remove: "Remove leg",
     pickWindow: "Pick a Window",
     /** The reserve's floor per leg is fixed (`ParlayPricing.sol`), so no stake changes this — only the book can. */
-    thin: (filled: string, depth: string) => `${filled} of ${depth} contracts resting`,
+    thin: (filled: string, depth: string) => `${filled} of ${depth} contracts on the ladder`,
   },
   ticket: {
     title: "Ticket",
@@ -98,8 +98,8 @@ export const PARLAY = {
     viewTx: "Open on the proof page",
     trophy: "Every leg must settle in the money. The instant one leg settles against you, the ticket is dead, and your stake is the most you can lose.",
     toast: (n: number, stake: string, payout: string, symbol: string) => `Parlay placed. ${n} legs, ${stake} to ${payout} ${symbol} if every leg lands.`,
-    thinBook: (leg: number, filled: string, depth: string) => `Leg ${leg}'s book is thin — ${filled} of ${depth} contracts resting. Wait for the maker to lay more, or pick another Window.`,
-    requote: (stake: string, symbol: string) => `The book moved — this ticket now costs ${stake} ${symbol}. Confirm again to place it at the new price.`,
+    thinBook: (leg: number, filled: string, depth: string) => `Leg ${leg}'s price ladder is thin — it holds ${filled} of ${depth} contracts. Wait for the maker to quote more, or pick another Window.`,
+    requote: (stake: string, symbol: string) => `The price moved — this ticket now costs ${stake} ${symbol}. Confirm again to place it at the new price.`,
   },
   slip: {
     streak: (n: number) => `${n}-leg streak`,
