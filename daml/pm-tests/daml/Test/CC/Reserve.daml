@@ -1,0 +1,328 @@
+-- | Canton Coin money gate, reserve half (C7b): the venue's statement of the coin
+-- it holds against the coin it owes, refusals of a statement that cites what it
+-- should not, privacy of every rail record, and a seeded random sequence of
+-- deposits, withdrawals, acceptances, refunds and refusals that keeps
+-- held coin == owed coin (and never less) after every step.
+module Test.CC.Reserve where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.List ((!!), head)
+import DA.Optional (fromOptional)
+import qualified DA.Map as Map
+import DA.Time (addRelTime, seconds)
+import PM.CC.Listing
+import PM.CC.Records
+import PM.CC.Units
+import PM.CC.Withdraw
+import PM.Money
+import Splice.Api.Token.HoldingV1 qualified as H
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+import Test.CC.Fixture
+import Test.Setup
+
+-- Deposits by two owners: the statement names the venue's coin and both
+-- allowances, is covered, and a next statement consumes the last (seq + 1).
+testStatementCovered = script do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  b <- openAccount c c.w.bob
+  _ <- deposit c c.w.alice a 4.0
+  _ <- deposit c c.w.bob b 1.5
+  s0 <- attest c None
+  x0 <- statementOf c.w.auditor s0
+  x0.seq === 0
+  x0.heldAtomic === atomicOf 5.5
+  x0.heldUnits === 550000
+  x0.liabilityUnits === 550000
+  x0.allowanceCount === 2
+  x0.covered === True
+  _ <- deposit c c.w.alice a 0.5
+  s1 <- attest c (Some s0)
+  x1 <- statementOf c.w.auditor s1
+  x1.seq === 1
+  x1.liabilityUnits === 600000
+  x1.covered === True
+  -- the previous statement is consumed: one live statement per listing
+  ss <- query @CcReserveStatement c.w.venue
+  length ss === 1
+  -- time does not run backwards
+  now <- getTime
+  hs <- unlockedOf c.w.venue
+  as <- query @CcAllowance c.w.venue
+  refusedWith (refusal "stale-statement") =<< trySubmit c.w.venue do
+    exerciseCmd c.listing Listing_Attest with
+      holdingCids = hs; allowanceCids = map fst as; previous = Some s1; asOf = addRelTime now (seconds (-10))
+
+-- A withdrawal in flight has left the holdings and lowered the allowance: the
+-- statement still balances without counting the locked coin.
+testStatementCountsInFlightAsGone = script do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice a 3.0
+  prop <- proposeWithdraw c c.w.alice 100000 "w"
+  Right _ <- acceptWithdraw c c.registry prop c.w.alice a
+  s <- attest c None
+  x <- statementOf c.w.auditor s
+  x.heldAtomic === atomicOf 2.0
+  x.liabilityUnits === 200000
+  x.covered === True
+
+-- The venue moves coin out of the rail on its own account: the statement says so.
+-- It stays publishable, and honest: covered is False.
+testStatementShowsShortfall = script do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice a 5.0
+  hs <- unlockedOf c.w.venue
+  r <- sendCoin c c.w.venue c.w.outsider 2.0 hs
+  instr <- pendingOf r
+  _ <- submit c.w.outsider do exerciseCmd instr T.TransferInstruction_Accept with extraArgs = noExtra
+  s <- attest c None
+  x <- statementOf c.w.auditor s
+  x.heldUnits === 300000
+  x.liabilityUnits === 500000
+  x.covered === False
+
+-- Naming the wrong things is refused: somebody else's holding, a locked holding,
+-- the same holding twice, an allowance of another listing.
+testStatementRefusals = script do
+  _ <- pure ()
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  al <- deposit c c.w.alice a 2.0
+  -- an unsettled deposit is a holding the venue can see, but not its own
+  pending <- depositInstruction c c.w.alice 1.0
+  as <- query @CcAllowance c.w.venue
+  now <- getTime
+  let attestWith hs as' = trySubmit c.w.venue do
+        exerciseCmd c.listing Listing_Attest with
+          holdingCids = hs; allowanceCids = as'; previous = None; asOf = now
+  own <- unlockedOf c.w.venue
+  refusedWith (refusal "foreign-holding") =<< attestWith [coerceInterfaceContractId @H.Holding pending] (map fst as)
+  -- a withdrawal's coin in flight is the venue's, but locked
+  prop <- proposeWithdraw c c.w.alice 100000 "w"
+  Right (wd, _) <- acceptWithdraw c c.registry prop c.w.alice a
+  Some w <- queryContractId c.w.venue wd
+  Some inflight <- pure w.instructionCid
+  refusedWith (refusal "locked-holding") =<< attestWith [coerceInterfaceContractId @H.Holding inflight] []
+  own' <- unlockedOf c.w.venue
+  case own' of
+    (h :: _) -> refusedWith (refusal "duplicate-holding") =<< attestWith [h, h] []
+    [] -> abort "the venue holds no coin"
+  Some (al2, _) <- allowanceOf c c.w.alice
+  refusedWith (refusal "duplicate-allowance") =<< attestWith own' [al2, al2]
+  -- an allowance under another listing is not this listing's to count
+  other <- submit c.w.venue do
+    createCmd CcAllowance with venue = c.w.venue; auditor = c.w.auditor; owner = c.w.alice; listingId = "cc-2"; units = 5
+  refusedWith (refusal "foreign-allowance") =<< attestWith own' [other]
+  -- and the honest statement goes through
+  ok <- attestWith own' [al2]
+  _ <- succeeded ok
+  pure al
+
+-- Who sees what. An owner sees only their own allowance, receipts and proposal;
+-- another seat and an outsider see none of it; the auditor sees allowances,
+-- receipts and statements but not an owner's proposal.
+testRailPrivacy = script do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  b <- openAccount c c.w.bob
+  _ <- deposit c c.w.alice a 2.0
+  _ <- deposit c c.w.bob b 3.0
+  prop <- proposeWithdraw c c.w.alice 100000 "p"
+  Right _ <- acceptWithdraw c c.registry prop c.w.alice a
+  prop2 <- proposeWithdraw c c.w.alice 1000 "p2"
+  _ <- attest c None
+  -- alice: her allowance, her deposit, her withdrawal, her open proposal
+  nAllowance c.w.alice >>= (=== 1)
+  nDeposit c.w.alice >>= (=== 1)
+  nWithdrawal c.w.alice >>= (=== 1)
+  nProposal c.w.alice >>= (=== 1)
+  nStatement c.w.alice >>= (=== 0)
+  nListing c.w.alice >>= (=== 0)
+  -- bob: his own only
+  nAllowance c.w.bob >>= (=== 1)
+  nDeposit c.w.bob >>= (=== 1)
+  nWithdrawal c.w.bob >>= (=== 0)
+  nProposal c.w.bob >>= (=== 0)
+  nStatement c.w.bob >>= (=== 0)
+  ds <- query @CcDeposit c.w.bob
+  forA_ ds \(_, d) -> d.owner === c.w.bob
+  -- an outsider sees nothing at all
+  nAllowance c.w.outsider >>= (=== 0)
+  nDeposit c.w.outsider >>= (=== 0)
+  nWithdrawal c.w.outsider >>= (=== 0)
+  nProposal c.w.outsider >>= (=== 0)
+  nStatement c.w.outsider >>= (=== 0)
+  nListing c.w.outsider >>= (=== 0)
+  cashOf c.w.outsider >>= (=== 0)
+  -- the auditor: all allowances, receipts, statements and the listing, no proposals
+  nAllowance c.w.auditor >>= (=== 2)
+  nDeposit c.w.auditor >>= (=== 2)
+  nWithdrawal c.w.auditor >>= (=== 1)
+  nStatement c.w.auditor >>= (=== 1)
+  nListing c.w.auditor >>= (=== 1)
+  nProposal c.w.auditor >>= (=== 0)
+  prop2 === prop2
+
+nAllowance, nDeposit, nWithdrawal, nProposal, nStatement, nListing : Party -> Script Int
+nAllowance p = length <$> query @CcAllowance p
+nDeposit p = length <$> query @CcDeposit p
+nWithdrawal p = length <$> query @CcWithdrawal p
+nProposal p = length <$> query @CcWithdrawProposal p
+nStatement p = length <$> query @CcReserveStatement p
+nListing p = length <$> query @CcListing p
+
+-- ---------------------------------------------------------------------------
+-- A seeded random sequence
+
+data RS = RS with
+  seed : Int
+  accounts : [(Party, ContractId VenueAccount)]
+  inflight : [(Party, ContractId CcWithdrawal)]
+  minted : Int
+  counts : Map.Map Text Int
+
+lcg : Int -> Int
+lcg s = (s * 1103515245 + 12345) % 2147483648
+
+roll : Int -> RS -> (Int, RS)
+roll n st = let s' = lcg st.seed in ((s' / 65536) % n, st with seed = s')
+
+bump : Text -> RS -> RS
+bump k st = st with counts = Map.insertWith (+) k 1 st.counts
+
+owners : RS -> [Party]
+owners st = map fst st.accounts
+
+-- After every step: the coin the venue holds unlocked plus what is in flight plus
+-- what the owners took equals everything ever minted in; the venue's unlocked
+-- coin covers, to the unit, the sum of allowances; and with no trading, each
+-- owner's cash equals their allowance.
+checkInvariants : CC -> RS -> Script ()
+checkInvariants c st = do
+  held <- coinOf c.w.venue
+  flying <- inFlightOf c.w.venue
+  taken <- sum <$> mapA coinOf (owners st)
+  held + flying + taken === st.minted
+  as <- query @CcAllowance c.w.venue
+  let owed = sum [a.units | (_, a) <- as]
+  unitsFloor rate held === owed
+  held === atomicOfUnits rate owed
+  forA_ (owners st) \o -> do
+    cash <- cashOf o
+    u <- allowanceUnits c o
+    cash === u
+
+step : CC -> Int -> RS -> Script RS
+step c i st0 = do
+  let (kind, st1) = roll 100 st0
+      (oi, st) = roll (length st1.accounts) st1
+      (owner, acct) = st.accounts !! oi
+  if kind < 30 then do
+    -- a deposit of an exact random number of cash units
+    let (k, st') = roll 3000000 st
+        units = 100 + k
+        amount = fromAtomic (atomicOfUnits rate units)
+    instr <- depositInstruction c owner amount
+    prev <- allowanceOf c owner
+    _ <- submit c.w.venue do settleCmd c instr acct (fst <$> prev)
+    pure (bump "deposit" (st' with minted = st'.minted + atomicOfUnits rate units))
+  else if kind < 38 then do
+    -- a dust deposit is refused and moves nothing
+    let (k, st') = roll 3000000 st
+        atomic = atomicOfUnits rate (100 + k) + 1 + (k % 99998)
+    -- the coin is minted and locked in the pending instruction; refused, so the
+    -- owner still owns it (locked) and the venue holds none of it
+    h <- mint c owner (fromAtomic atomic)
+    r <- sendCoin c owner c.w.venue (fromAtomic atomic) [h]
+    instr <- pendingOf r
+    res <- trySubmit c.w.venue do settleCmd c instr acct None
+    refusedWith (refusal "dust") res
+    -- take the dust deposit back so it does not sit locked forever
+    _ <- submit owner do exerciseCmd instr T.TransferInstruction_Withdraw with extraArgs = noExtra
+    pure (bump "dust-refused" (st' with minted = st'.minted + atomic))
+  else if kind < 62 then do
+    -- a withdrawal, of up to the whole allowance
+    au <- allowanceUnits c owner
+    if au == 0 then pure (bump "withdraw-skipped" st)
+    else do
+      let (u, st') = roll au st
+          units = 1 + u
+      prop <- proposeWithdraw c owner units ("w" <> show i)
+      r <- acceptWithdraw c c.registry prop owner acct
+      case r of
+        Right (wd, _) -> pure (bump "withdraw" (st' with inflight = st'.inflight ++ [(owner, wd)]))
+        Left e -> abort ("a covered withdrawal was refused: " <> show e)
+  else if kind < 68 then do
+    -- a withdrawal above the allowance is refused and moves nothing
+    au <- allowanceUnits c owner
+    if au == 0 then pure (bump "over-skipped" st)
+    else do
+      prop <- proposeWithdraw c owner (au + 1) ("over" <> show i)
+      r <- acceptWithdraw c c.registry prop owner acct
+      fails r
+      submit owner do exerciseCmd prop Proposal_Cancel
+      pure (bump "over-refused" st)
+  else if kind < 82 then do
+    -- an owner accepts an in-flight transfer; the venue records it
+    case st.inflight of
+      [] -> pure (bump "accept-skipped" st)
+      ((o, wd) :: rest) -> do
+        Some w <- queryContractId c.w.venue wd
+        Some instr <- pure w.instructionCid
+        _ <- submit o do exerciseCmd instr T.TransferInstruction_Accept with extraArgs = noExtra
+        _ <- submit c.w.venue do exerciseCmd wd Withdrawal_Complete
+        pure (bump "accept" (st with inflight = rest))
+  else if kind < 92 then do
+    -- the venue takes a transfer back: cash and allowance return
+    case st.inflight of
+      [] -> pure (bump "refund-skipped" st)
+      ((o, wd) :: rest) -> do
+        let oacct = snd (head [x | x <- st.accounts, fst x == o])
+        prev <- allowanceOf c o
+        _ <- submit c.w.venue do
+          exerciseCmd wd Withdrawal_Refund with accountCid = oacct; allowanceCid = fst <$> prev; extraArgs = noExtra
+        pure (bump "refund" (st with inflight = rest))
+  else do
+    -- an attestation: covered, to the unit
+    s <- attest c None
+    x <- statementOf c.w.auditor s
+    x.covered === True
+    x.heldUnits === x.liabilityUnits
+    pure (bump "attest" st)
+
+runSteps : CC -> RS -> [Int] -> Script RS
+runSteps c st [] = do
+  checkInvariants c st
+  pure st
+runSteps c st (i :: is) = do
+  st' <- step c i st
+  checkInvariants c st'
+  runSteps c st' is
+
+-- 40 steps over three owners. The invariants hold after every one, and the run
+-- exercised every kind of step. Two seeds.
+testRandomSequenceKeepsTheReserve = randomRun 20260930
+
+testRandomSequenceSecondSeed = randomRun 7
+
+randomRun : Int -> Script ()
+randomRun seed = do
+  c <- mkCC
+  a <- openAccount c c.w.alice
+  b <- openAccount c c.w.bob
+  o <- openAccount c c.w.outsider
+  let st0 = RS with
+        seed; accounts = [(c.w.alice, a), (c.w.bob, b), (c.w.outsider, o)]
+        inflight = []; minted = 0; counts = Map.empty
+  final <- runSteps c st0 [1 .. 40]
+  let n k = fromOptional 0 (Map.lookup k final.counts)
+  assertMsg "deposits ran" (n "deposit" >= 5)
+  assertMsg "withdrawals ran" (n "withdraw" >= 3)
+  assertMsg "refusals ran" (n "dust-refused" + n "over-refused" >= 2)
+  s <- attest c None
+  x <- statementOf c.w.auditor s
+  x.covered === True

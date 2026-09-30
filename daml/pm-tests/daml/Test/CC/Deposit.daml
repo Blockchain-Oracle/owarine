@@ -189,3 +189,24 @@ testRegistryNotCompletingCreditsNothing = script do
     settleCmd c (toInterfaceContractId stuck) acct None
   cashOf c.w.alice >>= (=== 0)
   allowanceUnits c c.w.alice >>= (=== 0)
+
+-- The overflow bounds: an amount above the rail's whole-coin bound is refused
+-- (Daml aborts on Int64 overflow, so the bound is checked before any product);
+-- a listing whose rate does not divide 10^10, or whose deposit maximum passes the
+-- conversion bound, or that lists its own admin, cannot be created.
+testOverflowBounds = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  huge <- depositInstruction c c.w.alice 10000001.0
+  refusedWith (refusal "bad-holding-amount") =<< trySubmit c.w.venue do settleCmd c huge acct None
+  cashOf c.w.alice >>= (=== 0)
+  let l = listingFor c.w c.admin
+  fails =<< trySubmit c.w.venue do createCmd l with unitsPerCoin = 3
+  fails =<< trySubmit c.w.venue do createCmd l with unitsPerCoin = 20000000000
+  fails =<< trySubmit c.w.venue do createCmd l with maxDepositUnits = maxUnitsFor rate + 1
+  fails =<< trySubmit c.w.venue do createCmd l with minDepositUnits = 0
+  fails =<< trySubmit c.w.venue do createCmd l with minDepositUnits = 10; maxDepositUnits = 9
+  fails =<< trySubmit c.w.venue do createCmd l with instrumentAdmin = c.w.venue
+  -- the largest legal listing is fine
+  _ <- succeeded =<< trySubmit c.w.venue do createCmd l with maxDepositUnits = maxUnitsFor rate
+  pure ()
