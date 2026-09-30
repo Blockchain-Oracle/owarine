@@ -15,7 +15,7 @@ export function GET() {
 
 > Guides to Agari, an Up/Down prediction market on Canton Network (test network, demo credits). Reviewed ${site.reviewed}.
 
-Agari's Daml package (\`abu-pm-main\`) settles Up/Down Windows with demo credits. Three oracle parties post signed 1-minute candle closes, a quorum of two agrees each boundary, and a separate resolver party resolves each Window exactly once. Each position is a contract only its seat's party and the venue can see. Stock, PreStocks and Pyth prices on the same path, and the desk's live leg, are planned; practice desks move no money. ${site.source ? `Application source: ${site.source} at ${site.revision}.` : 'The application repository is not public yet, so source links are not included.'}
+Agari's Daml packages (\`abu-pm-main\`, \`abu-pm-tickets\`, \`abu-pm-agents\`, \`abu-pm-games\`) settle Up/Down Windows and tickets in demo credits. Three oracle parties post every boundary price: Coinbase, Kraken and Bitstamp 1-minute candle closes for crypto, and attested prints that name their source (RedStone, Alpaca, Jupiter Price v3, PreStocks) for the other lanes. A quorum of two agrees each boundary, and the resolver and the venue record each Window's result exactly once. Each position is a contract with two stakeholders, its seat's party and the venue. Everything described runs on a local Canton sandbox; nothing is on DevNet or a hosted URL yet. ${site.source ? `Application source: ${site.source} at ${site.revision}.` : 'The application repository is not public yet, so source links are not included.'}
 
 ## Start here
 
