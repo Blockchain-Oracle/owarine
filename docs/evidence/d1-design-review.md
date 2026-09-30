@@ -97,20 +97,20 @@ Code block (labelled focusable scroll region, copy state announced); OTP input s
 
 ## Recommendations for the owner (not applied)
 
-Subjective, or a decision that changes how something looks or works. Nothing in this section was changed.
+Subjective, or a decision that changes how something looks or works. D1 changed nothing in this section. Lane D2 (2026-09-30, branch `slice/D2-port-ux`) then resolved the items marked **D2** below, on the surfaces the port built; the reference's own surfaces and token values were not touched (see "Resolved by D2" at the end for commits, what was checked and how, and what is left).
 
 **In the port's own surfaces**
-1. "Allow this device?" (the seat link's confirm step) uses the success wash and a shield. A security question in green reads as already-approved; consider the accent or a neutral plate.
-2. `FastChip` ("one tap"): a chip drawn as pressed that cannot be pressed, with its explanation in a `title` that a touch screen never shows. Consider dropping it or making it a plain note.
-3. Add funds' "Request demo credits" button still carries the tUSDC coin mark.
+1. **D2.2, resolved (web; the phone already drew the neutral plate).** "Allow this device?" (the seat link's confirm step) uses the success wash and a shield. A security question in green reads as already-approved; consider the accent or a neutral plate.
+2. **D2.3, resolved (web and phone).** `FastChip` ("one tap"): a chip drawn as pressed that cannot be pressed, with its explanation in a `title` that a touch screen never shows. Consider dropping it or making it a plain note.
+3. **D2.1, resolved (web and phone).** Add funds' "Request demo credits" button still carries the tUSDC coin mark.
 4. Landing "Built on": when a source's name wraps ("Coinbase, Kraken, Bitstamp" at 1440) its figures fall out of line with the other columns.
 5. `/seat/link` (web and phone) shows the join-only card for a moment before the lease and the first code arrive; a loading state needs copy.
-6. `partyLead(party)` (`indexOf("::") + 6`) is written five times (`ResolutionTimeline`, `SeatAccountMenu`, `ViewSwitcher`, `AccountModal`, `AddFunds`); one helper would keep the shortened id consistent.
+6. **D2.5, resolved.** `partyLead(party)` (`indexOf("::") + 6`) is written five times (`ResolutionTimeline`, `SeatAccountMenu`, `ViewSwitcher`, `AccountModal`, `AddFunds`); one helper would keep the shortened id consistent.
 7. `.cx-panel` in `proof-canton.css` restates the desk kit's `.dk-panel` value for value (documented there); hoisting it into the kit sheet would remove the copy.
 8. Comments cite 21st components as `#29246`; the CLI reads those as hex colours (15 false positives). A `21st:29246` form would keep its signal clean.
 9. `OtpInput`'s `autoFocus` prop has no caller; removing it clears the CLI's 4 warnings.
 10. `/native-auth`'s consent step uses `text-lg font-semibold` and `text-muted-foreground` where the rest of the app uses `type-*`.
-11. Party and update ids are shortened with a `title` for the full value; a touch screen cannot read it. A tap-to-copy or a popover would give phones the whole id.
+11. **D2.4, resolved (web and phone).** Party and update ids are shortened with a `title` for the full value; a touch screen cannot read it. A tap-to-copy or a popover would give phones the whole id.
 
 **Inherited from the reference (shared primitives; changing them changes reference surfaces)**
 12. `--color-ink-muted` is 4.3:1 on dark and 4.0:1 on light, `--color-ink-disabled` about 2.6:1, and `.stats-note` gray-600 2.6:1; every small muted label on the port's surfaces (the `cx-muted` and `cx-label` text, meta lines, the timeline's ids) sits under AA (4.30 on the ground, 3.78 on a card).
@@ -122,12 +122,12 @@ Subjective, or a decision that changes how something looks or works. Nothing in 
 18. `.desk-link-btn` (the creator fee "Claim to your seat") is about 22px tall and `.desk-fine` is 9px, under the 24px target and small for text.
 
 **Phone, found by static review and not changed (needs a device pass or a decision)**
-19. `seat/link.tsx` has no keyboard avoidance: the join boxes, the result note and the button are the last things in a tall card.
-20. `connect.tsx` and `SeatProvider.tsx`: with the pool full, `takeSeat()` resolves without throwing, the sheet fires the success haptic and closes; the phone has no queue plate, and after a reset no draining plate (web has `SeatLeaseDialog`).
-21. `LinkCodeInput`: the only labelled control is a hidden 1pt, alpha-0 `TextInput` and the visible row is `accessible={false}`; check with VoiceOver. It also lacks web's four-and-four grouping and focus-on-error.
-22. `events/EventHero` drops web's "Trading ends in" label, the urgent tone, the odds bar and the step list (one 12pt paragraph); `EventCard` copies twelve style entries from `WordCard`, and its header row has no `flexShrink`.
-23. `LiveDesk` `CreatorFees` (phone): two `flex: 1` cells are about 95-130pt wide, so the uppercase claim pill and the 24pt amount wrap to 2-3 lines; the pill is about 34pt tall for a money action; the claim result is 9pt. Stacking the cells at narrow widths would fix it.
-24. `TakeSeat`: "Have a seat on the web? Link this phone" is a one-line kit Button label of about 330pt against about 310pt; shortening the copy is the copy lane's call.
+19. **D2.7, resolved (static).** `seat/link.tsx` has no keyboard avoidance: the join boxes, the result note and the button are the last things in a tall card.
+20. **D2.6, pool-full half resolved (static); the draining plate after a reset is left.** `connect.tsx` and `SeatProvider.tsx`: with the pool full, `takeSeat()` resolves without throwing, the sheet fires the success haptic and closes; the phone has no queue plate, and after a reset no draining plate (web has `SeatLeaseDialog`).
+21. **D2.10, resolved (static; needs the VoiceOver pass below), including the four-and-four grouping and focus-on-error.** `LinkCodeInput`: the only labelled control is a hidden 1pt, alpha-0 `TextInput` and the visible row is `accessible={false}`; check with VoiceOver. It also lacks web's four-and-four grouping and focus-on-error.
+22. **D2.8, the hero half resolved (static); `EventCard`'s duplicated style entries are now shared with the hero for the bar and the chip, its header row still has no `flexShrink`.** `events/EventHero` drops web's "Trading ends in" label, the urgent tone, the odds bar and the step list (one 12pt paragraph); `EventCard` copies twelve style entries from `WordCard`, and its header row has no `flexShrink`.
+23. **D2.9, wrap and 44pt target resolved (static); the 9pt claim result is left.** `LiveDesk` `CreatorFees` (phone): two `flex: 1` cells are about 95-130pt wide, so the uppercase claim pill and the 24pt amount wrap to 2-3 lines; the pill is about 34pt tall for a money action; the claim result is 9pt. Stacking the cells at narrow widths would fix it.
+24. **D2.9, resolved (static), by layout rather than by shortening the copy.** `TakeSeat`: "Have a seat on the web? Link this phone" is a one-line kit Button label of about 330pt against about 310pt; shortening the copy is the copy lane's call.
 25. `CopyFormFields` calls `router.push("/funds")` while `CopyDrawer` is a native `Modal`; the route may present beneath it.
 26. `ClaimFlow` draws the X sign-in error under step 2, which is dimmed until step 1 is proven.
 27. `OnboardingScreen` fires the success haptic before `takeSeat()` resolves.
@@ -137,3 +137,33 @@ Subjective, or a decision that changes how something looks or works. Nothing in 
 ## Gates
 
 `pnpm typecheck` (all workspaces, including `mobile`): exit 0. `pnpm --filter @agari/mobile typecheck`: exit 0. `pnpm invariants`: 0 errors, 0 warnings. `pnpm test`: 309 files passed, 13 skipped; 2391 tests passed, 61 skipped, no failures (the known load timeouts in `api/venue/routes.test.ts` and `reply-card.test.ts` did not occur). No `next build` and no sandbox run.
+
+## Resolved by D2 (2026-09-30)
+
+Lane D2, branch `slice/D2-port-ux` (from main 8713ee1). Only surfaces the port built or changed; nothing on a reference surface and no reference token value changed (`web/src/styles/ticket.css` is byte-identical to the reference again, the port's `data-on` rule having gone with the chip).
+
+| Commit | Item | What changed | Test |
+|---|---|---|---|
+| `ab01834` D2.1 | Add funds coin (rec. 3) | The tUSDC disc is off the "Get demo credits" pill on web (`AddFunds.tsx`, the dead `.fund-cta-mark` rule) and phone (`app/funds.tsx`): credits are said in words, as the CTA unit and the seat menu do | none (no logic) |
+| `0b4ec94` D2.2 | Allow-this-device plate (rec. 1) | `data-tone="ask"` on the confirm plate: the balance plate's inset surface and a hairline, the shield on the accent wash (`seat.css`); green stays for "Linked", warning for "Not allowed". The phone's `Decide` already used the accent wash. Checked at 390 in both themes | markup test pins the three plates apart |
+| `3777457` D2.3 | `FastChip` (rec. 2) | A static label: the desk kit's quiet `StatusDot`, the same pill the reference draws for "Always open", on web and phone; no button, no pressed styling, no `title` | markup test |
+| `69318bc` D2.5 | `partyLead` (rec. 6) | One `partyLead` in `@agari/core/units` (with the floor of eight the proof formatter had); 7 web sites and 2 phone sites import it, and the phone shortens through `shortHex` as `Hash` does | 4 cases |
+| `f657a13`, `067bcc1` D2.4 | Ids on touch (rec. 11) | New `TapHash` (web `components/data`, phone `components/ui`): the short form and dotted underline of `Hash`; a tap shows the whole id in place with a 24px (web) or 44pt (phone) Copy beside it, a second tap folds it, a mouse still gets the title. Used for party and update ids on the timeline, receipt signatories, oracle prints "signed by", the ledger update plate, the write receipt, the view switcher, the account modal and Add funds; on the phone the view switcher and the seat sheet. Left as `Hash`: the receipt's update link (it goes to the update), payload and contract ids, code-block ids (Copy copies the literal text) and the seat menu's party (it has a Copy button) | closed, open and never-cut states |
+| `d490988` D2.6 | Pool full on the phone (rec. 20, first half) | `takeSeat()` resolves with the lease view; a full pool turns the Take a seat sheet into web's pool-full plate (kit empty-state anatomy, the ring around a seat, "This page will take the next free seat for you", clock, warn `StatusDot` with the place in line) and "Keep waiting". Haptic: the selection tick (no seat yet, nothing failed); success and close when the app's retries lease a seat; no party and no queue reads as the network not taking seats, with the error haptic | `takeOutcomeOf`, `poolFullOf` (web's lease dialog now uses the same) |
+| `ba3f6a0` D2.7 | Keyboard on `/seat/link` (rec. 19) | The chat sheets' `KeyboardAvoidingView` (padding on iOS) around the page's own scroll view, and scroll-to-end on each resize while the code entry holds the keyboard | none (layout) |
+| `657a8e1` D2.8 | `EventHero` (rec. 22) | Rebuilt in the price hero's frame (`HeroPanel`, `HeadShell`, `AssetRow`, `Settles`): "Trading ends in" label with the urgent tone, Committee chip, when the committee answers, odds bar with when trading ends and the implied share, the locked note, the numbered "How it settles" steps | `eventClockOf` (shared with web's hero): no reading, calm, last minute, lock, short event |
+| `c1ff4a8` D2.9 | Claim pill, `TakeSeat` (rec. 23, 24) | Fee cells stack under 600pt (238pt wide at 320, 308pt at 390, against a pill of about 190pt) and the pill is held to 44pt. "Have a seat on the web?" is a caption over a "Link this phone" button (the kit `Button` holds one line: the sentence was about 330pt against 310 at 390 and 240 at 320) | none (layout) |
+| `861bd66` D2.10 | Code input (rec. 21) | One full-size transparent text field over the boxes (not a 1pt alpha-0 one) with label, hint and the code spelled out as its value; the boxes are hidden from VoiceOver and ignore touches; four-and-four grouping and focus-on-error as on web | `spokenCode` |
+
+Checked in headless Chrome (touch, 390, both themes where noted, `next dev` on my own port and PID, stopped afterwards): the confirm plate; on the resolution timeline, the view switcher and the write receipt, a tap opens the whole id, Copy puts the whole id on the clipboard, a second tap folds it, no page overflow. This also found and fixed a real defect in the first version of D2.4 (the hit area of a wrapped id covered Copy). The phone changes are static: `pnpm --filter @agari/mobile typecheck` only, no simulator or device run.
+
+**VoiceOver pass to confirm D2.10 (needs a device):** on `/seat/link` (from "Have a seat on the web? Link this phone" or a QR), swipe to the code field. Expected: one stop reading "Seat link code, text field", the hint ("Eight letters and numbers, from the other screen. That device then allows this one."), and the value "none of 8 characters entered". The eight boxes are not separate stops. Type `K7M`: the keyboard echoes each character; re-focusing the field reads "K 7 M, 5 more to enter". With eight characters the message ("Joining…" then the result) is announced and, on a refusal, the caret returns to the field. Also confirm on a device that the transparent field takes a long-press Paste and iOS autofill of a one-time code, and that a tap on any box focuses it.
+
+**Left for a device or another lane:**
+- Not device-checked: D2.6 (plate, ring, haptics), D2.7 (whether `onLayout` scroll-to-end lands the boxes above the keyboard on every iPhone size), D2.8, D2.9 (layout arithmetic above, no render), D2.10.
+- The header money pill and the phone header pill (reference) and the phone onboarding visual (port) still draw the tUSDC coin; the pill is a reference surface, the onboarding visual was not on the lane's list.
+- The draining plate after a reset (rec. 20's second half) has no phone home yet: it needs a host outside the account sheet, which closes on reset. Onboarding's `takeSeat()` (rec. 27) does not show the pool-full plate either; it still fires its success haptic before the answer.
+- Contract ids (web view switcher, phone rows) are still hover-only or shortened text; `TapHash` fits them once the row's `nowrap` is relaxed.
+- Recommendations 4, 5, 7, 8, 9, 10 and 12 to 18, 25 to 29 are untouched (subjective, copy-lane, reference-owned or needing a device).
+
+Gates after D2: `pnpm typecheck` (all workspaces, including `mobile`): exit 0. `pnpm --filter @agari/mobile typecheck`: exit 0. `pnpm invariants`: 0 errors, 0 warnings. `pnpm test`: 325 files passed, 13 skipped; 2524 tests passed, 61 skipped, no failures (the known `reply-card.test.ts` load timeouts did not occur). No `next build`, no sandbox; no `.21st/` or other tool file created (a 21st search for an inline copyable id found only block-level snippets, so `TapHash` is composed from the seat link's own copy-then-check pattern).
