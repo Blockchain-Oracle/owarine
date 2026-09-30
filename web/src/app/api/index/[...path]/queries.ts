@@ -4,6 +4,7 @@ import type { Db, IdxRow, IndexReader } from "@agari/db";
 import { z } from "zod";
 import { resolveArchiveQuery } from "./queries-archive";
 import { resolveProofQuery } from "./queries-proof";
+import { resolvePublishedQuery } from "./queries-published";
 import { resolveStatusQuery } from "./queries-status";
 import { resolveTapeQuery } from "./queries-tape";
 
@@ -105,7 +106,7 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
 /** Null when the path names nothing; throws `BadRequest` when it does but a parameter is malformed. */
 export function resolveIndexQuery(path: readonly string[], query: Record<string, string>, _programId: string): IndexQuery | null {
   // S5 lane paths (`tape/*` 5b, `status/*` sub-paths 5c, `proofs/*` 5d) resolve in their own files first.
-  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, _programId) ?? resolveProofQuery(path, query) ?? resolveArchiveQuery(path, query);
+  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, _programId) ?? resolveProofQuery(path, query) ?? resolveArchiveQuery(path, query) ?? resolvePublishedQuery(path, query);
   if (lane) return lane;
   const [head, second, third, ...rest] = path;
   if (rest.length > 0) return null;

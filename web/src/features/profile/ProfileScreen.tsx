@@ -2,7 +2,7 @@
 
 import type { Address } from "@agari/core/types";
 import { addressUrl } from "@agari/core/urls";
-import { keys, useWalletHistory } from "@agari/markets/react";
+import { keys, usePublishedHistory, useWalletHistory } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useCallback, useState, type CSSProperties } from "react";
@@ -18,16 +18,22 @@ const TAIL = 4;
 const LEAD = 6;
 
 /**
- * `/u/[address]` (spec §1.6): identity, then the record, the edge excerpt, open calls and takes. Every figure is public
- * index data read the way Portfolio and Trader Edge read the viewer's own; nothing here needs a signature.
+ * `/u/[address]` (spec §1.6): identity, then the record, the edge excerpt, open calls and takes. Your own profile reads
+ * your seat's history under its lease, the way Portfolio and Trader Edge do; anyone else's reads only the calls that
+ * seat chose to publish (Canton keeps the rest private, C13a).
  */
 export function ProfileScreen({ address, xHandle }: { address: Address; xHandle: string | null }) {
   const { address: viewer } = useWalletSession();
   const own = viewer === address;
   const units = useMoneyUnits();
-  const history = useWalletHistory(address);
+  const ownHistory = useWalletHistory(address, own);
+  const publishedHistory = usePublishedHistory(address, !own);
+  const history = own ? ownHistory : publishedHistory;
   const queryClient = useQueryClient();
-  const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: keys.history(address) }), [address, queryClient]);
+  const retry = useCallback(
+    () => void queryClient.invalidateQueries({ queryKey: own ? keys.history(address) : keys.published(address, "history") }),
+    [address, own, queryClient],
+  );
   const [copied, setCopied] = useState(false);
   const copy = () => {
     void navigator.clipboard?.writeText(address).then(() => {
@@ -52,7 +58,7 @@ export function ProfileScreen({ address, xHandle }: { address: Address; xHandle:
         <div className="page-title-jp" lang="ja">
           {PROFILE.headingJp}
         </div>
-        <p className="news-intro">{PROFILE.intro}</p>
+        <p className="news-intro">{own ? PROFILE.intro : PROFILE.introPublished}</p>
 
         <div className="prf-bar">
           {xHandle && (
@@ -89,7 +95,7 @@ export function ProfileScreen({ address, xHandle }: { address: Address; xHandle:
         </div>
 
         <ProfileRecord address={address} reading={history} retry={retry} symbol={units.symbol} own={own} />
-        <ProfileCalls address={address} units={units} />
+        <ProfileCalls address={address} units={units} own={own} />
       </div>
     </div>
   );

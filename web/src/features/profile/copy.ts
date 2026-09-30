@@ -10,6 +10,10 @@ export const PROFILE = {
   eyebrowYou: "Your profile",
   headingJp: "取引者の記録。",
   intro: "A seat's record on Agari, read from the venue's ledger projection: every settled Window, the badges it earned and the calls still running.",
+  /** C13a: anyone else's profile shows only what that seat published; the rest of its record is private on Canton. */
+  introPublished: "The calls this seat chose to publish on Agari: their settled Windows, the badges they earned and the published calls still running. Anything it kept private stays private.",
+  recordPublishedDesc: "Published calls on settled Windows, by the chain's settlement rule.",
+  callsPublishedDesc: "Published calls on Windows still running.",
   x: "On X",
   xVerified: "verified link",
   /** A-3b: copy this wallet's calls as a strategy. */

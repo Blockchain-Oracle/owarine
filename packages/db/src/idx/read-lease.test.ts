@@ -11,6 +11,7 @@ import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { SCHEMA_SQL } from "../schema";
 import { indexReader, type IdxSeatLease } from "./read";
+import { publishedFills, publishedReceipts } from "./read-published";
 
 const URL_ = process.env.SEAT_PG_URL;
 const NS = "c13a_lease_test";
@@ -51,10 +52,14 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
       issued_update_id, issued_offset, issued_ts_sec, status)
     VALUES (${cid}, 'quote', ${id}, ${`terms-${id}`}, ${PARTY}, ${`pair-${cid}`}, 0, 600, 2, 1000, ${T + 30}, ${`issue-${cid}`}, ${offset},
       ${T + offset}, 'accepted')`;
-  const receipt = (cid: string, id: string, offset: number) => sql`
+  const receipt = (cid: string, id: string, offset: number, pair = `pair-${cid}`) => sql`
     INSERT INTO idx_receipts (receipt_cid, owner_party, market, market_key, pair_id, outcome, resolved, lots, cash_unit, backing_share, cost, payout, fee,
       created_update_id, created_offset, created_ts_sec)
-    VALUES (${cid}, ${PARTY}, ${id}, ${`key-${id}`}, ${`pair-${cid}`}, 0, 0, 2, 1000, 1200, 1200, 2000, 0, ${`r-${cid}`}, ${offset}, ${T + offset})`;
+    VALUES (${cid}, ${PARTY}, ${id}, ${`key-${id}`}, ${pair}, 0, 0, 2, 1000, 1200, 1200, 2000, 0, ${`r-${cid}`}, ${offset}, ${T + offset})`;
+  const publication = (cid: string, handle: string, id: string, pair: string, offset: number) => sql`
+    INSERT INTO idx_publications (publication_cid, owner_party, handle, market, market_key, pair_id, outcome, lots, backing_share, created_update_id,
+      created_offset, created_ts_sec)
+    VALUES (${cid}, ${PARTY}, ${handle}, ${id}, ${`key-${id}`}, ${pair}, 0, 2, 1200, ${`p-${cid}`}, ${offset}, ${T + offset})`;
 
   beforeAll(async () => {
     await admin.unsafe(`DROP SCHEMA IF EXISTS ${NS} CASCADE; CREATE SCHEMA ${NS}`);
@@ -73,6 +78,11 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
     await quote("q-bob", "m-bob", 109);
     await receipt("r-bob", "m-bob", 130);
     for (const id of ["m-alice", "m-bob", "m-both"]) await position(id);
+    // Publications: Alice published her m-alice call; Bob published m-bob and kept m-both private.
+    await publication("pub-alice", ALICE, "m-alice", "pair-u-alice-1", 7);
+    await publication("pub-bob", BOB, "m-bob", "pair-u-bob-1", 111);
+    await receipt("r-bob-pub", "m-bob", 131, "pair-u-bob-1");
+    await receipt("r-bob-private", "m-both", 140, "pair-u-bob-2");
   });
   afterAll(async () => {
     await admin.unsafe(`DROP SCHEMA IF EXISTS ${NS} CASCADE`);
@@ -88,7 +98,7 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
   it("Bob's exits, quotes and receipts are his alone", async () => {
     expect((await reader.walletActions(BOB, { lease: BOB_LEASE })).map((r) => r.signature)).toEqual(["close-u-bob-1"]);
     expect((await reader.orders({ owner: BOB, lease: BOB_LEASE })).map((r) => r.quote_cid)).toEqual(["q-bob"]);
-    expect((await reader.walletReceipts(BOB, { lease: BOB_LEASE })).map((r) => r.receipt_cid)).toEqual(["r-bob"]);
+    expect((await reader.walletReceipts(BOB, { lease: BOB_LEASE })).map((r) => r.receipt_cid)).toEqual(["r-bob-private", "r-bob-pub", "r-bob"]);
   });
 
   it("a position the previous visitor also traded is withheld, never merged into Bob's", async () => {
@@ -101,5 +111,19 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
     expect(await reader.positions(ALICE, {})).toEqual([]);
     expect(await reader.orders({ owner: ALICE })).toEqual([]);
     expect(await reader.walletReceipts(ALICE, {})).toEqual([]);
+  });
+
+  it("anyone else reads only what a seat published, under its own handle", async () => {
+    expect((await publishedFills(sql, BOB)).map((r) => r.signature)).toEqual(["u-bob-1"]);
+    expect((await publishedFills(sql, BOB)).map((r) => r.taker)).toEqual([BOB]);
+    expect((await publishedReceipts(sql, BOB)).map((r) => r.receipt_cid)).toEqual(["r-bob-pub"]);
+    expect((await publishedFills(sql, ALICE)).map((r) => r.signature)).toEqual(["u-alice-1"]);
+    expect(await publishedReceipts(sql, ALICE)).toEqual([]);
+  });
+
+  it("a retracted publication drops out", async () => {
+    await sql`DELETE FROM idx_publications WHERE publication_cid = 'pub-bob'`;
+    expect(await publishedFills(sql, BOB)).toEqual([]);
+    expect(await publishedReceipts(sql, BOB)).toEqual([]);
   });
 });

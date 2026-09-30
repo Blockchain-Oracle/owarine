@@ -92,7 +92,7 @@ export function ProfileRecord({ address, reading, retry, symbol, own }: { addres
   return (
     <>
       <View accessibilityLabel={PROFILE.record.title}>
-        <SectionHeader index={PROFILE.record.number} title={PROFILE.record.title} desc={PROFILE.record.desc} style={SECTION_HEAD} />
+        <SectionHeader index={PROFILE.record.number} title={PROFILE.record.title} desc={own ? PROFILE.record.desc : PROFILE.recordPublishedDesc} style={SECTION_HEAD} />
         {record}
       </View>
       <View accessibilityLabel={PROFILE.edge.title}>

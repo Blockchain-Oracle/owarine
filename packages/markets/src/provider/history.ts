@@ -11,7 +11,7 @@ import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow, type
 import { withReading } from "./reading";
 import { outcomeOf, receiptFacts } from "./rows";
 
-const PAGE = 1_000;
+export const PAGE = 1_000;
 const MAX_PAGES = 5;
 /** The route caps `ids=` at 200 per request. */
 const IDS_PER_REQUEST = 200;
@@ -30,7 +30,7 @@ interface Grid {
   tickBase: bigint;
 }
 
-async function pageAll<T>(path: string): Promise<{ rows: T[]; complete: boolean }> {
+export async function pageAll<T>(path: string): Promise<{ rows: T[]; complete: boolean }> {
   const rows: T[] = [];
   for (let page = 0; page < MAX_PAGES; page += 1) {
     const batch = await indexRows<T>(path, { limit: PAGE, offset: page * PAGE });
@@ -83,60 +83,85 @@ export async function listWalletHistory(wallet: Address): Promise<Reading<Wallet
       indexRows<ReceiptRow>(`wallet/${wallet}/receipts`, { limit: PAGE }),
       readVenueStatic(),
     ]);
-    const ids = [...new Set([...fills.rows.map((f) => f.market), ...actions.rows.flatMap((a) => (a.market ? [a.market] : []))])];
-    const rows = await marketRows(ids);
-    const grids = new Map([...rows].map(([id, row]) => [id, { lotBase: big(row.lot_base), tickBase: big(row.tick_base) }]));
-
-    const own = fills.rows.map((fill) => toLedgerFill(wallet, fill, grids.get(fill.market)));
-    const attributed = own.filter((fill): fill is LedgerFill => fill !== null);
-    const sets = actions.rows.map((action) => toSetAction(action, grids.get(action.market ?? ""))).filter((a): a is LedgerSetAction => a !== null);
-    const ledgers = buildLedgers(attributed, sets, venue.decimals);
-    const redeemed = new Map(positions.map((p) => [p.market, p.redeemed]));
-    const byCrank = new Map(positions.map((p) => [p.market, p.redeemed_by_crank]));
-
-    const rounds: SettledRound[] = [];
-    let openCount = 0;
-    for (const [id, ledger] of ledgers) {
-      const row = rows.get(id);
-      // Drive-only Series (no registry symbol) never list, so they are no one's round either.
-      if (!row || row.symbol === null || !ledgerHasActivity(ledger as MarketLedger)) continue;
-      if (row.state === "open") {
-        if (ledger.heldUpRaw + ledger.heldDownRaw > 0n) openCount += 1;
-        continue;
-      }
-      // A redeemed seat was paid (by the wallet or the settler's crank); an unredeemed one still holds its legs. A Window
-      // past the newest PAGE positions has no row here, so whether it was paid is unread, never guessed as "to collect".
-      const seat = redeemed.get(id);
-      const live: Holdings | null = seat === undefined ? null : seat ? { upRaw: 0n, downRaw: 0n } : { upRaw: ledger.heldUpRaw, downRaw: ledger.heldDownRaw };
-      const round = settleRound({
-        ledger,
-        market: {
-          marketId: id,
-          asset: row.symbol ?? "",
-          intervalSec: row.cadence_sec ?? 0,
-          expirySec: sec(row.expiry_sec),
-          decimals: venue.decimals,
-          settled: true,
-          voided: row.state === "voided",
-          winningOutcome: outcomeOf(row.winner),
-          resolvedAtMs: row.resolved_ts_sec === null ? null : sec(row.resolved_ts_sec) * 1000,
-        },
-        feeBps: 0,
-        liveHoldings: live,
-      });
-      if (round) rounds.push(round.claim === "paid" && byCrank.get(id) === true ? { ...round, paidByCrank: true } : round);
-    }
-    // Receipts attach to the rounds the fills built, and add the rounds only they know (tickets; legs with no fills).
-    const all = withReceipts(rounds, receipts.map(receiptFacts), venue.decimals);
-    all.sort((a, b) => roundSettledAtMs(b) - roundSettledAtMs(a));
-    return {
-      rounds: all,
-      openCount,
-      fillCount: fills.rows.length,
-      complete: fills.complete && actions.complete && attributed.length === own.length && receipts.length < PAGE,
-      decimals: venue.decimals,
-    };
+    return (await replayHistory(wallet, { fills, actions, positions, receipts }, venue.decimals)).history;
   });
+}
+
+/** What a replay reads: paged fills and actions, the newest positions and receipts. */
+export interface HistoryRows {
+  fills: { rows: FillRow[]; complete: boolean };
+  actions: { rows: ActionRow[]; complete: boolean };
+  positions: PositionRow[];
+  receipts: ReceiptRow[];
+}
+
+/** One ledger per Window a replay built, with the Window's row: the open ones are a profile's open calls. */
+export interface ReplayedWindow {
+  ledger: MarketLedger;
+  row: MarketRow;
+}
+
+/**
+ * The replay behind every history: fills and actions into one ledger per Window, settled by the chain's rule, with the
+ * receipts attached. Shared by the seat's own history and (C13a) another seat's published record.
+ */
+export async function replayHistory(wallet: Address, input: HistoryRows, decimals: number): Promise<{ history: WalletHistory; open: ReplayedWindow[] }> {
+  const { fills, actions, positions, receipts } = input;
+  const venue = { decimals };
+  const ids = [...new Set([...fills.rows.map((f) => f.market), ...actions.rows.flatMap((a) => (a.market ? [a.market] : []))])];
+  const rows = await marketRows(ids);
+  const grids = new Map([...rows].map(([id, row]) => [id, { lotBase: big(row.lot_base), tickBase: big(row.tick_base) }]));
+
+  const own = fills.rows.map((fill) => toLedgerFill(wallet, fill, grids.get(fill.market)));
+  const attributed = own.filter((fill): fill is LedgerFill => fill !== null);
+  const sets = actions.rows.map((action) => toSetAction(action, grids.get(action.market ?? ""))).filter((a): a is LedgerSetAction => a !== null);
+  const ledgers = buildLedgers(attributed, sets, venue.decimals);
+  const redeemed = new Map(positions.map((p) => [p.market, p.redeemed]));
+  const byCrank = new Map(positions.map((p) => [p.market, p.redeemed_by_crank]));
+
+  const rounds: SettledRound[] = [];
+  const open: ReplayedWindow[] = [];
+  for (const [id, ledger] of ledgers) {
+    const row = rows.get(id);
+    // Drive-only Series (no registry symbol) never list, so they are no one's round either.
+    if (!row || row.symbol === null || !ledgerHasActivity(ledger as MarketLedger)) continue;
+    if (row.state === "open") {
+      if (ledger.heldUpRaw + ledger.heldDownRaw > 0n) open.push({ ledger: ledger as MarketLedger, row });
+      continue;
+    }
+    // A redeemed seat was paid (by the wallet or the settler's crank); an unredeemed one still holds its legs. A Window
+    // past the newest PAGE positions has no row here, so whether it was paid is unread, never guessed as "to collect".
+    const seat = redeemed.get(id);
+    const live: Holdings | null = seat === undefined ? null : seat ? { upRaw: 0n, downRaw: 0n } : { upRaw: ledger.heldUpRaw, downRaw: ledger.heldDownRaw };
+    const round = settleRound({
+      ledger,
+      market: {
+        marketId: id,
+        asset: row.symbol ?? "",
+        intervalSec: row.cadence_sec ?? 0,
+        expirySec: sec(row.expiry_sec),
+        decimals: venue.decimals,
+        settled: true,
+        voided: row.state === "voided",
+        winningOutcome: outcomeOf(row.winner),
+        resolvedAtMs: row.resolved_ts_sec === null ? null : sec(row.resolved_ts_sec) * 1000,
+      },
+      feeBps: 0,
+      liveHoldings: live,
+    });
+    if (round) rounds.push(round.claim === "paid" && byCrank.get(id) === true ? { ...round, paidByCrank: true } : round);
+  }
+  // Receipts attach to the rounds the fills built, and add the rounds only they know (tickets; legs with no fills).
+  const all = withReceipts(rounds, receipts.map(receiptFacts), venue.decimals);
+  all.sort((a, b) => roundSettledAtMs(b) - roundSettledAtMs(a));
+  const history: WalletHistory = {
+    rounds: all,
+    openCount: open.length,
+    fillCount: fills.rows.length,
+    complete: fills.complete && actions.complete && attributed.length === own.length && receipts.length < PAGE,
+    decimals: venue.decimals,
+  };
+  return { history, open };
 }
 
 /** A wallet's own fills, narrowed to one Book and a time. Empty means "not on the tape yet", never "nothing filled". */

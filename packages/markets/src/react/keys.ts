@@ -30,6 +30,8 @@ export const keys = {
   claimables: (wallet: string | null, venueId: Address | null) => [QUERY_KEY_SCOPE, APP, "claimables", wallet, venueId] as const,
   /** The fill projection: settled rounds, equity, stats — one key, so a claim or an order refreshes all of it. */
   history: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "history", wallet] as const,
+  /** Another seat's record and open calls from its opt-in publications (C13a): public, never the seat's own rows. */
+  published: (address: string | null, what: "history" | "calls") => [QUERY_KEY_SCOPE, APP, "published", address, what] as const,
   /** The Trading Balance and its grants; holdings nest under it so one invalidation refreshes both. */
   vault: (wallet: string | null) => [QUERY_KEY_SCOPE, APP, "vault", wallet] as const,
   vaultHoldings: (wallet: string | null, marketId: string | null) => [QUERY_KEY_SCOPE, APP, "vault", wallet, "holdings", marketId] as const,
