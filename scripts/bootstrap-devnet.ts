@@ -24,6 +24,8 @@
  * `--allow-local` runs it against an unauthenticated local sandbox (the rehearsal: parties already allocated, DARs
  * already uploaded); rights do not apply there and are not checked.
  */
+// The generated bindings log "Registered template …" for every template as they load: ~100 lines above the table.
+import "../services/ops/src/actors/venue/quiet-codegen";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
