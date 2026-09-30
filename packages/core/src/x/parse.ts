@@ -14,8 +14,8 @@ const ASSETS: Record<string, XAsset> = { ...Object.fromEntries(TICKER_SYMBOLS.ma
 const UNLISTED_ASSET_RE = /^(sol|bnb|xrp|doge|ada|link|avax|coin|mstr|hood|amd|nflx)$/;
 /** Side words the parser understands; everything maps onto the venue's two outcomes. */
 const SIDES: Record<string, Side> = { up: "up", down: "down", long: "up", short: "down", yes: "up", no: "down", over: "up", under: "down" };
-/** Units that may trail a stake and mean nothing more than "collateral". */
-const UNITS = new Set(["usdc", "tusdc", "usd", "usdso", "$"]);
+/** Units that may trail a stake and mean nothing more than "collateral": the venue's own credits (C13a), and the words people carried over. */
+const UNITS = new Set(["credit", "credits", "usdc", "tusdc", "usd", "usdso", "$"]);
 
 export type XRefusalReason =
   | "empty"
