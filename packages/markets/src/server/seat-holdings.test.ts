@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AGENT_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
+import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import type { CreatedEvent } from "@agari/ledger";
 import { holdingsOf, holdingsText, isSeatEmpty } from "./seat-holdings";
 
@@ -53,7 +53,7 @@ describe("seat holdings (C9d)", () => {
       ev(AGENT_TEMPLATE_IDS.Subscription, { subscriber: SEAT, creator: OTHER }),
       ev(AGENT_TEMPLATE_IDS.DeskMandate, { owner: SEAT }),
     ], NOW);
-    expect(h.counts).toEqual({ legs: 0, quotes: 0, tickets: 3, shares: 1, duels: 2, agents: 3, creator: 0 });
+    expect(h.counts).toEqual({ legs: 0, quotes: 0, tickets: 3, shares: 1, duels: 2, agents: 3, creator: 0, coin: 0 });
     expect(h.lpShares).toEqual([{ cid: expect.any(String), reserveId: "range", shares: 1200n }]);
     expect(holdingsText(h)).toBe("3 tickets, 1 Earn share, 2 duels, 3 agent grants");
   });
@@ -74,5 +74,20 @@ describe("seat holdings (C9d)", () => {
     expect(h.counts.creator).toBe(2);
     expect(holdingsText(h)).toBe("2 live strategies or fee payouts");
     expect(isSeatEmpty(holdingsOf(SEAT, [ev(AGENT_TEMPLATE_IDS.Strategy, { creator: SEAT, active: false })], NOW))).toBe(true);
+  });
+
+  it("a Canton Coin claim holds the seat: the venue owes it coin, or a request or a transfer to it is open (C7b)", () => {
+    const h = holdingsOf(SEAT, [
+      ev(CC_TEMPLATE_IDS.CcAllowance, { owner: SEAT, units: "1000000" }),
+      ev(CC_TEMPLATE_IDS.CcAllowance, { owner: OTHER, units: "5" }),
+      ev(CC_TEMPLATE_IDS.CcWithdrawProposal, { owner: SEAT, units: "1" }),
+      ev(CC_TEMPLATE_IDS.CcWithdrawal, { owner: SEAT, state: "WdSent" }),
+      ev(CC_TEMPLATE_IDS.CcWithdrawal, { owner: SEAT, state: "WdCompleted" }),
+      ev(CC_TEMPLATE_IDS.CcWithdrawal, { owner: SEAT, state: "WdRefunded" }),
+      ev(CC_TEMPLATE_IDS.CcDeposit, { owner: SEAT, units: "9" }),
+    ], NOW);
+    expect(h.counts.coin).toBe(3);
+    expect(holdingsText(h)).toBe("3 Canton Coin claims");
+    expect(isSeatEmpty(holdingsOf(SEAT, [ev(CC_TEMPLATE_IDS.CcWithdrawal, { owner: SEAT, state: "WdCompleted" }), ev(CC_TEMPLATE_IDS.CcDeposit, { owner: SEAT, units: "9" })], NOW))).toBe(true);
   });
 });
