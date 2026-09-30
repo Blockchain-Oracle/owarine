@@ -20,7 +20,7 @@ import { boostMarkBase } from "../tickets/pricing";
 import type { BookLevel } from "@agari/core/market";
 import { receiptViews, type MarketFacts } from "./tickets-receipts";
 import { createdEvents, SEAT_TICKET_TEMPLATES, ticketOutcome, toTicketSnapshot, type TicketSeatSnapshot, type WindowFacts } from "./tickets-read";
-import { isTicketReserve, type TicketReserveId } from "../tickets/params";
+import { isEarnReserve, type EarnReserveId } from "../tickets/params";
 import type { TicketProduct, TicketsMine, TicketWriteReply } from "../provider/ticket-wire";
 import { appMarketId, seatCommandId, type SeatIntent } from "./ids";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
@@ -125,8 +125,8 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
         markBase: boostMarkBase({ side: sideOf(p.side), lots: p.lots, cashUnit: p.cashUnit }, ladders.get(p.termsCid), fair.get(p.termsCid)),
       };
     });
-    const byReserve = new Map<TicketReserveId, bigint>();
-    for (const { data: l } of snap.lpShares) if (isTicketReserve(l.reserveId)) byReserve.set(l.reserveId, (byReserve.get(l.reserveId) ?? 0n) + l.shares);
+    const byReserve = new Map<EarnReserveId, bigint>();
+    for (const { data: l } of snap.lpShares) if (isEarnReserve(l.reserveId)) byReserve.set(l.reserveId, (byReserve.get(l.reserveId) ?? 0n) + l.shares);
     const navs = byReserve.size ? await statements() : new Map<string, { assets: bigint; shares: bigint }>();
     const shares = [...byReserve].map(([reserveId, n]) => {
       const nav = navs.get(reserveId);
@@ -315,7 +315,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
   }
 
   /** Before a withdrawal: the seat's shares of one reserve merged into one contract (its own `LpShare_Merge`). */
-  async function mergeShares(actor: { party: Party; leaseId: string }, reserve: TicketReserveId): Promise<void> {
+  async function mergeShares(actor: { party: Party; leaseId: string }, reserve: EarnReserveId): Promise<void> {
     const snap = await read(actor.party);
     const mine = snap.lpShares.filter((s) => s.data.reserveId === reserve);
     if (mine.length < 2) return;

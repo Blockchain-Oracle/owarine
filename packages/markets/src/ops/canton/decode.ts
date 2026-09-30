@@ -46,6 +46,7 @@ const sec = (r: Raw, k: string) => timeSec(r[k], k);
 export const isoOfSec = (s: number): string => new Date(s * 1000).toISOString().replace(".000Z", "Z");
 
 const optional = <T>(v: unknown, read: (x: unknown) => T): T | null => (v === null || v === undefined ? null : read(v));
+const optText = (v: unknown): string | null => optional(v, (x) => (typeof x === "string" ? x : null));
 const parties = (v: unknown, what: string): Party[] => {
   if (!Array.isArray(v) || !v.every((p) => typeof p === "string")) throw new DecodeError(`${what} is not a party list`);
   return v as Party[];
@@ -184,6 +185,8 @@ export interface QuoteC {
   validUntilSec: number;
   lockAtSec: number;
   refundAfterSec: number;
+  /** abu-pm-main 0.5.0: the book (`reserve:<id>`, the maker vault) that locked the venue stake; null = the venue desk. */
+  book?: string | null;
 }
 
 export interface BuyQuoteC {
@@ -198,6 +201,8 @@ export interface BuyQuoteC {
   priceTicks: number;
   locked: bigint;
   validUntilSec: number;
+  /** 0.5.0: the book buying the slice back; null = the venue desk. */
+  book?: string | null;
 }
 
 export interface LegC {
@@ -213,6 +218,8 @@ export interface LegC {
   feePaid: bigint;
   refundAfterSec: number;
   beneficiaryRef: string | null;
+  /** 0.5.0: what a book paid for this venue leg when it is not the backing (a buy-back); null = the backing. */
+  bookCost?: bigint | null;
 }
 
 export interface NettedResidualC {
@@ -222,6 +229,8 @@ export interface NettedResidualC {
   pairB: string;
   heldIfVoid: bigint;
   owedIfResolved: bigint;
+  /** 0.5.0: the book whose legs were merged; null = the venue desk. */
+  book?: string | null;
 }
 
 export interface VenueAccountC {
@@ -332,7 +341,7 @@ export function decodeQuote(v: unknown): QuoteC {
   return {
     venue: text(r, "venue"), user: text(r, "user"), termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), pairId: text(r, "pairId"),
     side: side(r.side), priceTicks: small(r, "priceTicks"), lots: big(r, "lots"), cashUnit: big(r, "cashUnit"), fee: big(r, "fee"),
-    validUntilSec: sec(r, "validUntil"), lockAtSec: sec(r, "lockAt"), refundAfterSec: sec(r, "refundAfter"),
+    validUntilSec: sec(r, "validUntil"), lockAtSec: sec(r, "lockAt"), refundAfterSec: sec(r, "refundAfter"), book: optText(r.book),
   };
 }
 
@@ -341,7 +350,7 @@ export function decodeBuyQuote(v: unknown): BuyQuoteC {
   return {
     venue: text(r, "venue"), user: text(r, "user"), legCid: text(r, "legCid"), termsCid: text(r, "termsCid"), pairId: text(r, "pairId"),
     outcome: side(r.outcome), lots: big(r, "lots"), cashUnit: big(r, "cashUnit"), priceTicks: small(r, "priceTicks"), locked: big(r, "locked"),
-    validUntilSec: sec(r, "validUntil"),
+    validUntilSec: sec(r, "validUntil"), book: optText(r.book),
   };
 }
 
@@ -350,13 +359,14 @@ export function decodeLeg(v: unknown): LegC {
   return {
     venue: text(r, "venue"), owner: text(r, "owner"), termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), pairId: text(r, "pairId"),
     outcome: side(r.outcome), lots: big(r, "lots"), cashUnit: big(r, "cashUnit"), backingShare: big(r, "backingShare"), feePaid: big(r, "feePaid"),
-    refundAfterSec: sec(r, "refundAfter"), beneficiaryRef: optional(r.beneficiaryRef, (x) => (typeof x === "string" ? x : null)),
+    refundAfterSec: sec(r, "refundAfter"), beneficiaryRef: optText(r.beneficiaryRef),
+    bookCost: optional(r.bookCost, (x) => fromDamlInt(x, "bookCost")),
   };
 }
 
 export function decodeNettedResidual(v: unknown): NettedResidualC {
   const r = obj(v, "NettedResidual");
-  return { termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), pairA: text(r, "pairA"), pairB: text(r, "pairB"), heldIfVoid: big(r, "heldIfVoid"), owedIfResolved: big(r, "owedIfResolved") };
+  return { termsCid: text(r, "termsCid"), marketId: text(r, "marketId"), pairA: text(r, "pairA"), pairB: text(r, "pairB"), heldIfVoid: big(r, "heldIfVoid"), owedIfResolved: big(r, "owedIfResolved"), book: optText(r.book) };
 }
 
 export function decodeVenueAccount(v: unknown): VenueAccountC {
@@ -379,4 +389,4 @@ export function activeOf<T>(e: CreatedEvent, decode: (v: unknown) => T): Active<
 }
 
 /** The field readers, for `decode-event.ts` (0.4.0 `PM.Event`), which lives apart to keep this file short. */
-export const decodeParts = { obj, text, small, sec, optional, parties, voidReason };
+export const decodeParts = { obj, text, big, small, sec, optional, parties, voidReason, side };
