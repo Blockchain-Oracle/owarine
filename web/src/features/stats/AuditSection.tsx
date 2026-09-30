@@ -14,17 +14,19 @@ function RecountBlock({ recount }: { recount: Recount | null }) {
   const reporter = recount.reserve?.reporter ?? null;
   const same = reporter !== null && recount.reserve !== null && reporter.headroomBase === recount.reserve.atOffset.headroomBase && reporter.maxOwedBase === recount.reserve.atOffset.maxOwedBase;
   return (
-    <div className="stats-note" role="status">
+    <div className="stats-note stats-recount" data-ok={recount.ok ? "true" : "false"} role="status">
       <strong>{A.recountHead(recount.ok, recount.offset === null ? "—" : recount.offset.toLocaleString("en-US"), formatUtc(recount.atMs, { withDate: true }))}</strong>
       <ul>
         {Object.keys(recount.projection.ledger).map((t) => (
           <li key={t}>{A.recountTemplate(t, recount.projection.ledger[t] ?? 0, recount.projection.projection[t] ?? 0)}</li>
         ))}
         {recount.projection.mismatches.map((m) => (
-          <li key={m}>✗ {m}</li>
+          <li key={m} className="stats-mismatch">
+            ✗ {m}
+          </li>
         ))}
-        {recount.reserve && <li>{A.recountReserve(recount.reserve.matchesProjection)}</li>}
-        {reporter && <li>{A.recountReporter(same, formatUtc(reporter.asOfMs, { withDate: true }))}</li>}
+        {recount.reserve && <li className={recount.reserve.matchesProjection ? undefined : "stats-mismatch"}>{A.recountReserve(recount.reserve.matchesProjection)}</li>}
+        {reporter && <li className={same ? undefined : "stats-mismatch"}>{A.recountReporter(same, formatUtc(reporter.asOfMs, { withDate: true }))}</li>}
         {recount.reserve?.reporterWhy && <li>{recount.reserve.reporterWhy}</li>}
       </ul>
     </div>

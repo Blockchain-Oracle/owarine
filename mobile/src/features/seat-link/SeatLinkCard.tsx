@@ -3,7 +3,7 @@ import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy, Link2, RefreshCw, ShieldQuestion } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";
 import { SEAT } from "@/features/canton-ux/seat/copy";
 import { Button, haptic } from "~/components/kit";
@@ -15,6 +15,8 @@ import { SeatQr } from "./SeatQr";
 const L = SEAT.link;
 const COPIED_MS = 1_500;
 const QR_SIZE = 128;
+/** web seat.css: the card is the narrow layout at 400 and under. */
+const NARROW_PT = 400;
 
 /**
  * `join`: this phone holds no seat of its own to show, so the card is only the code entry (web's same states).
@@ -47,6 +49,10 @@ interface Props {
 function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seatNumber: number; onDecide: (allow: boolean) => Promise<void> }) {
   const { color } = useTheme();
   const [busy, setBusy] = useState(false);
+  // `accessibilityLiveRegion` is Android-only: VoiceOver hears this prompt only if it is announced.
+  useEffect(() => {
+    AccessibilityInfo.announceForAccessibility(`${L.confirmTitle} ${L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}`);
+  }, [waitingKey, seatNumber]);
   const answer = (allow: boolean) => {
     haptic.select();
     setBusy(true);
@@ -76,8 +82,10 @@ export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitin
   const now = useNowMs();
   const leftSec = expiresAtMs !== null && now > 0 ? Math.max(0, Math.ceil((expiresAtMs - now) / 1000)) : null;
   const expired = state === "expired" || (state === "showing" && leftSec === 0);
+  // web seat.css `@media (max-width: 400px)`: the card pads 18 and the QR stacks over the code, which needs ~176pt beside a 136pt QR.
+  const narrow = useWindowDimensions().width <= NARROW_PT;
   return (
-    <View style={[styles.card, { borderColor: color.hairline, backgroundColor: color.surface1 }]} accessibilityLabel={L.title}>
+    <View style={[styles.card, narrow && styles.cardNarrow, { borderColor: color.hairline, backgroundColor: color.surface1 }]} accessibilityLabel={L.title}>
       <View style={styles.head}>
         <View style={[styles.mark, { borderColor: color.accentDim, backgroundColor: color.accentWash }]}>
           <Link2 size={24} color={color.accent} />
@@ -105,7 +113,7 @@ export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitin
           <Text style={[styles.sub, { color: color.inkSecondary }]}>{L.linkedBody(PHONE_SEAT.link.joinedDevice, seatNumber)}</Text>
         </View>
       ) : (
-        <View style={styles.show}>
+        <View style={[styles.show, narrow && styles.showNarrow]}>
           <View style={styles.qrFrame}>
             <View style={expired ? styles.veiled : undefined}>{code ? <SeatQr text={url} label={L.qrAlt} size={QR_SIZE} /> : <View style={{ width: QR_SIZE, height: QR_SIZE }} />}</View>
             {expired ? (
@@ -117,7 +125,7 @@ export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitin
               <View key={at} style={[styles.corner, CORNER[at], { borderColor: color.borderStrong }]} />
             ))}
           </View>
-          <View style={styles.side}>
+          <View style={[styles.side, narrow && styles.sideNarrow]}>
             <Text style={[styles.manual, { color: color.inkSecondary }]}>{L.manual}</Text>
             <CopyCode code={code} disabled={expired || !code} />
             {expired ? (
@@ -161,10 +169,10 @@ function CopyCode({ code, disabled }: { code: string; disabled: boolean }) {
         disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={copied ? L.copied : L.copy}
-        hitSlop={10}
+        hitSlop={14}
         onPress={() => {
           haptic.select();
-          void Clipboard.setStringAsync(code).then(() => setCopied(true));
+          void Clipboard.setStringAsync(code).then(() => setCopied(true), () => undefined);
         }}
       >
         <Icon size={16} color={disabled ? color.inkDisabled : color.inkSecondary} />
@@ -190,7 +198,12 @@ function Join({ verify, initialCode }: { verify: Props["verify"]; initialCode: s
     if (answer === true) haptic.success();
     else haptic.error();
   };
-  const message = status === "error" ? (why ?? L.joinError) : status === "success" ? L.joinSuccess : null;
+  // The kit Button keeps its label on one line, so the waiting sentence (L.joining) is the note under the boxes and the button spins.
+  const message = busy ? L.joining : status === "error" ? (why ?? L.joinError) : status === "success" ? L.joinSuccess : null;
+  // `accessibilityLiveRegion` is Android-only: say the answer aloud when it arrives.
+  useEffect(() => {
+    if (message && (busy || status !== "idle")) AccessibilityInfo.announceForAccessibility(message);
+  }, [message, busy, status]);
   return (
     <View style={[styles.join, { borderTopColor: color.hairline }]}>
       <Text style={[styles.joinTitle, { color: color.ink }]}>{L.joinTitle}</Text>
@@ -209,7 +222,7 @@ function Join({ verify, initialCode }: { verify: Props["verify"]; initialCode: s
         message={message}
         editable={status !== "success"}
       />
-      <Button label={busy ? L.joining : L.join} loading={busy} disabled={!complete || status === "success"} onPress={() => void submit(value)} />
+      <Button label={L.join} loading={busy} disabled={!complete || status === "success"} onPress={() => void submit(value)} />
     </View>
   );
 }
@@ -228,13 +241,16 @@ const styles = StyleSheet.create({
   mark: { width: 52, height: 52, marginBottom: 8, borderWidth: 1, borderRadius: RADIUS.lg, alignItems: "center", justifyContent: "center" },
   title: { fontFamily: FONT.heading, fontSize: 18, lineHeight: 22, textAlign: "center" },
   sub: { fontFamily: FONT.body, fontSize: 13, lineHeight: 19.5, textAlign: "center" },
+  cardNarrow: { padding: 18 },
   show: { flexDirection: "row", alignItems: "flex-start", gap: 16 },
+  showNarrow: { flexDirection: "column", alignItems: "center" },
   qrFrame: { padding: 4 },
   veiled: { opacity: 0.25 },
   veil: { position: "absolute", top: 4, left: 4, right: 4, bottom: 4, alignItems: "center", justifyContent: "center", padding: 8 },
   veilText: { fontFamily: FONT.dataStrong, fontSize: 11, lineHeight: 14, textAlign: "center" },
   corner: { position: "absolute", width: 14, height: 14 },
   side: { flex: 1, gap: 10 },
+  sideNarrow: { flex: 0, alignSelf: "stretch" },
   manual: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18 },
   code: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderRadius: RADIUS.md },
   codeValue: { fontFamily: FONT.dataStrong, fontSize: 20, lineHeight: 24, letterSpacing: 2 },

@@ -2,7 +2,9 @@
 
 import { diagnosisCopy } from "@agari/core/copy";
 import { createSeatLink, decideSeatLink, readSeatLink, type SeatLinkCode } from "@agari/markets";
+import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { leasedOf, seatNumberOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 import { SEAT } from "./copy";
@@ -92,11 +94,20 @@ export function SeatLinkPanel({ initialCode }: { initialCode: string | null }) {
         onFresh={() => void fresh()}
         verify={verify}
         joinDefault={joinDefault}
+        headingLevel={1}
       />
       {problem ? (
-        <p className="cx-link-foot" role="alert">
-          {problem}
-        </p>
+        <div className="cx-link-problem">
+          <p className="cx-link-foot" role="alert">
+            {problem}
+          </p>
+          {/* The seat's holder whose first code did not issue has nothing on screen to press: offer the retry. */}
+          {holder && issued === null && (
+            <Button type="button" variant="secondary" size="sm" onClick={() => void fresh()}>
+              <RefreshCw aria-hidden /> {SEAT.link.fresh}
+            </Button>
+          )}
+        </div>
       ) : null}
     </>
   );

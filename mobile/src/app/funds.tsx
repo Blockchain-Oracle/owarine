@@ -3,12 +3,13 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X } from "lucide-react-native";
+import { diagnosisCopy } from "@agari/core/copy";
 import { FUNDING } from "@/features/funding/copy";
 import { useSeatCredit } from "@/features/funding/useSeatCredit";
 import { useWalletSession } from "@/lib/wallet-session";
 import { CcRailCard } from "~/components/funding/CcRailCard";
 import { CreditWelcome } from "~/components/funding/CreditWelcome";
-import { FootLine, FundingFacts } from "~/components/funding/FundingFacts";
+import { FootLine, FundingFacts, fundStyles } from "~/components/funding/FundingFacts";
 import { BottomDrawer, type DrawerClose } from "~/components/drawer/BottomDrawer";
 import { TUsdcMark } from "~/components/marks/TUsdcMark";
 import { WebButton } from "~/components/portfolio/web";
@@ -104,6 +105,12 @@ export default function FundsModal() {
               <View style={styles.center} accessibilityLiveRegion="polite">
                 <FootLine text={credit.status === "funded" ? FUNDING.seat.funded : credit.status === "unleased" ? FUNDING.seat.unleased : FUNDING.seat.unfunded} />
               </View>
+              {/* A refused lease or grant says so (web's `fund-msg--err`); the reference drew its faucet failure here in the same place and ink. */}
+              {credit.refusal ? (
+                <Text style={[fundStyles.msg, { color: color.loss }]} accessibilityRole="alert">
+                  {diagnosisCopy(credit.refusal.kind).headline}
+                </Text>
+              ) : null}
             </View>
             <CcRailCard />
           </>

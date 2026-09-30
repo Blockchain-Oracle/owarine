@@ -74,11 +74,11 @@ export default function AccountSheet() {
                 label={copied ? T.copied : T.copy}
                 icon={copied ? <CopiedIcon color={color.ink} /> : <CopyIcon color={color.ink} />}
                 onPress={() => {
-                  void Clipboard.setStringAsync(address).then(() => setCopied(true));
+                  void Clipboard.setStringAsync(address).then(() => setCopied(true), () => undefined);
                 }}
               />
               {seat.lease.view && seat.lease.view.kind !== "leased" && seat.lease.view.kind !== "pool-full" ? (
-                <Action label={seat.lease.leasing ? T.leasing : T.lease} icon={<CopiedIcon color={color.ink} />} onPress={() => void seat.lease.lease()} />
+                <Action label={seat.lease.leasing ? T.leasing : T.lease} icon={<CopiedIcon color={color.ink} />} disabled={seat.lease.leasing} onPress={() => void seat.lease.lease()} />
               ) : null}
               {/* Only the phone that took the seat shows link codes; a joined phone cannot pass the seat on. */}
               {seat.lease.view?.kind === "leased" && seat.lease.view.address === address ? (
@@ -112,7 +112,7 @@ function leaseLine(view: SeatLeaseView | null, spoken: boolean): string {
   }
 }
 
-function Action({ label, icon, onPress }: { label: string; icon: ReactNode; onPress: () => void }) {
+function Action({ label, icon, onPress, disabled = false }: { label: string; icon: ReactNode; onPress: () => void; disabled?: boolean }) {
   const { color } = useTheme();
   return (
     <Pressable
@@ -120,9 +120,11 @@ function Action({ label, icon, onPress }: { label: string; icon: ReactNode; onPr
         haptic.select();
         onPress();
       }}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [styles.action, { backgroundColor: color.surface2 }, pressed && styles.shrink]}
+      accessibilityState={{ disabled, busy: disabled }}
+      style={({ pressed }) => [styles.action, { backgroundColor: color.surface2 }, pressed && styles.shrink, disabled && styles.off]}
     >
       <View style={styles.actionIcon}>{icon}</View>
       <Text style={[styles.actionLabel, { color: color.ink }]}>{label}</Text>
@@ -145,4 +147,5 @@ const styles = StyleSheet.create({
   actionIcon: { height: 16, justifyContent: "center" },
   actionLabel: { fontFamily: FONT.bodyStrong, fontSize: 12, lineHeight: 18 },
   shrink: { transform: [{ scale: 0.9 }] },
+  off: { opacity: 0.5 },
 });

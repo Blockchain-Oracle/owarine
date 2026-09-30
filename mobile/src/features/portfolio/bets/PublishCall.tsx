@@ -25,7 +25,8 @@ export function PublishCall({ marketId, address, source, ticket }: { marketId: s
         {PUBLISH.published}{" "}
         <Text
           style={[styles.link, { color: color.accent }]}
-          accessibilityRole="button"
+          // A nested Text is not its own VoiceOver element unless it is a link (as `ControlCard`'s receipt link is).
+          accessibilityRole="link"
           disabled={retract.isPending}
           onPress={() => {
             haptic.select();

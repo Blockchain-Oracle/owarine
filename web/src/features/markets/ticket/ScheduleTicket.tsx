@@ -10,6 +10,7 @@ import { RegionNote } from "@/features/region/RegionNote";
 import { PREOPEN, TICKET } from "@/lib/copy";
 import { SIDE_WORD } from "../side-styles";
 import { AccountGate } from "./AccountGate";
+import { ON_FILL_UNIT } from "./on-fill";
 import { AmountBlock } from "./AmountBlock";
 import { OutcomeNote } from "./OutcomeNote";
 import { PriceControl } from "./PriceControl";
@@ -106,10 +107,11 @@ export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
           </label>
           <p className="tk-note tk-rest-until-note">{PREOPEN.ticket.untilLockNote}</p>
           <OutcomeNote state={s.bet.state} decimals={decimals} symbol={symbol} onDismiss={s.bet.reset} />
-          <BlockedButton blocker={s.blocker} ctx={s.ctx} tone={side ?? "primary"} size="lg" className="w-full" onClick={s.place}>
+          {/* A blocker here is a sentence ("The venue quotes DOWN at 45¢ — rest UP at 54¢ or less, or wait for the bell"): the button's own one-line label ran out of the CTA on a phone, so it wraps and grows. Unblocked it is the same CTA as before. */}
+          <BlockedButton blocker={s.blocker} ctx={s.ctx} tone={side ?? "primary"} size="lg" className="h-auto min-h-(--ticket-cta-height) w-full whitespace-normal py-2 leading-snug text-balance" onClick={s.place}>
             {side && quote ? (
               <>
-                {PREOPEN.ticket.cta(SIDE_WORD[side])} <Money value={quote.maxCostBase} decimals={decimals} symbol={symbol} />
+                {PREOPEN.ticket.cta(SIDE_WORD[side])} <Money value={quote.maxCostBase} decimals={decimals} symbol={symbol} className={ON_FILL_UNIT} />
               </>
             ) : (
               PREOPEN.ticket.ctaPlain

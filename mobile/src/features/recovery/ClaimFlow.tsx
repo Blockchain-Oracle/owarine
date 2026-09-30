@@ -70,7 +70,7 @@ export function ClaimFlow() {
           ) : !link.status?.configured ? (
             <Hint text={X_LINK_STATUS.unavailable} />
           ) : (
-            <XPill label={CLAIM.signIn} glyph onPress={() => void link.signIn()} hint={X_SIGN_IN_ON_PHONE} />
+            <XPill label={CLAIM.signIn} glyph onPress={() => void link.signIn()} disabled={link.busy !== ""} hint={X_SIGN_IN_ON_PHONE} />
           )}
         </Step>
 

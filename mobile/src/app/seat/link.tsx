@@ -1,6 +1,7 @@
 import { createSeatLink, decideSeatLink, normalizeSeatLinkCode, readSeatLink, seatLinkPath, type SeatLinkCode } from "@agari/markets";
 import { diagnosisCopy } from "@agari/core/copy";
 import { useLocalSearchParams } from "expo-router";
+import { RefreshCw } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { leasedOf, seatNumberOf } from "@/providers/wallet/seat-lease-context";
@@ -111,6 +112,8 @@ export default function SeatLinkScreen() {
           {problem}
         </Text>
       ) : null}
+      {/* The holder whose first code did not issue has nothing on screen to press (web's SeatLinkPanel offers the same retry). */}
+      {problem && holder && issued === null ? <Button label={WEB_SEAT.link.fresh} icon={RefreshCw} variant="secondary" size="sm" block={false} style={styles.retry} onPress={() => void fresh()} /> : null}
     </Screen>
   );
 }
@@ -120,4 +123,5 @@ const styles = StyleSheet.create({
   terms: { gap: 10, padding: 16, borderWidth: 1, borderRadius: 12 },
   termsLine: { fontFamily: FONT.body, fontSize: 13, lineHeight: 19.5, textAlign: "center" },
   problem: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18, textAlign: "center" },
+  retry: { alignSelf: "center" },
 });

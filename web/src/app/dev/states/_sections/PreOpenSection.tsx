@@ -14,6 +14,7 @@ import { plainCells } from "@/features/markets/ticket/readout-cells";
 import { ReadoutStrip } from "@/features/markets/ticket/ReadoutStrip";
 import { deriveScheduleBlocker, type ScheduleBlockerInput } from "@/features/markets/ticket/schedule-guards";
 import { RestingRowView } from "@/features/markets/portfolio/RestingRows";
+import { ON_FILL_UNIT } from "@/features/markets/ticket/on-fill";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { PREOPEN, TICKET } from "@/lib/copy";
 import { fixtureGapWindow } from "../../fixture-window";
@@ -64,7 +65,7 @@ function ScheduleComposer() {
       <PriceControl priceCents={priceCents} onChange={setPriceCents} side="up" symbol={SYMBOL} />
       <ReadoutStrip cells={plainCells(quote, DECIMALS)} live={quote !== null} caption={quote ? PREOPEN.ticket.rests(priceCents) : PREOPEN.ticket.sizing} chance={quote ? TICKET.chance(priceCents) : null} />
       <BlockedButton blocker={null} ctx={{}} tone="up" size="lg" className="w-full" onClick={noop}>
-        {PREOPEN.ticket.cta(SIDE_WORD.up)} {quote && <Money value={quote.maxCostBase} decimals={DECIMALS} symbol={SYMBOL} />}
+        {PREOPEN.ticket.cta(SIDE_WORD.up)} {quote && <Money value={quote.maxCostBase} decimals={DECIMALS} symbol={SYMBOL} className={ON_FILL_UNIT} />}
       </BlockedButton>
       <p className="tk-foot">{PREOPEN.ticket.footnote}</p>
     </div>
@@ -102,8 +103,8 @@ export function PreOpenSection() {
             {LADDER.map(({ label, input, ctx }) => (
               <div key={label} className="flex flex-col gap-1">
                 <span className="type-label-micro text-ink-muted">{label}</span>
-                <BlockedButton blocker={deriveScheduleBlocker(input)} ctx={ctx ?? {}} tone="up" className="w-full justify-start" onClick={noop}>
-                  {PREOPEN.ticket.cta(SIDE_WORD.up)} <Money value={READY.sized!.ok ? READY.sized!.quote.maxCostBase : 0n} decimals={DECIMALS} symbol={SYMBOL} />
+                <BlockedButton blocker={deriveScheduleBlocker(input)} ctx={ctx ?? {}} tone="up" className="h-auto min-h-(--ticket-cta-height) w-full justify-start whitespace-normal py-2 text-left leading-snug text-balance" onClick={noop}>
+                  {PREOPEN.ticket.cta(SIDE_WORD.up)} <Money value={READY.sized!.ok ? READY.sized!.quote.maxCostBase : 0n} decimals={DECIMALS} symbol={SYMBOL} className={ON_FILL_UNIT} />
                 </BlockedButton>
               </div>
             ))}

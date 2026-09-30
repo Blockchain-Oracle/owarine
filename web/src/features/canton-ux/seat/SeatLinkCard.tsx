@@ -43,6 +43,8 @@ interface SeatLinkCardProps {
   verify: (code: string) => Promise<boolean | string>;
   /** Fixtures only: the entry's first state. */
   joinDefault?: { value: string; status: OtpStatus };
+  /** The title's heading level: 2 among a fixture page's sections, 1 when the card is the page (`/seat/link`). */
+  headingLevel?: 1 | 2;
 }
 
 function CopyCode({ code, disabled }: { code: string; disabled: boolean }) {
@@ -107,7 +109,7 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
         onComplete={(v) => void submit(v)}
         className="cx-link-otp"
       />
-      <Button type="submit" className="w-full" disabled={value.length !== LINK_CODE_LENGTH || busy || status === "success"} aria-busy={busy}>
+      <Button type="submit" className="cx-link-submit w-full" disabled={value.length !== LINK_CODE_LENGTH || busy || status === "success"} aria-busy={busy}>
         {busy ? L.joining : L.join}
       </Button>
     </form>
@@ -123,17 +125,23 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
  */
 function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seatNumber: number; onDecide: (allow: boolean) => Promise<void> }) {
   const [busy, setBusy] = useState(false);
+  const titleId = useId();
+  const bodyId = useId();
   const answer = (allow: boolean) => {
     setBusy(true);
     void onDecide(allow).finally(() => setBusy(false));
   };
   return (
-    <div className="cx-link-done" role="alertdialog" aria-live="assertive">
+    <div className="cx-link-done" role="alertdialog" aria-live="assertive" aria-labelledby={titleId} aria-describedby={bodyId}>
       <span className="cx-link-done-mark" aria-hidden>
         <ShieldQuestion />
       </span>
-      <p className="cx-link-done-title">{L.confirmTitle}</p>
-      <p className="cx-link-done-body">{L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}</p>
+      <p id={titleId} className="cx-link-done-title">
+        {L.confirmTitle}
+      </p>
+      <p id={bodyId} className="cx-link-done-body">
+        {L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}
+      </p>
       <div className="flex w-full gap-2">
         <Button type="button" variant="secondary" className="flex-1" disabled={busy} onClick={() => answer(false)}>
           {L.decline}
@@ -146,8 +154,9 @@ function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seat
   );
 }
 
-export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linkedDevice = "Your iPhone", waitingKey = null, onDecide, onFresh, verify, joinDefault }: SeatLinkCardProps) {
+export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linkedDevice = "Your iPhone", waitingKey = null, onDecide, onFresh, verify, joinDefault, headingLevel = 2 }: SeatLinkCardProps) {
   const titleId = useId();
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   const now = useNowMs();
   const leftSec = expiresAtSec !== null && now > 0 ? Math.max(0, Math.ceil(expiresAtSec - now / 1000)) : null;
   // A code that runs out on screen turns into the expired state by itself; it never shows a stale code as live.
@@ -158,16 +167,16 @@ export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linke
         <span className="cx-link-mark" aria-hidden>
           <Link2 />
         </span>
-        <h2 id={titleId} className="cx-link-title">
+        <Heading id={titleId} className="cx-link-title">
           {L.title}
-        </h2>
+        </Heading>
         <p className="cx-link-sub">{L.subtitle}</p>
       </header>
 
       {state === "join" ? null : state === "confirm" && waitingKey && onDecide ? (
         <Decide waitingKey={waitingKey} seatNumber={seatNumber} onDecide={onDecide} />
       ) : state === "declined" ? (
-        <div className="cx-link-done" role="status">
+        <div className="cx-link-done" data-tone="declined" role="status">
           <p className="cx-link-done-title">{L.declinedTitle}</p>
           <p className="cx-link-done-body">{L.declinedBody}</p>
           <Button type="button" variant="secondary" size="sm" onClick={onFresh}>

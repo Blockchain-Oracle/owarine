@@ -132,11 +132,11 @@ function CodeBlock({ filename, code, label }: { filename: string; code: string; 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={copied ? "Copied" : "Copy the query"}
-          hitSlop={10}
+          hitSlop={15}
           disabled={!code}
           onPress={() => {
             haptic.select();
-            void Clipboard.setStringAsync(code).then(() => setCopied(true));
+            void Clipboard.setStringAsync(code).then(() => setCopied(true), () => undefined);
           }}
         >
           <Icon size={14} color={color.inkSecondary} />

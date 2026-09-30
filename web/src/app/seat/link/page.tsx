@@ -9,8 +9,9 @@ export default async function SeatLinkPage({ searchParams }: { searchParams: Pro
   const { code } = await searchParams;
   const initial = typeof code === "string" ? normalizeSeatLinkCode(code) : null;
   return (
-    <main className="cx-link-page">
+    // The shell already draws the page's one <main>; a second one here made two landmarks.
+    <div className="cx-link-page">
       <SeatLinkPanel initialCode={initial} />
-    </main>
+    </div>
   );
 }

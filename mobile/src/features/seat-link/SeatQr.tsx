@@ -25,7 +25,7 @@ export function SeatQr({ text, label, size }: { text: string; label: string; siz
     return { modules: count + QUIET * 2, d: path };
   }, [text]);
   return (
-    <Svg width={size} height={size} viewBox={`0 0 ${modules} ${modules}`} accessibilityRole="image" accessibilityLabel={label}>
+    <Svg width={size} height={size} viewBox={`0 0 ${modules} ${modules}`} accessible accessibilityRole="image" accessibilityLabel={label}>
       <Rect width={modules} height={modules} fill={color.cream} />
       <Path d={d} fill={color.creamInk} />
     </Svg>

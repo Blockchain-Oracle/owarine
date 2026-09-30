@@ -18,8 +18,8 @@
 .cx-write[data-error] .dkit-steps li[data-state="current"] button { color: var(--color-loss); }
 .cx-write-status { font-size: 12.5px; line-height: 1.5; color: var(--color-ink-secondary); }
 .cx-write[data-error] .cx-write-status { color: var(--color-loss); }
-.cx-write[data-phase="unknown"] .cx-write-status { color: var(--color-warning); }
-.cx-write[data-phase="unknown"] .dkit-steps li[data-state="current"] .dkit-step-badge { border-color: var(--color-warning); color: var(--color-warning); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-warning) 16%, transparent); }
+.cx-write[data-phase="unknown"] .cx-write-status { color: var(--color-warning-ink); }
+.cx-write[data-phase="unknown"] .dkit-steps li[data-state="current"] .dkit-step-badge { border-color: var(--color-warning); color: var(--color-warning-ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-warning) 16%, transparent); }
 .cx-write-id { font-family: var(--font-mono); color: var(--color-ink); }
 .cx-write[data-variant="inline"] { padding-top: 4px; }
 .cx-write[data-variant="inline"] .dkit-step-hint { display: none; }

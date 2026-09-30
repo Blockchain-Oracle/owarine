@@ -104,6 +104,8 @@
   --toast-offset: calc(var(--pill-nav-clearance) + var(--spacing) * 2);
   --glow-live: 0 0 24px color-mix(in srgb, var(--color-accent) 16%, transparent);
   --focus-ring: 2px solid var(--color-accent);
+  /* Text in the warning hue. The hue reads on the dark ground; on paper it is about 2:1, so the light theme darkens it toward the ink. */
+  --color-warning-ink: var(--color-warning);
   --content-reading: 640px;
   --content-wide: 1200px;
 
@@ -120,6 +122,7 @@
 }
 
 [data-theme="light"] {
+  --color-warning-ink: color-mix(in srgb, var(--color-warning) 50%, var(--color-cream-ink));
   --nav-panel-background: rgb(251 247 238 / 0.99);
   --nav-panel-border: rgb(20 18 16 / 0.12);
   --nav-divider: rgb(20 18 16 / 0.09);

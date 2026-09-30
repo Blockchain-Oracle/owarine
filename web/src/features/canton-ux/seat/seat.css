@@ -4,12 +4,14 @@
 
 /* ── account menu ── */
 .cx-seat-anchor { display: inline-block; }
-.cx-seat-menu { min-width: 280px; max-width: calc(100vw - 32px); }
+/* Two classes: `.header-account-menu` (shell.css) also sets min-width, and one class each lost to it, so the menu stayed at 210px and wrapped
+   "Party id", "Demo cash" and the party hash. */
+.header-account-menu.cx-seat-menu { min-width: 280px; max-width: calc(100vw - 32px); }
 .cx-seat-head { display: flex; flex-direction: column; gap: 6px; }
 .cx-seat-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
 .cx-seat-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); }
 .cx-seat-party { display: inline-flex; align-items: center; gap: 4px; }
-.cx-seat-copy { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-ink-muted); }
+.cx-seat-copy { display: grid; flex: none; place-items: center; width: 24px; height: 24px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-ink-muted); }
 .cx-seat-copy:hover { background: var(--color-surface-2); color: var(--color-ink); }
 .cx-seat-copy svg { width: 12px; height: 12px; }
 .cx-seat-note { margin-top: 6px; font-size: 11.5px; line-height: 1.45; color: var(--color-ink-muted); }
@@ -24,6 +26,7 @@
 .cx-plate-meta { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 8px; }
 .cx-plate-clock { font-family: var(--font-mono); font-size: 13px; color: var(--color-ink-secondary); }
 .cx-plate-clock [role="timer"] { color: var(--color-ink); font-weight: 600; }
+.cx-plate-meta .dkit-status[data-tone="warn"], .cx-seat-title .dkit-status[data-tone="warn"] { color: var(--color-warning-ink); }
 
 /* ── seat link (21st #29246 layout) ── */
 .cx-link { display: flex; width: 100%; max-width: 440px; flex-direction: column; gap: 20px; padding: 24px; border: 1px solid var(--ticket-border); border-radius: var(--radius-xl); background: var(--ticket-surface); }
@@ -56,9 +59,11 @@
 .cx-link-copy svg { width: 14px; height: 14px; }
 .cx-link-expiry { font-family: var(--font-mono); font-size: 12px; color: var(--color-ink-muted); }
 .cx-link-expiry [role="timer"] { color: var(--color-ink); font-weight: 600; }
-.cx-link-expiry[data-expired] { font-family: inherit; color: var(--color-warning); }
+.cx-link-expiry[data-expired] { font-family: inherit; color: var(--color-warning-ink); }
 
 .cx-link-done { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 16px; border: 1px solid color-mix(in srgb, var(--color-profit) 40%, transparent); border-radius: var(--radius-lg); background: var(--color-profit-wash); text-align: center; }
+/* A refusal is not a success: the "Not allowed" plate wears the warning hue, as the ticket's expired note does. */
+.cx-link-done[data-tone="declined"] { border-color: color-mix(in srgb, var(--color-warning) 40%, transparent); background: color-mix(in srgb, var(--color-warning) 8%, transparent); }
 .cx-link-done-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: var(--color-profit); color: var(--color-cream-ink); }
 .cx-link-done-mark svg { width: 18px; height: 18px; }
 .cx-link-done-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--color-ink); }
@@ -68,10 +73,21 @@
 .cx-link-join-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); }
 .cx-link-join-body { margin-top: -6px; font-size: 12.5px; line-height: 1.5; color: var(--color-ink-secondary); }
 .cx-link-otp { align-self: center; }
+/* While it waits, the button's label is a whole sentence ("Waiting for the other device to allow this one…"); it wraps inside the card
+   instead of running out of it (it grew to 364px inside a 281px card at 390). */
+.cx-link-join .cx-link-submit { height: auto; min-height: var(--button-primary-height); min-width: 0; max-width: 100%; padding-block: 10px; white-space: normal; text-wrap: balance; line-height: 1.3; }
 /* C4c: eight cells in two groups of four still fit the card on a 390 screen. */
 @media (max-width: 400px) {
   .cx-link-otp .otp-cells { gap: 5px; }
   .cx-link-otp .otp-cell { width: 30px; height: 42px; }
+}
+.cx-link-problem { display: flex; max-width: 440px; flex-direction: column; align-items: center; gap: 8px; }
+/* Below 353 the card's inside (screen - 32 page gutter - 2 border - 36 padding) is under the 283 those cells and their gap need, and the
+   last cells ran out of the card (14px at 320). 26px cells (still over the 24px target floor) take 240. */
+@media (max-width: 352px) {
+  .cx-link-otp .otp-cells { gap: 4px; }
+  .cx-link-otp .otp-cell { width: 26px; height: 40px; }
+  .cx-link-otp .otp-cell[data-gap] { margin-left: 4px; }
 }
 .cx-link-foot { font-size: 12px; line-height: 1.5; text-align: center; color: var(--color-ink-muted); }
 
