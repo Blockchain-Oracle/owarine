@@ -20,9 +20,10 @@ import { codeLines, readText, walkFiles } from "./lib/walk.mjs";
 import { finding } from "./lib/report.mjs";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
+import { idlNoDestination, ledgerImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { capabilitiesEvidence } from "./lib/capabilities-evidence.mjs";
 import { mobileIdentity } from "./lib/mobile-identity.mjs";
+import { mobileReviewHygiene } from "./lib/mobile-review.mjs";
 import { mobileShimPaths } from "./lib/mobile-shim-paths.mjs";
 import { noLedgerInClient } from "./lib/no-ledger-in-client.mjs";
 import { noSolana } from "./lib/no-solana.mjs";
@@ -94,7 +95,7 @@ function sessionKeyNonExtractable(rule, ctx) {
 
 export const rules = [
   { id: "no-evm", description: "no EVM library in any workspace source or manifest (shrinking allowlist, empty at the S1 gate)", check: noEvm },
-  { id: "kit-import-boundary", description: "only packages/markets imports the Solana/oracle SDKs; web3.js 1 only under prices/legacy (plan §6)", check: kitImportBoundary },
+  { id: "ledger-import-boundary", description: "only packages/markets imports the Solana/oracle SDKs (@solana-mobile/ included), web3.js 1 only under prices/legacy, and the phone never imports @agari/ledger (plan §6, iOS step 9)", check: ledgerImportBoundary },
   { id: "no-solana", description: "no Solana, Solana-oracle or Anchor library in any workspace source or manifest (shrinking allowlist, empty at the C1 gate)", check: noSolana },
   { id: "idl-no-destination", description: "no program instruction takes a caller-chosen payout destination (AD-5)", optional: true, check: whileAnchor(idlNoDestination, "choice-no-destination") },
   { id: "program-id-drift", description: "declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json", optional: true, check: whileAnchor(programIdDrift, "package-drift") },
@@ -130,6 +131,7 @@ export const rules = [
     pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
   },
   { id: "mobile-identity", description: "the app never carries the reference app's EAS project, update URL or App Store Connect id, and every identifier comes from mobile/app.identity.json (K-126)", check: mobileIdentity },
+  { id: "mobile-review-hygiene", description: "App Review hygiene in the binary: no export-compliance encryption, the first-run gate's demo-credits words, no purchase or real-money path (plan iOS \"Review hygiene\")", check: mobileReviewHygiene },
   { id: "mobile-shim-paths", description: "every path in the app's Metro shim map (mobile/web-shims.map.cjs) exists: a moved web file would silently bundle the browser version (iOS step 9b)", check: mobileShimPaths },
   { id: "mobile-tight-leading", description: "no app text with a lineHeight under its fontSize — iOS clips the glyph tops; use lineHeight = fontSize and a negative margin (S26)", check: mobileTightLeading },
   {

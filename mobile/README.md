@@ -1,10 +1,14 @@
-# Agari mobile
+# The phone app (Expo)
 
-Agari's Expo app shares market, pricing, signing, and game rules with the web app. Product navigation stays in native React Native screens. The More tab opens a browser for external documentation; explorer records, source articles, wallet installation, and composing an X post are also external links. See [TAKEOVER_STATUS.md](./TAKEOVER_STATUS.md) for the route inventory, verification evidence, and remaining gaps. A route file or successful export alone is not release acceptance.
+The iOS and Android app of the Canton prediction market. It is the web's phone layout ported to React Native, and it reuses the web's hooks and copy (`@/` resolves to `web/src`, with a few browser-bound files swapped for `src/web-shims`, listed in `web-shims.map.cjs`). [TAKEOVER_STATUS.md](./TAKEOVER_STATUS.md) is the reference app's route inventory; `docs/evidence/c11a-ios.md` is this app's Canton state.
+
+## Identity
+
+Every identifier the stores, EAS, deep links and on-device storage see (display name, slug, bundle id, Android package, scheme, App Group, widget and Live Activity extension, SecureStore prefix, MMKV id, EAS project) lives in `app.identity.json`; `app.config.js` builds the Expo config from it (K-126). None of them is the reference app's, and the `mobile-identity` invariant keeps it that way.
 
 ## Run locally
 
-From the repository root:
+From the repository root, with Node 25.9.0 (`nvm use 25.9.0`):
 
 ```sh
 pnpm install
@@ -13,22 +17,20 @@ pnpm --filter @agari/mobile ios
 pnpm --filter @agari/mobile android
 ```
 
-This is a development build; Expo Go does not include the app's native modules. The default API is `https://useagari.xyz`. To point a local build at another web server, set `EXPO_PUBLIC_SITE_URL` before starting Expo. The app reads the public devnet addresses in `scripts/deploy/addresses.devnet.json` and needs no secret in the client.
+This is a development build; Expo Go does not include the app's native modules. Point the app at a web deploy with `EXPO_PUBLIC_SITE_URL` (default `http://localhost:3000`). The price and ladder streams come from ops: `EXPO_PUBLIC_OPS_URL`, or by default `https://ops.<domain>` for an https site and port 8787 on the same host for a local one. The app holds no ledger credential and no party id: it reaches the ledger only through the web's routes.
 
-## Wallets and test funds
+## The seat
 
-- On iOS, Phantom and Solflare open through wallet links. On Android, those links and the system Mobile Wallet Adapter chooser are available. Agari checks whether an MWA wallet supports sign-only transactions before calling it connected, because the shared sponsored submitter needs that capability. The practice wallet is a device-local devnet key.
-- The app never signs a call from the market card. The native ticket shows the current cost, return, and maximum loss before the wallet presents a signing request.
-- The faucet and claims use the existing shared web logic. They require devnet SOL for transaction fees where applicable. Test tUSDC has no real-money value.
+- A seat is the phone's account: an ed25519 key made on the phone and kept in the Keychain (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`). It signs the lease request and a short-lived read header; the server maps it to a leased Canton party.
+- The first run ends on the demo-credits page: demo credits have no cash value, and this is a test network. Accepting takes the seat. There is no purchase path of any kind.
+- One seat on web and phone: the device that took the seat shows a one-time code and QR (`/seat/link`, 60 s, single use); the other device joins with it. The QR opens `agaricanton://seat/link?code=…`.
 
 ## Checks
 
 ```sh
 pnpm --filter @agari/mobile typecheck
 pnpm invariants
-pnpm exec vitest run packages/core/src/games/practice.test.ts packages/core/src/games/arcade/arcade.test.ts
+pnpm exec vitest run --project @agari/mobile
 pnpm --filter @agari/mobile exec expo export --platform ios
 pnpm --filter @agari/mobile exec expo export --platform android
 ```
-
-The iOS simulator can verify the UI and device-local practice wallet. Wallet handoffs and signatures need installed wallet apps on a physical phone; Android Mobile Wallet Adapter needs an Android device or emulator with a compatible wallet. Wired and Bluetooth headphone routing also needs physical-device verification.
