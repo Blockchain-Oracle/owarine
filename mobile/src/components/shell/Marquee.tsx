@@ -29,7 +29,7 @@ export function Marquee() {
   const onRun = (e: LayoutChangeEvent) => setRunWidth(Math.round(e.nativeEvent.layout.width));
 
   return (
-    <View style={[styles.strip, { backgroundColor: t.marqueeBg, borderBottomColor: t.marqueeBorder }]} accessibilityRole="text" accessibilityLabel={items.map((i) => `${i.label} ${i.value}`).join(", ")}>
+    <View style={[styles.strip, { backgroundColor: t.marqueeBg, borderBottomColor: t.marqueeBorder }]} accessibilityRole="text" accessibilityLabel={items.map((i) => [`${i.label} ${i.value}`, i.hint].filter(Boolean).join(". ")).join(", ")}>
       <Animated.View style={[styles.track, track]}>
         <View style={styles.run} onLayout={onRun}>
           {items.map((item, i) => <Cell key={`a${i}`} item={item} />)}

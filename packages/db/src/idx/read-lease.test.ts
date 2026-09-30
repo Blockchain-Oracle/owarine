@@ -13,6 +13,7 @@ import { SCHEMA_SQL } from "../schema";
 import { indexReader, type IdxSeatLease } from "./read";
 import { publishedFills, publishedReceipts } from "./read-published";
 import { seatActivityReader } from "./seat-activity";
+import { crowdFlow } from "./social-activity";
 
 const URL_ = process.env.SEAT_PG_URL;
 const NS = "c13a_lease_test";
@@ -133,5 +134,18 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
     expect((await inbox.fills(BOB, BOB_LEASE)).map((r) => [r.signature, r.wallet])).toEqual([["u-bob-2", BOB], ["u-bob-1", BOB]]);
     const verdicts = await inbox.settlements(BOB, BOB_LEASE);
     expect(verdicts.map((r) => [r.market, r.owner, r.held_yes_lots, r.payout_base])).toEqual([["m-bob", BOB, "2", "2000"]]);
+  });
+
+  it("crowd flow counts publications only, and says nothing below 5 distinct publishers", async () => {
+    // Earlier tests left one publisher (Alice's call under the shared party); the flow is withheld.
+    expect(await crowdFlow(sql, T)).toBeNull();
+    for (const n of [2, 3, 4]) {
+      await sql`INSERT INTO idx_publications (publication_cid, owner_party, handle, market, market_key, pair_id, outcome, lots, backing_share,
+        created_update_id, created_offset, created_ts_sec) VALUES (${`crowd-${n}`}, ${`seat-${n}::1220`}, ${`h${n}`}, 'm-bob', 'key-m-bob', ${`pc-${n}`}, 1, 3, 1200, ${`c${n}`}, ${200 + n}, ${T + 200})`;
+    }
+    expect(await crowdFlow(sql, T)).toBeNull();
+    await sql`INSERT INTO idx_publications (publication_cid, owner_party, handle, market, market_key, pair_id, outcome, lots, backing_share,
+      created_update_id, created_offset, created_ts_sec) VALUES ('crowd-5', 'seat-5::1220', 'h5', 'm-bob', 'key-m-bob', 'pc-5', 0, 1, 1200, 'c5', 205, ${T + 200})`;
+    expect(await crowdFlow(sql, T)).toEqual({ fills: 5, up_lots: "3", down_lots: "9" });
   });
 });
