@@ -40,6 +40,13 @@ const GROUPS = {
 
 const load = (path) => (existsSync(path) ? parseEnv(readFileSync(path, "utf8")) : null);
 
+// C2y: with LEDGER_AUTH_MODE=password (Noders DevNet) the web and ops each need the platform credential's names.
+const OIDC = [["LEDGER_OIDC_TOKEN_URL", "C2y"], ["LEDGER_OIDC_CLIENT_ID", "C2y"], ["LEDGER_OIDC_USERNAME", "C2y"], ["LEDGER_OIDC_PASSWORD", "C2y"], ["LEDGER_OIDC_SCOPE", "C2y", true], ["LEDGER_OIDC_AUDIENCE", "C2y", true], ["AGARI_PARTIES_FILE", "C2y"]];
+for (const group of ["web", "ops"]) {
+  const mode = (load(FILES[group])?.LEDGER_AUTH_MODE ?? process.env.LEDGER_AUTH_MODE ?? "").trim();
+  if (mode === "password") GROUPS[group].push(...OIDC);
+}
+
 let missingNow = 0;
 for (const [group, vars] of Object.entries(GROUPS)) {
   const file = load(FILES[group]);

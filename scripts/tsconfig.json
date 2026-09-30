@@ -12,6 +12,9 @@
     "drive/**/*.ts",
     "fixtures/**/*.ts",
     "archive/**/*.ts",
-    "bootstrap-local.ts"
+    "bootstrap-local.ts",
+    "bootstrap/**/*.ts",
+    "bootstrap-devnet.ts",
+    "devnet-preflight.ts"
   ]
 }
