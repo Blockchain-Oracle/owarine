@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { WritePhase } from "@agari/core/ports";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
@@ -50,7 +51,7 @@ function QuoteRing({ remainingSec }: { remainingSec: number }) {
  * web's `HeldPriceRow` (K-010a, direction B): the firm price on its own row with the ring beside it; after a requote,
  * the fresh price and the one that ran out, and no ring.
  */
-export function HeldPriceRow({ priceCents, remainingSec, expired }: { priceCents: number; remainingSec: number | null; expired?: { fromCents: number; toCents: number } }) {
+export function HeldPriceRow({ priceCents, remainingSec, expired, aside }: { priceCents: number; remainingSec: number | null; expired?: { fromCents: number; toCents: number }; aside?: ReactNode }) {
   const tk = useTk();
   const { color } = useTheme();
   const held = !expired && (remainingSec ?? 0) > 0;
@@ -62,6 +63,7 @@ export function HeldPriceRow({ priceCents, remainingSec, expired }: { priceCents
       {held ? <QuoteRing remainingSec={remainingSec ?? 0} /> : null}
       <Text style={[styles.price, { color: color.ink }]}>{T.ring.price(expired?.toCents ?? priceCents)}</Text>
       <Text style={[tkType.caption, styles.heldNote, { color: color.inkMuted }]}>{expired ? T.expired.fresh(expired.fromCents, expired.toCents) : T.ring.heldShort}</Text>
+      {aside ? <View style={styles.aside}>{aside}</View> : null}
     </View>
   );
 }
@@ -87,6 +89,7 @@ const styles = StyleSheet.create({
   ring: { width: RING, height: RING, alignItems: "center", justifyContent: "center" },
   ringSec: { fontFamily: FONT.dataStrong, fontSize: 11, fontVariant: ["tabular-nums"] },
   held: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 8, paddingLeft: 8, paddingRight: 12, borderWidth: 1, borderRadius: 10 },
+  aside: { marginLeft: "auto" },
   price: { fontFamily: FONT.dataStrong, fontSize: 18, fontVariant: ["tabular-nums"] },
   heldNote: { flex: 1, textAlign: "right" },
   write: { gap: 10, padding: 14, borderWidth: 1, borderRadius: 12, minHeight: 52 },

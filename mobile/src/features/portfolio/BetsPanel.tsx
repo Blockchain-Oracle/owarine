@@ -18,6 +18,7 @@ import { useSessionPhrase } from "@/lib/when";
 import { Pager, ReadingBoundary, SectionHeader } from "~/components/portfolio/web";
 import { FONT, useTheme } from "~/theme";
 import { WEB_TYPE } from "~/theme/web/portfolio";
+import { WhoCanSee } from "~/features/privacy/WhoCanSee";
 import { BetRow } from "./bets/BetRow";
 import { BoostRow } from "./bets/BoostRow";
 import { HistoryRows } from "./bets/HistoryRows";
@@ -71,7 +72,7 @@ export function BetsPanel({ symbol, index, history }: { symbol: string | undefin
       ? resting.value.filter((v) => v.status !== "filled" && v.status !== "cancelled").map((v) => ({ key: `resting:${v.id}`, render: (first) => <RestingRow view={v} symbol={symbol} first={first} /> }))
       : [];
   const positionItems: Item[] =
-    reading && isOk(reading) ? reading.value.map((p) => ({ key: `wallet:${p.marketId}`, render: (first) => <BetRow position={p} symbol={symbol} nowMs={nowMs} first={first} /> })) : [];
+    reading && isOk(reading) ? reading.value.map((p) => ({ key: `wallet:${p.marketId}`, render: (first) => <BetRow position={p} symbol={symbol} nowMs={nowMs} first={first} seen={<WhoCanSee kind="position" />} /> })) : [];
   const vaultItems: Item[] =
     vault && isOk(vault) ? vault.value.map((b) => ({ key: `vault:${b.marketId}`, render: (first) => <VaultBetRow bet={b} symbol={symbol} nowMs={nowMs} first={first} /> })) : [];
   const openItems = [...restingItems, ...positionItems, ...vaultItems, ...boostList.filter((p) => p.status === "live").map(boostItem)];
