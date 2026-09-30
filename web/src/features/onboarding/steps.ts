@@ -61,6 +61,6 @@ export const TUTORIAL_UI = {
   done: "Get started",
   lastStep: "Last step",
   connectTitle: "Take a seat to start trading",
-  connectNote: "No wallet needed. Canton DevNet, so these are demo credits — and every call is yours alone to place.",
+  connectNote: "No wallet app needed. Canton DevNet, so these are demo credits — and every call is yours alone to place.",
   progress: (step: number, total: number) => `Step ${step} of ${total}`,
 } as const;

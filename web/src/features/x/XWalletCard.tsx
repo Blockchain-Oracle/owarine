@@ -164,7 +164,7 @@ export function XWalletCardView({ address, link, grant, compact = false, returnT
               <legend>Fund from</legend>
               <div className="xw-source-options">
                 <button type="button" aria-pressed={source === "wallet"} disabled={Boolean(busy)} onClick={() => setSource("wallet")}>
-                  <strong>Connected wallet</strong><span>Add wallet funds</span>
+                  <strong>Your seat</strong><span>Add funds from the seat</span>
                 </button>
                 <button type="button" aria-pressed={source === "trading-balance"} disabled={Boolean(busy)} onClick={() => setSource("trading-balance")}>
                   <strong>Trading Balance</strong><span>{formatBaseUnits(grant.availableBase, grant.decimals)} {symbol} available</span>

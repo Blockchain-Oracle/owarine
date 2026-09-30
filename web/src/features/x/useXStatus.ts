@@ -92,7 +92,7 @@ export function useXStatus(): XLink {
       const body = (await response.json().catch(() => ({}))) as { ok?: boolean; reason?: string; boundWallet?: string };
       if (!response.ok || body.ok === false) {
         if (body.reason === X_ERRORS.alreadyLinkedOther && body.boundWallet) {
-          throw new Error(`That X account is already pointed at ${shortHex(body.boundWallet)}. Connect that wallet instead.`);
+          throw new Error(`That X account is already pointed at ${shortHex(body.boundWallet)}. Take that seat instead.`);
         }
         throw new Error(body.reason || X_ERRORS.linkFailed);
       }

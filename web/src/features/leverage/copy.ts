@@ -9,7 +9,7 @@ export const LEVERAGE = {
   boostHint: "Leverage: the reserve fronts the rest of the position. Your loss is capped at your stake, and a boost can knock out before expiry.",
   multiple: (x: number) => `${x}×`,
   /** The reference: "Private bets are placed at 1x." Ours: a boost is bought by the reserve, so it takes the wallet route. */
-  lockedForRoute: "Boosts are placed from the wallet. Choose Wallet to bet at 2× or 3×.",
+  lockedForRoute: "Boosts are placed from the seat. Choose Seat to bet at 2× or 3×.",
   /** The reference's exact title on the chips under a private bet (`Ticket624Drawer.tsx` L1080). */
   lockedForPrivate: "Private bets are placed at 1x.",
   paused: "The leverage reserve is paused: no new boosts. Live ones still settle, cash out and knock out.",

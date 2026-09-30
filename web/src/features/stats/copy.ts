@@ -19,7 +19,7 @@ export const STATS = {
   },
   curve: {
     empty: "your growth curve starts with the first call. Drive one and watch it climb.",
-    axis: "CUMULATIVE WALLETS THAT MADE A CALL · BY HOUR",
+    axis: "CUMULATIVE SEATS THAT MADE A CALL · BY HOUR",
   },
   stats: {
     wallets: { label: "Seats that published a call", sub: "took a side on a live Window and published it" },

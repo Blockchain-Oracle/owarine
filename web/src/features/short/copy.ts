@@ -135,6 +135,6 @@ export const SHORT = {
     title: "Short",
     body: "A Down position the reserve holds and marks against its own book, with a knock-out line and an exit at any time.",
     why: LEVERAGE_NOT_DEPLOYED,
-    dependency: "the leverage reserve program",
+    dependency: "the Boost contracts of abu-pm-tickets on this network (proven on the local sandbox, not yet on DevNet)",
   },
 } as const;

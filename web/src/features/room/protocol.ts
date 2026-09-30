@@ -32,7 +32,7 @@ export function roomJoinMessage(roomId: string, address: string, issuedAtMs: num
     networkLine(DEFAULT_CLUSTER),
     `Issued: ${new Date(issuedAtMs).toISOString()}`,
     "",
-    "Signing proves you own this wallet. It is not a transaction, it moves no funds, and it costs nothing.",
+    "Signing proves you hold this seat. It is not a ledger write, it moves no funds, and it costs nothing.",
   ].join("\n");
 }
 

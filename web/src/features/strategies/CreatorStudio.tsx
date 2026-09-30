@@ -92,7 +92,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, on
 
   return (
     <section className="agent-builder" aria-label="Create an agent">
-      <div className="agent-builder-heading"><div><p className="strat-micro text-vermilion">Creator studio</p><h2 className="strat-h2 mt-2 text-ink">Give your agent a way to think.</h2></div><p className="strat-choice-body">Build your brief, try a read, then publish. Connect your wallet when you are ready to sign.</p></div>
+      <div className="agent-builder-heading"><div><p className="strat-micro text-vermilion">Creator studio</p><h2 className="strat-h2 mt-2 text-ink">Give your agent a way to think.</h2></div><p className="strat-choice-body">Build your brief, try a read, then publish. Take a seat when you are ready to sign.</p></div>
       <ol className="agent-steps" aria-label="Creation progress">{STEPS.map((label, index) => <li key={label} aria-current={step === index + 1 ? "step" : undefined}><button type="button" onClick={() => { if (index + 1 < step) { setProblem(null); setStep(index + 1); } }} disabled={index + 1 >= step}><span>{String(index + 1).padStart(2, "0")}</span>{label}</button></li>)}</ol>
       <div className="agent-builder-grid">
         <div className="agent-builder-panel">

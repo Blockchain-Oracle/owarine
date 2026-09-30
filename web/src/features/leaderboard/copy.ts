@@ -49,7 +49,7 @@ export const LEADERBOARD = {
       `${n.toLocaleString()} closed calls${ticker ? ` · ${ticker}` : ""} · ${coverage(span, complete)}`,
     counting: "counting recent closes",
   },
-  loading: "Reading on-chain trade data…",
+  loading: "Reading published calls from the ledger…",
   refreshing: "Showing the last computed board while rankings refresh.",
   refreshFailed: "The update could not be read. These are the last computed rankings; we'll retry automatically.",
   updated: (atMs: number) => `Computed ${new Date(atMs).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}`,

@@ -56,7 +56,7 @@ export function strategyActivityOf({ state, grant, health, nowMs }: {
   if (why === "published; waiting for a funded live subscriber") return result("Waiting for the next check", "The runner has not yet reported a funded live subscriber. Its next scan must pick up your permission.");
   const counts = why.match(/; (\d+) filled, (\d+) skipped( \(dry run\))?$/);
   if (counts?.[3]) return result("Dry run", "The runner is simulating this strategy. It is not sending trades.");
-  if (counts && Number(counts[1]) > 0) return result("Filled in last scan", `The runner reports ${counts[1]} confirmed fill${counts[1] === "1" ? "" : "s"} across this strategy’s subscribers. Check Recent copy-trades for wallet receipts.`);
+  if (counts && Number(counts[1]) > 0) return result("Filled in last scan", `The runner reports ${counts[1]} confirmed fill${counts[1] === "1" ? "" : "s"} across this strategy’s subscribers. Check Recent copy-trades for the seat receipts.`);
   if (counts && Number(counts[2]) > 0) return result("Held in last scan", "The last scan found signals but confirmed no new fills. Its aggregate report does not give each subscriber’s skip reason.");
   if (/^read \d+ of \d+ agent Windows/.test(why) && /\bheld\b/.test(why) && !/\bbets (?:up|down)\b/.test(why)) return result("Held in last read", "The last model scan held at least one Window. Other Windows may still be waiting for their decision slot.");
   if (/^scanned \d+ markets|^read \d+ of \d+ agent Windows|^no trading Windows/.test(why)) return result("Watching", "The runner checked eligible Windows. Each new entry still needs fresh data, a signal, and passing risk checks.");

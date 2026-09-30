@@ -35,7 +35,7 @@ export const PARLAY = {
     title: "Parlay",
     body: "A multi-leg ticket whose legs become immutable when opened, with the maximum payout funded before the ticket is accepted and void rules shown before you confirm.",
     why: PARLAY_NOT_DEPLOYED,
-    dependency: "the parlay reserve program (planned after the hackathon deadline)",
+    dependency: "the Parlay contracts of abu-pm-tickets on this network (proven on the local sandbox, not yet on DevNet)",
   },
   connect: {
     title: "Take a seat to build a parlay",

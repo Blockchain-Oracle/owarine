@@ -27,7 +27,7 @@ export const PREOPEN = {
     untilLockNote: "Off, an unfilled call expires 90 s after the bell and the stake comes back. On, it rests through the Window and may be taken whenever the book reaches your price.",
     /** The promise, D-088 r2: every clause is true of the program as deployed. */
     footnote: (bondText: string) =>
-      `Your wallet signs. Your stake is held from now until it fills, you cancel, or it expires; the ${bondText} seat bond comes back after the Window settles. No fill is promised: the venue's maker, or any trader, may take a resting call at your price. Nothing fills before the open boundary, and an unfilled call loses nothing if the Window voids.`,
+      `Your seat signs. Your stake is held from now until it fills, you cancel, or it expires; the ${bondText} seat bond comes back after the Window settles. No fill is promised: the venue's maker, or any trader, may take a resting call at your price. Nothing fills before the open boundary, and an unfilled call loses nothing if the Window voids.`,
     /** The outcome line after a rest lands. */
     resting: (contractsText: string, side: string, cents: number) => `Resting ${contractsText} ${side} at ${cents}¢`,
     restingToast: (contractsText: string, side: string, cents: number) => `Scheduled ${contractsText} ${side} at ${cents}¢ — resting for the open`,

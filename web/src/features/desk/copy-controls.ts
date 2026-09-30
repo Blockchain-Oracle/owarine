@@ -80,7 +80,7 @@ export const GO_LIVE = {
   eyebrow: "LIVE DESK",
   body: "Four steps, each one command your seat signs on Canton. Every step can be resumed if you close the page.",
   steps: {
-    open: { title: "Open the desk on Canton", body: (perAction: string, daily: string, premium: string) => `Creates your account with the program's limits: ${perAction} per action, ${daily} a day, buys at most ${premium} above the mark.`, button: "Open the live desk" },
+    open: { title: "Open the desk on Canton", body: (perAction: string, daily: string, premium: string) => `Creates your desk with the ledger's limits: ${perAction} per action, ${daily} a day, buys at most ${premium} above the mark.`, button: "Open the live desk" },
     allow: { title: "Allow the basket's companies", body: (names: string) => `Tells the desk's contract which companies' hourly Windows it may buy: ${names}.`, button: "Allow the companies" },
     attach: { title: "Link the desk to its record", body: "One signed message, no transaction: your practice record continues as the live desk's.", button: "Sign the link" },
     deposit: { title: "Put money in", body: "Cash from your seat. The desk buys the companies itself.", button: "Open the money sheet" },

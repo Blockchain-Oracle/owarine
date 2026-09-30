@@ -21,7 +21,7 @@ export function XPermissionPanel({ grant, executor, symbol, disabled = false }: 
     : state === "unavailable" ? "X trading status unavailable" : "Fund your X trading balance";
   const detail = pending?.stage === "grant-ready"
     ? `${formatBaseUnits(BigInt(pending.returnedBase ?? "0"), grant.decimals)} ${symbol} returned to your Trading Balance. Continue to use it for X trading.`
-    : pending ? "Your progress is saved. Continue to verify the last transaction before any further wallet action."
+    : pending ? "Your progress is saved. Continue to verify the last transaction before any further seat action."
     : state === "update" ? "Your existing permission still has the old spending limits. Update it to trade from your full X balance."
     : state === "expired" ? "Your permission expired. Your remaining X funds are still here."
     : state === "mismatch" ? "Your permission names a previous executor. Reconnect it to the current X service."
@@ -33,10 +33,10 @@ export function XPermissionPanel({ grant, executor, symbol, disabled = false }: 
     <p className="xw-slab-body">{detail}</p>
     {needsUpdate && <>
       <p className="xw-slab-body">{X_CARD.budgetPolicy}</p>
-      <p className="xw-slab-note">{pending ? "No additional deposit. Existing positions stay yours." : "Two wallet confirmations. Reuse your remaining X funds; no additional deposit."}</p>
+      <p className="xw-slab-note">{pending ? "No additional deposit. Existing positions stay yours." : "Two seat signatures. Reuse your remaining X funds; no additional deposit."}</p>
       <button type="button" className="xw-btn-v" disabled={disabled || !grant.readable || Boolean(grant.busy) || !executor}
         onClick={() => void grant.update(executor)}>
-        {grant.busy === "update" ? "Confirm in your wallet…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
+        {grant.busy === "update" ? "Signing with your seat…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
       </button>
       {pending?.stage === "grant-ready" && <button type="button" className="xw-btn-ink" disabled={Boolean(grant.busy)} onClick={grant.keepReturnedFunds}>Keep funds in Trading Balance</button>}
     </>}

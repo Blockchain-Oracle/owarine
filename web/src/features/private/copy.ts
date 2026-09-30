@@ -29,7 +29,7 @@ export const PRIVATE = {
     /** The reference: "Always 1x. Cash out from this device." — the claim lives in this browser, and the list is on Portfolio. */
     always: "Always 1×. Cash out from this browser, on Portfolio.",
     honesty: PRIVATE_HONESTY,
-    signatures: "Adding funds is a transaction (two signatures the first time); the bet itself is one signature more, and moves nothing by itself.",
+    signatures: "Adding funds is a ledger write (two signatures the first time); the bet itself is one signature more, and moves nothing by itself.",
   },
   cta: {
     buy: (side: string) => `Buy ${side} privately for`,

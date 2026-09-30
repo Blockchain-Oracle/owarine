@@ -122,7 +122,7 @@ export function XInstructionBuilderView({ enabled, balanceBase, decimals, symbol
       <button className="xi-copy" type="button" disabled={!canCopy} onClick={() => void copy()}>
         {copied === instruction ? <Check aria-hidden /> : <Copy aria-hidden />}{copied === instruction ? "Copied — paste into X" : "Copy instruction"}
       </button>
-      {!enabled && <p className="xi-setup">Complete wallet, funding and X setup above to enable copying.</p>}
+      {!enabled && <p className="xi-setup">Complete seat, funding and X setup above to enable copying.</p>}
       {copied.startsWith("Copy failed") && <p className="xi-setup" role="alert">{copied}</p>}
     </div>
     <p className="xi-timing">Entries close {ENTRY_BUFFER_SEC}s before the Window ends. Post early enough for X delivery; availability is checked again on arrival.</p>

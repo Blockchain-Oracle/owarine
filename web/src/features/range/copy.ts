@@ -24,7 +24,7 @@ export const RANGE = {
     title: "Range",
     body: "Predict that settlement lands inside or outside a real band. This is never mapped onto an ordinary up/down position — it needs its own funded outcome.",
     why: RANGE_NOT_DEPLOYED,
-    dependency: "the range reserve program (planned after the hackathon deadline)",
+    dependency: "the Range contracts of abu-pm-tickets on this network (proven on the local sandbox, not yet on DevNet)",
   },
   connect: { title: "Take a seat to call a band", sub: "No wallet app and no network fee. Demo credits are free" },
   band: {
