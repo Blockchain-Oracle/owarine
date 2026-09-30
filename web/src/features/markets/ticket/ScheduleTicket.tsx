@@ -34,8 +34,9 @@ interface ScheduleTicketProps {
 /**
  * The Ticket in schedule mode (D-088): the same panel, block for block — side · amount · the strip · the gates ·
  * the CTA · the footnote — with the live quote replaced by the user's own price and a resting horizon. A listed
- * Window has no book to quote from, so the strip carries what the chain will hold, and the button says "Schedule".
- * Once the call rests, the body is the receipt with its Cancel.
+ * Window has no quote yet, so the strip carries what the call would hold. On Canton no call can rest yet (no
+ * `RestingCall`), so the button carries the `rest-not-live` blocker and says so rather than send; the receipt with its
+ * Cancel is the reference's rested state, unreachable here until then.
  */
 export function ScheduleTicket({ selection, drawer }: ScheduleTicketProps) {
   const when = useWhen();

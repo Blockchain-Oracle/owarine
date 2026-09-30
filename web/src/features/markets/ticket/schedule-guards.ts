@@ -7,6 +7,9 @@ import type { WalletSession } from "@/lib/wallet-session";
 import type { Crossing } from "./crossing";
 import { fundingBlocker, laneBlocker, PHASE_BLOCKERS, type LaneGuardInput } from "./ticket-guards";
 
+/** Whether a call can rest on a listed Window on this network. False on Canton until a bilateral `RestingCall` exists. */
+export const REST_LIVE: boolean = false;
+
 export interface ScheduleBlockerInput {
   session: WalletSession;
   hasSigner: boolean;
@@ -47,6 +50,8 @@ export function deriveScheduleBlocker(i: ScheduleBlockerInput): BlockerKind | nu
   if (lane) return lane;
   // The dock switches back to the taker's ticket once the Window trades; between renders the phase word stands in.
   if (!isRestable(i.phase)) return PHASE_BLOCKERS[i.phase] ?? "quoting";
+  // Canton has no `RestingCall` yet and the submitter refuses a rest (`REST_NOT_LIVE`): the button says so, never sends.
+  if (!REST_LIVE) return "rest-not-live";
   if (i.availableBase === 0n) return "no-funds";
   if (i.side === null) return "no-side";
   if (!isPriceCents(i.priceCents)) return "no-price";

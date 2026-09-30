@@ -9,7 +9,7 @@ import { CalendarClockIcon, ClockIcon, MoonIcon, OctagonAlertIcon, ScaleIcon, Wa
  *
  * Sources, asserted rather than assumed: `docs/plan/specs/session-lanes.md` §1–§3 (the Gap and token lanes, halts,
  * voids), `services/ops/config/price-sources.json` (feeds, thresholds, the 25 bps band), `packages/core/src/copy/
- * session-words.ts` (D-087 words), `web/src/lib/copy-preopen.ts` (D-088, the promise verbatim), `packages/core/src/
+ * session-words.ts` (D-087 words), `web/src/lib/copy-preopen.ts` (D-088, as Canton runs it), `packages/core/src/
  * market/halts.ts` (D-057 / Q-S6-9 labels), `packages/core/src/market/void-reason.ts` (the void line),
  * `web/src/features/session/copy.ts` (the Trading Balance and its caps).
  */
@@ -46,22 +46,24 @@ export const LANES: readonly Lane[] = [
 /** D-087: the session is a word and a countdown, everywhere. `sessionStateWord` is the one source of these. */
 export const SESSION_WORDS: readonly [string, string][] = [
   ["Open", "the exchange is trading; Windows open and close on their marks"],
-  ["Pre-market", "before 09:30 ET — listed Windows take calls, none of them fill"],
+  ["Pre-market", "before 09:30 ET — the first Windows are listed; calls open at the bell"],
   ["After hours", "after 16:00 ET — the session is done and the next open is on the clock"],
   ["Weekend", "Saturday or Sunday; the Gap Window is the lane that is awake"],
   ["Holiday", "the exchange is shut for the day, and the chip says so by name"],
   ["Early close", "a half day — 13:00 ET — and the lane ends with it"],
 ];
 
-/** D-088, the promise in the product's own words (`web/src/lib/copy-preopen.ts`). Nothing here is softened. */
+/**
+ * D-088 as Canton runs it (`web/src/lib/copy-preopen.ts`): the Windows list at the close, but a call cannot rest on
+ * one yet (no `RestingCall`; the submitter refuses a rest). Nothing here is softened, and nothing is promised.
+ */
 export const PRE_OPEN = {
   title: "Calls before the bell",
-  body: "The venue lists tomorrow's first Windows at tonight's close, so a call can be made while the market is shut. It rests at your price: nothing fills before the open boundary, and if the venue's quote reaches your price in the first minute after the bell, it fills at the price you set.",
+  body: "The venue lists tomorrow's first Windows at tonight's close, so you can see them while the market is shut. On Canton a call cannot rest on a listed Window yet: the Window takes calls from the bell.",
   points: [
-    "Your seat signs. The stake is held from the moment it rests until it fills, you cancel, or it expires.",
-    "An unfilled call expires 90 seconds after the bell by default and the stake returns as venue credit. Resting until the Window locks is opt-in.",
-    "No fill is promised. The venue may take a resting call at your price, or let it expire.",
-    "The 0.25 credits seat bond comes back once the Window settles, and an unfilled call loses nothing if the Window voids.",
+    "Nothing is signed and none of your credits are held before the bell. The ticket's Schedule button says so instead of sending.",
+    "At the bell the Window trades like any other: your seat takes the venue's firm quote in one tap.",
+    "Resting a call at your own price, with its 90-second expiry and its opt-in rest until the Window locks, is not on Canton yet.",
   ],
 } as const;
 

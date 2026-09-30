@@ -1,7 +1,10 @@
 /**
- * The pre-open call's words (S18 lane 18f, D-088): a post-only call that rests on a listed Window at the user's own
- * price and fills within the first minute after the bell if the book comes to it. Split from `copy-ticket.ts` for the
- * 400-line rule; re-exported through `@/lib/copy`. Money and prices arrive formatted; nothing here does arithmetic.
+ * The pre-open call's words (S18 lane 18f, D-088). In the reference a post-only call rests on a listed Window at the
+ * user's own price. On Canton that is a bilateral `RestingCall` that does not exist yet: the submitter refuses a rest
+ * (`packages/markets/src/submitter/create.ts`, `REST_NOT_LIVE`) and the schedule button carries the `rest-not-live`
+ * blocker, so every line a user can reach says a listed Window takes calls from the bell, at the venue's firm quote.
+ * The receipt and rows below describe a rested call, which Canton cannot produce yet. Split from `copy-ticket.ts` for
+ * the 400-line rule; re-exported through `@/lib/copy`. Money and prices arrive formatted; nothing here does arithmetic.
  */
 export const PREOPEN = {
   ticket: {
@@ -13,9 +16,9 @@ export const PREOPEN = {
     step: { down: "1¢ less", up: "1¢ more" },
     /** The price is what a contract costs the caller and what it implies: "55¢ a contract · pays 1.00 if right". */
     pays: (symbol: string) => `pays 1 ${symbol} a contract if right`,
-    /** The strip's caption once the call is sized. */
-    rests: (cents: number) => `Rests at ${cents}¢ · fills in the first minute after the bell if the book comes to you`,
-    restsUntilLock: (cents: number) => `Rests at ${cents}¢ · until the Window locks, if the book ever comes to you`,
+    /** The strip's caption once the call is sized: what it would hold, and that it cannot rest on Canton yet. */
+    rests: (cents: number) => `At ${cents}¢ · resting calls aren't on Canton yet; the Window takes calls from the bell`,
+    restsUntilLock: (cents: number) => `At ${cents}¢ until the Window locks · resting calls aren't on Canton yet`,
     sizing: "Enter a stake to size the call",
     reading: "Reading the Series grid…",
     held: "Held",
@@ -24,16 +27,16 @@ export const PREOPEN = {
     cta: (side: string) => `Schedule ${side} for`,
     ctaPlain: "Schedule a call",
     untilLock: "Keep it resting until the Window locks",
-    untilLockNote: "Off, an unfilled call expires 90 s after the bell and the stake comes back. On, it rests through the Window and may be taken whenever the book reaches your price.",
-    /** The promise, D-088 r2: every clause is true of the program as deployed. */
-    footnote: (bondText: string) =>
-      `Your seat signs. Your stake is held from now until it fills, you cancel, or it expires; the ${bondText} seat bond comes back after the Window settles. No fill is promised: the venue's maker, or any trader, may take a resting call at your price. Nothing fills before the open boundary, and an unfilled call loses nothing if the Window voids.`,
+    untilLockNote: "Off, a call would expire 90 s after the bell; on, it would rest until the Window locks. Neither runs on Canton yet: nothing rests before the bell.",
+    /** The promise, D-088 r2, as Canton runs today: nothing is signed or held on a listed Window (a Canton seat posts no bond). */
+    footnote: (_bondText: string) =>
+      "Resting calls aren't on Canton yet, so nothing here is signed and none of your credits are held. At the bell this Window trades like any other: your seat takes the venue's firm quote in one tap.",
     /** The outcome line after a rest lands. */
     resting: (contractsText: string, side: string, cents: number) => `Resting ${contractsText} ${side} at ${cents}¢`,
     restingToast: (contractsText: string, side: string, cents: number) => `Scheduled ${contractsText} ${side} at ${cents}¢ — resting for the open`,
-    /** `rest-would-cross`: the book already offers the other side at that price, so the call would take instead of rest. */
+    /** `rest-would-cross`: the venue's ladder already prices the other side there, so the call would take instead of rest. */
     crossing: (other: string, otherCents: number, side: string, maxCents: number) =>
-      maxCents >= 1 ? `Someone wants ${other} at ${otherCents}¢ — rest ${side} at ${maxCents}¢ or less, or wait for the bell` : `Someone wants ${other} at ${otherCents}¢ — nothing rests under that; wait for the bell`,
+      maxCents >= 1 ? `The venue quotes ${other} at ${otherCents}¢ — rest ${side} at ${maxCents}¢ or less, or wait for the bell` : `The venue quotes ${other} at ${otherCents}¢ — nothing rests under that; wait for the bell`,
   },
   receipt: {
     eyebrow: "Scheduled",
@@ -54,11 +57,11 @@ export const PREOPEN = {
   },
   card: {
     clock: "listed",
-    /** "Schedule a call · opens Wed 09:30 ET". */
-    headline: (opens: string) => `Schedule a call · opens ${opens}`,
-    why: "Rest a post-only call at your price now; it fills within the first minute after the bell if the book comes to you.",
+    /** "Listed · opens Wed 09:30 ET". */
+    headline: (opens: string) => `Listed · opens ${opens}`,
+    why: "Calls open at the bell, at the venue's firm quote. Resting one at your own price before then isn't on Canton yet.",
     cta: "Schedule a call",
-    hint: "post-only · your price",
+    hint: "not on Canton yet",
     aria: (asset: string) => `Schedule a call on this ${asset} Window`,
   },
   /** The closed hero while a listed Window is selected (D-088): its head names the Window under the last price. */
