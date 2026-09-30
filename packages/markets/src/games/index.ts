@@ -10,5 +10,5 @@ export {
   type ArenaMatchView, type ArenaState, type SeasonPoolState,
 } from "./read";
 export { submitArenaPickWrite, submitArenaTx, type ArenaPickOutcome } from "./write";
-export { distributeSeasonPrizes, withdrawSeasonRemainder, type DistributeSeasonInput, type WithdrawSeasonInput } from "./admin-write";
+export { adminSignature, distributeSeasonPrizes, withdrawSeasonRemainder, type DistributeSeasonInput, type WithdrawSeasonInput } from "./admin-write";
 export { arenaSource, forgetArenaReads, registerArenaSource, type ArenaMatchViewWire, type ArenaSource, type SeasonPoolWire } from "./source";

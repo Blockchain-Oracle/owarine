@@ -129,7 +129,7 @@ export async function startCantonVenue(input: {
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);
   return {
     venue, board, pool,
-    internal: { secret: input.internalSecret ?? process.env.OPS_INTERNAL_SECRET ?? null, routes },
+    internal: { secret: input.internalSecret ?? process.env.OPS_INTERNAL_SECRET ?? null, adminSecret: process.env.OPS_ADMIN_SECRET?.trim() || null, routes },
     reserve: () => reserve?.latest() ?? null,
     stop: () => stops.forEach((s) => s()),
   };

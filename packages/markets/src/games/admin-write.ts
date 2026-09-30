@@ -23,28 +23,29 @@ export interface DistributeSeasonInput {
   seasonId: string;
   winners: readonly Address[];
   amountsBase: readonly bigint[];
-  /** `OPS_INTERNAL_SECRET`, which signs the call; read from the environment when omitted. */
+  /** `OPS_ADMIN_SECRET`, which signs the call; read from the environment when omitted (C4d L4: never the web's secret). */
   opsSecret?: string;
 }
 
 const DISTRIBUTE_PATH = "/internal/games/season/distribute";
 const WITHDRAW_PATH = "/internal/games/season/withdraw";
 
-/** The same signature `@agari/markets/server` `opsSignature` computes, with a browser-safe HMAC. */
-function sign(secret: string, ts: number, path: string, body: string): string {
-  return `v1=${bytesToHex(hmac(sha256, utf8ToBytes(secret), utf8ToBytes(`${ts}.POST.${path}.${body}`)))}`;
+/** The same signature `@agari/markets/server` `opsSignature` computes (v2, with its nonce), with a browser-safe HMAC. */
+export function adminSignature(secret: string, ts: number, nonce: string, path: string, body: string): string {
+  return `v2=${bytesToHex(hmac(sha256, utf8ToBytes(secret), utf8ToBytes(`${ts}.${nonce}.POST.${path}.${body}`)))}`;
 }
 
-/** One HMAC-signed admin call to ops; resolves with the parsed reply's JSON, rejects with a diagnosis. */
+/** One HMAC-signed admin call to ops, under the admin's own secret; resolves with the reply's JSON, rejects with a diagnosis. */
 async function adminPost(rpcUrl: string, path: string, body: string, opsSecret: string | undefined): Promise<unknown> {
-  const secret = opsSecret ?? (typeof process !== "undefined" ? process.env.OPS_INTERNAL_SECRET : undefined);
-  if (!secret) throw new ReadingError(diagnosis("signer-required", "the season admin's calls are signed with OPS_INTERNAL_SECRET, which is not set"));
+  const secret = opsSecret ?? (typeof process !== "undefined" ? process.env.OPS_ADMIN_SECRET : undefined);
+  if (!secret) throw new ReadingError(diagnosis("signer-required", "the season admin's calls are signed with OPS_ADMIN_SECRET, which is not set"));
   const ts = Date.now();
+  const nonce = bytesToHex(globalThis.crypto.getRandomValues(new Uint8Array(16)));
   let res: Response;
   try {
     res = await fetch(`${rpcUrl.replace(/\/$/, "")}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-agari-ops-ts": String(ts), "x-agari-ops-sig": sign(secret, ts, path, body) },
+      headers: { "content-type": "application/json", "x-agari-ops-ts": String(ts), "x-agari-ops-nonce": nonce, "x-agari-ops-sig": adminSignature(secret, ts, nonce, path, body) },
       body,
     });
   } catch (error) {
@@ -69,7 +70,7 @@ export interface WithdrawSeasonInput {
   /** Ops' internal base URL (`OPS_INTERNAL_URL`). */
   rpcUrl: string;
   seasonId: string;
-  /** `OPS_INTERNAL_SECRET`, which signs the call; read from the environment when omitted. */
+  /** `OPS_ADMIN_SECRET`, which signs the call; read from the environment when omitted. */
   opsSecret?: string;
 }
 

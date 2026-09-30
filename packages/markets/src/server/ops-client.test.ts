@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { toMarketId } from "@agari/core/types";
 import { appMarketId } from "./ids";
-import { createOpsClient, OPS_QUOTES_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, opsSignature, verifyOpsSignature } from "./ops-client";
+import { createOpsClient, OPS_NONCE_HEADER, OPS_QUOTES_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, opsSignature, verifyOpsSignature } from "./ops-client";
 
 const SECRET = "k".repeat(40);
 const NOW = 1_790_000_000_000;
@@ -9,15 +9,19 @@ const MARKET = appMarketId("PRB-60:0");
 
 describe("ops call signature", () => {
   const body = '{"a":1}';
-  const sig = opsSignature(SECRET, NOW, "POST", OPS_QUOTES_PATH, body);
+  const nonce = "ab".repeat(16);
+  const sig = opsSignature(SECRET, NOW, nonce, "POST", OPS_QUOTES_PATH, body);
 
   it("verifies a fresh, untouched call and nothing else", () => {
-    expect(verifyOpsSignature(SECRET, { ts: String(NOW), sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW + 1_000 })).toBe(true);
-    expect(verifyOpsSignature(SECRET, { ts: String(NOW), sig, method: "POST", path: OPS_QUOTES_PATH, body: '{"a":2}', nowMs: NOW })).toBe(false);
-    expect(verifyOpsSignature(SECRET, { ts: String(NOW), sig, method: "POST", path: "/internal/seats/fund", body, nowMs: NOW })).toBe(false);
-    expect(verifyOpsSignature("x".repeat(40), { ts: String(NOW), sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW })).toBe(false);
-    expect(verifyOpsSignature(SECRET, { ts: String(NOW), sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW + 31_000 })).toBe(false);
-    expect(verifyOpsSignature(SECRET, { ts: null, sig, method: "POST", path: OPS_QUOTES_PATH, body })).toBe(false);
+    expect(verifyOpsSignature(SECRET, { ts: String(NOW), nonce, sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW + 1_000 })).toBe(true);
+    expect(verifyOpsSignature(SECRET, { ts: String(NOW), nonce, sig, method: "POST", path: OPS_QUOTES_PATH, body: '{"a":2}', nowMs: NOW })).toBe(false);
+    expect(verifyOpsSignature(SECRET, { ts: String(NOW), nonce, sig, method: "POST", path: "/internal/seats/fund", body, nowMs: NOW })).toBe(false);
+    expect(verifyOpsSignature("x".repeat(40), { ts: String(NOW), nonce, sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW })).toBe(false);
+    expect(verifyOpsSignature(SECRET, { ts: String(NOW), nonce, sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW + 31_000 })).toBe(false);
+    expect(verifyOpsSignature(SECRET, { ts: null, nonce, sig, method: "POST", path: OPS_QUOTES_PATH, body })).toBe(false);
+    // C4d L4: the nonce is signed, so another one (or none) does not verify.
+    expect(verifyOpsSignature(SECRET, { ts: String(NOW), nonce: "cd".repeat(16), sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW })).toBe(false);
+    expect(verifyOpsSignature(SECRET, { ts: String(NOW), nonce: null, sig, method: "POST", path: OPS_QUOTES_PATH, body, nowMs: NOW })).toBe(false);
   });
 });
 
@@ -35,7 +39,7 @@ describe("ops client", () => {
     expect(reply).toMatchObject({ kind: "quote", quoteCid: "00q", quote: { maxCostBase: 63_414n, contractsRaw: 100_000n } });
     expect(seen!.url).toBe("http://ops:4100/internal/quotes");
     expect(JSON.parse(seen!.body)).toEqual({ marketId: MARKET, side: "up", stakeBase: "63414", displayedMaxCostBase: "64000", party: "seat::1220", leaseId: "L" });
-    expect(verifyOpsSignature(SECRET, { ts: seen!.headers.get(OPS_TS_HEADER), sig: seen!.headers.get(OPS_SIG_HEADER), method: "POST", path: OPS_QUOTES_PATH, body: seen!.body, nowMs: NOW })).toBe(true);
+    expect(verifyOpsSignature(SECRET, { ts: seen!.headers.get(OPS_TS_HEADER), nonce: seen!.headers.get(OPS_NONCE_HEADER), sig: seen!.headers.get(OPS_SIG_HEADER), method: "POST", path: OPS_QUOTES_PATH, body: seen!.body, nowMs: NOW })).toBe(true);
   });
 
   it("an unreachable ops, a 5xx and a garbled reply are refusals, never a quote", async () => {

@@ -519,6 +519,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** one extra tap ("Continue in the app") on the phone's X sign-in sheet.
 - **Approval:** default; overrulable.
 
+### K-213 — Ops' internal calls are single-use; the season admin has its own secret (overflow block; amends K-105)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding L4)
+- **Evidence:** `/internal/*` accepted a captured call again within its 30 s window, a handler's crash answered with its own error text, the public `/health` served a failed pass's raw ledger error, and `season/distribute` was signed with the web's `OPS_INTERNAL_SECRET`. Tests: `services/ops/src/http/internal.test.ts`, `services/ops/src/runtime/actor-health.test.ts`, `packages/markets/src/server/ops-client.test.ts`.
+- **Rule:** the web → ops signature is `v2` over `<ts>.<nonce>.<METHOD>.<path>.<body>` with `x-agari-ops-nonce` (16 random bytes); ops takes each verified nonce once and keeps it for twice the skew (in memory: ops is one container, AD-4). `season/distribute` and `season/withdraw` verify under `OPS_ADMIN_SECRET` (ops only, never the web; unset = closed), which `scripts/season-admin.ts` signs with. A handler's crash answers "ops could not complete this call (ref …)"; a failed pass reads "pass failed (ref …)" on `/health`; both texts go to the log under the reference. The runbook takes `/internal/*` off the public router (`!PathPrefix(/internal)`).
+- **User-visible:** none. The season admin needs `OPS_ADMIN_SECRET` instead of the web's secret.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
