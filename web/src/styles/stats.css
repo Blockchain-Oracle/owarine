@@ -160,3 +160,7 @@
 /* C5: the venue totals and auditor view follow the traction foot as their own block. */
 .stats-audit { margin-top: 48px; }
 .stats-audit ul { margin: 6px 0 0; padding-left: 16px; list-style: disc; }
+/* The recount's verdict is the auditor view's one result. The footnote ink (gray-600, about 2.6:1) buried "Differs at ledger offset …" with
+   the lines that agree; the verdict reads in the secondary ink and a difference, and each line that differs, in the loss ink. */
+.stats-recount strong { color: var(--color-ink-secondary); }
+.stats-recount[data-ok="false"] strong, .stats-recount .stats-mismatch { color: var(--color-loss); }
