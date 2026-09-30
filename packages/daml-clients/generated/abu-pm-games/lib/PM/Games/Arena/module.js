@@ -11,7 +11,7 @@ var jtv = require('@mojotech/json-type-validation');
 /* eslint-disable-next-line no-unused-vars */
 var damlTypes = require('@daml/types');
 
-var pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c = require('@daml.js/abu-pm-main-0.5.0');
+var pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 = require('@daml.js/abu-pm-main-0.5.1');
 var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
 var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
 
@@ -39,7 +39,7 @@ exports.ArenaParams = {
 exports.ArenaTerms = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-games:PM.Games.Arena:ArenaTerms',
-    templateIdWithPackageId: '#158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023:PM.Games.Arena:ArenaTerms',
+    templateIdWithPackageId: '#806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca:PM.Games.Arena:ArenaTerms',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -80,9 +80,9 @@ exports.ArenaTerms = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Arena_OpenDuel.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelOpen), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).decoder;
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelOpen), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).decoder;
       }),
-      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelOpen), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).encode(__typed__); },
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelOpen), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).encode(__typed__); },
     },
     Arena_Update: {
       template: function () { return exports.ArenaTerms; },
@@ -99,7 +99,7 @@ exports.ArenaTerms = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.ArenaTerms, ['158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023', '#abu-pm-games']);
+damlTypes.registerTemplate(exports.ArenaTerms, ['806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca', '#abu-pm-games']);
 
 exports.Arena_OpenDuel = {
   decoder: damlTypes.lazyMemo(function () {
@@ -112,7 +112,7 @@ exports.Arena_OpenDuel = {
       deckSize: damlTypes.Int.decoder,
       clientSeeds: damlTypes.List(damlTypes.Text).decoder,
       joinDeadline: damlTypes.Time.decoder,
-      cash: damlTypes.List(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).decoder,
+      cash: damlTypes.List(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).decoder,
     });
   }),
   encode: function (__typed__) {
@@ -125,7 +125,7 @@ exports.Arena_OpenDuel = {
       deckSize: damlTypes.Int.encode(__typed__.deckSize),
       clientSeeds: damlTypes.List(damlTypes.Text).encode(__typed__.clientSeeds),
       joinDeadline: damlTypes.Time.encode(__typed__.joinDeadline),
-      cash: damlTypes.List(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).encode(__typed__.cash),
+      cash: damlTypes.List(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).encode(__typed__.cash),
     };
   },
 };
@@ -148,7 +148,7 @@ exports.Arena_Update = {
 exports.Card = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      termsCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms).decoder,
+      termsCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms).decoder,
       marketId: damlTypes.Text.decoder,
       lockAt: damlTypes.Time.decoder,
       refundAfter: damlTypes.Time.decoder,
@@ -156,7 +156,7 @@ exports.Card = {
   }),
   encode: function (__typed__) {
     return {
-      termsCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms).encode(__typed__.termsCid),
+      termsCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms).encode(__typed__.termsCid),
       marketId: damlTypes.Text.encode(__typed__.marketId),
       lockAt: damlTypes.Time.encode(__typed__.lockAt),
       refundAfter: damlTypes.Time.encode(__typed__.refundAfter),
@@ -167,7 +167,7 @@ exports.Card = {
 exports.DuelMatch = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-games:PM.Games.Arena:DuelMatch',
-    templateIdWithPackageId: '#158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023:PM.Games.Arena:DuelMatch',
+    templateIdWithPackageId: '#806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca:PM.Games.Arena:DuelMatch',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -311,12 +311,12 @@ exports.DuelMatch = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.DuelMatch, ['158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023', '#abu-pm-games']);
+damlTypes.registerTemplate(exports.DuelMatch, ['806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca', '#abu-pm-games']);
 
 exports.DuelOpen = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-games:PM.Games.Arena:DuelOpen',
-    templateIdWithPackageId: '#158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023:PM.Games.Arena:DuelOpen',
+    templateIdWithPackageId: '#806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca:PM.Games.Arena:DuelOpen',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -371,9 +371,9 @@ exports.DuelOpen = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Open_Cancel.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).decoder);
+        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).decoder);
       }),
-      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).encode(__typed__); },
+      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).encode(__typed__); },
     },
     Open_Join: {
       template: function () { return exports.DuelOpen; },
@@ -383,9 +383,9 @@ exports.DuelOpen = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Open_Join.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelMatch), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).decoder;
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelMatch), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).decoder;
       }),
-      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelMatch), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).encode(__typed__); },
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.DuelMatch), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).encode(__typed__); },
     },
     Open_RefundUnjoined: {
       template: function () { return exports.DuelOpen; },
@@ -395,14 +395,14 @@ exports.DuelOpen = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Open_RefundUnjoined.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).decoder);
+        return jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).decoder);
       }),
-      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).encode(__typed__); },
+      resultEncode: function (__typed__) { return damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).encode(__typed__); },
     },
   },
 );
 
-damlTypes.registerTemplate(exports.DuelOpen, ['158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023', '#abu-pm-games']);
+damlTypes.registerTemplate(exports.DuelOpen, ['806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca', '#abu-pm-games']);
 
 exports.DuelOutcome = {
   decoder: damlTypes.lazyMemo(function () {
@@ -458,7 +458,7 @@ exports.DuelOutcome = {
 exports.DuelResult = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-games:PM.Games.Arena:DuelResult',
-    templateIdWithPackageId: '#158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023:PM.Games.Arena:DuelResult',
+    templateIdWithPackageId: '#806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca:PM.Games.Arena:DuelResult',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -512,7 +512,7 @@ exports.DuelResult = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.DuelResult, ['158901a60ff53c2db94c2482a48b03e58cc1e40b05b4c34bebb486e7e7e52023', '#abu-pm-games']);
+damlTypes.registerTemplate(exports.DuelResult, ['806a6f6eb3891d93ddb2b141597504dbe03649b971e12daffe65ccb69db81aca', '#abu-pm-games']);
 
 exports.DuelStatus = {
   decoder: damlTypes.lazyMemo(function () {
@@ -589,14 +589,14 @@ exports.Duel_RecordPick = {
     return jtv.object({
       player: damlTypes.Party.decoder,
       cardIndex: damlTypes.Int.decoder,
-      legCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg).decoder,
+      legCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg).decoder,
     });
   }),
   encode: function (__typed__) {
     return {
       player: damlTypes.Party.encode(__typed__.player),
       cardIndex: damlTypes.Int.encode(__typed__.cardIndex),
-      legCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg).encode(__typed__.legCid),
+      legCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg).encode(__typed__.legCid),
     };
   },
 };
@@ -632,7 +632,7 @@ exports.Duel_Reveal = {
     return jtv.object({
       actor: damlTypes.Party.decoder,
       seed: damlTypes.Text.decoder,
-      cardCids: damlTypes.List(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms)).decoder,
+      cardCids: damlTypes.List(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms)).decoder,
       newPickDeadline: damlTypes.Time.decoder,
     });
   }),
@@ -640,7 +640,7 @@ exports.Duel_Reveal = {
     return {
       actor: damlTypes.Party.encode(__typed__.actor),
       seed: damlTypes.Text.encode(__typed__.seed),
-      cardCids: damlTypes.List(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms)).encode(__typed__.cardCids),
+      cardCids: damlTypes.List(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms)).encode(__typed__.cardCids),
       newPickDeadline: damlTypes.Time.encode(__typed__.newPickDeadline),
     };
   },
@@ -674,13 +674,13 @@ exports.Open_Cancel = {
 exports.Open_Join = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      cash: damlTypes.List(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).decoder,
+      cash: damlTypes.List(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).decoder,
       revealDeadline: damlTypes.Time.decoder,
     });
   }),
   encode: function (__typed__) {
     return {
-      cash: damlTypes.List(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash)).encode(__typed__.cash),
+      cash: damlTypes.List(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash)).encode(__typed__.cash),
       revealDeadline: damlTypes.Time.encode(__typed__.revealDeadline),
     };
   },
@@ -704,8 +704,8 @@ exports.Pick = {
     return jtv.object({
       seat: damlTypes.Int.decoder,
       cardIndex: damlTypes.Int.decoder,
-      legCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg).decoder,
-      leg: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg.decoder,
+      legCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg).decoder,
+      leg: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg.decoder,
       cost: damlTypes.Int.decoder,
       payout: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Int).decoder),
     });
@@ -714,8 +714,8 @@ exports.Pick = {
     return {
       seat: damlTypes.Int.encode(__typed__.seat),
       cardIndex: damlTypes.Int.encode(__typed__.cardIndex),
-      legCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg).encode(__typed__.legCid),
-      leg: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg.encode(__typed__.leg),
+      legCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg).encode(__typed__.legCid),
+      leg: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg.encode(__typed__.leg),
       cost: damlTypes.Int.encode(__typed__.cost),
       payout: damlTypes.Optional(damlTypes.Int).encode(__typed__.payout),
     };
@@ -742,14 +742,14 @@ exports.ScoreItem = {
     return jtv.object({
       seat: damlTypes.Int.decoder,
       cardIndex: damlTypes.Int.decoder,
-      resolutionCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.Resolution).decoder,
+      resolutionCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution).decoder,
     });
   }),
   encode: function (__typed__) {
     return {
       seat: damlTypes.Int.encode(__typed__.seat),
       cardIndex: damlTypes.Int.encode(__typed__.cardIndex),
-      resolutionCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.Resolution).encode(__typed__.resolutionCid),
+      resolutionCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution).encode(__typed__.resolutionCid),
     };
   },
 };

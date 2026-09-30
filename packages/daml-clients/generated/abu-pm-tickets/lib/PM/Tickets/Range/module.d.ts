@@ -6,7 +6,7 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c from '@daml.js/abu-pm-main-0.5.0';
+import * as pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 from '@daml.js/abu-pm-main-0.5.1';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
@@ -24,7 +24,7 @@ export declare type RangeQuote = {
   venue: damlTypes.Party,
   user: damlTypes.Party,
   reserveId: string,
-  termsCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms>,
   marketId: string,
   kind: RangeKind,
   side: RangeSide,
@@ -43,13 +43,13 @@ export declare interface RangeQuoteInterface {
     damlTypes.Choice<RangeQuote, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RangeQuote, undefined>>;
   RangeQuote_Accept: 
-    damlTypes.Choice<RangeQuote, RangeQuote_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<RangeRound>, damlTypes.Optional<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<RangeQuote, RangeQuote_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<RangeRound>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RangeQuote, undefined>>;
   RangeQuote_Expire: 
-    damlTypes.Choice<RangeQuote, RangeQuote_Expire, damlTypes.Optional<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<RangeQuote, RangeQuote_Expire, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RangeQuote, undefined>>;
   RangeQuote_Withdraw: 
-    damlTypes.Choice<RangeQuote, RangeQuote_Withdraw, damlTypes.Optional<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<RangeQuote, RangeQuote_Withdraw, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RangeQuote, undefined>>;
 }
 export declare const RangeQuote:
@@ -58,7 +58,7 @@ export declare const RangeQuote:
   RangeQuoteInterface
 
 export declare type RangeQuote_Accept = {
-  cash: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
 }
 
 export declare const RangeQuote_Accept:
@@ -81,7 +81,7 @@ export declare type RangeRound = {
   venue: damlTypes.Party,
   owner: damlTypes.Party,
   reserveId: string,
-  termsCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms>,
   marketId: string,
   kind: RangeKind,
   side: RangeSide,
@@ -121,7 +121,7 @@ export declare const RangeSide:
   damlTypes.Serializable<RangeSide> & { readonly keys: RangeSide[] } & { readonly [e in RangeSide]: e }
 
 export declare type Round_Claim = {
-  resolutionCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution>,
 }
 
 export declare const Round_Claim:
@@ -134,7 +134,7 @@ export declare const Round_RefundStale:
   damlTypes.Serializable<Round_RefundStale>
 
 export declare type Round_Settle = {
-  resolutionCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution>,
 }
 
 export declare const Round_Settle:

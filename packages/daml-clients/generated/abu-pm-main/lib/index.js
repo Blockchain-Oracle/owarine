@@ -10,4 +10,4 @@ var PM = require('./PM');
 
 exports.PM = PM;
 
-exports.packageId = '076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c';
+exports.packageId = '27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580';

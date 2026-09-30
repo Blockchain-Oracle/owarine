@@ -11,7 +11,7 @@ var jtv = require('@mojotech/json-type-validation');
 /* eslint-disable-next-line no-unused-vars */
 var damlTypes = require('@daml/types');
 
-var pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c = require('@daml.js/abu-pm-main-0.5.0');
+var pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 = require('@daml.js/abu-pm-main-0.5.1');
 var pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 = require('@daml.js/daml-prim-DA-Types-1.0.0');
 var pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 = require('@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0');
 
@@ -23,13 +23,13 @@ var PM_Tickets_Range = require('../../../PM/Tickets/Range/module');
 exports.Book_IssueBoost = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      navCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement).decoder,
-      reserveShardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).decoder,
-      houseShardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).decoder,
+      navCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement).decoder,
+      reserveShardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).decoder,
+      houseShardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).decoder,
       user: damlTypes.Party.decoder,
-      termsCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms).decoder,
+      termsCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms).decoder,
       pairId: damlTypes.Text.decoder,
-      side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side.decoder,
+      side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side.decoder,
       priceTicks: damlTypes.Int.decoder,
       lots: damlTypes.Int.decoder,
       leverageBps: damlTypes.Int.decoder,
@@ -43,13 +43,13 @@ exports.Book_IssueBoost = {
   }),
   encode: function (__typed__) {
     return {
-      navCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement).encode(__typed__.navCid),
-      reserveShardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).encode(__typed__.reserveShardCid),
-      houseShardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).encode(__typed__.houseShardCid),
+      navCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement).encode(__typed__.navCid),
+      reserveShardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).encode(__typed__.reserveShardCid),
+      houseShardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).encode(__typed__.houseShardCid),
       user: damlTypes.Party.encode(__typed__.user),
-      termsCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms).encode(__typed__.termsCid),
+      termsCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms).encode(__typed__.termsCid),
       pairId: damlTypes.Text.encode(__typed__.pairId),
-      side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side.encode(__typed__.side),
+      side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side.encode(__typed__.side),
       priceTicks: damlTypes.Int.encode(__typed__.priceTicks),
       lots: damlTypes.Int.encode(__typed__.lots),
       leverageBps: damlTypes.Int.encode(__typed__.leverageBps),
@@ -66,10 +66,10 @@ exports.Book_IssueBoost = {
 exports.Book_IssueParlay = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      navCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement).decoder,
-      shardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).decoder,
+      navCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement).decoder,
+      shardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).decoder,
       user: damlTypes.Party.decoder,
-      picks: damlTypes.List(pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms), pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side)).decoder,
+      picks: damlTypes.List(pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms), pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side)).decoder,
       stake: damlTypes.Int.decoder,
       maxPayout: damlTypes.Int.decoder,
       validUntil: damlTypes.Time.decoder,
@@ -77,10 +77,10 @@ exports.Book_IssueParlay = {
   }),
   encode: function (__typed__) {
     return {
-      navCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement).encode(__typed__.navCid),
-      shardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).encode(__typed__.shardCid),
+      navCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement).encode(__typed__.navCid),
+      shardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).encode(__typed__.shardCid),
       user: damlTypes.Party.encode(__typed__.user),
-      picks: damlTypes.List(pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms), pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side)).encode(__typed__.picks),
+      picks: damlTypes.List(pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms), pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side)).encode(__typed__.picks),
       stake: damlTypes.Int.encode(__typed__.stake),
       maxPayout: damlTypes.Int.encode(__typed__.maxPayout),
       validUntil: damlTypes.Time.encode(__typed__.validUntil),
@@ -91,10 +91,10 @@ exports.Book_IssueParlay = {
 exports.Book_IssueRange = {
   decoder: damlTypes.lazyMemo(function () {
     return jtv.object({
-      navCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement).decoder,
-      shardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).decoder,
+      navCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement).decoder,
+      shardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).decoder,
       user: damlTypes.Party.decoder,
-      termsCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms).decoder,
+      termsCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms).decoder,
       kind: PM_Tickets_Range.RangeKind.decoder,
       side: PM_Tickets_Range.RangeSide.decoder,
       lowE8: damlTypes.Int.decoder,
@@ -106,10 +106,10 @@ exports.Book_IssueRange = {
   }),
   encode: function (__typed__) {
     return {
-      navCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement).encode(__typed__.navCid),
-      shardCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash).encode(__typed__.shardCid),
+      navCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement).encode(__typed__.navCid),
+      shardCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash).encode(__typed__.shardCid),
       user: damlTypes.Party.encode(__typed__.user),
-      termsCid: damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms).encode(__typed__.termsCid),
+      termsCid: damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms).encode(__typed__.termsCid),
       kind: PM_Tickets_Range.RangeKind.encode(__typed__.kind),
       side: PM_Tickets_Range.RangeSide.encode(__typed__.side),
       lowE8: damlTypes.Int.encode(__typed__.lowE8),
@@ -165,7 +165,7 @@ exports.Product = {
 exports.RiskBook = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-tickets:PM.Tickets.Book:RiskBook',
-    templateIdWithPackageId: '#a441ff5ab84b2396820053e787002fc06ccaaf2fb7186b55a2e98ad1328b33c8:PM.Tickets.Book:RiskBook',
+    templateIdWithPackageId: '#b818b4a14026edf4f349772dc08873bb79a32e965db20ab77cc52f5fe4cc78f4:PM.Tickets.Book:RiskBook',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -218,9 +218,9 @@ exports.RiskBook = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Book_IssueParlay.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Parlay.ParlayQuote), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).decoder;
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Parlay.ParlayQuote), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).decoder;
       }),
-      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Parlay.ParlayQuote), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).encode(__typed__); },
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Parlay.ParlayQuote), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).encode(__typed__); },
     },
     Book_IssueRange: {
       template: function () { return exports.RiskBook; },
@@ -230,9 +230,9 @@ exports.RiskBook = damlTypes.assembleTemplate(
       }),
       argumentEncode: function (__typed__) { return exports.Book_IssueRange.encode(__typed__); },
       resultDecoder: damlTypes.lazyMemo(function () {
-        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Range.RangeQuote), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).decoder;
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Range.RangeQuote), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).decoder;
       }),
-      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Range.RangeQuote), damlTypes.Optional(damlTypes.ContractId(pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash))).encode(__typed__); },
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3(damlTypes.ContractId(exports.RiskBook), damlTypes.ContractId(PM_Tickets_Range.RangeQuote), damlTypes.Optional(damlTypes.ContractId(pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash))).encode(__typed__); },
     },
     Book_Prune: {
       template: function () { return exports.RiskBook; },
@@ -261,7 +261,7 @@ exports.RiskBook = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.RiskBook, ['a441ff5ab84b2396820053e787002fc06ccaaf2fb7186b55a2e98ad1328b33c8', '#abu-pm-tickets']);
+damlTypes.registerTemplate(exports.RiskBook, ['b818b4a14026edf4f349772dc08873bb79a32e965db20ab77cc52f5fe4cc78f4', '#abu-pm-tickets']);
 
 exports.RiskParams = {
   decoder: damlTypes.lazyMemo(function () {

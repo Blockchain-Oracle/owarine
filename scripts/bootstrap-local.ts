@@ -36,7 +36,7 @@ const env = parseLedgerEnv(process.env);
 if (env.LEDGER_AUTH_MODE !== "none") throw new Error("bootstrap-local runs against an unauthenticated local sandbox only");
 const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAuth(), userId: env.LEDGER_USER_ID });
 
-const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.5.0.dar"));
+const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.5.1.dar"));
 const AGENTS_DAR = resolve(import.meta.dirname, "..", arg("--agents-dar", "daml/abu-pm-agents/.daml/dist/abu-pm-agents-0.2.1.dar"));
 const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.3.dar"));
 /** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
