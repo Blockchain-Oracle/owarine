@@ -22,7 +22,7 @@ var PM_Reserve = require('../../PM/Reserve/module');
 exports.MakerDesk = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Maker:MakerDesk',
-    templateIdWithPackageId: '#ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c:PM.Maker:MakerDesk',
+    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Maker:MakerDesk',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -62,7 +62,7 @@ exports.MakerDesk = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.MakerDesk, ['ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.MakerDesk, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
 
 exports.MakerNavInputs = {
   decoder: damlTypes.lazyMemo(function () {

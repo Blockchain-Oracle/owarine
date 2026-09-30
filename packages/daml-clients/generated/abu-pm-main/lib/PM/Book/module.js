@@ -18,7 +18,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.BookReceipt = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Book:BookReceipt',
-    templateIdWithPackageId: '#ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c:PM.Book:BookReceipt',
+    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Book:BookReceipt',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -76,7 +76,7 @@ exports.BookReceipt = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.BookReceipt, ['ad2b593b3dcf7ab5d711aad5834395b5887e1c48253e0f6b028f699cd844404c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.BookReceipt, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
 
 exports.BookReceipt_Prune = {
   decoder: damlTypes.lazyMemo(function () {

@@ -108,6 +108,29 @@ template Leg
           proceeds = release + feePaid + o.feePaid
         pure (cash, residual)
 
+    -- 0.5.0 (K-201): a venue-held leg splits in two on the same terms, so a
+    -- book can net opposite legs of different sizes (the reference's
+    -- public_merge nets min(up, down)): split the larger to the smaller's
+    -- lots, then `Leg_Merge`. Backing, fee and a recorded book cost split
+    -- pro rata, the first part rounded down and the second taking the rest,
+    -- so nothing is created or lost and each part stays within its quantity.
+    -- The statement's mark (the lesser of cost and backing) of the two parts
+    -- never sums above the whole's.
+    choice Leg_Split : (ContractId Leg, ContractId Leg)
+      with
+        splitLots : Int
+      controller venue
+      do
+        require "not-venue-leg" "only venue-held legs split" (owner == venue)
+        require "bad-split" "a split leaves two legs of at least one lot" (splitLots > 0 && splitLots < lots)
+        let part x = (x * splitLots) / lots
+        a <- create this with
+          lots = splitLots; backingShare = part backingShare; feePaid = part feePaid; bookCost = fmap part bookCost
+        b <- create this with
+          lots = lots - splitLots; backingShare = backingShare - part backingShare
+          feePaid = feePaid - part feePaid; bookCost = fmap (\c -> c - part c) bookCost
+        pure (a, b)
+
     -- Two-controller close-out at cost (seat drain): the owner gets
     -- backingShare + feePaid from the leg's own escrow, and the venue re-backs
     -- the position from one of its shards, taking it over. The pair stays

@@ -222,7 +222,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 
 ### K-200 — The maker vault is a book inside the venue (`abu-pm-main` 0.5.0) (overflow block)
 - **Date / owner:** 2026-09-30 · C2d lane
-- **Evidence:** K-092's three gaps, built as designed there with two additions. `dpm upgrade-check --both` passes with no warnings for main 0.4.0 → 0.5.0, tickets 0.1.2 → 0.1.3, games 0.1.0 → 0.1.1 and agents 0.2.0 → 0.2.1 (the three dependents only re-point to main 0.5.0). `Test.Maker` has 9 money-gate scripts; `Test.Conservation`'s random sequences now mint half their shards into the book. Evidence: `docs/evidence/c2d-maker-vault.md`.
+- **Evidence:** K-092's three gaps, built as designed there with two additions. `dpm upgrade-check --both` passes with no warnings for main 0.4.0 → 0.5.0, tickets 0.1.2 → 0.1.3, games 0.1.0 → 0.1.1 and agents 0.2.0 → 0.2.1 (the three dependents only re-point to main 0.5.0). `Test.Maker` has 10 money-gate scripts (K-201's split included); `Test.Conservation`'s random sequences now mint half their shards into the book. Evidence: `docs/evidence/c2d-maker-vault.md`.
 - **Rule:**
   - **Books.** A book is a reserve bucket (`reserve:<id>`) that trades pairs. A `Quote` or `BuyQuote` issued from a book's shard carries `book`; the venue's leg of an accept (or a book buy-back) carries the bucket in `beneficiaryRef`, and a buy-back leg records what the book paid (`Leg.bookCost`). Expiry, withdrawal, settle, claim, merge, residual and stale refund all pay a book's money back into its bucket. `Leg_Merge` refuses to net two books (`book-mismatch`). Only a leg the venue owns is ever a book's: a user's own `beneficiaryRef` is the user's.
   - **Receipts.** Every book position that turns back into cash writes a venue-signed `BookReceipt` (`settled`, `merged`, `residual`, `refunded`: what the book paid, what came back). The vault's Window history is read from these, not from ops' memory.
@@ -231,6 +231,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - Fees on a book's quotes stay the venue's (the vault earns the spread, as in the reference).
 - **User-visible:** the maker tab is live: the vault's value, a provider's position, supply and withdraw, and the Windows it is on with merge and settle. Without `MAKER_MODE=vault` the panel says "Maker off · no new quotes" and the vault only restates and pays out.
 - **Limits, stated:** a provider's lifetime supplied/withdrawn counters are not on the ledger (supplied reads as today's worth, as for the ticket reserves); a Window's opened and settled times are not either. If the book ever marks to 0 with shares outstanding, `NavStatement`'s unchanged precondition refuses the publish and the last statement stands.
+- **Approval:** default; overrulable.
+
+### K-201 — A book's legs split so the maker nets min(up, down) (`abu-pm-main` 0.5.0) (overflow block)
+- **Date / owner:** 2026-09-30 · C2d lane
+- **Evidence:** `Leg_Merge` nets only two legs of the same size (since 0.1.0). The first C2d drive held Down 8 / Up 11 and then Up 6 / Down 18 on one Window: the tab showed "6 sets paired · merge", and the merge crank answered "nothing to merge". The reference's `public_merge` nets min(up, down) of the vault's inventory.
+- **Rule:** `Leg_Split` (new in 0.5.0, venue-held legs only, controller venue) cuts a leg into two legs on the same terms. Backing, fee and a recorded book cost split pro rata: the first part is rounded down and the second takes the rest. Nothing is created or lost, each part stays within its quantity, and the statement's mark of the parts never sums above the whole's. The maker's merge crank splits the larger of an unequal Up/Down to the smaller's lots, then merges (`planBookSplit`, command id `msplit:<cid>`). The money gate is `Test.Maker.testMakerSplitMerge`. The choice is added and no field or precondition changes, so `upgrade-check --both` 0.4.0 → 0.5.0 still passes.
+- **User-visible:** "N sets paired · merge" is now what the merge does.
 - **Approval:** default; overrulable.
 
 ### K-093 — Every way a ticket ends leaves a receipt (`abu-pm-tickets` 0.1.2) (C8 block)

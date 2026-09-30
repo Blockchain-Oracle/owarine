@@ -13,7 +13,7 @@
 --   locked         a provider is paid only from the book's liquid cash
 --   void returns   expiry, withdrawal and a void Window give the lock back
 --                  to the book's bucket, not to the venue desk's
---   exactly once   settle, merge, accept and withdraw each pay once
+--   exactly once   settle, merge, split, accept and withdraw each pay once
 module Test.Maker where
 
 import Daml.Script
@@ -491,3 +491,49 @@ testMakerStaleRefund = script do
   (rc.kind, rc.cost, rc.proceeds) === ("refunded", 800, 800)
   (_, a3, _) <- publish v2
   a3 === 5000
+
+-- K-201: two opposite book legs of different sizes net after a split (the
+-- reference's public_merge nets min(up, down)). The split conserves every
+-- unit and does not move the statement; the merge then releases the pair's
+-- cash into the book; settle and the residual finish the Window, and the
+-- book ends at exactly its result. A user's leg never splits, a split
+-- leaves two non-empty legs, and a split leg is gone.
+testMakerSplitMerge = script do
+  v0 <- mkVault
+  let w = v0.w
+  _ <- supplyMaker v0 w.alice 10000
+  (v1, _, _) <- publish v0
+  qa <- bookQuote v1 w.bob SideUp 600 5 0 "s1"       -- the book holds Down 5, backing 2000
+  (bobLeg, bookDown) <- takeQuote v1 w.bob qa
+  qb <- bookQuote v1 w.alice SideDown 300 2 0 "s2"   -- the book holds Up 2, backing 1400
+  (aliceLeg, bookUp) <- takeQuote v1 w.alice qb
+  u0 <- universe w
+  (v1a, a0, _) <- publish v1
+  a0 === 10000
+  -- Unequal sizes do not merge as they are.
+  submitMustFail w.venue do exerciseCmd bookDown Leg_Merge with otherCid = bookUp
+  -- Refusals: a user's leg, an empty part, the whole.
+  submitMustFail w.venue do exerciseCmd bobLeg Leg_Split with splitLots = 2
+  submitMustFail w.venue do exerciseCmd bookDown Leg_Split with splitLots = 0
+  submitMustFail w.venue do exerciseCmd bookDown Leg_Split with splitLots = 5
+  (d2, d3) <- submit w.venue do exerciseCmd bookDown Leg_Split with splitLots = 2
+  Some x2 <- queryContractId w.venue d2
+  Some x3 <- queryContractId w.venue d3
+  (x2.lots, x2.backingShare, x3.lots, x3.backingShare) === (2, 800, 3, 1200)
+  (x2.beneficiaryRef, x3.beneficiaryRef) === (Some mkBook, Some mkBook)
+  universe w >>= (=== u0)
+  submitMustFail w.venue do exerciseCmd bookDown Leg_Split with splitLots = 1   -- exactly once
+  (v2, a2, _) <- publish v1a
+  a2 === 10000                                      -- the split moves nothing
+  (_, Some resid) <- submit w.venue do exerciseCmd d2 Leg_Merge with otherCid = bookUp
+  universe w >>= (=== u0)
+  bookCash w >>= (=== 10000 - 2000 - 1400 + 2000)
+  res <- resolveAt w v2.win v2.op 150               -- closes Up: the book's Down loses
+  settleAll v2 res [bobLeg, aliceLeg, d3]
+  _ <- submit w.venue do exerciseCmd resid Residual_Settle with resolutionCid = res
+  universe w >>= (=== u0)
+  bookCash w >>= (=== 8600)                         -- -2000 on Down 5, +600 on Up 2
+  (_, a3, _) <- publish v2
+  a3 === 8600
+  rs <- receipts w
+  sum [r.proceeds | r <- rs] - sum [r.cost | r <- rs] === 8600 - 10000

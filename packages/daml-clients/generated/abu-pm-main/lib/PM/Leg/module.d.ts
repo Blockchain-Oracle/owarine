@@ -52,6 +52,9 @@ export declare interface LegInterface {
   Leg_Settle: 
     damlTypes.Choice<Leg, Leg_Settle, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.Optional<damlTypes.ContractId<PM_Money.VenueCash>>, damlTypes.Optional<damlTypes.ContractId<PM_Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<Leg, undefined>>;
+  Leg_Split: 
+    damlTypes.Choice<Leg, Leg_Split, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<Leg>, damlTypes.ContractId<Leg>>, undefined> &
+    damlTypes.ChoiceFrom<damlTypes.Template<Leg, undefined>>;
 }
 export declare const Leg:
   damlTypes.Template<Leg, undefined, '#abu-pm-main:PM.Leg:Leg'> &
@@ -98,6 +101,13 @@ export declare type Leg_Settle = {
 
 export declare const Leg_Settle:
   damlTypes.Serializable<Leg_Settle>
+
+export declare type Leg_Split = {
+  splitLots: damlTypes.Int,
+}
+
+export declare const Leg_Split:
+  damlTypes.Serializable<Leg_Split>
 
 export declare type NettedResidual = {
   venue: damlTypes.Party,
