@@ -1,14 +1,14 @@
 ---
 title: "Agents and strategies"
-description: "Published strategies, bounded copy permissions, Sensei and the PreStocks desk do different jobs."
+description: "Published strategies, bounded copy grants, Sensei and the pre-IPO desk do different jobs."
 ---
 
-Agari has two agent paths. <AppLink href="/agents">Agents</AppLink> and <AppLink href="/strategies">Strategies</AppLink> publish or copy Up/Down activity through bounded grants. The [desk](/agents/desk) is a separate PreStocks holding flow: paper practice only; a live desk on Canton is planned.
+Agari has two agent paths. <AppLink href="/agents">Agents</AppLink> and <AppLink href="/strategies">Strategies</AppLink> publish or copy Up/Down calls through a bounded grant your seat funds and may revoke. The [desk](/agents/desk) is a separate pre-IPO holding flow: paper practice first, then a live Daml mandate. Both run on a local Canton sandbox, not yet on a shared Canton network.
 
 | Product | What it can do | Network and money |
 | --- | --- | --- |
-| Sensei | Explains a ticker or position and hands you a call card. It does not place the call. | Reads the app; places nothing |
-| Published strategy / copy | Follows a creator's strategy through the grant the copier signs and may revoke. | Planned on Canton: the `AgentGrant` contract exists in the engine; the strategy runner is not wired yet |
-| Desk | Holds a chosen PreStocks basket inside owner-set limits; the runner decides timing. | Paper practice; the live leg is planned |
+| Sensei | Explains a ticker or position and hands you a call card. It does not place the call. | Reads the app; places nothing. Needs a model key on the server |
+| Published strategy / copy | Follows (or fades) a creator's strategy through an `AgentGrant` your seat funds; the runner places calls only inside its caps. | Demo credits |
+| Desk | Holds a chosen pre-IPO basket inside owner-set limits; the runner decides timing. | Practice is paper; the live mandate has not traded yet |
 
-A listed strategy needs a live runner and a valid grant, and neither runs on Canton yet. Read the app's current state before enabling a copy. The desk's [first-use guide](/agents/desk) and [trust boundary](/architecture/desk) explain its separate permissions. None of these pages is investment advice.
+A listed strategy needs a running runner and a valid grant; read the app's current state before enabling a copy. The runner never sees your cash, and every position it opens is yours. The desk's [first-use guide](/agents/desk) and [trust boundary](/architecture/desk) explain its separate permissions. None of these pages is investment advice.
