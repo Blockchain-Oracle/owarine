@@ -42,6 +42,7 @@ import { repoDars } from "./bootstrap/dar";
 import { authenticatedUser, verifyPackages, verifyParties } from "./bootstrap/devnet-checks";
 import { DEFAULT_SEATS, parseDevnetParties } from "./bootstrap/devnet-parties";
 import { acceptanceRow, errorEvidence, failed, table, type CheckRow } from "./bootstrap/rows";
+import { valuationGate, valuationRefusal } from "./bootstrap/valuation-gate";
 import { bootstrapVenue, POLICY_VERSION, type SentWrite } from "./bootstrap/venue";
 
 const REPO = resolve(import.meta.dirname, "..");
@@ -112,11 +113,14 @@ async function main(): Promise<number> {
   rows.push(...(await verifyParties(client, parsed.file, rightsOf === undefined ? {} : { rightsOf })));
   const dars = repoDars().filter((d) => (flag("--no-tickets") ? d.name !== "abu-pm-tickets" : true) && (flag("--no-games") ? d.name !== "abu-pm-games" : true));
   rows.push(...(await verifyPackages(client, dars)));
+  // C8j.2: `valuation` registers only while the venue's Pyth key reads every valuation index (D-125, no dead lane).
+  const lanes = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
+  const gate = await valuationGate(lanes, { key: process.env.PYTH_API_KEY || undefined });
+  if (gate.requested) rows.push({ check: "valuation lanes entitled", outcome: gate.entitled ? "pass" : "fail", detail: gate.entitled ? gate.lines.join(" · ") : valuationRefusal(gate), evidence: "GET hermes /v2/updates/price/latest per index" });
   console.log(table(rows));
   if (failed(rows) || flag("--check-only")) return finish(rows, [], started);
 
   const writes: SentWrite[] = [];
-  const lanes = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
   try {
     await bootstrapVenue({
       client,
