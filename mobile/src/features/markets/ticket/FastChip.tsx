@@ -1,21 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StatusDot } from "~/features/desk/kit";
 import { SEAT } from "~/wallet/seat-copy";
-import { tkType, useTk } from "./tk";
 
 /**
- * Where web's tap-trading chip sat on the ticket: the same chip grammar (leverage-chip border, 4 pt radius), shown as
- * on and not pressable, because there is nothing to arm. A seat already trades in one tap, with no second key and no
- * caps to set.
+ * Where web's tap-trading chip sat on the ticket, as a label and not a control (web's `FastChip`): a seat already trades
+ * in one tap, with no second key and no caps to set, so there is nothing to arm. The desk kit's quiet state pill, the
+ * reference's static chip, in place of a pressed-looking leverage chip that could not be pressed.
  */
 export function FastChip() {
-  const tk = useTk();
-  return (
-    <View accessible accessibilityLabel={`${SEAT.fast.label}: ${SEAT.fast.why}`} style={[styles.chip, { borderColor: tk.levOnBorder, backgroundColor: tk.levOnBg }]}>
-      <Text style={[tkType.chip, { color: tk.levOnInk }]}>{SEAT.fast.label}</Text>
-    </View>
-  );
+  return <StatusDot tone="quiet" label={SEAT.fast.label} />;
 }
-
-const styles = StyleSheet.create({
-  chip: { minWidth: 40, borderRadius: 4, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
-});

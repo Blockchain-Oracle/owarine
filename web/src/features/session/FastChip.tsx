@@ -1,16 +1,14 @@
 "use client";
 
+import { StatusDot } from "@/components/ui/desk-kit";
 import { SESSION } from "./copy";
 
 /**
- * Where the reference's tap-trading chip sat on the ticket, as the phone draws it (mobile `features/markets/ticket/
- * FastChip.tsx`): the same leverage-chip grammar, shown on and not pressable, because there is nothing to arm. A seat
- * already trades in one tap, with no second key and no caps to set.
+ * Where the reference's tap-trading chip sat on the ticket, as a label and not a control: a seat already trades in one
+ * tap, with no second key and no caps to set, so there is nothing to arm. It is the desk kit's quiet state pill (the
+ * reference's static "Always open" chip), because the reference's leverage-chip grammar drew a pressed control that
+ * could not be pressed, with its reason in a `title` a touch screen never shows.
  */
 export function FastChip() {
-  return (
-    <span className="tk-lev" data-on="" role="note" title={SESSION.fast.why} aria-label={`${SESSION.fast.label}: ${SESSION.fast.why}`}>
-      {SESSION.fast.label}
-    </span>
-  );
+  return <StatusDot tone="quiet">{SESSION.fast.label}</StatusDot>;
 }
