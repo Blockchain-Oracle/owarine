@@ -56,7 +56,10 @@ export function PoolFullPlate({ atSec, spanSec, ahead }: DeadlineProps & { ahead
   );
 }
 
-/** Draining (C-OPS-07's `leased → draining → free`, as its holder sees it): open calls settle before anything moves. */
+/**
+ * Draining (C-OPS-07's `leased → draining → free`, as its holder sees it): ops closes out each open leg at cost
+ * (`Leg_CloseOut`, backing plus fee back), decided legs settle as usual, then the cash is swept (`seat-funding/drain.ts`).
+ */
 export function DrainingPlate({ atSec, spanSec, openCalls }: DeadlineProps & { openCalls: number }) {
   return (
     <section className="cx-plate" aria-label={P.drainingTitle}>
