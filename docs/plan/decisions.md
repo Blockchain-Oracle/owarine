@@ -240,6 +240,18 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** "N sets paired · merge" is now what the merge does.
 - **Approval:** default; overrulable.
 
+### K-202 — Released DARs are tracked in Git (`daml/released/`, R1 on) (overflow block)
+- **Date / owner:** 2026-09-30 · C2z lane
+- **Evidence:** the four R1 DARs are 0.82–1.01 MB each, 3.7 MB together, and `.gitignore` does not exclude them. `bootstrap-devnet.ts` checks the package id read from `daml/released/<name>-<version>.dar` on the participant. So the file Abu uploads and the file the check reads must be the same bytes. A DAR rebuilt from the same source on another machine or another SDK patch can get a different package id. The plan's release train and gates name "the last DAR in `daml/released/`" as the old side of every `upgrade-check`. The Console cannot delete a DAR, so every released file stays live on the participant.
+- **Rule:**
+  - Each release commits its DARs to `daml/released/` as `<name>-<version>.dar`, beside `MANIFEST.md`. The manifest records the package id, the sha256, the build commit and the `upgrade-check --both` output.
+  - The files are never rebuilt in place.
+  - Older releases stay in the folder, as the record of what went up.
+  - The next release's `upgrade-check` takes its old side from this folder.
+  - The folder is tracked while each DAR is under 5 MB. A release with a larger DAR moves the folder to Git LFS, recorded as a new entry.
+- **User-visible:** none. The judge-facing repo shows exactly what runs on DevNet: package ids in `MANIFEST.md` match `GET /v2/packages`.
+- **Approval:** default; overrulable.
+
 ### K-093 — Every way a ticket ends leaves a receipt (`abu-pm-tickets` 0.1.2) (C8 block)
 - **Date / owner:** 2026-09-29 · C8e lane
 - **Evidence:** in 0.1.1, only settle and claim wrote a `SettlementReceipt` (K-030). The reference's portfolio History lists boosts that settled, knocked out or were cashed out, and its range and parlay screens keep ended tickets. `Test.Tickets.ExitReceipts` has 5 new money-gate scripts. `dpm test` passes all 160 scripts. `dpm upgrade-check --both` passes 0.1.1 → 0.1.2 with no warnings.
