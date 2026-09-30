@@ -10,7 +10,7 @@ Date: 2026-09-30 · lane C7b (`slice/C7b-canton-coin`, from main `1b41384`, clea
 |---|---|---|
 | `abu-pm-cc` 0.1.0 | `daml/abu-pm-cc/` (added to `daml/multi-package.yaml`) | A separate package on `abu-pm-main` 0.5.0 and the token standard V1 interfaces. `abu-pm-main` is untouched. |
 | Vendored token standard | `daml/vendor/splice/` (+ `THIRD_PARTY_NOTICES.md`) | Four Splice DARs byte for byte, with hashes, package ids and the Apache-2.0 licence: `splice-api-token-{metadata,holding,transfer-instruction}-v1` 1.0.0 and the token standard's own mock registry `splice-test-token-v1` 1.0.1 (tests only, never uploaded). Source: `canton-network/splice` at `fda19e6`. |
-| Money-gate tests | `daml/pm-tests/daml/Test/CC/` | 30 Daml Script tests (12 deposit, 12 withdraw, 7 reserve and privacy incl. two seeded random sequences) plus two tiny in-repo registries for the failure paths the mock cannot produce. |
+| Money-gate tests | `daml/pm-tests/daml/Test/CC/` | 31 Daml Script tests (12 deposit, 12 withdraw, 7 reserve and privacy incl. two seeded random sequences) plus two tiny in-repo registries for the failure paths the mock cannot produce. |
 | Bindings | `packages/daml-clients/` (`Cc`, `CC_TEMPLATE_IDS`, `CIP56_INTERFACE_IDS`) | `pnpm codegen:daml` output, committed. |
 | The CIP-56 edge | `packages/ledger/src/units.ts`, `client.ts` | Decimal to atomic to cash units, exact or refused; an `InterfaceFilter` read. The only place `Decimal` appears. |
 | The venue's pass | `packages/markets/src/ops/cc/` | Decoders, choice builders, the pure planners (`policy.ts`), the registry client, the history reader, `railPass`. |
@@ -105,4 +105,15 @@ The vendored DARs are never edited.
 
 ## Gate results
 
-(filled in below from the runs at the end of the lane)
+Run 30 Sep 2026 on the merged tree (main `ec7c271` merged, HEAD `9c0a984`+), Apple silicon, load average 15 to 50:
+
+| Gate | Result |
+|---|---|
+| `cd daml && dpm build --all && (cd pm-tests && dpm test)` | build exit 0; **234 scripts ok, 0 failed** (202 before this lane, 31 rail tests and the `mkCC` fixture: 12 deposit, 12 withdraw, 7 reserve, privacy and random) |
+| `pnpm codegen:daml` then `git status` | no diff: the committed bindings match the package |
+| `pnpm typecheck` | all 10 projects green (web, mobile, ops, markets, core, ledger, db, brain, scripts, daml-clients) |
+| `pnpm invariants` | 0 errors, 0 warnings (`no-party-from-request`, `time-suffix`, `no-float-money`, `capabilities-evidence`, the mobile design rules) |
+| `pnpm test` | 310 files passed, 12 skipped; **2,421 tests passed**, 52 skipped, 0 failed. The lane adds 87: ledger units 7 and interface filter 3, the rail's decoders, planners, registry, history and pass 47, the ops actor's env 3, the seat side 13, holdings 6, the seat drain 1, the funds panel 7 |
+| `pnpm --filter @agari/mobile typecheck` | green |
+
+No sandbox was started: disk had 7.4 GB free (the lane's limit was 8 GB), and nothing here needs one. No node, wallet, registry or remote URL was contacted at any point; every credential-shaped variable in this lane is a name in a runbook, never a value.
