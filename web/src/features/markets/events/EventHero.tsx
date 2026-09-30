@@ -1,6 +1,5 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
 import { eventLabelOf } from "@agari/core/market";
 import type { EventMarket, MarketId, Side } from "@agari/core/types";
 import { formatWallClock } from "@agari/core/units";
@@ -11,6 +10,7 @@ import { AssetDisc } from "../hero/asset-mark";
 import { HeroYesNo } from "../hero/HeroYesNo";
 import { useTopOfBook } from "../hero/useTopOfBook";
 import { impliedUpShare } from "../word-board/WordCard";
+import { eventClockOf } from "./clock";
 import { EVENT_BOARD, EVENT_SIDE_WORD } from "./copy";
 
 interface EventHeroProps {
@@ -28,10 +28,7 @@ interface EventHeroProps {
 export function EventHero({ market, nowMs, onSelect }: EventHeroProps) {
   const book = useTopOfBook(market);
   const label = eventLabelOf(market.asset);
-  const nowSec = Math.floor(nowMs / 1000);
-  const locked = nowMs > 0 && nowSec >= market.lockAtSec;
-  const span = Math.max(60, market.lockAtSec - market.tradingStartSec);
-  const urgent = nowMs > 0 && !locked && countdown(nowMs, market.lockAtSec, span).urgent;
+  const { locked, spanSec, urgent } = eventClockOf(market, nowMs);
   const share = impliedUpShare(book.upCents, book.downCents);
 
   return (
@@ -51,7 +48,7 @@ export function EventHero({ market, nowMs, onSelect }: EventHeroProps) {
           {locked ? (
             <span className="mh-settles-value numbers">00:00</span>
           ) : (
-            <Countdown expirySec={market.lockAtSec} intervalSec={span} nowMs={nowMs} announce className="mh-settles-value" />
+            <Countdown expirySec={market.lockAtSec} intervalSec={spanSec} nowMs={nowMs} announce className="mh-settles-value" />
           )}
         </div>
       </div>

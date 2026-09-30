@@ -1,17 +1,17 @@
 import { eventLabelOf } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
 import { formatWallClock } from "@agari/core/units";
-import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { EVENT_BOARD, EVENT_SIDE_WORD } from "@/features/markets/events/copy";
 import { useTopOfBook } from "@/features/markets/hero/useTopOfBook";
-import { MARKETS, WORD_BOARD } from "@/lib/copy";
+import { MARKETS } from "@/lib/copy";
 import { CLOSED } from "@/lib/copy-closed";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { FONT } from "~/theme";
 import { Countdown } from "../parts/Countdown";
 import { openTicket, openWindow, useWords, wq, WqButton, WqCard } from "../words/parts";
 import { impliedUpShare } from "../words/WordCard";
+import { CommitteeChip, EventLean } from "./EventParts";
 
 const cents = (value: number | null, hydrating: boolean): string => (value === null ? (hydrating ? "…" : MARKETS.noBook) : `${value}¢`);
 
@@ -35,7 +35,7 @@ export function EventCard({ market, nowMs }: { market: EventMarket; nowMs: numbe
       <View style={wq.top}>
         <AssetDisc asset={label} size={28} />
         <Text style={[wq.meta, { color: color.inkMuted }]}>{EVENT_BOARD.meta(label)}</Text>
-        <Text style={[styles.kind, { color: color.accent, borderColor: t.wqKindBorder }]}>{EVENT_BOARD.committee}</Text>
+        <CommitteeChip />
         <View style={styles.push} />
         {locked ? null : (
           <Countdown
@@ -52,19 +52,7 @@ export function EventCard({ market, nowMs }: { market: EventMarket; nowMs: numbe
       </Pressable>
 
       {locked || unquoted ? null : (
-        <>
-          <View style={[styles.bar, { backgroundColor: share === null ? t.wqTrackUnknown : t.wqTrack }]} accessibilityElementsHidden importantForAccessibility="no">
-            {share === null ? null : (
-              <LinearGradient colors={[t.wqFillFrom, t.wqFillTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.fill, { width: `${share}%`, shadowColor: t.wqFillGlow }]} />
-            )}
-          </View>
-          <View style={styles.oddsRow}>
-            <Text style={[styles.close, { color: color.inkDisabled }]}>
-              {upcoming ? EVENT_BOARD.opens(formatWallClock(market.tradingStartSec * 1000)) : EVENT_BOARD.locks(formatWallClock(market.lockAtSec * 1000))}
-            </Text>
-            <Text style={[styles.lead, { color: color.inkMuted }]}>{share === null ? WORD_BOARD.noLean : WORD_BOARD.implied(share)}</Text>
-          </View>
-        </>
+        <EventLean share={share} closeText={upcoming ? EVENT_BOARD.opens(formatWallClock(market.tradingStartSec * 1000)) : EVENT_BOARD.locks(formatWallClock(market.lockAtSec * 1000))} />
       )}
 
       {locked || unquoted ? (
@@ -86,14 +74,8 @@ export function EventCard({ market, nowMs }: { market: EventMarket; nowMs: numbe
 }
 
 const styles = StyleSheet.create({
-  kind: { marginLeft: 6, paddingVertical: 2, paddingHorizontal: 8, borderWidth: 1, borderRadius: 9999, fontFamily: FONT.body, fontSize: 10, lineHeight: 16, letterSpacing: 0.6, textTransform: "uppercase" },
   push: { flex: 1 },
   clock: { fontFamily: FONT.dataStrong, fontSize: 13, lineHeight: 20.8 },
-  bar: { height: 6, borderRadius: 4, marginBottom: 10, overflow: "hidden" },
-  fill: { position: "absolute", top: 0, bottom: 0, left: 0, borderRadius: 4, shadowOpacity: 1, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
-  oddsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 },
-  close: { fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16, letterSpacing: 1, textTransform: "uppercase" },
-  lead: { fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6 },
   unquoted: { flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: 12, borderWidth: 1, borderStyle: "dashed", borderRadius: 10 },
   dot: { width: 7, height: 7, borderRadius: 9999 },
   unquotedText: { flex: 1, fontFamily: FONT.body, fontSize: 13, lineHeight: 20.8 },
