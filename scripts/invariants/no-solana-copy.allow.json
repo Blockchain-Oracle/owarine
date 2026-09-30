@@ -4,5 +4,26 @@
     "lineage, credited honestly. `match` is a substring of that line; `why` says why it stays.",
     "The rule fails on an entry that no longer matches anything, so the list cannot rot."
   ],
-  "entries": []
+  "entries": [
+    {
+      "file": "packages/core/src/x/actions.ts",
+      "match": "mainnet: \"solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp\"",
+      "why": "CAIP-2 ids the Solana Actions (blinks) spec requires in the X-Blockchain-Ids header: protocol values, never shown as copy. The X blink rail is pending (C13), which re-points or retires them."
+    },
+    {
+      "file": "packages/core/src/x/actions.ts",
+      "match": "devnet: \"solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1\"",
+      "why": "As above: a Solana Actions protocol id, pending C13."
+    },
+    {
+      "file": "packages/core/src/x/actions.ts",
+      "match": "testnet: \"solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z\"",
+      "why": "As above: a Solana Actions protocol id, pending C13."
+    },
+    {
+      "file": "packages/core/src/desk/prompt.ts",
+      "match": "PreStocks tokens on Solana",
+      "why": "The desk model's system prompt, not page copy. Rewording it changes what the model does; it moves with the live desk on Canton (C-S21, not live), which holds positions on the names rather than tokens. Needs Abu's call (C10b report)."
+    }
+  ]
 }

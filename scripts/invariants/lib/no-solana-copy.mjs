@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { finding } from "./report.mjs";
 import { readText, walkFiles } from "./walk.mjs";
@@ -13,14 +13,28 @@ import { readText, walkFiles } from "./walk.mjs";
  *
  * `no-solana-copy.allow.json` holds the lines that name Solana on purpose (the lineage), each with a reason. An entry is
  * `{ file, match, why }` where `match` is a substring of the line; the rule fails on an entry that matches nothing.
+ *
+ * C10b widened it from the Solana name to the Solana-era vocabulary a reader would still see: the SOL ticker (upper
+ * case only, so `sol` in code and "Sol" in prose pass), Solana wallets (Backpack beside Phantom and Solflare), Solana
+ * infrastructure (Helius, Solscan, Jupiter), "on chain", block explorers and gas. Scopes grew to every string in
+ * `packages/core` and `packages/markets` (their error and refusal texts reach the page) and the PWA manifest. Jupiter
+ * is also a named price source, so `Jupiter Price v3` / `jupiter-price-v3` (PRICE_SOURCES) pass without an entry.
+ * Words with a true Canton meaning (seat signature, transaction, network fee, the venue's sponsor refusals) are not here.
  */
-export const FORBIDDEN = /\b(solana|devnet sol|lamports?|phantom|solflare|tusdc)\b/i;
-const SCOPES = ["web/src", "mobile/src", "packages/core/src/copy", "docs-site/content"];
+export const FORBIDDEN = /\b(solana|devnet sol|lamports?|phantom|solflare|backpack|helius|solscan|jupiter|tusdc|on[- ]chain|onchain|block explorers?|gas fees?|out of gas)\b/i;
+/** The SOL ticker: case-sensitive, so identifiers and prose that merely contain "sol" never trip it. */
+export const FORBIDDEN_TICKER = /\bSOL\b/;
+/** Named price sources that share a word with FORBIDDEN; removed from a string before it is checked. */
+export const PRICE_SOURCES = /\bJupiter Price v3\b|\bjupiter-price-v3\b/gi;
+const SCOPES = ["web/src", "web/public/manifest.webmanifest", "mobile/src", "packages/core/src", "packages/markets/src", "docs-site/content"];
 const CODE = [".ts", ".tsx"];
-const PROSE = [".md", ".mdx"];
+const PROSE = [".md", ".mdx", ".webmanifest"];
 const SKIP_FILE = /\.test\.tsx?$|\/__tests__\//;
-/** One lowercase token (letters, digits, `_`, `-`, one optional `:` part): a key or an id, never a sentence. */
-const MACHINE_KEY = /^[a-z0-9_-]+(?::[a-z0-9_-]+)?$/;
+/**
+ * One lowercase token (letters, digits, `_`, `-`, one optional `:` part, which may be a template's open end such as
+ * `onchain:${id}`): a key or an id, never a sentence. A module specifier (`./jupiter`) or a bare URL is code too.
+ */
+const MACHINE_KEY = /^[a-z0-9_-]+(?::[a-z0-9_-]*)?$|^(?:\.{1,2}\/|[@~]\/?)[\w@.\/-]*$|^https?:\/\/\S+$/;
 /** Characters after which a `/` starts a regex literal rather than a division. */
 const REGEX_PREFIX = /[(,=:[!&|?{};+\-*%<>~^]$|(?:^|[^\w$])(?:return|typeof|case|in|of|delete|void|throw|new)$/;
 
@@ -106,14 +120,17 @@ export function noSolanaCopy(rule, ctx) {
   const used = new Set();
   const findings = [];
   const check = (rel, lineNo, value, raw) => {
-    const match = FORBIDDEN.exec(value);
+    const text = value.replace(PRICE_SOURCES, "");
+    const match = FORBIDDEN.exec(text) ?? FORBIDDEN_TICKER.exec(text);
     if (!match) return;
     const entry = allow.findIndex((e) => e.file === rel && raw.includes(e.match));
     if (entry >= 0) { used.add(entry); return; }
     findings.push(finding(rule, `\`${match[0]}\` in copy — say what is true on Canton, or allowlist the line with a reason`, `${rel}:${lineNo}`));
   };
   for (const scope of SCOPES) {
-    for (const { rel, abs } of walkFiles(ctx.root, scope, [...CODE, ...PROSE])) {
+    const abs = join(ctx.root, scope);
+    const files = existsSync(abs) && statSync(abs).isFile() ? [{ rel: scope, abs }] : walkFiles(ctx.root, scope, [...CODE, ...PROSE]);
+    for (const { rel, abs } of files) {
       if (SKIP_FILE.test(rel)) continue;
       const text = readText(abs);
       const lines = text.split("\n");
