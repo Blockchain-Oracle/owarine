@@ -9,6 +9,9 @@
  * Scope rules (privacy-thesis.md §4–5):
  * - `wallet*`, `positions`, `orders` are one seat's own rows; the route serves them only to that seat. `owner` matches
  *   the seat address the web binds (`owner_address`) or, for ops and tests, the party id itself.
+ * - A seat party is recycled to later visitors (plan §4), so the web passes the visitor's `lease` (the party and the
+ *   ledger offset its lease started at): a row of that party counts only from that offset on, and a recycled seat never
+ *   shows the previous visitor's history (C13a). Without a lease, only the address match applies.
  * - Market aggregates (volume, trade count, last price, candles) are shown only with >= K_ANON_FLOOR participants.
  * - The public per-market tape (`fills?market=`) lists opt-in publications only.
  */
@@ -29,6 +32,8 @@ export interface IdxFillQuery {
   sinceSec?: number;
   limit?: number;
   offset?: number;
+  /** A seat's own fills: the visitor's lease (see `seatRowsOf`). */
+  lease?: IdxSeatLease | null;
 }
 
 export interface IdxMarketQuery {
@@ -78,13 +83,28 @@ export function fillCols(sql: Sql, taker: postgres.PendingQuery<postgres.Row[]> 
 export const ownerIs = (sql: Sql, alias: string, owner: string) =>
   sql`(${sql(alias)}.owner_address = ${owner} OR ${sql(alias)}.owner_party = ${owner})`;
 
+/** The web's seat lease for a lease-scoped read: the party the visitor holds and the offset the lease started at. */
+export interface IdxSeatLease {
+  party: string;
+  fromOffset: number;
+}
+
+/**
+ * One seat's rows: the owner match, or the leased party's rows from the lease's start offset on (`offsetCol` is the
+ * row's own creation offset). The previous visitor's rows of a recycled party all sit before that offset.
+ */
+export const seatRowsOf = (sql: Sql, alias: string, owner: string, lease: IdxSeatLease | null | undefined, offsetCol: string, partyCol = "owner_party") =>
+  lease
+    ? sql`(${ownerIs(sql, alias, owner)} OR (${sql(alias)}.${sql(partyCol)} = ${lease.party} AND ${sql(alias)}.${sql(offsetCol)} >= ${lease.fromOffset}))`
+    : ownerIs(sql, alias, owner);
+
 export function indexReader(sql: Sql) {
   return {
     /** A seat's own fills, newest first (Masayume `getUserFills`). */
     async walletFills(wallet: string, q: IdxFillQuery = {}): Promise<IdxRow[]> {
       return sql`
         SELECT ${fillCols(sql)} FROM idx_fills f
-        WHERE ${ownerIs(sql, "f", wallet)}
+        WHERE ${seatRowsOf(sql, "f", wallet, q.lease, "ledger_offset")}
           ${q.market ? sql`AND f.market = ${q.market}` : sql``} ${q.book ? sql`AND f.terms_cid = ${q.book}` : sql``}
           ${q.sinceSec !== undefined ? sql`AND f.ts_sec >= ${q.sinceSec}` : sql``}
         ORDER BY f.ts_sec DESC, f.ledger_offset DESC, f.node_id DESC LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
@@ -101,13 +121,13 @@ export function indexReader(sql: Sql) {
     },
 
     /** A seat's leg exits as the reference's `Redeemed` actions (Masayume `getRouterActions`); complete sets never happen. */
-    async walletActions(wallet: string, q: { limit?: number; offset?: number } = {}): Promise<IdxRow[]> {
+    async walletActions(wallet: string, q: { limit?: number; offset?: number; lease?: IdxSeatLease | null } = {}): Promise<IdxRow[]> {
       return sql`
         SELECT l.closed_update_id AS signature, 'Redeemed' AS name, l.market, l.closed_offset::text AS seq, l.closed_ts_sec::text AS block_time_sec,
           json_build_object('owner', COALESCE(l.owner_address, l.owner_party), 'byCrank', l.status = 'settled', 'how', l.status, 'result', l.result,
             'payout', l.payout_base::text, 'lots', l.lots::text, 'outcome', l.outcome, 'legCid', l.leg_cid) AS data, 'finalized' AS commitment
         FROM idx_legs l
-        WHERE ${ownerIs(sql, "l", wallet)} AND NOT l.is_venue AND l.status IN ('settled', 'claimed', 'refunded_stale', 'closed_out')
+        WHERE ${seatRowsOf(sql, "l", wallet, q.lease, "created_offset")} AND NOT l.is_venue AND l.status IN ('settled', 'claimed', 'refunded_stale', 'closed_out')
         ORDER BY l.closed_offset DESC, l.leg_cid LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
     },
 
@@ -116,16 +136,14 @@ export function indexReader(sql: Sql) {
      * facts. `owner` matches the bound address or the party; `lease` (the web's seat lease) adds that party's receipts
      * from the lease's start offset on, so a new visitor never sees the last one's (plan §4).
      */
-    async walletReceipts(owner: string, q: { lease?: { party: string; fromOffset: number } | null; limit?: number } = {}): Promise<IdxRow[]> {
-      const lease = q.lease ?? null;
+    async walletReceipts(owner: string, q: { lease?: IdxSeatLease | null; limit?: number } = {}): Promise<IdxRow[]> {
       return sql`
         SELECT r.receipt_cid, r.market, r.market_key, r.pair_id, r.outcome, r.resolved, r.lots::text, r.cash_unit::text, r.backing_share::text,
           r.cost::text, r.payout::text, r.fee::text, r.product, r.detail, r.created_update_id AS signature, r.created_offset::text AS seq,
           r.created_ts_sec::text AS ts_sec, m.symbol, m.cadence_sec, m.basis, m.expiry_sec::text, m.state, m.winner, m.void_reason, m.void_detail,
           m.resolved_ts_sec::text, m.event_question, m.event_answer
         FROM idx_receipts r LEFT JOIN idx_markets m ON m.market = r.market
-        WHERE NOT r.dismissed AND (${ownerIs(sql, "r", owner)}
-          ${lease ? sql`OR (r.owner_party = ${lease.party} AND r.created_offset >= ${lease.fromOffset})` : sql``})
+        WHERE NOT r.dismissed AND ${seatRowsOf(sql, "r", owner, q.lease, "created_offset")}
         ORDER BY r.created_offset DESC, r.receipt_cid LIMIT ${clamp(q.limit)}`;
     },
 
@@ -179,9 +197,15 @@ export function indexReader(sql: Sql) {
         ORDER BY boundary_sec, (source = 'redstone') DESC LIMIT ${clamp(limit, 500)}`;
     },
 
-    /** A seat's positions with the Window's state (Masayume `getPortfolio`). */
-    async positions(owner: string, q: { unredeemedOnly?: boolean; limit?: number } = {}): Promise<IdxRow[]> {
+    /**
+     * A seat's positions with the Window's state (Masayume `getPortfolio`). A position row sums one (Window, party), so
+     * under a lease it counts only when the party has no fill in that Window before the lease began: a Window the
+     * previous visitor also traded is withheld rather than merged (their legs had all ended before the party was freed,
+     * and the visitor's own receipts and live contracts still show it).
+     */
+    async positions(owner: string, q: { unredeemedOnly?: boolean; limit?: number; lease?: IdxSeatLease | null } = {}): Promise<IdxRow[]> {
       const k = K_ANON_FLOOR;
+      const lease = q.lease ?? null;
       return sql`
         SELECT p.market, COALESCE(p.owner_address, p.owner_party) AS owner, p.owner_party, NULL::int AS seat,
           p.yes_lots::text, p.no_lots::text, p.bought_yes_lots::text, p.sold_yes_lots::text, p.bought_no_lots::text, p.sold_no_lots::text,
@@ -192,12 +216,15 @@ export function indexReader(sql: Sql) {
           m.void_reason, m.resolved_ts_sec::text, COALESCE(s.cash_unit, m.cash_unit)::text AS cash_unit, s.lot_base::text, s.tick_base::text,
           (CASE WHEN m.participants >= ${k} THEN m.last_price_ticks END) AS last_price_ticks, m.series, NULL::text AS ledger, m.terms_cid
         FROM idx_positions p JOIN idx_markets m ON m.market = p.market LEFT JOIN idx_series s ON s.series = m.series
-        WHERE ${ownerIs(sql, "p", owner)} ${q.unredeemedOnly ? sql`AND NOT p.redeemed` : sql``}
+        WHERE (${ownerIs(sql, "p", owner)}
+          ${lease ? sql`OR (p.owner_party = ${lease.party} AND NOT EXISTS (SELECT 1 FROM idx_fills pf
+            WHERE pf.owner_party = p.owner_party AND pf.market = p.market AND pf.ledger_offset < ${lease.fromOffset}))` : sql``})
+          ${q.unredeemedOnly ? sql`AND NOT p.redeemed` : sql``}
         ORDER BY p.last_ts_sec DESC NULLS LAST LIMIT ${clamp(q.limit)}`;
     },
 
     /** A seat's live and accepted quotes in the reference's `idx_orders` row shape; `openOnly` keeps live ones. */
-    async orders(q: { owner?: string; market?: string; openOnly?: boolean; limit?: number }): Promise<IdxRow[]> {
+    async orders(q: { owner?: string; market?: string; openOnly?: boolean; limit?: number; lease?: IdxSeatLease | null }): Promise<IdxRow[]> {
       return sql`
         SELECT q.issued_update_id AS signature, q.quote_cid, q.kind AS quote_kind, q.market, COALESCE(q.user_address, q.user_party) AS owner, 0 AS seat,
           (CASE WHEN q.kind = 'quote' THEN (CASE WHEN q.side = 0 THEN 0 ELSE 2 END) ELSE (CASE WHEN q.side = 0 THEN 1 ELSE 3 END) END) AS kind,
@@ -207,7 +234,8 @@ export function indexReader(sql: Sql) {
           q.issued_ts_sec::text AS ts_sec, (CASE q.status WHEN 'issued' THEN 'open' WHEN 'accepted' THEN 'filled' ELSE q.status END) AS status,
           NULL::bigint AS rested_node, NULL::text AS rested_seq, q.leg_cid, q.pair_id
         FROM idx_quotes q
-        WHERE true ${q.owner ? sql`AND (q.user_address = ${q.owner} OR q.user_party = ${q.owner})` : sql``}
+        WHERE true ${q.owner ? sql`AND (q.user_address = ${q.owner} OR q.user_party = ${q.owner}
+          ${q.lease ? sql`OR (q.user_party = ${q.lease.party} AND q.issued_offset >= ${q.lease.fromOffset})` : sql``})` : sql``}
           ${q.market ? sql`AND q.market = ${q.market}` : sql``} ${q.openOnly ? sql`AND q.status = 'issued'` : sql``}
         ORDER BY q.issued_ts_sec DESC, q.issued_offset DESC LIMIT ${clamp(q.limit)}`;
     },
