@@ -51,6 +51,8 @@ export const SEAT = {
     termsLine: "Joining uses demo credits only: no cash value, nothing to buy, sell or withdraw.",
     accept: "Accept and continue",
     joinedDevice: "Your other device",
+    /** What VoiceOver reads for the code field's value as it is typed: each character on its own, and how many are still to come. */
+    code: { none: (length: number) => `none of ${length} characters entered`, more: (left: number) => `${left} more to enter` },
   },
   /** The funds sheet: the demo-credits grant, through a signed route once it is live; no faucet, no network fees. */
   funds: {
