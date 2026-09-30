@@ -3,9 +3,10 @@
  *
  *   SEAT_PG_URL=postgres://… pnpm --filter web exec vitest run src/lib/seat-link-store.server.test.ts
  */
-import { getDb } from "@agari/db";
+import { getDb, seatPartyFor } from "@agari/db";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { leasedAddresses } from "./agents.server";
 import { createSeatStore, DEFAULT_RULES } from "./seat-store.server";
 
 const URL_ = process.env.SEAT_PG_URL;
@@ -70,5 +71,34 @@ describe.skipIf(!URL_)("seat link store (Postgres)", () => {
     await store.release(held.leaseId, T0 + 3, "released");
     expect(await store.byAddress("phone-key")).toBeNull();
     expect(await store.links.redeem("FFFFFF", "tablet-key", T0 + 4)).toEqual({ kind: "invalid" });
+  });
+
+  it("C4c: the web and ops read one resolution; a recycled seat never maps an old device, and seat A's key never maps to B", async () => {
+    const a = await lease("web-a");
+    const b = await lease("web-b", T0 + 1);
+    await store.links.issue(a.leaseId, "GGGGGG", T0, TTL);
+    expect(await store.links.redeem("GGGGGG", "phone-a", T0 + 2)).toEqual({ kind: "linked", leaseId: a.leaseId });
+    // `byAddress` (the web's seat check, desk, push, index, Lucky) and ops' `seatPartyFor` agree on every key.
+    for (const [key, party] of [["web-a", a.party], ["phone-a", a.party], ["web-b", b.party]] as const) {
+      expect((await store.byAddress(key))?.party).toBe(party);
+      expect(await seatPartyFor(db, key)).toBe(party);
+    }
+    // The registry labels a seat by the key that took it; the calling device's own key labels its own party.
+    expect(await leasedAddresses()).toEqual(new Map([[a.party, "web-a"], [b.party, "web-b"]]));
+    expect((await leasedAddresses({ party: a.party, address: "phone-a" })).get(a.party)).toBe("phone-a");
+
+    await store.release(a.leaseId, T0 + 3, "released");
+    expect(await seatPartyFor(db, "phone-a")).toBeNull();
+    expect(await store.byAddress("phone-a")).toBeNull();
+    expect((await store.byAddress("web-b"))?.party).toBe(b.party);
+    // Seat A drains and frees; its party goes to the next visitor as a new lease. Neither old key maps to it.
+    expect(await store.markFree(a.party, T0 + 4)).toBe(true);
+    const c = await lease("web-c", T0 + 5);
+    expect(c.party).toBe(a.party);
+    for (const old of ["web-a", "phone-a"]) {
+      expect(await store.byAddress(old)).toBeNull();
+      expect(await seatPartyFor(db, old)).toBeNull();
+    }
+    expect(await leasedAddresses()).toEqual(new Map([[a.party, "web-c"], [b.party, "web-b"]]));
   });
 });

@@ -1,4 +1,4 @@
-import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
+import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, seatLeaseRowFor, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
 import type { Diagnosis } from "@agari/core/types";
 import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@agari/markets/server";
 import { createSeatLinkStore, SEAT_LINK_SCHEMA_SQL, type SeatLinkStore } from "./seat-link-store.server";
@@ -259,8 +259,8 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     },
     async byAddress(address) {
       await ready();
-      const [r] = await db<Row[]>`SELECT * FROM seat_pool WHERE state = 'leased' AND (address = ${address}
-        OR lease_id = (SELECT lease_id FROM seat_linked_keys WHERE address = ${address})) ORDER BY (address = ${address}) DESC LIMIT 1`;
+      // C4c: the one address → party resolution ops shares (`@agari/db` `seatLeaseRowFor`): own lease or a joined key.
+      const r = await seatLeaseRowFor(db, address);
       return r ? lease(r) : null;
     },
     async touch(leaseId, nowMs, busy) {

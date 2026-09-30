@@ -22,26 +22,41 @@ const INDEX_SETTLE_SEC = 60;
  * party is recycled between visitors. So a fill is the wallet's when the wallet is the party itself, or when the wallet
  * held a lease on that party (`seat_leases`, the web's seat table) at the fill's time — never a later or earlier
  * visitor's fill on the same party. Without a seat table (no guest pool) only the direct match applies.
+ *
+ * C4c: a key joined to a lease by a seat link (`seat_linked_keys`) is that lease's too, so the phone that joined a web
+ * seat enters the Rooms its seat bet into — within that lease's span only, like its holder, and never another lease's.
  */
-function ownedBy(sql: Sql, wallet: string, withLeases: boolean) {
+function ownedBy(sql: Sql, wallet: string, seats: SeatTables) {
   const direct = sql`(f.owner_address = ${wallet} OR f.owner_party = ${wallet})`;
-  if (!withLeases) return direct;
+  if (!seats.leases) return direct;
+  const inSpan = sql`f.ts_sec * 1000 >= l.started_at_ms - ${LEASE_CLOCK_SLACK_MS}
+      AND (l.ended_at_ms IS NULL OR f.ts_sec * 1000 <= l.ended_at_ms + ${LEASE_CLOCK_SLACK_MS})`;
+  const joined = seats.links
+    ? sql`OR EXISTS (
+    SELECT 1 FROM seat_linked_keys k JOIN seat_leases l ON l.lease_id = k.lease_id
+    WHERE k.address = ${wallet} AND l.party = f.owner_party AND ${inSpan})`
+    : sql``;
   return sql`(${direct} OR EXISTS (
     SELECT 1 FROM seat_leases l
-    WHERE l.address = ${wallet} AND l.party = f.owner_party
-      AND f.ts_sec * 1000 >= l.started_at_ms - ${LEASE_CLOCK_SLACK_MS}
-      AND (l.ended_at_ms IS NULL OR f.ts_sec * 1000 <= l.ended_at_ms + ${LEASE_CLOCK_SLACK_MS})))`;
+    WHERE l.address = ${wallet} AND l.party = f.owner_party AND ${inSpan}) ${joined})`;
+}
+
+interface SeatTables {
+  leases: boolean;
+  links: boolean;
 }
 
 /** Ledger time is whole seconds and the lease clock is the web's: a fill is matched within this slack of the span. */
 const LEASE_CLOCK_SLACK_MS = 2_000;
 
 export function socialGateReader(sql: Sql) {
-  let leases: Promise<boolean> | null = null;
+  let tables: Promise<SeatTables> | null = null;
+  const none: SeatTables = { leases: false, links: false };
   const hasLeases = () =>
-    (leases ??= sql<{ ok: boolean }[]>`SELECT to_regclass('seat_leases') IS NOT NULL AS ok`.then(
-      (r) => r[0]?.ok === true,
-      () => ((leases = null), false),
+    (tables ??= sql<{ leases: boolean; links: boolean }[]>`
+      SELECT to_regclass('seat_leases') IS NOT NULL AS leases, to_regclass('seat_linked_keys') IS NOT NULL AS links`.then(
+      (r) => ({ leases: r[0]?.leases === true, links: r[0]?.links === true }),
+      () => ((tables = null), none),
     ));
   return {
     /** Has `owner` ever filled on this Window (a leg taken from a venue quote; a mint is a fill too)? */

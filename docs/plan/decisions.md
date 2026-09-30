@@ -434,6 +434,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the entry's shared-desk card and link show a real desk on this network, or no card at all; never a dead link.
 - **Approval:** default; overrulable.
 
+### K-204 — A seat key maps to a party only through its live lease, joined keys included (overflow block)
+- **Date / owner:** 2026-09-30 · C4c (lane C4c seat-link fixes)
+- **Evidence:** `docs/evidence/c4c-seat-link-fixes.md` §1. C11a left four paths reading `seat_pool.address` alone (ops agents session, duel seats, desk discovery, web `agents.server.ts`), so a key joined by a seat link mapped nowhere there, and the duel directory answered a remembered party for a key whose lease had ended.
+- **Rule:** every address → party resolution goes through `@agari/db` `seatPartyFor` / `seatLeaseRowFor` (and party → seat address through `seatHolders`). A key maps only while it holds the party's live lease or joined that same live lease; an ended, drained, freed or re-leased seat maps none of its old keys, and nothing remembered in a process stands in for the lease. The duel open checks the pairing's creator by party, so a joined phone queues and opens as its seat, and the room shows the key that queued. The Room gate admits a joined key for its lease's own bets.
+- **User-visible:** a phone joined to a web seat can grant, duel and run a desk as that seat. A season payout to a player whose seat has since ended is refused (its party may belong to the next visitor) instead of crediting a recycled seat.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
