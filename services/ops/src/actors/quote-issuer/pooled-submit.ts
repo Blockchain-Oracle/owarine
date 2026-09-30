@@ -22,15 +22,15 @@ export function archivedCids(out: Extract<SubmitOutcome, { kind: "done" }>): Set
 }
 
 export async function submitWithShards(pool: ShardPool, session: RoleSession, leases: readonly Lease[], input: SubmitInput): Promise<SubmitOutcome> {
-  const beginOffset = await session.client.ledgerEnd().catch(() => 0);
+  const beginOffset = await session.client.ledgerEnd().catch(() => undefined);
   try {
-    const out = await submit(session, input);
+    const out = await submit(session, { ...(beginOffset === undefined ? {} : { beginOffset }), ...input });
     if (out.kind === "dry") pool.release(leases);
     // A recovered duplicate returns the ORIGINAL transaction: a shard leased for this retry that it did not consume goes back free.
     else pool.complete(leases, archivedCids(out), venueCashCreated(out));
     return out;
   } catch (error) {
-    if (isIndefinite(error)) pool.quarantine(leases, input.commandId, beginOffset);
+    if (isIndefinite(error)) pool.quarantine(leases, input.commandId, beginOffset ?? 0);
     else pool.release(leases, isInactive(error) ? new Set(inactiveCids(error, leases.map((l) => l.cid))) : new Set());
     throw error;
   }

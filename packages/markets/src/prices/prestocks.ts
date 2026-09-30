@@ -100,7 +100,31 @@ export function parsePreStocks(text: string): Map<string, PreStocksToken> {
   return out;
 }
 
-/** One catalogue read. Throws on a non-200, a timeout or a body that prices nothing; the caller decides what a miss means. */
+/**
+ * A non-200 from the catalogue, with what the server said about when to come back (C4c): `retryAfterMs` is its
+ * `Retry-After`, as seconds or an HTTP date, or null when it sent none or none that reads.
+ */
+export class PreStocksHttpError extends Error {
+  constructor(
+    readonly url: string,
+    readonly status: number,
+    readonly retryAfterMs: number | null,
+  ) {
+    super(`PreStocks ${url} answered ${status}${retryAfterMs !== null ? ` (retry after ${Math.ceil(retryAfterMs / 1000)} s)` : ""}`);
+    this.name = "PreStocksHttpError";
+  }
+}
+
+/** `Retry-After` as seconds or an HTTP date (the reference transport's reading); null when absent or unreadable. Pure. */
+export function retryAfterMsOf(header: string | null, nowMs: number = Date.now()): number | null {
+  if (!header) return null;
+  const seconds = Number(header);
+  if (header.trim() !== "" && Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const atMs = Date.parse(header);
+  return Number.isNaN(atMs) ? null : Math.max(0, atMs - nowMs);
+}
+
+/** One catalogue read. Throws on a non-200 (`PreStocksHttpError`), a timeout or a body that prices nothing. */
 export async function fetchPreStocks(options: { url?: string; timeoutMs?: number; fetchImpl?: typeof fetch } = {}): Promise<PreStocksRead> {
   const { url = PRESTOCKS_CATALOGUE_URL, timeoutMs = 5_000, fetchImpl = fetch } = options;
   // A cache-buster and a no-cache request: a cached body would be stamped with a fresh read time, which is how a frozen
@@ -108,7 +132,7 @@ export async function fetchPreStocks(options: { url?: string; timeoutMs?: number
   const bust = `${url}${url.includes("?") ? "&" : "?"}t=${Date.now()}`;
   const headers = { accept: "application/json", "cache-control": "no-cache" };
   const response = await fetchImpl(bust, { signal: AbortSignal.timeout(timeoutMs), headers });
-  if (!response.ok) throw new Error(`PreStocks ${url} answered ${response.status}`);
+  if (!response.ok) throw new PreStocksHttpError(url, response.status, retryAfterMsOf(response.headers.get("retry-after")));
   const tokens = parsePreStocks(await response.text());
   if (tokens.size === 0) throw new Error("the PreStocks catalogue priced nothing");
   const age = Number(response.headers.get("age"));

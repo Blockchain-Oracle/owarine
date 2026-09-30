@@ -1,6 +1,5 @@
-import { isAddress } from "@agari/core/types";
 import { NextResponse } from "next/server";
-import { answer, DESK_ERRORS, loadDesk, refuse } from "@/features/desk/auth.server";
+import { answer, DESK_ERRORS, loadDesk, provenViewer, refuse } from "@/features/desk/auth.server";
 import { toApproval, toGrade, toRecord, type DeskQueries } from "@/features/desk/desk.server";
 import type { ActionWire, DecisionWire, ProofWire, RecordSummaryWire } from "@/features/desk/protocol";
 
@@ -32,8 +31,8 @@ export async function GET(req: Request, context: { params: Promise<{ owner: stri
   const loaded = await loadDesk(owner);
   if (loaded instanceof NextResponse) return loaded;
   if (!loaded.desk) return refuse(404, DESK_ERRORS.notFound);
-  const viewerParam = new URL(req.url).searchParams.get("viewer");
-  const viewer = viewerParam && isAddress(viewerParam) && viewerParam === loaded.desk.owner ? "owner" : "visitor";
+  // C13a: the owner is the proven seat, never a typed `?viewer=`.
+  const viewer = (await provenViewer(req)) === loaded.desk.owner ? "owner" : "visitor";
   if (viewer === "visitor" && !loaded.desk.sharePublic) return refuse(404, DESK_ERRORS.notShared);
   const n = Number(seq);
   if (!Number.isInteger(n) || n < 1) return refuse(400, DESK_ERRORS.badRequest);

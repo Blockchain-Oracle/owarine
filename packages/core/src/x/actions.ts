@@ -5,15 +5,18 @@ import type { EventMarket } from "../types";
 import { formatBaseUnits } from "../units";
 import { X_REFUSAL_DETAILS } from "./refusal";
 import type { XRefusalCode } from "./receipt";
+import { signWindowShare, windowShareUrl, type WindowShare } from "./share-link";
 
 /**
- * The Solana Actions wire, and Agari's half of it (S11, `00-plan.md` §S11, `R:solana-actions`).
+ * Blinks on Canton (S11, adapted in C13a per the plan's "Social, X and share"): the same card wire as the reference's
+ * Actions, answered with a signed Window share link instead of a transaction.
  *
- * A Blink is a link a wallet unfurls into a signable transaction: the client `GET`s this metadata, renders the
- * buttons, then `POST`s `{ account }` and signs whatever transaction comes back. These are the spec's shapes, kept
- * here in `packages/core` for one reason — `@solana/actions` is an `@solana/*` module, and only `packages/markets`
- * may import those (plan §6, `kit-import-boundary`). The route stays a pure wire; the transaction is built in
- * `@agari/markets/x`.
+ * The reference's Blink was a link a Solana wallet unfurled into a signable transaction. Canton has no such wallet
+ * protocol, and a seat trades only through its own lease, so the URLs stay (`/actions.json`, `/api/actions/w/<id>`,
+ * `/api/actions/t/<symbol>/<cadence>`) and so does the card: a client `GET`s the metadata and renders Up and Down,
+ * each with its amount field. Each is now an `external-link` action: the `POST` answers `{ type: "external-link",
+ * externalLink }`, a link the venue signs (`share-link.ts`) that opens this Window's ticket with that side and stake,
+ * on the web or in the app. No chain id travels in any header.
  *
  * Refusal copy is never invented here: a Blink that cannot trade says exactly what an X reply would say, out of
  * `X_REFUSAL_DETAILS`. One vocabulary, three surfaces.
@@ -21,7 +24,7 @@ import type { XRefusalCode } from "./receipt";
 
 export type ActionType = "action" | "completed";
 
-/** The spec's linked-action kinds; Agari only ever returns a `transaction`. */
+/** The spec's linked-action kinds; on Canton Agari only returns `external-link` (C13a). */
 export type LinkedActionType = "transaction" | "message" | "post" | "external-link" | "inline-link";
 
 export type ActionParameterType =
@@ -61,14 +64,15 @@ export interface ActionGetResponse {
   error?: ActionError;
 }
 
-/** The only field a blink client sends: the viewer's wallet, base58. */
+/** What a card client may send. A share link names no one, so `account`, if a client sends one, is ignored. */
 export interface ActionPostRequest {
-  account: string;
+  account?: string;
 }
 
-/** `transaction` is a base64 serialized v0 transaction the viewer's wallet signs and sends. */
+/** The link the viewer follows: the signed Window share link (C13a). */
 export interface ActionPostResponse {
-  transaction: string;
+  type: "external-link";
+  externalLink: string;
   message?: string;
 }
 
@@ -81,30 +85,16 @@ export interface ActionsJson {
   rules: readonly ActionRuleObject[];
 }
 
-/** The spec version blink clients negotiate against. */
-export const ACTION_VERSION = "2.4";
-
-/** CAIP-2 chain ids. A client reads these to pick the cluster before it lets anyone sign. */
-export const ACTION_CHAIN_IDS = {
-  mainnet: "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
-  devnet: "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1",
-  testnet: "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
-} as const;
-
-export type ActionCluster = keyof typeof ACTION_CHAIN_IDS;
-
 /**
- * Every Action response carries these. `Access-Control-Allow-Origin: *` is required by the spec — an Action is
- * read by clients on domains we do not control, which is the whole point of a Blink.
+ * Every Action response carries these. `Access-Control-Allow-Origin: *` stays: a card is read by clients on domains we
+ * do not control, which is the whole point of a Blink. There is no chain id or Actions version header: nothing here
+ * is signed by a wallet (C13a).
  */
-export function actionHeaders(cluster: ActionCluster): Record<string, string> {
+export function actionHeaders(): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET,POST,PUT,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, Content-Encoding, Accept-Encoding",
-    "Access-Control-Expose-Headers": "X-Action-Version, X-Blockchain-Ids",
-    "X-Action-Version": ACTION_VERSION,
-    "X-Blockchain-Ids": ACTION_CHAIN_IDS[cluster],
+    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Content-Encoding, Accept-Encoding",
     "Content-Type": "application/json",
     "Cache-Control": "no-store",
   };
@@ -135,13 +125,13 @@ export function windowActionDescription(market: Pick<EventMarket, "asset" | "exp
     + `Your stake is the most you can lose. Minimum ${floor} credits.`;
 }
 
-/** Two buttons, each with its own amount field: the side is in the path, the stake is the viewer's. */
+/** Two buttons, each with its own amount field: the side is in the path, the stake is the viewer's; each opens a link. */
 export function windowActionLinks(market: Pick<EventMarket, "marketId" | "decimals">, basePath: string): readonly LinkedAction[] {
   const floor = formatBaseUnits(minStakeBase(market.decimals), market.decimals);
   const stake = (label: string): ActionParameter => ({ name: "stake", type: "number", label, required: true, min: floor });
   return [
-    { type: "transaction", href: `${basePath}?side=up&stake={stake}`, label: "Up", parameters: [stake("credits on Up")] },
-    { type: "transaction", href: `${basePath}?side=down&stake={stake}`, label: "Down", parameters: [stake("credits on Down")] },
+    { type: "external-link", href: `${basePath}?side=up&stake={stake}`, label: "Up", parameters: [stake("credits on Up")] },
+    { type: "external-link", href: `${basePath}?side=down&stake={stake}`, label: "Down", parameters: [stake("credits on Down")] },
   ];
 }
 
@@ -170,12 +160,20 @@ export function windowAction({ market, icon, basePath, nowMs }: WindowActionInpu
   return { ...base, label: "Make a call", links: { actions: windowActionLinks(market, basePath) } };
 }
 
+export type WindowShareAction = { ok: true; response: ActionPostResponse; share: WindowShare } | { ok: false; code: XRefusalCode; message: string };
+
 /**
- * The venue's cluster name as a CAIP-2 selector. Takes a plain string: this maps configuration, and a config value
- * the venue has never heard of must still produce a chain id rather than a type error at the edge.
+ * The `POST` of one Window's card: the same checks the reference ran before building a transaction (the Window takes
+ * calls now; the stake is at least the floor), then the signed link to that Window's ticket, good until the Window
+ * closes. A refusal carries the X reply's words.
  */
-export function actionClusterOf(cluster: string): ActionCluster {
-  if (cluster === "mainnet" || cluster === "mainnet-beta") return "mainnet";
-  if (cluster === "testnet") return "testnet";
-  return "devnet";
+export function windowShareAction(i: { market: EventMarket; side: "up" | "down"; stakeBase: bigint; origin: string; key: Uint8Array; nowMs: number }): WindowShareAction {
+  const refusal = actionRefusalOf(phase(i.market, i.nowMs));
+  if (refusal) return { ok: false, code: refusal, message: X_REFUSAL_DETAILS[refusal] };
+  if (i.stakeBase < minStakeBase(i.market.decimals)) return { ok: false, code: "instruction-invalid", message: `The minimum is ${formatBaseUnits(minStakeBase(i.market.decimals), i.market.decimals)} credits.` };
+  const share: WindowShare = { marketId: i.market.marketId, side: i.side, stakeBase: i.stakeBase, expiresSec: i.market.expirySec };
+  const externalLink = windowShareUrl(i.origin, share, signWindowShare(i.key, share));
+  const sideWord = i.side === "up" ? "Up" : "Down";
+  const message = `Opens the ${windowActionTitle(i.market)} ticket on ${sideWord} with ${formatBaseUnits(i.stakeBase, i.market.decimals)} credits. Nothing is placed until you confirm it.`;
+  return { ok: true, share, response: { type: "external-link", externalLink, message } };
 }

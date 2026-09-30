@@ -7,9 +7,13 @@ import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { SECTIONS } from "@/lib/copy";
+import { collateralOrNull } from "@agari/markets";
+import { leasedOf } from "@/providers/wallet/seat-lease-context";
 import { usePullRefresh } from "~/components/kit";
 import { SectionHeader } from "~/features/explore/SectionHeader";
 import { LiveHedgeCard } from "~/features/hedge/LiveHedgeCard";
+import { LiveViewSwitcher } from "~/features/privacy/ViewSwitcher";
+import { useSeat } from "~/wallet/SeatProvider";
 import { MarketRoomSheet } from "~/features/room/MarketRoomSheet";
 import { useTheme } from "~/theme";
 import { CHROME } from "~/theme/chrome";
@@ -28,7 +32,7 @@ import { LiveVerdict } from "./verdict/LiveVerdict";
  * web's MarketsScreen at phone width — the market you are betting on is the page. The hero carries the question, the
  * chart and the call together; below it, the cover banner when this wallet holds a stock token, the hero Window's
  * verdict once it has one, §01 the lanes that change the hero, §02 the same Windows in plain words, §03 the committee
- * events (C6e). The Sensei dock
+ * events (C6e), and on a Window §04 who sees what on the ledger (C-ADD-02). The Sensei dock
  * rides above the page and the Room opens over it. `/markets/<id>` is this page with that Window in the hero, as on web.
  */
 export function MarketsScreen() {
@@ -62,6 +66,7 @@ export function MarketsScreen() {
   const [roomMarket, setRoomMarket] = useState<EventMarket | null>(null);
   const refreshControl = usePullRefresh();
   const failure = lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure;
+  const seat = useSeat();
 
   return (
     <View style={[styles.fill, { backgroundColor: color.ground }]}>
@@ -87,6 +92,10 @@ export function MarketsScreen() {
             <SectionHeader index={SECTIONS.events.index} title={SECTIONS.events.title} desc={SECTIONS.events.desc} />
             <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} nowMs={nowMs} />
           </View>
+          {/* §04 on `/markets/<id>` (web's LedgerViewSection): the same ledger query as Alice, Bob, an outsider and this seat. */}
+          {selection.marketId ? (
+            <LiveViewSwitcher index="04" marketId={selection.marketId} symbol={collateralOrNull()?.symbol ?? "credits"} withSeat={leasedOf(seat.lease.view) !== null} />
+          ) : null}
         </View>
       </ScrollView>
       <SenseiDock laneSet={lanes.laneSet} nowMs={nowMs} />

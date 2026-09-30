@@ -1,5 +1,5 @@
 import type { Address } from "@agari/core/types";
-import { keys, useWalletHistory } from "@agari/markets/react";
+import { keys, usePublishedHistory, useWalletHistory } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
@@ -66,7 +66,8 @@ function Tab({ label, onPress }: { label: string; onPress: () => void }) {
 /**
  * `/u/[address]` — web's ProfileScreen on a phone, in /news's frame: the live eyebrow, the hue avatar and the two-tone
  * address, the Japanese line and the sentence; the verified X link and the three actions over a hairline; then the
- * record, the edge excerpt, open calls and takes. Every figure is public index data; nothing needs a signature.
+ * record, the edge excerpt, open calls and takes. Your own profile reads your seat's history under its lease; anyone
+ * else's reads only the calls that seat chose to publish (C13a).
  */
 export function ProfileScreen({ address }: { address: Address }) {
   const { name, color } = useTheme();
@@ -74,10 +75,15 @@ export function ProfileScreen({ address }: { address: Address }) {
   const { address: viewer } = useWalletSession();
   const own = viewer === address;
   const units = useMoneyUnits();
-  const history = useWalletHistory(address);
+  const ownHistory = useWalletHistory(address, own);
+  const publishedHistory = usePublishedHistory(address, !own);
+  const history = own ? ownHistory : publishedHistory;
   const handle = useVerifiedHandle(address);
   const queryClient = useQueryClient();
-  const retry = useCallback(() => void queryClient.invalidateQueries({ queryKey: keys.history(address) }), [address, queryClient]);
+  const retry = useCallback(
+    () => void queryClient.invalidateQueries({ queryKey: own ? keys.history(address) : keys.published(address, "history") }),
+    [address, own, queryClient],
+  );
   const [copied, setCopied] = useState(false);
   const copy = () => {
     void Clipboard.setStringAsync(address).then(() => {
@@ -98,7 +104,7 @@ export function ProfileScreen({ address }: { address: Address }) {
         </Text>
       </View>
       <Text style={[styles.jp, { color: color.inkMuted }]}>{PROFILE.headingJp}</Text>
-      <Text style={[styles.intro, { color: color.inkSecondary }]}>{PROFILE.intro}</Text>
+      <Text style={[styles.intro, { color: color.inkSecondary }]}>{own ? PROFILE.intro : PROFILE.introPublished}</Text>
 
       <View style={[styles.bar, { borderBottomColor: t.barRule }]}>
         {handle ? (
@@ -119,7 +125,7 @@ export function ProfileScreen({ address }: { address: Address }) {
       </View>
 
       <ProfileRecord address={address} reading={history} retry={retry} symbol={units.symbol} own={own} />
-      <ProfileCalls address={address} units={units} />
+      <ProfileCalls address={address} units={units} own={own} />
     </ExplorePage>
   );
 }

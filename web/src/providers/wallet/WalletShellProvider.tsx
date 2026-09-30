@@ -1,6 +1,8 @@
 "use client";
 
-import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
+import { joinSeatLink, type SeatLeaseView } from "@agari/markets";
+import { keys, type WalletSession as MarketsWalletSession } from "@agari/markets/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { webEnv } from "@/lib/env";
 import { AccountModal } from "./AccountModal";
@@ -23,7 +25,8 @@ const subscribeNothing = () => () => undefined;
  *   IndexedDB, a few milliseconds. A browser without one is ready at once.
  * - A seat and its lease are only ever taken on an explicit click, never on page load (the lease rule, plan §4). A
  *   returning browser reads its lease (which renews it); a lapsed one is offered again from the account menu.
- * - "Reset seat" lets the lease go first (the server drains the party), then forgets the key.
+ * - "Reset seat" lets the lease go first (the server drains the party), then forgets the key. On a browser that joined
+ *   another device's seat (the seat link), the server takes only this key off the seat.
  */
 export function WalletShellProvider({ children }: { children: ReactNode }) {
   const hydrated = useSyncExternalStore(subscribeNothing, () => true, () => false);
@@ -77,6 +80,21 @@ export function WalletShellProvider({ children }: { children: ReactNode }) {
     }
   }, [seat, leaseWith]);
 
+  const queryClient = useQueryClient();
+  const joinSeat = useCallback(
+    async (code: string) => {
+      // A browser with no key makes one to join with; if the join is refused, that new key is forgotten again.
+      const next = seat ?? (await takeSeat());
+      const joined = await joinSeatLink(seatSigner(next), code, webEnv.markets.cluster);
+      if (joined.ok && joined.value.kind === "leased") {
+        setSeat(next);
+        queryClient.setQueryData<SeatLeaseView>(keys.seatLease(), joined.value);
+      } else if (seat === null) await resetSeat();
+      return joined;
+    },
+    [seat, queryClient],
+  );
+
   const openPicker = useCallback(() => setPickerOpen(true), []);
   const openAccount = useCallback(() => setAccountOpen(true), []);
   const disconnect = useCallback(async () => {
@@ -87,8 +105,8 @@ export function WalletShellProvider({ children }: { children: ReactNode }) {
   }, [release]);
 
   const value = useMemo<WalletShell>(
-    () => ({ status: restoring ? "restoring" : "ready", connecting, address, wallet, openPicker, openAccount, disconnect }),
-    [restoring, connecting, address, wallet, openPicker, openAccount, disconnect],
+    () => ({ status: restoring ? "restoring" : "ready", connecting, address, wallet, openPicker, openAccount, disconnect, joinSeat }),
+    [restoring, connecting, address, wallet, openPicker, openAccount, disconnect, joinSeat],
   );
 
   return (

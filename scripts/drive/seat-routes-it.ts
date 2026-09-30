@@ -9,8 +9,8 @@
  *   lease → balance → quote → accept (and the same command again) → positions → seat B sees nothing → views → CSRF →
  *   resolve → claimables → claim → stale refund → release → a recycled seat starts empty
  *
- *   (sandbox on :7595 with abu-pm-main-0.2.0.dar, Postgres on :5434, `pnpm build` done)
- *   pnpm --filter @agari/scripts exec tsx drive/seat-routes-it.ts
+ *   (a sandbox with the current abu-pm-main, Postgres, `pnpm build` done; C2z re-ran it on engine 0.5.0)
+ *   LEDGER_JSON_API_URL=http://localhost:7525 SEAT_IT_DB=postgres://…/pm_c2z_it pnpm --filter @agari/scripts exec tsx drive/seat-routes-it.ts
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -23,7 +23,7 @@ import { messageBytes, formatSeatReadHeader, seatReadText, SEAT_READ_HEADER } fr
 import { encodeBase58, type Address, type Signature } from "@agari/core/types";
 import { createLedgerClient, fee, noAuth } from "@agari/ledger";
 import { parseMarketsEnv, seatLeaseText, toWire } from "@agari/markets";
-import { appMarketId, OPS_QUOTES_PATH, OPS_SEAT_FUND_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
+import { appMarketId, OPS_NONCE_HEADER, OPS_QUOTES_PATH, OPS_SEAT_FUND_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
 import { sandboxWorld, waitForLedger, type Window } from "./lib/sandbox-world";
 
 const LEDGER = process.env.LEDGER_JSON_API_URL ?? "http://localhost:7595";
@@ -84,8 +84,9 @@ async function lease(seat: Seat) {
 
 // ---- the ops stand-in ---------------------------------------------------------------------------------------
 
+/** `windows` is read at each request: the fast Window joins it only when the drive opens it (C2z). */
 function mockOps(w: Awaited<ReturnType<typeof world.setup>>, windows: Window[]) {
-  const byMarket = new Map(windows.map((win) => [appMarketId(win.marketId) as string, win]));
+  const byMarket = { get: (id: string) => windows.find((win) => appMarketId(win.marketId) === id) };
   const funded = new Set<string>();
   const server = createServer(async (req, res) => {
     const chunks: Buffer[] = [];
@@ -95,7 +96,7 @@ function mockOps(w: Awaited<ReturnType<typeof world.setup>>, windows: Window[]) 
       res.writeHead(status, { "content-type": "application/json" });
       res.end(JSON.stringify(toWire(value)));
     };
-    const signed = verifyOpsSignature(OPS_SECRET, { ts: req.headers[OPS_TS_HEADER] as string, sig: req.headers[OPS_SIG_HEADER] as string, method: req.method ?? "", path: req.url ?? "", body });
+    const signed = verifyOpsSignature(OPS_SECRET, { ts: req.headers[OPS_TS_HEADER] as string, nonce: (req.headers[OPS_NONCE_HEADER] as string) ?? null, sig: req.headers[OPS_SIG_HEADER] as string, method: req.method ?? "", path: req.url ?? "", body });
     if (!signed) return reply(401, { diagnosis: { kind: "rpc-down", retryable: false, technical: "bad ops signature" } });
     const r = JSON.parse(body);
     try {
@@ -173,13 +174,13 @@ async function main() {
   const w = await world.setup();
   const now = Date.now();
   const main = await world.openWindow(w, { seriesKey: `ITA${run}-60`, symbol: "ITA", cadenceSec: 60, lockLeadSec: 10, startsAtMs: now - 2_000 });
-  const fast = await world.openWindow(w, { seriesKey: `ITB${run}-20`, symbol: "ITB", cadenceSec: 20, lockLeadSec: 5, startsAtMs: now - 2_000, closeAdmissionSec: 0, settleGraceSec: 1 });
-  log(`world: venue ${w.venue.slice(0, 24)}…, seats ${w.seatA.slice(0, 16)}… ${w.seatB.slice(0, 16)}…; windows ${main.marketId}, ${fast.marketId}`);
+  log(`world: venue ${w.venue.slice(0, 24)}…, seats ${w.seatA.slice(0, 16)}… ${w.seatB.slice(0, 16)}…; window ${main.marketId} (the fast one opens when it is used)`);
 
   const dir = mkdtempSync(join(tmpdir(), "c4a-it-"));
   const partiesFile = join(dir, "parties.json");
   writeFileSync(partiesFile, JSON.stringify({ venue: w.venue, seats: [w.seatA, w.seatB], personas: { alice: w.alice, bob: w.bob, outsider: w.outsider } }));
-  const ops = await mockOps(w, [main, fast]);
+  const windows: Window[] = [main];
+  const ops = await mockOps(w, windows);
   const web = startWeb(partiesFile);
   try {
     await waitForWeb();
@@ -216,9 +217,13 @@ async function main() {
     check("GET /api/ledger/commands/:id says landed for its own lease", status.json.status === "landed" && status.json.updateId === acc.json.updateId, status.json);
 
     // The fast window: a leg whose market never resolves, refunded by the seat alone after refundAfter.
+    // C2z: the fast Window opens here, not at setup. It trades for 15 s, and on a loaded machine the steps above take
+    // longer than that.
+    const fast = await world.openWindow(w, { seriesKey: `ITB${run}-20`, symbol: "ITB", cadenceSec: 20, lockLeadSec: 5, startsAtMs: Date.now() - 2_000, closeAdmissionSec: 0, settleGraceSec: 1 });
+    windows.push(fast);
     const fastQ = await call(A, "POST", "/api/ledger/quotes", { marketId: appMarketId(fast.marketId), side: "down", stakeBase: 60_000n, displayedMaxCostBase: 100_000n });
     const fastAcc = await call(A, "POST", `/api/ledger/quotes/${fastQ.json.quoteCid}/accept`, { commandId: randomUUID() });
-    check("a second call on the fast window lands", fastAcc.json.kind === "confirmed", fastAcc.json.kind);
+    check("a second call on the fast window lands", fastAcc.json.kind === "confirmed", fastAcc.json.kind === "confirmed" ? fastAcc.json.kind : { quote: fastQ.json.kind, diagnosis: fastQ.json.diagnosis ?? fastAcc.json.diagnosis });
     const early = await call(A, "POST", "/api/ledger/legs/refund-stale", { commandId: randomUUID(), marketId: appMarketId(fast.marketId) });
     check("a stale refund before refundAfter is refused not-settled", early.json.kind === "refused" && early.json.diagnosis?.kind === "not-settled", early.json.diagnosis?.kind);
 

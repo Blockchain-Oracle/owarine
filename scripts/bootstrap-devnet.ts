@@ -19,11 +19,18 @@
  *   LEDGER_OIDC_USERNAME=… LEDGER_OIDC_PASSWORD=… \
  *   pnpm --filter @agari/scripts exec tsx bootstrap-devnet.ts [--parties file] [--out file] [--seats 8] [--dry-run]
  *     [--check-only] [--shards 16] [--lanes crypto,regular,gap,token,preipo,basket] [--reserve-seed 10000]
- *     [--no-tickets] [--no-games] [--allow-local]
+ *     [--no-tickets] [--no-games] [--allow-local] [--run <id>]
+ *
+ * Every write's commandId ends in the run id (`devnet-<base36 time>`, printed at the start). A write that meets
+ * SUBMISSION_ALREADY_IN_FLIGHT waits for the pending submission (`@agari/ledger`, up to `LEDGER_INFLIGHT_WAIT_MS`). If
+ * a write still ends "outcome unknown", re-run with `--run <that id>`: the pending write is then resolved under its own
+ * commandId (deduplicated if it landed, waited on if it is still in flight), never re-sent under a new one.
  *
  * `--allow-local` runs it against an unauthenticated local sandbox (the rehearsal: parties already allocated, DARs
  * already uploaded); rights do not apply there and are not checked.
  */
+// The generated bindings log "Registered template …" for every template as they load: ~100 lines above the table.
+import "../services/ops/src/actors/venue/quiet-codegen";
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -49,6 +56,9 @@ if (local && !flag("--allow-local")) {
 }
 const client = ledgerClientFromEnv(env);
 const dryRun = flag("--dry-run");
+/** The command-id suffix of this run's writes; `--run` resumes an earlier run under the same command ids. */
+const run = arg("--run", `devnet-${Date.now().toString(36)}`);
+if (!/^[A-Za-z0-9-]{1,40}$/.test(run)) throw new Error("--run takes 1-40 letters, digits or '-' (it ends every command id)");
 const seats = Number(arg("--seats", String(DEFAULT_SEATS)));
 /** `~/…` expanded: an env file does not expand it, and a relative path would resolve inside the repo. */
 const home = (p: string) => resolve(p.replace(/^~(?=\/|$)/, homedir()));
@@ -65,9 +75,11 @@ const commit = (() => {
 async function main(): Promise<number> {
   if (!Number.isInteger(seats) || seats < 1) throw new Error("--seats must be a positive integer");
   if (insideRepo(input) || insideRepo(out)) throw new Error("the parties file lives outside the repo (party ids never go into Git): use ~/.config/agari/canton/");
+  // C2z: a rehearsal's sandbox ids must never land in the file ops and the web read on DevNet.
+  if (local && out === DEFAULT_FILE) throw new Error(`a local rehearsal never writes ${DEFAULT_FILE}: pass --out <file outside the repo>`);
   if (!existsSync(input)) throw new Error(`${input} does not exist: copy docs/plan/runbooks/devnet-parties.example.json there and fill it`);
   const summary = ledgerConfigSummary(env);
-  log(`ledger ${summary.url} (auth ${summary.mode})${dryRun ? ", DRY RUN: prepare only" : ""}`);
+  log(`ledger ${summary.url} (auth ${summary.mode})${dryRun ? ", DRY RUN: prepare only" : ""}, run ${run}`);
 
   const rows: CheckRow[] = [];
   const started = new Date().toISOString();
@@ -110,7 +122,7 @@ async function main(): Promise<number> {
       client,
       parties: parsed.file.parties as Record<CantonRole, string>,
       dryRun,
-      run: `devnet-${Date.now().toString(36)}`,
+      run,
       shards: Number(arg("--shards", process.env.VENUE_SHARDS ?? "16")),
       shardBase: BigInt(arg("--shard-base", "2000000000")),
       lanes,
@@ -123,6 +135,8 @@ async function main(): Promise<number> {
     });
   } catch (e) {
     rows.push({ check: "bootstrap writes", outcome: "fail", ...errorEvidence(e) });
+    // Same command ids on the next run: a write whose outcome is unknown is never re-sent under a new one.
+    log(`a write failed. To resume, re-run the same command with --run ${run}`);
     return finish(rows, writes, started);
   }
   rows.push({ check: "bootstrap writes", outcome: "pass", detail: `${writes.length} ${dryRun ? "prepared" : "executed"}${writes.length === 0 ? " (everything was already on the ledger)" : ""}` });

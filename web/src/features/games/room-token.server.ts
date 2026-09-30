@@ -73,12 +73,40 @@ export async function roomArena(): Promise<{ chainId: number; arena: Address } |
 
 export type MintOutcome = { ok: true; grant: RoomTokenGrant } | { ok: false; status: number; error: string };
 
+/** Whether the seat that asks may speak for `wallet` (C4c): true only for a key of that seat's own live lease. */
+export type Vouch = (wallet: Address) => Promise<boolean>;
+
+/** The seat a request proved, as much of it as the vouch needs (`SeatContext` from `seatFromRequest`). */
+export interface ProvenSeat {
+  caller: string;
+  lease: { leaseId: string; address: string };
+  server: { store: { byAddress(address: string): Promise<{ leaseId: string } | null> } };
+}
+
+/**
+ * C4c (security review M1): the room trusted the wallet a key claimed, and on Canton no arena record ever names a
+ * seat's key (`readArenaAgent` answers "absent"), so any key could mint a token for any wallet and enter its room.
+ * A wallet is now vouched for only by the seat the request proves (the cookie, or the phone's signed header): the
+ * key that proved it, the key that took its lease, or a key joined to that same live lease (`byAddress`, the one
+ * address → party resolution). Another seat's address, or a lease that has ended, is refused.
+ */
+export function seatVouch(seat: ProvenSeat): Vouch {
+  return async (wallet) => {
+    if (wallet === seat.caller || wallet === seat.lease.address) return true;
+    const lease = await seat.server.store.byAddress(wallet).catch(() => null);
+    return lease !== null && lease.leaseId === seat.lease.leaseId;
+  };
+}
+
+const NOT_VOUCHED = { ok: false as const, status: 403, error: "That wallet is not this seat's. Take the seat on this device, or link this device to it." };
+
 /**
  * A first token: the browser key's signature is verified against the message this app would have asked
- * for, then discarded. The wallet it claims is taken on the key's word here — the reference's `hello` —
- * and checked against the arena's own agent record the moment a seat exists (`handlers.ts` §sendSnapshot).
+ * for, then discarded. The reference took the wallet on the key's word (its `hello`) and let the arena's
+ * agent record check it later; on Canton there is no such record, so the seat the request proves must
+ * vouch for the wallet first (`seatVouch`, C4c).
  */
-export async function mintFromSignature(wallet: Address, key: Address, issuedAtMs: number, signature: string, nowMs: number): Promise<MintOutcome> {
+export async function mintFromSignature(wallet: Address, key: Address, issuedAtMs: number, signature: string, nowMs: number, vouch: Vouch): Promise<MintOutcome> {
   const target = await roomArena();
   if (!target) return { ok: false, status: 503, error: "No duel arena is deployed on this network." };
   if (!roomAuthFresh(issuedAtMs, nowMs)) return { ok: false, status: 400, error: "That signature is too old." };
@@ -86,6 +114,7 @@ export async function mintFromSignature(wallet: Address, key: Address, issuedAtM
   const message = roomAuthMessage({ wallet, key, chainId: target.chainId, arena: target.arena, issuedAtMs });
   const verified = isSignature(signature) && (await verifyWalletMessage({ text: message, signature, signer: key }));
   if (!verified) return { ok: false, status: 401, error: "That signature is not this key's." };
+  if (!(await vouch(wallet))) return NOT_VOUCHED;
 
   return { ok: true, grant: grant(roomSessionClaims(wallet, key, target.chainId, target.arena, nowMs)) };
 }
@@ -94,10 +123,12 @@ export async function mintFromSignature(wallet: Address, key: Address, issuedAtM
  * A later token on the same signature. The presented token must be ours and its session still open —
  * an expired token still renews, because expiry is what renewal is for; a finished session does not.
  */
-export async function renewFromToken(token: string, nowMs: number): Promise<MintOutcome> {
+export async function renewFromToken(token: string, nowMs: number, vouch: Vouch): Promise<MintOutcome> {
   const parsed = parseRoomToken(token);
   if (!parsed || !macMatches(parsed.payload, parsed.mac)) return { ok: false, status: 401, error: "That room token is not ours." };
   if (!canRenewRoomToken(parsed.claims, nowMs)) return { ok: false, status: 401, error: "That room session has ended." };
+  // A session outlives no lease: the seat must still vouch for the wallet at every renewal.
+  if (!(await vouch(parsed.claims.wallet))) return NOT_VOUCHED;
 
   const target = await roomArena();
   if (!target || parsed.claims.chainId !== target.chainId || parsed.claims.arena !== target.arena) {
@@ -115,11 +146,13 @@ export type TokenWallet = { ok: true; wallet: Address } | { ok: false; status: n
  * the MAC first, then the arena binding and the clocks. The claim is the browser key's word for a
  * wallet that never entered a duel; the arcade's label says what that is worth, and no money rides on it.
  */
-export async function walletFromRoomToken(token: string, nowMs: number): Promise<TokenWallet> {
+export async function walletFromRoomToken(token: string, nowMs: number, vouch: Vouch): Promise<TokenWallet> {
   const target = await roomArena();
   if (!target) return { ok: false, status: 503, error: "No duel arena is deployed on this network, so no key can vouch for a seat here." };
   const verdict = verifyRoomToken(token, { chainId: target.chainId, arena: target.arena }, nowMs, macMatches);
   if (!verdict.ok) return { ok: false, status: verdict.code === "forbidden" ? 403 : 401, error: `That room token is not accepted: ${verdict.why}.` };
+  // C4c: the bearer must also be the seat the token names (M1), so a leaked or stale token posts nothing as it.
+  if (!(await vouch(verdict.claims.wallet))) return NOT_VOUCHED;
   return { ok: true, wallet: verdict.claims.wallet };
 }
 

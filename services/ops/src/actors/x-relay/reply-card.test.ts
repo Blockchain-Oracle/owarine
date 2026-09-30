@@ -47,8 +47,8 @@ describe("receipt reply artwork", () => {
     const svg = renderReplyCardSvg({ status: "submitted" });
     expect(svg).toContain("Instruction received");
     expect(svg).toContain("Open the receipt for details.");
-    expect(svg).toContain("Solana devnet");
-    expect(svg).toContain("SOLANA DEVNET");
+    expect(svg).toContain("Canton DevNet");
+    expect(svg).toContain("CANTON DEVNET");
     expect(svg).toContain("— Agari</title>");
     expect(svg).not.toMatch(/masayume|somnia|shannon|testnet/i);
     expect(svg).not.toMatch(/\bBTC\b|\bcredits\b|0x[\da-f]+|paid out|profit|win/i);

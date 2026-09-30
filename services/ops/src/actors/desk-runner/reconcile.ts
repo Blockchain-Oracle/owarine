@@ -13,10 +13,11 @@ import { MIN_TRADE_E6 } from "@agari/core/desk";
 import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
 import { isUpdateId } from "@agari/core/types";
 import type { DeskRow } from "@agari/db";
-import { deskStateOf, findMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@agari/markets/desk/server";
+import { deskStateOf, findLeasedMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@agari/markets/desk/server";
 import type { DeskMandateC } from "@agari/markets/ops/agents";
 import type { Ladder } from "@agari/markets/runtime";
 import { errorText } from "../../runtime/env";
+import { leasePartyOf } from "./lease";
 import { loadPaper, paperPositions } from "./paper";
 import type { DeskStanding, RunnerContext } from "./types";
 
@@ -40,7 +41,15 @@ export interface Reconciled {
   changes: OutsideChange[];
   /** Cash of at least one trade arrived from outside since the last snapshot: an event wake. */
   depositSeen: boolean;
+  /**
+   * Why this row is no longer its owner's desk (C4d, K-210): the owner holds no lease any more, so the seat's party may
+   * already be the next visitor's. The wake closes the row and nothing is read, valued or traded.
+   */
+  ended?: string;
 }
+
+/** The owner of a live desk row no longer leases a seat: its party may be someone else's now. */
+export const LEASE_ENDED = "the seat this desk belonged to was reset or passed on, so the desk is closed";
 
 /** What the balances should be now: the last snapshot plus and minus the desk's own confirmed fills since it. */
 export function findOutsideChanges(
@@ -170,7 +179,10 @@ export function lotPrices(m: DeskMandateC, ladders: readonly Ladder[], nowSec: n
 
 async function reconcileLive(ctx: RunnerContext, desk: DeskRow, nowSec: number, say: (line: string) => void): Promise<Reconciled> {
   if (!ctx.rpc?.ledger || !desk.address) throw new Error("no ledger reader to read the desk with");
-  const found = await findMandate(ctx.rpc.ledger, desk.address);
+  // Only the row owner's CURRENT lease party's mandate, at the row's address (K-210): never the next visitor's desk.
+  const party = await (ctx.leasePartyOf ?? leasePartyOf)(desk.owner);
+  if (!party) return { standing: { kind: "practice", positions: {}, cashE6: 0n }, trouble: null, changes: [], depositSeen: false, ended: LEASE_ENDED };
+  const found = await findLeasedMandate(ctx.rpc.ledger, { party, address: desk.address });
   if (!found) throw new Error("the desk's mandate was not found on the ledger (closed, or never opened)");
   const indexMode = desk.mode === "ask_first" || desk.mode === "on_its_own" ? desk.mode : null;
   const chain = deskStateOf({ mandate: found.data, offset: found.offset, nowSec, mintOf, marks: found.marks.filter((mk) => mk.venue === found.data.venue), indexMode });
@@ -183,7 +195,7 @@ async function reconcileLive(ctx: RunnerContext, desk: DeskRow, nowSec: number, 
   }
   const ladders = await ctx.ladders().catch(() => [] as readonly Ladder[]);
   const standing: DeskStanding = { kind: "live", chain, positions, frozen, cashE6: chain.usdc.raw, prices: lotPrices(found.data, ladders, nowSec) };
-  const settled = await settleUnresolved(ctx, desk, desk.address, nowSec);
+  const settled = await settleUnresolved(ctx, desk, chain.address, nowSec);
   for (const line of settled.note) say(line);
   if (settled.stillUnknown === 0) ctx.holding.delete(desk.id);
   else ctx.holding.add(desk.id);

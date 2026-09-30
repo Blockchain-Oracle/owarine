@@ -18,17 +18,17 @@ import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import type { Command, CreatedEvent, LedgerClient, Party } from "@agari/ledger";
 import { acmd } from "../ops/agents";
 import { decodeDeskMandate, decodeDeskMark, decodeDeskOffer, type DeskMandateC, type DeskMarkC } from "../ops/agents/decode";
-import { deskAddressOf, utcDayStartSec } from "../ops/agents/ids";
+import { utcDayStartSec } from "../ops/agents/ids";
 import { activeOf, decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import { damlModeOf, DESK_GRANT_DAYS, DESK_MAX_OPEN_POSITIONS, DESK_REF_QUORUM, deskStateOf, seriesOfSymbol } from "../desk/canton";
-import { createDeskLedgerRpc, mintOf, readOwnerDeskBalances, readSealsOf } from "../desk/ops";
+import { createDeskLedgerRpc, findLeasedMandate, mintOf, readOwnerDeskBalances, readSealsOf } from "../desk/ops";
 import type { DeskRpc, DeskState, OwnerDeskBalances, SealedAction } from "../desk/types";
 import type { DeskOwnerAction, DeskWriteReply } from "../desk/wire";
 import { seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
 import { exactCash } from "./exact-cash";
-import { DEFAULT_COMMAND_DEADLINE_MS, type CommandJournal, type CommandRow } from "./writes";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, type CommandJournal, type CommandRow } from "./writes";
 
 export interface DeskSeatConfig {
   client: LedgerClient;
@@ -103,20 +103,15 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
     return deskStateOf({ mandate: snap.mandate.data, offset: snap.offset, nowSec: nowSec(), mintOf, marks: mk, indexMode: indexMode ?? null });
   }
 
-  /** A desk by its address, read as the venue (a shared desk's page, the attach check). */
-  async function stateByAddress(address: string, indexMode?: DeskMode | null): Promise<DeskState | null> {
-    const r = await client.activeContracts({ parties: [cfg.venueParty], templateIds: [AGENT_TEMPLATE_IDS.DeskMandate, AGENT_TEMPLATE_IDS.DeskMark] });
-    let found: { data: DeskMandateC } | null = null;
-    const mk: DeskMarkC[] = [];
-    for (const c of r.contracts) {
-      const e = c.createdEvent;
-      if (isTemplate(e, AGENT_TEMPLATE_IDS.DeskMark)) mk.push(decodeDeskMark(e.createArgument));
-      else if (isTemplate(e, AGENT_TEMPLATE_IDS.DeskMandate)) {
-        const m = decodeDeskMandate(e.createArgument);
-        if (m.venue === cfg.venueParty && deskAddressOf(m.owner, m.venue) === address) found = { data: m };
-      }
-    }
-    return found ? deskStateOf({ mandate: found.data, offset: Number(r.activeAtOffset ?? 0), nowSec: nowSec(), mintOf, marks: mk, indexMode: indexMode ?? null }) : null;
+  /**
+   * The desk an index row names, read as the venue (the desk page, shared or the owner's): only while the row's owner
+   * still leases the mandate's party (`party` = that owner's CURRENT lease party, or null), and only at the row's own
+   * address or, for a row written before C4d, the party's old one (`findLeasedMandate`, K-210).
+   */
+  async function leasedState(o: { party: Party | null; address: string }, indexMode?: DeskMode | null): Promise<DeskState | null> {
+    const found = await findLeasedMandate({ client, venue: cfg.venueParty, readAs: [cfg.venueParty], operator: cfg.operator }, o);
+    if (!found || found.data.venue !== cfg.venueParty) return null;
+    return deskStateOf({ mandate: found.data, offset: found.offset, nowSec: nowSec(), mintOf, marks: found.marks.filter((m) => m.venue === cfg.venueParty), indexMode: indexMode ?? null });
   }
 
   const balances = (party: Party, symbols: readonly PreIpoSymbol[]): Promise<OwnerDeskBalances> =>
@@ -167,9 +162,9 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
         p = await plan(snap);
       }
       ctx = p.ctx ?? ctx;
-      await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "agent", beginOffset: snap.offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "agent", beginOffset: snap.offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
       try {
-        const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands: p.commands });
+        const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands: p.commands, ...inFlightBounds(row) });
         await journal.finish(commandId, { state: "landed", updateId: r.transaction.updateId });
         return { kind: "confirmed", updateId: r.transaction.updateId, offset: Number(r.transaction.offset), recovered: r.recovered };
       } catch (error) {
@@ -275,7 +270,7 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
     });
   }
 
-  return { read, state, stateByAddress, balances, seals, rpc, write, config: cfg };
+  return { read, state, leasedState, balances, seals, rpc, write, config: cfg };
 }
 
 export type DeskSeat = ReturnType<typeof createDeskSeat>;

@@ -5,6 +5,8 @@ export interface HttpDeps {
   fetch?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
   random?: () => number;
+  /** Wall clock in epoch ms, for deadlines (tests pass a fake that `sleep` advances). */
+  now?: () => number;
 }
 
 export interface TransportConfig {
@@ -29,6 +31,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Observes each failed attempt before a retry (for logs and metrics). */
   onRetry?: (err: LedgerError, attempt: number, delayMs: number) => void;
+  /** Awaited after a failed attempt and before its retry is sent; must not throw. */
+  beforeRetry?: (err: LedgerError, attempt: number) => Promise<void>;
 }
 
 export interface Transport {
@@ -111,6 +115,7 @@ export function createTransport(cfg: TransportConfig, deps: HttpDeps = {}): Tran
           if (!e.retryable || attempt >= maxAttempts) throw e;
           const delay = backoff(attempt, e.retryAfterMs);
           opts.onRetry?.(e, attempt, delay);
+          if (opts.beforeRetry) await opts.beforeRetry(e, attempt);
           await sleep(delay);
         }
       }

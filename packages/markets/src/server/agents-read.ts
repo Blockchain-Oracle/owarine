@@ -166,9 +166,23 @@ export function creatorLabel(e: RegistryEntry, labels: CreatorLabels): string {
   return label && e.createdOffset >= label.fromOffset ? label.address : e.listing.data.creator;
 }
 
-/** Who may run a creator's strategy (C8i): the house runner, or the creator's own seat (its address or party) to self-host. */
+/**
+ * Who may run a creator's strategy (C8i, security review finding 5): the house runner only. A seat's party is pooled
+ * and recycled, so subscribers' grants naming it as runner would survive into the next visitor's lease; a creator who
+ * asks to run its own bot from its seat is refused, with the reason, before anything is sent.
+ */
 export function runnerOf(seat: { party: Party; address: string }, requested: string, houseRunner: Party | null): Party {
-  const runner = requested === seat.address || requested === seat.party ? seat.party : requested;
-  if (runner !== seat.party && (houseRunner === null || runner !== houseRunner)) throw refuse("grant-refused", "a strategy runs on the house runner or on its creator's own seat");
-  return runner;
+  const own = requested === seat.address || requested === seat.party;
+  if (houseRunner !== null && requested === houseRunner) return houseRunner;
+  throw refuse("grant-refused", own ? "a seat's party is recycled with the seat, so it cannot run a strategy: the house runner runs it" : "a strategy runs on the house runner");
+}
+
+/**
+ * The agent a seat may grant (C8i, finding 5): the house agent-runner party only, which is the strategy runner, the X
+ * executor and the desk operator (K-087). Any other party named in a request is refused: a grant to a pooled seat
+ * party would outlive the lease.
+ */
+export function grantAgentOf(requested: string, houseRunner: Party | null): Party {
+  if (houseRunner !== null && requested === houseRunner) return houseRunner;
+  throw refuse("grant-refused", "a grant names this venue's agent (the house runner, also the X executor)");
 }

@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { encodeBase58 } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
 import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@agari/core/x";
-import { createReplyPresentation, REFUSAL_DETAILS, REPLY_LIMIT, replyText, SITE_URL, TRADE_FROM_X_URL } from "./reply-format";
+import { createReplyPresentation, NETWORK_LABEL, receiptUrl, REFUSAL_DETAILS, REPLY_LIMIT, replyText, SITE_URL, TRADE_FROM_X_URL } from "./reply-format";
 
 const HASH = encodeBase58(new Uint8Array(64).fill(0xab));
-const TX_URL = txUrl(HASH as Parameters<typeof txUrl>[0]);
+const TX_URL = receiptUrl(HASH as Parameters<typeof receiptUrl>[0]);
 const MAX_UINT256 = (2n ** 256n - 1n).toString();
 function receipt(over: Partial<XReceipt> = {}): XReceipt {
   return {
@@ -56,7 +55,7 @@ describe("public X receipt text", () => {
 
   it("keeps no-fill, unknown, reverted and initial instruction states distinct", () => {
     expect(replyText(receipt({ status: "nothing-filled" }), 6)).toContain("No position was booked.");
-    expect(replyText(receipt({ status: "reverted" }), 6)).toContain("The network fee may still have been spent.");
+    expect(replyText(receipt({ status: "reverted" }), 6)).toContain("Nothing was booked and no fee was taken.");
     expect(replyText(receipt({ status: "submitted", txHash: null }), 6)).toContain("Checks are in progress; no confirmed trade yet.");
     const pending = replyText(receipt({ status: "unknown" }), 6);
     expect(pending).toContain("Status needs checking");
@@ -104,7 +103,7 @@ describe("public X receipt text", () => {
   it("validates all public context and defaults invalid statuses to uncertainty", () => {
     const model = createReplyPresentation(receipt({ status: "win" as XReceipt["status"], asset: "@victim💰", side: "win" as XReceipt["side"], intervalSec: 7, expirySec: Number.MAX_SAFE_INTEGER }), 6);
     expect(model.status).toBe("unknown");
-    expect(model.context).toBe("Solana devnet");
+    expect(model.context).toBe("Canton DevNet");
     const filled = createReplyPresentation(receipt({ bookedCostBase: "1" }), 6, "USD\n@victim");
     expect(filled.detail).toBe("Spent 0.000001 collateral.");
   });
@@ -127,5 +126,13 @@ describe("public X receipt text", () => {
       expect(result).not.toContain("\\n");
       expect(result.split("\n").at(-1)).toBe(txHash ? TX_URL : TRADE_FROM_X_URL);
     }
+  });
+
+  it("names the Canton network and links an absolute proof page (C13a)", () => {
+    expect(NETWORK_LABEL).toBe("Canton DevNet");
+    expect(TX_URL.startsWith(`${SITE_URL}/proof?update=`)).toBe(true);
+    const text = replyText(receipt({ bookedCostBase: "1" }), 6);
+    expect(text).toContain(TX_URL);
+    expect(text).not.toMatch(/solana|on-chain|network fee/i);
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Address } from "@agari/core/types";
-import { keys, usePositions } from "@agari/markets/react";
+import { keys, usePositions, usePublishedCalls } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
@@ -25,10 +25,15 @@ async function readTakes(address: Address, signal: AbortSignal): Promise<TakesFe
   return (await response.json()) as TakesFeed;
 }
 
-/** Open calls (Portfolio's bet rows over `usePositions`, public index data) and the wallet's recent signed takes. */
-export function ProfileCalls({ address, units }: { address: Address; units: MoneyUnits }) {
+/**
+ * Open calls (Portfolio's bet rows) and the seat's recent signed takes. Your own open calls are your seat's live legs;
+ * anyone else's are only the calls they published (C13a).
+ */
+export function ProfileCalls({ address, units, own }: { address: Address; units: MoneyUnits; own: boolean }) {
   const nowMs = useChainNowMs();
-  const positions = usePositions(address);
+  const ownPositions = usePositions(own ? address : null);
+  const publishedCalls = usePublishedCalls(address, !own);
+  const positions = own ? ownPositions : publishedCalls;
   const queryClient = useQueryClient();
   const takes = useQuery({
     queryKey: ["agari", "takes", "authors", address],
@@ -43,12 +48,12 @@ export function ProfileCalls({ address, units }: { address: Address; units: Mone
   return (
     <>
       <section className="prf-section" aria-label={PROFILE.calls.title}>
-        <SectionHeader index={PROFILE.calls.number} title={PROFILE.calls.title} desc={PROFILE.calls.desc} className="lb-section-head" />
+        <SectionHeader index={PROFILE.calls.number} title={PROFILE.calls.title} desc={own ? PROFILE.calls.desc : PROFILE.callsPublishedDesc} className="lb-section-head" />
         <div className="bets-plate">
           <ReadingBoundary
             reading={positions}
             shape="row"
-            retry={() => void queryClient.invalidateQueries({ queryKey: keys.positions(address) })}
+            retry={() => void queryClient.invalidateQueries({ queryKey: own ? keys.positions(address) : keys.published(address, "calls") })}
             isEmpty={(value) => value.length === 0}
             empty={{ why: PROFILE.calls.none }}
           >

@@ -20,7 +20,7 @@ export async function resolveXExecution(receipt: XReceipt): Promise<RecoveredVau
 export function recoverExecutionReceipt(receipt: XReceipt, result: RecoveredVaultExecution): XReceipt {
   const unknown = { ...receipt, status: "unknown" as const, reason: "Execution needs checking before another instruction." };
   if (result.status === "unknown") return unknown;
-  if (result.status === "reverted") return { ...receipt, status: "reverted", txHash: result.txHash, reason: "The trade reverted on-chain." };
+  if (result.status === "reverted") return { ...receipt, status: "reverted", txHash: result.txHash, reason: "The ledger rejected the trade." };
   if (result.tokenDelta === 0n) return { ...receipt, status: "nothing-filled", txHash: result.txHash, reason: "No position was booked." };
   const decimals = receipt.collateralDecimals;
   if (typeof decimals !== "number" || !Number.isInteger(decimals) || decimals < 0 || decimals > 18) return { ...unknown, txHash: result.txHash };

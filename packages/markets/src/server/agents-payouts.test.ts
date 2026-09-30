@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { strategyNumOf } from "../ops/agents/ids";
 import { creatorPayoutsView } from "../ops/agents/views";
 import { createAgentsSeat } from "./agents";
+import { grantAgentOf } from "./agents-read";
 import type { OpsClient } from "./ops-client";
 import type { CommandJournal, CommandRow } from "./writes";
 
@@ -152,7 +153,7 @@ describe("a recycled seat inherits nothing of the earlier visitor on its party (
     const seat = seatOver(l.client, HOUSE);
     const replies = [
       await seat.update(visitor2, { journalId: J1, strategyId: SID, metadata: "{}", feeBase: 0n }),
-      await seat.setRunner(visitor2, { journalId: J2, strategyId: SID, runner: visitor2.address }),
+      await seat.setRunner(visitor2, { journalId: J2, strategyId: SID, runner: HOUSE }),
       await seat.deactivate(visitor2, { journalId: J3, strategyId: SID }),
     ];
     for (const r of replies) {
@@ -172,29 +173,65 @@ describe("a recycled seat inherits nothing of the earlier visitor on its party (
   });
 });
 
-describe("a strategy runs on the house runner or its creator's own seat (C8i, L5)", () => {
+describe("a strategy runs on the house runner, and a grant names only the house agent (C8i, L5, finding 5)", () => {
   const mine = { party: A, leaseId: "lease-1", address: "SeatA111", fromOffset: 5 };
   const choiceArg = (i: number, l: ReturnType<typeof ledger>) => (l.sent[i]!.commands[0] as unknown as { ExerciseCommand: { choiceArgument: Record<string, unknown> } }).ExerciseCommand.choiceArgument;
+  const envelope = { maxStakePerTradeBase: 5_000_000n, maxDailySpendBase: 20_000_000n, maxOpenPositions: 2, maxPriceRaw: 0n };
 
   it("refuses any other party as runner, on publish and on a runner change, before anything is sent", async () => {
     const l = ledger([...strategy(A, "7", 12), { cid: "lic", templateId: AGENT_TEMPLATE_IDS.CreatorLicense, seenBy: [VENUE, A], offset: 1, data: { venue: VENUE, creator: A, nextIndex: "1" } }]);
     const seat = seatOver(l.client, HOUSE);
-    const envelope = { maxStakePerTradeBase: 5_000_000n, maxDailySpendBase: 20_000_000n, maxOpenPositions: 2, maxPriceRaw: 0n };
     for (const runner of [B, VENUE, "someone-else::1220ee"]) {
       const pub = await seat.publish(mine, { journalId: J1, runner, envelope, feeBase: 0n, metadata: "{}" });
-      expect(pub.kind === "refused" && pub.diagnosis.technical).toMatch(/house runner or on its creator's own seat/);
+      expect(pub.kind === "refused" && pub.diagnosis.technical).toMatch(/runs on the house runner/);
       const set = await seat.setRunner(mine, { journalId: J2, strategyId: SID, runner });
-      expect(set.kind === "refused" && set.diagnosis.technical).toMatch(/house runner or on its creator's own seat/);
+      expect(set.kind === "refused" && set.diagnosis.technical).toMatch(/runs on the house runner/);
     }
     expect(l.sent).toHaveLength(0);
   });
 
-  it("accepts the house runner, or the seat's own address as its own party", async () => {
+  it("refuses the creator's own seat as runner: its party is recycled with the seat, and grants naming it would outlive the lease", async () => {
+    const l = ledger([...strategy(A, "7", 12), { cid: "lic", templateId: AGENT_TEMPLATE_IDS.CreatorLicense, seenBy: [VENUE, A], offset: 1, data: { venue: VENUE, creator: A, nextIndex: "1" } }]);
+    const seat = seatOver(l.client, HOUSE);
+    for (const runner of [mine.address, mine.party]) {
+      const pub = await seat.publish(mine, { journalId: J1, runner, envelope, feeBase: 0n, metadata: "{}" });
+      expect(pub.kind === "refused" && pub.diagnosis.technical).toMatch(/recycled with the seat/);
+      const set = await seat.setRunner(mine, { journalId: J2, strategyId: SID, runner });
+      expect(set.kind === "refused" && set.diagnosis.technical).toMatch(/recycled with the seat/);
+    }
+    expect(l.sent).toHaveLength(0);
+  });
+
+  it("accepts the house runner", async () => {
     const l = ledger(strategy(A, "7", 12));
     const seat = seatOver(l.client, HOUSE);
     expect((await seat.setRunner(mine, { journalId: J3, strategyId: SID, runner: HOUSE })).kind).toBe("confirmed");
     expect(choiceArg(0, l).newRunner).toBe(HOUSE);
-    expect((await seat.setRunner(mine, { journalId: J4, strategyId: SID, runner: mine.address })).kind).toBe("confirmed");
-    expect(choiceArg(1, l).newRunner).toBe(A);
+  });
+
+  it("refuses a grant to any agent but the house agent-runner (the strategy runner and X executor), before anything is sent", async () => {
+    const l = ledger(strategy(A, "7", 12));
+    const seat = seatOver(l.client, HOUSE);
+    const caps = { maxStakePerTradeBase: 1_000_000n, maxDailySpendBase: 5_000_000n, maxOpenPositions: 1, maxPriceRaw: 850_000n };
+    for (const actor of [B, mine.party, mine.address, VENUE]) {
+      const r = await seat.openGrant(mine, { journalId: J4, kind: "strategy", actor, caps, expiresAtSec: 1_790_000_000 + 86_400, budgetBase: 5_000_000n });
+      expect(r.kind === "refused" && r.diagnosis.technical).toMatch(/this venue's agent/);
+    }
+    expect(l.sent).toHaveLength(0);
+    expect(grantAgentOf(HOUSE, HOUSE)).toBe(HOUSE);
+    expect(() => grantAgentOf(HOUSE, null)).toThrow(/this venue's agent/);
+  });
+});
+
+describe("the calling seat's own label counts from its lease's start (C8i, after C4c's caller relabel)", () => {
+  it("a recycled seat proving its own key is never shown as creator of the previous visitor's strategy", async () => {
+    const l = ledger(strategy(A, "7", 12));
+    const seat = seatOver(l.client, HOUSE);
+    // The strategy was created at offset 12. The caller's lease began at 50 (a later visitor on the same party).
+    const recycled = await seat.strategies(new Map([[A, { address: "phone-c", fromOffset: 50 }]]));
+    expect(recycled[0]!.creator).toBe(A);
+    // The visitor whose lease began at 5 is its creator, by the key it proves.
+    const own = await seat.strategies(new Map([[A, { address: "phone-a", fromOffset: 5 }]]));
+    expect(own[0]!.creator).toBe("phone-a");
   });
 });

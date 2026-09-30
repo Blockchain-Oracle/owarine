@@ -39,11 +39,11 @@ export async function bootstrapMaker(o: {
   let acs = await read();
   if (!acs.some((c) => c.createdEvent.templateId.endsWith(":PM.Maker:MakerDesk"))) {
     await submitAs(v, `bootstrap:makerdesk:${run}`, [bcmd.createMakerDesk(v)]);
-    log("created the MakerDesk");
+    log(`${venue.dryRun ? "would create" : "created"} the MakerDesk`);
   }
   if (!pick(acs, TEMPLATE_IDS.NavStatement, decodeNavStatement).some((n) => n.data.reserveId === MAKER_RESERVE)) {
     await submitAs(v, `bootstrap:reserve:${MAKER_RESERVE}:${run}`, [tcmd.createNavStatement({ venue: v, auditor, reserveId: MAKER_RESERVE, asOfSec: nowSec() })]);
-    log("created the maker vault's statement");
+    log(`${venue.dryRun ? "would create" : "created"} the maker vault's statement`);
   }
 
   // A dry run prepares only the writes above: the LP seed and the first statement need contracts those writes create.

@@ -1,9 +1,10 @@
-import type { JsCantonError } from "./types";
+import type { Completion, JsCantonError } from "./types";
 
 /**
  * Canton error categories as they arrive in `JsCantonError.errorCategory` (and as `category` in its
  * context). Ids from Canton's `ErrorCategory`; observed on Canton 3.5.17: INVALID_TOKEN /
- * INVALID_FIELD / COMMAND_PREPROCESSING_FAILED = 8, DUPLICATE_COMMAND = 10.
+ * INVALID_FIELD / COMMAND_PREPROCESSING_FAILED = 8, DUPLICATE_COMMAND = 10,
+ * SUBMISSION_ALREADY_IN_FLIGHT = 2 (read from the 3.5.17 jar: `ConsistencyErrors.SubmissionAlreadyInFlight`).
  */
 export const ERROR_CATEGORY = {
   TransientServerFailure: 1,
@@ -31,6 +32,7 @@ export type LedgerErrorKind =
   | "schema" // 400 text/plain: the JSON failed the node's schema validation
   | "invalid" // Canton rejected the request as malformed
   | "duplicate" // DUPLICATE_COMMAND: an earlier submission under this change id was accepted
+  | "in-flight" // SUBMISSION_ALREADY_IN_FLIGHT: an earlier submission under this change id is still pending
   | "not-found" // a contract, update or party is missing or inactive
   | "contention" // Canton says retry: locked contracts, capacity
   | "rejected" // Daml interpretation or a failed precondition
@@ -43,6 +45,20 @@ export type LedgerErrorKind =
  */
 export type TransportDiagnosis = "rpc-down" | "send-unknown" | "contract-revert" | "unknown";
 
+/**
+ * Canton's id for "another submission with this change id (user id, command id, actAs) is still being processed".
+ * Canton 3.5.17 answers it on a submit with HTTP 409, `errorCategory` 2 (ContentionOnSharedResources), gRPC 10
+ * (ABORTED), cause "The submission is already in-flight" and context `changeId`, `existingSubmissionId`
+ * (`Some(<id>)`), `existingSubmissionSynchronizerId`. In a completion status it is the message prefix
+ * `SUBMISSION_ALREADY_IN_FLIGHT(2,<correlation>): ...`.
+ */
+export const SUBMISSION_ALREADY_IN_FLIGHT = "SUBMISSION_ALREADY_IN_FLIGHT";
+
+/** True for the in-flight id as a JSON `code`, a gRPC status message (`ID(2,…): …`) or a proxy's plain-text body. */
+export function isSubmissionAlreadyInFlight(codeOrText: string | null | undefined): boolean {
+  return typeof codeOrText === "string" && /(^|[^A-Z_])SUBMISSION_ALREADY_IN_FLIGHT([^A-Z_]|$)/.test(codeOrText);
+}
+
 export interface LedgerErrorInit {
   kind: LedgerErrorKind;
   status?: number;
@@ -50,6 +66,10 @@ export interface LedgerErrorInit {
   message: string;
   canton?: JsCantonError;
   cause?: unknown;
+  /** The submission's commandId, when the error is about one command. */
+  commandId?: string;
+  /** Overrides the definite-answer flag read from `canton` (a rejection completion is definite). */
+  definiteAnswer?: boolean;
 }
 
 export class LedgerError extends Error {
@@ -70,6 +90,8 @@ export class LedgerError extends Error {
   readonly retryAfterMs: number | undefined;
   readonly context: Readonly<Record<string, string>>;
   readonly canton: JsCantonError | undefined;
+  /** The commandId this error is about, when the client knows it (in-flight recovery sets it). */
+  readonly commandId: string | undefined;
 
   constructor(init: LedgerErrorInit) {
     super(init.message, init.cause === undefined ? undefined : { cause: init.cause });
@@ -83,11 +105,15 @@ export class LedgerError extends Error {
     this.correlationId = c?.correlationId ?? undefined;
     this.traceId = c?.traceId ?? c?.context?.tid ?? undefined;
     this.context = c?.context ?? {};
-    this.definiteAnswer = c?.definiteAnswer ?? parseBool(c?.context?.definite_answer);
+    this.definiteAnswer = init.definiteAnswer ?? c?.definiteAnswer ?? parseBool(c?.context?.definite_answer);
     this.retryAfterMs = parseRetryInfo(c?.retryInfo);
+    this.commandId = init.commandId;
   }
 
-  /** Safe to resend under the SAME commandId (dedup makes it idempotent within the dedup period). */
+  /**
+   * Safe to resend under the SAME commandId (dedup makes it idempotent within the dedup period). Not `in-flight`:
+   * a resend meets the same pending change id, so the client waits for that submission's completion instead.
+   */
   get retryable(): boolean {
     return this.kind === "network" || this.kind === "timeout" || this.kind === "unavailable" || this.kind === "contention";
   }
@@ -99,6 +125,7 @@ export class LedgerError extends Error {
         return "rpc-down";
       case "timeout":
       case "duplicate":
+      case "in-flight":
         return "send-unknown";
       case "rejected":
       case "not-found":
@@ -115,6 +142,17 @@ export class LedgerError extends Error {
     if (raw === undefined || !/^\d+$/.test(raw)) return undefined;
     const n = Number(raw);
     return Number.isSafeInteger(n) ? n : undefined;
+  }
+
+  /**
+   * For a DUPLICATE_COMMAND or SUBMISSION_ALREADY_IN_FLIGHT: the submissionId of the earlier submission, from the
+   * context's `existingSubmissionId` (Canton prints a Scala `Option`: `Some(<id>)` or `None`).
+   */
+  get existingSubmissionId(): string | undefined {
+    const raw = this.context.existingSubmissionId;
+    if (raw === undefined || raw === "" || raw === "None") return undefined;
+    const m = /^Some\((.*)\)$/.exec(raw);
+    return m ? m[1] || undefined : raw;
   }
 }
 
@@ -148,6 +186,7 @@ export function isJsCantonError(v: unknown): v is JsCantonError {
 
 export function kindFromCanton(status: number | undefined, e: JsCantonError): LedgerErrorKind {
   if (e.code === "DUPLICATE_COMMAND") return "duplicate";
+  if (isSubmissionAlreadyInFlight(e.code)) return "in-flight";
   const C = ERROR_CATEGORY;
   switch (e.errorCategory) {
     case C.TransientServerFailure:
@@ -211,8 +250,34 @@ export function errorFromResponse(path: string, status: number, contentType: str
     return new LedgerError({ kind, status, path, canton: parsed, message: `${path} → ${status} ${parsed.code}: ${parsed.cause}` });
   }
   const snippet = bodyText.slice(0, 500);
+  // A proxy or gRPC gateway that passes the status message through as text: still the in-flight answer.
+  if (isSubmissionAlreadyInFlight(snippet)) {
+    return new LedgerError({ kind: "in-flight", status, path, message: `${path} → ${status} ${SUBMISSION_ALREADY_IN_FLIGHT}: ${snippet}` });
+  }
   if (status === 400) {
     return new LedgerError({ kind: "schema", status, path, message: `${path} → 400 (schema): ${snippet}` });
   }
   return new LedgerError({ kind: kindFromStatus(status), status, path, message: `${path} → ${status}: ${snippet}` });
+}
+
+/**
+ * A rejection completion as a `LedgerError`. Canton's status message is `<ERROR_ID>(<category>,<correlation>): <cause>`
+ * (e.g. `MEDIATOR_SAYS_TX_TIMED_OUT(2,1a2b3c4d): Rejected transaction ...`, category 2 per the 3.5.17 jar); the id and category give the kind the same
+ * way a synchronous answer's body does. A completion is a definite answer for its submission.
+ */
+export function errorFromCompletion(path: string, c: Completion): LedgerError {
+  const message = c.status?.message ?? "";
+  const m = /^([A-Z][A-Z0-9_]*)\((\d+),([^)]*)\):\s*([\s\S]*)$/.exec(message);
+  const canton: JsCantonError = m
+    ? { code: m[1]!, cause: m[4]!, errorCategory: Number(m[2]), correlationId: m[3] || null, grpcCodeValue: c.status?.code ?? null, context: {} }
+    : { code: `GRPC_STATUS_${c.status?.code ?? "UNKNOWN"}`, cause: message, errorCategory: -1, grpcCodeValue: c.status?.code ?? null, context: {} };
+  const kind = m ? kindFromCanton(undefined, canton) : "rejected";
+  return new LedgerError({
+    kind: kind === "unknown" ? "rejected" : kind,
+    path,
+    canton,
+    commandId: c.commandId,
+    definiteAnswer: true,
+    message: `commandId ${c.commandId}: submission ${c.submissionId ?? "(no submissionId)"} was rejected at offset ${c.offset}: ${message || `gRPC status ${c.status?.code ?? "?"}`}`,
+  });
 }

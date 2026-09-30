@@ -43,19 +43,21 @@ export function toChainWire(s: DeskState): ChainStateWire {
   };
 }
 
-/** A desk's ledger state by its address (the index row's), or by its owner's seat when the row has none yet. */
+/**
+ * A desk's ledger state by its address (the index row's), or by its owner's seat when the row has none yet. Either way
+ * only under the owner's CURRENT lease (C4d, K-210): the mandate must belong to the party that owner leases now, so an
+ * earlier visitor's row never shows the live desk of the party's next visitor.
+ */
 export async function readChain(owner: Address, _nowSec: number, address?: string | null): Promise<{ state: ChainStateWire | null; error: string | null }> {
   const state = seatServer();
   if (!state.ok) return { state: null, error: CHAIN_NOT_CONFIGURED };
   const { server } = state;
   try {
     const mode = await indexModeOf(owner);
+    const lease = await server.store.byAddress(owner);
     let s: DeskState | null = null;
-    if (address) s = await server.desk.stateByAddress(address, mode);
-    else {
-      const lease = await server.store.byAddress(owner);
-      s = lease ? await server.desk.state(lease.party, mode) : null;
-    }
+    if (address) s = await server.desk.leasedState({ party: lease?.party ?? null, address }, mode);
+    else s = lease ? await server.desk.state(lease.party, mode) : null;
     return { state: s ? toChainWire(s) : null, error: null };
   } catch (error) {
     return { state: null, error: `the ledger could not be read (${error instanceof Error ? error.name : "unknown"})` };

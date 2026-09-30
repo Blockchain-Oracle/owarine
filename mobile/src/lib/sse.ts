@@ -1,24 +1,13 @@
 import { setStreamFactory } from "@agari/markets/runtime";
+import { AppState } from "react-native";
 import EventSource from "react-native-sse";
+import { makeStreamFactory } from "./sse-source";
 
 /**
- * The phone's SSE for the read runtime's streams (ops `/prices/stream` and the venue's `/ladders/stream`): React Native
- * has no `EventSource`, so `react-native-sse` stands in, adapted to the runtime's `StreamSource`. It reconnects on its
- * own (`pollingInterval`), so its errors never say "closed"; only an explicit close does.
+ * The phone's SSE for the read runtime's streams: React Native has no `EventSource`, so `react-native-sse` stands in,
+ * through `makeStreamFactory` (errors go to the runtime's backoff; the socket closes in the background). Registered
+ * at boot (`app/_layout.tsx`), before any screen subscribes.
  */
-const RECONNECT_MS = 5_000;
+const RECONNECT_AFTER_END_MS = 2_000;
 
-setStreamFactory((url) => {
-  const source = new EventSource<"spot" | "ladder">(url, { pollingInterval: RECONNECT_MS });
-  return {
-    listen: (event, handler) => source.addEventListener(event as "spot" | "ladder", (e) => handler(String((e as { data?: string | null }).data ?? ""))),
-    onError: (handler) => {
-      source.addEventListener("error", () => handler(false));
-      source.addEventListener("close", () => handler(true));
-    },
-    close: () => {
-      source.removeAllEventListeners();
-      source.close();
-    },
-  };
-});
+setStreamFactory(makeStreamFactory((url) => new EventSource<"spot" | "ladder">(url, { pollingInterval: RECONNECT_AFTER_END_MS }) as never, AppState));

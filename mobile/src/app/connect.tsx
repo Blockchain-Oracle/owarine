@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -59,7 +60,7 @@ export default function ConnectSheet() {
             </View>
           </View>
         </View>
-        <TakeSeat taking={taking} error={error} onTake={() => void take()} onBrowse={close} />
+        <TakeSeat taking={taking} error={error} onTake={() => void take()} onBrowse={close} onLink={() => (drawer.current ? drawer.current(() => router.push("/seat/link")) : (dismiss(), router.push("/seat/link")))} />
       </View>
     </WalletSheet>
   );

@@ -42,7 +42,7 @@ export function outcomeToReceipt(outcome: OrderOutcome): OutcomeReceipt {
       // A relayed instruction never asks to rest (D-088 is the ticket's pre-open call); the order is live, not filled.
       return { status: "submitted", reason: "The call rests on the Book until it fills.", txHash: outcome.rested.txHash };
     case "reverted":
-      return { status: "reverted", reason: "The trade reverted on-chain.", txHash: outcome.txHash };
+      return { status: "reverted", reason: "The ledger rejected the trade.", txHash: outcome.txHash };
     case "unknown":
       return { status: "unknown", reason: "Transaction status needs checking before another instruction.", txHash: outcome.txHash ?? outcome.diagnosis.txHash ?? null };
   }

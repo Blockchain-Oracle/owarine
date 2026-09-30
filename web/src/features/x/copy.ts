@@ -174,3 +174,14 @@ export const CLAIM = {
   },
   footnote: "Your calls sit in a vault that pays only the seat that funded it. Not even us. Signing in with X just proves it’s the same you that placed them.",
 } as const;
+
+/** `/native-auth` (C13a, K-145): the X sign-in handoff into the app, when it is opened without the app's nonce. */
+export const NATIVE_AUTH = {
+  title: "Sign in with X · app",
+  why: "This page signs you in with X for the Agari app. Open the app, go to Trade from X and tap Sign in with X; it brings you here and straight back.",
+  web: "Sign in on the web instead",
+  consentTitle: "Continue in the Agari app?",
+  consentWhy: (handle: string | null) =>
+    `The Agari app asked to sign in with your X account${handle ? ` @${handle}` : ""}. Continue only if you started this from the Agari app on this phone.`,
+  consentCta: (handle: string | null) => (handle ? `Continue in the app as @${handle}` : "Continue in the app"),
+} as const;

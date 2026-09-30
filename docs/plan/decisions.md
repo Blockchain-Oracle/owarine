@@ -240,6 +240,18 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** "N sets paired · merge" is now what the merge does.
 - **Approval:** default; overrulable.
 
+### K-202 — Released DARs are tracked in Git (`daml/released/`, R1 on) (overflow block)
+- **Date / owner:** 2026-09-30 · C2z lane
+- **Evidence:** the four R1 DARs are 0.82–1.01 MB each, 3.7 MB together, and `.gitignore` does not exclude them. `bootstrap-devnet.ts` checks the package id read from `daml/released/<name>-<version>.dar` on the participant. So the file Abu uploads and the file the check reads must be the same bytes. A DAR rebuilt from the same source on another machine or another SDK patch can get a different package id. The plan's release train and gates name "the last DAR in `daml/released/`" as the old side of every `upgrade-check`. The Console cannot delete a DAR, so every released file stays live on the participant.
+- **Rule:**
+  - Each release commits its DARs to `daml/released/` as `<name>-<version>.dar`, beside `MANIFEST.md`. The manifest records the package id, the sha256, the build commit and the `upgrade-check --both` output.
+  - The files are never rebuilt in place.
+  - Older releases stay in the folder, as the record of what went up.
+  - The next release's `upgrade-check` takes its old side from this folder.
+  - The folder is tracked while each DAR is under 5 MB. A release with a larger DAR moves the folder to Git LFS, recorded as a new entry.
+- **User-visible:** none. The judge-facing repo shows exactly what runs on DevNet: package ids in `MANIFEST.md` match `GET /v2/packages`.
+- **Approval:** default; overrulable.
+
 ### K-093 — Every way a ticket ends leaves a receipt (`abu-pm-tickets` 0.1.2) (C8 block)
 - **Date / owner:** 2026-09-29 · C8e lane
 - **Evidence:** in 0.1.1, only settle and claim wrote a `SettlementReceipt` (K-030). The reference's portfolio History lists boosts that settled, knocked out or were cashed out, and its range and parlay screens keep ended tickets. `Test.Tickets.ExitReceipts` has 5 new money-gate scripts. `dpm test` passes all 160 scripts. `dpm upgrade-check --both` passes 0.1.1 → 0.1.2 with no warnings.
@@ -297,6 +309,64 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Date / owner:** 2026-09-29 · C0 owner, recording the plan default
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
 - **Approval:** default; Abu creates the app record when the iOS build reaches it.
+
+### K-126 — The app's identifiers live in one file; none is the reference's (C11 block)
+- **Date / owner:** 2026-09-30 · C11a lane
+- **Evidence:** the import still carried the Solana app's live identifiers in `mobile/app.json` and `eas.json` (its EAS project and update URL, `owner`, bundle id and package `xyz.useagari.app`, scheme `agari`, the App Store Connect app id and key paths). One `eas update` from this repo would have reached that app's TestFlight users. `mobile/app.config.js`, `mobile/app.identity.json`, `scripts/invariants/lib/mobile-identity.mjs`.
+- **Rule:**
+  - `mobile/app.identity.json` holds every identifier: display name, slug, bundle id, Android package, scheme, App Group, the widget and Live Activity extension id (expo-widgets hosts both in one target), the SecureStore key prefix and the MMKV id. `app.config.js` builds the Expo config from it, and `src/lib/identity.ts` and `src/lib/keys.ts` read it; `app.json` is gone.
+  - Working values until Abu names the product (K-007): display name "Agari Canton", slug `agari-canton`, bundle id and package `xyz.useagari.canton`, scheme `agaricanton`, App Group `group.xyz.useagari.canton`, extension `xyz.useagari.canton.ExpoWidgetsTarget`, storage prefix `canton.`, MMKV id `canton`. The new version starts at 0.1.0 (Android versionCode 1).
+  - There is no EAS project yet: `easProjectId` is null, so the config has no `extra.eas.projectId`, no `updates.url` and no `owner`. `eas.json` keeps its build profiles (Node 25.9.0) but has no `submit` block until the new app record's `ascAppId` exists. Push reports "no project" (the reference's own `no-project` path) until then.
+  - The `mobile-identity` invariant fails if the reference's EAS project id (and with it its update URL) or its App Store Connect app id appears in any code or config file, if an identity value reuses a reference value, if `app.json` comes back, or if app source spells `agari://`.
+- **TODO (Abu):** the product name and final ids. A rename edits `app.identity.json` only, before the App Store Connect record is created (a bundle id cannot change after that).
+- **User-visible:** the home-screen name reads "Agari Canton"; deep links use `agaricanton://`.
+- **Approval:** default; Abu can overrule the working name and ids.
+
+### K-140 — A seat's own history is read under its lease; anyone else's only from its publications (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Evidence:** the projector keys a seat's rows by party and never writes `owner_address` (`packages/db/src/idx/apply.ts`; `c9d-seats-games.md`), and a seat party is recycled to later visitors. Before C13a, `/api/index/wallet/<address>/{fills,actions,positions,orders}` matched nothing for a seat address, `/u/<address>` answered 403 for anyone else, and the activity inbox read publications even for the seat itself. Tests: `packages/db/src/idx/read-lease.test.ts` (Postgres, 8), `web/src/app/api/index/[...path]/queries-lease.test.ts`, `web/src/app/api/activity/route.test.ts`.
+- **Rule:**
+  - Every `wallet/*` index read runs under the caller's lease: a row of the leased party counts only from the lease's start offset (fills by `ledger_offset`, exits by the leg's `created_offset`, quotes by `issued_offset`, receipts by `created_offset`). An address with no lease reads nothing.
+  - A position row sums one (Window, party), so under a lease it counts only when the party had no fill in that Window before the lease began; a Window the previous visitor also traded is withheld rather than merged. The visitor's receipts and live contracts still show it.
+  - The seat's own inbox (`/api/activity` when the caller proves the seat) is its own fills and verdicts under the lease, published or not.
+  - Anyone else's profile, record, badges and open calls come from opt-in `Publication`s only (`/api/index/published/<address>/*`). An open published call is marked at the Window's last price only where the venue shows it (k ≥ 5); below that its value is the stake and no P&L is claimed.
+- **User-visible:** a recycled seat never shows the previous visitor's history; another trader's profile shows only what they published, and says so.
+- **Approval:** default; overrulable.
+
+### K-141 — Blinks answer with a signed Window share link (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane (the plan's "Adapted" disposition, as built)
+- **Evidence:** `packages/core/src/x/share-link.ts`, `share-link.test.ts`; routes `/actions.json`, `/api/actions/w/[marketId]`, `/api/actions/t/[symbol]/[cadence]`, `/api/share/window`, `/.well-known/apple-app-site-association`.
+- **Rule:**
+  - The URLs and the card stay (Up and Down, each with its amount field). The buttons are `external-link` actions; the `POST` runs the reference's pre-build checks (phase, stake floor, the 451 region answer) and answers `{ type: "external-link", externalLink, message }`. No chain id and no Actions version header.
+  - The link is `<origin>/markets/<id>?dir=&stake=&exp=&sig=`: HMAC-SHA256 over the Window, side, stake and expiry (the Window's close), under a key derived from `AGARI_SEAT_COOKIE_SECRET` with its own label (no new variable). A valid link pre-fills the ticket's stake once through the reference's own stake preset (the hedge card's path), so the ticket is unchanged; an edited, foreign or expired link opens as a plain deep link (side only).
+  - The app opens the same https path as a universal link and asks `/api/share/window` whether it verifies. The association file claims `/markets/*` for `IOS_APP_ID` (`<Team ID>.<bundle id>`) and answers 404 until it is set.
+- **User-visible:** a shared Window card opens that Window's ticket, on the web or in the app, with the chosen side and stake; nothing is placed until the viewer confirms.
+- **Needs (C11, not this lane):** `IOS_APP_ID` on the host and `ios.associatedDomains: ["applinks:<domain>"]` in the app config once the domain and app record exist.
+- **Approval:** default; overrulable (Abu may still exclude Blinks by a dated word, plan "optional exclusions").
+
+### K-142 — A desk's owner view needs the seat's proof (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane (found through Sensei's desk read; the C8 desk owner may amend)
+- **Evidence:** `/api/desk/[owner]{,/records,/records/[seq],/feed}` granted the owner view, with the owner's private notes and the mandate's live state, to any request whose `?viewer=` equalled the owner's address. `web/src/features/desk/proven-viewer.test.ts`.
+- **Rule:** `provenViewer` takes `?viewer=` only when `seatCaller` proves the caller is that seat (web cookie or the phone's signed read header, which the desk client now sends). An unproven viewer is a visitor.
+- **User-visible:** none for the owner; a typed address no longer opens someone else's unshared desk.
+- **Approval:** default; overrulable.
+
+### K-143 — The desk's timing prompt is `desk-timing.v2` on Canton (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Rule:** v2 states the Canton desk (K-090, K-091): units on the venue's hourly pre-IPO markets bought with demo venue cash, or paper units; the 2-of-3 oracle reference; the ledger's own refusals (premium ceiling over the reference, 92 % sale floor, 15-minute reference age); cost as the quote's gap plus the practice ledger's 1 % fee. The four answers, the priorities and the rules for when are word for word v1's, so the decision logic is unchanged. v1 was only the reference's Solana prompt; no Canton record names it, so it is not carried. The evidence message speaks credits and units; its keys are unchanged.
+- **Approval:** default; overrulable.
+
+### K-144 — The X relay's public reply names Canton and links an absolute proof page (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Rule:** the network label is `CLUSTER_LABEL` of `NEXT_PUBLIC_CANTON_NETWORK` ("Canton DevNet" by default); the receipt link is `<site>/proof?update=<id>`; a rejected command reads "The ledger rejected the trade. Nothing was booked and no fee was taken." The relay's placement path (C8f, `Grant_AcceptQuote` as the agent-runner party) is unchanged; a binding is the seat address, which resolves to a party only while it holds a lease.
+- **Approval:** default; overrulable.
+
+### K-145 — `/native-auth` is the X sign-in handoff into the app (C13 block)
+- **Date / owner:** 2026-09-30 · C13a lane
+- **Rule:** the app opens `/native-auth?state=<16-byte hex nonce>` in an auth session (`WebBrowser.openAuthSessionAsync`, ASWebAuthenticationSession on iOS) with a return URL on its own scheme read from the app config (never spelled in code). Not signed in, the page runs the ordinary X sign-in (`/api/x/start?return=/native-auth?state=…`); signed in, it redirects to `<scheme>://x-auth?session=<signed X session>&state=<nonce>`; a failure goes back as `error=<known word>`. The web's scheme is C11a's `APP_LINK_SCHEME`, which its `mobile-identity` invariant keeps equal to the app identity's. The app accepts only its own nonce, keeps the session in the Keychain and sends it back in `X_SESSION_HEADER`, which the X gate validates exactly like the cookie (HMAC, 30-day TTL). A request without a nonce never redirects into an app scheme. The seat still signs its own link text; the forwarded session only names an X account.
+- **Built:** the gate's header and the handoff's decisions (`77b1a29`), then, with C11a on main, the page (redirecting on `APP_LINK_SCHEME`) and the app (`signInWithX` through `external.ts`'s `openXSignIn`, the one door the `mobile-no-web-handoff` invariant allows, returning on `appUrl("x-auth")`; session stored under `appKey("x.session")`).
+- **User-visible:** "Sign in with X" works on the phone, in a sheet, and comes straight back.
+- **Approval:** default; overrulable.
 
 ### K-020 — Quote issuance lives on a venue-only `VenueDesk`
 - **Date / owner:** 2026-09-29 · C2 lane
@@ -422,6 +492,54 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the entry's shared-desk card and link show a real desk on this network, or no card at all; never a dead link.
 - **Approval:** default; overrulable.
 
+### K-204 — A seat key maps to a party only through its live lease, joined keys included (overflow block)
+- **Date / owner:** 2026-09-30 · C4c (lane C4c seat-link fixes)
+- **Evidence:** `docs/evidence/c4c-seat-link-fixes.md` §1. C11a left four paths reading `seat_pool.address` alone (ops agents session, duel seats, desk discovery, web `agents.server.ts`), so a key joined by a seat link mapped nowhere there, and the duel directory answered a remembered party for a key whose lease had ended.
+- **Rule:** every address → party resolution goes through `@agari/db` `seatPartyFor` / `seatLeaseRowFor` (and party → seat address through `seatHolders`). A key maps only while it holds the party's live lease or joined that same live lease; an ended, drained, freed or re-leased seat maps none of its old keys, and nothing remembered in a process stands in for the lease. The duel open checks the pairing's creator by party, so a joined phone queues and opens as its seat, and the room shows the key that queued. The Room gate admits a joined key for its lease's own bets.
+- **User-visible:** a phone joined to a web seat can grant, duel and run a desk as that seat. A season payout to a player whose seat has since ended is refused (its party may belong to the next visitor) instead of crediting a recycled seat.
+- **Approval:** default; overrulable.
+
+### K-210 — A desk is its owner's only under the owner's current lease; its address names its opening (overflow block)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding H2)
+- **Evidence:** a desk's address was SHA-256(venue · owner party), and a seat party is recycled, so visitor A's index row pointed at visitor B's live desk on the same party: `GET /api/desk/<A>?viewer=A` returned B's desk, and the runner could trade A's record on B's mandate. Tests: `packages/markets/src/desk/lease-bound.test.ts`, `services/ops/src/actors/desk-runner/lease-bound.test.ts`, `web/src/features/desk/chain-lease.test.ts`, `packages/db/src/desk-lease.test.ts` (Postgres).
+- **Rule:**
+  - The web's `readChain` and the runner's `reconcileLive` look a row's mandate up only among the mandates of the party the row's owner leases NOW (`findLeasedMandate`); an owner with no lease gets nothing, and the runner closes that row ("the seat this desk belonged to was reset or passed on").
+  - The seat drain closes the draining lease's index rows (the holder's, a joined key's, and any row on the party's pre-C4d address) with a `state_set` event (`closeLeaseDesks`).
+  - A desk's address is SHA-256(venue · owner party · its opening), the opening being the embedded grant's expiry, which `DeskOffer_Open` sets once from the server's clock and every later choice keeps. **Trade-off:** the review asked for the lease id in the address; the ledger does not know lease ids, and every writer of a desk address (the operator's command ids, the discovery pass, a decision's history) derives it from the mandate alone. An opening always falls inside one lease (the drain must close the mandate before `readSeatHoldings` lets the party be freed), so the opening is a lease-bound identity the ledger can reproduce. A row written before C4d keeps the old address, which resolves only for the party's current lessee.
+  - A desk's history is the live mandate's own hash chain walked back from its head, so an earlier lessee's decisions on the same party are never counted.
+- **User-visible:** none for a visitor's own desk. A recycled seat's next visitor never sees, and is never traded through, the previous visitor's desk; the previous visitor's desk page reads "closed".
+- **Approval:** default; overrulable.
+
+### K-211 — A phone write carries its own one-request proof; the read header reads only (overflow block)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding M2b)
+- **Evidence:** the signed read header (`x-agari-seat-read`) was reused for four minutes and also passed `seatFromRequest({ write: true })`, so one captured header could `POST /api/seat/link` and take the seat over. Tests: `web/src/lib/seat-write-auth.test.ts`, `mobile/src/wallet/seat-key.test.ts` (the phone's key against the server verifier), `packages/markets/src/submitter/seat-lane.test.ts`.
+- **Rule:** on the phone every write (any method but GET) carries `x-agari-seat-write: address.issuedAtMs.nonce.signature`, the seat key's signature over the method, the path with its query, the SHA-256 of the exact body bytes, a 16-byte nonce and the time (`@agari/core/auth` `seatWriteText`). The server takes it within 30 s (5 s skew), for that request only, once: it keeps each verified nonce until the proof goes stale. The read header is honoured for reads only. The web keeps its cookie with the same-origin and `x-agari-seat: 1` rule.
+- **Trade-off:** the nonce cache is in the web process's memory (`globalThis`), which is every replica the single Coolify container has. A second web process would need a shared store (the database) before it scales out.
+- **User-visible:** none; each phone write costs one local signature.
+- **Approval:** default; overrulable.
+
+### K-212 — The app's X handoff is a confirmed, one-time PKCE code, never the session in a URL (overflow block; amends K-145)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding M2a)
+- **Evidence:** `/native-auth?state=` redirected a signed-in browser's X session token straight to `<scheme>://x-auth?session=`, with no tap: any iOS app opening that page in its own ASWebAuthenticationSession (which shares Safari's cookies) and naming our scheme as its callback could collect it. Tests: `web/src/features/x/native-handoff.test.ts`, `web/src/app/api/x/native-code/route.test.ts`, `mobile/src/features/x/x-sign-in.test.ts`.
+- **Rule:** the app opens `/native-auth?state=<nonce>&challenge=<S256 of its verifier>`. Signed in, the page asks "Continue in the app as @handle"; only that tap (a same-origin form post, `/api/x/native-code`, Origin and Sec-Fetch-Site checked, with the SameSite=Lax X cookie) answers 303 `<scheme>://x-auth?code=&state=`. The code is 32 random bytes, 60 s, one exchange, burned by a wrong verifier. The app POSTs `{ code, verifier }` to `/api/x/native-exchange` for the session and keeps it in the Keychain as before. A request without a nonce and a challenge still never redirects into an app scheme.
+- **Trade-off:** codes live in the web process's memory, like K-211's nonces (one container). An app that starts its own handoff holds its own verifier, so PKCE alone does not stop it; the confirmation tap (and iOS's own "wants to use … to sign in" prompt) is what does.
+- **User-visible:** one extra tap ("Continue in the app") on the phone's X sign-in sheet.
+- **Approval:** default; overrulable.
+
+### K-213 — Ops' internal calls are single-use; the season admin has its own secret (overflow block; amends K-105)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding L4)
+- **Evidence:** `/internal/*` accepted a captured call again within its 30 s window, a handler's crash answered with its own error text, the public `/health` served a failed pass's raw ledger error, and `season/distribute` was signed with the web's `OPS_INTERNAL_SECRET`. Tests: `services/ops/src/http/internal.test.ts`, `services/ops/src/runtime/actor-health.test.ts`, `packages/markets/src/server/ops-client.test.ts`.
+- **Rule:** the web → ops signature is `v2` over `<ts>.<nonce>.<METHOD>.<path>.<body>` with `x-agari-ops-nonce` (16 random bytes); ops takes each verified nonce once and keeps it for twice the skew (in memory: ops is one container, AD-4). `season/distribute` and `season/withdraw` verify under `OPS_ADMIN_SECRET` (ops only, never the web; unset = closed), which `scripts/season-admin.ts` signs with. A handler's crash answers "ops could not complete this call (ref …)"; a failed pass reads "pass failed (ref …)" on `/health`; both texts go to the log under the reference. The runbook takes `/internal/*` off the public router (`!PathPrefix(/internal)`).
+- **User-visible:** none. The season admin needs `OPS_ADMIN_SECRET` instead of the web's secret.
+- **Approval:** default; overrulable.
+
+### K-214 — A duel-room credential and an arcade score are seat writes (overflow block; joins K-204 and K-211)
+- **Date / owner:** 2026-09-30 · lead, at the C4c + C4d merge
+- **Evidence:** C4c made `/api/games/room-token` and `/api/games/arcade/score` check the seat (`seatFromRequest({ write: false })`) and sent the phone's read header with them; C4d then limited the read header to reads (K-211). A captured read header could still mint a room credential or post a score as the seat for up to five minutes.
+- **Rule:** both routes call `seatFromRequest({ write: true })` and read the body through `jsonBody` (so the write proof hashes the same bytes); `seatAuthHeaders({ method, url, body })` sends the site header for the web's cookie path and the one-request write proof for the phone.
+- **User-visible:** none; each mint, renewal and score costs the phone one local signature.
+- **Approval:** default; overrulable.
+
 ### K-220 — A desk names this deployment's Canton network, never "mainnet" (overflow block)
 - **Date / owner:** 2026-09-30 · C8i lane
 - **Evidence:** `docs/evidence/c8g-agents-ux.md` gap 2 and `docs/evidence/c8i-agents-gaps.md`. The web wrote every desk row, and every desk signed text's network line, as `mainnet` (a Solana-era constant); the runner defaulted to `mainnet` too, so a LocalNet runner could not see the desks it should run, and `DESK_MODEL_STUB` (localnet only) never reached them. `services/ops/src/actors/desk-runner/env.test.ts`.
@@ -482,8 +600,6 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Evidence:** C8i's drive (`docs/evidence/c8i-agents-gaps.md` §2): gpt-5.4 answered ACT_NOW (84%) for a 20-credit OpenAI buy and the desk blocked it as "more than 2.5% against the price". `services/ops/src/actors/desk-runner/market.test.ts`.
 - **Rule:** on the live leg (K-090) a trade's cost is its fill against the Window's best ask (a buy) or best bid (a sell): the venue's 1% fee and any walk down the ladder, under the reference's 2.5% limit. The ask's distance from the Window's fair price is the premium, which the owner's premium ceiling bounds on the ledger. Measuring cost against fair counted the venue's half-spread twice, and a 30-tick spread (6% at 0.50) put every live buy over the limit. Practice desks are unchanged.
 - **User-visible:** a live desk can buy when the model says act now and the premium is inside the owner's ceiling.
-- **Approval:** default; overrulable.
-
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

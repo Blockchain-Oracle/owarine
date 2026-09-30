@@ -40,6 +40,16 @@ export const SEAT = {
     leasing: "Leasing…",
   },
   menu: { seat: "Your seat" },
+  /** The seat link screen's phone-only lines; the card's own words are web's (`SEAT.link` in canton-ux/seat/copy). */
+  link: {
+    screen: "Seat link",
+    entry: "Use on another device",
+    haveSeat: "Have a seat on the web? Link this phone",
+    termsFirst: "Accept the demo-credits terms first: a linked phone trades the same demo credits.",
+    termsLine: "Joining uses demo credits only: no cash value, nothing to buy, sell or withdraw.",
+    accept: "Accept and continue",
+    joinedDevice: "Your other device",
+  },
   /** The funds sheet: the demo-credits grant, through a signed route once it is live; no faucet, no network fees. */
   funds: {
     eyebrow: "Demo credits · test network",

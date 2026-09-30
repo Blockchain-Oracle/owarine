@@ -1,5 +1,5 @@
 import type { Address } from "@agari/core/types";
-import { keys, usePositions } from "@agari/markets/react";
+import { keys, usePositions, usePublishedCalls } from "@agari/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -28,14 +28,16 @@ async function readTakes(address: Address, signal: AbortSignal): Promise<TakesFe
 }
 
 /**
- * web's ProfileCalls: open calls in the `.bets-plate` (Portfolio's own BetRow over `usePositions`, public index data),
- * then the wallet's recent signed takes as the activity wire.
+ * web's ProfileCalls: open calls in the `.bets-plate` (Portfolio's own BetRow: your seat's live legs, or anyone else's
+ * published calls, C13a), then the seat's recent signed takes as the activity wire.
  */
-export function ProfileCalls({ address, units }: { address: Address; units: MoneyUnits }) {
+export function ProfileCalls({ address, units, own }: { address: Address; units: MoneyUnits; own: boolean }) {
   const { name, color } = useTheme();
   const t = profileTokens(name);
   const nowMs = useChainNowMs();
-  const positions = usePositions(address);
+  const ownPositions = usePositions(own ? address : null);
+  const publishedCalls = usePublishedCalls(address, !own);
+  const positions = own ? ownPositions : publishedCalls;
   const queryClient = useQueryClient();
   const takes = useQuery({
     queryKey: ["agari", "takes", "authors", address],
@@ -46,7 +48,7 @@ export function ProfileCalls({ address, units }: { address: Address; units: Mone
     () => (takes.data ? { configured: takes.data.configured, items: takes.data.takes.map(takeItem), takes: takes.data.takes } : null),
     [takes.data],
   );
-  const retry = () => void queryClient.invalidateQueries({ queryKey: keys.positions(address) });
+  const retry = () => void queryClient.invalidateQueries({ queryKey: own ? keys.positions(address) : keys.published(address, "calls") });
 
   let calls;
   if (positions === null) calls = <View style={styles.inset}><LoadingState shape="row" /></View>;
@@ -71,7 +73,7 @@ export function ProfileCalls({ address, units }: { address: Address; units: Mone
   return (
     <>
       <View accessibilityLabel={PROFILE.calls.title}>
-        <SectionHeader index={PROFILE.calls.number} title={PROFILE.calls.title} desc={PROFILE.calls.desc} style={SECTION_HEAD} />
+        <SectionHeader index={PROFILE.calls.number} title={PROFILE.calls.title} desc={own ? PROFILE.calls.desc : PROFILE.callsPublishedDesc} style={SECTION_HEAD} />
         <View style={[styles.plate, { backgroundColor: t.plate, borderColor: t.plateBorder }]}>{calls}</View>
       </View>
       <View accessibilityLabel={PROFILE.takes.title}>

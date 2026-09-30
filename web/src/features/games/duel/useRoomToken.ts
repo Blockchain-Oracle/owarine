@@ -2,6 +2,7 @@
 
 import { ROOM_TOKEN_TTL_MS, roomAuthMessage } from "@agari/core/games";
 import type { Address } from "@agari/core/types";
+import { seatAuthHeaders } from "@agari/markets";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { DUEL } from "./copy";
@@ -130,7 +131,10 @@ export function useRoomToken(key: GameKey | null): RoomTokenSession {
     if (renewRef.current) clearTimeout(renewRef.current);
     const inMs = Math.max(5_000, Math.min(grant.expiresAtMs - Date.now() - RENEW_LEAD_MS, ROOM_TOKEN_TTL_MS));
     renewRef.current = setTimeout(() => {
-      void fetch(ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: grant.token }) })
+      // C4c: the seat that asks goes with every mint and renewal (the cookie on the web, the signed header on the phone).
+      const renewal = JSON.stringify({ token: grant.token });
+      void seatAuthHeaders({ method: "POST", url: ENDPOINT, body: renewal })
+        .then((seat) => fetch(ENDPOINT, { method: "POST", headers: { "content-type": "application/json", ...seat }, body: renewal }))
         .then(async (response) => {
           if (!response.ok) {
             // The session behind the signature has ended; the key signs again, on its own, below.
@@ -161,10 +165,11 @@ export function useRoomToken(key: GameKey | null): RoomTokenSession {
     try {
       const issuedAtMs = Date.now();
       const signature = await key.signMessage(roomAuthMessage({ wallet: address, key: key.address, chainId: target.chainId, arena: target.arena, issuedAtMs }));
+      const mint = JSON.stringify({ wallet: address, key: key.address, issuedAtMs, signature });
       const response = await fetch(ENDPOINT, {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ wallet: address, key: key.address, issuedAtMs, signature }),
+        headers: { "content-type": "application/json", ...(await seatAuthHeaders({ method: "POST", url: ENDPOINT, body: mint })) },
+        body: mint,
       });
       const body = (await response.json()) as Grant & { error?: string };
       if (!response.ok || !body.token) {

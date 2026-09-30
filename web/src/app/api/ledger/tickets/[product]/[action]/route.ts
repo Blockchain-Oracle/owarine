@@ -28,7 +28,8 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;
-  const seat = { party: lease.party, leaseId: lease.leaseId };
+  // C4d H3: only this lease's contracts (from its start offset) can be acted on; a recycled party's older ones cannot.
+  const seat = { party: lease.party, leaseId: lease.leaseId, fromOffset: lease.startOffset };
   const raw = await jsonBody(request);
   let result;
   if (action === "accept") {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
   server.ledger.seats.invalidate(lease.party);
   if (result.kind === "confirmed") {
     // A new ticket pauses the seat's idle clock until its refund deadline, as an open leg does.
-    const mine = await server.tickets.mine(lease.party).catch(() => null);
+    const mine = await server.tickets.mine(lease.party, lease.startOffset).catch(() => null);
     if (mine && mine.busyUntilMs > auth.seat.lease.busyUntilMs) await recordBusy(auth.seat, { busyUntilMs: mine.busyUntilMs, openLegs: auth.seat.lease.openLegs });
   }
   return replyWith(result);

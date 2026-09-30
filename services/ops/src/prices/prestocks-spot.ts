@@ -62,12 +62,31 @@ export const PRESTOCKS_SPOT_EVERY_MS = Math.max(5_000, Number(process.env.PRESTO
 /** PreStocks rate-limits (a 429 landed after a minute of 10 s polling on 2026-09-19, no limit headers): back off, double, cap. */
 export const BACKOFF_FIRST_MS = 30_000;
 export const BACKOFF_MAX_MS = 5 * 60_000;
+/**
+ * C4c: the first read waits a random part of this, so the processes that boot together on one host (every ops restart,
+ * every parallel lane) do not all ask PreStocks in the same second; `PRESTOCKS_BOOT_SPREAD_MS` overrides it.
+ */
+const bootSpreadEnv = Number(process.env.PRESTOCKS_BOOT_SPREAD_MS);
+export const PRESTOCKS_BOOT_SPREAD_MS = process.env.PRESTOCKS_BOOT_SPREAD_MS !== undefined && bootSpreadEnv >= 0 ? bootSpreadEnv : 15_000;
 
-/** The wait after `failures` consecutive failed reads: the base poll after none, else 30 s doubling to 5 min. Pure. */
-export function nextDelayMs(failures: number, baseMs = PRESTOCKS_SPOT_EVERY_MS): number {
+/**
+ * The wait after `failures` consecutive failed reads (C4c, the reference transport's semantics): the base poll after
+ * none; else the server's `Retry-After` when it sent one, otherwise 30 s doubling to 5 min with equal jitter (half the
+ * step, plus a random part of the other half), so processes that failed together do not retry together. Never past
+ * 5 min. Pure given `random`.
+ */
+export function nextDelayMs(failures: number, baseMs = PRESTOCKS_SPOT_EVERY_MS, o: { retryAfterMs?: number | null; random?: () => number } = {}): number {
   if (failures <= 0) return baseMs;
-  return Math.min(BACKOFF_MAX_MS, BACKOFF_FIRST_MS * 2 ** Math.min(failures - 1, 10));
+  const step = Math.min(BACKOFF_MAX_MS, BACKOFF_FIRST_MS * 2 ** Math.min(failures - 1, 10));
+  const wait = o.retryAfterMs ?? step / 2 + (o.random ?? Math.random)() * (step / 2);
+  return Math.min(BACKOFF_MAX_MS, Math.round(wait));
 }
+
+/** What a failed read said about coming back: `PreStocksHttpError.retryAfterMs`, or nothing. */
+const retryAfterOf = (error: unknown): number | null => {
+  const value = (error as { retryAfterMs?: unknown } | null)?.retryAfterMs;
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+};
 const KEEP_SEC = 2 * 3_600;
 /** Every registry pre-IPO name with its verified mint; the catalogue is matched against this, never the other way. */
 const NAMES: readonly { symbol: TickerSymbol; mint: string }[] = PRE_IPO_TICKERS.map((symbol) => ({ symbol, mint: String(TICKERS[symbol].preIpo!.mint) }));
@@ -107,8 +126,19 @@ export function snapshotOf(read: PreStocksRead): { snapshot: PreStocksSnapshot; 
   return { snapshot: { fetchedAtSec: read.fetchedAtSec, samples, missing }, dropped };
 }
 
-export function createPreStocksSpotFeed(input: { log: (why: string) => void; read?: () => Promise<PreStocksRead> }): PreStocksSpotHandle {
+export function createPreStocksSpotFeed(input: {
+  log: (why: string) => void;
+  read?: () => Promise<PreStocksRead>;
+  /** The first read waits `random() × bootSpreadMs` (default `PRESTOCKS_BOOT_SPREAD_MS`). */
+  bootSpreadMs?: number;
+  /** Injected in tests. */
+  sleep?: (ms: number) => Promise<void>;
+  random?: () => number;
+}): PreStocksSpotHandle {
   const read = input.read ?? (() => fetchPreStocks());
+  const wait = input.sleep ?? sleep;
+  const random = input.random ?? Math.random;
+  const bootSpreadMs = input.bootSpreadMs ?? PRESTOCKS_BOOT_SPREAD_MS;
   const history = new Map<TickerSymbol, PreStocksSample[]>();
   const snapshots: PreStocksSnapshot[] = [];
   const listeners = new Set<(sample: PreStocksSample) => void>();
@@ -116,6 +146,7 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
   const beat = registerHeartbeat("prestocks-spot", false, PRESTOCKS_SPOT_EVERY_MS);
   let stopped = false;
   let loggedFailure = false;
+  let lastError = "";
   let loggedDrop = "";
 
   const push = (sample: PreStocksSample) => {
@@ -132,8 +163,11 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
   };
 
   async function poll(): Promise<void> {
+    if (bootSpreadMs > 0) await wait(Math.floor(random() * bootSpreadMs));
+    let retryAfterMs: number | null = null;
     while (!stopped) {
       const started = Date.now();
+      retryAfterMs = null;
       try {
         const { snapshot, dropped } = snapshotOf(await read());
         for (const sample of snapshot.samples.values()) push(sample);
@@ -154,12 +188,19 @@ export function createPreStocksSpotFeed(input: { log: (why: string) => void; rea
       } catch (error) {
         beat.failures += 1;
         beat.lastPassMs = Date.now();
-        beat.lastWhy = `PreStocks catalogue failed: ${errorText(error)} (next read in ${Math.round(nextDelayMs(beat.failures) / 1000)} s)`;
+        retryAfterMs = retryAfterOf(error);
+        lastError = errorText(error);
+      }
+      // A failed read (a 429 above all) waits as long as the server asked, else longer each time, jittered; a good one
+      // returns to the base poll.
+      const delay = nextDelayMs(beat.failures, PRESTOCKS_SPOT_EVERY_MS, { retryAfterMs, random });
+      if (beat.failures > 0) {
+        beat.lastWhy = `PreStocks catalogue failed ${beat.failures}×: ${lastError} (next read in ${Math.round(delay / 1000)} s${retryAfterMs !== null ? ", as its Retry-After asked" : ""})`;
         if (!loggedFailure) input.log(beat.lastWhy);
         loggedFailure = true;
       }
-      // A failed read (a 429 above all) waits longer each time; a good one returns to the base poll.
-      await sleep(Math.max(0, nextDelayMs(beat.failures) - (Date.now() - started)));
+      if (stopped) break;
+      await wait(Math.max(0, delay - (Date.now() - started)));
     }
   }
 

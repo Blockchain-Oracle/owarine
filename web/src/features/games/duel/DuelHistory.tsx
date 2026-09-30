@@ -1,5 +1,6 @@
 "use client";
 
+import { seatReadHeaders } from "@/lib/seat-fetch";
 import type { DuelHistoryRow } from "@agari/db";
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits, shortHex } from "@agari/core/units";
@@ -42,7 +43,8 @@ export function DuelHistory() {
     }
     let alive = true;
     const load = () =>
-      fetch(`/api/games/history?address=${address}`)
+      seatReadHeaders()
+        .then((headers) => fetch(`/api/games/history?address=${address}`, { headers }))
         .then((r) => r.json() as Promise<NonNullable<Feed>>)
         .then((body) => {
           if (alive) setFeed(body);

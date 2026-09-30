@@ -9,6 +9,8 @@
  *
  * Exit code 1 when any check fails (a CORS note or a skipped check is not a failure).
  */
+// The generated bindings log "Registered template …" for every template as they load: ~100 lines above the table.
+import "../services/ops/src/actors/venue/quiet-codegen";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";

@@ -1,5 +1,6 @@
 "use client";
 
+import { seatWriteHeaders } from "@/lib/seat-fetch";
 import { isOk } from "@agari/core/schemas";
 import type { Address } from "@agari/core/types";
 import Link from "next/link";
@@ -58,7 +59,12 @@ function useMarkOpened(id: string, owner: Address | null, needed: boolean) {
   const invalidate = useInvalidateDesk();
   useEffect(() => {
     if (!needed || !owner) return;
-    void fetch(`/api/desk/${encodeURIComponent(id)}/opened`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ owner }) }).then(() => invalidate());
+    // C4d L5: the owner's seat proves the call (the web's cookie rides along; the phone signs this one request).
+    const url = `/api/desk/${encodeURIComponent(id)}/opened`;
+    const body = JSON.stringify({ owner });
+    void seatWriteHeaders("POST", url, body)
+      .then((proof) => fetch(url, { method: "POST", headers: { "content-type": "application/json", ...proof }, body }))
+      .then(() => invalidate());
   }, [id, owner, needed, invalidate]);
 }
 

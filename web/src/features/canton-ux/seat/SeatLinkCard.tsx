@@ -1,7 +1,8 @@
 "use client";
 
-import { Check, Copy, Link2, RefreshCw } from "lucide-react";
-import { formatClock } from "@agari/core/units";
+import { Check, Copy, Link2, RefreshCw, ShieldQuestion } from "lucide-react";
+import { formatClock, shortHex } from "@agari/core/units";
+import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
 import { useEffect, useId, useRef, useState } from "react";
 import { useNowMs } from "@/components/data/useNowMs";
 import { Button } from "@/components/ui/button";
@@ -12,14 +13,18 @@ import "./seat.css";
 
 const L = SEAT.link;
 const COPIED_MS = 1_500;
-export const LINK_CODE_LENGTH = 6;
+export const LINK_CODE_LENGTH = SEAT_LINK_CODE_LENGTH;
 export const LINK_TTL_SEC = 60;
 
-export type SeatLinkState = "showing" | "expired" | "linked";
+/**
+ * `join`: this device holds no seat of its own to show, so the card is only the code entry. `confirm`: a device used
+ * this seat's code and waits for this one to allow it (C4c); `declined`: this device refused it.
+ */
+export type SeatLinkState = "showing" | "expired" | "confirm" | "linked" | "declined" | "join";
 
 interface SeatLinkCardProps {
   state: SeatLinkState;
-  /** The one-time code (six letters and numbers) and the link the QR carries (`<origin>/seat/link?code=…`). */
+  /** The one-time code (eight letters and numbers) and the link the QR carries (`<origin>/seat/link?code=…`). */
   code: string;
   url: string;
   /** When the code stops working, in epoch seconds; ticks locally. */
@@ -27,9 +32,15 @@ interface SeatLinkCardProps {
   seatNumber: number;
   /** The device that joined, named as the lease records it. */
   linkedDevice?: string;
+  /** `confirm`: the key waiting on this seat's code, and this device's answer to it. */
+  waitingKey?: string | null;
+  onDecide?: (allow: boolean) => Promise<void>;
   onFresh: () => void;
-  /** Checks a code typed on this device; the fixture answers from a canned code, the app from `/api/seat/link`. */
-  verify: (code: string) => Promise<boolean>;
+  /**
+   * Checks a code typed on this device; the fixture answers from a canned code, the app from `/api/seat/link/join`.
+   * True joins; false or a sentence refuses (the sentence replaces the generic error line).
+   */
+  verify: (code: string) => Promise<boolean | string>;
   /** Fixtures only: the entry's first state. */
   joinDefault?: { value: string; status: OtpStatus };
 }
@@ -44,7 +55,7 @@ function CopyCode({ code, disabled }: { code: string; disabled: boolean }) {
   return (
     <div className="cx-link-code">
       <output className="cx-link-code-value" aria-label={L.code}>
-        {disabled ? "––––––" : `${code.slice(0, 3)} ${code.slice(3)}`}
+        {disabled ? "–––– ––––" : formatSeatLinkCode(code)}
       </output>
       <button type="button" className="cx-link-copy" disabled={disabled} aria-label={copied ? L.copied : L.copy} onClick={() => void navigator.clipboard?.writeText(code).then(() => setCopied(true), () => undefined)}>
         {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
@@ -58,12 +69,14 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
   const [value, setValue] = useState(joinDefault?.value ?? "");
   const [status, setStatus] = useState<OtpStatus>(joinDefault?.status ?? "idle");
   const [busy, setBusy] = useState(false);
+  const [why, setWhy] = useState<string | null>(null);
   const submit = async (code: string) => {
     if (code.length !== LINK_CODE_LENGTH || busy) return;
     setBusy(true);
-    const ok = await verify(code);
+    const answer = await verify(code);
     setBusy(false);
-    setStatus(ok ? "success" : "error");
+    setWhy(typeof answer === "string" ? answer : null);
+    setStatus(answer === true ? "success" : "error");
   };
   return (
     <form
@@ -79,11 +92,12 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
         ref={field}
         mode="alphanumeric"
         length={LINK_CODE_LENGTH}
+        groupEvery={LINK_CODE_LENGTH / 2}
         defaultValue={joinDefault?.value}
         label={L.joinLabel}
         status={status}
         hint={L.joinHint}
-        errorMessage={L.joinError}
+        errorMessage={why ?? L.joinError}
         successMessage={L.joinSuccess}
         focusOnError={joinDefault?.status !== "error"}
         onChange={(v) => {
@@ -107,7 +121,32 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
  * the QR from `qrcode-generator`, the time left from `Countdown`, the reference `Button`, and code entry from the
  * adapted OTP Input (21st #23543). The top half is this device's code for another; the bottom half joins another's.
  */
-export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linkedDevice = "Your iPhone", onFresh, verify, joinDefault }: SeatLinkCardProps) {
+function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seatNumber: number; onDecide: (allow: boolean) => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  const answer = (allow: boolean) => {
+    setBusy(true);
+    void onDecide(allow).finally(() => setBusy(false));
+  };
+  return (
+    <div className="cx-link-done" role="alertdialog" aria-live="assertive">
+      <span className="cx-link-done-mark" aria-hidden>
+        <ShieldQuestion />
+      </span>
+      <p className="cx-link-done-title">{L.confirmTitle}</p>
+      <p className="cx-link-done-body">{L.confirmBody(shortHex(waitingKey, 4, 4), seatNumber)}</p>
+      <div className="flex w-full gap-2">
+        <Button type="button" variant="secondary" className="flex-1" disabled={busy} onClick={() => answer(false)}>
+          {L.decline}
+        </Button>
+        <Button type="button" className="flex-1" disabled={busy} aria-busy={busy} onClick={() => answer(true)}>
+          {busy ? L.deciding : L.allow}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linkedDevice = "Your iPhone", waitingKey = null, onDecide, onFresh, verify, joinDefault }: SeatLinkCardProps) {
   const titleId = useId();
   const now = useNowMs();
   const leftSec = expiresAtSec !== null && now > 0 ? Math.max(0, Math.ceil(expiresAtSec - now / 1000)) : null;
@@ -125,7 +164,17 @@ export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linke
         <p className="cx-link-sub">{L.subtitle}</p>
       </header>
 
-      {state === "linked" ? (
+      {state === "join" ? null : state === "confirm" && waitingKey && onDecide ? (
+        <Decide waitingKey={waitingKey} seatNumber={seatNumber} onDecide={onDecide} />
+      ) : state === "declined" ? (
+        <div className="cx-link-done" role="status">
+          <p className="cx-link-done-title">{L.declinedTitle}</p>
+          <p className="cx-link-done-body">{L.declinedBody}</p>
+          <Button type="button" variant="secondary" size="sm" onClick={onFresh}>
+            <RefreshCw aria-hidden /> {L.fresh}
+          </Button>
+        </div>
+      ) : state === "linked" ? (
         <div className="cx-link-done" role="status">
           <span className="cx-link-done-mark" aria-hidden>
             <Check />

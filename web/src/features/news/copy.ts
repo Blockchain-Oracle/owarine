@@ -13,6 +13,12 @@ export const NEWS = {
   intro: "Sentiment-tagged and refreshed live. Read the room before you ring the bell. Headlines via Finnhub.",
   quiet: "The wire is quiet. Headlines return shortly.",
   sentiment: { positive: "bullish", negative: "bearish", neutral: "neutral" } satisfies Record<Sentiment, string>,
+  /**
+   * The marquee's crowd cell, on hover (plan: `/api/sentiment` "with the privacy note on hover", C13a): what it counts,
+   * and what it never counts.
+   */
+  crowdPrivacy:
+    "Crowd flow: the Up share of calls people chose to publish in the last hour. Shown only when at least 5 people published; calls kept private are never counted.",
   /** "now", "5m", "2h", "3d" — the reference's `timeAgo`. */
   timeAgo: (ms: number): string => {
     const diff = Date.now() - ms;

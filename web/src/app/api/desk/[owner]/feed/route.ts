@@ -1,6 +1,5 @@
-import { isAddress } from "@agari/core/types";
 import { NextResponse } from "next/server";
-import { answer, DESK_ERRORS, loadDesk, refuse } from "@/features/desk/auth.server";
+import { answer, DESK_ERRORS, loadDesk, provenViewer, refuse } from "@/features/desk/auth.server";
 import { outcomeColumnSchema, type FeedItemWire } from "@/features/desk/protocol";
 
 /** `GET /api/desk/[owner]/feed?since=<seq>&viewer=`: what happened after `since`, for the watcher's toasts (plan §5.8). */
@@ -13,8 +12,8 @@ export async function GET(req: Request, context: { params: Promise<{ owner: stri
   if (loaded instanceof NextResponse) return loaded;
   if (!loaded.desk) return refuse(404, DESK_ERRORS.notFound);
   const url = new URL(req.url);
-  const viewer = url.searchParams.get("viewer");
-  if (!(viewer && isAddress(viewer) && viewer === loaded.desk.owner)) return refuse(403, DESK_ERRORS.notOwner);
+  // C13a: the owner is the proven seat, never a typed `?viewer=`.
+  if ((await provenViewer(req)) !== loaded.desk.owner) return refuse(403, DESK_ERRORS.notOwner);
   const since = Math.max(0, Number(url.searchParams.get("since")) || 0);
   const rows = await loaded.store.deskFeedSince({ deskId: loaded.desk.id, sinceSeq: since });
   const items: FeedItemWire[] = rows.map((r) => {

@@ -68,6 +68,11 @@
 .cx-link-join-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); }
 .cx-link-join-body { margin-top: -6px; font-size: 12.5px; line-height: 1.5; color: var(--color-ink-secondary); }
 .cx-link-otp { align-self: center; }
+/* C4c: eight cells in two groups of four still fit the card on a 390 screen. */
+@media (max-width: 400px) {
+  .cx-link-otp .otp-cells { gap: 5px; }
+  .cx-link-otp .otp-cell { width: 30px; height: 42px; }
+}
 .cx-link-foot { font-size: 12px; line-height: 1.5; text-align: center; color: var(--color-ink-muted); }
 
 @media (max-width: 400px) {
@@ -75,3 +80,6 @@
   .cx-link-show { flex-direction: column; align-items: center; }
   .cx-link-side { width: 100%; }
 }
+
+/* /seat/link: the card centred in the page's column, as the fixture shows it. */
+.cx-link-page { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 16px 64px; }

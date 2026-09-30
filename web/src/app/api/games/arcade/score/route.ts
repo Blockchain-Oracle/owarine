@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { acceptScore, scoreClaimSchema } from "@/features/games/arcade/score.server";
+import { seatVouch } from "@/features/games/room-token.server";
+import { jsonBody, seatFromRequest } from "@/lib/seat.server";
 
 /**
  * `POST /api/games/arcade/score` — a finished run, as the claim the browser makes about it: the game,
@@ -10,10 +12,13 @@ import { acceptScore, scoreClaimSchema } from "@/features/games/arcade/score.ser
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
-  const parsed = scoreClaimSchema.safeParse(await req.json().catch(() => null));
+export async function POST(req: NextRequest) {
+  const parsed = scoreClaimSchema.safeParse(await jsonBody(req));
   if (!parsed.success) return NextResponse.json({ error: "that is not an arcade score" }, { status: 400 });
-  const verdict = await acceptScore(parsed.data, req.headers.get("x-agari-device") ?? "", Date.now());
+  // C4c (M1): a score is posted as the token's wallet only by the seat that wallet belongs to.
+  const auth = await seatFromRequest(req, { write: true });
+  if (!auth.ok) return NextResponse.json({ error: "take a seat first: scores are posted by a seat" }, { status: auth.response.status === 503 ? 503 : 401 });
+  const verdict = await acceptScore(parsed.data, req.headers.get("x-agari-device") ?? "", Date.now(), seatVouch(auth.seat));
   if (!verdict.ok) return NextResponse.json({ error: verdict.error }, { status: verdict.status });
   return NextResponse.json(verdict.body);
 }

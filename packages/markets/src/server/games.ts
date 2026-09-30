@@ -22,7 +22,7 @@ import { appMarketId, seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
 import type { SeatLedger } from "./seat-ledger";
-import { DEFAULT_COMMAND_DEADLINE_MS, selectCash, type CommandJournal, type CommandRow, type SeatActor } from "./writes";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, selectCash, type CommandJournal, type CommandRow, type SeatActor } from "./writes";
 
 export interface GamesSeatConfig {
   client: LedgerClient;
@@ -101,7 +101,7 @@ export function createGamesSeat(cfg: GamesSeatConfig) {
     const commandId = seatCommandId("duel", journalId);
     const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "duel", beginOffset: offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
     try {
-      const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands: plan.commands, ...(plan.disclosed?.length ? { disclosedContracts: plan.disclosed } : {}) });
+      const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands: plan.commands, ...inFlightBounds(row), ...(plan.disclosed?.length ? { disclosedContracts: plan.disclosed } : {}) });
       await journal.finish(commandId, { state: "landed", updateId: r.transaction.updateId });
       return confirmed(r.transaction.updateId, r.recovered, pick);
     } catch (error) {

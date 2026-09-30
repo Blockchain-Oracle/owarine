@@ -28,6 +28,10 @@ describe("parseInstruction", () => {
     expect(ok("bitcoin down 5 1h")).toMatchObject({ asset: "BTC", side: "down" });
     expect(ok("ether up 5 5m")).toMatchObject({ asset: "ETH" });
   });
+  it("takes the venue's own unit after a stake (C13a)", () => {
+    expect(ok("btc up 5 credits 15m")).toMatchObject({ asset: "BTC", stakeBase: 5_000_000n });
+    expect(ok("eth down 1 credit 1h")).toMatchObject({ asset: "ETH", side: "down" });
+  });
   it.each(["TSLA long 5 5 minutes", "tsla up 5 5min", "TSLA up 5 5 mins"])("accepts written minute units: %s", text => {
     expect(ok(text)).toMatchObject({ asset: "TSLA", side: "up", stakeBase: 5_000_000n, intervalSec: 300 });
   });

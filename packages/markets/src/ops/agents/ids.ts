@@ -38,8 +38,22 @@ export const utcDayStartSec = (sec: number): number => Math.floor(sec / 86_400) 
 /** SHA-256 of UTF-8 text as lowercase hex: exactly Daml's `DA.Text.sha256`, which seals a strategy's spec. */
 export const sha256Hex = (text: string): string => bytesToHex(sha256(utf8ToBytes(text)));
 
-/** A desk's address-shaped id: base58 of SHA-256(venue · owner), derived and stable, never a chain account. */
-export const deskAddressOf = (owner: string, venue: string): Address => encodeBase58(sha256(utf8ToBytes(`agari-desk\u0000${venue}\u0000${owner}`))) as Address;
+/**
+ * A desk's address-shaped id (C4d, K-210): base58 of SHA-256(venue · owner party · its opening), derived and stable,
+ * never a chain account. The opening is the embedded grant's expiry, which `DeskOffer_Open` sets once from the server's
+ * clock and every later choice keeps. A seat party is recycled to later visitors, and each opening falls inside one
+ * lease (the drain closes the mandate before the party can be leased again), so a later lessee's desk on the same
+ * party never has an earlier lessee's address.
+ */
+export const deskAddressOf = (m: { owner: string; venue: string; grant: { expiresAtSec: number } }): Address =>
+  encodeBase58(sha256(utf8ToBytes(`agari-desk/2\u0000${m.venue}\u0000${m.owner}\u0000${m.grant.expiresAtSec}`))) as Address;
+
+/**
+ * The address before C4d: venue · owner party only, so every lessee of a recycled party had the same one. Index rows
+ * written then keep it; it is honoured only through the row owner's CURRENT lease (`chain.server.ts`, the runner's
+ * reconcile), never on its own.
+ */
+export const legacyDeskAddressOf = (owner: string, venue: string): Address => encodeBase58(sha256(utf8ToBytes(`agari-desk\u0000${venue}\u0000${owner}`))) as Address;
 
 /** YES-terms raw price (10^decimals = 1) ↔ the side's ticks (1000 = 1). */
 export const ticksOfRaw = (raw: bigint, decimals: number): number => Number((raw * 1000n) / 10n ** BigInt(decimals));

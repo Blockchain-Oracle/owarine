@@ -3,10 +3,13 @@
  * Quote issuance (`POST /internal/quotes`), buy-back (exit) quotes (`POST /internal/exit-quotes`) and seat funding (`POST /internal/seats/fund`) run in ops as the venue; the
  * route handlers never act as the venue. Both sides import this module, so the signature is computed one way.
  *
- * Signature: `x-agari-ops-sig: v1=<hex HMAC-SHA256(secret, "<ts>.<METHOD>.<path>.<body>")>` with `x-agari-ops-ts: <ms>`;
- * ops rejects a timestamp more than 30 s away from its clock, so a captured call cannot be replayed later.
+ * Signature (C4d L4): `x-agari-ops-sig: v2=<hex HMAC-SHA256(secret, "<ts>.<nonce>.<METHOD>.<path>.<body>")>` with
+ * `x-agari-ops-ts: <ms>` and `x-agari-ops-nonce: <16 random bytes, hex>`. Ops rejects a timestamp more than 30 s away
+ * from its clock, and a nonce it has already taken inside that window, so a captured call cannot be replayed at all.
+ * The season admin's two routes (`OPS_ADMIN_PATHS`) are signed with their own secret, `OPS_ADMIN_SECRET`, never the
+ * web's: a web host that leaks `OPS_INTERNAL_SECRET` still cannot pay a season out.
  */
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { diagnosis, diagnosisSchema, type Diagnosis } from "@agari/core/types";
 import { z } from "zod";
 import { ladderLatestWire, parseLadder, type Ladder } from "../runtime/ladder";
@@ -20,6 +23,7 @@ import { arenaMatchViewWire, arenaStateWire, duelOpenArgsWire, seasonPoolWire, t
 
 export const OPS_TS_HEADER = "x-agari-ops-ts";
 export const OPS_SIG_HEADER = "x-agari-ops-sig";
+export const OPS_NONCE_HEADER = "x-agari-ops-nonce";
 export const OPS_SKEW_MS = 30_000;
 export const OPS_QUOTES_PATH = "/internal/quotes";
 export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
@@ -40,16 +44,23 @@ export interface TicketDeskReplies {
   earn: EarnReply;
 }
 
-export function opsSignature(secret: string, ts: number, method: string, path: string, body: string): string {
-  return `v1=${createHmac("sha256", secret).update(`${ts}.${method.toUpperCase()}.${path}.${body}`).digest("hex")}`;
+/** The season admin's routes: signed with `OPS_ADMIN_SECRET`, closed without it (C4d L4). */
+export const OPS_ADMIN_PATHS: ReadonlySet<string> = new Set([`${OPS_GAMES_PREFIX}season/distribute`, `${OPS_GAMES_PREFIX}season/withdraw`]);
+
+const NONCE = /^[0-9a-f]{32}$/;
+export const opsNonce = (): string => randomBytes(16).toString("hex");
+
+export function opsSignature(secret: string, ts: number, nonce: string, method: string, path: string, body: string): string {
+  return `v2=${createHmac("sha256", secret).update(`${ts}.${nonce}.${method.toUpperCase()}.${path}.${body}`).digest("hex")}`;
 }
 
-/** For ops' handler: true only for a fresh timestamp and a matching MAC (constant-time). */
-export function verifyOpsSignature(secret: string, o: { ts: string | null; sig: string | null; method: string; path: string; body: string; nowMs?: number }): boolean {
-  if (!o.ts || !o.sig || !/^\d{1,16}$/.test(o.ts)) return false;
+/** For ops' handler: true only for a fresh timestamp, a well-formed nonce and a matching MAC (constant-time). The nonce's
+ * single use is ops' own check (`internal.ts`), after this one passes. */
+export function verifyOpsSignature(secret: string, o: { ts: string | null; nonce: string | null; sig: string | null; method: string; path: string; body: string; nowMs?: number }): boolean {
+  if (!o.ts || !o.sig || !o.nonce || !/^\d{1,16}$/.test(o.ts) || !NONCE.test(o.nonce)) return false;
   const ts = Number(o.ts);
   if (Math.abs((o.nowMs ?? Date.now()) - ts) > OPS_SKEW_MS) return false;
-  const expected = Buffer.from(opsSignature(secret, ts, o.method, o.path, o.body));
+  const expected = Buffer.from(opsSignature(secret, ts, o.nonce, o.method, o.path, o.body));
   const given = Buffer.from(o.sig);
   return expected.length === given.length && timingSafeEqual(expected, given);
 }
@@ -107,11 +118,12 @@ export function createOpsClient(cfg: OpsClientConfig) {
   async function post(path: string, payload: unknown): Promise<{ ok: true; json: unknown } | { ok: false; diagnosis: Diagnosis }> {
     const body = JSON.stringify(toWire(payload));
     const ts = now();
+    const nonce = opsNonce();
     let res: Response;
     try {
       res = await doFetch(`${base}${path}`, {
         method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json", [OPS_TS_HEADER]: String(ts), [OPS_SIG_HEADER]: opsSignature(cfg.secret, ts, "POST", path, body) },
+        headers: { "content-type": "application/json", accept: "application/json", [OPS_TS_HEADER]: String(ts), [OPS_NONCE_HEADER]: nonce, [OPS_SIG_HEADER]: opsSignature(cfg.secret, ts, nonce, "POST", path, body) },
         body,
         signal: AbortSignal.timeout(cfg.timeoutMs ?? 10_000),
         cache: "no-store",

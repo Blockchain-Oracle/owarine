@@ -10,6 +10,12 @@ import { SIGNED_MESSAGE_BRAND } from "../auth/signed-message";
  */
 export const X_LINK_SIGNATURE_TTL_MS = 5 * 60_000;
 
+/**
+ * The header the app sends its X session in (C13a): the `/native-auth` handoff gives the phone the same signed token the
+ * web keeps in its cookie, and the X routes validate it exactly like the cookie.
+ */
+export const X_SESSION_HEADER = "x-agari-x-session";
+
 export function xLinkMessage(authorId: string, wallet: string, issuedAtMs: number): string {
   return [`${SIGNED_MESSAGE_BRAND} X account link`, `X user: ${authorId}`, `Wallet: ${wallet}`, `Issued: ${new Date(issuedAtMs).toISOString()}`].join("\n");
 }

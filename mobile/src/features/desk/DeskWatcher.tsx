@@ -6,11 +6,12 @@ import { useDeskFeed, useDeskView } from "@/features/desk/useDesk";
 import { useWalletSession } from "@/lib/wallet-session";
 import { haptic } from "~/components/kit";
 import { pushToast } from "~/components/toast/store";
+import { appKey } from "~/lib/keys";
 
 /** The feed is asked once a minute while the app is open; the desk wakes hourly, so this only catches an event sooner. */
 const FEED_POLL_MS = 60_000;
 const NOTIFIED = new Set<string>([...NOTIFIED_OUTCOMES].map((o) => OUTCOME_COLUMN[o]));
-const seenKey = (owner: string) => `agari.desk.seen:101:${owner}`;
+const seenKey = (owner: string) => appKey(`desk.seen:101:${owner}`);
 
 function readSeen(owner: string): number | null {
   try {

@@ -62,7 +62,8 @@ Settings that matter:
 - **pm-web health check:** path `/api/status`, or leave Coolify's default. The image has `curl`.
 - **pm-ops health check:** the Dockerfile's own `HEALTHCHECK` is liveness only: any HTTP answer from `/health` counts. `/health` can report not-ok for a third-party feed (K-027), and restarting would not fix that.
 - **Deploy order:** pm-db → pm-ops → pm-web → pm-docs. The web refuses to boot in production without ops' URL and secret (`instrumentation-node.ts`).
-- **Private network.** Coolify puts a project's apps on its Docker network. Use the internal hostnames it shows under each app for `OPS_INTERNAL_URL`, `AGARI_WEB_ORIGIN` and `DATABASE_URL`, so these hops never leave the server. The public `https://ops.<domain>` also works for the web → ops call.
+- **Private network.** Coolify puts a project's apps on its Docker network. Use the internal hostnames it shows under each app for `OPS_INTERNAL_URL`, `AGARI_WEB_ORIGIN` and `DATABASE_URL`, so these hops never leave the server.
+- **Do not route `/internal/*` publicly (C4d L4).** Only the web calls ops' `POST /internal/*`, over the private network. On pm-ops, give the public router a rule that leaves those paths out, so a request from the internet never reaches them: in Coolify, pm-ops → Configuration → General → "Container Labels", change the HTTPS router's rule from ``Host(`ops.<domain>`)`` to ``Host(`ops.<domain>`) && !PathPrefix(`/internal`)`` (the same on the HTTP router), then redeploy. Check: `curl -si -X POST https://ops.<domain>/internal/quotes | head -1` answers Traefik's `404`, and the web still quotes. The routes stay HMAC-signed with a single-use nonce either way; this only takes them off the internet. If Coolify regenerates the labels, repeat it.
 
 ## 4. Environment per app (names only; values in Coolify, never in Git)
 
@@ -73,6 +74,8 @@ Full lists with defaults: `web/.env.example`, `services/ops/.env.example`, `docs
 - `OPS_INTERNAL_SECRET`
 - `ROOM_TOKEN_SECRET`
 - `PUSH_DRAIN_SECRET`
+
+**Ops only (C4d L4).** `OPS_ADMIN_SECRET` (same `openssl rand -hex 32`), set on pm-ops and never on pm-web: it signs the season admin's `season/distribute` and `season/withdraw`, which are closed without it. The admin runs `scripts/season-admin.ts` with it from their own machine.
 
 **Ledger.**
 - On DevNet: `LEDGER_AUTH_MODE=password` with the `LEDGER_OIDC_*` set, in **both** web and ops (K-035).
@@ -87,6 +90,7 @@ Full lists with defaults: `web/.env.example`, `services/ops/.env.example`, `docs
 | Required | `DATABASE_URL`, `DRY_RUN=0`, `OPS_INTERNAL_SECRET`, `AGARI_PARTIES_FILE=/data/parties.json`, `LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE` (+ `LEDGER_OIDC_*`) |
 | Reaching the web | `AGARI_WEB_ORIGIN` (the web's internal URL, `http://<pm-web internal host>:3000`), `NEXT_PUBLIC_APP_ORIGIN=https://<domain>` |
 | Sources | `ALPACA_ENDPOINT`, `ALPACA_KEY_ID`, `ALPACA_SECRET_KEY`, `FINNHUB_API_KEY`, optional `PYTH_API_KEY`, `JUPITER_API_KEY` |
+| Season admin | `OPS_ADMIN_SECRET` (ops only; unset = the admin routes are closed) |
 | Games, push, agents | `ROOM_TOKEN_SECRET`, `GAME_DECK_KEY`, `PUSH_DRAIN_URL=https://<domain>/api/push/drain`, `PUSH_DRAIN_SECRET`, optional `OPENAI_API_KEY`, `AI_MODEL`, `X_*` |
 | Set by the image | `OPS_HTTP_PORT=8080`, `GAME_ROOM_HOST=0.0.0.0`, `GAME_ROOM_PORT=8787`, `GAME_DECK_JOURNAL=/data/deck-journal.jsonl` |
 

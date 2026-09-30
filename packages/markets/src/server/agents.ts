@@ -18,12 +18,12 @@ import { acmd } from "../ops/agents";
 import { grantIdOf, sha256Hex, strategyNumOf, utcDayStartSec } from "../ops/agents/ids";
 import { AGENT_DECIMALS, capsToDaml, creatorPayoutsView, envelopeToDaml, goneGrantView, grantFor, grantIdOfC, grantKindOf, grantsByKind, grantView, strategyView, subscriptionView, type CreatorPayoutsView } from "../ops/agents/views";
 import type { AgentsWriteReply } from "../provider/agents-wire";
-import { creatorLabel, readAgentsAs, readRegistry, runnerOf, type AgentsSnapshot, type CreatorLabels, type Registry } from "./agents-read";
+import { creatorLabel, grantAgentOf, readAgentsAs, readRegistry, runnerOf, type AgentsSnapshot, type CreatorLabels, type Registry } from "./agents-read";
 import { seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
 import { exactCash } from "./exact-cash";
-import { DEFAULT_COMMAND_DEADLINE_MS, selectCash, type CommandJournal, type CommandRow } from "./writes";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, selectCash, type CommandJournal, type CommandRow } from "./writes";
 
 export interface AgentsSeatConfig {
   client: LedgerClient;
@@ -172,11 +172,11 @@ export function createAgentsSeat(cfg: AgentsSeatConfig) {
         p = await plan(snap);
       }
       ctx = p.ctx ?? ctx;
-      await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "agent", beginOffset: snap.offset, deadlineMs: p.deadlineMs ?? now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "agent", beginOffset: snap.offset, deadlineMs: p.deadlineMs ?? now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
       let tx: JsTransaction;
       let recovered: boolean;
       try {
-        const r = await client.submitAndWaitForTransaction({ actAs: [seat.party], commandId, commands: p.commands, ...(p.disclosed?.length ? { disclosedContracts: p.disclosed } : {}) });
+        const r = await client.submitAndWaitForTransaction({ actAs: [seat.party], commandId, commands: p.commands, ...inFlightBounds(row), ...(p.disclosed?.length ? { disclosedContracts: p.disclosed } : {}) });
         tx = r.transaction;
         recovered = r.recovered;
       } catch (error) {
@@ -232,9 +232,9 @@ export function createAgentsSeat(cfg: AgentsSeatConfig) {
       if (caps.maxStakePerTrade <= 0n || caps.maxDailySpend <= 0n || caps.maxOpenPositions <= 0) throw refuse("invalid-price", "caps must be positive");
       const held = snap.grants.find((g) => g.data.owner === seat.party && grantKindOf(g.data) === kind && g.data.expiresAtSec >= t);
       if (held) throw refuse("grant-refused", `this seat already holds a live ${kind} grant (#${grantIdOfC(held.data)}): revoke it first`);
-      const desk = grantDesk(snap);
+      const agent = grantAgentOf(o.actor, cfg.agentRunner), desk = grantDesk(snap);
       return {
-        commands: [acmd.openGrant(desk, { agent: o.actor, caps, expiresAtSec: o.expiresAtSec, dayZeroSec: utcDayStartSec(t), budget: o.budgetBase, cash: pay(snap, o.budgetBase) })],
+        commands: [acmd.openGrant(desk, { agent, caps, expiresAtSec: o.expiresAtSec, dayZeroSec: utcDayStartSec(t), budget: o.budgetBase, cash: pay(snap, o.budgetBase) })],
         ctx: { step: "accept", cashCids: [] },
       };
     });

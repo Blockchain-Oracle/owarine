@@ -5,3 +5,4 @@ export * from "./grant-policy";
 export * from "./refusal";
 export * from "./window";
 export * from "./actions";
+export * from "./share-link";

@@ -27,18 +27,21 @@
  * have no row, so they are drained but never recycled).
  */
 import { createHash } from "node:crypto";
-import { getDb, recycleDrainingSeat, type Db, type RecycleOutcome } from "@agari/db";
+import { closeLeaseDesks, getDb, recycleDrainingSeat, type Db, type RecycleOutcome } from "@agari/db";
 import { TEMPLATE_IDS } from "@agari/daml";
 import {
   closeOutCommandId, cmd, decodeLeg, decodeQuote, failureText, isInactive, pick, readActive, submit, withdrawCommandId, type RoleSession,
 } from "@agari/markets/ops/canton";
 import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import { acmd, decodeDeskMandate } from "@agari/markets/ops/agents";
+import { acmd, decodeDeskMandate, legacyDeskAddressOf } from "@agari/markets/ops/agents";
 import { holdingsText, isSeatEmpty, readAgentsAs, readSeatHoldings, type SeatHoldings } from "@agari/markets/server";
 import { payCreators } from "../agents/fees";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { submitWithShards, venueCashCreated } from "../quote-issuer/pooled-submit";
+
+/** Why a draining seat's desk rows are closed (the desk page shows it). */
+export const SEAT_RESET_REASON = "the seat was reset, so its desk was closed and its budget returned";
 
 /** The seats in `draining`, from the web's seat table; an absent table or database reads as none. */
 export async function drainingSeats(env: NodeJS.ProcessEnv = process.env): Promise<string[]> {
@@ -181,6 +184,17 @@ export function createSeatDrainPass(input: SeatDrainInput): () => Promise<PassRe
         counters.failed++;
         unfinished.add(seat);
         notes.push(`agents of ${seat.split("::")[0]} not ended: ${failureText(error)}`);
+      }
+      // C4d (K-210): the draining lease's desks leave the index too, so no row of this visitor is ever read or traded
+      // against the next visitor's desk on this party.
+      if (db && !input.venue.dryRun) {
+        try {
+          const closed = await closeLeaseDesks(db, { party: seat, legacyAddress: legacyDeskAddressOf(seat, input.venue.party), reason: SEAT_RESET_REASON, nowSec });
+          if (closed > 0) notes.push(`${seat.split("::")[0]}: closed ${closed} desk row(s) of its lease`);
+        } catch (error) {
+          counters.failed++;
+          notes.push(`desk rows of ${seat.split("::")[0]} not closed: ${failureText(error)}`);
+        }
       }
     }
     const held: string[] = [];

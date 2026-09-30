@@ -10,6 +10,8 @@ import { marketsEnv, SITE_URL } from "./env";
  * native screens, so a link back to the web app is refused here rather than opened (the `mobile-no-web-handoff`
  * invariant keeps every other file off the browser). The one exception is `/proof`: Canton updates are private, so
  * there is no public explorer, and the phone has no proof screen (Abu, 25 Sep): the web's proof page re-reads it.
+ * The second is X's sign-in (`openXSignIn`, C13a, K-145): an OAuth round-trip can only run in a browser, so the web's
+ * `/native-auth` runs it in an auth session and hands the X session back on this app's scheme.
  */
 const PRODUCT_ORIGIN = new URL(SITE_URL).host;
 
@@ -25,6 +27,16 @@ export function isProductUrl(url: string): boolean {
 export async function openExternal(url: string): Promise<void> {
   if (isProductUrl(url)) throw new Error(`Refusing to open a product page in a browser: ${url}`);
   await WebBrowser.openBrowserAsync(url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET });
+}
+
+/**
+ * X's sign-in through the web's `/native-auth` handoff, in an auth session (ASWebAuthenticationSession on iOS), which
+ * returns the callback URL on `returnUrl`'s scheme to the caller instead of routing it. Only this one path opens. The
+ * `challenge` is the PKCE S256 of a verifier only the caller holds (C4d M2a): the page answers with a one-time code.
+ */
+export async function openXSignIn(state: string, challenge: string, returnUrl: string): Promise<{ type: "success"; url: string } | { type: "cancel" }> {
+  const result = await WebBrowser.openAuthSessionAsync(`${SITE_URL}/native-auth?${new URLSearchParams({ state, challenge }).toString()}`, returnUrl);
+  return result.type === "success" ? { type: "success", url: result.url } : { type: "cancel" };
 }
 
 /** A ledger update's proof on the web: core's `txUrl` (`/proof?update=…`), made absolute against the site. */

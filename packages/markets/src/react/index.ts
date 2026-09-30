@@ -65,6 +65,8 @@ export {
   useVaultHoldings,
   useVaultSnapshot,
   useCreatorPayouts,
+  usePublishedCalls,
+  usePublishedHistory,
   useWalletHistory,
 } from "./useReads";
 export { invalidateAfterWrite, type WriteScope } from "./invalidate";

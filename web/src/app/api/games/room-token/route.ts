@@ -1,12 +1,14 @@
 import { messageSignatureSchema } from "@agari/core/auth";
 import { addressSchema } from "@agari/core/types";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { mintFromSignature, renewFromToken, roomArena } from "@/features/games/room-token.server";
+import { mintFromSignature, renewFromToken, roomArena, seatVouch } from "@/features/games/room-token.server";
+import { jsonBody, seatFromRequest } from "@/lib/seat.server";
 
 /**
  * `POST /api/games/room-token` — the browser key's signature, turned into a room credential. The wallet
- * is never asked; the key signs for the wallet it claims, and the chain vouches for the pair at entry.
+ * is never asked; the key signs for the wallet it claims, and the seat the request proves (cookie or signed
+ * header) must vouch for that wallet: its own key, or a key of the same live lease (C4c).
  *
  * Two shapes, because a duel outlives one token. A `signature` mints a fresh session; a `token` renews
  * inside the session it already proved, so a match that runs past fifteen minutes re-signs nothing
@@ -43,15 +45,20 @@ const requestSchema = z.union([
   z.object({ token: z.string().min(16).max(400) }),
 ]);
 
-export async function POST(req: Request) {
-  const parsed = requestSchema.safeParse(await req.json().catch(() => null));
+export async function POST(req: NextRequest) {
+  const parsed = requestSchema.safeParse(await jsonBody(req));
   if (!parsed.success) return NextResponse.json({ error: "That is not a room token request." }, { status: 400 });
+
+  // C4c (M1): only a seat the request proves can vouch for the wallet a token names.
+  const auth = await seatFromRequest(req, { write: true });
+  if (!auth.ok) return NextResponse.json({ error: "Take a seat first: the duel room admits seats." }, { status: auth.response.status === 503 ? 503 : 401 });
+  const vouch = seatVouch(auth.seat);
 
   const now = Date.now();
   const outcome =
     "token" in parsed.data
-      ? await renewFromToken(parsed.data.token, now)
-      : await mintFromSignature(parsed.data.wallet, parsed.data.key, parsed.data.issuedAtMs, parsed.data.signature, now);
+      ? await renewFromToken(parsed.data.token, now, vouch)
+      : await mintFromSignature(parsed.data.wallet, parsed.data.key, parsed.data.issuedAtMs, parsed.data.signature, now, vouch);
 
   if (!outcome.ok) return NextResponse.json({ error: outcome.error }, { status: outcome.status });
   return NextResponse.json(outcome.grant);

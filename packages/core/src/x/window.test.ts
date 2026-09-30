@@ -29,6 +29,13 @@ describe("X Window matching", () => {
 
   // A pre-IPO name is listed only on the 24/7 token lane (D-103), so a `lane === "regular"` filter refused every one
   // of them and the X rail could only trade inside a NYSE session. It asks the same question a Blink asks.
+  it("routes a BTC or ETH mention to its 24/7 crypto lane, never a Regular one (C13a, C-MKT-13)", () => {
+    const btc = { asset: "BTC" as const, intervalSec: 900 };
+    const fifteen = (over: Partial<EventMarket>) => market({ asset: "BTC", intervalSec: 900, expirySec: at(30) / 1000, lockAtSec: at(30) / 1000, ...over });
+    expect(selectXWindow([fifteen({ lane: "token" })], btc, at(21)).ok).toBe(true);
+    expect(selectXWindow([fifteen({ lane: "regular" })], btc, at(21))).toEqual({ ok: false, code: "no-window" });
+  });
+
   it("routes a pre-IPO mention to the token lane, so a mention trades out of hours", () => {
     const openai = { asset: "OPENAI" as const, intervalSec: 3_600 };
     const hourly = (over: Partial<EventMarket>) => market({ intervalSec: 3_600, expirySec: at(22) / 1000, ...over });

@@ -1,5 +1,6 @@
 "use client";
 
+import { seatWriteHeaders } from "@/lib/seat-fetch";
 import type { BookedOrder } from "@agari/core/ports";
 import type { Address, Hash32, Signature } from "@agari/core/types";
 import { useCallback, useRef, useState } from "react";
@@ -50,10 +51,15 @@ function randomSeed(): Hash32 {
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
-  const response = await fetch(`${ENDPOINT}/${path}`, {
+  const url = `${ENDPOINT}/${path}`;
+  const text = JSON.stringify(body);
+  // C4d M3: the commit names the seat's own wallet; the phone proves it with a one-request write proof (the web's cookie
+  // rides along by itself).
+  const proof = path === "commit" ? await seatWriteHeaders("POST", url, text) : {};
+  const response = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-agari-device": deviceId() },
-    body: JSON.stringify(body),
+    headers: { "content-type": "application/json", "x-agari-device": deviceId(), ...proof },
+    body: text,
   });
   const json = (await response.json().catch(() => ({}))) as T & { error?: string };
   if (!response.ok) throw new Error(json.error ?? `the server answered ${response.status}`);

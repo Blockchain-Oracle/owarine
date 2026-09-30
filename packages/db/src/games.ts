@@ -128,6 +128,36 @@ export async function recordPick(row: DuelCardRow): Promise<void> {
   `;
 }
 
+/** One projected pick with its seat, read back for a decided match (a `DuelResult` keeps no picks, C4c). */
+export interface DuelPickRead {
+  cardIndex: number;
+  seat: 0 | 1;
+  side: "up" | "down";
+  quantity: string;
+  costBase: string;
+  /** Null until the card settled. */
+  payoutBase: string | null;
+}
+
+/**
+ * Every projected pick of one match, each with its seat taken from its own key (`arenaPickKey`: chain:match:card:seat),
+ * so it never depends on which address the projector showed the player under. Null with no database; an empty list
+ * when the projection holds none.
+ */
+export async function readDuelPicks(matchId: string): Promise<DuelPickRead[] | null> {
+  const db = getDb();
+  if (!db) return null;
+  await ensureSchema();
+  const id = key(matchId.startsWith("0x") ? matchId : `0x${matchId}`);
+  const rows = await db<{ pick_key: string; card_index: number; side: string; quantity: string; cost: string; payout: string | null }[]>`
+    SELECT pick_key, card_index, side, quantity, cost, payout FROM duel_cards WHERE match_id = ${id} ORDER BY card_index, pick_key`;
+  return rows.flatMap((r) => {
+    const seat = Number(r.pick_key.split(":").at(-1));
+    if ((seat !== 0 && seat !== 1) || (r.side !== "up" && r.side !== "down")) return [];
+    return [{ cardIndex: Number(r.card_index), seat: seat as 0 | 1, side: r.side, quantity: r.quantity, costBase: r.cost, payoutBase: r.payout }];
+  });
+}
+
 /**
  * A card's redemption. It fills in the row the pick already wrote rather than inserting beside it —
  * the whole reason the row is keyed by the pick's coordinates and not by a log.
