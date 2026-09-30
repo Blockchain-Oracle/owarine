@@ -11,10 +11,10 @@ export async function awaitVenue<V extends { venueId: unknown }>(
   log: (why: string) => void,
   everyMs: number,
   sleep: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms)),
-): Promise<V> {
+): Promise<V & { venueId: NonNullable<V["venueId"]> }> {
   for (let attempt = 1; ; attempt += 1) {
     const venue = await resolve();
-    if (isOk(venue) && venue.value.venueId) return venue.value;
+    if (isOk(venue) && venue.value.venueId) return venue.value as V & { venueId: NonNullable<V["venueId"]> };
     if (attempt === 1 || attempt % 10 === 0) log(`no venue to scan yet: ${isOk(venue) ? "none live" : venue.error.technical}; asking again every ${Math.round(everyMs / 1000)} s`);
     await sleep(everyMs);
   }
