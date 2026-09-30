@@ -64,3 +64,16 @@ export async function tickerFeed(symbol: TickerSymbol): Promise<ActivityFeed> {
   const [fills, settlements, takes] = await Promise.all([r.tickerFills(symbol, q), r.tickerSettlements(symbol, q), listTakes({ limit: ACTIVITY_LIMIT, symbol })]);
   return feedOf([fills.map(fillItem), settlements.flatMap((row) => settlementItems(row, { payouts: false }))], takes);
 }
+
+/**
+ * A seat's own inbox for its phone's push (C11, plan iOS step 10): its fills and verdicts, private ones included, from
+ * the Canton projection, read under the address its lease was taken with (a phone joined by a seat link passes the
+ * holder's). Server-only: it never answers a route, only the push drain.
+ */
+export async function seatInboxFeed(holder: Address, sinceSec?: number): Promise<ActivityFeed> {
+  const r = activityReader();
+  if (!r) return UNCONFIGURED;
+  const q = { sinceSec, limit: ACTIVITY_LIMIT };
+  const [fills, settlements] = await Promise.all([r.seatFills(holder, q), r.seatSettlements(holder, q)]);
+  return feedOf([fills.map(fillItem), settlements.flatMap((row) => settlementItems(row, { payouts: true }))]);
+}
