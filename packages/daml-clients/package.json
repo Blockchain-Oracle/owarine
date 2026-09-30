@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@daml.js/abu-pm-main": "link:./generated/abu-pm-main",
-    "@daml.js/abu-pm-main-0.4.0": "link:./generated/abu-pm-main",
+    "@daml.js/abu-pm-main-0.5.0": "link:./generated/abu-pm-main",
     "@daml.js/abu-pm-tickets": "link:./generated/abu-pm-tickets",
     "@daml.js/abu-pm-agents": "link:./generated/abu-pm-agents",
     "@daml.js/abu-pm-games": "link:./generated/abu-pm-games",

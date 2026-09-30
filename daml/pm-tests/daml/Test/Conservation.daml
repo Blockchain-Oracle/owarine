@@ -17,6 +17,11 @@
 -- (Test.Money.testStaleRefundLosingLegIsVenueRisk): a stale refund of a leg
 -- whose market resolved non-void. The sequence never attempts one.
 --
+-- 0.5.0: half the minted shards are the maker book's (`reserve:maker`), so
+-- quotes, buy-backs and close-outs drawn from them run the book's routing
+-- (book legs, book-only merges, returns to the book's bucket) in the same
+-- random interleavings; the total above is unchanged by it.
+--
 -- Steps (chosen by a 31-bit LCG): credit, mint shard, issue, accept (also
 -- via an agent grant), expire, withdraw quote, pass time, merge, open print /
 -- resolve / void (with occasional disagreeing oracles), settle, claim with
@@ -197,10 +202,11 @@ step w st0 = do
           (amt, st2) = roll 5000 st1
       _ <- fund w (users w !! u) (amt + 100)
       pure (bump "credit" st2 with credits = st2.credits + amt + 100)
-    1 -> do -- mint a venue shard
+    1 -> do -- mint a venue shard; every other one is the maker book's (0.5.0), with no extra draw
       let (amt, st1) = roll 20000 st
-      _ <- shard w (amt + 1000)
-      pure (bump "mint" st1 with credits = st1.credits + amt + 1000)
+          bucket = if amt % 2 == 0 then "reserve:maker" else "shard"
+      _ <- submit w.venue do createCmd VenueCash with venue = w.venue; owner = w.venue; amount = amt + 1000; bucket
+      pure (bump (if bucket == "shard" then "mint" else "mint-book") st1 with credits = st1.credits + amt + 1000)
     k | k <= 3 -> do -- issue a quote
       ts <- liveTerms w
       let (mt, st1) = pickFrom ts st

@@ -26,6 +26,7 @@ export declare type BuyQuote = {
   priceTicks: damlTypes.Int,
   locked: damlTypes.Int,
   validUntil: damlTypes.Time,
+  book: damlTypes.Optional<string>,
 }
 
 export declare interface BuyQuoteInterface {
@@ -131,6 +132,7 @@ export declare type Quote = {
   validUntil: damlTypes.Time,
   lockAt: damlTypes.Time,
   refundAfter: damlTypes.Time,
+  book: damlTypes.Optional<string>,
 }
 
 export declare interface QuoteInterface {

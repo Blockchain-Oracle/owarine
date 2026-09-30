@@ -18,7 +18,8 @@ import { CASH_DECIMALS } from "@agari/markets/server";
 import type { LadderBoard, LadderEntry } from "../market-maker/seat/ladder-board";
 import type { PricerSettings } from "../market-maker/seat/pricer";
 import { emitVenueEvent } from "../venue/events";
-import { PoolBusyError, type ShardPool } from "./pool";
+import type { MakerVault } from "../maker-vault/vault";
+import { PoolBusyError, type Lease, type ShardPool } from "./pool";
 import { submitWithShards } from "./pooled-submit";
 
 export interface IssuerDeps {
@@ -31,7 +32,28 @@ export interface IssuerDeps {
   infrastructure: ReadonlySet<string>;
   /** Seats being drained (plan §4: ops stops quoting to a draining seat). */
   draining?: ReadonlySet<string>;
+  /**
+   * The maker vault's book (`MAKER_MODE=vault`, abu-pm-main 0.5.0): a quote inside the vault's bounds is locked from a
+   * `reserve:maker` shard, so the vault is the counterparty; anything else stays the venue desk's.
+   */
+  maker?: MakerVault | null;
   log: (why: string) => void;
+}
+
+/**
+ * The shard a quote locks from: the maker book's when it takes the quote and has the cash, else the venue desk's.
+ * Throws `PoolBusyError` when the desk's pool has nothing either.
+ */
+export async function leaseFor(d: IssuerDeps, book: boolean, amount: bigint, purpose: string): Promise<{ pool: ShardPool; lease: Lease; book: boolean }> {
+  if (book && d.maker) {
+    try {
+      return { pool: d.maker.pool, lease: await d.maker.pool.lease(amount, `maker ${purpose}`), book: true };
+    } catch (error) {
+      if (!(error instanceof PoolBusyError)) throw error;
+      // The vault's idle cash does not cover it right now: the desk quotes instead.
+    }
+  }
+  return { pool: d.pool, lease: await d.pool.lease(amount, purpose), book: false };
 }
 
 export interface QuoteRequest {
@@ -112,17 +134,19 @@ export async function issueQuote(d: IssuerDeps, req: QuoteRequest): Promise<Answ
   if (walked.costBase > req.displayedMaxCostBase) return { status: 200, body: { kind: "requote", quote } };
 
   const started = Date.now();
-  let lease;
+  const takes = d.maker?.takesQuote(entry, { side: req.side, priceTicks: walked.priceTicks, lots: walked.lots, stakeBase: walked.venueStakeBase }) ?? null;
+  let held;
   try {
-    lease = await d.pool.lease(walked.venueStakeBase, `quote ${entry.damlMarketId}`);
+    held = await leaseFor(d, takes?.take === true, walked.venueStakeBase, `quote ${entry.damlMarketId}`);
   } catch (error) {
     if (error instanceof PoolBusyError) return refused("rpc-down", "every venue shard is in use; try again in a moment");
     throw error;
   }
+  const { pool, lease } = held;
   const requestId = randomUUID();
   const side: Side = req.side === "up" ? "SideUp" : "SideDown";
   try {
-    const out = await submitWithShards(d.pool, d.venue, [lease], {
+    const out = await submitWithShards(pool, d.venue, [lease], {
       commandId: quoteCommandId(requestId),
       commands: [cmd.issueQuote(await d.deskCid(), { shardCid: lease.cid, user: req.party, termsCid: entry.termsCid, pairId: requestId, side, priceTicks: walked.priceTicks, lots: walked.lots, fee: walked.fee, validUntilSec })],
     });
@@ -130,11 +154,12 @@ export async function issueQuote(d: IssuerDeps, req: QuoteRequest): Promise<Answ
     const q = out.created.find((e) => templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.Quote));
     if (!q) return refused("unknown", "the issue landed without a quote");
     consume(entry, req.side, walked.lots);
+    if (held.book) d.maker?.touched();
     const issueMs = Date.now() - started;
     latencies.push(issueMs);
     if (latencies.length > 10_000) latencies.splice(0, latencies.length - 10_000);
     emitVenueEvent({ kind: "quoted", marketId: entry.damlMarketId, quoteCid: q.contractId, side: req.side, lots: walked.lots.toString(), priceTicks: walked.priceTicks, issueMs, atMs: Date.now() });
-    d.log(`quote ${entry.damlMarketId} ${req.side} ${walked.lots} @ ${walked.priceTicks} (fee ${walked.fee}) to ${req.party.split("::")[0]} (lease ${req.leaseId}) in ${issueMs} ms`);
+    d.log(`quote ${entry.damlMarketId} ${req.side} ${walked.lots} @ ${walked.priceTicks} (fee ${walked.fee}) to ${req.party.split("::")[0]} (lease ${req.leaseId}) in ${issueMs} ms${held.book ? " · maker vault" : takes ? ` · desk (${takes.why})` : ""}`);
     return { status: 200, body: { kind: "quote", quoteCid: q.contractId, quote, validUntilMs: validUntilSec * 1000 } };
   } catch (error) {
     if (isIndefinite(error)) return refused("send-unknown", `the ledger did not answer in time (quote ${requestId}); the shard is held until its outcome is known`);

@@ -15,6 +15,8 @@ const rangeSide = z.enum(["inside", "outside"]);
 const cid = z.string().regex(/^[0-9a-f]{40,400}$/, "a contract id");
 const txHash = z.custom<Signature>(isSignature, "expected a Canton update id");
 export const ticketReserveWire = z.enum(["range", "parlay", "boost"]);
+/** Every reserve a provider can supply: the three ticket reserves and the maker vault (abu-pm-main 0.5.0, K-200). */
+export const earnReserveWire = z.enum(["range", "parlay", "boost", "maker"]);
 const mode = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("fixStake"), stakeBase: uint }),
   z.object({ kind: z.literal("fixPayout"), maxPayoutBase: uint }),
@@ -87,8 +89,11 @@ export const boostTicketRequestWire = z.discriminatedUnion("op", [
 export type BoostTicketRequest = z.output<typeof boostTicketRequestWire>;
 
 export const earnRequestWire = z.discriminatedUnion("op", [
-  z.strictObject({ op: z.literal("supply"), reserve: ticketReserveWire, amountBase: uint }),
-  z.strictObject({ op: z.literal("withdraw"), reserve: ticketReserveWire, shares: uint }),
+  z.strictObject({ op: z.literal("supply"), reserve: earnReserveWire, amountBase: uint }),
+  z.strictObject({ op: z.literal("withdraw"), reserve: earnReserveWire, shares: uint }),
+  /** The maker vault's permissionless cranks (the reference's `public_merge` / `public_settle`): the venue runs them now. */
+  z.strictObject({ op: z.literal("merge"), reserve: z.literal("maker"), marketId }),
+  z.strictObject({ op: z.literal("settle"), reserve: z.literal("maker"), marketId }),
 ]);
 export type EarnRequest = z.output<typeof earnRequestWire>;
 
@@ -127,6 +132,8 @@ export type BoostTicketReply = z.output<typeof boostTicketReplyWire>;
 export const earnReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("supply-quote"), quoteCid: cid, cashIn: baseUnits, sharesOut: baseUnits, validUntilMs: z.number() }),
   z.object({ kind: z.literal("withdraw-quote"), quoteCid: cid, sharesIn: baseUnits, cashOut: baseUnits, validUntilMs: z.number() }),
+  /** A maker crank ran: how many book positions it merged or settled (0 = nothing was due), and what it did. */
+  z.object({ kind: z.literal("maker-op"), op: z.enum(["merge", "settle"]), done: z.number().int(), note: z.string() }),
   refused,
 ]);
 export type EarnReply = z.output<typeof earnReplyWire>;
@@ -147,7 +154,52 @@ export const ticketReserveStateWire = z.object({
 });
 export type TicketReserveState = z.output<typeof ticketReserveStateWire>;
 
-export const ticketStateReplyWire = z.object({ asOfMs: z.number(), reserves: z.array(ticketReserveStateWire) });
+/** One Window of the maker vault's book, in the reference's `MakerWindowView` terms (`@agari/markets/ops/book` views). */
+export const makerWindowWire = z.object({
+  marketId,
+  escrowOutBase: baseUnits,
+  escrowBackBase: baseUnits,
+  mergedBase: baseUnits,
+  payoutBase: baseUnits,
+  openedAtSec: z.number(),
+  settledAtSec: z.number().nullable(),
+  quoteCount: z.number().int(),
+  settled: z.boolean(),
+  yesRaw: baseUnits,
+  noRaw: baseUnits,
+  deployedBase: baseUnits,
+  realizedBase: baseUnits.nullable(),
+});
+export type MakerWindowWire = z.output<typeof makerWindowWire>;
+
+/** The maker vault as ops reads it: its live statement, what is liquid and deployed, its bounds and its Windows. */
+export const makerStateWire = z.object({
+  navSeq: z.number().int(),
+  asOfMs: z.number(),
+  assetsBase: baseUnits,
+  shares: baseUnits,
+  liquidBase: baseUnits,
+  deployedBase: baseUnits,
+  paused: z.boolean(),
+  /** `MAKER_MODE=vault`: the issuer draws quotes from the book. Off, the vault only pays out and restates. */
+  quoting: z.boolean(),
+  params: z.object({
+    maxExposureBps: z.number().int(),
+    minSpreadRaw: baseUnits,
+    minPriceRaw: baseUnits,
+    maxPriceRaw: baseUnits,
+    maxQuantityRaw: baseUnits,
+    maxWindowDeployedBase: baseUnits,
+    maxOpenWindows: z.number().int(),
+    minTimeLeftSec: z.number().int(),
+  }),
+  open: z.array(makerWindowWire),
+  history: z.array(makerWindowWire),
+  unsettledExpired: marketId.nullable(),
+});
+export type MakerStateWire = z.output<typeof makerStateWire>;
+
+export const ticketStateReplyWire = z.object({ asOfMs: z.number(), reserves: z.array(ticketReserveStateWire), maker: makerStateWire.nullable().optional() });
 export type TicketStateReply = z.output<typeof ticketStateReplyWire>;
 
 // ---- the seat's tickets (GET /api/ledger/tickets/mine) ------------------------------------------------
@@ -200,7 +252,7 @@ export const boostPositionViewWire = z.object({
 });
 export type BoostPositionView = z.output<typeof boostPositionViewWire>;
 
-export const lpShareViewWire = z.object({ reserveId: ticketReserveWire, shares: baseUnits, worthBase: baseUnits });
+export const lpShareViewWire = z.object({ reserveId: earnReserveWire, shares: baseUnits, worthBase: baseUnits });
 
 /**
  * A ticket that has ended, from its `SettlementReceipt` (abu-pm-main 0.4.0; abu-pm-tickets 0.1.2 writes one on every

@@ -8,10 +8,17 @@
  *   venueLegBase   backing inside the venue's own legs
  *   userLegBase    backing plus escrowed fees inside users' legs (what users paid in)
  *   maxOwedBase    the most the venue can owe on open legs: every user leg winning its pair
+ *
+ * The maker vault (abu-pm-main 0.5.0, K-092, K-200): this actor publishes its statement (`Maker_PublishNav`, on the
+ * vault's queue, every `MAKER_NAV_MS` when the book's value or shares moved, and at least once a minute), and reports
+ * it beside the venue's figures as `maker`. Its cash is a reserve bucket, so it is never in `freeBase`; its quote locks
+ * and legs are in `lockedBase` and `venueLegBase` as before, and also inside `maker.assetsBase`.
  */
 import { TEMPLATE_IDS } from "@agari/daml";
 import { decodeLeg, decodeQuote, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
+import type { MakerVault } from "../maker-vault/vault";
+import { failureText } from "@agari/markets/ops/canton";
 import { isShardBucket } from "../quote-issuer/pool";
 
 export interface ReserveSnapshot {
@@ -25,9 +32,11 @@ export interface ReserveSnapshot {
   headroomBase: string;
   openLegs: number;
   liveQuotes: number;
+  /** The maker vault's live statement and what of it is idle; null without a vault in this process. */
+  maker: { navSeq: number; assetsBase: string; shares: string; liquidBase: string; deployedBase: string; openWindows: number } | null;
 }
 
-export function startReserveReporter(input: { venue: RoleSession; log: (why: string) => void }): { stop: () => void; latest: () => ReserveSnapshot | null } {
+export function startReserveReporter(input: { venue: RoleSession; log: (why: string) => void; maker?: MakerVault | null }): { stop: () => void; latest: () => ReserveSnapshot | null } {
   let latest: ReserveSnapshot | null = null;
   const pass = async (): Promise<PassResult> => {
     const acs = await readActive(input.venue, [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Leg]);
@@ -45,12 +54,37 @@ export function startReserveReporter(input: { venue: RoleSession; log: (why: str
       }
     }
     const headroom = free + locked + venueLegs + userLegs - maxOwed;
+    const m = input.maker?.state() ?? null;
     latest = {
       asOfMs: Date.now(), freeBase: free.toString(), lockedBase: locked.toString(), venueLegBase: venueLegs.toString(), userLegBase: userLegs.toString(),
       maxOwedBase: maxOwed.toString(), headroomBase: headroom.toString(), openLegs: legs.length, liveQuotes: quotes.length,
+      maker: m && { navSeq: m.navSeq, assetsBase: m.assetsBase.toString(), shares: m.shares.toString(), liquidBase: m.liquidBase.toString(), deployedBase: m.deployedBase.toString(), openWindows: m.open.length },
     };
     return { why: `free ${free}, locked ${locked}, legs ${venueLegs}+${userLegs}, max owed ${maxOwed}, headroom ${headroom}`, detail: { ...latest } };
   };
   const { stop } = runActor({ name: "reserve-reporter", log: input.log, dryRun: false, everyMs: 30_000, pass });
-  return { stop, latest: () => latest };
+  const maker = input.maker ?? null;
+  const nav = maker
+    ? runActor({
+        name: "maker-nav",
+        log: input.log,
+        dryRun: input.venue.dryRun,
+        everyMs: maker.env.navEveryMs,
+        pass: async (): Promise<PassResult> => {
+          try {
+            const r = await maker.publishNav();
+            return { why: r.note, detail: { published: r.published } };
+          } catch (error) {
+            return { why: `maker NAV not published: ${failureText(error).slice(0, 200)}`, detail: { published: false } };
+          }
+        },
+      })
+    : null;
+  return {
+    stop: () => {
+      stop();
+      nav?.stop();
+    },
+    latest: () => latest,
+  };
 }

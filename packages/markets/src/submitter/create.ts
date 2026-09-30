@@ -1,6 +1,7 @@
 import type { AttributionHook, CashOutOutcome, CashOutRequest, IntentJournal, PhaseListener, StopGate, Submitter } from "@agari/core/ports";
 import type { ArenaIntent } from "@agari/core/games";
 import type { LeverageIntent } from "@agari/core/leverage";
+import type { MakerIntent } from "@agari/core/maker";
 import type { ParlayIntent } from "@agari/core/parlay";
 import type { RangeIntent } from "@agari/core/range";
 import type { StrategyIntent } from "@agari/core/strategies";
@@ -10,6 +11,7 @@ import type { ArenaPickOutcome } from "../games";
 import { submitArenaPickWrite, submitArenaTx } from "../games/write";
 import type { LeverageOpenOutcome } from "../leverage";
 import { leverageOpenLane, leverageTxLane } from "../leverage/writes";
+import { submitMakerTx } from "../maker/writes";
 import type { ParlayOpenOutcome } from "../parlay";
 import { parlayOpenLane, parlayTxLane } from "../parlay/writes";
 import type { RangeOpenOutcome } from "../range";
@@ -69,7 +71,7 @@ export interface MarketsSubmitter extends Submitter {
   submitCashOut(request: CashOutRequest, onPhase?: PhaseListener, onHeld?: HeldExitListener): Promise<CashOutOutcome>;
 }
 
-/** Product lanes without a Canton package yet (the maker vault) stay refused; the ticket products (C8c) and the arena (C9b) are live. */
+/** A write kind no lane knows is refused; the ticket products (C8c), the arena (C9b) and the maker vault (C2d) are live. */
 const PRODUCTS_NOT_LIVE = cantonNotLive("product writes");
 const GRANT_ROUTE_IS_AN_AGENTS = "an order through a grant is placed by the grant's agent (ops), not from a seat's session";
 /** A resting call (D-088) becomes a bilateral `RestingCall` in C6. */
@@ -79,8 +81,8 @@ const REST_NOT_LIVE = cantonNotLive("resting calls");
  * Binds every write lane to ONE seat. Orders go through the seat lane (`seat-lane.ts`: firm quote, journal, accept
  * as the seat's party, book from the created Leg); cash-outs through `cash-out.ts` (firm buy-back, journal, accept); claims and stale refunds through the legs routes. The ticket
  * products (range, parlay, boost and their Earn quotes) go through `ticket-lane.ts` (C8c), the duel through
- * `games/write.ts` (C9b); the maker vault still refuses before anything is journaled, with the not-deployed diagnosis the surfaces render as "Not live on
- * this network yet". Every write queues through `enqueue`, so one seat never races itself (and two tabs share the server's
+ * `games/write.ts` (C9b), the maker vault through `maker/writes.ts` (C2d: the same Earn quotes as the ticket reserves, on
+ * `reserve: "maker"`). Every write queues through `enqueue`, so one seat never races itself (and two tabs share the server's
  * per-command idempotency).
  */
 export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
@@ -114,6 +116,8 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
         if (intent.kind.startsWith("strategy-")) return agentsStrategyLane(lane, intent as StrategyIntent, onPhase);
         // C9b: the duel arena (abu-pm-games) through the seat's own routes.
         if (intent.kind.startsWith("arena-")) return submitArenaTx(lane, intent as ArenaIntent, onPhase);
+        // C2d: the maker vault (abu-pm-main 0.5.0): supply and withdraw quotes, and its merge / settle cranks.
+        if (intent.kind.startsWith("maker-")) return submitMakerTx(lane, intent as MakerIntent, onPhase);
         return { status: "refused" as const, diagnosis: notDeployed(PRODUCTS_NOT_LIVE) };
       }),
     submitOrder: (request, onPhase) => {

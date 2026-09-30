@@ -6,8 +6,8 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
+import * as pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c from '@daml.js/abu-pm-main-0.5.0';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
-import * as pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d from '@daml.js/abu-pm-main-0.4.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
 import * as PM_Tickets_Boost from '../../../PM/Tickets/Boost/module';
@@ -16,13 +16,13 @@ import * as PM_Tickets_Parlay from '../../../PM/Tickets/Parlay/module';
 import * as PM_Tickets_Range from '../../../PM/Tickets/Range/module';
 
 export declare type Book_IssueBoost = {
-  navCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Reserve.NavStatement>,
-  reserveShardCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>,
-  houseShardCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>,
+  navCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement>,
+  reserveShardCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>,
+  houseShardCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>,
   user: damlTypes.Party,
-  termsCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms>,
   pairId: string,
-  side: pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Types.Side,
+  side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side,
   priceTicks: damlTypes.Int,
   lots: damlTypes.Int,
   leverageBps: damlTypes.Int,
@@ -38,10 +38,10 @@ export declare const Book_IssueBoost:
   damlTypes.Serializable<Book_IssueBoost>
 
 export declare type Book_IssueParlay = {
-  navCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Reserve.NavStatement>,
-  shardCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>,
+  navCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement>,
+  shardCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>,
   user: damlTypes.Party,
-  picks: pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Market.MarketTerms>, pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Types.Side>[],
+  picks: pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms>, pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side>[],
   stake: damlTypes.Int,
   maxPayout: damlTypes.Int,
   validUntil: damlTypes.Time,
@@ -51,10 +51,10 @@ export declare const Book_IssueParlay:
   damlTypes.Serializable<Book_IssueParlay>
 
 export declare type Book_IssueRange = {
-  navCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Reserve.NavStatement>,
-  shardCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>,
+  navCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Reserve.NavStatement>,
+  shardCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>,
   user: damlTypes.Party,
-  termsCid: damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Market.MarketTerms>,
   kind: PM_Tickets_Range.RangeKind,
   side: PM_Tickets_Range.RangeSide,
   lowE8: damlTypes.Int,
@@ -106,10 +106,10 @@ export declare interface RiskBookInterface {
     damlTypes.Choice<RiskBook, Book_IssueBoost, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<RiskBook>, damlTypes.ContractId<PM_Tickets_Boost.BoostQuote>, PM_Tickets_Common.Paid>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RiskBook, undefined>>;
   Book_IssueParlay: 
-    damlTypes.Choice<RiskBook, Book_IssueParlay, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<RiskBook>, damlTypes.ContractId<PM_Tickets_Parlay.ParlayQuote>, damlTypes.Optional<damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<RiskBook, Book_IssueParlay, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<RiskBook>, damlTypes.ContractId<PM_Tickets_Parlay.ParlayQuote>, damlTypes.Optional<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RiskBook, undefined>>;
   Book_IssueRange: 
-    damlTypes.Choice<RiskBook, Book_IssueRange, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<RiskBook>, damlTypes.ContractId<PM_Tickets_Range.RangeQuote>, damlTypes.Optional<damlTypes.ContractId<pkg8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<RiskBook, Book_IssueRange, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<RiskBook>, damlTypes.ContractId<PM_Tickets_Range.RangeQuote>, damlTypes.Optional<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<RiskBook, undefined>>;
   Book_Prune: 
     damlTypes.Choice<RiskBook, Book_Prune, damlTypes.ContractId<RiskBook>, undefined> &

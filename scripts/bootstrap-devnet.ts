@@ -116,6 +116,7 @@ async function main(): Promise<number> {
       lanes,
       reserveSeedBase: BigInt(arg("--reserve-seed", "10000")) * 1_000_000n,
       tickets: !flag("--no-tickets"),
+      maker: !flag("--no-maker"),
       games: !flag("--no-games"),
       log,
       onWrite: (w) => writes.push(w),

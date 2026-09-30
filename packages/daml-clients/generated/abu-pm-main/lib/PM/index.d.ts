@@ -1,6 +1,8 @@
+import * as Book from './Book';
 import * as Event from './Event';
 import * as Grant from './Grant';
 import * as Leg from './Leg';
+import * as Maker from './Maker';
 import * as Market from './Market';
 import * as Money from './Money';
 import * as Oracle from './Oracle';
@@ -10,9 +12,11 @@ import * as Reserve from './Reserve';
 import * as Series from './Series';
 import * as Types from './Types';
 
+export { Book };
 export { Event };
 export { Grant };
 export { Leg };
+export { Maker };
 export { Market };
 export { Money };
 export { Oracle };

@@ -9,20 +9,24 @@
  *                    pays out at resolution.
  */
 import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, decodeLeg, failureText, isInactive, netLegsCommandId, pick, readActive, submit, type Active, type LegC, type RoleSession } from "@agari/markets/ops/canton";
+import { cmd, decodeLeg, failureText, isInactive, legBookOf, netLegsCommandId, pick, readActive, submit, type Active, type LegC, type RoleSession } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { venueCashCreated } from "../quote-issuer/pooled-submit";
 
 type LegA = Active<LegC>;
 
-/** Pairs of venue legs to merge: same pair first, then (optionally) same market and size across pairs. Pure. */
+/**
+ * Pairs of venue legs to merge: same pair first, then (optionally) same market and size across pairs. Pure. A book's
+ * legs (abu-pm-main 0.5.0: the maker vault's, `beneficiaryRef = reserve:<id>`) pair only with the same book's, as the
+ * ledger requires (`book-mismatch`), so the released cash lands in that book's bucket.
+ */
 export function planNetting(venueLegs: readonly LegA[], o: { crossPair: boolean; resolvedTerms: ReadonlySet<string> }): Array<[LegA, LegA]> {
   const out: Array<[LegA, LegA]> = [];
   const used = new Set<string>();
   const byPair = new Map<string, LegA[]>();
   for (const l of venueLegs) {
-    const k = `${l.data.termsCid}|${l.data.pairId}`;
+    const k = `${l.data.termsCid}|${l.data.pairId}|${legBookOf(l.data) ?? ""}`;
     byPair.set(k, [...(byPair.get(k) ?? []), l]);
   }
   for (const legs of byPair.values()) {
@@ -37,7 +41,7 @@ export function planNetting(venueLegs: readonly LegA[], o: { crossPair: boolean;
   const open = venueLegs.filter((l) => !used.has(l.cid) && !o.resolvedTerms.has(l.data.termsCid));
   for (const a of open) {
     if (used.has(a.cid) || a.data.outcome !== "SideUp") continue;
-    const b = open.find((x) => !used.has(x.cid) && x.data.outcome === "SideDown" && x.data.termsCid === a.data.termsCid && x.data.lots === a.data.lots && x.data.cashUnit === a.data.cashUnit);
+    const b = open.find((x) => !used.has(x.cid) && x.data.outcome === "SideDown" && x.data.termsCid === a.data.termsCid && x.data.lots === a.data.lots && x.data.cashUnit === a.data.cashUnit && legBookOf(x.data) === legBookOf(a.data));
     if (!b) continue;
     out.push([a, b]);
     used.add(a.cid).add(b.cid);

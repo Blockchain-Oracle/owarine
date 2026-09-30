@@ -18,7 +18,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.Publication = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Publication:Publication',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Publication:Publication',
+    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Publication:Publication',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -74,7 +74,7 @@ exports.Publication = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Publication, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Publication, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
 
 exports.Publication_Retract = {
   decoder: damlTypes.lazyMemo(function () {
@@ -135,7 +135,7 @@ exports.Receipt_Publish = {
 exports.SettlementReceipt = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Publication:SettlementReceipt',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Publication:SettlementReceipt',
+    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Publication:SettlementReceipt',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -213,4 +213,4 @@ exports.SettlementReceipt = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.SettlementReceipt, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.SettlementReceipt, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);

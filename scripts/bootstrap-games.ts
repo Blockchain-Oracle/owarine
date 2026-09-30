@@ -19,7 +19,7 @@ import { decodeArenaTerms, decodeSeasonPool, gcmd } from "@agari/markets/ops/gam
 import { DECK_POLICY_VERSION } from "../services/ops/src/actors/matchmaker/deckmaster";
 import { arg } from "./drive/cli";
 
-export const GAMES_DAR = resolve(import.meta.dirname, "..", arg("--games-dar", "daml/abu-pm-games/.daml/dist/abu-pm-games-0.1.0.dar"));
+export const GAMES_DAR = resolve(import.meta.dirname, "..", arg("--games-dar", "daml/abu-pm-games/.daml/dist/abu-pm-games-0.1.1.dar"));
 const CREDIT = 1_000_000n;
 
 export async function bootstrapGames(o: {

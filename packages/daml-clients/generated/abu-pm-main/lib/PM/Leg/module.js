@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.Leg = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Leg:Leg',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Leg:Leg',
+    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Leg:Leg',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -39,6 +39,7 @@ exports.Leg = damlTypes.assembleTemplate(
         feePaid: damlTypes.Int.decoder,
         refundAfter: damlTypes.Time.decoder,
         beneficiaryRef: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
+        bookCost: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Int).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -55,6 +56,7 @@ exports.Leg = damlTypes.assembleTemplate(
         feePaid: damlTypes.Int.encode(__typed__.feePaid),
         refundAfter: damlTypes.Time.encode(__typed__.refundAfter),
         beneficiaryRef: damlTypes.Optional(damlTypes.Text).encode(__typed__.beneficiaryRef),
+        bookCost: damlTypes.Optional(damlTypes.Int).encode(__typed__.bookCost),
       };
     },
     Archive: {
@@ -141,10 +143,22 @@ exports.Leg = damlTypes.assembleTemplate(
       }),
       resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.Optional(damlTypes.ContractId(PM_Money.VenueCash)), damlTypes.Optional(damlTypes.ContractId(PM_Money.VenueCash))).encode(__typed__); },
     },
+    Leg_Split: {
+      template: function () { return exports.Leg; },
+      choiceName: 'Leg_Split',
+      argumentDecoder: damlTypes.lazyMemo(function () {
+        return exports.Leg_Split.decoder;
+      }),
+      argumentEncode: function (__typed__) { return exports.Leg_Split.encode(__typed__); },
+      resultDecoder: damlTypes.lazyMemo(function () {
+        return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.Leg), damlTypes.ContractId(exports.Leg)).decoder;
+      }),
+      resultEncode: function (__typed__) { return pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2(damlTypes.ContractId(exports.Leg), damlTypes.ContractId(exports.Leg)).encode(__typed__); },
+    },
   },
 );
 
-damlTypes.registerTemplate(exports.Leg, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Leg, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
 
 exports.Leg_Claim = {
   decoder: damlTypes.lazyMemo(function () {
@@ -221,10 +235,23 @@ exports.Leg_Settle = {
   },
 };
 
+exports.Leg_Split = {
+  decoder: damlTypes.lazyMemo(function () {
+    return jtv.object({
+      splitLots: damlTypes.Int.decoder,
+    });
+  }),
+  encode: function (__typed__) {
+    return {
+      splitLots: damlTypes.Int.encode(__typed__.splitLots),
+    };
+  },
+};
+
 exports.NettedResidual = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Leg:NettedResidual',
-    templateIdWithPackageId: '#8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d:PM.Leg:NettedResidual',
+    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Leg:NettedResidual',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -236,6 +263,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
         pairB: damlTypes.Text.decoder,
         heldIfVoid: damlTypes.Int.decoder,
         owedIfResolved: damlTypes.Int.decoder,
+        book: jtv.Decoder.withDefault(null, damlTypes.Optional(damlTypes.Text).decoder),
       });
     }),
     encode: function (__typed__) {
@@ -247,6 +275,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
         pairB: damlTypes.Text.encode(__typed__.pairB),
         heldIfVoid: damlTypes.Int.encode(__typed__.heldIfVoid),
         owedIfResolved: damlTypes.Int.encode(__typed__.owedIfResolved),
+        book: damlTypes.Optional(damlTypes.Text).encode(__typed__.book),
       };
     },
     Archive: {
@@ -276,7 +305,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.NettedResidual, ['8cb07279eb4d4eb926bf4f161c8222f9c544962e50dcf9b6352b0bf010c0328d', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.NettedResidual, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
 
 exports.Residual_Settle = {
   decoder: damlTypes.lazyMemo(function () {

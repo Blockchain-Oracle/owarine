@@ -1,0 +1,154 @@
+-- | 0.5.0 (K-092, K-200): the maker vault's statement, computed ON LEDGER.
+--
+-- The maker vault (the reference's `agari-maker`) is a `PM.Reserve` whose
+-- cash is the `reserve:<id>` bucket and whose book quotes pairs with it:
+-- the issuer locks the venue stake of a `Quote` from a maker shard (the
+-- quote carries `book`), an accept leaves the venue's leg tagged with the
+-- book, a buy-back from the book (`BuyQuote.book`) takes a slice at a
+-- price, and every settle, merge or residual pays back into the bucket.
+--
+-- `Maker_PublishNav` is `Earn_PublishNav`'s counterpart for that book. It
+-- fetches every contract the venue passes, checks each is this book's, and
+-- counts each once:
+--
+--   cash              reserve-bucket cash                      at its amount
+--   withdraw quotes   cash locked for a provider's redemption  at cashOut
+--   quotes            open book quotes (the venue stake)       at the lock
+--   buy quotes        open book buy-backs                      at the lock
+--   legs              the book's venue legs                    marked (below)
+--   residuals         a cross-pair merge still owed            marked (below)
+--   lp shares         the outstanding shares                   -> newShares
+--
+-- The mark is conservative, and stated as such on every surface that shows
+-- it: a position never counts above what the book paid for it (its cost),
+-- never above what a published `Resolution` says it will be paid, and at 0
+-- once its Window has expired without that Resolution being passed. So a
+-- statement carries no unrealised gain, recognises a loss as soon as the
+-- Window resolves, and never prices a share above what the book can show.
+-- A residual counts at the lesser of what it pays on a void and on a
+-- resolution, or at the one its Resolution picks.
+--
+-- As for the ticket reserves, the ledger cannot prove completeness (no
+-- contract keys): the venue could leave a contract out. Leaving out cash,
+-- a quote or a leg only LOWERS the statement; leaving out an LpShare
+-- raises NAV per share, which is why the auditor observes every statement
+-- and checks its share count against the LpShares.
+module PM.Maker where
+
+import DA.Assert (assertWithinDeadline)
+import DA.List (unique)
+import DA.Time (addRelTime, seconds)
+import PM.Book
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Quote
+import PM.Reserve
+import PM.Types
+
+-- | A statement may not be dated more than this before the ledger time it
+-- is published at, so a stale `asOf` cannot keep an expired Window's legs
+-- at cost.
+navAsOfSlackSec : Int
+navAsOfSlackSec = 300
+
+data MakerNavInputs = MakerNavInputs
+  with
+    cash : [ContractId VenueCash]
+    lpShares : [ContractId LpShare]
+    withdrawQuotes : [ContractId WithdrawQuote]
+    quotes : [ContractId Quote]
+    buyQuotes : [ContractId BuyQuote]
+    legs : [ContractId Leg]
+    residuals : [ContractId NettedResidual]
+    resolutions : [ContractId Resolution]
+      -- ^ the Resolutions of the Windows the legs and residuals ride
+      -- (optional per Window: without one, a leg counts at cost until its
+      -- Window expires, and 0 after)
+  deriving (Eq, Show)
+
+emptyMakerInputs : MakerNavInputs
+emptyMakerInputs = MakerNavInputs with
+  cash = []; lpShares = []; withdrawQuotes = []; quotes = []; buyQuotes = []; legs = []
+  residuals = []; resolutions = []
+
+-- | A book leg's conservative mark: min(cost, backing), capped by its
+-- Resolution's payout when one is known, and 0 once its Window expired
+-- without one.
+legMark : Time -> Optional Resolution -> Time -> Leg -> Int
+legMark asOf res expiry l =
+  let cost = min l.backingShare (paidFor l.backingShare l.bookCost)
+  in case res of
+       Some r -> min cost (fst (legPayout l r))
+       None -> if asOf >= expiry then 0 else cost
+
+residualMark : Optional Resolution -> NettedResidual -> Int
+residualMark res x = case res of
+  Some r -> if isVoid r then x.heldIfVoid else x.owedIfResolved
+  None -> min x.heldIfVoid x.owedIfResolved
+
+-- | The venue's maker desk (venue-only, nonconsuming, like `EarnDesk`).
+template MakerDesk
+  with
+    venue : Party
+  where
+    signatory venue
+
+    nonconsuming choice Maker_PublishNav : ContractId NavStatement
+      with
+        navCid : ContractId NavStatement
+        asOf : Time
+        inputs : MakerNavInputs
+      controller venue
+      do
+        assertWithinDeadline "nav-as-of" (addRelTime asOf (seconds navAsOfSlackSec))
+        nav <- fetch navCid
+        require "wrong-venue" "statement belongs to another venue" (nav.venue == venue)
+        let book = reserveBucket nav.reserveId
+            mine what ok = require "wrong-reserve" (what <> " is not this book's") ok
+            distinct what xs = require "duplicate" ("the same " <> what <> " was passed twice") (unique xs)
+            i = inputs
+        distinct "cash" i.cash
+        distinct "share" i.lpShares
+        distinct "withdraw quote" i.withdrawQuotes
+        distinct "quote" i.quotes
+        distinct "buy quote" i.buyQuotes
+        distinct "leg" i.legs
+        distinct "residual" i.residuals
+        distinct "resolution" i.resolutions
+        rs <- forA i.resolutions \c -> do
+          r <- fetch c
+          mine "resolution" (r.venue == venue)
+          pure (r.termsCid, r)
+        distinct "resolution for a Window" (map fst rs)
+        cash <- forA i.cash \c -> do
+          x <- fetch c
+          mine "cash" (x.venue == venue && x.owner == venue && x.bucket == book)
+          pure x.amount
+        shares <- forA i.lpShares \c -> do
+          x <- fetch c
+          mine "share" (x.venue == venue && x.reserveId == nav.reserveId)
+          pure x.shares
+        wq <- forA i.withdrawQuotes \c -> do
+          x <- fetch c
+          mine "withdraw quote" (x.venue == venue && x.reserveId == nav.reserveId)
+          pure x.cashOut
+        qs <- forA i.quotes \c -> do
+          x <- fetch c
+          mine "quote" (x.venue == venue && x.book == Some book)
+          pure (venueStakeOf x.lots x.priceTicks x.cashUnit)
+        bqs <- forA i.buyQuotes \c -> do
+          x <- fetch c
+          mine "buy quote" (x.venue == venue && x.book == Some book)
+          pure x.locked
+        legs <- forA i.legs \c -> do
+          l <- fetch c
+          mine "leg" (l.venue == venue && legBook l == Some book)
+          t <- fetch l.termsCid
+          pure (legMark asOf (lookup l.termsCid rs) t.expiry l)
+        res <- forA i.residuals \c -> do
+          x <- fetch c
+          mine "residual" (x.venue == venue && x.book == Some book)
+          pure (residualMark (lookup x.termsCid rs) x)
+        let assets = sum cash + sum wq + sum qs + sum bqs + sum legs + sum res
+        exercise navCid Nav_Publish with newAsOf = asOf; newAssets = assets; newShares = sum shares

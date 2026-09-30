@@ -22,7 +22,7 @@ import {
 import { CASH_DECIMALS } from "@agari/markets/server";
 import { emitVenueEvent } from "../venue/events";
 import { consume, latencies, type IssuerDeps } from "./issuer";
-import { PoolBusyError, type Lease } from "./pool";
+import { PoolBusyError, type Lease, type ShardPool } from "./pool";
 import { submitWithShards } from "./pooled-submit";
 
 /** The reference's words (`provider/exit-quote.ts`), so the portfolio's refusals read the same. */
@@ -107,18 +107,45 @@ export async function issueExitQuote(d: IssuerDeps, req: ExitRequest): Promise<A
   }
 
   const started = Date.now();
-  const leases: Lease[] = [];
+  const lockOf = (sell: bigint) => sell * BigInt(walked.priceTicks) * entry.cashUnit;
+  // 0.5.0: the maker vault buys back what it sold (the other half of each pair is its own), so it can net the pair.
+  const pairOf = new Map(pick(acs, TEMPLATE_IDS.Leg, decodeLeg).map((l) => [l.cid, l.data.pairId]));
+  const takes = d.maker?.takesExit(entry, {
+    side: req.side, pairIds: plan.map((p) => pairOf.get(p.leg.cid) ?? ""), priceTicks: walked.priceTicks, lots: planned, lockBase: lockOf(planned),
+  }) ?? null;
+  // Every shard of one exit comes from one pool: the book's when it takes the exit and covers every leg, else the desk's.
+  const leaseAll = async (from: ShardPool, purpose: string): Promise<Lease[]> => {
+    const got: Lease[] = [];
+    try {
+      for (const p of plan) got.push(await from.lease(lockOf(p.sell), purpose));
+      return got;
+    } catch (error) {
+      from.release(got);
+      throw error;
+    }
+  };
+  let pool = d.pool;
+  let book = false;
+  let leases: Lease[];
   try {
-    for (const p of plan) leases.push(await d.pool.lease(p.sell * BigInt(walked.priceTicks) * entry.cashUnit, `exit ${entry.damlMarketId}`));
+    if (takes?.take && d.maker) {
+      try {
+        leases = await leaseAll(d.maker.pool, `maker exit ${entry.damlMarketId}`);
+        pool = d.maker.pool;
+        book = true;
+      } catch (error) {
+        if (!(error instanceof PoolBusyError)) throw error;
+        leases = await leaseAll(d.pool, `exit ${entry.damlMarketId}`);
+      }
+    } else leases = await leaseAll(d.pool, `exit ${entry.damlMarketId}`);
   } catch (error) {
-    d.pool.release(leases);
     if (error instanceof PoolBusyError) return refused("rpc-down", "every venue shard is in use; try again in a moment");
     throw error;
   }
   const requestId = randomUUID();
   const deskCid = await d.deskCid();
   try {
-    const out = await submitWithShards(d.pool, d.venue, leases, {
+    const out = await submitWithShards(pool, d.venue, leases, {
       commandId: exitQuoteCommandId(requestId),
       commands: [
         ...stale.map((q) => cmd.withdrawBuyQuote(q.cid, "superseded by a fresh exit quote")),
@@ -132,10 +159,11 @@ export async function issueExitQuote(d: IssuerDeps, req: ExitRequest): Promise<A
     const firm = exitOf(req.side, { lots, priceTicks: walked.priceTicks, proceedsBase: lots * BigInt(walked.priceTicks) * entry.cashUnit }, entry.cashUnit);
     // The bid side is the opposite ladder: a buy-back takes depth from there.
     consume(entry, req.side === "up" ? "down" : "up", lots);
+    if (book) d.maker?.touched();
     const issueMs = Date.now() - started;
     latencies.push(issueMs);
     emitVenueEvent({ kind: "quoted", marketId: entry.damlMarketId, quoteCid: quoteCids[0]!, side: req.side, lots: lots.toString(), priceTicks: walked.priceTicks, issueMs, atMs: Date.now() });
-    d.log(`exit ${entry.damlMarketId} sell ${req.side} ${lots} @ ${walked.priceTicks} over ${plan.length} leg(s)${stale.length ? `, ${stale.length} superseded` : ""} to ${req.party.split("::")[0]} (lease ${req.leaseId}) in ${issueMs} ms`);
+    d.log(`exit ${entry.damlMarketId} sell ${req.side} ${lots} @ ${walked.priceTicks} over ${plan.length} leg(s)${stale.length ? `, ${stale.length} superseded` : ""}${book ? " · maker vault" : ""} to ${req.party.split("::")[0]} (lease ${req.leaseId}) in ${issueMs} ms`);
     return { status: 200, body: { kind: "quote", quoteCids, exit: firm, validUntilMs: validUntilSec * 1000 } };
   } catch (error) {
     if (isIndefinite(error)) return refused("send-unknown", `the ledger did not answer in time (exit quote ${requestId}); the shards are held until its outcome is known`);

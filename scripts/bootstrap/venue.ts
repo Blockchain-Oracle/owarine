@@ -22,6 +22,7 @@ import { cmd, decodeSeries, decodeVenueCash, pick, readActive, submit, type Role
 import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
 import { ORACLE_ROLES, type CantonRole } from "../../services/ops/src/runtime/keys";
 import { bootstrapGames } from "../bootstrap-games";
+import { bootstrapMaker } from "../bootstrap-maker";
 
 export const CASH_UNIT = 1000n;
 export const POLICY_VERSION = 1;
@@ -49,6 +50,8 @@ export interface VenueBootstrapOptions {
   /** Credits (base units) each ticket reserve is seeded with, in four supplies. */
   reserveSeedBase: bigint;
   tickets: boolean;
+  /** The maker vault's book, its reserve and the LP seed (C2d, K-092). */
+  maker: boolean;
   games: boolean;
   log: (s: string) => void;
   /** Observes every write, executed or prepared. */
@@ -235,6 +238,7 @@ export async function bootstrapVenue(o: VenueBootstrapOptions): Promise<void> {
   }
 
   if (o.tickets) await bootstrapTickets(o, write);
+  if (o.maker) await bootstrapMaker({ client, venue: vs, auditor: o.parties.auditor, lp: o.parties.lp, run, log, write });
   if (o.games) await bootstrapGames({ client, venue: vs, run, log, upload: false, write });
 }
 

@@ -17,7 +17,9 @@
  *                                          invite:<digest>, account:<digest>, credit:<digest>:<leaseId>   POST /internal/seats/fund
  *   drain      Quote_Withdraw, Leg_CloseOut (venue + seat)
  *                                          withdraw:<quoteCid>, closeout:<legCid>
- *   reserve    (no writes)                 /reserve
+ *   reserve    Maker_PublishNav            mnav:<seq>               /reserve
+ *   maker      the maker vault's book (abu-pm-main 0.5.0, K-200): the issuer draws quotes inside its bounds from
+ *              `reserve:maker` shards when MAKER_MODE=vault; Supply/Withdraw_Expire, VenueCash_Merge   texp:<cid>, mmerge:<digest>
  *   tickets    Book_Issue*, Nav_IssueSupply, Earn_IssueWithdraw, Boost_OfferExit   POST /internal/tickets/*
  *              Round_Settle, Ticket_ResolveLeg, Boost_Settle, Boost_KnockOut, *_Expire, Book_Prune, Earn_PublishNav (C8c)
  *   agents     GrantDesk, DeskOffer, SubscriberInvite, CreatorLicense   POST /internal/agents/enrol
@@ -43,13 +45,14 @@ import { startSeatDrain } from "../seat-funding/drain";
 import { startSettler } from "../settler";
 import { startTicketDesk, type TicketDeskHandle } from "../ticket-desk";
 import { redeemSeatShares } from "../ticket-desk/earn";
+import { startMakerVault } from "../maker-vault";
 import { startArenaDesk } from "../arena-desk";
 import { startWindowRoller } from "../window-roller";
 import { startAgentsVenue } from "../agents";
 import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 
-export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents"] as const;
+export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents", "maker"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
 
 export interface CantonVenue {
@@ -90,7 +93,10 @@ export async function startCantonVenue(input: {
   if (vol) stops.push(vol.stop);
   if (on("pricer") && session) stops.push(startPricer({ venue: session, spot: input.spot, board, log: input.log("pricer"), settings, vol, halts: () => input.deps.halts.board() }).stop);
   const draining = new Set<string>();
-  const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining }) : null;
+  // The maker vault's book first: the issuer, the ticket desk's Earn route and the reserve reporter all take it.
+  const maker = on("maker") && session ? await startMakerVault({ venue: session, log: input.log("maker-vault") }) : null;
+  if (maker) stops.push(maker.stop);
+  const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining, maker: maker?.vault ?? null }) : null;
   if (issuer) stops.push(issuer.stop);
   const pool = issuer?.pool ?? null;
   if (on("sweeper") && session) stops.push(startExpirySweeper({ venue: session, pool, log: input.log("expiry-sweeper") }).stop);
@@ -102,10 +108,10 @@ export async function startCantonVenue(input: {
   let ticketDesk: TicketDeskHandle | null = null;
   const redeemShares = () => (ticketDesk ? (seat: string, shares: Parameters<typeof redeemSeatShares>[2]) => redeemSeatShares(ticketDesk!.desk, seat, shares) : null);
   if (on("drain") && session) stops.push(startSeatDrain({ venue: session, pool, log: input.log("seat-drain"), draining, redeemShares }).stop);
-  const reserve = on("reserve") && session ? startReserveReporter({ venue: session, log: input.log("reserve-reporter") }) : null;
+  const reserve = on("reserve") && session ? startReserveReporter({ venue: session, log: input.log("reserve-reporter"), maker: maker?.vault ?? null }) : null;
   if (reserve) stops.push(reserve.stop);
 
-  const tickets = on("tickets") ? await startTicketDesk({ venue, board, pool, log: input.log("ticket-desk"), draining }) : null;
+  const tickets = on("tickets") ? await startTicketDesk({ venue, board, pool, log: input.log("ticket-desk"), draining, maker: maker?.vault ?? null }) : null;
   ticketDesk = tickets;
   if (tickets) stops.push(tickets.stop);
   const games = on("games") ? await startArenaDesk({ venue, board, log: input.log("arena-desk") }) : null;
