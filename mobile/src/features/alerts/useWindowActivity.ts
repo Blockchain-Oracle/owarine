@@ -13,6 +13,7 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { activityProps, ongoingText, pickFollowed, sameFacts, VERDICT_WAIT_MS } from "./activity-model";
 import { markUrl } from "./WidgetMarks";
 import WindowActivity, { type WindowActivityProps } from "./WindowActivity";
+import { appPathOf, appUrl } from "~/lib/identity";
 
 /** A decided Window stays on the Lock Screen this long, then leaves on its own. */
 const LINGER_MS = 15 * 60_000;
@@ -20,7 +21,7 @@ const LINGER_MS = 15 * 60_000;
 const GIVE_UP_MS = VERDICT_WAIT_MS;
 /** Local updates are free, but facts that flap (a price) are sent at most this often. */
 const MIN_UPDATE_MS = 4_000;
-const ONGOING_ID = "agari-live-window";
+const ONGOING_ID = "live-window";
 export const LIVE_CHANNEL = "live";
 
 /**
@@ -97,7 +98,7 @@ export function useWindowActivity(marksVersion: number): string | null {
       void driver.current.end(props);
       last.current = null;
       setShown(null);
-    } else void driver.current.show(props, `agari://markets/${shown.marketId}`, nowMs);
+    } else void driver.current.show(props, appUrl(`markets/${shown.marketId}`), nowMs);
   }, [address, shown, list, followed, openingRaw, spotRaw, verdict, heldNothing, nowMs, marksVersion]);
 
   return shown?.asset ?? null;
@@ -160,7 +161,7 @@ function androidDriver(): Driver {
     const { title, body } = ongoingText(props, Date.now());
     await Notifications.scheduleNotificationAsync({
       identifier: ONGOING_ID,
-      content: { title, body, sticky, autoDismiss: !sticky, data: { kind: "live", path: url ? url.replace("agari://", "/") : "/portfolio" } },
+      content: { title, body, sticky, autoDismiss: !sticky, data: { kind: "live", path: (url ? appPathOf(url) : null) ?? "/portfolio" } },
       trigger: { channelId: LIVE_CHANNEL },
     }).catch(() => undefined);
   };

@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { X_CARD, X_HANDLE } from "@/features/x/copy";
 import { parseXUpdate, updateXPermission, type XUpdateProgress } from "@/features/x/update-permission";
+import { appKey } from "~/lib/keys";
 
 export { X_GRANT } from "@agari/core/x";
 const activeWrites = new Set<string>();
@@ -76,7 +77,7 @@ export function useXGrant(): XGrantState {
   const grant = value?.grants.executor ?? null;
   const current = grant && !grant.revoked ? grant : null;
   // Addresses are base58 and case-sensitive: the key keeps them exactly as written (D-010).
-  const storageKey = address && value ? `agari:x-update:v1:${value.deployment.chainId}:${value.deployment.eventVault}:${address}` : null;
+  const storageKey = address && value ? appKey(`x-update:v1:${value.deployment.chainId}:${value.deployment.eventVault}:${address}`) : null;
   const readProgress = useCallback(() => { try { return storageKey ? localStorage.getItem(storageKey) : null; } catch { return null; } }, [storageKey]);
   const saved = useSyncExternalStore(subscribeProgress, readProgress, () => null);
   const pendingUpdate = parseXUpdate(saved);

@@ -1,5 +1,6 @@
 import { createAudioPlayer, type AudioPlayer } from "expo-audio";
 import { gameAudioReady } from "~/games/audio";
+import { appKey } from "~/lib/keys";
 
 /**
  * web's `arcade/arcade-sfx.ts` on the phone. Web synthesizes these voices on the Web Audio effects bus; the phone
@@ -43,7 +44,7 @@ const RIDE_START = require("../../../../assets/sounds/arcade-ride-start.wav");
 const RIDE_CRASH = require("../../../../assets/sounds/arcade-ride-crash.wav");
 const REGAIN = require("../../../../assets/sounds/arcade-regain.wav");
 
-const SFX_VOLUME_KEY = "agari.games.sfxVolume";
+const SFX_VOLUME_KEY = appKey("games.sfxVolume");
 const SFX_VOLUME_BASE = 0.6;
 const POOL = 2;
 const HOP_STREAK_CAP = 40;

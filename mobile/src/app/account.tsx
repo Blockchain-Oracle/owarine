@@ -1,10 +1,12 @@
 import * as Clipboard from "expo-clipboard";
+import { router } from "expo-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { emojiAvatarFor, formatAccountAddress } from "@/providers/wallet/emoji-avatar";
 import { useWalletSession } from "@/lib/wallet-session";
 import { haptic } from "~/components/kit";
 import { CopiedIcon, CopyIcon, DisconnectIcon } from "~/components/wallet/profile-icons";
+import { Link2 } from "lucide-react-native";
 import { CloseButton } from "~/components/wallet/sheet-parts";
 import type { DrawerClose } from "~/components/drawer/BottomDrawer";
 import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
@@ -77,6 +79,10 @@ export default function AccountSheet() {
               />
               {seat.lease.view && seat.lease.view.kind !== "leased" && seat.lease.view.kind !== "pool-full" ? (
                 <Action label={seat.lease.leasing ? T.leasing : T.lease} icon={<CopiedIcon color={color.ink} />} onPress={() => void seat.lease.lease()} />
+              ) : null}
+              {/* Only the phone that took the seat shows link codes; a joined phone cannot pass the seat on. */}
+              {seat.lease.view?.kind === "leased" && seat.lease.view.address === address ? (
+                <Action label={SEAT.link.entry} icon={<Link2 size={16} color={color.ink} />} onPress={() => close(() => router.push("/seat/link"))} />
               ) : null}
               <Action label={T.reset} icon={<DisconnectIcon color={color.ink} />} onPress={() => setConfirming(true)} />
             </View>

@@ -7,9 +7,9 @@ import { SEAT } from "~/wallet/seat-copy";
 /**
  * The Take a seat sheet's body, where the reference's wallet strip was: the app mark, the three plain lines a seat
  * rests on (the key stays on this phone, demo credits only, a test network), and one button that accepts them and
- * takes the seat. No store links and no wallet apps: a seat is made here, on this phone.
+ * takes the seat, or links this phone to a seat already taken on the web. No store links and no wallet apps.
  */
-export function TakeSeat({ taking, error, onTake, onBrowse }: { taking: boolean; error: string | null; onTake: () => void; onBrowse: () => void }) {
+export function TakeSeat({ taking, error, onTake, onBrowse, onLink }: { taking: boolean; error: string | null; onTake: () => void; onBrowse: () => void; onLink: () => void }) {
   const { color } = useTheme();
   return (
     <View style={styles.body}>
@@ -30,6 +30,8 @@ export function TakeSeat({ taking, error, onTake, onBrowse }: { taking: boolean;
       ) : null}
       <View style={styles.actions}>
         <Button label={taking ? SEAT.sheet.taking : SEAT.terms.accept} variant="primary" size="lg" loading={taking} onPress={onTake} />
+        {/* The seat link (iOS step 2b): a seat already taken on the web joins this phone instead of a new one. */}
+        <Button label={SEAT.link.haveSeat} variant="outline" size="lg" disabled={taking} onPress={onLink} />
         <Button label={SEAT.terms.browse} variant="ghost" size="lg" disabled={taking} onPress={onBrowse} />
       </View>
     </View>

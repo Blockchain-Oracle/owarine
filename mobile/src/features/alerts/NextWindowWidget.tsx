@@ -10,7 +10,7 @@ export interface WidgetRow {
   cadence: string;
   /** Epoch ms trading locks; the row's timer counts down natively. */
   locksAtMs: number;
-  /** `agari://markets/<id>`. */
+  /** `<scheme>://markets/<id>` (`appUrl`). */
   url: string;
   /** The stock's own mark in the app group (`file://…png`), or "" until it is written. */
   mark: string;

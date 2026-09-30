@@ -17,11 +17,12 @@ import { storage } from "~/lib/storage";
 import { pushToast } from "~/components/toast/store";
 import { HedgeCard, HedgeTeaser } from "./HedgeCard";
 import { selectWindow } from "~/features/markets/openWindow";
+import { appKey } from "~/lib/keys";
 
 const FALLBACK_SYMBOL = "credits";
 const FALLBACK_DECIMALS = 6;
 // Base58 is case-sensitive: the address is keyed exactly as written, as web keys it.
-const NOTICED_KEY = (address: string) => `agari.holdings.noticed.${address}`;
+const NOTICED_KEY = (address: string) => appKey(`holdings.noticed.${address}`);
 
 /** Without a page to select on (the default), a side goes to /markets?m=&dir=, which opens the ticket there. */
 const openTicket = (marketId: MarketId, side?: Side) => selectWindow(marketId, side);

@@ -5,7 +5,7 @@ import { bpsToOddsCents, formatBaseUnits, priceRawToBps, shortHex } from "@agari
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { LeverageBusyKey } from "@/features/leverage";
+import type { LeverageBusyKey } from "@/features/leverage/useLeverageWrites";
 import { SHORT } from "@/features/short/copy";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { FONT, useTheme } from "~/theme";

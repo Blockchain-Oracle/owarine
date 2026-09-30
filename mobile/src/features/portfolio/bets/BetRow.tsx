@@ -1,4 +1,5 @@
 import { formatCadence } from "@agari/core/copy";
+import type { ReactNode } from "react";
 import { countdown } from "@agari/core/lifecycle";
 import type { OpenPosition } from "@agari/core/types";
 import { PORTFOLIO } from "@/lib/copy";
@@ -10,7 +11,7 @@ import { BetsRow, Break, Call, Caption, Micro, MoneyText, Status } from "./RowPa
  * web `BetRow`: one open bet off the venue's cost basis and mark — live dot, the call, cadence, time left; then stake,
  * value, the unrealised result, and before lock the plain cash-out for a one-sided holding.
  */
-export function BetRow({ position, symbol, nowMs, first }: { position: OpenPosition; symbol: string | undefined; nowMs: number; first?: boolean }) {
+export function BetRow({ position, symbol, nowMs, first, seen, publish }: { position: OpenPosition; symbol: string | undefined; nowMs: number; first?: boolean; seen?: ReactNode; publish?: ReactNode }) {
   const d = position.decimals;
   const settling = nowMs > 0 ? countdown(nowMs, position.expirySec, position.intervalSec).settling : false;
   const side = heldSide(position.balanceUpRaw, position.balanceDownRaw);
@@ -25,6 +26,7 @@ export function BetRow({ position, symbol, nowMs, first }: { position: OpenPosit
           {left} {PORTFOLIO.left}
         </Caption>
       ) : null}
+      {seen}
       <Break />
       <Caption>
         {PORTFOLIO.stake} <MoneyText value={position.costBasisBase} decimals={d} symbol={symbol} />
@@ -44,6 +46,7 @@ export function BetRow({ position, symbol, nowMs, first }: { position: OpenPosit
           symbol={symbol}
         />
       ) : null}
+      {publish}
     </BetsRow>
   );
 }

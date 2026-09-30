@@ -26,8 +26,9 @@ import { LuckyReels } from "./LuckyReels";
 import { LuckySide } from "./LuckySide";
 import { useLuckyTokens } from "./parts";
 import { reelSpin } from "./reel-sfx";
+import { appKey } from "~/lib/keys";
 
-const STAKE_KEY = "agari.games.luckyStake";
+const STAKE_KEY = appKey("games.luckyStake");
 const stakeCodec = { parse: (raw: string) => (/^\d*\.?\d*$/.test(raw) ? raw : null), serialize: (v: string) => v };
 
 function sanitize(text: string): string {

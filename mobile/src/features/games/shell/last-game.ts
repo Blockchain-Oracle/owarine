@@ -2,12 +2,13 @@ import type { GameId } from "@agari/core/games";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { gameEntry, gameIdFromPath } from "./catalog";
+import { appKey } from "~/lib/keys";
 
 /**
  * web's `features/games/last-game.ts`: the last game a player opened, under web's own key, offered first on
  * the hub. Game screens write it as they gain focus (`useGameScreen`); the hub reads it each time it does.
  */
-const KEY = "agari.games.last";
+const KEY = appKey("games.last");
 
 export interface LastGame {
   id: GameId;

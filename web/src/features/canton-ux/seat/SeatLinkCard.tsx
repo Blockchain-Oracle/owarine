@@ -15,7 +15,8 @@ const COPIED_MS = 1_500;
 export const LINK_CODE_LENGTH = 6;
 export const LINK_TTL_SEC = 60;
 
-export type SeatLinkState = "showing" | "expired" | "linked";
+/** `join`: this device holds no seat of its own to show, so the card is only the code entry. */
+export type SeatLinkState = "showing" | "expired" | "linked" | "join";
 
 interface SeatLinkCardProps {
   state: SeatLinkState;
@@ -28,8 +29,11 @@ interface SeatLinkCardProps {
   /** The device that joined, named as the lease records it. */
   linkedDevice?: string;
   onFresh: () => void;
-  /** Checks a code typed on this device; the fixture answers from a canned code, the app from `/api/seat/link`. */
-  verify: (code: string) => Promise<boolean>;
+  /**
+   * Checks a code typed on this device; the fixture answers from a canned code, the app from `/api/seat/link/join`.
+   * True joins; false or a sentence refuses (the sentence replaces the generic error line).
+   */
+  verify: (code: string) => Promise<boolean | string>;
   /** Fixtures only: the entry's first state. */
   joinDefault?: { value: string; status: OtpStatus };
 }
@@ -58,12 +62,14 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
   const [value, setValue] = useState(joinDefault?.value ?? "");
   const [status, setStatus] = useState<OtpStatus>(joinDefault?.status ?? "idle");
   const [busy, setBusy] = useState(false);
+  const [why, setWhy] = useState<string | null>(null);
   const submit = async (code: string) => {
     if (code.length !== LINK_CODE_LENGTH || busy) return;
     setBusy(true);
-    const ok = await verify(code);
+    const answer = await verify(code);
     setBusy(false);
-    setStatus(ok ? "success" : "error");
+    setWhy(typeof answer === "string" ? answer : null);
+    setStatus(answer === true ? "success" : "error");
   };
   return (
     <form
@@ -83,7 +89,7 @@ function Join({ verify, joinDefault }: Pick<SeatLinkCardProps, "verify" | "joinD
         label={L.joinLabel}
         status={status}
         hint={L.joinHint}
-        errorMessage={L.joinError}
+        errorMessage={why ?? L.joinError}
         successMessage={L.joinSuccess}
         focusOnError={joinDefault?.status !== "error"}
         onChange={(v) => {
@@ -125,7 +131,7 @@ export function SeatLinkCard({ state, code, url, expiresAtSec, seatNumber, linke
         <p className="cx-link-sub">{L.subtitle}</p>
       </header>
 
-      {state === "linked" ? (
+      {state === "join" ? null : state === "linked" ? (
         <div className="cx-link-done" role="status">
           <span className="cx-link-done-mark" aria-hidden>
             <Check />
