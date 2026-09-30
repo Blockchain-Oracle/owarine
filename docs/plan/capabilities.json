@@ -1,6 +1,6 @@
 {
-  "$comment": "Capability registry: one entry per parity row. A capability is `live` only when its gate has passed and `acceptanceRow` names a row in acceptance.md. Driven by honest-state plates; an invariant will fail on `live` without evidence.",
-  "updated": "2026-09-29",
+  "$comment": "Capability registry: one entry per parity row. States: `not-live` (nothing proven yet); `local` (works end to end on the local Canton sandbox stack with the real ops process, proven by every path in `evidence`; not yet on Noders DevNet or a hosted URL); `live` (on DevNet and the hosted URL: its gate has passed and `acceptanceRow` names a row in docs/plan/acceptance.md). The `capabilities-evidence` invariant fails on `local` or `live` without evidence, and on `live` without its acceptance row.",
+  "updated": "2026-09-30",
   "capabilities": [
     {
       "id": "L-01",
@@ -10,18 +10,23 @@
         "gate:C1"
       ],
       "parityRow": "L-01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-02",
       "capability": "Desktop header, grouped nav, balance pill, account menu",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C1",
         "gate:C4"
       ],
       "parityRow": "L-02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
     },
     {
       "id": "L-03",
@@ -31,7 +36,8 @@
         "gate:C1"
       ],
       "parityRow": "L-03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-04",
@@ -42,7 +48,8 @@
         "gate:C5"
       ],
       "parityRow": "L-04",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-05",
@@ -52,7 +59,8 @@
         "gate:C0"
       ],
       "parityRow": "L-05",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-06",
@@ -62,7 +70,8 @@
         "gate:C1"
       ],
       "parityRow": "L-06",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-07",
@@ -72,7 +81,8 @@
         "gate:C1"
       ],
       "parityRow": "L-07",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-08",
@@ -82,7 +92,8 @@
         "gate:C4"
       ],
       "parityRow": "L-08",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-09",
@@ -92,7 +103,8 @@
         "gate:C1"
       ],
       "parityRow": "L-09",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-10",
@@ -102,7 +114,8 @@
         "gate:C1"
       ],
       "parityRow": "L-10",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-11",
@@ -112,7 +125,8 @@
         "gate:C10"
       ],
       "parityRow": "L-11",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-12",
@@ -122,7 +136,8 @@
         "gate:C10"
       ],
       "parityRow": "L-12",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-13",
@@ -132,7 +147,8 @@
         "gate:C10"
       ],
       "parityRow": "L-13",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-14",
@@ -142,27 +158,37 @@
         "gate:C10"
       ],
       "parityRow": "L-14",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-15",
       "capability": "Stats / traction",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C5"
       ],
       "parityRow": "L-15",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c5",
+        "commit:9321ae3"
+      ]
     },
     {
       "id": "L-16",
       "capability": "Status",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C4"
       ],
       "parityRow": "L-16",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c5",
+        "commit:9321ae3",
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "L-17",
@@ -172,7 +198,8 @@
         "gate:C13"
       ],
       "parityRow": "L-17",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-18",
@@ -183,7 +210,8 @@
         "gate:C11"
       ],
       "parityRow": "L-18",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-19",
@@ -194,7 +222,8 @@
         "gate:C13"
       ],
       "parityRow": "L-19",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-20",
@@ -204,7 +233,8 @@
         "gate:C10"
       ],
       "parityRow": "L-20",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-21",
@@ -214,7 +244,8 @@
         "gate:C1"
       ],
       "parityRow": "L-21",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-22",
@@ -224,7 +255,8 @@
         "gate:C5"
       ],
       "parityRow": "L-22",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-23",
@@ -234,38 +266,54 @@
         "gate:C10"
       ],
       "parityRow": "L-23",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-24",
       "capability": "Wallet connect / disconnect / account switch",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C1",
         "gate:C4"
       ],
       "parityRow": "L-24",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332",
+        "docs/evidence/c9d-seats-games.md"
+      ],
+      "note": "Web guest seat; the phone seat key is not yet run on a device"
     },
     {
       "id": "L-25",
       "capability": "Get test funds",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C4"
       ],
       "parityRow": "L-25",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332",
+        "docs/evidence/c8e-tickets-ux.md"
+      ]
     },
     {
       "id": "L-26",
       "capability": "Add-money modal + CreditWelcome",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C4"
       ],
       "parityRow": "L-26",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
     },
     {
       "id": "L-27",
@@ -275,17 +323,21 @@
         "gate:C1"
       ],
       "parityRow": "L-27",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-28",
       "capability": "Trading Balance vault",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C7a"
       ],
       "parityRow": "L-28",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c7a-exit-2026-09-29.md"
+      ]
     },
     {
       "id": "L-29",
@@ -295,7 +347,8 @@
         "gate:C4"
       ],
       "parityRow": "L-29",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-30",
@@ -305,7 +358,8 @@
         "gate:C4"
       ],
       "parityRow": "L-30",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-31",
@@ -315,17 +369,23 @@
         "gate:C4"
       ],
       "parityRow": "L-31",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-32",
       "capability": "Call ticket (one-tap)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C4"
       ],
       "parityRow": "L-32",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332",
+        "docs/evidence/c6e-stocks-events.md"
+      ]
     },
     {
       "id": "L-33",
@@ -335,7 +395,8 @@
         "gate:C4"
       ],
       "parityRow": "L-33",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-34",
@@ -345,47 +406,62 @@
         "gate:C4"
       ],
       "parityRow": "L-34",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-35",
       "capability": "Plain-position cash-out",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C7a"
       ],
       "parityRow": "L-35",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c7a-exit-2026-09-29.md"
+      ]
     },
     {
       "id": "L-36",
       "capability": "Range (ticket mode + /games/range)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-36",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8e-tickets-ux.md",
+        "docs/evidence/c6d-gap-events.md"
+      ]
     },
     {
       "id": "L-37",
       "capability": "Boost 2×/3× (LeverageReserve)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-37",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8e-tickets-ux.md"
+      ],
+      "note": "Knock-out not triggered live; covered by Daml tests"
     },
     {
       "id": "L-38",
       "capability": "Parlay",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-38",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8e-tickets-ux.md"
+      ]
     },
     {
       "id": "L-39",
@@ -395,7 +471,8 @@
         "gate:C8"
       ],
       "parityRow": "L-39",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-40",
@@ -405,7 +482,8 @@
         "gate:C4"
       ],
       "parityRow": "L-40",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-41",
@@ -415,17 +493,21 @@
         "gate:C13"
       ],
       "parityRow": "L-41",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-42",
       "capability": "The Room",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C13"
       ],
       "parityRow": "L-42",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "L-43",
@@ -435,7 +517,8 @@
         "gate:C13"
       ],
       "parityRow": "L-43",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-44",
@@ -445,7 +528,8 @@
         "gate:C13"
       ],
       "parityRow": "L-44",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-45",
@@ -455,18 +539,24 @@
         "gate:C13"
       ],
       "parityRow": "L-45",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-46",
       "capability": "Portfolio",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C4",
         "gate:C7a"
       ],
       "parityRow": "L-46",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c7a-exit-2026-09-29.md",
+        "docs/evidence/c8e-tickets-ux.md",
+        "docs/evidence/c6d-gap-events.md"
+      ]
     },
     {
       "id": "L-47",
@@ -476,17 +566,22 @@
         "gate:C5"
       ],
       "parityRow": "L-47",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-48",
       "capability": "Leaderboard",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C5"
       ],
       "parityRow": "L-48",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c5",
+        "commit:9321ae3"
+      ]
     },
     {
       "id": "L-49",
@@ -496,27 +591,35 @@
         "gate:C5"
       ],
       "parityRow": "L-49",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-50",
       "capability": "Earn (maker vault)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-50",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8e-tickets-ux.md"
+      ],
+      "note": "Reserve supply and withdraw work; the maker tab waits on abu-pm-main 0.5.0 (slice C2d, in flight)"
     },
     {
       "id": "L-51",
       "capability": "Strategies desk",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-51",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8f-agents.md"
+      ]
     },
     {
       "id": "L-52",
@@ -526,7 +629,8 @@
         "gate:C8"
       ],
       "parityRow": "L-52",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-53",
@@ -536,7 +640,8 @@
         "gate:C8"
       ],
       "parityRow": "L-53",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-54",
@@ -546,17 +651,22 @@
         "gate:C8"
       ],
       "parityRow": "L-54",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-55",
       "capability": "Strategy runner + self-host",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-55",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8f-agents.md"
+      ],
+      "note": "Runner placed through its grant on the sandbox; self-host not run"
     },
     {
       "id": "L-56",
@@ -564,7 +674,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "L-56",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-57",
@@ -574,7 +685,8 @@
         "gate:C8"
       ],
       "parityRow": "L-57",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-58",
@@ -584,7 +696,8 @@
         "gate:C13"
       ],
       "parityRow": "L-58",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-59",
@@ -594,7 +707,8 @@
         "gate:C13"
       ],
       "parityRow": "L-59",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-60",
@@ -604,7 +718,8 @@
         "gate:C13"
       ],
       "parityRow": "L-60",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-61",
@@ -614,7 +729,8 @@
         "gate:C9"
       ],
       "parityRow": "L-61",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-62",
@@ -624,17 +740,23 @@
         "gate:C9"
       ],
       "parityRow": "L-62",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-63",
       "capability": "Duel (Free/Ranked) + match link",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C9"
       ],
       "parityRow": "L-63",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c9b-games.md",
+        "docs/evidence/c9c-games-ux.md",
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "L-64",
@@ -644,17 +766,22 @@
         "gate:C9"
       ],
       "parityRow": "L-64",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-65",
       "capability": "Rank + seasons",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C9"
       ],
       "parityRow": "L-65",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c9c-games-ux.md",
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "L-66",
@@ -664,17 +791,21 @@
         "gate:C9"
       ],
       "parityRow": "L-66",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-67",
       "capability": "Moonshot",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-67",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8e-tickets-ux.md"
+      ]
     },
     {
       "id": "L-68",
@@ -684,7 +815,8 @@
         "gate:C9"
       ],
       "parityRow": "L-68",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-69",
@@ -694,7 +826,8 @@
         "gate:C9"
       ],
       "parityRow": "L-69",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-70",
@@ -704,7 +837,8 @@
         "gate:C9"
       ],
       "parityRow": "L-70",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-71",
@@ -714,7 +848,8 @@
         "gate:C9"
       ],
       "parityRow": "L-71",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-72",
@@ -724,7 +859,8 @@
         "gate:C1"
       ],
       "parityRow": "L-72",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-73",
@@ -735,18 +871,25 @@
         "gate:C4"
       ],
       "parityRow": "L-73",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "L-74",
       "capability": "API surface",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3",
         "gate:C4"
       ],
       "parityRow": "L-74",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332",
+        "docs/evidence/c7a-exit-2026-09-29.md",
+        "docs/evidence/c8e-tickets-ux.md"
+      ]
     },
     {
       "id": "Y-01",
@@ -754,7 +897,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-02",
@@ -762,7 +906,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-03",
@@ -770,7 +915,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-04",
@@ -778,7 +924,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-04",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-05",
@@ -786,7 +933,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-05",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-06",
@@ -796,7 +944,8 @@
         "gate:C10"
       ],
       "parityRow": "Y-06",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-07",
@@ -804,7 +953,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-07",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-08",
@@ -812,7 +962,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-08",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-09",
@@ -820,7 +971,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-09",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-10",
@@ -828,7 +980,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-10",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-11",
@@ -836,7 +989,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-11",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-12",
@@ -844,7 +998,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-12",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-13",
@@ -852,7 +1007,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-13",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-14",
@@ -862,7 +1018,8 @@
         "gate:C10"
       ],
       "parityRow": "Y-14",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-15",
@@ -870,7 +1027,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-15",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-16",
@@ -880,7 +1038,8 @@
         "gate:C7a"
       ],
       "parityRow": "Y-16",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-17",
@@ -890,7 +1049,8 @@
         "gate:C11"
       ],
       "parityRow": "Y-17",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "Y-18",
@@ -898,7 +1058,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "Y-18",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-1a",
@@ -909,17 +1070,21 @@
         "gate:C8"
       ],
       "parityRow": "A-1a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-1b",
       "capability": "Inverse position (linear short, not binary)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "A-1b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8e-tickets-ux.md"
+      ]
     },
     {
       "id": "A-1c",
@@ -929,7 +1094,8 @@
         "gate:C8"
       ],
       "parityRow": "A-1c",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-2a",
@@ -939,7 +1105,8 @@
         "gate:C8"
       ],
       "parityRow": "A-2a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-2b",
@@ -949,7 +1116,8 @@
         "gate:C8"
       ],
       "parityRow": "A-2b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-2c",
@@ -959,7 +1127,8 @@
         "gate:C8"
       ],
       "parityRow": "A-2c",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-3a",
@@ -970,7 +1139,8 @@
         "gate:C13"
       ],
       "parityRow": "A-3a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-3b",
@@ -980,7 +1150,8 @@
         "gate:C8"
       ],
       "parityRow": "A-3b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-3c",
@@ -990,7 +1161,8 @@
         "gate:C13"
       ],
       "parityRow": "A-3c",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-3d",
@@ -1000,7 +1172,8 @@
         "gate:C13"
       ],
       "parityRow": "A-3d",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "A-3e",
@@ -1010,7 +1183,8 @@
         "gate:C13"
       ],
       "parityRow": "A-3e",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S19a",
@@ -1020,7 +1194,8 @@
         "gate:C8d"
       ],
       "parityRow": "C-S19a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S19b",
@@ -1030,7 +1205,8 @@
         "gate:C7b"
       ],
       "parityRow": "C-S19b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S20a",
@@ -1040,7 +1216,8 @@
         "gate:C8d"
       ],
       "parityRow": "C-S20a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S20b",
@@ -1050,7 +1227,8 @@
         "gate:C8d"
       ],
       "parityRow": "C-S20b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S21a",
@@ -1060,7 +1238,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S21a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S21b",
@@ -1070,7 +1249,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S21b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S21c",
@@ -1080,7 +1260,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S21c",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S21d",
@@ -1090,7 +1271,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S21d",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S22",
@@ -1100,7 +1282,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S22",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S23a",
@@ -1110,7 +1293,8 @@
         "gate:C6"
       ],
       "parityRow": "C-S23a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S23b",
@@ -1120,7 +1304,8 @@
         "gate:C6"
       ],
       "parityRow": "C-S23b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S24a",
@@ -1131,7 +1316,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S24a",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S24b",
@@ -1142,7 +1328,8 @@
         "gate:C8"
       ],
       "parityRow": "C-S24b",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-S25",
@@ -1152,7 +1339,8 @@
         "gate:C10"
       ],
       "parityRow": "C-S25",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-PUSH",
@@ -1162,7 +1350,8 @@
         "gate:C11"
       ],
       "parityRow": "C-PUSH",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-DOC-01",
@@ -1173,18 +1362,23 @@
         "gate:C10"
       ],
       "parityRow": "C-DOC-01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-PROOF",
       "capability": "/proof feed and /proof/[market] with ReverifyButton",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C5",
         "gate:C10"
       ],
       "parityRow": "C-PROOF",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c5",
+        "commit:9321ae3"
+      ]
     },
     {
       "id": "C-MKT-01",
@@ -1195,57 +1389,79 @@
         "gate:C8d"
       ],
       "parityRow": "C-MKT-01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-02",
       "capability": "Lanes: Regular, Gap (Monday), 24/7 xStock token, PreStocks pre-IPO; session, halt and gap states",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C6"
       ],
       "parityRow": "C-MKT-02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c6-lanes-2026-09-29.md",
+        "docs/evidence/c6d-gap-events.md",
+        "docs/evidence/c6e-stocks-events.md"
+      ],
+      "note": "Valuation lanes need an entitled Pyth key; Switchboard Surge down (xStocks settle on the Jupiter median)"
     },
     {
       "id": "C-MKT-03",
       "capability": "Cadences 300/900/3600 s plus Gap; Masayume 4 h and 1 d; Masayume's BTC/ETH cadence lanes",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C6"
       ],
       "parityRow": "C-MKT-03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c6-lanes-2026-09-29.md"
+      ]
     },
     {
       "id": "C-MKT-04",
       "capability": "Price sources (PrintSource: Pyth, RedStone, Switchboard, attested)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C6"
       ],
       "parityRow": "C-MKT-04",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c6-lanes-2026-09-29.md",
+        "docs/evidence/c6e-stocks-events.md"
+      ]
     },
     {
       "id": "C-MKT-05",
       "capability": "Oracle quorum and cross-check-and-void (maxDeviationBps, VoidReason specific reasons)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-MKT-05",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c6d-gap-events.md",
+        "docs/evidence/c6e-stocks-events.md"
+      ]
     },
     {
       "id": "C-MKT-06",
       "capability": "BTC/ETH realised-vol re-measure before fair values go live",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C6"
       ],
       "parityRow": "C-MKT-06",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c6-realised-vol-2026-09-29.md"
+      ]
     },
     {
       "id": "C-MKT-07",
@@ -1255,7 +1471,8 @@
         "gate:C0"
       ],
       "parityRow": "C-MKT-07",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-08",
@@ -1265,7 +1482,8 @@
         "gate:C1"
       ],
       "parityRow": "C-MKT-08",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-09",
@@ -1275,7 +1493,8 @@
         "gate:C5"
       ],
       "parityRow": "C-MKT-09",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-10",
@@ -1285,7 +1504,8 @@
         "gate:C5"
       ],
       "parityRow": "C-MKT-10",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-11",
@@ -1295,7 +1515,8 @@
         "gate:C1"
       ],
       "parityRow": "C-MKT-11",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-12",
@@ -1305,7 +1526,8 @@
         "gate:C7b"
       ],
       "parityRow": "C-MKT-12",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-MKT-13",
@@ -1315,17 +1537,23 @@
         "gate:C13"
       ],
       "parityRow": "C-MKT-13",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-DAML-01",
       "capability": "Engine abu-pm-main: Series, MarketTerms, WindowState, PriceQuote, OpenPrint, Resolution, VenueCash, Quote, BuyQuote, Leg, NettedResidual and the money gate",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C2"
       ],
       "parityRow": "C-DAML-01",
-      "acceptanceRow": null
+      "acceptanceRow": "C2b",
+      "evidence": [
+        "docs/plan/acceptance.md",
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c6d-gap-events.md"
+      ]
     },
     {
       "id": "C-DAML-02",
@@ -1335,7 +1563,8 @@
         "gate:C3"
       ],
       "parityRow": "C-DAML-02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-DAML-03",
@@ -1345,27 +1574,35 @@
         "gate:C8"
       ],
       "parityRow": "C-DAML-03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-DAML-04",
       "capability": "Strategy creator_seal (sealed spec), set_runner, deactivate",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-DAML-04",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8f-agents.md"
+      ]
     },
     {
       "id": "C-DAML-05",
       "capability": "Season prize pool and arena tiers",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C9"
       ],
       "parityRow": "C-DAML-05",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c9b-games.md",
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "C-DAML-06",
@@ -1375,88 +1612,119 @@
         "gate:C7b"
       ],
       "parityRow": "C-DAML-06",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-OPS-01",
       "capability": "Supervisor, heartbeats, /health, calendar, earnings, halt-watch, SSE, print_archive",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-01",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md"
+      ]
     },
     {
       "id": "C-OPS-02",
       "capability": "Window roller",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-02",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c6-lanes-2026-09-29.md"
+      ]
     },
     {
       "id": "C-OPS-03",
       "capability": "Oracle feeders (Coinbase, Kraken, Bitstamp 1-minute closes), replacing price-relay",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-03",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c9c-games-ux.md"
+      ]
     },
     {
       "id": "C-OPS-04",
       "capability": "Pricer and quote issuer over K venue cash shards; venue price ladder over SSE",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-04",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c6-realised-vol-2026-09-29.md"
+      ]
     },
     {
       "id": "C-OPS-05",
       "capability": "Settler (SettleBatch), resolver proposer, netting, rebalancer, expiry sweeper, reserve reporter",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-05",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c7a-exit-2026-09-29.md"
+      ]
     },
     {
       "id": "C-OPS-06",
       "capability": "Projector (/v2/updates → Postgres), replacing the indexer",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-06",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c6e-stocks-events.md"
+      ]
     },
     {
       "id": "C-OPS-07",
       "capability": "Seat funding and close-out",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3",
         "gate:C4"
       ],
       "parityRow": "C-OPS-07",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "C-OPS-08",
       "capability": "strategy-runner + self-host runner-main.ts",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-OPS-08",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c8f-agents.md"
+      ],
+      "note": "Drive through server code on the sandbox; the web routes were not clicked through a browser"
     },
     {
       "id": "C-OPS-09",
@@ -1466,17 +1734,23 @@
         "gate:C8"
       ],
       "parityRow": "C-OPS-09",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-OPS-10",
       "capability": "game-room, matchmaker, duel-projector, duel-settler",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C9"
       ],
       "parityRow": "C-OPS-10",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c9b-games.md",
+        "docs/evidence/c9c-games-ux.md",
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "C-OPS-11",
@@ -1486,7 +1760,8 @@
         "gate:C13"
       ],
       "parityRow": "C-OPS-11",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-OPS-12",
@@ -1496,7 +1771,8 @@
         "gate:C8"
       ],
       "parityRow": "C-OPS-12",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-OPS-13",
@@ -1506,17 +1782,21 @@
         "gate:C8"
       ],
       "parityRow": "C-OPS-13",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-OPS-14",
       "capability": "Actor set split VENUE / LEGACY / OPT-IN",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-OPS-14",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md"
+      ]
     },
     {
       "id": "C-N00",
@@ -1526,7 +1806,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N00",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N01",
@@ -1536,7 +1817,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N02",
@@ -1546,7 +1828,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N03",
@@ -1556,7 +1839,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N04",
@@ -1566,7 +1850,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N04",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N05",
@@ -1576,7 +1861,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N05",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N06",
@@ -1586,7 +1872,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N06",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N07",
@@ -1596,7 +1883,8 @@
         "gate:C4"
       ],
       "parityRow": "C-N07",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N08",
@@ -1606,7 +1894,8 @@
         "gate:C4"
       ],
       "parityRow": "C-N08",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N09",
@@ -1616,7 +1905,8 @@
         "gate:C4"
       ],
       "parityRow": "C-N09",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N10",
@@ -1626,7 +1916,8 @@
         "gate:C4"
       ],
       "parityRow": "C-N10",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N11",
@@ -1636,7 +1927,8 @@
         "gate:C5"
       ],
       "parityRow": "C-N11",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N12",
@@ -1646,7 +1938,8 @@
         "gate:C13"
       ],
       "parityRow": "C-N12",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N13",
@@ -1656,7 +1949,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N13",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N14",
@@ -1666,7 +1960,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N14",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N15",
@@ -1676,7 +1971,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N15",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N16",
@@ -1686,7 +1982,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N16",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N17",
@@ -1696,7 +1993,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N17",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N18",
@@ -1706,7 +2004,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N18",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N19",
@@ -1716,7 +2015,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N19",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N20",
@@ -1726,7 +2026,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N20",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N21",
@@ -1736,7 +2037,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N21",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N22",
@@ -1746,7 +2048,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N22",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N23",
@@ -1756,7 +2059,8 @@
         "gate:C9"
       ],
       "parityRow": "C-N23",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N24",
@@ -1766,7 +2070,8 @@
         "gate:C13"
       ],
       "parityRow": "C-N24",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N25",
@@ -1776,7 +2081,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N25",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N26",
@@ -1786,7 +2092,8 @@
         "gate:C8d"
       ],
       "parityRow": "C-N26",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N27",
@@ -1796,7 +2103,8 @@
         "gate:C13"
       ],
       "parityRow": "C-N27",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N28",
@@ -1806,7 +2114,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N28",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N29",
@@ -1816,7 +2125,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N29",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N30",
@@ -1826,7 +2136,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N30",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N31",
@@ -1836,7 +2147,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N31",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N32",
@@ -1846,7 +2158,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N32",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N33",
@@ -1856,7 +2169,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N33",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N34",
@@ -1866,7 +2180,8 @@
         "gate:C10"
       ],
       "parityRow": "C-N34",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N35",
@@ -1876,7 +2191,8 @@
         "gate:C5"
       ],
       "parityRow": "C-N35",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N36",
@@ -1886,7 +2202,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N36",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N37",
@@ -1896,7 +2213,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N37",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N38",
@@ -1906,7 +2224,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N38",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N39",
@@ -1916,7 +2235,8 @@
         "gate:C13"
       ],
       "parityRow": "C-N39",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N40",
@@ -1926,7 +2246,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N40",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N41",
@@ -1936,7 +2257,8 @@
         "gate:C4"
       ],
       "parityRow": "C-N41",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N42",
@@ -1946,7 +2268,8 @@
         "gate:C8"
       ],
       "parityRow": "C-N42",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N43",
@@ -1956,7 +2279,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N43",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N44",
@@ -1966,7 +2290,8 @@
         "gate:C4"
       ],
       "parityRow": "C-N44",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N45",
@@ -1976,7 +2301,8 @@
         "gate:C13"
       ],
       "parityRow": "C-N45",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N46",
@@ -1986,7 +2312,8 @@
         "gate:C5"
       ],
       "parityRow": "C-N46",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N47",
@@ -1996,7 +2323,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N47",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N48",
@@ -2006,7 +2334,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N48",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N49",
@@ -2016,7 +2345,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N49",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N50",
@@ -2026,7 +2356,8 @@
         "gate:C11"
       ],
       "parityRow": "C-N50",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N51",
@@ -2036,7 +2367,8 @@
         "gate:C1"
       ],
       "parityRow": "C-N51",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-N52",
@@ -2047,28 +2379,37 @@
         "gate:C8"
       ],
       "parityRow": "C-N52",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-ADD-01",
       "capability": "\"Who can see this\" chip (web and phone)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C1"
       ],
       "parityRow": "C-ADD-01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
     },
     {
       "id": "C-ADD-02",
       "capability": "Per-party view switcher with the literal query on screen (web and phone)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C1",
         "gate:C4"
       ],
       "parityRow": "C-ADD-02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
     },
     {
       "id": "C-ADD-03",
@@ -2078,7 +2419,8 @@
         "gate:C1"
       ],
       "parityRow": "C-ADD-03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-ADD-04",
@@ -2088,27 +2430,36 @@
         "gate:C11"
       ],
       "parityRow": "C-ADD-04",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-ADD-05",
       "capability": "1-minute demo lane resolved by the three oracle parties",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C3"
       ],
       "parityRow": "C-ADD-05",
-      "acceptanceRow": null
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "docs/evidence/c3-gate-2026-09-29.md"
+      ]
     },
     {
       "id": "C-ADD-06",
       "capability": "Institutional event markets resolved by committee attestation",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C6"
       ],
       "parityRow": "C-ADD-06",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/c6-lanes-2026-09-29.md",
+        "docs/evidence/c6d-gap-events.md",
+        "docs/evidence/c6e-stocks-events.md"
+      ]
     },
     {
       "id": "C-ADD-07",
@@ -2118,38 +2469,53 @@
         "BitSafe add-on"
       ],
       "parityRow": "C-ADD-07",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-ADD-08",
       "capability": "Ticket write-progress steps (desk-kit StepProgress) and firm-quote ring (20 s)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C1",
         "gate:C4"
       ],
       "parityRow": "C-ADD-08",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
     },
     {
       "id": "C-ADD-09",
       "capability": "Resolution timeline on /proof/<market> beside ReverifyButton",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C5"
       ],
       "parityRow": "C-ADD-09",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332",
+        "docs/evidence/ux/c5"
+      ]
     },
     {
       "id": "C-ADD-10",
       "capability": "Seat pool-full, draining and waitlist plates",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C4"
       ],
       "parityRow": "C-ADD-10",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": [
+        "docs/evidence/ux/c4b",
+        "commit:526b332",
+        "docs/evidence/c9d-seats-games.md"
+      ]
     },
     {
       "id": "C-ADD-11",
@@ -2160,7 +2526,8 @@
         "gate:C10"
       ],
       "parityRow": "C-ADD-11",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-ADD-12",
@@ -2170,7 +2537,8 @@
         "Grofty add-on"
       ],
       "parityRow": "C-ADD-12",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-X01",
@@ -2178,7 +2546,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "C-X01",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-X02",
@@ -2186,7 +2555,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "C-X02",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     },
     {
       "id": "C-X03",
@@ -2194,7 +2564,8 @@
       "state": "not-live",
       "dependsOn": [],
       "parityRow": "C-X03",
-      "acceptanceRow": null
+      "acceptanceRow": null,
+      "evidence": []
     }
   ]
 }
