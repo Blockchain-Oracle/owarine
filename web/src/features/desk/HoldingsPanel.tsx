@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { brandColor } from "./cockpit/OverviewTab";
 import { COCKPIT } from "./cockpit/copy-cockpit";
 import { DESK } from "./copy";
-import { pct, tokens, usd } from "./format";
+import { credits, pct, tokens, usd } from "./format";
 import type { DeskView, HoldingRow } from "./view";
 
 const K = COCKPIT.holdings;
@@ -51,7 +51,7 @@ function HoldingCard({ h, index }: { h: HoldingRow; index: number }) {
   );
 }
 
-/** Item 5: the USDC the desk holds, as its own card. */
+/** Item 5: the cash the desk holds, as its own card (demo credits live, paper dollars in practice). */
 function CashCard({ view }: { view: DeskView }) {
   const C = DESK.page.cash;
   const share = view.plate.totalE6 && view.plate.totalE6 > 0n ? Number((view.plate.cashE6 * 10_000n) / view.plate.totalE6) : null;
@@ -77,7 +77,7 @@ function CashCard({ view }: { view: DeskView }) {
           </div>
         </div>
       )}
-      <p className="type-caption text-ink-secondary">{view.isLive ? C.line(usd(view.plate.cashE6)) : C.practiceLine(usd(view.plate.cashE6))}</p>
+      <p className="type-caption text-ink-secondary">{view.isLive ? C.line(credits(view.plate.cashE6)) : C.practiceLine(usd(view.plate.cashE6))}</p>
     </article>
   );
 }

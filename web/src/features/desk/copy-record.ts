@@ -57,7 +57,8 @@ export const RECORD = {
       mark: "Its mark",
       premium: (pct: string) => `${pct} above its mark`,
       discount: (pct: string) => `${pct} below its mark`,
-      index: "Pyth's valuation index",
+      /** Only when a record carries one; the Canton desk reads no index (its reference is the attestors' marks). */
+      index: "Valuation index",
       mean: "Half-hour average",
       gap: (pct: string) => `spot ${pct} from its average`,
       inLine: "in line with its average",

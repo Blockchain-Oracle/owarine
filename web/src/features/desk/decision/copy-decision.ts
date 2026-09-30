@@ -13,7 +13,8 @@ export const DECISION = {
     token: "Token",
     mark: "Mark",
     mean: "30-min average",
-    index: "Pyth index",
+    /** Shown only when a record carries an index; the Canton desk reads none (`indexE8: null`, no entitled Pyth key). */
+    index: "Valuation index",
     ceiling: (pct: string) => `Ceiling +${pct}`,
     above: "Above the ceiling",
     over: (price: string) => `over ${price}`,

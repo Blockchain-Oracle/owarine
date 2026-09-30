@@ -95,7 +95,7 @@ export function draftToMandate(d: StudioDraft): DraftResult {
   };
   const money = (text: string, what: string) => {
     const value = parseDecimalToBaseUnits(text, 6);
-    if (value === null || value <= 0n) problems.push(`${what} must be a positive amount in USDC`);
+    if (value === null || value <= 0n) problems.push(`${what} must be a positive amount in credits`);
     return value ?? 1n;
   };
   const mandate: DeskMandate = {
