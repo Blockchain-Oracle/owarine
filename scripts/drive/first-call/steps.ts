@@ -42,21 +42,21 @@ const receiptOf = (ctx: Ctx, seat: Seat, pairId: string) => async () =>
   (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.SettlementReceipt, decodeReceipt)).find((r) => r.data.pairId === pairId);
 const mask = (text: string) => text.replace(/([A-Za-z0-9_\-:.]+)::1220[0-9a-f]{64}/g, "$1::1220…");
 
-/** The lane's Window that ops is quoting now: open print recorded, at least 25 s before lock. */
+/** The lane's Window that ops is quoting now: open print recorded, at least 12 s before lock (a quote lives 20 s at most). */
 async function quotingWindow(ctx: Ctx): Promise<Row<TermsC> | undefined> {
   const now = Date.now() / 1000;
-  const terms = (await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.MarketTerms, decodeTerms)).filter((t) => t.data.seriesKey === ctx.config.lane && t.data.tradingStartSec <= now && t.data.lockAtSec - now >= 25);
+  const terms = (await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.MarketTerms, decodeTerms)).filter((t) => t.data.seriesKey === ctx.config.lane && t.data.tradingStartSec <= now && t.data.lockAtSec - now >= 12);
   if (!terms.length) return undefined;
   const opened = new Set((await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.OpenPrint, decodeOpenPrint)).map((o) => o.data.termsCid));
   return terms.find((t) => opened.has(t.cid));
 }
 
-/** A firm quote from ops through the web, on `terms` (else the lane's quoting Window), requoting once if the cap is low. */
-async function firmQuote(ctx: Ctx, seat: Seat, side: "up" | "down", stakeBase: bigint, terms?: Row<TermsC>) {
+/** A firm quote from ops through the web on the lane's quoting Window, requoting once if the cap is low. */
+async function firmQuote(ctx: Ctx, seat: Seat, side: "up" | "down", stakeBase: bigint) {
   const until = Date.now() + 150_000;
   let last = "no Window with an open print yet";
   for (;;) {
-    const win = terms ?? (await quotingWindow(ctx));
+    const win = await quotingWindow(ctx);
     if (win) {
       const body = { marketId: appMarketId(win.data.marketId), side, stakeBase, displayedMaxCostBase: (stakeBase * 11n) / 10n };
       let r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", body);
@@ -66,7 +66,6 @@ async function firmQuote(ctx: Ctx, seat: Seat, side: "up" | "down", stakeBase: b
         if (q) return { win, q };
       }
       last = `${r.status} ${r.json.kind ?? ""} ${r.json.diagnosis?.kind ?? ""}: ${String(r.json.diagnosis?.technical ?? "").slice(0, 120)}`;
-      if (terms) throw new Error(`no firm quote: ${last}`);
     }
     if (Date.now() > until) throw new Error(`no firm quote on ${ctx.config.lane} in 150 s (last: ${last})`);
     await sleep(3_000);
@@ -112,8 +111,30 @@ export async function runMain(ctx: Ctx): Promise<void> {
     return { outcome: ok ? "pass" : "fail", detail: ok ? `${shortParty(A.party!)} holds leg ${cid(legA!.cid)}: ${legA!.data.lots} lots ${legA!.data.outcome}, cost ${credits(legA!.data.backingShare)} + fee ${credits(legA!.data.feePaid)}` : JSON.stringify(r.json).slice(0, 200), evidence: `update ${r.json.updateId ?? "—"}` };
   }))) return;
 
+  // The views are read right after each accept: a 1-minute Window can resolve and settle while B waits for its quote.
+  const venueSees = async (leg: Row<LegC>) => (await kit.acs(roles.venue, TEMPLATE_IDS.Leg, decodeLeg)).some((l) => l.cid === leg.cid);
+  const venueSaw: string[] = [];
+  const aCids = new Set<string>();
+  await step("owner view (seat A: /api/view?as=me)", async () => {
+    const v = await web.call(A, "GET", "/api/view?as=me");
+    for (const r of v.json.rows ?? []) aCids.add(r.contractId);
+    if (await venueSees(legA!)) venueSaw.push(`seat A's leg ${cid(legA!.cid)}`);
+    const kinds = (v.json.rows ?? []).map((r: { template: string }) => r.template).join(", ");
+    const ok = v.json.party === A.party && aCids.has(legA!.cid);
+    return { outcome: ok ? "pass" : "fail", detail: `queried as ${shortParty(v.json.party ?? "?::")}: ${v.json.rows?.length ?? 0} rows (${kinds}); A's leg ${cid(legA!.cid)} ${ok ? "is" : "is not"} there`, evidence: `GET /api/view?as=me at offset ${v.json.activeAtOffset}` };
+  });
+
+  await step("outsider empty (/api/view?as=outsider, while seat A holds its leg)", async () => {
+    const v = await web.call(null, "GET", "/api/view?as=outsider");
+    const body = JSON.stringify(v.json.request ?? null);
+    ctx.log(`the outsider's query, as sent to the participant: ${body}`);
+    const ok = v.status === 200 && (v.json.rows?.length ?? -1) === 0 && Object.keys(v.json.request?.eventFormat?.filtersByParty ?? {})[0] === ctx.personas.outsider;
+    return { outcome: ok ? "pass" : "fail", detail: `${v.json.rows?.length ?? "no"} rows; body ${mask(body)}`, evidence: `GET /api/view?as=outsider at offset ${v.json.activeAtOffset}` };
+  });
+
   await step("killed submit reconciled (seat B's accept, response dropped, same commandId re-sent)", async () => {
-    const { q } = await firmQuote(ctx, B, "down", stakeBase, win);
+    // B takes the lane's quoting Window: A's own, or the next one when A's stopped quoting meanwhile.
+    const { q } = await firmQuote(ctx, B, "down", stakeBase);
     const proxy = await startDropProxy(ctx.config.web);
     const commandId = randomUUID();
     let killed = false;
@@ -130,42 +151,27 @@ export async function runMain(ctx: Ctx): Promise<void> {
     return { outcome: ok ? "pass" : "fail", detail: `the web answered ${proxy.dropped[0]?.status ?? "nothing"} and the client got ${killed ? "a dropped socket" : "a reply"}; the re-send answered ${again.json.kind}, recovered ${again.json.recovered}; ${shortParty(B.party!)} holds ${legs.length} Leg for pair ${q.data.pairId}`, evidence: `update ${again.json.updateId ?? "—"}` };
   });
 
-  const aCids = new Set<string>();
-  await step("owner view (seat A: /api/view?as=me)", async () => {
-    const v = await web.call(A, "GET", "/api/view?as=me");
-    for (const r of v.json.rows ?? []) aCids.add(r.contractId);
-    const kinds = (v.json.rows ?? []).map((r: { template: string }) => r.template).join(", ");
-    const ok = v.json.party === A.party && aCids.has(legA!.cid);
-    return { outcome: ok ? "pass" : "fail", detail: `queried as ${shortParty(v.json.party ?? "?::")}: ${v.json.rows?.length ?? 0} rows (${kinds}); A's leg ${cid(legA!.cid)} is there`, evidence: `GET /api/view?as=me at offset ${v.json.activeAtOffset}` };
-  });
-
   await step("second seat empty (seat B and the alice/bob personas see none of A's contracts)", async () => {
     const seen: string[] = [];
     let leaked = 0;
+    let bHasOwn = false;
     for (const [who, seat, as] of [["seat B", B, "me"], ["alice", null, "alice"], ["bob", null, "bob"]] as const) {
       const v = await web.call(seat, "GET", `/api/view?as=${as}`);
       const rows: Array<{ contractId: string }> = v.json.rows ?? [];
       const mine = rows.filter((r) => aCids.has(r.contractId)).length;
+      if (seat === B && legB) bHasOwn = rows.some((r) => r.contractId === legB!.cid);
       leaked += mine + (v.status === 200 ? 0 : 1);
       seen.push(`${who} ${rows.length} rows, ${mine} of A's`);
     }
-    const bHasOwn = legB ? (await web.call(B, "GET", "/api/view?as=me")).json.rows?.some((r: { contractId: string }) => r.contractId === legB!.cid) : false;
-    return { outcome: leaked === 0 ? "pass" : "fail", detail: `${seen.join("; ")}${bHasOwn ? "; B sees its own leg only" : ""}`, evidence: "GET /api/view?as=me|alice|bob" };
+    if (legB && (await venueSees(legB))) venueSaw.push(`seat B's leg ${cid(legB.cid)}`);
+    return { outcome: leaked === 0 ? "pass" : "fail", detail: `${seen.join("; ")}${bHasOwn ? "; B sees its own leg" : ""}`, evidence: "GET /api/view?as=me|alice|bob" };
   });
 
-  await step("outsider empty (/api/view?as=outsider)", async () => {
-    const v = await web.call(null, "GET", "/api/view?as=outsider");
-    const body = JSON.stringify(v.json.request ?? null);
-    ctx.log(`the outsider's query, as sent to the participant: ${body}`);
-    const ok = v.status === 200 && (v.json.rows?.length ?? -1) === 0 && Object.keys(v.json.request?.eventFormat?.filtersByParty ?? {})[0] === ctx.personas.outsider;
-    return { outcome: ok ? "pass" : "fail", detail: `${v.json.rows?.length ?? "no"} rows; body ${mask(body)}`, evidence: `GET /api/view?as=outsider at offset ${v.json.activeAtOffset}` };
-  });
-
-  await step("venue view (the fourth viewpoint: the counterparty sees both legs)", async () => {
-    const legs = (await kit.acs(roles.venue, TEMPLATE_IDS.Leg, decodeLeg)).filter((l) => l.data.marketId === win!.data.marketId);
-    const both = legs.some((l) => l.cid === legA!.cid) && (!legB || legs.some((l) => l.cid === legB!.cid));
-    return { outcome: both ? "pass" : "fail", detail: `${legs.length} legs on the Window as ${shortParty(roles.venue)}: seat A's and seat B's, with the venue's opposite legs`, evidence: "POST /v2/state/active-contracts as the venue" };
-  });
+  await step("venue view (the fourth viewpoint: the counterparty sees both legs)", async () => ({
+    outcome: venueSaw.length === (legB ? 2 : 1) ? "pass" : "fail",
+    detail: `as ${shortParty(roles.venue)}, read right after each accept: ${venueSaw.join(" and ") || "neither leg"}${legB && legB.data.marketId !== legA!.data.marketId ? " (on two Windows)" : ""}`,
+    evidence: "POST /v2/state/active-contracts as the venue",
+  }));
 
   const res = await waitFor("the Resolution", async () => (await kit.acs(roles.resolver, TEMPLATE_IDS.Resolution, decodeResolution)).find((r) => r.data.marketId === win!.data.marketId), Math.max(0, win!.data.expirySec * 1000 - Date.now()) + 180_000, 3_000).catch((e: Error) => e);
   await step("three attestations (the Window's close)", async () => {
@@ -270,8 +276,11 @@ export async function runStale(ctx: Ctx): Promise<void> {
       const r = await ctx.web.call(A, "POST", "/api/ledger/legs/refund-stale", { commandId: randomUUID(), marketId });
       const want = d.leg.data.backingShare + d.leg.data.feePaid;
       const ok = r.json.kind === "confirmed" && BigInt(r.json.payoutBase ?? -1) === want && early.json.diagnosis?.kind === "not-settled";
+      // The venue's opposite leg is stale too, and ops' settler alarms on it every pass: the venue refunds its own.
+      const venueLeg = (await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.Leg, decodeLeg)).find((l) => l.data.owner === ctx.roles.venue && l.data.marketId === d.win.terms.data.marketId);
+      const cleaned = venueLeg ? await ctx.kit.write("venue", ctx.roles.venue, "venue-stale-refund", [{ ExerciseCommand: { templateId: TEMPLATE_IDS.Leg, contractId: venueLeg.cid, choice: "Leg_RefundStale", choiceArgument: {} } }]) : null;
       const how = pid !== null ? `ops frozen (SIGSTOP pid ${pid})` : "pm-ops stopped by the operator";
-      return { outcome: ok ? "pass" : "fail", detail: `${how}${silent ? ", /health silent" : ""}${topUp ? ", seat funded by the venue" : ""}; before refundAfter: ${early.json.diagnosis?.kind ?? early.json.kind}; after: ${r.json.kind}, ${credits(BigInt(r.json.payoutBase ?? 0))} credits back = backing ${credits(d.leg.data.backingShare)} + fee ${credits(d.leg.data.feePaid)}`, evidence: `${d.ids}; refund ${r.json.updateId ?? "—"}` };
+      return { outcome: ok ? "pass" : "fail", detail: `${how}${silent ? ", /health silent" : ""}${topUp ? ", seat funded by the venue" : ""}; before refundAfter: ${early.json.diagnosis?.kind ?? early.json.kind}; after: ${r.json.kind}, ${credits(BigInt(r.json.payoutBase ?? 0))} credits back = backing ${credits(d.leg.data.backingShare)} + fee ${credits(d.leg.data.feePaid)}${cleaned ? "; the venue then refunded its own opposite leg" : ""}`, evidence: `${d.ids}; refund ${r.json.updateId ?? "—"}${cleaned ? `; venue leg ${cleaned.updateId}` : ""}` };
     });
   } finally {
     if (pid !== null) process.kill(pid, "SIGCONT");
