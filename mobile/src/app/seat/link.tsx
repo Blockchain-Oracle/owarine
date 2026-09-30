@@ -2,14 +2,14 @@ import { createSeatLink, decideSeatLink, normalizeSeatLinkCode, readSeatLink, se
 import { diagnosisCopy } from "@agari/core/copy";
 import { useLocalSearchParams } from "expo-router";
 import { RefreshCw } from "lucide-react-native";
-import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { leasedOf, seatNumberOf } from "@/providers/wallet/seat-lease-context";
 import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 import { Button, Screen } from "~/components/kit";
 import { SeatLinkCard, type SeatLinkCardState } from "~/features/seat-link/SeatLinkCard";
 import { appUrl } from "~/lib/identity";
-import { FONT, useTheme } from "~/theme";
+import { FONT, SPACE, useTheme } from "~/theme";
 import { SEAT as WEB_SEAT } from "@/features/canton-ux/seat/copy";
 import { SEAT } from "~/wallet/seat-copy";
 import { useSeat } from "~/wallet/SeatProvider";
@@ -21,7 +21,9 @@ const POLL_MS = 2_000;
  * `/seat/link` (plan, iOS step 2b; `<scheme>://seat/link?code=…` from a QR): web's seat link page on the phone. A phone
  * that took its seat shows a fresh one-time code and its QR, and turns to "Linked" once another device joins. Any phone
  * can join another device's seat with its code; a code from the link is filled in and joins only on the button. A phone
- * that has not accepted the demo-credits terms accepts them here first.
+ * that has not accepted the demo-credits terms accepts them here first. The code boxes, the note and the button are the last
+ * things in a tall card, so the page lifts above the keyboard as the app's chat sheets do (`KeyboardAvoidingView`, padding
+ * on iOS) and, while the entry has the keyboard, scrolls to the end each time the keyboard resizes it.
  */
 export default function SeatLinkScreen() {
   const { color } = useTheme();
@@ -35,6 +37,8 @@ export default function SeatLinkScreen() {
   const [state, setState] = useState<Exclude<SeatLinkCardState, "join">>("showing");
   const [waitingKey, setWaitingKey] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const scroll = useRef<ScrollView>(null);
+  const [entering, setEntering] = useState(false);
 
   const fresh = useCallback(async () => {
     const answer = await createSeatLink();
@@ -88,38 +92,52 @@ export default function SeatLinkScreen() {
   );
 
   return (
-    <Screen title={SEAT.link.screen} contentStyle={styles.content}>
-      {seat.termsAccepted ? null : (
-        <View style={[styles.terms, { borderColor: color.hairline, backgroundColor: color.surface1 }]}>
-          <Text style={[styles.termsLine, { color: color.inkSecondary }]}>{SEAT.link.termsLine}</Text>
-          <Button label={SEAT.link.accept} variant="secondary" size="sm" onPress={seat.acceptTerms} />
-        </View>
-      )}
-      <SeatLinkCard
-        state={holder && issued ? state : "join"}
-        code={issued?.code ?? ""}
-        url={issued ? appUrl(seatLinkPath(issued.code)) : ""}
-        expiresAtMs={issued?.expiresAtMs ?? null}
-        seatNumber={(leased && seatNumberOf(leased.party)) ?? 0}
-        waitingKey={waitingKey}
-        onDecide={decide}
-        onFresh={() => void fresh()}
-        verify={verify}
-        initialCode={initialCode}
-      />
-      {problem ? (
-        <Text style={[styles.problem, { color: color.loss }]} accessibilityRole="alert">
-          {problem}
-        </Text>
-      ) : null}
-      {/* The holder whose first code did not issue has nothing on screen to press (web's SeatLinkPanel offers the same retry). */}
-      {problem && holder && issued === null ? <Button label={WEB_SEAT.link.fresh} icon={RefreshCw} variant="secondary" size="sm" block={false} style={styles.retry} onPress={() => void fresh()} /> : null}
+    <Screen title={SEAT.link.screen} scroll={false}>
+      <KeyboardAvoidingView style={styles.fill} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView
+          ref={scroll}
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          // The keyboard resizes this view; with the code entry focused, keep its end (the boxes, the note, the button) in sight.
+          onLayout={() => entering && scroll.current?.scrollToEnd({ animated: true })}
+        >
+          {seat.termsAccepted ? null : (
+            <View style={[styles.terms, { borderColor: color.hairline, backgroundColor: color.surface1 }]}>
+              <Text style={[styles.termsLine, { color: color.inkSecondary }]}>{SEAT.link.termsLine}</Text>
+              <Button label={SEAT.link.accept} variant="secondary" size="sm" onPress={seat.acceptTerms} />
+            </View>
+          )}
+          <SeatLinkCard
+            state={holder && issued ? state : "join"}
+            code={issued?.code ?? ""}
+            url={issued ? appUrl(seatLinkPath(issued.code)) : ""}
+            expiresAtMs={issued?.expiresAtMs ?? null}
+            seatNumber={(leased && seatNumberOf(leased.party)) ?? 0}
+            waitingKey={waitingKey}
+            onDecide={decide}
+            onFresh={() => void fresh()}
+            verify={verify}
+            initialCode={initialCode}
+            onEntryFocus={setEntering}
+          />
+          {problem ? (
+            <Text style={[styles.problem, { color: color.loss }]} accessibilityRole="alert">
+              {problem}
+            </Text>
+          ) : null}
+          {/* The holder whose first code did not issue has nothing on screen to press (web's SeatLinkPanel offers the same retry). */}
+          {problem && holder && issued === null ? <Button label={WEB_SEAT.link.fresh} icon={RefreshCw} variant="secondary" size="sm" block={false} style={styles.retry} onPress={() => void fresh()} /> : null}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { gap: 12, paddingTop: 16 },
+  fill: { flex: 1 },
+  // `Screen`'s own body (the 16 gutter, room under the floating dock) with this page's tighter gap and top.
+  content: { padding: SPACE.gutter, paddingTop: 16, paddingBottom: 120, gap: 12 },
   terms: { gap: 10, padding: 16, borderWidth: 1, borderRadius: 12 },
   termsLine: { fontFamily: FONT.body, fontSize: 13, lineHeight: 19.5, textAlign: "center" },
   problem: { fontFamily: FONT.body, fontSize: 12, lineHeight: 18, textAlign: "center" },

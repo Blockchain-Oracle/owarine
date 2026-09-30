@@ -39,6 +39,8 @@ interface Props {
   verify: (code: string) => Promise<boolean | string>;
   /** A code that arrived with the deep link: filled in, joined only on the button (never on arrival). */
   initialCode?: string | null;
+  /** The code entry took or lost the keyboard; the screen scrolls the entry above it. */
+  onEntryFocus?: (focused: boolean) => void;
 }
 
 /**
@@ -77,7 +79,7 @@ function Decide({ waitingKey, seatNumber, onDecide }: { waitingKey: string; seat
   );
 }
 
-export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitingKey = null, onDecide, onFresh, verify, initialCode }: Props) {
+export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitingKey = null, onDecide, onFresh, verify, initialCode, onEntryFocus }: Props) {
   const { color } = useTheme();
   const now = useNowMs();
   const leftSec = expiresAtMs !== null && now > 0 ? Math.max(0, Math.ceil((expiresAtMs - now) / 1000)) : null;
@@ -145,7 +147,7 @@ export function SeatLinkCard({ state, code, url, expiresAtMs, seatNumber, waitin
         </View>
       )}
 
-      <Join verify={verify} initialCode={initialCode ?? null} />
+      <Join verify={verify} initialCode={initialCode ?? null} onEntryFocus={onEntryFocus} />
       <Text style={[styles.foot, { color: color.inkMuted }]}>{L.foot}</Text>
     </View>
   );
@@ -181,7 +183,7 @@ function CopyCode({ code, disabled }: { code: string; disabled: boolean }) {
   );
 }
 
-function Join({ verify, initialCode }: { verify: Props["verify"]; initialCode: string | null }) {
+function Join({ verify, initialCode, onEntryFocus }: { verify: Props["verify"]; initialCode: string | null; onEntryFocus?: Props["onEntryFocus"] }) {
   const { color } = useTheme();
   const [value, setValue] = useState(initialCode ?? "");
   const [status, setStatus] = useState<LinkCodeStatus>("idle");
@@ -221,6 +223,7 @@ function Join({ verify, initialCode }: { verify: Props["verify"]; initialCode: s
         hint={L.joinHint}
         message={message}
         editable={status !== "success"}
+        onFocusChange={onEntryFocus}
       />
       <Button label={L.join} loading={busy} disabled={!complete || status === "success"} onPress={() => void submit(value)} />
     </View>

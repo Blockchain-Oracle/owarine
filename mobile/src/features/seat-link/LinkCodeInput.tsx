@@ -19,6 +19,7 @@ export function LinkCodeInput({
   hint,
   message,
   editable = true,
+  onFocusChange,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -28,6 +29,8 @@ export function LinkCodeInput({
   hint: string;
   message: string | null;
   editable?: boolean;
+  /** The field took or lost the keyboard: a page that scrolls keeps the boxes above it (`/seat/link`). */
+  onFocusChange?: (focused: boolean) => void;
 }) {
   const { color } = useTheme();
   const field = useRef<TextInput>(null);
@@ -57,6 +60,8 @@ export function LinkCodeInput({
           if (next.length === SEAT_LINK_CODE_LENGTH) onComplete(next);
         }}
         editable={editable}
+        onFocus={() => onFocusChange?.(true)}
+        onBlur={() => onFocusChange?.(false)}
         autoCapitalize="characters"
         autoCorrect={false}
         autoComplete="one-time-code"
