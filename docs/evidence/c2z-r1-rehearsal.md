@@ -50,6 +50,13 @@ The first DevNet release, R1, is now a proven, boring sequence. This rehearsal r
 
 **Why attempts 1 and 2 failed.** Nothing landed. The sandbox log shows the first transaction's phase 1 took minutes. The mediator then rejected it with `MEDIATOR_SAYS_TX_TIMED_OUT` (`unresponsiveParties` = pm-venue and the sandbox itself), and the sequencer with `MAX_SEQUENCING_TIME_EXCEEDED` / `NOT_SEQUENCED_TIMEOUT`. The sequencer's block time lagged wall clock by 66 s at 05:26 local (04:26Z), after the DAR uploads and 19 allocations, and by 9 s at 05:28. Those rejections are contention-category, so `@agari/ledger` re-sent them under the same commandId. Each re-send met the change id still in flight and got `SUBMISSION_ALREADY_IN_FLIGHT`, until the attempts ran out. The third run, once the sequencer had caught up, created everything. The runbook now says what to do: wait a minute and run the same command again.
 
+**Follow-up, C3f (2026-09-30).**
+- **The error.** The Canton 3.5.17 jar confirms the id: `SUBMISSION_ALREADY_IN_FLIGHT` is `ConsistencyErrors.SubmissionAlreadyInFlight`, category 2 (ContentionOnSharedResources), with the cause "The submission is already in-flight". So `@agari/ledger` filed it as contention and re-sent it under the transport's short backoff until its attempts (`LEDGER_MAX_ATTEMPTS`, 4) ran out.
+- **The client now.** It gives the error its own kind, `in-flight`. It stops re-sending at the first in-flight answer and waits for the pending submission's completion from a ledger end pinned before the first resend. That wait is bounded by the caller's deadline or `LEDGER_INFLIGHT_WAIT_MS`. It then returns that submission's transaction or throws its own rejection. If neither arrives in time, it reports `outcome unknown` with the commandId.
+- **Attempts 1 and 2 under C3f.** They would have waited at the first in-flight answer. Once the first submission completed, they would have stopped with its own rejection (the log shows `MEDIATOR_SAYS_TX_TIMED_OUT`), not the in-flight error. Had it outlasted the 3-minute wait, they would have stopped with `outcome unknown`.
+- **The bootstrap.** It prints its run id and takes `--run <id>`, so a re-run keeps the same command ids.
+- **Coverage.** Unit tests against a fake JSON API (`packages/ledger/src/inflight.test.ts`); not re-rehearsed on a sandbox.
+
 <details><summary>check only: 25 rows</summary>
 
 | UTC | Stage | Scenario | Parity rows | Commit | Ledger evidence (update id / trace id / artifact) | Result |

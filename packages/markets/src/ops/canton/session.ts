@@ -14,6 +14,7 @@ import {
   type DisclosedContract,
   type JsTransaction,
   type LedgerClient,
+  type Offset,
   type Party,
   type TransactionFormat,
 } from "@agari/ledger";
@@ -36,6 +37,10 @@ export interface SubmitInput {
   blobsFor?: readonly string[];
   /** A second controller for a two-controller choice (`Leg_CloseOut`: venue and owner). */
   alsoActAs?: readonly Party[];
+  /** The ledger end read before this action's first submission: the in-flight wait's completion floor (`@agari/ledger`). */
+  beginOffset?: Offset;
+  /** The action's overall deadline, epoch ms: bounds a wait on a pending earlier submission of the same command id. */
+  deadlineMs?: number;
 }
 
 export type SubmitOutcome =
@@ -107,6 +112,8 @@ export async function submit(s: RoleSession, input: SubmitInput): Promise<Submit
     commands: input.commands,
     ...(input.disclosedContracts ? { disclosedContracts: input.disclosedContracts } : {}),
     ...(transactionFormat ? { transactionFormat } : {}),
+    ...(input.beginOffset === undefined ? {} : { beginOffset: input.beginOffset }),
+    ...(input.deadlineMs === undefined ? {} : { deadlineMs: input.deadlineMs }),
   });
   return { kind: "done", transaction: r.transaction, recovered: r.recovered, created: createdEvents(r.transaction), ms: Date.now() - started };
 }
@@ -167,8 +174,12 @@ export function inactiveCids(error: unknown, candidates: readonly ContractId[]):
   return candidates.filter((c) => hay.includes(c));
 }
 
-/** An indefinite failure: the command may or may not have landed; resubmit only under the same command id. */
-export const isIndefinite = (error: unknown): boolean => error instanceof LedgerError && (error.kind === "timeout" || error.kind === "unavailable" || error.kind === "network");
+/**
+ * An indefinite failure: the command may or may not have landed; resubmit only under the same command id. `in-flight`
+ * reaches here only when a caller turned the client's in-flight wait off; an exhausted wait is a `timeout`.
+ */
+export const isIndefinite = (error: unknown): boolean =>
+  error instanceof LedgerError && (error.kind === "timeout" || error.kind === "unavailable" || error.kind === "network" || error.kind === "in-flight");
 
 /** A short loggable form of a ledger failure. */
 export function failureText(error: unknown): string {

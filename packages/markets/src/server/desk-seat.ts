@@ -28,7 +28,7 @@ import { seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
 import { exactCash } from "./exact-cash";
-import { DEFAULT_COMMAND_DEADLINE_MS, type CommandJournal, type CommandRow } from "./writes";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, type CommandJournal, type CommandRow } from "./writes";
 
 export interface DeskSeatConfig {
   client: LedgerClient;
@@ -167,9 +167,9 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
         p = await plan(snap);
       }
       ctx = p.ctx ?? ctx;
-      await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "agent", beginOffset: snap.offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "agent", beginOffset: snap.offset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
       try {
-        const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands: p.commands });
+        const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands: p.commands, ...inFlightBounds(row) });
         await journal.finish(commandId, { state: "landed", updateId: r.transaction.updateId });
         return { kind: "confirmed", updateId: r.transaction.updateId, offset: Number(r.transaction.offset), recovered: r.recovered };
       } catch (error) {

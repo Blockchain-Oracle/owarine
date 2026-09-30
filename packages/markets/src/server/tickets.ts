@@ -24,7 +24,7 @@ import { isEarnReserve, type EarnReserveId } from "../tickets/params";
 import type { TicketProduct, TicketsMine, TicketWriteReply } from "../provider/ticket-wire";
 import { appMarketId, seatCommandId, type SeatIntent } from "./ids";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
-import { DEFAULT_COMMAND_DEADLINE_MS, selectCash, type CommandJournal, type CommandRow } from "./writes";
+import { DEFAULT_COMMAND_DEADLINE_MS, inFlightBounds, selectCash, type CommandJournal, type CommandRow } from "./writes";
 
 export interface TicketSeatConfig {
   client: LedgerClient;
@@ -201,7 +201,7 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
       const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: intent, beginOffset: snap.offset, deadlineMs: p.deadlineMs }, now());
       const send = async (commands: Command[]) => {
         try {
-          const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands, ...(p.disclosed?.length ? { disclosedContracts: p.disclosed } : {}) });
+          const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId, commands, ...inFlightBounds(row), ...(p.disclosed?.length ? { disclosedContracts: p.disclosed } : {}) });
           return { ok: true as const, tx: r.transaction, recovered: r.recovered };
         } catch (error) {
           return { ok: false as const, error, diagnosis: classifyRejection(error, p.ctx) };

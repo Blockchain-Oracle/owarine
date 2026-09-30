@@ -15,6 +15,8 @@ const common = {
   LEDGER_REQUEST_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
   LEDGER_SUBMIT_TIMEOUT_MS: z.coerce.number().int().positive().default(60_000),
   LEDGER_MAX_ATTEMPTS: z.coerce.number().int().min(1).max(10).default(4),
+  /** How long a submit waits on a pending earlier submission (SUBMISSION_ALREADY_IN_FLIGHT) before "outcome unknown". */
+  LEDGER_INFLIGHT_WAIT_MS: z.coerce.number().int().positive().default(180_000),
 };
 
 const noneSchema = z.object({
