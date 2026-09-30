@@ -1,0 +1,27 @@
+{
+  "_how": "Copy to ~/.config/agari/canton/parties.devnet.json (never into the repo). Paste each full party id from Console -> Parties (e.g. pm-venue::1220...). Leave a seat empty if the quota ran out. Ids only: no token, no password.",
+  "network": "devnet",
+  "parties": {
+    "venue": "",
+    "resolver": "",
+    "oracle-coinbase": "",
+    "oracle-kraken": "",
+    "oracle-bitstamp": "",
+    "auditor": "",
+    "lp": "",
+    "agent-runner": ""
+  },
+  "users": {
+    "alice": "",
+    "bob": "",
+    "outsider": "",
+    "seat-1": "",
+    "seat-2": "",
+    "seat-3": "",
+    "seat-4": "",
+    "seat-5": "",
+    "seat-6": "",
+    "seat-7": "",
+    "seat-8": ""
+  }
+}
