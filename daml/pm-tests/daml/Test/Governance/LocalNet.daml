@@ -1,0 +1,194 @@
+-- | The LocalNet driver for the BitSafe demo (docs/business/bitsafe.md,
+-- "Run plan"). On a three-node LocalNet the committee confirms and
+-- executes through the Decentralization Manager's REST API; these scripts
+-- do the venue's and the oracles' part against participant 1's Ledger API,
+-- one step per `dpm script` run, each taking the ids the previous step
+-- wrote (`--input-file` / `--output-file`). The governed party is never a
+-- submitter here: on LocalNet it is a Decentralized Party with
+-- confirmation threshold 2 and could not be.
+--
+-- Wall-clock timing: the Window lists at "now", trades for 570 s and
+-- expires at 600 s; the open print is admitted for 30 minutes after the
+-- start and the close for 30 minutes after expiry, so a vote typed by
+-- hand fits inside both.
+--
+-- `testLocalNetDriver` runs the same steps on the IDE ledger with each
+-- REST vote replaced by `pass` (two members confirm, a third executes).
+module Test.Governance.LocalNet where
+
+import Daml.Script
+import DA.Assert ((===))
+import qualified DA.Set as Set
+import DA.Time (hours)
+import Governance.Rules (GovernanceRules(..))
+import Governance.Action
+import PM.Governance.Policy
+import PM.Governance.Resolve
+import PM.Governance.Rules
+import PM.Market
+import PM.Oracle
+import PM.Series
+import PM.Types
+import Test.Governance.Fixture
+import Test.Setup (plus, at)
+
+data Parties = Parties
+  with
+    venue : Party
+    gov : Party
+      -- ^ the Decentralized Party (abu-pm-resolver::1220…)
+    o1 : Party
+    o2 : Party
+    o3 : Party
+  deriving (Eq, Show)
+
+-- | Step 0. Allocate the venue and three oracles on participant 1 (all
+-- Abu's, and said so in the demo) and pair them with the Decentralized
+-- Party the onboarding workflow created. Input: that party's id.
+allocateLocal : Party -> Script Parties
+allocateLocal gov = do
+  venue <- allocateParty "abu-pm-venue"
+  o1 <- allocateParty "abu-pm-oracle1"
+  o2 <- allocateParty "abu-pm-oracle2"
+  o3 <- allocateParty "abu-pm-oracle3"
+  pure Parties with ..
+
+demoKey : Text
+demoKey = "DEMO-600"
+
+demoRules : Parties -> RuleSet
+demoRules p = RuleSet with
+  printSource = "demo:three-local-oracles"; minDelaySec = 5; barLenSec = 60
+  openAdmissionSec = 1800; closeAdmissionSec = 1800
+  oracles = [p.o1, p.o2, p.o3]; quorum = 2; maxDeviationBps = 50
+
+demoPrice : Int
+demoPrice = 6500000000000
+
+-- | Step 1. The venue (an additional proposer) proposes the Series' rules.
+-- Output: the proposal id, for `POST /governance/confirm` and `/execute`.
+proposeRules : Parties -> Script (ContractId GovernableAction)
+proposeRules p = do
+  now <- getTime
+  cid <- submit p.venue do
+    createCmd PolicyProposal with
+      governanceParty = p.gov; proposer = p.venue; venue = p.venue
+      change = ApproveRules with seriesKey = demoKey; rules = demoRules p
+      rationale = "DEMO-600: three oracles, quorum 2"; expiresAt = plus now 3600
+  pure (toInterfaceContractId cid)
+
+data Listed = Listed
+  with
+    parties : Parties
+    rules : ContractId ApprovedRules
+    series : ContractId Series
+    terms : ContractId MarketTerms
+    state : ContractId WindowState
+    marketId : Text
+    tradingStart : Time
+    expiry : Time
+  deriving (Eq, Show)
+
+-- | Step 2, after the rules vote executed. Lists the Series (resolver =
+-- the Decentralized Party) under exactly the approved rules and opens
+-- Window 0 at now.
+listMarket : Parties -> Script Listed
+listMarket p = do
+  approved <- query @ApprovedRules p.venue
+  rules <- case [c | (c, a) <- approved, a.seriesKey == demoKey, a.rules == demoRules p] of
+    c :: _ -> pure c
+    [] -> abort "no approved DEMO-600 rules: run the rules vote first"
+  now <- getTime
+  let r = demoRules p
+      pv = PolicyVersion with
+        version = 1; effectiveFrom = now; validUntil = None; printSource = r.printSource
+        minDelaySec = r.minDelaySec; barLenSec = r.barLenSec
+        openAdmissionSec = r.openAdmissionSec; closeAdmissionSec = r.closeAdmissionSec
+  s0 <- submit p.venue do
+    createCmd Series with
+      venue = p.venue; resolver = p.gov; auditor = p.venue; seriesKey = demoKey; symbol = "BTC"
+      anchor = now; cadenceSec = 600; lockLeadSec = 30; settleGraceSec = 3600; cashUnit = 1
+      nextIndex = 0; oracles = r.oracles; quorum = r.quorum; maxDeviationBps = r.maxDeviationBps
+      policyVersions = [pv]; lastExpiry = None
+  (series, terms, state) <- submit p.venue do exerciseCmd s0 Series_OpenWindow with index = 0
+  Some t <- queryContractId p.venue terms
+  pure Listed with
+    parties = p; rules; series; terms; state; marketId = t.marketId
+    tradingStart = t.tradingStart; expiry = t.expiry
+
+-- | The three oracles post a print for `boundary` (fetched 10 s after it).
+postPrints : Parties -> Time -> Int -> Script [ContractId PriceQuote]
+postPrints p boundary price = forA [p.o1, p.o2, p.o3] \o -> submit o do
+  createCmd PriceQuote with
+    oracle = o; venue = p.venue; resolver = p.gov; symbol = "BTC"; boundaryT = boundary
+    priceE8 = price; barStart = plus boundary (-60); barLenSec = 60
+    fetchedAt = plus boundary 10; payloadHash = "sha256:localnet-demo"; policyVersion = 1
+
+-- | Step 3, from tradingStart + 5 s: the open prints and the venue's
+-- proposal to record them.
+proposeOpen : Listed -> Script (ContractId GovernableAction)
+proposeOpen l = do
+  let p = l.parties
+  qs <- postPrints p l.tradingStart demoPrice
+  now <- getTime
+  cid <- submit p.venue do
+    createCmd ResolveMarketProposal with
+      governanceParty = p.gov; proposer = p.venue; venue = p.venue; marketId = l.marketId
+      action = RecordOpen with termsCid = l.terms; stateCid = l.state; quoteCids = qs; rulesCid = l.rules
+      rationale = "three agreeing open prints"; expiresAt = plus now 3600
+  pure (toInterfaceContractId cid)
+
+-- | Step 4, from expiry + 5 s, after the open vote executed: close prints
+-- 5e-8 above the open and the venue's proposal that the market resolves UP.
+proposeClose : Listed -> Script (ContractId GovernableAction)
+proposeClose l = do
+  let p = l.parties
+  ops <- query @OpenPrint p.venue
+  openCid <- case [c | (c, o) <- ops, o.termsCid == l.terms] of
+    c :: _ -> pure c
+    [] -> abort "no open print: run the open vote first"
+  qs <- postPrints p l.expiry (demoPrice + 5)
+  now <- getTime
+  cid <- submit p.venue do
+    createCmd ResolveMarketProposal with
+      governanceParty = p.gov; proposer = p.venue; venue = p.venue; marketId = l.marketId
+      action = ResolvePrice with
+        termsCid = l.terms; openCid; quoteCids = qs; rulesCid = l.rules; expected = Some SideUp
+      rationale = "close above open: UP"; expiresAt = plus now 3600
+  pure (toInterfaceContractId cid)
+
+-- | Step 5: what the ledger now says about the market, as the venue sees it.
+outcomeOf : Listed -> Script (Optional (Optional Side))
+outcomeOf l = do
+  rs <- query @Resolution l.parties.venue
+  pure (case [r.outcome | (_, r) <- rs, r.termsCid == l.terms] of
+    o :: _ -> Some o
+    [] -> None)
+
+-- The driver on the IDE ledger, each REST vote replaced by `pass`.
+testLocalNetDriver = script do
+  g0 <- mkGov
+  p <- allocateLocal g0.gov
+  -- on the night the venue becomes an additional proposer by a core_self
+  -- vote; here the committee's rules are simply created with it
+  rules <- submit g0.gov do
+    createCmd GovernanceRules with
+      governanceParty = g0.gov; members = Set.fromList [g0.m1, g0.m2, g0.m3]; threshold = 2
+      actionConfirmationTimeout = hours 1; additionalProposers = Some (Set.singleton p.venue)
+  let g = g0 with rules
+  rulesVote <- proposeRules p
+  _ <- pass g rulesVote
+  l <- listMarket p
+  at (plus l.tradingStart 5)
+  openVote <- proposeOpen l
+  _ <- pass g openVote
+  at (plus l.expiry 5)
+  closeVote <- proposeClose l
+  outcomeOf l >>= (=== None)
+  _ <- pass g closeVote
+  outcomeOf l >>= (=== Some (Some SideUp))
+  -- the admission windows leave half an hour for each vote
+  Some t <- queryContractId p.venue l.terms
+  t.openDeadline === plus l.tradingStart 1800
+  t.closeDeadline === plus l.expiry 1800
+  t.resolver === g.gov
