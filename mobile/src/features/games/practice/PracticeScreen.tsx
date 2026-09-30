@@ -12,8 +12,9 @@ import { PracticeResult } from "./PracticeResult";
 import { PracticeWatch } from "./PracticeWatch";
 import { usePracticeFace } from "./usePracticeFace";
 import { usePracticeRound } from "./usePracticeRound";
+import { appKey } from "~/lib/keys";
 
-const TUTORIAL_KEY = "agari.games.practiceSeen";
+const TUTORIAL_KEY = appKey("games.practiceSeen");
 
 /**
  * web's `PracticeStage` (`/games/practice`): the duel's motion with nothing at risk. A stage, not a marketing page —

@@ -1,5 +1,6 @@
 import { DeviceEventEmitter } from "react-native";
 import { CREDITED_EVENT, OPEN_FUNDS_EVENT } from "@/features/funding/copy";
+import { appKey } from "~/lib/keys";
 
 /** Stands in for web/src/features/funding/credited.ts: the same announcements over the app's event emitter. */
 export interface CreditedDetail {
@@ -8,7 +9,7 @@ export interface CreditedDetail {
   firstTime: boolean;
 }
 
-const WELCOMED_KEY = (address: string) => `agari.welcomed.${address}`;
+const WELCOMED_KEY = (address: string) => appKey(`welcomed.${address}`);
 
 export function announceCredit(address: string, amountText: string, symbol: string): void {
   const firstTime = !localStorage.getItem(WELCOMED_KEY(address));

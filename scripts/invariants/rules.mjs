@@ -22,6 +22,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { idlNoDestination, kitImportBoundary, noEvm, programIdDrift } from "./lib/chain-rules.mjs";
 import { capabilitiesEvidence } from "./lib/capabilities-evidence.mjs";
+import { mobileIdentity } from "./lib/mobile-identity.mjs";
 import { mobileShimPaths } from "./lib/mobile-shim-paths.mjs";
 import { noLedgerInClient } from "./lib/no-ledger-in-client.mjs";
 import { noSolana } from "./lib/no-solana.mjs";
@@ -128,6 +129,7 @@ export const rules = [
     exclude: ["mobile/src/theme", "mobile/src/components/ui/SvgStop.tsx"],
     pattern: /(#[0-9a-fA-F]{3,8}\b|\brgba?\()/,
   },
+  { id: "mobile-identity", description: "the app never carries the reference app's EAS project, update URL or App Store Connect id, and every identifier comes from mobile/app.identity.json (K-126)", check: mobileIdentity },
   { id: "mobile-shim-paths", description: "every path in the app's Metro shim map (mobile/web-shims.map.cjs) exists: a moved web file would silently bundle the browser version (iOS step 9b)", check: mobileShimPaths },
   { id: "mobile-tight-leading", description: "no app text with a lineHeight under its fontSize — iOS clips the glyph tops; use lineHeight = fontSize and a negative margin (S26)", check: mobileTightLeading },
   {

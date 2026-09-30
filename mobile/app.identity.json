@@ -1,0 +1,12 @@
+{
+  "displayName": "Agari Canton",
+  "slug": "agari-canton",
+  "bundleId": "xyz.useagari.canton",
+  "androidPackage": "xyz.useagari.canton",
+  "scheme": "agaricanton",
+  "appGroup": "group.xyz.useagari.canton",
+  "widgetExtensionId": "xyz.useagari.canton.ExpoWidgetsTarget",
+  "storagePrefix": "canton.",
+  "mmkvId": "canton",
+  "easProjectId": null
+}

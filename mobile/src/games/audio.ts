@@ -2,6 +2,7 @@ import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-aud
 import { useSyncExternalStore } from "react";
 import { AppState } from "react-native";
 import type { SfxName } from "@/features/games/audio";
+import { appKey } from "~/lib/keys";
 
 /**
  * Game audio on the phone: web's `features/games/audio.ts` grammar with native players.
@@ -30,8 +31,8 @@ const SOURCES: Readonly<Record<SfxName, number>> = {
 const BED_SOURCE = require("../../assets/sounds/bed.wav");
 
 /** web's keys and tuned levels: the sliders multiply these, so "100 %" is the designed balance, not full amplitude. */
-const SFX_VOLUME_KEY = "agari.games.sfxVolume";
-const BGM_VOLUME_KEY = "agari.games.bgmVolume";
+const SFX_VOLUME_KEY = appKey("games.sfxVolume");
+const BGM_VOLUME_KEY = appKey("games.bgmVolume");
 const SFX_VOLUME_BASE = 0.6;
 const BGM_VOLUME_BASE = 0.3;
 const POOL = 2;

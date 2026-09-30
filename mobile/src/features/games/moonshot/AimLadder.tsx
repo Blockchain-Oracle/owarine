@@ -9,9 +9,10 @@ import { useGames } from "~/features/games/shell";
 import { FONT } from "~/theme";
 import { IconBtn } from "../range/BandControl";
 import { useRangeTokens } from "../range/PageParts";
+import { appKey } from "~/lib/keys";
 
 /** web's `useRememberedCall` (AimControl.tsx): the aim under Pips' key, LONG ×5 by default. */
-const AIM_KEY = "agari.games.moonshot.aim";
+const AIM_KEY = appKey("games.moonshot.aim");
 const DEFAULT_AIM: MoonshotAim = 5;
 const LAST = MOONSHOT_AIM_LADDER.length - 1;
 /** Deepest LONG at the ceiling, deepest SHORT at the floor — the knob's own order, read top down. */
