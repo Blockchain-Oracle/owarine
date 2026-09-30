@@ -37,6 +37,8 @@ export interface SubmitInput {
   blobsFor?: readonly string[];
   /** A second controller for a two-controller choice (`Leg_CloseOut`: venue and owner). */
   alsoActAs?: readonly Party[];
+  /** Parties whose contracts the command may read without acting as them (C7b: a withdrawal checks the owner holds the coin it was sent). */
+  readAs?: readonly Party[];
   /** The ledger end read before this action's first submission: the in-flight wait's completion floor (`@agari/ledger`). */
   beginOffset?: Offset;
   /** The action's overall deadline, epoch ms: bounds a wait on a pending earlier submission of the same command id. */
@@ -83,6 +85,7 @@ export async function submit(s: RoleSession, input: SubmitInput): Promise<Submit
       synchronizerId: await synchronizerOf(s.client),
       packageIdSelectionPreference: [],
       actAs: [s.party, ...(input.alsoActAs ?? [])],
+      ...(input.readAs ? { readAs: [...input.readAs] } : {}),
       ...(input.disclosedContracts ? { disclosedContracts: input.disclosedContracts } : {}),
     });
     const extra = input.commands.length > 1 ? ` (first of ${input.commands.length} commands)` : "";
@@ -108,6 +111,7 @@ export async function submit(s: RoleSession, input: SubmitInput): Promise<Submit
       : undefined;
   const r = await s.client.submitAndWaitForTransaction({
     actAs: [s.party, ...(input.alsoActAs ?? [])],
+    ...(input.readAs ? { readAs: [...input.readAs] } : {}),
     commandId: input.commandId,
     commands: input.commands,
     ...(input.disclosedContracts ? { disclosedContracts: input.disclosedContracts } : {}),

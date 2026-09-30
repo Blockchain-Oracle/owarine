@@ -100,6 +100,15 @@ export interface CreatedEvent {
   createdAt: string;
   representativePackageId?: string;
   acsDelta?: boolean;
+  /** Present when the read used an `InterfaceFilter` with the view included (C7b, CIP-56 `Holding`). */
+  interfaceViews?: InterfaceView[];
+}
+
+/** One interface's view of a created contract: `viewValue` is the view record when `viewStatus.code` is 0 (or absent). */
+export interface InterfaceView {
+  interfaceId: string;
+  viewStatus?: { code?: number; message?: string };
+  viewValue?: DamlValue;
 }
 
 export interface ArchivedEvent {

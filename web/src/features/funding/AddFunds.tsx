@@ -10,6 +10,7 @@ import { RegionNote } from "@/features/region/RegionNote";
 import { blockerLabel, diagnosisCopy } from "@/lib/copy";
 import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
+import { CcRailPanel } from "./CcRailPanel";
 import { FUNDING } from "./copy";
 import "./funding.css";
 import { useSeatCredit } from "./useSeatCredit";
@@ -123,6 +124,7 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
               {funded ? F.funded : credit.status === "unleased" ? F.unleased : F.unfunded}
             </p>
             {credit.refusal && <p className="fund-msg fund-msg--err">{diagnosisCopy(credit.refusal.kind).headline}</p>}
+            <CcRailPanel />
           </>
         )}
       </div>

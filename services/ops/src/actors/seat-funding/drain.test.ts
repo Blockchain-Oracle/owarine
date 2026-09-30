@@ -20,7 +20,9 @@ interface Fake {
 
 function fakeVenue(fake: Fake): RoleSession {
   const client = {
-    async activeContracts(o: { parties: string[]; templateIds: string[] }) {
+    async activeContracts(o: { parties: string[]; templateIds?: string[]; interfaceIds?: string[] }) {
+      // An interface read (C7b: a pending token-standard transfer the seat instructed) finds nothing in this fake.
+      if (!o.templateIds) return { contracts: [] as ActiveContract[], activeAtOffset: 1 };
       const want = new Set(o.templateIds.map(suffix));
       const contracts: ActiveContract[] = fake.contracts
         .filter((c) => want.has(suffix(c.templateId)) && c.stakeholders.some((p) => o.parties.includes(p)))

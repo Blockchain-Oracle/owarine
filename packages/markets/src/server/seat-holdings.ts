@@ -11,14 +11,21 @@
  *   - agents     an `AgentGrant` it gave, a `Subscription` it holds or a `DeskMandate` it owns (ops' drain ends them),
  *   - creator    (C8i) an active `Strategy` it published or a `CreatorPayout` made to it (ops' drain deactivates the one
  *                and claims the other into the seat's cash), so the next visitor inherits neither.
+ *   - coin       (C7b) a `CcAllowance` (Canton Coin the venue owes it back), a `CcWithdrawProposal` the venue has not
+ *                answered, or a `CcWithdrawal` still in flight (a transfer waiting for the seat to accept it). The
+ *                venue's coin claim is that visitor's; a recycled seat must not hand it to the next one. Nothing
+ *                sweeps it: the seat waits until the owner takes the coin back or the venue closes the claim.
+ *                Raw token-standard coin a stranger sends to the seat's party is NOT counted (it would let anyone
+ *                pin the seat pool); real value never rides on a pooled seat, see docs/evidence/c7b-canton-coin.md.
  *
  * Its `VenueCash` is not a blocker: the recycler withdraws it as the seat's own choice before the seat is freed.
  */
-import { AGENT_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
+import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
 import { templateSuffix } from "../ops/canton/decode";
+import { decodeTransferInstructionView, interfaceViewOf } from "../ops/cc/decode";
 
-export type HoldingKind = "legs" | "quotes" | "tickets" | "shares" | "duels" | "agents" | "creator";
+export type HoldingKind = "legs" | "quotes" | "tickets" | "shares" | "duels" | "agents" | "creator" | "coin";
 
 export interface SeatHoldings {
   party: Party;
@@ -55,6 +62,10 @@ const RULES = new Map<string, Rule>([
   // A deactivated Strategy stays on the ledger (nothing archives it) but can no longer trade, change or take subscribers.
   [templateSuffix(AGENT_TEMPLATE_IDS.Strategy), { kind: "creator", field: "creator", when: (a) => a.active !== false }],
   [templateSuffix(AGENT_TEMPLATE_IDS.CreatorPayout), { kind: "creator", field: "creator" }],
+  // C7b: the Canton Coin rail's records (a settled receipt is history, not a claim, and does not hold a seat).
+  [templateSuffix(CC_TEMPLATE_IDS.CcAllowance), { kind: "coin", field: "owner" }],
+  [templateSuffix(CC_TEMPLATE_IDS.CcWithdrawProposal), { kind: "coin", field: "owner" }],
+  [templateSuffix(CC_TEMPLATE_IDS.CcWithdrawal), { kind: "coin", field: "owner", when: (a) => a.state === "WdSent" }],
 ]);
 
 /** One query per package, so a package this participant never vetted reads as holding nothing of it. */
@@ -63,16 +74,18 @@ export const SEAT_HOLDING_QUERIES: ReadonlyArray<readonly string[]> = [
   [TICKET_TEMPLATE_IDS.RangeQuote, TICKET_TEMPLATE_IDS.RangeRound, TICKET_TEMPLATE_IDS.ParlayQuote, TICKET_TEMPLATE_IDS.ParlayTicket, TICKET_TEMPLATE_IDS.BoostQuote, TICKET_TEMPLATE_IDS.BoostPosition, TICKET_TEMPLATE_IDS.BoostExitQuote],
   [GAMES_TEMPLATE_IDS.DuelOpen, GAMES_TEMPLATE_IDS.DuelMatch],
   [AGENT_TEMPLATE_IDS.Subscription, AGENT_TEMPLATE_IDS.DeskMandate, AGENT_TEMPLATE_IDS.Strategy, AGENT_TEMPLATE_IDS.CreatorPayout],
+  [CC_TEMPLATE_IDS.CcAllowance, CC_TEMPLATE_IDS.CcWithdrawProposal, CC_TEMPLATE_IDS.CcWithdrawal],
 ];
 
 const CASH = templateSuffix(TEMPLATE_IDS.VenueCash);
 const LP = templateSuffix(TEMPLATE_IDS.LpShare);
 
-const emptyCounts = (): Record<HoldingKind, number> => ({ legs: 0, quotes: 0, tickets: 0, shares: 0, duels: 0, agents: 0, creator: 0 });
+const emptyCounts = (): Record<HoldingKind, number> => ({ legs: 0, quotes: 0, tickets: 0, shares: 0, duels: 0, agents: 0, creator: 0, coin: 0 });
 
 /** Pure over the seat's active contracts: what it holds at `nowMs`. Contracts naming another party are ignored. */
-export function holdingsOf(party: Party, events: readonly CreatedEvent[], nowMs: number): SeatHoldings {
+export function holdingsOf(party: Party, events: readonly CreatedEvent[], nowMs: number, pendingTransfers = 0): SeatHoldings {
   const out: SeatHoldings = { party, counts: emptyCounts(), cash: [], lpShares: [] };
+  out.counts.coin += pendingTransfers;
   for (const e of events) {
     const suffix = templateSuffix(e.templateId);
     const arg = (e.createArgument ?? {}) as Record<string, unknown>;
@@ -103,7 +116,7 @@ export const isSeatEmpty = (h: SeatHoldings): boolean => holdingsTotal(h) === 0;
 export function holdingsText(h: SeatHoldings): string {
   const names: Record<HoldingKind, [string, string]> = {
     legs: ["leg", "legs"], quotes: ["live quote", "live quotes"], tickets: ["ticket", "tickets"], shares: ["Earn share", "Earn shares"], duels: ["duel", "duels"], agents: ["agent grant", "agent grants"],
-    creator: ["live strategy or fee payout", "live strategies or fee payouts"],
+    creator: ["live strategy or fee payout", "live strategies or fee payouts"], coin: ["Canton Coin claim", "Canton Coin claims"],
   };
   const parts = (Object.keys(names) as HoldingKind[]).filter((k) => h.counts[k] > 0).map((k) => `${h.counts[k]} ${names[k][h.counts[k] === 1 ? 0 : 1]}`);
   return parts.length ? parts.join(", ") : "nothing";
@@ -127,5 +140,22 @@ export async function readSeatHoldings(client: LedgerClient, party: Party, nowMs
       if (!isUnknownPackage(error)) throw error;
     }
   }
-  return holdingsOf(party, events, nowMs);
+  // C7b: a token-standard transfer this party instructed and nobody has accepted yet is coin in flight (a pending deposit).
+  let pending = 0;
+  try {
+    const r = await client.activeContracts({ parties: [party], interfaceIds: [CIP56_INTERFACE_IDS.TransferInstruction] });
+    for (const c of r.contracts) {
+      const raw = interfaceViewOf(c.createdEvent, CIP56_INTERFACE_IDS.TransferInstruction);
+      if (!raw) continue;
+      try {
+        if (decodeTransferInstructionView(raw).sender === party) pending += 1;
+      } catch {
+        // A view this build cannot read: holding the seat a little longer is the safe mistake.
+        pending += 1;
+      }
+    }
+  } catch (error) {
+    if (!isUnknownPackage(error)) throw error;
+  }
+  return holdingsOf(party, events, nowMs, pending);
 }

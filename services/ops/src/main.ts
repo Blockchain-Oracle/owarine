@@ -11,6 +11,7 @@
 import { loadedEnvFiles } from "./runtime/load-env";
 import "./actors/venue/quiet-codegen";
 import { attachDuelRoom, createDuelProjection } from "./actors/duel-projector";
+import { startCcRail } from "./actors/cc-rail";
 import { startDeskRunner } from "./actors/desk-runner";
 import { startPushClock } from "./actors/push-clock";
 import { startGameRoom } from "./actors/game-room";
@@ -48,8 +49,9 @@ const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
  * the duel projection inside "projector". The room idles, saying why, without `ROOM_TOKEN_SECRET`. */
 const VENUE_ACTORS = ["relay", "venue", "projector", "http", "halts", "earnings", "push-clock", "game-room"] as const;
 const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper"] as const;
-/** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126). */
-const OPT_IN_ACTORS = ["desk-runner"] as const;
+/** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126);
+ * the Canton Coin rail (C7b) moves real value through the token standard and stays off until DevNet proves it (`not-live`). */
+const OPT_IN_ACTORS = ["desk-runner", "cc-rail"] as const;
 
 function whyString(actor: string, why: string): string {
   return JSON.stringify({ tsMs: Date.now(), actor, why: redact(why) });
@@ -189,6 +191,8 @@ const issuerRoutes = (() => {
   const exitQuotes = r?.["/internal/exit-quotes"];
   return quotes && exitQuotes ? { quotes, exitQuotes } : null;
 })();
+// C7b: the Canton Coin rail settles deposits and answers withdrawals through the CIP-56 token standard, as the venue only.
+if (actors.has("cc-rail")) void boot("cc-rail", async () => startCcRail({ venue: venueCtx, log: log("cc-rail") }));
 if (actors.has("strategy-runner")) void startStrategyRunner(log("strategy-runner"), { venue: venueCtx, routes: issuerRoutes });
 if (actors.has("x-relay")) void startXRelay(log("x-relay"), { venue: venueCtx, routes: issuerRoutes });
 if (actors.has("leverage-keeper")) void startLeverageKeeper(log("leverage-keeper"));

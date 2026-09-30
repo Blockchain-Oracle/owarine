@@ -1,0 +1,212 @@
+-- | Canton Coin money gate, deposit half (C7b): a deposit credits exactly what the
+-- registry says the venue received, rounding never favours the venue, a dust or
+-- out-of-bounds amount is refused, a settled instruction cannot settle twice, and
+-- the wrong instrument, account or listing credits nothing.
+module Test.CC.Deposit where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.CC.Listing
+import PM.CC.Records
+import PM.CC.Units
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+import Splice.Testing.Tokens.TestTokenV1
+import Test.CC.Fixture
+import Test.CC.Registries
+import Test.Setup
+
+-- Pure: the one Decimal <-> Int conversion. Exact both ways over the whole range
+-- of a Decimal's places, dust is not a whole number of units, and the floor
+-- (assets side) never overstates.
+testUnitsArithmetic = script do
+  toAtomic 1.0 === Some atomicPerCoin
+  toAtomic 0.0000000001 === Some 1
+  toAtomic 12.5 === Some 125000000000
+  toAtomic 9999999.9999999999 === Some (maxAtomic - 1)
+  toAtomic 10000000.0 === Some maxAtomic
+  toAtomic 10000000.0000000001 === None
+  toAtomic 0.0 === None
+  toAtomic (-1.0) === None
+  forA_ [1, 7, 99999, 100000, 123456789, 99999999999, maxAtomic] \a ->
+    toAtomic (fromAtomic a) === Some a
+  rateOk 100000 === True
+  rateOk 1000000 === True
+  rateOk 10000000000 === True
+  rateOk 3 === False
+  rateOk 0 === False
+  rateOk 20000000000 === False
+  -- rate 100000: one unit is 100000 atomic. Exact or nothing.
+  unitsExact 100000 1000000 === Some 10
+  unitsExact 100000 1000001 === None
+  unitsExact 100000 99999 === None
+  unitsExact 100000 0 === None
+  -- the assets side rounds down
+  unitsFloor 100000 1099999 === 10
+  unitsFloor 100000 99999 === 0
+  -- a maximal conversion fits
+  atomicOfUnits 100000 (maxUnitsFor 100000) === maxAtomic
+  cashUnitsOk 100000 (maxUnitsFor 100000 + 1) === False
+  cashUnitsOk 100000 0 === False
+
+-- A deposit of 12.5 coin credits exactly 1,250,000 units, in the stated bucket,
+-- raises the allowance by the same, and the venue holds the coin.
+testDepositCreditsExactly = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  instr <- depositInstruction c c.w.alice 12.5
+  -- pending: the coin is locked, nothing credited yet
+  cashOf c.w.alice >>= (=== 0)
+  coinOf c.w.venue >>= (=== 0)
+  (receipt, cash, allowance) <- submit c.w.venue do settleCmd c instr acct None
+  cashOf c.w.alice >>= (=== 1250000)
+  Some x <- queryContractId c.w.alice cash
+  x.bucket === "cc:cc-1"
+  Some r <- queryContractId c.w.alice receipt
+  r.units === 1250000
+  r.receivedAtomic === 125000000000
+  r.receivedAtomic === atomicOfUnits rate r.units
+  r.unitsPerCoin === rate
+  Some a <- queryContractId c.w.alice allowance
+  a.units === 1250000
+  coinOf c.w.venue >>= (=== 125000000000)
+  coinOf c.w.alice >>= (=== 0)
+
+-- A second deposit adds to the same allowance (one live allowance per owner).
+testSecondDepositRaisesAllowance = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 1.0
+  _ <- deposit c c.w.alice acct 2.5
+  cashOf c.w.alice >>= (=== 350000)
+  expectUnits c c.w.alice 350000
+  as <- query @CcAllowance c.w.venue
+  length as === 1
+  coinOf c.w.venue >>= (=== 350000 * 100000)
+
+-- Dust is refused, never rounded: 1.000001 coin is 10 units and a tenth. The
+-- instruction stays pending, nothing is credited, and the exact amount then works.
+testDustRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  dust <- depositInstruction c c.w.alice 1.000001
+  r <- trySubmit c.w.venue do settleCmd c dust acct None
+  refusedWith (refusal "dust") r
+  cashOf c.w.alice >>= (=== 0)
+  allowanceUnits c c.w.alice >>= (=== 0)
+  coinOf c.w.venue >>= (=== 0)
+  -- the same instruction is still there; the owner can take it back
+  Some ti <- queryInterfaceContractId @T.TransferInstruction c.w.alice dust
+  ti.transfer.amount === 1.000001
+  -- a fresh exact deposit works, down to a single unit above the minimum
+  _ <- deposit c c.w.alice acct 0.00100
+  cashOf c.w.alice >>= (=== 100)
+
+-- The bounds of a listing: below the minimum and above the maximum are refused.
+testBoundsRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  low <- depositInstruction c c.w.alice 0.00099
+  refusedWith (refusal "below-minimum") =<< trySubmit c.w.venue do settleCmd c low acct None
+  high <- depositInstruction c c.w.alice 1000001.0
+  refusedWith (refusal "above-maximum") =<< trySubmit c.w.venue do settleCmd c high acct None
+  cashOf c.w.alice >>= (=== 0)
+  -- the exact maximum and minimum are accepted
+  _ <- deposit c c.w.alice acct 0.001
+  _ <- deposit c c.w.alice acct 1000000.0
+  cashOf c.w.alice >>= (=== 100 + 100000000000)
+
+-- A settled instruction cannot settle again: its contract is gone, so a replay
+-- credits nothing, however the venue words the second call.
+testReplayRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  instr <- depositInstruction c c.w.alice 3.0
+  (_, _, a) <- submit c.w.venue do settleCmd c instr acct None
+  r <- trySubmit c.w.venue do settleCmd c instr acct (Some a)
+  fails r
+  cashOf c.w.alice >>= (=== 300000)
+  expectUnits c c.w.alice 300000
+  coinOf c.w.venue >>= (=== 300000 * 100000)
+
+-- The account must be the sender's: bob's account cannot be credited for alice's coin.
+testWrongAccountRefused = script do
+  c <- mkCC
+  _ <- openAccount c c.w.alice
+  bobAcct <- openAccount c c.w.bob
+  instr <- depositInstruction c c.w.alice 1.0
+  refusedWith (refusal "wrong-account") =<< trySubmit c.w.venue do settleCmd c instr bobAcct None
+  cashOf c.w.bob >>= (=== 0)
+  allowanceUnits c c.w.bob >>= (=== 0)
+
+-- Coin of another registry (another admin party) is not this listing's instrument.
+testWrongInstrumentRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  other <- allocateParty "otherRegistry"
+  otherRules <- submit other do createCmd TokenRules with admin = other
+  otherReg <- registryOf other otherRules
+  h <- submit (actAs [c.w.alice, other]) do
+    createCmd Token with
+      holding = holdingViewFor other c.w.alice 5.0
+  r <- sendVia c otherReg c.w.alice c.w.venue 5.0 [toInterfaceContractId h]
+  instr <- pendingOf r
+  refusedWith (refusal "wrong-instrument") =<< trySubmit c.w.venue do settleCmd c instr acct None
+  cashOf c.w.alice >>= (=== 0)
+
+-- A closed listing takes no new deposits; reopening it takes them again.
+testClosedListingRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  closed <- submit c.w.venue do exerciseCmd c.listing Listing_SetDeposits with open = False
+  instr <- depositInstruction c c.w.alice 1.0
+  let c' = c with listing = closed
+  refusedWith (refusal "listing-closed") =<< trySubmit c.w.venue do settleCmd c' instr acct None
+  reopened <- submit c.w.venue do exerciseCmd closed Listing_SetDeposits with open = True
+  _ <- submit c.w.venue do settleCmd (c with listing = reopened) instr acct None
+  cashOf c.w.alice >>= (=== 100000)
+
+-- A transfer to somebody else is not the venue's to settle: it cannot even see it.
+testTransferNotToVenue = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  h <- mint c c.w.alice 2.0
+  r <- sendCoin c c.w.alice c.w.bob 2.0 [h]
+  instr <- pendingOf r
+  fails =<< trySubmit c.w.venue do settleCmd c instr acct None
+  cashOf c.w.alice >>= (=== 0)
+
+-- A registry that does not complete the transfer credits nothing: the settle aborts
+-- as a whole and the instruction is untouched.
+testRegistryNotCompletingCreditsNothing = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  now <- getTime
+  stuck <- submit (actAs [c.w.alice, c.admin]) do
+    createCmd StuckOffer with
+      transfer = transferOf c.admin c.w.alice c.w.venue 4.0 now []
+  refusedWith (refusal "deposit-not-completed") =<< trySubmit c.w.venue do
+    settleCmd c (toInterfaceContractId stuck) acct None
+  cashOf c.w.alice >>= (=== 0)
+  allowanceUnits c c.w.alice >>= (=== 0)
+
+-- The overflow bounds: an amount above the rail's whole-coin bound is refused
+-- (Daml aborts on Int64 overflow, so the bound is checked before any product);
+-- a listing whose rate does not divide 10^10, or whose deposit maximum passes the
+-- conversion bound, or that lists its own admin, cannot be created.
+testOverflowBounds = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  huge <- depositInstruction c c.w.alice 10000001.0
+  refusedWith (refusal "bad-amount") =<< trySubmit c.w.venue do settleCmd c huge acct None
+  cashOf c.w.alice >>= (=== 0)
+  let l = listingFor c.w c.admin
+  fails =<< trySubmit c.w.venue do createCmd l with unitsPerCoin = 3
+  fails =<< trySubmit c.w.venue do createCmd l with unitsPerCoin = 20000000000
+  fails =<< trySubmit c.w.venue do createCmd l with maxDepositUnits = maxUnitsFor rate + 1
+  fails =<< trySubmit c.w.venue do createCmd l with minDepositUnits = 0
+  fails =<< trySubmit c.w.venue do createCmd l with minDepositUnits = 10; maxDepositUnits = 9
+  fails =<< trySubmit c.w.venue do createCmd l with instrumentAdmin = c.w.venue
+  -- the largest legal listing is fine
+  _ <- succeeded =<< trySubmit c.w.venue do createCmd l with maxDepositUnits = maxUnitsFor rate
+  pure ()

@@ -12,6 +12,7 @@ import { PM, packageId } from "@daml.js/abu-pm-main";
 import * as Tickets from "@daml.js/abu-pm-tickets";
 import * as Agents from "@daml.js/abu-pm-agents";
 import * as Games from "@daml.js/abu-pm-games";
+import * as Cc from "@daml.js/abu-pm-cc";
 
 export { PM, packageId };
 
@@ -141,3 +142,39 @@ export const GAMES_TEMPLATE_IDS = {
 } as const;
 
 export type GamesTemplateName = keyof typeof GAMES_TEMPLATE_IDS;
+
+/**
+ * The abu-pm-cc package (C7b): the Canton Coin rail on the CIP-56 token standard. A fifth namespace beside `PM`,
+ * `Tickets`, `Agents` and `Games`, since it declares modules under `PM.CC.*`.
+ *
+ *   import { Cc, CC_TEMPLATE_IDS } from "@agari/daml";
+ *   Cc.PM.CC.Listing.CcListing.templateId  // "#abu-pm-cc:PM.CC.Listing:CcListing"
+ */
+export { Cc };
+
+export const CC_PACKAGE_NAME = "abu-pm-cc";
+
+const K = Cc.PM.CC;
+
+/** Package-name template ids of abu-pm-cc. */
+export const CC_TEMPLATE_IDS = {
+  CcListing: K.Listing.CcListing.templateId,
+  CcAllowance: K.Records.CcAllowance.templateId,
+  CcDeposit: K.Records.CcDeposit.templateId,
+  CcWithdrawal: K.Records.CcWithdrawal.templateId,
+  CcReserveStatement: K.Records.CcReserveStatement.templateId,
+  CcWithdrawProposal: K.Withdraw.CcWithdrawProposal.templateId,
+} as const;
+
+export type CcTemplateName = keyof typeof CC_TEMPLATE_IDS;
+
+/**
+ * The CIP-56 (V1) interface ids the rail reads and exercises, package-name form, from the token standard's own DARs
+ * (`daml/vendor/splice`). A registry's templates implement them; the ledger answers an `InterfaceFilter` on
+ * `Holding` with every contract that does, whatever its template.
+ */
+export const CIP56_INTERFACE_IDS = {
+  Holding: "#splice-api-token-holding-v1:Splice.Api.Token.HoldingV1:Holding",
+  TransferFactory: "#splice-api-token-transfer-instruction-v1:Splice.Api.Token.TransferInstructionV1:TransferFactory",
+  TransferInstruction: "#splice-api-token-transfer-instruction-v1:Splice.Api.Token.TransferInstructionV1:TransferInstruction",
+} as const;

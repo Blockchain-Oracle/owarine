@@ -1,0 +1,17 @@
+sdk-version: 3.5.2
+name: abu-pm-cc
+source: daml
+version: 0.1.0
+dependencies:
+  - daml-prim
+  - daml-stdlib
+data-dependencies:
+  - ../abu-pm-main/.daml/dist/abu-pm-main-0.5.1.dar
+  # The Canton token standard (CIP-0056 V1) interfaces, the released 1.0.0 DARs
+  # byte for byte (daml/vendor/splice/README.md). Deposits and withdrawals use
+  # only Holding, TransferFactory and TransferInstruction.
+  - ../vendor/splice/splice-api-token-metadata-v1-1.0.0.dar
+  - ../vendor/splice/splice-api-token-holding-v1-1.0.0.dar
+  - ../vendor/splice/splice-api-token-transfer-instruction-v1-1.0.0.dar
+build-options:
+  - --ghc-option=-Wunused-imports

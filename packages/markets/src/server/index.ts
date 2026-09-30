@@ -24,3 +24,5 @@ export * from "./desk-seat";
 export * from "../provider/games-wire";
 export * from "./games";
 export * from "./seat-holdings";
+export * from "./cc";
+export * from "../provider/cc-wire";

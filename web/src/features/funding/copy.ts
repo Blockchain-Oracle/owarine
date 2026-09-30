@@ -42,6 +42,40 @@ export const FUNDING = {
     unleased: "This seat has no party right now, so there is nothing to credit. Lease one first.",
     trade: "Trade →",
   },
+  /**
+   * The Canton Coin path (C7b): real value in and out of the venue through the token standard. The words say what is true
+   * now: while the capability is not-live nothing here can be deposited or withdrawn, and the panel says why.
+   */
+  cc: {
+    eyebrow: "Canton Coin",
+    title: "Canton Coin",
+    notLive: "Not live",
+    ready: "Live",
+    notLiveHeadline: "Canton Coin deposits are not live on this network yet.",
+    notLiveBody:
+      "The venue is built to hold real Canton Coin against your credits: you send it through the Canton token standard, the venue credits your seat at a fixed, stated rate, and you can take back what you put in. That path has been proved in tests, not on a network with a real wallet, so it stays off until it has.",
+    waitingOn: (what: string) => `Waiting on ${what}.`,
+    unlisted: "The venue has not listed Canton Coin yet.",
+    closed: "The venue is not taking new Canton Coin deposits. You can still take back what you deposited.",
+    rate: (perCoin: string, unit: string) => `Fixed rate: 1 Canton Coin = ${perCoin} ${unit}. It does not move while this listing stands.`,
+    step: (step: string) => `Amounts are exact, in steps of ${step} Canton Coin. Anything finer is sent back to you, never rounded.`,
+    bounds: (min: string, max: string) => `Each deposit is between ${min} and ${max} Canton Coin.`,
+    onlyDeposited: "Only Canton Coin you deposited and have not taken back can leave. Winnings stay as credits.",
+    allowance: (n: string, unit: string) => `You can take back up to ${n} ${unit} as Canton Coin.`,
+    holds: (n: string) => `Your seat holds ${n} Canton Coin.`,
+    reserveCovered: (held: string, owed: string, unit: string) => `The venue holds ${held} ${unit} of coin against ${owed} owed. Covered.`,
+    reserveShort: (held: string, owed: string, unit: string) => `Not covered: the venue holds ${held} ${unit} of coin against ${owed} owed.`,
+    noReserve: "The venue has not published a reserve statement yet.",
+    waitingForVenue: "Your withdrawal is with the venue.",
+    inFlight: "A transfer to you is waiting for you to accept it.",
+    depositLabel: "Amount to deposit",
+    depositCta: (amount: string) => `Deposit ${amount} Canton Coin`,
+    withdrawLabel: "Credits to take back as Canton Coin",
+    withdrawCta: (units: string, coin: string) => `Take back ${units} (${coin} Canton Coin)`,
+    sending: "Sending…",
+    requested: "Sent. The venue answers within a minute or so.",
+    failed: "That did not go through. Nothing moved.",
+  },
   welcome: {
     eyebrow: "You're funded",
     title: (amount: string, symbol: string) => `${amount} ${symbol} is in your seat`,

@@ -1,0 +1,82 @@
+-- | Two tiny registries for the failure paths the token standard's own mock
+-- registry cannot produce (C7b). Test code only, never uploaded.
+--
+--   FailingRules   a `TransferFactory` that answers `Failed` and moves nothing:
+--                  the registry refusing a transfer without aborting.
+--   StuckOffer     a `TransferInstruction` whose `Accept` answers `Pending` again
+--                  instead of `Completed`: a registry that does not settle at once.
+module Test.CC.Registries where
+
+import Splice.Api.Token.HoldingV1 qualified as H
+import Splice.Api.Token.MetadataV1
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+
+template FailingRules
+  with
+    admin : Party
+  where
+    signatory admin
+
+    interface instance T.TransferFactory for FailingRules where
+      view = T.TransferFactoryView with admin; meta = emptyMetadata
+      transferFactory_publicFetchImpl _self _arg = pure (T.TransferFactoryView with admin; meta = emptyMetadata)
+      transferFactory_transferImpl _self _arg = pure T.TransferInstructionResult with
+        output = T.TransferInstructionResult_Failed
+        senderChangeCids = []
+        meta = emptyMetadata
+
+template StuckOffer
+  with
+    transfer : T.Transfer
+  where
+    signatory transfer.sender, transfer.instrumentId.admin
+    observer transfer.receiver
+
+    interface instance T.TransferInstruction for StuckOffer where
+      view = T.TransferInstructionView with
+        originalInstructionCid = None
+        transfer
+        status = T.TransferPendingReceiverAcceptance
+        meta = emptyMetadata
+      transferInstruction_acceptImpl self _arg = pure T.TransferInstructionResult with
+        output = T.TransferInstructionResult_Pending with transferInstructionCid = self
+        senderChangeCids = []
+        meta = emptyMetadata
+      transferInstruction_rejectImpl _self _arg = fail "StuckOffer: not supported"
+      transferInstruction_withdrawImpl _self _arg = fail "StuckOffer: not supported"
+      transferInstruction_updateImpl _self _arg = fail "StuckOffer: not supported"
+
+-- | A registry that claims every transfer completed at once and names the holdings it
+-- says it delivered (created beforehand by the test): for the answers the mock registry,
+-- which never completes a transfer to another party, cannot give.
+template CompletingRules
+  with
+    admin : Party
+    delivered : [ContractId H.Holding]
+  where
+    signatory admin
+
+    interface instance T.TransferFactory for CompletingRules where
+      view = T.TransferFactoryView with admin; meta = emptyMetadata
+      transferFactory_publicFetchImpl _self _arg = pure (T.TransferFactoryView with admin; meta = emptyMetadata)
+      transferFactory_transferImpl _self _arg = pure T.TransferInstructionResult with
+        output = T.TransferInstructionResult_Completed with receiverHoldingCids = delivered
+        senderChangeCids = []
+        meta = emptyMetadata
+
+-- | A registry that answers every transfer with a pending instruction it made earlier for
+-- something else.
+template LyingRules
+  with
+    admin : Party
+    instruction : ContractId T.TransferInstruction
+  where
+    signatory admin
+
+    interface instance T.TransferFactory for LyingRules where
+      view = T.TransferFactoryView with admin; meta = emptyMetadata
+      transferFactory_publicFetchImpl _self _arg = pure (T.TransferFactoryView with admin; meta = emptyMetadata)
+      transferFactory_transferImpl _self _arg = pure T.TransferInstructionResult with
+        output = T.TransferInstructionResult_Pending with transferInstructionCid = instruction
+        senderChangeCids = []
+        meta = emptyMetadata

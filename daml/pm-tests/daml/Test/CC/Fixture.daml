@@ -1,0 +1,243 @@
+-- | Fixtures for the Canton Coin rail's money gate (C7b): a venue that lists the
+-- token standard's own test token, an owner or two with accounts, and helpers to
+-- drive a deposit and a withdrawal the way a wallet and the venue's ops would.
+--
+-- Rate: 100000 cash units per whole coin, so one cash unit is 0.00001 coin (10^5
+-- atomic units). Minimum deposit 100 units (0.001 coin).
+module Test.CC.Fixture where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Optional (isNone, isSome)
+import DA.Time (addRelTime, seconds)
+import PM.CC.Listing
+import PM.CC.Records
+import PM.CC.Units
+import PM.CC.Withdraw
+import PM.Money
+import Splice.Api.Token.HoldingV1 qualified as H
+import Splice.Api.Token.MetadataV1
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+import Splice.Testing.Tokens.TestTokenV1
+import Test.Setup
+
+rate : Int
+rate = 100000
+
+listingKey : Text
+listingKey = "cc-1"
+
+-- | What a registry's HTTP API hands a wallet with a factory choice: the factory's
+-- contract id and the contract disclosed, so a submitter who is not its stakeholder
+-- can use it.
+data Registry = Registry with
+  admin : Party
+  factory : ContractId T.TransferFactory
+  disclosure : Disclosure
+
+data CC = CC with
+  w : World
+  admin : Party
+  rules : ContractId TokenRules
+  registry : Registry
+  listing : ContractId CcListing
+
+instrument : Party -> H.InstrumentId
+instrument admin = H.InstrumentId with admin; id = "TestCoin"
+
+noExtra : ExtraArgs
+noExtra = ExtraArgs with context = emptyChoiceContext; meta = emptyMetadata
+
+listingFor : World -> Party -> CcListing
+listingFor w admin = CcListing with
+  venue = w.venue; auditor = w.auditor; listingId = listingKey; instrumentAdmin = admin
+  instrumentId = "TestCoin"; unitsPerCoin = rate; minDepositUnits = 100
+  maxDepositUnits = 100000000000; depositsOpen = True
+
+mkCC : Script CC
+mkCC = do
+  w <- mkWorld
+  admin <- allocateParty "registry"
+  rules <- submit admin do createCmd TokenRules with admin
+  registry <- registryOf admin rules
+  listing <- submit w.venue do createCmd (listingFor w admin)
+  pure CC with ..
+
+-- | A factory template's contract, as its registry would disclose it.
+registryOf : (Template t, HasToInterface t T.TransferFactory) => Party -> ContractId t -> Script Registry
+registryOf admin cid = do
+  disclosure <- disclosureOf admin cid
+  pure Registry with admin; factory = toInterfaceContractId cid; disclosure
+
+openAccount : CC -> Party -> Script (ContractId VenueAccount)
+openAccount c owner = do
+  inv <- submit c.w.venue do createCmd VenueAccountInvite with venue = c.w.venue; owner; label = "cc"
+  submit owner do exerciseCmd inv Invite_Accept
+
+atomicOf : Decimal -> Int
+atomicOf d = case toAtomic d of
+  Some a -> a
+  None -> error ("not convertible: " <> show d)
+
+holdingViewFor : Party -> Party -> Decimal -> H.HoldingView
+holdingViewFor admin owner amount = H.HoldingView with
+  owner; instrumentId = instrument admin; amount; lock = None; meta = emptyMetadata
+
+-- | A transfer of `amount` of `admin`'s coin, requested a minute ago, good for an hour.
+transferOf : Party -> Party -> Party -> Decimal -> Time -> [ContractId H.Holding] -> T.Transfer
+transferOf admin from to amount now inputs = T.Transfer with
+  sender = from; receiver = to; amount; instrumentId = instrument admin
+  requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
+  inputHoldingCids = inputs; meta = emptyMetadata
+
+-- | The registry mints `amount` to `owner` (both sign a Token).
+mint : CC -> Party -> Decimal -> Script (ContractId H.Holding)
+mint c owner amount = do
+  cid <- submit (actAs [owner, c.admin]) do
+    createCmd Token with holding = holdingViewFor c.admin owner amount
+  pure (toInterfaceContractId cid)
+
+-- | Holdings `p` owns (a receiver also sees the offer as a locked holding; not its own).
+holdingsOwnedBy : Party -> Script [(ContractId H.Holding, H.HoldingView)]
+holdingsOwnedBy p = do
+  xs <- queryInterface @H.Holding p
+  pure [(cid, v) | (cid, Some v) <- xs, v.owner == p]
+
+unlockedOf : Party -> Script [ContractId H.Holding]
+unlockedOf p = do
+  hs <- holdingsOwnedBy p
+  pure [cid | (cid, v) <- hs, isNone v.lock]
+
+-- | Atomic units of unlocked coin `p` owns.
+coinOf : Party -> Script Int
+coinOf p = do
+  hs <- holdingsOwnedBy p
+  pure (sum [atomicOf v.amount | (_, v) <- hs, isNone v.lock])
+
+-- | Atomic units locked in transfers `p` sent and nobody accepted yet.
+inFlightOf : Party -> Script Int
+inFlightOf p = do
+  hs <- holdingsOwnedBy p
+  pure (sum [atomicOf v.amount | (_, v) <- hs, isSome v.lock])
+
+-- | The owner instructs a transfer of coin to `to` (two-step: it stays pending).
+sendCoin : CC -> Party -> Party -> Decimal -> [ContractId H.Holding] -> Script T.TransferInstructionResult
+sendCoin c = sendVia c c.registry
+
+sendVia : CC -> Registry -> Party -> Party -> Decimal -> [ContractId H.Holding] -> Script T.TransferInstructionResult
+sendVia c reg from to amount inputs = do
+  now <- getTime
+  submit (actAs from <> disclose reg.disclosure) do
+    exerciseCmd reg.factory T.TransferFactory_Transfer with
+      expectedAdmin = reg.admin
+      transfer = transferOf reg.admin from to amount now inputs
+      extraArgs = noExtra
+
+pendingOf : T.TransferInstructionResult -> Script (ContractId T.TransferInstruction)
+pendingOf r = case r.output of
+  T.TransferInstructionResult_Pending cid -> pure cid
+  _ -> abort ("expected a pending transfer, got " <> show r.output)
+
+-- | Mint `amount` to the owner and instruct it to the venue; the pending instruction.
+depositInstruction : CC -> Party -> Decimal -> Script (ContractId T.TransferInstruction)
+depositInstruction c owner amount = do
+  h <- mint c owner amount
+  r <- sendCoin c owner c.w.venue amount [h]
+  pendingOf r
+
+settleCmd : CC -> ContractId T.TransferInstruction -> ContractId VenueAccount -> Optional (ContractId CcAllowance) -> Commands (ContractId CcDeposit, ContractId VenueCash, ContractId CcAllowance)
+settleCmd c instr acct allow = exerciseCmd c.listing Listing_SettleDeposit with
+  instructionCid = instr; accountCid = acct; allowanceCid = allow; extraArgs = noExtra
+
+allowanceOf : CC -> Party -> Script (Optional (ContractId CcAllowance, Int))
+allowanceOf c owner = do
+  xs <- query @CcAllowance c.w.venue
+  pure (case [(cid, a.units) | (cid, a) <- xs, a.owner == owner, a.listingId == listingKey] of
+    [] -> None
+    (x :: _) -> Some x)
+
+allowanceUnits : CC -> Party -> Script Int
+allowanceUnits c owner = optional 0 snd <$> allowanceOf c owner
+
+cashCidsOf : Party -> Script [ContractId VenueCash]
+cashCidsOf p = do
+  cs <- query @VenueCash p
+  pure [cid | (cid, x) <- cs, x.owner == p]
+
+-- | Deposit, settle and return the allowance cid.
+deposit : CC -> Party -> ContractId VenueAccount -> Decimal -> Script (ContractId CcAllowance)
+deposit c owner acct amount = do
+  prev <- allowanceOf c owner
+  instr <- depositInstruction c owner amount
+  (_, _, a) <- submit c.w.venue do settleCmd c instr acct (fst <$> prev)
+  pure a
+
+proposeWithdraw : CC -> Party -> Int -> Text -> Script (ContractId CcWithdrawProposal)
+proposeWithdraw c owner units ref = do
+  now <- getTime
+  submit owner do
+    createCmd CcWithdrawProposal with
+      owner; venue = c.w.venue; listingId = listingKey; instrumentAdmin = c.admin; instrumentId = "TestCoin"
+      unitsPerCoin = rate; units; validUntil = addRelTime now (seconds 3600); ref
+
+-- | The venue answers a proposal with everything the choice needs, fresh.
+acceptWithdraw : CC -> Registry -> ContractId CcWithdrawProposal -> Party -> ContractId VenueAccount
+  -> Script (Either SubmitError (ContractId CcWithdrawal, Optional (ContractId CcAllowance)))
+acceptWithdraw c reg prop owner acct = do
+  cash <- cashCidsOf owner
+  Some (allowance, _) <- allowanceOf c owner
+  inputs <- unlockedOf c.w.venue
+  now <- getTime
+  -- The venue reads as the owner too: when the registry says a transfer completed, the choice
+  -- checks the owner holds the coin, and a submitter can only use contracts it can see.
+  trySubmit (actAs c.w.venue <> readAs owner <> disclose reg.disclosure) do
+    exerciseCmd prop Proposal_Accept with
+      listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
+      factoryCid = reg.factory; inputHoldingCids = inputs
+      requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
+      extraArgs = noExtra
+
+-- | A Proposal_Accept the registry aborts: no input holdings named, so the mock registry
+-- cannot fund the transfer.
+abortingAccept : CC -> ContractId CcWithdrawProposal -> ContractId VenueAccount -> [ContractId VenueCash] -> ContractId CcAllowance
+  -> Script (Either SubmitError (ContractId CcWithdrawal, Optional (ContractId CcAllowance)))
+abortingAccept c prop acct cash allowance = do
+  now <- getTime
+  trySubmit (actAs c.w.venue <> disclose c.registry.disclosure) do
+    exerciseCmd prop Proposal_Accept with
+      listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
+      factoryCid = c.registry.factory; inputHoldingCids = []
+      requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
+      extraArgs = noExtra
+
+-- | A raw Proposal_Accept for the refusal tests that hand the choice something wrong.
+rawAccept : CC -> ContractId CcWithdrawProposal -> ContractId VenueAccount -> [ContractId VenueCash] -> ContractId CcAllowance
+  -> Script (Either SubmitError (ContractId CcWithdrawal, Optional (ContractId CcAllowance)))
+rawAccept c prop acct cash allowance = do
+  inputs <- unlockedOf c.w.venue
+  now <- getTime
+  trySubmit (actAs c.w.venue <> disclose c.registry.disclosure) do
+    exerciseCmd prop Proposal_Accept with
+      listingCid = c.listing; accountCid = acct; cashCids = cash; allowanceCid = allowance
+      factoryCid = c.registry.factory; inputHoldingCids = inputs
+      requestedAt = addRelTime now (seconds (-60)); executeBefore = addRelTime now (seconds 3600)
+      extraArgs = noExtra
+
+-- | The venue's statement of what it holds against what it owes, from the
+-- ledger's own contracts: every unlocked holding and every allowance.
+attest : CC -> Optional (ContractId CcReserveStatement) -> Script (ContractId CcReserveStatement)
+attest c prev = do
+  hs <- unlockedOf c.w.venue
+  as <- query @CcAllowance c.w.venue
+  submit c.w.venue do
+    exerciseCmd c.listing Listing_Attest with
+      holdingCids = hs; allowanceCids = map fst as; previous = prev
+
+statementOf : Party -> ContractId CcReserveStatement -> Script CcReserveStatement
+statementOf p cid = do
+  Some s <- queryContractId p cid
+  pure s
+
+expectUnits : CC -> Party -> Int -> Script ()
+expectUnits c owner n = do
+  allowanceUnits c owner >>= (=== n)

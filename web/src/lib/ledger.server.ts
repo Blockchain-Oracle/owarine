@@ -2,10 +2,12 @@ import "server-only";
 import { getDb } from "@agari/db";
 import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
 import { err, ok } from "@agari/core/schemas";
+import { CC_RAIL_CAPABILITY } from "@agari/core/cc";
 import { registerArenaSource } from "@agari/markets/games";
+import { createRegistryClient } from "@agari/markets/ops/cc";
 import {
-  createAgentsSeat, createDeskSeat, createGamesSeat, createOpsClient, createSeatLedger, createTicketSeat,
-  type AgentsSeat, type DeskSeat, type GamesSeat, type OpsClient, type SeatLedger, type TicketSeat,
+  createAgentsSeat, createCcSeat, createDeskSeat, createGamesSeat, createOpsClient, createSeatLedger, createTicketSeat,
+  type AgentsSeat, type CcSeat, type DeskSeat, type GamesSeat, type OpsClient, type SeatLedger, type TicketSeat,
 } from "@agari/markets/server";
 import { checkWebServerEnv, seatParties, type SeatParties, type WebServerEnv } from "./server-env";
 import { createSeatStore, type SeatStore } from "./seat-store.server";
@@ -23,6 +25,8 @@ export interface SeatServer {
   tickets: TicketSeat;
   /** The seat's grants and strategy registry side (C8f). */
   agents: AgentsSeat;
+  /** The seat's Canton Coin path (C7b): its allowance, receipts and withdrawal asks; every write refuses while the path is not-live. */
+  cc: CcSeat;
   /** The owner's side of the live desk (C8f). */
   desk: DeskSeat;
   /** The seat's side of the duel (C9b): open, join, pick, cancel and the player's cranks. */
@@ -53,6 +57,7 @@ export function seatServer(): SeatServerState {
   const ledger = createSeatLedger({ client, venueParty: parties.venue!, journal: store.commands, marks: () => ops.ladderMarks() });
   const tickets = createTicketSeat({ client, venueParty: parties.venue!, journal: store.commands, fairTicks: () => ops.fairTicks(), ladders: () => ops.quotingLadders() });
   const agents = createAgentsSeat({ client, venueParty: parties.venue!, agentRunner: parties.agentRunner, journal: store.commands, ops });
+  const cc = createCcSeat({ client, venueParty: parties.venue!, journal: store.commands, listingId: process.env.CC_LISTING_ID || "cc-1", capability: CC_RAIL_CAPABILITY, registry: process.env.CC_REGISTRY_URL ? createRegistryClient({ baseUrl: process.env.CC_REGISTRY_URL }) : null });
   const desk = createDeskSeat({ client, venueParty: parties.venue!, operator: parties.agentRunner, attestors: parties.oracles, journal: store.commands, ops });
   const games = createGamesSeat({ client, venueParty: parties.venue!, journal: store.commands, ledger, ops });
   // The web server's own `@agari/markets/games` reads (the season page, the room token, the sponsor) go to ops' arena
@@ -71,7 +76,7 @@ export function seatServer(): SeatServerState {
       return r.ok ? ok(r.value.pool, Date.now()) : err(r.diagnosis);
     },
   });
-  state = { ok: true, server: { client, ledger, tickets, games, agents, desk, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
+  state = { ok: true, server: { client, ledger, tickets, games, agents, cc, desk, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
   return state;
 }
 
