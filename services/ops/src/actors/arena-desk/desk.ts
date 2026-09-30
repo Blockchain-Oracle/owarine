@@ -6,11 +6,12 @@
  */
 import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import type { Address } from "@agari/core/types";
-import { readSeasonClosure, recordSeasonClosure, type SeasonClosure } from "@agari/db";
+import { readDuelPicks, readSeasonClosure, recordSeasonClosure, type SeasonClosure } from "@agari/db";
 import { decodeResolution, decodeTerms, pick, readActive, type Active, type ResolutionC, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
 import {
   arenaAddressOf, arenaParamsOf, decodeArenaTerms, decodeDuelMatch, decodeDuelOpen, decodeDuelResult, decodeSeasonPool, isStakeTierId, tierIndexOf,
-  viewOfMatch, viewOfOpen, viewOfResult, type ArenaTermsC, type DuelMatchC, type DuelOpenC, type DuelResultC, type SeasonPoolC,
+  viewOfMatch, viewOfOpen, viewOfResult, withProjectedPicks, type ArenaTermsC, type DuelMatchC, type DuelOpenC, type DuelResultC, type ProjectedPick,
+  type SeasonPoolC,
 } from "@agari/markets/ops/games";
 import type { ArenaMatchViewWire, SeasonPoolWire } from "@agari/markets/games";
 import type { ArenaStateReply } from "@agari/markets/server";
@@ -55,9 +56,18 @@ export interface SeasonClosureStore {
 
 const DB_CLOSURES: SeasonClosureStore = { record: recordSeasonClosure, read: readSeasonClosure };
 
-export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirectory; chainId: number; log: (why: string) => void; closures?: SeasonClosureStore }) {
+/** A decided match's picks, which its `DuelResult` does not keep (C4c): the projection's `duel_cards`. */
+export type PickSource = (matchId: string) => Promise<ProjectedPick[] | null>;
+
+const DB_PICKS: PickSource = async (matchId) =>
+  (await readDuelPicks(matchId))?.map((p) => ({
+    cardIndex: p.cardIndex, seat: p.seat, side: p.side, quantity: BigInt(p.quantity), costBase: BigInt(p.costBase), payoutBase: p.payoutBase === null ? null : BigInt(p.payoutBase),
+  })) ?? null;
+
+export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirectory; chainId: number; log: (why: string) => void; closures?: SeasonClosureStore; picks?: PickSource }) {
   const { venue, seats } = input;
   const closureStore = input.closures ?? DB_CLOSURES;
+  const pickSource = input.picks ?? DB_PICKS;
   /** Closures this process made, so a withdrawn season reads as paid out even with no database. */
   const closedHere = new Map<string, SeasonClosure>();
   let snap: { atMs: number; value: Promise<ArenaSnapshot> } | null = null;
@@ -140,7 +150,10 @@ export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirector
     const r = await resultOf(id);
     if (!r) return null;
     const tier = s.terms?.data.tiers.find((x) => x.tierId === r.data.tierId);
-    const view = viewOfResult(r.data, seats.addressOf, tier ? { deckHash: "0".repeat(64), deckSize: r.data.cards.length, policyVersion: s.terms?.data.policyVersion ?? 0, potEach: tier.potEach, perCardCap: tier.perCardCap } : undefined);
+    const decided = viewOfResult(r.data, seats.addressOf, tier ? { deckHash: "0".repeat(64), deckSize: r.data.cards.length, policyVersion: s.terms?.data.policyVersion ?? 0, potEach: tier.potEach, perCardCap: tier.perCardCap } : undefined);
+    // The result keeps no picks; the projection does (C4c). Unreadable, the result still stands on the ledger's PnLs.
+    const picks = await pickSource(id).catch((error: unknown) => (input.log(`${id}: projected picks unreadable: ${error instanceof Error ? error.message : String(error)}`), null));
+    const view = picks ? withProjectedPicks(decided, picks) : decided;
     return { ...view, serverSeed: r.data.serverSeed, clientSeeds: [], arenaId: r.data.arenaId };
   }
 

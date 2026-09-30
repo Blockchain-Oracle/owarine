@@ -131,9 +131,42 @@ export function viewOfMatch(m: DuelMatchC, addressOf: AddressOf): DuelViewOf {
   };
 }
 
+/** A pick the projection recorded (`duel_cards`), as the decided match's view needs it. */
+export interface ProjectedPick {
+  cardIndex: number;
+  seat: 0 | 1;
+  side: "up" | "down";
+  quantity: bigint;
+  costBase: bigint;
+  payoutBase: bigint | null;
+}
+
+/**
+ * C4c: a decided match's view with the picks the projection kept (a `DuelResult` keeps none), and the masks they imply,
+ * so its public result lists each card's two picks instead of "unplayed". Picks off the deck are dropped. The ledger's
+ * own PnLs and winner stay as they are: the picks only describe them.
+ */
+export function withProjectedPicks<V extends DuelViewOf>(view: V, picks: readonly ProjectedPick[]): V {
+  const onDeck = picks.filter((p) => p.cardIndex >= 0 && p.cardIndex < view.match.deckSize && p.cardIndex < 31);
+  if (onDeck.length === 0) return view;
+  const arena: ArenaPick[] = onDeck.map((p) => ({
+    cardIndex: p.cardIndex, seat: p.seat, placed: true, settled: p.payoutBase !== null, pick: p.side,
+    quantity: p.quantity, costBase: p.costBase, payoutBase: p.payoutBase ?? 0n,
+  }));
+  let pickedMask0 = 0;
+  let pickedMask1 = 0;
+  let settledMask = 0;
+  for (const p of arena) {
+    if (p.seat === 0) pickedMask0 |= 1 << p.cardIndex;
+    else pickedMask1 |= 1 << p.cardIndex;
+  }
+  for (const i of new Set(arena.map((p) => p.cardIndex))) if (arena.filter((p) => p.cardIndex === i).every((p) => p.settled)) settledMask |= 1 << i;
+  return { ...view, picks: arena, match: { ...view.match, pickedMask0, pickedMask1, settledMask } };
+}
+
 const RESULT_REFUND = { BothIncomplete: "both-incomplete", RevealUnavailable: "reveal-unavailable", StaleSettlement: "stale-settlement" } as const;
 
-/** A decided match. The result keeps the deck and both PnLs; its picks are in the projection's history. */
+/** A decided match. The result keeps the deck and both PnLs; its picks are in the projection's history (`withProjectedPicks`). */
 export function viewOfResult(r: DuelResultC, addressOf: AddressOf, deck?: { deckHash: string; deckSize: number; policyVersion: number; potEach: bigint; perCardCap: bigint }): DuelViewOf {
   const tierId = r.tierId;
   const tier = STAKE_TIERS.find((t) => t.id === tierId);
