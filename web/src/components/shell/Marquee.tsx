@@ -8,7 +8,7 @@ export default function Marquee() {
 
   const renderCells = (keyPrefix: string) =>
     items.map((item, i) => (
-      <span key={`${keyPrefix}-${i}`} className="marquee-cell">
+      <span key={`${keyPrefix}-${i}`} className="marquee-cell" title={item.hint}>
         {item.asset && <AssetDisc asset={item.asset} className="marquee-mark" />}
         <span className="lbl">{item.label}</span>
         <span className="val">{item.value}</span>

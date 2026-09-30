@@ -24,14 +24,14 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
     ]);
     expect(line).toContain("4.2 OPENAI (OpenAI, PreStocks) about $4,734.00");
     expect(line).toContain("12.5 TSLAx (Tesla, xStocks).");
-    expect(line).toContain("DOWN Window on that name is cover with test funds");
+    expect(line).toContain("DOWN Window on that name is cover with demo credits");
     expect(line).toContain("Never advise on the tokens themselves");
     expect(holdingsLine([])).toBe("Their seat holds no stock tokens (a seat holds none until the Canton Coin rail).");
     // The tripwire is unchanged by the summary: a question about the real tokens still trips on "shares/stocks", and a cover question does not.
     expect(asksForAdvice([user("should I sell my OpenAI stock now?")])).toBe(true);
     expect(asksForAdvice([user("can I cover my OpenAI with a Down Window?")])).toBe(false);
     const context = senseiTurnContext({ messages: [], restless: false, snapshot: null, holdings: [{ name: "OpenAI", symbol: "OPENAI", issuer: "prestocks", tokens: "4.2", valueCents: 473_400 }] });
-    expect(context).toContain("Their wallet holds");
+    expect(context).toContain("Their seat holds");
   });
 
   it("stakes travel as integer cents, rounded half up", () => {

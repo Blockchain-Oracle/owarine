@@ -11,6 +11,7 @@ import { nowMs } from "./clock";
 export { freshQuoteStake, getBookDepth, getBookParams } from "./books";
 export { readRecoveryCursor, syncClock } from "./clock-sync";
 export { listWalletFills, listWalletHistory, type WalletFillsQuery } from "./history";
+export { listPublishedCalls, listPublishedHistory } from "./published";
 export { getMarket, getMarketsLite, getResolution, laneNextStart, listLiveLanes, listSettled, nextWindow } from "./markets";
 export { getHoldings, getOnchain, getOpeningPrice } from "./onchain";
 export { listRestingOrders } from "./orders";

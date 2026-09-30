@@ -1,7 +1,6 @@
 import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
 import {
-  actionClusterOf, actionHeaders, selectActionWindow, windowAction, X_CADENCES,
-  X_REFUSAL_DETAILS, windowActionTitle, type ActionCluster, type ActionGetResponse, type XCadence,
+  actionHeaders, selectActionWindow, windowAction, X_CADENCES, X_REFUSAL_DETAILS, windowActionTitle, type ActionGetResponse, type XCadence,
 } from "@agari/core/x";
 import { ensureMarkets, marketsProvider } from "@agari/markets";
 import { webEnv } from "@/lib/env";
@@ -12,8 +11,8 @@ import { publicOrigin } from "@/lib/client-ip.server";
  *
  * A per-Window link is correct but perishable: a 5-minute Window shared on X is closed before most people read the
  * post. This one names an asset and a cadence and resolves to whatever is tradeable right now, which is what a
- * shareable link has to do. The POST still targets the resolved Window's own path, so the transaction is built
- * against a concrete Window and cannot drift between the card and the signature.
+ * shareable link has to do. The POST still targets the resolved Window's own path, so the signed share link it answers
+ * (C13a) names a concrete Window and cannot drift between the card and the ticket it opens.
  *
  * Lane follows D-103: `laneListable` puts a stock on Regular and a pre-IPO name on the 24/7 token lane, so a symbol
  * resolves to one lane with nothing to disambiguate.
@@ -21,8 +20,7 @@ import { publicOrigin } from "@/lib/client-ip.server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const cluster = (): ActionCluster => actionClusterOf(webEnv.markets.cluster);
-const headers = () => actionHeaders(cluster());
+const headers = () => actionHeaders();
 const fail = (message: string, status: number) => Response.json({ message }, { status, headers: headers() });
 
 export function OPTIONS() {

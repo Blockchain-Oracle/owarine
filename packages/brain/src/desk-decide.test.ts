@@ -55,7 +55,7 @@ describe("decideDeskTiming", () => {
   it("keeps a good answer as the decision and names the prompt version", async () => {
     const answer = await decideDeskTiming({ model: answering(JSON.stringify(good)), user: "u", ...ids });
     expect(answer.decision?.option).toBe("WAIT");
-    expect(answer).toMatchObject({ promptVersion: "desk-timing.v1", error: null, problems: [], styleWords: [] });
+    expect(answer).toMatchObject({ promptVersion: "desk-timing.v2", error: null, problems: [], styleWords: [] });
   });
   it("refuses an answer that cites an unknown id, promises gain, or quotes the owner's notes — the raw answer stays in the record", async () => {
     const unknownId = await decideDeskTiming({ model: answering(JSON.stringify({ ...good, reasons: [{ text: "x", evidenceIds: ["e9"] }] })), user: "u", ...ids });

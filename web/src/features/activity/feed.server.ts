@@ -1,18 +1,21 @@
 import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
 import type { Address } from "@agari/core/types";
-import { getDb, listTakes, socialActivityReader, type SocialActivityReader, type TakeRecord } from "@agari/db";
+import { getDb, listTakes, seatActivityReader, socialActivityReader, type IdxSeatLease, type SeatActivityReader, type SocialActivityReader, type TakeRecord } from "@agari/db";
 import type { FeedTake } from "@/features/takes/protocol";
 import { fillItem, mergeItems, settlementItems, takeItem } from "./items";
 import { ACTIVITY_LIMIT, type ActivityFeed, type ActivityItem } from "./protocol";
 
 /**
- * The two activity feeds, server-side (spec §1.6, §3). Index data is public, so neither needs a session: the inbox
- * is "what happened to this wallet", and a ticker hub is "the calls, verdicts and tagged takes on this ticker". Each
- * is one fills query, one settlements query and (for the ticker hub) one takes query, run together and merged newest
- * first.
+ * The two activity feeds, server-side (spec §1.6, §3): the inbox is "what happened to this wallet", and a ticker hub is
+ * "the calls, verdicts and tagged takes on this ticker". Each is one fills query, one settlements query and (for the
+ * ticker hub) one takes query, run together and merged newest first.
+ *
+ * On Canton (C13a) the inbox has two readers: the seat itself, proven by its cookie or signed read header, reads its
+ * own rows under its lease (`ownInboxFeed`, published or not); anyone else reads only what that seat published.
  */
 
 let reader: SocialActivityReader | null = null;
+let seatReader: SeatActivityReader | null = null;
 
 function activityReader(): SocialActivityReader | null {
   const db = getDb();
@@ -47,7 +50,17 @@ function feedOf(groups: ActivityItem[][], takeRows: TakeRecord[] | null = null):
   return { configured: true, items, takes: takes.filter((take) => named.has(take.id)) };
 }
 
-/** The wallet's own fills (either seat), verdicts, claimable payouts and crank payouts. */
+/** The seat's own fills, verdicts, claimable payouts and crank payouts, under the visitor's lease. */
+export async function ownInboxFeed(wallet: Address, lease: IdxSeatLease, sinceSec?: number): Promise<ActivityFeed> {
+  const db = getDb();
+  if (!db) return UNCONFIGURED;
+  seatReader ??= seatActivityReader(db);
+  const q = { sinceSec, limit: ACTIVITY_LIMIT };
+  const [fills, settlements] = await Promise.all([seatReader.fills(wallet, lease, q), seatReader.settlements(wallet, lease, q)]);
+  return feedOf([fills.map(fillItem), settlements.flatMap((row) => settlementItems(row, { payouts: true }))]);
+}
+
+/** A wallet's published fills, verdicts and payouts: what anyone may read of it. */
 export async function inboxFeed(wallet: Address, sinceSec?: number): Promise<ActivityFeed> {
   const r = activityReader();
   if (!r) return UNCONFIGURED;
@@ -66,12 +79,11 @@ export async function tickerFeed(symbol: TickerSymbol): Promise<ActivityFeed> {
 }
 
 /**
- * STUB (C11a → C13a): a seat's own inbox for its phone's push (plan iOS step 10), private calls included. The Canton
- * projection records a seat's rows by its leased party, never by address (`owner_address` is not written; c9d
- * evidence), so the real read is C13a's `seatActivityReader(sql).fills(address, lease)` / `.settlements(address,
- * lease)` (same row shapes as the published feed), keyed by the lease's party from its start offset. Until both lanes
- * are on main this answers the published inbox only, as the drain did before: a private call's settle sends no push yet.
+ * A seat's own inbox for its phone's push (plan iOS step 10; C11a, wired in C13a), private calls included: the leased
+ * party's fills and verdicts from the lease's start offset (`seatActivityReader`), the same rows `/api/activity` gives
+ * the seat itself. The projection records a seat's rows by its leased party, never by address, so a recycled seat's
+ * phone never hears about the previous visitor's calls. `holder` is the address the lease was taken with.
  */
-export async function seatInboxFeed(holder: Address, _lease: { party: string; startOffset: number }, sinceSec?: number): Promise<ActivityFeed> {
-  return inboxFeed(holder, sinceSec);
+export async function seatInboxFeed(holder: Address, lease: { party: string; startOffset: number }, sinceSec?: number): Promise<ActivityFeed> {
+  return ownInboxFeed(holder, { party: lease.party, fromOffset: lease.startOffset }, sinceSec);
 }

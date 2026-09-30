@@ -49,7 +49,7 @@ describe("X execution receipt truth", () => {
   });
 
   it("retains reverted transaction evidence without leaking its error", () => {
-    expect(outcomeToReceipt({ status: "reverted", diagnosis: diagnosis("contract-revert", PRIVATE_DIAGNOSTIC), txHash: HASH })).toEqual({ status: "reverted", reason: "The trade reverted on-chain.", txHash: HASH });
+    expect(outcomeToReceipt({ status: "reverted", diagnosis: diagnosis("contract-revert", PRIVATE_DIAGNOSTIC), txHash: HASH })).toEqual({ status: "reverted", reason: "The ledger rejected the trade.", txHash: HASH });
   });
 
   it("turns a fresh higher-cost quote into a fixed refusal", () => {

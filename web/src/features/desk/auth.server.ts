@@ -1,6 +1,8 @@
-import { isAddress } from "@agari/core/types";
+import { isAddress, type Address } from "@agari/core/types";
 import { NextResponse } from "next/server";
+import { seatCaller } from "@/lib/auth/seat-caller.server";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
+import { webEnv } from "@/lib/env";
 import { deskStore, findDesk, type DbDesk, type DeskQueries } from "./desk.server";
 import { DESK_SIGNATURE_TTL_MS } from "./protocol";
 
@@ -50,6 +52,19 @@ export async function verifyOwner(i: { owner: string; text: string; signature: s
   if (i.signedAtIso !== undefined && !fresh(i.signedAtIso, i.nowMs)) return refuse(400, DESK_ERRORS.staleSignature);
   const ok = await verifyWalletMessage({ text: i.text, signature: i.signature as never, signer: i.owner as never });
   return ok ? null : refuse(401, DESK_ERRORS.badSignature);
+}
+
+/**
+ * The `?viewer=` a desk read names, only when the caller proves it is that seat (C13a): the web's seat cookie or the
+ * phone's signed read header, as `/api/index` checks a seat's own rows. The owner view carries the owner's private
+ * notes and the mandate's live state, so an address typed into a query string is never enough; an unproven viewer
+ * reads as a visitor.
+ */
+export async function provenViewer(req: Request): Promise<Address | null> {
+  const claimed = new URL(req.url).searchParams.get("viewer");
+  if (!claimed || !isAddress(claimed)) return null;
+  const caller = await seatCaller(req.headers, webEnv.markets.cluster);
+  return caller === claimed ? claimed : null;
 }
 
 /** A body that failed zod, an unreadable body, or a store failure, in one line each. */

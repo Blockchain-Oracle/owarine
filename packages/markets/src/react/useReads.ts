@@ -31,6 +31,8 @@ import {
   listClaimables,
   listLiveLanes,
   listOpenPositions,
+  listPublishedCalls,
+  listPublishedHistory,
   listWalletHistory,
   nextWindow,
   settlementFeeBps,
@@ -127,6 +129,22 @@ export function useWalletHistory(wallet: Address | null, enabled = true): Readin
   return useReadingQuery(keys.history(wallet), () => listWalletHistory(wallet as Address), {
     pollMs: SETTLED_HISTORY_POLL_MS,
     enabled: enabled && wallet !== null,
+  });
+}
+
+/** Another seat's settled record from its opt-in publications (C13a): what `/u/<address>` shows anyone but its owner. */
+export function usePublishedHistory(address: Address | null, enabled = true): Reading<WalletHistory> | null {
+  return useReadingQuery(keys.published(address, "history"), () => listPublishedHistory(address as Address), {
+    pollMs: SETTLED_HISTORY_POLL_MS,
+    enabled: enabled && address !== null,
+  });
+}
+
+/** Another seat's open published calls (C13a), as the portfolio's rows. */
+export function usePublishedCalls(address: Address | null, enabled = true): Reading<OpenPosition[]> | null {
+  return useReadingQuery(keys.published(address, "calls"), () => listPublishedCalls(address as Address), {
+    pollMs: MARKETS_POLL_MS,
+    enabled: enabled && address !== null,
   });
 }
 

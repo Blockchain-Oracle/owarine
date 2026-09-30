@@ -14,7 +14,7 @@ import type { DeskCandidate } from "./needs";
 import { TRANSFER_FEE_BPS } from "./needs";
 import { formatMultiplierE12, formatPriceE8, formatTokens, formatUsdc, pct } from "./units";
 
-export const DESK_TIMING_V1 = `You are the timing judge for a desk that looks after one person's PreStocks tokens on Solana.
+export const DESK_TIMING_V2 = `You are the timing judge for a desk that looks after one person's positions on private companies. The desk holds units on this venue's hourly pre-IPO markets on Canton, paid for with demo venue cash (credits with no cash value).
 
 YOUR ONE JOB
 The owner has already decided WHAT to own, in a written mandate. Arithmetic has already worked out that a specific action would move the desk toward that mandate. You decide only WHEN. You never pick names, never set sizes beyond the choices given, never predict prices, and never claim an edge.
@@ -33,11 +33,11 @@ PRIORITIES, IN ORDER
 4. Clarity. A careful non-expert must be able to follow your reasons.
 
 HOW THIS MARKET WORKS
-- A PreStocks token is a claim on a private company through an SPV. It trades on Solana all day, every day. There is no opening bell, no close and no reopen to wait for.
-- The reference price is the venue's own read of the token's price, signed and posted on chain. The desk's program refuses any trade more than 8 percent away from it, and refuses a reference older than 15 minutes.
-- The mark is what PreStocks says the company is worth per token, from its latest valuation. A token above its mark trades at a premium; below it, at a discount. The owner set a ceiling: the program will not buy a name further above its mark than that ceiling. A premium near the ceiling is "rich", one near the mark is "fair", a discount is "cheap".
-- You are also given the token's own half-hour mean. A gap between the price now and that mean under 50 basis points is noise. Say "in line" and do not reason about it. A large gap means the price is moving and may not be real.
-- Trading cost is real, and it is high here: PreStocks takes a 1 percent fee on every transfer, each way, and the route adds its own. You are told what this exact trade costs. A small action whose cost is large compared with the benefit should usually wait or be declined.
+- Each name is a private company. Its price is PreStocks' print for that company's token, which the venue's oracle parties sign. The desk does not hold the token: a unit is one lot on the name's current hourly market on this venue, or one paper unit on a practice desk. These markets trade all day, every day. There is no opening bell, no close and no reopen to wait for.
+- The reference price is the name's fair price, signed by at least two of the venue's three oracle parties and posted on the ledger. The ledger refuses a buy further above the reference than the owner's ceiling, refuses a sale that returns less than 92 percent of the reference value, and refuses a reference older than 15 minutes.
+- The mark is what PreStocks says the company is worth per token, from its latest valuation. A name priced above its mark trades at a premium; below it, at a discount. The owner set a ceiling on how far above the reference the desk may buy. A premium near the ceiling is "rich", one near the mark is "fair", a discount is "cheap".
+- You are also given the name's own half-hour mean. A gap between the price now and that mean under 50 basis points is noise. Say "in line" and do not reason about it. A large gap means the price is moving and may not be real.
+- Trading cost is real. It is the gap between the venue's quote and the price, and a practice desk's paper ledger also takes a 1 percent fee each way, as PreStocks does on its token. You are told what this exact trade costs. A small action whose cost is large compared with the benefit should usually wait or be declined.
 - Direction matters. For a BUY, a price below the mean or a discount to the mark is a better price. For a SELL, a price above them is better. A gap against the owner is a cost of acting now.
 - Waiting is not free either. The price may move further away. Say so when it matters.
 
@@ -48,7 +48,7 @@ Apply these the same way every time. The same situation must get the same answer
 - The price is moving fast (a gap to its mean of 100 basis points or more): prefer WAIT.
 - The cost of this exact trade is more than the drift it corrects: prefer DECLINE or WAIT.
 - An owner rule applies: the rule wins over every price preference above.
-- Transfers are paused, the reference is missing or stale, or a needed fact is missing: never ACT. Prefer WAIT and say what was missing in a warning.
+- Trading on the name is paused, the reference is missing or stale, or a needed fact is missing: never ACT. Prefer WAIT and say what was missing in a warning.
 
 EVIDENCE AND RULES
 - You are given numbered evidence items and the owner's rules with ids. Cite evidence by id in every reason. Cite only ids you were given. Refer to the owner's rules by id only, never by quoting their text.
@@ -57,7 +57,7 @@ EVIDENCE AND RULES
 
 HOW TO WRITE
 - Short plain sentences. No jargon. Numbers where they matter.
-- Say "PreStocks token", never "share" or "stock in". Say "above its mark", never "overvalued".
+- Say "units" or "position" for what the desk holds, never "share" or "stock in". Say "above its mark", never "overvalued".
 - Never write "profit", "guaranteed", "beat the market", "alpha" or "signal". Never forecast a price.
 - headline is one plain sentence of at most 25 words, in this shape: what you decided, then the word "because", then the single most important reason. The owner reads it on its own. Use the company name, not a ticker. Use plain words for the decision, such as "wait" or "buy now", never a code name such as ACT_NOW. Do not put evidence ids in it.
 - In "rejected", list every option you did not choose, each with the specific reason it lost.
@@ -65,9 +65,14 @@ HOW TO WRITE
 
 Answer only with the JSON object described by the response schema.`;
 
-/** Every version ever used stays here, so an old record can always be explained by the prompt that made it. */
-export const DESK_TIMING_PROMPTS = { "desk-timing.v1": DESK_TIMING_V1 } as const;
-export const DESK_TIMING_PROMPT_VERSION = "desk-timing.v1" satisfies keyof typeof DESK_TIMING_PROMPTS;
+/**
+ * Every version used on Canton stays here, so a record can always be explained by the prompt that made it.
+ * `desk-timing.v1` was the reference's Solana prompt (Agari `661a24ee`, this file); no Canton record names it, so it
+ * is not carried. v2 (C13a) states the Canton desk truthfully (K-090, K-091) with the same answers, priorities and
+ * rules for when, word for word; `buildEvidence` below speaks credits and units to match.
+ */
+export const DESK_TIMING_PROMPTS = { "desk-timing.v2": DESK_TIMING_V2 } as const;
+export const DESK_TIMING_PROMPT_VERSION = "desk-timing.v2" satisfies keyof typeof DESK_TIMING_PROMPTS;
 export const DESK_TIMING_SYSTEM_PROMPT: string = DESK_TIMING_PROMPTS[DESK_TIMING_PROMPT_VERSION];
 
 /** One line of the owner's notes, with the id the model cites it by. */
@@ -125,8 +130,8 @@ export interface DeskEvidencePack {
 export function describeCandidate(c: DeskCandidate, quoteOut: bigint | null): string {
   const name = nameOf(c.symbol);
   return c.side === "buy"
-    ? `BUY ${formatUsdc(c.amountIn)} USDC of ${name}`
-    : `SELL ${formatTokens(c.amountIn)} ${name} tokens, about ${quoteOut === null ? "an unknown amount of" : formatUsdc(quoteOut)} USDC at the quote`;
+    ? `BUY ${formatUsdc(c.amountIn)} credits of ${name}`
+    : `SELL ${formatTokens(c.amountIn)} ${name} units, about ${quoteOut === null ? "an unknown amount of" : formatUsdc(quoteOut)} credits at the quote`;
 }
 
 const premiumWords = (bps: number | null): string => (bps === null ? "unknown (no mark)" : bps >= 0 ? `${pct(bps)} above its mark` : `${pct(-bps)} below its mark`);
@@ -156,7 +161,7 @@ export function buildEvidence(c: DeskCandidate, m: DeskMarketRead, limits: DeskL
       costBps: m.costBps,
       transferFeeBps: TRANSFER_FEE_BPS,
       quoteOut: m.quoteOut === null ? null : c.side === "buy" ? formatTokens(m.quoteOut) : formatUsdc(m.quoteOut),
-      quoteOutUnit: c.side === "buy" ? c.symbol : "USDC",
+      quoteOutUnit: c.side === "buy" ? c.symbol : "credits",
       routeAccounts: m.routeAccounts,
     },
     { id: "e4", kind: "status", mintPaused: m.mintPaused, accountFrozen: m.accountFrozen, deskPaused: limits.paused, referenceFresh: limits.referenceFresh },
@@ -182,10 +187,10 @@ export function buildEvidence(c: DeskCandidate, m: DeskMarketRead, limits: DeskL
     `CANDIDATE ${c.id}: ${describeCandidate(c, m.quoteOut)}. ${c.why}`,
     "EVIDENCE",
     `e1 session: this market trades 24/7. Checked at ${atIso} because: ${ctx.trigger}. Next check: ${ctx.nextCheckIso}.`,
-    `e2 the price of ${name} is ${formatPriceE8(m.spotE8)} USDC, which is ${gapWords} its own half-hour mean of ${formatPriceE8(m.meanE8)}. It is ${premiumWords(m.premiumBps)}${m.markE8 === null ? "" : ` (mark ${formatPriceE8(m.markE8)})`}.${m.indexE8 === null ? "" : ` Pyth's index values it at ${formatPriceE8(m.indexE8)} (${premiumWords(m.indexPremiumBps).replace("mark", "index")}).`} The venue's reference is ${m.referenceAgeSec === null ? "MISSING" : `${m.referenceAgeSec} s old`}.`,
-    `e3 cost: this exact trade costs ${m.costBps === null ? "UNKNOWN (no quote)" : `${m.costBps} bps`} against the price. That includes PreStocks' ${TRANSFER_FEE_BPS / 100}% transfer fee and the route's own fee.`,
-    `e4 status: transfers paused ${status(m.mintPaused)}, desk account frozen ${status(m.accountFrozen)}, desk paused ${limits.paused ? "YES" : "no"}, reference fresh ${limits.referenceFresh ? "yes" : "NO"}.`,
-    `e5 limits: per action ${formatUsdc(limits.perActionCapE6)} USDC, left today ${formatUsdc(limits.remainingTodayE6)} USDC, desk cash ${formatUsdc(limits.cashE6)} USDC, desk holds ${formatTokens(limits.tokenBalanceRaw)} ${name} tokens. This action counts as ${formatUsdc(g.countedE6)} USDC against the limits.`,
+    `e2 the price of ${name} is ${formatPriceE8(m.spotE8)} USD per PreStocks token, which is ${gapWords} its own half-hour mean of ${formatPriceE8(m.meanE8)}. It is ${premiumWords(m.premiumBps)}${m.markE8 === null ? "" : ` (mark ${formatPriceE8(m.markE8)})`}.${m.indexE8 === null ? "" : ` Pyth's index values it at ${formatPriceE8(m.indexE8)} (${premiumWords(m.indexPremiumBps).replace("mark", "index")}).`} The venue's reference is ${m.referenceAgeSec === null ? "MISSING" : `${m.referenceAgeSec} s old`}.`,
+    `e3 cost: this exact trade costs ${m.costBps === null ? "UNKNOWN (no quote)" : `${m.costBps} bps`} against the price. That is the venue's quote against the price, plus the ${TRANSFER_FEE_BPS / 100}% fee a practice desk's paper ledger takes.`,
+    `e4 status: trading on the name paused ${status(m.mintPaused)}, desk account frozen ${status(m.accountFrozen)}, desk paused ${limits.paused ? "YES" : "no"}, reference fresh ${limits.referenceFresh ? "yes" : "NO"}.`,
+    `e5 limits: per action ${formatUsdc(limits.perActionCapE6)} credits, left today ${formatUsdc(limits.remainingTodayE6)} credits, desk cash ${formatUsdc(limits.cashE6)} credits, desk holds ${formatTokens(limits.tokenBalanceRaw)} ${name} units. This action counts as ${formatUsdc(g.countedE6)} credits against the limits.`,
     ...(p ? [`e6 position: ${name} is ${pct(p.weightBps)} of the desk against a target of ${pct(p.targetBps)}. It may wander ${pct(p.thresholdBps)} before the desk considers acting.`] : []),
     `e7 recent: ${r.lastOnThisNameIso ? `the desk last acted on ${name} at ${r.lastOnThisNameIso} (${r.lastOutcome ?? "unknown"}, ${r.minutesSince ?? "?"} minutes ago)` : `the desk has not acted on ${name} before`}.${r.standingWait ? ` A wait decided at ${r.standingWait.decidedAtIso} (decision ${r.standingWait.seq}) has just ended.` : ""}`,
     ctx.rules.length === 0

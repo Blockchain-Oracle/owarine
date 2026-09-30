@@ -46,7 +46,7 @@ const EVIDENCE = (premiumBps: number, costBps: number | null, spot = "104.642768
 const CANDIDATE: NonNullable<DeskRecordBody["candidate"]> = { id: "c1", side: "buy", symbol: "ANTHROPIC", mint: ANTHROPIC_MINT, amountIn: "50", amountInUnit: "USDC", why: "Anthropic is 30.5% of the desk against a target of 40.0%. That is further than the 5.5% it may wander.", protective: false };
 const NEED = { driftBps: -947, thresholdBps: 550, limitedByPerActionLimit: true };
 const timing = (option: "ACT_NOW" | "ACT_PART" | "WAIT" | "DECLINE", headline: string, partPercent: 25 | 50 | 75 | null = null): NonNullable<DeskRecordBody["timing"]> => ({
-  promptVersion: "desk-timing.v1", model: "anthropic/claude-sonnet-5", latencyMs: 1840, totalTokens: 1210, finishReason: "stop", error: null, rejectedByOurChecks: [], styleWordsUsed: [],
+  promptVersion: "desk-timing.v2", model: "anthropic/claude-sonnet-5", latencyMs: 1840, totalTokens: 1210, finishReason: "stop", error: null, rejectedByOurChecks: [], styleWordsUsed: [],
   decision: {
     option, partPercent, headline, confidencePercent: 71,
     reasons: [{ text: "Anthropic sits 2.7% above its mark, inside the 10% ceiling, and the quote at this size costs 1.3% all in.", evidenceIds: ["e2", "e3"] }],

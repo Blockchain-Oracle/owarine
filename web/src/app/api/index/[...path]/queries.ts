@@ -4,6 +4,7 @@ import type { Db, IdxRow, IndexReader } from "@agari/db";
 import { z } from "zod";
 import { resolveArchiveQuery } from "./queries-archive";
 import { resolveProofQuery } from "./queries-proof";
+import { resolvePublishedQuery } from "./queries-published";
 import { resolveStatusQuery } from "./queries-status";
 import { resolveTapeQuery } from "./queries-tape";
 
@@ -18,7 +19,10 @@ export interface IndexQuery {
   owner?: Address;
   /** Overrides the public 2 s cache for immutable rows (e.g. a verified proof: `public, s-maxage=60`). Wallet scope ignores it. */
   cacheControl?: string;
-  /** Wallet scope: the route resolves the seat's current lease (party and start offset) and hands it to `run`. */
+  /**
+   * Wallet scope: the route resolves the seat's current lease (party and start offset) and hands it to `run`. Every
+   * wallet resource sets it (C13a): the projection keys a seat's rows by party, and a party is recycled to later visitors.
+   */
   seatLease?: boolean;
   /** `db` is for lane readers with their own SQL (`idx/read-{tape,status}.ts`, `proofs.ts`; proof-analytics.md §1). */
   run(reader: IndexReader, db: Db, lease?: SeatLeaseScope | null): Promise<IdxRow[]>;
@@ -75,15 +79,15 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
   switch (resource) {
     case "fills": {
       const q = parse(fillsQuery, query);
-      return { scope: "wallet", owner, run: (r) => r.walletFills(owner, { market: q.market, book: q.book, sinceSec: q.since, limit: q.limit, offset: q.offset }) };
+      return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.walletFills(owner, { market: q.market, book: q.book, sinceSec: q.since, limit: q.limit, offset: q.offset, lease: lease ?? null }) };
     }
     case "positions": {
       const q = parse(z.object({ unredeemed: flag, limit: optionalInt }), query);
-      return { scope: "wallet", owner, run: (r) => r.positions(owner, { unredeemedOnly: q.unredeemed, limit: q.limit }) };
+      return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.positions(owner, { unredeemedOnly: q.unredeemed, limit: q.limit, lease: lease ?? null }) };
     }
     case "actions": {
       const q = parse(pageQuery, query);
-      return { scope: "wallet", owner, run: (r) => r.walletActions(owner, q) };
+      return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.walletActions(owner, { ...q, lease: lease ?? null }) };
     }
     case "receipts": {
       // 0.4.0: the ledger's settlement receipts (pair legs and tickets), the history's ledger source (K-028).
@@ -92,7 +96,7 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
     }
     case "orders": {
       const q = parse(z.object({ market: address.optional(), open: flag, limit: optionalInt }), query);
-      return { scope: "wallet", owner, run: (r) => r.orders({ owner, market: q.market, openOnly: q.open, limit: q.limit }) };
+      return { scope: "wallet", owner, seatLease: true, run: (r, _db, lease) => r.orders({ owner, market: q.market, openOnly: q.open, limit: q.limit, lease: lease ?? null }) };
     }
     default:
       return null;
@@ -102,7 +106,7 @@ function walletQuery(wallet: string, resource: string | undefined, query: Record
 /** Null when the path names nothing; throws `BadRequest` when it does but a parameter is malformed. */
 export function resolveIndexQuery(path: readonly string[], query: Record<string, string>, _programId: string): IndexQuery | null {
   // S5 lane paths (`tape/*` 5b, `status/*` sub-paths 5c, `proofs/*` 5d) resolve in their own files first.
-  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, _programId) ?? resolveProofQuery(path, query) ?? resolveArchiveQuery(path, query);
+  const lane = resolveTapeQuery(path, query) ?? resolveStatusQuery(path, query, _programId) ?? resolveProofQuery(path, query) ?? resolveArchiveQuery(path, query) ?? resolvePublishedQuery(path, query);
   if (lane) return lane;
   const [head, second, third, ...rest] = path;
   if (rest.length > 0) return null;

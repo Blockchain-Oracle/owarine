@@ -49,7 +49,7 @@ export function ProfileRecord({ address, reading, retry, symbol, own }: ProfileR
   return (
     <>
       <section className="prf-section" aria-label={PROFILE.record.title}>
-        <SectionHeader index={PROFILE.record.number} title={PROFILE.record.title} desc={PROFILE.record.desc} className="lb-section-head" />
+        <SectionHeader index={PROFILE.record.number} title={PROFILE.record.title} desc={own ? PROFILE.record.desc : PROFILE.recordPublishedDesc} className="lb-section-head" />
         <ReadingBoundary reading={reading} shape="plate" retry={retry}>
           {(history) =>
             derived ? (

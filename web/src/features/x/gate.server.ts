@@ -1,16 +1,17 @@
 import { X_LINK_SIGNATURE_TTL_MS, xLinkMessage, xUnlinkMessage } from "@agari/core/x";
 import { xLinkByAuthor, xLinkByWallet, type XLinkRecord } from "@agari/db";
 import { isAddress, isSignature } from "@agari/core/types";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { readXConfig, type XConfig } from "./config.server";
 import type { XBinding } from "./protocol";
-import { readSession, X_SESSION_COOKIE, type XSession } from "./session.server";
+import { readSession, X_SESSION_COOKIE, X_SESSION_HEADER, type XSession } from "./session.server";
 
 /**
  * The X rail's authority — server only. The authorId comes from the SIGNED session, never the
  * client, so a caller can only ever link their own handle; the wallet proves itself by signing
- * the exact message the route rebuilds.
+ * the exact message the route rebuilds. The session is the web's cookie or, from the app, the same
+ * signed token in `X_SESSION_HEADER` (C13a: the `/native-auth` handoff).
  */
 export type XGate = { configured: false; missing: string[] } | { configured: true; config: XConfig; session: XSession | null };
 
@@ -18,7 +19,9 @@ export async function readXGate(origin: string): Promise<XGate> {
   const reading = readXConfig(origin);
   if (!reading.configured) return reading;
   const jar = await cookies();
-  return { configured: true, config: reading.config, session: readSession(reading.config.sessionSecret, jar.get(X_SESSION_COOKIE)?.value) };
+  const secret = reading.config.sessionSecret;
+  const session = readSession(secret, jar.get(X_SESSION_COOKIE)?.value) ?? readSession(secret, (await headers()).get(X_SESSION_HEADER) ?? undefined);
+  return { configured: true, config: reading.config, session };
 }
 
 export function toBinding(link: XLinkRecord): XBinding {

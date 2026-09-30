@@ -11,6 +11,7 @@ import { useNowMs } from "@/components/data/useNowMs";
 import { CLOSED_POLL_MS } from "@/features/markets/asset-history";
 import { useMarketSession, type MarketSession } from "@/features/markets/session/useMarketSession";
 import { useVenue } from "@/features/markets/useVenue";
+import { NEWS } from "@/features/news/copy";
 import type { SentimentReading } from "@/features/news/protocol";
 import { useSentiment } from "@/features/news/useSentiment";
 import { SESSION_COPY } from "@/lib/copy-session";
@@ -29,6 +30,8 @@ export interface MarqueeItem {
   tag?: string;
   /** A quiet word after the value in the label's ink: `CLOSE` on a last close standing in for a live price. */
   note?: string;
+  /** Read on hover (web) or by the screen reader (app): the crowd cell's privacy note (C13a). */
+  hint?: string;
 }
 
 function mmss(totalSec: number): string {
@@ -53,10 +56,10 @@ function sessionCell(session: MarketSession, nowSec: number, when: ReturnType<ty
 
 /** Q-S13-1: the crowd's lean as its majority side in whole percent, `SENTIMENT —` below the fill floor or unread. */
 function sentimentCell(reading: SentimentReading | null): MarqueeItem {
-  if (reading === null || reading.upBps === null) return { label: "SENTIMENT", value: "—" };
+  if (reading === null || reading.upBps === null) return { label: "SENTIMENT", value: "—", hint: NEWS.crowdPrivacy };
   const up = reading.upBps >= 5_000;
   const shareBps = up ? reading.upBps : 10_000 - reading.upBps;
-  return { label: "CROWD", value: `${Math.floor((shareBps + 50) / 100)}%`, direction: up ? "up" : "down", tag: up ? "UP" : "DOWN" };
+  return { label: "CROWD", value: `${Math.floor((shareBps + 50) / 100)}%`, direction: up ? "up" : "down", tag: up ? "UP" : "DOWN", hint: NEWS.crowdPrivacy };
 }
 
 /** The strip's cells, in order: prices, then the session or next-close clock, then the crowd (web and the app render these). */

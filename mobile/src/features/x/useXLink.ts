@@ -2,31 +2,35 @@ import { shortHex } from "@agari/core/units";
 import { xLinkMessage, xUnlinkMessage } from "@agari/core/x";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { X_CARD, X_ERRORS } from "@/features/x/copy";
+import { X_CARD, X_ERRORS, X_OAUTH_FALLBACK, X_OAUTH_MESSAGES } from "@/features/x/copy";
 import type { XStatus } from "@/features/x/protocol";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
+import { signInWithX } from "./x-sign-in";
+import { setForwardedXSession, xSessionHeaders } from "./x-session";
 
-export type XBusy = "" | "link" | "unlink";
+export type XBusy = "" | "link" | "unlink" | "sign-in";
 
 const POLL_MS = 15_000;
 export const xStatusKey = (wallet: string | null) => ["agari", "x-status", wallet] as const;
 
 async function fetchStatus(wallet: string | null): Promise<XStatus | null> {
   const q = wallet ? `?wallet=${encodeURIComponent(wallet)}` : "";
-  const response = await fetch(`/api/x/status${q}`, { cache: "no-store" });
+  // C13a: the X session the web handed this app (`/native-auth`) rides in its header, as the web's cookie does.
+  const response = await fetch(`/api/x/status${q}`, { cache: "no-store", headers: await xSessionHeaders() });
   return response.ok ? ((await response.json()) as XStatus) : null;
 }
 
 async function post(path: string, body: unknown): Promise<{ ok: boolean; body: { ok?: boolean; reason?: string; boundWallet?: string } }> {
-  const response = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const response = await fetch(path, { method: "POST", headers: { "content-type": "application/json", ...(await xSessionHeaders()) }, body: JSON.stringify(body) });
   return { ok: response.ok, body: (await response.json().catch(() => ({}))) as { ok?: boolean; reason?: string; boundWallet?: string } };
 }
 
 /**
  * web's features/x/useXStatus.ts, for the phone. The same two facts — who is signed in with X here (the session) and
- * which account routes to which wallet (the store, read by wallet) — and the same signed link/unlink. It drops what
- * only a browser has: the OAuth bounce read off `window.location`. The status is a React Query read so every screen
- * shares one poll.
+ * which account routes to which wallet (the store, read by wallet) — and the same signed link/unlink. The OAuth bounce
+ * the web reads off `window.location` is, on the phone, the `/native-auth` handoff (C13a): `signIn` runs X's sign-in in
+ * an auth session and keeps the session the web hands back. The status is a React Query read so every screen shares
+ * one poll.
  */
 export function useXLink() {
   const { address } = useWalletSession();
@@ -56,6 +60,31 @@ export function useXLink() {
   const refresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: xStatusKey(address) });
   }, [queryClient, address]);
+
+  const signIn = useCallback(async () => {
+    if (busy) return;
+    setError("");
+    setOk("");
+    setBusy("sign-in");
+    try {
+      const result = await signInWithX();
+      if (!result.ok) {
+        if (result.reason !== "cancelled") setError(X_OAUTH_MESSAGES[result.reason] ?? X_OAUTH_FALLBACK);
+        return;
+      }
+      await refresh();
+    } catch {
+      setError(X_OAUTH_FALLBACK);
+    } finally {
+      setBusy("");
+    }
+  }, [busy, refresh]);
+
+  /** Forget the X session on this phone (the route stays, as the web's sign-out leaves it). */
+  const signOut = useCallback(async () => {
+    await setForwardedXSession(null);
+    await refresh();
+  }, [refresh]);
 
   const link = useCallback(async () => {
     if (!address || !session || busy) return;
@@ -113,6 +142,8 @@ export function useXLink() {
     walletMismatch,
     sessionMatchesBinding,
     refresh,
+    signIn,
+    signOut,
     link,
     unlink,
     setOk,
