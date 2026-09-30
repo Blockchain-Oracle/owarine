@@ -1,11 +1,13 @@
-import { partyLead, shortHex } from "@agari/core/units";
+import { partyLead } from "@agari/core/units";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { emojiAvatarFor, formatAccountAddress } from "@/providers/wallet/emoji-avatar";
 import { useWalletSession } from "@/lib/wallet-session";
 import { haptic } from "~/components/kit";
+import { TapHash } from "~/components/ui/TapHash";
 import { CopiedIcon, CopyIcon, DisconnectIcon } from "~/components/wallet/profile-icons";
 import { Link2 } from "lucide-react-native";
 import { CloseButton } from "~/components/wallet/sheet-parts";
@@ -55,9 +57,7 @@ export default function AccountSheet() {
             <Text style={[styles.name, { color: color.ink }]} accessibilityRole="header" accessibilityLabel={address}>
               {formatAccountAddress(address)}
             </Text>
-            <Text style={[styles.note, { color: color.inkSecondary }]} accessibilityLabel={leaseLine(seat.lease.view, true)}>
-              {leaseLine(seat.lease.view, false)}
-            </Text>
+            <LeaseLine view={seat.lease.view} />
           </View>
           {confirming ? (
             <>
@@ -94,13 +94,25 @@ export default function AccountSheet() {
   );
 }
 
-/** The lease under the seat ID: the leased party (hint and fingerprint head), or its honest state. */
-function leaseLine(view: SeatLeaseView | null, spoken: boolean): string {
+/** The lease under the seat ID: the leased party (hint and fingerprint head; a tap shows all of it), or its honest state. */
+function LeaseLine({ view }: { view: SeatLeaseView | null }) {
+  const { color } = useTheme();
+  const note = [styles.note, { color: color.inkSecondary }];
+  if (view?.kind === "leased") {
+    const part = [styles.note, { color: color.inkSecondary, paddingHorizontal: 0 }];
+    return (
+      <View style={styles.party}>
+        <Text style={part}>{T.party}:</Text>
+        <TapHash value={view.party} lead={partyLead(view.party)} label={ID_LABEL.party} style={part} />
+      </View>
+    );
+  }
+  return <Text style={note}>{leaseLine(view)}</Text>;
+}
+
+function leaseLine(view: Exclude<SeatLeaseView, { kind: "leased" }> | null): string {
   if (view === null) return T.leaseReading;
   switch (view.kind) {
-    case "leased": {
-      return `${T.party}: ${spoken ? view.party : shortHex(view.party, partyLead(view.party), 4)}`;
-    }
     case "pool-full":
       return T.leasePoolFull;
     case "not-live":
@@ -140,6 +152,7 @@ const styles = StyleSheet.create({
   avatar: { width: 82, height: 82, borderRadius: 9999, marginTop: 24, alignItems: "center", justifyContent: "center", overflow: "hidden" },
   emoji: { fontSize: 45, lineHeight: 54 },
   name: { fontFamily: FONT.bodyHeavy, fontSize: 20, lineHeight: 24, textAlign: "center" },
+  party: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", justifyContent: "center", gap: 6, paddingHorizontal: 8 },
   note: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18, textAlign: "center", paddingHorizontal: 8 },
   warning: { marginTop: 12 },
   actions: { flexDirection: "row", gap: 8, margin: 2, marginTop: 16 },

@@ -1,6 +1,7 @@
 import { formatUtc } from "@agari/core/units";
 import Link from "next/link";
-import { Hash } from "@/components/data/Hash";
+import { TapHash } from "@/components/data/TapHash";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { PROOF_CANTON } from "@/features/canton-ux/proof/copy";
 import "@/features/canton-ux/proof/proof-canton.css";
 import type { LedgerUpdateFacts } from "./resolution-evidence.server";
@@ -15,7 +16,7 @@ export function LedgerUpdatePlate({ updateId, facts }: { updateId: string; facts
   return (
     <section className="status-holding proof-update" aria-label={U.title} role="status">
       <p className="status-holding-text">
-        {U.title} <Hash value={updateId} lead={10} tail={6} />
+        {U.title} <TapHash value={updateId} lead={10} tail={6} label={ID_LABEL.update} />
       </p>
       {facts === "missing" ? (
         <p className="type-caption text-ink-secondary">{U.missing}</p>

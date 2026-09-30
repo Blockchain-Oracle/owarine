@@ -1,14 +1,16 @@
 import type { MarketId } from "@agari/core/types";
-import { partyLead, shortHex } from "@agari/core/units";
+import { partyLead } from "@agari/core/units";
 import { useLedgerViews, type LedgerViewAs } from "@agari/markets/react";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy, RefreshCw, UserX } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { PRIVACY } from "@/features/canton-ux/privacy/copy";
 import { viewOf, type PartyView } from "@/features/canton-ux/privacy/party-views";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { Button, haptic } from "~/components/kit";
+import { TapHash } from "~/components/ui/TapHash";
 import { EmptyState, UnderlineTabs } from "~/features/desk/kit";
 import { SectionHeader } from "~/features/explore/SectionHeader";
 import { FONT, RADIUS, useTheme } from "~/theme";
@@ -16,7 +18,6 @@ import { WhoCanSee } from "./WhoCanSee";
 
 const S = PRIVACY.switcher;
 const COPIED_MS = 1_500;
-const short = (party: string) => (party ? shortHex(party, partyLead(party), 4) : "…");
 
 /**
  * web's `LiveViewSwitcher` + `ViewSwitcher` (C-ADD-02) ported literally for the phone's `/markets/<id>` page: the same
@@ -57,9 +58,7 @@ function Panel({ view }: { view: PartyView }) {
     <View style={styles.panel} accessibilityRole="summary">
       <View style={styles.head}>
         <Text style={[styles.headText, { color: color.inkMuted }]}>{S.asParty}</Text>
-        <Text style={[styles.party, { color: color.ink }]} accessibilityLabel={view.party}>
-          {short(view.party)}
-        </Text>
+        {view.party ? <TapHash value={view.party} lead={partyLead(view.party)} label={ID_LABEL.party} style={[styles.party, { color: color.ink }]} /> : <Text style={[styles.party, { color: color.ink }]}>…</Text>}
         {!view.status ? <Text style={[styles.count, { color: color.inkMuted }]}>{S.returned(view.positions.length)}</Text> : null}
       </View>
       <Positions view={view} />

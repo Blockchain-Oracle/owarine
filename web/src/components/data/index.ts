@@ -4,5 +4,6 @@ export * from "./Hash";
 export * from "./KeepCase";
 export * from "./Money";
 export * from "./Odds";
+export * from "./TapHash";
 export * from "./useNowMs";
 export * from "./UtcTime";

@@ -4,7 +4,8 @@ import { partyLead } from "@agari/core/units";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Hash } from "@/components/data";
+import { TapHash } from "@/components/data";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { ConnectButton } from "@/features/markets/wallet";
 import { RegionNote } from "@/features/region/RegionNote";
 import { blockerLabel, diagnosisCopy } from "@/lib/copy";
@@ -92,7 +93,7 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
                 <div>
                   <dt>{F.party}</dt>
                   <dd>
-                    <Hash value={credit.party} lead={partyLead(credit.party)} tail={4} />
+                    <TapHash value={credit.party} lead={partyLead(credit.party)} tail={4} label={ID_LABEL.party} />
                   </dd>
                 </div>
               )}

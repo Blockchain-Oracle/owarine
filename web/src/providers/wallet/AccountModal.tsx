@@ -5,7 +5,8 @@ import { Dialog } from "@base-ui/react/dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { WALLET_MODAL } from "./copy";
 import { leasedOf, useSeatLeaseState } from "./seat-lease-context";
-import { Hash } from "@/components/data/Hash";
+import { TapHash } from "@/components/data/TapHash";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { emojiAvatarFor, formatAccountAddress } from "./emoji-avatar";
 import { CloseButton, usePhoneLayout, WalletDialog } from "./wallet-modal-parts";
 
@@ -89,7 +90,7 @@ function LeaseLine() {
   if (leased) {
     return (
       <Dialog.Description className="wm-t14m wm-group-muted" title={leased.party}>
-        {S.party}: <Hash value={leased.party} lead={partyLead(leased.party)} tail={4} />
+        {S.party}: <TapHash value={leased.party} lead={partyLead(leased.party)} tail={4} label={ID_LABEL.party} />
       </Dialog.Description>
     );
   }

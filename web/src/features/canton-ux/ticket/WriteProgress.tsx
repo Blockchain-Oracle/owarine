@@ -1,7 +1,8 @@
 "use client";
 
 import type { WritePhase } from "@agari/core/ports";
-import { Hash } from "@/components/data/Hash";
+import { TapHash } from "@/components/data/TapHash";
+import { ID_LABEL } from "../id-label";
 import { StepProgress } from "@/components/ui/desk-kit";
 import { TICKET_CANTON } from "./copy";
 
@@ -39,7 +40,7 @@ export function WriteProgress({ phase, updateId, variant = "inline", words = T }
         {phase === "confirmed" && updateId && (
           <>
             {" "}
-            <Hash value={updateId} lead={8} tail={4} className="cx-write-id" />
+            <TapHash value={updateId} lead={8} tail={4} label={ID_LABEL.update} className="cx-write-id" />
           </>
         )}
       </p>

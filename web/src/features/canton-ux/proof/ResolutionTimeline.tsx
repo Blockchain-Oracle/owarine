@@ -3,7 +3,8 @@
 import { formatUtc, partyLead } from "@agari/core/units";
 import { Ban, CircleDot, Flag, Radio, RadioTower, Sigma } from "lucide-react";
 import type { ReactNode } from "react";
-import { Hash } from "@/components/data/Hash";
+import { TapHash } from "@/components/data/TapHash";
+import { ID_LABEL } from "../id-label";
 import { Timeline, TimelineNode, type NodeTone } from "@/components/ui/desk-kit";
 import { PROOF_CANTON } from "./copy";
 import "./proof-canton.css";
@@ -34,12 +35,12 @@ function Meta({ updateId, party, atMs }: { updateId?: string | null; party?: str
       {atMs != null && <span>{time(atMs)}</span>}
       {party && (
         <span>
-          {P.party} <Hash value={party} lead={partyLead(party)} tail={4} />
+          {P.party} <TapHash value={party} lead={partyLead(party)} tail={4} label={ID_LABEL.party} />
         </span>
       )}
       {updateId && (
         <span>
-          {P.update} <Hash value={updateId} lead={8} tail={4} />
+          {P.update} <TapHash value={updateId} lead={8} tail={4} label={ID_LABEL.update} />
         </span>
       )}
     </p>

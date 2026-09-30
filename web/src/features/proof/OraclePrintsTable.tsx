@@ -1,5 +1,6 @@
 import { partyLead } from "@agari/core/units";
-import { Hash } from "@/components/data";
+import { Hash, TapHash } from "@/components/data";
+import { ID_LABEL } from "@/features/canton-ux/id-label";
 import type { CantonProofView, OraclePrintView, SlotView } from "./canton-proof";
 import { PROOF } from "./copy";
 import { afterT, oracleName, priceE8Text } from "./format";
@@ -91,11 +92,11 @@ export function OraclePrintsTable({ view }: { view: CantonProofView }) {
             <span className="status-row-label">{PROOF.signedBy}</span>
             <span className="status-row-lag">2</span>
             <span className="status-row-detail">
-              <Hash value={view.signatories.resolver} lead={partyLead(view.signatories.resolver)} tail={4} />
+              <TapHash value={view.signatories.resolver} lead={partyLead(view.signatories.resolver)} tail={4} label={ID_LABEL.party} />
               {view.signatories.venue && (
                 <>
                   {" + "}
-                  <Hash value={view.signatories.venue} lead={partyLead(view.signatories.venue)} tail={4} />
+                  <TapHash value={view.signatories.venue} lead={partyLead(view.signatories.venue)} tail={4} label={ID_LABEL.party} />
                 </>
               )}
               {` · ${PROOF.signatories}`}
