@@ -67,6 +67,8 @@ const commit = (() => {
 async function main(): Promise<number> {
   if (!Number.isInteger(seats) || seats < 1) throw new Error("--seats must be a positive integer");
   if (insideRepo(input) || insideRepo(out)) throw new Error("the parties file lives outside the repo (party ids never go into Git): use ~/.config/agari/canton/");
+  // C2z: a rehearsal's sandbox ids must never land in the file ops and the web read on DevNet.
+  if (local && out === DEFAULT_FILE) throw new Error(`a local rehearsal never writes ${DEFAULT_FILE}: pass --out <file outside the repo>`);
   if (!existsSync(input)) throw new Error(`${input} does not exist: copy docs/plan/runbooks/devnet-parties.example.json there and fill it`);
   const summary = ledgerConfigSummary(env);
   log(`ledger ${summary.url} (auth ${summary.mode})${dryRun ? ", DRY RUN: prepare only" : ""}`);
