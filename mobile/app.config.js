@@ -67,5 +67,6 @@ module.exports = () => ({
   experiments: { typedRoutes: true, reactCompiler: true },
   extra: { router: {}, ...(eas ? { eas } : {}) },
   runtimeVersion: { policy: "appVersion" },
-  ...(eas ? { updates: { url: `https://u.expo.dev/${id.easProjectId}` } } : {}),
+  // No EAS project yet: updates are off outright, so a build never asks any update server for a bundle.
+  updates: eas ? { url: `https://u.expo.dev/${id.easProjectId}` } : { enabled: false },
 });
