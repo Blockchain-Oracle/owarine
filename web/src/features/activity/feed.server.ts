@@ -79,12 +79,11 @@ export async function tickerFeed(symbol: TickerSymbol): Promise<ActivityFeed> {
 }
 
 /**
- * STUB (C11a → C13a): a seat's own inbox for its phone's push (plan iOS step 10), private calls included. The Canton
- * projection records a seat's rows by its leased party, never by address (`owner_address` is not written; c9d
- * evidence), so the real read is C13a's `seatActivityReader(sql).fills(address, lease)` / `.settlements(address,
- * lease)` (same row shapes as the published feed), keyed by the lease's party from its start offset. Until both lanes
- * are on main this answers the published inbox only, as the drain did before: a private call's settle sends no push yet.
+ * A seat's own inbox for its phone's push (plan iOS step 10; C11a, wired in C13a), private calls included: the leased
+ * party's fills and verdicts from the lease's start offset (`seatActivityReader`), the same rows `/api/activity` gives
+ * the seat itself. The projection records a seat's rows by its leased party, never by address, so a recycled seat's
+ * phone never hears about the previous visitor's calls. `holder` is the address the lease was taken with.
  */
-export async function seatInboxFeed(holder: Address, _lease: { party: string; startOffset: number }, sinceSec?: number): Promise<ActivityFeed> {
-  return inboxFeed(holder, sinceSec);
+export async function seatInboxFeed(holder: Address, lease: { party: string; startOffset: number }, sinceSec?: number): Promise<ActivityFeed> {
+  return ownInboxFeed(holder, { party: lease.party, fromOffset: lease.startOffset }, sinceSec);
 }

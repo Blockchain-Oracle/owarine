@@ -125,7 +125,7 @@ export async function drainPush(nowMs: number): Promise<DrainReport> {
     const oldest = Math.min(...owned.map((d) => d.sinceSec));
     const since = Math.max(oldest - LATE_SEC, nowSec - LOOKBACK_SEC);
     // A leased seat's phone hears about its own calls through its lease (a phone joined by a seat link, its seat's);
-    // any other address hears its published calls. seatInboxFeed is a stub until C13a's seat reader lands (see it).
+    // any other address hears its published calls.
     const seat = await seatLeaseOf(wallet);
     const feed = seat ? await seatInboxFeed(seat.holder, seat.lease, since) : await inboxFeed(wallet as Address, since);
     return owned.map((device) => messagesFor(device, feed.items, sentByToken.get(device.expoToken) ?? new Set(), units));
