@@ -31,7 +31,10 @@ export function TakeSeat({ taking, error, onTake, onBrowse, onLink }: { taking: 
       <View style={styles.actions}>
         <Button label={taking ? SEAT.sheet.taking : SEAT.terms.accept} variant="primary" size="lg" loading={taking} onPress={onTake} />
         {/* The seat link (iOS step 2b): a seat already taken on the web joins this phone instead of a new one. */}
-        <Button label={SEAT.link.haveSeat} variant="outline" size="lg" disabled={taking} onPress={onLink} />
+        <View style={styles.link}>
+          <Text style={[styles.ask, { color: color.inkSecondary }]}>{SEAT.link.haveSeatAsk}</Text>
+          <Button label={SEAT.link.haveSeatLink} variant="outline" size="lg" disabled={taking} onPress={onLink} />
+        </View>
         <Button label={SEAT.terms.browse} variant="ghost" size="lg" disabled={taking} onPress={onBrowse} />
       </View>
     </View>
@@ -45,4 +48,6 @@ const styles = StyleSheet.create({
   line: { fontFamily: FONT.body, fontSize: 15, lineHeight: 21, textAlign: "center" },
   error: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18, textAlign: "center" },
   actions: { gap: 8, alignSelf: "stretch" },
+  link: { gap: 6 },
+  ask: { fontFamily: FONT.body, fontSize: 13, lineHeight: 18, textAlign: "center" },
 });

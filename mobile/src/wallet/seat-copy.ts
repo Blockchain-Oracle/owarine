@@ -44,7 +44,9 @@ export const SEAT = {
   link: {
     screen: "Seat link",
     entry: "Use on another device",
-    haveSeat: "Have a seat on the web? Link this phone",
+    /** The Take a seat sheet's second way in, in two parts: the kit Button holds one line, and the whole sentence (about 330pt) does not fit a phone's 310. */
+    haveSeatAsk: "Have a seat on the web?",
+    haveSeatLink: "Link this phone",
     termsFirst: "Accept the demo-credits terms first: a linked phone trades the same demo credits.",
     termsLine: "Joining uses demo credits only: no cash value, nothing to buy, sell or withdraw.",
     accept: "Accept and continue",
