@@ -131,11 +131,11 @@ export function tusdcBaseUnits(units: bigint, decimals: number): bigint {
 /** One free signature covers both claims (D-034): it names the SOL top-up rule and the tUSDC amount. */
 export function faucetChallengeMessage(input: { origin: string; wallet: string; id: string; expiresAtMs: number }): string {
   return [
-    `${SIGNED_MESSAGE_BRAND} devnet test funds request`,
+    `${SIGNED_MESSAGE_BRAND} test funds request`,
     `Site: ${input.origin}`,
     `Wallet: ${input.wallet}`,
     networkLine(SOL_FAUCET_POLICY.cluster),
-    `Request: top up SOL to 0.02 only if my balance is below 0.005, and add ${TUSDC_FAUCET_POLICY.amountUnits.toLocaleString("en-US")} demo credits; subject to availability and limits.`,
+    `Request: add ${TUSDC_FAUCET_POLICY.amountUnits.toLocaleString("en-US")} demo credits to this seat; subject to availability and limits.`,
     `Nonce: ${input.id}`,
     `Expires: ${new Date(input.expiresAtMs).toISOString()}`,
     "This message is not a transaction: it costs nothing and gives no permission to spend my funds.",

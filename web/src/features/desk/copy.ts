@@ -37,7 +37,7 @@ export const DESK = {
   studio: {
     kicker: "Desk studio",
     title: "Tell the desk what to hold.",
-    body: "Pick a basket, set the limits, hear the desk read it back, then create it. You decide what; the desk decides only when; the program enforces the money limits.",
+    body: "Pick a basket, set the limits, hear the desk read it back, then create it. You decide what; the desk decides only when; the ledger enforces the money limits.",
     steps: ["The basket", "How strict, and the limits", "The test read", "Create"] as const,
     stepsAria: "Creation progress",
     back: "← Back",
@@ -64,7 +64,7 @@ export const DESK = {
       premium: (pct: string) => `Never buy a company more than ${pct} above its mark`,
       loss: (pct: string) => `Stop everything after a fall of ${pct}`,
       large: (usd: string) => `Ask me first above ${usd}`,
-      program: "The program enforces this",
+      program: "The ledger enforces this",
       code: "The desk's own code enforces this",
       programNote: "Per action, per day, the premium ceiling and which companies are allowed are written into your desk's contract on the ledger. The desk cannot go past them whatever it decides.",
       codeNote: "Drift, the largest share and the loss stop are checked by the desk's own code before anything is sent.",
@@ -91,7 +91,7 @@ export const DESK = {
     },
     create: {
       title: "Create your desk",
-      practice: { title: "Practice", body: "One signature. The desk exists as a record with a practice balance. Every hour it reads real prices and writes down what it would have done. No transaction, no money, no eligibility.", button: "Sign and start in practice", done: "Your practice desk exists." },
+      practice: { title: "Practice", body: "One signature. The desk exists as a record with a practice balance. Every hour it reads real prices and writes down what it would have done. No ledger write, no money, no eligibility.", button: "Sign and start in practice", done: "Your practice desk exists." },
       live: { title: "Live", body: "The live desk trades this venue's own markets with your seat's cash: a company is held as its hourly Window, bought and sold at the venue's firm price, inside limits the ledger enforces.", button: "Open the live desk", needsPractice: (n: number) => `Go live unlocks after ${n} practice checks and the record opened. Start in practice first.` },
       applied: "Mandate applied.",
       apply: "Sign the new version",
@@ -120,7 +120,7 @@ export const DESK = {
       readDone: "Done for this draft",
       readStale: "Draft changed since",
       readNone: "Not yet",
-      approach: "The desk's one approach: AI judges only timing; arithmetic decides everything else, and the program holds the money limits.",
+      approach: "The desk's one approach: AI judges only timing; arithmetic decides everything else, and the ledger holds the money limits.",
     },
   },
 
@@ -213,7 +213,7 @@ export const DESK = {
     title: "The promise",
     points: [
       "It is your account: only you can withdraw, and only to your seat.",
-      "It stays inside your limits, and the program itself enforces the money limits.",
+      "It stays inside your limits, and the ledger itself enforces the money limits.",
       "It always explains itself, including every time it does nothing.",
       "The record cannot be quietly changed: its fingerprint is on the ledger in the same command as the trade.",
       "You can stop it at any moment: Pause, Withdraw, Close.",

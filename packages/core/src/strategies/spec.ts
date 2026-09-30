@@ -20,8 +20,8 @@ export const PRESETS: Record<PresetKey, { name: string; tagline: string; how: st
   },
   mirror: {
     name: "Copy a trader",
-    tagline: "Follow one wallet",
-    how: "Watches one named wallet. When it takes a side on a Window and is still net on it, this takes the same side, inside your own limits. Your order goes in after theirs, at whatever the book holds then — never at their price.",
+    tagline: "Follow one seat",
+    how: "Watches one named seat. When it takes a side on a Window and is still net on it, this takes the same side, inside your own limits. Your order goes in after theirs, at whatever the book holds then — never at their price.",
   },
 };
 
@@ -35,7 +35,7 @@ export const LOOKBACK_MAX = 12;
 /** Plain-language description of exactly what the runner will do with this spec (reference `describeSpec`). */
 export function describeSpec(s: StrategySpec, asset = DEFAULT_SPEC_ASSET): string {
   if (s.preset === "agent") return describeAgentSpec(s, asset);
-  if (s.preset === "mirror") return `Every round it reads what ${shortTrader(s.trader)} did on each live Window. If that wallet took a side in the last ${s.withinSec} seconds and is still net on it, this takes the same side. Your order lands after theirs, at the book's price then.`;
+  if (s.preset === "mirror") return `Every round it reads what ${shortTrader(s.trader)} did on each live Window. If that seat took a side in the last ${s.withinSec} seconds and is still net on it, this takes the same side. Your order lands after theirs, at the book's price then.`;
   const dir = s.preset === "momentum" ? "with" : "against";
   const pct = (s.thresholdBps / 100).toFixed(2).replace(/\.?0+$/, "");
   return `Every round it reads the last ${s.lookback} prices of ${asset}. If the price moved at least ${pct}%, it bets ${dir} that move. Otherwise it sits out.`;

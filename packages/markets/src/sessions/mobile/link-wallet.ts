@@ -35,7 +35,7 @@ export class WalletLinkError extends Error {
 /** A byte-level wallet's transaction signer (the reference's MWA and deeplink hand-off). */
 export type SignWireTransactions = (wire: Uint8Array[], abortSignal?: AbortSignal) => Promise<Uint8Array[]>;
 
-const NOT_ON_CANTON = cantonNotLive("external Solana wallets (the seat signs instead)");
+const NOT_ON_CANTON = cantonNotLive("external wallets (the seat signs instead)");
 const refuse = (): Promise<never> => Promise.reject(notDeployedError(NOT_ON_CANTON));
 
 export async function connectLinkWallet(_wallet: LinkWalletName, _port: LinkPort, _appUrl: string, _cluster: string): Promise<LinkWalletState> {

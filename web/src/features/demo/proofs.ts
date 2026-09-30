@@ -29,7 +29,7 @@ export interface TxProof {
 export const TX_PROOFS: readonly TxProof[] = [];
 
 const OPERATION_LABEL: Record<ProofOperation, string> = {
-  deploy: "Program deployed",
+  deploy: "Daml package uploaded",
   listing: "Series listed",
   faucet: "Test funds minted",
   order: "Order resting",

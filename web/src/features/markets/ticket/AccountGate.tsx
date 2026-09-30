@@ -49,7 +49,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
   const needBase = availableBase !== null && requiredBase > availableBase ? requiredBase - availableBase : null;
   const minting = faucet.busy;
   const walletBalance = balanceSource === "wallet";
-  const balanceLabel = walletBalance ? "Wallet" : balanceSource === "private" ? "Private balance" : "Trading Balance";
+  const balanceLabel = walletBalance ? "Seat" : balanceSource === "private" ? "Private balance" : "Trading Balance";
 
   return (
     <>
@@ -68,7 +68,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
               ? needBase !== null
                 ? ` ${depositBase > 0n ? TICKET.gate.needWithDeposit(formatBaseUnits(needBase, decimals), symbol, formatBaseUnits(depositBase, decimals)) : TICKET.gate.need(formatBaseUnits(needBase, decimals), symbol)}`
                 : ` ${TICKET.gate.empty}`
-              : balanceSource === "private" ? " Fund and authorize your private balance on Portfolio before placing a private bet." : " Add funds to your Trading Balance on Portfolio, or switch to Wallet."}
+              : balanceSource === "private" ? " Fund and authorize your private balance on Portfolio before placing a private bet." : " Add funds to your Trading Balance on Portfolio, or switch to Seat."}
           </p>
           {faucet.state.diagnosis && <p className="tk-gate-line">{diagnosisCopy(faucet.state.diagnosis.kind).headline}</p>}
           <div className="tk-gate-actions">

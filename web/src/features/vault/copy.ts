@@ -13,7 +13,7 @@ export const VAULT = {
   idleYield: {
     idle: "Money sitting in your Trading Balance earns nothing. It is here to be staked, and until it is, it is just parked.",
     empty: "An empty Trading Balance earns nothing either — this is where money waits to be staked, not where it grows.",
-    mainnetOnly: "The lending markets that pay for idle collateral — Kamino, Jupiter Lend — do not run on this cluster, so Agari shows no rate from them rather than an invented one.",
+    mainnetOnly: "No lending market pays for idle collateral on this venue, so Agari shows no lending rate rather than an invented one.",
     hereInstead: "What pays here is being the house. Each reserve's share price is what its suppliers have actually made or lost so far:",
     maker: "Maker vault",
     range: "Range & Moonshot",
@@ -35,14 +35,14 @@ export const VAULT = {
   /** The card block (reference L416–466). */
   eyebrow: "Trading balance",
   /** Truth-corrected: the reference said "Your new bets do not use this" because its bets ran on the manager account. Here the vault route bets from it. */
-  note: "Bets placed from it and the grants you allow spend from here. Move it to your wallet whenever you want.",
+  note: "Bets placed from it and the grants you allow spend from here. Move it back to your seat whenever you want.",
   amountLabel: "Trading Balance amount",
   /** The amount field's Max and its one reason (S23). */
   amount: {
     max: "Max",
     notANumber: "Enter an amount like 12.50",
-    overWallet: (held: string) => `Your wallet holds ${held}`,
-    walletHolds: (held: string) => `Wallet: ${held}`,
+    overWallet: (held: string) => `Your seat holds ${held}`,
+    walletHolds: (held: string) => `Seat: ${held}`,
   },
   deposit: "Deposit",
   depositing: "Depositing",
@@ -54,7 +54,7 @@ export const VAULT = {
   approvalNote: "Two signatures this first time: approve credits, then the deposit.",
   /** The snapshot cells (reference L358–412), the ones the vault can fill truthfully. */
   cells: {
-    wallet: "Wallet",
+    wallet: "Seat",
     available: "Available",
     inTrades: "In trades",
     inTradesNote: "at cost — the venue does not price vault positions yet",
@@ -81,7 +81,7 @@ export const VAULT = {
   },
   notDeployed: {
     why: VAULT_NOT_DEPLOYED,
-    how: "The agari-vault program id (scripts/deploy/addresses.devnet.json, or the NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID override) connects it once the program is live. Wallet orders keep working.",
+    how: "The Trading Balance connects once the venue's VenueCash contracts are on this network (proven on the local sandbox, not yet on DevNet). Orders from the seat keep working.",
   },
   positionsNote: "Positions the vault holds for you appear under Your bets.",
   /** Open bets the vault holds (`BetRow` grammar, plus the seat). */
@@ -108,9 +108,9 @@ export const VAULT = {
   },
   toasts: {
     deposited: "Deposit landed in your Trading Balance.",
-    withdrawn: "Withdrawn to your wallet.",
+    withdrawn: "Withdrawn to your seat.",
     movedPrivate: "Moved to your private balance.",
-    withdrawnPrivate: "Private balance withdrawn to your wallet.",
+    withdrawnPrivate: "Private balance withdrawn to your seat.",
     revoked: "Grant revoked; its budget is back in your balance.",
     swept: "Venue credit swept into the vault.",
     unknown: "Waiting for the chain to answer — the write is journaled, nothing is re-sent.",
@@ -127,6 +127,6 @@ export const VAULT = {
     loading: "Nothing known yet",
     bets: "Open bets the vault holds",
     cashOut: "Cash out — idle, selling, no exit liquidity, locked, requote, not live",
-    live: "Live — connected wallet",
+    live: "Live — your seat",
   },
 } as const;

@@ -32,7 +32,7 @@ describe("privateOpenMessage", () => {
         `Wallet: ${INPUT.owner}`,
         "Issued: 2026-09-03T01:46:40.000Z",
         "",
-        "Signing lets the desk place this one bet from your private balance. It moves no funds by itself and costs nothing. Kept separate from your wallet, so it is harder to link back to you — not anonymous.",
+        "Signing lets the desk place this one bet from your private balance. It moves no funds by itself and costs nothing. Kept separate from your seat's own balance, so it is harder to link back to you — not anonymous.",
       ].join("\n"),
     );
   });

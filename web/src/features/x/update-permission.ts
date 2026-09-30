@@ -36,7 +36,7 @@ export interface XUpdateDependencies {
   nowSec: () => number;
 }
 
-export const X_UPDATE_PENDING = "Your update needs checking. Check wallet activity before starting another transaction.";
+export const X_UPDATE_PENDING = "Your update needs checking. Check the seat's activity before starting another update.";
 
 /** Pause first, then reuse the exact GrantRevoked amount. A relay fill while the
  * owner signs cannot make renewal take extra funds from the general Trading Balance.
@@ -45,7 +45,7 @@ export const X_UPDATE_PENDING = "Your update needs checking. Check wallet activi
 export async function updateXPermission(owner: Address, executor: Address, deps: XUpdateDependencies): Promise<void> {
   let progress = deps.load();
   if (progress && (progress.owner !== owner || progress.executor !== executor)) {
-    throw new Error("Reconnect the wallet and X executor used to start this update.");
+    throw new Error("Reconnect the seat and X executor used to start this update.");
   }
   if (!progress) {
     const state = await deps.snapshot();
@@ -61,7 +61,7 @@ export async function updateXPermission(owner: Address, executor: Address, deps:
     } else {
       progress = { ...progress!, stage: ready, txHash: undefined };
       deps.save(progress);
-      throw new Error(outcome.diagnosis.kind === "user-rejected" ? "Wallet confirmation cancelled. Your update can be continued here." : "The wallet transaction failed. Your update can be continued here.");
+      throw new Error(outcome.diagnosis.kind === "user-rejected" ? "Seat signature cancelled. Your update can be continued here." : "The seat's update failed. Your update can be continued here.");
     }
   };
   if (progress.stage === "revoke-ready") {
@@ -79,7 +79,7 @@ export async function updateXPermission(owner: Address, executor: Address, deps:
       deps.save({ ...progress, stage: "revoke-ready", txHash: undefined });
       throw new Error("The update transaction reverted. You can try the update again.");
     }
-    if (receipt.returnedBase === undefined) throw new Error("The returned X balance could not be verified. Check wallet activity before continuing.");
+    if (receipt.returnedBase === undefined) throw new Error("The returned X balance could not be verified. Check the seat's activity before continuing.");
     progress = { ...progress, stage: "grant-ready", returnedBase: receipt.returnedBase.toString(), txHash: undefined };
     deps.save(progress);
   }

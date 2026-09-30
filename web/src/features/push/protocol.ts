@@ -85,7 +85,7 @@ export const PUSH_ERRORS = {
   unavailable: "Notifications are not available right now.",
   badRequest: "That request was not understood.",
   staleSignature: "That signature has expired. Try again.",
-  badSignature: "The wallet signature did not match.",
+  badSignature: "The seat signature did not match.",
   unknownDevice: "This phone is not registered. Turn notifications on again.",
   tooFast: "Too many requests. Wait a moment.",
 } as const;

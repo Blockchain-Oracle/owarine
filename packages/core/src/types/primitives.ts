@@ -49,7 +49,7 @@ export function toSignature(value: string): Signature {
   return value;
 }
 
-export const addressSchema = z.custom<Address>(isAddress, "expected a base58 Solana address");
+export const addressSchema = z.custom<Address>(isAddress, "expected a base58 seat address");
 export const signatureSchema = z.custom<Signature>(isSignature, "expected a Canton update id or a base58 signature");
 export const updateIdSchema = z.custom<Signature>(isUpdateId, "expected a Canton update id");
 export const hexSchema = z.custom<Hex>(isHex, "expected 0x-prefixed hex");

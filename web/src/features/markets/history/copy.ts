@@ -41,7 +41,7 @@ export const HISTORY = {
   showAll: (n: number) => `Show all ${n}`,
   showFewer: "Show fewer",
   /** The reading covers a prefix of the wallet's history — the indexer's paging ceiling was hit. */
-  partial: "This wallet has more history than one reading can page; the figures below cover its most recent part.",
+  partial: "This seat has more history than one reading can page; the figures below cover its most recent part.",
   empty: { why: "Nothing settled yet.", nextAction: { label: "History fills in as your Windows close", href: "/markets" } },
   csv: "Download CSV",
   csvName: (address: string) => `agari-history-${address.slice(0, 8)}.csv`,
@@ -85,7 +85,7 @@ export const HISTORY = {
   edgeLink: {
     eyebrow: "Trader analytics",
     title: "See what is actually working.",
-    copy: "P&L, drawdown, expectancy and timing, calculated from your on-chain betting history.",
+    copy: "P&L, drawdown, expectancy and timing, calculated from your seat's history on the ledger.",
     action: "Open edge report",
   },
 } as const;

@@ -7,7 +7,7 @@ export const STRATEGIES = {
     eyebrow: "Desk",
     title: "Strategies",
     body: "Discover, inspect, and subscribe to strategies, with the verified trade history behind each one. A strategy executes only inside limits you set and can revoke.",
-    dependency: "the strategy registry program (planned after the hackathon deadline)",
+    dependency: "the Strategy contracts of abu-pm-agents on this network (proven on the local sandbox, not yet on DevNet)",
   },
   desk: {
     autopilot: "⊙ Autopilot",
@@ -108,8 +108,8 @@ export const STRATEGIES = {
     mirror: {
       traderLabel: "Seat to copy",
       traderPlaceholder: "The trader's seat address",
-      traderHelp: "Their calls are public on chain, so this needs nothing from them. Open a profile from the leaderboard to copy its address.",
-      traderScope: "It copies what that seat does from its own seat. Calls it routes through a Trading Balance or the private desk are placed by a program on its behalf, so they are not visible as that seat's and are not copied.",
+      traderHelp: "Their published calls are public on the venue, so this needs nothing from them. Open a profile from the leaderboard to copy its address.",
+      traderScope: "It copies what that seat does from its own seat. Calls it routes through a Trading Balance or the private desk are placed by the venue on its behalf, so they are not visible as that seat's and are not copied.",
       traderInvalid: "That is not a seat address. Paste it exactly as the profile shows it.",
       withinLabel: "How fresh their call has to be",
       withinHelp: "Older than this and the Window has usually moved on; the runner sits it out rather than chase.",
@@ -191,7 +191,7 @@ export const STRATEGIES = {
   },
   disclosure: (asset: string) => `Agents trade demo credits on the Canton test network using eligible Up/Down Windows for ${asset}. You can lose your full budget. The agent cannot withdraw or divert it. Check every position on the proof page.`,
   drawer: {
-    record: "On-chain record ↗",
+    record: "Ledger record ↗",
     guarantee: { eyebrow: "It can't touch your funds", body: "Your balance stays in your Vault. The agent can open positions for you under hard caps, but it", strong: "cannot withdraw or divert it.", verify: "check limits on the proof page ↗" },
     how: { eyebrow: "How it trades", body: (max: string, asset: string) => `Each time this agent trades it makes an up/down call on its read of the print, on ${asset}. Every call opens a position`, own: "you own", tail: (max: string) => `, capped at ${max} per trade. It pays out to you on settlement. It's a directional bet. It can win or lose.` },
     agentHow: {
@@ -241,7 +241,7 @@ export const AGENTS = {
   crumb: { root: "Agari", here: "Agents" },
   headline: "Agent Leaderboard",
   intro:
-    "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects on-chain copy-trades to date, read straight from the chain and the runner's receipts.",
+    "The runner keys that execute copy-trade strategies, ranked by the capital subscribers have entrusted to them and the copy-trades they have actually executed. Win-rate is left out on purpose. It is a vanity metric. Realized results (net after fees, drawdown) populate here as positions settle. The desk is early: today this reflects copy-trades on the ledger to date, read straight from the ledger and the runner's receipts.",
   reading: "reading the chain…",
   stats: { agents: "Agents", strategies: "Strategies", subscribers: "Subscribers", subscribersSub: "across all strategies", volume: "Capital deployed", volumeSub: "credits notional" },
   desk: { index: "01", title: "The runners", meta: (n: number) => `${n} agents`, top: "Top Desk", strategies: (n: number) => `${n} strateg${n === 1 ? "y" : "ies"}`, subscribers: (n: number) => `${n} subscriber${n === 1 ? "" : "s"}`, entrusted: "Capital entrusted", copyTrades: "Copy-trades", maxPerTrade: "Max per trade", lastActive: "Last active" },
@@ -256,7 +256,7 @@ export const AGENTS = {
       ["", "Win-rate is deliberately excluded.", " Verified realized results come from settled positions and populate as the desk matures."],
     ] as const,
   },
-  notDeployed: { dependency: "the strategy registry program (planned after the hackathon deadline; the fill projection it ranks with is live)" },
+  notDeployed: { dependency: "the Strategy contracts of abu-pm-agents on this network (proven on the local sandbox, not yet on DevNet; the fill projection it ranks with runs with the venue)" },
 } as const;
 
 /** A-1c: copy a strategy, or take the other side of it. The words say what the runner will actually send. */

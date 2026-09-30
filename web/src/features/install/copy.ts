@@ -1,20 +1,13 @@
 /**
- * `/download` — the reference's `app/download/page.tsx`, its words truth-corrected. Since 09-25 Agari ships a native
- * Android build (the APK on the GitHub release below) and a public iOS TestFlight beta; the web app still
- * installs from the browser. Every sentence is about what exists on Solana devnet today.
+ * `/download` — the reference's `app/download/page.tsx`, its words truth-corrected for the Canton port. The reference's
+ * Android APK and TestFlight beta are Solana builds (prior work), so they are not offered here: neither native app has
+ * been built against Canton yet (C11; `docs/plan/capabilities.json` Y-17, L-18). The web app installs from the browser.
  */
 
-/** The published Android build: GitHub release `android-v0.1.1`, built by EAS 09-25. */
-export const ANDROID_RELEASE = {
-  version: "0.1.1",
-  url: "https://github.com/Blockchain-Oracle/agari/releases/download/android-v0.1.1/agari-0.1.1.apk",
-  page: "https://github.com/Blockchain-Oracle/agari/releases/tag/android-v0.1.1",
-  sha256: "7a3d4f2711f0a4dbe4aa6f68fecfe5a8f2de5798a548f8acccaea5434d28901f",
-  sizeMb: 59.1,
-  qr: "/download/agari-android-qr.svg",
-} as const;
-export const IOS_TESTFLIGHT = {
-  url: "https://testflight.apple.com/join/g3MnDrr7",
+/** What each native card waits on, in `CapabilityPending`'s words ("Not connected yet · waiting on …"). */
+export const NATIVE_PENDING = {
+  android: "the Android build against Canton (stage C11)",
+  ios: "the iPhone build against Canton and its App Store Connect record (stage C11)",
 } as const;
 export const INSTALL = {
   title: "Get Agari",
@@ -32,30 +25,22 @@ export const INSTALL = {
   iosSteps: ["Open this page in Safari", "Tap Share — the square with the arrow", "Tap Add to Home Screen, then Add"],
   manualHint: "Chrome and Edge show an install icon at the right end of the address bar. Other browsers keep “Install” or “Add to Home Screen” under their menu.",
   meta: [
-    { label: "Android", note: "the APK, signed, from our GitHub release" },
-    { label: "iPhone", note: "Join the public TestFlight beta · the web app installs too" },
+    { label: "Android", note: "not built on Canton yet · the web app installs today" },
+    { label: "iPhone", note: "not built on Canton yet · add the web app to your Home Screen" },
     { label: "Canton test network", note: "demo credits, real mechanics" },
   ],
-  film: { label: "The launch film", poster: "/media/agari-launch-poster.jpg", src: "/media/agari-launch.mp4" },
+  film: { label: "The launch film · before the Canton port", poster: "/media/agari-launch-poster.jpg", src: "/media/agari-launch.mp4" },
   android: {
     eyebrow: "Android",
-    title: "Get the APK",
-    scan: "Scan with your phone's camera",
-    cta: "Download the APK",
-    size: (mb: number, v: string) => `Version ${v} · ${mb} MB`,
-    steps: ["Download on your Android phone", "Open the file and allow installs from this source when Android asks", "Open Agari and take a seat, or practise first"],
-    shaLabel: "SHA-256",
-    copy: "Copy",
-    copied: "Copied",
-    verify: "Check it with sha256sum, or shasum -a 256 on a Mac",
-    release: "Release notes on GitHub",
+    title: "The Android app",
+    body: "The native Android app has not been built against Canton yet. Until it is, install the web app from your browser menu: the same venue, the same seat and the same demo credits.",
   },
   ios: {
     eyebrow: "iPhone",
-    title: "Join the iOS beta",
-    body: "The public TestFlight beta is open. Join from your iPhone to install Agari, or add the web app to your Home Screen from Safari.",
-    cta: "Join the TestFlight beta",
+    title: "The iPhone app",
+    body: "The native iPhone app has not been built against Canton yet, so there is no TestFlight beta to join. Add the web app to your Home Screen from Safari meanwhile.",
   },
+  pending: (dependency: string) => `Not connected yet · waiting on ${dependency}`,
   points: [
     { title: "Take a seat and go", body: "Take a seat and the venue gives it a Canton party and demo credits. No wallet app, no network fee. There is nothing else to install." },
     { title: "Open after the bell", body: "Stock Windows every few minutes while US markets trade, a weekend Window from Friday's close to Monday's open, and 24/7 Windows on tokenised stock. When the exchange is shut, rest a call at your price for the open." },

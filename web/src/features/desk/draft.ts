@@ -146,7 +146,7 @@ export function readBack(m: DeskMandate): string[] {
   const lines = [
     `You want to hold ${describeTargets(m.targets)}.`,
     `I may let a holding wander ${pct(Math.max(m.driftToleranceBps, thresholdBps(m)))} before I act, and I never make a company more than ${pct(m.maxPositionBps)} of the desk.`,
-    `I spend at most ${usd(m.perActionCapE6, 0)} in one action and ${usd(m.dailyCapE6, 0)} in a day; the program refuses anything past that.`,
+    `I spend at most ${usd(m.perActionCapE6, 0)} in one action and ${usd(m.dailyCapE6, 0)} in a day; the ledger refuses anything past that.`,
     `I never buy a company more than ${pct(m.maxPremiumBps)} above its mark, and I stop everything if the desk falls ${pct(m.lossStopBps)} below its baseline.`,
     `Above ${usd(m.largeActionE6, 0)} I ask you first, whatever the mode.`,
   ];

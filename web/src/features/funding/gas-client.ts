@@ -1,7 +1,7 @@
 import type { AnyFaucetClaimView, FaucetAsset, FaucetClaimView, FaucetStatus, TusdcFaucetClaimView } from "@agari/core/faucet";
 
 export type FundingStage = "idle" | "checking" | "verifying" | "adding-gas" | "minting" | "ready";
-export const FUNDING_STAGE_LABEL: Record<FundingStage, string> = { idle: "Get test funds", checking: "Checking balances…", verifying: "Verify wallet — no fee", "adding-gas": "Adding SOL for fees…", minting: "Adding demo credits…", ready: "Ready" };
+export const FUNDING_STAGE_LABEL: Record<FundingStage, string> = { idle: "Get test funds", checking: "Checking balances…", verifying: "Verify seat — no fee", "adding-gas": "Checking the seat…", minting: "Adding demo credits…", ready: "Ready" };
 
 /** The server answered and refused (quota, cooldown, expiry): nothing was reserved by this call. */
 export class FaucetRefusal extends Error {}
@@ -70,11 +70,11 @@ export function fundsRequest(input: FundsRequestInput) {
       report(result);
     }
     guard();
-    const noun = asset === "sol" ? "SOL transfer" : "credits claim";
+    const noun = asset === "sol" ? "top-up" : "credits claim";
     if (result.status === "prepared") throw new PendingClaimError(`Your ${noun} is still confirming. Retry to check the same ${noun}; nothing will be sent twice.`);
     unresolved.delete(asset);
     if (result.status === "confirmed") return result as ViewOf<A>;
-    throw new Error(result.status === "reverted" ? `The ${noun} failed. ${asset === "sol" ? "Please use an external faucet for now." : "Please try again later."}` : `The ${noun} needs operator review.${asset === "sol" ? " Please use an external faucet for now." : ""}`);
+    throw new Error(result.status === "reverted" ? `The ${noun} failed. Please try again later.` : `The ${noun} needs operator review.`);
   }
   return {
     claim,

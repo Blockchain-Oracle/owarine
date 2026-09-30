@@ -10,7 +10,7 @@ export const PRIVATE_AUTH_TTL_MS = 5 * 60_000;
 /** A clock skewed forward would otherwise mint an authorisation that stays valid longer than the window allows. */
 export const PRIVATE_AUTH_FUTURE_SLACK_MS = 60_000;
 /** The reference's own one-liner, kept honest: link-reduction, not anonymity. */
-export const PRIVATE_HONESTY = "Kept separate from your wallet, so it is harder to link back to you — not anonymous.";
+export const PRIVATE_HONESTY = "Kept separate from your seat's own balance, so it is harder to link back to you — not anonymous.";
 
 export interface PrivateOpenMessageInput {
   owner: string;

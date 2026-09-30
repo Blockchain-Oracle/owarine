@@ -15,7 +15,7 @@ export const ORACLE_URL = TX_URL;
 
 export const DIAGNOSES: readonly Diagnosis[] = [
   diagnosis("out-of-gas", "COMMAND_REJECTED: the seat key is not ready (no network fee is due on Canton)"),
-  diagnosis("market-not-trading", "custom program error: 0x17d4 (MarketNotTrading)", { errorName: "MarketNotTrading" }),
+  diagnosis("market-not-trading", "COMMAND_REJECTED: the Window is not Trading (MarketNotTrading)", { errorName: "MarketNotTrading" }),
   diagnosis("indexer-down", "IndexerError: request failed — /api/index/windows"),
 ];
 

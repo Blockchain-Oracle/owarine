@@ -5,7 +5,7 @@ import { NativeDownloads } from "./NativeDownloads";
 /**
  * `/download` — the page the app strip lands on, from the reference's `app/download/page.tsx` (`.dl-*` in
  * part-18.css), rebuilt for the native launch (09-25): the launch film beside the headline, then the Android APK (QR,
- * button, SHA-256) and the iPhone path, then the three points. Solana devnet throughout.
+ * button, SHA-256) and the iPhone path, then the three points. On Canton both native cards are pending (C11).
  */
 export function DownloadPage() {
   return (

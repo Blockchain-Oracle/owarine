@@ -36,7 +36,7 @@ export const STATUS = {
     switchboard: "Switchboard · quote success",
     crossCheck: "Cross-check · agreement",
     paused: "Lanes · paused",
-    faucet: "Faucet budget · SOL and credits",
+    faucet: "Faucet budget · demo credits",
     sponsor: "Sponsor budget",
     seats: "Guest seats · pool",
     ops: (actor: string) => `Ops · ${actor}`,
@@ -142,6 +142,6 @@ export const STATUS = {
     seatsNone: "no guest seat in the pool",
     seatsOff: (why: string) => `no seat pool on this deployment · ${why}`,
     faucet: (sol: string, solLeft: string, tusdcLeft: string | null) =>
-      `${sol} SOL · ${solLeft} SOL left today · ${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`}`,
+      `${tusdcLeft === null ? "credits unavailable" : `${tusdcLeft} credits left today`} · top-up budget ${sol}, ${solLeft} left today`,
   },
 } as const;

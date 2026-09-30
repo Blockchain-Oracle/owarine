@@ -29,6 +29,6 @@ export async function GET(request: Request) {
   } catch (error) {
     // HoldingsReadError messages are URL-free by construction; anything else is summarized, never echoed.
     console.error("api/holdings:", error instanceof HoldingsReadError ? error.message : error instanceof Error ? error.name : "unknown");
-    return refuse(502, "Could not read mainnet holdings just now.");
+    return refuse(502, "Could not read holdings just now.");
   }
 }

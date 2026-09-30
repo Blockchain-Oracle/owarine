@@ -2,7 +2,7 @@
 export const RECOVERY = {
   landed: (summary: string) => ({ title: "An earlier call landed", description: `${summary}. It is in your Portfolio.` }),
   absent: (summary: string) => ({ title: "An earlier send never reached the chain", description: `${summary}. Nothing was spent.` }),
-  reverted: (summary: string) => ({ title: "An earlier send reverted on chain", description: `${summary}. No position was opened; only the network fee was spent.` }),
+  reverted: (summary: string) => ({ title: "An earlier send was rejected by the ledger", description: `${summary}. No position was opened, and nothing was spent.` }),
   expired: (summary: string) => ({
     title: "An earlier send could not be verified",
     description: `${summary} — sent over a day ago and the chain never answered. Check your Portfolio before placing it again.`,

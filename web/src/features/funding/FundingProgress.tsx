@@ -8,7 +8,7 @@ export function FundingProgress({ address, faucet }: { address: Address; faucet:
   const p = useFundingProgress(address, faucet);
   return <div className="fund-progress" aria-live="polite">
     <dl className="fund-balances">
-      <div><dt>SOL for network fees</dt><dd>{p.solText}</dd></div>
+      <div><dt>network fee</dt><dd>{p.solText}</dd></div>
       <div><dt>credits for trading</dt><dd>{p.tokenText}</dd></div>
     </dl>
     <p className="fund-foot-line">{p.policy}</p>

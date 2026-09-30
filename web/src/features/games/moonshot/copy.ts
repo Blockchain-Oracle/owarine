@@ -25,7 +25,7 @@ export const MOONSHOT = {
     title: "Moonshot",
     body: "Call a side and a multiple; the house solves the level that pays it. This is never mapped onto an ordinary up/down position — it needs the reserve that funds the payout.",
     why: RANGE_NOT_DEPLOYED,
-    dependency: "the range reserve program (planned after the hackathon deadline)",
+    dependency: "the Range contracts of abu-pm-tickets on this network (proven on the local sandbox, not yet on DevNet)",
   },
   connect: { title: "Take a seat to take aim", sub: "No wallet app and no network fee. Demo credits are free" },
   aim: {

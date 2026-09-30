@@ -29,14 +29,14 @@ export const STEP_ICONS: Record<number, LucideIcon> = { 1: Coins, 2: Target, 3: 
 
 /** content.ts MECHANICS, by title. */
 export const MECHANIC_ICONS: Record<string, LucideIcon> = {
-  "Order-Book Pricing": Coins,
+  "Firm-Quote Pricing": Coins,
   "Live Price": TrendingUp,
   "Fast Rounds": Clock,
-  "On-Chain Settlement": Shield,
+  "Ledger Settlement": Shield,
 };
 
 /** content.ts ARCHITECTURE, by title. */
-export const ARCH_ICONS: Record<string, LucideIcon> = { "Transparent Positions": EyeOff, "Instant Finality": Lock, "Program Settlement": Shield };
+export const ARCH_ICONS: Record<string, LucideIcon> = { "Private Positions": EyeOff, "One Ledger, No Fee": Lock, "Rules in Daml": Shield };
 
 /** sessions.ts LANES and ASIDES, by name. */
 export const LANE_ICONS: Record<string, LucideIcon> = { Regular: Clock, Gap: Moon, Token: CalendarClock };

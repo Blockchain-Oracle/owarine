@@ -156,8 +156,8 @@ export const GAMES = {
     cta: "See your history",
     title: "Finished matches",
     pending:
-      "Finished matches are read back from the arena's own events, indexed so a history page is one query rather than a log replay. The arena is not built yet.",
-    dependency: "the GameArena program and the ops projector (planned after the hackathon deadline)",
+      "Finished matches are read back from the arena's own events, indexed so a history page is one query rather than a log replay. The arena is not on this network yet.",
+    dependency: "the Arena contracts of abu-pm-games and the ops projector on this network (proven on the local sandbox, not yet on DevNet)",
   },
 
   settings: {
