@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+export { X_SESSION_HEADER } from "@agari/core/x";
 
 /**
  * The "Sign in with X" session — a port of the reference's `lib/claimOAuth.ts`.
@@ -13,6 +14,7 @@ const b64url = (b: Buffer) => b.toString("base64url");
 /** 30 days, as the reference settled on: a one-shot claim tolerates 30 minutes, a portfolio card does not. */
 export const X_SESSION_TTL_MS = 30 * 24 * 60 * 60_000;
 export const X_SESSION_COOKIE = "x_sess";
+
 /** The OAuth 1.0a request token and its secret live in httpOnly cookies between the start and the callback. */
 export const X_OAUTH_COOKIES = { token: "x_rt", secret: "x_rs", ret: "x_ret" } as const;
 export const X_OAUTH_TTL_SEC = 600;
