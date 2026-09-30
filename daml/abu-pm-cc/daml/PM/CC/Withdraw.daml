@@ -1,0 +1,126 @@
+-- | The Canton Coin withdrawal (C7b, K-245 to K-247).
+--
+-- The owner asks: they create a `CcWithdrawProposal` (owner-signed, the venue an
+-- observer) naming how many cash units they want back in coin. The venue answers
+-- with `Proposal_Accept`, which does ALL of it in one transaction:
+--
+--   1. debits exactly `units` of the owner's `VenueCash` (the owner's authority is
+--      the proposal's signatory), through the engine's own merge, split and
+--      withdraw choices, so the change goes back to the owner;
+--   2. lowers the owner's `CcAllowance` by `units` (refused when it is not covered:
+--      only coin that was deposited and not yet taken back can leave);
+--   3. instructs the token-standard transfer of `units * atomicPerUnit` atomic
+--      units from the venue to the owner (`TransferFactory_Transfer`);
+--   4. by what the registry answers: `Completed` (a receipt, done), `Pending` (the
+--      owner must accept; a receipt in state Sent holds the instruction), or
+--      `Failed` (the cash and the allowance are restored, and the receipt says so).
+--
+-- The cash is therefore never debited without the transfer being instructed, and
+-- a transfer that fails immediately never leaves the owner short. A transfer that
+-- stays pending is taken back (or completed) by the receipt's own choices.
+module PM.CC.Withdraw where
+
+import PM.CC.Listing
+import PM.CC.Records
+import PM.CC.Units
+import PM.Money
+import PM.Types
+import DA.TextMap qualified as TextMap
+import Splice.Api.Token.HoldingV1 qualified as H
+import Splice.Api.Token.MetadataV1 (ExtraArgs, Metadata(..))
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+
+template CcWithdrawProposal
+  with
+    owner : Party
+    venue : Party
+    listingId : Text
+    units : Int
+    ref : Text
+      -- ^ the owner's own reference, echoed in the transfer's metadata
+  where
+    signatory owner
+    observer venue
+    ensure units > 0 && ref /= "" && owner /= venue && listingId /= ""
+
+    choice Proposal_Cancel : ()
+      controller owner
+      do pure ()
+
+    choice Proposal_Decline : ()
+      with
+        reason : Text
+      controller venue
+      do require "no-reason" "a refusal names its reason" (reason /= "")
+
+    choice Proposal_Accept : (ContractId CcWithdrawal, Optional (ContractId CcAllowance))
+      with
+        listingCid : ContractId CcListing
+        accountCid : ContractId VenueAccount
+        cashCids : [ContractId VenueCash]
+        allowanceCid : ContractId CcAllowance
+        factoryCid : ContractId T.TransferFactory
+        inputHoldingCids : [ContractId H.Holding]
+        requestedAt : Time
+        executeBefore : Time
+        extraArgs : ExtraArgs
+      controller venue
+      do
+        l <- fetch listingCid
+        require "wrong-listing" "the proposal is for another listing" (l.venue == venue && l.listingId == listingId)
+        require "bad-units" "the withdrawal is outside the rail's bounds" (cashUnitsOk l.unitsPerCoin units)
+        acct <- fetch accountCid
+        require "wrong-account" "the account is not the owner's" (acct.venue == venue && acct.owner == owner)
+
+        debitCash venue owner cashCids units
+        left <- lowerAllowance venue owner listingId allowanceCid units
+
+        let sentAtomic = atomicOfUnits l.unitsPerCoin units
+            transfer = T.Transfer with
+              sender = venue
+              receiver = owner
+              amount = fromAtomic sentAtomic
+              instrumentId = H.InstrumentId with admin = l.instrumentAdmin; id = l.instrumentId
+              requestedAt
+              executeBefore
+              inputHoldingCids
+              meta = Metadata with values = TextMap.fromList [(refMetaKey, ref)]
+        res <- exercise factoryCid T.TransferFactory_Transfer with
+          expectedAdmin = l.instrumentAdmin
+          transfer
+          extraArgs
+        openedAt <- getTime
+        let receipt state instructionCid = CcWithdrawal with
+              venue; owner; auditor = l.auditor; listingId
+              instrumentAdmin = l.instrumentAdmin; instrumentId = l.instrumentId
+              unitsPerCoin = l.unitsPerCoin; units; sentAtomic; state; instructionCid; openedAt; ref
+        case res.output of
+          T.TransferInstructionResult_Completed _ -> do
+            w <- create (receipt WdCompleted None)
+            pure (w, left)
+          T.TransferInstructionResult_Pending instr -> do
+            w <- create (receipt WdSent (Some instr))
+            pure (w, left)
+          T.TransferInstructionResult_Failed -> do
+            -- The registry took nothing: give back the cash and the allowance.
+            _ <- exercise accountCid VenueAccount_Credit with amount = units; bucket = refundBucket listingId
+            restored <- raiseAllowance venue l.auditor owner listingId left units
+            w <- create (receipt WdRefunded None)
+            pure (w, Some restored)
+
+-- | Debit exactly `units` from the owner's cash: merge what is named, split off the
+-- amount (the change returns to the owner) and withdraw it, all through main's
+-- own choices (controller: the owner, whose authority the proposal carries).
+debitCash : Party -> Party -> [ContractId VenueCash] -> Int -> Update ()
+debitCash venue owner cashCids units = case cashCids of
+  [] -> refuse "no-cash" "no cash was named to debit"
+  (first :: rest) -> do
+    x <- fetch first
+    require "foreign-cash" "cash belongs to another owner or venue" (x.owner == owner && x.venue == venue)
+    merged <- if null rest then pure first else exercise first VenueCash_Merge with others = rest
+    m <- fetch merged
+    require "insufficient-cash" "the named cash does not cover the withdrawal" (m.amount >= units)
+    part <- if m.amount == units
+      then pure merged
+      else fst <$> exercise merged VenueCash_Split with take = units
+    exercise part VenueCash_Withdraw

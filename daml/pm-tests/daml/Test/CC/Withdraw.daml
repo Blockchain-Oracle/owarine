@@ -1,0 +1,225 @@
+-- | Canton Coin money gate, withdrawal half (C7b): a withdrawal transfers exactly
+-- the coin its cash is worth and debits exactly that cash; only what was deposited
+-- can leave; a transfer the registry fails, or the owner never accepts, gives the
+-- cash and the allowance back; a proposal cannot be replayed.
+module Test.CC.Withdraw where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Optional (isSome)
+import PM.CC.Records
+import PM.CC.Withdraw
+import PM.Money
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+import Test.CC.Fixture
+import Test.CC.Registries
+import Test.Setup
+
+-- Deposit 10 coin, withdraw 400,000 units: exactly 4 coin is instructed to the
+-- owner, exactly 400,000 units are debited (the change stays), the allowance drops
+-- by the same. The owner accepts, the venue records it completed.
+testWithdrawTransfersExactly = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 10.0
+  cashOf c.w.alice >>= (=== 1000000)
+  prop <- proposeWithdraw c c.w.alice 400000 "w1"
+  Right (wd, left) <- acceptWithdraw c c.registry prop c.w.alice acct
+  cashOf c.w.alice >>= (=== 600000)
+  expectUnits c c.w.alice 600000
+  isSome left === True
+  Some w <- queryContractId c.w.venue wd
+  w.units === 400000
+  w.sentAtomic === 400000 * 100000
+  w.sentAtomic === atomicOf 4.0
+  w.state === WdSent
+  w.ref === "w1"
+  -- the venue's unlocked coin is the 6 coin it keeps; 4 coin is in flight to alice
+  coinOf c.w.venue >>= (=== atomicOf 6.0)
+  inFlightOf c.w.venue >>= (=== atomicOf 4.0)
+  coinOf c.w.alice >>= (=== 0)
+  -- alice accepts the transfer: 4 coin is hers, and the venue records it
+  Some instr <- pure w.instructionCid
+  _ <- submit c.w.alice do exerciseCmd instr T.TransferInstruction_Accept with extraArgs = noExtra
+  coinOf c.w.alice >>= (=== atomicOf 4.0)
+  inFlightOf c.w.venue >>= (=== 0)
+  done <- submit c.w.venue do exerciseCmd wd Withdrawal_Complete
+  Some d <- queryContractId c.w.venue done
+  d.state === WdCompleted
+  d.instructionCid === None
+  -- a completed withdrawal cannot be refunded or completed again
+  fails =<< trySubmit c.w.venue do exerciseCmd done Withdrawal_Complete
+
+-- Everything, to the last unit: the allowance is consumed and no zero-value
+-- contract is left behind.
+testWithdrawAllLeavesNothing = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 1.5
+  prop <- proposeWithdraw c c.w.alice 150000 "all"
+  Right (_, left) <- acceptWithdraw c c.registry prop c.w.alice acct
+  left === None
+  cashOf c.w.alice >>= (=== 0)
+  as <- query @CcAllowance c.w.venue
+  length as === 0
+  cs <- query @VenueCash c.w.alice
+  length cs === 0
+
+-- Only coin that came in can go out: winnings are demo cash, not coin. Alice has
+-- 2,000,000 units of cash but an allowance of 1,000,000: a withdrawal of 1,500,000
+-- is refused and nothing moves; 1,000,000 works.
+testOnlyWhatWasDepositedCanLeave = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 10.0
+  _ <- submit c.w.venue do exerciseCmd acct VenueAccount_Credit with amount = 1000000; bucket = "payout"
+  cashOf c.w.alice >>= (=== 2000000)
+  prop <- proposeWithdraw c c.w.alice 1500000 "too-much"
+  r <- acceptWithdraw c c.registry prop c.w.alice acct
+  refusedWith (refusal "over-allowance") r
+  cashOf c.w.alice >>= (=== 2000000)
+  expectUnits c c.w.alice 1000000
+  coinOf c.w.venue >>= (=== atomicOf 10.0)
+  -- the same proposal is still there; the owner cancels it
+  submit c.w.alice do exerciseCmd prop Proposal_Cancel
+  prop2 <- proposeWithdraw c c.w.alice 1000000 "exact"
+  Right _ <- acceptWithdraw c c.registry prop2 c.w.alice acct
+  cashOf c.w.alice >>= (=== 1000000)
+  expectUnits c c.w.alice 0
+
+-- Cash short of the withdrawal: refused, nothing debited, allowance intact.
+testInsufficientCashRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 1.0
+  -- alice spends her cash elsewhere (withdraws 60000 of it as a plain cash withdrawal)
+  [cash] <- cashCidsOf c.w.alice
+  (part, _) <- submit c.w.alice do exerciseCmd cash VenueCash_Split with take = 60000
+  submit c.w.alice do exerciseCmd part VenueCash_Withdraw
+  cashOf c.w.alice >>= (=== 40000)
+  prop <- proposeWithdraw c c.w.alice 50000 "short"
+  refusedWith (refusal "insufficient-cash") =<< acceptWithdraw c c.registry prop c.w.alice acct
+  cashOf c.w.alice >>= (=== 40000)
+  expectUnits c c.w.alice 100000
+
+-- The venue cannot debit somebody else's cash, or spend somebody else's allowance.
+testWithdrawCannotTouchOthersCash = script do
+  c <- mkCC
+  acctA <- openAccount c c.w.alice
+  acctB <- openAccount c c.w.bob
+  _ <- deposit c c.w.alice acctA 5.0
+  _ <- deposit c c.w.bob acctB 5.0
+  prop <- proposeWithdraw c c.w.alice 100000 "a1"
+  bobCash <- cashCidsOf c.w.bob
+  aliceCash <- cashCidsOf c.w.alice
+  Some (aliceAllowance, _) <- allowanceOf c c.w.alice
+  Some (bobAllowance, _) <- allowanceOf c c.w.bob
+  refusedWith (refusal "foreign-cash") =<< rawAccept c prop acctA bobCash aliceAllowance
+  cashOf c.w.bob >>= (=== 500000)
+  refusedWith (refusal "foreign-allowance") =<< rawAccept c prop acctA aliceCash bobAllowance
+  refusedWith (refusal "wrong-account") =<< rawAccept c prop acctB aliceCash aliceAllowance
+  cashOf c.w.alice >>= (=== 500000)
+  expectUnits c c.w.bob 500000
+
+-- A proposal is spent once: accepting it archives it, so a replay does nothing.
+testProposalReplayRefused = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 4.0
+  prop <- proposeWithdraw c c.w.alice 100000 "once"
+  Right _ <- acceptWithdraw c c.registry prop c.w.alice acct
+  cashOf c.w.alice >>= (=== 300000)
+  cash <- cashCidsOf c.w.alice
+  Some (allowance, _) <- allowanceOf c c.w.alice
+  fails =<< rawAccept c prop acct cash allowance
+  cashOf c.w.alice >>= (=== 300000)
+
+-- The registry refuses at once (`Failed`): the cash and the allowance come back in
+-- the same transaction and the receipt says Refunded. Nothing is lost.
+testFailedTransferRefunds = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 3.0
+  failing <- submit c.admin do createCmd FailingRules with admin = c.admin
+  failingReg <- registryOf c.admin failing
+  prop <- proposeWithdraw c c.w.alice 100000 "will-fail"
+  Right (wd, left) <- acceptWithdraw c failingReg prop c.w.alice acct
+  Some w <- queryContractId c.w.venue wd
+  w.state === WdRefunded
+  w.instructionCid === None
+  cashOf c.w.alice >>= (=== 300000)
+  expectUnits c c.w.alice 300000
+  isSome left === True
+  coinOf c.w.venue >>= (=== atomicOf 3.0)
+  -- the refunded cash sits in its own bucket
+  cs <- query @VenueCash c.w.alice
+  sum [x.amount | (_, x) <- cs, x.bucket == "cc-refund:cc-1"] === 100000
+
+-- The transfer stays pending and the owner never accepts: the venue takes it back
+-- (the registry answers Failed), and the cash and the allowance are restored.
+testNeverAcceptedRefunds = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 2.0
+  prop <- proposeWithdraw c c.w.alice 200000 "abandoned"
+  Right (wd, _) <- acceptWithdraw c c.registry prop c.w.alice acct
+  cashOf c.w.alice >>= (=== 0)
+  expectUnits c c.w.alice 0
+  coinOf c.w.venue >>= (=== 0)
+  inFlightOf c.w.venue >>= (=== atomicOf 2.0)
+  allow <- allowanceOf c c.w.alice
+  allow === None
+  (refunded, _, restored) <- submit c.w.venue do
+    exerciseCmd wd Withdrawal_Refund with accountCid = acct; allowanceCid = None; extraArgs = noExtra
+  cashOf c.w.alice >>= (=== 200000)
+  expectUnits c c.w.alice 200000
+  coinOf c.w.venue >>= (=== atomicOf 2.0)
+  inFlightOf c.w.venue >>= (=== 0)
+  Some r <- queryContractId c.w.venue refunded
+  r.state === WdRefunded
+  Some a <- queryContractId c.w.alice restored
+  a.units === 200000
+  -- a refunded withdrawal cannot be refunded again
+  fails =<< trySubmit c.w.venue do
+    exerciseCmd refunded Withdrawal_Refund with accountCid = acct; allowanceCid = Some restored; extraArgs = noExtra
+
+-- Once the owner has accepted the transfer it cannot be taken back.
+testAcceptedCannotBeRefunded = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 2.0
+  prop <- proposeWithdraw c c.w.alice 200000 "taken"
+  Right (wd, _) <- acceptWithdraw c c.registry prop c.w.alice acct
+  Some w <- queryContractId c.w.venue wd
+  Some instr <- pure w.instructionCid
+  _ <- submit c.w.alice do exerciseCmd instr T.TransferInstruction_Accept with extraArgs = noExtra
+  fails =<< trySubmit c.w.venue do
+    exerciseCmd wd Withdrawal_Refund with accountCid = acct; allowanceCid = None; extraArgs = noExtra
+  cashOf c.w.alice >>= (=== 0)
+  expectUnits c c.w.alice 0
+
+-- A registry that aborts (here: the transfer's window is already closed, since
+-- `rawAccept` asks for executeBefore = now) rolls the whole withdrawal back.
+testRegistryAbortRollsBack = script do
+  c <- mkCC
+  acct <- openAccount c c.w.alice
+  _ <- deposit c c.w.alice acct 2.0
+  prop <- proposeWithdraw c c.w.alice 100000 "late"
+  cash <- cashCidsOf c.w.alice
+  Some (allowance, _) <- allowanceOf c c.w.alice
+  fails =<< rawAccept c prop acct cash allowance
+  cashOf c.w.alice >>= (=== 200000)
+  expectUnits c c.w.alice 200000
+  coinOf c.w.venue >>= (=== atomicOf 2.0)
+
+-- The owner can cancel a proposal; the venue can decline it with a reason.
+testProposalCancelAndDecline = script do
+  c <- mkCC
+  _ <- openAccount c c.w.alice
+  p1 <- proposeWithdraw c c.w.alice 1000 "c1"
+  submit c.w.alice do exerciseCmd p1 Proposal_Cancel
+  p2 <- proposeWithdraw c c.w.alice 1000 "c2"
+  refusedWith (refusal "no-reason") =<< trySubmit c.w.venue do exerciseCmd p2 Proposal_Decline with reason = ""
+  submit c.w.venue do exerciseCmd p2 Proposal_Decline with reason = "over the daily limit"
+  ps <- query @CcWithdrawProposal c.w.alice
+  length ps === 0

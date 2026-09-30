@@ -88,3 +88,11 @@ Other packaged libraries retain their own notices. Examples verified in the inst
 - Source: [DLC-link/decentralization-manager](https://github.com/DLC-link/decentralization-manager), `releases/v1/`, at commit `7b4966d` (2026-09-21).
 - Licence: Apache License 2.0. The upstream `LICENSE` and `NOTICE` ("Canton Decentralized Party Manager — Copyright 2026 BitSafe Finance") are kept beside the files; hashes and package ids are in [`daml/vendor/bitsafe/README.md`](daml/vendor/bitsafe/README.md).
 - `abu-pm-governance` itself is written for this project; it implements the interface and copies no upstream Daml source.
+
+## Canton token standard packages
+
+`daml/vendor/splice/` carries four released Daml packages from the Splice repository, byte for byte: the CIP-0056 V1 interfaces `abu-pm-cc` implements against (`splice-api-token-metadata-v1`, `splice-api-token-holding-v1`, `splice-api-token-transfer-instruction-v1`, all 1.0.0) and the token standard's own mock registry `splice-test-token-v1` 1.0.1, which `pm-tests` uses to drive the Canton Coin rail and which is never uploaded to a participant.
+
+- Source: [canton-network/splice](https://github.com/canton-network/splice), `daml/dars/`, at commit `fda19e6` (2026-09-15). Copyright (c) 2024 Digital Asset (Switzerland) GmbH and/or its affiliates; SPDX-License-Identifier: Apache-2.0.
+- Licence: Apache License 2.0, copied beside the files ([`daml/vendor/splice/LICENSE`](daml/vendor/splice/LICENSE)); the upstream repository has no NOTICE file. Hashes and package ids are in [`daml/vendor/splice/README.md`](daml/vendor/splice/README.md).
+- `abu-pm-cc` itself is written for this project; it implements no upstream template and copies no upstream Daml source.

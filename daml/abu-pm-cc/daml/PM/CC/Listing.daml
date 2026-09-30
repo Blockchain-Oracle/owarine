@@ -1,0 +1,143 @@
+-- | The Canton Coin listing and the deposit (C7b, K-245 to K-247).
+--
+-- A `CcListing` is the venue's published, dated offer to hold one CIP-56
+-- instrument against `VenueCash`: which instrument (admin party and id), the
+-- FIXED rate (`unitsPerCoin`, cash base units per whole coin; K-245), the size
+-- bounds of one deposit, and whether it takes new deposits. It is static. A
+-- different rate is a different listing (a new `listingId`), because cash
+-- credited at one rate is redeemed at that same rate. All its choices are
+-- nonconsuming, so nothing in the rail contends on one shared contract.
+--
+-- Deposit. The owner instructs a token-standard transfer of the instrument to the
+-- venue (`TransferFactory_Transfer`, sender = owner, receiver = venue). It stays a
+-- `TransferInstruction` pending the venue's acceptance. `Listing_SettleDeposit`
+-- accepts it and credits the owner's cash IN THE SAME TRANSACTION:
+--
+--   * the instruction must be to the venue, of this listing's instrument (admin and
+--     id), pending acceptance, and the owner's account must be the sender's;
+--   * the credit is derived from the holdings the registry says it created for the
+--     venue, never from a number the venue types: received atomic units must be a
+--     whole number of cash units (dust is refused, never rounded) inside the
+--     listing's bounds;
+--   * accept, credit, allowance and receipt commit together or not at all, so a
+--     transfer that does not complete, or a second settle of the same instruction
+--     (its contract is gone), cannot credit anything.
+--
+-- What Daml cannot check: that the instruction contract is the REGISTRY's. An
+-- interface view is what the contract's own template says, so a look-alike
+-- template on a shared participant could claim the right admin. The ops actor
+-- therefore settles only an instruction whose signatories include the listing's
+-- `instrumentAdmin` (`signatories` on the created event). See docs/evidence/c7b-canton-coin.md.
+module PM.CC.Listing where
+
+import DA.List (unique)
+import DA.Optional (fromOptional)
+import DA.TextMap qualified as TextMap
+import PM.CC.Records
+import PM.CC.Units
+import PM.Money
+import PM.Types
+import Splice.Api.Token.HoldingV1 qualified as H
+import Splice.Api.Token.MetadataV1 (ExtraArgs)
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+
+template CcListing
+  with
+    venue : Party
+    auditor : Party
+    listingId : Text
+    instrumentAdmin : Party
+    instrumentId : Text
+    unitsPerCoin : Int
+    minDepositUnits : Int
+    maxDepositUnits : Int
+    depositsOpen : Bool
+  where
+    signatory venue
+    observer auditor
+    ensure listingId /= "" && instrumentId /= "" && venue /= auditor && instrumentAdmin /= venue
+      && rateOk unitsPerCoin && minDepositUnits > 0 && minDepositUnits <= maxDepositUnits
+      && cashUnitsOk unitsPerCoin maxDepositUnits
+
+    -- Close or reopen new deposits. Withdrawals are never closed.
+    choice Listing_SetDeposits : ContractId CcListing
+      with
+        open : Bool
+      controller venue
+      do create this with depositsOpen = open
+
+    nonconsuming choice Listing_SettleDeposit : (ContractId CcDeposit, ContractId VenueCash, ContractId CcAllowance)
+      with
+        instructionCid : ContractId T.TransferInstruction
+        accountCid : ContractId VenueAccount
+        allowanceCid : Optional (ContractId CcAllowance)
+        extraArgs : ExtraArgs
+      controller venue
+      do
+        require "listing-closed" "this listing takes no new deposits" depositsOpen
+        instr <- fetch instructionCid
+        let v = view instr
+            tr = v.transfer
+        require "not-to-venue" "the transfer is not to the venue" (tr.receiver == venue)
+        require "wrong-instrument" "the transfer is of another instrument"
+          (tr.instrumentId.admin == instrumentAdmin && tr.instrumentId.id == instrumentId)
+        require "not-pending" "the transfer is not waiting on the venue's acceptance" (v.status == T.TransferPendingReceiverAcceptance)
+        acct <- fetch accountCid
+        require "wrong-account" "the account is not the sender's" (acct.venue == venue && acct.owner == tr.sender)
+
+        res <- exercise instructionCid T.TransferInstruction_Accept with extraArgs
+        held <- case res.output of
+          T.TransferInstructionResult_Completed holdings -> pure holdings
+          _ -> refuse "deposit-not-completed" "the registry did not complete the transfer"
+        receivedAtomic <- holdingsAtomic venue instrumentAdmin instrumentId True held
+        require "no-holdings" "the registry created no holding for the venue" (receivedAtomic > 0)
+        units <- case unitsExact unitsPerCoin receivedAtomic of
+          Some u -> pure u
+          None -> refuse "dust" "the amount is not a whole number of cash units at the listing's rate"
+        require "below-minimum" "the deposit is below the listing's minimum" (units >= minDepositUnits)
+        require "above-maximum" "the deposit is above the listing's maximum" (units <= maxDepositUnits)
+
+        cash <- exercise accountCid VenueAccount_Credit with amount = units; bucket = ccBucket listingId
+        allowance <- raiseAllowance venue auditor tr.sender listingId allowanceCid units
+        settledAt <- getTime
+        receipt <- create CcDeposit with
+          venue; owner = tr.sender; auditor; listingId; instrumentAdmin; instrumentId; unitsPerCoin
+          receivedAtomic; units; settledAt
+          ref = fromOptional "" (TextMap.lookup refMetaKey tr.meta.values)
+        pure (receipt, cash, allowance)
+
+    -- The auditor-visible reserve statement: the venue's unlocked holdings of the
+    -- instrument (fetched through Holding, so each must exist and be the venue's)
+    -- against the sum of the allowances it names. `previous` is consumed, so one
+    -- statement is live per listing. That the venue named EVERY allowance and
+    -- holding is the auditor's check (it observes every allowance).
+    nonconsuming choice Listing_Attest : ContractId CcReserveStatement
+      with
+        holdingCids : [ContractId H.Holding]
+        allowanceCids : [ContractId CcAllowance]
+        previous : Optional (ContractId CcReserveStatement)
+        asOf : Time
+      controller venue
+      do
+        heldAtomic <- holdingsAtomic venue instrumentAdmin instrumentId True holdingCids
+        require "duplicate-allowance" "the same allowance was named twice" (unique allowanceCids)
+        owed <- forA allowanceCids \cid -> do
+          a <- fetch cid
+          require "foreign-allowance" "an allowance is another listing's" (a.venue == venue && a.listingId == listingId)
+          pure a.units
+        let total = foldl (+) 0 owed
+        require "liability-overflow" "the allowances pass the rail's bound" (all (<= maxTotalUnits) owed && total >= 0 && total <= maxTotalUnits)
+        seqNo <- case previous of
+          None -> pure 0
+          Some p -> do
+            s <- fetch p
+            require "foreign-statement" "the statement is another listing's" (s.venue == venue && s.listingId == listingId)
+            require "stale-statement" "a statement cannot go back in time" (asOf >= s.asOf)
+            archive p
+            pure (s.seq + 1)
+        let heldUnits = unitsFloor unitsPerCoin heldAtomic
+        create CcReserveStatement with
+          venue; auditor; listingId; instrumentAdmin; instrumentId; unitsPerCoin
+          seq = seqNo; asOf; heldAtomic; heldUnits
+          liabilityUnits = total; allowanceCount = length allowanceCids
+          covered = heldUnits >= total

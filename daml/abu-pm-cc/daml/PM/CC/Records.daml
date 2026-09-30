@@ -1,0 +1,209 @@
+-- | The Canton Coin rail's records (C7b): the per-owner redeemable allowance, the
+-- deposit and withdrawal receipts, the reserve statement, and the helpers they share.
+--
+--   CcAllowance         venue-signed, owner and auditor observers: the cash units
+--                       the venue owes this owner back IN COIN. A deposit raises
+--                       it, a withdrawal lowers it, a refunded withdrawal restores
+--                       it. Winnings and demo credits never raise it, so the coin
+--                       the venue holds is only ever claimed by what was put in.
+--   CcDeposit           the receipt of one settled deposit. Its `ensure` pins the
+--                       credit to the coin received: received == units * atomicPerUnit.
+--   CcWithdrawal        the receipt of one withdrawal: Sent (a TransferInstruction is
+--                       in flight to the owner), Completed, or Refunded.
+--   CcReserveStatement  the venue's unlocked holdings against the sum of allowances.
+module PM.CC.Records where
+
+import DA.List (unique)
+import DA.Optional (isNone, isSome)
+import PM.CC.Units
+import PM.Money
+import PM.Types
+import Splice.Api.Token.HoldingV1 qualified as H
+import Splice.Api.Token.MetadataV1 (ExtraArgs)
+import Splice.Api.Token.TransferInstructionV1 qualified as T
+
+-- | The transfer metadata key a deposit or a withdrawal carries its reference in.
+refMetaKey : Text
+refMetaKey = "abu-pm.io/ref"
+
+-- | The `VenueCash.bucket` a deposit is credited into.
+ccBucket : Text -> Text
+ccBucket listingId = "cc:" <> listingId
+
+-- | The bucket a refunded withdrawal is credited back into.
+refundBucket : Text -> Text
+refundBucket listingId = "cc-refund:" <> listingId
+
+-- ---------------------------------------------------------------------------
+-- Allowance
+
+template CcAllowance
+  with
+    venue : Party
+    auditor : Party
+    owner : Party
+    listingId : Text
+    units : Int
+      -- ^ cash units redeemable for coin at the listing's stated rate
+  where
+    signatory venue
+    observer owner, auditor
+    ensure units > 0 && units <= maxTotalUnits && listingId /= ""
+      && venue /= owner && venue /= auditor && owner /= auditor
+
+-- | Raise the owner's allowance by `add`: consume the live one (if the venue names
+-- it) and create the sum. Refuses another owner's, another listing's, or an overflow.
+raiseAllowance : Party -> Party -> Party -> Text -> Optional (ContractId CcAllowance) -> Int -> Update (ContractId CcAllowance)
+raiseAllowance venue auditor owner listingId existing add = do
+  base <- case existing of
+    None -> pure 0
+    Some cid -> do
+      a <- fetch cid
+      require "foreign-allowance" "the allowance is another owner's or another listing's"
+        (a.venue == venue && a.owner == owner && a.listingId == listingId)
+      archive cid
+      pure a.units
+  require "allowance-overflow" "the allowance would pass its bound" (base <= maxTotalUnits - add)
+  create CcAllowance with venue; auditor; owner; listingId; units = base + add
+
+-- | Lower the owner's allowance by `take`; refused when it is not covered. Returns
+-- what is left, if anything.
+lowerAllowance : Party -> Party -> Text -> ContractId CcAllowance -> Int -> Update (Optional (ContractId CcAllowance))
+lowerAllowance venue owner listingId cid take = do
+  a <- fetch cid
+  require "foreign-allowance" "the allowance is another owner's or another listing's"
+    (a.venue == venue && a.owner == owner && a.listingId == listingId)
+  require "over-allowance" "the withdrawal is more than this owner has deposited and not taken back" (take <= a.units)
+  archive cid
+  if a.units == take then pure None else Some <$> create a with units = a.units - take
+
+-- ---------------------------------------------------------------------------
+-- Holdings
+
+-- | The atomic total of holdings of one instrument, fetched through the CIP-56
+-- Holding interface. Every holding must be the given owner's and of the given
+-- instrument, and no holding may be named twice. With `unlockedOnly` a locked
+-- holding is refused (a deposit's receiver holdings are never locked).
+holdingsAtomic : Party -> Party -> Text -> Bool -> [ContractId H.Holding] -> Update Int
+holdingsAtomic owner admin instrument unlockedOnly cids = do
+  require "duplicate-holding" "the same holding was named twice" (unique cids)
+  parts <- forA cids \cid -> do
+    h <- fetch cid
+    let v = view h
+    require "foreign-holding" "a holding is not the venue's, or is of another instrument"
+      (v.owner == owner && v.instrumentId.admin == admin && v.instrumentId.id == instrument)
+    require "locked-holding" "a locked holding cannot back the reserve" (not unlockedOnly || isNone v.lock)
+    case toAtomic v.amount of
+      Some a -> pure a
+      None -> refuse "bad-holding-amount" "a holding's amount is zero or above the rail's bound"
+  let total = foldl (+) 0 parts
+  require "holdings-overflow" "the holdings pass the rail's bound" (total <= maxTotalUnits)
+  pure total
+
+-- ---------------------------------------------------------------------------
+-- Receipts
+
+template CcDeposit
+  with
+    venue : Party
+    owner : Party
+    auditor : Party
+    listingId : Text
+    instrumentAdmin : Party
+    instrumentId : Text
+    unitsPerCoin : Int
+    receivedAtomic : Int
+    units : Int
+    settledAt : Time
+    ref : Text
+  where
+    signatory venue
+    observer owner, auditor
+    ensure rateOk unitsPerCoin && cashUnitsOk unitsPerCoin units
+      && receivedAtomic == atomicOfUnits unitsPerCoin units
+
+data WithdrawalState = WdSent | WdCompleted | WdRefunded
+  deriving (Eq, Show)
+
+template CcWithdrawal
+  with
+    venue : Party
+    owner : Party
+    auditor : Party
+    listingId : Text
+    instrumentAdmin : Party
+    instrumentId : Text
+    unitsPerCoin : Int
+    units : Int
+    sentAtomic : Int
+    state : WithdrawalState
+    instructionCid : Optional (ContractId T.TransferInstruction)
+    openedAt : Time
+    ref : Text
+  where
+    signatory venue
+    observer owner, auditor
+    ensure rateOk unitsPerCoin && cashUnitsOk unitsPerCoin units
+      && sentAtomic == atomicOfUnits unitsPerCoin units
+      && (state == WdSent) == isSome instructionCid
+
+    -- The owner accepted the transfer (the instruction is gone from the registry).
+    choice Withdrawal_Complete : ContractId CcWithdrawal
+      controller venue
+      do
+        require "not-sent" "only a withdrawal in flight can complete" (state == WdSent)
+        create this with state = WdCompleted; instructionCid = None
+
+    -- Take an in-flight transfer back (the owner never accepted it): the registry
+    -- must answer `Failed`, then the cash and the allowance are restored, in this
+    -- one transaction.
+    choice Withdrawal_Refund : (ContractId CcWithdrawal, ContractId VenueCash, ContractId CcAllowance)
+      with
+        accountCid : ContractId VenueAccount
+        allowanceCid : Optional (ContractId CcAllowance)
+        extraArgs : ExtraArgs
+      controller venue
+      do
+        require "not-sent" "only a withdrawal in flight can be refunded" (state == WdSent)
+        instr <- case instructionCid of
+          Some c -> pure c
+          None -> refuse "not-sent" "the withdrawal has no transfer in flight"
+        res <- exercise instr T.TransferInstruction_Withdraw with extraArgs
+        case res.output of
+          T.TransferInstructionResult_Failed -> pure ()
+          _ -> refuse "withdraw-not-failed" "the registry did not take the transfer back"
+        acct <- fetch accountCid
+        require "wrong-account" "the account is not the owner's" (acct.venue == venue && acct.owner == owner)
+        cash <- exercise accountCid VenueAccount_Credit with amount = units; bucket = refundBucket listingId
+        allowance <- raiseAllowance venue auditor owner listingId allowanceCid units
+        receipt <- create this with state = WdRefunded; instructionCid = None
+        pure (receipt, cash, allowance)
+
+-- ---------------------------------------------------------------------------
+-- Reserve statement
+
+template CcReserveStatement
+  with
+    venue : Party
+    auditor : Party
+    listingId : Text
+    instrumentAdmin : Party
+    instrumentId : Text
+    unitsPerCoin : Int
+    seq : Int
+    asOf : Time
+    heldAtomic : Int
+      -- ^ atomic units in the unlocked holdings the venue named
+    heldUnits : Int
+      -- ^ heldAtomic in cash units, rounded down
+    liabilityUnits : Int
+      -- ^ the sum of the allowances the venue named
+    allowanceCount : Int
+    covered : Bool
+  where
+    signatory venue
+    observer auditor
+    ensure rateOk unitsPerCoin && seq >= 0 && allowanceCount >= 0 && heldAtomic >= 0
+      && heldUnits == unitsFloor unitsPerCoin heldAtomic
+      && liabilityUnits >= 0
+      && covered == (heldUnits >= liabilityUnits)

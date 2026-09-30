@@ -1,0 +1,83 @@
+-- | The Canton Coin rail's unit arithmetic (C7b, K-245). The ONE place a CIP-56
+-- `Decimal` becomes an `Int` (and back); everything else in the package, and
+-- everything it credits or debits in `VenueCash`, is integer.
+--
+-- A Decimal is `Numeric 10`, so an amount is a whole number of atomic units of
+-- 10^-10 of the instrument. A listing states its rate as `unitsPerCoin`: cash
+-- base units per ONE whole coin. The rate must divide 10^10, so one cash unit is
+-- a whole number of atomic units (`atomicPerUnit`) and the conversion needs no
+-- rounding in either direction:
+--
+--   deposit   cash units = atomic / atomicPerUnit          exact, or REFUSED
+--   withdraw  atomic     = cash units * atomicPerUnit      always exact
+--
+-- A deposit that is not a whole number of cash units is refused (dust), never
+-- rounded: rounding it down would keep the fraction for the venue, rounding it
+-- up would credit cash the venue holds no coin for. The only rounding in the
+-- package is `unitsFloor`, used for the ASSETS side of a reserve statement, so a
+-- statement can understate what the venue holds but never overstate it.
+module PM.CC.Units where
+
+-- | Atomic units per whole coin: 10^10 (a Decimal has 10 decimal places).
+atomicPerCoin : Int
+atomicPerCoin = 10000000000
+
+-- | The largest whole-coin amount the rail converts in one go. With it an atomic
+-- amount is at most 10^17, well inside Int64 (9.2 * 10^18). Daml aborts on
+-- overflow, so every bound below is checked by division, never by multiplying first.
+maxWholeCoins : Int
+maxWholeCoins = 10000000
+
+maxAtomic : Int
+maxAtomic = maxWholeCoins * atomicPerCoin
+
+-- | A stated rate: cash base units per whole coin, dividing 10^10 exactly.
+rateOk : Int -> Bool
+rateOk rate = rate > 0 && rate <= atomicPerCoin && atomicPerCoin % rate == 0
+
+-- | Atomic units in one cash base unit at this rate. Call only after `rateOk`.
+atomicPerUnit : Int -> Int
+atomicPerUnit rate = atomicPerCoin / rate
+
+-- | The most cash units one conversion may carry at this rate (= maxAtomic in cash units).
+maxUnitsFor : Int -> Int
+maxUnitsFor rate = maxAtomic / atomicPerUnit rate
+
+-- | Bound on any total the rail sums (allowances, liabilities), so a sum of
+-- two bounded values cannot overflow Int64.
+maxTotalUnits : Int
+maxTotalUnits = 4000000000000000000
+
+cashUnitsOk : Int -> Int -> Bool
+cashUnitsOk rate units = units > 0 && units <= maxUnitsFor rate
+
+-- | Decimal -> atomic units. Exact (a Decimal has at most 10 places). None for a
+-- non-positive amount or one above `maxWholeCoins`.
+toAtomic : Decimal -> Optional Int
+toAtomic amount
+  | amount <= 0.0 || amount > intToDecimal maxWholeCoins = None
+  | otherwise =
+      let whole = truncate amount
+          fraction = truncate ((amount - intToDecimal whole) * 10000000000.0)
+      in Some (whole * atomicPerCoin + fraction)
+
+-- | Atomic units -> Decimal, exact. For 0 <= atomic <= maxAtomic.
+fromAtomic : Int -> Decimal
+fromAtomic atomic =
+  intToDecimal (atomic / atomicPerCoin) + intToDecimal (atomic % atomicPerCoin) / 10000000000.0
+
+-- | Cash units for exactly this atomic amount; None when it is not a whole number
+-- of cash units (dust) or is not positive.
+unitsExact : Int -> Int -> Optional Int
+unitsExact rate atomic =
+  let per = atomicPerUnit rate
+  in if atomic > 0 && atomic % per == 0 then Some (atomic / per) else None
+
+-- | Atomic units of `units` cash units, exact. Call only after `cashUnitsOk`.
+atomicOfUnits : Int -> Int -> Int
+atomicOfUnits rate units = units * atomicPerUnit rate
+
+-- | Cash units of an atomic amount, rounded DOWN: the assets side of a reserve
+-- statement, which may understate holdings and never overstate them.
+unitsFloor : Int -> Int -> Int
+unitsFloor rate atomic = atomic / atomicPerUnit rate
