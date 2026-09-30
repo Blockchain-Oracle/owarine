@@ -108,7 +108,7 @@ template BoostQuote
         houseLeg <- create Leg with
           venue; owner = venue; termsCid; marketId; pairId; outcome = opposite side; lots; cashUnit
           backingShare = venueStakeOf lots priceTicks cashUnit; feePaid = 0
-          refundAfter; beneficiaryRef = None
+          refundAfter; beneficiaryRef = None; bookCost = None
         pure (pos, houseLeg, change)
 
     choice BoostQuote_Expire : Paid
@@ -312,7 +312,7 @@ houseTakesSide : BoostPosition -> Leg
 houseTakesSide p = Leg with
   venue = p.venue; owner = p.venue; termsCid = p.termsCid; marketId = p.marketId; pairId = p.pairId
   outcome = p.side; lots = p.lots; cashUnit = p.cashUnit; backingShare = costOf p; feePaid = 0
-  refundAfter = p.refundAfter; beneficiaryRef = None
+  refundAfter = p.refundAfter; beneficiaryRef = None; bookCost = None
 
 -- | A position's receipt for every way it ends: settle and claim ("won",
 -- "lost", "void"), and since 0.1.2 the stale refund ("void"), the knock-out

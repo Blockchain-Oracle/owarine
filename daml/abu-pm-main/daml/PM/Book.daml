@@ -1,0 +1,70 @@
+-- | 0.5.0 (K-092, K-200): books inside the venue. A book is a reserve that
+-- trades pairs with its own cash, the maker vault (`reserve:maker`) first.
+--
+-- The venue still signs everything; what a book adds is that its money
+-- never mixes with the venue desk's:
+--
+--   Quote / BuyQuote   issued from a `reserve:<id>` shard carry `book`, and
+--                      an expiry or withdrawal returns the lock to that
+--                      bucket, not to `shard`.
+--   Leg                the venue's leg of an accepted book quote (or a book
+--                      buy-back) carries the bucket in `beneficiaryRef`, and
+--                      a settle, a merge or a residual pays it back into it.
+--   BookReceipt        every time a book position turns back into cash (a
+--                      settle, a merge, a residual) the ledger writes what
+--                      the book paid for it and what came back, so the
+--                      book's history is the ledger's, not ops' memory.
+--
+-- A user leg may carry any `beneficiaryRef` the user chose; only a leg the
+-- venue itself owns is ever read as a book leg (`legBook`).
+module PM.Book where
+
+import DA.Text (isPrefixOf)
+import PM.Types
+
+-- | The book a bucket belongs to: `Some bucket` for a reserve bucket, None
+-- for the venue desk's own cash.
+bookOf : Text -> Optional Text
+bookOf bucket = if "reserve:" `isPrefixOf` bucket && bucket /= "reserve:" then Some bucket else None
+
+-- | The bucket money of a book returns to, or `deskBucket` for the desk.
+bucketOr : Text -> Optional Text -> Text
+bucketOr deskBucket = optional deskBucket identity
+
+-- | What a book paid for a position: its own recorded cost (a buy-back
+-- pays the price, not the seller's backing), else the backing it locked.
+paidFor : Int -> Optional Int -> Int
+paidFor backingShare bookCost = optional backingShare identity bookCost
+
+-- | The ledger's record of one book position turning back into cash.
+--   kind       "settled" (Leg_Settle / Leg_Claim against a Resolution),
+--              "merged" (Leg_Merge of two book legs), "residual" (a
+--              cross-pair merge's `NettedResidual` paid at resolution) or
+--              "refunded" (the stale refund after `refundAfter`)
+--   lots       the position's size (a merge: one side's lots)
+--   cost       what the book paid for what was closed (both legs of a
+--              merge; 0 for a residual, whose cost the merge recorded)
+--   proceeds   what came back into the book's bucket
+--   resolved   the Window's outcome for a settle (None = void, or not
+--              known for a merge)
+template BookReceipt
+  with
+    venue : Party
+    book : Text
+    marketId : Text
+    pairId : Text
+    outcome : Side
+    resolved : Optional Side
+    kind : Text
+    lots : Int
+    cost : Int
+    proceeds : Int
+  where
+    signatory venue
+    ensure bookOf book == Some book && lots >= 0 && cost >= 0 && proceeds >= 0
+      && kind `elem` ["settled", "merged", "residual", "refunded"]
+
+    -- Ops keeps the history it serves bounded; the record is the venue's.
+    choice BookReceipt_Prune : ()
+      controller venue
+      do pure ()

@@ -9,12 +9,17 @@
 -- `priceTicks` is the price of the USER's side, so
 --   userStake = lots * priceTicks * cashUnit          (paid by the user)
 --   venueStake = lots * (1000 - priceTicks) * cashUnit (locked by the venue)
+--
+-- 0.5.0 (K-092, K-200): a quote issued from a book's shard (`reserve:<id>`,
+-- the maker vault) is that book's: `book` names it, the venue leg it
+-- creates carries it, and an expiry or withdrawal returns the lock to it.
 module PM.Quote where
 
 import DA.Action (void, when)
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
 import DA.List (unique)
 import DA.Time (addRelTime, seconds)
+import PM.Book
 import PM.Leg
 import PM.Market
 import PM.Money
@@ -52,11 +57,12 @@ template VenueDesk
         require "wrong-venue" "terms belong to another venue" (terms.venue == venue)
         require "bad-grid" "ticks must be 1..999 and lots within the grid"
           (ticksOk priceTicks && gridOk lots terms.cashUnit)
+        book <- shardBook shardCid
         change <- lockFromShard venue shardCid (venueStakeOf lots priceTicks terms.cashUnit)
         q <- create Quote with
           venue; user; termsCid; marketId = terms.marketId; pairId; side; priceTicks; lots
           cashUnit = terms.cashUnit; fee; validUntil; lockAt = terms.lockAt
-          refundAfter = terms.refundAfter
+          refundAfter = terms.refundAfter; book
         pure (q, change)
 
     -- A two-way price for one user from one shard in one transaction: the
@@ -88,11 +94,12 @@ template VenueDesk
         require "duplicate-pair" "the two sides need distinct pair ids" (buyPairId /= sellPairId)
         let downTicks = pairTicks - bidTicks
             stake = venueStakeOf lots askTicks terms.cashUnit + venueStakeOf lots downTicks terms.cashUnit
+        book <- shardBook shardCid
         change <- lockFromShard venue shardCid stake
         let mk pairId side ticks fee = Quote with
               venue; user; termsCid; marketId = terms.marketId; pairId; side; priceTicks = ticks; lots
               cashUnit = terms.cashUnit; fee; validUntil; lockAt = terms.lockAt
-              refundAfter = terms.refundAfter
+              refundAfter = terms.refundAfter; book
         buyQ <- create (mk buyPairId SideUp askTicks buyFee)
         sellQ <- create (mk sellPairId SideDown downTicks sellFee)
         pure (buyQ, sellQ, change)
@@ -136,11 +143,12 @@ template VenueDesk
         let lots = optional leg.lots identity sellLots
         require "bad-lots" "a buy-back takes 1..the leg's lots" (lots > 0 && lots <= leg.lots)
         let locked = userStakeOf lots priceTicks leg.cashUnit
+        book <- shardBook shardCid
         change <- lockFromShard venue shardCid locked
         bq <- create BuyQuote with
           venue; user = leg.owner; legCid; termsCid = leg.termsCid; pairId = leg.pairId
           outcome = leg.outcome; lots; cashUnit = leg.cashUnit; priceTicks
-          locked; validUntil
+          locked; validUntil; book
         pure (bq, change)
 
 -- | Per leg (in input order) the owner's payout, if any, and the batch's
@@ -150,6 +158,12 @@ data SettleBatchResult = SettleBatchResult
     payouts : [Optional (ContractId VenueCash)]
     fees : Optional (ContractId VenueCash)
   deriving (Eq, Show)
+
+-- | 0.5.0: the book a shard's cash belongs to (None = the venue desk).
+shardBook : ContractId VenueCash -> Update (Optional Text)
+shardBook shardCid = do
+  shard <- fetch shardCid
+  pure (bookOf shard.bucket)
 
 lockFromShard : Party -> ContractId VenueCash -> Int -> Update (Optional (ContractId VenueCash))
 lockFromShard venue shardCid stake = do
@@ -174,6 +188,8 @@ template Quote
     validUntil : Time
     lockAt : Time
     refundAfter : Time
+    book : Optional Text
+      -- ^ 0.5.0: the book that locked the venue stake (None = the venue desk)
   where
     signatory venue
     observer user
@@ -194,18 +210,18 @@ template Quote
         userLeg <- create Leg with
           venue; owner = user; termsCid; marketId; pairId; outcome = side; lots; cashUnit
           backingShare = userStakeOf lots priceTicks cashUnit; feePaid = fee
-          refundAfter; beneficiaryRef
+          refundAfter; beneficiaryRef; bookCost = None
         venueLeg <- create Leg with
           venue; owner = venue; termsCid; marketId; pairId; outcome = opposite side; lots; cashUnit
           backingShare = venueStakeOf lots priceTicks cashUnit; feePaid = 0
-          refundAfter; beneficiaryRef = None
+          refundAfter; beneficiaryRef = book; bookCost = None
         pure (userLeg, venueLeg, change)
 
     choice Quote_Expire : ContractId VenueCash
       controller venue
       do
         assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
-        create VenueCash with venue; owner = venue; amount = venueStakeOf lots priceTicks cashUnit; bucket = "shard"
+        create VenueCash with venue; owner = venue; amount = venueStakeOf lots priceTicks cashUnit; bucket = bucketOr "shard" book
 
     choice Quote_Withdraw : ContractId VenueCash
       with
@@ -213,7 +229,7 @@ template Quote
       controller venue
       do
         require "no-reason" "a withdrawal names its reason" (reason /= "")
-        create VenueCash with venue; owner = venue; amount = venueStakeOf lots priceTicks cashUnit; bucket = "shard"
+        create VenueCash with venue; owner = venue; amount = venueStakeOf lots priceTicks cashUnit; bucket = bucketOr "shard" book
 
 -- | The venue's firm offer to buy `lots` of a user's leg back at `priceTicks`
 -- of the leg's side. On accept the user is paid `locked`, and the sold slice
@@ -238,6 +254,8 @@ template BuyQuote
     priceTicks : Int
     locked : Int
     validUntil : Time
+    book : Optional Text
+      -- ^ 0.5.0: the book buying the slice back (None = the venue desk)
   where
     signatory venue
     observer user
@@ -259,7 +277,10 @@ template BuyQuote
             soldFee = ceilDiv (leg.feePaid * lots) leg.lots
             keptLots = leg.lots - lots
         paid <- create VenueCash with venue; owner = user; amount = locked; bucket = "sale"
-        venueLeg <- create leg with owner = venue; lots; backingShare = soldBacking; feePaid = 0; beneficiaryRef = None
+        -- 0.5.0: a book's buy-back is the book's position, at what it paid.
+        venueLeg <- create leg with
+          owner = venue; lots; backingShare = soldBacking; feePaid = 0; beneficiaryRef = book
+          bookCost = fmap (const locked) book
         -- The remainder is the user's (both signatories authorise the body).
         when (keptLots > 0) do
           void $ create leg with lots = keptLots; backingShare = leg.backingShare - soldBacking; feePaid = leg.feePaid - soldFee
@@ -270,7 +291,7 @@ template BuyQuote
       controller venue
       do
         assertDeadlineExceeded "quote-expire" (addRelTime validUntil (seconds expireSlackSec))
-        create VenueCash with venue; owner = venue; amount = locked; bucket = "shard"
+        create VenueCash with venue; owner = venue; amount = locked; bucket = bucketOr "shard" book
 
     choice BuyQuote_Withdraw : ContractId VenueCash
       with
@@ -278,7 +299,7 @@ template BuyQuote
       controller venue
       do
         require "no-reason" "a withdrawal names its reason" (reason /= "")
-        create VenueCash with venue; owner = venue; amount = locked; bucket = "shard"
+        create VenueCash with venue; owner = venue; amount = locked; bucket = bucketOr "shard" book
 
 -- | Integer ceiling of a / b for a >= 0, b > 0.
 ceilDiv : Int -> Int -> Int

@@ -13,6 +13,10 @@ import type { RangeParams } from "@agari/core/range";
 export const TICKET_RESERVES = ["range", "parlay", "boost"] as const;
 export type TicketReserveId = (typeof TICKET_RESERVES)[number];
 export const isTicketReserve = (v: unknown): v is TicketReserveId => typeof v === "string" && (TICKET_RESERVES as readonly string[]).includes(v);
+/** Every reserve a provider supplies through Earn: the ticket reserves and the maker vault (abu-pm-main 0.5.0, K-200). */
+export const EARN_RESERVES = [...TICKET_RESERVES, "maker"] as const;
+export type EarnReserveId = (typeof EARN_RESERVES)[number];
+export const isEarnReserve = (v: unknown): v is EarnReserveId => typeof v === "string" && (EARN_RESERVES as readonly string[]).includes(v);
 
 /** Collateral decimals and one whole unit (1 credit, 1 contract's payout). */
 export const TICKET_DECIMALS = 6;

@@ -15,7 +15,7 @@ import {
   type BoostTicketReply, type EarnReply, type ParlayTicketReply, type RangeTicketReply, type TicketReserveState, type TicketsMine, type TicketStateReply,
 } from "../provider/ticket-wire";
 import { nowMs } from "../provider/clock";
-import type { TicketReserveId } from "./params";
+import type { EarnReserveId, TicketReserveId } from "./params";
 
 export type TicketKind = "range" | "parlay" | "boost";
 
@@ -46,7 +46,7 @@ export async function ticketCidOf(kind: TicketKind, id: bigint): Promise<string 
 }
 
 /** A reserve's address-shaped id, for the reference's `deployment` field: derived, stable, never a chain address. */
-export const reserveAddressOf = (reserve: TicketReserveId): Address => seriesIdFromDaml(`agari-reserve:${reserve}`);
+export const reserveAddressOf = (reserve: EarnReserveId): Address => seriesIdFromDaml(`agari-reserve:${reserve}`);
 
 // ---- reads ------------------------------------------------------------------------------------------------
 

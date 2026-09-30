@@ -12,7 +12,9 @@
 module PM.Leg where
 
 import DA.Action (void, when)
+import DA.Foldable (forA_)
 import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import PM.Book
 import PM.Market
 import PM.Money
 import PM.Publication
@@ -32,6 +34,9 @@ template Leg
     feePaid : Int
     refundAfter : Time
     beneficiaryRef : Optional Text
+    bookCost : Optional Int
+      -- ^ 0.5.0 (K-200): what a book paid for this venue leg when that is
+      -- not its backing (a book buy-back pays the price). None = the backing.
   where
     signatory venue, owner
     ensure gridOk lots cashUnit && backingShare >= 0
@@ -62,7 +67,12 @@ template Leg
       controller owner
       do
         assertDeadlineExceeded "refund-after" refundAfter
-        payIfPositive venue owner (backingShare + feePaid) "refund"
+        -- 0.5.0: a book's own leg refunds into the book's bucket, with its receipt.
+        let book = legBook this
+        forA_ book \b -> create BookReceipt with
+          venue; book = b; marketId; pairId; outcome; resolved = None; kind = "refunded"; lots
+          cost = paidFor backingShare bookCost; proceeds = backingShare + feePaid
+        payIfPositive venue owner (backingShare + feePaid) (bucketOr "refund" book)
 
     -- Net two venue-held legs of opposite outcome in one market. Releases
     -- min(shareA + shareB, quantity) now; a pair (shares summing to the
@@ -79,17 +89,47 @@ template Leg
         require "merge-mismatch" "legs must be the venue's, same market and size, opposite outcomes"
           (o.owner == venue && o.venue == venue && o.termsCid == termsCid
             && o.outcome /= outcome && o.lots == lots && o.cashUnit == cashUnit)
+        -- 0.5.0: a book nets only against itself, so its cash never leaves it.
+        let book = legBook this
+        require "book-mismatch" "legs of different books do not merge" (legBook o == book)
         archive otherCid
         let q = quantityOf lots cashUnit
             shares = backingShare + o.backingShare
             release = min shares q
-        cash <- payIfPositive venue venue (release + feePaid + o.feePaid) "netting"
+        cash <- payIfPositive venue venue (release + feePaid + o.feePaid) (bucketOr "netting" book)
         residual <- if shares /= q
           then Some <$> create NettedResidual with
             venue; termsCid; marketId; pairA = pairId; pairB = o.pairId
-            heldIfVoid = shares - release; owedIfResolved = q - release
+            heldIfVoid = shares - release; owedIfResolved = q - release; book
           else pure None
+        forA_ book \b -> create BookReceipt with
+          venue; book = b; marketId; pairId; outcome; resolved = None; kind = "merged"; lots
+          cost = paidFor backingShare bookCost + paidFor o.backingShare o.bookCost
+          proceeds = release + feePaid + o.feePaid
         pure (cash, residual)
+
+    -- 0.5.0 (K-201): a venue-held leg splits in two on the same terms, so a
+    -- book can net opposite legs of different sizes (the reference's
+    -- public_merge nets min(up, down)): split the larger to the smaller's
+    -- lots, then `Leg_Merge`. Backing, fee and a recorded book cost split
+    -- pro rata, the first part rounded down and the second taking the rest,
+    -- so nothing is created or lost and each part stays within its quantity.
+    -- The statement's mark (the lesser of cost and backing) of the two parts
+    -- never sums above the whole's.
+    choice Leg_Split : (ContractId Leg, ContractId Leg)
+      with
+        splitLots : Int
+      controller venue
+      do
+        require "not-venue-leg" "only venue-held legs split" (owner == venue)
+        require "bad-split" "a split leaves two legs of at least one lot" (splitLots > 0 && splitLots < lots)
+        let part x = (x * splitLots) / lots
+        a <- create this with
+          lots = splitLots; backingShare = part backingShare; feePaid = part feePaid; bookCost = fmap part bookCost
+        b <- create this with
+          lots = lots - splitLots; backingShare = backingShare - part backingShare
+          feePaid = feePaid - part feePaid; bookCost = fmap (\c -> c - part c) bookCost
+        pure (a, b)
 
     -- Two-controller close-out at cost (seat drain): the owner gets
     -- backingShare + feePaid from the leg's own escrow, and the venue re-backs
@@ -106,7 +146,8 @@ template Leg
           (shard.owner == venue && shard.venue == venue && shard.amount >= backingShare)
         archive shardCid
         paid <- payIfPositive venue owner (backingShare + feePaid) "close-out"
-        leg <- create this with owner = venue; feePaid = 0; beneficiaryRef = None
+        -- 0.5.0: re-backed from a book's shard, the position is that book's.
+        leg <- create this with owner = venue; feePaid = 0; beneficiaryRef = bookOf shard.bucket; bookCost = None
         change <- payIfPositive venue venue (shard.amount - backingShare) shard.bucket
         pure (paid, leg, change)
 
@@ -127,6 +168,8 @@ template NettedResidual
     pairB : Text
     heldIfVoid : Int
     owedIfResolved : Int
+    book : Optional Text
+      -- ^ 0.5.0: the book whose legs were merged (None = the venue desk)
   where
     signatory venue
     ensure heldIfVoid >= 0 && owedIfResolved >= 0
@@ -137,13 +180,22 @@ template NettedResidual
       controller venue
       do
         r <- fetchResolutionFor venue termsCid resolutionCid
-        payIfPositive venue venue (if isVoid r then heldIfVoid else owedIfResolved) "netting"
+        let owed = if isVoid r then heldIfVoid else owedIfResolved
+        forA_ (book >>= bookOf) \b -> create BookReceipt with
+          venue; book = b; marketId; pairId = pairA; outcome = SideUp; resolved = r.outcome; kind = "residual"
+          lots = 0; cost = 0; proceeds = owed
+        payIfPositive venue venue owed (bucketOr "netting" (book >>= bookOf))
 
 fetchResolutionFor : Party -> ContractId MarketTerms -> ContractId Resolution -> Update Resolution
 fetchResolutionFor venue termsCid resolutionCid = do
   r <- fetch resolutionCid
   require "wrong-resolution" "resolution is for other terms" (r.termsCid == termsCid && r.venue == venue)
   pure r
+
+-- | 0.5.0: the book a leg belongs to. Only a leg the venue owns is ever a
+-- book's; a user's `beneficiaryRef` is the user's own tag.
+legBook : Leg -> Optional Text
+legBook l = if l.owner == l.venue then l.beneficiaryRef >>= bookOf else None
 
 -- | (owner's payout, venue's fee) for a leg under a resolution.
 legPayout : Leg -> Resolution -> (Int, Int)
@@ -155,7 +207,13 @@ payOut : Leg -> ContractId Resolution -> Update (Optional (ContractId VenueCash)
 payOut l resolutionCid = do
   r <- fetchResolutionFor l.venue l.termsCid resolutionCid
   let (toOwner, fee) = legPayout l r
-  paid <- payIfPositive l.venue l.owner toOwner "payout"
+      book = legBook l
+  -- 0.5.0: a book's leg pays back into the book's bucket, with its receipt.
+  paid <- payIfPositive l.venue l.owner toOwner (bucketOr "payout" book)
+  forA_ book \b -> create BookReceipt with
+    venue = l.venue; book = b; marketId = l.marketId; pairId = l.pairId; outcome = l.outcome
+    resolved = r.outcome; kind = "settled"; lots = l.lots; cost = paidFor l.backingShare l.bookCost
+    proceeds = toOwner
   feeCash <- payIfPositive l.venue l.venue fee "fee"
   -- K-028: a user's leg leaves a receipt (one create per leg, so a batch of 25 stays bounded).
   when (l.owner /= l.venue) $ void $ create SettlementReceipt with

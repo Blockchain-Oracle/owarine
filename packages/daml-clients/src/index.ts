@@ -47,6 +47,9 @@ export const TEMPLATE_IDS = {
   EventState: PM.Event.EventState.templateId,
   EventAttestation: PM.Event.EventAttestation.templateId,
   EventVerdict: PM.Event.EventVerdict.templateId,
+  // 0.5.0 (K-092, K-200): the maker vault's book and its on-ledger statement.
+  MakerDesk: PM.Maker.MakerDesk.templateId,
+  BookReceipt: PM.Book.BookReceipt.templateId,
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATE_IDS;

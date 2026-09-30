@@ -5,7 +5,8 @@ import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server
 /**
  * A ticket's price or firm quote at click time (C8c), from ops over HMAC: `preview` / `basis` price without writing;
  * `issue` creates a firm quote for the seat's party (~20 s) or answers a requote above the cap the seat confirmed;
- * a boost's `exit` is a firm buy-back of the whole position; Earn's `supply` / `withdraw` are firm liquidity quotes.
+ * a boost's `exit` is a firm buy-back of the whole position; Earn's `supply` / `withdraw` are firm liquidity quotes on a
+ * ticket reserve or the maker vault (`reserve: "maker"`), and the vault's `merge` / `settle` run its cranks now.
  * The web tier never acts as the venue; WHO the quote is for comes from the lease row, never the body.
  */
 export const runtime = "nodejs";
@@ -14,8 +15,11 @@ export const dynamic = "force-dynamic";
 const WIRES = { range: rangeTicketRequestWire, parlay: parlayTicketRequestWire, boost: boostTicketRequestWire, earn: earnRequestWire } as const;
 type Product = keyof typeof WIRES;
 const isProduct = (p: string): p is Product => p in WIRES;
-/** Ops that create something for the seat, so a cookie write's same-origin rule applies. */
-const WRITES = new Set(["issue", "exit", "supply", "withdraw"]);
+/**
+ * Ops that create something for the seat, or that the seat triggers as the venue's crank (the maker vault's `merge` /
+ * `settle`, the reference's permissionless `public_merge` / `public_settle`), so a cookie write's same-origin rule applies.
+ */
+const WRITES = new Set(["issue", "exit", "supply", "withdraw", "merge", "settle"]);
 
 export async function POST(request: NextRequest, context: { params: Promise<{ product: string }> }) {
   const { product } = await context.params;

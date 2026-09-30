@@ -7,11 +7,11 @@ import { diagnosis } from "@agari/core/types";
 import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { acceptTicketQuote, asTxOutcome } from "../submitter/ticket-lane";
 import { earnCall } from "./client";
-import type { TicketReserveId } from "./params";
+import type { EarnReserveId } from "./params";
 
 export async function earnWrite(
   deps: SeatLaneDeps,
-  reserve: TicketReserveId,
+  reserve: EarnReserveId,
   body: { op: "supply"; amountBase: bigint } | { op: "withdraw"; shares: bigint },
   kind: IntentRecord["kind"],
   onPhase?: PhaseListener,
@@ -20,7 +20,7 @@ export async function earnWrite(
   if (!r.ok) return { status: "refused", diagnosis: r.diagnosis };
   const q = r.value;
   if (q.kind === "refused") return { status: "refused", diagnosis: q.diagnosis };
-  const summary = q.kind === "supply-quote" ? `supply ${q.cashIn} to ${reserve} for ${q.sharesOut} shares` : `withdraw ${q.sharesIn} ${reserve} shares for ${q.cashOut}`;
   if (q.kind !== "supply-quote" && q.kind !== "withdraw-quote") return { status: "refused", diagnosis: diagnosis("unknown", "unexpected Earn reply") };
+  const summary = q.kind === "supply-quote" ? `supply ${q.cashIn} to ${reserve} for ${q.sharesOut} shares` : `withdraw ${q.sharesIn} ${reserve} shares for ${q.cashOut}`;
   return asTxOutcome(await acceptTicketQuote(deps, "earn", q.quoteCid, { kind, summary }, q.validUntilMs, onPhase));
 }

@@ -1,11 +1,11 @@
 sdk-version: 3.5.2
 name: abu-pm-agents
 source: daml
-version: 0.2.0
+version: 0.2.1
 dependencies:
   - daml-prim
   - daml-stdlib
 data-dependencies:
-  - ../abu-pm-main/.daml/dist/abu-pm-main-0.4.0.dar
+  - ../abu-pm-main/.daml/dist/abu-pm-main-0.5.0.dar
 build-options:
   - --ghc-option=-Wunused-imports
