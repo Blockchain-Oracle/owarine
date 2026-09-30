@@ -80,3 +80,11 @@ Agent portraits use **Notionists by Zoish**, remixed through DiceBear. [The desi
 Other packaged libraries retain their own notices. Examples verified in the installed dependencies include React, Next.js, Motion and Anchor's `anchor-lang`/`anchor-spl` under MIT/Apache-2.0; the Pyth Solana Receiver SDK, Switchboard On-Demand and RedStone's Rust SDK under their own upstream terms; Lucide and Rettiwt-API under ISC. This list is an attribution guide, not a replacement for the lockfile, a complete software bill of materials, or the full license texts distributed with each dependency.
 
 `agari-events` and `agari-vault` are Rust/Anchor programs written for this port. Their design drew on published patterns (Phoenix v1's matching-loop shape, `lib-sokoban`'s slab allocator, Polymarket's `ctf-exchange` match-type split, BetDexLabs/Monaco's price-ladder idea), but a source check of `anchor/programs/agari-events/src` and `packages/core` at this stage (2026-09-15) found no code, comment or file lifted from those references or from `reference/phoenix-v1`/`reference/sokoban`. No third-party program-code credit is asserted for the engine beyond the game-reference credit above; this line is re-checked if that changes.
+
+## BitSafe governance packages
+
+`daml/vendor/bitsafe/` carries two released Daml packages from BitSafe's Decentralization Manager, byte for byte: `governance-action-v1-0.1.0.dar` (the `GovernableAction` interface that `abu-pm-governance` implements) and `governance-core-v1-0.1.0.dar` (`GovernanceRules`, used by the Daml Script tests in `pm-tests`).
+
+- Source: [DLC-link/decentralization-manager](https://github.com/DLC-link/decentralization-manager), `releases/v1/`, at commit `7b4966d` (2026-09-21).
+- Licence: Apache License 2.0. The upstream `LICENSE` and `NOTICE` ("Canton Decentralized Party Manager — Copyright 2026 BitSafe Finance") are kept beside the files; hashes and package ids are in [`daml/vendor/bitsafe/README.md`](daml/vendor/bitsafe/README.md).
+- `abu-pm-governance` itself is written for this project; it implements the interface and copies no upstream Daml source.
