@@ -1,5 +1,5 @@
 import { isOk } from "@agari/core/schemas";
-import { dailyHeadroomBase, simulateCaps, type CapRefusal, type VaultGrant } from "@agari/core/vault";
+import { capsAtQuotePrice, dailyHeadroomBase, type CapRefusal, type VaultGrant } from "@agari/core/vault";
 import { sideForSubscriber, type Decision, type StrategyFill, type StrategySubscription } from "@agari/core/strategies";
 import { toMarketId, type EventMarket, type MarketId, type Quote } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
@@ -54,17 +54,15 @@ function capWords(r: CapRefusal): string {
 }
 
 /**
- * The grant's caps on this quote, before anything is reserved or sent (C8i): core `simulateCaps`, golden-tested on the
- * reference's caps vectors, is the ledger's `capRefusal` in the same order. On Canton the runner accepts the owner's
- * quote at the quote's own price, so the charge is also the escrow: the side price is the quote's cost per contract.
- * The runner only enters a Window the owner does not hold, so a fill always opens a new position. A cap the grant is
- * at is a Window to hold (skipped), never an attempt the ledger refuses and the runner then marks as not to resend.
+ * The grant's caps on this quote, before anything is reserved or sent (C8i): core `capsAtQuotePrice`, which is
+ * `simulateCaps` (the ledger's `capRefusal` in the same order, golden-tested on the reference's caps vectors) at the
+ * quote's own price, exactly as the grant executor checks before it sends. The runner only enters a Window the owner
+ * does not hold, so a fill always opens a new position. A cap the grant is at is a Window to hold (skipped), never an
+ * attempt the ledger or the executor refuses and the runner then marks as not to resend.
  */
 export function capsOnQuote(grant: VaultGrant, quote: Pick<Quote, "contractsRaw" | "expectedCostBase">, decimals: number, nowSec: number): { ok: true } | { ok: false; reason: string } {
   if (quote.contractsRaw <= 0n) return { ok: false, reason: "nothing freshly quoted at this size; holding" };
-  const one = 10n ** BigInt(decimals);
-  const sidePriceRaw = (quote.expectedCostBase * one + quote.contractsRaw - 1n) / quote.contractsRaw;
-  const verdict = simulateCaps({ grant, nowSec, sidePriceRaw, quantityRaw: quote.contractsRaw, spendBase: quote.expectedCostBase, one, opensNewPosition: true });
+  const verdict = capsAtQuotePrice({ grant, nowSec, contractsRaw: quote.contractsRaw, costBase: quote.expectedCostBase, one: 10n ** BigInt(decimals), opensNewPosition: true });
   return verdict.ok ? { ok: true } : { ok: false, reason: capWords(verdict.refusal) };
 }
 
