@@ -24,9 +24,9 @@ import {
   type AllowanceC, type ListingC, type ProposalC, type StatementC, type WithdrawalC,
 } from "./decode";
 import * as ids from "./ids";
-import {
-  planAttest, planDeposits, planInFlight, planMerges, planWithdrawals, unlockedHoldings, type CashRow, type HoldingRow, type InstructionRow, type LeaseOf, type Row,
-} from "./policy";
+import { planMerges, type Row } from "./allowances";
+import { planDeposits, planInFlight, planWithdrawals, type CashRow, type InstructionRow, type LeaseOf } from "./policy";
+import { planAttest, unlockedHoldings, type HoldingRow } from "./reserve";
 import type { RegistryClient } from "./registry";
 
 export interface RailSnapshot {

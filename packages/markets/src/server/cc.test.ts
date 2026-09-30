@@ -143,7 +143,7 @@ describe("the seat's Canton Coin path (C7b)", () => {
         cash("c1", A, "1000000"), { ...cash("c2", A, "777777777"), signatories: ["attacker::1", A] },
         holding("h1", [A], A, "1.0000000000"), holding("fake-coin", [A], A, "9999.0000000000", null, [A, "attacker::1"]),
         { ...listingRow, cid: "fake-listing", data: { ...listing, unitsPerCoin: "1000000" }, signatories: ["attacker::1"] },
-        { cid: "fake-stmt", templateId: CC_TEMPLATE_IDS.CcReserveStatement, seenBy: [VENUE], offset: 1, signatories: ["attacker::1"], data: { venue: "attacker::1", auditor: VENUE, listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: "100000", seq: "999", asOf: "2026-10-01T12:00:00Z", heldAtomic: "1", heldUnits: "1", liabilityAtomic: "0", liabilityUnits: "0", allowanceCount: "0", covered: true } },
+        { cid: "fake-stmt", templateId: CC_TEMPLATE_IDS.CcReserveStatement, seenBy: [VENUE], offset: 1, signatories: ["attacker::1"], data: { venue: "attacker::1", auditor: VENUE, listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: "100000", seq: "999", "asOf": "2026-10-01T12:00:00Z", heldAtomic: "1", heldUnits: "1", liabilityAtomic: "0", liabilityUnits: "0", allowanceCount: "0", covered: true } },
       ],
       "live",
     );

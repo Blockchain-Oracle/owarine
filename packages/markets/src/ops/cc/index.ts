@@ -9,6 +9,8 @@ export type { RegistryContext, TransferArgs } from "./commands";
 export * from "./decode";
 export { archivedByExercise, type ArchiveKind, type HistoryConfig } from "./history";
 export * as ccIds from "./ids";
+export * from "./allowances";
 export * from "./policy";
+export * from "./reserve";
 export { railPass, readRail, resetRailClock, type RailDeps, type RailPassResult, type RailSnapshot } from "./rail";
 export { createRegistryClient, RegistryError, type FactoryAnswer, type InstructionChoice, type RegistryClient, type RegistryClientConfig } from "./registry";

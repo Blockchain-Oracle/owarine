@@ -121,15 +121,17 @@ The vendored DARs are never edited.
 
 ## Gate results
 
-Run 30 Sep 2026 on the merged tree (main `ec7c271` merged, HEAD `9c0a984`+), Apple silicon, load average 15 to 50:
+Run 30 Sep 2026 on the tree with main `b392711` merged (`abu-pm-main` 0.5.1), Apple silicon, load average 15 to 250:
 
 | Gate | Result |
 |---|---|
-| `cd daml && dpm build --all && (cd pm-tests && dpm test)` | build exit 0; **234 scripts ok, 0 failed** (202 before this lane, 31 rail tests and the `mkCC` fixture: 12 deposit, 12 withdraw, 7 reserve, privacy and random) |
-| `pnpm codegen:daml` then `git status` | no diff: the committed bindings match the package |
+| `cd daml && dpm build --all && (cd pm-tests && dpm test)` | build exit 0; **266 scripts ok, 0 failed** (of which 38 are the rail's tests and one is their `mkCC` fixture: 12 deposit, 17 withdraw, 9 reserve, privacy and random) |
+| `pnpm codegen:daml` then `git status` | no generated diff: the committed bindings match the package |
 | `pnpm typecheck` | all 10 projects green (web, mobile, ops, markets, core, ledger, db, brain, scripts, daml-clients) |
-| `pnpm invariants` | 0 errors, 0 warnings (`no-party-from-request`, `time-suffix`, `no-float-money`, `capabilities-evidence`, the mobile design rules) |
-| `pnpm test` | 310 files passed, 12 skipped; **2,421 tests passed**, 52 skipped, 0 failed. The lane adds 87: ledger units 7 and interface filter 3, the rail's decoders, planners, registry, history and pass 47, the ops actor's env 3, the seat side 13, holdings 6, the seat drain 1, the funds panel 7 |
-| `pnpm --filter @agari/mobile typecheck` | green |
+| `pnpm invariants` | 0 errors, 0 warnings (`no-party-from-request`, `time-suffix`, `no-float-money`, `file-length`, `capabilities-evidence`, the mobile design rules) |
+| `pnpm test` | 318 files passed, 13 skipped; **2,498 tests passed**, 61 skipped, 0 failed. The lane adds 107: ledger units 7 and interface filter 3, the rail's decoders, planners, registry, history and pass 61, the ops actor's env 4, the seat side 17, holdings 6, the seat drain 2, the funds panel 7 |
+| `pnpm --filter @agari/mobile typecheck` | green (inside `pnpm typecheck`) |
+
+The Daml suite ran once before the two independent reviews and once after their fixes; both were green. `abu-pm-cc` is **not** in `RELEASE_PACKAGES` (`scripts/bootstrap/dar.ts`) and not in `daml/released/`: it is not ready for DevNet until items 1 to 3 below have a decision behind them.
 
 No sandbox was started: disk had 7.4 GB free (the lane's limit was 8 GB), and nothing here needs one. No node, wallet, registry or remote URL was contacted at any point; every credential-shaped variable in this lane is a name in a runbook, never a value.

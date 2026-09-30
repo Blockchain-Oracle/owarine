@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { AllowanceC, HoldingViewC, ListingC, ProposalC, WithdrawalC } from "./decode";
-import { allowanceFor, coverCash, coverHoldings, planAttest, planDeposits, planInFlight, planMerges, planWithdrawals, unlockedHoldings, type CashRow, type HoldingRow, type InstructionRow, type Row } from "./policy";
+import { allowanceFor, planMerges, type Row } from "./allowances";
+import { coverCash, coverHoldings, planDeposits, planInFlight, planWithdrawals, type CashRow, type InstructionRow } from "./policy";
+import { planAttest, unlockedHoldings, type HoldingRow } from "./reserve";
 
 const VENUE = "venue::1";
 const ADMIN = "dso::1";

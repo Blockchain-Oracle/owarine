@@ -18,12 +18,9 @@
  * Nothing here talks to a ledger; `rail.ts` reads the snapshot and executes the plan.
  */
 import { atomicToCashUnitsExact, atomicPerCashUnit, cashUnitsToCc, ccRateOk, UnitsError, type ContractId, type Party } from "@agari/ledger/pure";
-import type { AllowanceC, HoldingViewC, ListingC, ProposalC, TransferInstructionViewC, WithdrawalC } from "./decode";
-
-export interface Row<T> {
-  cid: ContractId;
-  data: T;
-}
+import { allowanceFor, sameTerms, type Row } from "./allowances";
+import type { AllowanceC, ListingC, ProposalC, TransferInstructionViewC, WithdrawalC } from "./decode";
+import type { HoldingRow } from "./reserve";
 
 export interface InstructionRow {
   cid: ContractId;
@@ -33,14 +30,6 @@ export interface InstructionRow {
   /** The ledger offset the contract was created at (a seat's lease starts at an offset). */
   createdOffset: number;
   view: TransferInstructionViewC;
-}
-
-export interface HoldingRow {
-  cid: ContractId;
-  /** The created event's template (package-id form) and signatories: what makes a holding the registry's. */
-  templateId: string;
-  signatories: readonly Party[];
-  view: HoldingViewC;
 }
 
 /** A seat's lease, for the K-224 rule: the instruction or proposal must be at or after `startOffset`. */
@@ -68,28 +57,6 @@ export interface DepositInput {
 }
 
 const packageOf = (templateId: string): string => templateId.slice(0, templateId.indexOf(":"));
-
-/** An allowance is this listing's only under the terms the listing states now. */
-export const sameTerms = (a: AllowanceC, l: ListingC): boolean =>
-  a.listingId === l.listingId && a.instrumentAdmin === l.instrumentAdmin && a.instrumentId === l.instrumentId && a.unitsPerCoin === l.unitsPerCoin;
-
-/** The owner's allowance under the listing's terms; the largest when there are several (duplicates are merged separately). */
-export function allowanceFor(allowances: readonly Row<AllowanceC>[], owner: Party, l: ListingC): Row<AllowanceC> | undefined {
-  return allowances.filter((a) => a.data.owner === owner && sameTerms(a.data, l)).sort((a, b) => (a.data.units === b.data.units ? 0 : a.data.units > b.data.units ? -1 : 1))[0];
-}
-
-/** Owners with more than one allowance under the listing's terms: fold the rest into the largest (`Allowance_Merge`). */
-export function planMerges(allowances: readonly Row<AllowanceC>[], l: ListingC): { keep: ContractId; others: ContractId[] }[] {
-  const byOwner = new Map<Party, Row<AllowanceC>[]>();
-  for (const a of allowances) if (sameTerms(a.data, l)) byOwner.set(a.data.owner, [...(byOwner.get(a.data.owner) ?? []), a]);
-  const out: { keep: ContractId; others: ContractId[] }[] = [];
-  for (const rows of byOwner.values()) {
-    if (rows.length < 2) continue;
-    const [keep, ...others] = [...rows].sort((a, b) => (a.data.units === b.data.units ? 0 : a.data.units > b.data.units ? -1 : 1));
-    out.push({ keep: keep!.cid, others: others.map((o) => o.cid) });
-  }
-  return out;
-}
 
 /** One plan per instruction the venue can see. Pure and total: every instruction is settled, rejected back or held. */
 export function planDeposits(i: DepositInput): DepositPlan[] {
@@ -379,49 +346,3 @@ export function planInFlight(i: InFlightInput): InFlightPlan[] {
   return out;
 }
 
-// ---- the reserve statement ----------------------------------------------------------------------------
-
-export interface AttestPlan {
-  holdingCids: ContractId[];
-  allowanceCids: ContractId[];
-  /** What the statement will say, computed here the way the ledger computes it: the check before sending. */
-  heldAtomic: bigint;
-  liabilityAtomic: bigint;
-  heldUnits: bigint;
-  liabilityUnits: bigint;
-  covered: boolean;
-}
-
-/**
- * The venue's own holdings of the listed instrument that are not locked and that the registry signed: what a withdrawal
- * can spend and a statement counts. A holding whose signatories lack the registry's party is a look-alike and is never
- * spent or counted; with `allowedPackageIds`, its template's package must be on the list too.
- */
-export function unlockedHoldings(venue: Party, listing: ListingC, holdings: readonly HoldingRow[], allowedPackageIds: readonly string[] = []): HoldingRow[] {
-  return holdings.filter(
-    (h) =>
-      h.view.owner === venue && h.view.instrumentAdmin === listing.instrumentAdmin && h.view.instrumentId === listing.instrumentId && h.view.lock === null &&
-      h.signatories.includes(listing.instrumentAdmin) && (allowedPackageIds.length === 0 || allowedPackageIds.includes(h.templateId.slice(0, h.templateId.indexOf(":")))),
-  );
-}
-
-/**
- * Every unlocked holding of the instrument the venue owns and every allowance of ANY listing of that instrument (each at
- * its own rate, in atomic units: two listings draw on one pool of coin), and what they add up to.
- */
-export function planAttest(a: { venue: Party; listing: ListingC; holdings: readonly HoldingRow[]; allowances: readonly Row<AllowanceC>[]; allowedPackageIds?: readonly string[] }): AttestPlan {
-  const mine = unlockedHoldings(a.venue, a.listing, a.holdings, a.allowedPackageIds);
-  const owed = a.allowances.filter((x) => x.data.venue === a.venue && x.data.instrumentAdmin === a.listing.instrumentAdmin && x.data.instrumentId === a.listing.instrumentId);
-  const heldAtomic = mine.reduce((s, h) => s + h.view.amountAtomic, 0n);
-  const liabilityAtomic = owed.reduce((s, x) => s + x.data.units * atomicPerCashUnit(x.data.unitsPerCoin), 0n);
-  const per = atomicPerCashUnit(a.listing.unitsPerCoin);
-  return {
-    holdingCids: mine.map((h) => h.cid),
-    allowanceCids: owed.map((x) => x.cid),
-    heldAtomic,
-    liabilityAtomic,
-    heldUnits: heldAtomic / per,
-    liabilityUnits: (liabilityAtomic + per - 1n) / per,
-    covered: heldAtomic >= liabilityAtomic,
-  };
-}
