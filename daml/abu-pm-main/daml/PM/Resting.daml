@@ -1,0 +1,222 @@
+-- | 0.5.1 (K-235): the pre-open resting call. A seat names a side, a size and
+-- its own price for a Window that is still listed; the cash is locked in the
+-- call, not promised; after the bell the venue fills it at exactly that
+-- price, in whole or in part, or it comes back.
+--
+--   RestingDesk --RestDesk_Offer--> RestingOffer --RestOffer_Place--> RestingCall
+--   (venue only)                    (venue signs,    (owner's cash in,    |  |  |
+--                                    owner observes)  escrow held)        |  |  +-- Rest_Cancel (owner, any time)
+--                                                                         |  |        escrow of the remaining lots back
+--                                                                         |  +----- Rest_Expire (venue, from expiresAt)
+--                                                                         |           escrow of the remaining lots back
+--                                                                         +-------- Rest_Fill (venue, bell..expiresAt)
+--                                                                                   lots <= remaining, at the call's price,
+--                                                                                   the same Leg pair as a normal accept
+--
+-- Why venue AND owner sign the call: the escrow is `VenueCash`, which only
+-- venue and owner together can create, so the contract that holds it must
+-- carry both signatures to give it back (cancel, expiry) or to turn it into a
+-- position (fill). Neither party can move the escrow anywhere else. The
+-- owner's only choice returns it to the owner; the venue's two choices either
+-- return it to the owner or buy the owner's side at exactly the owner's own
+-- price for a size no larger than what remains, with the venue's opposite
+-- stake locked from one of its own shards.
+--
+-- The venue's consent comes from a short-lived `RestingOffer`, which it
+-- creates through its desk after checking the Window (the offer copies the
+-- Window's times and grid from the terms, so neither side can misstate them),
+-- exactly as a `Quote` carries the venue's consent to a price. The owner's
+-- place fetches nothing shared: only their own cash. Each call is its own
+-- contract, so two seats never contend on one, and a fill locks from one pool
+-- shard like any quote.
+--
+-- Price semantics are the reference's post-only call: `priceTicks` is the
+-- owner's own-side price (UP at 55c = 550; DOWN at 45c = 450), the escrow is
+-- `lots * priceTicks * cashUnit`, and a fill costs the owner exactly its own
+-- price per lot with no fee (the reference's maker fills carry none).
+--
+-- 0.5.1 adds these templates and choices only; no field or precondition of a
+-- 0.5.0 template changes.
+module PM.Resting where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.Time (addRelTime, seconds)
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Quote
+import PM.Types
+
+-- | The venue's resting-call desk. Venue-only, like `VenueDesk`, so its
+-- nonconsuming choice never contends and no seat is a stakeholder.
+template RestingDesk
+  with
+    venue : Party
+  where
+    signatory venue
+
+    -- A pre-open offer to rest one call for `owner` on this Window. Only
+    -- before the Window's trading start; the call rests past the bell and at
+    -- most until the Window locks, and the offer itself lives at most until
+    -- the bell.
+    nonconsuming choice RestDesk_Offer : ContractId RestingOffer
+      with
+        owner : Party
+        termsCid : ContractId MarketTerms
+        callRef : Text
+        side : Side
+        lots : Int
+        priceTicks : Int
+        expiresAt : Time
+        validUntil : Time
+      controller venue
+      do
+        terms <- fetch termsCid
+        require "wrong-venue" "terms belong to another venue" (terms.venue == venue)
+        assertWithinDeadline "rest-pre-open" terms.tradingStart
+        require "bad-grid" "ticks must be 1..999 and lots within the grid"
+          (ticksOk priceTicks && gridOk lots terms.cashUnit)
+        require "bad-call-ref" "a call names itself" (callRef /= "")
+        require "bad-rest-expiry" "a call rests past the bell and no later than the lock"
+          (expiresAt > terms.tradingStart && expiresAt <= terms.lockAt)
+        create RestingOffer with
+          venue; owner; callRef; termsCid; marketId = terms.marketId; side; lots; priceTicks
+          cashUnit = terms.cashUnit; tradingStart = terms.tradingStart; lockAt = terms.lockAt
+          refundAfter = terms.refundAfter; expiresAt; validUntil = min validUntil terms.tradingStart
+
+-- | The venue's offer to hold one call. The owner alone places it, with
+-- their own cash (the Grofty-compatible single-controller path).
+template RestingOffer
+  with
+    venue : Party
+    owner : Party
+    callRef : Text
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    side : Side
+    lots : Int
+    priceTicks : Int
+    cashUnit : Int
+    tradingStart : Time
+    lockAt : Time
+    refundAfter : Time
+    expiresAt : Time
+    validUntil : Time
+  where
+    signatory venue
+    observer owner
+    ensure ticksOk priceTicks && gridOk lots cashUnit && owner /= venue
+      && callRef /= "" && validUntil <= tradingStart && tradingStart < expiresAt
+      && expiresAt <= lockAt && lockAt < refundAfter
+
+    -- The owner's escrow goes in: `lots * priceTicks * cashUnit` from their
+    -- own cash, the change back. Only before `validUntil`, which is never
+    -- later than the bell.
+    choice RestOffer_Place : (ContractId RestingCall, Optional (ContractId VenueCash))
+      with
+        cash : [ContractId VenueCash]
+      controller owner
+      do
+        assertWithinDeadline "rest-offer-valid-until" validUntil
+        total <- sumOwnedCash venue owner cash
+        let escrow = userStakeOf lots priceTicks cashUnit
+        require "insufficient-cash" "cash does not cover the call's escrow" (total >= escrow)
+        change <- payIfPositive venue owner (total - escrow) "change"
+        call <- create RestingCall with
+          venue; owner; callRef; termsCid; marketId; side; priceTicks; lotsPlaced = lots; lots
+          cashUnit; escrow; tradingStart; lockAt; refundAfter; expiresAt
+        pure (call, change)
+
+    -- An offer nobody placed holds nothing; the venue sweeps it once its
+    -- window (and the same slack a quote has) is over.
+    choice RestOffer_Expire : ()
+      controller venue
+      do assertDeadlineExceeded "rest-offer-expire" (addRelTime validUntil (seconds expireSlackSec))
+
+-- | What one fill made: the owner's leg, the venue's leg, the venue shard's
+-- change, and what still rests (None when the call is filled completely).
+data RestFill = RestFill
+  with
+    userLeg : ContractId Leg
+    venueLeg : ContractId Leg
+    shardChange : Optional (ContractId VenueCash)
+    remaining : Optional (ContractId RestingCall)
+  deriving (Eq, Show)
+
+-- | One resting call: the owner's escrow for `lots` still resting, held
+-- until the venue fills it, the owner cancels it, or it expires. A partial
+-- fill re-creates the call with the lots that remain; `callRef` names the
+-- call across those re-creations and `lotsPlaced` is its size when placed.
+template RestingCall
+  with
+    venue : Party
+    owner : Party
+    callRef : Text
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    side : Side
+    priceTicks : Int
+      -- ^ the owner's own-side price, in ticks of 1000
+    lotsPlaced : Int
+    lots : Int
+      -- ^ still resting
+    cashUnit : Int
+    escrow : Int
+      -- ^ lots * priceTicks * cashUnit, locked here
+    tradingStart : Time
+    lockAt : Time
+    refundAfter : Time
+    expiresAt : Time
+  where
+    signatory venue, owner
+    ensure ticksOk priceTicks && gridOk lots cashUnit && owner /= venue
+      && lots <= lotsPlaced && escrow == userStakeOf lots priceTicks cashUnit
+      && tradingStart < expiresAt && expiresAt <= lockAt && lockAt < refundAfter
+
+    -- The owner's exit, any time before the call is filled completely: the
+    -- escrow of the lots still resting, back as venue credit.
+    choice Rest_Cancel : ContractId VenueCash
+      controller owner
+      do create VenueCash with venue; owner; amount = escrow; bucket = "resting-refund"
+
+    -- Unfilled by `expiresAt`: the venue gives the escrow of the lots still
+    -- resting back. The exact complement of the fill's deadline, so exactly
+    -- one of them can run.
+    choice Rest_Expire : ContractId VenueCash
+      controller venue
+      do
+        assertDeadlineExceeded "rest-expires-at" expiresAt
+        create VenueCash with venue; owner; amount = escrow; bucket = "resting-refund"
+
+    -- The fill: `fillLots` of the call, at exactly the call's price, from the
+    -- bell until it expires. The owner's part of the pair is paid from the
+    -- call's own escrow; the venue's opposite stake is locked from `shardCid`
+    -- (a book's shard makes the venue leg that book's, as in a quote).
+    -- Both legs are exactly a normal accept's, with no fee. The rest of the
+    -- call keeps resting.
+    choice Rest_Fill : RestFill
+      with
+        shardCid : ContractId VenueCash
+        fillLots : Int
+      controller venue
+      do
+        assertDeadlineExceeded "rest-before-bell" tradingStart
+        assertWithinDeadline "rest-expires-at" expiresAt
+        require "bad-fill" "a fill takes 1..the lots still resting" (fillLots > 0 && fillLots <= lots)
+        let userStake = userStakeOf fillLots priceTicks cashUnit
+            venueStake = venueStakeOf fillLots priceTicks cashUnit
+            pairId = callRef <> "#" <> show (lotsPlaced - lots)
+        book <- shardBook shardCid
+        change <- lockFromShard venue shardCid venueStake
+        userLeg <- create Leg with
+          venue; owner; termsCid; marketId; pairId; outcome = side; lots = fillLots; cashUnit
+          backingShare = userStake; feePaid = 0
+          refundAfter; beneficiaryRef = None; bookCost = None
+        venueLeg <- create Leg with
+          venue; owner = venue; termsCid; marketId; pairId; outcome = opposite side; lots = fillLots; cashUnit
+          backingShare = venueStake; feePaid = 0
+          refundAfter; beneficiaryRef = book; bookCost = None
+        remaining <- if fillLots < lots
+          then Some <$> create this with lots = lots - fillLots; escrow = escrow - userStake
+          else pure None
+        pure RestFill with userLeg; venueLeg; shardChange = change; remaining

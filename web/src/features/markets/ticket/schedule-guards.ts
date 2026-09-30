@@ -7,9 +7,6 @@ import type { WalletSession } from "@/lib/wallet-session";
 import type { Crossing } from "./crossing";
 import { fundingBlocker, laneBlocker, PHASE_BLOCKERS, type LaneGuardInput } from "./ticket-guards";
 
-/** Whether a call can rest on a listed Window on this network. False on Canton until a bilateral `RestingCall` exists. */
-export const REST_LIVE: boolean = false;
-
 export interface ScheduleBlockerInput {
   session: WalletSession;
   hasSigner: boolean;
@@ -21,7 +18,7 @@ export interface ScheduleBlockerInput {
   stakeBase: bigint;
   /** Wallet spendable plus venue credit; null until the balance sheet has answered. */
   availableBase: bigint | null;
-  /** The seat bond this call also funds while the wallet holds no seat on the Window. */
+  /** What the call also funds beyond its escrow: nothing on Canton (a seat posts no bond), kept for the ladder's shape. */
   depositBase: bigint;
   /** Core `restingQuote` over the Series grid; null while the grid is unread. */
   sized: RestingQuote | null;
@@ -36,7 +33,7 @@ export interface ScheduleBlockerInput {
 
 /**
  * The scheduled call's ladder, in the same order as the taker's (`deriveBlocker`): the session and the wallet, the
- * lane, then the call itself — a side, a price on the grid, a stake that buys at least `min_lots`, the money to hold
+ * lane, then the call itself (a bilateral `RestingCall` on Canton, K-235) — a side, a price on the grid, a stake that buys at least `min_lots`, the money to hold
  * it, room on the seat, and a price that rests rather than takes. The label IS the blocker (UX-DR3/UX-DR4).
  */
 export function deriveScheduleBlocker(i: ScheduleBlockerInput): BlockerKind | null {
@@ -50,8 +47,6 @@ export function deriveScheduleBlocker(i: ScheduleBlockerInput): BlockerKind | nu
   if (lane) return lane;
   // The dock switches back to the taker's ticket once the Window trades; between renders the phase word stands in.
   if (!isRestable(i.phase)) return PHASE_BLOCKERS[i.phase] ?? "quoting";
-  // Canton has no `RestingCall` yet and the submitter refuses a rest (`REST_NOT_LIVE`): the button says so, never sends.
-  if (!REST_LIVE) return "rest-not-live";
   if (i.availableBase === 0n) return "no-funds";
   if (i.side === null) return "no-side";
   if (!isPriceCents(i.priceCents)) return "no-price";

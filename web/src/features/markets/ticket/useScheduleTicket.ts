@@ -41,8 +41,6 @@ export interface ScheduleTicketApi {
   quote: Quote | null;
   availableBase: bigint | null;
   depositBase: bigint;
-  /** "0.25 tUSDC", the Series seat bond, for the footnote. */
-  bondText: string;
   laneNote: string | null;
   blocker: BlockerKind | null;
   ctx: BlockerContext;
@@ -105,12 +103,11 @@ export function useScheduleTicket(selection: TicketSelection): ScheduleTicketApi
     quotedCents: priceCents,
     crossingText: crossing && side ? PREOPEN.ticket.crossing(SIDE_WORD[crossing.otherSide], crossing.otherCents, SIDE_WORD[side], crossing.maxCents) : undefined,
   };
-  const bondText = grid ? `${formatBaseUnits(grid.seatBond, decimals)} ${symbol}` : "refundable";
 
   const place = () => {
     if (!side || !quote) return;
     void bet.place({ market, side, stakeBase, displayedQuote: quote, route: { kind: "wallet" }, entry: "rest", restUntil });
   };
 
-  return { t, session, symbol, priceCents, setPriceCents, restUntil, setRestUntil, gridReady: grid !== null, sized, quote, availableBase, depositBase, bondText, laneNote: laneGuard.earnings, blocker, ctx, bet, place };
+  return { t, session, symbol, priceCents, setPriceCents, restUntil, setRestUntil, gridReady: grid !== null, sized, quote, availableBase, depositBase, laneNote: laneGuard.earnings, blocker, ctx, bet, place };
 }

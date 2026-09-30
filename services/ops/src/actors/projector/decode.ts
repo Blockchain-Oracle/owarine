@@ -241,16 +241,25 @@ function createdFacts(
         validUntilSec: isoSec(a.validUntil),
       }];
     case "PM.Leg:Leg": {
+      // 0.5.1: a resting call's `Rest_Fill` makes the same pair a `Quote_Accept` does, so it is an accept-origin position.
+      const resting = !o.snapshot && up?.choice === "Rest_Fill";
       const origin = o.snapshot
         ? "snapshot"
-        : up?.choice === "Quote_Accept" ? "accept" : up?.choice === "BuyQuote_Accept" ? "buyback" : up?.choice === "Leg_CloseOut" ? "closeout" : "other";
+        : up?.choice === "Quote_Accept" || resting ? "accept" : up?.choice === "BuyQuote_Accept" ? "buyback" : up?.choice === "Leg_CloseOut" ? "closeout" : "other";
       return [{
         kind: "leg", nodeId: c.nodeId, contractId: cid, owner: str(a.owner), venue: str(a.venue), termsCid: str(a.termsCid), marketKey: str(a.marketId),
         pairId: str(a.pairId), outcome: side(a.outcome), lots: str(a.lots), cashUnit: str(a.cashUnit), backingShare: str(a.backingShare),
         feePaid: str(a.feePaid), refundAfterSec: isoSec(a.refundAfter), origin,
         acceptNodeId: origin === "accept" ? up!.nodeId : null, quoteCid: origin === "accept" ? up!.contractId : null,
+        ...(resting ? { resting: true } : {}),
       }];
     }
+    case "PM.Resting:RestingCall":
+      return [{
+        kind: "rest-call", contractId: cid, callRef: str(a.callRef), user: str(a.owner), termsCid: str(a.termsCid), marketKey: str(a.marketId), side: side(a.side),
+        priceTicks: int(a.priceTicks), lotsPlaced: str(a.lotsPlaced), lots: str(a.lots), cashUnit: str(a.cashUnit), escrow: str(a.escrow),
+        tradingStartSec: isoSec(a.tradingStart), expiresAtSec: isoSec(a.expiresAt), placed: o.snapshot === true || up?.choice === "RestOffer_Place",
+      }];
     case "PM.Publication:Publication":
       return [{
         kind: "publication", contractId: cid, owner: str(a.owner), handle: str(a.handle), marketKey: str(a.marketId), pairId: str(a.pairId),
@@ -340,6 +349,16 @@ function exercisedFacts(
         }
       }
       return out;
+    }
+    case "PM.Resting:RestingCall": {
+      if (!x.consuming) return [];
+      // A fill that leaves lots resting re-creates the call: that create (below this node) moves the row on, nothing ends.
+      if (x.choice === "Rest_Fill") {
+        const remainder = within(x).some((n) => n.created && templateName(n.created.templateId) === "PM.Resting:RestingCall");
+        return remainder ? [] : [{ kind: "rest-closed", contractId: cid, how: "filled", refundedBase: "0" }];
+      }
+      const how = x.choice === "Rest_Cancel" ? "cancelled" : x.choice === "Rest_Expire" ? "expired" : null;
+      return how ? [{ kind: "rest-closed", contractId: cid, how, refundedBase: sum(cashBy(x), ["resting-refund"]) }] : [];
     }
     case "PM.Leg:Leg": {
       if (!x.consuming) return [];

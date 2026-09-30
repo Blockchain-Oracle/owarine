@@ -10,6 +10,8 @@
  *   issuer     Desk_IssueQuote             quote:<requestId>        POST /internal/quotes
  *              Desk_IssueBuyQuote          exitquote:<requestId>    POST /internal/exit-quotes
  *   sweeper    Quote_Expire, BuyQuote_Expire   expire:<quoteCid>, expirebuy:<cid>
+ *   resting    RestDesk_Offer                 restoffer:<requestId>   POST /internal/resting-offers (C7c, K-235)
+ *              Rest_Fill, Rest_Expire, RestOffer_Expire   restfill:<cid>:<lots>, restexp:<cid>, restoexp:<cid>
  *   rebalancer VenueCash_Merge / _Split    merge:<digest>, split:<cid>
  *   netting    Leg_Merge                   net:<digest>
  *   settler    Desk_SettleBatch            settle:<digest>, residual:<cid>
@@ -47,12 +49,13 @@ import { startTicketDesk, type TicketDeskHandle } from "../ticket-desk";
 import { redeemSeatShares } from "../ticket-desk/earn";
 import { startMakerVault } from "../maker-vault";
 import { startArenaDesk } from "../arena-desk";
+import { startRestingDesk } from "../resting-desk";
 import { startWindowRoller } from "../window-roller";
 import { startAgentsVenue } from "../agents";
 import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 
-export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents", "maker"] as const;
+export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents", "maker", "resting"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
 
 export interface CantonVenue {
@@ -99,6 +102,9 @@ export async function startCantonVenue(input: {
   const issuer = on("issuer") ? await startQuoteIssuer({ venue, board, log: input.log("issuer"), settings, draining, maker: maker?.vault ?? null }) : null;
   if (issuer) stops.push(issuer.stop);
   const pool = issuer?.pool ?? null;
+  // C7c: pre-open resting calls take the issuer's shards and its ladder board, so they start after both.
+  const resting = on("resting") ? await startRestingDesk({ venue, board, pool, maker: maker?.vault ?? null, draining, log: input.log("resting-desk") }) : null;
+  if (resting) stops.push(resting.stop);
   if (on("sweeper") && session) stops.push(startExpirySweeper({ venue: session, pool, log: input.log("expiry-sweeper") }).stop);
   if (on("rebalancer") && session && pool) stops.push(startRebalancer({ venue: session, pool, log: input.log("rebalancer") }).stop);
   if (on("netting") && session) stops.push(startNetting({ venue: session, pool, log: input.log("netting") }).stop);
@@ -126,6 +132,7 @@ export async function startCantonVenue(input: {
   if (games) Object.assign(routes, games.routes);
   if (issuer) routes["/internal/quotes"] = issuer.handle;
   if (issuer) routes["/internal/exit-quotes"] = issuer.handleExit;
+  if (resting) routes["/internal/resting-offers"] = resting.handle;
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);
   return {
     venue, board, pool,

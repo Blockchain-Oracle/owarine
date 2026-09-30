@@ -21,7 +21,7 @@ import { useDrawerClose } from "~/components/drawer/BottomDrawer";
 /**
  * web's ScheduledCall (D-088): the receipt a scheduled call leaves where the composer was, in the gate's block — what
  * is held, the contracts and the price, which Window and when it fills or comes back, the transaction, and Cancel
- * (`user_cancel_orders` on the call's own handle; the escrow returns to venue credit).
+ * (`Rest_Cancel` on the call's own reference; the escrow returns to venue credit).
  */
 export function ScheduledCall({ rested, market, decimals, onAnother }: { rested: RestedOrder; market: EventMarket; decimals: number; onAnother: () => void }) {
   const close = useDrawerClose();
@@ -57,7 +57,7 @@ export function ScheduledCall({ rested, market, decimals, onAnother }: { rested:
       {cancel.canSign && cancel.note ? <Text style={line}>{cancel.note}</Text> : null}
       <View style={styles.actions}>
         {cancel.canSign && !cancel.done ? (
-          <GateCta label={cancel.busy ? PREOPEN.receipt.cancelling : PREOPEN.receipt.cancel} disabled={cancel.busy} onPress={() => void cancel.cancel(rested.marketId, [{ node: rested.node, seq: rested.seq }])} />
+          <GateCta label={cancel.busy ? PREOPEN.receipt.cancelling : PREOPEN.receipt.cancel} disabled={cancel.busy} onPress={() => void cancel.cancel(rested.marketId, [{ callRef: rested.callRef }])} />
         ) : null}
         <Quiet
           label={PREOPEN.receipt.portfolio}

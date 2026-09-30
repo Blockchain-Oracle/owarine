@@ -150,7 +150,7 @@ export function createCcSeat(cfg: CcSeatConfig) {
    */
   async function requestWithdraw(seat: SeatRef, o: { journalId: string; units: bigint }): Promise<CcWriteReply> {
     if (cfg.capability !== "live") return { kind: "refused", diagnosis: notLive() };
-    const commandId = seatCommandId("cc", o.journalId);
+    const commandId = seatCommandId("ccwithdraw", o.journalId);
     const ctx: RejectionContext = { step: "accept" };
     try {
       const prior = await journal.get(commandId);
@@ -175,7 +175,7 @@ export function createCcSeat(cfg: CcSeatConfig) {
       if (o.units > BigInt(view.cashUnits)) throw refuse("insufficient-collateral", "your cash does not cover this withdrawal");
       if (view.proposals.length > 0) throw refuse("grant-refused", "an earlier Canton Coin withdrawal is still waiting for the venue");
       const beginOffset = await client.ledgerEnd();
-      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "cc", beginOffset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "ccwithdraw", beginOffset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
       let tx: JsTransaction;
       let recovered: boolean;
       try {
@@ -210,7 +210,7 @@ export function createCcSeat(cfg: CcSeatConfig) {
    */
   async function requestDeposit(seat: SeatRef, o: { journalId: string; amount: string }): Promise<CcWriteReply> {
     if (cfg.capability !== "live") return { kind: "refused", diagnosis: notLive() };
-    const commandId = seatCommandId("cc", o.journalId);
+    const commandId = seatCommandId("ccdeposit", o.journalId);
     const ctx: RejectionContext = { step: "accept" };
     try {
       const prior = await journal.get(commandId);
@@ -251,7 +251,7 @@ export function createCcSeat(cfg: CcSeatConfig) {
         throw error;
       }
       const beginOffset = await client.ledgerEnd();
-      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "cc", beginOffset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
+      const row = await journal.begin({ commandId, leaseId: seat.leaseId, party: seat.party, kind: "ccdeposit", beginOffset, deadlineMs: now() + DEFAULT_COMMAND_DEADLINE_MS }, now());
       let tx: JsTransaction;
       let recovered: boolean;
       try {

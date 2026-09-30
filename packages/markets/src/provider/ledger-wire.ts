@@ -63,6 +63,68 @@ export const quoteReplyWire = z.discriminatedUnion("kind", [
 ]);
 export type QuoteReply = z.output<typeof quoteReplyWire>;
 
+// ---- /api/ledger/resting (and ops /internal/resting-offers): a pre-open resting call (C7c, K-235) -----------
+
+/** How long a call rests: to the bell plus 90 s (default) or, opted in, to the Window's lock (`@agari/core/orders`). */
+export const restUntilWire = z.enum(["bell", "lock"]);
+
+/**
+ * Rest a call on a listed Window at the seat's own price. The ticket's sizing is echoed as `displayedEscrowBase`: ops
+ * re-sizes on the Window's own grid and answers a requote, never a different escrow taken silently.
+ */
+export const restingRequestWire = z.strictObject({
+  marketId,
+  side,
+  stakeBase: baseUnits,
+  priceCents: z.number().int().min(1).max(99),
+  restUntil: restUntilWire.default("bell"),
+  displayedEscrowBase: baseUnits,
+});
+export type RestingRequest = z.output<typeof restingRequestWire>;
+
+/** What a call is, before it has a transaction: `priceTicks` in YES terms (an UP call at 55c is 550, a DOWN call at 55c is 450). */
+export const restedOfferWire = z.object({
+  marketId,
+  side,
+  callRef: z.string().min(1).max(80),
+  lots: baseUnits,
+  priceTicks: z.number().int(),
+  contractsRaw: baseUnits,
+  escrowBase: baseUnits,
+  expireSec: z.number().int(),
+});
+export type RestedOffer = z.output<typeof restedOfferWire>;
+
+export const restedWire = restedOfferWire.extend({ txHash });
+
+export const restingOfferReplyWire = z.discriminatedUnion("kind", [
+  /** The venue's offer to hold the call, good until `validUntilMs` (never later than the bell); the seat places it. */
+  z.object({ kind: z.literal("offer"), offerCid: z.string().min(1), rested: restedOfferWire, validUntilMs: z.number() }),
+  /** The Window's own grid sizes the call differently from the ticket: the fresh quote is shown, nothing is offered. */
+  z.object({ kind: z.literal("requote"), quote: quoteWire }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+]);
+export type RestingOfferReply = z.output<typeof restingOfferReplyWire>;
+
+export const restingPlaceReplyWire = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("confirmed"), rested: restedWire, updateId: txHash, recovered: z.boolean() }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+  z.object({ kind: z.literal("unknown"), diagnosis: diagnosisSchema }),
+]);
+export type RestingPlaceReply = z.output<typeof restingPlaceReplyWire>;
+
+/** Cancel the named calls of one Window; a call that already ended is not an error, it is reported as `gone`. */
+export const restingCancelRequestWire = z.strictObject({ commandId: z.uuid(), marketId, callRefs: z.array(z.string().min(1).max(80)).min(1).max(16) });
+
+export const restingCancelReplyWire = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("confirmed"), updateId: txHash, refundedBase: baseUnits, cancelled: z.number().int(), recovered: z.boolean() }),
+  /** None of the calls is resting any more: each filled, expired or was cancelled already. Nothing was sent. */
+  z.object({ kind: z.literal("gone") }),
+  z.object({ kind: z.literal("refused"), diagnosis: diagnosisSchema }),
+  z.object({ kind: z.literal("unknown"), diagnosis: diagnosisSchema }),
+]);
+export type RestingCancelReply = z.output<typeof restingCancelReplyWire>;
+
 // ---- /api/ledger/exit-quotes (and ops /internal/exit-quotes): a firm buy-back of a held side (C7a) --------
 
 export const exitQuoteWire = z.object({

@@ -56,13 +56,15 @@ export interface BookedOrder {
   proceedsBase?: bigint;
 }
 
-/** A post-only call that rested (D-088): its handle on the Book, its size, its YES-terms price and the escrow it holds. */
+/**
+ * A post-only call that rested (D-088): its handle, its size, its YES-terms price and the escrow it holds. On Canton
+ * the handle is the call's `callRef`: it names the `RestingCall` across the re-creations a partial fill makes.
+ */
 export interface RestedOrder {
   marketId: MarketId;
   side: Side;
   txHash: Signature;
-  node: number;
-  seq: bigint;
+  callRef: string;
   lots: bigint;
   priceTicks: number;
   contractsRaw: bigint;
@@ -136,8 +138,8 @@ export type TxIntent =
   | { kind: "faucet"; amountBase: bigint }
   /** `user_redeem` on a terminal Window: the outcome and lots to redeem (a PROGRAM seat may redeem part). */
   | { kind: "redeem"; marketId: MarketId; outcomeIdx: OutcomeIdx; amountRaw: bigint }
-  /** `user_cancel_orders` on the wallet's own resting calls (D-088); `withdraw` pays the refunded escrow and any credit out. */
-  | { kind: "cancel-orders"; marketId: MarketId; handles: { node: number; seq: bigint }[]; withdraw: boolean }
+  /** `Rest_Cancel` on the wallet's own resting calls (D-088): the escrow of the lots still resting comes back as venue credit. */
+  | { kind: "cancel-orders"; marketId: MarketId; handles: { callRef: string }[]; withdraw: boolean }
   | VaultIntent
   | StrategyIntent
   | ParlayIntent

@@ -4,6 +4,7 @@ import type { RestingOrderView } from "@agari/core/projection";
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { marketDeepLink } from "@agari/core/urls";
+import { marketsProvider } from "@agari/markets";
 import { useRestingOrders } from "@agari/markets/react";
 import { leasedAddressOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import Link from "next/link";
@@ -31,28 +32,37 @@ export interface RestingRowViewProps {
 
 const onBook = (view: RestingOrderView) => view.status === "resting-for-open" || view.status === "resting";
 
+/** A call that ended stays in the Open tab this long, so its outcome is seen where it was watched; History keeps it for good. */
+export const RECENT_END_SEC = 1_800;
+
 function statusWord(view: RestingOrderView): string {
   switch (view.status) {
     case "resting-for-open":
       return PREOPEN.rows.restingForOpen;
     case "resting":
       return PREOPEN.rows.resting;
+    case "filled":
+      return PREOPEN.rows.filled;
+    // Swept unfilled is "Didn't fill", never "Cancelled": the seat did not cancel it (a partly filled one says so).
     case "expired":
-      return PREOPEN.rows.expired;
+      return view.filledLots > 0n ? PREOPEN.rows.partlyFilled : PREOPEN.rows.expired;
     default:
       return PREOPEN.rows.cancelled;
   }
 }
 
 /**
- * One scheduled call in Portfolio's Open tab (D-088), in `BetRow`'s anatomy: the state word where the live dot sits,
- * the Window, the call in the wallet's own terms ("UP at 55¢ · 10 contracts"), what is held, when it fills, and
- * Cancel while it is on the Book. Past its expiry the row says the stake is coming back rather than pretending to rest.
+ * One scheduled call in Portfolio (D-088), in `BetRow`'s anatomy: the state word where the live dot sits, the Window,
+ * the call in the wallet's own terms ("UP at 55¢ · 10 contracts"), what is held, when it fills by, and Cancel while it
+ * is on the Book. An ended call keeps its row and says how it ended: filled at the wallet's price (now a position),
+ * swept unfilled ("Didn't fill"), or cancelled, with what came back as venue credit.
  */
 export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
   const when = useWhen();
   const live = onBook(view);
-  const contractsText = formatBaseUnits(view.contractsRaw, view.decimals, { minDp: 0 });
+  const contractsText = formatBaseUnits(view.placedContractsRaw, view.decimals, { minDp: 0 });
+  // What filled of a call that filled in part, in contracts: the placed size pro rata to the lots that filled.
+  const filledText = formatBaseUnits(view.lots > 0n ? (view.placedContractsRaw * view.filledLots) / view.lots : 0n, view.decimals, { minDp: 0 });
   return (
     <li className="bets-row" data-status={view.status}>
       <span className={cn("type-label-micro shrink-0", live ? "text-ink-secondary" : "text-ink")}>
@@ -73,10 +83,32 @@ export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
       <span className="bets-break" aria-hidden />
       <span className="flex-1" />
 
-      <span className="type-caption text-ink-secondary">
-        {PREOPEN.rows.held} <Money value={view.escrowBase} decimals={view.decimals} symbol={symbol} />
-      </span>
-      <span className="type-caption text-ink-secondary">{live ? `${PREOPEN.rows.fillsBy} ${when(view.expireSec)} ET` : PREOPEN.rows.expiredWhy}</span>
+      {live ? (
+        <>
+          <span className="type-caption text-ink-secondary">
+            {PREOPEN.rows.held} <Money value={view.escrowBase} decimals={view.decimals} symbol={symbol} />
+          </span>
+          {/* `when` already carries the zone ("14:31 (09:31 ET)" or "09:31 ET"): the row adds none of its own. */}
+          <span className="type-caption text-ink-secondary">{`${PREOPEN.rows.fillsBy} ${when(view.expireSec, { seconds: view.expireSec % 60 !== 0 })}`}</span>
+        </>
+      ) : (
+        <span className="type-caption text-ink-secondary">
+          {view.status === "filled" ? (
+            PREOPEN.rows.filledWhy
+          ) : (
+            <>
+              {view.filledLots > 0n ? `${PREOPEN.rows.partlyWhy(filledText, contractsText)} · ` : ""}
+              {view.refundedBase > 0n ? (
+                <>
+                  {PREOPEN.rows.returned} <Money value={view.refundedBase} decimals={view.decimals} symbol={symbol} />
+                </>
+              ) : (
+                view.status === "expired" ? PREOPEN.rows.expiredWhy : PREOPEN.rows.cancelledWhy
+              )}
+            </>
+          )}
+        </span>
+      )}
       {live && cancel && (
         <button type="button" className="type-caption text-accent underline" disabled={cancel.busy} onClick={cancel.onCancel} data-cursor="hover">
           {cancel.busy ? PREOPEN.rows.cancelling : PREOPEN.rows.cancel}
@@ -91,7 +123,7 @@ export function RestingRowView({ view, symbol, cancel }: RestingRowViewProps) {
   );
 }
 
-/** The live row: Cancel sends `user_cancel_orders` on the call's own handle. */
+/** The live row: Cancel sends `Rest_Cancel` on the call's own reference. */
 function RestingRow({ view, symbol }: { view: RestingOrderView; symbol: string | undefined }) {
   const c = useCancelResting();
   const cancel: RestingRowCancel | null =
@@ -100,16 +132,20 @@ function RestingRow({ view, symbol }: { view: RestingOrderView; symbol: string |
 }
 
 /**
- * The wallet's scheduled calls as Open-tab items, ahead of the positions: what rests now or is on its way back. A
- * filled call is a position and appears there instead; a cancelled one has left the index's open set.
+ * The wallet's scheduled calls: `items` are the Open tab's, ahead of the positions — what rests now, and what ended in the
+ * last half hour, so a call that did not fill is seen to have come back. `ended` is every call that ended (filled, swept
+ * unfilled, cancelled), History's. A filled call is also a position and appears there too.
  */
-export function useRestingItems(symbol: string | undefined): { items: ListItem[]; pending: boolean } {
+export function useRestingItems(symbol: string | undefined): { items: ListItem[]; ended: ListItem[]; pending: boolean } {
   const { address: held } = useWalletSession();
   // No lease, no read: the seat's rows answer 403 until it holds one (C4c.2).
   const address = leasedAddressOf(useSeatLeaseState().view, held);
   const reading = useRestingOrders(address);
-  if (!reading) return { items: [], pending: address !== null };
-  if (!isOk(reading)) return { items: [], pending: false };
-  const items = reading.value.filter((view) => view.status !== "filled" && view.status !== "cancelled").map((view) => ({ key: `resting:${view.id}`, node: <RestingRow view={view} symbol={symbol} /> }));
-  return { items, pending: false };
+  if (!reading) return { items: [], ended: [], pending: address !== null };
+  if (!isOk(reading)) return { items: [], ended: [], pending: false };
+  const nowSec = Math.floor(marketsProvider.nowMs() / 1000);
+  const node = (view: RestingOrderView) => ({ key: `resting:${view.id}`, node: <RestingRow view={view} symbol={symbol} /> });
+  const items = reading.value.filter((view) => onBook(view) || view.expireSec + RECENT_END_SEC > nowSec).map(node);
+  const ended = reading.value.filter((view) => !onBook(view)).map(node);
+  return { items, ended, pending: false };
 }

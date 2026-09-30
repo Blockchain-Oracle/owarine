@@ -13,13 +13,15 @@ export interface CancelState {
   done: boolean;
 }
 
-export type CancelHandle = { node: number; seq: bigint };
+/** What a cancel names: the call's `callRef`, stable across the re-creations a partial fill makes. */
+export type CancelHandle = { callRef: string };
 
 const IDLE: CancelState = { busy: false, note: null, done: false };
 
 /**
- * Cancels the wallet's own resting calls on one Window (D-088): `user_cancel_orders` through the tx lane, escrow back
- * to the seat's venue credit (no withdraw — the credit funds the next call first). A second tap while one is in flight
+ * Cancels the wallet's own resting calls on one Window (D-088): `Rest_Cancel` through the tx lane, the escrow of the
+ * lots still resting back to the seat's venue credit (no withdraw — the credit funds the next call first). A call that
+ * already ended (filled, swept, cancelled) answers as such and changes nothing. A second tap while one is in flight
  * is absorbed. Confirmed, the wallet's positions and resting rows are refreshed together.
  */
 export function useCancelResting() {

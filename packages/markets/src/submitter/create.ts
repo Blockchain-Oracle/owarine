@@ -20,7 +20,6 @@ import { nowMs as ledgerNowMs } from "../provider/clock";
 import type { SeatSigner } from "../sessions/seat-signer";
 import type { Enqueue } from "../sessions/nonce-queue";
 import { cantonNotLive, notDeployed } from "../stub/not-deployed";
-import { refusedFor } from "../stub/product";
 import type { SponsorCosigner } from "../vault";
 import { noopAttribution } from "./attribution";
 import { indexEvidence, type WriteEvidence } from "./evidence";
@@ -28,6 +27,7 @@ import { checkGas, type FeeLane, type GasCheck } from "./fees";
 import { createMemoryJournal } from "./journal-memory";
 import { chainReconcilerWith, type Reconciler } from "./recovery";
 import { submitSeatCashOut, type HeldExitListener } from "./cash-out";
+import { submitRestingCancel, submitSeatRest } from "./rest-lane";
 import { commandVerdict, submitLegExit, submitSeatOrder } from "./seat-lane";
 import { allowAllStopGate } from "./stop-gate";
 import { agentsStrategyLane, agentsVaultLane } from "./agents-lane";
@@ -74,16 +74,13 @@ export interface MarketsSubmitter extends Submitter {
 /** A write kind no lane knows is refused; the ticket products (C8c), the arena (C9b) and the maker vault (C2d) are live. */
 const PRODUCTS_NOT_LIVE = cantonNotLive("product writes");
 const GRANT_ROUTE_IS_AN_AGENTS = "an order through a grant is placed by the grant's agent (ops), not from a seat's session";
-/** A resting call (D-088) becomes a bilateral `RestingCall` in C6. */
-const REST_NOT_LIVE = cantonNotLive("resting calls");
-
 /**
  * Binds every write lane to ONE seat. Orders go through the seat lane (`seat-lane.ts`: firm quote, journal, accept
  * as the seat's party, book from the created Leg); cash-outs through `cash-out.ts` (firm buy-back, journal, accept); claims and stale refunds through the legs routes. The ticket
  * products (range, parlay, boost and their Earn quotes) go through `ticket-lane.ts` (C8c), the duel through
  * `games/write.ts` (C9b), the maker vault through `maker/writes.ts` (C2d: the same Earn quotes as the ticket reserves, on
  * `reserve: "maker"`). Every write queues through `enqueue`, so one seat never races itself (and two tabs share the server's
- * per-command idempotency).
+ * per-command idempotency). A pre-open resting call and its cancel go through `rest-lane.ts` (C7c).
  */
 export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
   const { wallet, enqueue } = deps;
@@ -93,7 +90,6 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
   const attribution = deps.attribution ?? noopAttribution;
   const evidence = evidenceOf(deps);
   const lane = { wallet, journal, stopGate, nowMs };
-  const refuse = <T>(reason: string) => enqueue(async () => refusedFor(reason) as T);
   return {
     journal,
     stopGate,
@@ -107,6 +103,8 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
         // Demo cash comes from the server-side credit (`/api/faucet`, seat lease), never a seat's own write.
         if (intent.kind === "faucet") return { status: "refused" as const, diagnosis: diagnosis("faucet-refused", "demo cash is credited server-side (/api/faucet)") };
         if (intent.kind === "redeem") return submitLegExit(lane, { marketId: intent.marketId, mode: "claim" }, onPhase);
+        // C7c: the seat's own resting calls, cancelled by reference; the escrow returns as venue credit (`withdraw` is not a Canton thing).
+        if (intent.kind === "cancel-orders") return submitRestingCancel(lane, { marketId: intent.marketId, callRefs: intent.handles.map((h) => h.callRef) }, onPhase);
         // C8c: the ticket products and their reserves' Earn quotes.
         if (intent.kind.startsWith("range-")) return rangeTxLane(lane, intent as RangeIntent, onPhase);
         if (intent.kind.startsWith("parlay-")) return parlayTxLane(lane, intent as ParlayIntent, onPhase);
@@ -124,7 +122,8 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
       // C8f: the seat's cash IS the trading balance, so the `vault` route is the seat's own order; a `vault-grant`
       // route is an agent's, which acts through the owner's grant from ops, never from a seat's session.
       if (request.route?.kind === "vault-grant") return enqueue(async () => ({ status: "refused" as const, diagnosis: diagnosis("grant-refused", GRANT_ROUTE_IS_AN_AGENTS) }));
-      if (request.entry === "rest") return refuse(REST_NOT_LIVE);
+      // C7c: a pre-open call is the venue's offer and the seat's own place (a bilateral `RestingCall`), through `rest-lane.ts`.
+      if (request.entry === "rest") return enqueue(() => submitSeatRest(lane, { ...request, route: { kind: "wallet" } }, onPhase));
       return enqueue(() => submitSeatOrder(lane, { ...request, route: { kind: "wallet" } }, onPhase));
     },
     exitLegs: (o, onPhase) => enqueue(() => submitLegExit(lane, o, onPhase)),

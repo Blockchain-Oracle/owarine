@@ -20,6 +20,8 @@ interface AmountBlockProps {
   symbol: string;
   /** The reference's `belowMinHard`: said only once there is an amount to judge. */
   belowMin: boolean;
+  /** The minimum the line names: a scheduled call's own (one lot at its price); the taker's general one when absent. */
+  minBase?: bigint | null;
   /** The 1×/2×/3× chips on the row's right; null on a range bet, which the reference places at 1× only. */
   leverage: LeverageChipsProps | null;
   /** Debounced expected cost, announced to screen readers as it settles. */
@@ -41,7 +43,7 @@ function sanitize(text: string): string {
  * chips on the right. The ¼/½/¾/Max fraction chips this replaced were ours, not the reference's, and
  * "Max" on a thin book was the whole of "it lets me place more than there is".
  */
-export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBase, decimals, symbol, belowMin, leverage, costBase }: AmountBlockProps) {
+export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBase, decimals, symbol, belowMin, minBase, leverage, costBase }: AmountBlockProps) {
   const minId = useId();
   const add = (units: number) => onStakeBase(stakeBase + BigInt(units) * oneUnit(decimals));
   return (
@@ -75,7 +77,7 @@ export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBa
       </div>
       {belowMin && (
         <p id={minId} className="tk-amount-min">
-          {TICKET.minimum(`${formatBaseUnits(minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`)}
+          {TICKET.minimum(`${formatBaseUnits(minBase ?? minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`)}
         </p>
       )}
       <span className="sr-only" aria-live="polite">

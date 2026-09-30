@@ -31,6 +31,8 @@ interface Props {
   decimals: number;
   symbol: string;
   belowMin: boolean;
+  /** The minimum the line names: a scheduled call's own (one lot at its price); the general one when absent. */
+  minBase?: bigint | null;
   /** The 1×/2×/3× chips on the row's right; null on a range bet or a scheduled call. */
   leverage: LeverageChoice | null;
 }
@@ -47,7 +49,7 @@ function sanitize(text: string): string {
  * additive `+1 +5 +20` chips on the left and the leverage chips on the right, and the minimum said once there is an
  * amount to judge. The figure is a string until core's integer parser turns it into base units.
  */
-export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBase, decimals, symbol, belowMin, leverage }: Props) {
+export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBase, decimals, symbol, belowMin, minBase, leverage }: Props) {
   const tk = useTk();
   const add = (units: number) => {
     haptic.select();
@@ -82,19 +84,20 @@ export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBa
         </View>
         {leverage ? <LeverageChips {...leverage} /> : null}
       </View>
-      {belowMin ? <Text style={[tkType.chip, styles.min, { color: tk.vermilion }]}>{TICKET.minimum(`${formatBaseUnits(minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`)}</Text> : null}
+      {belowMin ? <Text style={[tkType.chip, styles.min, { color: tk.vermilion }]}>{TICKET.minimum(`${formatBaseUnits(minBase ?? minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`)}</Text> : null}
     </View>
   );
 }
 
 /** web's `.tk-add`: a small mono chip; pressed (a price chip) it takes the vermilion border and ink. */
-export function Chip({ label, onPress, on = false, disabled = false, wide = false }: { label: string; onPress: () => void; on?: boolean; disabled?: boolean; wide?: boolean }) {
+export function Chip({ label, onPress, on = false, disabled = false, wide = false, accessibilityLabel }: { label: string; onPress: () => void; on?: boolean; disabled?: boolean; wide?: boolean; accessibilityLabel?: string }) {
   const tk = useTk();
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: on, disabled }}
       hitSlop={6}
       style={({ pressed }) => [styles.chip, { borderColor: on ? tk.vermilion : tk.addBorder }, wide && styles.step, pressed && styles.shrink, disabled && styles.dim]}

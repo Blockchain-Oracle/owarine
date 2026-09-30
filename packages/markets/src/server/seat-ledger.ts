@@ -7,7 +7,8 @@ import type { BalanceSheet, ClaimableRow, OpenPosition } from "@agari/core/types
 import type { TermsView } from "./contracts";
 import { balanceSheet, busyUntilMs, claimables, claimPlans, openPositions, openQuotes, type OpenQuoteRow } from "./map";
 import { createMarketReader, createSeatReader, type MarketReader, type SeatReader, type SeatSnapshot } from "./reads";
-import { createSeatWriter, type CommandJournal, type SeatWriter } from "./writes";
+import { createRestWriter, type RestWriter } from "./rest-writes";
+import { createSeatWriter, seatCommandKit, type CommandJournal, type SeatWriter } from "./writes";
 
 export interface SeatLedgerConfig {
   client: LedgerClient;
@@ -33,7 +34,7 @@ export interface SeatRead<T> {
 export interface SeatLedger {
   readonly seats: SeatReader;
   readonly markets: MarketReader;
-  readonly writer: SeatWriter;
+  readonly writer: SeatWriter & RestWriter;
   readonly client: LedgerClient;
   balance(party: Party): Promise<SeatRead<BalanceSheet>>;
   positions(party: Party): Promise<SeatRead<OpenPosition[]>>;
@@ -47,7 +48,10 @@ export function createSeatLedger(cfg: SeatLedgerConfig): SeatLedger {
   const now = cfg.now ?? Date.now;
   const seats = createSeatReader(cfg.client, { now });
   const markets = createMarketReader(cfg.client, cfg.venueParty, { now });
-  const writer = createSeatWriter({ client: cfg.client, seats, markets, journal: cfg.journal, now });
+  const writerDeps = { client: cfg.client, seats, markets, journal: cfg.journal, now };
+  const kit = seatCommandKit(writerDeps);
+  // The seat's commands: the order, exit and claim writers, and (C7c) the resting call's place and cancel.
+  const writer = { ...createSeatWriter(writerDeps, kit), ...createRestWriter(writerDeps, kit) };
 
   const wrap = <T>(snap: SeatSnapshot, value: T): SeatRead<T> => ({
     value,

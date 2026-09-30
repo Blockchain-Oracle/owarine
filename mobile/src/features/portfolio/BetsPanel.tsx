@@ -28,6 +28,8 @@ import { RestingRow } from "./bets/RestingRow";
 import { VaultBetRow } from "./bets/VaultBetRow";
 
 const PAGE_SIZE = 8;
+/** A call that ended stays in the Open tab this long, so its outcome is seen where it was watched (web `RECENT_END_SEC`). */
+const RECENT_END_SEC = 1_800;
 type Tab = "open" | "history";
 type Item = { key: string; render: (first: boolean) => ReactNode };
 
@@ -69,10 +71,13 @@ export function BetsPanel({ symbol, index, history }: { symbol: string | undefin
     key: `boost:${p.positionId.toString()}`,
     render: (first) => <BoostRow position={p} symbol={symbol} decimals={boostDecimals} nowMs={nowMs} writes={writes} first={first} />,
   });
-  const restingItems: Item[] =
-    resting && isOk(resting)
-      ? resting.value.filter((v) => v.status !== "filled" && v.status !== "cancelled").map((v) => ({ key: `resting:${v.id}`, render: (first) => <RestingRow view={v} symbol={symbol} first={first} /> }))
-      : [];
+  // What rests now leads the Open tab, and so does what ended in the last half hour, so a call that did not fill is seen to
+  // have come back; History keeps every ended call (filled, swept unfilled, cancelled).
+  const restingList = resting && isOk(resting) ? resting.value : [];
+  const restingRow = (v: (typeof restingList)[number]): Item => ({ key: `resting:${v.id}`, render: (first) => <RestingRow view={v} symbol={symbol} first={first} /> });
+  const restingOn = (v: (typeof restingList)[number]) => v.status === "resting-for-open" || v.status === "resting";
+  const restingItems: Item[] = restingList.filter((v) => restingOn(v) || v.expireSec + RECENT_END_SEC > Math.floor(marketsProvider.nowMs() / 1000)).map(restingRow);
+  const endedResting: Item[] = restingList.filter((v) => !restingOn(v)).map(restingRow);
   const positionItems: Item[] =
     reading && isOk(reading) ? reading.value.map((p) => ({ key: `wallet:${p.marketId}`, render: (first) => <BetRow position={p} symbol={symbol} nowMs={nowMs} first={first} seen={<WhoCanSee kind="position" />} publish={<PublishCall marketId={p.marketId} address={address} source="leg" />} /> })) : [];
   const vaultItems: Item[] =
@@ -104,7 +109,7 @@ export function BetsPanel({ symbol, index, history }: { symbol: string | undefin
         aside={
           <View style={[styles.tabs, { borderColor: color.hairline }]} accessibilityRole="tablist" accessibilityLabel={PORTFOLIO.betsTitle}>
             <TabButton tab="open" current={tab} count={openCount} label={PORTFOLIO.tabs.open} onPick={setTab} />
-            <TabButton tab="history" current={tab} count={settledCount} label={PORTFOLIO.tabs.history} onPick={setTab} />
+            <TabButton tab="history" current={tab} count={settledCount === null ? null : settledCount + endedResting.length} label={PORTFOLIO.tabs.history} onPick={setTab} />
           </View>
         }
       />
@@ -123,6 +128,14 @@ export function BetsPanel({ symbol, index, history }: { symbol: string | undefin
         ) : (
           <>
             <HistoryRows history={history} symbol={symbol} />
+            {endedResting.length > 0 ? (
+              <View style={[styles.sublist, { borderTopColor: color.hairline }]}>
+                <Text style={[WEB_TYPE.labelMicro, styles.subLabel, { color: color.inkMuted }]}>{PORTFOLIO.scheduledCalls}</Text>
+                {endedResting.map((item) => (
+                  <View key={item.key}>{item.render(false)}</View>
+                ))}
+              </View>
+            ) : null}
             {doneBoosts.length > 0 ? (
               <View style={[styles.sublist, { borderTopColor: color.hairline }]}>
                 <Text style={[WEB_TYPE.labelMicro, styles.subLabel, { color: color.inkMuted }]}>{LEVERAGE.bets.history}</Text>

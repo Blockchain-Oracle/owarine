@@ -19,6 +19,7 @@ import { claimPlans, contractsOf, type ClaimPlan } from "./map";
 import type { MarketReader, SeatReader } from "./reads";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
 
+
 export type CommandState = "pending" | "landed" | "failed" | "unknown";
 
 export interface CommandRow {
@@ -158,9 +159,13 @@ export function selectCash(cash: readonly { cid: string; amount: bigint }[], cos
   return total >= cost ? picked : null;
 }
 
-export function createSeatWriter(deps: SeatWriteDeps) {
-  const { client, seats, markets, journal } = deps;
-  const now = deps.now ?? Date.now;
+/**
+ * What every seat command shares: the earlier transaction of a command that already landed, the lease's ownership of a
+ * command id, the seat-only submit with its rejection classification, and the journal's settlement of a failure. Built
+ * once per server and given to each writer (`createSeatWriter`, `createRestWriter`).
+ */
+export function seatCommandKit(deps: SeatWriteDeps) {
+  const { client, seats, journal } = deps;
 
   /** The earlier transaction of a command that already landed, if it did. */
   async function landedTx(row: CommandRow | null, party: Party, shape: TxShape = "TRANSACTION_SHAPE_ACS_DELTA"): Promise<JsTransaction | null> {
@@ -203,6 +208,16 @@ export function createSeatWriter(deps: SeatWriteDeps) {
     await journal.finish(commandId, { state, diagnosis: d });
     return state === "unknown" ? { kind: "unknown" as const, diagnosis: d } : { kind: "refused" as const, diagnosis: d };
   }
+
+  return { landedTx, owned, submit, settleFailure };
+}
+
+export type SeatCommandKit = ReturnType<typeof seatCommandKit>;
+
+export function createSeatWriter(deps: SeatWriteDeps, kit: SeatCommandKit = seatCommandKit(deps)) {
+  const { client, seats, markets, journal } = deps;
+  const now = deps.now ?? Date.now;
+  const { landedTx, owned, submit, settleFailure } = kit;
 
   /** `beneficiaryRef` tags the leg (a duel pick's `duel:<arena>:<match>`, C9b); an ordinary call carries none. */
   async function accept(actor: SeatActor, o: { journalId: string; quoteCid: string; beneficiaryRef?: string }): Promise<AcceptResult> {
