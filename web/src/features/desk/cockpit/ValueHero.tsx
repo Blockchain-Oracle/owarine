@@ -6,7 +6,7 @@ import { useMemo, useState } from "react";
 import { EmptyState, NumberTicker } from "@/components/ui/desk-kit";
 import { cn } from "@/lib/utils";
 import { DESK } from "../copy";
-import { ago, pctSigned, usd, usdSigned } from "../format";
+import { ago, creditsSigned, pctSigned, usd, usdSigned } from "../format";
 import { seriesInRange, type ChartRange, type DeskView } from "../view";
 import { COCKPIT } from "./copy-cockpit";
 
@@ -22,12 +22,14 @@ const tone = (e6: bigint | null): "up" | "down" | "flat" => (e6 === null || e6 =
 
 /**
  * The plate, as 21st's Portfolio Chart (#29532): the total rolling in, the move since the money went in, the value
- * at every check on an area chart with 1D · 1W · All, the timing line and when it was valued.
+ * at every check on an area chart with 1D · 1W · All, the timing line and when it was valued. A live desk speaks the
+ * seat's credits (C8i): no dollar sign, and its figures count from going live, never from the practice paper.
  */
 export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) {
   const P = DESK.page.plate;
   const H = COCKPIT.hero;
   const { plate } = view;
+  const live = view.isLive;
   const [range, setRange] = useState<ChartRange>("all");
   const inRange = useMemo(() => seriesInRange(view.series, range, nowSec), [view.series, range, nowSec]);
   const points = useMemo(() => inRange.points.map((p) => ({ timeSec: p.atSec, value: dollars(p.totalE6) })), [inRange.points]);
@@ -48,13 +50,14 @@ export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) 
         <div className="cp-hero-figures">
           <span className="dk-panel-title">{P.total}</span>
           <span className="cp-hero-total">
-            <span className="cp-hero-currency">$</span>
+            {!live && <span className="cp-hero-currency">$</span>}
             <NumberTicker value={dollars(plate.totalE6)} format="plain" />
+            {live && <span className="cp-hero-unit">{P.unit}</span>}
           </span>
           <div className="cp-hero-moves">
             {plate.sinceE6 !== null && (
               <span className="cp-move" data-tone={tone(plate.sinceE6)}>
-                {usdSigned(plate.sinceE6)}
+                {live ? creditsSigned(plate.sinceE6) : usdSigned(plate.sinceE6)}
                 <span className="cp-move-label">{P.since.toLowerCase()}</span>
               </span>
             )}
@@ -84,7 +87,7 @@ export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) 
         </div>
         <p className="type-caption text-ink-muted">
           {plate.timing.graded === 0 ? P.timingNone : `${P.timingValue(pctSigned(plate.timing.bps), plate.timing.graded)}. ${P.timingNote}`}
-          {plate.valuedAtSec !== null ? ` ${P.valued(ago(plate.valuedAtSec, nowSec))}` : ""}
+          {plate.valuedAtSec !== null ? ` ${(live ? P.valuedLive : P.valued)(ago(plate.valuedAtSec, nowSec))}` : ""}
         </p>
       </div>
     </section>

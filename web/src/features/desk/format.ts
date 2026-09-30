@@ -24,6 +24,8 @@ export function creditAmount(e6: bigint, maxDp = 2): string {
   const negative = e6 < 0n;
   return `${negative ? "−" : ""}${formatBaseUnits(negative ? -e6 : e6, USDC_DP, { maxDp, minDp: maxDp === 0 ? 0 : 2 })}`;
 }
+/** "+12.40 credits" · "−3.10 credits" · "0.00 credits": a live desk's move on Canton (C8i), `usdSigned`'s twin. */
+export const creditsSigned = (e6: bigint): string => (e6 > 0n ? `+${credits(e6)}` : credits(e6));
 /** "+$12.40" · "−$3.10" · "$0.00". */
 export const usdSigned = (e6: bigint): string => (e6 > 0n ? `+${usd(e6)}` : usd(e6));
 /** A decimal string from a record ("120.5") as dollars, unchanged when it does not parse. */

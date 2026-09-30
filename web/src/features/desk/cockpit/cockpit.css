@@ -59,6 +59,8 @@
 .cp-hero-figures { display: flex; flex-direction: column; gap: 4px; }
 .cp-hero-total { display: inline-flex; align-items: baseline; font-family: var(--font-display); font-size: clamp(38px, 5vw, 52px); font-weight: 800; letter-spacing: -0.035em; line-height: 1.05; color: var(--color-ink); }
 .cp-hero-currency { margin-right: 0.04em; }
+/* A live desk's unit after the figure (C8i): the seat's credits, quieter than the number. */
+.cp-hero-unit { margin-left: 0.3em; font-size: 0.42em; font-weight: 600; letter-spacing: 0; color: var(--color-ink-secondary); }
 .cp-hero-moves { display: flex; flex-wrap: wrap; gap: 8px; }
 .cp-move { display: inline-flex; align-items: baseline; gap: 6px; padding: 3px 10px; border-radius: 9999px; background: var(--color-surface-2); font-family: var(--font-data); font-size: 13px; font-weight: 600; color: var(--color-ink); }
 .cp-move[data-tone="up"] { background: var(--color-profit-wash); color: var(--color-profit); }

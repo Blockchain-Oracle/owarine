@@ -152,6 +152,10 @@ export const DESK = {
       timingNone: "Nothing graded yet. Each call is graded a day later.",
       timingValue: (pct: string, n: number) => `${pct} over ${n} graded ${n === 1 ? "call" : "calls"}`,
       valued: (age: string) => `Valued ${age} on the half-hour average of PreStocks' token price.`,
+      /** A live desk (C8i, K-090): its holdings are hourly Windows, valued at the venue's attested fair price. */
+      valuedLive: (age: string) => `Valued ${age} at each Window's attested fair price.`,
+      /** A live desk counts the seat's demo credits, never dollars (C8g.12, C8i). */
+      unit: "credits",
       notYet: "Not valued yet. The desk values itself at its first check.",
       practiceCash: (amount: string) => `Practice balance ${amount}. None of your money has moved.`,
     },

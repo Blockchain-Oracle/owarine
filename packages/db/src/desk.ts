@@ -5,6 +5,7 @@
  */
 import type { Db } from "./client";
 import { storageKey } from "./keys";
+import { liveSinceSql } from "./desk-series";
 import { ensureSchema } from "./migrate";
 
 /**
@@ -324,27 +325,40 @@ export function deskCoreQueries(db: Db) {
       const rows = await db<{ decided_at_sec: string }[]>`SELECT decided_at_sec FROM desk_records WHERE decided_at_sec >= ${sinceSec} AND body->'timing' IS NOT NULL AND body->'timing' <> 'null'::jsonb AND (body->'timing'->>'latencyMs')::bigint > 0`;
       return rows.map((r) => Number(r.decided_at_sec));
     },
-    /** A live desk the chain knows and the database does not (discovery): a row with no mandate yet, or the practice row it grows out of. */
+    /** A live desk the chain knows and the database does not (discovery): a new row, or the practice row it grows out
+     * of, which starts its live figures afresh as `attachLiveDesk` does (C8i): no baseline, no breaches, a `went_live`. */
     async registerLiveDesk(i: { owner: string; cluster: DeskCluster; address: string; operator: string; mode: DeskModeName; nowSec: number }): Promise<DeskRow> {
       await ready();
       const owner = storageKey(i.owner);
-      const rows = await db<RawDesk[]>`INSERT INTO desks (address, owner, operator, cluster, mode, state, created_at_sec, updated_at_sec)
-        VALUES (${storageKey(i.address)}, ${owner}, ${storageKey(i.operator)}, ${i.cluster}, ${i.mode}, 'active', ${i.nowSec}, ${i.nowSec})
-        ON CONFLICT (cluster, owner) DO UPDATE SET address = EXCLUDED.address, operator = EXCLUDED.operator, mode = EXCLUDED.mode, updated_at_sec = EXCLUDED.updated_at_sec RETURNING *`;
-      const row = rows[0];
-      if (!row) throw new Error("the desk was not registered");
-      return toDesk(row);
+      return db.begin(async (tx) => {
+        const [prior] = await tx<{ id: string; address: string | null }[]>`SELECT id, address FROM desks WHERE cluster = ${i.cluster} AND owner = ${owner} FOR UPDATE`;
+        const grows = Boolean(prior && prior.address === null);
+        const rows = await tx<RawDesk[]>`INSERT INTO desks (address, owner, operator, cluster, mode, state, created_at_sec, updated_at_sec)
+          VALUES (${storageKey(i.address)}, ${owner}, ${storageKey(i.operator)}, ${i.cluster}, ${i.mode}, 'active', ${i.nowSec}, ${i.nowSec})
+          ON CONFLICT (cluster, owner) DO UPDATE SET address = EXCLUDED.address, operator = EXCLUDED.operator, mode = EXCLUDED.mode, updated_at_sec = EXCLUDED.updated_at_sec,
+            drawdown_baseline_e6 = CASE WHEN ${grows} THEN NULL ELSE desks.drawdown_baseline_e6 END,
+            loss_breaches = CASE WHEN ${grows} THEN 0 ELSE desks.loss_breaches END
+          RETURNING *`;
+        const row = rows[0];
+        if (!row) throw new Error("the desk was not registered");
+        if (!prior || grows) await tx`INSERT INTO desk_events (desk_id, kind, actor, detail, at_sec) VALUES (${row.id}::uuid, 'went_live', 'desk', ${tx.json({ address: i.address, mode: i.mode, discovered: true })}, ${i.nowSec})`;
+        return toDesk(row);
+      });
     },
     async saveSnapshot(i: { deskId: string; takenAtSec: number; totalE6: string; usdcE6: string; holdings: SnapshotHolding[]; unpriced: SnapshotRow["unpriced"] }): Promise<void> {
       await ready();
       await db`INSERT INTO desk_snapshots (desk_id, taken_at_sec, total_e6, usdc_e6, holdings, unpriced)
         VALUES (${i.deskId}::uuid, ${i.takenAtSec}, ${i.totalE6}, ${i.usdcE6}, ${db.json(i.holdings as never)}, ${db.json(i.unpriced as never)})`;
     },
+    /**
+     * The newest snapshot of the desk's current life: a desk that went live counts only from that moment (C8i), so the
+     * runner never reads the practice paper as money that left the live desk, and the page never shows it as the value.
+     */
     async latestSnapshot(deskId: string): Promise<SnapshotRow | null> {
       await ready();
       const rows = await db<{ taken_at_sec: string; total_e6: string; usdc_e6: string; holdings: SnapshotHolding[]; unpriced: SnapshotRow["unpriced"]; baseline: string | null }[]>`
         SELECT s.taken_at_sec, s.total_e6, s.usdc_e6, s.holdings, s.unpriced, d.drawdown_baseline_e6 AS baseline FROM desk_snapshots s JOIN desks d ON d.id = s.desk_id
-        WHERE s.desk_id = ${deskId}::uuid ORDER BY s.taken_at_sec DESC LIMIT 1`;
+        WHERE s.desk_id = ${deskId}::uuid AND s.taken_at_sec >= ${liveSinceSql(db, deskId)} ORDER BY s.taken_at_sec DESC LIMIT 1`;
       const r = rows[0];
       return r ? { atSec: Number(r.taken_at_sec), takenAtSec: Number(r.taken_at_sec), totalE6: r.total_e6, cashE6: r.usdc_e6, usdcE6: r.usdc_e6, baselineE6: r.baseline, holdings: r.holdings, unpriced: r.unpriced } : null;
     },
