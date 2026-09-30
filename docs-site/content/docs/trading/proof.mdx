@@ -1,16 +1,16 @@
 ---
 title: "Read a Window's proof"
-description: "Trace its opening and closing prints, the oracle parties that signed them, and the evidence behind each."
+description: "Trace its opening and closing prints, the oracle parties that posted them, and the evidence behind each."
 ---
 
-<AppLink href="/proof">Proof</AppLink> lists settled Windows. Open a row to see that Window's **proof page**: the opening and closing boundary values, each oracle party's quote at the close, the median the resolver took, and the outcome or the void reason. The resolver settles from these recorded quotes, not from the latest display price.
+<AppLink href="/proof">Proof</AppLink> lists settled Windows. Open a row to see that Window's **proof page**: each oracle party's quote at the open and at the close, the median and spread the ledger took, the outcome or the void reason, and the source each quote was read from (for example "RedStone"). The resolver settles from these recorded quotes, not from the latest display price. Each step carries its ledger update id, and `/proof?update=<id>` opens any one of them.
 
 ## The resolution timeline
 
-Each proof page walks through the Window's life in order: opened, opening print recorded, closing quotes posted by each oracle, resolved or voided. Beside it, the trust boundary says who could have done what: the oracles post prices, the resolver decides, and the venue alone cannot resolve.
+Each proof page walks through how the Window was decided: open print, each oracle's closing quote, median, then resolved or voided. The receipt names who signed the result: the resolver and the venue, both required. Below it, the **trust boundary** says plainly that the ledger returns each party only its own contracts, but one operator holds the ledger credential for every demo party, so the app's own code decides which party a seat acts as.
 
 ## Check the evidence
 
-Each oracle quote carries the hash of the raw exchange response it was read from, and that response is archived byte for byte. Anyone can hash the archived payload, compare it with the quote, and read the candle's close from it. An absent archived payload should be treated as unavailable evidence even if the quote itself is on the ledger.
+Each oracle quote carries the sha-256 hash of the raw source response it was read from, and that response is archived byte for byte. **Re-verify** recomputes the medians, spreads and outcome with the ledger's integer rule, checks each archived response against its hash, and, for a crypto Window, fetches each exchange's candle again; on a local sandbox a resolved Window passed all 23 checks. An absent archived payload is unavailable evidence, even if the quote itself is on the ledger.
 
 Use the [price-source page](/architecture/price-sources) for the quorum and agreement rules.

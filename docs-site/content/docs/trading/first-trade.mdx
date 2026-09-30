@@ -1,27 +1,27 @@
 ---
 title: "Place an Up or Down trade"
-description: "Firm quotes, what a call creates on the ledger, and how a Window settles or voids."
+description: "Firm quotes from the venue's price ladder, what a call creates on the ledger, and how a Window settles or voids."
 ---
 
 A Window is the unit of trading: one ticker, one cadence, one opening print and one closing print. Every call resolves to Up or Down against those two prints — nothing else decides the outcome.
 
 ## A firm quote
 
-The venue publishes a price ladder for each live Window. When you choose a side and a stake, it issues you a **firm quote**: one side, one price, valid for a few seconds and only to your seat. The ticket shows the exact cost — stake plus fee — before you accept. If the quote runs out before you accept it, it fills nothing; ask for a fresh one.
+The venue publishes a price ladder for each live Window; there is no order book, and the venue is the house. When you choose a side and a stake, it issues you a **firm quote**: one side, one price, held for about 20 seconds and only for your seat, with a ring counting it down. The ticket shows the exact cost — stake plus fee — before you accept. If the quote runs out first, it fills nothing; ask for a fresh one.
 
-Accepting the quote creates a pair of positions on the ledger: yours, and the venue's opposite one. Your stake and your fee are held in your position. Only your seat's party and the venue can see it.
+Accepting the quote creates a pair of positions on the ledger: yours, and the venue's opposite one. Your stake and your fee are held in your position, and the receipt names the ledger update it landed in. Each contract has two stakeholders, your seat's party and the venue, so only the two of you can see it; the **Who can see this** chip says so.
 
-If your stake is more than the venue will quote right now, the ticket says so and offers the largest size it can fill. A Window the venue is not quoting reads **No quotes yet**.
+If your stake is more than the venue will quote right now, the ticket offers the largest size it can fill; if the price moved, it requotes. A Window the venue is not quoting reads **No quotes yet**.
 
 ## How a Window settles
 
 Once the Window's close time arrives, the resolver needs oracle prints for both the open and the close:
 
-- **Settles Up or Down** once at least 2 of the 3 oracle parties have posted each boundary and their prices agree within the Series' limit. Up wins if the close is at or above the open; Down wins otherwise.
+- **Settles Up or Down** once at least 2 of the 3 oracle parties have posted each boundary and their prices agree within the Series' limit (1%). Up wins if the close is at or above the open; Down wins otherwise.
 - **Voids** if too few oracle prints arrived in time (**Missing print** or **Quorum not met**), if the resolver did not record them in time, or if the oracles disagreed past the limit (**Source disagreement**). A void returns your stake and your fee.
 
-A Window resolves or voids exactly once. See [Halts and voids](/trading/halts-and-voids) for the labels the app uses, and the proof page for each Window's evidence.
+The resolver and the venue both sign the Resolution, and a Window resolves or voids exactly once. See [Halts and voids](/trading/halts-and-voids) for the labels the app uses, and the proof page for each Window's evidence.
 
 ## Getting paid
 
-You do not need to claim. The venue's settler pays each resolved Window's positions to their owners in batches, and <AppLink href="/portfolio">Portfolio</AppLink> shows the result and its receipt. If the venue has still not settled by the Window's refund time, you can take your stake back yourself from Portfolio.
+You do not need to claim or sign. The venue's settler pays each resolved Window's positions to their owners in batches, and <AppLink href="/portfolio">Portfolio</AppLink> shows the result and its receipt. Before the close you can sell back to the venue at a firm exit price (**Cash out** or **Sell half**). If the venue has still not settled by the Window's refund time, you take your stake and fee back yourself from Portfolio, even with the venue's operator down. This all runs on a local Canton sandbox today.

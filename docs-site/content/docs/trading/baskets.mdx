@@ -1,9 +1,9 @@
 ---
 title: "Baskets"
-description: "Five PreStocks groups, one-hour Up/Down Windows, and three different actions."
+description: "Five PreStocks groups, one-hour Up/Down Windows settled on a signed index, and three different actions."
 ---
 
-<AppLink href="/baskets">Baskets</AppLink> groups the eight supported PreStocks names into five choices. Each basket is an **equal-weight price-return index**: it started at 1,000 points at a frozen set of base prices on 22 September 2026. The app reads all members in one PreStocks catalogue fetch; a missing member means no index print. The points are an index level, **not a dollar price or a token you buy**.
+<AppLink href="/baskets">Baskets</AppLink> groups the eight supported PreStocks names into five choices. Each basket is an **equal-weight price-return index**: it started at 1,000 points at a frozen set of base prices read from the PreStocks catalogue on 22 September 2026. Each oracle party computes it from all members in one catalogue read; a missing member means no index print, never a partial one. The points are an index level, **not a dollar price or a token you buy**.
 
 | Basket | Members |
 | --- | --- |
@@ -23,13 +23,13 @@ Each card keeps the same rows whatever loads or rolls: the members as a stack of
 
 | Action on the card | Where it goes | Money and network |
 | --- | --- | --- |
-| **Predict** | The basket's one-hour Up/Down Window, or its ticker page if none is trading | Demo credits; basket lanes are **planned** on Canton |
-| **Cover** | A Down call against a basket when you hold at least two of its members; one member uses its own name | **Planned**: a seat holds no outside tokens until Canton Coin and CIP-56 holdings are wired |
-| **Hold** | The [desk studio](/agents/desk) with that basket preselected | A paper practice desk; a live desk is **planned** |
+| **Predict** | The basket's one-hour Up/Down Window, or its ticker page if none is trading | Demo credits; basket Windows have opened and resolved on a local Canton sandbox |
+| **Cover** | A Down call against a basket when you hold at least two of its members; one member uses its own name | **Not on Canton yet**: a seat holds no outside tokens until the Canton Coin and CIP-56 holdings rail is wired, so Cover stays unavailable |
+| **Hold** | The [desk studio](/agents/desk) with that basket preselected | A practice desk on paper first; see [Build a desk](/agents/desk) for going live |
 
-The basket Window settles on the change in **points** between two signed boundary prints. On Canton the plan is for the oracle parties to sign an index built from the one catalogue read. That is a venue-attested PreStocks value, not an independent check; see [PreStocks and Pyth](/architecture/prestocks-and-pyth). The [source map](/builders/source-map) points to the index code.
+The basket Window settles on the change in **points** between two boundary prints. At each boundary the three oracle parties each read the PreStocks catalogue once, compute the index, and post it; a quorum of two within 1% of each other resolves the Window, and the receipt names "the PreStocks basket index" as the source. That is a venue-attested PreStocks value, not an independent check; see [PreStocks and Pyth](/architecture/prestocks-and-pyth). When PreStocks refuses the venue's reads (it rate-limits some hosts), the basket lanes pause rather than print. The [source map](/builders/source-map) points to the index code.
 
-If the card says **No Window trading right now**, you can still inspect its members and draft a desk. A Predict or Cover order needs a live Window and a quote.
+If the card says **No Window trading right now**, you can still inspect its members and draft a desk. A Predict order needs a live Window and a quote.
 
 ## Preview a connected ticket
 
