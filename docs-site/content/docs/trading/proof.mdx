@@ -9,6 +9,8 @@ description: "Trace its opening and closing prints, the oracle parties that post
 
 Each proof page walks through how the Window was decided: open print, each oracle's closing quote, median, then resolved or voided. The receipt names who signed the result: the resolver and the venue, both required. Below it, the **trust boundary** says plainly that the ledger returns each party only its own contracts, but one operator holds the ledger credential for every demo party, so the app's own code decides which party a seat acts as.
 
+<GuideCapture name="proofTimeline" caption="A BTC 5-minute Window\'s timeline: the open print, each oracle party\'s closing quote with its ledger update id, the median 0.01% apart against the 1% limit, and the resolution." />
+
 ## Check the evidence
 
 Each oracle quote carries the sha-256 hash of the raw source response it was read from, and that response is archived byte for byte. **Re-verify** recomputes the medians, spreads and outcome with the ledger's integer rule, checks each archived response against its hash, and, for a crypto Window, fetches each exchange's candle again; on a local sandbox a resolved Window passed all 23 checks. An absent archived payload is unavailable evidence, even if the quote itself is on the ledger.

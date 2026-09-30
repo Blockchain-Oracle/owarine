@@ -5,7 +5,7 @@ description: "Review a creator, fund a ledger-enforced grant, and release it whe
 
 <AppLink href="/strategies">Strategies</AppLink> are published by creators; <AppLink href="/agents">Agents</AppLink> ranks the runners by the capital entrusted to them and the copy-trades they executed. A published strategy is not a promise of a fill or return. Check its runner, history, fee, playbook and hard caps before copying.
 
-<GuideCapture name="strategiesConnected" caption="This connected catalogue shows published strategy rows and their recorded results; the screen alone does not prove a runner is currently trading." />
+<GuideCapture name="strategyPublished" caption="A strategy just published from a seat. Publishing registers it and links its ledger transaction; it deposits nothing and enables no trade." />
 
 To start, open the copy drawer and enter a **Total budget** and the **Most per trade** (no more than the strategy's own per-trade limit). The drawer then states the whole permission: per trade, per day, open positions and any entry-price ceiling, within the strategy's published caps, for 30 days. A strip shows your seat's credits and what this setup takes from them, fee included. **Max** fills the budget and the per-trade amount. Each field says in red what is wrong with it (for example "Above this strategy's … per trade" or "More than your total budget"), and the confirm button names the one rule holding it. **Fund permission and copy** then takes two separate steps from your seat: it moves the budget out of your cash into an `AgentGrant` that names the runner, and it subscribes you, paying the strategy's fee. If one step is uncertain, the app reconciles it before continuing; do not blindly repeat a grant. The runner may place calls only inside the grant: the ledger choice that places them (`Grant_AcceptQuote`) checks the price, per-trade, daily, budget and open-position caps itself. The runner never sees your cash, and each position is yours.
 
@@ -15,4 +15,4 @@ Strategies trade **every Window that is trading now**, on every lane: stocks in 
 
 This is a **demo-credit** feature. Publish, copy, fade, top-up, a runner fill, settlement and revoke all ran through these screens on a local Canton sandbox; it is not on a shared Canton network yet. The creator's fee collects into a payout contract, but no screen claims it yet. A listing can be visible while its runner is unavailable; the app reports those states rather than inventing recent trades.
 
-<GuideCapture name="strategyCopy" caption="An existing permission says Copying enabled while its operation line says Awaiting settlement. Those are separate states; the position count shown here needs investigation against Portfolio." />
+<GuideCapture name="strategyCopy" caption="A second seat copying with a funded grant: Copying enabled describes the permission, and Awaiting settlement says why the runner is not opening another position yet. They are separate states." />

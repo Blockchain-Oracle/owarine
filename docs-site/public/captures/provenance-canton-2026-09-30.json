@@ -1,0 +1,105 @@
+{
+  "capturedAt": "2026-09-29/2026-09-30",
+  "application": "the Canton build of Agari on a local Canton sandbox (Canton 3.5.17, dpm 3.5.10) with the real venue operations; no hosted deployment",
+  "method": "Cropped from the lanes' own browser screenshots in docs/evidence/ux (headless Chrome over CDP), converted to JPEG at quality 82 with sips. The top banner of each screen is cropped off; nothing inside the frame is edited.",
+  "captures": [
+    {
+      "file": "markets-seatless-canton.jpg",
+      "source": "docs/evidence/ux/c4b/01-market-noseat-1440-dark.png",
+      "evidence": "docs/evidence/ux/c4b (commit 526b332)",
+      "route": "/markets",
+      "crop": "x 0, y 34, 1440 x 741 px"
+    },
+    {
+      "file": "markets-phone-seatless-canton.jpg",
+      "source": "docs/evidence/ux/c4b/01-market-noseat-390-dark.png",
+      "evidence": "docs/evidence/ux/c4b (commit 526b332)",
+      "route": "/markets",
+      "crop": "x 0, y 28, 390 x 592 px"
+    },
+    {
+      "file": "seat-menu-canton.jpg",
+      "source": "docs/evidence/ux/c4b/03-seat-menu-1440-dark.png",
+      "evidence": "docs/evidence/ux/c4b (commit 526b332)",
+      "route": "/markets (seat menu)",
+      "crop": "x 0, y 34, 1440 x 786 px"
+    },
+    {
+      "file": "demo-credits-canton.jpg",
+      "source": "docs/evidence/ux/c4b/09-add-funds-1440-dark.png",
+      "evidence": "docs/evidence/ux/c4b (commit 526b332)",
+      "route": "/markets (header balance)",
+      "crop": "x 0, y 34, 1440 x 666 px"
+    },
+    {
+      "file": "portfolio-balance-canton.jpg",
+      "source": "docs/evidence/ux/c7a/01-portfolio-before-1440-dark.png",
+      "evidence": "docs/evidence/c7a-exit-2026-09-29.md",
+      "route": "/portfolio",
+      "crop": "x 800, y 340, 1280 x 900 px, then halved to 640 px wide"
+    },
+    {
+      "file": "portfolio-history-receipts-canton.jpg",
+      "source": "docs/evidence/ux/c8e/13-portfolio-history-receipts-1440-dark.png",
+      "evidence": "docs/evidence/c8e-tickets-ux.md",
+      "route": "/portfolio (History)",
+      "crop": "x 395, y 1095, 640 x 470 px"
+    },
+    {
+      "file": "proof-timeline-canton.jpg",
+      "source": "docs/evidence/ux/c4b/10-proof-1440-dark.png",
+      "evidence": "docs/evidence/ux/c4b (commit 526b332)",
+      "route": "/proof/<market>",
+      "crop": "x 0, y 380, 1440 x 450 px"
+    },
+    {
+      "file": "short-open-canton.jpg",
+      "source": "docs/evidence/ux/c8e/07-short-open-1440-dark.png",
+      "evidence": "docs/evidence/c8e-tickets-ux.md",
+      "route": "/short",
+      "crop": "x 0, y 438, 1434 x 1224 px"
+    },
+    {
+      "file": "earn-maker-vault-canton.jpg",
+      "source": "docs/evidence/ux/c2d/maker-1440-dark.png",
+      "evidence": "docs/evidence/c2d-maker-vault.md",
+      "route": "/earn (Maker vault)",
+      "crop": "x 0, y 34, 1440 x 1056 px"
+    },
+    {
+      "file": "earn-range-supplied-canton.jpg",
+      "source": "docs/evidence/ux/c8e/08-earn-supplied-1440-dark.png",
+      "evidence": "docs/evidence/c8e-tickets-ux.md",
+      "route": "/earn (Range & Moonshot)",
+      "crop": "x 0, y 34, 1434 x 916 px"
+    },
+    {
+      "file": "strategy-published-canton.jpg",
+      "source": "docs/evidence/ux/c8g/04-published-1440-dark.png",
+      "evidence": "docs/evidence/c8g-agents-ux.md",
+      "route": "/strategies",
+      "crop": "x 0, y 34, 1440 x 606 px"
+    },
+    {
+      "file": "strategy-copying-canton.jpg",
+      "source": "docs/evidence/ux/c8g/07-copying-1440-dark.png",
+      "evidence": "docs/evidence/c8g-agents-ux.md",
+      "route": "/strategies (drawer)",
+      "crop": "x 0, y 34, 1440 x 866 px"
+    },
+    {
+      "file": "desk-practice-canton.jpg",
+      "source": "docs/evidence/ux/c8g/10-desk-practice-1440-dark.png",
+      "evidence": "docs/evidence/c8g-agents-ux.md",
+      "route": "/desk",
+      "crop": "x 0, y 34, 1440 x 826 px"
+    },
+    {
+      "file": "desk-live-paused-canton.jpg",
+      "source": "docs/evidence/ux/c8g/12-desk-paused-1440-dark.png",
+      "evidence": "docs/evidence/c8g-agents-ux.md",
+      "route": "/desk",
+      "crop": "x 0, y 34, 1440 x 766 px"
+    }
+  ]
+}

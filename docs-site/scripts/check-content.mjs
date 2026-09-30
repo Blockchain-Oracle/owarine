@@ -12,9 +12,9 @@ const source = resolve(process.env.AGARI_SOURCE_DIR || resolve(root, '..'));
 const content = resolve(root, 'content/docs');
 // One pin: `site.revision` in lib/site.ts is the app commit every page was last checked against.
 const pinned = readFileSync(resolve(root, 'lib/site.ts'), 'utf8').match(/revision:\s*'([0-9a-f]{7,40})'/)?.[1] ?? null;
-const appPaths = ['web', 'packages', 'services', 'anchor'];
+const appPaths = ['web', 'mobile', 'packages', 'services', 'daml'];
 const captureSource = readFileSync(resolve(root, 'lib/captures.ts'), 'utf8');
-const captureNames = new Set([...captureSource.matchAll(/^  ([A-Za-z]\w*): (?:\{|connected\()/gm)].map(match => match[1]));
+const captureNames = new Set([...captureSource.matchAll(/^  ([A-Za-z]\w*): (?:\{|canton\()/gm)].map(match => match[1]));
 const graphs = JSON.parse(readFileSync(resolve(root, 'lib/architecture.json'), 'utf8'));
 const tourNames = new Set(['basket', 'portfolio', 'desk']);
 const tourFiles = { basket: 'connected-basket-ticket', portfolio: 'connected-portfolio', desk: 'connected-practice-desk' };
@@ -52,7 +52,7 @@ else if (!existsSync(resolve(source, 'web/src/app'))) fail(`Agari source missing
 else if (git('cat-file', '-e', `${pinned}^{commit}`) === null) fail(`Pinned revision ${pinned} is not in ${source}'s history`);
 else if (git('merge-base', '--is-ancestor', pinned, 'HEAD') === null) fail(`Pinned revision ${pinned} is not an ancestor of HEAD: the docs were reviewed against a different line of history`);
 else {
-  for (const path of ['packages/core/src/market/baskets.ts', 'packages/core/src/desk/gate.ts', 'anchor/programs/agari-desk/src/lib.rs', 'docs/evidence/acceptance.md', 'services/ops/config/price-sources.json']) {
+  for (const path of ['packages/core/src/market/baskets.ts', 'packages/core/src/market/print-source.ts', 'packages/core/src/desk/gate.ts', 'daml/abu-pm-main/daml.yaml', 'daml/abu-pm-agents/daml/PM/Agents/Desk.daml', 'docs/plan/capabilities.json', 'services/ops/config/price-sources.json']) {
     if (!existsSync(resolve(source, path))) fail(`Source path missing: ${path}`);
   }
   // App changes since the review are a reason to re-read the guides, not a broken build.
@@ -131,6 +131,17 @@ for (const stem of connectedCaptures.videos) {
     media++;
     if (!existsSync(resolve(root, 'public/videos', `${stem}.${ext}`))) fail(`Missing connected video ${stem}.${ext}`);
   }
+}
+// The Canton captures: every file the registry names is listed in their provenance and exists.
+const cantonCaptures = JSON.parse(readFileSync(resolve(root, 'public/captures/provenance-canton-2026-09-30.json'), 'utf8'));
+const cantonFiles = new Set(cantonCaptures.captures.map(({ file }) => file));
+for (const { file, source: evidence } of cantonCaptures.captures) {
+  media++;
+  if (!existsSync(resolve(root, 'public/captures', file))) fail(`Missing Canton capture ${file}`);
+  if (!existsSync(resolve(source, evidence))) fail(`Canton capture ${file}: missing evidence source ${evidence}`);
+}
+for (const [, file] of captureSource.matchAll(/canton\([^,]+,\s*'([^']+)'/g)) {
+  if (!cantonFiles.has(`${file}-canton.jpg`)) fail(`Capture ${file} has no provenance entry`);
 }
 for (const [name, graph] of Object.entries(graphs)) {
   if (graph.rows.length !== 3 || graph.rows.some(row => row.nodes.length !== 4 || row.arrows.length !== 3)) fail(`Invalid architecture ${name}`);
