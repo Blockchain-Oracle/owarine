@@ -3,11 +3,16 @@
  * cookie rides along), an absolute URL on the phone (`EXPO_PUBLIC_SITE_URL`), which proves the seat with the signed
  * seat header instead. No ledger credential, party id or ledger URL ever appears here.
  *
- * The seat header (`x-agari-seat-read`, `@agari/core/auth`) is signed by the registered seat key once and reused for
- * four of its five minutes, so a screen's reads cost no extra signatures. `x-agari-seat: 1` is the custom header the
- * server requires on cookie-authenticated writes (with the Origin check), which a cross-site form cannot send.
+ * The seat READ header (`x-agari-seat-read`, `@agari/core/auth`) is signed by the registered seat key once and reused
+ * for four of its five minutes, so a screen's reads cost no extra signatures; the server takes it for reads only. Every
+ * write (any method but GET) is signed on its own instead (C4d M2b): the WRITE proof names the method, the path with
+ * its query, the SHA-256 of the exact body bytes sent and a fresh nonce, and the server takes it once within 30 s.
+ * `x-agari-seat: 1` is the custom header the server requires on cookie-authenticated writes (with the Origin check),
+ * which a cross-site form cannot send.
  */
-import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_READ_TTL_MS, seatReadText } from "@agari/core/auth";
+import {
+  bodySha256, formatSeatReadHeader, formatSeatWriteHeader, messageBytes, SEAT_READ_HEADER, SEAT_READ_TTL_MS, SEAT_WRITE_HEADER, seatReadText, seatWriteText,
+} from "@agari/core/auth";
 import { diagnosis, diagnosisSchema, encodeBase58, type Address, type Diagnosis, type Signature } from "@agari/core/types";
 import { z } from "zod";
 import { peekClient } from "../runtime/read-runtime";
@@ -41,6 +46,18 @@ export function registeredSeatAddress(): Address | null {
 /** The signed seat read header for a plain `fetch` of our own routes (C13a: the phone's inbox); null without a seat. */
 export async function seatReadHeaderValue(nowMs: number = Date.now()): Promise<string | null> {
   return seatHeader(nowMs);
+}
+
+/** The one-request write proof for `method url body` (C4d M2b), signed now with a fresh nonce; null without a seat. */
+export async function seatWriteHeaderValue(method: string, url: string, body: string, nowMs: number = Date.now()): Promise<string | null> {
+  const current = seat;
+  const cluster = peekClient()?.cluster;
+  if (!current || !cluster) return null;
+  const parsed = new URL(url, "http://path.invalid");
+  const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const text = seatWriteText({ address: current.address, issuedAtMs: nowMs, nonce, method, path: `${parsed.pathname}${parsed.search}`, bodySha256: bodySha256(body) }, cluster);
+  const signature = encodeBase58(await current.signMessage(messageBytes(text))) as Signature;
+  return formatSeatWriteHeader({ address: current.address, issuedAtMs: nowMs, nonce, signature });
 }
 
 async function seatHeader(nowMs: number): Promise<string | null> {
@@ -86,21 +103,31 @@ export interface LedgerRequestOptions<W extends z.ZodType> {
 export async function ledgerRequest<W extends z.ZodType>(path: string, o: LedgerRequestOptions<W>): Promise<LedgerCallResult<z.output<W>>> {
   const headers: Record<string, string> = { accept: "application/json", [SEAT_CSRF_HEADER]: "1" };
   if (o.body !== undefined) headers["content-type"] = "application/json";
+  const search = o.query ? `?${new URLSearchParams(o.query)}` : "";
+  const url = `${ledgerBase(o.root)}${path}${search}`;
+  const body = o.body === undefined ? undefined : JSON.stringify(toWire(o.body));
   try {
-    const signed = o.seat === false ? null : await seatHeader(Date.now());
-    if (signed) headers[SEAT_READ_HEADER] = signed;
+    if (o.seat !== false) {
+      // Reads carry the reusable read header; a write carries its own one-request proof and never the read header.
+      if (o.method === "GET") {
+        const signed = await seatHeader(Date.now());
+        if (signed) headers[SEAT_READ_HEADER] = signed;
+      } else {
+        const signed = await seatWriteHeaderValue(o.method, url, body ?? "");
+        if (signed) headers[SEAT_WRITE_HEADER] = signed;
+      }
+    }
   } catch {
     // The key would not sign (storage revoked): the cookie alone may still carry the call.
   }
-  const search = o.query ? `?${new URLSearchParams(o.query)}` : "";
   let res: Response;
   try {
-    res = await fetch(`${ledgerBase(o.root)}${path}${search}`, {
+    res = await fetch(url, {
       method: o.method,
       headers,
       credentials: "include",
       cache: "no-store",
-      ...(o.body === undefined ? {} : { body: JSON.stringify(toWire(o.body)) }),
+      ...(body === undefined ? {} : { body }),
     } as RequestInit);
   } catch (error) {
     return { ok: false, status: null, diagnosis: diagnosis("rpc-down", `ledger routes unreachable: ${error instanceof Error ? error.message : String(error)}`) };

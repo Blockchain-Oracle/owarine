@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { IntentRecord, OrderRequest } from "@agari/core/ports";
 import type { EventMarket, Quote } from "@agari/core/types";
-import { SEAT_READ_HEADER } from "@agari/core/auth";
+import { SEAT_READ_HEADER, SEAT_WRITE_HEADER } from "@agari/core/auth";
 import { parseMarketsEnv } from "../env";
 import { registerSeatSigner } from "../provider/ledger-api";
 import { toWire } from "../provider/ledger-wire";
@@ -107,12 +107,14 @@ describe("seat order lane", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("sends the signed seat header when a seat key is registered", async () => {
+  it("signs each write with its own one-request proof, never the reusable read header (C4d M2b)", async () => {
     const { deps } = lane();
     registerSeatSigner({ address: WALLET, signMessage: async () => new Uint8Array(64).fill(7) });
     const calls = serve(() => ({ body: { kind: "requote", quote: quote(70_000n) } }));
     await submitSeatOrder(deps, request());
-    expect(calls[0]!.headers.get(SEAT_READ_HEADER)).toMatch(new RegExp(`^${WALLET}\\.\\d+\\.`));
+    expect(calls[0]!.method).toBe("POST");
+    expect(calls[0]!.headers.get(SEAT_READ_HEADER)).toBeNull();
+    expect(calls[0]!.headers.get(SEAT_WRITE_HEADER)).toMatch(new RegExp(`^${WALLET}\\.\\d+\\.[0-9a-f]{32}\\.`));
   });
 });
 

@@ -503,6 +503,14 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** none for a visitor's own desk. A recycled seat's next visitor never sees, and is never traded through, the previous visitor's desk; the previous visitor's desk page reads "closed".
 - **Approval:** default; overrulable.
 
+### K-211 — A phone write carries its own one-request proof; the read header reads only (overflow block)
+- **Date / owner:** 2026-09-30 · C4d security lane (review finding M2b)
+- **Evidence:** the signed read header (`x-agari-seat-read`) was reused for four minutes and also passed `seatFromRequest({ write: true })`, so one captured header could `POST /api/seat/link` and take the seat over. Tests: `web/src/lib/seat-write-auth.test.ts`, `mobile/src/wallet/seat-key.test.ts` (the phone's key against the server verifier), `packages/markets/src/submitter/seat-lane.test.ts`.
+- **Rule:** on the phone every write (any method but GET) carries `x-agari-seat-write: address.issuedAtMs.nonce.signature`, the seat key's signature over the method, the path with its query, the SHA-256 of the exact body bytes, a 16-byte nonce and the time (`@agari/core/auth` `seatWriteText`). The server takes it within 30 s (5 s skew), for that request only, once: it keeps each verified nonce until the proof goes stale. The read header is honoured for reads only. The web keeps its cookie with the same-origin and `x-agari-seat: 1` rule.
+- **Trade-off:** the nonce cache is in the web process's memory (`globalThis`), which is every replica the single Coolify container has. A second web process would need a shared store (the database) before it scales out.
+- **User-visible:** none; each phone write costs one local signature.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
