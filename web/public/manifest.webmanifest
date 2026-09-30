@@ -1,7 +1,7 @@
 {
   "name": "Agari — Stock Prediction Windows",
   "short_name": "Agari",
-  "description": "Up or down on US stocks, settled on a signed price on Solana devnet. Open after the bell, with a settlement receipt you can click.",
+  "description": "Up or down on US stocks, settled on a signed price on Canton, with demo credits on a test network. Open after the bell, with a settlement receipt you can click.",
   "start_url": "/markets",
   "scope": "/",
   "display": "standalone",
