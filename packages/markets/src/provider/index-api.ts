@@ -32,6 +32,8 @@ export interface MarketRow {
   lock_at_sec: Dec | null;
   expiry_sec: Dec | null;
   policy_version: number | null;
+  /** The Window's policy `printSource` text (`attested:alpaca:QQQ`, core `parsePrintSource`): the attested print's original source. */
+  print_source?: string | null;
   book: string | null;
   ledger: string | null;
   state: "open" | "resolved" | "voided";

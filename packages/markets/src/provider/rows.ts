@@ -88,6 +88,7 @@ export function toResolution(row: MarketRow | null): Resolution {
     closingRaw: close ? BigInt(close.price) : null,
     settlementTxHash: terminal ? ((row.resolved_signature as Signature | null) ?? null) : null,
     printSource: sourceName(close?.source),
+    printSourceText: row?.print_source ?? null,
     singleSource: row?.single_source === true,
     settledAtMs: terminal && row.resolved_ts_sec !== null ? sec(row.resolved_ts_sec) * 1000 : null,
     voided: row?.state === "voided",

@@ -47,6 +47,8 @@ export interface TradeCard {
   settlementTxHash: Signature | null;
   /** The signed source of the closing print; null before it is on record. */
   printSource: PrintSource | null;
+  /** The Window's policy `printSource` text (`Resolution.printSourceText`): which original source an attested print names. */
+  printSourceText?: string | null;
   /** RedStone signers behind the closing print, when the record carries them. */
   printSigners?: number | null;
   /** Settled on the primary source alone (the check prints never arrived in time). */
@@ -83,11 +85,11 @@ interface TradeLook {
   footerKind: string;
 }
 
-/** "PYTH PRINT $358.98 AT 16:00:00 ET", "REDSTONE PRINT $358.98 AT 16:00:00 ET · 5 SIGNERS · SINGLE SOURCE". */
+/** "ALPACA IEX PRINT $512.40 AT 16:00:00 ET", "REDSTONE PRINT $358.98 AT 16:00:00 ET · 5 SIGNERS · SINGLE SOURCE". */
 function printLine(card: TradeCard, closeRaw: bigint): string {
   if (card.printSource === null) return SHARE.trade.oracleSettled(assetSpotLine(card.asset, closeRaw), formatUtc(secToMs(card.expirySec), { withDate: true }));
   const signers = card.printSource === "redstone" && card.printSigners ? SHARE.trade.signers(card.printSigners) : "";
-  return `${SHARE.trade.printAt(printSourceName(card.printSource, card.asset), assetSpotLine(card.asset, closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
+  return `${SHARE.trade.printAt(printSourceName(card.printSource, card.asset, card.printSourceText), assetSpotLine(card.asset, closeRaw), formatEtClock(card.expirySec))}${signers}${card.singleSource ? SHARE.trade.singleSource : ""}`;
 }
 
 function tradeLook(card: TradeCard): TradeLook {
