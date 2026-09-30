@@ -14,8 +14,11 @@ import { T } from "../studio/kit-bits";
 import { scaleIn, slideIn } from "../studio/kit-motion";
 import { SharedDeskPreview } from "./SharedDeskPreview";
 
-/** The desk its owner shares for anyone to read (web's `SHARED_DESK_ID`, the judges' link). */
-export const SHARED_DESK_ID = "49f67e4d-dab7-4eb4-9882-2d2a2e80a511";
+/**
+ * The desk its owner shares for anyone to read (web's `SHARED_DESK_ID`, the judges' link): this deployment's own,
+ * named by `EXPO_PUBLIC_SHARED_DESK_ID` (C8g). Unset, the entry shows its no-shared-desk state, never a dead link.
+ */
+export const SHARED_DESK_ID: string | null = process.env.EXPO_PUBLIC_SHARED_DESK_ID?.trim() || null;
 
 /** desk.css `.dk-control.en-cta`: the hero's two pill links. */
 function Cta({ label, primary, onPress }: { label: string; primary?: boolean; onPress: () => void }) {

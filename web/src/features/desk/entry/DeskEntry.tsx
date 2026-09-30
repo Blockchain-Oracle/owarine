@@ -14,8 +14,13 @@ import { SharedDeskPreview } from "./SharedDeskPreview";
 import "../desk.css";
 import "./entry.css";
 
-/** The desk its owner shares for anyone to read (S21 C7 smoke, the judges' link). */
-export const SHARED_DESK_ID = "49f67e4d-dab7-4eb4-9882-2d2a2e80a511";
+/**
+ * The desk its owner shares for anyone to read (S21 C7 smoke, the judges' link). On Canton (C8g) it is this
+ * deployment's own shared desk, named by `NEXT_PUBLIC_SHARED_DESK_ID`: the reference's id was a Solana-era row that
+ * no Canton database holds, so the link read "could not be read" and led nowhere. Unset, the entry shows its
+ * no-shared-desk state (the reference's own `sharedId={null}`) instead of a dead link.
+ */
+export const SHARED_DESK_ID: string | null = process.env.NEXT_PUBLIC_SHARED_DESK_ID?.trim() || null;
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 function StepCard({ n, title, body, visual, index }: { n: number; title: string; body: string; visual: ReactNode; index: number }) {
