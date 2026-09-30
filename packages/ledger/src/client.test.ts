@@ -77,8 +77,13 @@ describe("error mapping", () => {
 describe("submitAndWaitForTransaction", () => {
   it("retries 503/timeouts under the SAME commandId with a fresh submissionId", async () => {
     const bodies: { commands: Record<string, unknown> }[] = [];
+    const paths: string[] = [];
     let n = 0;
-    const c = client(async (_url, init) => {
+    const c = client(async (url, init) => {
+      const path = new URL(url).pathname;
+      paths.push(path);
+      // Before its first resend the client pins the ledger end (the in-flight wait's completion floor).
+      if (path.endsWith("ledger-end")) return json(200, { offset: 7 });
       bodies.push(JSON.parse(String(init.body)));
       n++;
       if (n === 1) return new Response("upstream", { status: 503 });
@@ -90,6 +95,7 @@ describe("submitAndWaitForTransaction", () => {
     expect(new Set(bodies.map((b) => b.commands.commandId))).toEqual(new Set(["open:btc-5m:1"]));
     expect(new Set(bodies.map((b) => b.commands.submissionId)).size).toBe(3);
     expect(bodies[0]!.commands.userId).toBe("agari-ops"); // no token: userId is sent
+    expect(paths.filter((p) => p.endsWith("ledger-end"))).toHaveLength(1); // pinned once, then kept
   });
 
   it("does not retry a definite rejection", async () => {

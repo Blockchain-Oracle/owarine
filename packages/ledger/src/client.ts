@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { tokenSourceFromEnv, type AuthDeps, type TokenSource } from "./auth";
 import type { LedgerEnv } from "./env";
-import { LedgerError } from "./errors";
+import { LedgerError, errorFromCompletion, isSubmissionAlreadyInFlight } from "./errors";
 import { createTransport, type HttpDeps, type RequestOptions, type Transport } from "./http";
 import { assertCommandId } from "./ids";
 import type {
@@ -36,7 +36,17 @@ export interface LedgerClientConfig {
   timeoutMs?: number;
   submitTimeoutMs?: number;
   maxAttempts?: number;
+  /**
+   * How long a submit that met SUBMISSION_ALREADY_IN_FLIGHT waits for the pending submission's completion when the
+   * caller passes no `deadlineMs`, from the in-flight answer. Default 180 s: Canton's own sequencing and confirmation
+   * timeouts reject a stuck submission well inside it.
+   */
+  inFlightWaitMs?: number;
 }
+
+/** First and largest pause between completion reads while an earlier submission is in flight (equal jitter). */
+const IN_FLIGHT_FIRST_PAUSE_MS = 500;
+const IN_FLIGHT_MAX_PAUSE_MS = 5_000;
 
 export interface EventFormatOptions {
   parties: Party[];
@@ -61,7 +71,32 @@ export interface SubmitOptions {
   transactionFormat?: TransactionFormat;
   /** On DUPLICATE_COMMAND, find the earlier accepted completion and return its transaction. Default true. */
   recoverDuplicate?: boolean;
+  /**
+   * On SUBMISSION_ALREADY_IN_FLIGHT (an earlier submission of this commandId and actAs is still pending), wait for
+   * that submission's completion and return its transaction, or throw its rejection. Nothing is re-sent. Default true.
+   */
+  recoverInFlight?: boolean;
+  /** The caller's overall deadline, epoch ms. Bounds the in-flight wait; past it the outcome is reported unknown. */
+  deadlineMs?: number;
+  /**
+   * A ledger offset read before this logical action's FIRST submission (a journal row's `beginOffset`). The in-flight
+   * wait searches completions after it. Without it the client pins the ledger end before its own first resend, or
+   * reads it at the in-flight answer when the pending submission came from an earlier call.
+   */
+  beginOffset?: Offset;
   onRetry?: RequestOptions["onRetry"];
+  /** Observes each pause of the in-flight wait (for logs: a slow node can hold a submit here for minutes). */
+  onInFlightWait?: (w: InFlightWait) => void;
+}
+
+export interface InFlightWait {
+  commandId: string;
+  /** The pending submission's id, from the in-flight answer's `existingSubmissionId`. */
+  pendingSubmissionId: string | undefined;
+  poll: number;
+  waitedMs: number;
+  delayMs: number;
+  deadlineMs: number;
 }
 
 export interface SubmitResult {
@@ -69,8 +104,10 @@ export interface SubmitResult {
   /** The submissionId of the attempt that produced the result (or of the earlier accepted one). */
   submissionId: string | undefined;
   attempts: number;
-  /** True when this call hit DUPLICATE_COMMAND and returned the earlier transaction instead. */
+  /** True when this call returned an earlier submission's transaction (DUPLICATE_COMMAND or an in-flight wait). */
   recovered: boolean;
+  /** Why `recovered` is true. */
+  recoveredFrom?: "duplicate" | "in-flight";
 }
 
 export interface ActiveContractsPage {
@@ -97,12 +134,19 @@ export function eventFormat(o: EventFormatOptions): EventFormat {
   return { filtersByParty, verbose: o.verbose ?? true };
 }
 
+type PollOptions = Pick<RequestOptions, "timeoutMs" | "retry">;
+
 export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {}) {
+  const requestTimeoutMs = cfg.timeoutMs ?? 30_000;
   const http: Transport = createTransport(
-    { baseUrl: cfg.baseUrl, auth: cfg.auth, timeoutMs: cfg.timeoutMs ?? 30_000, maxAttempts: cfg.maxAttempts ?? 4 },
+    { baseUrl: cfg.baseUrl, auth: cfg.auth, timeoutMs: requestTimeoutMs, maxAttempts: cfg.maxAttempts ?? 4 },
     deps,
   );
   const submitTimeoutMs = cfg.submitTimeoutMs ?? 60_000;
+  const inFlightWaitMs = cfg.inFlightWaitMs ?? 180_000;
+  const now = deps.now ?? Date.now;
+  const sleep = deps.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const random = deps.random ?? Math.random;
   const local = cfg.auth.mode === "none";
   const userIdField = (): { userId?: string } => (local && cfg.userId ? { userId: cfg.userId } : {});
 
@@ -116,8 +160,8 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
     }
   }
 
-  async function ledgerEnd(): Promise<Offset> {
-    const r = await http.request<{ offset?: Offset }>("GET", "/v2/state/ledger-end");
+  async function ledgerEnd(req: PollOptions = {}): Promise<Offset> {
+    const r = await http.request<{ offset?: Offset }>("GET", "/v2/state/ledger-end", req);
     return r.offset ?? 0;
   }
 
@@ -167,10 +211,11 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
     return { contracts: out, activeAtOffset: at ?? 0 };
   }
 
-  async function completions(o: { parties: Party[]; beginExclusive: Offset; limit?: number; idleTimeoutMs?: number }) {
+  async function completions(o: { parties: Party[]; beginExclusive: Offset; limit?: number; idleTimeoutMs?: number }, req: PollOptions = {}) {
     const rows = await http.request<CompletionStreamResponse[]>("POST", "/v2/commands/completions", {
       query: { limit: o.limit ?? 200, stream_idle_timeout_ms: o.idleTimeoutMs ?? 1_000 },
       json: { parties: o.parties, beginExclusive: o.beginExclusive, ...userIdField() },
+      ...req,
     });
     const out: Completion[] = [];
     let checkpoint: Offset | undefined;
@@ -200,15 +245,120 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
     return undefined;
   }
 
-  async function updateById(updateId: string, format: TransactionFormat): Promise<JsTransaction | undefined> {
+  async function updateById(updateId: string, format: TransactionFormat, req: PollOptions = {}): Promise<JsTransaction | undefined> {
     try {
       const r = await http.request<JsUpdateEnvelope>("POST", "/v2/updates/update-by-id", {
         json: { updateId, updateFormat: { includeTransactions: format } },
+        ...req,
       });
       return r.update && "Transaction" in r.update ? r.update.Transaction.value : undefined;
     } catch (e) {
       if (e instanceof LedgerError && e.kind === "not-found") return undefined;
       throw e;
+    }
+  }
+
+  /**
+   * The outcome completion of one pending submission, scanning after `from`. Accepted: any completion of the change id
+   * (commandId + actAs) with status 0 and an update id; deduplication admits only one. Rejected: the pending
+   * submission's own completion (by `pendingSubmissionId` when Canton named it), never a resend's in-flight or
+   * duplicate answer. `cursor` is the last completion offset read, so the next poll resumes there.
+   */
+  async function scanForOutcome(
+    commandId: string,
+    actAs: Party[],
+    from: Offset,
+    pendingSubmissionId: string | undefined,
+    req: PollOptions,
+  ): Promise<{ completion: Completion | undefined; cursor: Offset }> {
+    const end = await ledgerEnd(req);
+    const wanted = new Set(actAs);
+    const isOutcome = (c: Completion): boolean => {
+      if (c.commandId !== commandId) return false;
+      if (c.actAs?.length && (c.actAs.length !== wanted.size || !c.actAs.every((p) => wanted.has(p)))) return false;
+      if ((c.status?.code ?? 0) === 0) return Boolean(c.updateId);
+      if (pendingSubmissionId !== undefined) return c.submissionId === pendingSubmissionId;
+      const msg = c.status?.message ?? "";
+      return !isSubmissionAlreadyInFlight(msg) && !msg.startsWith("DUPLICATE_COMMAND");
+    };
+    let cursor = from;
+    while (cursor < end) {
+      const { completions: batch } = await completions({ parties: actAs, beginExclusive: cursor, limit: 200 }, req);
+      // Nothing yet is not "nothing there": a slow stream can idle out. Keep the cursor and read again next poll.
+      if (batch.length === 0) break;
+      const hit = batch.find(isOutcome);
+      if (hit) return { completion: hit, cursor: hit.offset };
+      cursor = Math.max(cursor + 1, ...batch.map((c) => c.offset));
+    }
+    return { completion: undefined, cursor };
+  }
+
+  /**
+   * SUBMISSION_ALREADY_IN_FLIGHT: an earlier submission of this commandId and actAs has not completed. Resending cannot
+   * help (it meets the same pending change id), so wait for that submission's completion: accepted → its transaction;
+   * rejected → its rejection; neither by the deadline → a `timeout` LedgerError that names the commandId and says the
+   * outcome is unknown. Nothing is submitted here, under this commandId or any other.
+   */
+  async function awaitPendingSubmission(
+    o: SubmitOptions,
+    inFlight: LedgerError,
+    floor: Offset | undefined,
+    transactionFormat: TransactionFormat,
+    attempts: number,
+  ): Promise<SubmitResult> {
+    const path = "/v2/commands/submit-and-wait-for-transaction";
+    const startedMs = now();
+    const deadlineMs = o.deadlineMs ?? startedMs + inFlightWaitMs;
+    const pending = inFlight.existingSubmissionId;
+    const earlier = pending ? `the earlier submission ${pending}` : "the earlier submission (its id not given)";
+    // Outcome first: logs and acceptance rows cut long messages.
+    const unknown = (outcome: string, why: string, cause: unknown) =>
+      new LedgerError({
+        kind: "timeout",
+        path,
+        commandId: o.commandId,
+        message: `commandId ${o.commandId}: ${outcome}. ${why}. Resolve it under the same commandId (its completion, or a resend under it), never under a new one.`,
+        cause,
+      });
+    let cursor = floor;
+    let landed: Completion | undefined;
+    let lastError: unknown = inFlight;
+    let pause = IN_FLIGHT_FIRST_PAUSE_MS;
+    for (let poll = 1; ; poll++) {
+      // Each read is one attempt, bounded by the time left: the loop is the retry, and the deadline is the caller's.
+      const left = deadlineMs - now();
+      const req: PollOptions = { retry: false, timeoutMs: Math.max(2_000, Math.min(requestTimeoutMs, left)) };
+      let rejected: Completion | undefined;
+      try {
+        if (!landed) {
+          cursor ??= await ledgerEnd(req);
+          const r = await scanForOutcome(o.commandId, o.actAs, cursor, pending, req);
+          cursor = r.cursor;
+          if (r.completion && (r.completion.status?.code ?? 0) !== 0) rejected = r.completion;
+          else landed = r.completion;
+        }
+        if (landed?.updateId) {
+          const tx = await updateById(landed.updateId, transactionFormat, req);
+          if (tx) return { transaction: tx, submissionId: landed.submissionId, attempts, recovered: true, recoveredFrom: "in-flight" };
+        }
+      } catch (e) {
+        if (!(e instanceof LedgerError) || !e.retryable) throw unknown("outcome unknown", `${earlier} was in flight and its completion could not be read (${e instanceof Error ? e.message : String(e)})`, e);
+        lastError = e;
+      }
+      // The pending submission failed: surface ITS rejection. Never a resend, never a new commandId.
+      if (rejected) throw errorFromCompletion(path, rejected);
+      const remaining = deadlineMs - now();
+      if (remaining <= 0) {
+        const waited = now() - startedMs;
+        if (landed?.updateId) {
+          throw unknown("landed, transaction unread", `${earlier} completed as update ${landed.updateId}, but update-by-id returned no transaction within ${waited} ms`, lastError);
+        }
+        throw unknown("outcome unknown", `${earlier} was still in flight at the deadline, ${waited} ms after the in-flight answer`, lastError);
+      }
+      const delayMs = Math.min(remaining, Math.max(inFlight.retryAfterMs ?? 0, Math.floor(pause / 2 + random() * (pause / 2))));
+      o.onInFlightWait?.({ commandId: o.commandId, pendingSubmissionId: pending, poll, waitedMs: now() - startedMs, delayMs, deadlineMs });
+      await sleep(delayMs);
+      pause = Math.min(IN_FLIGHT_MAX_PAUSE_MS, pause * 2);
     }
   }
 
@@ -219,8 +369,20 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
       transactionShape: o.transactionShape ?? "TRANSACTION_SHAPE_ACS_DELTA",
       eventFormat: eventFormat({ parties }),
     };
+    const recoverInFlight = o.recoverInFlight !== false;
     let attempts = 0;
     let submissionId: string | undefined;
+    // A lower bound for this action's completions. Pinned before the first RESEND: a resend that then meets
+    // SUBMISSION_ALREADY_IN_FLIGHT proves the earlier submission had not completed, so its completion lies after it.
+    let floor: Offset | undefined = o.beginOffset;
+    const pinFloor = async (): Promise<void> => {
+      if (floor !== undefined) return;
+      try {
+        floor = await ledgerEnd({ retry: false, timeoutMs: Math.min(requestTimeoutMs, 10_000) });
+      } catch {
+        // Unreadable now: the next resend tries again, and the in-flight wait reads it at worst.
+      }
+    };
     const commandsFor = (attempt: number): JsCommands => {
       attempts = attempt;
       submissionId = randomUUID();
@@ -242,15 +404,19 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
         json: (attempt: number) => ({ commands: commandsFor(attempt), transactionFormat }),
         timeoutMs: submitTimeoutMs,
         ...(o.onRetry ? { onRetry: o.onRetry } : {}),
+        ...(recoverInFlight ? { beforeRetry: pinFloor } : {}),
       });
       return { transaction: r.transaction, submissionId, attempts, recovered: false };
     } catch (e) {
+      if (e instanceof LedgerError && e.kind === "in-flight" && recoverInFlight) {
+        return awaitPendingSubmission(o, e, floor, transactionFormat, attempts);
+      }
       if (!(e instanceof LedgerError) || e.kind !== "duplicate" || o.recoverDuplicate === false) throw e;
       const from = (e.duplicateCompletionOffset ?? 1) - 1;
       const done = await findAcceptedCompletion(o.commandId, o.actAs, from);
       const tx = done?.updateId ? await updateById(done.updateId, transactionFormat) : undefined;
       if (!tx) throw e;
-      return { transaction: tx, submissionId: done?.submissionId, attempts, recovered: true };
+      return { transaction: tx, submissionId: done?.submissionId, attempts, recovered: true, recoveredFrom: "duplicate" };
     }
   }
 
@@ -258,7 +424,7 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
     http,
     auth: cfg.auth,
     version: () => http.request<LedgerApiVersion>("GET", "/v2/version"),
-    ledgerEnd,
+    ledgerEnd: () => ledgerEnd(),
     connectedSynchronizers: async () =>
       (await http.request<{ connectedSynchronizers?: ConnectedSynchronizer[] }>("GET", "/v2/state/connected-synchronizers"))
         .connectedSynchronizers ?? [],
@@ -266,9 +432,9 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
     iterateActiveContracts,
     activeContracts,
     submitAndWaitForTransaction,
-    completions,
+    completions: (o: Parameters<typeof completions>[0]) => completions(o),
     findAcceptedCompletion,
-    updateById,
+    updateById: (updateId: string, format: TransactionFormat) => updateById(updateId, format),
     /** Interactive submission, step 1: interpret without committing (dry run, cost estimate). */
     prepare: (req: Omit<JsPrepareSubmissionRequest, "userId">) =>
       http.request<JsPrepareSubmissionResponse>("POST", "/v2/interactive-submission/prepare", { json: { ...req, ...userIdField() } }),
@@ -306,6 +472,7 @@ export function ledgerClientFromEnv(env: LedgerEnv, deps: HttpDeps & AuthDeps = 
       timeoutMs: env.LEDGER_REQUEST_TIMEOUT_MS,
       submitTimeoutMs: env.LEDGER_SUBMIT_TIMEOUT_MS,
       maxAttempts: env.LEDGER_MAX_ATTEMPTS,
+      inFlightWaitMs: env.LEDGER_INFLIGHT_WAIT_MS,
     },
     deps,
   );

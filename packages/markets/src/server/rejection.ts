@@ -184,6 +184,7 @@ function fromLedger(error: LedgerError, ctx: RejectionContext): Diagnosis {
     case "timeout":
     case "contention":
     case "duplicate":
+    case "in-flight":
       // A submit whose answer never came may still land: never `rpc-down`, which would invite a resend under a new id.
       return d(isSubmit(ctx.step) ? "send-unknown" : "rpc-down");
     case "auth":
