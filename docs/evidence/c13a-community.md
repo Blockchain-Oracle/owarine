@@ -65,13 +65,13 @@ The binding resolves a seat address to a party only while that address holds a l
 
 ## Gates
 
-The final run was on HEAD `77b1a29` plus this lane's docs and the SSR guard on the stake preset. The same counts came from the run at `f3055b9`.
+The run on `77b1a29` plus this lane's docs gave 261 test files and 2,136 tests passed, and 1 invariants warning in C8's file. After main `4831a49` (C8g) was merged (`e04584f`), the tree was gated again:
 
 | Gate | Result |
 |---|---|
 | `pnpm typecheck` (all projects, including `@agari/mobile`) | pass |
-| `pnpm invariants` | 0 errors, 1 warning: the existing `Number(priceE8` in `packages/markets/src/desk/canton.ts:57` (C8's file) |
-| `pnpm test` | 261 files passed and 7 skipped (268); 2,136 tests passed and 33 skipped; 0 failed. The known load timeouts in `api/venue/routes.test.ts` and `reply-card.test.ts` did not occur |
+| `pnpm invariants` | 0 errors, 0 warnings. C8g removed the `Number(priceE8` warning |
+| `pnpm test` | 264 files passed and 7 skipped (271); 2,147 tests passed and 33 skipped; 0 failed. The known load timeouts in `api/venue/routes.test.ts` and `reply-card.test.ts` did not occur |
 | `read-lease.test.ts` on Postgres (`SEAT_PG_URL=postgres://localhost/pm_c13a`) | 8 passed |
 
 No sandbox drive was run. The host load was 25–65 all session, and each re-pointed read is covered by a Postgres test against the real schema SQL (`SCHEMA_SQL`) or a route unit test.
