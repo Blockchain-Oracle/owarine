@@ -4,13 +4,14 @@ import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
 import { PUSH_ERRORS, type PushKind, type PushRegistration } from "@/features/push/protocol";
 import { SITE_URL } from "~/lib/env";
+import { PUSH_REGISTRATION_KEY } from "~/lib/keys";
 
 /**
  * The phone's side of push (S26.4): permission, the Expo token, and the registration the server handed back. The
  * device secret lives in the keychain (it is what can switch this phone's news off); the rest is not secret.
  */
 
-const KEY = "agari.push.registration";
+const KEY = PUSH_REGISTRATION_KEY;
 const OPTIONS: SecureStore.SecureStoreOptions = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY };
 /** Android's channel for everything Agari sends; its name is what Settings shows. */
 export const ANDROID_CHANNEL = "activity";

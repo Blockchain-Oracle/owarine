@@ -1,6 +1,7 @@
 import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
 import type { Diagnosis } from "@agari/core/types";
 import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@agari/markets/server";
+import { createSeatLinkStore, SEAT_LINK_SCHEMA_SQL, type SeatLinkStore } from "./seat-link-store.server";
 
 /**
  * The seat pool and the server command journal (plan §4, §8), in the app's Postgres through `@agari/db`'s `getDb()`.
@@ -54,6 +55,7 @@ export interface SeatStore {
   ready(): Promise<void>;
   lease(address: string, nowMs: number, o: { startOffset: number; leaseId: string; rules?: LeaseRules }): Promise<LeaseOutcome>;
   byLease(leaseId: string): Promise<LeaseRow | null>;
+  /** The live lease this key holds, or joined through a seat link (a joined key answers its seat's row). */
   byAddress(address: string): Promise<LeaseRow | null>;
   touch(leaseId: string, nowMs: number, busy?: SeatBusy): Promise<void>;
   /** The visitor let go: the seat drains (open legs settle or close out first). */
@@ -68,6 +70,7 @@ export interface SeatStore {
   markFunded(leaseId: string, nowMs: number): Promise<void>;
   stats(nowMs: number, rules?: LeaseRules): Promise<SeatPoolStats>;
   commands: CommandJournal;
+  links: SeatLinkStore;
 }
 
 export interface SeatPoolStats {
@@ -135,7 +138,8 @@ CREATE TABLE IF NOT EXISTS seat_commands (
   created_at_ms bigint NOT NULL
 );
 CREATE INDEX IF NOT EXISTS seat_commands_lease ON seat_commands (lease_id, created_at_ms DESC);
-${SEAT_RECYCLE_COLUMNS_SQL}`;
+${SEAT_RECYCLE_COLUMNS_SQL}
+${SEAT_LINK_SCHEMA_SQL}`;
 
 type Row = Record<string, unknown>;
 const num = (v: unknown): number => (v === null || v === undefined ? 0 : Number(v));
@@ -255,7 +259,8 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     },
     async byAddress(address) {
       await ready();
-      const [r] = await db<Row[]>`SELECT * FROM seat_pool WHERE address = ${address} AND state = 'leased'`;
+      const [r] = await db<Row[]>`SELECT * FROM seat_pool WHERE state = 'leased' AND (address = ${address}
+        OR lease_id = (SELECT lease_id FROM seat_linked_keys WHERE address = ${address})) ORDER BY (address = ${address}) DESC LIMIT 1`;
       return r ? lease(r) : null;
     },
     async touch(leaseId, nowMs, busy) {
@@ -311,6 +316,7 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
         waitlist: num(s?.waitlist),
       };
     },
+    links: createSeatLinkStore(db, ready),
     commands: {
       async begin(row, nowMs) {
         await ready();

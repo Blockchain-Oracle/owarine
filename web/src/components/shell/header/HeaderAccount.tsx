@@ -3,6 +3,7 @@
 import { isOk } from "@agari/core/schemas";
 import { formatBaseUnits } from "@agari/core/units";
 import { diagnosisCopy } from "@agari/core/copy";
+import { useRouter } from "next/navigation";
 import { SeatAccountMenu } from "@/features/canton-ux/seat";
 import { useBalancePlate } from "@/features/markets/balance";
 import { CONNECT } from "@/lib/copy";
@@ -17,13 +18,14 @@ const LEASE_SPAN_SEC = 900;
 /**
  * The address pill and its menu — the reference's (`Header.tsx` L322–364): the `addr-dot` avatar and the short
  * address, opening the guest seat's menu (L-02, `SeatAccountMenu`): the seat, its leased party (`Hash`), the lease time
- * left (`Countdown`), the demo cash, Portfolio and Reset seat. A seat with no party (a lapsed or refused lease) says
+ * left (`Countdown`), the demo cash, Portfolio, "Use on another device" (`/seat/link`) and Reset seat. A seat with no party (a lapsed or refused lease) says
  * so and offers to lease one; a balance that has not been read yet shows an em dash.
  */
 export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
   const session = useWalletSession();
   const balance = useBalancePlate();
   const lease = useSeatLeaseState();
+  const router = useRouter();
 
   const reading = balance.kind === "connected" ? balance.reading : null;
   const sheet = reading && isOk(reading) ? reading.value : null;
@@ -55,6 +57,8 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
         leaseSpanSec={LEASE_SPAN_SEC}
         cashText={amount(sheet?.spendableBase ?? null)}
         onReset={() => void session.disconnect()}
+        // Only the device that took the seat shows link codes (a joined device cannot pass the seat on).
+        onLink={leased && leased.address === session.address ? () => router.push("/seat/link") : undefined}
         onLease={() => void lease.lease()}
         leasing={lease.leasing}
         unleasedReason={reason}

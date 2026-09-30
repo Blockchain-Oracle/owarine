@@ -1,5 +1,8 @@
-import type { WalletSession } from "@agari/markets/react";
+import { diagnosis } from "@agari/core/types";
+import { joinSeatLink, type LedgerCallResult, type SeatLeaseView } from "@agari/markets";
+import { keys, type WalletSession } from "@agari/markets/react";
 import { seatSession } from "@agari/markets/sessions/mobile";
+import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SeatLeaseContext, type SeatLeaseState } from "@/providers/wallet/seat-lease-context";
@@ -8,6 +11,7 @@ import { WalletShellContext, type WalletShell, type WalletShellState } from "@/p
 import { marketsEnv } from "~/lib/env";
 import { DEMO_TERMS_KEY } from "~/lib/keys";
 import { storage } from "~/lib/storage";
+import { SEAT } from "./seat-copy";
 import { createSeatKey, loadSeatKey, resetSeatKey } from "./seat-key-store";
 
 /**
@@ -22,7 +26,10 @@ export interface SeatActions {
   acceptTerms(): void;
   /** Loads this phone's seat key, or creates one, and leases it a party; refuses until the terms are accepted. */
   takeSeat(): Promise<void>;
-  /** Lets the lease go (the server drains the party), then forgets the seat key for good; the next seat is a new key. */
+  /**
+   * Lets the lease go (the server drains the party; a phone joined to another device's seat only leaves it), then
+   * forgets the seat key for good; the next seat is a new key.
+   */
   resetSeat(): Promise<void>;
   lease: SeatLease;
 }
@@ -105,6 +112,27 @@ export function SeatProvider({ children }: { children: ReactNode }) {
     return run;
   }, [leaseWith]);
 
+  const queryClient = useQueryClient();
+  /**
+   * The seat link (iOS step 2b): this phone's key (made now if it has none, after the demo-credits terms) signs the
+   * join for the code another device shows, and uses that device's seat. A refused join forgets a key made for it.
+   */
+  const joinSeat = useCallback(
+    async (code: string): Promise<LedgerCallResult<SeatLeaseView>> => {
+      if (storage.getBoolean(DEMO_TERMS_KEY) !== true) return { ok: false, status: null, diagnosis: diagnosis("signer-required", SEAT.link.termsFirst) };
+      const stored = await loadSeatKey();
+      const wallet = await sessionOf(stored ?? (await createSeatKey()));
+      const signer = wallet.signer ?? { address: wallet.address, signMessage: wallet.signMessage };
+      const joined = await joinSeatLink(signer, code, marketsEnv.cluster);
+      if (joined.ok && joined.value.kind === "leased") {
+        setState({ status: "ready", connecting: false, address: wallet.address, wallet });
+        queryClient.setQueryData<SeatLeaseView>(keys.seatLease(), joined.value);
+      } else if (!stored) await resetSeatKey();
+      return joined;
+    },
+    [queryClient],
+  );
+
   const resetSeat = useCallback(async () => {
     await release();
     await resetSeatKey();
@@ -118,8 +146,9 @@ export function SeatProvider({ children }: { children: ReactNode }) {
       openAccount: () => router.push("/account"),
       // A seat has nothing to disconnect from: the only way out is a reset, reached from the account sheet's confirm.
       disconnect: resetSeat,
+      joinSeat,
     }),
-    [state, resetSeat],
+    [state, resetSeat, joinSeat],
   );
   const seat = useMemo<SeatActions>(() => ({ termsAccepted, acceptTerms, takeSeat, resetSeat, lease }), [termsAccepted, acceptTerms, takeSeat, resetSeat, lease]);
 

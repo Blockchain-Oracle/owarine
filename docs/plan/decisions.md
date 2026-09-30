@@ -298,6 +298,18 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Rule:** a new App Store Connect app record on the same team, new bundle id, EAS project, scheme, App Group and extension ids; public TestFlight link, not Unlisted. The seat key holds no asset and is a demo-account key, not a wallet (supersedes D-128's practice-wallet restriction for this app).
 - **Approval:** default; Abu creates the app record when the iOS build reaches it.
 
+### K-126 — The app's identifiers live in one file; none is the reference's (C11 block)
+- **Date / owner:** 2026-09-30 · C11a lane
+- **Evidence:** the import still carried the Solana app's live identifiers in `mobile/app.json` and `eas.json` (its EAS project and update URL, `owner`, bundle id and package `xyz.useagari.app`, scheme `agari`, the App Store Connect app id and key paths). One `eas update` from this repo would have reached that app's TestFlight users. `mobile/app.config.js`, `mobile/app.identity.json`, `scripts/invariants/lib/mobile-identity.mjs`.
+- **Rule:**
+  - `mobile/app.identity.json` holds every identifier: display name, slug, bundle id, Android package, scheme, App Group, the widget and Live Activity extension id (expo-widgets hosts both in one target), the SecureStore key prefix and the MMKV id. `app.config.js` builds the Expo config from it, and `src/lib/identity.ts` and `src/lib/keys.ts` read it; `app.json` is gone.
+  - Working values until Abu names the product (K-007): display name "Agari Canton", slug `agari-canton`, bundle id and package `xyz.useagari.canton`, scheme `agaricanton`, App Group `group.xyz.useagari.canton`, extension `xyz.useagari.canton.ExpoWidgetsTarget`, storage prefix `canton.`, MMKV id `canton`. The new version starts at 0.1.0 (Android versionCode 1).
+  - There is no EAS project yet: `easProjectId` is null, so the config has no `extra.eas.projectId`, no `updates.url` and no `owner`. `eas.json` keeps its build profiles (Node 25.9.0) but has no `submit` block until the new app record's `ascAppId` exists. Push reports "no project" (the reference's own `no-project` path) until then.
+  - The `mobile-identity` invariant fails if the reference's EAS project id (and with it its update URL) or its App Store Connect app id appears in any code or config file, if an identity value reuses a reference value, if `app.json` comes back, or if app source spells `agari://`.
+- **TODO (Abu):** the product name and final ids. A rename edits `app.identity.json` only, before the App Store Connect record is created (a bundle id cannot change after that).
+- **User-visible:** the home-screen name reads "Agari Canton"; deep links use `agaricanton://`.
+- **Approval:** default; Abu can overrule the working name and ids.
+
 ### K-140 — A seat's own history is read under its lease; anyone else's only from its publications (C13 block)
 - **Date / owner:** 2026-09-30 · C13a lane
 - **Evidence:** the projector keys a seat's rows by party and never writes `owner_address` (`packages/db/src/idx/apply.ts`; `c9d-seats-games.md`), and a seat party is recycled to later visitors. Before C13a, `/api/index/wallet/<address>/{fills,actions,positions,orders}` matched nothing for a seat address, `/u/<address>` answered 403 for anyone else, and the activity inbox read publications even for the seat itself. Tests: `packages/db/src/idx/read-lease.test.ts` (Postgres, 8), `web/src/app/api/index/[...path]/queries-lease.test.ts`, `web/src/app/api/activity/route.test.ts`.

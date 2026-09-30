@@ -1,6 +1,8 @@
 "use client";
 
 import type { Address } from "@agari/core/types";
+import { diagnosis } from "@agari/core/types";
+import type { LedgerCallResult, SeatLeaseView } from "@agari/markets";
 import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
 import { createContext, useContext } from "react";
 
@@ -30,6 +32,11 @@ export interface WalletShellActions {
   openAccount(): void;
   /** Resets the seat: its key is forgotten for good (the name stays for the phone's shell). */
   disconnect(): Promise<void>;
+  /**
+   * Joins another device's seat with the code it shows (the seat link, iOS step 2b): this device's key (made now if it
+   * has none) signs the join, and the answer is the shared lease, or the refusal to show.
+   */
+  joinSeat(code: string): Promise<LedgerCallResult<SeatLeaseView>>;
 }
 
 export type WalletShell = WalletShellState & WalletShellActions;
@@ -41,6 +48,7 @@ export const WalletShellContext = createContext<WalletShell>({
   openPicker: () => undefined,
   openAccount: () => undefined,
   disconnect: async () => undefined,
+  joinSeat: async () => ({ ok: false, status: null, diagnosis: diagnosis("signer-required", "no seat shell is mounted") }),
 });
 
 export function useWalletShell(): WalletShell {

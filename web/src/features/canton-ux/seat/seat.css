@@ -75,3 +75,6 @@
   .cx-link-show { flex-direction: column; align-items: center; }
   .cx-link-side { width: 100%; }
 }
+
+/* /seat/link: the card centred in the page's column, as the fixture shows it. */
+.cx-link-page { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 32px 16px 64px; }

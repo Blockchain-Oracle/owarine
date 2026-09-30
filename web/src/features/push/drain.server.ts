@@ -5,7 +5,8 @@ import { loadCollateral } from "@agari/markets";
 import { LATE_SEC, selectAnnouncements } from "@/features/activity/announce";
 import { LIFECYCLE } from "@/features/activity/copy";
 import { notificationOf, type MoneyUnits } from "@/features/activity/describe";
-import { inboxFeed } from "@/features/activity/feed.server";
+import { inboxFeed, seatInboxFeed } from "@/features/activity/feed.server";
+import { seatServer } from "@/lib/ledger.server";
 import type { ActivityItem } from "@/features/activity/protocol";
 import { collectDeadFromReceipts, sendExpo, type ExpoMessage } from "./expo.server";
 import { PUSH_KIND_OF, type PushData } from "./protocol";
@@ -15,6 +16,17 @@ import { PUSH_KIND_OF, type PushData } from "./protocol";
  * in-tab lifecycle notifications word them (`selectAnnouncements` + `notificationOf`), sent through Expo and
  * journalled so the next drain never repeats one. Ops calls this on a clock; nothing here runs on its own.
  */
+
+/**
+ * The lease a registered phone's seat holds (a phone joined by a seat link resolves to its seat's lease), or null when
+ * the seat tier is off or the address holds none.
+ */
+async function seatLeaseOf(wallet: string): Promise<{ holder: Address; lease: { party: string; startOffset: number } } | null> {
+  const tier = seatServer();
+  if (!tier.ok) return null;
+  const lease = await tier.server.store.byAddress(wallet).catch(() => null);
+  return lease ? { holder: lease.address as Address, lease: { party: lease.party, startOffset: lease.startOffset } } : null;
+}
 
 /** One drain's reach: enough devices for the whole beta; the oldest registrations are served first. */
 const DEVICES_MAX = 1_000;
@@ -111,7 +123,11 @@ export async function drainPush(nowMs: number): Promise<DrainReport> {
 
   const perWallet = await inPool([...byWallet.entries()], READ_CONCURRENCY, async ([wallet, owned]) => {
     const oldest = Math.min(...owned.map((d) => d.sinceSec));
-    const feed = await inboxFeed(wallet as Address, Math.max(oldest - LATE_SEC, nowSec - LOOKBACK_SEC));
+    const since = Math.max(oldest - LATE_SEC, nowSec - LOOKBACK_SEC);
+    // A leased seat's phone hears about its own calls through its lease (a phone joined by a seat link, its seat's);
+    // any other address hears its published calls. seatInboxFeed is a stub until C13a's seat reader lands (see it).
+    const seat = await seatLeaseOf(wallet);
+    const feed = seat ? await seatInboxFeed(seat.holder, seat.lease, since) : await inboxFeed(wallet as Address, since);
     return owned.map((device) => messagesFor(device, feed.items, sentByToken.get(device.expoToken) ?? new Set(), units));
   });
 

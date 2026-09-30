@@ -17,6 +17,7 @@ import { LiveVerdict } from "~/features/markets/verdict/LiveVerdict";
 import { openLedgerLink } from "~/lib/external";
 import { FONT, RADIUS, TYPE, useTheme } from "~/theme";
 import { LIGHT } from "~/theme/palette";
+import { WhoCanSee } from "~/features/privacy/WhoCanSee";
 
 interface Props {
   booked: BookedOrder;
@@ -108,6 +109,8 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
           </Pressable>
         </View>
       </Animated.View>
+      {/* web's PlacedCall names who can see the new position beside its update; off the paper, in the page's own tones. */}
+      <WhoCanSee kind="position" />
       <ShareButton text={buildCallTweetText(card)} card={paper} label={SHARE.shareCall} />
       {pastBell ? <LiveVerdict marketId={placedIn.marketId} /> : null}
     </View>

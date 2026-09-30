@@ -24,6 +24,7 @@ import { RangeBand, rangeCtaLabel, RangePlaced } from "./RangeParts";
 import { ReadoutStrip } from "./Readout";
 import { TICKET_CANTON } from "@/features/canton-ux/ticket/copy";
 import { useHeldSeconds } from "@/features/canton-ux/ticket/useHeldSeconds";
+import { WhoCanSee } from "~/features/privacy/WhoCanSee";
 import { HeldPriceRow, WriteProgress } from "./CantonWrite";
 import { BlockedButton } from "./TicketButton";
 import { TicketDrawer } from "./TicketDrawer";
@@ -57,7 +58,7 @@ export function Ticket({ selection }: { selection: TicketSelection }) {
   const requoted = plain && !writing && c.bet.state.outcome?.status === "requote" && c.displayed !== null && c.displayed === c.bet.requoteFor(c.market.marketId, c.side, c.stakeBase) ? c.displayed : null;
   const heldRow =
     writing && held && (heldLeft ?? 0) > 0 ? (
-      <HeldPriceRow priceCents={held.quote.oddsCents} remainingSec={heldLeft} />
+      <HeldPriceRow priceCents={held.quote.oddsCents} remainingSec={heldLeft} aside={<WhoCanSee kind="quote" />} />
     ) : requoted && c.bet.state.askedCents !== null ? (
       <HeldPriceRow priceCents={requoted.oddsCents} remainingSec={null} expired={{ fromCents: c.bet.state.askedCents, toCents: requoted.oddsCents }} />
     ) : null;

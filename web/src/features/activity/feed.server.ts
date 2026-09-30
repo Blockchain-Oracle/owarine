@@ -77,3 +77,14 @@ export async function tickerFeed(symbol: TickerSymbol): Promise<ActivityFeed> {
   const [fills, settlements, takes] = await Promise.all([r.tickerFills(symbol, q), r.tickerSettlements(symbol, q), listTakes({ limit: ACTIVITY_LIMIT, symbol })]);
   return feedOf([fills.map(fillItem), settlements.flatMap((row) => settlementItems(row, { payouts: false }))], takes);
 }
+
+/**
+ * STUB (C11a → C13a): a seat's own inbox for its phone's push (plan iOS step 10), private calls included. The Canton
+ * projection records a seat's rows by its leased party, never by address (`owner_address` is not written; c9d
+ * evidence), so the real read is C13a's `seatActivityReader(sql).fills(address, lease)` / `.settlements(address,
+ * lease)` (same row shapes as the published feed), keyed by the lease's party from its start offset. Until both lanes
+ * are on main this answers the published inbox only, as the drain did before: a private call's settle sends no push yet.
+ */
+export async function seatInboxFeed(holder: Address, _lease: { party: string; startOffset: number }, sinceSec?: number): Promise<ActivityFeed> {
+  return inboxFeed(holder, sinceSec);
+}

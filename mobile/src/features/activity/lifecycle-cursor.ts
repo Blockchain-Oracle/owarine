@@ -1,10 +1,11 @@
 import { storage } from "~/lib/storage";
+import { appKey } from "~/lib/keys";
 
 /**
  * web `lifecycle-cursor.ts`: what the lifecycle watcher has already announced, per wallet, under
- * `agari.activity.seenThrough` — here in the app's MMKV store for web's localStorage, so a relaunch never re-announces.
+ * web's `agari.activity.seenThrough` — here, under the app's prefix, in the app's MMKV store for web's localStorage, so a relaunch never re-announces.
  */
-const STORAGE_KEY = "agari.activity.seenThrough";
+const STORAGE_KEY = appKey("activity.seenThrough");
 const IDS_MAX = 100;
 
 export interface SeenCursor {

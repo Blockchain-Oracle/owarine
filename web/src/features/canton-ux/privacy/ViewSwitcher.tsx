@@ -1,6 +1,5 @@
 "use client";
 
-import type { Side } from "@agari/core/types";
 import { UserX } from "lucide-react";
 import { useState } from "react";
 import { Hash } from "@/components/data/Hash";
@@ -8,41 +7,13 @@ import { CodeBlock } from "@/components/ui/code-block";
 import { EmptyState, TabsPanel, UnderlineTabs } from "@/components/ui/desk-kit";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { PRIVACY } from "./copy";
+import { partyLead, type PartyView } from "./party-views";
 import { WhoCanSee } from "./WhoCanSee";
 import "./privacy.css";
 
 const S = PRIVACY.switcher;
 
-export interface PartyPosition {
-  contractId: string;
-  market: string;
-  side: Side;
-  stakeText: string;
-  /** The price paid, when the row carries one. */
-  priceCents: number | null;
-  /** The row is on the Window the page is showing. */
-  here?: boolean;
-}
-
-export interface PartyView {
-  value: string;
-  /** Tab label: "Alice", "Bob", "Outsider". */
-  label: string;
-  party: string;
-  /** What the ledger returned for this party; an empty list is a real answer, not a missing one. */
-  positions: readonly PartyPosition[];
-  /** The request line shown in the Code Block's header. */
-  request: string;
-  /** The literal body sent, party id included. */
-  query: string;
-  /** Live reads only: still asking, or the ledger (or our route) refused; the panel says which, never an empty list. */
-  status?: { kind: "loading" } | { kind: "error"; text: string };
-  /** The route's own sentence about what the participant filtered (shown under the query). */
-  note?: string;
-}
-
-/** A party id keeps its readable hint and the fingerprint's first four characters: `alice::1220…9f3b`. */
-export const partyLead = (party: string) => party.indexOf("::") + 6;
+export { partyLead, type PartyPosition, type PartyView } from "./party-views";
 
 function Positions({ view }: { view: PartyView }) {
   if (view.status?.kind === "loading") {

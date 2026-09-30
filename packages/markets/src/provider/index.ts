@@ -74,5 +74,22 @@ export * from "./ledger-wire";
 export * from "./ticket-wire";
 export * from "./agents-wire";
 export { leaseSeat, readSeatLease, releaseSeat, SEAT_LEASE_TTL_MS, seatLeaseRequestWire, seatLeaseText, seatLeaseWire, type SeatLeaseView } from "./seat";
+export {
+  createSeatLink,
+  joinSeatLink,
+  normalizeSeatLinkCode,
+  readSeatLink,
+  SEAT_LINK_ALPHABET,
+  SEAT_LINK_CODE_LENGTH,
+  SEAT_LINK_JOIN_TTL_MS,
+  SEAT_LINK_TTL_MS,
+  seatLinkCodeWire,
+  seatLinkJoinWire,
+  seatLinkPath,
+  seatLinkStateWire,
+  seatLinkText,
+  type SeatLinkCode,
+  type SeatLinkCodeState,
+} from "./seat-link";
 export { listOpenQuotes } from "./wallet";
 export { marketFactsWire, venueClockWire, venueFactsWire, venueRequest, type VenueClockWire, type VenueFactsWire } from "./venue-api";

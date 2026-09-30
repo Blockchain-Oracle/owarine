@@ -9,6 +9,7 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { ACTIVITY_INK } from "./activity-model";
 import NextWindow, { type NextWindowProps, type WidgetRow } from "./NextWindowWidget";
 import { markUrl } from "./WidgetMarks";
+import { appUrl } from "~/lib/identity";
 
 /** The widget lists this many at most (the large size); smaller sizes take the first rows. */
 const ROWS_MAX = 6;
@@ -20,7 +21,7 @@ export function widgetProps(laneSet: LaneSet, nowMs: number): NextWindowProps {
     .filter((m) => m.lockAtSec * 1000 > nowMs && m.tradingStartSec * 1000 <= nowMs)
     .sort((a, b) => a.lockAtSec - b.lockAtSec)
     .slice(0, ROWS_MAX)
-    .map((m) => ({ asset: m.asset, cadence: formatCadence(m.intervalSec), locksAtMs: m.lockAtSec * 1000, url: `agari://markets/${m.marketId}`, mark: markUrl(m.asset) }));
+    .map((m) => ({ asset: m.asset, cadence: formatCadence(m.intervalSec), locksAtMs: m.lockAtSec * 1000, url: appUrl(`markets/${m.marketId}`), mark: markUrl(m.asset) }));
   const nextStarts = laneSet.lanes.map((lane) => lane.nextStartSec).filter((s): s is number => s !== null && s * 1000 > nowMs);
   const nextMs = nextStarts.length ? Math.min(...nextStarts) * 1000 : null;
   const closedLine = rows.length === 0 && nextMs !== null ? `Next Window opens ${new Date(nextMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "";

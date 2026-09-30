@@ -57,7 +57,9 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
-  await auth.seat.server.store.release(auth.seat.lease.leaseId, Date.now(), "released");
+  // A joined device's reset takes only its own key off the seat; the device that holds the lease drains it.
+  if (auth.seat.caller !== auth.seat.lease.address) await auth.seat.server.store.links.unlink(auth.seat.caller);
+  else await auth.seat.server.store.release(auth.seat.lease.leaseId, Date.now(), "released");
   const response = NextResponse.json({ kind: "none" }, { headers: PRIVATE });
   response.cookies.set({ name: SEAT_COOKIE, value: "", httpOnly: true, sameSite: "lax", secure: secure(request), path: "/", maxAge: 0 });
   return response;
