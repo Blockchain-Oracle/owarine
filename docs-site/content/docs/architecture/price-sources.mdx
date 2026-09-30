@@ -31,6 +31,8 @@ Each Series' policy text names its source, and every receipt and proof page repe
 
 Policy versions are append-only on the Series, and a Window keeps the version it opened under: QQQ and VOO moved to Alpaca, and the xStocks to Jupiter Price v3, as new versions. Pyth is not used, because there is no entitled key.
 
+A lane's [halt](/trading/halts-and-voids) is judged on the source in this table and on no other: RedStone package age for the seven stocks, the last IEX trade for QQQ and VOO, the issuer's flag and Jupiter Price v3 read failures for the xStocks, the PreStocks read for the pre-IPO names and baskets. The halt watcher takes each lane's source from the same table the venue registers its Series from, so the two cannot disagree, and it makes no Pyth request while no lane settles on Pyth.
+
 These are feeders the venue runs itself: three independent exchanges for crypto, one named source attested three times for the rest. Neither is an independent oracle network, and the pages say so.
 
 The [proof walkthrough](/trading/proof) shows each print, its oracle and its evidence in the app; <AppLink href="/status">Status</AppLink> shows whether the feeders are posting now. [Halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints, and [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers those two sources.
