@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { STRATEGIES } from "@/features/strategies/copy";
 import { dryReadAgent, previewGate } from "@/features/strategies/preview.server";
 import { agentPreviewRequestSchema } from "@/features/strategies/protocol";
+import { rateLimitKey } from "@/lib/client-ip.server";
 
 /**
  * The studio's "Dry read": one real model call on a live Window with the draft's brief, through the
@@ -18,7 +19,7 @@ const refuse = (status: number, error: string) => NextResponse.json({ error }, {
 export async function POST(req: Request) {
   const parsed = agentPreviewRequestSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return refuse(400, STRATEGIES.studio.agent.dry.badRequest);
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
+  const ip = rateLimitKey(req);
   const gate = previewGate(ip, Date.now());
   if (!gate.ok) return refuse(429, gate.error);
   try {

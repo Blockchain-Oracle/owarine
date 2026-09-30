@@ -4,6 +4,8 @@
  * In memory per instance, like the studio's `previewGate`: one ask per IP per 3 s, 30 per IP per 10 min, and 600 an
  * hour house-wide. A refused ask is not recorded, so waiting out the gap always works.
  */
+import { rateLimitKey } from "@/lib/client-ip.server";
+
 const MIN_GAP_MS = 3_000;
 const PER_IP = 30;
 const PER_IP_WINDOW_MS = 600_000;
@@ -21,9 +23,9 @@ function sweep(nowMs: number): void {
   }
 }
 
-/** The caller's IP as the platform reports it; "local" when nothing does (a dev server). */
+/** The caller as the trusted proxy reports it (`TRUSTED_PROXY`); `local-development` on a dev server. */
 export function clientIp(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
+  return rateLimitKey(req);
 }
 
 /** True when this ask may go to the model, and records it. */

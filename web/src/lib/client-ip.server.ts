@@ -9,17 +9,31 @@
  *
  * The operator names the proxy that fronts them, `TRUSTED_PROXY`, and only then is a header believed:
  *   - `cloudflare` → `cf-connecting-ip`, which Cloudflare sets and overwrites on every request it forwards;
- *   - `forwarded`  → the first `x-forwarded-for`, for a proxy that owns that header (Traefik with trusted IPs, nginx);
- *   - `vercel`     → the same header, and `VERCEL=1` (which Vercel itself sets) means the same thing.
+ *   - `forwarded`  → the LAST `x-forwarded-for` entry: the address the one proxy in front of us (Coolify's Traefik)
+ *                    appended itself. A visitor can send a forged `X-Forwarded-For`; whether Traefik strips it or
+ *                    appends to it, the last entry is the one Traefik saw, so a forged value never becomes the key
+ *                    (K-003, C10a). This assumes exactly one proxy hop, which is the hosted shape;
+ *   - `vercel`     → the first `x-forwarded-for`, which Vercel overwrites at its edge; `VERCEL=1` means the same.
  * Unnamed, production stays as it was: no header is trusted and the surface says it cannot verify the connection.
  * That is the honest failure, and it is loud enough that nobody ships without setting this.
  */
 export function clientIp(request: Request): string | null {
   const proxy = (process.env.TRUSTED_PROXY ?? (process.env.VERCEL === "1" ? "vercel" : "")).trim().toLowerCase();
   const first = (name: string) => request.headers.get(name)?.split(",")[0]?.trim() || null;
+  const last = (name: string) => request.headers.get(name)?.split(",").at(-1)?.trim() || null;
   if (proxy === "cloudflare") return first("cf-connecting-ip") ?? first("x-forwarded-for");
-  if (proxy === "forwarded" || proxy === "vercel") return first("x-forwarded-for");
+  if (proxy === "forwarded") return last("x-forwarded-for");
+  if (proxy === "vercel") return first("x-forwarded-for");
   return process.env.NODE_ENV !== "production" ? "local-development" : null;
+}
+
+/**
+ * The key a per-IP rate limit counts under. Every limiter uses this, never the raw header (C10a): with no trusted
+ * proxy in production every caller shares one `unverified` bucket, which throttles harder rather than letting a
+ * forged header mint a fresh bucket per request.
+ */
+export function rateLimitKey(request: Request): string {
+  return clientIp(request) ?? "unverified";
 }
 
 /**

@@ -2,6 +2,8 @@
  * The social routes' limits (social-assistant.md §3): sliding windows held in memory, per instance, like the
  * strategies preview gate. They bound spam and chain reads; they are not an accounting of anything.
  */
+import { rateLimitKey } from "@/lib/client-ip.server";
+
 export interface Limit {
   max: number;
   windowMs: number;
@@ -54,7 +56,7 @@ export const ROOM_LIMITS = {
   ]),
 } as const;
 
-/** The caller's address as the edge reports it; `local` in development. */
+/** The caller as the trusted proxy reports it (`TRUSTED_PROXY`); `local-development` in development. */
 export function clientIp(req: Request): string {
-  return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip") || "local";
+  return rateLimitKey(req);
 }

@@ -1,4 +1,5 @@
 import type { HoldingsBody } from "@agari/markets/holdings";
+import { rateLimitKey } from "@/lib/client-ip.server";
 
 /** session-lanes.md §4: 60 s per owner, 30 requests a minute per IP. In memory: nothing about an owner is stored. */
 export const OWNER_CACHE_MS = 60_000;
@@ -45,7 +46,7 @@ export function cachedHoldings(owner: string, nowMs: number, read: () => Promise
   return body;
 }
 
-/** The first hop the platform wrote; locally there is none. */
+/** The caller as the trusted proxy reports it (`TRUSTED_PROXY`, `@/lib/client-ip.server`); never the raw header. */
 export function clientIp(request: Request): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
+  return rateLimitKey(request);
 }
