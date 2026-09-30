@@ -7,15 +7,17 @@ The docs live in the same repository at `docs-site/`, and the paths below are re
 
 | Behavior | Source owner | Evidence boundary |
 | --- | --- | --- |
-| Contracts: Series, Window terms, prints, quotes, legs, cash, resolution | `daml/abu-pm-main/daml/PM/` | The `daml/pm-tests` scripts (money conservation, privacy, races, resolution) |
-| Ledger client and Daml bindings | `packages/ledger/src/`, `packages/daml-clients/` (generated) | Unit tests and a sandbox integration test |
-| Seats: lease, cookie, funding, drain | `web/src/lib/seat-lease.server.ts`, `web/src/app/api/seat/`, `packages/markets/src/server/`, `services/ops/src/actors/seat-funding/` | Seat routes tested end to end on a local sandbox |
+| Contracts: Series, Window terms, prints, quotes, legs, cash, resolution, reserves | `daml/abu-pm-main/daml/PM/` | The `daml/pm-tests` scripts (conservation, privacy, races, resolution, exits, the maker vault) |
+| Tickets, agents, games | `daml/abu-pm-tickets/`, `daml/abu-pm-agents/`, `daml/abu-pm-games/` | Their `pm-tests` modules; the released DARs and hashes in `daml/released/` |
+| Ledger client and Daml bindings | `packages/ledger/src/`, `packages/daml-clients/` (generated) | Unit tests and sandbox integration tests |
+| Seats: key, lease, link, funding, drain | `web/src/lib/seat-store.server.ts`, `web/src/lib/seat-link-store.server.ts`, `web/src/app/api/seat/`, `mobile/src/wallet/seat-key.ts`, `services/ops/src/actors/seat-funding/` | Postgres tests; seat routes driven on a local sandbox |
+| Seat writes and the view switcher | `web/src/app/api/ledger/`, `web/src/app/api/view/`, `packages/markets/src/server/` | The `no-party-from-request` invariant; the four-viewpoint rehearsal |
 | Venue actors: roller, pricer, issuer, sweeper, netting, settler | `services/ops/src/actors/venue/` and the actor folders beside it | Local drive reports in `docs/evidence/` |
-| Oracle feeders and resolver | `services/ops/src/actors/price-relay/oracle-feeder.ts`, `services/ops/src/actors/resolver/` | Archived raw payloads and their hashes; per-Window evidence in `docs/evidence/` |
-| Projector and reads | `services/ops/src/actors/projector/`, `packages/db/src/`, `web/src/app/api/index/` | A rebuild replays the ledger into a second database and must match the live one |
-| Proof pages | `web/src/features/proof/`, `web/src/app/proof/` | Each print and resolution rendered from ledger data and its archive |
-| Registry, baskets and integer index | `packages/core/src/market/baskets.ts` | Frozen member bases and arithmetic; basket lanes are **planned** on Canton |
+| Oracle and lane feeders, resolver | `services/ops/src/actors/price-relay/`, `services/ops/src/actors/resolver/`, `packages/core/src/market/print-source.ts` | Archived raw payloads and their hashes; per-Window results in `docs/evidence/` |
+| Projector and reads | `services/ops/src/actors/projector/`, `packages/db/src/`, `web/src/app/api/index/` | `verify-projection` and a rebuild from offset 0 that must equal the live tables |
+| Proof pages | `web/src/features/proof/`, `web/src/app/proof/` | Each print and resolution rendered from ledger data and its archive; Re-verify |
+| Registry, baskets and integer index | `packages/core/src/market/baskets.ts` | Frozen member bases and arithmetic; basket Windows resolved on a local sandbox |
 | Closed-market board and session lines | `web/src/features/markets/word-board/`, `packages/core/src/market/horizons.ts`, `packages/core/src/copy/session-words.ts` | Behavior depends on the hour; read the live board |
-| Desk rules and record | `packages/core/src/desk/`, `packages/markets/src/desk/`, `services/ops/src/actors/desk-runner/` | Paper practice only; the Canton live leg is **planned** |
+| Desk rules and record | `packages/core/src/desk/`, `packages/markets/src/desk/`, `services/ops/src/actors/desk-runner/`, `daml/abu-pm-agents/daml/PM/Agents/Desk.daml` | Practice on paper; the live mandate opened on a local sandbox but has not traded |
 
-The acceptance ledger, `docs/evidence/acceptance.md`, records each gate and whether it ran on a local sandbox or a shared test network. The other products (Range, Boost, Parlay, Earn, strategies, games) keep their screens in the matching `web/src/features/` folders while their Daml contracts are **planned**.
+`docs/plan/capabilities.json` records every capability as `not-live`, `local` or `live`, and the `capabilities-evidence` invariant fails if a `local` or `live` entry lacks its evidence. The acceptance ledger, `docs/plan/acceptance.md`, records each gate and whether it ran on a local sandbox or on DevNet; so far every gate is local. `docs/evidence/acceptance.md` is the reference's own evidence page, kept as prior work.

@@ -1,24 +1,39 @@
 ---
 title: "Run Agari locally"
-description: "Install, check and build the app, the Daml package and a local Canton sandbox."
+description: "Build the Daml packages, start a local Canton sandbox, bootstrap the venue, then run ops and the web app."
 ---
 
-Run these commands from the repository root, **not** from `docs-site/`. Check the current source and evidence before changing behavior.
+Run these commands from the repository root, **not** from `docs-site/`. You need Node 22+, pnpm, dpm (Canton 3.5) and a Postgres database. These are the same steps the runs in `docs/evidence/` used.
 
 ```sh
-pnpm install --frozen-lockfile
-pnpm typecheck && pnpm invariants && pnpm test
-pnpm build
+pnpm install
+
+# 1. Build the Daml packages, and optionally run the Daml tests
+(cd daml && dpm build --all)
+(cd daml/pm-tests && dpm test)
+
+# 2. A local Canton sandbox with the JSON Ledger API on :7575 (leave it running)
+dpm sandbox --json-api-port 7575
+
+# 3. Bootstrap it once: upload the DARs, allocate the venue parties, create the Series,
+#    cash shards, ticket reserves, arena and a guest-seat pool
+LEDGER_JSON_API_URL=http://127.0.0.1:7575 LEDGER_AUTH_MODE=none \
+  pnpm --filter @agari/scripts exec tsx bootstrap-local.ts --seats 6
+
+# 4. Environment: copy the examples and fill them in
+cp .env.example .env.local
+cp services/ops/.env.example services/ops/.env.local
+cp web/.env.example web/.env.local
+
+# 5. The venue's operations, then the web app on http://localhost:3000
+pnpm ops:start
+pnpm dev
 ```
 
-The Daml package is built and tested with `dpm` (Daml SDK 3.5):
+The bootstrap refuses anything but an unauthenticated local sandbox, and writes the parties file (`~/.config/agari/canton/parties.json`) that ops and the web read. The environment needs `DATABASE_URL`, `OPS_INTERNAL_SECRET`, `AGARI_SEAT_COOKIE_SECRET`, `AGARI_PARTIES_FILE`, `LEDGER_JSON_API_URL=http://127.0.0.1:7575` and `LEDGER_AUTH_MODE=none`; the `.env.example` files list the rest. Keep keys on the server.
 
-```sh
-cd daml && dpm build --all && (cd pm-tests && dpm test)
-```
+Then open `/markets`, take a guest seat and make a call. The crypto lanes (Coinbase, Kraken and Bitstamp candles) run around the clock. Stock lanes quote only while US markets trade, and need the Alpaca keys in `services/ops/.env.local`. A local run uses its own parties and its own database, and touches no shared network.
 
-After a change to the Daml package, regenerate the TypeScript bindings with `pnpm codegen:daml`; the generated files are never edited by hand.
-
-To run the venue end to end, start a local Canton sandbox with the built DAR (`dpm sandbox --json-api-port 7575 --dar …`), then run `scripts/bootstrap-local.ts` once. It uploads the package, allocates the venue, resolver, three oracle and seat parties, creates the venue's cash and the demo Series, and writes the parties file ops reads. `pnpm ops:start` then runs the venue actors, and `pnpm dev` the web app. The `.env.example` files list the configuration names; keep keys on the server. A local run uses its own parties and its own database, and touches no shared network.
+The fast gate is `pnpm typecheck && pnpm invariants && pnpm test`. After a change to a Daml package, regenerate the TypeScript bindings with `pnpm codegen:daml`; the generated files are never edited by hand.
 
 The docs site has its own lockfile in `docs-site/` and needs only Node 22+ and pnpm 11.24: from that folder, `pnpm install --frozen-lockfile`, then `pnpm check`. It renders without a seat, a ledger or provider credentials, and its check reads the app source from the parent directory.
