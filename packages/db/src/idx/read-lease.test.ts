@@ -12,6 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { SCHEMA_SQL } from "../schema";
 import { indexReader, type IdxSeatLease } from "./read";
 import { publishedFills, publishedReceipts } from "./read-published";
+import { seatActivityReader } from "./seat-activity";
 
 const URL_ = process.env.SEAT_PG_URL;
 const NS = "c13a_lease_test";
@@ -27,6 +28,7 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
   const admin = postgres(URL_ ?? "postgres://invalid", { max: 1, onnotice: () => undefined });
   const sql = postgres(URL_ ?? "postgres://invalid", { max: 1, onnotice: () => undefined, connection: { search_path: NS } });
   const reader = indexReader(sql);
+  const inbox = seatActivityReader(sql);
 
   const market = (id: string, index: number) => sql`
     INSERT INTO idx_markets (market, market_key, terms_cid, series_key, symbol, cadence_sec, market_index, cash_unit, trading_start_sec, lock_at_sec,
@@ -83,12 +85,12 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
     await publication("pub-bob", BOB, "m-bob", "pair-u-bob-1", 111);
     await receipt("r-bob-pub", "m-bob", 131, "pair-u-bob-1");
     await receipt("r-bob-private", "m-both", 140, "pair-u-bob-2");
-  });
+  }, 60_000);
   afterAll(async () => {
     await admin.unsafe(`DROP SCHEMA IF EXISTS ${NS} CASCADE`);
     await sql.end();
     await admin.end();
-  });
+  }, 60_000);
 
   it("Bob's fills are his alone", async () => {
     const rows = await reader.walletFills(BOB, { lease: BOB_LEASE });
@@ -125,5 +127,11 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
     await sql`DELETE FROM idx_publications WHERE publication_cid = 'pub-bob'`;
     expect(await publishedFills(sql, BOB)).toEqual([]);
     expect(await publishedReceipts(sql, BOB)).toEqual([]);
+  });
+
+  it("Bob's own inbox is his fills and verdicts, published or not, and none of Alice's", async () => {
+    expect((await inbox.fills(BOB, BOB_LEASE)).map((r) => [r.signature, r.wallet])).toEqual([["u-bob-2", BOB], ["u-bob-1", BOB]]);
+    const verdicts = await inbox.settlements(BOB, BOB_LEASE);
+    expect(verdicts.map((r) => [r.market, r.owner, r.held_yes_lots, r.payout_base])).toEqual([["m-bob", BOB, "2", "2000"]]);
   });
 });

@@ -38,6 +38,11 @@ export function registeredSeatAddress(): Address | null {
   return seat?.address ?? null;
 }
 
+/** The signed seat read header for a plain `fetch` of our own routes (C13a: the phone's inbox); null without a seat. */
+export async function seatReadHeaderValue(nowMs: number = Date.now()): Promise<string | null> {
+  return seatHeader(nowMs);
+}
+
 async function seatHeader(nowMs: number): Promise<string | null> {
   const current = seat;
   const cluster = peekClient()?.cluster;
