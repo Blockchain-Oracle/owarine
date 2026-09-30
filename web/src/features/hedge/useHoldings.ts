@@ -3,8 +3,10 @@
 import { SHARE_ISSUERS, SHARE_TOKENS, type ShareSymbol, type ShareToken, type TickerSymbol } from "@agari/core/market";
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import type { Address } from "@agari/core/types";
+import { ledgerBase } from "@agari/markets";
 import { useReadingQuery } from "@agari/markets/react";
 import { z } from "zod";
+import { seatReadHeaders } from "@/lib/seat-fetch";
 
 /** The route caches 60 s per owner; polling faster would only read its cache. */
 const POLL_MS = 60_000;
@@ -27,7 +29,7 @@ const digits = z.string().regex(/^\d+$/).transform((text) => BigInt(text));
 const SYMBOLS = SHARE_TOKENS.map((token) => token.symbol) as [ShareSymbol, ...ShareSymbol[]];
 const UNDERLYINGS = [...new Set(SHARE_TOKENS.map((token) => token.underlying))] as [TickerSymbol, ...TickerSymbol[]];
 
-/** `GET /api/holdings` (`app/api/holdings/route.ts`): bigints travel as decimal strings. */
+/** `GET /api/holdings` (`app/api/holdings/route.ts`, the seat's own): bigints travel as decimal strings. */
 const rowSchema = z.object({
   mint: z.string(),
   symbol: z.enum(SYMBOLS),
@@ -41,17 +43,19 @@ const rowSchema = z.object({
 const bodySchema = z.object({ holdings: z.array(z.unknown()) });
 
 /**
- * Canton (plan 00-plan "Holdings-dependent UX before C7b"; C4c.2): a seat is a leased Canton party that holds demo credits
- * and nothing else, so it has no outside stock tokens to read until the Canton Coin rail (C7b) brings CIP-56 holdings.
- * The route read Solana mainnet through Helius and answered a seat with 503, which the card showed as "Couldn't read
- * your wallet". Until C7b the read answers the truth — no holdings — and the cards show the reference's own
- * "no holdings" state. Flip this when the rail lands; the route and parser below are kept for it.
+ * Canton (plan 00-plan "Holdings-dependent UX before C7b"; C4c.2, C7b): a seat is a leased Canton party. It holds demo
+ * credits, and a token-standard (CIP-56) asset only where it was given one, so until a deployment names a tokenised-share
+ * instrument (`CIP56_SHARE_INSTRUMENTS`) the read has nothing to show and the cards keep the reference's own "no holdings"
+ * state. The route now exists and reads the seat's `Holding`s as the leased party (`/api/holdings`, C7b); the flag stays
+ * off, in the build, until the rail is proven on DevNet with a real holder, so no seat polls a read that cannot yet have an
+ * answer. Turn it on with `NEXT_PUBLIC_CIP56_HOLDINGS=1`.
  */
-const SEAT_HOLDINGS_RAIL = false;
+const SEAT_HOLDINGS_RAIL = process.env.NEXT_PUBLIC_CIP56_HOLDINGS === "1";
 
-async function readHoldings(owner: Address): Promise<Reading<HoldingView[]>> {
+async function readHoldings(_owner: Address): Promise<Reading<HoldingView[]>> {
   if (!SEAT_HOLDINGS_RAIL) return ok([], Date.now());
-  const response = await fetch(`/api/holdings?owner=${encodeURIComponent(owner)}`, { cache: "no-store" });
+  // The party is the seat's lease, proved by the cookie (web) or the signed read header (phone); nothing here names it.
+  const response = await fetch(`${ledgerBase(true)}/holdings`, { cache: "no-store", credentials: "include", headers: { accept: "application/json", ...(await seatReadHeaders()) } });
   if (!response.ok) return err(diagnosis("unknown", `holdings route answered ${response.status}`));
   const parsed = bodySchema.safeParse(await response.json());
   if (!parsed.success) return err(diagnosis("unknown", "holdings payload did not parse"));
