@@ -1,12 +1,10 @@
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { router } from "expo-router";
 import { useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withTiming } from "react-native-reanimated";
 import type { CopyFormCheck } from "@/features/strategies/copy-form";
 import { COPY_FORM } from "@/features/strategies/copy-form-copy";
 import { money } from "@/features/strategies/format";
-import { VAULT } from "@/features/vault/copy";
-import { useVaultWrite } from "@/features/vault/useVaultWrite";
 import { FONT } from "~/theme";
 import { DeskPill, PrimaryButton, ST, StratInput, useStrat } from "./ui";
 
@@ -36,41 +34,6 @@ function Field({ label, symbol, value, onChange, error, disabled, onMax, maxDisa
   );
 }
 
-/** web vault/AmountField: the deposit amount with its Max and the wallet line (or why it is too much). */
-function AmountField({ value, onChange, decimals, symbol, maxBase, label }: { value: string; onChange: (text: string) => void; decimals: number; symbol: string; maxBase: bigint | null; label: string }) {
-  const { t, color } = useStrat();
-  const base = value.trim() === "" ? null : parseDecimalToBaseUnits(value.trim(), decimals);
-  const problem = value.trim() === "" ? null : base === null ? VAULT.amount.notANumber : maxBase !== null && base > maxBase ? VAULT.amount.overWallet(`${formatBaseUnits(maxBase, decimals)} ${symbol}`) : null;
-  const off = maxBase === null || maxBase <= 0n;
-  return (
-    <View style={styles.amount}>
-      <View style={styles.fieldRow}>
-        <TextInput
-          value={value}
-          onChangeText={onChange}
-          keyboardType="decimal-pad"
-          placeholder="0.00"
-          placeholderTextColor={color.inkMuted}
-          accessibilityLabel={label}
-          style={[styles.vaultInput, { color: color.ink, backgroundColor: color.surface2, borderColor: problem ? color.loss : t.ink(0.22) }, problem && { boxShadow: `0px 0px 0px 3px ${color.lossWash}` }]}
-        />
-        <Pressable
-          onPress={() => maxBase !== null && onChange(formatBaseUnits(maxBase, decimals, { minDp: 0 }).replace(/,/g, ""))}
-          disabled={off}
-          accessibilityRole="button"
-          style={[styles.vaultMax, off ? { borderColor: t.ink(0.16) } : { borderColor: color.accentDim, backgroundColor: color.accentWash }]}
-        >
-          <Text style={[styles.maxText, { color: off ? color.inkMuted : color.accent }]}>{VAULT.amount.max}</Text>
-        </Pressable>
-      </View>
-      {problem ? (
-        <Text accessibilityRole="alert" style={[styles.hint, { color: color.loss }]}>{problem}</Text>
-      ) : maxBase !== null ? (
-        <Text style={[styles.hint, { color: color.inkMuted }]}>{VAULT.amount.walletHolds(`${formatBaseUnits(maxBase, decimals)} ${symbol}`)}</Text>
-      ) : null}
-    </View>
-  );
-}
 
 export interface CopyFormFieldsProps {
   check: CopyFormCheck;
@@ -92,7 +55,7 @@ export interface CopyFormFieldsProps {
 }
 
 /**
- * web's features/strategies/CopyFormFields.tsx: the money strip, the two fields, the inline Trading Balance deposit,
+ * web's features/strategies/CopyFormFields.tsx: the money strip, the two fields, the way to add credits (the funds sheet),
  * the limits and fee lines passed in, and the confirm that always says why it is off — an invalid press shakes.
  */
 export function CopyFormFields(p: CopyFormFieldsProps) {
@@ -100,10 +63,7 @@ export function CopyFormFields(p: CopyFormFieldsProps) {
   const reduce = useReducedMotion();
   const shakeX = useSharedValue(0);
   const shake = useAnimatedStyle(() => ({ transform: [{ translateX: shakeX.value }] }));
-  const vault = useVaultWrite();
   const [adding, setAdding] = useState(false);
-  const [deposit, setDeposit] = useState("");
-  const depositBase = parseDecimalToBaseUnits(deposit.trim(), p.decimals) ?? 0n;
   const { check } = p;
   const text = (base: bigint) => money(base, p.decimals).replace(/,/g, "");
   const press = () => {
@@ -113,7 +73,6 @@ export function CopyFormFields(p: CopyFormFieldsProps) {
   const cell = [styles.cell, { backgroundColor: color.surface1 }];
   const cellLabel = [styles.cellLabel, { color: color.inkMuted }];
   const cellValue = [styles.cellValue, { color: color.ink }];
-  const depositOff = vault.state.busy !== null || !vault.hasSigner || depositBase <= 0n || p.walletBase === null || depositBase > p.walletBase;
   return (
     <Animated.View style={[styles.stack, shake]}>
       <View accessibilityLabel={COPY_FORM.strip.pulls} style={[styles.strip, { borderColor: color.hairline, backgroundColor: color.hairline }]}>
@@ -143,17 +102,9 @@ export function CopyFormFields(p: CopyFormFieldsProps) {
         </Pressable>
         {adding ? (
           <View style={styles.addBody}>
-            <AmountField value={deposit} onChange={setDeposit} decimals={p.decimals} symbol={p.symbol} maxBase={p.walletBase} label={COPY_FORM.addFunds.label} />
-            <DeskPill
-              label={vault.state.busy === "vault-deposit" ? COPY_FORM.addFunds.depositing : COPY_FORM.addFunds.deposit}
-              disabled={depositOff}
-              style={styles.depositPill}
-              onPress={() =>
-                void vault.run({ kind: "vault-deposit", amountBase: depositBase }, COPY_FORM.addFunds.landed).then((o) => {
-                  if (o?.status === "confirmed") setDeposit("");
-                })
-              }
-            />
+            {/* C8g: the seat's cash IS the Trading Balance on Canton (K-087); more credits come from the funds sheet. */}
+            <Text style={[styles.small, { color: color.inkSecondary }]}>{COPY_FORM.addFunds.sameCash}</Text>
+            <DeskPill label={COPY_FORM.addFunds.deposit} style={styles.depositPill} onPress={() => router.push("/funds")} />
           </View>
         ) : null}
       </View>
