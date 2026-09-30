@@ -15,7 +15,7 @@ const suffix = (t: string) => t.slice(t.indexOf(":"));
 
 interface Fake {
   contracts: Array<{ templateId: string; cid: string; arg: Record<string, unknown>; stakeholders: string[] }>;
-  submitted: Array<{ actAs: string[]; commandId: string; commands: unknown[] }>;
+  submitted: Array<{ actAs: string[]; commandId: string; commands: unknown[]; disclosedContracts?: unknown[] }>;
 }
 
 function fakeVenue(fake: Fake): RoleSession {
@@ -24,10 +24,10 @@ function fakeVenue(fake: Fake): RoleSession {
       const want = new Set(o.templateIds.map(suffix));
       const contracts: ActiveContract[] = fake.contracts
         .filter((c) => want.has(suffix(c.templateId)) && c.stakeholders.some((p) => o.parties.includes(p)))
-        .map((c) => ({ createdEvent: { templateId: c.templateId, contractId: c.cid, createArgument: c.arg }, synchronizerId: "sync" }) as unknown as ActiveContract);
+        .map((c) => ({ createdEvent: { templateId: c.templateId, contractId: c.cid, createArgument: c.arg, createdEventBlob: `blob-${c.cid}` }, synchronizerId: "sync" }) as unknown as ActiveContract);
       return { contracts, activeAtOffset: 1 };
     },
-    async submitAndWaitForTransaction(o: { actAs: string[]; commandId: string; commands: Array<{ ExerciseCommand?: { contractId: string } }> }) {
+    async submitAndWaitForTransaction(o: { actAs: string[]; commandId: string; commands: Array<{ ExerciseCommand?: { contractId: string } }>; disclosedContracts?: unknown[] }) {
       fake.submitted.push(o);
       const archived = new Set(o.commands.map((c) => c.ExerciseCommand?.contractId));
       fake.contracts = fake.contracts.filter((c) => !archived.has(c.cid));
@@ -147,6 +147,27 @@ describe("seat drain recycles (C9d)", () => {
     // The read that found the share holds this pass; the next pass sees it gone and frees.
     expect(s.states.get(SEAT)).toBe("draining");
     await pass();
+    expect(s.states.get(SEAT)).toBe("free");
+  });
+
+  it("exits a leg past its refundAfter as the seat: a claim against the resolution, else a stale refund, then frees", async () => {
+    const legArg = (cid: string, terms: string) => ({
+      venue: VENUE, owner: SEAT, termsCid: terms, marketId: `BTC-60m:${cid}`, pairId: "p", outcome: "SideUp", lots: "10", cashUnit: "1000",
+      backingShare: "5000", feePaid: "100", refundAfter: "2026-09-29T20:06:00Z", beneficiaryRef: null,
+    });
+    const s = setup([
+      { templateId: TEMPLATE_IDS.Leg, cid: "leg-resolved", arg: legArg("1", "terms-1"), stakeholders: [VENUE, SEAT] },
+      { templateId: TEMPLATE_IDS.Leg, cid: "leg-void", arg: legArg("2", "terms-2"), stakeholders: [VENUE, SEAT] },
+      { templateId: TEMPLATE_IDS.Resolution, cid: "res-1", arg: { venue: VENUE, termsCid: "terms-1" }, stakeholders: [VENUE] },
+    ]);
+    await s.pass();
+    const exits = s.fake.submitted.filter((x) => x.commandId.startsWith("drain-exit:"));
+    expect(exits.map((x) => [x.actAs[0], JSON.stringify(x.commands).match(/Leg_(Claim|RefundStale)/)?.[0]])).toEqual([
+      [SEAT, "Leg_Claim"],
+      [SEAT, "Leg_RefundStale"],
+    ]);
+    expect(exits[0]!.disclosedContracts).toEqual([{ createdEventBlob: "blob-res-1", templateId: TEMPLATE_IDS.Resolution, contractId: "res-1", synchronizerId: "sync" }]);
+    // Both legs are gone, so the same pass frees the seat.
     expect(s.states.get(SEAT)).toBe("free");
   });
 });

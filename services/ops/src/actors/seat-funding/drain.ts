@@ -9,6 +9,10 @@
  *     cash), ends each consent (`Subscriber_Unsubscribe`) and closes its desk (`Mandate_Close`, the budget returns),
  *     so no later lessee of this party inherits a grant, a consent or a desk (`drain-agent:<cid>`).
  *
+ *   - (C9d) exits each leg past its `refundAfter` as the seat's own choice: `Leg_Claim` against the Window's
+ *     resolution (disclosed) when there is one, else `Leg_RefundStale`. Past that deadline the venue can no longer
+ *     settle it (`Leg_Settle` is deadline-bound), so without this a seat whose visitor left would hold the leg forever
+ *     (seen live when the host slept through a settlement window), and
  *   - (C9d) redeems its Earn shares through the Earn desk (a withdraw quote the seat accepts), and
  *   - (C9d) recycles it: once the ledger, read as the seat, shows it holds nothing (`readSeatHoldings`: no leg, live
  *     quote, ticket, Earn share, duel or agent grant), it withdraws the seat's leftover cash as the seat's own choice
@@ -93,7 +97,7 @@ export function startSeatDrain(input: SeatDrainInput): { stop: () => void } {
 /** One drain pass (withdraw, close out, end agents, redeem shares, recycle), exported for the unit test. */
 export function createSeatDrainPass(input: SeatDrainInput): () => Promise<PassResult> {
   const seats = input.seats ?? (() => drainingSeats());
-  const counters = { closedOut: 0, withdrawn: 0, failed: 0, agentsEnded: 0, freed: 0 };
+  const counters = { closedOut: 0, withdrawn: 0, failed: 0, agentsEnded: 0, freed: 0, exited: 0 };
   const db = input.db === undefined ? getDb() : input.db;
   const recycle = input.recycle ?? (db ? (party: string, nowMs: number, work: Parameters<typeof recycleDrainingSeat>[3]) => recycleDrainingSeat(db, party, nowMs, work) : null);
   const pass = async (): Promise<PassResult> => {
@@ -103,9 +107,12 @@ export function createSeatDrainPass(input: SeatDrainInput): () => Promise<PassRe
       for (const p of draining) input.draining.add(p);
     }
     if (draining.size === 0) return { why: `no seat draining; closed out ${counters.closedOut}, withdrew ${counters.withdrawn}, freed ${counters.freed}` };
-    const acs = await readActive(input.venue, [TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Resolution]);
-    const resolved = new Set(acs.filter((c) => c.createdEvent.templateId.endsWith(":PM.Market:Resolution")).map((c) => (c.createdEvent.createArgument as { termsCid: string }).termsCid));
-    const legs = pick(acs, TEMPLATE_IDS.Leg, decodeLeg).filter((l) => draining.has(l.data.owner) && !resolved.has(l.data.termsCid));
+    const acs = await readActive(input.venue, [TEMPLATE_IDS.Leg, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Resolution], { blobs: true });
+    const resolutions = new Map(acs.filter((c) => c.createdEvent.templateId.endsWith(":PM.Market:Resolution")).map((c) => [(c.createdEvent.createArgument as { termsCid: string }).termsCid, c] as const));
+    const nowSec = Math.floor(Date.now() / 1000);
+    const seatLegs = pick(acs, TEMPLATE_IDS.Leg, decodeLeg).filter((l) => draining.has(l.data.owner));
+    const stale = seatLegs.filter((l) => l.data.refundAfterSec <= nowSec);
+    const legs = seatLegs.filter((l) => l.data.refundAfterSec > nowSec && !resolutions.has(l.data.termsCid));
     const quotes = pick(acs, TEMPLATE_IDS.Quote, decodeQuote).filter((q) => draining.has(q.data.user));
     const notes: string[] = [];
     for (const q of quotes) {
@@ -132,6 +139,31 @@ export function createSeatDrainPass(input: SeatDrainInput): () => Promise<PassRe
         if (isInactive(error)) continue;
         counters.failed++;
         notes.push(`close-out ${l.data.marketId} failed: ${failureText(error)}`);
+      }
+    }
+    for (const l of stale) {
+      const res = resolutions.get(l.data.termsCid);
+      const blob = res?.createdEvent.createdEventBlob;
+      const command = res && blob
+        ? { ExerciseCommand: { templateId: TEMPLATE_IDS.Leg, contractId: l.cid, choice: "Leg_Claim", choiceArgument: { resolutionCid: res.createdEvent.contractId } } }
+        : { ExerciseCommand: { templateId: TEMPLATE_IDS.Leg, contractId: l.cid, choice: "Leg_RefundStale", choiceArgument: {} } };
+      if (input.venue.dryRun) {
+        notes.push(`DRY: would have exited ${l.data.marketId} for ${l.data.owner.split("::")[0]}`);
+        continue;
+      }
+      try {
+        await input.venue.client.submitAndWaitForTransaction({
+          actAs: [l.data.owner],
+          commandId: `drain-exit:${l.cid.slice(0, 48)}`,
+          commands: [command],
+          ...(res && blob ? { disclosedContracts: [{ createdEventBlob: blob, templateId: res.createdEvent.templateId, contractId: res.createdEvent.contractId, synchronizerId: res.synchronizerId }] } : {}),
+        });
+        counters.exited++;
+        notes.push(`${l.data.owner.split("::")[0]}: ${res && blob ? "claimed" : "refunded"} its stale ${l.data.marketId} leg (past refundAfter, the venue can no longer settle it)`);
+      } catch (error) {
+        if (isInactive(error)) continue;
+        counters.failed++;
+        notes.push(`exit of stale ${l.data.marketId} failed: ${failureText(error)}`);
       }
     }
     for (const seat of draining) {
