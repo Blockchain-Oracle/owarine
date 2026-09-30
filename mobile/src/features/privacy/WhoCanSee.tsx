@@ -27,7 +27,7 @@ export function WhoCanSee({ kind, holder = "You" }: { kind: SeenKind; holder?: s
         accessibilityRole="button"
         accessibilityLabel={C.aria(holder)}
         accessibilityState={{ expanded: open }}
-        hitSlop={6}
+        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
         style={[styles.badge, { borderColor: open ? color.accentDim : color.hairline, backgroundColor: color.surface1 }]}
       >
         <View style={styles.discs} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">

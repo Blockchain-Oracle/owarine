@@ -47,7 +47,9 @@ export function LinkStep({ link, enabled }: { link: XLinkState; enabled: boolean
           disabled={link.busy !== ""}
           accessibilityRole="button"
           accessibilityHint={X_SIGN_IN_ON_PHONE}
-          style={({ pressed }) => [styles.pill, { backgroundColor: t.ink }, !enabled && styles.muted, pressed && styles.pressed]}
+          accessibilityState={{ disabled: link.busy !== "", busy: link.busy === "sign-in" }}
+          // Muted while the auth session is open, as the link pill below is while it works.
+          style={({ pressed }) => [styles.pill, { backgroundColor: t.ink }, (!enabled || link.busy !== "") && styles.muted, pressed && styles.pressed]}
         >
           <XGlyph color={t.bg} />
           <Text style={[styles.pillText, { color: t.bg }]}>{TRADE_FROM_X.signIn}</Text>

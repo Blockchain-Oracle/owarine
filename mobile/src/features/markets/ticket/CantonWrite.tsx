@@ -24,7 +24,7 @@ function QuoteRing({ remainingSec }: { remainingSec: number }) {
   const circumference = 2 * Math.PI * r;
   const urgent = left > 0 && left <= URGENT_AT_SEC;
   return (
-    <View style={styles.ring} accessibilityRole="image" accessibilityLabel={T.ring.held(left)}>
+    <View style={styles.ring} accessible accessibilityRole="image" accessibilityLabel={T.ring.held(left)}>
       <Svg width={RING} height={RING} style={StyleSheet.absoluteFill}>
         <Circle cx={RING / 2} cy={RING / 2} r={r} stroke={color.hairline} strokeWidth={STROKE} fill="none" />
         <Circle

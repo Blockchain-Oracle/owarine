@@ -52,6 +52,7 @@ export function XPill({ label, onPress, glyph, disabled, hint }: { label: string
       disabled={disabled}
       accessibilityRole="button"
       accessibilityHint={hint}
+      accessibilityState={{ disabled: !!disabled }}
       style={({ pressed }) => [styles.xBtn, { backgroundColor: color.ink }, disabled ? styles.muted : null, pressed ? styles.pressed : null]}
     >
       {glyph ? (
