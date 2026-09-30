@@ -6,7 +6,7 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c from '@daml.js/abu-pm-main-0.5.0';
+import * as pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 from '@daml.js/abu-pm-main-0.5.1';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
 
@@ -25,7 +25,7 @@ export declare const DeskAction:
 export namespace DeskAction {
   type DeskSell = {
     marketId: string,
-    side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side,
+    side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
     lots: damlTypes.Int,
     priceTicks: damlTypes.Int,
     referenceTicks: damlTypes.Int,
@@ -34,7 +34,7 @@ export namespace DeskAction {
   }
   type DeskTrade = {
     marketId: string,
-    side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side,
+    side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
     lots: damlTypes.Int,
     priceTicks: damlTypes.Int,
     referenceTicks: damlTypes.Int,
@@ -66,7 +66,7 @@ export declare const DeskDecision:
 
 export declare type DeskHolding = {
   marketId: string,
-  side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side,
+  side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
   lots: damlTypes.Int,
   refundAfter: damlTypes.Time,
 }
@@ -78,7 +78,7 @@ export declare type DeskMandate = {
   venue: damlTypes.Party,
   owner: damlTypes.Party,
   operator: damlTypes.Optional<damlTypes.Party>,
-  grant: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Grant.AgentGrant,
+  grant: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Grant.AgentGrant,
   allowList: string[],
   maxPremiumBps: damlTypes.Int,
   attestors: damlTypes.Party[],
@@ -98,7 +98,7 @@ export declare interface DeskMandateInterface {
     damlTypes.Choice<DeskMandate, Mandate_Checkpoint, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DeskMandate>, damlTypes.ContractId<DeskDecision>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DeskMandate, undefined>>;
   Mandate_Close: 
-    damlTypes.Choice<DeskMandate, Mandate_Close, damlTypes.Optional<damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<DeskMandate, Mandate_Close, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DeskMandate, undefined>>;
   Mandate_Deposit: 
     damlTypes.Choice<DeskMandate, Mandate_Deposit, damlTypes.ContractId<DeskMandate>, undefined> &
@@ -125,13 +125,13 @@ export declare interface DeskMandateInterface {
     damlTypes.Choice<DeskMandate, Mandate_SetOperator, damlTypes.ContractId<DeskMandate>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DeskMandate, undefined>>;
   Mandate_Trade: 
-    damlTypes.Choice<DeskMandate, Mandate_Trade, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<DeskMandate>, damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Leg.Leg>, damlTypes.ContractId<DeskDecision>>, undefined> &
+    damlTypes.Choice<DeskMandate, Mandate_Trade, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<DeskMandate>, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg>, damlTypes.ContractId<DeskDecision>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DeskMandate, undefined>>;
   Mandate_Unpause: 
     damlTypes.Choice<DeskMandate, Mandate_Unpause, damlTypes.ContractId<DeskMandate>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DeskMandate, undefined>>;
   Mandate_Withdraw: 
-    damlTypes.Choice<DeskMandate, Mandate_Withdraw, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DeskMandate>, damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<DeskMandate, Mandate_Withdraw, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<DeskMandate>, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<DeskMandate, undefined>>;
 }
 export declare const DeskMandate:
@@ -143,7 +143,7 @@ export declare type DeskMark = {
   attestor: damlTypes.Party,
   venue: damlTypes.Party,
   marketId: string,
-  side: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Types.Side,
+  side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
   refTicks: damlTypes.Int,
   fetchedAt: damlTypes.Time,
 }
@@ -186,11 +186,11 @@ export declare const DeskOffer:
 
 export declare type DeskOffer_Open = {
   operator: damlTypes.Party,
-  caps: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Grant.GrantCaps,
+  caps: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Grant.GrantCaps,
   expiresAt: damlTypes.Time,
   dayZero: damlTypes.Time,
   budget: damlTypes.Int,
-  cash: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
   allowList: string[],
   maxPremiumBps: damlTypes.Int,
   attestors: damlTypes.Party[],
@@ -219,7 +219,7 @@ export declare const Mandate_Close:
   damlTypes.Serializable<Mandate_Close>
 
 export declare type Mandate_Deposit = {
-  cash: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
 }
 
 export declare const Mandate_Deposit:
@@ -240,7 +240,7 @@ export declare const Mandate_RevokeOperator:
 
 export declare type Mandate_Sell = {
   actor: damlTypes.Party,
-  buyQuoteCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Quote.BuyQuote>,
+  buyQuoteCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Quote.BuyQuote>,
   asOf: damlTypes.Time,
   markCids: damlTypes.ContractId<DeskMark>[],
   prevHead: string,
@@ -259,7 +259,7 @@ export declare const Mandate_SetAllowList:
   damlTypes.Serializable<Mandate_SetAllowList>
 
 export declare type Mandate_SetLimits = {
-  newCaps: pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Grant.GrantCaps,
+  newCaps: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Grant.GrantCaps,
   newMaxPremiumBps: damlTypes.Int,
 }
 
@@ -282,7 +282,7 @@ export declare const Mandate_SetOperator:
 
 export declare type Mandate_Trade = {
   actor: damlTypes.Party,
-  quoteCid: damlTypes.ContractId<pkg076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c.PM.Quote.Quote>,
+  quoteCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Quote.Quote>,
   limitTicks: damlTypes.Int,
   asOf: damlTypes.Time,
   markCids: damlTypes.ContractId<DeskMark>[],

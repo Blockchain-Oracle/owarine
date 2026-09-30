@@ -17,8 +17,7 @@ export const RESTED_UP: RestedOrder = {
   marketId: REGULAR_UPCOMING.marketId,
   side: "up",
   txHash: TX_HASH,
-  node: 3,
-  seq: 17n,
+  callRef: "rc-fixture-1",
   lots: 10_000n,
   priceTicks: 550,
   contractsRaw: 10_000n * LOT_BASE,
@@ -53,21 +52,36 @@ function row(over: Partial<RestingOrderRow>): RestingOrderRow {
     expire_ts_sec: String(REGULAR_UPCOMING.tradingStartSec + 90),
     ts_sec: String(CLOCK.preTue - 3_600),
     status: "open",
-    rested_node: 3,
-    rested_seq: "17",
+    call_ref: "rc-fixture-1",
+    refunded_base: "0",
     ...over,
   };
 }
 
-/** The three faces of a scheduled call in Portfolio: before the open, resting through the Window, and expired unfilled. */
+/**
+ * The faces of a scheduled call in Portfolio: before the open, resting through the Window, and the four ways it ends
+ * (swept unfilled, filled, filled in part then swept, cancelled). An ended call keeps its row and says how it ended.
+ */
 export const RESTING_ROWS: ReadonlyArray<{ label: string; view: RestingOrderView }> = [
   { label: "resting for the open — UP at 55¢, fills within the first minute after the bell", view: restingOrderView(row({}), WINDOW, CLOCK.preTue * 1000) },
   {
     label: "resting until the lock — DOWN at 40¢ (BUY_NO at YES 600), the opt-in horizon",
-    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}2`, kind: 2, limit_price: 600, expire_ts_sec: String(REGULAR_UPCOMING.lockAtSec), rested_seq: "18" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec + 30) * 1000),
+    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}2`, kind: 2, limit_price: 600, expire_ts_sec: String(REGULAR_UPCOMING.lockAtSec), call_ref: "rc-fixture-2" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec + 30) * 1000),
   },
   {
-    label: "didn't fill — past its expiry, the stake comes back as venue credit at the lock sweep",
-    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}3`, rested_seq: "19" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec + 120) * 1000),
+    label: "didn't fill — swept at its expiry, the stake is back as venue credit",
+    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}3`, call_ref: "rc-fixture-3", status: "expired", remaining_lots: "0", refunded_base: "5500000" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec + 120) * 1000),
+  },
+  {
+    label: "filled — the venue took it at the bell, at the call's own price (now a position)",
+    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}4`, call_ref: "rc-fixture-4", status: "filled", filled_lots: "10000", remaining_lots: "0" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec + 20) * 1000),
+  },
+  {
+    label: "partly filled — 4 of 10 contracts filled, the rest swept and returned",
+    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}5`, call_ref: "rc-fixture-5", status: "expired", filled_lots: "4000", remaining_lots: "0", refunded_base: "3300000" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec + 120) * 1000),
+  },
+  {
+    label: "cancelled — before the bell, the whole stake back",
+    view: restingOrderView(row({ signature: `${TX_HASH.slice(0, -1)}6`, call_ref: "rc-fixture-6", status: "cancelled", remaining_lots: "0", refunded_base: "5500000" }), WINDOW, (REGULAR_UPCOMING.tradingStartSec - 300) * 1000),
   },
 ];

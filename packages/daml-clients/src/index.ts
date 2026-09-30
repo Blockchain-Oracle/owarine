@@ -50,6 +50,10 @@ export const TEMPLATE_IDS = {
   // 0.5.0 (K-092, K-200): the maker vault's book and its on-ledger statement.
   MakerDesk: PM.Maker.MakerDesk.templateId,
   BookReceipt: PM.Book.BookReceipt.templateId,
+  // 0.5.1 (K-235): the pre-open resting call.
+  RestingDesk: PM.Resting.RestingDesk.templateId,
+  RestingOffer: PM.Resting.RestingOffer.templateId,
+  RestingCall: PM.Resting.RestingCall.templateId,
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATE_IDS;

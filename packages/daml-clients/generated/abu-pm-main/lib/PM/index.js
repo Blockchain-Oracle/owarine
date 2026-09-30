@@ -17,6 +17,7 @@ var Oracle = require('./Oracle');
 var Publication = require('./Publication');
 var Quote = require('./Quote');
 var Reserve = require('./Reserve');
+var Resting = require('./Resting');
 var Series = require('./Series');
 var Types = require('./Types');
 
@@ -31,5 +32,6 @@ exports.Oracle = Oracle;
 exports.Publication = Publication;
 exports.Quote = Quote;
 exports.Reserve = Reserve;
+exports.Resting = Resting;
 exports.Series = Series;
 exports.Types = Types;

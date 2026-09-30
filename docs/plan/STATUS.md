@@ -3,13 +3,13 @@
 ```
 Where it runs:  local Canton sandbox only (Canton 3.5.17, dpm 3.5.10). Noders DevNet: nothing uploaded, not onboarded. Hosted URL: none yet.
 main:           7ad5e7a (B2 BitSafe merged). This lane: slice/C10d-copy-status, 13 commits on c1eb1ff, not merged.
-Parity:         Done 0 / 221 · Partial (local sandbox) 58 / 221 · Excluded 18 / 221 · Pending 145 / 221
-Capabilities:   live 0 · local 58 · not-live 163 (of 221; docs/plan/capabilities.json)
+Parity:         Done 0 / 221 · Partial (local sandbox) 59 / 221 · Excluded 18 / 221 · Pending 144 / 221
+Capabilities:   live 0 · local 59 · not-live 162 (of 221; docs/plan/capabilities.json)
 Gates today:    30 Sep: 0 stage gates · 17 lane merges to main (C9d, B1, C10a, C2y, C10b, C2d, C8g, C11a, C2z, C13a, C3f, C4c, C4d, C4e, C8i, C10c, B2)
 Last gates:     29 Sep: 3 (C2b money gate, C1, C3)
 Fast gate:      slice/C10d on 30 Sep: typecheck green (web, mobile, packages, ops) · invariants 0 errors, 0 warnings · vitest 292 files, 2,268 tests passed, 52 skipped
 Daml gate:      188 tests + 14 setup scripts, 0 failures (B2, 30 Sep 08:24 UTC)
-DAR releases:   R1 staged in daml/released/, none on Noders: abu-pm-main 0.5.0, abu-pm-tickets 0.1.3, abu-pm-agents 0.2.1, abu-pm-games 0.1.1. abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
+DAR releases:   R1 staged in daml/released/, none on Noders: abu-pm-main 0.5.1 (replaces 0.5.0, which was never uploaded; adds the pre-open RestingCall, K-235), abu-pm-tickets 0.1.3, abu-pm-agents 0.2.1 and abu-pm-games 0.1.1 (rebuilt against main 0.5.1, new package ids). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
 Blocked on Abu: DevNet (R1) waits on Noders onboarding; iOS on device waits on the App Store Connect record; the hosted deploy waits on the domain
 ```
 
@@ -23,7 +23,7 @@ Blocked on Abu: DevNet (R1) waits on Noders onboarding; iOS on device waits on t
 |---|---|
 | **C0** fork builds | `acceptance.md` C0 rows. The Noders probes move to R1, the Coolify host probes to the first hosted deploy |
 | **C1** Canton shell | gate passed 29 Sep |
-| **C2** Daml engine | abu-pm-main 0.5.0 with the maker vault (C2d); R1 DARs and manifest in `daml/released/` |
+| **C2** Daml engine | abu-pm-main 0.5.1: the maker vault (C2d) and the pre-open resting call (C7c, K-235); R1 DARs and manifest in `daml/released/` |
 | **C2z** R1 rehearsal | `evidence/c2z-r1-rehearsal.md`: the whole R1 sequence and the four-viewpoint first call on one sandbox |
 | **C3** ledger, projector, ops | gate passed 29 Sep; C3f: a slow write pauses under the same command id |
 | **C5** proof and analytics | `ux/c5` |
@@ -71,5 +71,5 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 - The Docker images have not been built here (load too high for `next build`); the first build happens on the Coolify server.
 - The phone has never run against Canton: it typechecks and exports only.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
-- Resting calls before the bell have no Canton contract yet: the schedule button says so (C10d.2).
+- Resting calls before the bell run on the local sandbox only (C7c, K-235 to K-237): none has been placed on a hosted network, and the phone screens are typechecked, not run.
 - The web and phone still show PreStocks marks in the per-price source line and the landing band; the plan asks for written permission for any third-party mark (C-S25), and none is recorded.

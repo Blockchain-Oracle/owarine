@@ -17,7 +17,7 @@ import { issueQuote, latencySummary, parseQuoteRequest } from "./issuer";
 import { ShardPool } from "./pool";
 import { resolveQuarantine } from "./pooled-submit";
 
-export { latencySummary } from "./issuer";
+export { consume, latencySummary, leaseFrom } from "./issuer";
 export { ShardPool, type Lease, type Shard } from "./pool";
 export { submitWithShards, venueCashCreated } from "./pooled-submit";
 

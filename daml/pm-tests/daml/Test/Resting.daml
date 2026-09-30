@@ -1,0 +1,516 @@
+-- | The pre-open resting call (abu-pm-main 0.5.1, K-235): the escrow is held
+-- in the call, cancel and expiry give it back, the fill is at the call's own
+-- price and creates the same pair a normal accept does, a partial fill keeps
+-- the remainder, and every way the call can end ends it exactly once.
+--
+-- Money check used throughout, as the venue (a stakeholder of every money
+-- contract here): Σ VenueCash + Σ call escrow + Σ Leg (backing + fee) is
+-- what was credited and minted, whatever the calls do.
+--
+-- Window 1 of the fixture series is the listed one: it starts at t0 + 300,
+-- locks at t0 + 570. The default expiry is the bell + 90 s = t0 + 390.
+module Test.Resting where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.Optional (isNone)
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Resting
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- | World with window 0 trading and window 1 listed (time at t0).
+listedWorld : Script (World, Win, ContractId RestingDesk)
+listedWorld = do
+  w <- mkWorld
+  s <- mkSeries w
+  (s1, _) <- openWin w s 0
+  (_, win) <- openWin w s1 1
+  d <- submit w.venue do createCmd RestingDesk with venue = w.venue
+  pure (w, win, d)
+
+bell : Win -> Time
+bell win = win.t.tradingStart
+
+-- | The default expiry: the bell plus 90 s.
+firstMinute : Win -> Time
+firstMinute win = plus (bell win) 90
+
+offerFor : World -> ContractId RestingDesk -> Win -> Party -> Text -> Side -> Int -> Int -> Time -> Script (ContractId RestingOffer)
+offerFor w d win owner ref side lots ticks expiresAt = do
+  now <- getTime
+  submit w.venue do
+    exerciseCmd d RestDesk_Offer with
+      owner; termsCid = win.terms; callRef = ref; side; lots; priceTicks = ticks
+      expiresAt; validUntil = plus now 30
+
+-- | Offer and place with exactly the escrow in cash.
+restCall : World -> ContractId RestingDesk -> Win -> Party -> Text -> Side -> Int -> Int -> Time -> Script (ContractId RestingCall)
+restCall w d win owner ref side lots ticks expiresAt = do
+  o <- offerFor w d win owner ref side lots ticks expiresAt
+  c <- fund w owner (userStakeOf lots ticks win.t.cashUnit)
+  (call, change) <- submit owner do exerciseCmd o RestOffer_Place with cash = [c]
+  change === None
+  pure call
+
+callsOf : Party -> Script [(ContractId RestingCall, RestingCall)]
+callsOf p = query @RestingCall p
+
+-- | Cash plus escrow plus legs: the venue's whole view of the money.
+totalOf : Script (World -> Script Int)
+totalOf = pure \w -> do
+  cash <- query @VenueCash w.venue
+  calls <- query @RestingCall w.venue
+  legs <- query @Leg w.venue
+  pure (sum [c.amount | (_, c) <- cash] + sum [r.escrow | (_, r) <- calls] + sum [l.backingShare + l.feePaid | (_, l) <- legs])
+
+fillAt : World -> ContractId RestingCall -> Int -> Script (Either SubmitError RestFill)
+fillAt w call n = do
+  mc <- queryContractId w.venue call
+  -- a call that is gone gets a generous shard: the fill must fail on the call, not the shard
+  sh <- shard w (case mc of
+    Some c -> venueStakeOf n c.priceTicks c.cashUnit
+    None -> 1000000)
+  trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh; fillLots = n
+
+-- ---------------------------------------------------------------------------
+
+-- The escrow leaves the owner's cash and sits in the call; the call names
+-- everything it will be filled on.
+testPlaceHoldsEscrow = script do
+  (w, win, d) <- listedWorld
+  o <- offerFor w d win w.alice "call-1" SideUp 10 550 (firstMinute win)
+  c <- fund w w.alice 6000
+  cashOf w.alice >>= (=== 6000)
+  (call, Some change) <- submit w.alice do exerciseCmd o RestOffer_Place with cash = [c]
+  Some r <- queryContractId w.alice call
+  r.escrow === 10 * 550
+  (r.side, r.priceTicks, r.lots, r.lotsPlaced) === (SideUp, 550, 10, 10)
+  (r.tradingStart, r.expiresAt, r.termsCid) === (bell win, firstMinute win, win.terms)
+  -- the change is the rest of the cash: 6000 - 5500
+  Some ch <- queryContractId w.alice change
+  ch.amount === 500
+  cashOf w.alice >>= (=== 500)
+  -- the venue sees the call too; nothing else moved
+  Some rv <- queryContractId w.venue call
+  rv.escrow === 5500
+  -- the offer is used up
+  fails =<< trySubmit w.alice do exerciseCmd o RestOffer_Place with cash = [change]
+
+-- A DOWN call rests at the owner's own-side price, like UP.
+testDownCallEscrowIsOwnSide = script do
+  (w, win, d) <- listedWorld
+  call <- restCall w d win w.alice "call-d" SideDown 4 450 (firstMinute win)
+  Some r <- queryContractId w.venue call
+  (r.side, r.priceTicks, r.escrow) === (SideDown, 450, 4 * 450)
+
+-- The offer is the venue's consent and carries the Window's own facts.
+testOfferRules = script do
+  (w, win, d) <- listedWorld
+  let offer ref lots ticks expiresAt validUntil = trySubmit w.venue do
+        exerciseCmd d RestDesk_Offer with
+          owner = w.alice; termsCid = win.terms; callRef = ref; side = SideUp; lots; priceTicks = ticks; expiresAt; validUntil
+  -- a call must be sized and priced on the grid, named, and rest past the bell and no later than the lock
+  refusedWith (refusal "bad-grid") =<< offer "r" 0 550 (firstMinute win) (plus t0 30)
+  refusedWith (refusal "bad-grid") =<< offer "r" 5 0 (firstMinute win) (plus t0 30)
+  refusedWith (refusal "bad-grid") =<< offer "r" 5 1000 (firstMinute win) (plus t0 30)
+  refusedWith (refusal "bad-call-ref") =<< offer "" 5 550 (firstMinute win) (plus t0 30)
+  refusedWith (refusal "bad-rest-expiry") =<< offer "r" 5 550 (bell win) (plus t0 30)
+  refusedWith (refusal "bad-rest-expiry") =<< offer "r" 5 550 (plus win.t.lockAt 1) (plus t0 30)
+  _ <- succeeded =<< offer "r" 5 550 win.t.lockAt (plus t0 30)
+  -- the offer's own life ends at the bell however long it is asked to live
+  o <- offerFor w d win w.alice "long" SideUp 5 550 (firstMinute win)
+  Some off <- queryContractId w.alice o
+  off.validUntil === plus t0 30
+  o2 <- submit w.venue do
+    exerciseCmd d RestDesk_Offer with
+      owner = w.alice; termsCid = win.terms; callRef = "capped"; side = SideUp; lots = 5; priceTicks = 550
+      expiresAt = firstMinute win; validUntil = plus (bell win) 5000
+  Some off2 <- queryContractId w.alice o2
+  off2.validUntil === bell win
+  -- only the venue offers: nobody else can borrow its consent
+  fails =<< trySubmit w.alice do
+    exerciseCmd d RestDesk_Offer with
+      owner = w.alice; termsCid = win.terms; callRef = "x"; side = SideUp; lots = 5; priceTicks = 550
+      expiresAt = firstMinute win; validUntil = plus t0 30
+
+-- No call is offered on a Window that has started trading.
+testNoOfferAtOrAfterTheBell = script do
+  (w, win, d) <- listedWorld
+  let offer = trySubmit w.venue do
+        exerciseCmd d RestDesk_Offer with
+          owner = w.alice; termsCid = win.terms; callRef = "late"; side = SideUp; lots = 5; priceTicks = 550
+          expiresAt = firstMinute win; validUntil = bell win
+  at (plus (bell win) (-1))
+  _ <- succeeded =<< offer
+  at (bell win)
+  refusedWith deadlineExceeded =<< offer
+  at (plus (bell win) 10)
+  refusedWith deadlineExceeded =<< offer
+
+-- The owner places with their own cash only, for at least the escrow,
+-- before the offer lapses.
+testPlaceRules = script do
+  (w, win, d) <- listedWorld
+  o <- offerFor w d win w.alice "p" SideUp 10 550 (firstMinute win)
+  short <- fund w w.alice 5499
+  refusedWith (refusal "insufficient-cash") =<< trySubmit w.alice do exerciseCmd o RestOffer_Place with cash = [short]
+  bobs <- fund w w.bob 9999
+  fails =<< trySubmit w.alice do exerciseCmd o RestOffer_Place with cash = [bobs]
+  refusedWith (refusal "duplicate-cash") =<< trySubmit w.alice do exerciseCmd o RestOffer_Place with cash = [short, short]
+  -- bob cannot place alice's offer, and cannot see it
+  fails =<< trySubmit w.bob do exerciseCmd o RestOffer_Place with cash = [bobs]
+  -- past validUntil (t0 + 30) it cannot be placed
+  more <- fund w w.alice 1
+  at (plus t0 30)
+  refusedWith deadlineExceeded =<< trySubmit w.alice do exerciseCmd o RestOffer_Place with cash = [short, more]
+  -- and the venue sweeps it once the slack is over, not before
+  refusedWith deadlineNotExceeded =<< trySubmit w.venue do exerciseCmd o RestOffer_Expire
+  at (plus t0 (30 + expireSlackSec))
+  succeeded =<< trySubmit w.venue do exerciseCmd o RestOffer_Expire
+
+-- Two calls, two contracts: placing and cancelling one never touches the other.
+testTwoCallsDoNotContend = script do
+  (w, win, d) <- listedWorld
+  a <- restCall w d win w.alice "a" SideUp 3 500 (firstMinute win)
+  b <- restCall w d win w.alice "b" SideDown 3 500 (firstMinute win)
+  _ <- submit w.alice do exerciseCmd a Rest_Cancel
+  Some rb <- queryContractId w.alice b
+  rb.lots === 3
+  cashOf w.alice >>= (=== 1500)
+
+-- ---------------------------------------------------------------------------
+-- cancel
+
+testCancelRefundsTheEscrow = script do
+  (w, win, d) <- listedWorld
+  total <- totalOf
+  call <- restCall w d win w.alice "c" SideUp 10 550 (firstMinute win)
+  cashOf w.alice >>= (=== 0)
+  before <- total w
+  refund <- submit w.alice do exerciseCmd call Rest_Cancel
+  Some r <- queryContractId w.alice refund
+  (r.amount, r.owner, r.venue) === (5500, w.alice, w.venue)
+  cashOf w.alice >>= (=== 5500)
+  total w >>= (=== before)
+  calls <- callsOf w.venue
+  length calls === 0
+
+-- Cancel is open any time before the call is gone: before the bell, at it,
+-- after expiry.
+testCancelAnyTime = script do
+  (w, win, d) <- listedWorld
+  a <- restCall w d win w.alice "a" SideUp 2 500 (firstMinute win)
+  b <- restCall w d win w.alice "b" SideUp 2 500 (firstMinute win)
+  c <- restCall w d win w.alice "c" SideUp 2 500 (firstMinute win)
+  _ <- submit w.alice do exerciseCmd a Rest_Cancel
+  at (plus (bell win) 30)
+  _ <- submit w.alice do exerciseCmd b Rest_Cancel
+  at (plus (firstMinute win) 500)
+  _ <- submit w.alice do exerciseCmd c Rest_Cancel
+  cashOf w.alice >>= (=== 3000)
+
+-- Only the owner cancels; the venue cannot take the escrow that way.
+testVenueCannotCancelOrTakeEscrow = script do
+  (w, win, d) <- listedWorld
+  call <- restCall w d win w.alice "c" SideUp 10 550 (firstMinute win)
+  unauthorized =<< trySubmit w.venue do exerciseCmd call Rest_Cancel
+  fails =<< trySubmit w.bob do exerciseCmd call Rest_Cancel
+  -- the venue's own two choices cannot run early either
+  refusedWith deadlineNotExceeded =<< trySubmit w.venue do exerciseCmd call Rest_Expire
+  sh <- shard w 5000
+  refusedWith deadlineNotExceeded =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh; fillLots = 10
+  Some r <- queryContractId w.alice call
+  r.escrow === 5500
+
+-- ---------------------------------------------------------------------------
+-- fill
+
+-- A full fill at the bell: the owner's leg costs exactly lots * own price,
+-- and both legs are exactly what a normal accept at that price makes.
+testFillAtTheCallsPriceMakesTheSameLegs = script do
+  (w, win, d) <- listedWorld
+  total <- totalOf
+  call <- restCall w d win w.alice "c" SideUp 10 550 (firstMinute win)
+  before <- total w
+  at (bell win)
+  sh <- shard w 4500
+  after0 <- total w
+  after0 === before + 4500
+  fill <- succeeded =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh; fillLots = 10
+  fill.remaining === None
+  fill.shardChange === None
+  Some u <- queryContractId w.alice fill.userLeg
+  Some v <- queryContractId w.venue fill.venueLeg
+  (u.owner, u.outcome, u.lots, u.backingShare, u.feePaid) === (w.alice, SideUp, 10, 5500, 0)
+  (v.owner, v.outcome, v.lots, v.backingShare, v.feePaid) === (w.venue, SideDown, 10, 4500, 0)
+  u.backingShare + v.backingShare === quantityOf 10 1
+  u.pairId === v.pairId
+  -- the call is gone; the escrow and the shard became the pair, nothing else moved
+  callsOf w.venue >>= \cs -> length cs === 0
+  total w >>= (=== before + 4500)
+  cashOf w.alice >>= (=== 0)
+  -- the same pair a normal accept at 550 makes for 10 lots, fee 0
+  (nu, nv) <- trade w win w.bob SideUp 550 10 0 "n1"
+  Some nu' <- queryContractId w.bob nu
+  Some nv' <- queryContractId w.venue nv
+  (u with owner = w.bob; pairId = "x") === (nu' with pairId = "x")
+  (v with pairId = "x") === (nv' with pairId = "x")
+
+-- A partial fill takes its lots from the call at the call's price; the rest
+-- keeps resting with the escrow of the lots that remain.
+testPartialFillKeepsTheRemainder = script do
+  (w, win, d) <- listedWorld
+  total <- totalOf
+  call <- restCall w d win w.alice "c" SideDown 10 450 (firstMinute win)
+  at (plus (bell win) 5)
+  before <- total w
+  f1 <- succeeded =<< fillAt w call 3
+  Some u1 <- queryContractId w.alice f1.userLeg
+  (u1.lots, u1.backingShare, u1.outcome) === (3, 3 * 450, SideDown)
+  Some v1 <- queryContractId w.venue f1.venueLeg
+  (v1.lots, v1.backingShare, v1.outcome) === (3, 3 * 550, SideUp)
+  Some rest <- pure f1.remaining
+  Some r <- queryContractId w.alice rest
+  (r.lots, r.lotsPlaced, r.escrow, r.priceTicks, r.callRef) === (7, 10, 7 * 450, 450, "c")
+  -- the money in the system grew only by the venue shard that was minted for the fill
+  total w >>= (=== before + 3 * 550)
+  -- the second fill takes the rest, at the same price, a distinct pair
+  f2 <- succeeded =<< fillAt w rest 7
+  f2.remaining === None
+  Some u2 <- queryContractId w.alice f2.userLeg
+  (u2.lots, u2.backingShare) === (7, 7 * 450)
+  assertMsg "each fill is its own pair" (u1.pairId /= u2.pairId)
+  callsOf w.venue >>= \cs -> length cs === 0
+  total w >>= (=== before + 3 * 550 + 7 * 550)
+
+-- The remainder can still be cancelled and refunds exactly its own escrow.
+testCancelTheRemainderAfterAPartialFill = script do
+  (w, win, d) <- listedWorld
+  call <- restCall w d win w.alice "c" SideUp 10 600 (firstMinute win)
+  at (plus (bell win) 5)
+  f <- succeeded =<< fillAt w call 4
+  Some rest <- pure f.remaining
+  refund <- submit w.alice do exerciseCmd rest Rest_Cancel
+  Some r <- queryContractId w.alice refund
+  r.amount === 6 * 600
+  legs <- query @Leg w.alice
+  sum [l.lots | (_, l) <- legs] === 4
+
+-- Shard change comes back to the venue; a book's shard makes the venue leg the book's.
+testFillFromABookShardAndChange = script do
+  (w, win, d) <- listedWorld
+  call <- restCall w d win w.alice "c" SideUp 10 550 (firstMinute win)
+  at (bell win)
+  sh <- submit w.venue do
+    createCmd VenueCash with venue = w.venue; owner = w.venue; amount = 9000; bucket = "reserve:maker"
+  f <- succeeded =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh; fillLots = 10
+  Some ch <- pure f.shardChange
+  Some c <- queryContractId w.venue ch
+  (c.amount, c.bucket) === (9000 - 4500, "reserve:maker")
+  Some v <- queryContractId w.venue f.venueLeg
+  v.beneficiaryRef === Some "reserve:maker"
+  Some u <- queryContractId w.alice f.userLeg
+  u.beneficiaryRef === None
+
+-- What the venue cannot do with a call.
+testFillRefusals = script do
+  (w, win, d) <- listedWorld
+  call <- restCall w d win w.alice "c" SideUp 10 550 (firstMinute win)
+  -- before the bell
+  at (plus (bell win) (-1))
+  sh0 <- shard w 4500
+  refusedWith deadlineNotExceeded =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = 10
+  at (bell win)
+  -- more than remains, none, negative
+  refusedWith (refusal "bad-fill") =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = 11
+  refusedWith (refusal "bad-fill") =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = 0
+  refusedWith (refusal "bad-fill") =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = (-3)
+  -- a shard too small for the venue's stake, or one that is not the venue's
+  small <- shard w 4499
+  refusedWith (refusal "shard-too-small") =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = small; fillLots = 10
+  users <- fund w w.bob 9000
+  refusedWith (refusal "bad-shard") =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = users; fillLots = 10
+  -- nobody but the venue fills
+  unauthorized =<< trySubmit w.alice do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = 10
+  fails =<< trySubmit w.bob do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = 10
+  -- after expiry
+  at (firstMinute win)
+  refusedWith deadlineExceeded =<< trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh0; fillLots = 10
+  -- the call held all along: the owner's escrow is untouched
+  Some r <- queryContractId w.alice call
+  (r.lots, r.escrow) === (10, 5500)
+  -- and the venue's pre-bell shard is still its own
+  Some s <- queryContractId w.venue sh0
+  s.amount === 4500
+
+-- The last second before expiry fills; the second it is over, it expires.
+testFillAndExpireAreComplements = script do
+  (w, win, d) <- listedWorld
+  a <- restCall w d win w.alice "a" SideUp 2 500 (firstMinute win)
+  b <- restCall w d win w.alice "b" SideUp 2 500 (firstMinute win)
+  at (plus (firstMinute win) (-1))
+  refusedWith deadlineNotExceeded =<< trySubmit w.venue do exerciseCmd a Rest_Expire
+  _ <- succeeded =<< fillAt w a 2
+  at (firstMinute win)
+  refusedWith deadlineExceeded =<< fillAt w b 2
+  refund <- submit w.venue do exerciseCmd b Rest_Expire
+  Some r <- queryContractId w.alice refund
+  (r.amount, r.owner) === (1000, w.alice)
+
+-- ---------------------------------------------------------------------------
+-- expiry
+
+testExpiryRefundsTheRemainingEscrow = script do
+  (w, win, d) <- listedWorld
+  total <- totalOf
+  call <- restCall w d win w.alice "c" SideUp 10 550 (firstMinute win)
+  before <- total w
+  at (plus (bell win) 5)
+  f <- succeeded =<< fillAt w call 4
+  Some rest <- pure f.remaining
+  mid <- total w
+  at (firstMinute win)
+  refund <- submit w.venue do exerciseCmd rest Rest_Expire
+  Some r <- queryContractId w.alice refund
+  r.amount === 6 * 550
+  cashOf w.alice >>= (=== 6 * 550)
+  -- the expiry moved the escrow back and nothing else
+  total w >>= (=== mid)
+  mid === before + 4 * 450
+  calls <- callsOf w.venue
+  length calls === 0
+
+-- A call that opted to rest until the lock stays fillable until then.
+testRestUntilLock = script do
+  (w, win, d) <- listedWorld
+  call <- restCall w d win w.alice "c" SideUp 5 550 win.t.lockAt
+  at (plus (firstMinute win) 60)
+  f <- succeeded =<< fillAt w call 5
+  f.remaining === None
+  Some u <- queryContractId w.alice f.userLeg
+  u.backingShare === 5 * 550
+
+-- ---------------------------------------------------------------------------
+-- exactly once
+
+testFilledEndsExactlyOnce = script do
+  (w, win, d) <- listedWorld
+  a <- restCall w d win w.alice "a" SideUp 2 500 (firstMinute win)
+  at (bell win)
+  _ <- succeeded =<< fillAt w a 2
+  fails =<< trySubmit w.alice do exerciseCmd a Rest_Cancel
+  fails =<< fillAt w a 2
+  at (firstMinute win)
+  fails =<< trySubmit w.venue do exerciseCmd a Rest_Expire
+
+testCancelledEndsExactlyOnce = script do
+  (w, win, d) <- listedWorld
+  b <- restCall w d win w.alice "b" SideUp 2 500 (firstMinute win)
+  _ <- submit w.alice do exerciseCmd b Rest_Cancel
+  at (bell win)
+  fails =<< fillAt w b 2
+  at (firstMinute win)
+  fails =<< trySubmit w.venue do exerciseCmd b Rest_Expire
+  fails =<< trySubmit w.alice do exerciseCmd b Rest_Cancel
+
+testExpiredEndsExactlyOnce = script do
+  (w, win, d) <- listedWorld
+  c <- restCall w d win w.alice "c" SideUp 2 500 (firstMinute win)
+  at (firstMinute win)
+  _ <- submit w.venue do exerciseCmd c Rest_Expire
+  fails =<< fillAt w c 2
+  fails =<< trySubmit w.alice do exerciseCmd c Rest_Cancel
+  fails =<< trySubmit w.venue do exerciseCmd c Rest_Expire
+  cashOf w.alice >>= (=== 1000)
+
+-- Fill against cancel on the same instant: exactly one lands, the money is whole either way.
+testFillVersusCancelIsOneOrTheOther = script do
+  (w, win, d) <- listedWorld
+  total <- totalOf
+  call <- restCall w d win w.alice "c" SideUp 4 500 (firstMinute win)
+  at (plus (bell win) 3)
+  sh <- shard w 2000
+  before <- total w
+  a <- trySubmit w.alice do exerciseCmd call Rest_Cancel
+  b <- trySubmit w.venue do exerciseCmd call Rest_Fill with shardCid = sh; fillLots = 4
+  case (a, b) of
+    (Right _, Left _) -> total w >>= (=== before)
+    _ -> abort "the cancel should have won and the fill failed"
+  legs <- query @Leg w.alice
+  length legs === 0
+
+-- ---------------------------------------------------------------------------
+-- privacy
+
+-- Only the owner and the venue see a call or its offer.
+testOnlyOwnerAndVenueSeeACall = script do
+  (w, win, d) <- listedWorld
+  o <- offerFor w d win w.alice "c" SideUp 3 500 (firstMinute win)
+  offersBefore <- query @RestingOffer w.bob
+  length offersBefore === 0
+  c <- fund w w.alice 1500
+  (call, _) <- submit w.alice do exerciseCmd o RestOffer_Place with cash = [c]
+  forA_ [w.bob, w.outsider, w.resolver, w.auditor] \p -> do
+    cs <- query @RestingCall p
+    length cs === 0
+    os <- query @RestingOffer p
+    length os === 0
+    ds <- query @RestingDesk p
+    length ds === 0
+    x <- queryContractId p call
+    assertMsg "an outsider cannot read the call" (isNone x)
+  mine <- callsOf w.alice
+  length mine === 1
+  theirs <- callsOf w.venue
+  length theirs === 1
+  -- the venue's desk is the venue's alone
+  ownDesk <- query @RestingDesk w.alice
+  length ownDesk === 0
+  -- a fill leaves the bettor's leg visible to the owner and venue only, as any accept does
+  at (bell win)
+  f <- succeeded =<< fillAt w call 3
+  Some _ <- queryContractId w.alice f.userLeg
+  bobLegs <- query @Leg w.bob
+  length bobLegs === 0
+
+-- ---------------------------------------------------------------------------
+-- conservation
+
+-- A fixed sequence over several owners, sizes, prices and endings: the
+-- money the venue sees is Σ credited + Σ shards minted, at every step.
+testConservationAcrossEndings = script do
+  (w, win, d) <- listedWorld
+  total <- totalOf
+  t0' <- total w
+  t0' === 0
+  a <- restCall w d win w.alice "a" SideUp 10 550 (firstMinute win)
+  b <- restCall w d win w.bob "b" SideDown 8 300 (firstMinute win)
+  c <- restCall w d win w.alice "c" SideUp 6 700 win.t.lockAt
+  total w >>= (=== 5500 + 2400 + 4200)
+  _ <- submit w.alice do exerciseCmd c Rest_Cancel
+  total w >>= (=== 5500 + 2400 + 4200)   -- the refund is cash again
+  at (plus (bell win) 2)
+  fa <- succeeded =<< fillAt w a 6       -- a shard of 6 * 450 is minted
+  total w >>= (=== 5500 + 2400 + 4200 + 6 * 450)
+  fb <- succeeded =<< fillAt w b 8       -- the venue's stake at DOWN 300 is 8 * 700
+  total w >>= (=== 5500 + 2400 + 4200 + 6 * 450 + 8 * 700)
+  Some restA <- pure fa.remaining
+  at (firstMinute win)
+  _ <- submit w.venue do exerciseCmd restA Rest_Expire
+  total w >>= (=== 5500 + 2400 + 4200 + 6 * 450 + 8 * 700)
+  fb.remaining === None
+  -- every pair fully backed
+  legs <- query @Leg w.venue
+  let byPair p = [l | (_, l) <- legs, l.pairId == p]
+  forA_ [fa.userLeg, fb.userLeg] \cid -> do
+    Some u <- queryContractId w.venue cid
+    case [l | l <- byPair u.pairId, l.owner == w.venue] of
+      [v] -> u.backingShare + v.backingShare === quantityOf u.lots u.cashUnit
+      other -> abort ("expected one venue leg for the pair, got " <> show (length other))

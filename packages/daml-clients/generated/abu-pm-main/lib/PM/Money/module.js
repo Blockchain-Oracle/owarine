@@ -37,7 +37,7 @@ exports.Invite_Withdraw = {
 exports.VenueAccount = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Money:VenueAccount',
-    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Money:VenueAccount',
+    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Money:VenueAccount',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -93,12 +93,12 @@ exports.VenueAccount = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.VenueAccount, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.VenueAccount, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
 
 exports.VenueAccountInvite = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Money:VenueAccountInvite',
-    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Money:VenueAccountInvite',
+    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Money:VenueAccountInvite',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -154,7 +154,7 @@ exports.VenueAccountInvite = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.VenueAccountInvite, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.VenueAccountInvite, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
 
 exports.VenueAccount_Close = {
   decoder: damlTypes.lazyMemo(function () {
@@ -184,7 +184,7 @@ exports.VenueAccount_Credit = {
 exports.VenueCash = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Money:VenueCash',
-    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Money:VenueCash',
+    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Money:VenueCash',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -254,7 +254,7 @@ exports.VenueCash = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.VenueCash, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.VenueCash, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
 
 exports.VenueCash_Merge = {
   decoder: damlTypes.lazyMemo(function () {

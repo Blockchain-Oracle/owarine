@@ -164,7 +164,16 @@ export function openQuotes(quotes: readonly QuoteView[]): OpenQuoteRow[] {
   }));
 }
 
-/** When the seat is next idle: its last open leg's refund deadline or live quote's expiry (the lease's busy clock). */
-export function busyUntilMs(snap: Pick<SeatSnapshot, "legs" | "quotes" | "buyQuotes">): number {
-  return Math.max(0, ...snap.legs.map((l) => l.refundAfterMs), ...snap.quotes.map((q) => q.validUntilMs), ...(snap.buyQuotes ?? []).map((q) => q.validUntilMs));
+/**
+ * When the seat is next idle: its last open leg's refund deadline or live quote's expiry (the lease's busy clock). A
+ * resting call holds the seat's cash until it ends (C7c), so its expiry counts too: a seat is never drained under one.
+ */
+export function busyUntilMs(snap: Pick<SeatSnapshot, "legs" | "quotes" | "buyQuotes" | "restingCalls">): number {
+  return Math.max(
+    0,
+    ...snap.legs.map((l) => l.refundAfterMs),
+    ...snap.quotes.map((q) => q.validUntilMs),
+    ...(snap.buyQuotes ?? []).map((q) => q.validUntilMs),
+    ...(snap.restingCalls ?? []).map((c) => c.expiresAtMs),
+  );
 }

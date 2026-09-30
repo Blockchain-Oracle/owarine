@@ -22,12 +22,13 @@ function recordingReader() {
     walletActions: record("actions"),
     walletReceipts: record("receipts"),
     orders: record("orders"),
+    restingCalls: record("resting"),
   } as unknown as IndexReader;
   return { reader, calls };
 }
 
 describe("wallet reads run under the seat's lease", () => {
-  it.each(["fills", "positions", "actions", "receipts", "orders"])("%s asks for the lease and passes it to the reader", async (resource) => {
+  it.each(["fills", "positions", "actions", "receipts", "orders", "resting"])("%s asks for the lease and passes it to the reader", async (resource) => {
     const resolved = resolveIndexQuery(["wallet", ADDRESS, resource], {}, "abu-pm-main");
     expect(resolved).toMatchObject({ scope: "wallet", owner: ADDRESS, seatLease: true });
     const { reader, calls } = recordingReader();

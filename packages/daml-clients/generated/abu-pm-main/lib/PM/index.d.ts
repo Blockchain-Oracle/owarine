@@ -9,6 +9,7 @@ import * as Oracle from './Oracle';
 import * as Publication from './Publication';
 import * as Quote from './Quote';
 import * as Reserve from './Reserve';
+import * as Resting from './Resting';
 import * as Series from './Series';
 import * as Types from './Types';
 
@@ -23,5 +24,6 @@ export { Oracle };
 export { Publication };
 export { Quote };
 export { Reserve };
+export { Resting };
 export { Series };
 export { Types };

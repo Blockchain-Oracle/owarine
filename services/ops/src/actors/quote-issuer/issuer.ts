@@ -45,15 +45,20 @@ export interface IssuerDeps {
  * Throws `PoolBusyError` when the desk's pool has nothing either.
  */
 export async function leaseFor(d: IssuerDeps, book: boolean, amount: bigint, purpose: string): Promise<{ pool: ShardPool; lease: Lease; book: boolean }> {
-  if (book && d.maker) {
+  return leaseFrom(d.pool, d.maker ?? null, book, amount, purpose);
+}
+
+/** `leaseFor` over a pool and a maker vault directly: the resting desk's fills draw from the same shards as quotes (C7c). */
+export async function leaseFrom(pool: ShardPool, maker: MakerVault | null, book: boolean, amount: bigint, purpose: string): Promise<{ pool: ShardPool; lease: Lease; book: boolean }> {
+  if (book && maker) {
     try {
-      return { pool: d.maker.pool, lease: await d.maker.pool.lease(amount, `maker ${purpose}`), book: true };
+      return { pool: maker.pool, lease: await maker.pool.lease(amount, `maker ${purpose}`), book: true };
     } catch (error) {
       if (!(error instanceof PoolBusyError)) throw error;
       // The vault's idle cash does not cover it right now: the desk quotes instead.
     }
   }
-  return { pool: d.pool, lease: await d.pool.lease(amount, purpose), book: false };
+  return { pool, lease: await pool.lease(amount, purpose), book: false };
 }
 
 export interface QuoteRequest {

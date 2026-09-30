@@ -1,6 +1,7 @@
 /**
- * A wallet's resting calls (D-088) from the index: the existing `wallet/{addr}/orders?open=1` rows, joined to their
- * Windows' index rows and Series grids, projected by core `restingOrderView`. No new route: an order row names its
+ * A wallet's resting calls (D-088) from the index: `wallet/{addr}/resting` rows (0.5.1, K-235), joined to their Windows'
+ * index rows and Series grids, projected by core `restingOrderView`. Live calls and the ones that ended (filled, swept
+ * unfilled, cancelled) come together, newest placement first, so the portfolio can say how each ended. A row names its
  * Window, the Window row names its Series, and the Series facts are cached for the runtime's life.
  */
 import { restingOrderView, sortRestingViews, type RestingOrderRow, type RestingOrderView } from "@agari/core/projection";
@@ -12,12 +13,12 @@ import { indexRows, sec, type MarketRow } from "./index-api";
 import { withReading } from "./reading";
 import { isListable } from "./rows";
 
-/** More than a seat can ever rest (16 per Window) across the handful of Windows listed at once. */
-const OPEN_ORDERS_LIMIT = 200;
+/** More than a seat can rest (16 per Window) across the Windows listed at once, and a day's worth of ended calls. */
+const RESTING_LIMIT = 200;
 
 export async function listRestingOrders(wallet: Address): Promise<Reading<RestingOrderView[]>> {
   return withReading(`restingOrders:${wallet}`, async () => {
-    const [rows, venue] = await Promise.all([indexRows<RestingOrderRow>(`wallet/${wallet}/orders`, { open: 1, limit: OPEN_ORDERS_LIMIT }), readVenueStatic()]);
+    const [rows, venue] = await Promise.all([indexRows<RestingOrderRow>(`wallet/${wallet}/resting`, { limit: RESTING_LIMIT }), readVenueStatic()]);
     const ids = [...new Set(rows.map((row) => row.market))];
     if (ids.length === 0) return [];
     const windows = new Map((await indexRows<MarketRow>("markets", { ids: ids.join(",") })).filter(isListable).map((row) => [row.market, row]));

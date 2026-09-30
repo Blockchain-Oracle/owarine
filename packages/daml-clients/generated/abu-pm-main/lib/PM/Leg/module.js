@@ -22,7 +22,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.Leg = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Leg:Leg',
-    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Leg:Leg',
+    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Leg:Leg',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -158,7 +158,7 @@ exports.Leg = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Leg, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Leg, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
 
 exports.Leg_Claim = {
   decoder: damlTypes.lazyMemo(function () {
@@ -251,7 +251,7 @@ exports.Leg_Split = {
 exports.NettedResidual = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Leg:NettedResidual',
-    templateIdWithPackageId: '#076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c:PM.Leg:NettedResidual',
+    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Leg:NettedResidual',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -305,7 +305,7 @@ exports.NettedResidual = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.NettedResidual, ['076dbb9246f8d8c518d5618de206125319d0557c636246eb4fdcd6216ca3263c', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.NettedResidual, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
 
 exports.Residual_Settle = {
   decoder: damlTypes.lazyMemo(function () {

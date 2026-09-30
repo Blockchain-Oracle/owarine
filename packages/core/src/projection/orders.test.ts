@@ -28,8 +28,8 @@ const row = (over: Partial<RestingOrderRow> = {}): RestingOrderRow => ({
   expire_ts_sec: "10090",
   ts_sec: "9000",
   status: "open",
-  rested_node: 7,
-  rested_seq: "42",
+  call_ref: "call-42",
+  refunded_base: "0",
   ...over,
 });
 
@@ -42,7 +42,7 @@ describe("restingOrderView", () => {
     expect(v.escrowBase).toBe(5_500_000n);
     expect(v.status).toBe("resting-for-open");
     expect(v.restUntil).toBe("bell");
-    expect(v.handle).toEqual({ node: 7, seq: 42n });
+    expect(v.handle).toEqual({ callRef: "call-42" });
   });
 
   it("reads a DOWN call (BUY_NO at 450 YES ticks) as DOWN at 55¢ with the same escrow", () => {
@@ -66,5 +66,21 @@ describe("restingOrderView", () => {
     const b = restingOrderView(row({ signature: "b", ts_sec: "9100", status: "cancelled" }), WINDOW, 9_500_000);
     const c = restingOrderView(row({ signature: "c", ts_sec: "9200" }), WINDOW, 9_500_000);
     expect(sortRestingViews([a, b, c]).map((v) => v.id)).toEqual(["c", "a", "b"]);
+  });
+});
+
+describe("restingOrderView: how a call ended", () => {
+  it("keeps the size a call was placed for and what came back, so the portfolio can say how it ended", () => {
+    const partly = restingOrderView(row({ status: "expired", filled_lots: "4000", remaining_lots: "0", refunded_base: "3300000" }), WINDOW, 10_400_000);
+    expect(partly).toMatchObject({ status: "expired", lots: 10_000n, filledLots: 4_000n, remainingLots: 0n, escrowBase: 0n, refundedBase: 3_300_000n, handle: null });
+    expect(partly.placedContractsRaw).toBe(10_000_000n);
+    expect(partly.contractsRaw).toBe(0n);
+    const cancelled = restingOrderView(row({ status: "cancelled", remaining_lots: "0", refunded_base: "5500000" }), WINDOW, 9_600_000);
+    expect(cancelled).toMatchObject({ status: "cancelled", refundedBase: 5_500_000n, filledLots: 0n });
+  });
+
+  it("a call still resting names its call reference for the cancel, and only while it is on the book", () => {
+    expect(restingOrderView(row(), WINDOW, 10_010_000).handle).toEqual({ callRef: "call-42" });
+    expect(restingOrderView(row({ status: "filled", remaining_lots: "0", filled_lots: "10000" }), WINDOW, 10_010_000).handle).toBeNull();
   });
 });

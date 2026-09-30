@@ -13,7 +13,8 @@
  *   Quote, BuyQuote created         → idx_quotes 'issued'; quotes_issued + 1
  *   Quote(_)Accept                  → 'accepted'; Expire / Withdraw → row deleted, quotes_expired / _withdrawn + 1
  *   Leg created                     → idx_legs; a user leg from Quote_Accept also writes the fill (MINT), the position,
- *                                     the candle and the market's volume
+ *                                     the candle and the market's volume (a resting call's Rest_Fill does too, marked `resting`)
+ *   RestingCall created / consumed  → idx_resting (0.5.1, `apply-rest.ts`): a row per call, kept when it ends
  *   BuyQuote_Accept                 → a SELL fill (DIRECT) for the sold lots; the archived user leg closes as 'sold' and a
  *                                     partial sale's remainder opens as a new user leg (origin 'buyback')
  *   Leg exits                       → Leg_Settle 'settled' (by crank), Leg_Claim 'claimed', Leg_RefundStale
@@ -29,6 +30,7 @@
 import type postgres from "postgres";
 import { LANE_BASES } from "@agari/core/types";
 import { parseLaneKey } from "@agari/core/market";
+import { restCallRow, restClosedRow } from "./apply-rest";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
 import type { IdxEvidence, IdxFact, IdxUpdate } from "./types";
 
@@ -182,6 +184,8 @@ interface Trade {
   fee: string;
   cashUnit: string;
   nodeId: number;
+  /** 0.5.1: filled from a resting call (the seat's activity reads it as such). */
+  resting?: boolean;
 }
 
 /** One fill: the tape row, the owner's position, the market's volume and the minute candle. */
@@ -192,7 +196,7 @@ async function trade(c: Ctx, t: Trade): Promise<void> {
   const fill = {
     update_id: c.u.updateId, node_id: t.nodeId, ledger_offset: c.u.offset, market: t.market, terms_cid: t.termsCid, quote_cid: t.quoteCid,
     leg_cid: t.legCid, pair_id: t.pairId, owner_party: t.owner, venue_party: c.venue, side: t.side, kind, path, price_ticks: yesTicks,
-    side_ticks: t.sideTicks, lots: t.lots, fee: t.fee, cash_unit: t.cashUnit, ts_sec: c.tsSec,
+    side_ticks: t.sideTicks, lots: t.lots, fee: t.fee, cash_unit: t.cashUnit, ts_sec: c.tsSec, resting: t.resting === true,
   };
   const inserted = await c.tx`INSERT INTO idx_fills ${c.tx(fill)} ON CONFLICT (update_id, node_id) DO NOTHING RETURNING 1`;
   if (inserted.length === 0) return;
@@ -240,7 +244,7 @@ async function leg(c: Ctx, f: Fact<"leg">): Promise<void> {
     const sideTicks = sideTicksOf(f.backingShare, f.lots, f.cashUnit);
     await trade(c, {
       market, termsCid: f.termsCid, quoteCid: f.quoteCid, legCid: f.contractId, pairId: f.pairId, owner: f.owner, side: f.outcome, buy: true,
-      sideTicks, lots: f.lots, fee: f.feePaid, cashUnit: f.cashUnit, nodeId: f.acceptNodeId,
+      sideTicks, lots: f.lots, fee: f.feePaid, cashUnit: f.cashUnit, nodeId: f.acceptNodeId, resting: f.resting === true,
     });
   } else {
     await c.tx`
@@ -349,6 +353,11 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
     case "quote": return quote(c, f);
     case "quote-closed": return quoteClosed(c, f);
     case "leg": return leg(c, f);
+    case "rest-call": {
+      const market = await marketOf(c, f.termsCid, f.marketKey);
+      return market ? restCallRow(c.tx, c.u, c.tsSec, f, market) : undefined;
+    }
+    case "rest-closed": return restClosedRow(c.tx, c.u, c.tsSec, f);
     case "sale": return sale(c, f);
     case "leg-closed": return legClosed(c, f);
     case "publication": return publication(c, f);

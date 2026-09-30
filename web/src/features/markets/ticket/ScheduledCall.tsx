@@ -98,9 +98,9 @@ interface ScheduledCallProps {
   onAnother: () => void;
 }
 
-/** The live receipt: Cancel sends `user_cancel_orders` on the call's own handle. */
+/** The live receipt: Cancel sends `Rest_Cancel` on the call's own reference. */
 export function ScheduledCall({ rested, market, decimals, symbol, onAnother }: ScheduledCallProps) {
   const c = useCancelResting();
-  const cancel: ScheduledCallCancel | null = c.canSign ? { busy: c.busy, note: c.note, done: c.done, onCancel: () => void c.cancel(rested.marketId, [{ node: rested.node, seq: rested.seq }]) } : null;
+  const cancel: ScheduledCallCancel | null = c.canSign ? { busy: c.busy, note: c.note, done: c.done, onCancel: () => void c.cancel(rested.marketId, [{ callRef: rested.callRef }]) } : null;
   return <ScheduledCallView rested={rested} market={market} decimals={decimals} symbol={symbol} cancel={cancel} onAnother={onAnother} />;
 }
