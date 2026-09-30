@@ -9,7 +9,9 @@ vi.mock("@agari/markets", () => ({ readRecoveryCursor: async () => ({ ok: true, 
 vi.mock("@agari/markets/vault", () => ({ getVaultGrant: mocks.grant, listVaultTallies: mocks.tallies, recoverVaultExecution: mocks.recover }));
 vi.mock("@agari/markets/strategies", () => ({ listStrategySubscribers: mocks.subscribers }));
 
-import { executeForSubscriber } from "./execute";
+import { utcDayOf, type VaultGrant } from "@agari/core/vault";
+import golden from "../../../../../packages/core/src/vault/caps.vectors.json";
+import { capsOnQuote, executeForSubscriber } from "./execute";
 import { readAgentRecord, settlementReader } from "./agent-record";
 import { reconcileRunnerAttempts, serialCycle, settleStrategyPositions } from "./lifecycle";
 
@@ -19,6 +21,8 @@ const MARKET = encodeBase58(new Uint8Array(32).fill(0x33));
 const HASH = encodeBase58(new Uint8Array(64).fill(0x44));
 const ok = <T>(value: T) => ({ ok: true as const, value, stale: false, asOfMs: 0 });
 const grant = { grantId: 9n, owner: OWNER, actor: RUNNER, kind: "strategy", revoked: false, expiresAtSec: 10_000, spentDay: 0, spentTodayBase: 0n, openPositions: 0, budgetBase: 5_000_000n, caps: { maxStakePerTradeBase: 1_000_000n, maxDailySpendBase: 5_000_000n, maxOpenPositions: 1, maxPriceRaw: 0n } };
+/** A fresh quote inside the grant's caps: 2 contracts for 0.92 at 0.46 each. */
+const QUOTE = { contractsRaw: 2_000_000n, expectedCostBase: 920_000n, maxCostBase: 1_000_000n, limitPriceRaw: 460_000n };
 const recordedFill = { txHash: HASH, strategyId: "1", grantId: "9", owner: OWNER, marketId: MARKET, side: "up", cashDelta: "100", tokenDelta: "200", atSec: 1_000, dryRun: false };
 const session = { address: RUNNER, contracts: { signer: RUNNER, deployment: null }, submitter: { submitOrder: mocks.send, submitTx: mocks.settle } } as unknown as SubmitterSession;
 const input = { session, sub: { strategyId: 1n, subscriber: OWNER, grantId: 9n } as StrategySubscription, market: { marketId: MARKET, asset: "TSLA", decimals: 6, intervalSec: 900 } as unknown as EventMarket, decision: { side: "up" as const, moveBps: 20, thresholdBps: 10, reason: "trend" }, nowMs: 1_000_000, dryRun: false };
@@ -30,7 +34,7 @@ beforeEach(() => {
   mocks.snapshot.mockResolvedValue(ok({ grants: { strategy: grant } }));
   mocks.onchain.mockResolvedValue(ok({ marketId: MARKET, status: 1, expirySec: 3_000, isResolved: false, isVoided: false }));
   mocks.holdings.mockResolvedValue(ok({ upRaw: 0n, downRaw: 0n, upGrantId: 0n, downGrantId: 0n }));
-  mocks.quote.mockResolvedValue(ok({}));
+  mocks.quote.mockResolvedValue(ok(QUOTE));
   mocks.owners.mockResolvedValue([]);
   mocks.subscribers.mockResolvedValue([]);
   mocks.fills.mockResolvedValue([recordedFill]);
@@ -194,5 +198,52 @@ describe("risk memory and scheduling", () => {
     finish(); await first; await run(); await run();
     expect(tick).toHaveBeenCalledTimes(3);
     expect(errors).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("the runner respects the grant's caps before it sends (C8i)", () => {
+  it("holds a Window when the grant is at its open-position cap: nothing is reserved, nothing is sent", async () => {
+    mocks.snapshot.mockResolvedValue(ok({ grants: { strategy: { ...grant, openPositions: 1 } } }));
+    const r = await executeForSubscriber(input);
+    expect(r).toMatchObject({ status: "skipped" });
+    expect(r.status === "skipped" && r.reason).toContain("open-position cap (1 open)");
+    expect(mocks.begin).not.toHaveBeenCalled();
+    expect(mocks.send).not.toHaveBeenCalled();
+    // The Window is not marked refused: once a position closes, the next cycle may enter it.
+    expect(mocks.finish).not.toHaveBeenCalled();
+  });
+
+  it("holds on the grant's price cap at the quote's own price", async () => {
+    mocks.snapshot.mockResolvedValue(ok({ grants: { strategy: { ...grant, caps: { ...grant.caps, maxPriceRaw: 400_000n } } } }));
+    const r = await executeForSubscriber(input);
+    expect(r.status === "skipped" && r.reason).toContain("price cap");
+    expect(mocks.send).not.toHaveBeenCalled();
+  });
+
+  it("sends when every cap has room", async () => {
+    mocks.send.mockResolvedValue({ status: "confirmed", booked: { txHash: HASH, costBase: 920_000n, contractsRaw: 2_000_000n } });
+    expect((await executeForSubscriber(input)).status).toBe("filled");
+    expect(mocks.send).toHaveBeenCalledTimes(1);
+  });
+
+  describe("on the reference's caps vectors (the quote's price is the limit on Canton)", () => {
+    const ONE = 1_000_000n;
+    const NOW = 1_788_400_000;
+    type V = { name: string; caps: { maxStakePerTrade: string; maxDailySpend: string; maxOpenPositions: number; maxPriceRaw: string }; budget: string; expired: boolean; prior: { outcomeIdx: 0 | 1; priceRaw: string; quantityRaw: string } | null; order: { outcomeIdx: 0 | 1; priceRaw: string; quantityRaw: string }; expect: { ok: true } | { ok: false; refusal: string } };
+    const side = (idx: 0 | 1, yes: bigint) => (idx === 0 ? yes : ONE - yes);
+    const cost = (o: V["order"]) => (side(o.outcomeIdx, BigInt(o.priceRaw)) * BigInt(o.quantityRaw)) / ONE;
+    const words: Record<string, string> = { stake: "per-trade cap", daily: "daily cap", escrow: "does not cover", price: "price cap", positions: "open-position cap", expired: "grant expired" };
+    for (const v of (golden as unknown as { vectors: V[] }).vectors.filter((x) => x.expect.ok || x.expect.refusal !== "venue")) {
+      it(v.name, () => {
+        const prior = v.prior ? cost(v.prior) : 0n;
+        const g: VaultGrant = {
+          ...grant, revoked: false, expiresAtSec: v.expired ? NOW - 1 : NOW + 86_400, spentDay: utcDayOf(NOW), spentTodayBase: prior, openPositions: v.prior ? 1 : 0, budgetBase: BigInt(v.budget) - prior,
+          caps: { maxStakePerTradeBase: BigInt(v.caps.maxStakePerTrade), maxDailySpendBase: BigInt(v.caps.maxDailySpend), maxOpenPositions: v.caps.maxOpenPositions, maxPriceRaw: BigInt(v.caps.maxPriceRaw) },
+        } as VaultGrant;
+        const verdict = capsOnQuote(g, { contractsRaw: BigInt(v.order.quantityRaw), expectedCostBase: cost(v.order) }, 6, NOW);
+        if (v.expect.ok) expect(verdict).toEqual({ ok: true });
+        else expect(verdict.ok === false && verdict.reason).toContain(words[v.expect.refusal]);
+      });
+    }
   });
 });

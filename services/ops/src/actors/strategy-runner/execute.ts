@@ -1,7 +1,7 @@
 import { isOk } from "@agari/core/schemas";
-import { dailyHeadroomBase, type VaultGrant } from "@agari/core/vault";
+import { dailyHeadroomBase, simulateCaps, type CapRefusal, type VaultGrant } from "@agari/core/vault";
 import { sideForSubscriber, type Decision, type StrategyFill, type StrategySubscription } from "@agari/core/strategies";
-import { toMarketId, type EventMarket, type MarketId } from "@agari/core/types";
+import { toMarketId, type EventMarket, type MarketId, type Quote } from "@agari/core/types";
 import { msToSec } from "@agari/core/units";
 import { marketsProvider, readRecoveryCursor } from "@agari/markets";
 import type { AgentSession } from "../agents/session";
@@ -38,6 +38,34 @@ async function readGrant(owner: StrategySubscription["subscriber"], grantId: big
   if (!snapshot.value) return { kind: "none" };
   const grant = snapshot.value.grants.strategy;
   return grant && grant.grantId === grantId ? { kind: "grant", grant } : { kind: "none" };
+}
+
+/** Why the grant holds this Window, in the runner report's words. */
+function capWords(r: CapRefusal): string {
+  switch (r.kind) {
+    case "revoked": return "grant revoked";
+    case "expired": return "grant expired";
+    case "positions": return `the grant is at its open-position cap (${r.cap} open); holding until one closes`;
+    case "stake": return `the charge ${r.spendBase} is over the per-trade cap ${r.capBase}; holding`;
+    case "daily": return `today's spend would reach ${r.wouldBeBase}, over the daily cap ${r.capBase}; holding until 00:00 UTC`;
+    case "escrow": return `the grant's budget ${r.budgetBase} does not cover ${r.worstBase}; holding`;
+    case "price": return `the price ${r.sidePriceRaw} is over the grant's price cap ${r.capRaw}; holding`;
+  }
+}
+
+/**
+ * The grant's caps on this quote, before anything is reserved or sent (C8i): core `simulateCaps`, golden-tested on the
+ * reference's caps vectors, is the ledger's `capRefusal` in the same order. On Canton the runner accepts the owner's
+ * quote at the quote's own price, so the charge is also the escrow: the side price is the quote's cost per contract.
+ * The runner only enters a Window the owner does not hold, so a fill always opens a new position. A cap the grant is
+ * at is a Window to hold (skipped), never an attempt the ledger refuses and the runner then marks as not to resend.
+ */
+export function capsOnQuote(grant: VaultGrant, quote: Pick<Quote, "contractsRaw" | "expectedCostBase">, decimals: number, nowSec: number): { ok: true } | { ok: false; reason: string } {
+  if (quote.contractsRaw <= 0n) return { ok: false, reason: "nothing freshly quoted at this size; holding" };
+  const one = 10n ** BigInt(decimals);
+  const sidePriceRaw = (quote.expectedCostBase * one + quote.contractsRaw - 1n) / quote.contractsRaw;
+  const verdict = simulateCaps({ grant, nowSec, sidePriceRaw, quantityRaw: quote.contractsRaw, spendBase: quote.expectedCostBase, one, opensNewPosition: true });
+  return verdict.ok ? { ok: true } : { ok: false, reason: capWords(verdict.refusal) };
 }
 
 /**
@@ -85,6 +113,8 @@ export async function executeForSubscriber(input: {
   const target = { marketId: market.marketId, poolAddress: market.poolAddress, decimals: market.decimals, intervalSec: market.intervalSec };
   const quote = await marketsProvider.freshQuoteStake(target, side, stakeBase);
   if (!isOk(quote) || quote.stale || !quote.value) return { status: "skipped", reason: "nothing freshly quoted at this size; holding" };
+  const caps = capsOnQuote(grant, quote.value, market.decimals, msToSec(nowMs));
+  if (!caps.ok) return { status: "skipped", reason: caps.reason };
   // The recovery cursor is the ledger offset before the send: the grant order's command id is derived from it, so a
   // lost reply is found again by that id (C8f). The stored nonce stays 0.
   const cursor = session.recoveryCursor ? await session.recoveryCursor() : await readRecoveryCursor();

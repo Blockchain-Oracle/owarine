@@ -13,6 +13,7 @@
  * from (`grantBuyCommandId`), so a lost reply is recovered from the ledger's completion for that id, never re-sent.
  */
 import type { OrderOutcome } from "@agari/core/ports";
+import { marketIdFromDaml } from "@agari/core/market";
 import { diagnosis, type EventMarket, type MarketId, type Quote, type Side, type Signature } from "@agari/core/types";
 import { simulateCaps } from "@agari/core/vault";
 import { TEMPLATE_IDS } from "@agari/daml";
@@ -112,8 +113,12 @@ export function createGrantExecutor(deps: GrantExecutorDeps) {
     const view = grantView(g, nowSec);
     const one = 10n ** BigInt(AGENT_DECIMALS);
     const sidePriceRaw = i.side === "up" ? i.displayedQuote.limitPriceRaw : one - i.displayedQuote.limitPriceRaw;
-    const pre = simulateCaps({ grant: view, nowSec, sidePriceRaw, quantityRaw: i.displayedQuote.contractsRaw, spendBase: i.displayedQuote.maxCostBase, one, opensNewPosition: true });
-    if (!pre.ok && pre.refusal.kind !== "positions") return refused("grant-refused", `the grant refuses this call before it is sent: ${pre.refusal.kind}`);
+    // A position on this Window's side already open under the grant is not a new one (the ledger's `opensNew`); any
+    // other call opens one, and a grant at its open-position cap is refused here, not by the ledger (C8i).
+    const sideC = i.side === "up" ? "SideUp" : "SideDown";
+    const opensNewPosition = !g.positions.some((p) => p.refundAfterSec > nowSec && p.outcome === sideC && marketIdFromDaml(p.marketId) === i.market.marketId);
+    const pre = simulateCaps({ grant: view, nowSec, sidePriceRaw, quantityRaw: i.displayedQuote.contractsRaw, spendBase: i.displayedQuote.maxCostBase, one, opensNewPosition });
+    if (!pre.ok) return refused("grant-refused", `the grant refuses this call before it is sent: ${pre.refusal.kind}`);
 
     const reply = await deps.quotes.quote({ marketId: i.market.marketId, side: i.side, stakeBase: i.stakeBase, displayedMaxCostBase: i.displayedQuote.maxCostBase, party: i.owner, leaseId: agentLeaseId(deps.role) });
     if (reply.kind === "refused") return { status: "refused", diagnosis: reply.diagnosis };
