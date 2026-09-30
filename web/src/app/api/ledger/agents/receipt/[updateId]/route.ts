@@ -6,7 +6,8 @@ import { diagnosisReply, refusal, replyWith, seatFromRequest } from "@/lib/seat.
 /**
  * One of the seat's own transactions (C8f), read AS the leased party: `success` with the cash it paid the seat (a
  * revoke's returned budget), or `null` when the seat cannot see it. A rejected command leaves no transaction on Canton,
- * so there is no "reverted" answer here: a landed update succeeded.
+ * so there is no "reverted" answer here: a landed update succeeded. Only this lease's own updates (C4d L3): a seat party
+ * is recycled, so an update from before the lease began is an earlier visitor's and reads as `null` too.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,7 +23,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ upd
       transactionShape: "TRANSACTION_SHAPE_ACS_DELTA",
       eventFormat: { filtersByParty: { [lease.party]: { cumulative: [{ identifierFilter: { WildcardFilter: { value: {} } } }] } }, verbose: true },
     });
-    return replyWith({ receipt: tx ? { status: "success", paidBase: paidTo(tx, lease.party) } : null });
+    const ours = tx && Number(tx.offset) >= lease.startOffset ? tx : null;
+    return replyWith({ receipt: ours ? { status: "success", paidBase: paidTo(ours, lease.party) } : null });
   } catch (error) {
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);
   }
