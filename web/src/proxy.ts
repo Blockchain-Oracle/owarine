@@ -1,10 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { COUNTRY_HEADER, isRestrictedCountry, REGION_COOKIE, REGION_HEADER, RESTRICTED } from "@/lib/region-mark";
+import { visitorCountry } from "@/lib/geo/visitor-country.server";
+import { isRestrictedCountry, REGION_COOKIE, REGION_HEADER, RESTRICTED } from "@/lib/region-mark";
 
 /**
  * The geofence (D-095). Next 16 replaced `middleware.ts` with this file and the export is named `proxy`.
  *
- * Vercel stamps `x-vercel-ip-country` on every request. A restricted country — or `AGARI_REGION_OVERRIDE`
+ * The country comes from `visitorCountry`: Vercel's `x-vercel-ip-country` only on Vercel, otherwise the local DB-IP
+ * table over the trusted client address (Coolify behind Traefik, K-003). A restricted country — or `AGARI_REGION_OVERRIDE`
  * locally, so the state can be walked without a VPN — forwards `x-agari-region: restricted` to the route
  * handlers and leaves a readable `agari.region` cookie so the funded CTAs paint their disabled state on
  * the first frame instead of flashing a live control. Anything else clears the cookie, so a visitor who
@@ -18,7 +20,7 @@ const COOKIE_MAX_AGE_SEC = 60 * 60 * 24;
 
 export function proxy(request: NextRequest): NextResponse {
   const restricted =
-    isRestrictedCountry(request.headers.get(COUNTRY_HEADER)) || isRestrictedCountry(process.env.AGARI_REGION_OVERRIDE);
+    isRestrictedCountry(process.env.AGARI_REGION_OVERRIDE) || isRestrictedCountry(visitorCountry(request));
 
   if (!restricted) {
     const open = NextResponse.next();

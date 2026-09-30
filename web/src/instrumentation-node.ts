@@ -1,3 +1,4 @@
+import { warmCountryDb } from "@/lib/geo/country-db.server";
 import { checkWebServerEnv } from "@/lib/server-env";
 
 /**
@@ -17,3 +18,6 @@ if (problems.length > 0) {
   }
   console.warn(`[agari] ${report}\n  (the seat routes answer "not live" until these are set)`);
 }
+
+// The region hold's IP-to-country table (K-003): parsed once here, so the first visitor never waits on it.
+warmCountryDb();

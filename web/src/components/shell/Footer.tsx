@@ -12,9 +12,15 @@ export default function Footer() {
       <div className="container">
         <div className="footer-row">
           <span className="footer-credit">{CREDIT}</span>
-          <a href={DOCS_URL} data-cursor="hover">
-            Docs
-          </a>
+          <span>
+            <a href={DOCS_URL} data-cursor="hover">
+              Docs
+            </a>
+            {" · "}
+            <a href="/legal" data-cursor="hover">
+              Legal
+            </a>
+          </span>
         </div>
       </div>
     </footer>

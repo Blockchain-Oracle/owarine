@@ -8,7 +8,7 @@
  * trade-from-x render their disabled state instead of a control that would take money.
  */
 
-/** Vercel stamps this on every request; it is the only country signal the proxy trusts. */
+/** Vercel stamps this on every request; believed only on Vercel (`geo/visitor-country.server.ts`, K-003). */
 export const COUNTRY_HEADER = "x-vercel-ip-country";
 
 /** Stamped on the forwarded request by the proxy, so a route handler never re-derives the verdict. */

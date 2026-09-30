@@ -86,3 +86,6 @@ scripts/drive/last-run.*.json
 
 # Canton sandbox logs (dpm sandbox writes log/ in its working directory)
 log/
+
+# DB-IP IP-to-Country Lite, fetched by scripts/geo/fetch-dbip.mjs (CC BY 4.0; never committed)
+/web/data/geo/
