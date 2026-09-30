@@ -20,7 +20,6 @@ import { acmd } from "../ops/agents";
 import { decodeDeskMandate, decodeDeskMark, decodeDeskOffer, type DeskMandateC, type DeskMarkC } from "../ops/agents/decode";
 import { deskAddressOf, utcDayStartSec } from "../ops/agents/ids";
 import { activeOf, decodeVenueCash, templateSuffix } from "../ops/canton/decode";
-import { splitCash, mergeCash } from "../ops/canton/commands";
 import { damlModeOf, DESK_GRANT_DAYS, DESK_MAX_OPEN_POSITIONS, DESK_REF_QUORUM, deskStateOf, seriesOfSymbol } from "../desk/canton";
 import { createDeskLedgerRpc, mintOf, readOwnerDeskBalances, readSealsOf } from "../desk/ops";
 import type { DeskRpc, DeskState, OwnerDeskBalances, SealedAction } from "../desk/types";
@@ -28,7 +27,8 @@ import type { DeskOwnerAction, DeskWriteReply } from "../desk/wire";
 import { seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
-import { DEFAULT_COMMAND_DEADLINE_MS, selectCash, type CommandJournal, type CommandRow } from "./writes";
+import { exactCash } from "./exact-cash";
+import { DEFAULT_COMMAND_DEADLINE_MS, type CommandJournal, type CommandRow } from "./writes";
 
 export interface DeskSeatConfig {
   client: LedgerClient;
@@ -191,28 +191,8 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
   };
 
   /** A cash contract of exactly `amount` (split, merged first if no single one covers it), before a deposit. */
-  async function exactCash(actor: DeskSeatActor, journalId: string, amount: bigint): Promise<string> {
-    let snap = await read(actor.party);
-    const exact = snap.cash.find((c) => c.amount === amount);
-    if (exact) return exact.cid;
-    let cover = [...snap.cash].filter((c) => c.amount > amount).sort((a, b) => (a.amount === b.amount ? 0 : a.amount < b.amount ? -1 : 1))[0];
-    if (!cover) {
-      const picked = selectCash(snap.cash, amount);
-      if (!picked) throw refuse("insufficient-collateral", `the seat holds ${snap.cash.reduce((s, c) => s + c.amount, 0n)} and the deposit is ${amount}`);
-      const [head, ...rest] = picked as [string, ...string[]];
-      await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId: `deskmerge:${journalId}`, commands: [mergeCash(head, rest)] });
-      snap = await read(actor.party);
-      const exactAfter = snap.cash.find((c) => c.amount === amount);
-      if (exactAfter) return exactAfter.cid;
-      cover = [...snap.cash].filter((c) => c.amount > amount).sort((a, b) => (a.amount < b.amount ? -1 : 1))[0];
-      if (!cover) throw refuse("insufficient-collateral", "the seat's cash could not be gathered for the deposit");
-    }
-    const r = await client.submitAndWaitForTransaction({ actAs: [actor.party], commandId: `desksplit:${journalId}`, commands: [splitCash(cover.cid, amount)] });
-    const part = r.transaction.events.flatMap((e) => ("CreatedEvent" in e && isTemplate(e.CreatedEvent, TEMPLATE_IDS.VenueCash) ? [e.CreatedEvent] : []))
-      .find((e) => decodeVenueCash(e.createArgument).amount === amount);
-    if (!part) throw refuse("contract-revert", "the split did not produce the deposit's amount");
-    return part.contractId;
-  }
+  const exactCashFor = (actor: DeskSeatActor, journalId: string, amount: bigint): Promise<string> =>
+    exactCash({ client, cashOf: async (party) => (await read(party)).cash }, actor.party, journalId, amount, "desk", "the deposit");
 
   const namesToSeries = (names: readonly string[]): string[] => {
     const bad = names.filter((n) => !symbolOk(n));
@@ -230,7 +210,7 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
       try {
         const snap = await read(actor.party);
         mandateOf(snap);
-        cash = await exactCash(actor, id, amount);
+        cash = await exactCashFor(actor, id, amount);
       } catch (error) {
         return { kind: "refused", diagnosis: classifyRejection(error, { step: "accept" }) };
       }
