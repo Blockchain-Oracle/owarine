@@ -43,3 +43,18 @@ key present: true; feeds: OPENAI 96d4bb23…, ANTHROPIC 5da511a7…
 - `bootstrap-devnet.ts` adds a failing check row "valuation lanes entitled", which stops it before any write.
 
 Test `valuation-gate.test.ts` (5): no probe without `valuation`; 403 `pyth-indices` refuses (the key never appears in the text); no key refuses and sends nothing; two 200s let the lanes register; one refusal among two refuses.
+
+### A3. PreStocks answers this host: prints for the pre-IPO names and the baskets (C8j.3)
+
+One boot of ops' own feed (`createPreStocksSpotFeed`, main's C4c backoff: boot spread, `Retry-After`, jittered backoff), stopped after three good reads; then a second boot for one read to compute the basket indices (`basket-index.ts` `indexOfSnapshot`). Four catalogue requests in all, no key involved.
+
+```
+07:57:25.849Z boot
+07:57:27.396Z read 1: 8 names priced (missing none) · OPENAI=1410.47 ANTHROPIC=1059.95 SPACEX=115.32 NEURALINK=415.19 ANDURIL=147.61 KALSHI=884.30 POLYMARKET=145.20 FIGUREAI=161.73
+07:57:37.082Z read 2: 8 names priced (missing none) · (the same prices)
+07:57:47.092Z read 3: 8 names priced (missing none) · (the same prices)
+07:57:58.349Z boot
+07:57:59.944Z read: 8 names priced (missing none) · baskets AILABS=1116.9563 FRONTIER=1016.6267 PREDMKTS=1011.8275 DEFSPACE=979.7056 PREALL=1006.1966
+```
+
+**Result.** No 429 and no backoff: the first read came 1.5 s after boot (the boot spread), then every 10 s. All eight pre-IPO names were priced and all five baskets indexed from one whole read. C6, C6e, C8i and C9d met 429s at boot; this morning the host was not rate-limited.
