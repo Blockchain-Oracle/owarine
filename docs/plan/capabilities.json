@@ -25,7 +25,9 @@
       "acceptanceRow": null,
       "evidence": [
         "docs/evidence/ux/c4b",
-        "commit:526b332"
+        "commit:526b332",
+        "docs/evidence/c9d-seats-games.md#L62",
+        "docs/evidence/c8i-agents-gaps.md#L23"
       ]
     },
     {
@@ -282,7 +284,9 @@
       "evidence": [
         "docs/evidence/ux/c4b",
         "commit:526b332",
-        "docs/evidence/c9d-seats-games.md"
+        "docs/evidence/c9d-seats-games.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L511",
+        "docs/evidence/c9c-games-ux.md#L49"
       ],
       "note": "Web guest seat; the phone seat key is not yet run on a device"
     },
@@ -298,7 +302,9 @@
       "evidence": [
         "docs/evidence/ux/c4b",
         "commit:526b332",
-        "docs/evidence/c8e-tickets-ux.md"
+        "docs/evidence/c8e-tickets-ux.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L511",
+        "docs/evidence/c9c-games-ux.md#L49"
       ]
     },
     {
@@ -336,7 +342,8 @@
       "parityRow": "L-28",
       "acceptanceRow": null,
       "evidence": [
-        "docs/evidence/c7a-exit-2026-09-29.md"
+        "docs/evidence/c7a-exit-2026-09-29.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L513"
       ]
     },
     {
@@ -384,7 +391,9 @@
       "evidence": [
         "docs/evidence/ux/c4b",
         "commit:526b332",
-        "docs/evidence/c6e-stocks-events.md"
+        "docs/evidence/c6e-stocks-events.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L512",
+        "docs/evidence/c9d-seats-games.md#L134"
       ]
     },
     {
@@ -604,7 +613,10 @@
       "parityRow": "L-50",
       "acceptanceRow": null,
       "evidence": [
-        "docs/evidence/c8e-tickets-ux.md"
+        "docs/evidence/c8e-tickets-ux.md",
+        "docs/evidence/c2d-maker-vault.md#L24",
+        "docs/evidence/c2d-maker-vault.md#L69",
+        "docs/evidence/ux/c2d"
       ],
       "note": "Reserve supply and withdraw work; the maker tab waits on abu-pm-main 0.5.0 (slice C2d, in flight)"
     },
@@ -618,30 +630,39 @@
       "parityRow": "L-51",
       "acceptanceRow": null,
       "evidence": [
-        "docs/evidence/c8f-agents.md"
+        "docs/evidence/c8f-agents.md",
+        "docs/evidence/c8g-agents-ux.md#L24",
+        "docs/evidence/c8i-agents-gaps.md#L23"
       ]
     },
     {
       "id": "L-52",
       "capability": "Launch an agent (4-step builder)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-52",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8g-agents-ux.md#L24",
+        "docs/evidence/c8i-agents-gaps.md#L19"
+      ]
     },
     {
       "id": "L-53",
       "capability": "Copy a strategy",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "L-53",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8g-agents-ux.md#L25",
+        "docs/evidence/c8g-agents-ux.md#L26",
+        "docs/evidence/c8i-agents-gaps.md#L20"
+      ]
     },
     {
       "id": "L-54",
@@ -664,7 +685,9 @@
       "parityRow": "L-55",
       "acceptanceRow": null,
       "evidence": [
-        "docs/evidence/c8f-agents.md"
+        "docs/evidence/c8f-agents.md",
+        "docs/evidence/c8g-agents-ux.md#L26",
+        "docs/evidence/c8i-agents-gaps.md#L59"
       ],
       "note": "Runner placed through its grant on the sandbox; self-host not run"
     },
@@ -888,7 +911,8 @@
         "docs/evidence/ux/c4b",
         "commit:526b332",
         "docs/evidence/c7a-exit-2026-09-29.md",
-        "docs/evidence/c8e-tickets-ux.md"
+        "docs/evidence/c8e-tickets-ux.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L515"
       ]
     },
     {
@@ -1089,13 +1113,16 @@
     {
       "id": "A-1c",
       "capability": "Fade a trader/agent",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "A-1c",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8g-agents-ux.md#L30",
+        "docs/evidence/c8g-agents-ux.md#L31"
+      ]
     },
     {
       "id": "A-2a",
@@ -1122,13 +1149,18 @@
     {
       "id": "A-2c",
       "capability": "Yield reporting",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "A-2c",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c2d-maker-vault.md#L55",
+        "docs/evidence/c2d-maker-vault.md#L69",
+        "docs/evidence/c2d-maker-vault.md#L70",
+        "docs/evidence/ux/c2d"
+      ]
     },
     {
       "id": "A-3a",
@@ -1177,7 +1209,7 @@
     },
     {
       "id": "A-3e",
-      "capability": "Blinks: every Window as a Solana Action (/actions.json, /api/actions/w/<marketId>, /api/actions/t/<symbol>/<cadence>)",
+      "capability": "Blinks: every Window as a signed share link, where the reference had a Solana Action (/actions.json, /api/actions/w/<marketId>, /api/actions/t/<symbol>/<cadence>)",
       "state": "not-live",
       "dependsOn": [
         "gate:C13"
@@ -1233,35 +1265,50 @@
     {
       "id": "C-S21a",
       "capability": "Desk pages /desk, /desk/new, /desk/[id], /desk/[id]/record, /desk/[id]/decision/[seq], desk OG image (D-126)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-S21a",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8g-agents-ux.md#L42",
+        "docs/evidence/c8g-agents-ux.md#L45",
+        "docs/evidence/c8i-agents-gaps.md#L29",
+        "docs/evidence/c8i-agents-gaps.md#L33",
+        "docs/evidence/ux/c8g"
+      ]
     },
     {
       "id": "C-S21b",
       "capability": "Desk API: /api/desk/[owner] + actions, approvals, check-now, feed, mandate, mode, opened, records, records/[seq], share; /api/desk/marks",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-S21b",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8g-agents-ux.md#L43",
+        "docs/evidence/c8g-agents-ux.md#L46",
+        "docs/evidence/c8g-agents-ux.md#L50"
+      ]
     },
     {
       "id": "C-S21c",
       "capability": "Desk program: attested reference, premium ceiling, hash-chained operator_checkpoint, shadow/pause mode, token allowlist",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-S21c",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8g-agents-ux.md#L45",
+        "docs/evidence/c8g-agents-ux.md#L46",
+        "docs/evidence/c8g-agents-ux.md#L48",
+        "docs/evidence/c8i-agents-gaps.md#L44"
+      ]
     },
     {
       "id": "C-S21d",
@@ -1447,7 +1494,8 @@
       "evidence": [
         "docs/evidence/c3-gate-2026-09-29.md",
         "docs/evidence/c6d-gap-events.md",
-        "docs/evidence/c6e-stocks-events.md"
+        "docs/evidence/c6e-stocks-events.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L524"
       ]
     },
     {
@@ -1552,7 +1600,9 @@
       "evidence": [
         "docs/plan/acceptance.md",
         "docs/evidence/c3-gate-2026-09-29.md",
-        "docs/evidence/c6d-gap-events.md"
+        "docs/evidence/c6d-gap-events.md",
+        "docs/evidence/c2d-maker-vault.md#L29",
+        "docs/evidence/c2z-r1-rehearsal.md#L510"
       ]
     },
     {
@@ -1625,7 +1675,8 @@
       "parityRow": "C-OPS-01",
       "acceptanceRow": "C3 gate",
       "evidence": [
-        "docs/evidence/c3-gate-2026-09-29.md"
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L483"
       ]
     },
     {
@@ -1639,7 +1690,8 @@
       "acceptanceRow": "C3 gate",
       "evidence": [
         "docs/evidence/c3-gate-2026-09-29.md",
-        "docs/evidence/c6-lanes-2026-09-29.md"
+        "docs/evidence/c6-lanes-2026-09-29.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L483"
       ]
     },
     {
@@ -1653,7 +1705,8 @@
       "acceptanceRow": "C3 gate",
       "evidence": [
         "docs/evidence/c3-gate-2026-09-29.md",
-        "docs/evidence/c9c-games-ux.md"
+        "docs/evidence/c9c-games-ux.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L520"
       ]
     },
     {
@@ -1667,7 +1720,9 @@
       "acceptanceRow": "C3 gate",
       "evidence": [
         "docs/evidence/c3-gate-2026-09-29.md",
-        "docs/evidence/c6-realised-vol-2026-09-29.md"
+        "docs/evidence/c6-realised-vol-2026-09-29.md",
+        "docs/evidence/c2d-maker-vault.md#L25",
+        "docs/evidence/c2z-r1-rehearsal.md#L512"
       ]
     },
     {
@@ -1681,7 +1736,10 @@
       "acceptanceRow": "C3 gate",
       "evidence": [
         "docs/evidence/c3-gate-2026-09-29.md",
-        "docs/evidence/c7a-exit-2026-09-29.md"
+        "docs/evidence/c7a-exit-2026-09-29.md",
+        "docs/evidence/c2d-maker-vault.md#L29",
+        "docs/evidence/c2d-maker-vault.md#L30",
+        "docs/evidence/c2z-r1-rehearsal.md#L522"
       ]
     },
     {
@@ -1695,7 +1753,8 @@
       "acceptanceRow": "C3 gate",
       "evidence": [
         "docs/evidence/c3-gate-2026-09-29.md",
-        "docs/evidence/c6e-stocks-events.md"
+        "docs/evidence/c6e-stocks-events.md",
+        "docs/evidence/c9d-seats-games.md#L135"
       ]
     },
     {
@@ -1709,7 +1768,9 @@
       "parityRow": "C-OPS-07",
       "acceptanceRow": null,
       "evidence": [
-        "docs/evidence/c9d-seats-games.md"
+        "docs/evidence/c9d-seats-games.md",
+        "docs/evidence/c9d-seats-games.md#L63",
+        "docs/evidence/c2z-r1-rehearsal.md#L483"
       ]
     },
     {
@@ -1722,7 +1783,9 @@
       "parityRow": "C-OPS-08",
       "acceptanceRow": null,
       "evidence": [
-        "docs/evidence/c8f-agents.md"
+        "docs/evidence/c8f-agents.md",
+        "docs/evidence/c8g-agents-ux.md#L26",
+        "docs/evidence/c8i-agents-gaps.md#L59"
       ],
       "note": "Drive through server code on the sandbox; the web routes were not clicked through a browser"
     },
@@ -1766,24 +1829,32 @@
     {
       "id": "C-OPS-12",
       "capability": "desk-runner (opt-in)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-OPS-12",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c8i-agents-gaps.md#L31",
+        "docs/evidence/c8i-agents-gaps.md#L41",
+        "docs/evidence/c8g-agents-ux.md#L48"
+      ]
     },
     {
       "id": "C-OPS-13",
       "capability": "market-maker vault mode (MAKER_MODE=vault)",
-      "state": "not-live",
+      "state": "local",
       "dependsOn": [
         "gate:C8"
       ],
       "parityRow": "C-OPS-13",
       "acceptanceRow": null,
-      "evidence": []
+      "evidence": [
+        "docs/evidence/c2d-maker-vault.md#L13",
+        "docs/evidence/c2d-maker-vault.md#L25",
+        "docs/evidence/ux/c2d"
+      ]
     },
     {
       "id": "C-OPS-14",
@@ -2408,7 +2479,9 @@
       "acceptanceRow": null,
       "evidence": [
         "docs/evidence/ux/c4b",
-        "commit:526b332"
+        "commit:526b332",
+        "docs/evidence/c2z-r1-rehearsal.md#L515",
+        "docs/evidence/c2z-r1-rehearsal.md#L627"
       ]
     },
     {
@@ -2443,7 +2516,8 @@
       "parityRow": "C-ADD-05",
       "acceptanceRow": "C3 gate",
       "evidence": [
-        "docs/evidence/c3-gate-2026-09-29.md"
+        "docs/evidence/c3-gate-2026-09-29.md",
+        "docs/evidence/c2z-r1-rehearsal.md#L520"
       ]
     },
     {

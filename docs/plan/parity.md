@@ -6,17 +6,18 @@ Seeded 2026-09-29 in C0 from the reference's local ledger (`agari-wt/s26/docs/pl
 - **Status:** Pending → Shell → Partial → Done, or Blocked with its resolution. Excluded rows read Excluded.
 - **Owner:** the stage that completes the row (`00-plan.md`, "Build sequence"). Earlier stages may advance it to Shell or Partial.
 - **Rules:** rows are only added or advanced, and only at stage gates. Evidence is a commit, a route check or an `acceptance.md` row. A row is Done only when its entry in `capabilities.json` can be `live` (gate passed and acceptance row exists).
-- **Evidence column (C10a, 30 Sep):** a row is Partial with "local sandbox" evidence when its `capabilities.json` entry is `local`: proven end to end on the local Canton sandbox with the real ops process, not yet on Noders DevNet or a hosted URL. None is Done, because nothing is on DevNet yet.
+- **Evidence column (C10a, 30 Sep; refreshed C10d, 30 Sep):** a row is Partial with "local sandbox" evidence when its `capabilities.json` entry is `local`: proven end to end on the local Canton sandbox with the real ops process, not yet on Noders DevNet or a hosted URL. `capabilities.json` cites the exact evidence lines (`file#L<n>`). None is Done, because nothing is on DevNet yet.
+- **C10d refresh:** read every evidence note merged since C10a (C2d maker vault, C2z R1 rehearsal and first call, C3f ledger retry, C4c seat link, C4d security, C8e, C8g and C8i agents and tickets, C9c and C9d games and seats, C11a iOS, C13a community, C10c docs). Nine rows moved to Partial (C-OPS-13, L-52, L-53, A-1c, C-S21a, C-S21b, C-S21c, C-OPS-12, A-2c); 21 Partial rows gained evidence. C3f, C4c, C4d, C11a, C13a and C10c ran no sandbox drive (unit tests, code reading, `expo export` or a static rewrite), so they move no row.
 - **Reference ids are kept** (L-, Y-, A-) so each row traces to the reference ledger; new rows use `C-`. The reference's own Class/Status is kept in the last column for comparison.
 
-Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cite their evidence; every other row that is not Excluded is Pending.
+Status as of 30 Sep (C10d): rows proven on the local sandbox are Partial and cite their evidence; every other row that is not Excluded is Pending.
 
 ## Baseline (L)
 
 | # | Capability | Class | Status | Owner | Canton disposition | Reference class / status | Evidence |
 |---|---|---|---|---|---|---|---|
 | L-01 | Root layout, providers, pre-paint theme, fonts, PWA manifest | Exact | Pending | C1 | Unchanged over the adapter | Exact / Done | — |
-| L-02 | Desktop header, grouped nav, balance pill, account menu | Adapted | Partial | C1, C4 | Connected state is the reference's avatar + dropdown: seat, party id, lease time left, reset seat | Exact / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` |
+| L-02 | Desktop header, grouped nav, balance pill, account menu | Adapted | Partial | C1, C4 | Connected state is the reference's avatar + dropdown: seat, party id, lease time left, reset seat | Exact / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c9d-seats-games](../evidence/c9d-seats-games.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
 | L-03 | Mobile pill nav + "Everything" drawer | Exact | Pending | C1 | Unchanged | Exact / Done | — |
 | L-04 | AppStrip, Marquee ticker, footer, grain, cursor, theme toggle | Adapted | Pending | C1, C5 | Marquee sentiment cell reads `/api/sentiment` from opt-in `Publication`s (k = 5 floor); BTC/ETH on the marquee kept by default (K-008) | Adapted / Done | — |
 | L-05 | Design system (Yosuku port) | Exact | Pending | C0 | The reference design system used directly: `web/src/styles/yosuku/**` byte-identical in the repo (`2855af5`, K-002) | Exact / Done | — |
@@ -38,15 +39,15 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | L-21 | Legacy redirects | Exact | Pending | C1 | Unchanged | Exact / Done | — |
 | L-22 | Share cards (The Call, Earned Heat) | Adapted | Pending | C5 | Unchanged surface; data from the projection (own seat) or publications | Adapted / Done | — |
 | L-23 | Social OG images | Exact | Pending | C10 | Unchanged surface; brand constants only | Adapted / Done | — |
-| L-24 | Wallet connect / disconnect / account switch | Adapted | Partial | C1, C4 | Wallet becomes a seat: guest seat on web, Keychain seat key on iOS; Grofty is an additive web-only connector | Adapted / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c9d-seats-games](../evidence/c9d-seats-games.md) |
-| L-25 | Get test funds | Adapted | Partial | C4 | Demo-cash credit into `VenueCash`, server-side, also on seat lease; no SOL leg | Adapted / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) |
+| L-24 | Wallet connect / disconnect / account switch | Adapted | Partial | C1, C4 | Wallet becomes a seat: guest seat on web, Keychain seat key on iOS; Grofty is an additive web-only connector | Adapted / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c9d-seats-games](../evidence/c9d-seats-games.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) · [c9c-games-ux](../evidence/c9c-games-ux.md) |
+| L-25 | Get test funds | Adapted | Partial | C4 | Demo-cash credit into `VenueCash`, server-side, also on seat lease; no SOL leg | Adapted / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) · [c9c-games-ux](../evidence/c9c-games-ux.md) |
 | L-26 | Add-money modal + CreditWelcome | Adapted | Partial | C4 | Demo-credits grant (`CreditWelcome`, `AddFunds`) | Adapted / Done | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` |
 | L-27 | Tap-trading (session key + SESSION grant + sponsor) | Adapted | Pending | C1 | Not needed: a seat already trades in one tap, and the fast-mode chip says so | Adapted / Partial | — |
-| L-28 | Trading Balance vault | Adapted | Partial | C7a | `VenueCash` is the trading balance | Adapted / Partial | local sandbox: [c7a-exit](../evidence/c7a-exit-2026-09-29.md) |
+| L-28 | Trading Balance vault | Adapted | Partial | C7a | `VenueCash` is the trading balance | Adapted / Partial | local sandbox: [c7a-exit](../evidence/c7a-exit-2026-09-29.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 | L-29 | `/markets` hero-as-ticket | Exact | Pending | C4 | Unchanged over the venue price ladder | Adapted / Partial | — |
 | L-30 | §01 live-now rail cards | Exact | Pending | C4 | Unchanged over the venue price ladder | Adapted / Done | — |
 | L-31 | §02 "Just ask" word board | Exact | Pending | C4 | Unchanged | Adapted / Done | — |
-| L-32 | Call ticket (one-tap) | Adapted | Partial | C4 | Firm house quote over the published venue price ladder; StepProgress + quote ring per Abu's D-081 choice (default K-010) | Adapted / Partial | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
+| L-32 | Call ticket (one-tap) | Adapted | Partial | C4 | Firm house quote over the published venue price ladder; StepProgress + quote ring per Abu's D-081 choice (default K-010) | Adapted / Partial | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c6e-stocks-events](../evidence/c6e-stocks-events.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) · [c9d-seats-games](../evidence/c9d-seats-games.md) |
 | L-33 | Verdict + inline claim | Adapted | Pending | C4 | Venue `SettleBatch` pays without a signature; `Leg_Claim` for the owner; void returns cost plus fee | Adapted / Partial | — |
 | L-34 | Claim-all plate | Adapted | Pending | C4 | Shape under venue-batched settle not yet specified (fidelity map: UNCLEAR); settled in the C4 spec | Adapted / Done | — |
 | L-35 | Plain-position cash-out | Adapted | Partial | C7a | `BuyQuote` exit | Adapted / Done | local sandbox: [c7a-exit](../evidence/c7a-exit-2026-09-29.md) |
@@ -64,12 +65,12 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | L-47 | Trader Edge | Exact | Pending | C5 | Unchanged over the projection (own seat) | Adapted / Done | — |
 | L-48 | Leaderboard | Adapted | Partial | C5 | From opt-in `Publication` contracts only | Adapted / Done | local sandbox: [ux/c5](../evidence/ux/c5) · `9321ae3` |
 | L-49 | Reputation, badges, CSV | Adapted | Pending | C5 | Own seat from the projection, others from publications | Adapted / Done | — |
-| L-50 | Earn (maker vault) | Adapted | Partial | C8 | Shared `PM.Reserve`: bilateral `LpShare`, auditor-visible `NavStatement`; LP capital is reserve-tagged venue cash shards | Adapted / Done | local sandbox: [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) |
-| L-51 | Strategies desk | Adapted | Partial | C8 | Strategy registry in `abu-pm-agents` | Adapted / Done | local sandbox: [c8f-agents](../evidence/c8f-agents.md) |
-| L-52 | Launch an agent (4-step builder) | Adapted | Pending | C8 | Builder over `AgentGrant` | Adapted / Partial | — |
-| L-53 | Copy a strategy | Adapted | Pending | C8 | Copy via bilateral subscriptions (a creator never learns who subscribes) | Adapted / Done | — |
+| L-50 | Earn (maker vault) | Adapted | Partial | C8 | Shared `PM.Reserve`: bilateral `LpShare`, auditor-visible `NavStatement`; LP capital is reserve-tagged venue cash shards | Adapted / Done | local sandbox: [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) · [c2d-maker-vault](../evidence/c2d-maker-vault.md) · [ux/c2d](../evidence/ux/c2d) |
+| L-51 | Strategies desk | Adapted | Partial | C8 | Strategy registry in `abu-pm-agents` | Adapted / Done | local sandbox: [c8f-agents](../evidence/c8f-agents.md) · [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
+| L-52 | Launch an agent (4-step builder) | Adapted | Partial | C8 | Builder over `AgentGrant` | Adapted / Partial | local sandbox: [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
+| L-53 | Copy a strategy | Adapted | Partial | C8 | Copy via bilateral subscriptions (a creator never learns who subscribes) | Adapted / Done | local sandbox: [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
 | L-54 | Agents board | Adapted | Pending | C8 | Agents board over the registry | Adapted / Done | — |
-| L-55 | Strategy runner + self-host | Adapted | Partial | C8 | Acts through `AgentGrant` as the agent-runner party; self-host uses the creator's own seat | Adapted / Partial | local sandbox: [c8f-agents](../evidence/c8f-agents.md) |
+| L-55 | Strategy runner + self-host | Adapted | Partial | C8 | Acts through `AgentGrant` as the agent-runner party; self-host uses the creator's own seat | Adapted / Partial | local sandbox: [c8f-agents](../evidence/c8f-agents.md) · [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
 | L-56 | Paid Memory Market | Excluded (removed in the reference 2026-09-22, `d4a693e5`; carried by K-005) | Excluded | — | Sealed strategy memory market stays removed | Adapted / Done | — |
 | L-57 | Reversion preset | Exact | Pending | C8 | Unchanged preset | Adapted / Done | — |
 | L-58 | Trade from X | Adapted | Pending | C13 | X bind re-pointed to the seat address | Adapted / Partial | — |
@@ -88,7 +89,7 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | L-71 | Game profile, achievements, friends | Adapted | Pending | C9 | Friends removed in the reference (`fb782348`), stays removed (K-005) | Adapted / Done | — |
 | L-72 | `/dev/*` fixtures | Adapted | Pending | C1 | `/dev/wallet` → `/dev/seat`; `/dev/session` shows the fast-mode chip; `/dev/private` shows the bucket; new `/dev/<surface>` per new surface | Adapted / Done | — |
 | L-73 | Ops host and health | Adapted | Pending | C0, C4 | Coolify on Abu's server, Namecheap DNS straight to the server, no Cloudflare (K-003) | Adapted / Partial | — |
-| L-74 | API surface | Adapted | Partial | C3, C4 | `/api/seat`, `/api/ledger/*`, `/api/view` added; `/api/rpc` and `/api/rpc/mainnet` deleted; `/api/index/wallet/*` require the seat cookie | Adapted / Partial | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c7a-exit](../evidence/c7a-exit-2026-09-29.md) · [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) |
+| L-74 | API surface | Adapted | Partial | C3, C4 | `/api/seat`, `/api/ledger/*`, `/api/view` added; `/api/rpc` and `/api/rpc/mainnet` deleted; `/api/index/wallet/*` require the seat cookie | Adapted / Partial | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c7a-exit](../evidence/c7a-exit-2026-09-29.md) · [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 
 ## Yosuku-lineage rows (Y)
 
@@ -119,15 +120,15 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 |---|---|---|---|---|---|---|---|
 | A-1a | Bearish exposure via existing primitives | Additive | Pending | C7a, C8 | "Betting against" switch unchanged (UI only) | Additive / Done | — |
 | A-1b | Inverse position (linear short, not binary) | Additive | Partial | C8 | `/short` with Boost | Additive / Done | local sandbox: [c8e-tickets-ux](../evidence/c8e-tickets-ux.md) |
-| A-1c | Fade a trader/agent | Additive | Pending | C8 | Fade via subscriptions | Additive / Done | — |
+| A-1c | Fade a trader/agent | Additive | Partial | C8 | Fade via subscriptions | Additive / Done | local sandbox: [c8g-agents-ux](../evidence/c8g-agents-ux.md) |
 | A-2a | Yield on idle Trading Balance | Additive | Pending | C8 | Idle-yield note re-worded truthfully: demo credits earn nothing (the reference names Kamino and Jupiter Lend) | Additive / Done | — |
 | A-2b | Supplier ("be the house") UI for every reserve | Additive | Pending | C8 | Supplier tabs per reserve over `LpShare` | Additive / Done | — |
-| A-2c | Yield reporting | Additive | Pending | C8 | Realized / on-paper from `NavStatement` history | Additive / Done | — |
+| A-2c | Yield reporting | Additive | Partial | C8 | Realized / on-paper from `NavStatement` history | Additive / Done | local sandbox: [c2d-maker-vault](../evidence/c2d-maker-vault.md) · [ux/c2d](../evidence/ux/c2d) |
 | A-3a | Trader profiles, follows, social leaderboards | Additive | Pending | C5, C13 | Profiles and social leaderboards kept; follows removed in the reference (`fb782348`), stay removed (K-005) | Additive / Done | — |
 | A-3b | Copy human traders | Additive | Pending | C8 | Mirror via subscriptions | Additive / Done | — |
 | A-3c | Ticker rooms, cashtag takes, activity feed, notifications | Additive | Pending | C13 | Unchanged surfaces over the adapter | Additive / Partial | — |
 | A-3d | Trade-from-X for stocks | Additive | Pending | C13 | Dialect registry has no Canton counterpart; X grammar kept | Additive / Partial | — |
-| A-3e | Blinks: every Window as a Solana Action (`/actions.json`, `/api/actions/w/<marketId>`, `/api/actions/t/<symbol>/<cadence>`) | Adapted | Pending | C13 | Solana Actions have no Canton counterpart: the same URLs return a signed Window share link (universal link). Kept by default (K-008); Abu may overrule | Additive / Done | — |
+| A-3e | Blinks: every Window as a signed share link, where the reference had a Solana Action (`/actions.json`, `/api/actions/w/<marketId>`, `/api/actions/t/<symbol>/<cadence>`) | Adapted | Pending | C13 | Solana Actions have no Canton counterpart: the same URLs return a signed Window share link (universal link). Kept by default (K-008); Abu may overrule | Additive / Done | — |
 
 ## Reference features since 13 Sep (S19–S26)
 
@@ -137,9 +138,9 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | C-S19b | "Your baskets" cover card and basket cover (`pickBasketHedges`) | Adapted | Pending | C7b | Reference's no-holdings state until C7b brings CIP-56 holdings | new | — |
 | C-S20a | Valuation lanes (OPENAIV/ANTHROPICV), hub "Token vs Pyth" (D-125) | Adapted | Pending | C8d | Attested prints of Pyth-style values | new | — |
 | C-S20b | Pyth entitlement gate: a lane lists only while the probe says the index is readable | Exact | Pending | C8d | `pyth-entitlement` actor unchanged | new | — |
-| C-S21a | Desk pages `/desk`, `/desk/new`, `/desk/[id]`, `/desk/[id]/record`, `/desk/[id]/decision/[seq]`, desk OG image (D-126) | Adapted | Pending | C8 | `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; live leg gated on C7b and trades our own markets (K-085) | new | — |
-| C-S21b | Desk API: `/api/desk/[owner]` + `actions`, `approvals`, `check-now`, `feed`, `mandate`, `mode`, `opened`, `records`, `records/[seq]`, `share`; `/api/desk/marks` | Adapted | Pending | C8 | `/api/desk/marks` serves our own marks | new | — |
-| C-S21c | Desk program: attested reference, premium ceiling, hash-chained `operator_checkpoint`, shadow/pause mode, token allowlist | Adapted | Pending | C8 | `DeskMandate` fields and choices of the same names; reference price is the oracle quorum | new | — |
+| C-S21a | Desk pages `/desk`, `/desk/new`, `/desk/[id]`, `/desk/[id]/record`, `/desk/[id]/decision/[seq]`, desk OG image (D-126) | Adapted | Partial | C8 | `DeskMandate` on `AgentGrant`; practice desks stay paper ledgers; live leg gated on C7b and trades our own markets (K-085) | new | local sandbox: [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) · [ux/c8g](../evidence/ux/c8g) |
+| C-S21b | Desk API: `/api/desk/[owner]` + `actions`, `approvals`, `check-now`, `feed`, `mandate`, `mode`, `opened`, `records`, `records/[seq]`, `share`; `/api/desk/marks` | Adapted | Partial | C8 | `/api/desk/marks` serves our own marks | new | local sandbox: [c8g-agents-ux](../evidence/c8g-agents-ux.md) |
+| C-S21c | Desk program: attested reference, premium ceiling, hash-chained `operator_checkpoint`, shadow/pause mode, token allowlist | Adapted | Partial | C8 | `DeskMandate` fields and choices of the same names; reference price is the oracle quorum | new | local sandbox: [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
 | C-S21d | `DeskWatcher` toasts; judges' shared read-only desk | Exact | Pending | C8 | Unchanged over the adapter | new | — |
 | C-S22 | Desk UX kit from 21st components (D-127), web and native | Exact | Pending | C8 | Reused first for every new surface | new | — |
 | C-S23a | Closed market: word board and ticket out of hours, 24/7 chips, "No quotes yet", games tell the truth out of hours | Exact | Pending | C6 | Session logic ported as it is | new | — |
@@ -159,7 +160,7 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | C-MKT-02 | Lanes: Regular, Gap (Monday), 24/7 xStock token, PreStocks pre-IPO; session, halt and gap states | Adapted | Partial | C6 | Logic ported as it is; prints on the attested path | new | local sandbox: [c6-lanes](../evidence/c6-lanes-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
 | C-MKT-03 | Cadences 300/900/3600 s plus Gap; Masayume 4 h and 1 d; Masayume's BTC/ETH cadence lanes | Adapted | Partial | C6 | `TICKER_SYMBOLS` gains BTC and ETH with a 24/7 basis | new | local sandbox: [c6-lanes](../evidence/c6-lanes-2026-09-29.md) |
 | C-MKT-04 | Price sources (`PrintSource`: Pyth, RedStone, Switchboard, attested) | Adapted | Partial | C6 | All become attested prints by our oracle parties; the receipt names the original source (K-065) | new | local sandbox: [c6-lanes](../evidence/c6-lanes-2026-09-29.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
-| C-MKT-05 | Oracle quorum and cross-check-and-void (`maxDeviationBps`, `VoidReason` specific reasons) | Adapted | Partial | C3 | Default 3 parties, quorum 2; more oracle parties addable in `Series` (vs Masayume's 6 sources, minAgreement 4) | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
+| C-MKT-05 | Oracle quorum and cross-check-and-void (`maxDeviationBps`, `VoidReason` specific reasons) | Adapted | Partial | C3 | Default 3 parties, quorum 2; more oracle parties addable in `Series` (vs Masayume's 6 sources, minAgreement 4) | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 | C-MKT-06 | BTC/ETH realised-vol re-measure before fair values go live | Adapted | Partial | C6 | C6 step | new | local sandbox: [c6-realised-vol](../evidence/c6-realised-vol-2026-09-29.md) |
 | C-MKT-07 | D-123 demo-cash and ladder depth at the reference's scale (100,000 credits a day) | Adapted | Pending | C0 | Sizes recorded in C0 | new | — |
 | C-MKT-08 | Region hold (D-095, HTTP 451, `RegionNote`) | Adapted | Pending | C1 | Country from a local IP-to-country database (DB-IP Lite, K-003); exits stay open | new | — |
@@ -173,7 +174,7 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 
 | # | Capability | Class | Status | Owner | Canton disposition | Reference class / status | Evidence |
 |---|---|---|---|---|---|---|---|
-| C-DAML-01 | Engine `abu-pm-main`: `Series`, `MarketTerms`, `WindowState`, `PriceQuote`, `OpenPrint`, `Resolution`, `VenueCash`, `Quote`, `BuyQuote`, `Leg`, `NettedResidual` and the money gate | Adapted | Partial | C2 | Replaces `agari-events`; money gate first | new | local sandbox: [acceptance](acceptance.md) · [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) |
+| C-DAML-01 | Engine `abu-pm-main`: `Series`, `MarketTerms`, `WindowState`, `PriceQuote`, `OpenPrint`, `Resolution`, `VenueCash`, `Quote`, `BuyQuote`, `Leg`, `NettedResidual` and the money gate | Adapted | Partial | C2 | Replaces `agari-events`; money gate first | new | local sandbox: [acceptance](acceptance.md) · [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) · [c2d-maker-vault](../evidence/c2d-maker-vault.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 | C-DAML-02 | Venue mode (`admin_set_mode`: pause, reduce-only) | Adapted | Pending | C3 | Issuer policy plus optional venue-signed `VenueMode`; user exits never check it | new | — |
 | C-DAML-03 | Product dependents (`product_add_dependent` / `release_dependent`) | Adapted | Pending | C8 | Products carry `termsCid`; terms never archived before dependents settle | new | — |
 | C-DAML-04 | Strategy `creator_seal` (sealed spec), `set_runner`, `deactivate` | Adapted | Partial | C8 | `Strategy.specHash`, `SetRunner`, `Deactivate` | new | local sandbox: [c8f-agents](../evidence/c8f-agents.md) |
@@ -184,19 +185,19 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 
 | # | Capability | Class | Status | Owner | Canton disposition | Reference class / status | Evidence |
 |---|---|---|---|---|---|---|---|
-| C-OPS-01 | Supervisor, heartbeats, `/health`, calendar, earnings, halt-watch, SSE, `print_archive` | Exact | Partial | C3 | Unchanged; DRY_RUN becomes prepare-without-execute | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) |
-| C-OPS-02 | Window roller | Adapted | Partial | C3 | `execute.ts` → `Series_OpenWindow` | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6-lanes](../evidence/c6-lanes-2026-09-29.md) |
-| C-OPS-03 | Oracle feeders (Coinbase, Kraken, Bitstamp 1-minute closes), replacing price-relay | Adapted | Partial | C3 | New sourcing decision, recorded in C3 | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c9c-games-ux](../evidence/c9c-games-ux.md) |
-| C-OPS-04 | Pricer and quote issuer over K venue cash shards; venue price ladder over SSE | Adapted | Partial | C3 | Seed maker's fair-value math unchanged | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6-realised-vol](../evidence/c6-realised-vol-2026-09-29.md) |
-| C-OPS-05 | Settler (`SettleBatch`), resolver proposer, netting, rebalancer, expiry sweeper, reserve reporter | Adapted | Partial | C3 | New actors plus settler | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c7a-exit](../evidence/c7a-exit-2026-09-29.md) |
-| C-OPS-06 | Projector (`/v2/updates` → Postgres), replacing the indexer | Adapted | Partial | C3 | Hand-written, not PQS | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
-| C-OPS-07 | Seat funding and close-out | Additive | Partial | C3, C4 | Seat lifecycle `leased → draining → free` | new | local sandbox: [c9d-seats-games](../evidence/c9d-seats-games.md) |
-| C-OPS-08 | `strategy-runner` + self-host `runner-main.ts` | Adapted | Partial | C8 | Acts through `AgentGrant` | new | local sandbox: [c8f-agents](../evidence/c8f-agents.md) |
+| C-OPS-01 | Supervisor, heartbeats, `/health`, calendar, earnings, halt-watch, SSE, `print_archive` | Exact | Partial | C3 | Unchanged; DRY_RUN becomes prepare-without-execute | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
+| C-OPS-02 | Window roller | Adapted | Partial | C3 | `execute.ts` → `Series_OpenWindow` | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6-lanes](../evidence/c6-lanes-2026-09-29.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
+| C-OPS-03 | Oracle feeders (Coinbase, Kraken, Bitstamp 1-minute closes), replacing price-relay | Adapted | Partial | C3 | New sourcing decision, recorded in C3 | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c9c-games-ux](../evidence/c9c-games-ux.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
+| C-OPS-04 | Pricer and quote issuer over K venue cash shards; venue price ladder over SSE | Adapted | Partial | C3 | Seed maker's fair-value math unchanged | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6-realised-vol](../evidence/c6-realised-vol-2026-09-29.md) · [c2d-maker-vault](../evidence/c2d-maker-vault.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
+| C-OPS-05 | Settler (`SettleBatch`), resolver proposer, netting, rebalancer, expiry sweeper, reserve reporter | Adapted | Partial | C3 | New actors plus settler | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c7a-exit](../evidence/c7a-exit-2026-09-29.md) · [c2d-maker-vault](../evidence/c2d-maker-vault.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
+| C-OPS-06 | Projector (`/v2/updates` → Postgres), replacing the indexer | Adapted | Partial | C3 | Hand-written, not PQS | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) · [c9d-seats-games](../evidence/c9d-seats-games.md) |
+| C-OPS-07 | Seat funding and close-out | Additive | Partial | C3, C4 | Seat lifecycle `leased → draining → free` | new | local sandbox: [c9d-seats-games](../evidence/c9d-seats-games.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
+| C-OPS-08 | `strategy-runner` + self-host `runner-main.ts` | Adapted | Partial | C8 | Acts through `AgentGrant` | new | local sandbox: [c8f-agents](../evidence/c8f-agents.md) · [c8g-agents-ux](../evidence/c8g-agents-ux.md) · [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) |
 | C-OPS-09 | `leverage-keeper` | Adapted | Pending | C8 | Knock-out and settle against the oracle quorum | new | — |
 | C-OPS-10 | `game-room`, `matchmaker`, `duel-projector`, `duel-settler` | Adapted | Partial | C9 | Room unchanged; matchmaker (unwired in the reference) wired; projector joins the main projector | new | local sandbox: [c9b-games](../evidence/c9b-games.md) · [c9c-games-ux](../evidence/c9c-games-ux.md) · [c9d-seats-games](../evidence/c9d-seats-games.md) |
 | C-OPS-11 | `x-relay` | Adapted | Pending | C13 | Places calls through `AgentGrant` | new | — |
-| C-OPS-12 | `desk-runner` (opt-in) | Adapted | Pending | C8 | Acts on `DeskMandate` | new | — |
-| C-OPS-13 | `market-maker` vault mode (`MAKER_MODE=vault`) | Adapted | Pending | C8 | Maps to `./maker` | new | — |
+| C-OPS-12 | `desk-runner` (opt-in) | Adapted | Partial | C8 | Acts on `DeskMandate` | new | local sandbox: [c8i-agents-gaps](../evidence/c8i-agents-gaps.md) · [c8g-agents-ux](../evidence/c8g-agents-ux.md) |
+| C-OPS-13 | `market-maker` vault mode (`MAKER_MODE=vault`) | Adapted | Partial | C8 | Maps to `./maker` | new | local sandbox: [c2d-maker-vault](../evidence/c2d-maker-vault.md) · [ux/c2d](../evidence/ux/c2d) |
 | C-OPS-14 | Actor set split VENUE / LEGACY / OPT-IN | Exact | Partial | C3 | Kept as the reference has it | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) |
 
 ## Native app (one row per route in `mobile/src/app`)
@@ -262,10 +263,10 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | # | Capability | Class | Status | Owner | Canton disposition | Reference class / status | Evidence |
 |---|---|---|---|---|---|---|---|
 | C-ADD-01 | "Who can see this" chip (web and phone) | Additive | Partial | C1 | Reference `badge` + `tooltip`, `LogoStack` | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` |
-| C-ADD-02 | Per-party view switcher with the literal query on screen (web and phone) | Additive | Partial | C1, C4 | desk-kit `UnderlineTabs`; Code Block 21st #23586 (web) | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` |
+| C-ADD-02 | Per-party view switcher with the literal query on screen (web and phone) | Additive | Partial | C1, C4 | desk-kit `UnderlineTabs`; Code Block 21st #23586 (web) | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 | C-ADD-03 | Seat link between devices (QR + 6-character code) | Additive | Pending | C1 | 21st #29246 layout + OTP Input #23543; required before the C4 gate | new | — |
 | C-ADD-04 | iOS first-run demo-credits gate | Additive | Pending | C11 | "Demo credits, no cash value, test network" | new | — |
-| C-ADD-05 | 1-minute demo lane resolved by the three oracle parties | Additive | Partial | C3 | Not in the reference (300/900/3600 s + Gap) | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) |
+| C-ADD-05 | 1-minute demo lane resolved by the three oracle parties | Additive | Partial | C3 | Not in the reference (300/900/3600 s + Gap) | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 | C-ADD-06 | Institutional event markets resolved by committee attestation | Additive | Partial | C6 | The reference has none | new | local sandbox: [c6-lanes](../evidence/c6-lanes-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
 | C-ADD-07 | BitSafe governed resolution (`abu-pm-governance`) | Additive | Pending | BitSafe add-on | Never on the critical path; go/no-go Thu 1 morning | new | — |
 | C-ADD-08 | Ticket write-progress steps (desk-kit `StepProgress`) and firm-quote ring (20 s) | Additive | Partial | C1, C4 | D-081 direction choice by Abu (default K-010) | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` |
@@ -282,4 +283,4 @@ Status as of 30 Sep (C10a): rows proven on the local sandbox are Partial and cit
 | C-X02 | Mobile removals of 25 Sep: install strip, News, Pitch, Demo, Print proof, Stats, Market Surface, Download, the /more and /notifications nav entries | Excluded (Abu 2026-09-25; carried by K-005) | Excluded | — | Web keeps these pages | new | — |
 | C-X03 | Friends and follows (removed in the reference, `fb782348`) | Excluded (reference removal; carried by K-005) | Excluded | — | — | new | — |
 
-Totals: 221 rows (103 reference + 118 new). Done: 0 of 221. Partial (local sandbox): 49 of 221.
+Totals: 221 rows (103 reference + 118 new). Done: 0 of 221. Partial (local sandbox): 58 of 221. Excluded: 18 of 221. Pending: 145 of 221.
