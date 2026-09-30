@@ -1,11 +1,9 @@
 "use client";
 
-import { parseDecimalToBaseUnits } from "@agari/core/units";
 import { motion, useAnimationControls, useReducedMotion } from "motion/react";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
-import { AmountField } from "../vault/AmountField";
-import { useVaultWrite } from "../vault/useVaultWrite";
+import { OPEN_FUNDS_EVENT } from "@/features/funding";
 import type { CopyFormCheck } from "./copy-form";
 import { COPY_FORM } from "./copy-form-copy";
 import { money } from "./format";
@@ -14,7 +12,7 @@ import "./copy-form.css";
 
 /**
  * The copy drawer's money and limits (S23): the two fields with a Max and a red reason each, a strip that shows the
- * wallet, the Trading Balance and what this setup takes, an inline deposit to the Trading Balance, and the confirm
+ * wallet, the Trading Balance and what this setup takes, a way to add credits (the Add money sheet), and the confirm
  * button that always says why it is off. An invalid press shakes the form instead of doing nothing.
  */
 export interface CopyFormFieldsProps {
@@ -54,10 +52,7 @@ function Field({ label, symbol, value, onChange, error, disabled, onMax, maxDisa
 export function CopyFormFields(p: CopyFormFieldsProps) {
   const reduce = useReducedMotion();
   const shake = useAnimationControls();
-  const vault = useVaultWrite();
   const [adding, setAdding] = useState(false);
-  const [deposit, setDeposit] = useState("");
-  const depositBase = parseDecimalToBaseUnits(deposit.trim(), p.decimals) ?? 0n;
   const { check } = p;
   const text = (base: bigint) => money(base, p.decimals).replace(/,/g, "");
 
@@ -79,10 +74,10 @@ export function CopyFormFields(p: CopyFormFieldsProps) {
         <button type="button" className="copy-add-toggle" aria-expanded={adding} onClick={() => setAdding((a) => !a)}>{adding ? "−" : "+"} {COPY_FORM.addFunds.toggle}</button>
         {adding && (
           <div className="copy-add-body">
-            <AmountField value={deposit} onChange={setDeposit} decimals={p.decimals} symbol={p.symbol} maxBase={p.walletBase} label={COPY_FORM.addFunds.label} />
-            <button type="button" className="desk-pill" disabled={vault.state.busy !== null || !vault.hasSigner || depositBase <= 0n || p.walletBase === null || depositBase > p.walletBase} onClick={() => void vault.run({ kind: "vault-deposit", amountBase: depositBase }, COPY_FORM.addFunds.landed).then((o) => { if (o?.status === "confirmed") setDeposit(""); })}>
-              {vault.state.busy === "vault-deposit" ? COPY_FORM.addFunds.depositing : COPY_FORM.addFunds.deposit}
-            </button>
+            {/* C8g: on Canton the seat's cash IS the Trading Balance (K-087), so a deposit between them is refused;
+                adding credits is the seat's demo-credits grant, the same Add money sheet as the header's "+". */}
+            <p className="type-caption text-ink-secondary">{COPY_FORM.addFunds.sameCash}</p>
+            <button type="button" className="desk-pill" onClick={() => window.dispatchEvent(new Event(OPEN_FUNDS_EVENT))}>{COPY_FORM.addFunds.deposit}</button>
           </div>
         )}
       </div>

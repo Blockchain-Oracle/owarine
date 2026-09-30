@@ -461,6 +461,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - **Close admission.** `MarketTerms.closeAdmissionSec : Optional Int` is set at every open. Readers use `closeAdmissionOf`, which falls back to closeDeadline − expiry. The Boost knock-out uses it.
 - **Approval:** default; overrulable.
 
+### K-203 — The desk page's shared desk is named per deployment (overflow block)
+- **Date / owner:** 2026-09-30 · C8g (lane C8h)
+- **Evidence:** `docs/evidence/c8g-agents-ux.md` §Desk. The reference hard-coded its own desk id (`49f67e4d…`), a row of its Solana-era database; on Canton `/desk` read "The shared desk could not be read right now" and "See a shared desk" led to an unreadable page.
+- **Rule:** `NEXT_PUBLIC_SHARED_DESK_ID` (web) and `EXPO_PUBLIC_SHARED_DESK_ID` (phone) name the desk this deployment shares; its owner turns sharing on from the desk's own Share control. Unset, `/desk` shows the entry's no-shared-desk state, which the reference already has (`sharedId={null}`).
+- **User-visible:** the entry's shared-desk card and link show a real desk on this network, or no card at all; never a dead link.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

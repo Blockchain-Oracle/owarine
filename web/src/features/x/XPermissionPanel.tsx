@@ -33,10 +33,10 @@ export function XPermissionPanel({ grant, executor, symbol, disabled = false }: 
     <p className="xw-slab-body">{detail}</p>
     {needsUpdate && <>
       <p className="xw-slab-body">{X_CARD.budgetPolicy}</p>
-      <p className="xw-slab-note">{pending ? "No additional deposit. Existing positions stay yours." : "Two seat signatures. Reuse your remaining X funds; no additional deposit."}</p>
+      <p className="xw-slab-note">{pending ? "No additional deposit. Existing positions stay yours." : "Two seat commands. Reuse your remaining X funds; no additional deposit."}</p>
       <button type="button" className="xw-btn-v" disabled={disabled || !grant.readable || Boolean(grant.busy) || !executor}
         onClick={() => void grant.update(executor)}>
-        {grant.busy === "update" ? "Signing with your seat…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
+        {grant.busy === "update" ? "Confirm with your seat…" : pending ? "Continue X trading update" : state === "expired" ? "Renew X trading" : state === "mismatch" ? "Reconnect X trading" : "Update X trading"}
       </button>
       {pending?.stage === "grant-ready" && <button type="button" className="xw-btn-ink" disabled={Boolean(grant.busy)} onClick={grant.keepReturnedFunds}>Keep funds in Trading Balance</button>}
     </>}

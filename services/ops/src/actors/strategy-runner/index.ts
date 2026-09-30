@@ -17,6 +17,7 @@ import { agentSessionFrom } from "../agents/from-env";
 import type { AgentSession } from "../agents/session";
 import type { VenueContext } from "../venue/context";
 import { REST_CHECK_MS, tradingWindows } from "./trading-windows";
+import { awaitVenue } from "./venue-wait";
 
 /** The heartbeat while no Window trades on any lane; `activity.ts` on the web reads it as "Resting". */
 export const RESTING_WHY = "resting: no Window is trading on any lane; checking every 5 minutes";
@@ -119,8 +120,7 @@ export async function startStrategyRunner(log: Log, o: { venue?: VenueContext; r
   if (!resolveRegistryDeployment()) return log("the strategy registry (abu-pm-agents) is not on this network; idle");
   const marketsEnv = opsMarketsEnv(env.venueId);
   ensureMarkets(marketsEnv);
-  const venue = await resolveVenueId(marketsEnv.venueId);
-  if (!isOk(venue) || !venue.value.venueId) return log(`no venue to scan: ${isOk(venue) ? "none live" : venue.error.technical}; idle`);
+  const venue = await awaitVenue(() => resolveVenueId(marketsEnv.venueId), log, env.intervalMs);
 
   // With no STRATEGY_IDS the runner takes the registry's word: every active strategy that names its party. A creator
   // who launches on the house runner from the studio is then run without anyone editing a secret (the owner,
@@ -146,7 +146,7 @@ export async function startStrategyRunner(log: Log, o: { venue?: VenueContext; r
     log(`agent memory: ${warmed} Windows already read; budget ${env.agentMaxCallsPerHour} calls/h, ${env.agentTimeoutMs} ms per read`);
   }
 
-  const runner: Runner = { env, session, venueId: venue.value.venueId, agent, log, unresolved: new Set() };
+  const runner: Runner = { env, session, venueId: venue.venueId, agent, log, unresolved: new Set() };
   const discover = env.strategyIds.length === 0;
   if (discover) log(`no STRATEGY_IDS: running every active strategy on the registry that names ${session!.address}`);
   let lastDiscovered = "";

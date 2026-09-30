@@ -5,7 +5,7 @@ import { DESK_MINTS, USDC_MAINNET } from "@agari/markets/desk";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MONEY } from "@/features/desk/copy-controls";
-import { tokens, usd } from "@/features/desk/format";
+import { creditAmount, credits, tokens } from "@/features/desk/format";
 import { MIN_DEPOSIT_E6, TRANSFER_FEE_BPS } from "@/features/desk/protocol";
 import { useOwnerBalances } from "@/features/desk/useDesk";
 import type { DeskActions } from "@/features/desk/useDeskWrites";
@@ -54,18 +54,17 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
   const b = balances.value;
   const held = b.names.filter((n) => n.raw > 0n);
   const name = held.find((n) => n.symbol === symbol) ?? held[0] ?? null;
-  const noSol = b.lamports === 0n;
 
   if (kind === "deposit") {
     const usdcE6 = parseDecimalToBaseUnits(amount, 6);
     const tooSmall = usdcE6 !== null && usdcE6 < MIN_DEPOSIT_E6;
-    const usdcOk = usdcE6 !== null && usdcE6 > 0n && !tooSmall && usdcE6 <= b.usdc.raw && !noSol;
+    const usdcOk = usdcE6 !== null && usdcE6 > 0n && !tooSmall && usdcE6 <= b.usdc.raw;
     const tokenRaw = name ? (everything ? name.raw : (parseDecimalToBaseUnits(amount, 9) ?? 0n)) : 0n;
-    const tokenOk = name !== null && tokenRaw > 0n && tokenRaw <= name.raw && !noSol;
+    const tokenOk = name !== null && tokenRaw > 0n && tokenRaw <= name.raw;
     const confirm = async () => {
       if (way === "usdc" && usdcOk) {
         const landed = await actions.tx("deposit", (s) => s.deposit({ mint: USDC_MAINNET, ownerToken: b.usdc.ownerToken, amount: usdcE6 }));
-        if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(usd(usdcE6), "USDC") });
+        if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(creditAmount(usdcE6), MONEY.unit) });
       } else if (way === "tokens" && tokenOk && name) {
         const landed = await actions.tx("deposit", (s) => s.deposit({ mint: DESK_MINTS[name.symbol], ownerToken: name.ownerToken, amount: tokenRaw }));
         if (landed.ok) pushToast({ tone: "neutral", title: MONEY.deposited(tokens(uiRaw(netOfFee(tokenRaw), name.multiplierE12)), name.symbol) });
@@ -74,15 +73,15 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
     return (
       <ControlCard {...common} title={MONEY.sheetTitle} body={MONEY.intro} now={[]} after={[]} who="wallet" disabled={way === "usdc" ? !usdcOk : !tokenOk} confirmLabel={MONEY.send} onConfirm={() => void confirm()}>
         <View style={styles.choices} accessibilityRole="radiogroup" accessibilityLabel={MONEY.sheetTitle}>
-          <Choice on={way === "usdc"} onPress={() => setWay("usdc")} title={MONEY.usdc.title} body={b.usdc.raw > 0n ? MONEY.usdc.have(usd(b.usdc.raw)) : MONEY.usdc.none} />
+          <Choice on={way === "usdc"} onPress={() => setWay("usdc")} title={MONEY.usdc.title} body={b.usdc.raw > 0n ? MONEY.usdc.have(creditAmount(b.usdc.raw)) : MONEY.usdc.none} />
           <Choice on={way === "tokens"} onPress={() => setWay("tokens")} title={MONEY.tokens.title} body={held.length === 0 ? MONEY.tokens.none : held.map((n) => MONEY.tokens.row(tokens(uiRaw(n.raw, n.multiplierE12)), nameOf(n.symbol))).join(" · ")} />
         </View>
         {way === "usdc" ? (
           <>
             <AmountInput label={MONEY.usdc.amount} value={amount} onChange={setAmount} placeholder="300" />
-            {tooSmall ? <Text style={[DT.caption, { color: color.warning }]}>{MONEY.tooSmall(usd(MIN_DEPOSIT_E6, 0))}</Text> : null}
+            {tooSmall ? <Text style={[DT.caption, { color: color.warning }]}>{MONEY.tooSmall(credits(MIN_DEPOSIT_E6, 0))}</Text> : null}
             {usdcE6 !== null && usdcE6 > 0n ? (
-              <Receipt rows={[[R.send, `${usd(usdcE6)} USDC`], [R.receive, `${usd(usdcE6)} USDC`], [R.networkFee, R.networkFeeValue], [R.takes, R.seconds]]} />
+              <Receipt rows={[[R.send, `${creditAmount(usdcE6)} ${MONEY.unit}`], [R.receive, `${creditAmount(usdcE6)} ${MONEY.unit}`], [R.networkFee, R.networkFeeValue], [R.takes, R.seconds]]} />
             ) : null}
           </>
         ) : name ? (
@@ -111,7 +110,6 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
         ) : (
           <Text style={[DT.caption, { color: color.inkSecondary }]}>{MONEY.tokens.none}</Text>
         )}
-        {noSol ? <Text style={[DT.caption, { color: color.warning }]}>{MONEY.noSol.line}</Text> : null}
       </ControlCard>
     );
   }
@@ -128,7 +126,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
     }
     if (usdcOk) {
       const landed = await actions.tx("withdraw", (s) => s.withdraw({ mint: USDC_MAINNET, ...(everything ? {} : { amount: someE6 as bigint }) }));
-      if (landed.ok) pushToast({ tone: "neutral", title: MONEY.withdrawn("USDC") });
+      if (landed.ok) pushToast({ tone: "neutral", title: MONEY.withdrawn(MONEY.unit) });
     }
     if (everything) {
       for (const t of heldInDesk) {
@@ -143,8 +141,8 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose }: Props
       {...common}
       title={MONEY.withdraw.title}
       body={MONEY.withdraw.body}
-      now={[MONEY.withdraw.usdcInDesk(usd(cashE6))]}
-      after={[asCash ? MONEY.withdraw.asCash : everything ? MONEY.withdraw.perMint(1 + heldInDesk.length) : `${usd(someE6 ?? 0n)} USDC`]}
+      now={[MONEY.withdraw.usdcInDesk(creditAmount(cashE6))]}
+      after={[asCash ? MONEY.withdraw.asCash : everything ? MONEY.withdraw.perMint(1 + heldInDesk.length) : `${creditAmount(someE6 ?? 0n)} ${MONEY.unit}`]}
       who={asCash ? "request" : "wallet"}
       disabled={!asCash && !usdcOk && !(everything && heldInDesk.length > 0)}
       confirmLabel={MONEY.withdraw.button}

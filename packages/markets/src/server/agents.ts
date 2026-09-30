@@ -22,6 +22,7 @@ import { readAgentsAs, readRegistry, type AgentsSnapshot, type Registry } from "
 import { seatCommandId } from "./ids";
 import type { OpsClient } from "./ops-client";
 import { classifyRejection, refuse, SeatRefusal, type RejectionContext } from "./rejection";
+import { exactCash } from "./exact-cash";
 import { DEFAULT_COMMAND_DEADLINE_MS, selectCash, type CommandJournal, type CommandRow } from "./writes";
 
 export interface AgentsSeatConfig {
@@ -229,12 +230,27 @@ export function createAgentsSeat(cfg: AgentsSeatConfig) {
     });
   }
 
-  /** Add to a live grant's budget from the seat's cash; its day, spend, positions, caps and expiry stay. */
-  function fundGrant(seat: SeatRef, o: { journalId: string; grantId: bigint; amountBase: bigint }): Promise<AgentsWriteReply> {
+  /**
+   * Add to a live grant's budget from the seat's cash; its day, spend, positions, caps and expiry stay.
+   * `GrantDesk_Fund` adds the WHOLE value of the cash it is handed, so it is handed a contract of exactly the top-up
+   * (split first when none matches, C8g). A failed split is only reported after `run` has looked for a landed
+   * earlier attempt, so a retried top-up that already landed is recovered, not refused.
+   */
+  async function fundGrant(seat: SeatRef, o: { journalId: string; grantId: bigint; amountBase: bigint }): Promise<AgentsWriteReply> {
+    let cash: string | null = null;
+    let why: unknown = null;
+    if (o.amountBase > 0n) {
+      try {
+        cash = await exactCash({ client, cashOf: async (party) => (await read(party, true)).cash }, seat.party, o.journalId, o.amountBase, "grant", "the top-up");
+      } catch (error) {
+        why = error;
+      }
+    }
     return run(seat, o.journalId, (snap) => {
       if (o.amountBase <= 0n) throw refuse("invalid-price", "a top-up must add cash");
       const g = liveGrant(snap, o.grantId);
-      return { commands: [acmd.fundGrant(grantDesk(snap), g.cid, pay(snap, o.amountBase))], ctx: { step: "accept", quoteCid: g.cid } };
+      if (!cash) throw why ?? refuse("insufficient-collateral", "the top-up's cash could not be gathered");
+      return { commands: [acmd.fundGrant(grantDesk(snap), g.cid, [cash])], ctx: { step: "accept", quoteCid: g.cid, cashCids: [cash] } };
     });
   }
 

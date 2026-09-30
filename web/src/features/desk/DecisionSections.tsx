@@ -4,6 +4,7 @@ import { deskRecordSchema, nameOf, type DeskRecordBody } from "@agari/core/desk"
 import type { PreIpoSymbol } from "@agari/core/market";
 import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
+import { webEnv } from "@/lib/env";
 import { ArrowUpRight, Eye, Radar, Fingerprint, Gavel, Hourglass, Receipt, Search, ShieldCheck, Split, TrendingDown, TrendingUp, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
@@ -145,7 +146,7 @@ export function DecisionSections({ decision, base, nowSec, zone, isLive, ceiling
                   </span>
                   {a.actualOut !== null && a.expectedOut !== null && <span className="dk-mono text-ink-secondary">{D.happened.received(a.actualOut, a.expectedOut)}</span>}
                   {a.failureCode && <span className="dk-warn">{D.happened.failed(`${a.failureCode}${a.failureDetail ? `: ${a.failureDetail}` : ""}`)}</span>}
-                  {a.signature && <a href={txUrl(a.signature as Signature, "mainnet")} target="_blank" rel="noopener noreferrer" className="dk-link dc-explorer">{D.happened.explorer}</a>}
+                  {a.signature && <a href={txUrl(a.signature as Signature, webEnv.markets.cluster)} target="_blank" rel="noopener noreferrer" className="dk-link dc-explorer">{D.happened.explorer}</a>}
                 </li>
               ))}
             </ul>

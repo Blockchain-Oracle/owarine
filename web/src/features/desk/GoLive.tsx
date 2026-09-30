@@ -4,7 +4,7 @@ import { DESK_MINTS, type DeskMainnetSession } from "@agari/markets/desk";
 import { useEffect, useState } from "react";
 import { DESK } from "./copy";
 import { GO_LIVE } from "./copy-controls";
-import { pct, usd } from "./format";
+import { credits, pct } from "./format";
 import { loadLiveProgress, nextStage, resumeStage, saveLiveProgress, type LiveProgress, type LiveStage } from "./go-live";
 import { ModePicker, type LiveMode } from "./ModePicker";
 import { MoneySheet } from "./MoneySheet";
@@ -104,7 +104,7 @@ export function GoLive({ view, actions, liveMode, zone, nowSec }: { view: DeskVi
               <span className={i < current ? "text-ink-muted" : i === current ? "text-ink" : "text-ink-muted"}>
                 <b>{String(i + 1).padStart(2, "0")} {c.title}</b>
                 <br />
-                <span className="type-caption">{typeof body === "function" ? body(usd(mandate.perActionCapE6, 0), usd(mandate.dailyCapE6, 0), pct(mandate.maxPremiumBps)) : body}</span>
+                <span className="type-caption">{typeof body === "function" ? body(credits(mandate.perActionCapE6, 0), credits(mandate.dailyCapE6, 0), pct(mandate.maxPremiumBps)) : body}</span>
               </span>
               <span className="dk-mono">{i < current ? "done" : ""}</span>
             </li>

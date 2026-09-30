@@ -3,6 +3,7 @@
 import { canonicalJson, hashRecord } from "@agari/core/desk";
 import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
+import { webEnv } from "@/lib/env";
 import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
 import { Code, Download, ShieldCheck } from "lucide-react";
 import { useState } from "react";
@@ -81,7 +82,7 @@ export function CheckIt({ body, recordHash, proof, initial = null }: { body: unk
     a.click();
     URL.revokeObjectURL(url);
   };
-  const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, "mainnet") : null;
+  const explorer = proof.kind === "own" || proof.kind === "later" ? txUrl(proof.signature as Signature, webEnv.markets.cluster) : null;
   return (
     <div className="flex flex-col gap-3">
       <div className="dk-card-actions dc-proof-actions">

@@ -183,7 +183,7 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
             </Text>
             <Text style={[ST.fieldLabel, { color: color.inkMuted }]}>Amount · {symbol}</Text>
             <StratInput keyboardType="decimal-pad" value={withdrawAmount} onChangeText={setWithdrawAmount} style={styles.mt2} />
-            <DeskPill label="Withdraw to seat" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onPress={() => void s.perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))} style={styles.mt12} />
+            <DeskPill label="Withdraw to your seat" disabled={disabled || Boolean(pending) || withdrawBase <= 0n || withdrawBase > withdrawable} onPress={() => void s.perform(() => writes.withdraw(ownGrant?.grantId ?? null, withdrawBase))} style={styles.mt12} />
           </Details>
         </View>
       )}

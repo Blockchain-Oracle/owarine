@@ -2,6 +2,7 @@
 
 import type { Signature } from "@agari/core/types";
 import { txUrl } from "@agari/core/urls";
+import { webEnv } from "@/lib/env";
 import type { ReactNode } from "react";
 import { CONTROLS, MONEY } from "./copy-controls";
 import { stamp } from "./format";
@@ -70,7 +71,7 @@ export function ControlCard(p: ControlCardProps) {
         <p className="type-body text-ink">
           {p.done ?? C.done}{" "}
           {p.signature && (
-            <a href={txUrl(p.signature, "mainnet")} target="_blank" rel="noopener noreferrer" className="dk-link">{C.doneTx}</a>
+            <a href={txUrl(p.signature, webEnv.markets.cluster)} target="_blank" rel="noopener noreferrer" className="dk-link">{C.doneTx}</a>
           )}
         </p>
       ) : p.phase === "failed" ? (

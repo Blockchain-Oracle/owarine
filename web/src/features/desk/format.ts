@@ -12,6 +12,18 @@ export function usd(e6: bigint, maxDp = 2): string {
   const text = formatBaseUnits(negative ? -e6 : e6, USDC_DP, { maxDp, minDp: maxDp === 0 ? 0 : 2 });
   return `${negative ? "−" : ""}$${text}`;
 }
+/**
+ * "50 credits" · "1,000.50 credits": a live desk's money on Canton (C8g). Its caps and cash are the seat's demo
+ * credits in the same 10⁻⁶ base units a practice desk counts as dollars (K-090), so the live leg says credits.
+ */
+export function credits(e6: bigint, maxDp = 2): string {
+  return `${creditAmount(e6, maxDp)} credits`;
+}
+/** "1,000.00": a live desk's credits without the unit, for copy that names the unit itself. */
+export function creditAmount(e6: bigint, maxDp = 2): string {
+  const negative = e6 < 0n;
+  return `${negative ? "−" : ""}${formatBaseUnits(negative ? -e6 : e6, USDC_DP, { maxDp, minDp: maxDp === 0 ? 0 : 2 })}`;
+}
 /** "+$12.40" · "−$3.10" · "$0.00". */
 export const usdSigned = (e6: bigint): string => (e6 > 0n ? `+${usd(e6)}` : usd(e6));
 /** A decimal string from a record ("120.5") as dollars, unchanged when it does not parse. */

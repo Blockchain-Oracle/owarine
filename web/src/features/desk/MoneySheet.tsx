@@ -9,7 +9,7 @@ import { useState } from "react";
 import { notify } from "@/lib/toast";
 import { ControlCard } from "./ControlCard";
 import { MONEY } from "./copy-controls";
-import { tokens, usd } from "./format";
+import { creditAmount, credits, tokens } from "./format";
 import { MIN_DEPOSIT_E6, TRANSFER_FEE_BPS } from "./protocol";
 import { useOwnerBalances } from "./useDesk";
 import type { DeskActions } from "./useDeskWrites";
@@ -56,18 +56,17 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balance
   const b = balances.value;
   const held = b.names.filter((n) => n.raw > 0n);
   const name = held.find((n) => n.symbol === symbol) ?? held[0] ?? null;
-  const noSol = b.lamports === 0n;
 
   if (kind === "deposit") {
     const usdcE6 = parseDecimalToBaseUnits(amount, 6);
     const tooSmall = usdcE6 !== null && usdcE6 < MIN_DEPOSIT_E6;
-    const usdcOk = usdcE6 !== null && usdcE6 > 0n && !tooSmall && usdcE6 <= b.usdc.raw && !noSol;
+    const usdcOk = usdcE6 !== null && usdcE6 > 0n && !tooSmall && usdcE6 <= b.usdc.raw;
     const tokenRaw = name ? (everything ? name.raw : (parseDecimalToBaseUnits(amount, 9) ?? 0n)) : 0n;
-    const tokenOk = name !== null && tokenRaw > 0n && tokenRaw <= name.raw && !noSol;
+    const tokenOk = name !== null && tokenRaw > 0n && tokenRaw <= name.raw;
     const confirm = async () => {
       if (way === "usdc" && usdcOk) {
         const landed = await actions.tx("deposit", (s) => s.deposit({ mint: USDC_MAINNET, ownerToken: b.usdc.ownerToken, amount: usdcE6 }));
-        if (landed.ok) notify.neutral(MONEY.deposited(usd(usdcE6), "USDC"));
+        if (landed.ok) notify.neutral(MONEY.deposited(creditAmount(usdcE6), MONEY.unit));
       } else if (way === "tokens" && tokenOk && name) {
         const landed = await actions.tx("deposit", (s) => s.deposit({ mint: DESK_MINTS[name.symbol], ownerToken: name.ownerToken, amount: tokenRaw }));
         if (landed.ok) notify.neutral(MONEY.deposited(tokens(uiRaw(netOfFee(tokenRaw), name.multiplierE12)), name.symbol));
@@ -78,7 +77,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balance
         <div className="dk-choices" role="radiogroup" aria-label={MONEY.sheetTitle}>
           <button type="button" role="radio" aria-checked={way === "usdc"} className="dk-choice" onClick={() => setWay("usdc")}>
             <span className="dk-choice-title">{MONEY.usdc.title}</span>
-            <span className="dk-choice-body">{b.usdc.raw > 0n ? MONEY.usdc.have(usd(b.usdc.raw)) : MONEY.usdc.none}</span>
+            <span className="dk-choice-body">{b.usdc.raw > 0n ? MONEY.usdc.have(creditAmount(b.usdc.raw)) : MONEY.usdc.none}</span>
           </button>
           <button type="button" role="radio" aria-checked={way === "tokens"} className="dk-choice" onClick={() => setWay("tokens")}>
             <span className="dk-choice-title">{MONEY.tokens.title}</span>
@@ -88,11 +87,11 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balance
         {way === "usdc" ? (
           <>
             <label className="dk-field"><span>{MONEY.usdc.amount}</span><input className="dk-input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="300" /></label>
-            {tooSmall && <p className="type-caption dk-warn">{MONEY.tooSmall(usd(MIN_DEPOSIT_E6, 0))}</p>}
+            {tooSmall && <p className="type-caption dk-warn">{MONEY.tooSmall(credits(MIN_DEPOSIT_E6, 0))}</p>}
             {usdcE6 !== null && usdcE6 > 0n && (
               <dl className="dk-receipt">
-                <dt>{MONEY.receipt.send}</dt><dd>{usd(usdcE6)} USDC</dd>
-                <dt>{MONEY.receipt.receive}</dt><dd>{usd(usdcE6)} USDC</dd>
+                <dt>{MONEY.receipt.send}</dt><dd>{creditAmount(usdcE6)} {MONEY.unit}</dd>
+                <dt>{MONEY.receipt.receive}</dt><dd>{creditAmount(usdcE6)} {MONEY.unit}</dd>
                 <dt>{MONEY.receipt.networkFee}</dt><dd>{MONEY.receipt.networkFeeValue}</dd>
                 <dt>{MONEY.receipt.takes}</dt><dd>{MONEY.receipt.seconds}</dd>
               </dl>
@@ -122,7 +121,6 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balance
         ) : (
           <p className="type-caption text-ink-secondary">{MONEY.tokens.none}</p>
         )}
-        {noSol && <p className="type-caption dk-warn">{MONEY.noSol.line}</p>}
       </ControlCard>
     );
   }
@@ -139,7 +137,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balance
     }
     if (usdcOk) {
       const landed = await actions.tx("withdraw", (s) => s.withdraw({ mint: USDC_MAINNET, ...(everything ? {} : { amount: someE6 as bigint }) }));
-      if (landed.ok) notify.neutral(MONEY.withdrawn("USDC"));
+      if (landed.ok) notify.neutral(MONEY.withdrawn(MONEY.unit));
     }
     if (everything) {
       for (const t of heldInDesk) {
@@ -150,7 +148,7 @@ export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balance
     }
   };
   return (
-    <ControlCard {...common} title={MONEY.withdraw.title} body={MONEY.withdraw.body} now={[MONEY.withdraw.usdcInDesk(usd(cashE6))]} after={[asCash ? MONEY.withdraw.asCash : everything ? MONEY.withdraw.perMint(1 + heldInDesk.length) : `${usd(someE6 ?? 0n)} USDC`]} who={asCash ? "request" : "wallet"} disabled={!asCash && !usdcOk && !(everything && heldInDesk.length > 0)} confirmLabel={MONEY.withdraw.button} onConfirm={() => void confirmWithdraw()}>
+    <ControlCard {...common} title={MONEY.withdraw.title} body={MONEY.withdraw.body} now={[MONEY.withdraw.usdcInDesk(creditAmount(cashE6))]} after={[asCash ? MONEY.withdraw.asCash : everything ? MONEY.withdraw.perMint(1 + heldInDesk.length) : `${creditAmount(someE6 ?? 0n)} ${MONEY.unit}`]} who={asCash ? "request" : "wallet"} disabled={!asCash && !usdcOk && !(everything && heldInDesk.length > 0)} confirmLabel={MONEY.withdraw.button} onConfirm={() => void confirmWithdraw()}>
       <dl className="dk-receipt"><dt>{MONEY.withdraw.to}</dt><dd className="dk-mono dk-break">{owner}</dd></dl>
       <div className="dk-card-actions">
         <button type="button" className="dk-control" aria-pressed={!everything} onClick={() => setEverything(false)}>{MONEY.withdraw.some}</button>

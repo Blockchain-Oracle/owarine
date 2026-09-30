@@ -66,9 +66,14 @@ const OUTCOMES = new Set<string>(Object.values(OUTCOME_COLUMN));
 const outcomeOf = (v: string): RecordSummaryWire["outcome"] => (OUTCOMES.has(v) ? (v as RecordSummaryWire["outcome"]) : OUTCOME_COLUMN[v as keyof typeof OUTCOME_COLUMN] ?? "failed");
 const modeOf = (v: string): DeskMode => (v === "ask_first" || v === "on_its_own" ? v : "practice");
 
+/** The row's state in the page's words: the runner writes `paused` and `stopped_by_loss` (`@agari/db` DeskStateName). */
+const DB_STATE: Record<string, DeskRowWire["state"]> = { paused: "paused_by_owner", stopped_by_loss: "stopped_by_loss_limit" };
+const rowStateOf = (v: string): DeskRowWire["state"] =>
+  DB_STATE[v] ?? ((["active", "paused_by_owner", "stopped_by_loss_limit", "needs_attention", "practice", "closed"].includes(v) ? v : "needs_attention") as DeskRowWire["state"]);
+
 export const toDeskRow = (d: DbDesk): DeskRowWire => ({
   id: d.id, address: d.address, owner: d.owner, cluster: d.cluster, mode: modeOf(d.mode),
-  state: (["active", "paused_by_owner", "stopped_by_loss_limit", "needs_attention", "practice", "closed"].includes(d.state) ? d.state : "needs_attention") as DeskRowWire["state"],
+  state: rowStateOf(d.state),
   stateReason: d.stateReason, chainSeq: int(d.chainSeq), chainHead: d.chainHead, mandateVersion: int(d.mandateVersion), practiceChecks: int(d.practiceChecks),
   recordOpenedAtSec: intOrNull(d.recordOpenedAtSec), sharePublic: Boolean(d.sharePublic), createdAtSec: int(d.createdAtSec), updatedAtSec: int(d.updatedAtSec),
 });

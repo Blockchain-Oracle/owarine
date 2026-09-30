@@ -23,10 +23,8 @@ export const COPY_FORM = {
   },
   addFunds: {
     toggle: "Add credits to your Trading Balance",
-    label: "Amount to deposit",
-    deposit: "Deposit",
-    depositing: "Depositing",
-    landed: "Deposited to your Trading Balance",
+    sameCash: "Your seat's credits are your Trading Balance: nothing moves between them. More demo credits come from Add money.",
+    deposit: "Add money",
   },
   copying: "You are copying this strategy",
   fading: "You are fading this strategy",

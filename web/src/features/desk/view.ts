@@ -2,7 +2,7 @@ import { deskCopy, mandateFromWire, nameOf, thresholdBps, type DeskMandate } fro
 import type { PreIpoSymbol } from "@agari/core/market";
 import { DESK } from "./copy";
 import { nextTopOfHour } from "./format";
-import { CHECK_EVERY_SEC, GO_LIVE_CHECKS, LATE_AFTER_SEC, type ApprovalWire, type DeskViewWire, type SnapshotHoldingWire } from "./protocol";
+import { CHECK_EVERY_SEC, GO_LIVE_CHECKS, LATE_AFTER_SEC, type ApprovalWire, type DeskState, type DeskViewWire, type SnapshotHoldingWire } from "./protocol";
 import { pct } from "./format";
 
 /**
@@ -81,6 +81,15 @@ function holdingRow(h: SnapshotHoldingWire, mandate: DeskMandate | null, w: Desk
   return { symbol: h.symbol, name: nameOf(h.symbol), raw: BigInt(h.raw), valueE6: big(h.valueE6), weightBps: h.weightBps, targetBps: h.targetBps, driftBps: h.driftBps, premiumBps: h.premiumBps, standing, flags, priceHistoryE8: historyOf(w, h.symbol) };
 }
 
+/**
+ * The state the page shows (C8g): the row's, except that an owner's Pause lives on the ledger (`DeskMandate.paused`)
+ * and no process writes it back to the row, so an active row over a paused mandate is "paused by you". Before this
+ * the page kept offering Pause after the pause landed and Resume could never be reached.
+ */
+export function deskStateOf(rowState: DeskState, chain: { paused: boolean } | null | undefined): DeskState {
+  return rowState === "active" && chain?.paused ? "paused_by_owner" : rowState;
+}
+
 /** Holdings when no snapshot exists yet: the paper ledger's positions (practice) or the chain's balances (live), unvalued. */
 function unvaluedRows(w: DeskViewWire, mandate: DeskMandate | null): HoldingRow[] {
   const targets = new Map(mandate?.targets.tokens.map((t) => [t.symbol, t.weightBps]) ?? []);
@@ -95,7 +104,7 @@ export function deskView(w: DeskViewWire): DeskView {
   const isOwner = w.viewer === "owner";
   const isLive = desk?.address !== null && desk?.address !== undefined;
   const mode = desk?.mode ?? "practice";
-  const state = desk?.state ?? "practice";
+  const state = deskStateOf(desk?.state ?? "practice", w.chain);
   let mandate: DeskMandate | null = null;
   try {
     mandate = w.mandate ? mandateFromWire(w.mandate.body) : null;

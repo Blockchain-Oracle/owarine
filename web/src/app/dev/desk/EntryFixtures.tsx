@@ -12,6 +12,9 @@ import { deskView } from "@/features/desk/view";
 import { VIEWS } from "./fixtures";
 import { Fixture } from "../states/_sections/Fixture";
 
+/** The fixture's shared desk: this deployment's when one is named, else a stand-in id for the static card. */
+const FIXTURE_SHARED_ID = SHARED_DESK_ID ?? "shared-desk-fixture";
+
 const DEV = {
   entry: "/desk before there is a desk — the entry, with a shared desk",
   entryLive: "The entry reading the real shared desk (unavailable where this index lacks it)",
@@ -27,7 +30,7 @@ export function EntryFixtures() {
       <SectionHeader index="13" title={DEV.entry} />
       <div id="entry-main">
         <Fixture label={DEV.entry}>
-          <DeskEntry sharedId={SHARED_DESK_ID} preview={<SharedDeskCard id={SHARED_DESK_ID} view={deskView(VIEWS.shared)} />} />
+          <DeskEntry sharedId={FIXTURE_SHARED_ID} preview={<SharedDeskCard id={FIXTURE_SHARED_ID} view={deskView(VIEWS.shared)} />} />
         </Fixture>
       </div>
       <Fixture label={DEV.entryLive}>
