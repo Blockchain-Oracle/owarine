@@ -15,7 +15,7 @@ const WALLET = "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T" as EventMarket["co
 const MARKET = appMarketId("PRB-60:0");
 const UPDATE = "1220" + "cd".repeat(32);
 const quote = (maxCostBase: bigint): Quote => ({ side: "up", stakeBase: 63_414n, contractsRaw: 100_000n, expectedCostBase: maxCostBase, maxCostBase, limitPriceRaw: 620_000n, avgPriceBps: 6_200, oddsCents: 62, payoutIfRightBase: 100_000n, fillableStakeBase: 63_414n, partial: false, feeBps: 228, decimals: 6, quotedAtMs: 1 });
-const request = (displayed = quote(64_000n)): OrderRequest => ({ market: { marketId: MARKET } as EventMarket, side: "up", stakeBase: 63_414n, displayedQuote: displayed, wallet: WALLET });
+const request = (displayed = quote(64_000n)): OrderRequest => ({ market: { marketId: MARKET, asset: "BTC", intervalSec: 300, decimals: 6 } as EventMarket, side: "up", stakeBase: 63_414n, displayedQuote: displayed, wallet: WALLET });
 const booked = { marketId: MARKET, side: "up", contractsRaw: 100_000n, costBase: 63_414n, avgPriceBps: 6_200, txHash: UPDATE, fillCount: 1 };
 
 type Handler = (url: string, init: RequestInit) => { status?: number; body: unknown } | Promise<{ status?: number; body: unknown }>;
@@ -57,6 +57,8 @@ describe("seat order lane", () => {
     expect(calls.map((c) => `${c.method} ${c.url}`)).toEqual(["POST http://site.test/api/ledger/quotes", "POST http://site.test/api/ledger/quotes/00q1/accept"]);
     expect(calls[0]!.body).toEqual({ marketId: MARKET, side: "up", stakeBase: "63414", displayedMaxCostBase: "64000" });
     expect(journaledAtAccept).toHaveLength(1);
+    // C5d: recovery reads this back to the reader, so it is words, never base units or a market id.
+    expect(journaledAtAccept[0]!.summary).toBe("Up on BTC (5m Window), 0.06 staked");
     expect(calls[1]!.body).toEqual({ commandId: journaledAtAccept[0]!.id });
     expect(calls[1]!.headers.get("x-agari-seat")).toBe("1");
     expect(phases).toEqual(["submitted", "confirmed"]);

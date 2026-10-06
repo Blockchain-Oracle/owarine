@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { quoteRequestWire } from "@agari/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { regionHold } from "@/lib/region.server";
 
 /**
  * A firm quote at click time (plan §6): the request as the seat confirmed it goes to ops over HMAC, which prices the
@@ -11,6 +12,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const held = regionHold(request);
+  if (held) return held;
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const parsed = quoteRequestWire.safeParse(await jsonBody(request));

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { grantFundRequestWire, grantOpenRequestWire, grantRevokeRequestWire } from "@agari/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { regionHold } from "@/lib/region.server";
 
 /**
  * The seat's own grant writes (C8f), each `actAs` the lease's seat party ONLY, under the commandId the client journaled:
@@ -17,6 +18,9 @@ export const dynamic = "force-dynamic";
 export async function POST(request: NextRequest, context: { params: Promise<{ action: string }> }) {
   const { action } = await context.params;
   if (action !== "open" && action !== "fund" && action !== "revoke") return refusal("unknown", `no grant action ${action}`, 404);
+  // C5d (C-MKT-08): opening or funding a grant holds by region; revoking one is an exit and never does.
+  const held = action === "revoke" ? null : regionHold(request);
+  if (held) return held;
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;

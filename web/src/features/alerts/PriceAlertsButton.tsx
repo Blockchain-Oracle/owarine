@@ -56,9 +56,25 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
     return subscribeAlerts(sync);
   }, []);
 
+  // The target defaults to THIS asset's live price. The hero keeps this control mounted when its Window changes asset,
+  // so a default (or a typed target) made for the last asset is cleared, never offered as this one's (C5d: a BTC
+  // "Above" prefilled with TSLA's $380 fired the moment it was added).
+  // The price in hand at the switch may still be the last asset's, so the default waits for one that is not.
+  const targetAsset = useRef(asset);
+  const rawAtSwitch = useRef<bigint | null>(null);
   useEffect(() => {
-    if (currentRaw !== null && !targetPrice) setTargetPrice(defaultTarget(asset, currentRaw));
-  }, [currentRaw, targetPrice]);
+    if (targetAsset.current === asset) return;
+    targetAsset.current = asset;
+    rawAtSwitch.current = currentRaw;
+    setTargetPrice("");
+    // Only the asset switch clears; a tick alone never overwrites what the reader typed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [asset]);
+  useEffect(() => {
+    if (currentRaw === null || targetPrice || currentRaw === rawAtSwitch.current) return;
+    rawAtSwitch.current = null;
+    setTargetPrice(defaultTarget(asset, currentRaw));
+  }, [asset, currentRaw, targetPrice]);
 
   const close = useCallback(() => setOpen(false), []);
   useFloatingMenus(refs.current, close);

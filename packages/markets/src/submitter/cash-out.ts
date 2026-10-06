@@ -12,8 +12,10 @@
  * held price that lapsed before the accept landed is quoted again once and surfaced as a requote. A partial size
  * (`contractsRaw` below the holding, "sell half") sells exactly that many lots.
  */
+import { formatCadence } from "@agari/core/copy";
 import type { CashOutOutcome, CashOutRequest, PhaseListener } from "@agari/core/ports";
 import { diagnosis, type Diagnosis, type ExitQuote, type Signature } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { ledgerRequest } from "../provider/ledger-api";
 import { exitAcceptReplyWire, exitQuoteReplyWire } from "../provider/ledger-wire";
 import { pollCommand, type SeatLaneDeps } from "./seat-lane";
@@ -38,8 +40,9 @@ export async function requestFirmExit(req: Pick<CashOutRequest, "market" | "side
   return r.ok ? r.value : { kind: "refused", diagnosis: r.diagnosis };
 }
 
+/** The reference's words (`cash-out.ts` summarize at 661a24ee); the seat route is the only one on Canton. */
 function summarize(req: CashOutRequest): string {
-  return `cash out ${req.contractsRaw} ${req.side} on ${req.market.marketId}`;
+  return `Cash out ${formatBaseUnits(req.contractsRaw, req.market.decimals)} ${req.side === "up" ? "Up" : "Down"} on ${req.market.asset} (${formatCadence(req.market.intervalSec)} Window)`;
 }
 
 export async function submitSeatCashOut(deps: SeatLaneDeps, req: CashOutRequest, onPhase?: PhaseListener, onHeld?: HeldExitListener): Promise<CashOutOutcome> {

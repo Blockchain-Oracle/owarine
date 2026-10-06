@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { ccDepositRequestWire } from "@agari/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { regionHold } from "@/lib/region.server";
 
 /**
  * The seat's Canton Coin deposit (C7b): `{commandId, amount}`, `actAs` the lease's seat party ONLY. It instructs the
@@ -13,6 +14,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const held = regionHold(request);
+  if (held) return held;
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;

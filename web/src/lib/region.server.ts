@@ -21,3 +21,13 @@ export function regionRestricted(req: Request): boolean {
 export function regionRestrictedResponse(): Response {
   return Response.json({ error: "region_restricted" }, { status: 451, headers: { "Cache-Control": "no-store" } });
 }
+
+/**
+ * C5d (C-MKT-08): on Canton every entry a seat makes goes through this server — a call's quote and accept, a resting
+ * call and its placement, a ticket's accept, a Canton Coin deposit, an agent vault's open or fund — so each holds the
+ * way the faucet does. Exits (exit quotes, claims, stale refunds, cancels, cash-outs, withdrawals, the seat's reset)
+ * never ask, so a held reader can always leave.
+ */
+export function regionHold(req: Request): Response | null {
+  return regionRestricted(req) ? regionRestrictedResponse() : null;
+}
