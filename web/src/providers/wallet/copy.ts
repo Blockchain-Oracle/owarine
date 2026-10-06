@@ -1,3 +1,5 @@
+import { networkLabel } from "@agari/markets/chain";
+
 /**
  * The seat modals' words. The frame and every key are RainbowKit 2.2.11's `en_US` strings as Masayume showed them; on
  * Canton the connected account is a guest seat (plan §2, §4), so the sentences say "seat" where they said "wallet".
@@ -7,7 +9,13 @@ export const WALLET_MODAL = {
   title: "Take a Seat",
   close: "Close",
   back: "Back",
-  groups: { installed: "Canton DevNet", browser: "More ways in" },
+  groups: {
+    /** The configured network by name (C4f): a LocalNet build never says DevNet. */
+    get installed(): string {
+      return networkLabel();
+    },
+    browser: "More ways in",
+  },
   recent: "Recent",
   newTo: "New to Canton seats?",
   learnMore: "Learn More",
