@@ -1,0 +1,15 @@
+/* C10f: the demo film's frame while no film is configured (the D-015 honest state). The reference's .demo-video frame
+   (demo.css: 16:9, hairline, radius) with the waiting sentence centred in it; tokens only, both themes. */
+.demo-video-figure .demo-video.demo-film-pending {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+  padding: clamp(20px, 5vw, 56px);
+  background: var(--demo-wash);
+  text-align: center;
+}
+.demo-film-eyebrow {
+  margin: 0;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--vermilion);
+}
+.demo-film-line { margin: 0; max-width: 52ch; font-size: clamp(14px, 1.6vw, 17px); line-height: 1.6; color: var(--gray-300); }
+.demo-film-meta { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--gray-500); }

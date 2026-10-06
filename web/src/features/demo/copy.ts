@@ -2,15 +2,17 @@
  * `/demo` — ported from `reference/yosuku/app/demo/page.tsx`.
  *
  * The reference's structure is kept line for line; every claim is rewritten to what Agari does on the Canton test
- * network (C4c). The video and screenshots were recorded before the Canton port, and the copy says so; the receipts
- * list is empty until the Canton DevNet drive records its own. Nothing here names an X handle.
+ * network (C4c). C10f: no footage or screenshot recorded before the Canton port is shown. The film comes from one config
+ * point (`AGARI_DEMO_VIDEO_URL`, `web/src/lib/release.ts`) and the frame names what it waits on until it is set; the
+ * screenshots are dated captures of the Canton build on a local sandbox; the receipts list is empty until the Canton
+ * DevNet drive records its own. Nothing here names an X handle.
  */
 export const DEMO = {
   title: "Demo",
   video: {
     title: "Agari — demo",
-    description: "Call whether a US stock closes its Window up or down, settled on a signed price. Recorded before the Canton port; the flow is the same.",
-    caption: "Markets on the NYSE clock, the call before the bell, and a settlement you can audit. Recorded on the running product.",
+    description: "A private call on Canton: a firm quote from the venue, a position only you and the venue can see, three oracle parties at the close, and a settlement you can audit.",
+    caption: "Recorded on the Canton build: a seat, a call at the venue's firm quote, who can see it, a sell-back, and the settlement.",
     watch: "Watch on YouTube ↗",
   },
   bar: {
@@ -20,12 +22,19 @@ export const DEMO = {
     stats: "stats",
     open: "open the app",
   },
+  /** The film's frame while `AGARI_DEMO_VIDEO_URL` is unset (the D-015 honest state). */
+  film: {
+    pendingLabel: "The demo film is not published yet",
+    pendingEyebrow: "The Canton film",
+    pendingLine: "Being re-shot on the Canton build. It plays here once it is published; until then, the walkthrough below is the demo, and every frame in it is the Canton build.",
+    pendingMeta: "Not connected yet · waiting on the demo film recorded on the Canton build",
+  },
   hero: {
     eyebrow: "live demo",
     headline: "See Agari ",
     headlineSerif: "work.",
-    videoLabel: "▶ demo · before the Canton port",
-    lead: "Up or down on a US stock, settled on a signed price the ledger checks itself — one tap, no wallet app, on the web and as an installable app, and still open after the bell. Full feature breakdown and the proof page below.",
+    videoLabel: "▶ demo · the Canton build",
+    lead: "Up or down on a stock, a coin or an event at the venue's firm quote, in a position only you and the venue can see, settled on a price three oracle parties sign — one tap, no wallet app, on the web and as an installable app. Full feature breakdown and the proof page below.",
     open: "Open the app",
     stats: "View live stats",
     pitch: "See the pitch",
@@ -55,12 +64,12 @@ export const DEMO = {
       link: "open the reel",
     },
     social: {
-      kicker: "03 · social by default",
-      headline: "The Room, and a ",
-      headlineSerif: "second opinion.",
-      body: "Every Window has a Room — callers only, and the gate is a ledger read, not a setting. Sensei reads the same market stream the page holds and says what it sees, or says plainly when it has no key.",
-      room: "open a Window's Room",
-      sensei: "ask Sensei",
+      kicker: "03 · private by default",
+      headline: "Who can see it? ",
+      headlineSerif: "Ask the ledger.",
+      body: "Every position carries a \"Who can see this\" switch: Alice, Bob, an outsider and you, each a live ledger query as that party with the request body on screen. Your position is a contract between your seat and the venue, so the outsider's query comes back empty. The Room is callers only, gated by the same kind of read, and Sensei reads the same market stream the page holds.",
+      room: "who sees what, contract by contract",
+      sensei: "open a Window's Room",
     },
     depth: {
       kicker: "04 · real depth, still private",
@@ -99,11 +108,11 @@ export const DEMO = {
     footer: "Agari · stock prediction Windows on Canton, open after the bell.",
   },
   frame: {
-    caption: (date: string) => `captured from the product before the Canton port · ${date}`,
-    markets: "Agari's market board after the close: the last price, the next session on the clock, and the ticket beside it",
-    reel: "The reel after the close: the next session on the clock, with the latest takes a swipe away",
-    sensei: "Sensei open over the market, reading the same stream the page holds",
+    caption: (date: string) => `captured from the Canton build on a local sandbox · ${date}`,
+    markets: "Agari's market board on Canton: an ETH one-minute Window, its opening print, the time left and the Up and Down prices",
+    reel: "The same board at phone width, where the reel and the bottom dock live",
+    sensei: "Who can see this, as an outsider: the ledger query names the outsider party and returns no contracts",
   },
-  /** Every screenshot under /public/demo was taken on this day, from the running product. */
-  capturedOn: "2026-09-15",
+  /** Every screenshot under /public/demo is a crop of a Canton capture in docs/evidence/ux, taken on this day. */
+  capturedOn: "2026-09-29",
 } as const;

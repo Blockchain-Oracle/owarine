@@ -1,10 +1,12 @@
-import { ArrowRightIcon, ChartCandlestickIcon, ChartColumnIcon, MessageSquareIcon, ScrollTextIcon, ShieldCheckIcon, SmartphoneIcon, TrendingUpIcon, ZapIcon } from "lucide-react";
+import { ArrowRightIcon, ChartCandlestickIcon, ChartColumnIcon, EyeOffIcon, ScrollTextIcon, ShieldCheckIcon, SmartphoneIcon, TrendingUpIcon, ZapIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { DEMO } from "./copy";
 import { Eyebrow, Frame, Kicker, ProofCode, ProofLink, Reveal, Serif } from "./DemoBlocks";
 import { DemoTraction } from "./DemoTraction";
-import { DemoVideo } from "./DemoVideo";
+import type { DemoFilm as Film } from "@/lib/release";
+import { DemoFilm } from "./DemoFilm";
+import { WHO_SEES_WHAT_PATH } from "../landing/story-copy";
 import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PROOFS, txProof, txProofHref, txProofLabel } from "./proofs";
 
 /**
@@ -12,10 +14,9 @@ import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PR
  *
  * The reference is "the walkthrough, in place of a video": the real product, with
  * every claim a transaction anyone can open. That is kept exactly. What changes is
- * every fact: the video is Agari's own recording, embedded from YouTube
- * (D-097, superseded 09-24); the traction line is read live from the venue; the screenshots are dated
- * captures of this product; and the proofs are confirmed devnet signatures from
- * `docs/plan/acceptance.md` and the configured programs, on Solana Explorer.
+ * every fact: the film comes from the one config point (`AGARI_DEMO_VIDEO_URL`) and its frame names what it waits on
+ * until it is set (C10f: nothing recorded before the Canton port is shown); the traction line is read live from the
+ * venue; the screenshots are dated captures of the Canton build; and the receipts list waits for the DevNet drive.
  *
  * The reference draws its own near-black page outside the app shell. Here it sits in
  * the shell like every other route and its ground follows the theme — the user's
@@ -56,7 +57,7 @@ function TopBar() {
   );
 }
 
-function Hero() {
+function Hero({ film }: { film: Film | null }) {
   return (
     <section className="demo-hero">
       <Eyebrow>{DEMO.hero.eyebrow}</Eyebrow>
@@ -68,7 +69,7 @@ function Hero() {
       </Reveal>
       <div className="demo-video-label">{DEMO.hero.videoLabel}</div>
       <Reveal immediate>
-        <DemoVideo />
+        <DemoFilm film={film} />
       </Reveal>
       <Reveal immediate>
         <p className="demo-lead">{DEMO.hero.lead}</p>
@@ -89,7 +90,7 @@ function Hero() {
   );
 }
 
-export function DemoPage() {
+export function DemoPage({ film }: { film: Film | null }) {
   // Each depth card cites the transaction that proves it, not only the program it ran on.
   const book = txProof("fill");
   const settlement = txProof("settlement");
@@ -98,7 +99,7 @@ export function DemoPage() {
   return (
     <div className="demo-page">
       <TopBar />
-      <Hero />
+      <Hero film={film} />
 
       {/* 01 — the ritual */}
       <section className="demo-section">
@@ -114,7 +115,7 @@ export function DemoPage() {
           </Link>
         </Reveal>
         <Reveal>
-          <Frame src="/demo/markets.png" alt={DEMO.frame.markets} />
+          <Frame src="/demo/markets-canton.jpg" alt={DEMO.frame.markets} />
         </Reveal>
       </section>
 
@@ -132,30 +133,30 @@ export function DemoPage() {
           </Link>
         </Reveal>
         <Reveal className="demo-order-1">
-          <Frame src="/demo/reel.png" alt={DEMO.frame.reel} phone />
+          <Frame src="/demo/markets-phone-canton.jpg" alt={DEMO.frame.reel} phone />
         </Reveal>
       </section>
 
-      {/* 03 — social by default */}
+      {/* 03 — private by default */}
       <section className="demo-section">
         <Reveal>
-          <Kicker icon={<MessageSquareIcon className="demo-kicker-icon" aria-hidden />}>{S.social.kicker}</Kicker>
+          <Kicker icon={<EyeOffIcon className="demo-kicker-icon" aria-hidden />}>{S.social.kicker}</Kicker>
           <h2 className="demo-h2">
             {S.social.headline}
             <Serif>{S.social.headlineSerif}</Serif>
           </h2>
           <p className="demo-body">{S.social.body}</p>
           <div className="demo-links">
-            <Link href="/markets" className="demo-inline-link" data-cursor="hover">
+            <Link href={WHO_SEES_WHAT_PATH} className="demo-inline-link" data-cursor="hover">
               {S.social.room} <ArrowRightIcon className="demo-cta-icon" aria-hidden />
             </Link>
-            <Link href="/markets?sensei=1" className="demo-inline-link" data-cursor="hover">
+            <Link href="/markets" className="demo-inline-link" data-cursor="hover">
               {S.social.sensei} <ArrowRightIcon className="demo-cta-icon" aria-hidden />
             </Link>
           </div>
         </Reveal>
         <Reveal>
-          <Frame src="/demo/sensei.png" alt={DEMO.frame.sensei} />
+          <Frame src="/demo/outsider-canton.jpg" alt={DEMO.frame.sensei} />
         </Reveal>
       </section>
 
