@@ -15,7 +15,7 @@ interface SlippageLadderProps {
   symbol: string;
   /** The pool's lot; null until read — the walk is not run on a guessed lot. */
   lotRaw: bigint | null;
-  /** The venue's settlement fee; null until read — the payout column waits rather than assuming zero. */
+  /** The venue's settlement fee (0 on Canton: the fee is charged at the fill); null until read — the payout column waits. */
   feeBps: number | null;
 }
 

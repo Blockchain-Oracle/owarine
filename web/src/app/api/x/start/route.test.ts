@@ -38,6 +38,13 @@ describe("GET /api/x/start (the 2026-09-24 redirect loop)", () => {
     expect(res.headers.get("location")).toMatch(/^https:\/\/api\.x\.com\//);
   });
 
+  it("goes home with the reason when X cannot be reached, never to a raw error body (C9e)", async () => {
+    oauth.requestToken.mockResolvedValueOnce({ error: "TimeoutError", status: 0 } as never);
+    const res = await GET(behindProxy("http://useagari.xyz/api/x/start?return=/claim"));
+    expect(res.status).toBe(307);
+    expect(res.headers.get("location")).toBe("https://useagari.xyz/claim?x=err&x_reason=server");
+  });
+
   it("still moves a browser on another host to the callback's host, once", async () => {
     const res = await GET(behindProxy("https://www.useagari.xyz/api/x/start?return=/trade-from-x"));
     expect(res.headers.get("location")).toBe("https://useagari.xyz/api/x/start?return=%2Ftrade-from-x");

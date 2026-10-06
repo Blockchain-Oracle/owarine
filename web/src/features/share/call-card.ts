@@ -1,4 +1,4 @@
-import { estPayoutBase } from "@agari/core/claims";
+import { winPayoutBase } from "@agari/core/claims";
 import { formatCadence } from "@agari/core/copy";
 import type { Side, Signature } from "@agari/core/types";
 import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
@@ -17,8 +17,9 @@ import { drawStub, encodeQr } from "./stub";
  *    ("IF IT LANDS"), never as realised.
  *  · The settle time is the Window's real expiry, as an absolute UTC second — never
  *    a "settles in ~Xm" that goes stale the moment it is shared.
- *  · Every number is what the wallet actually staked, and the return is net of the
- *    settlement fee when the fee is known.
+ *  · Every number is what the wallet actually staked (the fee included: Canton charges
+ *    it at the fill), and the return is the full contract count: nothing is taken at
+ *    settlement.
  *  · A boost carries the reference's knock-out caveat, exactly as it prints it; a
  *    plain call prints nothing rather than "1×".
  */
@@ -34,7 +35,7 @@ export interface CallCard {
   contractsRaw: bigint;
   decimals: number;
   symbol: string;
-  /** Settlement fee in basis points; null when unread, in which case the return is gross and says so. */
+  /** Settlement fee in basis points (0 on Canton); null while unread, when the card makes no claim about it. */
   feeBps: number | null;
   expirySec: number;
   txHash: Signature;
@@ -54,9 +55,9 @@ const SETTLES_Y = 728;
 
 const fmt = (value: bigint, decimals: number) => formatBaseUnits(value, decimals);
 
-/** What a win returns — one unit per contract less the settlement fee when it is known, less the reserve's claim on a boost. */
+/** What a win returns — one unit per contract, paid in full (`PM.Leg.legPayout`), less the reserve's claim on a boost. */
 export function callWinBase(card: CallCard): bigint {
-  const net = card.feeBps === null ? card.contractsRaw : estPayoutBase(card.contractsRaw, "win");
+  const net = winPayoutBase(card.contractsRaw);
   if (!card.leverage) return net;
   return net > card.leverage.frontedBase ? net - card.leverage.frontedBase : 0n;
 }

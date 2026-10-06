@@ -10,7 +10,7 @@
  *   → a season pool funded by the venue pays two winners once (ops' route), refuses a second payout, remainder withdrawn
  *
  *   LEDGER_JSON_API_URL=http://localhost:7575 AGARI_PARTIES_FILE=… DATABASE_URL=…/pm_c9b OPS=http://localhost:8777 \
- *   OPS_INTERNAL_SECRET=… ROOM=ws://127.0.0.1:8857 ROOM_TOKEN_SECRET=… pnpm --filter @agari/scripts exec tsx drive/games-duel-it.ts
+ *   OPS_INTERNAL_SECRET=… OPS_ADMIN_SECRET=… ROOM=ws://127.0.0.1:8857 ROOM_TOKEN_SECRET=… pnpm --filter @agari/scripts exec tsx drive/games-duel-it.ts
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { createHmac, randomBytes, randomUUID, webcrypto } from "node:crypto";
@@ -227,16 +227,20 @@ const shard = await client.submitAndWaitForTransaction({ actAs: [venue], command
 const shardCid = shard.transaction.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : [])).find((e) => e.templateId.endsWith(":VenueCash"))!.contractId;
 await client.submitAndWaitForTransaction({ actAs: [venue], commandId: `drive:season-fund:${seasonId}`, commands: [gcmd.fundSeason(poolCid, [shardCid])] });
 await sleep(14_000);
-const input = { secretKey: new Uint8Array(0), rpcUrl: OPS, rpcSubscriptionsUrl: "", seasonId, winners: [creator.address, challenger.address], amountsBase: [60_000_000n, 30_000_000n], opsSecret: process.env.OPS_INTERNAL_SECRET! };
+// C4d L4: the season admin's calls are signed with OPS_ADMIN_SECRET, never the web's OPS_INTERNAL_SECRET (C9e: the
+// drive still used the old one, so ops refused both acts and the season step failed before it reached the ledger).
+const adminSecret = process.env.OPS_ADMIN_SECRET;
+if (!adminSecret) throw new Error("OPS_ADMIN_SECRET is required for the season step: ops refuses admin acts signed with anything else");
+const input = { secretKey: new Uint8Array(0), rpcUrl: OPS, rpcSubscriptionsUrl: "", seasonId, winners: [creator.address, challenger.address], amountsBase: [60_000_000n, 30_000_000n], opsSecret: adminSecret };
 const paid = await distributeSeasonPrizes(input).then((id) => ({ ok: true, id }), (e: unknown) => ({ ok: false, id: String(e) }));
 check("the season pool paid its two winners once (Season_Distribute via ops)", paid.ok, paid.id);
 const again = await distributeSeasonPrizes(input).then(() => "paid twice", (e: unknown) => String(e));
-check("a second payout is refused", again !== "paid twice", again);
+check("a second payout is refused", /already-distributed/.test(again), again);
 check("each winner was credited to their seat", (await cashOf(creator.actor.party, `season:${seasonId}`)) === 60_000_000n && (await cashOf(challenger.actor.party, `season:${seasonId}`)) === 30_000_000n);
 const pools = await client.activeContracts({ parties: [venue], templateIds: [GAMES_TEMPLATE_IDS.SeasonPool] });
 const pool = pools.contracts.map((c) => ({ cid: c.createdEvent.contractId, data: decodeSeasonPool(c.createdEvent.createArgument) })).find((p) => p.data.seasonId === seasonId)!;
 check("the pool shows it distributed, holding the remainder", pool.data.distributed && pool.data.amount === 10_000_000n, pool.data);
-const withdrawn = await withdrawSeasonRemainder({ rpcUrl: OPS, seasonId, opsSecret: process.env.OPS_INTERNAL_SECRET! }).then((r) => ({ ok: true, r }), (e: unknown) => ({ ok: false, r: String(e) }));
+const withdrawn = await withdrawSeasonRemainder({ rpcUrl: OPS, seasonId, opsSecret: adminSecret }).then((r) => ({ ok: true, r }), (e: unknown) => ({ ok: false, r: String(e) }));
 check("the admin withdrew the remainder through ops (Season_WithdrawRemainder) and the pool closed", withdrawn.ok && typeof withdrawn.r === "object" && withdrawn.r.withdrawnBase === 10_000_000n, withdrawn.r);
 const gone = await client.activeContracts({ parties: [venue], templateIds: [GAMES_TEMPLATE_IDS.SeasonPool] });
 check("no live pool remains for the season", !gone.contracts.some((c) => decodeSeasonPool(c.createdEvent.createArgument).seasonId === seasonId));

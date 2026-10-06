@@ -121,7 +121,8 @@ export function seasonConfigFrom(env: Readonly<Record<string, string | undefined
     endsAt: new Date(endsAt).toISOString(),
     prizeSplit: parsePrizeSplit(env.SEASON_PRIZE_SPLIT),
     minStakedDuels: Number.isInteger(min) && min >= 0 ? min : 1,
-    eligibilityNote: env.SEASON_ELIGIBILITY_NOTE?.trim() || "Paid from the pool at season end, in the ladder's order.",
+    // C9e (K-296): ops pays a winner's live seat only (a recycled party must never receive another visitor's prize).
+    eligibilityNote: env.SEASON_ELIGIBILITY_NOTE?.trim() || "Paid from the pool at season end, in the ladder's order, to the seat you hold at that moment.",
   };
 }
 

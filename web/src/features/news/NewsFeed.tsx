@@ -4,6 +4,7 @@ import type { TickerSymbol } from "@agari/core/market";
 import { NEWS } from "./copy";
 import { articleSymbols, Cashtags, MarkCluster, NewsRow, Tone } from "./NewsRow";
 import type { Article } from "./protocol";
+import { newsQuietLine } from "./news-reading";
 import { useNews } from "./useNews";
 
 function Meta({ article }: { article: Article }) {
@@ -49,7 +50,7 @@ export function NewsFeed({ symbol = null }: { symbol?: TickerSymbol | null }) {
 
   if (reading === null) return <NewsSkeleton />;
   const articles = reading.ok ? reading.value : [];
-  if (articles.length === 0) return <p className="news-quiet">{NEWS.quiet}</p>;
+  if (articles.length === 0) return <p className="news-quiet">{newsQuietLine(reading)}</p>;
 
   const [lead, ...rest] = articles as [Article, ...Article[]];
   const leadSymbols = articleSymbols(lead.symbols);

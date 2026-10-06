@@ -1,13 +1,50 @@
 /**
- * The engine's redeem, mirrored (spec `events-engine.md` §8.2–8.4): a payout vector over 10⁷, win (10⁷, 0),
- * void (5·10⁶, 5·10⁶), floored once. Registration forces `tick_base × 1000 == 10^dec`, so one outcome base unit
- * pays exactly one collateral base unit on a win on every valid grid. Agari charges no settlement fee.
+ * What a position pays its owner when its Window ends, as the ledger pays it: `PM.Leg.legPayout` in abu-pm-main.
+ *
+ *   won    the leg's quantity: one collateral base unit per outcome base unit (one credit per contract)
+ *   lost   nothing
+ *   void   what the leg cost: its backing plus the fee paid when the call filled
+ *
+ * The fee is charged once, with the stake, when the call fills. The leg holds it; the venue keeps it only at a non-void
+ * settle and returns it on a void. Nothing is taken at settlement, so a win is paid in full. (The reference engine paid a
+ * void half a contract per leg; Canton refunds the leg's cost instead, so a void needs what the leg cost, never just its
+ * size.)
  */
-export const PAYOUT_DENOMINATOR = 10_000_000n;
 
-export const PAYOUT_NUMERATOR = { win: 10_000_000n, void: 5_000_000n } as const;
+/** How a held leg ended. */
+export type LegResult = "win" | "loss" | "void";
 
-/** Collateral base units a winning or voided holding redeems for: `⌊amountRaw × numerator / 10⁷⌋`, as `user_redeem`. */
-export function estPayoutBase(amountRaw: bigint, kind: "win" | "void"): bigint {
-  return (amountRaw * PAYOUT_NUMERATOR[kind]) / PAYOUT_DENOMINATOR;
+/** A held position's own figures, in base units. */
+export interface LegFigures {
+  /** Outcome base units held: `lots × 1000 × cashUnit` on the ledger. */
+  quantityRaw: bigint;
+  /** What the leg cost its owner: `backingShare + feePaid`. */
+  paidBase: bigint;
+}
+
+/** What a winning holding pays: one collateral base unit per outcome base unit, nothing deducted. */
+export function winPayoutBase(quantityRaw: bigint): bigint {
+  return quantityRaw;
+}
+
+/** `PM.Leg.legPayout`: the owner's payout for one leg under its Window's result. */
+export function legPayoutBase(leg: LegFigures, result: LegResult): bigint {
+  if (result === "void") return leg.paidBase;
+  return result === "win" ? winPayoutBase(leg.quantityRaw) : 0n;
+}
+
+/**
+ * Splits a known total refund across held sides in proportion to their size, the remainder on the last side, so the
+ * parts always sum to the total. Exact for one side; for two sides it apportions a total the ledger reported as one sum.
+ */
+export function apportionBase(totalBase: bigint, sizes: readonly bigint[]): bigint[] {
+  const whole = sizes.reduce((sum, size) => sum + size, 0n);
+  if (whole === 0n) return sizes.map(() => 0n);
+  let given = 0n;
+  return sizes.map((size, i) => {
+    if (i === sizes.length - 1) return totalBase - given;
+    const part = (totalBase * size) / whole;
+    given += part;
+    return part;
+  });
 }

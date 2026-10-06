@@ -1,8 +1,8 @@
 import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
 import { noEntryCutoffSec } from "@agari/core/lifecycle";
-import { LAUNCH_TICKERS, TICKERS } from "@agari/core/market";
+import { TICKERS } from "@agari/core/market";
 import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
-import { selectXWindow, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
+import { selectXWindow, X_BUILDER_ASSETS, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
 import { marketsProvider } from "@agari/markets";
 import { useLanes, useTick } from "@agari/markets/react";
 import * as Clipboard from "expo-clipboard";
@@ -76,7 +76,7 @@ export function InstructionBuilder({ enabled, balanceBase, decimals, symbol }: {
         <View>
           <Legend label="Asset" />
           <View style={styles.grid}>
-            {pairs(LAUNCH_TICKERS).map((row) => (
+            {pairs(X_BUILDER_ASSETS).map((row) => (
             <View key={row.join()} style={styles.pair}>
             {row.map((name) => {
               if (!name) return <View key="spacer" style={styles.cell} />;

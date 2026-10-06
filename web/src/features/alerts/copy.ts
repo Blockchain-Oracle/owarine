@@ -18,6 +18,9 @@ export const ALERTS = {
     regular: "Regular",
     token: "24/7 token",
     tokenPending: "Arrives with the 24/7 token lane",
+    /** C9e: a name that trades only around the clock (BTC, ETH, pre-IPO, baskets) watches its 24/7 spot. */
+    allDay: "24/7",
+    noSession: "This name has no NYSE session: its alerts watch the 24/7 price",
   },
   targetPlaceholder: "Target price",
   targetLabel: "Target price",

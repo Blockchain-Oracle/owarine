@@ -19,7 +19,7 @@ export { getArchiveSeries, getAssetPrice, getPriceHistory } from "./prices";
 export { getBalanceSheet, getWalletCollateral, listClaimables, listOpenPositions } from "./wallet";
 export { getVaultHoldings, getVaultSnapshot } from "../vault/read";
 
-/** The engine has no settlement fee: redeem pays `⌊amount × numerator / 10⁷⌋` (D-012, core `estPayoutBase`). */
+/** Canton takes no fee at settlement (`PM.Leg.legPayout`): the fee is charged with the stake at the fill and returned on a void. */
 export async function settlementFeeBps(_marketId: MarketId): Promise<Reading<number>> {
   return ok(0, nowMs());
 }

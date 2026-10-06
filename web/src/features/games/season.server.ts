@@ -45,8 +45,11 @@ export async function seasonView(): Promise<SeasonWire | null> {
   seatServer();
   const pool = await getSeasonPool(config.id);
   const state = isOk(pool) ? pool.value : null;
+  // C9e: the pool on the ledger names its own end (`Season_Distribute` refuses before it); the countdown follows the
+  // contract rather than the operator's env when the two disagree.
+  const endsAt = state ? new Date(state.endsAtSec * 1000).toISOString() : config.endsAt;
   return {
-    season: { ...config, prizePool: { totalUnits: prizePoolTotalUnits(config.prizeSplit), currency: money?.symbol ?? "" } },
+    season: { ...config, endsAt, prizePool: { totalUnits: prizePoolTotalUnits(config.prizeSplit), currency: money?.symbol ?? "" } },
     escrow:
       state && money
         ? {

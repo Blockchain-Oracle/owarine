@@ -122,6 +122,10 @@ export const GAMES = {
     intro: "Ratings move only on ranked duels the settler has verified. There is no season and no prize here — the ladder is the record.",
     /** Flicky's Season overlay (`rank.tsx`): said only when the operator has named a season and a pool escrows it. */
     introSeason: "Ratings move only on ranked duels the settler has verified. This season pays the top of the ladder from a pool that already sits in a contract.",
+    /** C9e: what the ladder says before the season read answers, and when it could not be read. */
+    introLoading: "Ratings move only on ranked duels the settler has verified.",
+    introUnread: "Ratings move only on ranked duels the settler has verified. The season could not be read just now, so no prize is shown; it is read again in a moment.",
+    introSeasonUnescrowed: "Ratings move only on ranked duels the settler has verified. This season names prizes, but no pool on the ledger holds them, so nothing is promised.",
     loading: "Reading the ladder…",
     notConfigured: "This deployment has no games store, so there is no ladder to read here.",
     empty: "Nobody has a verified ranked duel yet.",

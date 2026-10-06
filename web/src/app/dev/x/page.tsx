@@ -25,7 +25,7 @@ function status(over: Partial<XStatus>): XStatus {
   return { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: EXECUTOR, handle: "@useagari", ...over };
 }
 
-function link(over: Partial<XLink> & { status: XStatus }): XLink {
+function link(over: Partial<XLink> & { status: XStatus | null }): XLink {
   return { loading: false, busy: "", error: "", ok: "", needsLink: false, walletMismatch: false, sessionMatchesBinding: false, refresh: noop, link: noop, unlink: noop, startUrl: (r) => `/api/x/start?return=${r}`, setOk: () => undefined, setError: () => undefined, ...over };
 }
 
@@ -46,6 +46,7 @@ const SESSION = { authorId: "1234567890", handle: "abu_builds" };
 
 const CASES: Array<{ title: string; address: string | null; link: XLink; grant: XGrantState }> = [
   { title: "Not configured (no X app on this deployment)", address: WALLET, link: link({ status: status({ configured: false, missing: ["X_API_KEY", "X_API_KEY_SECRET", "X_SESSION_SECRET"], executor: null }) }), grant: grant({}) },
+  { title: "Status unreadable (the store or the gate failed: not the same as not configured)", address: WALLET, link: link({ status: null }), grant: grant({}) },
   { title: "Connected wallet, X not signed in", address: WALLET, link: link({ status: status({}) }), grant: grant({}) },
   { title: "Signed in, one more step to link", address: WALLET, link: link({ status: status({ signedIn: true, session: SESSION }), needsLink: true }), grant: grant({}) },
   { title: "Linked and funded (the executor grant holds the balance)", address: WALLET, link: link({ status: status({ signedIn: true, session: SESSION, binding: BINDING }), sessionMatchesBinding: true }), grant: grant({ grant: GRANT, balanceBase: GRANT.budgetBase }) },

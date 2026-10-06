@@ -78,7 +78,8 @@ export const SURFACE = {
     loading: "reading the ladder…",
     empty: (side: string) => `No ${side} prices on the ladder — nothing to price.`,
     lot: (lot: string) => `sized to the venue's lot of ${lot} contracts`,
-    fee: (bps: number) => (bps === 0 ? "no settlement fee on this venue" : `after the ${bps} bps settlement fee`),
+    /** Canton takes nothing at settlement: the fee is charged with the stake when the call fills, and a void returns it. */
+    fee: (bps: number) => (bps === 0 ? "pays in full; the fee is added to the stake at the fill" : `after the ${bps} bps settlement fee`),
     unguarded: "The ticket caps its own order's cost; this table shows the venue's ladder itself, unguarded.",
   },
   term: {

@@ -31,7 +31,7 @@ interface Props {
 
 /**
  * web's PlacedCall → The Call: the booked order and its Window as the chain has them, on the cream paper card — the
- * side, the band, what was staked and what it wins if it lands (net of the fee once read), the clock to the bell and
+ * side, the band, what was staked (fee included) and what it wins if it lands (paid in full), the clock to the bell and
  * the entry tx. Past the bell the same sheet carries the verdict and the claim, so the loop closes where it began.
  */
 export function CallReceipt({ booked, market, decimals, symbol, leverage = null, onAnother }: Props) {

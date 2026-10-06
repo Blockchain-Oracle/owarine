@@ -42,7 +42,8 @@ function fixture(input: Omit<VerdictInput, "marketId" | "decimals" | "settledAtM
 export const VERDICT_FIXTURES = {
   win: fixture({ settlement: upWins, holdings: { upRaw: 10n * ONE, downRaw: 0n }, costBasisBase: 5n * ONE }),
   loss: fixture({ settlement: upWins, holdings: { upRaw: 0n, downRaw: 10n * ONE }, costBasisBase: 45n * ONE / 10n }),
-  void: fixture({ settlement: voided, holdings: { upRaw: 10n * ONE, downRaw: 2n * ONE }, costBasisBase: 6n * ONE }),
+  // A void returns each side's backing plus fee (`PM.Leg.legPayout`): the P&L is zero.
+  void: fixture({ settlement: voided, holdings: { upRaw: 10n * ONE, downRaw: 2n * ONE }, costBasisBase: 6_060_000n, paidBySide: { up: 4_650_000n, down: 1_410_000n } }),
   both: fixture({ settlement: upWins, holdings: { upRaw: 4n * ONE, downRaw: 10n * ONE }, costBasisBase: 7n * ONE }),
 } as const;
 

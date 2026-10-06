@@ -12,6 +12,9 @@ export const NEWS = {
   /** The reference's line, plus the provider credit (Q-S13-6: the Finnhub free tier, credited). */
   intro: "Sentiment-tagged and refreshed live. Read the room before you ring the bell. Headlines via Finnhub.",
   quiet: "The wire is quiet. Headlines return shortly.",
+  /** C9e: a wire with no provider key is not a quiet wire. */
+  unconfigured: "The news wire is not switched on here: it waits on a Finnhub key, which this server has not set.",
+  unreadable: "Finnhub could not be read just now. The wire is read again every minute.",
   sentiment: { positive: "bullish", negative: "bearish", neutral: "neutral" } satisfies Record<Sentiment, string>,
   /**
    * The marquee's crowd cell, on hover (plan: `/api/sentiment` "with the privacy note on hover", C13a): what it counts,

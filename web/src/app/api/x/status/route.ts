@@ -13,6 +13,16 @@ export const dynamic = "force-dynamic";
  * reference keeps apart (`api/claim/x/me`): a missing cookie is not an unlinked wallet.
  */
 export async function GET(req: NextRequest) {
+  try {
+    return await status(req);
+  } catch (error) {
+    // C9e: a store or gate failure is said as one (JSON 503), never a bodiless 500 the page would read as "not configured".
+    console.error("x status failed", error instanceof Error ? error.message : error);
+    return NextResponse.json({ error: "the X link store could not be read just now" }, { status: 503, headers: { "cache-control": "no-store" } });
+  }
+}
+
+async function status(req: NextRequest) {
   const wallet = req.nextUrl.searchParams.get("wallet");
   const gate = await readXGate(publicOrigin(req));
   const storeConfigured = isDbConfigured();

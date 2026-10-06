@@ -28,7 +28,7 @@ export interface SlippageRow {
   slippageBps: number | null;
   /** True when the stake would take every visible level — what lies deeper is not read here. */
   exhausted: boolean;
-  /** Contracts × (1 − settlement fee); null until the fee is read, never assumed zero. */
+  /** Contracts × (1 − settlement fee): the full contract count on Canton, which takes no fee at settlement; null until read. */
   payoutIfRightBase: bigint | null;
 }
 

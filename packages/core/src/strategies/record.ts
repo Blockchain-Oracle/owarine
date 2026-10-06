@@ -1,10 +1,10 @@
 import type { MarketId } from "../types/market";
-import { estPayoutBase } from "../claims/payout";
+import { legPayoutBase } from "../claims/payout";
 import type { FillSettlement, StrategyFill } from "./types";
 
 export interface ScoredFill extends StrategyFill {
   settled: boolean;
-  /** Collateral the fill returned at settlement, 0 for a loss, half for a void; null while open. */
+  /** Collateral the fill returned at settlement (`PM.Leg.legPayout`): its contracts on a win, 0 on a loss, what it cost on a void; null while open. */
   payoutBase: bigint | null;
   pnlBase: bigint | null;
 }
@@ -23,15 +23,15 @@ export interface StrategyRecordStats {
   distinctSubscribers: number;
 }
 
-/** Scores one fill by the chain's rule: a winner pays one collateral per token, a void half, a loser nothing. */
+/**
+ * Scores one fill by the ledger's rule: a winner pays one collateral per contract, a void returns what the fill cost
+ * (backing plus the fee, `cashDeltaBase`), a loser nothing.
+ */
 export function scoreFill(fill: StrategyFill, settlement: FillSettlement | null, _feeBps: number): ScoredFill {
   if (!settlement || !settlement.settled) return { ...fill, settled: false, payoutBase: null, pnlBase: null };
   const outcomeIdx = fill.side === "up" ? 0 : 1;
-  const payoutBase = settlement.voided
-    ? estPayoutBase(fill.tokenDeltaRaw, "void")
-    : settlement.winningOutcome === outcomeIdx
-      ? estPayoutBase(fill.tokenDeltaRaw, "win")
-      : 0n;
+  const result = settlement.voided ? "void" : settlement.winningOutcome === outcomeIdx ? "win" : "loss";
+  const payoutBase = legPayoutBase({ quantityRaw: fill.tokenDeltaRaw, paidBase: fill.cashDeltaBase }, result);
   return { ...fill, settled: true, payoutBase, pnlBase: payoutBase - fill.cashDeltaBase };
 }
 

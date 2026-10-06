@@ -1,6 +1,6 @@
 "use client";
 
-import { TRADE_FROM_X, X_LINK_STATUS } from "./copy";
+import { TRADE_FROM_X, X_LINK_STATUS, xGateLine } from "./copy";
 import { Dot, Tick } from "./StepSpine";
 import type { XLink } from "./useXStatus";
 
@@ -26,7 +26,7 @@ export function LinkStep({ link, returnTo, enabled }: { link: XLink; returnTo: s
       </div>
     );
   }
-  if (!link.status?.configured) return <p className="xt-step-lede">{X_LINK_STATUS.unavailable}</p>;
+  if (!link.status?.configured) return <p className="xt-step-lede">{xGateLine(link.status)}</p>;
   if (!session) {
     return (
       <>

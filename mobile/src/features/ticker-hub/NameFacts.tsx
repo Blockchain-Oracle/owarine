@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import { TICKERS, type TickerSymbol } from "@agari/core/market";
 import { useAssetPrice, useLanes } from "@agari/markets/react";
 import { router } from "expo-router";
 import { assetPriceLine, basisRaw, feedRawToOracleRaw, usdLine } from "@/features/markets/hero/units";
@@ -39,7 +39,9 @@ function PreIpoFigures({ spot, spotStale, facts, index }: { spot: string; spotSt
  */
 export function NameFacts({ symbol, preIpo, index, indexAbsentWhy = null }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null; indexAbsentWhy?: string | null }) {
   const price = useAssetPrice(symbol);
-  const earnings = useNextEarnings(preIpo ? null : symbol);
+  // A coin files no reports (C9e): no report date is asked for or shown.
+  const files = !preIpo && TICKERS[symbol].kind !== "crypto";
+  const earnings = useNextEarnings(files ? symbol : null);
   const facts = usePreIpoFacts(preIpo ? symbol : null);
   const venue = useVenue();
   const lanes = useLanes(preIpo ? null : venue.venueId);
@@ -73,7 +75,7 @@ export function NameFacts({ symbol, preIpo, index, indexAbsentWhy = null }: { sy
       ) : (
         <>
           <Stat label={stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot} value={spot} />
-          <Stat label={TICKER_HUB.earnings} value={report} />
+          {files ? <Stat label={TICKER_HUB.earnings} value={report} /> : null}
         </>
       )}
     </StatBar>

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";
 import { GAMES } from "@/features/games/copy";
-import { useSeason, type SeasonView } from "@/features/games/duel/useSeason";
+import { seasonIntroKey, useSeasonRead, type SeasonView } from "@/features/games/duel/useSeason";
 import { useWalletSession } from "@/lib/wallet-session";
 import { FONT } from "~/theme";
 import { PIXEL_FONT } from "~/theme/web/games";
@@ -54,7 +54,8 @@ export function useLadder(): { feed: Feed; reload: () => Promise<void> } {
 export function DuelRank({ feed }: { feed: Feed }) {
   const { color } = useDuelTokens();
   const { address } = useWalletSession();
-  const season = useSeason();
+  const seasonRead = useSeasonRead();
+  const season = seasonRead.season;
   const nowMs = useNowMs();
   const words = GAMES.rankPage;
   const remaining = season && nowMs > 0 ? seasonRemainingMs(season, nowMs) : null;
@@ -66,7 +67,7 @@ export function DuelRank({ feed }: { feed: Feed }) {
       <View style={styles.head}>
         <StageHead eyebrow={GAMES.eyebrow} title={words.title} />
         <View style={styles.headBody}>
-          <Body>{season ? words.introSeason : words.intro}</Body>
+          <Body>{words[seasonIntroKey(seasonRead)]}</Body>
           {season && remaining !== null ? (
             <Text style={[styles.seasonLine, { color: color.accent }]}>
               {`${words.pool(String(season.prizePool.totalUnits), season.prizePool.currency)} · ${remaining > 0 ? words.endsIn(formatSeasonCountdown(remaining)) : words.ended}`.toUpperCase()}

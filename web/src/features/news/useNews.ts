@@ -1,9 +1,10 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
+import type { Reading } from "@agari/core";
 import type { TickerSymbol } from "@agari/core/market";
 import { useReadingQuery } from "@agari/markets/react";
-import { newsPayloadSchema, type Article } from "./protocol";
+import { newsReading } from "./news-reading";
+import type { Article } from "./protocol";
 
 /** The reference refreshes the wire every minute (`NewsFeed.tsx` L65). */
 const POLL_MS = 60_000;
@@ -14,10 +15,7 @@ export const newsKey = (symbol: TickerSymbol | null) => (symbol ? ([...NEWS_KEY,
 
 async function readNews(symbol: TickerSymbol | null): Promise<Reading<Article[]>> {
   const response = await fetch(symbol ? `/api/news?symbol=${symbol}` : "/api/news", { cache: "no-store" });
-  if (!response.ok) return err(diagnosis("unknown", `news route answered ${response.status}`));
-  const parsed = newsPayloadSchema.safeParse(await response.json());
-  if (!parsed.success) return err(diagnosis("unknown", "news payload did not parse"));
-  return ok(parsed.data.articles, Date.now());
+  return newsReading(response.status, await response.json().catch(() => null), Date.now());
 }
 
 /**

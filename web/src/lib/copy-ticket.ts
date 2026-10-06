@@ -28,7 +28,8 @@ export const TICKET = {
     `That ${fromCadence} Window closed for entries — moved you to the next ${toCadence} Window. Side and stake kept.`,
   buy: (side: string) => `Buy ${side} for`,
   buyPlain: "Buy",
-  booked: (contractsText: string, side: string, avgPriceBps: number) => `Bought ${contractsText} ${side} contracts at ${Math.round(avgPriceBps / 100)}¢`,
+  /** C9e: "1 UP contract", the reference's own n === 1 rule (C9d's `withUnit`). */
+  booked: (contractsText: string, side: string, avgPriceBps: number) => `Bought ${contractsText} ${side} ${contractsText === "1" ? "contract" : "contracts"} at ${Math.round(avgPriceBps / 100)}¢`,
   bookedPrefix: "Bought",
   bookedAt: "at",
   nothingFilled: "The price moved before your order landed; nothing was taken.",

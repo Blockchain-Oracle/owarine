@@ -7,9 +7,11 @@ import type { Ticker, TickerSymbol } from "@agari/core/market";
 export const TICKER_HUB = {
   title: (symbol: TickerSymbol, name: string) => `${name} (${symbol})`,
   alwaysOpen: "Trading 24/7",
-  eyebrow: (kind: Ticker["kind"]) => (kind === "etf" ? "ETF" : kind === "preIpo" ? "Pre-IPO" : kind === "basket" ? "Basket" : kind === "valuation" ? "Valuation" : "Stock"),
+  eyebrow: (kind: Ticker["kind"]) => (kind === "etf" ? "ETF" : kind === "preIpo" ? "Pre-IPO" : kind === "basket" ? "Basket" : kind === "valuation" ? "Valuation" : kind === "crypto" ? "Crypto" : "Stock"),
   headingJp: "銘柄の広場。",
   intro: (name: string) => `Everything Agari knows about ${name} in one place: the live print, the session, the next report, and every call on its Windows.`,
+  /** C9e: a coin trades around the clock and files no reports: no session and no report date are promised. */
+  introCrypto: (name: string) => `Everything Agari knows about ${name} in one place: the live print, around the clock, and every call on its Windows.`,
   spot: "Spot",
   spotStale: "last print",
   earnings: "Next report",
@@ -108,7 +110,7 @@ export const TICKER_HUB = {
   },
 
   feed: { number: "01", title: "Calls", desc: "Fills on this ticker's Windows, the verdicts of the traders who made them, and takes tagged with its cashtag." },
-  news: { number: "02", title: "Headlines", desc: "Stories about this company, newest first.", credit: "Headlines via Finnhub" },
+  news: { number: "02", title: "Headlines", desc: "Stories about this company, newest first.", descCrypto: (name: string) => `Stories about ${name}, newest first.`, credit: "Headlines via Finnhub" },
   board: {
     number: "03",
     title: "Board",

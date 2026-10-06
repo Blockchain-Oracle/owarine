@@ -22,7 +22,7 @@ const GROUPS = ["prediction", "duel", "arcade"] as const;
 export function GamesHub() {
   const { activeMatchId, match, feedback } = useGames();
   const last = useLastGame();
-  const { season, status, presence } = useHubStatus();
+  const { season, seasonIntro, status, presence } = useHubStatus();
   // The first swipe in any mode should not be silent while its sample decodes.
   useFocusEffect(useCallback(() => preloadGameAudio(), []));
   const go = (href: string) => () => {
@@ -78,7 +78,7 @@ export function GamesHub() {
           </Plate>
           <Plate onPress={go("/games/rank")} accessibilityLabel={GAMES.rankPage.title}>
             <PlateTitle>{GAMES.rankPage.title}</PlateTitle>
-            <PlateBody>{season ? GAMES.rankPage.introSeason : GAMES.rankPage.intro}</PlateBody>
+            <PlateBody>{GAMES.rankPage[seasonIntro]}</PlateBody>
             <ResumeCta>{GAMES.rank.cta}</ResumeCta>
           </Plate>
         </View>

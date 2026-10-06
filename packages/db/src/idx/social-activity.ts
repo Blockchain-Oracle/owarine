@@ -32,7 +32,10 @@ export interface SocialFillRow {
   symbol: string;
   cadence_sec: number | null;
   lots: string;
-  /** The wallet's leg in collateral base units (cost of a buy, proceeds of a sell); null while the Series row is missing. */
+  /**
+   * The wallet's leg in collateral base units: what a buy cost, the fee paid with it included (Canton charges the fee at
+   * the fill, `PM.Leg.feePaid`; C9e), or what a sell returned (a sale carries no fee); null while the Series row is missing.
+   */
   amount_base: string | null;
   ts_sec: string;
 }
@@ -72,7 +75,7 @@ export function socialActivityReader(sql: Sql) {
   const who = sql`COALESCE(p.owner_address, p.handle)`;
   const fillCols = sql`
     f.update_id AS signature, 0 AS outer_ix, f.node_id AS inner_ix, 0 AS fill_ix, p.market, ${who} AS wallet, f.kind, 'taker' AS seat,
-    m.symbol, m.cadence_sec, p.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit)::text AS amount_base, f.ts_sec::text AS ts_sec`;
+    m.symbol, m.cadence_sec, p.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit + COALESCE(f.fee, 0))::text AS amount_base, f.ts_sec::text AS ts_sec`;
   const published = sql`
     idx_publications p JOIN idx_markets m ON m.market = p.market
       JOIN idx_fills f ON f.owner_party = p.owner_party AND f.pair_id = p.pair_id AND f.market = p.market AND f.kind IN (0, 2) AND p.product IS NULL`;

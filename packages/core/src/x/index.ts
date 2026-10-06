@@ -6,3 +6,4 @@ export * from "./refusal";
 export * from "./window";
 export * from "./actions";
 export * from "./share-link";
+export * from "./assets";

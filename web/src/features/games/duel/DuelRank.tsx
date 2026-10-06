@@ -8,7 +8,7 @@ import { addressHue } from "@/lib/address-hue";
 import { useWalletSession } from "@/lib/wallet-session";
 import { GAMES } from "../copy";
 import { SeasonBanner } from "../SeasonBanner";
-import { useSeason, type SeasonView } from "./useSeason";
+import { seasonIntroKey, useSeasonRead, type SeasonView } from "./useSeason";
 
 /** Flicky polls its leaderboard every ten seconds. */
 const POLL_MS = 10_000;
@@ -36,7 +36,8 @@ type Feed = { configured: boolean; rows: Row[]; me: (Row & { rank: number | null
 export function DuelRank() {
   const { address } = useWalletSession();
   const [feed, setFeed] = useState<Feed>(null);
-  const season = useSeason();
+  const seasonRead = useSeasonRead();
+  const season = seasonRead.season;
   const nowMs = useNowMs();
   const words = GAMES.rankPage;
 
@@ -69,7 +70,7 @@ export function DuelRank() {
           {words.title}
           <span className="accent">.</span>
         </h1>
-        <p className="du-body">{season ? words.introSeason : words.intro}</p>
+        <p className="du-body">{words[seasonIntroKey(seasonRead)]}</p>
         {season && remaining !== null && (
           <p className="du-season-line">
             {words.pool(String(season.prizePool.totalUnits), season.prizePool.currency)} · {remaining > 0 ? words.endsIn(formatSeasonCountdown(remaining)) : words.ended}

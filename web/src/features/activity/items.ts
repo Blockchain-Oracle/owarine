@@ -1,4 +1,4 @@
-import { estPayoutBase } from "@agari/core/claims";
+import { winPayoutBase } from "@agari/core/claims";
 import { isTickerSymbol } from "@agari/core/market";
 import type { Address, MarketId, Side } from "@agari/core/types";
 import type { SocialFillRow, SocialSettlementRow } from "@agari/db";
@@ -39,10 +39,19 @@ export interface SettlementFacts {
   heldUpRaw: bigint;
   heldDownRaw: bigint;
   voided: boolean;
-  /** What the held legs pay by the settlement rule (win 1:1, void half), before any redemption. */
+  /**
+   * What the held legs pay (`PM.Leg.legPayout`): one credit per contract on a win, backing plus fee on a void, nothing on
+   * a loss. Once every leg closed, the projection's own `payout_base` (what the ledger paid) is the figure.
+   */
   payoutBase: bigint;
   pnlBase: bigint | null;
   verdict: "settled-win" | "settled-loss" | "voided" | null;
+}
+
+/** What the ledger pays the held legs by its rule, before they are paid. A void returns `cost_base` (backing plus fee). */
+function rulePayoutBase(row: SocialSettlementRow, voided: boolean, heldUpRaw: bigint, heldDownRaw: bigint): bigint {
+  if (voided) return row.cost_base === null ? 0n : BigInt(row.cost_base);
+  return row.winner === 0 ? winPayoutBase(heldUpRaw) : row.winner === 1 ? winPayoutBase(heldDownRaw) : 0n;
 }
 
 /** The seat's result at settlement, from the index's lots and cash columns, in base units. */
@@ -52,13 +61,8 @@ export function settlementFacts(row: SocialSettlementRow): SettlementFacts {
   const heldDownRaw = lotBase === null ? 0n : BigInt(row.held_no_lots) * lotBase;
   const voided = row.state === "voided" || row.winner === 2;
   const legs = [heldUpRaw, heldDownRaw].filter((raw) => raw > 0n);
-  const payoutBase = voided
-    ? legs.reduce((sum, raw) => sum + estPayoutBase(raw, "void"), 0n)
-    : row.winner === 0
-      ? estPayoutBase(heldUpRaw, "win")
-      : row.winner === 1
-        ? estPayoutBase(heldDownRaw, "win")
-        : 0n;
+  // Every leg closed: the projection recorded what the ledger actually paid (settled, claimed or refunded stale).
+  const payoutBase = row.redeemed ? BigInt(row.payout_base) : rulePayoutBase(row, voided, heldUpRaw, heldDownRaw);
   const pnlBase = row.cost_base === null || row.proceeds_base === null ? null : BigInt(row.proceeds_base) + payoutBase - BigInt(row.cost_base);
   let verdict: SettlementFacts["verdict"] = null;
   if (legs.length > 0 && lotBase !== null) {

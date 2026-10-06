@@ -4,7 +4,8 @@ import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
 import { diagnosis, err, ok, type Reading } from "@agari/core";
 import { useReadingQuery } from "@agari/markets/react";
 import { z } from "zod";
-import { newsPayloadSchema, type Article } from "@/features/news/protocol";
+import { newsReading } from "@/features/news/news-reading";
+import type { Article } from "@/features/news/protocol";
 
 /**
  * The hub's two wire reads, on the keys spec §4 gives them and in exactly the cache shape lane 13c's `useNews(symbol)`
@@ -17,10 +18,7 @@ const EARNINGS_STALE_MS = 6 * 3_600_000;
 
 async function readNews(symbol: TickerSymbol): Promise<Reading<Article[]>> {
   const response = await fetch(`/api/news?symbol=${encodeURIComponent(symbol)}`, { cache: "no-store" });
-  if (!response.ok) return err(diagnosis("unknown", `news route answered ${response.status}`));
-  const parsed = newsPayloadSchema.safeParse(await response.json());
-  if (!parsed.success) return err(diagnosis("unknown", "news payload did not parse"));
-  return ok(parsed.data.articles, Date.now());
+  return newsReading(response.status, await response.json().catch(() => null), Date.now());
 }
 
 /** One ticker's headlines (`["agari","news", symbol]`), polled while the tab is visible; a failed refresh keeps the last ones. */

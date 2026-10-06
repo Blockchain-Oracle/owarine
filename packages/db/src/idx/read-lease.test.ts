@@ -96,6 +96,8 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
   it("Bob's fills are his alone", async () => {
     const rows = await reader.walletFills(BOB, { lease: BOB_LEASE });
     expect(rows.map((r) => r.signature).sort()).toEqual(["u-bob-1", "u-bob-2"]);
+    // C9e: the leased party's rows carry no owner_address, yet each is Bob's own trade: the replay needs taker = Bob.
+    expect(rows.every((r) => r.taker === BOB)).toBe(true);
   });
 
   it("Bob's exits, quotes and receipts are his alone", async () => {

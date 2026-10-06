@@ -1,4 +1,4 @@
-import { estPayoutBase } from "../claims/payout";
+import { apportionBase, winPayoutBase } from "../claims/payout";
 import type { OutcomeIdx } from "../types/market";
 import type { ClaimLeg, Holdings, Verdict } from "../types/trading";
 import type { ClaimState, LedgerSource, MarketLedger, RoundMarket, RoundOutcome, SettledRound } from "./types";
@@ -12,17 +12,32 @@ export interface SettleInput {
   source?: LedgerSource;
 }
 
-function legPayout(market: RoundMarket, outcomeIdx: OutcomeIdx, amountRaw: bigint): bigint {
-  if (market.voided) return estPayoutBase(amountRaw, "void");
-  return market.winningOutcome === outcomeIdx ? estPayoutBase(amountRaw, "win") : 0n;
-}
-
+/**
+ * `PM.Leg.legPayout` over the held sides: a win pays its quantity, a loss nothing, a void what the held legs cost (backing
+ * plus fee). A ledger without per-side costs (not built by `buildLedgers`) apportions its cost by size.
+ */
 function heldLegs(ledger: MarketLedger, market: RoundMarket): ClaimLeg[] {
-  const held: Array<[OutcomeIdx, bigint]> = [
+  const held = ([
     [0, ledger.heldUpRaw],
     [1, ledger.heldDownRaw],
-  ];
-  return held.filter(([, amountRaw]) => amountRaw > 0n).map(([outcomeIdx, amountRaw]) => ({ outcomeIdx, amountRaw, payoutBase: legPayout(market, outcomeIdx, amountRaw) }));
+  ] as Array<[OutcomeIdx, bigint]>).filter(([, amountRaw]) => amountRaw > 0n);
+  if (!market.voided) {
+    return held.map(([outcomeIdx, amountRaw]) => ({ outcomeIdx, amountRaw, payoutBase: market.winningOutcome === outcomeIdx ? winPayoutBase(amountRaw) : 0n }));
+  }
+  const refunds = ledger.held
+    ? held.map(([outcomeIdx]) => {
+        const cost = outcomeIdx === 0 ? ledger.held!.up : ledger.held!.down;
+        return cost.backingBase + cost.feeBase;
+      })
+    : apportionBase(ledger.costBase, held.map(([, amountRaw]) => amountRaw));
+  return held.map(([outcomeIdx, amountRaw], i) => ({ outcomeIdx, amountRaw, payoutBase: refunds[i]! }));
+}
+
+/** Fees the venue kept: every fee paid here, less the escrow a void returns on the legs still held. */
+function keptFeesBase(ledger: MarketLedger, market: RoundMarket): bigint {
+  const paid = ledger.feesBase ?? 0n;
+  if (!market.voided || !ledger.held) return paid;
+  return paid - (ledger.heldUpRaw > 0n ? ledger.held.up.feeBase : 0n) - (ledger.heldDownRaw > 0n ? ledger.held.down.feeBase : 0n);
 }
 
 /** Mirrors `deriveVerdict`: a hedged Window gets one net stamp, and a payout that lost money is a loss. */
@@ -51,7 +66,7 @@ export function settleRound({ ledger, market, feeBps, liveHoldings, source }: Se
   if (!market.settled) return null;
   const legs = heldLegs(ledger, market);
   const payoutBase = legs.reduce((sum, leg) => sum + leg.payoutBase, 0n);
-  const feeBase = legs.reduce((sum, leg) => sum + (leg.payoutBase > 0n && !market.voided ? leg.amountRaw - leg.payoutBase : 0n), 0n);
+  const feeBase = keptFeesBase(ledger, market);
   const pnlBase = ledger.proceedsBase + payoutBase - ledger.costBase;
   return {
     marketId: market.marketId,

@@ -34,7 +34,7 @@ function row(overrides: Partial<ClaimableRow> & Pick<ClaimableRow, "kind" | "mar
   };
 }
 
-/** A clean UP win: 200 contracts redeem for 200.00 net of a 0 bps fee. */
+/** A clean UP win: 200 contracts pay 200.00 in full (the fee was paid with the stake at the fill). */
 export const WIN_ROW = row({
   kind: "win",
   marketId: marketId("ff1b"),
@@ -44,7 +44,7 @@ export const WIN_ROW = row({
   settledAtMs: FIXED_NOW_MS - 598_000,
 });
 
-/** A void: ONE row, both sides redeem at 0.5 gross — two legs, two states. */
+/** A void: ONE row, each side returns its backing plus fee (`PM.Leg.legPayout`) — two legs, two states. */
 export const VOID_ROW = row({
   kind: "void",
   marketId: marketId("ff0c"),
@@ -52,8 +52,8 @@ export const VOID_ROW = row({
   intervalSec: 900,
   expirySec: FIXED_NOW_SEC - 2_400,
   legs: [
-    { outcomeIdx: 0, amountRaw: 40_000_000n, payoutBase: 20_000_000n },
-    { outcomeIdx: 1, amountRaw: 60_000_000n, payoutBase: 30_000_000n },
+    { outcomeIdx: 0, amountRaw: 40_000_000n, payoutBase: 18_200_000n },
+    { outcomeIdx: 1, amountRaw: 60_000_000n, payoutBase: 31_510_000n },
   ],
 });
 

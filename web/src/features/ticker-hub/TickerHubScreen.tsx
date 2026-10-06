@@ -25,6 +25,7 @@ import { usePreIpoFacts } from "./usePreIpoFacts";
 import { indexStateOf, type IndexState } from "./index-state";
 import { usePythIndex, type PythIndexRow } from "./usePythIndex";
 import { ValuationHub } from "./ValuationHub";
+import { newsQuietLine } from "@/features/news/news-reading";
 import { useNextEarnings, useTickerNews } from "./useTickerNews";
 import "@/features/profile/profile.css";
 import "./ticker-hub.css";
@@ -69,7 +70,9 @@ function Headlines({ articles }: { articles: Article[] }) {
 /** The facts bar of a listed name or a pre-IPO name: the spot, then a report date or the PreStocks facts. */
 function NameFacts({ symbol, preIpo, index, indexAbsentWhy }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null; indexAbsentWhy: string | null }) {
   const price = useAssetPrice(symbol);
-  const earnings = useNextEarnings(preIpo ? null : symbol);
+  // A coin files no reports (C9e): its bar shows the spot and the source, and no report date is asked for.
+  const files = !preIpo && TICKERS[symbol].kind !== "crypto";
+  const earnings = useNextEarnings(files ? symbol : null);
   const facts = usePreIpoFacts(preIpo ? symbol : null);
   // The markets page's own lane read (shared cache): a listed name's source is its newest Window's policy source. A
   // pre-IPO name's is the registry's, so its hub leaves the read off.
@@ -89,10 +92,12 @@ function NameFacts({ symbol, preIpo, index, indexAbsentWhy }: { symbol: TickerSy
               <dt>{price?.ok && price.stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot}</dt>
               <dd className="big numbers">{spot}</dd>
             </div>
-            <div className="prf-stat">
-              <dt>{TICKER_HUB.earnings}</dt>
-              <dd className="big">{report}</dd>
-            </div>
+            {files && (
+              <div className="prf-stat">
+                <dt>{TICKER_HUB.earnings}</dt>
+                <dd className="big">{report}</dd>
+              </div>
+            )}
           </dl>
           {source && (
             <p className="type-caption text-ink-muted">
@@ -142,7 +147,9 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
       ? (listed ? TICKER_HUB.valuation.intro(ticker.name, company) : TICKER_HUB.valuation.introAbsent(ticker.name, company))
       : preIpo
         ? (index ? TICKER_HUB.preIpo.introBoth(ticker.name) : TICKER_HUB.preIpo.intro(ticker.name))
-        : TICKER_HUB.intro(ticker.name);
+        : ticker.kind === "crypto"
+          ? TICKER_HUB.introCrypto(ticker.name)
+          : TICKER_HUB.intro(ticker.name);
   // A basket's hub numbers its members (01) and Window (02) first; a listed valuation lane its Window (01).
   const feedIndex = basket ? "03" : valuation && listed ? "02" : TICKER_HUB.feed.number;
   const newsIndex = valuation && listed ? "03" : TICKER_HUB.news.number;
@@ -187,13 +194,13 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
 
         {!basket && (
           <section aria-label={TICKER_HUB.news.title}>
-            <SectionHeader index={newsIndex} title={TICKER_HUB.news.title} desc={TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
+            <SectionHeader index={newsIndex} title={TICKER_HUB.news.title} desc={ticker.kind === "crypto" ? TICKER_HUB.news.descCrypto(ticker.name) : TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
             {articles === null ? (
               <p className="news-quiet" role="status" aria-busy={news === null}>
-                {news === null ? ACTIVITY.loading : NEWS.quiet}
+                {news === null ? ACTIVITY.loading : newsQuietLine(news)}
               </p>
             ) : articles.length === 0 ? (
-              <p className="news-quiet">{NEWS.quiet}</p>
+              <p className="news-quiet">{newsQuietLine(news)}</p>
             ) : (
               <Headlines articles={articles.slice(0, 8)} />
             )}
