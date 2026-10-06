@@ -81,6 +81,7 @@ export declare type SettlementReceipt = {
   fee: damlTypes.Int,
   product: damlTypes.Optional<string>,
   detail: damlTypes.Optional<ReceiptDetail>,
+  paidInto: damlTypes.Optional<string>,
 }
 
 export declare interface SettlementReceiptInterface {

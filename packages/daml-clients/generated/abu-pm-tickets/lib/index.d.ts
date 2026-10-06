@@ -2,4 +2,4 @@ import * as PM from './PM';
 
 export { PM };
 
-export declare const packageId = 'b818b4a14026edf4f349772dc08873bb79a32e965db20ab77cc52f5fe4cc78f4';
+export declare const packageId = '6b1d6533919e3674ce50d06785cedd308972d2b485f07be05301df5c15dec7bb';

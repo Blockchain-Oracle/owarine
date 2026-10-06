@@ -6,16 +6,16 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 from '@daml.js/abu-pm-main-0.5.1';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a from '@daml.js/abu-pm-main-0.5.2';
 
 import * as PM_Tickets_Common from '../../../PM/Tickets/Common/module';
 
 export declare type ParlayLeg = {
-  termsCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.MarketTerms>,
   marketId: string,
-  side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
+  side: pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Types.Side,
   expiry: damlTypes.Time,
   refundAfter: damlTypes.Time,
   won: boolean,
@@ -40,13 +40,13 @@ export declare interface ParlayQuoteInterface {
     damlTypes.Choice<ParlayQuote, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<ParlayQuote, undefined>>;
   ParlayQuote_Accept: 
-    damlTypes.Choice<ParlayQuote, ParlayQuote_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<ParlayTicket>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<ParlayQuote, ParlayQuote_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<ParlayTicket>, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<ParlayQuote, undefined>>;
   ParlayQuote_Expire: 
-    damlTypes.Choice<ParlayQuote, ParlayQuote_Expire, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<ParlayQuote, ParlayQuote_Expire, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<ParlayQuote, undefined>>;
   ParlayQuote_Withdraw: 
-    damlTypes.Choice<ParlayQuote, ParlayQuote_Withdraw, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>, undefined> &
+    damlTypes.Choice<ParlayQuote, ParlayQuote_Withdraw, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<ParlayQuote, undefined>>;
 }
 export declare const ParlayQuote:
@@ -55,7 +55,7 @@ export declare const ParlayQuote:
   ParlayQuoteInterface
 
 export declare type ParlayQuote_Accept = {
-  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>[],
 }
 
 export declare const ParlayQuote_Accept:
@@ -134,14 +134,14 @@ export declare const ParlayTicket:
   ParlayTicketInterface
 
 export declare type Ticket_ClaimLeg = {
-  resolutionCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.Resolution>,
 }
 
 export declare const Ticket_ClaimLeg:
   damlTypes.Serializable<Ticket_ClaimLeg>
 
 export declare type Ticket_ResolveLeg = {
-  resolutionCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.Resolution>,
 }
 
 export declare const Ticket_ResolveLeg:
