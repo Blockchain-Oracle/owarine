@@ -10,7 +10,7 @@ Nothing in this runbook is done by the build. Abu (or the agent with Abu's go-ah
 
 ## 1. Upload the package
 
-`abu-pm-cc` 0.1.0 is in the R1 set since 6 Oct (K-249): it is `daml/released/abu-pm-cc-0.1.0.dar`, upload 5 of 5 in `devnet-r1.md` step 5, after `abu-pm-main`. Its package id and sha256 are in `daml/released/MANIFEST.md`. It depends on the token standard V1 API packages, which every Splice validator has vetted; confirm the Console shows them vetted before uploading. The mock registry (`splice-test-token-v1`) is for tests only and is never uploaded.
+`abu-pm-cc` 0.1.1 is in the R1 set (K-249; 0.1.1 since the C2e rebuild on main 0.5.2, K-316): it is `daml/released/abu-pm-cc-0.1.1.dar`, upload 5 of 5 in `devnet-r1.md` step 5, after `abu-pm-main`. Its package id and sha256 are in `daml/released/MANIFEST.md`. It depends on the token standard V1 API packages, which every Splice validator has vetted; confirm the Console shows them vetted before uploading. The mock registry (`splice-test-token-v1`) is for tests only and is never uploaded.
 
 ## 2. Find the registry
 
