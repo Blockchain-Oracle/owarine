@@ -6,9 +6,9 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 from '@daml.js/abu-pm-main-0.5.1';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a from '@daml.js/abu-pm-main-0.5.2';
 
 import * as PM_Tickets_Boost from '../../../PM/Tickets/Boost/module';
 import * as PM_Tickets_Parlay from '../../../PM/Tickets/Parlay/module';
@@ -23,10 +23,10 @@ export declare interface EarnDeskInterface {
     damlTypes.Choice<EarnDesk, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<EarnDesk, undefined>>;
   Earn_IssueWithdraw: 
-    damlTypes.Choice<EarnDesk, Earn_IssueWithdraw, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.WithdrawQuote>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<EarnDesk, Earn_IssueWithdraw, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.WithdrawQuote>, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<EarnDesk, undefined>>;
   Earn_PublishNav: 
-    damlTypes.Choice<EarnDesk, Earn_PublishNav, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement>, undefined> &
+    damlTypes.Choice<EarnDesk, Earn_PublishNav, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.NavStatement>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<EarnDesk, undefined>>;
 }
 export declare const EarnDesk:
@@ -35,11 +35,11 @@ export declare const EarnDesk:
   EarnDeskInterface
 
 export declare type Earn_IssueWithdraw = {
-  navCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement>,
+  navCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.NavStatement>,
   provider: damlTypes.Party,
-  lpShareCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.LpShare>,
+  lpShareCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.LpShare>,
   sharesIn: damlTypes.Int,
-  shardCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>,
+  shardCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>,
   validUntil: damlTypes.Time,
 }
 
@@ -47,7 +47,7 @@ export declare const Earn_IssueWithdraw:
   damlTypes.Serializable<Earn_IssueWithdraw>
 
 export declare type Earn_PublishNav = {
-  navCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.NavStatement>,
+  navCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.NavStatement>,
   asOf: damlTypes.Time,
   inputs: NavInputs,
 }
@@ -56,9 +56,9 @@ export declare const Earn_PublishNav:
   damlTypes.Serializable<Earn_PublishNav>
 
 export declare type NavInputs = {
-  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
-  lpShares: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.LpShare>[],
-  withdrawQuotes: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Reserve.WithdrawQuote>[],
+  cash: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>[],
+  lpShares: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.LpShare>[],
+  withdrawQuotes: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Reserve.WithdrawQuote>[],
   rangeQuotes: damlTypes.ContractId<PM_Tickets_Range.RangeQuote>[],
   rounds: damlTypes.ContractId<PM_Tickets_Range.RangeRound>[],
   parlayQuotes: damlTypes.ContractId<PM_Tickets_Parlay.ParlayQuote>[],

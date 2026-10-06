@@ -1,0 +1,188 @@
+-- | Money gate for abu-pm-main 0.5.2 (K-315): a private call pays back into
+-- the seat's private bucket. A private call is the seat's own leg, bought
+-- with exactly its private cash and tagged `beneficiaryRef = Some "private"`
+-- (K-266). Win, loss and void (settle or claim) and the stale refund pay the
+-- owner into `private`, never the public `payout` / `refund` buckets, and
+-- the settlement receipt names the bucket. A public leg, a grant's leg and a
+-- venue-owned leg pay exactly as 0.5.1 did.
+module Test.PrivatePayout where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import PM.Leg
+import PM.Money
+import PM.Publication
+import PM.Quote
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- | Up at 620 ticks, 3 lots, fee 9: stake 1860, cost 1869, quantity 3000.
+ticks, lots3, fee9, stake3, cost3, quantity : Int
+ticks = 620
+lots3 = 3
+fee9 = 9
+stake3 = 1860
+cost3 = 1869
+quantity = 3000
+
+-- | Accept a quote with cash of exactly stake + fee from `bucket`, tagged `ref`.
+tradeFrom : World -> Win -> Party -> Side -> Text -> Optional Text -> Text -> Script (ContractId Leg, ContractId Leg)
+tradeFrom w win user side bucket ref pairId = do
+  now <- getTime
+  q <- issue w win user side ticks lots3 fee9 (plus now 20) pairId
+  c <- submit (actAs [w.venue, user]) do
+    createCmd VenueCash with venue = w.venue; owner = user; amount = userStakeOf lots3 ticks win.t.cashUnit + fee9; bucket
+  (u, v, change) <- submit user do exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = ref
+  change === None
+  pure (u, v)
+
+-- | A private call: the seat's private cash, tagged private.
+privateTrade : World -> Win -> Party -> Side -> Text -> Script (ContractId Leg, ContractId Leg)
+privateTrade w win user side = tradeFrom w win user side "private" (Some "private")
+
+-- | `p`'s own cash in one bucket, and outside the private bucket.
+cashIn : Party -> Text -> Script Int
+cashIn p b = do
+  cs <- query @VenueCash p
+  pure (sum [c.amount | (_, c) <- cs, c.owner == p, c.bucket == b])
+
+publicCash : Party -> Script Int
+publicCash p = do
+  cs <- query @VenueCash p
+  pure (sum [c.amount | (_, c) <- cs, c.owner == p, c.bucket /= "private"])
+
+onlyReceipt : Party -> Script SettlementReceipt
+onlyReceipt p = do
+  rs <- query @SettlementReceipt p
+  case rs of
+    [(_, r)] -> pure r
+    _ -> abort ("expected one receipt, got " <> show (length rs))
+
+venueFee : World -> Script Int
+venueFee w = cashIn w.venue "fee"
+
+-- A private call that wins pays its quantity into the private bucket; the
+-- public balance stays empty; the receipt says "private"; the fee is the venue's.
+testPrivateWinPaysIntoPrivate = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- privateTrade w win w.alice SideUp "p1"
+  cashIn w.alice "private" >>= (=== 0)
+  res <- resolveAt w win op (px + 1)            -- Up wins
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashIn w.alice "private" >>= (=== quantity)
+  publicCash w.alice >>= (=== 0)
+  r <- onlyReceipt w.alice
+  (r.payout, r.paidInto, r.resolved, r.cost, r.fee) === (quantity, Some "private", Some SideUp, cost3, fee9)
+  venueFee w >>= (=== fee9)
+
+-- A private call that loses pays nothing anywhere; its receipt still names
+-- the private bucket (payout 0); the fee is recognised as on a public leg.
+testPrivateLossPaysNothing = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- privateTrade w win w.alice SideUp "p1"
+  res <- resolveAt w win op (px - 1)            -- Down wins
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashIn w.alice "private" >>= (=== 0)
+  publicCash w.alice >>= (=== 0)
+  r <- onlyReceipt w.alice
+  (r.payout, r.paidInto, r.resolved, r.fee) === (0, Some "private", Some SideDown, fee9)
+  venueFee w >>= (=== fee9)
+  cashIn w.venue "payout" >>= (=== quantity)    -- the venue's winning leg, unchanged
+
+-- A void gives the stake and the fee back into the private bucket; no fee
+-- is recognised.
+testPrivateVoidRefundsStakeAndFee = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u, v) <- privateTrade w win w.alice SideUp "p1"
+  res <- voidClose w win op
+  _ <- submit w.venue do exerciseCmd u Leg_Settle with resolutionCid = res
+  _ <- submit w.venue do exerciseCmd v Leg_Settle with resolutionCid = res
+  cashIn w.alice "private" >>= (=== stake3 + fee9)
+  publicCash w.alice >>= (=== 0)
+  r <- onlyReceipt w.alice
+  (r.payout, r.paidInto, r.resolved, r.fee) === (cost3, Some "private", None, 0)
+  venueFee w >>= (=== 0)
+
+-- The owner's own claim pays a private call into the private bucket exactly
+-- as the venue's settle does: win, loss and void.
+testPrivateClaimEqualsSettle = script do
+  forA_ [(px + 1, quantity), (px - 1, 0), (0, cost3)] \(close, expected) -> do
+    (w, win) <- mkWorldWin
+    op <- recordOpen w win px
+    (ua, _) <- privateTrade w win w.alice SideUp "pa"
+    (ub, _) <- privateTrade w win w.bob SideUp "pb"
+    res <- if close == 0 then voidClose w win op else resolveAt w win op close
+    d <- disclosureOf w.venue res
+    _ <- submit (actAs w.alice <> disclose d) do exerciseCmd ua Leg_Claim with resolutionCid = res
+    _ <- submit w.venue do exerciseCmd ub Leg_Settle with resolutionCid = res
+    forA_ [w.alice, w.bob] \p -> do
+      cashIn p "private" >>= (=== expected)
+      publicCash p >>= (=== 0)
+      r <- onlyReceipt p
+      r.paidInto === Some "private"
+
+-- The stale refund (no terms, no resolution) also returns a private call's
+-- stake and fee into the private bucket, from refundAfter on.
+testPrivateStaleRefund = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- privateTrade w win w.alice SideUp "p1"
+  at (plus win.t.refundAfter (-1))
+  early <- trySubmit w.alice do exerciseCmd u Leg_RefundStale
+  refusedWith deadlineNotExceeded early
+  at win.t.refundAfter
+  _ <- submit w.alice do exerciseCmd u Leg_RefundStale
+  cashIn w.alice "private" >>= (=== stake3 + fee9)
+  publicCash w.alice >>= (=== 0)
+
+-- Public legs are unchanged beside a private call in the same Window: an
+-- untagged leg and a grant's leg pay into `payout` on a win and a void,
+-- with no bucket on their receipt, and refund stale into `refund`.
+testPublicLegUnchanged = script do
+  forA_ [(px + 1, quantity), (0, cost3)] \(close, expected) -> do
+    (w, win) <- mkWorldWin
+    op <- recordOpen w win px
+    (up, _) <- privateTrade w win w.alice SideUp "pa"
+    (ub, _) <- tradeFrom w win w.bob SideUp "demo" None "pb"
+    (uo, _) <- tradeFrom w win w.outsider SideUp "demo" (Some "grant") "po"
+    res <- if close == 0 then voidClose w win op else resolveAt w win op close
+    forA_ [up, ub, uo] \l -> submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+    cashIn w.alice "private" >>= (=== expected)
+    forA_ [w.bob, w.outsider] \p -> do
+      cashIn p "payout" >>= (=== expected)
+      cashIn p "private" >>= (=== 0)
+      r <- onlyReceipt p
+      (r.payout, r.paidInto) === (expected, None)
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (ub, _) <- tradeFrom w win w.bob SideUp "demo" None "pb"
+  at win.t.refundAfter
+  _ <- submit w.bob do exerciseCmd ub Leg_RefundStale
+  cashIn w.bob "refund" >>= (=== cost3)
+  cashIn w.bob "private" >>= (=== 0)
+
+-- Only a user's leg is ever private: a leg the venue owns that carries the
+-- tag pays the venue's `payout` bucket and leaves no receipt.
+testVenueLegNeverPrivate = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  l <- submit w.venue do
+    createCmd Leg with
+      venue = w.venue; owner = w.venue; termsCid = win.terms; marketId = win.t.marketId; pairId = "pv"
+      outcome = SideUp; lots = lots3; cashUnit = win.t.cashUnit; backingShare = stake3; feePaid = 0
+      refundAfter = win.t.refundAfter; beneficiaryRef = Some "private"; bookCost = None
+  res <- resolveAt w win op (px + 1)
+  _ <- submit w.venue do exerciseCmd l Leg_Settle with resolutionCid = res
+  cashIn w.venue "payout" >>= (=== quantity)
+  cashIn w.venue "private" >>= (=== 0)
+  rs <- query @SettlementReceipt w.venue
+  length rs === 0

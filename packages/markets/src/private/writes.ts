@@ -32,6 +32,6 @@ export async function submitPrivateTx(_ctx: unknown, intent: PrivateIntent, onPh
     case "private-revoke":
       return { status: "refused", diagnosis: diagnosis("grant-refused", "nothing to revoke on Canton: no desk holds an allowance over your private balance, which only your seat spends") };
     case "private-settle":
-      return { status: "refused", diagnosis: diagnosis("grant-refused", "the venue settles every private call itself; cash it out from the private list once it has") };
+      return { status: "refused", diagnosis: diagnosis("grant-refused", "the venue settles every private call itself and pays it straight back into your private balance") };
   }
 }

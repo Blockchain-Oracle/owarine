@@ -6,9 +6,9 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 from '@daml.js/abu-pm-main-0.5.1';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a from '@daml.js/abu-pm-main-0.5.2';
 
 export declare type CreatorLicense = {
   venue: damlTypes.Party,
@@ -45,7 +45,7 @@ export declare interface CreatorPayoutInterface {
     damlTypes.Choice<CreatorPayout, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<CreatorPayout, undefined>>;
   Payout_Claim: 
-    damlTypes.Choice<CreatorPayout, Payout_Claim, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>, undefined> &
+    damlTypes.Choice<CreatorPayout, Payout_Claim, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<CreatorPayout, undefined>>;
 }
 export declare const CreatorPayout:
@@ -223,7 +223,7 @@ export declare interface SubscriberBookInterface {
     damlTypes.Choice<SubscriberBook, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<SubscriberBook, undefined>>;
   Subscriber_Subscribe: 
-    damlTypes.Choice<SubscriberBook, Subscriber_Subscribe, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<SubscriberBook>, damlTypes.ContractId<Subscription>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<SubscriberBook, Subscriber_Subscribe, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<SubscriberBook>, damlTypes.ContractId<Subscription>, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<SubscriberBook, undefined>>;
   Subscriber_Unsubscribe: 
     damlTypes.Choice<SubscriberBook, Subscriber_Unsubscribe, damlTypes.ContractId<SubscriberBook>, undefined> &
@@ -254,11 +254,11 @@ export declare const SubscriberInvite:
 
 export declare type Subscriber_Subscribe = {
   listingCid: damlTypes.ContractId<StrategyListing>,
-  grantCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Grant.AgentGrant>,
+  grantCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Grant.AgentGrant>,
   kind: SubKind,
   maxFee: damlTypes.Int,
   expectVersion: damlTypes.Int,
-  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>[],
 }
 
 export declare const Subscriber_Subscribe:
@@ -280,7 +280,7 @@ export declare type Subscription = {
   kind: SubKind,
   version: damlTypes.Int,
   specHash: string,
-  grantCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Grant.AgentGrant>,
+  grantCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Grant.AgentGrant>,
   feePaid: damlTypes.Int,
 }
 

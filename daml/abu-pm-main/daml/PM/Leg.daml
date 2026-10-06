@@ -9,6 +9,14 @@
 --   won           owner gets quantity,  venue gets feePaid
 --   lost          owner gets 0,         venue gets feePaid
 -- Summed over a pair this pays out exactly the pair's backing plus fees.
+--
+-- 0.5.2 (K-315): where the owner's money lands. A book's leg pays back into
+-- its book's bucket (0.5.0). A private call, a user's leg tagged
+-- `beneficiaryRef = Some "private"` (bought with the seat's private cash,
+-- K-266), pays back into the seat's `private` bucket on every path that
+-- returns money to it: a settle or claim (won, lost or void) and the stale
+-- refund. Every other leg pays into the public `payout` / `refund` buckets,
+-- exactly as 0.5.1 did.
 module PM.Leg where
 
 import DA.Action (void, when)
@@ -68,11 +76,12 @@ template Leg
       do
         assertDeadlineExceeded "refund-after" refundAfter
         -- 0.5.0: a book's own leg refunds into the book's bucket, with its receipt.
+        -- 0.5.2: a private call refunds into the private bucket.
         let book = legBook this
         forA_ book \b -> create BookReceipt with
           venue; book = b; marketId; pairId; outcome; resolved = None; kind = "refunded"; lots
           cost = paidFor backingShare bookCost; proceeds = backingShare + feePaid
-        payIfPositive venue owner (backingShare + feePaid) (bucketOr "refund" book)
+        payIfPositive venue owner (backingShare + feePaid) (legBucket "refund" this)
 
     -- Net two venue-held legs of opposite outcome in one market. Releases
     -- min(shareA + shareB, quantity) now; a pair (shares summing to the
@@ -197,6 +206,20 @@ fetchResolutionFor venue termsCid resolutionCid = do
 legBook : Leg -> Optional Text
 legBook l = if l.owner == l.venue then l.beneficiaryRef >>= bookOf else None
 
+-- | 0.5.2 (K-315): the seat's private bucket (K-266), and the tag a private
+-- call's leg carries. Only a user's leg is ever private.
+privateBucket : Text
+privateBucket = "private"
+
+legPrivate : Leg -> Bool
+legPrivate l = l.owner /= l.venue && l.beneficiaryRef == Some privateBucket
+
+-- | 0.5.2: the bucket a leg's money goes back into on a path whose public
+-- bucket is `path` ("payout", "refund"): the private bucket for a private
+-- call, the book's bucket for a book's leg, else `path`.
+legBucket : Text -> Leg -> Text
+legBucket path l = if legPrivate l then privateBucket else bucketOr path (legBook l)
+
 -- | (owner's payout, venue's fee) for a leg under a resolution.
 legPayout : Leg -> Resolution -> (Int, Int)
 legPayout l r = case r.outcome of
@@ -208,8 +231,10 @@ payOut l resolutionCid = do
   r <- fetchResolutionFor l.venue l.termsCid resolutionCid
   let (toOwner, fee) = legPayout l r
       book = legBook l
+      bucket = legBucket "payout" l
   -- 0.5.0: a book's leg pays back into the book's bucket, with its receipt.
-  paid <- payIfPositive l.venue l.owner toOwner (bucketOr "payout" book)
+  -- 0.5.2: a private call pays back into the private bucket, and says so.
+  paid <- payIfPositive l.venue l.owner toOwner bucket
   forA_ book \b -> create BookReceipt with
     venue = l.venue; book = b; marketId = l.marketId; pairId = l.pairId; outcome = l.outcome
     resolved = r.outcome; kind = "settled"; lots = l.lots; cost = paidFor l.backingShare l.bookCost
@@ -220,4 +245,5 @@ payOut l resolutionCid = do
     venue = l.venue; owner = l.owner; marketId = l.marketId; pairId = l.pairId; outcome = l.outcome
     resolved = r.outcome; lots = l.lots; cashUnit = l.cashUnit; backingShare = l.backingShare
     cost = l.backingShare + l.feePaid; payout = toOwner; fee; product = None; detail = None
+    paidInto = if legPrivate l then Some bucket else None
   pure (paid, feeCash)

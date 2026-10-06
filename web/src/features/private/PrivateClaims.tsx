@@ -1,7 +1,7 @@
 "use client";
 
 import { formatCadence } from "@agari/core/copy";
-import type { PrivatePosition } from "@agari/core/private";
+import { PRIVATE_BUCKET, type PrivatePosition } from "@agari/core/private";
 import { formatBaseUnits } from "@agari/core/units";
 import { useTick } from "@agari/markets/react";
 import { Loader2, ShieldCheck } from "lucide-react";
@@ -35,8 +35,9 @@ function sinceLabel(tsSec: number, nowMs: number): string {
 /**
  * Your private calls — the reference's `PrivateClaims.tsx` list on Canton (C8d, L-39). The reference kept a claim in the
  * browser because its desk kept no owner; on Canton the seat's own ledger holds every private call, seen only by the
- * seat and the venue, so the list reads the ledger and there is nothing to back up. A settled call shows its result and
- * Cash out, which brings the payout home into the private balance once.
+ * seat and the venue, so the list reads the ledger and there is nothing to back up. A settled call shows its result; since
+ * abu-pm-main 0.5.2 (K-315) its payout is already in the private balance ("in private balance", from the receipt), and
+ * only a call the 0.5.1 engine paid into the public balance shows Cash out, which brings it home once.
  */
 export function PrivateClaims({ positions, decimals, symbol, onCashOut, busySlot }: PrivateClaimsProps) {
   const beat = useTick(15_000);
@@ -92,6 +93,10 @@ export function PrivateClaims({ positions, decimals, symbol, onCashOut, busySlot
                     {busy ? <Loader2 className="pc-icon animate-spin" aria-hidden /> : null}
                     {busy ? PRIVATE.claims.cashingOut : PRIVATE.claims.cashOut}
                   </button>
+                ) : p.status === "credited" && p.paidInto === PRIVATE_BUCKET ? (
+                  <span className="pc-status" title={PRIVATE.claims.paidPrivateTitle}>
+                    {PRIVATE.claims.paidPrivate}
+                  </span>
                 ) : (
                   <span className="pc-status">{p.status === "credited" ? PRIVATE.claims.credited : p.status === "settled" ? PRIVATE.claims.settled : PRIVATE.claims.open}</span>
                 )}
