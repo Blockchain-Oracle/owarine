@@ -208,10 +208,13 @@ export async function runMain(ctx: Ctx): Promise<void> {
     for (const [seat, leg] of [[A, legA], [B, legB]] as const) {
       if (!leg) continue;
       const got = await waitFor(`${seat.name}'s settlement receipt`, receiptOf(ctx, seat, leg.data.pairId), 180_000, 3_000);
-      const won = got.data.resolved === leg.data.outcome;
-      const expect = won ? leg.data.lots * 1000n * leg.data.cashUnit : 0n;
+      // A void (C4g: B's Window voided MissingPrint(CloseSlot) on DevNet) pays cost plus fee back (`PM.Leg.legPayout`).
+      const voided = got.data.resolved === null;
+      const won = !voided && got.data.resolved === leg.data.outcome;
+      const expect = voided ? leg.data.backingShare + leg.data.feePaid : won ? leg.data.lots * 1000n * leg.data.cashUnit : 0n;
       ok &&= got.data.payout === expect && !(await legOf(ctx, seat, leg.data.marketId));
-      out.push(`${seat.name} ${leg.data.outcome} ${won ? `won: paid ${credits(got.data.payout)}` : "lost: paid 0"} credits`);
+      const what = voided ? `void: paid back ${credits(got.data.payout)} (cost ${credits(leg.data.backingShare)} + fee ${credits(leg.data.feePaid)})` : won ? `won: paid ${credits(got.data.payout)}` : `lost: paid ${credits(got.data.payout)}`;
+      out.push(`${seat.name} ${leg.data.outcome} ${what} credits`);
       ids.push(await kit.updateIdAt(seat.party!, got.offset));
     }
     return { outcome: ok ? "pass" : "fail", detail: `${out.join("; ")}; no command from either seat after its accept`, evidence: `updates ${[...new Set(ids)].join(", ")}` };
