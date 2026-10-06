@@ -57,8 +57,12 @@ export function Sticky({ style, children }: { style?: StyleProp<ViewStyle>; chil
       top.value = y;
     });
   };
+  // The worklet captures the shared value alone: capturing `ctx` copied its `content` ref, a mounted View, onto the UI
+  // thread, and Worklets refuses that ("Cannot copy value of type ReactNativeElement"), a render error on Your
+  // strategies the first time the simulator opened it (C11c).
+  const scrollY = ctx?.scrollY ?? null;
   const lift = useAnimatedStyle(() => {
-    const y = ctx ? ctx.scrollY.value - top.value : 0;
+    const y = scrollY ? scrollY.value - top.value : 0;
     return { transform: [{ translateY: y > 0 ? y : 0 }] };
   });
   return (
