@@ -17,7 +17,9 @@ pnpm --filter @agari/mobile ios
 pnpm --filter @agari/mobile android
 ```
 
-This is a development build; Expo Go does not include the app's native modules. Point the app at a web deploy with `EXPO_PUBLIC_SITE_URL` (default `http://localhost:3000`). The price and ladder streams come from ops: `EXPO_PUBLIC_OPS_URL`, or by default `https://ops.<domain>` for an https site and port 8787 on the same host for a local one. The app holds no ledger credential and no party id: it reaches the ledger only through the web's routes.
+This is a development build; Expo Go does not include the app's native modules.
+
+Against a local stack on the iOS Simulator (C11b, `docs/evidence/c11b-ios-sim.md`): `expo prebuild --platform ios`, `pod install` in `ios/`, then an `xcodebuild … -configuration Debug -destination id=<simulator>` build (about 27 minutes cold). Start Metro with `EXPO_PUBLIC_SITE_URL=http://localhost:<web port>`, `EXPO_PUBLIC_OPS_URL=http://localhost:<ops port>` and `EXPO_PUBLIC_CANTON_NETWORK=localnet` (the seat's signed texts name the network, so it must match the web's), and without `--localhost` (that binds `[::1]` only). Then open the dev client at `agaricanton://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<metro port>`. The simulator shares the Mac's `localhost`. Point the app at a web deploy with `EXPO_PUBLIC_SITE_URL` (default `http://localhost:3000`). The price and ladder streams come from ops: `EXPO_PUBLIC_OPS_URL`, or by default `https://ops.<domain>` for an https site and port 8787 on the same host for a local one. The app holds no ledger credential and no party id: it reaches the ledger only through the web's routes.
 
 ## The seat
 
