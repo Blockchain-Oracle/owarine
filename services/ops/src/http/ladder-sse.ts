@@ -12,6 +12,9 @@ export const ladderLatestBody = (board: LadderBoard): { ladders: WireLadder[]; a
 
 export function streamLadders(req: IncomingMessage, res: ServerResponse, board: LadderBoard, headers: Record<string, string>): void {
   res.writeHead(200, { ...headers, "content-type": "text/event-stream", "cache-control": "no-cache", connection: "keep-alive" });
+  // Node holds the headers until the first write: with no Window quoting that was the 15 s keepalive, so the stream
+  // looked hung through Traefik (C4e). Send them now.
+  res.flushHeaders();
   const send = (w: WireLadder) => res.write(`event: ladder\ndata: ${JSON.stringify(w)}\n\n`);
   for (const e of board.all()) send(toWireLadder(e));
   const unsubscribe = board.subscribe((e) => send(toWireLadder(e)));
