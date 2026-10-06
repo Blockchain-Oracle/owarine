@@ -80,6 +80,9 @@ export async function sizePrivateForStake(marketId: MarketId, side: Side, stakeB
   if (!isOk(q)) return q;
   if (!q.value) return err(diagnosis("no-liquidity", "the venue ladder has no depth on this side right now"));
   const v = q.value;
+  // The most the call can take from the private balance, as the public ticket's button shows it (the venue's firm
+  // quote at click time walks the same ladder within the stake); the expected cost is lower when the ladder is deep.
+  const costBase = v.maxCostBase < stakeBase ? v.maxCostBase : stakeBase;
   const priceRaw = v.contractsRaw === 0n ? 0n : (v.expectedCostBase * 10n ** BigInt(m.decimals)) / v.contractsRaw;
-  return ok({ side, stakeBase, quantityRaw: v.contractsRaw, costBase: v.expectedCostBase, limitYesRaw: v.limitPriceRaw, priceRaw, decimals: m.decimals, quotedAtMs: v.quotedAtMs }, Date.now());
+  return ok({ side, stakeBase, quantityRaw: v.contractsRaw, costBase, limitYesRaw: v.limitPriceRaw, priceRaw, decimals: m.decimals, quotedAtMs: v.quotedAtMs }, Date.now());
 }

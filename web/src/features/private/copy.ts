@@ -111,7 +111,7 @@ export const PRIVATE = {
   },
   pool: {
     label: "Private",
-    note: "Private bets spend from this. Only you can withdraw it.",
+    note: "Private calls spend from this. Only you can move it back to your seat.",
   },
   notDeployed: {
     why: PRIVATE_NOT_DEPLOYED,
