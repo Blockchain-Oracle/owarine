@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { TEMPLATE_IDS } from "@agari/daml";
 import type { LedgerClient } from "@agari/ledger";
 import { appMarketId } from "@agari/markets/server";
-import { decodeLeg, decodeOpenPrint, decodeQuote, decodeResolution, decodeTerms, decodeVenueCash, type LegC, type TermsC } from "@agari/markets/ops/canton";
+import { decodeLeg, decodeOpenPrint, decodeQuote, decodeResolution, decodeVenueCash, learnTerms, type LegC, type TermsC } from "@agari/markets/ops/canton";
 import { shortParty } from "../../bootstrap/devnet-parties";
 import type { CheckRow } from "../../bootstrap/rows";
 import { staleBlocker, type FirstCallConfig } from "./config";
@@ -42,13 +42,20 @@ const receiptOf = (ctx: Ctx, seat: Seat, pairId: string) => async () =>
   (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.SettlementReceipt, decodeReceipt)).find((r) => r.data.pairId === pairId);
 const mask = (text: string) => text.replace(/([A-Za-z0-9_\-:.]+)::1220[0-9a-f]{64}/g, "$1::1220…");
 
+/** Every Window's terms this run has seen, learned by id: MarketTerms is never archived, so paging it grows with the venue. */
+const knownTerms = new Map<string, TermsC>();
+
 /** The lane's Window that ops is quoting now: open print recorded, at least 12 s before lock (a quote lives 20 s at most). */
 async function quotingWindow(ctx: Ctx): Promise<Row<TermsC> | undefined> {
   const now = Date.now() / 1000;
-  const terms = (await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.MarketTerms, decodeTerms)).filter((t) => t.data.seriesKey === ctx.config.lane && t.data.tradingStartSec <= now && t.data.lockAtSec - now >= 12);
-  if (!terms.length) return undefined;
-  const opened = new Set((await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.OpenPrint, decodeOpenPrint)).map((o) => o.data.termsCid));
-  return terms.find((t) => opened.has(t.cid));
+  // C4g: the open prints are few (live Windows only); their terms are read by id, once each, not by paging MarketTerms.
+  const opens = await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.OpenPrint, decodeOpenPrint);
+  await learnTerms({ role: "venue", party: ctx.roles.venue, client: ctx.client, dryRun: false }, knownTerms, opens.map((o) => o.data.termsCid));
+  for (const o of opens) {
+    const t = knownTerms.get(o.data.termsCid);
+    if (t && t.seriesKey === ctx.config.lane && t.tradingStartSec <= now && t.lockAtSec - now >= 12) return { cid: o.data.termsCid, data: t, offset: o.offset };
+  }
+  return undefined;
 }
 
 /** A firm quote from ops through the web on the lane's quoting Window, requoting once if the cap is low. */
