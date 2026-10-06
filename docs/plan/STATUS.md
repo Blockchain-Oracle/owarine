@@ -1,7 +1,7 @@
 # STATUS — updated 2026-10-06 10:07 UTC by Claude (main)
 
 ```
-Where it runs:  local Canton sandbox, and Noders DevNet: R1 uploaded and vetted, and the venue bootstrapped on hackcanton-devnet-3 (6 Oct, run devnet-muwnhrn6: 168 rows pass, 139 writes with update ids: 73 Series, shards, 3 reserves + maker vault seeded, arena, season pool s1). No ops running against DevNet yet; no hosted URL yet.
+Where it runs:  Noders DevNet: R1 vetted, venue bootstrapped (run devnet-muwnhrn6), and the four-viewpoint first call PASSED on DevNet on 6 Oct (18:58–19:03 UTC: lease, firm quote, prepare, accept, owner view, outsider 0 rows, killed submit reconciled, second seat empty, venue view, 3/3 attestations, resolve, settle; void refund 6.05; stale refund with ops stopped), with this Mac's ops and web standing in for the hosted deploy (C4g, acceptance.md). Ops is stopped now; no hosted URL yet.
 Repository:     one checkout, branch main; short-lived lane worktrees under hackcanton-pm-wt/ are merged and removed the same day. Pushed to github.com/Blockchain-Oracle/hackcanton-pm (private until Abu makes it public; the Rules need it public by submission).
 Deadline:       delivery closes Fri 9 Oct 23:59 UTC.
 Capabilities:   live 0 · local 104 · not-live 117 (of 221; docs/plan/capabilities.json, refreshed by C10g on 6 Oct). A row goes live only with a DevNet acceptance row.
@@ -45,7 +45,7 @@ Blocked on Abu: the hosted deploy (a domain); iOS (the App Store Connect record)
 
 | Stage | State | Waits on |
 |---|---|---|
-| **C2x / R1** on DevNet | not started | Abu's Console session (below), then four agent commands (`runbooks/devnet-r1.md`) |
+| **C2x / R1** on DevNet | done 6 Oct: 19 parties, 5 DARs vetted, bootstrap 168/168, first call passed (C4g) | the 30-Window unattended soak was interrupted (lane stopped); rerun with the hosted ops |
 | **C4 / M1** first call, hosted | local only | a domain and its DNS records; R1 on DevNet |
 | **C8d** valuation lanes (OPENAIV/ANTHROPICV) | gated, said on the page (C8d) | a Pyth key entitled to `pyth-indices` (the probe still answers 403) |
 | **C10** public story | copy and docs merged | landing and `/download` updates; docs site on Coolify |
