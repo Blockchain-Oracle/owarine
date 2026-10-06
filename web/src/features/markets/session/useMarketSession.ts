@@ -135,6 +135,16 @@ export function useLaneStates(): Readonly<Record<string, string>> | null {
 }
 
 /**
+ * Whether ops has answered the session read (C10f): null before the first answer, false when the read failed (ops
+ * unreachable or not configured), true once it answered. Lets a surface tell "reading" from "unreachable" while
+ * `useMarketSession` is null for both. Same query, so no extra read.
+ */
+export function useSessionAnswered(): boolean | null {
+  const reading = useReadingQuery(SESSION_KEY, readSession, { pollMs: sessionPollMs, staleTimeMs: SESSION_POLL_MS, needs: [] });
+  return reading === null ? null : reading.ok;
+}
+
+/**
  * The NYSE session as ops agrees it (Alpaca calendar cross-checked, S3), for the chip and the closed copy. With an
  * `asset` (a ticker, or the xStock of a token Window) the session carries that asset's halt.
  * Null while unknown: before the first answer, when ops is unreachable, or when the calendar disputes today —

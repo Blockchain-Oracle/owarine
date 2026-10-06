@@ -7,7 +7,7 @@ import { marketsProvider } from "@agari/markets";
 import { useTick } from "@agari/markets/react";
 import { AssetDisc } from "../markets/hero/asset-mark";
 import { laneAssetLabel } from "../markets/lanes/lane-view";
-import { useMarketSession, type MarketSession } from "../markets/session";
+import { useMarketSession, useSessionAnswered, type MarketSession } from "../markets/session";
 import { useSessionPhrase, useWhen } from "@/lib/when";
 import { LANDING } from "./copy";
 import { laneBoard, type LaneBoard } from "./data";
@@ -59,6 +59,7 @@ function laneLine(basis: LaneBasis, board: LaneBoard, session: MarketSession, no
  */
 export function LandingLanes() {
   const session = useMarketSession();
+  const answered = useSessionAnswered();
   useTick(CLOCK_TICK_MS);
   const when = useWhen();
   const phrase = useSessionPhrase();
@@ -79,7 +80,7 @@ export function LandingLanes() {
             {board && <LaneMarks basis={basis} tickers={board.tickers[basis]} />}
             <p className="lp-lane-next" role="status">
               <span className="lp-lane-dot" aria-hidden />
-              {session && board ? laneLine(basis, board, session, nowSec, { when: (sec) => when(sec, { nowSec }), phrase }) : LANDING.lanes.reading}
+              {session && board ? laneLine(basis, board, session, nowSec, { when: (sec) => when(sec, { nowSec }), phrase }) : answered === false ? LANDING.lanes.unknown : LANDING.lanes.reading}
             </p>
           </article>
         );
