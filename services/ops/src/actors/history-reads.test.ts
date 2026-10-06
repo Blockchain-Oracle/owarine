@@ -55,7 +55,7 @@ describe("the ticket desk reads Resolutions only for a live round, ticket or pos
     const termsCid = (resolution.createArgument as { termsCid: string }).termsCid;
     const round: CreatedEvent = {
       ...resolution, contractId: "00round", templateId: TICKET_TEMPLATE_IDS.RangeRound,
-      createArgument: { venue: VENUE, owner: "alice::1220", reserveId: "range", termsCid, marketId: "BTC-c3a-mum43ymj:0", kind: "RangeTicket", side: "Inside", lowE8: "1", highE8: "2", stake: "10", maxPayout: "20", expiry: "2026-09-29T03:25:00Z", refundAfter: "2026-09-29T03:35:00Z" },
+      createArgument: { venue: VENUE, owner: "alice::1220", reserveId: "range", termsCid, marketId: "BTC-c3a-mum43ymj:0", kind: "RangeTicket", side: "Inside", lowE8: "1", highE8: "2", stake: "10", maxPayout: "20", "expiry": "2026-09-29T03:25:00Z", refundAfter: "2026-09-29T03:35:00Z" },
     };
     const l = ledger([round, resolution]);
     const snap = await readDesk(l.session);
