@@ -23,6 +23,7 @@ import { TICKER_HUB } from "./copy";
 import { PreIpoStats } from "./PreIpoStats";
 import { usePreIpoFacts } from "./usePreIpoFacts";
 import { pythIndexRowOf, usePythIndex, type PythIndexRow } from "./usePythIndex";
+import { newsQuietLine } from "@/features/news/news-reading";
 import { useNextEarnings, useTickerNews } from "./useTickerNews";
 import "@/features/profile/profile.css";
 import "./ticker-hub.css";
@@ -164,10 +165,10 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
             <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.news.title} desc={TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
             {articles === null ? (
               <p className="news-quiet" role="status" aria-busy={news === null}>
-                {news === null ? ACTIVITY.loading : NEWS.quiet}
+                {news === null ? ACTIVITY.loading : newsQuietLine(news)}
               </p>
             ) : articles.length === 0 ? (
-              <p className="news-quiet">{NEWS.quiet}</p>
+              <p className="news-quiet">{newsQuietLine(news)}</p>
             ) : (
               <Headlines articles={articles.slice(0, 8)} />
             )}

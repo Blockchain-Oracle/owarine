@@ -14,6 +14,7 @@ const FIXTURES = [
   { href: "/dev/claims", label: "Claim-all", note: "idle plate, mid-run progress, success receipt, then live" },
   { href: "/dev/history", label: "Fill projection", note: "settled rows, record, Trader Edge and leaderboard from canned rounds" },
   { href: "/dev/takes", label: "Takes", note: "the take card — backed, open, no note, closed Window" },
+  { href: "/dev/news", label: "News wire", note: "a quiet wire, no Finnhub key, Finnhub unreadable, then the live wire" },
   { href: "/dev/share", label: "Share cards", note: "The Call on screen, then both PNG exports from canned records" },
   { href: "/dev/port", label: "Chain port", note: "live lanes as Reading<LaneSet>, venue and clock" },
   { href: "/dev/boot", label: "Boot check", note: "the markets runtime's Canton config and the engine's deploy state" },
