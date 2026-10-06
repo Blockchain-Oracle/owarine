@@ -65,7 +65,9 @@ function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolu
 /** Settlement as an unambiguous stamped verdict: 上がり in vermilion, 放銃 as a fact, 無効 with its reason — and the receipt to audit it (FR-10). */
 export function VerdictCard({ verdict, market, resolution, symbol, provenance }: VerdictCardProps) {
   const strings = verdictStrings(verdict.outcome);
-  const announced = useAnnounceOnce(verdictAnnouncement(verdict.outcome, `${formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true })} ${symbol}`));
+  // A void announces what came back (the legs' backing plus fee), not its zero P&L (C9e).
+  const figure = verdict.outcome === "void" ? formatBaseUnits(verdict.payoutBase, verdict.decimals) : formatBaseUnits(verdict.pnlBase, verdict.decimals, { signed: true });
+  const announced = useAnnounceOnce(verdictAnnouncement(verdict.outcome, `${figure} ${symbol}`));
   const settledAtMs = verdict.settledAtMs ?? resolution?.settledAtMs ?? secToMs(market.expirySec);
   const settlementTx = resolution?.settlementTxHash ?? null;
   const source = printSourceText(resolution, market.expirySec, market.asset);

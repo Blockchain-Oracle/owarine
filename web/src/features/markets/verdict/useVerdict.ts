@@ -87,8 +87,12 @@ export function useVerdict({ marketId, wallet }: { marketId: MarketId | null; wa
 
   const verdict = useMemo<Reading<Verdict | null> | null>(() => {
     if (!settled || snapshot === null || marketId === null || holdings === null || fee === null) return null;
+    // The first verdict is the one announced (`useAnnounceOnce`), so it waits for the reads that fix its figures: the live
+    // positions, and once the legs are gone the settled history. Read too early it said "Won +1.00" for a 0.14 profit.
+    if (positions === null) return null;
     const rounds = history?.ok ? history.value : null;
-    const liveCost = positions?.ok ? (positions.value.find((p) => p.marketId === marketId)?.costBasisBase ?? null) : null;
+    const liveCost = positions.ok ? (positions.value.find((p) => p.marketId === marketId)?.costBasisBase ?? null) : null;
+    if (liveCost === null && history === null && known.current.costBasisBase === null) return null;
     const costBasisBase = liveCost ?? roundCostBasis(marketId, rounds) ?? known.current.costBasisBase;
     const paidBySide = snapshot.isVoided ? (voidPaidBySide(marketId, claimables?.ok ? claimables.value : null, rounds?.rounds ?? null) ?? known.current.paidBySide) : null;
     known.current = { marketId, costBasisBase, paidBySide };
