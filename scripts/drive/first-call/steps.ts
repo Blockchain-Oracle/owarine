@@ -241,11 +241,12 @@ export async function runVoid(ctx: Ctx): Promise<void> {
   await ctx.step("void on disagreement (the three opens disagree)", async () => {
     const pr = await ctx.kit.prints(d!.win.terms, d!.win.terms.data.tradingStartSec, [100_000_000n, 100_000_000n, 110_000_000n]);
     // Ops' resolver records any Window's open once three prints are in: it may record this void before the drive does.
-    const mine = await ctx.kit.recordOpen(d!.win.terms, d!.win.stateCid, pr.quoteCids).catch(() => null);
-    const byOps = mine ? null : await waitFor("the void Resolution", async () => (await ctx.kit.acs(ctx.roles.resolver, TEMPLATE_IDS.Resolution, decodeResolution)).find((x) => x.data.marketId === d!.win.terms.data.marketId), 30_000);
+    let ownFailed = "";
+    const mine = await ctx.kit.recordOpen(d!.win.terms, d!.win.stateCid, pr.quoteCids).catch((e: unknown) => ((ownFailed = e instanceof Error ? e.message.slice(0, 120) : String(e)), null));
+    const byOps = mine ? null : await waitFor("the void Resolution", async () => (await ctx.kit.acs(ctx.roles.resolver, TEMPLATE_IDS.Resolution, decodeResolution)).find((x) => x.data.marketId === d!.win.terms.data.marketId), 120_000);
     const r = mine?.resolution ? decodeResolution(mine.resolution.createArgument) : byOps?.data ?? null;
     const ok = !!r && r.outcome === null && r.voidReason?.tag === "SourceDisagreement";
-    const who = mine ? "the drive's Terms_RecordOpen (as the resolver)" : "ops' resolver, which recorded it first,";
+    const who = mine ? "the drive's Terms_RecordOpen (as the resolver)" : `ops' resolver, which recorded it first (the drive's own attempt: ${ownFailed || "refused"}),`;
     const voidId = mine ? mine.updateId : byOps ? await ctx.kit.updateIdAt(ctx.roles.resolver, byOps.offset) : "—";
     return { outcome: ok ? "pass" : "fail", detail: `prints 1.00, 1.00 and 1.10 are 10% apart and the Series allows 1%: ${who} ${r ? `voided the Window (${r.voidReason?.tag}, ${r.voidReason?.slot})` : "recorded an open instead"}`, evidence: `prints ${pr.updateIds.join(", ")}; void ${voidId}` };
   });
