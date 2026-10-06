@@ -102,10 +102,10 @@ export function indexReader(sql: Sql) {
   return {
     /**
      * A seat's own fills, newest first (Masayume `getUserFills`). Every row here is the seat's (its address or its leased
-     * party), so `taker` names the wallet asked for (C9e): the replay attributes a fill to the wallet only when `taker`
-     * equals it, and the projector writes no `owner_address` for a leased party, so the default label (the party id)
-     * made every own buy replay as the complement side — a guest seat's history, Trader Edge and verdict cost basis
-     * read 1 − price.
+     * party), so `taker` names the wallet asked for: the replay attributes a fill to the wallet only when `taker` equals
+     * it, and the projector writes no `owner_address` for a leased party, so the default label (the party id) made every
+     * own buy replay as the complement side. Found twice on 6 Oct: C9e (a won call read "Stake 0.14, +609%") and C11b
+     * on the phone ("+0.82 credits, 67 %" on a seat that lost 0.83 over three calls).
      */
     async walletFills(wallet: string, q: IdxFillQuery = {}): Promise<IdxRow[]> {
       return sql`

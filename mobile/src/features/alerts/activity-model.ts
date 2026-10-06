@@ -16,13 +16,16 @@ export const ACTIVITY_INK = { dark: ink(DARK), light: ink(LIGHT) } as const;
 /** How long after its bell a bet is still followed, waiting for its verdict (the activity then ends plainly). */
 export const VERDICT_WAIT_MS = 20 * 60_000;
 
+const NONE_ENDED: ReadonlySet<string> = new Set();
+
 /**
  * The bet the Live Activity follows: one-sided (a hedged seat has no single side), soonest to close while trading;
  * with none trading, the one that closed last and is still waiting for its verdict — so a relaunch after the bell
- * still ends the activity with the result rather than quietly.
+ * still ends the activity with the result rather than quietly. A Window whose activity already ended (`ended`) is never
+ * picked again: a settled bet stays listed through its verdict wait, and picking it again re-started what had just ended.
  */
-export function pickFollowed(positions: readonly OpenPosition[], nowMs: number): OpenPosition | null {
-  const oneSided = positions.filter((p) => (p.balanceUpRaw > 0n) !== (p.balanceDownRaw > 0n));
+export function pickFollowed(positions: readonly OpenPosition[], nowMs: number, ended: ReadonlySet<string> = NONE_ENDED): OpenPosition | null {
+  const oneSided = positions.filter((p) => !ended.has(p.marketId) && (p.balanceUpRaw > 0n) !== (p.balanceDownRaw > 0n));
   const live = oneSided.filter((p) => p.expirySec * 1000 > nowMs).sort((a, b) => a.expirySec - b.expirySec);
   if (live[0]) return live[0];
   const waiting = oneSided.filter((p) => nowMs - p.expirySec * 1000 <= VERDICT_WAIT_MS).sort((a, b) => b.expirySec - a.expirySec);

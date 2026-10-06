@@ -3,10 +3,12 @@
  * answer for a second, so the several reads a surface mounts together (positions for holdings, claimables and the
  * balance sheet) cost one round trip. Every failure to reach it is `indexer-down`, the retryable outage kind.
  */
+import { SEAT_READ_HEADER } from "@agari/core/auth";
 import { diagnosis } from "@agari/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { peekClient } from "../runtime/read-runtime";
 import { indexerBase } from "./indexer-base";
+import { seatReadHeaderValue } from "./ledger-api";
 
 /** A u64/i64/NUMERIC column, as the API sends it. */
 export type Dec = string;
@@ -176,10 +178,26 @@ const inflight = new Map<string, { doneAtMs: number | null; rows: Promise<unknow
 
 const indexerDown = (technical: string) => new ReadingError(diagnosis("indexer-down", technical));
 
-async function request<T>(url: string): Promise<T[]> {
+/**
+ * A seat's own rows (`wallet/<address>/…`) answer only that seat, proven by its signed read header or, on the web, its
+ * cookie (`/api/index` wallet scope). The phone has no cookie (C11b: its fetch omits them), so the header goes with every
+ * wallet read when a seat key is registered; public paths never carry it.
+ */
+async function seatHeaders(path: string): Promise<Record<string, string>> {
+  if (!path.startsWith("wallet/")) return {};
+  try {
+    const signed = await seatReadHeaderValue();
+    return signed ? { [SEAT_READ_HEADER]: signed } : {};
+  } catch {
+    // The key would not sign: the web's cookie may still carry the read.
+    return {};
+  }
+}
+
+async function request<T>(url: string, path: string): Promise<T[]> {
   let response: Response;
   try {
-    response = await fetch(url, { ...NO_STORE, headers: { accept: "application/json" } });
+    response = await fetch(url, { ...NO_STORE, headers: { accept: "application/json", ...(await seatHeaders(path)) } });
   } catch (error) {
     // The host is named (S23): "fetch failed" alone hid that ops was calling a container name it cannot resolve.
     const host = (() => { try { return new URL(url).host; } catch { return "?"; } })();
@@ -203,7 +221,7 @@ export function indexRows<T>(path: string, query: Record<string, string | number
   const now = Date.now();
   const hit = inflight.get(url);
   if (hit && (hit.doneAtMs === null || now - hit.doneAtMs < MEMO_MS)) return hit.rows as Promise<T[]>;
-  const entry: { doneAtMs: number | null; rows: Promise<unknown[]> } = { doneAtMs: null, rows: request<T>(url) };
+  const entry: { doneAtMs: number | null; rows: Promise<unknown[]> } = { doneAtMs: null, rows: request<T>(url, path) };
   inflight.set(url, entry);
   entry.rows.then(
     () => void (entry.doneAtMs = Date.now()),

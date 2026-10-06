@@ -12,6 +12,7 @@ import { TICKET_CANTON } from "@/features/canton-ux/ticket";
 import { useState } from "react";
 import { CallPlacedCard, SHARE, type CallCard } from "@/features/share";
 import { useSettlementFee } from "../verdict/useVerdict";
+import { usePlacedWindow } from "./placed-window";
 
 interface PlacedCallProps {
   booked: BookedOrder;
@@ -34,12 +35,13 @@ export function PlacedCall({ booked, market, nowMs, decimals, symbol, boost, onA
   // The moment the confirmation arrived, held for the life of the card so the
   // draining bar measures the holding window rather than resetting every render.
   const [placedAtMs] = useState(() => (nowMs > 0 ? nowMs : Date.now()));
-  // The Window the fill landed in, held the same way: inside the no-entry buffer
-  // the ticket auto-advances to the next Window (useTicket) while the bet state
-  // stays, and The Call must keep describing the one that was actually bought.
-  const [placedIn] = useState(() => market);
-  const opening = useOpeningPrice(placedIn.marketId);
-  const fee = useSettlementFee(placedIn.marketId, true);
+  // The Window the fill landed in, from the order: inside the no-entry buffer the
+  // ticket auto-advances to the next Window (useTicket), even while a firm quote is
+  // held, and The Call must keep describing the one that was actually bought.
+  const placedIn = usePlacedWindow(booked, market);
+  const opening = useOpeningPrice(booked.marketId);
+  const fee = useSettlementFee(booked.marketId, true);
+  if (!placedIn) return null;
 
   const card: CallCard = {
     asset: placedIn.asset,

@@ -34,7 +34,11 @@ export function useWindowActivity(marksVersion: number): string | null {
   const nowMs = useChainNowMs();
   const positions = usePositions(address);
   const list = positions && isOk(positions) ? positions.value : null;
-  const followed = list && nowMs > 0 ? pickFollowed(list, nowMs) : null;
+  // Windows whose activity already ended this launch (decided, cashed out, given up) are never followed again. A settled
+  // bet stays in the list through its verdict wait; picking it again set `shown` back the moment the end cleared it, and
+  // the two effects below traded it for ever ("Maximum update depth exceeded" at the first settle on the simulator, C11b).
+  const [ended, setEnded] = useState<ReadonlySet<string>>(() => new Set());
+  const followed = list && nowMs > 0 ? pickFollowed(list, nowMs, ended) : null;
 
   // The Window being shown: kept past its bell (it leaves the open list) until its verdict lands. A different bet
   // takes over only when it closes sooner than a shown one that is still trading.
@@ -82,10 +86,14 @@ export function useWindowActivity(marksVersion: number): string | null {
     const symbol = collateralOrNull()?.symbol;
     const pastBellMs = nowMs - shown.expirySec * 1000;
     const cashedOut = pastBellMs < 0 && list !== null && !list.some((p) => p.marketId === shown.marketId);
+    const endShown = () => {
+      last.current = null;
+      setEnded((prev) => (prev.has(shown.marketId) ? prev : new Set(prev).add(shown.marketId)));
+      setShown(null);
+    };
     if (heldNothing || cashedOut || (!verdict && pastBellMs > GIVE_UP_MS)) {
       void driver.current.end(null);
-      last.current = null;
-      setShown(null);
+      endShown();
       return;
     }
     const props = activityProps({ position: shown, openingRaw, spotRaw, symbol, verdict, mark: Platform.OS === "ios" ? markUrl(shown.asset) : "" });
@@ -96,8 +104,7 @@ export function useWindowActivity(marksVersion: number): string | null {
     last.current = { props, atMs: nowMs, marks: marksVersion };
     if (props.result) {
       void driver.current.end(props);
-      last.current = null;
-      setShown(null);
+      endShown();
     } else void driver.current.show(props, appUrl(`markets/${shown.marketId}`), nowMs);
   }, [address, shown, list, followed, openingRaw, spotRaw, verdict, heldNothing, nowMs, marksVersion]);
 

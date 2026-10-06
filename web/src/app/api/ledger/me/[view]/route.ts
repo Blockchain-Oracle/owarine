@@ -5,6 +5,9 @@ import { diagnosisReply, recordBusy, refusal, replyWith, seatFromRequest } from 
 /**
  * The seat's own money, read live AS its leased party (plan §5): `balance`, `positions`, `claimables`, `quotes`. The
  * party comes from the lease row only. Every answer names the seat address, party and offset it was read as and at.
+ * The address is the key that proved itself (`caller`): the lease's own, or a key joined to it by a seat link. The
+ * client refuses an answer for any other address than the one it asked about, so naming the holder's key here left a
+ * joined device with no balance or positions (C11b: the web joined the phone's seat and read "—").
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,5 +29,5 @@ export async function GET(request: NextRequest, context: { params: Promise<{ vie
     return diagnosisReply(classifyRejection(error, { step: "read" }), 503);
   }
   await recordBusy(auth.seat, read);
-  return replyWith({ value: read.value, address: lease.address, party: read.party, offset: read.offset });
+  return replyWith({ value: read.value, address: auth.seat.caller, party: read.party, offset: read.offset });
 }

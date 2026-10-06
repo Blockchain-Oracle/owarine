@@ -82,15 +82,22 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
   let lease: LeaseRow | null = null;
   let via: SeatContext["via"] = "cookie";
   let caller: string | null = cookie?.address ?? null;
+  const writeProof = request.headers.get(SEAT_WRITE_HEADER);
+  /** A cookie that may not write here (no page Origin or no CSRF header): it never carries the write itself. */
+  let crossSiteCookie = false;
   try {
     if (cookie) {
       lease = await server.store.byLease(cookie.leaseId);
       if (lease && lease.address !== cookie.address && !(await server.store.links.isLinked(cookie.address, lease.leaseId))) lease = null;
       if (lease && o.write && (!sameOrigin(request) || request.headers.get(CSRF_HEADER) !== "1")) {
-        return { ok: false, response: refusal("signer-required", "a seat write must come from this site with the seat header", 403) };
+        // A native client can hold the cookie its lease call set (React Native keeps cookies by default) and sends no
+        // page Origin. Its one-request write proof decides then (C11b); without one the cookie write stays refused.
+        if (!writeProof) return { ok: false, response: refusal("signer-required", "a seat write must come from this site with the seat header", 403) };
+        crossSiteCookie = true;
+        lease = null;
+        caller = null;
       }
     }
-    const writeProof = request.headers.get(SEAT_WRITE_HEADER);
     if (!lease && (writeProof || (!o.write && request.headers.get(SEAT_READ_HEADER)))) {
       // A write never rides the read header: only the write proof bound to this very request (C4d M2b). A read accepts
       // either, since the phone signs every POST (a ticket preview, a range basis) with the stronger one-request proof.
@@ -105,6 +112,7 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
   } catch (error) {
     return { ok: false, response: serverFault("indexer-down", "seat store unreachable", error, 503) };
   }
+  if (!lease && crossSiteCookie) return { ok: false, response: refusal("signer-required", "a seat write must come from this site with the seat header", 403) };
   if (!lease) return { ok: false, response: refusal("signer-required", cookie ? "this seat's lease has ended; take a seat again" : "take a seat first", 401) };
   if (now - lease.lastSeenMs > TOUCH_EVERY_MS) await server.store.touch(lease.leaseId, now).catch(() => undefined);
   return { ok: true, seat: { server, lease, via, caller: caller ?? lease.address } };
