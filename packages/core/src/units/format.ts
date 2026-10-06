@@ -13,12 +13,21 @@ function groupThousands(digits: string): string {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-/** Renders base units as a decimal string without ever touching a float; truncates (never rounds) past `maxDp`. */
+/**
+ * Renders base units as a decimal string without ever touching a float. Past `maxDp` it floors (never rounds half): a
+ * balance shows the whole cents it holds, and a loss the whole cents it took, so a cent-exact start, the balance after
+ * and the change between them always agree on screen (C4f: a record of −0.629126 read "−0.62" while the balance had
+ * gone from 1,000.00 to 999.37). A positive value is truncated, as before.
+ */
 export function formatBaseUnits(value: bigint, decimals: number, options: FormatBaseUnitsOptions = {}): string {
   const { maxDp = 2, minDp = 2, signed = false, group = true } = options;
   const negative = value < 0n;
-  const magnitude = negative ? -value : value;
   const one = oneUnit(decimals);
+  const step = oneUnit(Math.max(0, decimals - maxDp));
+  const exact = negative ? -value : value;
+  const cut = exact % step;
+  // Toward −∞: a negative value's dropped digits make it one shown step larger in magnitude.
+  const magnitude = negative && cut !== 0n ? exact - cut + step : exact;
   const whole = (magnitude / one).toString();
   const fractionDigits = (magnitude % one).toString().padStart(decimals, "0");
   let fraction = fractionDigits.slice(0, Math.min(maxDp, decimals)).replace(/0+$/, "");
