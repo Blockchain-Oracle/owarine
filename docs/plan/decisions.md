@@ -730,6 +730,55 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** nothing until the rail's DevNet rows exist (K-248).
 - **Approval:** default; overrulable.
 
+### K-250 — Third-party marks: a logo only where the brand's own published kit allows it (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** [Canton brand kit and trademark use](https://www.canton.network/brand-kit-trademark-use) (logos for download; may not be modified, recoloured or combined with other marks; attribution line asked for); [Noders brand assets](https://noders.team/brandkit); [BitSafe brand kit](https://bitsafe.finance/brand-kit) ("for partner listings, editorial use, and ecosystem integrations. Use the files exactly as supplied."); no written permission for any other mark in `docs/plan` (STATUS "Known gaps").
+- **Rule:** Canton Network, Noders and BitSafe are drawn from their kits' own files (light- and dark-ground variants, switched by theme, never recoloured, each alone in its cell) on the landing band, How It Works (web and phone) and the docs `built-on` page. The site footer and the docs page carry Canton's attribution line. Every other third party (Coinbase, Kraken, Bitstamp, RedStone, Alpaca, Jupiter Price v3, PreStocks, AppsFactory) is plain text everywhere, web and phone; no PreStocks mark is drawn (already true since C10d/C10e; STATUS's "Known gaps" line about PreStocks marks is now stale). Ticker asset discs (company logos as instrument identifiers) are a reference-authority surface and are not changed by this decision.
+- **User-visible:** three sponsor logos and an attribution line; all other sources by name.
+- **Approval:** default; overrulable.
+
+### K-251 — One runtime config point for the TestFlight link, the APK and the demo film (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** `web/src/lib/release.ts`, `release.test.ts`; `/dev/release`.
+- **Rule:** `/download` and `/demo` read `AGARI_TESTFLIGHT_URL`, `AGARI_ANDROID_APK_URL`, `AGARI_ANDROID_APK_SHA256`, optional `AGARI_ANDROID_APK_VERSION` and `AGARI_DEMO_VIDEO_URL` on the server per request (`connection()`), so a value and a restart flip them with no rebuild. Not `NEXT_PUBLIC_*`, not secret. Only `testflight.apple.com/join/…` links count; an APK needs an https `.apk` URL and a 64-hex SHA-256 or it is not offered; the film is a YouTube link (embedded via youtube-nocookie) or an https `.mp4`/`.webm`. Anything malformed counts as unset.
+- **User-visible:** each card names what it waits on until its value is set.
+- **Approval:** default; overrulable.
+
+### K-252 — No footage or screenshot from before the Canton port on a public page (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** deleted `web/public/media/agari-launch.{mp4,-poster.jpg}`, `web/public/demo/{markets,reel,sensei,bet-screen}.png`, `web/public/download/agari-android-qr.svg`; `features/demo/DemoFilm.tsx`.
+- **Rule:** until the Canton film exists, `/demo` shows its waiting frame and `/download` a dated Canton capture. Screenshots are crops of `docs/evidence/ux` Canton captures, captioned with their date. `/demo` section 03 shows "Who can see this" (no Canton capture of the Room or Sensei exists); both stay linked.
+- **User-visible:** no pre-port video; Canton frames only.
+- **Approval:** default; overrulable.
+
+### K-253 — The public story follows the B1 drafts; traction only from the venue projection or labelled as a target (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** `docs/business/{brief,gtm,metrics}.md`, `materials/01`–`06`; `features/landing/story-copy.ts`, `features/pitch/copy-story.ts`.
+- **Rule:** positioning is "a private event-risk desk", for desk traders, with a licensed dealer as operator. Live counts come from the venue projection only; the C3 run's figures are labelled a driver run on a local sandbox, not users; interview and usability numbers appear only as October targets; status words follow `capabilities.json` (LOCAL SANDBOX, never LIVE before a DevNet row); MainNet is the post-hackathon step. The pitch is ordered problem → ICP → answer → why Canton → work → evidence → GTM → money.
+- **User-visible:** landing sections 01 and 07; the reordered 17-slide deck.
+- **Approval:** default; overrulable.
+
+### K-254 — The privacy matrix is a web page; the phone carries its summary (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** `/who-sees-what`; `features/privacy-matrix/matrix.ts`; plan C1 "privacy-matrix and trust-statement surfaces stay web-only".
+- **Rule:** the full matrix with commands lives at `/who-sees-what`, linked from the landing, `/demo`, How It Works and the docs. The phone's How It Works shows the five-line summary from the same module, without the link.
+- **User-visible:** a new web route; a summary card on the phone.
+- **Approval:** default; overrulable.
+
+### K-255 — An attested price line says where it was signed (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** `features/markets/price-source/source-label.ts` + tests.
+- **Rule:** a Window's line reads "Settles on <source> · <pair or token> · signed on Canton" from its policy text; a committee attestation or unreadable text yields no line. Pre-IPO and basket lines say "signed on Canton" and no longer show the PreStocks token mint, which lives on another network.
+- **User-visible:** the hero and hub source captions.
+- **Approval:** default; overrulable.
+
+### K-256 — How It Works states the fee the Daml charges (C10f)
+- **Date / owner:** 2026-10-06 · C10f lane
+- **Evidence:** `daml/abu-pm-main/daml/PM/Leg.daml` (payout table, `refundAfter`); `docs/business/gtm.md` "Economic flows".
+- **Rule:** the fee is charged with the fill and held in the leg, kept only at a non-void settle, returned on a void; a win pays the full 1.00 per contract; the stale refund after the refund time is named. Other surfaces that still compute "net of the settlement fee" are listed under "Not done" for their owner.
+- **User-visible:** How It Works steps, fees, settlement, FAQ, example.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

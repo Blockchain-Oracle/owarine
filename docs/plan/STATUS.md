@@ -67,4 +67,4 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 - The phone has never run against Canton: it typechecks and exports only.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
 - Resting calls and the Canton Coin rail run on the local sandbox only.
-- The web and phone still show PreStocks marks in the per-price source line and the landing band; the plan asks for written permission for any third-party mark (C-S25), and none is recorded.
+- Third-party marks (C-S25, K-250): only Canton Network, Noders and BitSafe logos are drawn, from their published brand kits; every other source, PreStocks included, is named in plain text.
