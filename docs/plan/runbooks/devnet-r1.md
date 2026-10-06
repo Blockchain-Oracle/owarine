@@ -39,8 +39,9 @@ Use the HackCanton account throughout. The agent is ready when Abu starts, and t
    2. `daml/released/abu-pm-tickets-0.1.3.dar`
    3. `daml/released/abu-pm-agents-0.2.1.dar`
    4. `daml/released/abu-pm-games-0.1.1.dar`
+   5. `daml/released/abu-pm-cc-0.1.0.dar` (the Canton Coin rail; added 6 Oct, K-249)
 
-   These four files are R1. Their package ids and sha256 hashes are in `daml/released/MANIFEST.md`. Before uploading, `shasum -a 256 daml/released/*.dar` must print the manifest's hashes. The order matters because tickets, agents and games are each built against main. Package names are shared across the participant, and the Console cannot delete a DAR, so there is no undo. If an upload says a package with that name and version already exists with different content, stop and tell the agent (a name collision, K-009).
+   These five files are R1. Their package ids and sha256 hashes are in `daml/released/MANIFEST.md`. Before uploading, `shasum -a 256 daml/released/*.dar` must print the manifest's hashes. The order matters because tickets, agents, games and cc are each built against main. Package names are shared across the participant, and the Console cannot delete a DAR, so there is no undo. If an upload says a package with that name and version already exists with different content, stop and tell the agent (a name collision, K-009).
 6. **Put the platform credential in two places. The agent never sees it.**
    1. On this Mac: copy `docs/plan/runbooks/devnet.env.example` to `~/.config/agari/canton/devnet.env`. Fill the two empty lines (`LEDGER_OIDC_USERNAME` and `LEDGER_OIDC_PASSWORD`, the HackCanton login). Then run `chmod 600 ~/.config/agari/canton/devnet.env`. The agent's commands load this file and never print it.
    2. In Coolify (K-035 option A, the default): paste the same names and values into the secret store of **both** pm-web and pm-ops. If the preflight says the realm keeps only one session per login, put them in pm-ops only (option B), and tell the agent.
@@ -55,7 +56,7 @@ That is all. Everything below is the agent's.
 - **Engine merged.** `abu-pm-main` 0.5.1 (0.5.0 plus the pre-open `RestingCall`, C7c, K-235) replaces 0.5.0 as R1's main: 0.5.0 was never uploaded. `dpm test` passes 227 scripts.
 - **Satellites rebuilt.** Done: tickets 0.1.3, agents 0.2.1 and games 0.1.1 each carry main `27a40a47…` (their package ids changed with it; see the manifest).
 - **Upgrade check.** Done: `dpm upgrade-check --both` passes against main 0.4.0, tickets 0.1.2, agents 0.2.0 and games 0.1.0, with 0 warnings; main 0.5.1 also passes against 0.5.0. Nothing is on Noders yet, so this is the local baseline; the output is in `daml/released/MANIFEST.md`.
-- **Files in place.** Done: the four DARs are committed in `daml/released/` (K-202). `bootstrap-devnet.ts` compares the package ids inside exactly these files with what the participant holds. The files Abu uploads must therefore be these bytes: never rebuild them in place.
+- **Files in place.** Done: the five DARs are committed in `daml/released/` (K-202). `bootstrap-devnet.ts` compares the package ids inside exactly these files with what the participant holds. The files Abu uploads must therefore be these bytes: never rebuild them in place.
 - **Public preflight.** Run `pnpm devnet:preflight https://ledger-api-json.participant.hackcanton-01.devnet.naas.noders.services` before the credential file exists. It prints the `/v2/version` and CORS rows; every other row says "not run".
 - **Name collision.** Confirm that no package named `abu-pm-*` already exists on the participant. The Console's package list is visible to every team.
 

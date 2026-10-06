@@ -723,6 +723,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the schedule ticket, its receipt with Cancel, the portfolio rows and the activity line work on web and phone.
 - **Approval:** default; overrulable.
 
+### K-249 — The Canton Coin package rides with R1 (overflow block)
+- **Date / owner:** 2026-10-06 · Claude (main, no lane).
+- **Evidence:** `daml/released/MANIFEST.md` row 5; `dpm build --all` at `448a85f` reproduced `abu-pm-main-0.5.1.dar` byte for byte, so `abu-pm-cc-0.1.0.dar` depends on the released main package id `27a40a47…`.
+- **Rule:** `abu-pm-cc` 0.1.0 is upload 5 of 5 in R1 (`devnet-r1.md` step 5) and the fifth entry of `RELEASE_PACKAGES`, so the bootstrap's checks require its package id on the participant. One Console session uploads everything; the rail itself stays opt-in (`OPS_ACTORS=…,cc-rail`) and `not-live` until `cc-rail.md` has run and been recorded.
+- **User-visible:** nothing until the rail's DevNet rows exist (K-248).
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

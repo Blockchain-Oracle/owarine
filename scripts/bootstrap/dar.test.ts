@@ -30,9 +30,9 @@ describe("DAR reading", () => {
     expect(manifestValue(MANIFEST, "Absent")).toBeUndefined();
   });
 
-  it("lists the repo's four packages, main first, at their daml.yaml versions", () => {
+  it("lists the release's five packages, main first, at their daml.yaml versions", () => {
     const dars = repoDars();
-    expect(dars.map((d) => d.name)).toEqual(["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games"]);
+    expect(dars.map((d) => d.name)).toEqual(["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games", "abu-pm-cc"]);
     for (const d of dars) expect(d.version).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
