@@ -343,9 +343,7 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
         WHERE terms_cid = ${f.termsCid}`;
       await citeEvidence(c, f.evidence);
       return;
-    case "open-print-consumed":
-      await c.tx`UPDATE idx_markets SET open_print_cid = NULL WHERE open_print_cid = ${f.contractId}`;
-      return;
+    case "open-print-consumed": return void (await c.tx`UPDATE idx_markets SET open_print_cid = NULL WHERE open_print_cid = ${f.contractId}`);
     case "resolution": return resolution(c, f);
     case "price": return price(c, f);
     case "price-retired":
@@ -364,9 +362,7 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
     case "sale": return sale(c, f);
     case "leg-closed": return legClosed(c, f);
     case "publication": return publication(c, f);
-    case "publication-archived":
-      await c.tx`DELETE FROM idx_publications WHERE publication_cid = ${f.contractId}`;
-      return;
+    case "publication-archived": return void (await c.tx`DELETE FROM idx_publications WHERE publication_cid = ${f.contractId}`);
     case "event-terms":
       await c.tx`
         UPDATE idx_markets SET event_terms_cid = ${f.contractId}, event_question = ${f.question}, event_attestors = ${c.tx.json(f.attestors)}, event_quorum = ${f.quorum}
