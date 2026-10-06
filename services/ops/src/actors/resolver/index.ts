@@ -14,8 +14,8 @@
  */
 import { TEMPLATE_IDS } from "@agari/daml";
 import {
-  cmd, decodeEventAttestation, decodeEventState, decodeEventTerms, decodeEventVerdict, decodeOpenPrint, decodePriceQuote, decodeResolution, decodeTerms,
-  decodeWindowState, failureText, isInactive, pick, readActive, recordOpenCommandId, refusalId, resolveCommandId, submit, templateSuffix, type Active,
+  cmd, decodeEventAttestation, decodeEventState, decodeEventTerms, decodeEventVerdict, decodeOpenPrint, decodePriceQuote, decodeResolution,
+  decodeWindowState, failureText, isInactive, learnTerms, pick, readActive, recordOpenCommandId, refusalId, resolveCommandId, submit, templateSuffix, type Active,
   type PriceQuoteC, type RoleSession, type TermsC,
 } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
@@ -46,9 +46,9 @@ interface ResolverState {
 const label = (t: TermsC) => `${t.marketId} ${new Date(t.tradingStartSec * 1000).toISOString().slice(11, 16)}Z`;
 const priceText = (e8: bigint | null) => (e8 === null ? "-" : `${e8 / 100_000_000n}.${(e8 % 100_000_000n).toString().padStart(8, "0").replace(/0+$/, "") || "0"}`);
 
+/** Learns each new Window's terms by id (C4g): paging MarketTerms returns every Window the venue ever ran. */
 async function knownTerms(state: ResolverState, cids: readonly string[]): Promise<void> {
-  if (cids.every((c) => state.terms.has(c))) return;
-  for (const t of pick(await readActive(state.session, [TEMPLATE_IDS.MarketTerms]), TEMPLATE_IDS.MarketTerms, decodeTerms)) state.terms.set(t.cid, t.data);
+  await learnTerms(state.session, state.terms, cids);
 }
 
 /** One event's `Event_Resolve` or `Event_Void`: the outcome is the verdict's (YES / NO / void with its reason). */

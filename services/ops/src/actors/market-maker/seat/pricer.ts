@@ -16,7 +16,7 @@ import { CALENDAR_YEAR_SEC, EVENT_FAIR_TICKS, EVENT_HALF_SPREAD_TICKS, parseLane
 import type { HaltBoard } from "@agari/core/types";
 import { TEMPLATE_IDS } from "@agari/daml";
 import {
-  decodeEventState, decodeEventTerms, decodeLeg, decodeOpenPrint, decodeQuote, decodeTerms, pick, readActive, type Active, type LegC, type QuoteC, type RoleSession,
+  decodeEventState, decodeEventTerms, decodeLeg, decodeOpenPrint, decodeQuote, learnTerms, pick, readActive, type Active, type LegC, type QuoteC, type RoleSession,
   type TermsC,
 } from "@agari/markets/ops/canton";
 import { marketIdFromDaml, seriesIdFromDaml } from "@agari/core/market";
@@ -150,9 +150,8 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
   // An event is live while its single-use EventState is: once resolved or voided it stops quoting.
   const liveEvents = new Set(pick(acs, TEMPLATE_IDS.EventState, decodeEventState).map((e) => e.data.termsCid));
   const events = pick(acs, TEMPLATE_IDS.EventTerms, decodeEventTerms).filter((e) => liveEvents.has(e.data.termsCid));
-  if ([...opens.map((o) => o.data.termsCid), ...events.map((e) => e.data.termsCid)].some((cid) => !state.terms.has(cid))) {
-    for (const t of pick(await readActive(state.venue, [TEMPLATE_IDS.MarketTerms]), TEMPLATE_IDS.MarketTerms, decodeTerms)) state.terms.set(t.cid, t.data);
-  }
+  // Each new Window's terms by id (C4g): paging MarketTerms returns every Window the venue ever ran.
+  await learnTerms(state.venue, state.terms, [...opens.map((o) => o.data.termsCid), ...events.map((e) => e.data.termsCid)]);
   const quotes = pick(acs, TEMPLATE_IDS.Quote, decodeQuote);
   const venueLegs = pick(acs, TEMPLATE_IDS.Leg, decodeLeg).filter((l) => l.data.owner === state.venue.party);
   const nowSec = Math.floor(Date.now() / 1000);

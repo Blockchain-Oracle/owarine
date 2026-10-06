@@ -16,7 +16,7 @@ import { assertCommandId } from "@agari/ledger";
 import { archivePrints } from "@agari/db";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { parsePrintSource, type PrintSourceParts } from "@agari/core/market";
-import { cmd, decodeOpenPrint, decodePriceQuote, decodeTerms, decodeWindowState, failureText, pick, readActive, submit, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { cmd, decodeOpenPrint, decodePriceQuote, decodeWindowState, failureText, learnTerms, pick, readActive, submit, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
 import { ORACLE_ROLES, type OracleRole } from "../../runtime/keys";
@@ -147,9 +147,8 @@ export async function laneFeederPass(state: LaneFeederState): Promise<PassResult
   const states = pick(acs, TEMPLATE_IDS.WindowState, decodeWindowState);
   const opens = pick(acs, TEMPLATE_IDS.OpenPrint, decodeOpenPrint);
   const cids = [...states.map((s) => s.data.termsCid), ...opens.map((o) => o.data.termsCid)];
-  if (cids.some((c) => !state.terms.has(c))) {
-    for (const t of pick(await readActive(state.venue, [TEMPLATE_IDS.MarketTerms]), TEMPLATE_IDS.MarketTerms, decodeTerms)) state.terms.set(t.cid, t.data);
-  }
+  // Each new Window's terms by id (C4g): paging MarketTerms returns every Window the venue ever ran.
+  await learnTerms(state.venue, state.terms, cids);
   const waiting = [
     ...states.flatMap((s) => (state.terms.has(s.data.termsCid) ? [{ terms: state.terms.get(s.data.termsCid)!, slot: "open" as const }] : [])),
     ...opens.flatMap((o) => (state.terms.has(o.data.termsCid) ? [{ terms: state.terms.get(o.data.termsCid)!, slot: "close" as const }] : [])),

@@ -7,8 +7,8 @@
  */
 import { readFileSync } from "node:fs";
 import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent, JsTransaction, LedgerClient } from "@agari/ledger";
-import { decodeTerms, type RoleSession } from "@agari/markets/ops/canton";
+import { LedgerError, type CreatedEvent, type JsTransaction, type LedgerClient } from "@agari/ledger";
+import { decodeTerms, learnTerms, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import { createArenaDesk } from "./arena-desk/desk";
 import { createSeatDirectory } from "./arena-desk/seats";
@@ -123,5 +123,34 @@ describe("the lane feeders read PriceQuotes only when a lane print is due", () =
     const due = { ...t, printSource: "attested:redstone:TSLA", tradingStartSec: nowSec - 5, minDelaySec: 0, openDeadlineSec: nowSec + 60 };
     await laneFeederPass(feederState(l, new Map([[terms.contractId, due]])));
     expect(l.read(TEMPLATE_IDS.PriceQuote)).toBe(true);
+  });
+});
+
+describe("the resolver, pricer and lane feeders learn a new Window's terms by id, never by paging MarketTerms", () => {
+  it("fetches only the unknown ids, keeps what it learns, and skips an id the party cannot see", async () => {
+    const asked: string[] = [];
+    let paged = 0;
+    const client = {
+      activeContracts: async () => ((paged += 1), { contracts: [] }),
+      http: {
+        request: async (_method: string, path: string, o: { json: { contractId: string; eventFormat: { filtersByParty: Record<string, unknown> } } }) => {
+          expect(path).toBe("/v2/events/events-by-contract-id");
+          expect(Object.keys(o.json.eventFormat.filtersByParty)).toEqual(["resolver::1220"]);
+          asked.push(o.json.contractId);
+          if (o.json.contractId !== terms.contractId) throw new LedgerError({ kind: "not-found", path, message: "CONTRACT_EVENTS_NOT_FOUND" });
+          return { created: { createdEvent: terms, synchronizerId: "sync" } };
+        },
+      },
+    } as unknown as LedgerClient;
+    const session: RoleSession = { role: "resolver", party: "resolver::1220", client, dryRun: false };
+    const known = new Map<string, TermsC>([["00already", decodeTerms(terms.createArgument)]]);
+    expect(await learnTerms(session, known, [terms.contractId, "00already", "00unseen", terms.contractId])).toBe(1);
+    expect(asked.sort()).toEqual(["00unseen", terms.contractId].sort());
+    expect(known.get(terms.contractId)?.marketId).toBe((terms.createArgument as { marketId: string }).marketId);
+    expect(paged).toBe(0);
+    // A second pass with the same live Windows asks again only for the one it could not see.
+    asked.length = 0;
+    await learnTerms(session, known, [terms.contractId, "00already", "00unseen"]);
+    expect(asked).toEqual(["00unseen"]);
   });
 });
