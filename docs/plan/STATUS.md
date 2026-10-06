@@ -63,7 +63,8 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 
 ## Known gaps (named, not hidden)
 
-- The Docker images have not been built here (this Mac's disk was full on 6 Oct, 7 GB free after clearing build caches); the first build happens on the Coolify server.
+- The Docker images are proven on this Mac only (C4e, `docs/evidence/c4e-deploy.md`): all three build on arm64 and amd64 and the composed run behind Coolify-flag Traefik showed 25 required `/status` rows green. Not yet built on the Coolify server; six Coolify settings must be set by hand (runbook §3–4).
+- In C4e's unattended run the oracle prints stopped 03:01–07:12 UTC on 6 Oct and 563 Windows voided with their reason; the cause is unproven (the same hours saw a network outage on this Mac). Re-check on the first long DevNet soak.
 - The phone has never run against Canton: it typechecks and exports only.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
 - Resting calls and the Canton Coin rail run on the local sandbox only.

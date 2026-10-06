@@ -779,6 +779,55 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** How It Works steps, fees, settlement, FAQ, example.
 - **Approval:** default; overrulable.
 
+### K-280 — Only `NEXT_PUBLIC_*` are build-time variables on Coolify (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** this note §3. Coolify's `EnvironmentVariable` defaults to `is_buildtime => true`. Every build-time variable becomes a `--build-arg` and an injected `ARG`, and `docker history --no-trunc` showed the values in clear.
+- **Rule:** on pm-web and pm-docs only the `NEXT_PUBLIC_*` names are "Build time: yes"; every other variable, secrets above all, is runtime only. On pm-ops nothing is build time. Keep "Inject build args automatically" and "Source commit: Runtime only"; keep "Build secrets" off, because the Dockerfiles read `NEXT_PUBLIC_*` as ARGs.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-281 — pm-ops deploys with Coolify's "Consistent name (no rolling updates)" (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** `ApplicationDeploymentJob::rolling_update()`. By default it starts the new container, waits for health, then stops the old. With consistent naming it calls `stop_running_container(force: true)` before `start_by_compose_file()`.
+- **Rule:** pm-ops sets Advanced → Container naming → consistent name, so two ops never overlap (AD-4). Web and docs keep rolling updates.
+- **User-visible:** a deploy of ops pauses SSE and quoting while the old container stops and the new one boots. Here ops was listening 1.3 s after boot.
+- **Approval:** default; overrulable.
+
+### K-282 — No host port mappings on pm-web, pm-ops or pm-docs (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** §4. Through Traefik a forged `X-Forwarded-For` could not reset the seat rate limit (`429` on calls 13–14). Straight to the container, every forged address got its own bucket.
+- **Rule:** the apps are reachable only through Coolify's Traefik; "Ports Mappings" stays empty.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-283 — pm-web's health check stays on Coolify's default path `/` (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** Coolify's defaults: path `/`, 5 s timeout, 5 s interval, 10 retries. `/api/status` took 1.0–1.7 s, runs every probe, and can approach its 5 s ops timeout when ops hangs.
+- **Rule:** use the default path, not `/api/status`.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-284 — `/status` judges the ledger by reading the ledger itself (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** §2. With no ledger the row read "offset 0" in green.
+- **Rule:** the "Canton ledger · ledger end" row is green only when the participant answers `ledger-end` within 5 s. The clock route's projection fallback stays for the client clock, never for the verdict.
+- **User-visible:** with the ledger down, `/status` names it red with the reason, as D-015 asks.
+- **Approval:** default; overrulable.
+
+### K-285 — No interim hosted URL on plain-HTTP sslip.io; HTTPS sslip.io is a documented, undependable fallback (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** §4 (no secure context: no `crypto.subtle`, `/markets` stuck loading) and §5 (sslip.io off the PSL; the shared Let's Encrypt bucket; Coolify's own warning).
+- **Rule:** the hosted URL is the domain. Runbook §8 states the sslip.io option with its limits. Nothing in the submission depends on it.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-286 — The web keeps reading ops through the public URL; the runbook probes the hairpin (C4e)
+- **Date / owner:** 2026-10-06 · Claude (C4e).
+- **Evidence:** §4. `/status`, prestocks, pyth-index, the OG ticker, the leaderboard session and the reserve audit fetch `NEXT_PUBLIC_PRICE_FEED_URL` on the server. When that hop broke, 14 rows went red.
+- **Rule:** not changed in this lane, because six modules would move and the hop works wherever the server reaches its own hostname. Runbook §6.1b checks it on every deploy. Preferring `OPS_INTERNAL_URL` on the server side is the fix if the probe fails.
+- **User-visible:** none while the probe passes.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
