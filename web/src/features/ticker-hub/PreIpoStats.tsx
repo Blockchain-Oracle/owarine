@@ -14,16 +14,18 @@ export interface PreIpoStatsProps {
   facts: PreIpoFactsView | null;
   /** Pyth's valuation index for the name (S20); null omits its two rows, never shows a dash for a feed the venue may not read. */
   index: PythIndexRow | null;
-  /** The PreStocks source line (S25): the token's mint on Solana Explorer. */
+  /** The PreStocks source line (S25). */
   source: SourceLabel | null;
+  /** C8d: why the index rows are absent (ops' entitlement probe), for a name Pyth publishes an index for; null says nothing. */
+  indexAbsentWhy?: string | null;
 }
 
 /**
  * The pre-IPO name's figure bar (D-100, S20): Token price · PreStocks mark · Pyth index (only when present) · Token vs
  * mark · Token vs Pyth (only when present) · Holders, then the source line for what is on screen. A missing index
- * changes the bar's shape, not its words: nothing here explains why a row is absent.
+ * changes the bar's shape, and since C8d one caption says why it is absent (the venue's key refused, no key, no answer).
  */
-export function PreIpoStats({ spot, spotStale, facts, index, source }: PreIpoStatsProps) {
+export function PreIpoStats({ spot, spotStale, facts, index, source, indexAbsentWhy = null }: PreIpoStatsProps) {
   const t = TICKER_HUB.preIpo;
   return (
     <>
@@ -60,6 +62,7 @@ export function PreIpoStats({ spot, spotStale, facts, index, source }: PreIpoSta
       <p className="type-caption text-ink-muted">
         <SourceLine label={source} /> · {index ? t.sourceBoth : t.sourcePreStocksOnly}
       </p>
+      {!index && indexAbsentWhy && <p className="type-caption text-ink-muted tkh-index-absent">{t.indexAbsent(indexAbsentWhy)}</p>}
     </>
   );
 }

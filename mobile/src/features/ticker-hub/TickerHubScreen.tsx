@@ -1,4 +1,4 @@
-import { basketOf, isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { basketOf, isTokenOnlyKind, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
 import { keys } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -7,7 +7,8 @@ import { ACTIVITY } from "@/features/activity/copy";
 import { useMoneyUnits, useTickerFeed } from "@/features/activity/useActivity";
 import { useVenue } from "@/features/markets/useVenue";
 import { TICKER_HUB } from "@/features/ticker-hub/copy";
-import { pythIndexRowOf, usePythIndex } from "@/features/ticker-hub/usePythIndex";
+import { indexStateOf } from "@/features/ticker-hub/index-state";
+import { usePythIndex } from "@/features/ticker-hub/usePythIndex";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { ActivityList } from "~/features/activity/ActivityList";
 import { ExplorePage } from "~/features/explore/ExplorePage";
@@ -16,12 +17,14 @@ import { FONT, useTheme } from "~/theme";
 import { BasketHub } from "./BasketHub";
 import { LiveStatus, SessionChip } from "./HubParts";
 import { NameFacts } from "./NameFacts";
+import { ValuationHub } from "./ValuationHub";
 
 /**
  * `/tickers/[SYMBOL]` — web's `TickerHubScreen` on a phone, in /news's frame: the kind and the session (or "Trading
  * 24/7"), the mark and the name with its cashtag, the Japanese line and the intro, the figure bar (`NameFacts`, or
  * `BasketHub` for a basket), then 01 Calls and 02 Board — the app has no news wire (the owner removed News), so web's
- * 02 Headlines is not drawn and the board takes its number. A basket drops the board and numbers its calls 03.
+ * 02 Headlines is not drawn and the board takes its number. A basket drops the board and numbers its calls 03. A
+ * valuation lane (C8d) takes `ValuationHub`: its index beside the token while listed, the gate and why while not.
  */
 export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const { color } = useTheme();
@@ -31,17 +34,27 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const preIpo = ticker.kind === "preIpo";
   const units = useMoneyUnits();
   const feed = useTickerFeed(symbol);
-  const index = pythIndexRowOf(usePythIndex(preIpo && ticker.pythIndexFeedId !== null), symbol);
+  const valuation = ticker.kind === "valuation";
+  const indexOf: PreIpoSymbol | null = valuation ? ticker.valuationOf : preIpo && ticker.pythIndexFeedId !== null ? (symbol as PreIpoSymbol) : null;
+  const indexReading = usePythIndex(indexOf !== null);
+  const indexState = indexOf === null ? null : indexStateOf(indexReading, indexOf);
+  const index = indexState?.kind === "readable" ? indexState.row : null;
+  const listed = !valuation || indexState?.kind === "readable";
+  const company = valuation && ticker.valuationOf ? TICKERS[ticker.valuationOf].name : ticker.name;
   const venue = useVenue();
 
   const intro = basket
     ? TICKER_HUB.basket.intro(ticker.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "))
-    : preIpo
-      ? index
-        ? TICKER_HUB.preIpo.introBoth(ticker.name)
-        : TICKER_HUB.preIpo.intro(ticker.name)
-      : TICKER_HUB.intro(ticker.name);
-  const feedIndex = basket ? "03" : TICKER_HUB.feed.number;
+    : valuation
+      ? listed
+        ? TICKER_HUB.valuation.intro(ticker.name, company)
+        : TICKER_HUB.valuation.introAbsent(ticker.name, company)
+      : preIpo
+        ? index
+          ? TICKER_HUB.preIpo.introBoth(ticker.name)
+          : TICKER_HUB.preIpo.intro(ticker.name)
+        : TICKER_HUB.intro(ticker.name);
+  const feedIndex = basket ? "03" : valuation && listed ? "02" : TICKER_HUB.feed.number;
   const quiet = [styles.quiet, { color: color.inkDisabled }];
 
   const refresh = () =>
@@ -56,7 +69,13 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
       <View style={styles.page}>
         <View style={styles.live}>
           <Text style={[styles.liveLabel, { color: color.inkMuted }]}>{TICKER_HUB.eyebrow(ticker.kind)}</Text>
-          {isTokenOnlyKind(ticker.kind) ? <LiveStatus label={TICKER_HUB.alwaysOpen} /> : <SessionChip />}
+          {valuation && indexState === null ? null : !listed ? (
+            <Text style={[styles.liveLabel, { color: color.inkDisabled }]}>{TICKER_HUB.valuation.notListed}</Text>
+          ) : isTokenOnlyKind(ticker.kind) ? (
+            <LiveStatus label={TICKER_HUB.alwaysOpen} />
+          ) : (
+            <SessionChip />
+          )}
         </View>
         <View style={styles.titleRow}>
           <AssetDisc asset={symbol} size={40} />
@@ -67,14 +86,20 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
         <Text style={[styles.jp, { color: color.inkMuted }]}>{TICKER_HUB.headingJp}</Text>
         <Text style={[styles.intro, { color: color.inkSecondary }]}>{intro}</Text>
 
-        {basket ? <BasketHub basket={basket} /> : <NameFacts symbol={symbol} preIpo={preIpo} index={index} />}
+        {basket ? (
+          <BasketHub basket={basket} />
+        ) : valuation ? (
+          <ValuationHub symbol={symbol} state={indexState} />
+        ) : (
+          <NameFacts symbol={symbol} preIpo={preIpo} index={index} indexAbsentWhy={indexState?.kind === "absent" ? indexState.why : null} />
+        )}
 
         <SectionHeader index={feedIndex} title={TICKER_HUB.feed.title} desc={TICKER_HUB.feed.desc} style={styles.head} />
         <ActivityList feed={feed.feed} failed={feed.failed} units={units} showWho empty={ACTIVITY.empty.ticker} limit={20} />
 
         {basket ? null : (
           <>
-            <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.board.title} desc={TICKER_HUB.board.desc} style={[styles.head, styles.headGap]} />
+            <SectionHeader index={valuation && listed ? "03" : TICKER_HUB.news.number} title={TICKER_HUB.board.title} desc={TICKER_HUB.board.desc} style={[styles.head, styles.headGap]} />
             <Text style={[quiet, styles.pending]}>
               {TICKER_HUB.board.pending}{" "}
               <Text style={{ color: color.accent }} accessibilityRole="link" onPress={() => router.push("/leaderboard")}>

@@ -15,6 +15,7 @@ export function OgMark({ symbol, size }: { symbol: TickerSymbol; size: number })
       <div
         style={{
           display: "flex",
+          flexShrink: 0,
           alignItems: "center",
           justifyContent: "center",
           width: size,
