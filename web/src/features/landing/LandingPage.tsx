@@ -13,6 +13,7 @@ import { LandingHeroShowcase } from "./LandingHeroShowcase";
 import { LandingLanes } from "./LandingLanes";
 import { LandingNext } from "./LandingNext";
 import { LandingProof } from "./LandingProof";
+import { LandingSponsors } from "./LandingSponsors";
 import { LandingSteps } from "./LandingSteps";
 import { LandingWhy } from "./LandingWhy";
 import { LANDING_STORY } from "./story-copy";
@@ -76,6 +77,7 @@ export function LandingPage() {
 
       <section className="lp-built-band" aria-label={LANDING.builtOn.label}>
         <div className="container">
+          <LandingSponsors />
           <LandingBuiltOn />
         </div>
       </section>

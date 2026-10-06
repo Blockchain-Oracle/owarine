@@ -3,8 +3,9 @@ import type { EventMarket, LaneSet } from "@agari/core/types";
 import { describe, expect, it } from "vitest";
 import { assetSourceLabel, printSourceName, windowSourceLabel } from "./source-label";
 
-type W = Pick<EventMarket, "asset" | "lane" | "printSource" | "tradingStartSec">;
-const w = (asset: W["asset"], lane: W["lane"], printSource: W["printSource"], tradingStartSec = 1_790_000_000): W => ({ asset, lane, printSource, tradingStartSec });
+type W = Pick<EventMarket, "asset" | "lane" | "printSource" | "printSourceText" | "tradingStartSec">;
+const w = (asset: W["asset"], lane: W["lane"], printSource: W["printSource"], tradingStartSec = 1_790_000_000, printSourceText: string | null = null): W => ({ asset, lane, printSource, printSourceText, tradingStartSec });
+const attested = (asset: W["asset"], lane: W["lane"], text: string): W => w(asset, lane, "attested", 1_790_000_000, text);
 const lanes = (...markets: W[]): Pick<LaneSet, "lanes"> => ({
   lanes: markets.map((m) => ({ basis: m.lane, intervalSec: 300, label: "", nextStartSec: null, markets: [m as EventMarket] })),
 });
@@ -26,16 +27,26 @@ describe("windowSourceLabel (S25: the line follows the Window's policy source)",
     expect(windowSourceLabel(w("TSLA", "regular", null))).toBeNull();
   });
 
-  it("gives the xStock token lane Switchboard, a pre-IPO name its PreStocks mint (named, not linked: it lives on another chain's explorer), a basket its member count", () => {
+  it("gives the xStock token lane Switchboard, a pre-IPO name PreStocks (no token mint: it lives on another network), a basket its member count", () => {
     expect(windowSourceLabel(w("TSLA", "token", "switchboard"))?.text).toBe("Settles on Switchboard · TSLAx");
-    expect(windowSourceLabel(w("OPENAI", "token", "attested"))).toEqual({
-      provider: "prestocks",
-      text: "Prices from PreStocks · mint Prew…rpgF",
-      href: null,
-    });
-    expect(windowSourceLabel(w("AILABS", "token", "attested"))).toEqual({ provider: "prestocks", text: "Index of 2 PreStocks prices", href: null });
-    expect(windowSourceLabel(w("PREALL", "token", "attested"))?.text).toBe("Index of 8 PreStocks prices");
+    expect(windowSourceLabel(w("OPENAI", "token", "attested"))).toEqual({ provider: "prestocks", text: "Prices from PreStocks · signed on Canton", href: null });
+    expect(windowSourceLabel(w("AILABS", "token", "attested"))).toEqual({ provider: "prestocks", text: "Index of 2 PreStocks prices · signed on Canton", href: null });
+    expect(windowSourceLabel(w("PREALL", "token", "attested"))?.text).toBe("Index of 8 PreStocks prices · signed on Canton");
     expect(windowSourceLabel(w("OPENAIV", "token", "pyth"))?.href).toBe("https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD");
+  });
+});
+
+describe("windowSourceLabel on Canton (C-S25: an attested Window names what the oracle parties read, signed on Canton)", () => {
+  it("reads the source from the policy text, per lane", () => {
+    expect(windowSourceLabel(attested("BTC", "regular", EXCHANGE_PRINT_SOURCE))).toEqual({ provider: "exchanges", text: "Settles on Coinbase, Kraken and Bitstamp · BTC/USD · signed on Canton", href: null });
+    expect(windowSourceLabel(attested("TSLA", "regular", attestedPrintSource("redstone", "TSLA")))?.text).toBe("Settles on RedStone · TSLA/USD · signed on Canton");
+    expect(windowSourceLabel(attested("QQQ", "regular", attestedPrintSource("alpaca", "QQQ")))?.text).toBe("Settles on Alpaca IEX · QQQ/USD · signed on Canton");
+    expect(windowSourceLabel(attested("TSLA", "token", attestedPrintSource("jupiter", "TSLAx")))?.text).toBe("Settles on Jupiter Price v3 · TSLAx · signed on Canton");
+  });
+
+  it("claims nothing for a committee attestation or a text it cannot read", () => {
+    expect(windowSourceLabel(attested("TSLA", "regular", attestedPrintSource("committee", "evt-1")))).toBeNull();
+    expect(windowSourceLabel(attested("TSLA", "regular", "not a policy"))).toBeNull();
   });
 });
 
@@ -49,7 +60,7 @@ describe("assetSourceLabel (no Window in view)", () => {
 
   it("gives a pre-IPO name and a basket their line with no lane read", () => {
     expect(assetSourceLabel("ANTHROPIC", null)?.provider).toBe("prestocks");
-    expect(assetSourceLabel("DEFSPACE", null)?.text).toBe("Index of 2 PreStocks prices");
+    expect(assetSourceLabel("DEFSPACE", null)?.text).toBe("Index of 2 PreStocks prices · signed on Canton");
   });
 });
 

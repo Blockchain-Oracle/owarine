@@ -8,11 +8,16 @@
  * no edit here. A pre-IPO name and a basket are PreStocks by construction (D-100, D-124), so their line is the registry's.
  * A source that the ticker cannot have (Pyth on a name with no Pyth feed, Switchboard off the token lane), or no source at
  * all (a Series whose policy was not read), yields no line rather than a wrong one.
+ *
+ * On Canton (C-S25, C10f) every print is attested: the venue's oracle parties read the original source and sign what they
+ * read on the ledger. So an attested Window's line names that source from its policy text and says where it was signed
+ * ("Settles on RedStone · NVDA/USD · signed on Canton"), and a PreStocks line no longer shows a token mint, which lives
+ * on another network.
  */
 import { basketOf, parsePrintSource, TICKERS, type AttestedSource, type TickerSymbol } from "@agari/core/market";
 import type { EventMarket, LaneSet, PrintSource } from "@agari/core/types";
 
-export type SourceProvider = "pyth" | "redstone" | "switchboard" | "prestocks";
+export type SourceProvider = "pyth" | "redstone" | "switchboard" | "prestocks" | "exchanges" | "alpaca" | "jupiter";
 
 export interface SourceLabel {
   provider: SourceProvider;
@@ -25,13 +30,23 @@ export interface SourceLabel {
 /** Pyth Terminal's feed page; `/` is `%2F` (`Equity.US.TSLA%2FUSD`), the form Pyth's own links use. */
 export const pythFeedUrl = (pythSymbol: string): string => `https://app.pyth.com/explore/${encodeURIComponent(pythSymbol)}`;
 
-const shortMint = (mint: string): string => `${mint.slice(0, 4)}…${mint.slice(-4)}`;
-
 export const SOURCE_COPY = {
   settles: (provider: string, feed: string) => `Settles on ${provider} · ${feed}`,
-  preIpo: (mint: string) => `Prices from PreStocks · mint ${mint}`,
-  basket: (count: number) => `Index of ${count} PreStocks prices`,
+  /** An attested print: the source the oracle parties read, then where they signed it. */
+  attested: (provider: string, feed: string) => `Settles on ${provider} · ${feed} · signed on Canton`,
+  preIpo: "Prices from PreStocks · signed on Canton",
+  basket: (count: number) => `Index of ${count} PreStocks prices · signed on Canton`,
 } as const;
+
+/** The attested sources a price line can name, with the name it goes by; a committee's event attestation is not a price. */
+const ATTESTED_LINE: Partial<Record<AttestedSource, { provider: SourceProvider; name: string }>> = {
+  exchanges: { provider: "exchanges", name: "Coinbase, Kraken and Bitstamp" },
+  redstone: { provider: "redstone", name: "RedStone" },
+  alpaca: { provider: "alpaca", name: "Alpaca IEX" },
+  jupiter: { provider: "jupiter", name: "Jupiter Price v3" },
+  pyth: { provider: "pyth", name: "Pyth" },
+  switchboard: { provider: "switchboard", name: "Switchboard" },
+};
 
 /** The registry's own line for an asset whose source is fixed by what it is: a pre-IPO name, a basket or a valuation lane. */
 function kindLabel(asset: TickerSymbol): SourceLabel | null {
@@ -39,10 +54,7 @@ function kindLabel(asset: TickerSymbol): SourceLabel | null {
   if (!ticker) return null;
   const basket = basketOf(asset);
   if (basket) return { provider: "prestocks", text: SOURCE_COPY.basket(basket.members.length), href: null };
-  if (ticker.kind === "preIpo" && ticker.preIpo) {
-    const mint = ticker.preIpo.mint;
-    return { provider: "prestocks", text: SOURCE_COPY.preIpo(shortMint(mint)), href: null };
-  }
+  if (ticker.kind === "preIpo" && ticker.preIpo) return { provider: "prestocks", text: SOURCE_COPY.preIpo, href: null };
   if (ticker.kind === "valuation" && ticker.valuationOf && ticker.pythIndexFeedId) {
     const feed = `Equity.Index.${ticker.valuationOf}/USD`;
     return { provider: "pyth", text: SOURCE_COPY.settles("Pyth", `${ticker.valuationOf}/USD index`), href: pythFeedUrl(feed) };
@@ -65,9 +77,21 @@ function listedLabel(asset: TickerSymbol, source: PrintSource | null, lane: Even
   return null;
 }
 
-/** The line for one Window, from its policy's primary source. */
-export function windowSourceLabel(market: Pick<EventMarket, "asset" | "lane" | "printSource">): SourceLabel | null {
-  return kindLabel(market.asset) ?? listedLabel(market.asset, market.printSource, market.lane);
+/**
+ * An attested Window's line from its policy text: the source the oracle parties read and the feed, as "BTC/USD" for a
+ * pair or the token's own symbol (`TSLAx`) on the token lane. Null when the text is absent or names no price source.
+ */
+function attestedLabel(asset: TickerSymbol, text: string | null | undefined): SourceLabel | null {
+  const parts = text ? parsePrintSource(text) : null;
+  const line = parts ? ATTESTED_LINE[parts.source] : undefined;
+  if (!parts || !line) return null;
+  const feed = parts.source === "jupiter" && parts.feed ? parts.feed : `${asset}/USD`;
+  return { provider: line.provider, text: SOURCE_COPY.attested(line.name, feed), href: null };
+}
+
+/** The line for one Window, from its policy's primary source (and, on Canton, the policy text naming what was attested). */
+export function windowSourceLabel(market: Pick<EventMarket, "asset" | "lane" | "printSource" | "printSourceText">): SourceLabel | null {
+  return kindLabel(market.asset) ?? attestedLabel(market.asset, market.printSourceText) ?? listedLabel(market.asset, market.printSource, market.lane);
 }
 
 /**

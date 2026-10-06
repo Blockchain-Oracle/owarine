@@ -96,3 +96,13 @@ Other packaged libraries retain their own notices. Examples verified in the inst
 - Source: [canton-network/splice](https://github.com/canton-network/splice), `daml/dars/`, at commit `fda19e6` (2026-09-15). Copyright (c) 2024 Digital Asset (Switzerland) GmbH and/or its affiliates; SPDX-License-Identifier: Apache-2.0.
 - Licence: Apache License 2.0, copied beside the files ([`daml/vendor/splice/LICENSE`](daml/vendor/splice/LICENSE)); the upstream repository has no NOTICE file. Hashes and package ids are in [`daml/vendor/splice/README.md`](daml/vendor/splice/README.md).
 - `abu-pm-cc` itself is written for this project; it implements no upstream template and copies no upstream Daml source.
+
+## Sponsor marks (K-250)
+
+The "Built on" band, How It Works (web and phone) and the docs site's "Built on" page show three brands' own marks, each file as its owner's published brand kit supplies it, in the variant the kit names for a light or a dark ground, never recoloured or redrawn, and each alone in its own cell. No other third-party mark is drawn for these brands; every other source and partner (the exchanges, RedStone, Alpaca, Jupiter Price v3, PreStocks) is named in plain text.
+
+| Mark | Files | Source and terms |
+| --- | --- | --- |
+| Canton | `web/public/brands/canton-on-{light,dark}.svg`, the same in `docs-site/public/brands/` and `mobile/assets/logos/canton{,_dark}.svg` | [Canton brand kit and trademark use](https://www.canton.network/brand-kit-trademark-use) (`canton-logo-black.svg`, `canton-logo-white.svg`). Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. That notice is printed in the site footer and on the docs page. |
+| Noders | `noders-on-{light,dark}.svg` (logo and text, full colour, light and dark ground) | [Noders brand assets](https://noders.team/brandkit) |
+| BitSafe | `bitsafe-on-{light,dark}.svg` (primary lockup and reversed lockup) | [BitSafe brand kit](https://bitsafe.finance/brand-kit): "for partner listings, editorial use, and ecosystem integrations. Use the files exactly as supplied." |

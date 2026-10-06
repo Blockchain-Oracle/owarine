@@ -64,6 +64,7 @@ export function toEventMarket(row: MarketRow, venue: VenueFacts, series: SeriesF
     nonce: bigOrNull(row.market_index),
     policyVersion: policy,
     printSource: primary,
+    printSourceText: row.print_source ?? null,
     collateral: venue.collateralMint as string as Address,
     decimals: venue.decimals,
     status: indexedStatus(row.state, tradingStartSec, lockAtSec, nowSec),
