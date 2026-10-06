@@ -104,6 +104,12 @@ describe("decodeTransaction on real venue transactions", () => {
     expect(v.map((c) => `${c.paidBase}/${c.feeBase}`).sort()).toEqual(["10000000/0", "10000000/0", "10000010/0", "10000010/0"]);
   });
 
+  it("abu-pm-main 0.5.2 (K-315): a private call's payout into the private bucket is what the leg paid", () => {
+    const tx = JSON.parse(JSON.stringify(fixtures["settle-a"]).replaceAll('"bucket":"payout"', '"bucket":"private"')) as JsTransaction;
+    const a = ofKind(decodeTransaction(tx).facts, "leg-closed");
+    expect(a.map((c) => `${c.paidBase}/${c.feeBase}`).sort()).toEqual(["0/0", "0/5", "10000000/5", "5000000/0"]);
+  });
+
   it("Leg_RefundStale: the owner takes backing plus fee back, with no resolution", () => {
     expect(ofKind(facts("refund-stale"), "leg-closed")[0]).toMatchObject({ how: "refunded_stale", paidBase: "2100002", feeBase: "0", resolutionCid: null });
   });
