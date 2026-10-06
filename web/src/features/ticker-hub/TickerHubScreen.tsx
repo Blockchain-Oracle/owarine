@@ -68,7 +68,9 @@ function Headlines({ articles }: { articles: Article[] }) {
 /** The facts bar of a listed name or a pre-IPO name: the spot, then a report date or the PreStocks facts. */
 function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null }) {
   const price = useAssetPrice(symbol);
-  const earnings = useNextEarnings(preIpo ? null : symbol);
+  // A coin files no reports (C9e): its bar shows the spot and the source, and no report date is asked for.
+  const files = !preIpo && TICKERS[symbol].kind !== "crypto";
+  const earnings = useNextEarnings(files ? symbol : null);
   const facts = usePreIpoFacts(preIpo ? symbol : null);
   // The markets page's own lane read (shared cache): a listed name's source is its newest Window's policy source. A
   // pre-IPO name's is the registry's, so its hub leaves the read off.
@@ -88,10 +90,12 @@ function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: bo
               <dt>{price?.ok && price.stale ? `${TICKER_HUB.spot} · ${TICKER_HUB.spotStale}` : TICKER_HUB.spot}</dt>
               <dd className="big numbers">{spot}</dd>
             </div>
-            <div className="prf-stat">
-              <dt>{TICKER_HUB.earnings}</dt>
-              <dd className="big">{report}</dd>
-            </div>
+            {files && (
+              <div className="prf-stat">
+                <dt>{TICKER_HUB.earnings}</dt>
+                <dd className="big">{report}</dd>
+              </div>
+            )}
           </dl>
           {source && (
             <p className="type-caption text-ink-muted">
@@ -132,7 +136,9 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
     ? TICKER_HUB.basket.intro(ticker.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "))
     : preIpo
       ? (index ? TICKER_HUB.preIpo.introBoth(ticker.name) : TICKER_HUB.preIpo.intro(ticker.name))
-      : TICKER_HUB.intro(ticker.name);
+      : ticker.kind === "crypto"
+        ? TICKER_HUB.introCrypto(ticker.name)
+        : TICKER_HUB.intro(ticker.name);
   const feedIndex = basket ? "03" : TICKER_HUB.feed.number;
 
   return (
@@ -162,7 +168,7 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
 
         {!basket && (
           <section aria-label={TICKER_HUB.news.title}>
-            <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.news.title} desc={TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
+            <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.news.title} desc={ticker.kind === "crypto" ? TICKER_HUB.news.descCrypto(ticker.name) : TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
             {articles === null ? (
               <p className="news-quiet" role="status" aria-busy={news === null}>
                 {news === null ? ACTIVITY.loading : newsQuietLine(news)}

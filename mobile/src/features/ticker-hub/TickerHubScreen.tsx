@@ -40,7 +40,9 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
       ? index
         ? TICKER_HUB.preIpo.introBoth(ticker.name)
         : TICKER_HUB.preIpo.intro(ticker.name)
-      : TICKER_HUB.intro(ticker.name);
+      : ticker.kind === "crypto"
+        ? TICKER_HUB.introCrypto(ticker.name)
+        : TICKER_HUB.intro(ticker.name);
   const feedIndex = basket ? "03" : TICKER_HUB.feed.number;
   const quiet = [styles.quiet, { color: color.inkDisabled }];
 
