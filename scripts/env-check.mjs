@@ -1,61 +1,68 @@
 #!/usr/bin/env node
 // Prints which environment variables are present for root scripts, web and ops. Never prints values.
 // Run: pnpm env:check
-// Reads .env.local files (root, web, services/ops) plus the process environment. Always exits 0:
-// a missing variable is only a problem once its stage starts.
+// Reads .env.local files (root, web, services/ops) plus the process environment. Always exits 0.
+//
+// The lists are the names the code reads today, grouped as the hosted deploy groups them
+// (docs/plan/runbooks/coolify-deploy.md §4; C4e replaced the Solana-era keys on 6 Oct):
+//   boot     production refuses to start without it (web: src/instrumentation-node.ts; ops: the ledger and the parties)
+//   build    a NEXT_PUBLIC_* value Next inlines at build time ("Build Variable" on Coolify, build time only)
+//   hosted   needed behind Coolify's Traefik, not on a laptop
+//   feature  one named feature answers "not live" without it
+//   optional has a default
 
 import { existsSync, readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 
 const FILES = { root: ".env.local", web: "web/.env.local", ops: "services/ops/.env.local" };
 
-/** [name, needed-from stage, optional?] */
+/** [name, need] */
 const GROUPS = {
   root: [
-    ["PYTH_API_KEY", "S0"], ["ALPACA_ENDPOINT", "S0"], ["ALPACA_KEY_ID", "S0"], ["ALPACA_SECRET_KEY", "S0"],
-    ["FINNHUB_API_KEY", "S0"], ["JUPITER_API_KEY", "S6", true],
+    ["LEDGER_JSON_API_URL", "optional"], ["LEDGER_AUTH_MODE", "optional"], ["AGARI_PARTIES_FILE", "optional"], ["DATABASE_URL", "optional"],
+    ["ALPACA_ENDPOINT", "feature"], ["ALPACA_KEY_ID", "feature"], ["ALPACA_SECRET_KEY", "feature"], ["FINNHUB_API_KEY", "feature"],
+    ["PYTH_API_KEY", "optional"], ["JUPITER_API_KEY", "optional"], ["OPS_INTERNAL_URL", "optional"], ["OPS_ADMIN_SECRET", "optional"],
   ],
   web: [
-    ["DATABASE_URL", "S1"],
-    ["NEXT_PUBLIC_CANTON_NETWORK", "C1", true], ["NEXT_PUBLIC_LEDGER_API_PATH", "C1", true], ["NEXT_PUBLIC_DAML_PACKAGE_NAME", "C1", true],
-    ["NEXT_PUBLIC_LADDER_URL", "C4"], ["LEDGER_JSON_API_URL", "C4"], ["LEDGER_AUTH_MODE", "C4"],
-    ["SPONSOR_PRIVATE_KEY", "S7", true], ["FAUCET_MINT_AUTHORITY_PRIVATE_KEY", "S4"], ["FINNHUB_API_KEY", "S13"],
-    ["OPENAI_API_KEY", "S13"], ["AI_MODEL", "S13"], ["X_SESSION_SECRET", "S11"], ["X_REDIRECT_URI", "S11"],
-    ["X_API_KEY", "S11"], ["X_API_KEY_SECRET", "S11"], ["ROOM_TOKEN_SECRET", "S12b"],
-    ["DESK_OPERATOR_ADDRESS", "S21"],
+    ["DATABASE_URL", "boot"], ["AGARI_SEAT_COOKIE_SECRET", "boot"], ["OPS_INTERNAL_URL", "boot"], ["OPS_INTERNAL_SECRET", "boot"],
+    ["AGARI_PARTIES_FILE", "boot"], ["LEDGER_JSON_API_URL", "boot"], ["LEDGER_AUTH_MODE", "boot"],
+    ["TRUSTED_PROXY", "hosted"],
+    ["NEXT_PUBLIC_APP_ORIGIN", "build"], ["NEXT_PUBLIC_SITE_URL", "build"], ["NEXT_PUBLIC_DOCS_URL", "build"],
+    ["NEXT_PUBLIC_PRICE_FEED_URL", "build"], ["NEXT_PUBLIC_LADDER_URL", "build"], ["NEXT_PUBLIC_CANTON_NETWORK", "optional"],
+    ["NEXT_PUBLIC_AGARI_VENUE_ID", "optional"], ["NEXT_PUBLIC_SHARED_DESK_ID", "optional"],
+    ["ROOM_TOKEN_SECRET", "feature"], ["GAME_ROOM_PUBLIC_URL", "feature"], ["PUSH_DRAIN_SECRET", "feature"], ["EXPO_ACCESS_TOKEN", "feature"],
+    ["FINNHUB_API_KEY", "feature"], ["AI_MODEL", "feature"], ["X_API_KEY", "feature"], ["X_API_KEY_SECRET", "feature"],
+    ["X_REDIRECT_URI", "feature"], ["X_SESSION_SECRET", "feature"], ["IOS_APP_ID", "feature"],
   ],
   ops: [
-    ["DATABASE_URL", "S3"], ["LEDGER_JSON_API_URL", "C3"], ["LEDGER_AUTH_MODE", "C3"], ["PYTH_API_KEY", "S3"], ["ALPACA_KEY_ID", "S3"],
-    ["ALPACA_SECRET_KEY", "S3"], ["ROLLER_PRIVATE_KEY", "S3"], ["PRICE_RELAY_PRIVATE_KEY", "S3"],
-    ["PRICE_ATTESTOR_PRIVATE_KEY", "S3"], ["SETTLER_PRIVATE_KEY", "S3"], ["MAKER_PRIVATE_KEY", "S3"],
-    ["REDSTONE_GATEWAY_URLS", "S3", true], ["SWITCHBOARD_CROSSBAR_URL", "S6", true], ["RUNNER_PRIVATE_KEY", "S9"],
-    ["OPENAI_API_KEY", "S9"], ["AI_MODEL", "S9"], ["LEVERAGE_KEEPER_PRIVATE_KEY", "S10c"],
-    ["PRIVATE_DESK_PRIVATE_KEY", "S10d"], ["X_HANDLE", "S11"], ["X_RETTIWT_API_KEY", "S11"],
-    ["X_EXECUTOR_PRIVATE_KEY", "S11"], ["GAME_DECK_KEY", "S12b"], ["ROOM_TOKEN_SECRET", "S12b"],
-    ["GAME_SETTLER_PRIVATE_KEY", "S12b"],
-    ["DESK_RUNNER_PRIVATE_KEY", "S21"], ["DESK_RPC_URL", "S21", true], ["DESK_AI_MODEL", "S21", true], ["DESK_MAX_MODEL_CALLS_PER_HOUR", "S21", true],
-    ["DESK_MODEL_TIMEOUT_MS", "S21", true], ["DESK_INTERVAL_MS", "S21", true],
+    ["DATABASE_URL", "boot"], ["DRY_RUN", "boot"], ["OPS_INTERNAL_SECRET", "boot"], ["AGARI_PARTIES_FILE", "boot"],
+    ["LEDGER_JSON_API_URL", "boot"], ["LEDGER_AUTH_MODE", "boot"],
+    ["AGARI_WEB_ORIGIN", "hosted"], ["NEXT_PUBLIC_APP_ORIGIN", "hosted"],
+    ["ALPACA_ENDPOINT", "feature"], ["ALPACA_KEY_ID", "feature"], ["ALPACA_SECRET_KEY", "feature"], ["FINNHUB_API_KEY", "feature"],
+    ["PYTH_API_KEY", "optional"], ["JUPITER_API_KEY", "optional"], ["REDSTONE_GATEWAY_URLS", "optional"],
+    ["OPS_ADMIN_SECRET", "feature"], ["ROOM_TOKEN_SECRET", "feature"], ["GAME_DECK_KEY", "feature"], ["PUSH_DRAIN_URL", "feature"],
+    ["PUSH_DRAIN_SECRET", "feature"], ["OPENAI_API_KEY", "feature"], ["AI_MODEL", "feature"], ["X_HANDLE", "feature"], ["X_RETTIWT_API_KEY", "feature"],
   ],
 };
 
 const load = (path) => (existsSync(path) ? parseEnv(readFileSync(path, "utf8")) : null);
 
 // C2y: with LEDGER_AUTH_MODE=password (Noders DevNet) the web and ops each need the platform credential's names.
-const OIDC = [["LEDGER_OIDC_TOKEN_URL", "C2y"], ["LEDGER_OIDC_CLIENT_ID", "C2y"], ["LEDGER_OIDC_USERNAME", "C2y"], ["LEDGER_OIDC_PASSWORD", "C2y"], ["LEDGER_OIDC_SCOPE", "C2y", true], ["LEDGER_OIDC_AUDIENCE", "C2y", true], ["AGARI_PARTIES_FILE", "C2y"]];
+const OIDC = [["LEDGER_OIDC_TOKEN_URL", "boot"], ["LEDGER_OIDC_CLIENT_ID", "boot"], ["LEDGER_OIDC_USERNAME", "boot"], ["LEDGER_OIDC_PASSWORD", "boot"], ["LEDGER_OIDC_SCOPE", "optional"], ["LEDGER_OIDC_AUDIENCE", "optional"]];
 for (const group of ["web", "ops"]) {
   const mode = (load(FILES[group])?.LEDGER_AUTH_MODE ?? process.env.LEDGER_AUTH_MODE ?? "").trim();
   if (mode === "password") GROUPS[group].push(...OIDC);
 }
 
-let missingNow = 0;
+const missingBoot = [];
 for (const [group, vars] of Object.entries(GROUPS)) {
   const file = load(FILES[group]);
   console.log(`\n${group} (${FILES[group]}${file ? "" : " — file missing"})`);
-  const rows = vars.map(([name, stage, optional]) => {
+  const rows = vars.map(([name, need]) => {
     const present = Boolean((file?.[name] ?? process.env[name] ?? "").trim());
-    if (!present && !optional && stage === "S0") missingNow++;
-    return { name, stage, status: present ? "✅ set" : optional ? "· optional" : "☐ missing" };
+    if (!present && need === "boot") missingBoot.push(`${group}:${name}`);
+    return { name, need, status: present ? "✅ set" : need === "optional" ? "· optional" : "☐ missing" };
   });
   console.table(rows);
 }
-console.log(missingNow ? `\n${missingNow} variable(s) needed for S0 are missing.` : "\nAll variables needed for S0 are set.");
+console.log(missingBoot.length ? `\n${missingBoot.length} name(s) a production boot needs are missing: ${missingBoot.join(", ")}.` : "\nEvery name a production boot needs is set.");
