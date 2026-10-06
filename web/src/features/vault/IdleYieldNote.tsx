@@ -18,10 +18,10 @@ interface Moved {
 /**
  * A-2a: what idle collateral in the Trading Balance does, and does not, earn (Q-005's recorded answer).
  *
- * It earns nothing sitting here, and this says so. The lending markets that would pay for idle collateral —
- * Kamino, Jupiter Lend — do not run on the cluster this venue is deployed to, so no rate from them is shown or
- * implied. What does pay on this cluster is supplying a house reserve, and the only honest number for that is what
- * each reserve's share price has already done: money that moved, not money that might.
+ * Demo credits earn nothing sitting here, and this says so (C8d, for Canton). The reference named the Solana lenders
+ * that would have paid for idle collateral; nothing on this Canton venue pays interest on demo credits, so no rate is
+ * shown or implied. What does pay is supplying a house reserve, and the only honest number for that is what each
+ * reserve's share price has already done: credits that moved, not credits that might.
  */
 export function IdleYieldNote({ idleBase, decimals }: { idleBase: bigint; decimals: number }) {
   const maker = useMakerVault();
