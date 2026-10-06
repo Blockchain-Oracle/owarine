@@ -47,3 +47,14 @@ describe("C6: 24/7 pauses show without a calendar", () => {
     expect(standInLaneKeys(null, null)).toEqual([]);
   });
 });
+
+describe("C8d (D-125): an unentitled valuation lane is unlisted, never a paused card", () => {
+  it("drops OPENAIV paused for its Pyth entitlement and keeps every other pause, a valuation lane's other reasons included", () => {
+    const states = {
+      "OPENAIV-60m": "paused: no signed source (Pyth feed not entitled)",
+      "ANTHROPICV-60m": "paused: no signed source (Pyth Hermes: HTTP 503)",
+      "OPENAI-60m": "paused: no signed source (PreStocks: HTTP 429)",
+    };
+    expect([...pausedInLane(null, states, { basis: "token", intervalSec: 3600 })].map(([s]) => s).sort()).toEqual(["ANTHROPICV", "OPENAI"]);
+  });
+});

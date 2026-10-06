@@ -10,6 +10,7 @@
  *   withdraw  Mandate_Withdraw (never blocked by the desk's state); `close` = Mandate_Close
  *   limits · mode · operator · revoke · pause · unpause   the owner's controls of the same names
  */
+import { PRIVATE_BUCKET } from "@agari/core/private";
 import type { PreIpoSymbol } from "@agari/core/market";
 import { PRE_IPO_SYMBOLS } from "@agari/core/market";
 import { diagnosis, type Diagnosis } from "@agari/core/types";
@@ -79,7 +80,7 @@ export function createDeskSeat(cfg: DeskSeatConfig) {
         if (o.owner === party && o.venue === cfg.venueParty) snap.offer = e.contractId;
       } else if (isTemplate(e, TEMPLATE_IDS.VenueCash)) {
         const v = decodeVenueCash(e.createArgument);
-        if (v.owner === party && v.venue === cfg.venueParty) snap.cash.push({ cid: e.contractId, amount: v.amount });
+        if (v.owner === party && v.venue === cfg.venueParty && v.bucket !== PRIVATE_BUCKET) snap.cash.push({ cid: e.contractId, amount: v.amount });
       }
     }
     return snap;

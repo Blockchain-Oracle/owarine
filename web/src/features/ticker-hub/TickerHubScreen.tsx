@@ -1,6 +1,6 @@
 "use client";
 
-import { basketOf, isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { basketOf, isTokenOnlyKind, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
 import { useAssetPrice, useLanes } from "@agari/markets/react";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
@@ -22,7 +22,9 @@ import { BasketHub } from "./BasketHub";
 import { TICKER_HUB } from "./copy";
 import { PreIpoStats } from "./PreIpoStats";
 import { usePreIpoFacts } from "./usePreIpoFacts";
-import { pythIndexRowOf, usePythIndex, type PythIndexRow } from "./usePythIndex";
+import { indexStateOf, type IndexState } from "./index-state";
+import { usePythIndex, type PythIndexRow } from "./usePythIndex";
+import { ValuationHub } from "./ValuationHub";
 import { useNextEarnings, useTickerNews } from "./useTickerNews";
 import "@/features/profile/profile.css";
 import "./ticker-hub.css";
@@ -65,7 +67,7 @@ function Headlines({ articles }: { articles: Article[] }) {
 }
 
 /** The facts bar of a listed name or a pre-IPO name: the spot, then a report date or the PreStocks facts. */
-function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null }) {
+function NameFacts({ symbol, preIpo, index, indexAbsentWhy }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null; indexAbsentWhy: string | null }) {
   const price = useAssetPrice(symbol);
   const earnings = useNextEarnings(preIpo ? null : symbol);
   const facts = usePreIpoFacts(preIpo ? symbol : null);
@@ -79,7 +81,7 @@ function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: bo
   return (
     <div className="prf-bar">
       {preIpo ? (
-        <PreIpoStats spot={spot} spotStale={Boolean(price?.ok && price.stale)} facts={facts?.ok ? facts.value : null} index={index} source={source} />
+        <PreIpoStats spot={spot} spotStale={Boolean(price?.ok && price.stale)} facts={facts?.ok ? facts.value : null} index={index} source={source} indexAbsentWhy={indexAbsentWhy} />
       ) : (
         <>
           <dl className="prf-stats">
@@ -124,22 +126,40 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
   const feed = useTickerFeed(symbol);
   const news = useTickerNews(basket ? null : symbol);
   const preIpo = ticker.kind === "preIpo";
-  // S20: Pyth's valuation index rides beside the PreStocks facts where the venue's key may read it; absent, its rows are omitted.
-  const index = pythIndexRowOf(usePythIndex(preIpo && ticker.pythIndexFeedId !== null), symbol);
+  const valuation = ticker.kind === "valuation";
+  // S20: Pyth's valuation index rides beside the PreStocks facts where the venue's key may read it. C8d: where it may
+  // not, the bar says why, and a valuation lane's hub names the gate instead of looking like a lane (D-015).
+  const indexOf: PreIpoSymbol | null = valuation ? ticker.valuationOf : preIpo && ticker.pythIndexFeedId !== null ? (symbol as PreIpoSymbol) : null;
+  const indexReading = usePythIndex(indexOf !== null);
+  const indexState: IndexState | null = indexOf === null ? null : indexStateOf(indexReading, indexOf);
+  const index = indexState?.kind === "readable" ? indexState.row : null;
+  const listed = !valuation || indexState?.kind === "readable";
+  const company = valuation && ticker.valuationOf ? TICKERS[ticker.valuationOf].name : ticker.name;
   const articles = news?.ok ? news.value : null;
   const intro = basket
     ? TICKER_HUB.basket.intro(ticker.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "))
-    : preIpo
-      ? (index ? TICKER_HUB.preIpo.introBoth(ticker.name) : TICKER_HUB.preIpo.intro(ticker.name))
-      : TICKER_HUB.intro(ticker.name);
-  const feedIndex = basket ? "03" : TICKER_HUB.feed.number;
+    : valuation
+      ? (listed ? TICKER_HUB.valuation.intro(ticker.name, company) : TICKER_HUB.valuation.introAbsent(ticker.name, company))
+      : preIpo
+        ? (index ? TICKER_HUB.preIpo.introBoth(ticker.name) : TICKER_HUB.preIpo.intro(ticker.name))
+        : TICKER_HUB.intro(ticker.name);
+  // A basket's hub numbers its members (01) and Window (02) first; a listed valuation lane its Window (01).
+  const feedIndex = basket ? "03" : valuation && listed ? "02" : TICKER_HUB.feed.number;
+  const newsIndex = valuation && listed ? "03" : TICKER_HUB.news.number;
+  const boardIndex = valuation && listed ? "04" : TICKER_HUB.board.number;
 
   return (
     <div className="container news-page prf-page tkh-page">
       <div className="news-inner">
         <div className="news-live tkh-live">
           <span className="news-live-label">{TICKER_HUB.eyebrow(ticker.kind)}</span>
-          {isTokenOnlyKind(ticker.kind) ? <StatusDot tone="live">{TICKER_HUB.alwaysOpen}</StatusDot> : <MarketSessionChip />}
+          {valuation && indexState === null ? null : !listed ? (
+            <StatusDot tone="quiet">{TICKER_HUB.valuation.notListed}</StatusDot>
+          ) : isTokenOnlyKind(ticker.kind) ? (
+            <StatusDot tone="live">{TICKER_HUB.alwaysOpen}</StatusDot>
+          ) : (
+            <MarketSessionChip />
+          )}
         </div>
         <h1 className="news-title tkh-title">
           <AssetDisc asset={symbol} className="tkh-mark" />
@@ -152,7 +172,13 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
         </div>
         <p className="news-intro">{intro}</p>
 
-        {basket ? <BasketHub basket={basket} /> : <NameFacts symbol={symbol} preIpo={preIpo} index={index} />}
+        {basket ? (
+          <BasketHub basket={basket} />
+        ) : valuation ? (
+          <ValuationHub symbol={symbol} state={indexState} />
+        ) : (
+          <NameFacts symbol={symbol} preIpo={preIpo} index={index} indexAbsentWhy={indexState?.kind === "absent" ? indexState.why : null} />
+        )}
 
         <section aria-label={TICKER_HUB.feed.title}>
           <SectionHeader index={feedIndex} title={TICKER_HUB.feed.title} desc={TICKER_HUB.feed.desc} className="lb-section-head" />
@@ -161,7 +187,7 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
 
         {!basket && (
           <section aria-label={TICKER_HUB.news.title}>
-            <SectionHeader index={TICKER_HUB.news.number} title={TICKER_HUB.news.title} desc={TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
+            <SectionHeader index={newsIndex} title={TICKER_HUB.news.title} desc={TICKER_HUB.news.desc} eyebrow={TICKER_HUB.news.credit} className="lb-section-head" />
             {articles === null ? (
               <p className="news-quiet" role="status" aria-busy={news === null}>
                 {news === null ? ACTIVITY.loading : NEWS.quiet}
@@ -176,7 +202,7 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
 
         {!basket && (
           <section aria-label={TICKER_HUB.board.title}>
-            <SectionHeader index={TICKER_HUB.board.number} title={TICKER_HUB.board.title} desc={TICKER_HUB.board.desc} className="lb-section-head" />
+            <SectionHeader index={boardIndex} title={TICKER_HUB.board.title} desc={TICKER_HUB.board.desc} className="lb-section-head" />
             <p className="news-quiet tkh-pending">
               {TICKER_HUB.board.pending}{" "}
               <Link href="/leaderboard" className="tkh-link" data-cursor="hover">

@@ -35,16 +35,51 @@ export const TICKER_HUB = {
     holders: "Holders",
     holdersLine: (now: number, monthAgo: number | null) => (monthAgo === null ? now.toLocaleString("en-US") : `${now.toLocaleString("en-US")} (${now >= monthAgo ? "+" : "−"}${Math.abs(now - monthAgo).toLocaleString("en-US")} in 4 wk)`),
     /** After the PreStocks source line under the bar: the token lane alone, or the token lane beside the valuation lane's Pyth index. */
-    sourcePreStocksOnly: "single source, signed by Agari · no cross-check",
-    sourceBoth: "token lane signed by Agari, no cross-check · valuation lane settles on Pyth's index",
+    sourcePreStocksOnly: "single source, attested by three oracle parties · no cross-check",
+    sourceBoth: "token lane attested by three oracle parties, no cross-check · valuation lane settles on Pyth's index",
+    /** C8d: the index rows are left out, and the bar says why (never a silent gap). */
+    indexAbsent: (why: string) => `Pyth's valuation index is not shown: ${why}.`,
+  },
+
+  /**
+   * A valuation lane (S20, D-125, C8d): it settles on Pyth's valuation index of a company, not on the token. It is
+   * listed only while ops' hourly probe says the venue's key may read the index; until then its hub says why.
+   */
+  valuation: {
+    gate: "a Pyth key entitled to the pyth-indices group",
+    why: {
+      denied: (status: number | null, group: string | null, at: string | null) =>
+        `the venue's Pyth key may not read it (Hermes answered ${status ?? "a refusal"}${group ? `, group ${group}` : ""}${at ? `, checked ${at} UTC` : ""})`,
+      noKey: "no Pyth key is set on this venue",
+      unknown: "the venue has had no answer from Pyth yet",
+      noPrint: "the index has not printed since the key was entitled",
+      readFailed: "the venue's index read failed just now",
+    },
+    intro: (name: string, company: string) => `${name} settles on Pyth's valuation index of ${company}, not on the PreStocks token price. The bar puts the index beside the token, and how far apart the two sit.`,
+    introAbsent: (name: string, company: string) => `${name} would settle on Pyth's valuation index of ${company}, not on the PreStocks token price.`,
+    notListed: "Not listed",
+    laneEyebrow: "Valuation lane",
+    pendingTitle: (name: string) => `${name} is not listed`,
+    pendingBody: (why: string) => `No Window opens on this lane until the venue may read the index, so no dead lane is ever shown. Right now ${why}.`,
+    tokenHub: (company: string) => `See the ${company} token`,
+    index: "Pyth index",
+    indexHint: "Pyth's valuation index for the company, per token",
+    token: "Token price",
+    tokenVsIndex: "Token vs Pyth",
+    age: "Index age",
+    ageLine: (sec: number) => (sec < 120 ? `${sec} s` : `${Math.round(sec / 60)} min`),
+    window: { title: "Live Window", none: "No valuation Window is trading right now. One opens every hour on the 24/7 lane while the index is readable." },
+    source: "the index read off-chain and attested by three oracle parties · single source",
   },
 
   /** `/dev/pyth-index`: the pre-IPO hub's bar with and without the Pyth rows (S20). */
   dev: {
     title: "Pre-IPO hub · Pyth valuation index",
-    intro: "The OpenAI hub's figure bar from canned readings: as it shows today, with the venue's key refused the index, and as it shows once a key that may read the index answers. Nothing here is a live read.",
+    intro: "The OpenAI hub's figure bar and the OpenAI valuation lane's hub from canned readings: as they show today, with the venue's key refused the index (the bar says why, the lane is not listed), and as they show once a key that may read the index answers. Nothing here is a live read.",
     withoutIndex: "Without the index — the key is not entitled (today)",
     withIndex: "With the index — the key is entitled",
+    valuationAbsent: "Valuation hub ($OPENAIV) — not listed, the key is refused (today)",
+    valuationListed: "Valuation hub ($OPENAIV) — listed, the index beside the token",
   },
 
   /** A basket (S19, D-124): a small group of companies bet on together; its bar shows the index, not a price. */
@@ -69,7 +104,7 @@ export const TICKER_HUB = {
       noWindow: "Cover and Add open when a basket Window is trading.",
     },
     /** After the basket's source line ("Index of 2 PreStocks prices"). */
-    source: "single source, computed and signed by Agari from one read of every member · no cross-check",
+    source: "computed from one read of every member and attested by three oracle parties · single source, no cross-check",
   },
 
   feed: { number: "01", title: "Calls", desc: "Fills on this ticker's Windows, the verdicts of the traders who made them, and takes tagged with its cashtag." },

@@ -31,6 +31,7 @@ import type postgres from "postgres";
 import { LANE_BASES } from "@agari/core/types";
 import { parseLaneKey } from "@agari/core/market";
 import { restCallRow, restClosedRow } from "./apply-rest";
+import { dependentClosed, dependentRows } from "./apply-dependents";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
 import type { IdxEvidence, IdxFact, IdxUpdate } from "./types";
 
@@ -234,7 +235,7 @@ async function leg(c: Ctx, f: Fact<"leg">): Promise<void> {
   const row = {
     leg_cid: f.contractId, market, terms_cid: f.termsCid, owner_party: f.owner, is_venue: isVenue, pair_id: f.pairId, outcome: f.outcome,
     lots: f.lots, cash_unit: f.cashUnit, backing_share: f.backingShare, fee_paid: f.feePaid, refund_after_sec: f.refundAfterSec, origin: f.origin,
-    created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec,
+    created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec, beneficiary_ref: f.ref ?? null,
   };
   const inserted = await c.tx`INSERT INTO idx_legs ${c.tx(row)} ON CONFLICT (leg_cid) DO NOTHING RETURNING 1`;
   if (inserted.length === 0 || isVenue) return;
@@ -342,9 +343,7 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
         WHERE terms_cid = ${f.termsCid}`;
       await citeEvidence(c, f.evidence);
       return;
-    case "open-print-consumed":
-      await c.tx`UPDATE idx_markets SET open_print_cid = NULL WHERE open_print_cid = ${f.contractId}`;
-      return;
+    case "open-print-consumed": return void (await c.tx`UPDATE idx_markets SET open_print_cid = NULL WHERE open_print_cid = ${f.contractId}`);
     case "resolution": return resolution(c, f);
     case "price": return price(c, f);
     case "price-retired":
@@ -358,12 +357,12 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
       return market ? restCallRow(c.tx, c.u, c.tsSec, f, market) : undefined;
     }
     case "rest-closed": return restClosedRow(c.tx, c.u, c.tsSec, f);
+    case "dependent": return dependentRows(c.tx, c.u, c.tsSec, f);
+    case "dependent-closed": return dependentClosed(c.tx, c.u, c.tsSec, f);
     case "sale": return sale(c, f);
     case "leg-closed": return legClosed(c, f);
     case "publication": return publication(c, f);
-    case "publication-archived":
-      await c.tx`DELETE FROM idx_publications WHERE publication_cid = ${f.contractId}`;
-      return;
+    case "publication-archived": return void (await c.tx`DELETE FROM idx_publications WHERE publication_cid = ${f.contractId}`);
     case "event-terms":
       await c.tx`
         UPDATE idx_markets SET event_terms_cid = ${f.contractId}, event_question = ${f.question}, event_attestors = ${c.tx.json(f.attestors)}, event_quorum = ${f.quorum}

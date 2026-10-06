@@ -1,4 +1,4 @@
-import { laneKey, parseLaneKey, regularWindows, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@agari/core/market";
+import { laneKey, noSourceReason, parseLaneKey, regularWindows, TICKERS, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@agari/core/market";
 import type { EventMarket, Lane, LaneSet } from "@agari/core/types";
 import type { MarketSession } from "../session";
 import { compareLaneTabKeys, laneTabKey, laneTabParts, type LaneTabKey } from "./lane-view";
@@ -68,10 +68,15 @@ export function nextListedWindow(laneSet: LaneSet | null, asset: TickerSymbol, n
 
 type LaneStates = Readonly<Record<string, string>>;
 
+/** The roller's reason for a Pyth version whose feed the key may not read (`window-roller/versions.ts` PAUSED_NOT_ENTITLED). */
+export const PYTH_NOT_ENTITLED = "Pyth feed not entitled";
+
 /**
  * The roller's paused tickers in one lane, with the state it reported (web and phone). A Regular lane says nothing while
  * the session is closed or unknown (every ticker is closed, not paused). C6: a 24/7 or Gap lane's pause is about its
  * source, not the NYSE clock, so it comes from the roller's states (`useLaneStates`) even with no agreed calendar.
+ * C8d (D-125): a valuation lane whose Pyth index the key may not read is not a paused lane, it is an unlisted one, so it
+ * never stands in as a card ("no dead lane is ever shown"); its hub says why.
  */
 export function pausedInLane(session: Pick<MarketSession, "lanes" | "open"> | null, laneStates: LaneStates | null, lane: Pick<Lane, "basis" | "intervalSec">): Map<TickerSymbol, string> {
   const paused = new Map<TickerSymbol, string>();
@@ -79,7 +84,9 @@ export function pausedInLane(session: Pick<MarketSession, "lanes" | "open"> | nu
   if (!lanes) return paused;
   for (const symbol of TICKER_SYMBOLS) {
     const state = lanes[laneKey(symbol, lane.basis, lane.intervalSec)];
-    if (state?.startsWith("paused")) paused.set(symbol, state);
+    if (!state?.startsWith("paused")) continue;
+    if (TICKERS[symbol].kind === "valuation" && noSourceReason(state) === PYTH_NOT_ENTITLED) continue;
+    paused.set(symbol, state);
   }
   return paused;
 }

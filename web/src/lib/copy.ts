@@ -135,6 +135,9 @@ export const MARKETS = {
   paused: {
     noSource: "Paused: no signed price source",
     corporateAction: "Paused: corporate action",
+    /** C-DAML-02: the venue's operator holds new Windows back (reduce-only or paused); open ones still settle. */
+    venueMode: (mode: string) => `Paused: venue ${mode}`,
+    venueModeWhy: (reason: string | null) => `The venue's operator has stopped new Windows${reason ? ` (${reason})` : ""}. Open Windows still settle, and every exit, claim and refund stays open.`,
     clock: "paused",
     why: (asset: string, cadence: string) => `No ${cadence} ${asset} Window opens until a signed print can settle it. The other tickers keep rolling.`,
   },

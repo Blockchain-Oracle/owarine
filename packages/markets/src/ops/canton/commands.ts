@@ -234,6 +234,12 @@ export const mergeCash = (cid: ContractId, others: readonly ContractId[]): Comma
 export const splitCash = (cid: ContractId, take: bigint): Command =>
   exercise(TEMPLATE_IDS.VenueCash, cid, "VenueCash_Split", { take: int(take) } satisfies Wire<PM.Money.VenueCash_Split>);
 
+/** The owner takes its cash off the venue (the faucet's reverse); with a venue credit in the same transaction it re-buckets (C8d). */
+export const withdrawCash = (cid: ContractId): Command => exercise(TEMPLATE_IDS.VenueCash, cid, "VenueCash_Withdraw", {});
+
+/** The owner dismisses its settlement receipt (`Receipt_Dismiss`): a private call's cash-out, once (C8d). */
+export const dismissReceipt = (cid: ContractId): Command => exercise(TEMPLATE_IDS.SettlementReceipt, cid, "Receipt_Dismiss", {});
+
 /** A venue shard: `VenueCash` with owner = venue, which the venue alone signs. */
 export const createShard = (venue: Party, amount: bigint, bucket = "shard"): Command =>
   create(TEMPLATE_IDS.VenueCash, { venue, owner: venue, amount: int(amount), bucket } satisfies Wire<PM.Money.VenueCash>);

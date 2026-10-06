@@ -2,7 +2,7 @@
  * Canned Windows for the S6 lane states (session-lanes.md §5): the real 09-18 Gap at each of its phases, a weekend TSLAx
  * token Window, and the Regular Windows the ticket blockers and void claims are shown on. Prints are × 10⁻⁸.
  */
-import { corporatePausedState, haltPausedState, voidDetail } from "@agari/core/market";
+import { corporatePausedState, haltPausedState, venueModePausedState, voidDetail } from "@agari/core/market";
 import type { EventMarket } from "@agari/core/types";
 import type { GivenVoid } from "@/features/markets/claims/void-line";
 import type { MarketCardData } from "@/features/markets/lanes/MarketCardView";
@@ -82,6 +82,7 @@ export const PAUSED_CARDS = [
   { label: "Paused — corporate action (NVDA split)", asset: "NVDA", basis: "regular", intervalSec: 300, state: corporatePausedState("4-for-1 split") },
   { label: "Paused — halted, pyth-wide (Trading halted)", asset: "TSLA", basis: "regular", intervalSec: 300, state: haltPausedState({ reason: "pyth-wide", sinceSec: 0 }) },
   { label: "Paused — halted, redstone-stale (Signed price stale)", asset: "AAPL", basis: "regular", intervalSec: 900, state: haltPausedState({ reason: "redstone-stale", sinceSec: 0 }) },
+  { label: "Paused — the venue is reduce-only (C-DAML-02, C8d)", asset: "BTC", basis: "token", intervalSec: 300, state: venueModePausedState("reduce-only", "maintenance") },
 ] as const;
 
 /** Windows the ticket blockers read: a Regular Window in session, before the open, and a Gap before its calls. */

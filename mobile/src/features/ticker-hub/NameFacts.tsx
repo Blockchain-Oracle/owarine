@@ -10,6 +10,7 @@ import type { PythIndexRow } from "@/features/ticker-hub/usePythIndex";
 import { useNextEarnings } from "@/features/ticker-hub/useTickerNews";
 import { TickerRoomButton } from "~/features/room/TickerRoomButton";
 import { SourceCaption, Stat, StatBar, TabLink } from "./HubParts";
+import { IndexAbsentCaption } from "./ValuationHub";
 
 /** "Tue, Oct 21 · after close" from an ET calendar date; noon UTC keeps the weekday right in every zone (web's `reportDay`). */
 function reportDay(dateEt: string, hour: keyof typeof TICKER_HUB.hour | null): string {
@@ -36,7 +37,7 @@ function PreIpoFigures({ spot, spotStale, facts, index }: { spot: string; spotSt
  * web's `NameFacts` (features/ticker-hub/TickerHubScreen.tsx): a listed name's spot and next report, or a pre-IPO
  * name's PreStocks facts, then the source caption, the ticker's Room and "Trade it →", as profile.css's figure bar.
  */
-export function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null }) {
+export function NameFacts({ symbol, preIpo, index, indexAbsentWhy = null }: { symbol: TickerSymbol; preIpo: boolean; index: PythIndexRow | null; indexAbsentWhy?: string | null }) {
   const price = useAssetPrice(symbol);
   const earnings = useNextEarnings(preIpo ? null : symbol);
   const facts = usePreIpoFacts(preIpo ? symbol : null);
@@ -50,7 +51,16 @@ export function NameFacts({ symbol, preIpo, index }: { symbol: TickerSymbol; pre
 
   return (
     <StatBar
-      foot={preIpo ? <SourceCaption label={source} tail={index ? t.sourceBoth : t.sourcePreStocksOnly} /> : source ? <SourceCaption label={source} /> : null}
+      foot={
+        preIpo ? (
+          <>
+            <SourceCaption label={source} tail={index ? t.sourceBoth : t.sourcePreStocksOnly} />
+            {!index && indexAbsentWhy ? <IndexAbsentCaption why={indexAbsentWhy} /> : null}
+          </>
+        ) : source ? (
+          <SourceCaption label={source} />
+        ) : null
+      }
       actions={
         <>
           <TickerRoomButton symbol={symbol} />

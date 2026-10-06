@@ -2,6 +2,7 @@ import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 import { marketIdSchema } from "@agari/core/types";
 import { classifyRejection, publishCall, readPublications, retractCall } from "@agari/markets/server";
+import { getDb, privatePositions } from "@agari/db";
 import { z } from "zod";
 import { BOARD_CACHE_TAG } from "@/features/leaderboard/board.server";
 import { diagnosisReply, jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
@@ -48,10 +49,13 @@ export async function POST(request: NextRequest) {
   if (!body.success) return refusal("unknown", "expected {marketId, source?: 'leg' | 'receipt', receiptId?}", 400);
   const { server, lease } = auth.seat;
   try {
+    // C8d (L-39): the seat's private calls stay off every public read, their receipts included.
+    const db = getDb();
+    const privatePairs = new Set(body.data.source === "receipt" && db ? (await privatePositions(db, lease.party, lease.startOffset, 200)).map((p) => p.pair_id) : []);
     const result = await publishCall(
       { client: server.ledger.client, seats: server.ledger.seats },
       { party: lease.party, leaseId: lease.leaseId, handle: lease.address, fromOffset: lease.startOffset },
-      { marketId: body.data.marketId, source: body.data.source, ...(body.data.receiptId ? { receiptId: body.data.receiptId } : {}) },
+      { marketId: body.data.marketId, source: body.data.source, privatePairs, ...(body.data.receiptId ? { receiptId: body.data.receiptId } : {}) },
     );
     if (result.kind === "published") revalidateTag(BOARD_CACHE_TAG, { expire: 0 });
     return replyWith(result, result.kind === "refused" ? 409 : 200);

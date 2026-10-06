@@ -27,6 +27,8 @@ export interface LegView {
   feePaid: bigint;
   refundAfterMs: number;
   createdAtMs: number;
+  /** The seat's own tag (`beneficiaryRef`): `private` for a private call (C8d), `grant`, a duel pick; null for a plain call. */
+  ref?: string | null;
 }
 
 export interface QuoteView {
@@ -162,6 +164,7 @@ export function legView(e: CreatedEvent): LegView & { owner: string } {
     feePaid: fromDamlInt(l.feePaid, "Leg.feePaid"),
     refundAfterMs: ms(l.refundAfter, "Leg.refundAfter"),
     createdAtMs: ms(e.createdAt, "createdAt"),
+    ref: l.beneficiaryRef ?? null,
   };
 }
 

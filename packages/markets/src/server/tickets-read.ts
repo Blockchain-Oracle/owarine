@@ -2,6 +2,7 @@
  * The seat's ticket contracts, read AS its party (C8c): the snapshot the seat routes act on, and what a landed write
  * did for the seat (the ticket or share it now holds, the cash it was paid).
  */
+import { PRIVATE_BUCKET } from "@agari/core/private";
 import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
 import type { CreatedEvent, DisclosedContract, JsTransaction, Party } from "@agari/ledger";
 import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";
@@ -66,7 +67,7 @@ export function toTicketSnapshot(party: Party, events: readonly CreatedEvent[], 
     // Only what is the party's own: a seat is a stakeholder of nothing else, but the filter is stated anyway.
     if (is(e, TEMPLATE_IDS.VenueCash)) {
       const c = decodeVenueCash(v);
-      if (c.owner === party) s.cash.push({ cid, amount: c.amount });
+      if (c.owner === party && c.bucket !== PRIVATE_BUCKET) s.cash.push({ cid, amount: c.amount });
     } else if (is(e, T.RangeQuote)) {
       const q = decodeRangeQuote(v);
       if (q.user === party) s.rangeQuotes.push({ cid, data: q });

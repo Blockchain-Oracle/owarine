@@ -24,6 +24,7 @@ import { CASH_DECIMALS } from "@agari/markets/server";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import { fillableLots, MIN_OFFER_LIFE_SEC, OFFER_LIFE_SEC } from "./rule";
 import { parseRestingRequest, type RestingOfferRequest } from "./parse";
+import { venueModeRefusalNow } from "../../runtime/venue-mode";
 
 export interface OfferDeps {
   venue: RoleSession;
@@ -64,6 +65,8 @@ export function createOfferHandler(d: OfferDeps): (body: unknown) => Promise<Ans
 export async function offer(d: OfferDeps, nowMs: () => number, req: RestingOfferRequest): Promise<Answer> {
   if (d.infrastructure.has(req.party)) return refused("unknown", "an infrastructure party is not a seat");
   if (d.draining?.has(req.party)) return refused("market-not-trading", "this seat is draining: no new calls");
+  const modeWhy = venueModeRefusalNow("open-position");
+  if (modeWhy) return refused("market-not-trading", modeWhy);
   const terms = await d.terms(req.marketId);
   if (!terms) return refused("market-not-trading", "the venue holds no such Window");
   const t = terms.data;

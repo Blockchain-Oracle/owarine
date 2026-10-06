@@ -9,6 +9,7 @@
  * what was created at or after its lease's start offset (K-224): an allowance, receipt or request on the same party
  * from an earlier visitor is not this seat's.
  */
+import { PRIVATE_BUCKET } from "@agari/core/private";
 import { CC_RAIL_WAITING_ON, type CcRailCapability, type CcRailView } from "@agari/core/cc";
 import { diagnosis, type Diagnosis } from "@agari/core/types";
 import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
@@ -106,7 +107,7 @@ export function createCcSeat(cfg: CcSeatConfig) {
       try {
         if (is(e.templateId, TEMPLATE_IDS.VenueCash)) {
           const x = decodeVenueCash(e.createArgument);
-          if (x.owner === seat.party && x.venue === cfg.venueParty) cash += x.amount;
+          if (x.owner === seat.party && x.venue === cfg.venueParty && x.bucket !== PRIVATE_BUCKET) cash += x.amount;
         } else if (own && is(e.templateId, CC_TEMPLATE_IDS.CcAllowance)) {
           const a = decodeAllowance(e.createArgument);
           if (a.owner === seat.party && a.venue === cfg.venueParty && a.listingId === cfg.listingId) allowance += a.units;

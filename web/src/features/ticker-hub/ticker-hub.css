@@ -156,3 +156,13 @@
   .tkh-members-scroll .tkh-members { min-width: 440px; }
   .tkh-stat-long .big { font-size: 18px; }
 }
+
+/* A valuation lane that is not listed (S20, D-125, C8d): the shell's pending block, inside the hub's column. */
+.tkh-pending-lane {
+  max-width: none;
+  margin: 0;
+  padding: 24px 0 8px;
+}
+.tkh-index-absent {
+  margin-top: 8px;
+}

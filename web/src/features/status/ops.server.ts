@@ -19,6 +19,8 @@ const sessionBodySchema = z.object({
     .passthrough()
     .nullable(),
   lanes: z.record(z.string(), z.string()),
+  /** C-DAML-02: the venue mode new risk asks; absent from an ops that predates it (read as open). */
+  venueMode: z.object({ mode: z.enum(["open", "reduce-only", "paused"]), reason: z.string().nullable(), setAtSec: z.number() }).passthrough().optional(),
   sources: z
     .object({
       pythTrialLastCloseSec: z.number().nullable(),

@@ -75,12 +75,13 @@ export function seriesFacts(row: SeriesRow) {
 }
 
 /**
- * The venue itself. `mode` is 0 (normal): the projection holds no halt, and the venue's quoting state is what the
- * ladder and the click-time quote already say per Window. No program seats trade on this venue.
+ * The venue itself. `mode` is the reference's code for ops' venue mode (C-DAML-02): 0 open, 1 reduce-only, 2 paused,
+ * read from ops' `/session` (0 when ops cannot be read: the issuer itself still refuses new risk while held back). The
+ * venue's quoting state per Window is what the ladder and the click-time quote say. No program seats trade here.
  */
-export function venueFacts(venueParty: string) {
+export function venueFacts(venueParty: string, mode: 0 | 1 | 2 = 0) {
   const config = venueIdFromParty(venueParty);
-  return { config, collateralMint: venueCashIdFromParty(venueParty), decimals: CASH_DECIMALS, treasury: config, mode: 0 as const, programSeats: [] as string[] };
+  return { config, collateralMint: venueCashIdFromParty(venueParty), decimals: CASH_DECIMALS, treasury: config, mode, programSeats: [] as string[] };
 }
 
 export interface MarketRowForFacts {

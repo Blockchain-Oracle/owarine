@@ -1,5 +1,7 @@
 import "server-only";
 import { getDb } from "@agari/db";
+import { isVenueMode, VENUE_MODE_CODE } from "@agari/core/market";
+import { webEnv } from "@/lib/env";
 import { seatServer } from "@/lib/ledger.server";
 import { marketFacts, seriesFacts, venueFacts, type MarketRowForFacts, type SeriesRow } from "./venue-facts";
 
@@ -17,7 +19,22 @@ export async function readVenueFacts() {
   const series = await sql<SeriesRow[]>`
     SELECT series, series_key, symbol, basis, cadence_sec, cash_unit::text, lot_base::text, tick_base::text, policy_versions
     FROM idx_series ORDER BY series_key`;
-  return { venue: venueFacts(cursor.party), series: series.map(seriesFacts) };
+  return { venue: venueFacts(cursor.party, await opsVenueModeCode()), series: series.map(seriesFacts) };
+}
+
+const MODE_READ_TIMEOUT_MS = 1_500;
+
+/** ops' venue mode as the reference's code (C-DAML-02); 0 when ops cannot be read in time. */
+async function opsVenueModeCode(): Promise<0 | 1 | 2> {
+  const base = webEnv.markets.priceFeedUrl;
+  if (!base) return 0;
+  try {
+    const body = (await (await fetch(`${base}/session`, { cache: "no-store", signal: AbortSignal.timeout(MODE_READ_TIMEOUT_MS) })).json()) as { venueMode?: { mode?: unknown } };
+    const mode = body.venueMode?.mode;
+    return isVenueMode(mode) ? VENUE_MODE_CODE[mode] : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export async function readMarketFacts(marketId: string) {

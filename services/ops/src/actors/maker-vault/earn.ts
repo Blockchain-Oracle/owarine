@@ -23,6 +23,7 @@ import { createdOne } from "../ticket-desk/desk";
 import { failed, isAnswer, lease, refused, reply, type Answer } from "../ticket-desk/common";
 import { submitWithShards } from "../quote-issuer/pooled-submit";
 import type { MakerVault } from "./vault";
+import { venueModeRefusalNow } from "../../runtime/venue-mode";
 
 export const MAKER_QUOTE_LIFE_SEC = 30;
 /** The most merges or settles one crank sends. */
@@ -37,6 +38,8 @@ export async function handleMakerEarn(v: MakerVault, req: EarnRequest, seat: { p
   await v.publishNav().catch((error: unknown) => v.log(`maker NAV before ${req.op} failed: ${failureText(error)}`));
   if (req.op === "supply") {
     if (req.amountBase <= 0n) return refused("below-min-quantity", "supply must be positive");
+    const modeWhy = venueModeRefusalNow("supply");
+    if (modeWhy) return refused("market-not-trading", modeWhy);
     try {
       return await v.lock(async () => {
         const navCid = v.navCid;

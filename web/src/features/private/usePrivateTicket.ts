@@ -120,6 +120,21 @@ export function usePrivateTicket({ market, side, stakeBase, enabled, symbol, wal
   const settle = useCallback(
     (result: PrivateOpenResult | null, sideOf: Side | null) => {
       if (!result) return;
+      if (result.status === "placed") {
+        // Canton (C8d): the call is the seat's own private leg; the private list on Portfolio reads it from the ledger.
+        const p = result.position;
+        const window = windowWords(p.asset, p.intervalSec);
+        if (result.recovered) {
+          notify.neutral(PRIVATE.toasts.resumed(window));
+          return;
+        }
+        const costBase = BigInt(p.costBase);
+        const contractsRaw = BigInt(p.lots) * oneUnit(decimals);
+        const avgRaw = contractsRaw === 0n ? 0n : (costBase * oneUnit(decimals) + contractsRaw - 1n) / contractsRaw;
+        setPlaced({ marketId: market.marketId, side: p.side, contractsRaw, costBase, avgPriceBps: priceRawToBps(avgRaw, decimals), txHash: result.updateId as BookedOrder["txHash"], fillCount: 1 });
+        notify.neutral(PRIVATE.toasts.placed(SIDE_WORD[sideOf ?? p.side], window));
+        return;
+      }
       if (result.status === "opened") {
         const t = result.ticket;
         const window = windowWords(t.asset, t.intervalSec);
@@ -140,7 +155,7 @@ export function usePrivateTicket({ market, side, stakeBase, enabled, symbol, wal
         notify.warning(PRIVATE.toasts.unknown, result.reason);
       }
     },
-    [decimals, quote],
+    [decimals, quote, market.marketId],
   );
 
   /** Top up and authorise in one transaction (the reference's `submitPrivateTopUp`): the new balance is what the desk may spend. A zero amount is the plain re-allow. */

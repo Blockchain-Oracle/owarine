@@ -1,17 +1,17 @@
 import { isOk } from "@agari/core/schemas";
 import { decideMirror, type MirrorSpec } from "@agari/core/strategies";
 import type { Address } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { listWalletFills } from "@agari/markets";
+import { listPublishedFills, marketsProvider } from "@agari/markets";
 import type { Scan } from "./decide";
 import { tradingWindows } from "./trading-windows";
 
-/** A trader's calls are read from the index, so the window of interest is also the only history this needs. */
+/** A trader's published calls are read from the index, so the window of interest is also the only history this needs. */
 const FILL_LIMIT = 50;
 
 /**
- * One read of the venue for a copy-a-trader strategy (A-3b): every Trading Window that named wallet has just
- * taken a side on.
+ * One read of the venue for a copy-a-trader strategy (A-3b): every Trading Window that named seat has just taken a
+ * side on, in a call it published. On Canton a seat's fills are private to its lease, so the runner reads the opt-in
+ * publications (`published/<address>/fills`), never `wallet/*`, which answers 403 to anyone but the seat (C8d).
  *
  * Reads only — nothing here can send. The trader's own fills are the signal, so a Window they have not touched is
  * not a decision to sit out, it is simply not a candidate; the "why" says how many Windows they were quiet on so a
@@ -22,9 +22,9 @@ export async function scanVenueMirror(venueId: Address, spec: MirrorSpec, nowMs:
   if (!isOk(lanes) || lanes.stale) return { candidates: [], scanned: 0, closestBps: null, why: `lanes unreadable: ${isOk(lanes) ? "stale state" : lanes.error.technical}` };
   const markets = tradingWindows(lanes.value, nowMs);
   const sinceSec = Math.floor(nowMs / 1_000) - spec.withinSec;
-  const fills = await listWalletFills(spec.trader, { sinceSec, limit: FILL_LIMIT });
+  const fills = await listPublishedFills(spec.trader, { sinceSec, limit: FILL_LIMIT });
   if (!isOk(fills) || fills.stale) {
-    return { candidates: [], scanned: markets.length, closestBps: null, why: `this trader's calls are unreadable: ${isOk(fills) ? "stale index" : fills.error.technical}` };
+    return { candidates: [], scanned: markets.length, closestBps: null, why: `this trader's published calls are unreadable: ${isOk(fills) ? "stale index" : fills.error.technical}` };
   }
   const candidates: Scan["candidates"] = [];
   let quiet = 0;
@@ -37,6 +37,6 @@ export async function scanVenueMirror(venueId: Address, spec: MirrorSpec, nowMs:
   const why =
     candidates.length > 0
       ? `scanned ${markets.length} markets, this trader is net on ${candidates.length}`
-      : `scanned ${markets.length} markets, this trader has taken no side in the last ${spec.withinSec}s (${quiet} quiet)`;
+      : `scanned ${markets.length} markets, this trader has published no side in the last ${spec.withinSec}s (${quiet} quiet)`;
   return { candidates, scanned: markets.length, closestBps: null, why };
 }

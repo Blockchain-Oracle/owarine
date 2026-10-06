@@ -8,13 +8,14 @@ import { VAULT_NOT_DEPLOYED } from "@agari/core/vault";
  * what the pool is FOR and who can move it, then the amount).
  */
 export const VAULT = {
-  /** A-2a (Q-005): idle collateral earns nothing here, the lenders that would pay for it are mainnet-only, and
-   *  the reserves are what actually pays on this cluster — shown as what their share price has already done. */
+  /** A-2a (Q-005), re-worded for Canton (C8d): the balance holds demo credits, and demo credits earn nothing while
+   *  they sit; no lender on this venue pays for them (the reference named Kamino and Jupiter Lend, which are Solana's).
+   *  What pays is being the house, shown as what each reserve's share price has already done, in credits. */
   idleYield: {
-    idle: "Money sitting in your Trading Balance earns nothing. It is here to be staked, and until it is, it is just parked.",
-    empty: "An empty Trading Balance earns nothing either — this is where money waits to be staked, not where it grows.",
-    mainnetOnly: "No lending market pays for idle collateral on this venue, so Agari shows no lending rate rather than an invented one.",
-    hereInstead: "What pays here is being the house. Each reserve's share price is what its suppliers have actually made or lost so far:",
+    idle: "Demo credits sitting in your Trading Balance earn nothing. They are here to be staked, and until they are, they are just parked.",
+    empty: "An empty Trading Balance earns nothing either — this is where demo credits wait to be staked, not where they grow.",
+    mainnetOnly: "Nothing on this Canton venue pays interest on idle demo credits, so Agari shows no lending rate rather than an invented one.",
+    hereInstead: "What pays here is being the house. Each reserve's share price is what its suppliers have actually made or lost so far, in demo credits:",
     maker: "Maker vault",
     range: "Range & Moonshot",
     parlay: "Parlay",

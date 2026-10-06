@@ -1,11 +1,12 @@
 import { blockerLabel } from "@agari/core/copy";
 import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
 import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@agari/markets/react";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";
 import { PRIVATE } from "@/features/private/copy";
+import { usePrivatePositions } from "@/features/private/usePrivatePositions";
 import { usePrivateWrites } from "@/features/private/usePrivateWrites";
 import { deriveVaultBlocker } from "@/features/vault/vault-blocker";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -19,9 +20,9 @@ import { AmountField, Cell, VaultButton, vaultStyles } from "./vault/parts";
 const DEFAULT_AMOUNT = "5";
 
 /**
- * web `PrivateBalancePanel inline` behind the plate's Private row: the Trading Balance block's grammar over the desk's
- * numbers — Deposit (allows the desk the whole new balance), Withdraw (all of it), Revoke (stops private bets, the money
- * stays) — the cells, the trust sentences, then the claims list. Each button writes straight through `usePrivateWrites`.
+ * web `PrivateBalancePanel inline` behind the plate's Private row (C8d, Canton): the Trading Balance block's grammar over
+ * the seat's private bucket — Deposit (moves demo credits in), Withdraw (all of it back) — the cells, the trust
+ * sentences, then the private calls from the ledger. Each button writes straight through `usePrivateWrites`.
  */
 export function PrivatePanel() {
   const ink = usePlateInk();
@@ -33,6 +34,7 @@ export function PrivatePanel() {
   const budgetReading = usePrivateBudget(address);
   const sheet = useBalanceSheet(address);
   const writes = usePrivateWrites();
+  const positions = usePrivatePositions(address);
   const [typed, setTyped] = useState<string | null>(null);
 
   if (!address) return null;
@@ -59,7 +61,7 @@ export function PrivatePanel() {
   const busy = writes.state.busy;
   const depositDisabled = blocked || amountBase <= 0n || wallet === null || wallet < amountBase || budget === null;
   const withdrawDisabled = blocked || !budget || budget.balanceBase <= 0n;
-  const revokeDisabled = blocked || !budget || budget.allowanceBase <= 0n;
+  const inCalls = positions?.ok ? positions.value.positions.filter((p) => p.status === "open").reduce((s, p) => s + BigInt(p.costBase), 0n) : null;
   const m = (base: bigint) => formatBaseUnits(base, decimals);
 
   return (
@@ -88,16 +90,6 @@ export function PrivatePanel() {
                 onPress={() => budget && void writes.run({ kind: "private-withdraw", amountBase: budget.balanceBase }, PRIVATE.toasts.withdrawn)}
               />
             </View>
-            <View style={styles.buttons}>
-              <VaultButton
-                label={busy === "private-revoke" ? PRIVATE.panel.revoking : PRIVATE.panel.revoke}
-                kind="private"
-                grow
-                disabled={revokeDisabled}
-                onPress={() => void writes.run({ kind: "private-revoke" }, PRIVATE.toasts.revoked)}
-              />
-              <View style={styles.cellGap} />
-            </View>
           </View>
           <Text style={[vaultStyles.caption, { color: ink.mute }]}>{blocker ? blockerLabel(blocker) : PRIVATE.panel.allowanceNote}</Text>
         </View>
@@ -105,16 +97,15 @@ export function PrivatePanel() {
 
       <View style={[styles.cells, { borderTopColor: ink.line }]}>
         <Cell label={PRIVATE.panel.cells.balance} value={budget ? m(budget.balanceBase) : "—"} />
-        <Cell label={PRIVATE.panel.cells.allowance} value={budget ? m(budget.allowanceBase) : "—"} />
         <Cell label={PRIVATE.panel.cells.spendable} value={budget ? m(budget.spendableBase) : "—"} live={(budget?.spendableBase ?? 0n) > 0n} />
-        <Cell label={PRIVATE.panel.cells.desk} value={shortHex(desk.desk)} />
+        <Cell label={PRIVATE.panel.cells.inCalls} value={inCalls === null ? "—" : m(inCalls)} />
         <Cell label={PRIVATE.panel.cells.cap} value={`${formatBaseUnits(desk.params.maxStakeBase, decimals, { minDp: 0 })} ${symbol}`} />
       </View>
       <Text style={[styles.loading, { color: ink.mute }]}>{PRIVATE.panel.trust}</Text>
       <Text style={[styles.loading, { color: ink.mute }]}>{PRIVATE.panel.correlation}</Text>
 
       <View style={[styles.grants, { borderTopColor: ink.line }]}>
-        <PrivateClaims owner={address} pinnedDesk={desk.desk} contract={desk.deployment.privateDesk} chainId={desk.deployment.chainId} decimals={decimals} symbol={symbol} />
+        <PrivateClaims positions={positions?.ok ? positions.value.positions : null} decimals={decimals} symbol={symbol} />
       </View>
     </View>
   );
@@ -127,7 +118,6 @@ const styles = StyleSheet.create({
   controlsWrap: { gap: 8 },
   controls: { gap: 12 },
   buttons: { flexDirection: "row", gap: 8 },
-  cellGap: { flex: 1 },
   cells: { flexDirection: "row", flexWrap: "wrap", columnGap: 16, rowGap: 14, paddingTop: 16, marginTop: 16, borderTopWidth: 1 },
   loading: { marginTop: 12, fontFamily: FONT.dataRegular, fontSize: 10, lineHeight: 16 },
   grants: { marginTop: 16, paddingTop: 12, borderTopWidth: 1 },

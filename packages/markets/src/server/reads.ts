@@ -7,6 +7,7 @@
  * the seat's position needs its Window's times and `Leg_Claim` needs the resolution as a disclosed contract. No command
  * is ever submitted as the venue from here.
  */
+import { PRIVATE_BUCKET, PRIVATE_LEG_REF } from "@agari/core/private";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type ActiveContract, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
 import {
@@ -18,8 +19,13 @@ export interface SeatSnapshot {
   party: Party;
   /** The offset the snapshot is active at. */
   offset: number;
+  /** The seat's spendable cash: every bucket but `private` (C8d, L-39). */
   cash: CashView[];
+  /** The seat's private bucket: spent only by a private call, moved only by the private route. Optional for hand-built snapshots. */
+  privateCash?: CashView[];
+  /** Every leg but its private calls, which only the private list shows (they are never sold, published or exited). */
   legs: LegView[];
+  privateLegs?: LegView[];
   quotes: QuoteView[];
   /** Live buy-backs of the seat's legs (C7a exits). Optional so hand-built snapshots in tests stay valid. */
   buyQuotes?: BuyQuoteView[];
@@ -39,15 +45,17 @@ export interface SeatReader {
 }
 
 export function toSnapshot(party: Party, contracts: readonly ActiveContract[], offset: number): SeatSnapshot {
-  const snap: SeatSnapshot = { party, offset, cash: [], legs: [], quotes: [], buyQuotes: [], restingOffers: [], restingCalls: [] };
+  const snap: SeatSnapshot = { party, offset, cash: [], privateCash: [], legs: [], privateLegs: [], quotes: [], buyQuotes: [], restingOffers: [], restingCalls: [] };
   for (const { createdEvent: e } of contracts) {
     if (isEntity(e, "VenueCash")) {
       // A seat also witnesses nothing else's cash, but the filter is stated anyway: only the party's own money counts.
       const owner = (e.createArgument as { owner?: unknown }).owner;
-      if (owner === party) snap.cash.push(cashView(e));
+      if (owner !== party) continue;
+      const cash = cashView(e);
+      (cash.bucket === PRIVATE_BUCKET ? snap.privateCash! : snap.cash).push(cash);
     } else if (isEntity(e, "Leg")) {
       const leg = legView(e);
-      if (leg.owner === party) snap.legs.push(stripOwner(leg));
+      if (leg.owner === party) (leg.ref === PRIVATE_LEG_REF ? snap.privateLegs! : snap.legs).push(stripOwner(leg));
     } else if (isEntity(e, "Quote")) {
       const quote = quoteView(e);
       if (quote.user === party) snap.quotes.push(stripUser(quote));

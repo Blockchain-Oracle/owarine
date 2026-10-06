@@ -13,6 +13,16 @@ export interface AreaPoint {
   value: number;
 }
 
+/**
+ * lightweight-charts asserts strictly ascending times; two desk checks recorded in the same second (a practice desk's
+ * opening snapshot and its first test read, C8d) threw on the desk page. Sorted, and one point per second, the last.
+ */
+export function chartSeries(points: readonly AreaPoint[]): { time: UTCTimestamp; value: number }[] {
+  const bySec = new Map<number, number>();
+  for (const p of [...points].sort((a, b) => a.timeSec - b.timeSec)) bySec.set(p.timeSec, p.value);
+  return [...bySec].map(([timeSec, value]) => ({ time: timeSec as UTCTimestamp, value }));
+}
+
 function cssVar(el: HTMLElement, name: string): string {
   return getComputedStyle(el).getPropertyValue(name).trim() || "currentColor";
 }
@@ -59,7 +69,7 @@ export function AreaChartClient({ points, baseline, tone, className }: { points:
     if (!b || !el) return;
     const color = cssVar(el, tone === "up" ? "--color-profit" : tone === "down" ? "--color-loss" : "--color-ink");
     b.series.applyOptions({ lineColor: color, topColor: `color-mix(in srgb, ${color} 28%, transparent)`, bottomColor: "transparent" });
-    b.series.setData(points.map((p) => ({ time: p.timeSec as UTCTimestamp, value: p.value })));
+    b.series.setData(chartSeries(points));
     for (const line of b.series.priceLines()) b.series.removePriceLine(line);
     if (baseline !== null) b.series.createPriceLine({ price: baseline, color: cssVar(el, "--color-ink-muted"), lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: false });
     b.chart.timeScale().fitContent();

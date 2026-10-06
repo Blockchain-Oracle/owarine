@@ -66,7 +66,7 @@ function toSetAction(action: ActionRow, grid: Grid | undefined): LedgerSetAction
   };
 }
 
-async function marketRows(ids: readonly string[]): Promise<Map<string, MarketRow>> {
+export async function marketRows(ids: readonly string[]): Promise<Map<string, MarketRow>> {
   const chunks: string[][] = [];
   for (let i = 0; i < ids.length; i += IDS_PER_REQUEST) chunks.push(ids.slice(i, i + IDS_PER_REQUEST));
   const pages = await Promise.all(chunks.map((chunk) => indexRows<MarketRow>("markets", { ids: chunk.join(",") })));

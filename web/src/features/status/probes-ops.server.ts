@@ -82,6 +82,15 @@ const utcClock = (sec: number) => `${new Date(sec * 1000).toISOString().slice(11
  * is entitled; warn while any is denied or unknown ("OPENAI, ANTHROPIC: not entitled (403 pyth-indices)"), because the
  * valuation lanes simply do not list; bad only when ops cannot be read. Not session-bound: the index is 24/7.
  */
+/** C-DAML-02: the venue mode, from ops' `/session`. Good while open; warn while the operator holds new risk back. */
+export function venueModeRow({ session }: OpsRows): StatusPipeline {
+  const label = STATUS.pipelines.venueMode;
+  if (!session.ok) return pipelineRow("venue-mode", label, { verdict: "bad", detail: session.why, latencyMs: session.latencyMs });
+  const m = session.value.venueMode;
+  if (!m || m.mode === "open") return pipelineRow("venue-mode", label, { verdict: "good", detail: STATUS.detail.venueModeOpen, latencyMs: session.latencyMs });
+  return pipelineRow("venue-mode", label, { verdict: "warn", detail: STATUS.detail.venueModeHeld(m.mode, m.reason, utcClock(m.setAtSec)), latencyMs: session.latencyMs });
+}
+
 export function pythIndexRow({ session }: OpsRows): StatusPipeline {
   const label = STATUS.pipelines.pythIndex;
   if (!session.ok) return pipelineRow("pyth-index", label, { verdict: "bad", detail: session.why, latencyMs: session.latencyMs });

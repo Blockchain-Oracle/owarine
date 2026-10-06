@@ -9,6 +9,7 @@
  * seats and retention. The print-wait and void decisions moved to the resolver, which reuses `decide.ts`.
  */
 import { TEMPLATE_IDS } from "@agari/daml";
+import { getDb, openDependentSpans } from "@agari/db";
 import {
   cmd, decodeLeg, decodeNettedResidual, decodeResolution, failureText, inactiveCids, isInactive, pick, readActive, refusalId, residualCommandId,
   settleBatchCommandId, submit, type ResolutionC, type RoleSession,
@@ -116,10 +117,28 @@ export async function settlerPass(st: SettlerState): Promise<PassResult> {
   }
   for (const n of notes) st.log(n);
   const c = st.counters;
+  const pinned = await pinnedWindows();
   return {
-    why: `${legs.length} legs open (${pending} awaiting resolution); settled ${c.legs} in ${c.batches} batches, residuals ${c.residuals}, failed ${c.failed}${st.venue.dryRun ? " · DRY RUN" : ""}`,
-    detail: { ...c },
+    why: `${legs.length} legs open (${pending} awaiting resolution); settled ${c.legs} in ${c.batches} batches, residuals ${c.residuals}, failed ${c.failed}${pinned.text}${st.venue.dryRun ? " · DRY RUN" : ""}`,
+    detail: { ...c, dependents: pinned.detail },
   };
+}
+
+/**
+ * C-DAML-03: resolved Windows whose terms open products still pin, counted in the projection, never on the ledger. Legs
+ * settle at once; a product settles in the ticket desk's keeper, and until it has, its Window's terms stay live (they
+ * are never retired) and its price quotes are kept (`oracle-feeder` retire). The settler says how many wait.
+ */
+async function pinnedWindows(): Promise<{ text: string; detail: { windows: number; products: number } | null }> {
+  const db = getDb();
+  if (!db) return { text: "", detail: null };
+  try {
+    const spans = (await openDependentSpans(db)).filter((s) => s.state !== "open");
+    const products = spans.reduce((n, s) => n + s.open, 0);
+    return { text: spans.length ? ` · ${spans.length} resolved Window(s) still pin ${products} product(s): terms kept` : "", detail: { windows: spans.length, products } };
+  } catch {
+    return { text: " · dependents unreadable", detail: null };
+  }
 }
 
 export const settleTimings: SettleTiming[] = [];
