@@ -10,7 +10,7 @@ import { firmQuote, quotingWindow, randomUUID, seat, sleep, TEMPLATE_IDS, type C
 const MODE_PATH = "/internal/admin/venue-mode";
 
 /** One admin call, signed with OPS_ADMIN_SECRET as ops' internal server checks it. */
-async function admin(ctx: Ctx, body: Record<string, unknown>): Promise<{ status: number; json: Record<string, any> }> {
+export async function admin(ctx: Ctx, body: Record<string, unknown>): Promise<{ status: number; json: Record<string, any> }> {
   const secret = process.env.OPS_ADMIN_SECRET;
   if (!secret) throw new Error("OPS_ADMIN_SECRET is not set in the drive's environment");
   const text = JSON.stringify(body);
