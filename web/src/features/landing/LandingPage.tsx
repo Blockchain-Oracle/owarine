@@ -11,18 +11,24 @@ import { LandingFooter } from "./LandingFooter";
 import { LandingInstall } from "./LandingInstall";
 import { LandingHeroShowcase } from "./LandingHeroShowcase";
 import { LandingLanes } from "./LandingLanes";
+import { LandingNext } from "./LandingNext";
 import { LandingProof } from "./LandingProof";
 import { LandingSteps } from "./LandingSteps";
+import { LandingWhy } from "./LandingWhy";
+import { LANDING_STORY } from "./story-copy";
 import { HOW_IT_WORKS_PATH } from "./paths";
 import "./landing.css";
 import "./landing-hero.css";
+import "./landing-story.css";
 
 /**
  * The landing hero is an editorial entry to the real basket and proof surfaces. Its product previews are rendered
- * components, while the rest of the page keeps its existing live reads and guides.
+ * components, while the rest of the page keeps its existing live reads and guides. C10f adds the business story around
+ * them: why a private position matters (01) before the product, and the roadmap and go-to-market (07) after the proof.
  */
 export function LandingPage() {
   const { hero, steps, lanes, cover, desk, proof } = LANDING;
+  const { why, next } = LANDING_STORY;
   return (
     <div className="lp">
       <section className="page-hero lp-hero">
@@ -74,6 +80,13 @@ export function LandingPage() {
         </div>
       </section>
 
+      <section className="lp-section" aria-label={why.section.title}>
+        <div className="container">
+          <SectionHead number={why.section.index} title={why.section.title} desc={why.section.desc} />
+          <LandingWhy />
+        </div>
+      </section>
+
       <section className="lp-section" aria-label={steps.section.title}>
         <div className="container">
           <SectionHead number={steps.section.index} title={steps.section.title} desc={steps.section.desc} />
@@ -106,6 +119,13 @@ export function LandingPage() {
         <div className="container">
           <SectionHead number={proof.section.index} title={proof.section.title} desc={proof.section.desc} />
           <LandingProof />
+        </div>
+      </section>
+
+      <section className="lp-section" aria-label={next.section.title}>
+        <div className="container">
+          <SectionHead number={next.section.index} title={next.section.title} desc={next.section.desc} />
+          <LandingNext />
         </div>
       </section>
 

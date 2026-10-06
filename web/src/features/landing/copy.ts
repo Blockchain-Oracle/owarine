@@ -6,14 +6,14 @@ import { ADVICE_COPY } from "@agari/core/copy";
  */
 export const LANDING = {
   meta: {
-    title: "Agari · Stock prediction markets on Canton",
-    description: "Predict whether a stock price will rise or fall, and inspect the signed price print behind every settlement on the proof page. Canton test network, demo credits.",
+    title: "Agari · Private prediction markets on Canton",
+    description: "Up or down on a stock, a coin or an event, at a firm price from the venue. Only you and the venue can see your position, and three oracle parties sign the print that settles it. Canton test network, demo credits.",
   },
   hero: {
-    eyebrow: "Canton prediction markets",
-    titleLead: "Predict stock",
-    titleEm: "price moves.",
-    line: "Choose a stock. Predict whether its price will rise or fall. See the price print that settled the market.",
+    eyebrow: "Private prediction markets on Canton",
+    titleLead: "Call the move.",
+    titleEm: "Keep it private.",
+    line: "Up or down on a stock, a coin or an event, at a firm price from the venue. Only you and the venue can see your position, and three oracle parties sign the print that settles it.",
     primary: "Open markets",
     secondary: "How it works",
     docs: "Read the docs →",
@@ -49,7 +49,7 @@ export const LANDING = {
     },
   },
   steps: {
-    section: { index: "01", title: "A call in three steps", desc: "No chart to read. One question, one clock, one print." },
+    section: { index: "02", title: "A call in three steps", desc: "No chart to read. One question, one clock, one print." },
     items: [
       {
         kicker: "Pick",
@@ -72,7 +72,7 @@ export const LANDING = {
     ],
   },
   lanes: {
-    section: { index: "02", title: "Three lanes", desc: "Each lane runs on its own clock." },
+    section: { index: "03", title: "Three lanes", desc: "Each lane runs on its own clock." },
     reading: "Reading the session…",
     unknown: "The session is unreachable. The lanes list again when it answers.",
     notListed: "Not listed on the test network yet.",
@@ -99,7 +99,7 @@ export const LANDING = {
   },
   /** Plan Step 6 (D-100): the case for covering a stock token you already own, in plain words, beside the card itself. */
   cover: {
-    section: { index: "03", title: "Cover what you hold", desc: "Own a stock token? Protect it without selling it." },
+    section: { index: "04", title: "Cover what you hold", desc: "Own a stock token? Protect it without selling it." },
     paragraphs: [
       "Tokenized stocks trade around the clock on other networks: Tesla and Nvidia as xStocks, and private companies like OpenAI, Anthropic and SpaceX as PreStocks. Until now, a holder who feared a drop had two choices: sell, or hope.",
       "Agari adds a third: a Down bet on that name as cover. A seat holds no outside tokens until the Canton Coin rail lands, so today this shows how cover works. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
@@ -112,7 +112,7 @@ export const LANDING = {
   },
   /** S21 (plan §5.2): the desk, the one place real money moves, in plain words beside its promise. */
   desk: {
-    section: { index: "04", title: "Let a desk hold it", desc: "You decide what to own. The desk decides only when." },
+    section: { index: "05", title: "Let a desk hold it", desc: "You decide what to own. The desk decides only when." },
     paragraphs: [
       "A basket is a small group of companies you follow together. Predict it with test money, cover the members you hold, or let a desk hold it for you inside limits you set. Practice desks run today; live desks are planned.",
       "The desk wakes every hour, on the hour, around the clock. It reads PreStocks prices, asks one AI question about timing, and writes down what it did, including every time it did nothing. On Canton the limits are planned as Daml choices that refuse anything past them.",
@@ -132,7 +132,7 @@ export const LANDING = {
     worstCase: "Worst case, in one sentence: if the desk's key were ever stolen, the thief could only make bad trades, at most your daily limit a day, until you pause.",
   },
   proof: {
-    section: { index: "05", title: "Proof", desc: "Every party below opens its own page, and every settled Window opens on the proof page." },
+    section: { index: "06", title: "Proof", desc: "Every party below opens its own page, and every settled Window opens on the proof page." },
     program: "Package",
     venue: "Venue config",
     clusterLabel: "Network",
