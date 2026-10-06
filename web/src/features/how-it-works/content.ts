@@ -64,7 +64,7 @@ export const STEPS: readonly Step[] = [
     number: 4,
     title: "Collect Payout",
     description:
-      "When the Window closes, a signed price for that second is recorded on it. Winning contracts redeem for 1 credit each less the settlement fee; losing contracts pay 0; a void returns what each side paid, stake and fee. Collect it on the Window's result, or everything at once from Portfolio.",
+      "When the Window closes, three oracle parties sign the price for that second and the resolver decides the Window. Winning contracts pay 1 credit each; losing contracts pay 0; a void returns what you paid, stake and fee. The venue settles every leg in a batch, so a win lands in your credits without you signing anything; Portfolio shows each payout.",
     icon: TrophyIcon,
     tone: "blue",
   },
@@ -109,7 +109,8 @@ export const QUOTE_FIELDS: readonly [string, string][] = [
   ["contracts", "how many the quote fills for that stake"],
   ["avg price", "the average fill across the ladder's levels"],
   ["max cost", "the firm quote you confirm — a fill can never cost more"],
-  ["payout if right", "contracts × 1.00, before the settlement fee"],
+  ["payout if right", "contracts × 1.00, the whole amount"],
+  ["fee", "charged with the fill and held in your leg; kept by the venue only when the Window settles, returned on a void"],
   ["odds", "the price of UP in cents — the venue's quoted probability"],
 ];
 
@@ -120,16 +121,16 @@ export interface FeeItem {
 
 export const FEES: readonly FeeItem[] = [
   {
-    title: "Settlement Fee",
-    body: "A basis-point skim on winning contracts at redemption, set by the venue per market and read from the ledger at use time — never assumed. It is printed on every receipt. A void returns stake and fee.",
+    title: "The Fee",
+    body: "Charged once, with the fill, and held in your leg rather than paid out: the venue keeps it only when the Window settles, and a void returns it with your stake. It is ⌈contracts × rate × p × (1 − p)⌉ at price p, so it is largest at even odds and falls to zero at the ends; the default rate of 100 bps is about 0.25% of the payout at 50¢. The quote shows it before you confirm, and the receipt prints it.",
   },
   {
-    title: "Trading Fees",
-    body: "There is no network fee on Canton and no separate trading fee. Your only cost of entry is the quoted price you pay per contract.",
+    title: "Network Fees",
+    body: "There is no network fee on Canton and nothing to sign for gas. The venue runs every settlement itself.",
   },
   {
     title: "Total Cost",
-    body: "Cost per contract = the quoted price. Winning contracts pay 1.00 less the settlement fee, so a contract bought under 1.00 always profits if it is right.",
+    body: "Cost = contracts × the quoted price, plus the fee. A winning contract pays the full 1.00, so a call bought under 1.00 profits if it is right by more than its fee.",
   },
 ];
 
@@ -143,7 +144,7 @@ export const SETTLEMENT_STEPS: readonly SettlementStep[] = [
   { step: "1", label: "Window Closes", desc: "The round reaches its scheduled expiry — the second its settlement price is asked about." },
   { step: "2", label: "The Print Is Recorded", desc: "Three oracle parties each post a signed print for that boundary: a 1-minute candle close from Coinbase, Kraken and Bitstamp for BTC and ETH, and the lane's own source (RedStone, Alpaca, Jupiter Price v3 or PreStocks) for the rest. The Window needs at least 2 of the 3 to agree; a price with no quorum is never used." },
   { step: "3", label: "Settlement", desc: "The resolver party compares the closing print with the opening one, once: a Window resolves or voids exactly once. Close at or above the open pays UP, and a close exactly on the line pays UP; anything below pays DOWN. Prints that disagree by more than the policy allows void the Window instead." },
-  { step: "4", label: "Payout", desc: "Winning contracts pay 1 credit less the settlement fee. The venue settles every leg itself, so you are paid without signing anything; Portfolio shows each payout." },
+  { step: "4", label: "Payout", desc: "Winning contracts pay 1 credit each, and the venue keeps the fee held in each leg. The venue settles every leg itself, in a batch, so you are paid without signing anything; if it ever failed to, after the refund time your seat could take its stake and fee back on its own. Portfolio shows each payout." },
 ];
 
 export interface ArchitectureCard {
@@ -194,7 +195,7 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "How much do I win?",
-    answer: "Each winning contract redeems for 1 credit less the settlement fee; a losing contract pays 0; a void returns what each side paid, stake and fee. Your cost is the quoted price you paid, so profit is payout minus cost.",
+    answer: "Each winning contract pays 1 credit; a losing contract pays 0; a void returns what you paid, stake and fee. Your cost is the quoted price you paid plus the fee, so profit is payout minus cost.",
   },
   {
     question: "Do I need a wallet?",

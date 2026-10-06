@@ -2,6 +2,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { MARKETS_PATH } from "@/lib/routes";
 import { BasketsAndDesk } from "./BasketsAndDesk";
+import { BuiltOn } from "./BuiltOn";
 import { HOW_IT_WORKS } from "./copy";
 import { Faq } from "./Faq";
 import { Mechanics } from "./Mechanics";
@@ -9,6 +10,8 @@ import { riseDelay } from "./rise";
 import { Asides, SessionLanes } from "./SessionLanes";
 import { Settlement } from "./Settlement";
 import { Steps } from "./Steps";
+import { WhoSeesIt } from "./WhoSeesIt";
+import "./how-it-works-canton.css";
 
 /**
  * /how-it-works — ported from `reference/yosuku/app/how-it-works/page.tsx`.
@@ -25,6 +28,9 @@ import { Steps } from "./Steps";
  * go in `SessionLanes` and `Asides`, drawn only with classes the reference's stylesheet
  * already defines, in the places the reading order wants them. Two more, "Baskets" and
  * "How the Desk Decides" (S19, S21), follow the money rules in `BasketsAndDesk`.
+ *
+ * C10f adds two more for Canton: "The Leg and Who Sees It" (the two-sided leg and who receives it, linking the full
+ * matrix at /who-sees-what) after the mechanics, and "Built On" (Canton Network, Noders, BitSafe) before the FAQ.
  *
  * The reference mounts its own Header and a `router.push` back button; the root
  * shell already carries the chrome, and the back control is a plain link.
@@ -52,9 +58,11 @@ export function HowItWorksPage() {
           <Steps />
           <SessionLanes />
           <Mechanics />
+          <WhoSeesIt />
           <Settlement />
           <Asides />
           <BasketsAndDesk />
+          <BuiltOn />
           <Faq />
 
           <section className="hiw-card hiw-card-mint hiw-cta hiw-rise" style={riseDelay(0, 700)} aria-label={HOW_IT_WORKS.cta.title}>

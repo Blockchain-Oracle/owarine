@@ -1,0 +1,18 @@
+/* C10f: How It Works' Canton sections — the leg card, who sees it, and Built On — in the page's own .hiw-* grammar. */
+.hiw-leg-lead { margin-bottom: 24px; }
+.hiw-who { margin-top: 16px; }
+.hiw-who-title { margin-bottom: 0; }
+.hiw-who-rows { display: grid; gap: 12px; margin: 16px 0 0; }
+.hiw-who-rows > div { display: grid; grid-template-columns: minmax(0, 14rem) minmax(0, 1fr); gap: 4px 16px; padding-top: 12px; border-top: 1px solid var(--hiw-line); }
+.hiw-who-rows dt { font-family: var(--font-mono); font-size: 13px; color: var(--white); }
+.hiw-who-rows dd { margin: 0; font-size: 14px; line-height: 1.6; color: var(--gray-400); }
+.hiw-who-link { display: inline-block; margin-top: 20px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hiw-blue); text-decoration: underline; text-underline-offset: 3px; }
+.hiw-built-lead { margin: -16px 0 24px; }
+.hiw-built { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.hiw-built-card { display: flex; flex-direction: column; gap: 10px; }
+.hiw-built-mark { --mark-height: 26px; margin-bottom: 6px; }
+.hiw-built-card[data-sponsor="noders"] .hiw-built-mark { --mark-height: 32px; margin-bottom: 0; }
+.hiw-built-card[data-sponsor="bitsafe"] .hiw-built-mark { --mark-height: 20px; margin-block: 3px 9px; }
+.hiw-built-role { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hiw-blue); }
+@media (max-width: 900px) { .hiw-built { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 640px) { .hiw-who-rows > div { grid-template-columns: minmax(0, 1fr); } }
