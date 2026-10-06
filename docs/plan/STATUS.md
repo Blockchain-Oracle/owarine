@@ -31,6 +31,7 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 | **C7c** pre-open resting calls | `evidence/c7c-resting-call.md`, 24/24 end to end |
 | **C8** tickets, agents, desk, maker vault | `evidence/c8e`, `c8f`, `c8g`, `c8i`, `c2d-maker-vault.md`; C8j phase A (live desk timing, PreStocks prices) |
 | **C8d** baskets, venue mode, products, private mode, Earn, copy traders | `evidence/c8d-markets.md`, drive `scripts/drive/c8d-markets.ts`, `ux/c8d` (6 Oct) |
+| **C9e, C13b** games and social | `evidence/c9e-c13b-sweep.md`, `ux/c9e`: money lines match `PM.Leg.legPayout` (void = backing + fee), guest-seat history on its own side, season pool paid once, duel, Practice, Line Rider, Candle Hop, proof re-verify, takes, ticker rooms, Finnhub news |
 | **C10f** public story | `evidence/c10f-public.md`, `ux/c10f`: landing and pitch, `/download` and `/demo` config point, Built on, `/who-sees-what`, docs site 43 pages |
 | **C4e** deploy rehearsal | `evidence/c4e-deploy.md`: three images, composed run behind Traefik, runbook measured |
 | **C9** games | `evidence/c9b`, `c9c`, `c9d-seats-games.md`; Lucky placed from its own screen (`ux/c8j`) |
@@ -71,5 +72,6 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 - The phone has never run against Canton: it typechecks and exports only.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
 - Resting calls and the Canton Coin rail run on the local sandbox only.
+- Sensei needs a working OpenAI key (the one on this Mac answers 401), and X sign-in, trade-from-X and the relay need X API keys; each page says what it waits on (C13b). A season winner whose seat has ended cannot be paid until a later DAR (K-296).
 - A settled private call pays into the seat's public balance until the user presses Cash out, because the released Daml pays every leg into `payout`; a direct private payout needs a later DAR (C8d). The venue-mode record and the dependents count are ops and projection only for the same reason (K-263, K-264).
 - Third-party marks (C-S25, K-250): only Canton Network, Noders and BitSafe logos are drawn, from their published brand kits; every other source, PreStocks included, is named in plain text.

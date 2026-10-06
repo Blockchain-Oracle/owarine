@@ -891,6 +891,65 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the Trading Balance's idle note, web and phone.
 - **Approval:** default; overrulable.
 
+### K-290 — Every displayed payout follows `PM.Leg.legPayout` (C9e/C13b)
+- **Date/owner:** 2026-10-06, C9e.
+- **Evidence:** `daml/abu-pm-main/daml/PM/Leg.daml` (`legPayout`, `Leg_RefundStale`), `PM/Quote.daml` (`BuyQuote_Accept`). The local run is in §1: a void of 710068 = 708000 + 2068, and wins of 1000000 with the fee kept.
+- **Rule:**
+  - a win pays the quantity, a loss nothing, and a void the leg's backing plus fee;
+  - the fee is part of what was paid in at the fill and is never described as a settlement fee;
+  - core's half-contract void is removed: `legPayoutBase`, `winPayoutBase`, and per-side cost tracked in the replay ledger, split on a sale as the ledger splits it.
+- **User-visible:** a void returns "stake and fee", with P&L 0; a win is "paid in full · fee included in the stake"; Edge shows "Fees kept by the venue".
+- **Approval:** default; overrulable.
+
+### K-291 — A void verdict is priced from the ledger's own legs, and the first verdict is final (C9e/C13b)
+- **Date/owner:** 2026-10-06, C9e.
+- **Evidence:** the live run in §1; the announce-once live region.
+- **Rule:** a void's per-side refund comes from the seat's claimable legs, then from the settled round. With neither, the verdict waits rather than guessing. The verdict is derived only after the positions and, once the legs are gone, the history have answered.
+- **User-visible:** the void verdict and its announcement name the refund; the win is never announced as "+payout".
+- **Approval:** default; overrulable.
+
+### K-292 — A seat's own fills name the wallet as their taker (C9e/C13b)
+- **Date/owner:** 2026-10-06, C9e.
+- **Evidence:** §1, "Found broken".
+- **Rule:** `walletFills` returns only the seat's rows (by address, or its leased party from the lease's start), so `taker` is the wallet asked for.
+- **User-visible:** a guest seat's history, Edge, CSV, badges and verdict read the side it bought.
+- **Approval:** default; overrulable.
+
+### K-293 — A missing key is named in words, and a failed read is not "not configured" (C9e/C13b)
+- **Date/owner:** 2026-10-06, C13b.
+- **Evidence:** `LinkStep.test.ts` (the reference forbids variable names on screen); working-rules "Honest state" (name the gate).
+- **Rule:** X sign-in and the news wire name their gate in words ("the server's X app keys", "a Finnhub key"), never a variable name. A status read that failed says it could not be read, and is retried.
+- **User-visible:** `/trade-from-x`, `/claim`, `/news`, ticker headlines.
+- **Approval:** default; overrulable.
+
+### K-294 — A 24/7-only name's alert watches the 24/7 price at any hour (C9e/C13b)
+- **Date/owner:** 2026-10-06, C13b.
+- **Evidence:** BTC and ETH list only on the 24/7 lane (C6). The watcher's Regular gate kept their alerts asleep outside NYSE hours.
+- **Rule:** crypto, pre-IPO and basket names save on the 24/7 basis and are evaluated on a fresh tick (60 s) at any hour. A stock's 24/7 token basis stays as it was ("Arrives with the 24/7 token lane").
+- **User-visible:** the alert popover shows 24/7 selected for BTC and ETH and never says it waits for the open.
+- **Approval:** default; overrulable.
+
+### K-295 — The X builder offers BTC and ETH, and an unconfigured relay reads Disabled (C9e/C13b)
+- **Date/owner:** 2026-10-06, C13b.
+- **Evidence:** `packages/core/src/x/parse.ts` accepts BTC and ETH (C13a). The relay wrote no health without its keys.
+- **Rule:** `X_BUILDER_ASSETS` is the launch stocks plus BTC and ETH. With a store, the unconfigured relay marks all three stages "disabled" each heartbeat.
+- **User-visible:** `/trade-from-x` builder and relay status line.
+- **Approval:** default; overrulable.
+
+### K-296 — Season prizes reach a winner's live seat only; a claimable prize waits for a DAR release (C9e/C13b)
+- **Date/owner:** 2026-10-06, C9e.
+- **Evidence:** `services/ops/src/actors/arena-desk/seats.ts` (`partyOf` answers the live lease only). The duel drive's winners, whose seats it released, could not be paid. R1 is frozen (no Daml change in this lane).
+- **Rule:** for R1 the admin distributes while the ranked winners hold seats, and a winner without one is refused by ops (never paid to a recycled party). A later DAR release adds a claimable prize: for example `Season_Distribute` into per-winner prize contracts that the winner's next seat, proved by a signed key, claims.
+- **User-visible:** the prize note says "to the seat you hold at that moment" (C9e.7).
+- **Approval:** default; overrulable.
+
+### K-297 — The season countdown follows the pool on the ledger (C9e/C13b)
+- **Date/owner:** 2026-10-06, C9e.
+- **Evidence:** `SeasonPool.endsAtSec`; `Season_Distribute` refuses before it.
+- **Rule:** when the pool is read, its end is shown; `SEASON_ENDS_AT` is the fallback.
+- **User-visible:** the ladder's and hub's countdown.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
