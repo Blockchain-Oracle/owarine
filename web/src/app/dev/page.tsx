@@ -33,6 +33,7 @@ const FIXTURES = [
   { href: "/dev/seat", label: "Guest seat", note: "the seat menu leased and closing (party id, lease left, reset), pool full and draining plates, the seat link showing a code, expired and linked" },
   { href: "/dev/ticket-canton", label: "Ticket on Canton", note: "D-081: three directions for the write steps and the 20 s held price, each live and in four states (confirming, placed, no answer, price ran out)" },
   { href: "/dev/release", label: "Release config point", note: "the /download native cards and the demo film frame with nothing set (today) and with sample TestFlight, APK and film values" },
+  { href: "/dev/boundary", label: "Error boundary", note: "throws a real error from the browser's render or the server's (?throw=server) so the route boundary catches it" },
   { href: "/dev/proof-canton", label: "Proof on Canton", note: "resolution evidence as a timeline (open print, three oracle quotes, median and spread, resolved or voided with its reason) beside Re-verify, and the trust-boundary note" },
 ] as const;
 
