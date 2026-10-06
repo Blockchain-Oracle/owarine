@@ -204,6 +204,7 @@ describe("decodeTransaction on engine 0.4.0 templates", () => {
       kind: "receipt", contractId: "rcpt-1", owner: "alice::1220", marketKey: "BTC-5m:7", pairId: "", outcome: 0, resolved: 0, lots: "1", cashUnit: "1",
       backingShare: "5000000", cost: "5000000", payout: "12000000", fee: "0", product: "range",
       detail: { reserveId: "range", marketIds: ["BTC-5m:7"], pick: "Inside 100..200", stake: "5000000", toReserve: "0", result: "won" },
+      paidInto: null,
     });
     node = 0;
     expect(decodeTransaction(tx([exercised("PM.Publication:SettlementReceipt", "rcpt-1", "Receipt_Dismiss", true, 0)])).facts).toEqual([{ kind: "receipt-dismissed", contractId: "rcpt-1" }]);
@@ -218,7 +219,16 @@ describe("decodeTransaction on engine 0.4.0 templates", () => {
       }),
       created("PM.Publication:Publication", "pub-1", { venue: "venue::1220", owner: "bob::1220", handle: "bob", marketId: "BTC-5m:7", pairId: "", outcome: "SideUp", lots: "1", backingShare: "1", product: "parlay" }),
     ]));
-    expect(u.facts[0]).toMatchObject({ kind: "receipt", product: null, detail: null, resolved: null, outcome: 1 });
+    expect(u.facts[0]).toMatchObject({ kind: "receipt", product: null, detail: null, resolved: null, outcome: 1, paidInto: null });
     expect(u.facts[1]).toMatchObject({ kind: "publication", product: "parlay" });
+  });
+
+  it("abu-pm-main 0.5.2 (K-315): a private call's receipt names the private bucket its payout landed in", () => {
+    node = 0;
+    const u = decodeTransaction(tx([created("PM.Publication:SettlementReceipt", "rcpt-3", {
+      venue: "venue::1220", owner: "carol::1220", marketId: "BTC-5m:9", pairId: "p-9", outcome: "SideUp", resolved: "SideUp", lots: "10", cashUnit: "1000",
+      backingShare: "4700000", cost: "4770000", payout: "10000000", fee: "70000", product: null, detail: null, paidInto: "private",
+    })]));
+    expect(u.facts[0]).toMatchObject({ kind: "receipt", contractId: "rcpt-3", payout: "10000000", product: null, paidInto: "private" });
   });
 });

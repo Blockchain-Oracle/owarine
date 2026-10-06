@@ -252,6 +252,8 @@ export type IdxFact =
       fee: string;
       product: string | null;
       detail: IdxReceiptDetail | null;
+      /** abu-pm-main 0.5.2 (K-315): the bucket the payout landed in when not the public one (`private` for a private call). */
+      paidInto?: string | null;
     }
   | { kind: "receipt-dismissed"; contractId: string };
 

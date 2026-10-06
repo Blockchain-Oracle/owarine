@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { CLUSTER_ID } from "@agari/core/constants";
 import { formatCadence } from "@agari/core/copy";
 import {
+  PRIVATE_BUCKET,
   PRIVATE_LEG_REF,
   PRIVATE_MAX_STAKE_BASE,
   PRIVATE_MIN_STAKE_BASE,
@@ -17,19 +18,22 @@ import {
 } from "@agari/core/private";
 import { toMarketId } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
-import { getDb, privatePositions, type PrivatePositionRow } from "@agari/db";
+import { getDb, privatePositions } from "@agari/db";
 import { seatReceiptFor } from "@agari/markets/server";
 import { venueIdFromParty } from "@/app/api/venue/venue-facts";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { webEnv } from "@/lib/env";
 import type { SeatContext } from "@/lib/seat.server";
 import { seatServer } from "@/lib/ledger.server";
+import { positionOf } from "./position";
 
 /**
  * Private mode on Canton, the web's half (C8d, L-39; the model is `core/private/canton.ts`). The routes keep their
  * paths and act for the seat the lease names: the status names the venue as the desk; the balance reads the seat's
  * private bucket and its private calls; an open is the seat's own firm quote accepted with exactly its private cash and
- * tagged private; a cash-out asks ops to bring a settled call's payout home. Nothing here acts as the venue.
+ * tagged private. Since abu-pm-main 0.5.2 (K-315) the venue's settle pays a private call straight back into the private
+ * bucket and its receipt says so, so a cash-out has nothing to move; it still asks ops to bring home a call the 0.5.1
+ * engine paid into the seat's public balance. Nothing here acts as the venue.
  */
 
 const CASH_DECIMALS = 6;
@@ -58,16 +62,6 @@ export async function privateStatus(): Promise<PrivateStatus> {
   const paused = mode !== null && mode !== "open";
   const reasons = paused ? [`the venue is ${mode} by its operator: no new private calls; cash-outs and moving money out stay open`] : [];
   return { ...base, ready: !paused, reasons, desk: venue as PrivateStatus["desk"], contract: venue as PrivateStatus["contract"], paused };
-}
-
-function positionOf(r: PrivatePositionRow): PrivatePosition {
-  const status = r.dismissed === true ? "credited" : r.receipt_cid ? "settled" : "open";
-  const result = r.result === "won" || r.result === "lost" || r.result === "void" ? r.result : null;
-  return {
-    pairId: r.pair_id, marketId: r.market_key, asset: r.symbol ?? "", intervalSec: r.cadence_sec ?? 0, expirySec: Number(r.expiry_sec),
-    side: r.outcome === 0 ? "up" : "down", lots: r.lots, costBase: (BigInt(r.backing_share) + BigInt(r.fee_paid)).toString(), status, result,
-    payoutBase: r.payout, openedUpdateId: r.created_update_id, openedAtSec: Number(r.created_ts_sec),
-  };
 }
 
 export async function privateBalance(seat: SeatContext): Promise<PrivateBalanceReply> {
@@ -132,7 +126,10 @@ export async function openPrivate(seat: SeatContext, body: PrivateOpenRequest): 
   return { status: 200, result: { status: "placed", position, updateId: accepted.updateId, recovered: accepted.recovered } };
 }
 
-/** A settled private call's payout home: the seat's live receipt for that pair, dismissed as the payout moves back in. */
+/**
+ * A settled private call's payout home. 0.5.2 (K-315): the receipt says the payout already landed in the private bucket,
+ * so nothing moves ("done"). A 0.5.1 receipt: ops moves the payout back in and dismisses the receipt, once.
+ */
 export async function cashoutPrivate(seat: SeatContext, pairId: string, marketKey: string, journalId: string): Promise<{ status: number; result: PrivateCashoutResult | { error: string } }> {
   const { server, lease } = seat;
   const receipt = await seatReceiptFor(server.client, { party: lease.party, pairId, marketKey, fromOffset: lease.startOffset });
@@ -142,6 +139,7 @@ export async function cashoutPrivate(seat: SeatContext, pairId: string, marketKe
     if (open) return { status: 200, result: { status: "open", expirySec: Math.floor(open.refundAfterMs / 1000) } };
     return { status: 200, result: { status: "done", creditedBase: "0" } };
   }
+  if (receipt.paidInto === PRIVATE_BUCKET) return { status: 200, result: { status: "done", creditedBase: receipt.payoutBase.toString() } };
   const reply = await server.ops.privateMove({ party: lease.party, leaseId: lease.leaseId, requestId: journalId, op: "cashout", receiptCid: receipt.cid });
   if (reply.kind === "refused") return { status: 502, result: { error: reply.diagnosis.technical } };
   server.ledger.seats.invalidate(lease.party);

@@ -65,7 +65,11 @@ CREATE TABLE IF NOT EXISTS idx_dependents (
   PRIMARY KEY (product_cid, terms_cid)
 );
 CREATE INDEX IF NOT EXISTS idx_dependents_open_idx ON idx_dependents (terms_cid) WHERE closed_ts_sec IS NULL;
+
+-- Engine 0.5.2 (C2e, K-315): the bucket a settlement receipt's payout landed in when it is not the public one
+-- (\`SettlementReceipt.paidInto\`): \`private\` for a private call, paid straight back into the seat's private bucket.
+ALTER TABLE idx_receipts ADD COLUMN IF NOT EXISTS paid_into TEXT;
 `;
 
-/** Every in-place addition to the projection since the first Canton cut: engine 0.4.0's, then 0.5.1's. */
+/** Every in-place addition to the projection since the first Canton cut: engine 0.4.0's, then 0.5.1's and 0.5.2's. */
 export const INDEX_SCHEMA_ADDITIONS_SQL = `${INDEX_SCHEMA_0_4_SQL}\n${INDEX_SCHEMA_0_5_SQL}`;

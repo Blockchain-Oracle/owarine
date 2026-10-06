@@ -315,7 +315,7 @@ async function receipt(c: Ctx, f: Fact<"receipt">): Promise<void> {
   const row = {
     receipt_cid: f.contractId, owner_party: f.owner, market: marketIdOfKey(f.marketKey), market_key: f.marketKey, pair_id: f.pairId, outcome: f.outcome,
     resolved: f.resolved, lots: f.lots, cash_unit: f.cashUnit, backing_share: f.backingShare, cost: f.cost, payout: f.payout, fee: f.fee, product: f.product,
-    detail: f.detail === null ? null : c.tx.json(f.detail as unknown as postgres.JSONValue),
+    detail: f.detail === null ? null : c.tx.json(f.detail as unknown as postgres.JSONValue), paid_into: f.paidInto ?? null,
     created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec,
   };
   await c.tx`INSERT INTO idx_receipts ${c.tx(row)} ON CONFLICT (receipt_cid) DO NOTHING`;

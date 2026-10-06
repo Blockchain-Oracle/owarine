@@ -3,7 +3,10 @@
  * settled private call's payout home. Each is ONE transaction signed by the seat and the venue together: the seat
  * withdraws its own cash (`VenueCash_Withdraw`, exactly the amount, split first so nothing else moves) and the venue
  * credits the same amount into the other bucket (`VenueAccount_Credit`); a cash-out also dismisses the seat's settlement
- * receipt, so a call comes home once. The web sends WHO from the lease row (HMAC); ops refuses infrastructure parties.
+ * receipt, so a call comes home once. Since abu-pm-main 0.5.2 (K-315) the venue's settle pays a private call straight into
+ * the private bucket and its receipt says so (`paidInto = "private"`): such a receipt has nothing to cash out, and moving
+ * its payout again would take the seat's public cash, so it is refused. The web sends WHO from the lease row (HMAC); ops
+ * refuses infrastructure parties.
  * A way out is never refused by the venue mode: moving out and cashing out are not new risk.
  */
 import { createHash } from "node:crypto";
@@ -31,6 +34,8 @@ interface ReceiptData {
   venue: string;
   payout: bigint;
   pairId: string;
+  /** 0.5.2: the bucket the payout already landed in (`private`), or null for a 0.5.1 receipt that paid the public balance. */
+  paidInto: string | null;
 }
 
 export function privateMoveRoute(venue: VenueContext, log: (why: string) => void): InternalHandler | null {
@@ -57,8 +62,8 @@ export function privateMoveRoute(venue: VenueContext, log: (why: string) => void
     const acs = await readActive({ ...v!, party } as RoleSession, [TEMPLATE_IDS.SettlementReceipt]);
     const hit = acs.find((c) => c.createdEvent.contractId === cid && templateSuffix(c.createdEvent.templateId) === templateSuffix(TEMPLATE_IDS.SettlementReceipt));
     if (!hit) return null;
-    const a = hit.createdEvent.createArgument as Record<string, string>;
-    return { owner: a.owner!, venue: a.venue!, payout: BigInt(a.payout!), pairId: a.pairId! };
+    const a = hit.createdEvent.createArgument as Record<string, string | null>;
+    return { owner: a.owner!, venue: a.venue!, payout: BigInt(a.payout!), pairId: a.pairId!, paidInto: a.paidInto ?? null };
   }
 
   /** The atomic move: the seat's exact cash withdrawn, the venue's credit into `to`, plus any extra command (a dismissal). */
@@ -96,6 +101,7 @@ export function privateMoveRoute(venue: VenueContext, log: (why: string) => void
         if (typeof b.receiptCid !== "string") return refused("unknown", "receiptCid is required");
         const r = await receiptOf(party, b.receiptCid);
         if (!r || r.owner !== party || r.venue !== v.party) return refused("already-claimed", "no live settlement receipt of this seat by that id (cashed out already?)");
+        if (r.paidInto === PRIVATE_BUCKET) return refused("already-claimed", "this call's payout was paid into the private bucket when it settled (abu-pm-main 0.5.2): nothing to cash out");
         const updateId = await move(party, commandId, r.payout, publicCash, PRIVATE_BUCKET, [cmd.dismissReceipt(b.receiptCid)]);
         log(`private cash-out ${r.payout} for ${party.split("::")[0]} (pair ${r.pairId.slice(0, 8)}) · ${updateId.slice(0, 16)}…`);
         return { status: 200, body: { kind: "moved", op, amountBase: r.payout.toString(), updateId, recovered: false } };
