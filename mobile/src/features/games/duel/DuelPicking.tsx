@@ -83,7 +83,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
                     <Text style={[styles.v, { color: color.ink }]}>{card?.asset ?? "—"}</Text>
                     <Key>{receipt.pick}</Key>
                     <Text style={[styles.foot, { color: color.inkSecondary }]}>
-                      {DUEL.picking.filled(receipt.quantity.toString(), money(receipt.costBase), p.symbol)}
+                      {DUEL.picking.filled(money(receipt.quantity), money(receipt.costBase), p.symbol)}
                       {p.autoPlayed.includes(receipt.cardIndex) ? ` · ${DUEL.picking.autoPlayed}` : ""}
                     </Text>
                   </View>

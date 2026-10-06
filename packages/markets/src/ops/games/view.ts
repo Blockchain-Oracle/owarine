@@ -59,6 +59,13 @@ function masksOf(picks: readonly PickC[], deckSize: number): { pickedMask0: numb
   return { pickedMask0, pickedMask1, settledMask };
 }
 
+/**
+ * A pick's quantity: what its leg pays on a win, `quantityOf lots cashUnit` in `PM.Leg` (`lots * 1000 * cashUnit`), the
+ * same base units as a quote's `contractsRaw`. It read `lots * cashUnit` until C11c, a thousandth of the payout, so the
+ * duel's "Your picks" line said "19000 for 0.95 credits" for 19 contracts.
+ */
+export const pickQuantityOf = (lots: bigint, cashUnit: bigint): bigint => lots * 1000n * cashUnit;
+
 export function arenaPickOf(p: PickC): ArenaPick {
   return {
     cardIndex: p.cardIndex,
@@ -66,7 +73,7 @@ export function arenaPickOf(p: PickC): ArenaPick {
     placed: true,
     settled: p.payout !== null,
     pick: p.leg.outcome === "SideUp" ? "up" : "down",
-    quantity: p.leg.lots * p.leg.cashUnit,
+    quantity: pickQuantityOf(p.leg.lots, p.leg.cashUnit),
     costBase: p.cost,
     payoutBase: p.payout ?? 0n,
   };

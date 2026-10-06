@@ -85,6 +85,13 @@ export function BottomDrawer({ onClose, children, background, border, contentSty
     (after?: () => void) => {
       if (closing.current) return;
       closing.current = true;
+      // Asked to close before its first layout (the seat sheet opened on a phone that already holds a seat): nothing
+      // is on screen yet, so it leaves at once. Animating here lost to onLayout's opening spring, the latch stayed set,
+      // and every later Close, drag or "Look around first" was ignored (C11c).
+      if (!opened.current) {
+        finish(after);
+        return;
+      }
       scrim.value = withTiming(0, OUT);
       drag.value = withTiming(reduce ? drag.value : height.value + insets.bottom, OUT, (done) => {
         if (done) runOnJS(finish)(after);
@@ -105,7 +112,7 @@ export function BottomDrawer({ onClose, children, background, border, contentSty
 
   const onLayout = (e: LayoutChangeEvent) => {
     height.value = e.nativeEvent.layout.height;
-    if (opened.current) return;
+    if (opened.current || closing.current) return;
     opened.current = true;
     scrim.value = withTiming(1, { duration: 200 });
     if (reduce) drag.value = 0;
