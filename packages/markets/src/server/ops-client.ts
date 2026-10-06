@@ -9,6 +9,7 @@
  * The season admin's two routes (`OPS_ADMIN_PATHS`) are signed with their own secret, `OPS_ADMIN_SECRET`, never the
  * web's: a web host that leaks `OPS_INTERNAL_SECRET` still cannot pay a season out.
  */
+import { opsPrivateMoveReplyWire, type OpsPrivateMoveReply, type OpsPrivateMoveRequest } from "@agari/core/private";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { diagnosis, diagnosisSchema, type Diagnosis } from "@agari/core/types";
 import { z } from "zod";
@@ -276,6 +277,13 @@ export function createOpsClient(cfg: OpsClientConfig) {
     async gameOpen(request: { matchId: string; party: string; address: string }): Promise<DuelOpenArgs> {
       const r = parsed(await post(`${OPS_GAMES_PREFIX}open`, request), duelOpenArgsWire, "duel open");
       return r.ok ? r.value : { kind: "refused", diagnosis: r.diagnosis };
+    },
+    /** C8d (L-39): the seat's private bucket — in, out, or a settled private call's payout home — as one seat-and-venue transaction. */
+    async privateMove(request: OpsPrivateMoveRequest): Promise<OpsPrivateMoveReply> {
+      const r = await post("/internal/private/move", request);
+      if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };
+      const parsed = opsPrivateMoveReplyWire.safeParse(r.json);
+      return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown("ops private-move reply did not parse") };
     },
     async fundSeat(request: { party: string; leaseId: string; address: string }): Promise<SeatFundReply> {
       const r = await post(OPS_SEAT_FUND_PATH, request);

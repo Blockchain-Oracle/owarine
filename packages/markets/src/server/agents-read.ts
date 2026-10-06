@@ -3,6 +3,7 @@
  * `AgentGrant`s and cash, and the venue's registry (listings, the creator-signed strategies it observes, and how many
  * live consents each has). Shared by the web's seat routes and ops' actors, so both read the same contracts the same way.
  */
+import { PRIVATE_BUCKET } from "@agari/core/private";
 import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import type { ActiveContract, DisclosedContract, LedgerClient, Party } from "@agari/ledger";
 import { activeOf, decodeVenueCash, templateSuffix, timeSec, type Active, type VenueCashC } from "../ops/canton/decode";
@@ -73,7 +74,7 @@ export function toAgentsSnapshot(party: Party, all: readonly ActiveContract[], o
       // skip
     }
   }
-  const cash = bucket<VenueCashC>(contracts, TEMPLATE_IDS.VenueCash, decodeVenueCash).filter((c) => c.data.owner === party).map((c) => ({ cid: c.cid, amount: c.data.amount }));
+  const cash = bucket<VenueCashC>(contracts, TEMPLATE_IDS.VenueCash, decodeVenueCash).filter((c) => c.data.owner === party && c.data.bucket !== PRIVATE_BUCKET).map((c) => ({ cid: c.cid, amount: c.data.amount }));
   return {
     party,
     offset,

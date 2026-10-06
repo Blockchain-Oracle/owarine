@@ -9,6 +9,9 @@
  * `DUPLICATE_COMMAND`. So a missing quote is first checked against this command's own completion: a retry of a landed
  * accept is answered with its original transaction, never as "expired".
  */
+import { PRIVATE_LEG_REF } from "@agari/core/private";
+import { withdrawCash } from "../ops/canton/commands";
+import { exactCash } from "./exact-cash";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { LedgerError, type Command, type CreatedEvent, type DisclosedContract, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
 import type { BookedOrder } from "@agari/core/ports";
@@ -238,8 +241,11 @@ export function createSeatWriter(deps: SeatWriteDeps, kit: SeatCommandKit = seat
       const cost = quote.lots * quote.priceTicks * quote.cashUnit + quote.fee;
       const row = await journal.begin({ commandId, leaseId: actor.leaseId, party: actor.party, kind: "accept", beginOffset: snap.offset, deadlineMs: quote.validUntilMs }, now());
 
+      // C8d (L-39): a private call pays from the private bucket only, split to exactly its cost (no change to leak).
+      const privateCall = o.beneficiaryRef === PRIVATE_LEG_REF;
+      const privateExact = () => exactCash({ client, cashOf: async (p) => (await seats.read(p, { fresh: true })).privateCash ?? [] }, actor.party, o.journalId, cost, "private", "the private call");
       const acceptWith = async (cash: readonly { cid: string; amount: bigint }[]) => {
-        const cashCids = selectCash(cash, cost);
+        const cashCids = privateCall ? [await privateExact()] : selectCash(cash, cost);
         if (!cashCids) throw refuse("insufficient-collateral", `the seat holds ${cash.reduce((s, c) => s + c.amount, 0n)} and the call costs ${cost}`);
         const command: Command = { ExerciseCommand: { templateId: TEMPLATE_IDS.Quote, contractId: quote.cid, choice: "Quote_Accept", choiceArgument: { cash: cashCids, beneficiaryRef: o.beneficiaryRef ?? null } } };
         return submit(actor, row, [command], [], { step: "accept", quoteCid: quote.cid, cashCids });
@@ -322,7 +328,8 @@ export function createSeatWriter(deps: SeatWriteDeps, kit: SeatCommandKit = seat
       if (earlier) return { kind: "confirmed", updateId: earlier.updateId as Signature, payoutBase: paidTo(earlier, actor.party), legs: 0, recovered: true };
 
       const snap = await seats.read(actor.party, { fresh: true });
-      const legs = snap.legs.filter((l) => l.marketId === o.marketId);
+      // A way out is never narrowed: a private call (C8d) claims and refunds stale like any other leg of the seat.
+      const legs = [...snap.legs, ...(snap.privateLegs ?? [])].filter((l) => l.marketId === o.marketId);
       if (legs.length === 0) {
         const landed = await landedTx(prior, actor.party);
         if (landed) return { kind: "confirmed", updateId: landed.updateId as Signature, payoutBase: paidTo(landed, actor.party), legs: 0, recovered: true };
@@ -375,14 +382,15 @@ export function createSeatWriter(deps: SeatWriteDeps, kit: SeatCommandKit = seat
     return { status: "pending", updateId: null, diagnosis: row.diagnosis };
   }
 
-  /** Recycling a drained seat: every `VenueCash` it still holds is withdrawn (its owner's own choice). */
+  /** Recycling a drained seat: every `VenueCash` it still holds, its private bucket too (C8d), is withdrawn (its owner's own choice). */
   async function sweepCash(party: Party, tag: string): Promise<number> {
     const snap = await seats.read(party, { fresh: true });
-    if (snap.cash.length === 0) return 0;
-    const commands: Command[] = snap.cash.map((c) => ({ ExerciseCommand: { templateId: TEMPLATE_IDS.VenueCash, contractId: c.cid, choice: "VenueCash_Withdraw", choiceArgument: {} } }));
+    const all = [...snap.cash, ...(snap.privateCash ?? [])];
+    if (all.length === 0) return 0;
+    const commands: Command[] = all.map((c) => withdrawCash(c.cid));
     await client.submitAndWaitForTransaction({ actAs: [party], commandId: `sweep:${tag}`, commands });
     seats.invalidate(party);
-    return snap.cash.length;
+    return all.length;
   }
 
   return { accept, sell, exitLegs, status, sweepCash };

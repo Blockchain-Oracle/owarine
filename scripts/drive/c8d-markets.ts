@@ -6,7 +6,8 @@
  *   basket, valuation   C8d (`drive/c8d/baskets.ts`)
  *   venue-mode          C-DAML-02 (`drive/c8d/venue-mode.ts`; needs OPS_ADMIN_SECRET, ops' own)
  *   products, knockout  C-OPS-09, C-DAML-03 (`drive/c8d/products.ts`; needs DATABASE_URL, the projection)
- *   strategies          L-57, A-3b, L-54 (`drive/c8d/strategies.ts`)
+ *   strategies, mirror  L-57, A-3b, L-54 (`drive/c8d/strategies.ts`)
+ *   private             L-39 (`drive/c8d/private.ts`)
  *
  *   LEDGER_JSON_API_URL=http://localhost:7604 AGARI_PARTIES_FILE=<parties.json> \
  *     pnpm --filter @agari/scripts exec tsx drive/c8d-markets.ts --web http://localhost:3160 --ops http://localhost:8760 [--only basket,valuation]
@@ -20,13 +21,14 @@ import { acceptanceRow, errorEvidence, failed, table, type CheckRow } from "../b
 import { arg } from "./cli";
 import { webClient } from "./first-call/seat";
 import { runBaskets, runValuation } from "./c8d/baskets";
+import { runPrivate } from "./c8d/private";
 import { runKnockout, runProducts } from "./c8d/products";
 import { runMirror, runStrategies } from "./c8d/strategies";
 import { runVenueMode } from "./c8d/venue-mode";
 import { ledgerKit, readParties, rolesOf, type Ctx } from "./c8d/common";
 
 const REPO = resolve(import.meta.dirname, "..", "..");
-const PARTS: Record<string, (ctx: Ctx) => Promise<void>> = { basket: runBaskets, valuation: runValuation, "venue-mode": runVenueMode, products: runProducts, knockout: runKnockout, strategies: runStrategies, mirror: runMirror };
+const PARTS: Record<string, (ctx: Ctx) => Promise<void>> = { basket: runBaskets, valuation: runValuation, "venue-mode": runVenueMode, products: runProducts, knockout: runKnockout, strategies: runStrategies, mirror: runMirror, private: runPrivate };
 const only = arg("--only", Object.keys(PARTS).join(",")).split(",").map((s) => s.trim()).filter(Boolean);
 const commit = (() => {
   try {

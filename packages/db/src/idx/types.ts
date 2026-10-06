@@ -160,6 +160,8 @@ export type IdxFact =
       quoteCid: string | null;
       /** 0.5.1: the leg came from a resting call's fill: an ordinary accept-origin position, and the seat's activity says so. */
       resting?: boolean;
+      /** The user's own tag on the leg (`beneficiaryRef`): `private` for a private call (C8d), `grant`, a duel's pick. */
+      ref?: string | null;
     }
   | {
       /**

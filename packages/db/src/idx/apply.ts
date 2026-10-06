@@ -235,7 +235,7 @@ async function leg(c: Ctx, f: Fact<"leg">): Promise<void> {
   const row = {
     leg_cid: f.contractId, market, terms_cid: f.termsCid, owner_party: f.owner, is_venue: isVenue, pair_id: f.pairId, outcome: f.outcome,
     lots: f.lots, cash_unit: f.cashUnit, backing_share: f.backingShare, fee_paid: f.feePaid, refund_after_sec: f.refundAfterSec, origin: f.origin,
-    created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec,
+    created_update_id: c.u.updateId, created_offset: c.u.offset, created_ts_sec: c.tsSec, beneficiary_ref: f.ref ?? null,
   };
   const inserted = await c.tx`INSERT INTO idx_legs ${c.tx(row)} ON CONFLICT (leg_cid) DO NOTHING RETURNING 1`;
   if (inserted.length === 0 || isVenue) return;

@@ -1,84 +1,39 @@
-import { formatCadence } from "@agari/core/copy";
-import { privateOpenMessage, privateOpenRequestSchema } from "@agari/core/private";
-import { toMarketId } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { getCollateral, marketsProvider } from "@agari/markets";
-import { openPrivateBet } from "@agari/markets/private";
+import { privateOpenRequestSchema } from "@agari/core/private";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getDesk } from "@/features/private/desk.server";
-import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
-import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
+import { openPrivate } from "@/features/private/canton.server";
 import { gate } from "@/features/session/sponsor.server";
 import { rateLimitKey } from "@/lib/client-ip.server";
+import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
+import { jsonBody, seatFromRequest } from "@/lib/seat.server";
 
 /**
- * Open a private bet. Proof that the caller IS the owner comes first: the route rebuilds the exact message
- * the wallet showed — from the chain's own Window, not the caller's strings — and checks the signature
- * against `owner` (ed25519 over the exact UTF-8 text, D-012). Without this the endpoint would be a faucet for whoever
- * can send a POST.
+ * Open a private call (C8d, L-39). The seat's lease says whose it is; the owner's signature over the exact bet (the
+ * route rebuilds the message from the projection's own Window) says the owner meant this one. The call is the seat's
+ * own firm quote from the venue, accepted with exactly its private cash and tagged private on the ledger; the command
+ * id derives from the signature, so re-sending the same authorisation resumes it and never charges twice.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
 const refuse = (status: number, error: string) => NextResponse.json({ error }, { status });
-/** A refused open costs the desk sends and the caller nothing, so opens are gated per owner and per address like the sponsor's calls. */
+/** A refused open costs nothing, so opens are gated per owner and per address like the sponsor's calls. */
 const OPENS_PER_OWNER_PER_HOUR = 20;
 const OPENS_PER_IP_PER_HOUR = 60;
 
-export async function POST(req: Request) {
-  // The geofence comes before any key, balance or co-signature (D-095).
-  if (regionRestricted(req)) return regionRestrictedResponse();
-  const parsed = privateOpenRequestSchema.safeParse(await req.json().catch(() => null));
+export async function POST(request: NextRequest) {
+  // The geofence comes before any key, balance or quote (D-095).
+  if (regionRestricted(request)) return regionRestrictedResponse();
+  const auth = await seatFromRequest(request, { write: true });
+  if (!auth.ok) return auth.response;
+  const parsed = privateOpenRequestSchema.safeParse(await jsonBody(request));
   if (!parsed.success) return refuse(400, "malformed private open request");
-  const body = parsed.data;
-  // One authorisation, one byte form: base58 has a single encoding per byte string, and ed25519 verification rejects a
-  // non-canonical `s`, so a malleated twin of the same signature can't become a second slot.
-  const signature = body.signature;
   const nowMs = Date.now();
-  const byOwner = gate("address", body.owner, OPENS_PER_OWNER_PER_HOUR, nowMs);
+  const byOwner = gate("address", parsed.data.owner, OPENS_PER_OWNER_PER_HOUR, nowMs);
   if (!byOwner.ok) return refuse(429, byOwner.reason);
-  const ip = rateLimitKey(req);
-  const byIp = gate("device", ip, OPENS_PER_IP_PER_HOUR, nowMs);
+  const byIp = gate("device", rateLimitKey(request), OPENS_PER_IP_PER_HOUR, nowMs);
   if (!byIp.ok) return refuse(429, byIp.reason);
-
-  const desk = await getDesk().catch(() => null);
-  if (!desk) return refuse(503, "no desk key is configured on this deployment (PRIVATE_DESK_PRIVATE_KEY)");
-  const contract = await desk.contract();
-  if (!contract) return refuse(503, "There is no private desk on this network yet");
-  const market = await marketsProvider.getMarket(toMarketId(body.marketId));
-  if (!market.ok) return refuse(502, "could not read the Window right now");
-  if (!market.value) return refuse(404, "no such Window");
-  const collateral = getCollateral();
-  const stakeBase = BigInt(body.stakeBase);
-  const message = privateOpenMessage({
-    owner: body.owner,
-    contract,
-    chainId: desk.chainId,
-    marketId: market.value.marketId,
-    asset: market.value.asset,
-    cadenceText: formatCadence(market.value.intervalSec),
-    expirySec: market.value.expirySec,
-    side: body.side,
-    // Exact to the base unit, so the prompt and the charge can never differ by what a rounding hid.
-    stakeText: formatBaseUnits(stakeBase, collateral.decimals, { maxDp: collateral.decimals, minDp: 0, group: false }),
-    symbol: collateral.symbol,
-    issuedAtMs: body.issuedAtMs,
-  });
-  const authorised = await verifyWalletMessage({ text: message, signature, signer: body.owner });
-  if (!authorised) return refuse(401, "authorisation was not signed by the owner");
-
-  const result = await openPrivateBet(desk, {
-    owner: body.owner,
-    marketId: market.value.marketId,
-    side: body.side,
-    stakeBase,
-    minQuantityRaw: BigInt(body.minQuantityRaw),
-    authSignature: signature,
-    issuedAtMs: body.issuedAtMs,
-    asset: market.value.asset,
-    intervalSec: market.value.intervalSec,
-    expirySec: market.value.expirySec,
-  });
-  return NextResponse.json(result);
+  const { status, result } = await openPrivate(auth.seat, parsed.data);
+  return NextResponse.json(result, { status });
 }

@@ -122,8 +122,8 @@ export interface PrivateTicket {
 export interface PrivateStatus {
   ready: boolean;
   reasons: string[];
-  /** Honest about what the route is: a desk-signed slot, not an attested enclave, not a mixer. */
-  mode: "desk-signed-slot";
+  /** Honest about what the route is: the reference's desk-signed slot, or on Canton the seat's private bucket (C8d). */
+  mode: "desk-signed-slot" | "venue-bucket";
   desk: Address | null;
   contract: Address | null;
   chainId: number;
@@ -134,6 +134,8 @@ export interface PrivateStatus {
 
 export type PrivateOpenResult =
   | { status: "opened"; ticket: PrivateTicket }
+  /** Canton (C8d): the call is the seat's own leg, tagged private; the ledger is its record, so there is no claim to keep. */
+  | { status: "placed"; position: import("./canton").PrivatePosition; updateId: string; recovered: boolean }
   /** The book refused the mint; the stake went straight back to the private balance. */
   | { status: "refused"; reason: string; technical: string; refundedBase: string; txs: Partial<{ charge: Signature; fund: Signature; sweep: Signature; credit: Signature }> }
   | { status: "unknown"; reason: string; txs: Partial<{ charge: Signature; fund: Signature; mint: Signature }> };

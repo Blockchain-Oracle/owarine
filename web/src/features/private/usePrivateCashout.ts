@@ -1,51 +1,50 @@
 "use client";
 
-import type { PrivateCashoutResult, PrivateTicket } from "@agari/core/private";
+import { privateRequestId, type PrivateCashoutResult, type PrivatePosition } from "@agari/core/private";
 import type { Address } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
+import { ledgerBase, seatAuthHeaders } from "@agari/markets";
 import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { notify } from "@/lib/toast";
-import { upsertPrivateTicket } from "./claims-store";
+import { useWalletSession } from "@/lib/wallet-session";
 import { PRIVATE } from "./copy";
 
-/** Presents the claim and nothing else; the reply says where the money went, and the stored row follows it. */
+/**
+ * Cash out one settled private call (C8d): the seat names it, the route brings its payout home into the private bucket
+ * and dismisses its receipt in one transaction. The reply says where the money went; the list re-reads the ledger.
+ */
 export function usePrivateCashout(refresh: () => void, decimals: number, symbol: string) {
   const queryClient = useQueryClient();
+  const { address } = useWalletSession();
   const [busySlot, setBusySlot] = useState<string | null>(null);
 
   const cashOut = useCallback(
-    async (ticket: PrivateTicket): Promise<PrivateCashoutResult | null> => {
-      setBusySlot(ticket.claim.slotId);
+    async (position: PrivatePosition): Promise<PrivateCashoutResult | null> => {
+      setBusySlot(position.pairId);
       try {
-        const res = await fetch("/api/private/cashout", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ claim: ticket.claim, signature: ticket.signature }) });
+        const url = `${ledgerBase(true)}/private/cashout`;
+        const body = JSON.stringify({ commandId: privateRequestId(), pairId: position.pairId, marketId: position.marketId });
+        const res = await fetch(url, { method: "POST", credentials: "include", headers: { "content-type": "application/json", ...(await seatAuthHeaders({ method: "POST", url, body })) }, body });
         const json = (await res.json().catch(() => null)) as (PrivateCashoutResult & { error?: string }) | { error?: string } | null;
         if (!res.ok || !json || !("status" in json)) {
           notify.warning(PRIVATE.claims.cashOut, (json && "error" in json && json.error) || `private route answered ${res.status}`);
           return null;
         }
-        if (json.status === "open") {
-          notify.neutral(PRIVATE.toasts.stillOpen);
-        } else if (json.status === "credited") {
+        if (json.status === "open") notify.neutral(PRIVATE.toasts.stillOpen);
+        else if (json.status === "credited") {
           const payout = BigInt(json.payoutBase);
-          upsertPrivateTicket({ ...ticket, status: "credited", payoutBase: json.payoutBase, creditedBase: json.creditedBase, creditedAtMs: Date.now(), ...(json.txs.credit ? { creditTx: json.txs.credit } : {}) });
-          if (payout > 0n) notify.neutral(PRIVATE.toasts.cashedOut(formatBaseUnits(BigInt(json.creditedBase), decimals), symbol));
-          else notify.neutral(PRIVATE.toasts.lost);
-        } else {
-          // Already home — from another browser, or an earlier tap. This browser never saw the settlement, so it
-          // records what reached the balance and claims nothing about the outcome it did not witness.
-          upsertPrivateTicket({ ...ticket, status: "credited", creditedBase: json.creditedBase, creditedAtMs: ticket.creditedAtMs ?? Date.now() });
-          notify.neutral(PRIVATE.toasts.alreadyHome);
-        }
+          notify.neutral(payout > 0n ? PRIVATE.toasts.cashedOut(formatBaseUnits(payout, decimals), symbol) : PRIVATE.toasts.lost);
+        } else notify.neutral(PRIVATE.toasts.alreadyHome);
         refresh();
-        await invalidateAfterWrite(queryClient, { wallet: ticket.claim.owner as Address });
+        if (address) await invalidateAfterWrite(queryClient, { wallet: address as Address });
         return json;
       } finally {
         setBusySlot(null);
       }
     },
-    [queryClient, refresh, decimals, symbol],
+    [address, queryClient, refresh, decimals, symbol],
   );
 
   return { cashOut, busySlot };

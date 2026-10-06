@@ -12,6 +12,8 @@ export { publishedOn } from "./idx/read-publications";
 export { publishedFills, publishedReceipts } from "./idx/read-published";
 // C8d (C-DAML-03): product dependents, counted in the projection.
 export { openDependentSpans, openDependents, quoteIsCited, type DependentSpan } from "./idx/read-dependents";
+// C8d (L-39): a seat's private calls under its lease.
+export { privatePositions, type PrivatePositionRow } from "./idx/read-private";
 export { venueStats, type VenueStatsRow } from "./idx/read-venue-stats";
 export { latestRecount, recordRecount, type RecountRow } from "./audit";
 export { cursorHead, oracleFreshness, pipelineBacklog, type BacklogRow, type CursorHeadRow, type OracleFreshRow } from "./idx/read-status-canton";

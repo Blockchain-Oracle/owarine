@@ -56,6 +56,7 @@ import { startVolMeter } from "../../prices/vol-meter";
 import { createVenueContext, type VenueContext } from "./context";
 import { loadVenueMode } from "../../runtime/venue-mode";
 import { OPS_VENUE_MODE_PATH, venueModeRoute } from "./mode-route";
+import { OPS_PRIVATE_MOVE_PATH, privateMoveRoute } from "./private-route";
 
 export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents", "maker", "resting"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
@@ -139,6 +140,9 @@ export async function startCantonVenue(input: {
   if (resting) routes["/internal/resting-offers"] = resting.handle;
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);
   routes[OPS_VENUE_MODE_PATH] = venueModeRoute(input.log("venue-mode"));
+  // C8d (L-39): the seat's private bucket, moved by the seat and the venue together.
+  const privateMove = on("funding") ? privateMoveRoute(venue, input.log("private")) : null;
+  if (privateMove) routes[OPS_PRIVATE_MOVE_PATH] = privateMove;
   return {
     venue, board, pool,
     internal: { secret: input.internalSecret ?? process.env.OPS_INTERNAL_SECRET ?? null, adminSecret: process.env.OPS_ADMIN_SECRET?.trim() || null, routes },

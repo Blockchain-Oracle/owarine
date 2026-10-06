@@ -4,6 +4,7 @@ import { formatCadence } from "@agari/core/copy";
 import { privateOpenMessage, type PrivateOpenRequest, type PrivateOpenResult } from "@agari/core/private";
 import type { Address, EventMarket, Side } from "@agari/core/types";
 import { formatBaseUnits } from "@agari/core/units";
+import { ledgerBase, seatAuthHeaders } from "@agari/markets";
 import { sizePrivateForStake } from "@agari/markets/private";
 import { invalidateAfterWrite } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,7 +12,6 @@ import { useCallback, useEffect, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { recordBet } from "@/features/room/record-bet";
-import { upsertPrivateTicket } from "./claims-store";
 
 /**
  * An authorisation the desk has not answered definitively yet, kept per owner across reloads. Its signature
@@ -80,7 +80,11 @@ class PrivateOpenRefused extends Error {
 }
 
 async function post(body: PrivateOpenRequest): Promise<PrivateOpenResult> {
-  const res = await fetch("/api/private/open", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  // C8d: the open is a seat write, so it carries the seat's write proof (the cookie's CSRF rule on the web, the signed
+  // header on the phone) like every other seat route.
+  const url = `${ledgerBase(true)}/private/open`;
+  const text = JSON.stringify(body);
+  const res = await fetch(url, { method: "POST", credentials: "include", headers: { "content-type": "application/json", ...(await seatAuthHeaders({ method: "POST", url, body: text })) }, body: text });
   const json = (await res.json().catch(() => null)) as (PrivateOpenResult & { error?: string }) | { error?: string } | null;
   if (!res.ok || !json || !("status" in json)) {
     throw new PrivateOpenRefused((json && "error" in json && json.error) || `private route answered ${res.status}`, res.status);
@@ -127,11 +131,8 @@ export function usePrivateOpen() {
         } else {
           writePending(owner, null);
           setPending(null);
-          if (result.status === "opened") {
-            upsertPrivateTicket(result.ticket);
-            // The desk holds the position, so the wallet never shows one: the registry is how the Room learns of it.
-            recordBet(entry.request.marketId, owner, result.ticket.txs.mint, "private");
-          }
+          // The private list reads the ledger (C8d); the Room learns of the call through the bet registry.
+          if (result.status === "placed") recordBet(entry.request.marketId, owner, result.updateId as Parameters<typeof recordBet>[2], "private");
           await invalidateAfterWrite(queryClient, { wallet: owner as Address, marketId: entry.request.marketId as EventMarket["marketId"] });
         }
         return result;

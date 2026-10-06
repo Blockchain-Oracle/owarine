@@ -12,6 +12,8 @@ import { submitArenaPickWrite, submitArenaTx } from "../games/write";
 import type { LeverageOpenOutcome } from "../leverage";
 import { leverageOpenLane, leverageTxLane } from "../leverage/writes";
 import { submitMakerTx } from "../maker/writes";
+import type { PrivateIntent } from "@agari/core/private";
+import { submitPrivateTx } from "../private/writes";
 import type { ParlayOpenOutcome } from "../parlay";
 import { parlayOpenLane, parlayTxLane } from "../parlay/writes";
 import type { RangeOpenOutcome } from "../range";
@@ -116,6 +118,8 @@ export function createSubmitter(deps: SubmitterDeps): MarketsSubmitter {
         if (intent.kind.startsWith("arena-")) return submitArenaTx(lane, intent as ArenaIntent, onPhase);
         // C2d: the maker vault (abu-pm-main 0.5.0): supply and withdraw quotes, and its merge / settle cranks.
         if (intent.kind.startsWith("maker-")) return submitMakerTx(lane, intent as MakerIntent, onPhase);
+        // C8d (L-39): the seat's private bucket, moved by the seat and the venue together through `/api/private/balance`.
+        if (intent.kind.startsWith("private-")) return submitPrivateTx(lane, intent as PrivateIntent, onPhase);
         return { status: "refused" as const, diagnosis: notDeployed(PRODUCTS_NOT_LIVE) };
       }),
     submitOrder: (request, onPhase) => {

@@ -43,6 +43,9 @@ CREATE INDEX IF NOT EXISTS idx_resting_market_idx ON idx_resting (market, status
 -- A fill that came from a resting call, not from a firm quote: the seat's own activity reads it as "your resting call filled".
 ALTER TABLE idx_fills ADD COLUMN IF NOT EXISTS resting BOOLEAN NOT NULL DEFAULT false;
 
+-- C8d (L-39): the user's own tag on a leg (\`beneficiaryRef\`): \`private\` marks a private call, read only by its own seat.
+ALTER TABLE idx_legs ADD COLUMN IF NOT EXISTS beneficiary_ref TEXT;
+
 -- C8d (C-DAML-03): the products that pin a Window's terms (abu-pm-tickets 0.1.3: RangeRound, each undecided leg of a
 -- ParlayTicket, BoostPosition), one row per (product contract, terms). Open while closed_ts_sec is null. Settlement and
 -- quote retention read the open count here, in the projection, never on the ledger (plan "Products and programs").

@@ -1,30 +1,26 @@
-import { privateCashoutRequestSchema, type PrivateClaim } from "@agari/core/private";
-import { toMarketId } from "@agari/core/types";
-import { cashOutPrivateBet, ClaimRefusedError, publicReason } from "@agari/markets/private";
+import { privateCantonCashoutRequestWire } from "@agari/core/private";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getDesk } from "@/features/private/desk.server";
+import { z } from "zod";
+import { cashoutPrivate } from "@/features/private/canton.server";
+import { jsonBody, seatFromRequest } from "@/lib/seat.server";
 
 /**
- * Cash out a private bet, presented the claim and nothing else. The owner and every bet parameter live
- * INSIDE the signed bytes, so there is nothing here worth lying about: a forged or edited claim fails the
- * signature check against the key the contract pins.
+ * Cash out a private call (C8d, L-39): once the venue settled it, its payout moves back into the seat's private bucket
+ * and its settlement receipt is dismissed in the same transaction, so each call comes home once. Before settlement the
+ * answer is "open" and nothing moves. The lease says whose call it is; the body only names it.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-const refuse = (status: number, error: string) => NextResponse.json({ error }, { status });
+const bodyWire = privateCantonCashoutRequestWire.extend({ commandId: z.uuid() });
 
-export async function POST(req: Request) {
-  const parsed = privateCashoutRequestSchema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return refuse(400, "malformed private cash-out request");
-  const desk = await getDesk().catch(() => null);
-  if (!desk) return refuse(503, "no desk key is configured on this deployment (PRIVATE_DESK_PRIVATE_KEY)");
-  try {
-    const claim: PrivateClaim = { ...parsed.data.claim, marketId: toMarketId(parsed.data.claim.marketId) };
-    return NextResponse.json(await cashOutPrivateBet(desk, claim, parsed.data.signature));
-  } catch (error) {
-    if (error instanceof ClaimRefusedError) return refuse(403, error.message);
-    return refuse(502, publicReason(error instanceof Error ? error.message : String(error)));
-  }
+export async function POST(request: NextRequest) {
+  const auth = await seatFromRequest(request, { write: true });
+  if (!auth.ok) return auth.response;
+  const parsed = bodyWire.safeParse(await jsonBody(request));
+  if (!parsed.success) return NextResponse.json({ error: "expected {commandId, pairId, marketId}" }, { status: 400 });
+  const { status, result } = await cashoutPrivate(auth.seat, parsed.data.pairId, parsed.data.marketId, parsed.data.commandId);
+  return NextResponse.json(result, { status });
 }

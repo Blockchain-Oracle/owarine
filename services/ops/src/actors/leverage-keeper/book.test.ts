@@ -1,9 +1,10 @@
+import type { PriceQuoteC } from "@agari/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import { describeBook, markBoost } from "./book";
 
 const B = 1_791_250_000;
 const terms = { symbol: "BTC", oracles: ["o1", "o2", "o3"], quorum: 2, maxDeviationBps: 100, barLenSec: 60, policyVersion: 1, minDelaySec: 0, closeDeadlineSec: B + 400, expirySec: B + 300 } as never;
-const quote = (oracle: string, boundarySec: number, priceE8: bigint) => ({ cid: `${oracle}${boundarySec}`, data: { oracle, symbol: "BTC", boundarySec, priceE8, barLenSec: 60, policyVersion: 1, fetchedAtSec: boundarySec + 12 } });
+const quote = (oracle: string, boundarySec: number, priceE8: bigint) => ({ cid: `${oracle}${boundarySec}`, data: { oracle, symbol: "BTC", boundarySec, priceE8, barLenSec: 60, policyVersion: 1, fetchedAtSec: boundarySec + 12 } }) as never as { cid: string; data: PriceQuoteC };
 const boost = (side: "SideUp" | "SideDown", barrierE8: bigint, fronted = 100n) => ({ cid: "00b", data: { marketId: "BTC-5m:3", side, barrierE8, fronted, barrierFromSec: B + 30, expirySec: B + 300 } }) as never;
 
 describe("C-OPS-09: the Boost book against the oracle quorum", () => {

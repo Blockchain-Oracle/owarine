@@ -13,6 +13,8 @@ export * from "./rejection";
 export * from "./seat-ledger";
 export * from "./view";
 export * from "./writes";
+export { exactCash, type ExactCashDeps } from "./exact-cash";
+export { seatReceiptFor, type SeatReceiptRef } from "./private-seat";
 export * from "./rest-writes";
 export * from "./publish";
 export * from "../provider/ticket-wire";

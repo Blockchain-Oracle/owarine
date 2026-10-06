@@ -80,10 +80,11 @@ export async function readReceipts(client: LedgerClient, party: Party, fromOffse
 async function publishReceipts(
   deps: { client: LedgerClient; seats: SeatReader },
   actor: { party: Party; leaseId: string; handle: string; fromOffset?: number },
-  o: { marketId: MarketId; receiptId?: string },
+  o: { marketId: MarketId; receiptId?: string; privatePairs?: ReadonlySet<string> },
 ): Promise<PublishResult> {
   const [receipts, existing] = await Promise.all([readReceipts(deps.client, actor.party, actor.fromOffset ?? 0), readPublications(deps.client, actor.party, actor.handle)]);
-  const onWindow = receipts.filter((r) => r.marketId === o.marketId && (o.receiptId ? r.cid === o.receiptId : r.product === null));
+  // C8d (L-39): a private call's receipt is never published, whoever asks.
+  const onWindow = receipts.filter((r) => r.marketId === o.marketId && (o.receiptId ? r.cid === o.receiptId : r.product === null) && !o.privatePairs?.has(r.pairId));
   const mine = existing.filter((p) => p.marketId === o.marketId && (o.receiptId ? p.product === onWindow[0]?.product : p.product === null));
   const done = new Set(mine.map((p) => `${p.product ?? ""}|${p.pairId}`));
   const todo = onWindow.filter((r) => !done.has(`${r.product ?? ""}|${r.pairId}`));
@@ -111,7 +112,7 @@ export function publishCommandId(leaseId: string, legCids: readonly string[]): s
 export async function publishCall(
   deps: { client: LedgerClient; seats: SeatReader },
   actor: { party: Party; leaseId: string; handle: string; fromOffset?: number },
-  o: { marketId: MarketId; source: PublishSource; receiptId?: string },
+  o: { marketId: MarketId; source: PublishSource; receiptId?: string; privatePairs?: ReadonlySet<string> },
 ): Promise<PublishResult> {
   if (o.source === "receipt") return publishReceipts(deps, actor, o);
   const [snap, existing] = await Promise.all([deps.seats.read(actor.party, { fresh: true }), readPublications(deps.client, actor.party, actor.handle)]);

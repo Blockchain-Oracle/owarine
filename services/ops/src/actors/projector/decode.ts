@@ -255,6 +255,7 @@ function createdFacts(
         feePaid: str(a.feePaid), refundAfterSec: isoSec(a.refundAfter), origin,
         acceptNodeId: origin === "accept" ? up!.nodeId : null, quoteCid: origin === "accept" ? up!.contractId : null,
         ...(resting ? { resting: true } : {}),
+        ref: optText(a.beneficiaryRef),
       }];
     }
     case "PM.Resting:RestingCall":
