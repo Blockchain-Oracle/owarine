@@ -86,6 +86,8 @@ recordReceipt t = void $ create SettlementReceipt with
   venue = t.venue; owner = t.owner; marketId = t.marketId; pairId = t.pairId; outcome = t.outcome
   resolved = t.resolved; lots = t.lots; cashUnit = t.cashUnit; backingShare = t.backingShare
   cost = t.cost; payout = t.payout; fee = t.fee; product = Some t.product; detail = Some t.detail
+  -- main 0.5.2 (K-315): a ticket pays its owner into the public bucket.
+  paidInto = None
 
 -- | A receipt for a stake-for-payout ticket (range, moonshot, parlay): one
 -- lot of cash unit 1 whose backing and cost are the stake, no fee.
