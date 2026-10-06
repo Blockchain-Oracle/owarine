@@ -828,6 +828,69 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** none while the probe passes.
 - **Approval:** default; overrulable.
 
+### K-260 — A valuation lane that is not entitled is unlisted, and every surface says why (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §2; ops' probe `OPENAI denied (403 pyth-indices)`; `web/src/features/ticker-hub/index-state.ts`, `ValuationHub.tsx`, `next-window.ts` (`pausedInLane`); tests `index-state.test.ts`, `next-window.test.ts`.
+- **Rule:** D-125 ("no dead lane is ever shown") holds and its absence is explained: the valuation hub renders the D-015 block naming the gate (a Pyth key entitled to `pyth-indices`) and the probe's own answer; the pre-IPO bar says in one caption why the Pyth rows are absent; a valuation lane paused for its entitlement is never drawn as a paused card.
+- **User-visible:** `/tickers/OPENAIV|ANTHROPICV` "… is not listed" with the reason and a link to the token; one caption on `/tickers/OPENAI|ANTHROPIC`.
+- **Approval:** default; overrulable.
+
+### K-261 — A 24/7 name's link preview shows its live print, a basket in points (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** `web/src/features/landing/og/ticker-live.ts`; `ux/c8d/og-*.png`.
+- **Rule:** crypto, pre-IPO, basket and valuation tickers have no NYSE close, so their OG card reads ops' `/prices/latest` (a basket in points, D-124) and a valuation lane reads the entitlement probe first ("Not listed" with why). Stock captions say "attested by three oracle parties", never "signed by Agari".
+- **User-visible:** shared `/tickers/<SYM>` links.
+- **Approval:** default; overrulable.
+
+### K-262 — The leverage keeper watches; the ticket desk's keeper writes (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §4; `services/ops/src/actors/leverage-keeper/{index,book}.ts`, `book.test.ts`; knock-out update `1220054965…686f`.
+- **Rule:** `Boost_KnockOut` and `Boost_Settle` are venue-controlled and lease from the venue's shard pool, so one writer posts them: the ticket desk's keeper (`ticket-desk/keeper.ts`). `leverage-keeper` (C-OPS-09) reads the Boost book as the venue each 20 s, marks every position against the newest quorum print with the ledger's own rule and reports; it sends nothing. The Solana keeper (its own key over the adapter) is removed.
+- **User-visible:** nothing directly; `/health` carries the book line.
+- **Approval:** default; overrulable.
+
+### K-263 — Product dependents are counted in the projection; the ledger counter waits for a later DAR (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §4; `idx_dependents`, `decode-dependents.ts` (+ test), `read-dependents.ts`, `oracle-feeder.ts` (retire), `settler/index.ts`.
+- **Rule:** per the plan ("Settlement checks a dependents count in the projection, not on the ledger"): RangeRound, each undecided ParlayTicket leg and BoostPosition pin their Window's terms in `idx_dependents`; `MarketTerms` are never archived; the oracle feeders keep every quote inside the life of a Window an open product depends on (a projection they cannot read retires nothing that pass); the settler names Windows still pinned. A ledger-side counter on `MarketTerms` is not part of R1 and would change `abu-pm-main`; it is left to a later DAR release if wanted.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-264 — The venue mode is issuer policy in ops with an audit log; the venue-signed contract waits (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §3; `packages/core/src/market/venue-mode.ts` (+ test), `services/ops/src/runtime/venue-mode.ts`, `venue/mode-route.ts`, `venue_mode_log`.
+- **Rule:** `open | reduce-only | paused`, set only through `POST /internal/admin/venue-mode` (`OPS_ADMIN_SECRET`), recorded in `venue_mode_log` before it applies, read back at boot. New positions (quotes, resting offers, range/parlay/boost issue, a duel's open), new supply and new Windows ask it; exits, claims, stale refunds, withdrawals and settlement never do. The plan's optional venue-signed `VenueMode` contract is not in R1 (abu-pm-governance's `VenueMode` is governance-signed and LocalNet-only), so the audit log is the record until a later DAR.
+- **User-visible:** the refusal's words on a ticket; "Paused: venue reduce-only" cards; a `/status` row.
+- **Approval:** default; overrulable.
+
+### K-265 — A copier follows only what the trader published (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §5; `mirror-scan.ts`, `listPublishedFills`, `mirror-scan.test.ts`.
+- **Rule:** A-3b reads the trader's opt-in publications (`published/<address>/fills`); a seat's own fills are private to its lease. A trader who publishes nothing cannot be copied, and the runner says so ("has published no side").
+- **User-visible:** the studio's existing words ("their published calls are public") are now what happens.
+- **Approval:** default; overrulable.
+
+### K-266 — Private mode on Canton is the seat's private bucket, moved by the seat and the venue together (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §6; `packages/core/src/private/canton.ts`, `services/ops/src/actors/venue/private-route.ts`, `web/src/features/private/canton.server.ts`, `private-bucket.test.ts`; drive `--only private` 6/6.
+- **Rule:** private balance = `VenueCash` with `bucket = private`, never spendable by a public call, ticket, grant or desk, swept with the rest when a seat is recycled. Moving in or out is one transaction signed by the seat and the venue (`VenueCash_Withdraw` of exactly the amount + `VenueAccount_Credit` into the other bucket), so the released engine needs no change. A private call is the seat's own firm quote accepted with exactly-split private cash and `beneficiaryRef = "private"`: out of public positions, exits and publications (its receipt too), still claimable and refundable by its owner. Cash out moves the payout home and dismisses the receipt in one transaction, once. 1–50 credits a call. The reference's desk key, allowance, claim signatures and backup file have no Canton meaning and are removed; the ticket keeps the owner's signed authorisation, whose hash is the command id.
+- **User-visible:** the Portfolio Private panel (Deposit, Withdraw, the private list with Cash out) and the ticket's Private route, web and phone.
+- **Approval:** default; overrulable.
+
+### K-267 — The judges' shared desk is a practice desk named by `NEXT_PUBLIC_SHARED_DESK_ID` (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** §8; `DeskEntry.tsx`.
+- **Rule:** the hosted deploy creates one practice desk from a seat, turns Share on and sets `NEXT_PUBLIC_SHARED_DESK_ID` to its id; visitors with no seat see it on `/desk` and its read-only page, never its notes.
+- **User-visible:** "A SHARED DESK" on `/desk`.
+- **Approval:** default; overrulable.
+
+### K-268 — The idle-yield note says demo credits earn nothing (C8d) (C8d)
+- **Date / owner:** 2026-10-06 · Claude (lane C8d).
+- **Evidence:** `web/src/features/vault/copy.ts`.
+- **Rule:** A-2a's note names demo credits and this Canton venue: nothing pays interest on idle demo credits; what pays is supplying a reserve, shown as its realised share price.
+- **User-visible:** the Trading Balance's idle note, web and phone.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

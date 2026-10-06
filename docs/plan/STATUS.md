@@ -30,6 +30,9 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 | **C7b** Canton Coin rail | `evidence/c7b-canton-coin.md`: built and proved in Daml and unit tests; `not-live` until `runbooks/cc-rail.md` runs on DevNet |
 | **C7c** pre-open resting calls | `evidence/c7c-resting-call.md`, 24/24 end to end |
 | **C8** tickets, agents, desk, maker vault | `evidence/c8e`, `c8f`, `c8g`, `c8i`, `c2d-maker-vault.md`; C8j phase A (live desk timing, PreStocks prices) |
+| **C8d** baskets, venue mode, products, private mode, Earn, copy traders | `evidence/c8d-markets.md`, drive `scripts/drive/c8d-markets.ts`, `ux/c8d` (6 Oct) |
+| **C10f** public story | `evidence/c10f-public.md`, `ux/c10f`: landing and pitch, `/download` and `/demo` config point, Built on, `/who-sees-what`, docs site 43 pages |
+| **C4e** deploy rehearsal | `evidence/c4e-deploy.md`: three images, composed run behind Traefik, runbook measured |
 | **C9** games | `evidence/c9b`, `c9c`, `c9d-seats-games.md`; Lucky placed from its own screen (`ux/c8j`) |
 | **C10** copy and docs | C10a–C10e: truthful copy on web and phone, docs site rewritten for Canton |
 | **D1, D2** design review | 18 deterministic fixes (D1), then the recommendations Abu accepted (D2) |
@@ -40,7 +43,7 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 |---|---|---|
 | **C2x / R1** on DevNet | not started | Abu's Console session (below), then four agent commands (`runbooks/devnet-r1.md`) |
 | **C4 / M1** first call, hosted | local only | a domain and its DNS records; R1 on DevNet |
-| **C8d** baskets hub, valuation hub | not started | valuation lanes need an entitled Pyth key (denied 403 on 30 Sep) |
+| **C8d** valuation lanes (OPENAIV/ANTHROPICV) | gated, said on the page (C8d) | a Pyth key entitled to `pyth-indices` (the probe still answers 403) |
 | **C10** public story | copy and docs merged | landing and `/download` updates; docs site on Coolify |
 | **C11** iOS | typechecks and exports | Abu: app name, Apple identifiers, App Store Connect record. Never run on a simulator or device |
 | **BitSafe** | B2 merged (abu-pm-governance 0.1.0, 14 Daml tests) | the LocalNet run; the Gold path's 4 Oct deadline has passed, so the contribution pool is the target |
@@ -68,4 +71,5 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 - The phone has never run against Canton: it typechecks and exports only.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
 - Resting calls and the Canton Coin rail run on the local sandbox only.
+- A settled private call pays into the seat's public balance until the user presses Cash out, because the released Daml pays every leg into `payout`; a direct private payout needs a later DAR (C8d). The venue-mode record and the dependents count are ops and projection only for the same reason (K-263, K-264).
 - Third-party marks (C-S25, K-250): only Canton Network, Noders and BitSafe logos are drawn, from their published brand kits; every other source, PreStocks included, is named in plain text.
