@@ -142,7 +142,8 @@ async function feedOne(state: LaneFeederState, feed: OracleFeed, slot: LaneSlot,
 }
 
 export async function laneFeederPass(state: LaneFeederState): Promise<PassResult> {
-  const acs = await readActive(state.venue, [TEMPLATE_IDS.WindowState, TEMPLATE_IDS.OpenPrint, TEMPLATE_IDS.PriceQuote]);
+  // The quotes (every oracle's, kept for the retention: 700 KB on DevNet) are read only when a lane print is due now.
+  const acs = await readActive(state.venue, [TEMPLATE_IDS.WindowState, TEMPLATE_IDS.OpenPrint]);
   const states = pick(acs, TEMPLATE_IDS.WindowState, decodeWindowState);
   const opens = pick(acs, TEMPLATE_IDS.OpenPrint, decodeOpenPrint);
   const cids = [...states.map((s) => s.data.termsCid), ...opens.map((o) => o.data.termsCid)];
@@ -153,13 +154,15 @@ export async function laneFeederPass(state: LaneFeederState): Promise<PassResult
     ...states.flatMap((s) => (state.terms.has(s.data.termsCid) ? [{ terms: state.terms.get(s.data.termsCid)!, slot: "open" as const }] : [])),
     ...opens.flatMap((o) => (state.terms.has(o.data.termsCid) ? [{ terms: state.terms.get(o.data.termsCid)!, slot: "close" as const }] : [])),
   ];
-  const have = new Set(pick(acs, TEMPLATE_IDS.PriceQuote, decodePriceQuote).map((q) => `${q.data.oracle}|${slotKey(q.data.symbol, q.data.boundarySec, q.data.barLenSec, q.data.policyVersion)}`));
   const nowSec = Math.floor(Date.now() / 1000);
   const slots = laneSlots(waiting);
   let wakeSec = nowSec + 15;
   const lines: string[] = [];
   const due = slots.filter((s) => nowSec <= s.deadlineSec);
   for (const s of due) if (nowSec < s.earliestSec) wakeSec = Math.min(wakeSec, s.earliestSec);
+  const postable = due.some((s) => nowSec >= s.earliestSec);
+  const quotes = postable ? pick(await readActive(state.venue, [TEMPLATE_IDS.PriceQuote]), TEMPLATE_IDS.PriceQuote, decodePriceQuote) : [];
+  const have = new Set(quotes.map((q) => `${q.data.oracle}|${slotKey(q.data.symbol, q.data.boundarySec, q.data.barLenSec, q.data.policyVersion)}`));
   await Promise.all(
     state.feeds.map(async (feed) => {
       for (const slot of due) {

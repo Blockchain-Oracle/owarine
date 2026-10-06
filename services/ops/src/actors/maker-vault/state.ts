@@ -11,10 +11,14 @@ import {
 import { isBookCash, isBookLeg, isBookQuote, MAKER_BOOK, MAKER_RESERVE, type MakerSnapshot, type MarketInfo } from "@agari/markets/ops/book";
 import { decodeLpShare, decodeNavStatement, decodeSupplyQuote, decodeWithdrawQuote, type NavStatementC } from "@agari/markets/ops/tickets";
 
+/**
+ * What every pass reads. `Resolution` and `MarketTerms` are not here: both exist for every Window the venue ever ran and
+ * neither is archived, so reading them every 5 s grew with the venue's age (1 MB per pass on DevNet after 4 h, C4g). They
+ * are read only when the book holds a leg, residual or quote on some Window (`readMakerSnapshot`).
+ */
 export const MAKER_TEMPLATES = [
   TEMPLATE_IDS.NavStatement, TEMPLATE_IDS.MakerDesk, TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.LpShare, TEMPLATE_IDS.SupplyQuote, TEMPLATE_IDS.WithdrawQuote,
-  TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote, TEMPLATE_IDS.Leg, TEMPLATE_IDS.NettedResidual, TEMPLATE_IDS.BookReceipt, TEMPLATE_IDS.Resolution,
-  TEMPLATE_IDS.MarketTerms,
+  TEMPLATE_IDS.Quote, TEMPLATE_IDS.BuyQuote, TEMPLATE_IDS.Leg, TEMPLATE_IDS.NettedResidual, TEMPLATE_IDS.BookReceipt,
 ] as const;
 
 export async function readMakerSnapshot(venue: RoleSession, onBad?: (cid: string, error: unknown) => void): Promise<MakerSnapshot> {
@@ -31,12 +35,16 @@ export async function readMakerSnapshot(venue: RoleSession, onBad?: (cid: string
   const residuals = pick(acs, TEMPLATE_IDS.NettedResidual, decodeNettedResidual, onBad).filter((r) => isBookQuote(r.data));
   const quotes = mine(pick(acs, TEMPLATE_IDS.Quote, decodeQuote, onBad)).filter((q) => isBookQuote(q.data));
   const buyQuotes = mine(pick(acs, TEMPLATE_IDS.BuyQuote, decodeBuyQuote, onBad)).filter((q) => isBookQuote(q.data));
-  const resolutions = new Map<string, Active<ResolutionC>>();
-  for (const r of mine(pick(acs, TEMPLATE_IDS.Resolution, decodeResolution, onBad))) resolutions.set(r.data.termsCid, r);
+  // Every use of a Resolution or a Window's terms is keyed by a book contract's terms: with none, neither is read.
   const wanted = new Set([...legs, ...residuals, ...quotes, ...buyQuotes].map((x) => x.data.termsCid));
+  const resolutions = new Map<string, Active<ResolutionC>>();
   const markets = new Map<string, MarketInfo>();
-  for (const t of mine(pick(acs, TEMPLATE_IDS.MarketTerms, decodeTerms, onBad))) {
-    if (wanted.has(t.cid)) markets.set(t.cid, { marketId: t.data.marketId, expirySec: t.data.expirySec });
+  if (wanted.size > 0) {
+    const windows = await readActive(venue, [TEMPLATE_IDS.Resolution, TEMPLATE_IDS.MarketTerms]);
+    for (const r of mine(pick(windows, TEMPLATE_IDS.Resolution, decodeResolution, onBad))) if (wanted.has(r.data.termsCid)) resolutions.set(r.data.termsCid, r);
+    for (const t of mine(pick(windows, TEMPLATE_IDS.MarketTerms, decodeTerms, onBad))) {
+      if (wanted.has(t.cid)) markets.set(t.cid, { marketId: t.data.marketId, expirySec: t.data.expirySec });
+    }
   }
   const receipts = mine(pick(acs, TEMPLATE_IDS.BookReceipt, decodeBookReceipt, onBad)).filter((r) => r.data.book === MAKER_BOOK);
   return {
