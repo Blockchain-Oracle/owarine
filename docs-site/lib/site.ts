@@ -13,8 +13,8 @@ export const site = {
   // The one repository for the app and these docs: the sidebar's GitHub link, llms.txt's README entry and per-page
   // source notes, all pinned to `revision`. Null until the Canton repository is public: pages then name paths alone.
   source: null as string | null,
-  revision: 'a4d2e2d',
-  reviewed: '2026-09-30',
+  revision: 'ecf948f',
+  reviewed: '2026-10-06',
 };
 export function appUrl(path = '/markets') { return new URL(path, site.app).toString(); }
 export function sourceUrl(path: string): string | null {
