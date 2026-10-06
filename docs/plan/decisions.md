@@ -1048,6 +1048,55 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** private calls are absent from Portfolio history and the activity inbox; the private list's foot and the ticket note say the payout comes back by itself.
 - **Approval:** default; overrulable.
 
+### K-325 — To collect lists no Trading Balance credit; the phone's plate is web's C7a plate (C4f) (C4f)
+- **Date / owner:** 2026-10-06 · Claude (C4f).
+- **Evidence:** C11b item 6. The first run here: 999.37 "sits in your Trading Balance" beside Demo credits 999.37. `agents-lane.ts`: `vault-withdraw` is refused with `SAME_CASH`.
+- **Rule:**
+  - The seat's `VenueCash` is the Trading Balance (K-087), so the vault read's available cash is never a credit to withdraw, and `VaultCreditRows` lists only vault-held rounds still to settle.
+  - The phone's `LedgerPlate` follows web's C7a plate: the balance sheet, ready to bet, and the legs Demo credits / Open positions / To collect.
+- **User-visible:** no false withdrawal row; the phone plate matches web.
+- **Approval:** default; overrulable.
+
+### K-326 — A seat that refuses the caller shows none of its money (C4f) (C4f)
+- **Date / owner:** 2026-10-06 · Claude (C4f).
+- **Evidence:** C11b item 3; `wallet.gone.test.ts`, `reading-query.test.ts`; the live reset above.
+- **Rule:**
+  - A `signer-required` refresh is the error arm and forgets the last good value.
+  - A reading's error arm is classified by its own kind: domain answers resolve, outages retry.
+  - A refused balance read re-reads every query keyed by that address.
+- **User-visible:** after a reset on another device, the joined device shows "—" and 0 settled within one poll.
+- **Approval:** default; overrulable.
+
+### K-327 — A settled Window's verdict takes its cost from the ledger's record and waits for it briefly (C4f) (C4f)
+- **Date / owner:** 2026-10-06 · Claude (C4f).
+- **Evidence:** C11b item 5; `settled-cost.test.ts`; the live verdict (+0.09 on cost 909,828).
+- **Rule:** cost basis = the settled round's stake − proceeds (its settlement receipts' backing + fee). A held, non-void Window without it waits up to 30 s, re-reading the history every 3 s, then says the cost is unread.
+- **User-visible:** "No entry cost on record" appears only when the record truly lacks it.
+- **Approval:** default; overrulable.
+
+### K-328 — Money floors past the shown places (C4f) (C4f)
+- **Date / owner:** 2026-10-06 · Claude (C4f).
+- **Evidence:** the record read "−0.62" for −629,126 base while the balance went 1,000.00 → 999.37; `format.test.ts`.
+- **Rule:** `formatBaseUnits` rounds toward −∞ at `maxDp`. A positive value is truncated, as before. A cent-exact start, the balance after and the change between them agree on screen.
+- **User-visible:** a loss shows the whole cents it took (−0.63, not −0.62).
+- **Approval:** default; overrulable.
+
+### K-329 — Every sentence that names the network reads the configured one (C4f) (C4f)
+- **Date / owner:** 2026-10-06 · Claude (C4f).
+- **Evidence:** C11b item 7; `chain.test.ts`, `network-copy.test.ts`; `welcome-*` reads "This is Canton LocalNet".
+- **Rule:** `networkLabel()` (`@agari/markets/chain`) is the read runtime's network, else the build's `NEXT_PUBLIC_CANTON_NETWORK`, else DevNet. The Call, the share stamps and posts, the tutorial and the seat picker read it. Sentences about the planned DevNet release (roadmap, "not yet on DevNet") are statements about DevNet and stay.
+- **User-visible:** a LocalNet build says Canton LocalNet; a void card says the stake and fee came back.
+- **Approval:** default; overrulable.
+
+### K-330 — Section titles wrap on the phone; the switcher's tabs take the desk kit's narrow rules on web (C4f) (C4f)
+- **Date / owner:** 2026-10-06 · Claude (C4f).
+- **Evidence:** C11b side by side (K-314 listed them for Abu; this lane's brief ordered the fix); `who-sees-what-320/390/1440-*`.
+- **Rule:**
+  - The phone's `SectionHeader` title and eyebrow wrap (no `numberOfLines`), as web's do.
+  - `.cx-switcher` tabs share the row at ≤ 560 px and drop the count pills at ≤ 440 px, as `cockpit.css` and the phone's `UnderlineTabs` already do.
+- **User-visible:** "Who sees what on the ledger" is whole on the phone; all four tabs fit at 320 and 390 on web.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

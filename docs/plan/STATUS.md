@@ -5,7 +5,7 @@ Where it runs:  local Canton sandbox only. Noders DevNet: the node is up (Canton
 Repository:     one checkout, branch main; short-lived lane worktrees under hackcanton-pm-wt/ are merged and removed the same day. Pushed to github.com/Blockchain-Oracle/hackcanton-pm (private until Abu makes it public; the Rules need it public by submission).
 Deadline:       delivery closes Fri 9 Oct 23:59 UTC.
 Capabilities:   live 0 · local 59 · not-live 162 (of 221; docs/plan/capabilities.json). A row goes live only with a DevNet acceptance row.
-Fast gate:      main on 6 Oct after C2e: typecheck green (all projects) · invariants 0 errors, 0 warnings · vitest 343 files, 2,596 tests passed, 65 skipped · db suites on Postgres 36 passed
+Fast gate:      main on 6 Oct after C4f: typecheck green (all projects) · invariants 0 errors, 0 warnings · vitest 350 files, 2,619 tests passed, 65 skipped · db suites on Postgres 36 passed
 Daml:           abu-pm-main 0.5.2 (C2e, 6 Oct): dpm test 273 scripts green; dpm build --all on main reproduces all five released DARs byte for byte
 DAR release R1: five files staged in daml/released/, none on Noders: abu-pm-main 0.5.2, tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1 (K-316; upgrade-check clean against the 0.5.1 set). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
 Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); iOS (the App Store Connect record)
@@ -33,6 +33,7 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 | **C8d** baskets, venue mode, products, private mode, Earn, copy traders | `evidence/c8d-markets.md`, drive `scripts/drive/c8d-markets.ts`, `ux/c8d` (6 Oct) |
 | **C9e, C13b** games and social | `evidence/c9e-c13b-sweep.md`, `ux/c9e`: money lines match `PM.Leg.legPayout` (void = backing + fee), guest-seat history on its own side, season pool paid once, duel, Practice, Line Rider, Candle Hop, proof re-verify, takes, ticker rooms, Finnhub news |
 | **C2e** private payout | `evidence/c2e-private-payout.md`: abu-pm-main 0.5.2, `Test.PrivatePayout` 7 scripts, fresh-sandbox drive 8/8 (private win and void back into private, public balance unchanged) |
+| **C4f** display truth | `evidence/c4f-display.md`, `ux/c4f`: record equals the ledger to the base unit (seat 4: +1.36 over 5 settled), verdict cost from the receipt, reset seat shows no money, configured network named, Who sees what fits |
 | **C11b** iPhone on the simulator | `evidence/c11b-ios-sim.md`, `ux/c11b`: first run, Keychain seat, live prices, four calls filled and settled with update ids, who-sees-what empty for outsiders, seat link both ways, push handled via `simctl push` |
 | **C10f** public story | `evidence/c10f-public.md`, `ux/c10f`: landing and pitch, `/download` and `/demo` config point, Built on, `/who-sees-what`, docs site 43 pages |
 | **C4e** deploy rehearsal | `evidence/c4e-deploy.md`: three images, composed run behind Traefik, runbook measured |
