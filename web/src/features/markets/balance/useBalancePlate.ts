@@ -4,7 +4,7 @@ import { isOk, type Reading } from "@agari/core/schemas";
 import type { Address, BalanceSheet } from "@agari/core/types";
 import { keys, useBalanceSheet } from "@agari/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useVenue } from "../useVenue";
 
@@ -22,6 +22,14 @@ export function useBalancePlate(): BalancePlateState {
   const retry = useCallback(() => {
     if (address) void queryClient.invalidateQueries({ queryKey: keys.balanceSheet(address) });
   }, [address, queryClient]);
+
+  // C4f: the seat route refusing this key (its holder reset the seat, its lease ended) means every read keyed by this
+  // address belongs to a seat it no longer holds: re-read them all now, so the record, bets and claims of the gone seat
+  // leave the screen with its balance instead of waiting for their own polls (history polls every five minutes).
+  const refused = reading !== null && !reading.ok && reading.error.kind === "signer-required";
+  useEffect(() => {
+    if (refused && address) void queryClient.invalidateQueries({ predicate: (q) => q.queryKey.includes(address) });
+  }, [refused, address, queryClient]);
 
   if (!address) return { kind: "disconnected", symbol };
   return { kind: "connected", address, symbol, reading, retry };
