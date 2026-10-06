@@ -1,5 +1,6 @@
 /** The share cards' words — ported from the reference's two card renderers and `BetPlacedCard.tsx`. */
 import { VOID_SHARE_WORD } from "@agari/core/market";
+import { networkLabel } from "@agari/markets/chain";
 import type { VoidReason } from "@agari/core/types";
 
 /** The signed source and void reason as the settled card prints them (proof-analytics.md §2.8): core's one stamp per reason. */
@@ -25,7 +26,10 @@ const signOff = process.env.NEXT_PUBLIC_X_HANDLE?.trim() ? `${BRAND.site} via ${
 
 export const SHARE = {
   ...BRAND,
-  network: "CANTON DEVNET",
+  /** The configured network (C4f): on LocalNet the cards never say DevNet. */
+  get network(): string {
+    return networkLabel().toUpperCase();
+  },
   verifyOn: "VERIFY ON THE PROOF PAGE",
   scan: "SCAN TO MAKE YOUR CALL",
   shareCall: "Share this call",
@@ -34,7 +38,9 @@ export const SHARE = {
   savedAttach: "Card saved. Attach it to your post on X",
   renderFailed: "Could not render the share card",
   call: {
-    recordType: "THE CALL · CANTON DEVNET",
+    get recordType(): string {
+      return `THE CALL · ${networkLabel().toUpperCase()}`;
+    },
     up: "▲ CALLING UP",
     down: "▼ CALLING DOWN",
     placed: "Call placed",
@@ -65,7 +71,7 @@ export const SHARE = {
     /** The pre-filled post: real staked numbers only, framed as a live call. */
     /** The reference's text carries the multiple — `My call: ${band} (2×)` (`openBetShareCard.ts` L97–99). */
     tweet: (band: string, cadence: string, stake: string, win: string, symbol: string, utc: string, multiple = 1) =>
-      `My call: ${band} (${cadence} Window${multiple > 1 ? `, ${multiple}×` : ""}). Staked ${stake} to win ${win} ${symbol}, oracle-settles ${utc} on Canton DevNet. Will it land? ${signOff}`,
+      `My call: ${band} (${cadence} Window${multiple > 1 ? `, ${multiple}×` : ""}). Staked ${stake} to win ${win} ${symbol}, oracle-settles ${utc} on ${networkLabel()}. Will it land? ${signOff}`,
   },
   trade: {
     settlement: "SETTLEMENT RECORD",
@@ -80,13 +86,14 @@ export const SHARE = {
     signers: (n: number) => ` · ${n} SIGNER${n === 1 ? "" : "S"}`,
     singleSource: " · SINGLE SOURCE",
     settledAt: (utc: string) => `SETTLED · ${utc}`,
-    voided: (utc: string, reason: VoidReason | null) => `${reason ? VOID_WORD[reason] : "VOIDED"} · BOTH SIDES PAID 0.5 · ${utc}`,
+    /** `PM.Leg.legPayout` (K-290): a void returns each leg's backing plus the fee paid with it, never half a contract. */
+    voided: (utc: string, reason: VoidReason | null) => `${reason ? VOID_WORD[reason] : "VOIDED"} · STAKE AND FEE RETURNED · ${utc}`,
     closedEarly: (utc: string) => `CLOSED AT THE VENUE'S PRICE BEFORE EXPIRY · ${utc}`,
     kind: { settled: "ORACLE-SETTLED", voided: "VOIDED", closed: "CLOSED EARLY" },
     entry: (short: string) => `ENTRY ${short}`,
     settlementTx: (short: string) => `SETTLEMENT ${short}`,
     noTx: "PROOF ON THE RECEIPT",
     tweet: (pnl: string, symbol: string, asset: string, band: string, how: string, stake: string, payout: string) =>
-      `${pnl} ${symbol} on ${asset} ${band}: ${how}. ${stake} → ${payout} ${symbol} (Canton DevNet). ${signOff}`,
+      `${pnl} ${symbol} on ${asset} ${band}: ${how}. ${stake} → ${payout} ${symbol} (${networkLabel()}). ${signOff}`,
   },
 } as const;

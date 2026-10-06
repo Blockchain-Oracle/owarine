@@ -11,7 +11,7 @@ const DARK = {
   // ledger-plate.css: the plate follows the theme in dark (surface-1 and the theme's inks)
   lpPaper: "#171717", lpPaperRaised: "#262626", lpInk: "#FFFFFF", lpMute: "#A3A3A3", lpLine: "rgba(255, 255, 255, 0.1)",
   // fixed vermilion in both themes (.lp-figure, .lp-bar-*, .pool-action)
-  vermilion: "#E04D26", barAccount: "rgba(224, 77, 38, 0.35)", actionBorder: "rgba(224, 77, 38, 0.45)", actionWash: "rgba(224, 77, 38, 0.07)",
+  vermilion: "#E04D26", barAccount: "rgba(224, 77, 38, 0.35)", barPositions: "rgba(224, 77, 38, 0.65)", actionBorder: "rgba(224, 77, 38, 0.45)", actionWash: "rgba(224, 77, 38, 0.07)",
   slabBorder: "rgba(224, 77, 38, 0.3)", earnedWash: "rgba(224, 77, 38, 0.06)", earnedIconWash: "rgba(224, 77, 38, 0.08)", earnedIconBorder: "rgba(224, 77, 38, 0.35)",
   // .connect-card: gray-500 ring glyph, gray-600 link
   ringInk: "#737373", linkInk: "#525252",
@@ -38,7 +38,7 @@ const DARK = {
 
 const LIGHT: typeof DARK = {
   lpPaper: "#FAF8F5", lpPaperRaised: "#FFFDF8", lpInk: "#1A1612", lpMute: "#6B6353", lpLine: "rgba(201, 191, 166, 0.4)",
-  vermilion: "#E04D26", barAccount: "rgba(224, 77, 38, 0.35)", actionBorder: "rgba(224, 77, 38, 0.45)", actionWash: "rgba(224, 77, 38, 0.07)",
+  vermilion: "#E04D26", barAccount: "rgba(224, 77, 38, 0.35)", barPositions: "rgba(224, 77, 38, 0.65)", actionBorder: "rgba(224, 77, 38, 0.45)", actionWash: "rgba(224, 77, 38, 0.07)",
   slabBorder: "rgba(224, 77, 38, 0.3)", earnedWash: "rgba(224, 77, 38, 0.06)", earnedIconWash: "rgba(224, 77, 38, 0.08)", earnedIconBorder: "rgba(224, 77, 38, 0.35)",
   ringInk: "#7C7466", linkInk: "#9A9080",
   rowHover: "rgba(20, 18, 16, 0.03)", markGeneric: "rgba(20, 18, 16, 0.1)", receiptInk: "rgba(20, 18, 16, 0.62)",

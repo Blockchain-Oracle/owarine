@@ -28,6 +28,10 @@
 .cx-party { font-family: var(--font-mono); font-size: 12.5px; color: var(--color-ink); }
 .cx-switcher-count { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); }
 .cx-switcher-query { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+/* C4f: at phone width the party tabs share the row as the cockpit's tabs do (cockpit.css, the desk kit's own narrow
+   rules, which the phone's UnderlineTabs ports): at 390 the count pills pushed the fourth tab ("You") past the card. */
+@media (max-width: 560px) { .cx-switcher .dkit-tab { flex: 1 1 auto; justify-content: center; padding: 12px 4px; gap: 5px; font-size: 13px; } .cx-switcher .dkit-tab-count { min-width: 0; padding: 1px 5px; } }
+@media (max-width: 440px) { .cx-switcher .dkit-tab-count { display: none; } }
 
 .cx-positions { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid var(--market-card-border); border-radius: var(--market-card-radius); background: var(--market-card-surface); }
 .cx-position { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "market side" "stake stake" "cid seen"; align-items: center; gap: 6px 12px; padding: 12px 14px; }

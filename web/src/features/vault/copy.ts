@@ -103,8 +103,6 @@ export const VAULT = {
   /** /claims — never summed into the wallet's claim-all. */
   claims: {
     title: "From your Trading Balance",
-    credit: (amount: string) => `${amount} sits in your Trading Balance`,
-    withdrawOn: "withdraw on Portfolio →",
     waiting: (n: number) => (n === 1 ? "1 settled Window to settle into it" : `${n} settled Windows to settle into it`),
   },
   toasts: {

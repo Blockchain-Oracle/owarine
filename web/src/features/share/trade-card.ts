@@ -21,7 +21,7 @@ import { drawStub, encodeQr } from "./stub";
  *  · The oracle's print is drawn ONLY when the closing print is on record, at the
  *    Window's real expiry second, named by its signed source; otherwise the line says
  *    "SETTLED" and the claim time, never a guessed print.
- *  · A void says both sides paid 0.5. A close-out says it closed on the book before
+ *  · A void says the stake and fee came back (`PM.Leg.legPayout`). A close-out says it closed on the book before
  *    expiry and never claims an oracle settlement.
  *  · With no entry cost on record the hero is the payout, labelled PAID OUT, never
  *    a P&L computed from a guessed stake.

@@ -1,5 +1,5 @@
 import { err, type Reading } from "@agari/core/schemas";
-import type { DiagnosisKind } from "@agari/core/types";
+import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { diagnose } from "../errors/error-map";
@@ -26,7 +26,18 @@ const RETRYABLE_READ_KINDS: ReadonlySet<DiagnosisKind> = new Set<DiagnosisKind>(
 ]);
 
 function isInfrastructureFailure(error: unknown): boolean {
-  return RETRYABLE_READ_KINDS.has(diagnose(error).kind);
+  return RETRYABLE_READ_KINDS.has(kindOf(error));
+}
+
+/**
+ * A reading's error arm is already a diagnosis and is read by its own kind; anything thrown is diagnosed first. C4f: the
+ * error arm went through `diagnose`, which read every diagnosis object as "unknown" (retryable), so every domain answer
+ * was thrown and TanStack kept the query's last data. A seat whose holder reset it kept showing its balance on the
+ * joined device while `/me/balance` answered 401.
+ */
+function kindOf(error: unknown): DiagnosisKind {
+  if (typeof error === "object" && error !== null && !(error instanceof Error) && "kind" in error && "technical" in error) return (error as Diagnosis).kind;
+  return diagnose(error).kind;
 }
 
 export type PollInterval<T> = number | ((reading: Reading<T> | null) => number | false);

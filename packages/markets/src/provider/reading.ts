@@ -15,9 +15,16 @@ export function unwrap<U>(reading: Reading<U>): U {
 }
 
 /**
+ * A refusal of who is asking, not an outage: the seat this read belonged to is gone (its holder reset it, its lease
+ * ended) or was never this client's. Its last value is someone else's money now, so it is never shown again (C4f).
+ */
+const NOT_YOURS: ReadonlySet<string> = new Set(["signer-required"]);
+
+/**
  * The one place staleness is decided (AD-6): a first-ever failure is the error arm; a failed refresh
  * keeps the last-good value at full value and flips `stale`; a read composed from a stale inner
- * reading is itself stale.
+ * reading is itself stale. A refresh refused as `signer-required` is the error arm and forgets the
+ * last-good value: a seat that is gone never shows its money.
  */
 export async function withReading<T>(key: string, read: (inner: Unwrap) => Promise<T>): Promise<Reading<T>> {
   let innerStale: StaleReason | null = null;
@@ -31,8 +38,13 @@ export async function withReading<T>(key: string, read: (inner: Unwrap) => Promi
     lastGood.set(key, fresh);
     return innerStale ? stale(fresh, innerStale) : fresh;
   } catch (error) {
+    const diagnosis = diagnose(error);
+    if (NOT_YOURS.has(diagnosis.kind)) {
+      lastGood.delete(key);
+      return err(diagnosis);
+    }
     const previous = lastGood.get(key) as ReadingOk<T> | undefined;
-    return previous ? stale(previous, "refresh-failed") : err(diagnose(error));
+    return previous ? stale(previous, "refresh-failed") : err(diagnosis);
   }
 }
 

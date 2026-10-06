@@ -27,11 +27,11 @@ export function SectionHeader({ index, title, eyebrow, desc, aside, style }: Pro
           <Text style={[styles.dot, { color: color.inkMuted }]} accessibilityElementsHidden importantForAccessibility="no">
             ·
           </Text>
-          <Text style={[styles.title, styles.shrink, { color: color.ink }]} accessibilityRole="header" numberOfLines={1}>
+          <Text style={[styles.title, styles.shrink, { color: color.ink }]} accessibilityRole="header">
             {title}
           </Text>
           {eyebrow ? (
-            <Text style={[styles.micro, styles.shrink, { color: color.inkSecondary }]} numberOfLines={1}>
+            <Text style={[styles.micro, styles.shrink, { color: color.inkSecondary }]}>
               {eyebrow}
             </Text>
           ) : null}
@@ -46,7 +46,8 @@ export function SectionHeader({ index, title, eyebrow, desc, aside, style }: Pro
 const styles = StyleSheet.create({
   header: { paddingBottom: 8, borderBottomWidth: 1 },
   // On a phone a long aside (the session chip's "opens 14:30 (09:30 ET), in 2h") drops under the title rather than
-  // squeezing it to "Live win…"; the title and eyebrow still truncate before the index leaves the line.
+  // squeezing it to "Live win…". A title longer than the line wraps beside its index, as web's h2 does (C4f: "04 · Who
+  // sees what on t…" was cut on every phone width); the index never leaves the first line.
   top: { flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", columnGap: 12, rowGap: 6 },
   left: { flexDirection: "row", alignItems: "baseline", gap: 8, flexShrink: 1 },
   shrink: { flexShrink: 1 },
