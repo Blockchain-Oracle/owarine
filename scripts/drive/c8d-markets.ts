@@ -9,6 +9,7 @@
  *   strategies, mirror  L-57, A-3b, L-54 (`drive/c8d/strategies.ts`)
  *   private             L-39 (`drive/c8d/private.ts`)
  *   earn                A-2b (`drive/c8d/earn.ts`)
+ *   rest                C-S24b (`drive/c8d/rest.ts`; pauses the venue until the last Window closes, then opens it)
  *
  *   LEDGER_JSON_API_URL=http://localhost:7604 AGARI_PARTIES_FILE=<parties.json> \
  *     pnpm --filter @agari/scripts exec tsx drive/c8d-markets.ts --web http://localhost:3160 --ops http://localhost:8760 [--only basket,valuation]
@@ -24,13 +25,14 @@ import { webClient } from "./first-call/seat";
 import { runBaskets, runValuation } from "./c8d/baskets";
 import { runEarn } from "./c8d/earn";
 import { runPrivate } from "./c8d/private";
+import { runRest } from "./c8d/rest";
 import { runKnockout, runProducts } from "./c8d/products";
 import { runMirror, runStrategies } from "./c8d/strategies";
 import { runVenueMode } from "./c8d/venue-mode";
 import { ledgerKit, readParties, rolesOf, type Ctx } from "./c8d/common";
 
 const REPO = resolve(import.meta.dirname, "..", "..");
-const PARTS: Record<string, (ctx: Ctx) => Promise<void>> = { basket: runBaskets, valuation: runValuation, "venue-mode": runVenueMode, products: runProducts, knockout: runKnockout, strategies: runStrategies, mirror: runMirror, private: runPrivate, earn: runEarn };
+const PARTS: Record<string, (ctx: Ctx) => Promise<void>> = { basket: runBaskets, valuation: runValuation, "venue-mode": runVenueMode, products: runProducts, knockout: runKnockout, strategies: runStrategies, mirror: runMirror, private: runPrivate, earn: runEarn, rest: runRest };
 const only = arg("--only", Object.keys(PARTS).join(",")).split(",").map((s) => s.trim()).filter(Boolean);
 const commit = (() => {
   try {
