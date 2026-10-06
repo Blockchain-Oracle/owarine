@@ -51,10 +51,25 @@ export function voidPaidBySide(marketId: MarketId, claimables: readonly Claimabl
   return round ? bySide(round.legs) : null;
 }
 
-/** What a settled round says the still-held legs cost, when nothing was sold back (then stake is exactly that). */
-function roundCostBasis(marketId: MarketId, history: WalletHistory | null): bigint | null {
+/**
+ * A settled Window's entry cost as the ledger recorded it (C4f): the round's stake, which is its settlement receipts' cost
+ * (backing plus the fee paid at the fill, `PM.Leg`) when the fills are not on the tape, net of anything sold back before
+ * the close — `toVerdict`'s cost basis, so the verdict's P&L is the record's. Null while the history has no round for it.
+ */
+export function settledCostBasis(marketId: MarketId, history: WalletHistory | null): bigint | null {
   const round = history?.rounds.find((r) => r.marketId === marketId);
-  return round && round.proceedsBase === 0n ? round.stakeBase : null;
+  return round ? round.stakeBase - round.proceedsBase : null;
+}
+
+/**
+ * True while a held, non-void Window's cost is not known yet but the ledger's record of it is still on its way: the legs
+ * left the positions at the settle, and the receipt reaches the history a beat later. Waiting there is the truth; "no
+ * entry cost on record" is said only when a complete history has read the Window and still has no cost for it.
+ */
+export function awaitingSettledCost(input: { costBasisBase: bigint | null; heldRaw: bigint; voided: boolean; history: WalletHistory | null; marketId: MarketId }): boolean {
+  if (input.costBasisBase !== null || input.heldRaw === 0n || input.voided) return false;
+  if (input.history === null) return true;
+  return input.history.complete && !input.history.rounds.some((r) => r.marketId === input.marketId);
 }
 
 /** Watches one window for its wallet: polls the chain every few seconds once expiry passes, then derives the one verdict. */
@@ -93,9 +108,13 @@ export function useVerdict({ marketId, wallet }: { marketId: MarketId | null; wa
     const rounds = history?.ok ? history.value : null;
     const liveCost = positions.ok ? (positions.value.find((p) => p.marketId === marketId)?.costBasisBase ?? null) : null;
     if (liveCost === null && history === null && known.current.costBasisBase === null) return null;
-    const costBasisBase = liveCost ?? roundCostBasis(marketId, rounds) ?? known.current.costBasisBase;
+    const costBasisBase = liveCost ?? settledCostBasis(marketId, rounds) ?? known.current.costBasisBase;
     const paidBySide = snapshot.isVoided ? (voidPaidBySide(marketId, claimables?.ok ? claimables.value : null, rounds?.rounds ?? null) ?? known.current.paidBySide) : null;
     known.current = { marketId, costBasisBase, paidBySide };
+    const heldRaw = holdings.ok ? holdings.value.upRaw + holdings.value.downRaw : 0n;
+    // A failed history read cannot be waited out: then the verdict says the cost is unread, as before.
+    const recordUnread = history !== null && !history.ok;
+    if (!recordUnread && awaitingSettledCost({ costBasisBase, heldRaw, voided: snapshot.isVoided, history: rounds, marketId })) return null;
     // A void's refund is the legs' own cost: until one source has it, the verdict waits rather than guessing (never half a contract).
     if (!verdictPriceable({ settlement: snapshot, costBasisBase, paidBySide })) return null;
     const settledAtMs = resolution?.ok ? resolution.value.settledAtMs : null;
