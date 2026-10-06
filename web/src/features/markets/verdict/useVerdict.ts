@@ -8,7 +8,8 @@ import type { Address, ClaimableRow, EventMarket, MarketId, Resolution, Verdict 
 import { secToMs } from "@agari/core/units";
 import { marketsProvider } from "@agari/markets";
 import { keys, useClaimables, useHoldings, useMarket, useOnchain, usePositions, useReadingQuery, useTick, useWalletHistory } from "@agari/markets/react";
-import { useMemo, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef } from "react";
 import { useVenue } from "../useVenue";
 
 export type VerdictPhase = "open" | "settling" | "settled";
@@ -22,6 +23,8 @@ export interface VerdictState {
 }
 
 const RENDER_TICK_MS = 1_000;
+/** How long a held Window's verdict waits for its settled record before it says the entry cost is unread (C4f). */
+const COST_WAIT_MS = 30_000;
 
 /** The settlement tx lands a beat after the status flips, so the record is polled until it carries one. */
 function useSettledResolution(marketId: MarketId | null, settled: boolean): Reading<Resolution> | null {
@@ -100,28 +103,43 @@ export function useVerdict({ marketId, wallet }: { marketId: MarketId | null; wa
   const known = useRef<{ marketId: MarketId | null; costBasisBase: bigint | null; paidBySide: PaidBySide | null }>({ marketId: null, costBasisBase: null, paidBySide: null });
   if (known.current.marketId !== marketId) known.current = { marketId, costBasisBase: null, paidBySide: null };
 
+  // C4f: a held Window's cost is on its settlement receipt, which reaches the history a beat after the settle. The verdict
+  // waits for it (re-reading the history every few seconds) for at most COST_WAIT_MS, then says the cost is unread. A
+  // private call's Window never enters the seat's history (K-317), so the bound is what ends its wait.
+  const settledSince = useRef<{ marketId: MarketId | null; atMs: number | null }>({ marketId: null, atMs: null });
+  if (settledSince.current.marketId !== marketId) settledSince.current = { marketId, atMs: null };
+  if (settled && settledSince.current.atMs === null) settledSince.current.atMs = nowMs;
+  const waitOpen = settledSince.current.atMs !== null && nowMs - settledSince.current.atMs < COST_WAIT_MS;
+  const rounds = history?.ok ? history.value : null;
+  const liveCost = positions?.ok ? (positions.value.find((p) => p.marketId === marketId)?.costBasisBase ?? null) : null;
+  const heldRaw = holdings?.ok ? holdings.value.upRaw + holdings.value.downRaw : 0n;
+  const awaitingRecord =
+    settled && waitOpen && marketId !== null && !(history !== null && !history.ok) &&
+    awaitingSettledCost({ costBasisBase: liveCost ?? settledCostBasis(marketId, rounds) ?? known.current.costBasisBase, heldRaw, voided: snapshot?.isVoided ?? false, history: rounds, marketId });
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!awaitingRecord || wallet === null) return;
+    const id = setInterval(() => void queryClient.invalidateQueries({ queryKey: keys.history(wallet) }), VERDICT_POLL_MS);
+    return () => clearInterval(id);
+  }, [awaitingRecord, wallet, queryClient]);
+
   const verdict = useMemo<Reading<Verdict | null> | null>(() => {
     if (!settled || snapshot === null || marketId === null || holdings === null || fee === null) return null;
     // The first verdict is the one announced (`useAnnounceOnce`), so it waits for the reads that fix its figures: the live
     // positions, and once the legs are gone the settled history. Read too early it said "Won +1.00" for a 0.14 profit.
     if (positions === null) return null;
-    const rounds = history?.ok ? history.value : null;
-    const liveCost = positions.ok ? (positions.value.find((p) => p.marketId === marketId)?.costBasisBase ?? null) : null;
     if (liveCost === null && history === null && known.current.costBasisBase === null) return null;
+    if (awaitingRecord) return null;
     const costBasisBase = liveCost ?? settledCostBasis(marketId, rounds) ?? known.current.costBasisBase;
     const paidBySide = snapshot.isVoided ? (voidPaidBySide(marketId, claimables?.ok ? claimables.value : null, rounds?.rounds ?? null) ?? known.current.paidBySide) : null;
     known.current = { marketId, costBasisBase, paidBySide };
-    const heldRaw = holdings.ok ? holdings.value.upRaw + holdings.value.downRaw : 0n;
-    // A failed history read cannot be waited out: then the verdict says the cost is unread, as before.
-    const recordUnread = history !== null && !history.ok;
-    if (!recordUnread && awaitingSettledCost({ costBasisBase, heldRaw, voided: snapshot.isVoided, history: rounds, marketId })) return null;
     // A void's refund is the legs' own cost: until one source has it, the verdict waits rather than guessing (never half a contract).
     if (!verdictPriceable({ settlement: snapshot, costBasisBase, paidBySide })) return null;
     const settledAtMs = resolution?.ok ? resolution.value.settledAtMs : null;
     return mapReading(combineReadings(holdings, fee), ([held, feeBps]) =>
       deriveVerdict({ marketId, settlement: snapshot, holdings: held, feeBps, decimals: snapshot.decimals, costBasisBase, paidBySide, settledAtMs }),
     );
-  }, [settled, snapshot, marketId, holdings, fee, positions, resolution, claimables, history]);
+  }, [settled, snapshot, marketId, holdings, fee, positions, resolution, claimables, history, rounds, liveCost, awaitingRecord]);
 
   return { phase: settled ? "settled" : pastExpiry ? "settling" : "open", market, verdict, resolution };
 }
