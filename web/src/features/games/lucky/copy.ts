@@ -115,7 +115,7 @@ export const LUCKY = {
 
   placed: {
     title: "Placed",
-    booked: (contracts: string, side: string, cents: number) => `Bought ${contracts} ${side} contracts at ${cents}¢.`,
+    booked: (contracts: string, side: string, cents: number) => `Bought ${contracts} ${side} ${contracts === "1" ? "contract" : "contracts"} at ${cents}¢.`,
     measured: (contracts: string, cost: string, symbol: string) => `On the tape: ${contracts} contracts for ${cost} ${symbol}.`,
     notOnTape: "Not on the tape yet — your history keeps checking and will say what filled.",
     pending: "It settles when the Window closes. The result lands here and in your history.",

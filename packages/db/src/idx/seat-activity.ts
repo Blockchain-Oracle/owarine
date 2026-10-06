@@ -27,7 +27,7 @@ export function seatActivityReader(sql: Sql) {
     async fills(address: string, lease: IdxSeatLease, q: SocialActivityQuery = {}): Promise<SocialFillRow[]> {
       return sql<SocialFillRow[]>`
         SELECT f.update_id AS signature, 0 AS outer_ix, f.node_id AS inner_ix, 0 AS fill_ix, f.market, ${address}::text AS wallet, f.kind,
-          (CASE WHEN f.resting THEN 'maker' ELSE 'taker' END) AS seat, m.symbol, m.cadence_sec, f.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit)::text AS amount_base, f.ts_sec::text AS ts_sec
+          (CASE WHEN f.resting THEN 'maker' ELSE 'taker' END) AS seat, m.symbol, m.cadence_sec, f.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit + COALESCE(f.fee, 0))::text AS amount_base, f.ts_sec::text AS ts_sec
         FROM idx_fills f JOIN idx_markets m ON m.market = f.market
         WHERE f.owner_party = ${lease.party} AND f.ledger_offset >= ${lease.fromOffset} AND m.symbol IS NOT NULL
           ${q.sinceSec === undefined ? sql`` : sql`AND f.ts_sec >= ${q.sinceSec}`}
