@@ -6,7 +6,6 @@ import {
   LineSeries,
   LineStyle,
   createChart,
-  type AutoscaleInfo,
   type IChartApi,
   type IPriceLine,
   type ISeriesApi,
@@ -15,6 +14,7 @@ import {
 import { useEffect, useRef } from "react";
 import { HERO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { drawnOf, isOneTickMore, NOTHING_DRAWN, syncReferenceLine, type DrawnSeries } from "./chart-sync";
 import type { ChartPoint } from "./useChartSeries";
 import { ORACLE_SCALE, PRICE_DISPLAY_DP } from "./units";
 
@@ -31,7 +31,7 @@ interface Built {
   chart: IChartApi;
   series: ISeriesApi<"Line">;
   priceLine: IPriceLine | null;
-  pointCount: number;
+  drawn: DrawnSeries;
 }
 
 /** Floats exist only here, at the canvas boundary. */
@@ -84,19 +84,7 @@ function buildChart(container: HTMLDivElement): Built {
     lastValueVisible: true,
     priceFormat: { type: "price", precision: PRICE_DISPLAY_DP, minMove: MIN_MOVE },
   });
-  return { chart, series, priceLine: null, pointCount: 0 };
-}
-
-/** Keeps the opening print inside the visible range; the series alone would autoscale it out of view. */
-function includeInAutoscale(series: ISeriesApi<"Line">, price: number): void {
-  series.applyOptions({
-    autoscaleInfoProvider: (original: () => AutoscaleInfo | null) => {
-      const info = original();
-      if (!info?.priceRange) return info;
-      const { minValue, maxValue } = info.priceRange;
-      return { ...info, priceRange: { minValue: Math.min(minValue, price), maxValue: Math.max(maxValue, price) } };
-    },
-  });
+  return { chart, series, priceLine: null, drawn: NOTHING_DRAWN };
 }
 
 export function PriceChartClient({ points, openingRaw, lineLabel, className }: PriceChartClientProps) {
@@ -118,32 +106,32 @@ export function PriceChartClient({ points, openingRaw, lineLabel, className }: P
     if (!built) return;
     const data = points.map((p) => ({ time: p.timeSec as UTCTimestamp, value: toValue(p.valueRaw) }));
     const last = data.at(-1);
-    if (last && data.length === built.pointCount + 1) {
+    // Append only a live tick of the series already drawn; another market's points replace it whole.
+    if (last && isOneTickMore(built.drawn, data)) {
       built.series.update(last);
     } else {
       built.series.setData(data);
       built.chart.timeScale().fitContent();
     }
-    built.pointCount = data.length;
+    built.drawn = drawnOf(data);
   }, [points]);
 
   useEffect(() => {
     const built = builtRef.current;
     const container = containerRef.current;
-    if (!built || !container || openingRaw === null || built.priceLine) return;
-    const price = toValue(openingRaw);
-    includeInAutoscale(built.series, price);
-    built.priceLine = built.series.createPriceLine({
-      price,
-      color: cssVar(container, "--color-ink-secondary"),
-      lineWidth: 1,
-      lineStyle: LineStyle.Solid,
-      axisLabelVisible: true,
-      title: lineLabel ?? HERO.openingPrint,
-    });
-    // The label names the line at creation; it is fixed for the life of the chart, as the line is.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openingRaw]);
+    if (!built || !container) return;
+    // The chart stays mounted when the selection moves to another Window, so the line follows the print it is given.
+    built.priceLine = syncReferenceLine(built.series, built.priceLine, openingRaw === null ? null : toValue(openingRaw), lineLabel ?? HERO.openingPrint, (price, title) =>
+      built.series.createPriceLine({
+        price,
+        color: cssVar(container, "--color-ink-secondary"),
+        lineWidth: 1,
+        lineStyle: LineStyle.Solid,
+        axisLabelVisible: true,
+        title,
+      }),
+    );
+  }, [openingRaw, lineLabel]);
 
   return <div ref={containerRef} className={cn("h-56 w-full", className)} />;
 }

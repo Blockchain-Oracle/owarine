@@ -80,7 +80,7 @@ export function HeroAssetChartView({ asset, tickers, onPickAsset, session, histo
           {/* `tick={false}`: an aged archive read is the last session by definition, never a stale live value (D-086). */}
           <ReadingBoundary reading={history} shape="chart" tick={false} isEmpty={(v) => v.points.length < 2} empty={{ why: SESSION_COPY.hero.noHistory(asset) }}>
             {(v) => (
-              // Keyed by asset: the chart fixes its reference line at creation, so a new asset gets a new chart.
+              // Keyed by asset: a new asset starts a fresh chart, fitted to its own history.
               <PriceChart
                 key={asset}
                 points={v.points}
