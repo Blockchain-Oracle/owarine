@@ -45,21 +45,25 @@ export function leasedOf(view: SeatLeaseView | null): LeasedSeat | null {
 }
 
 /**
- * `address` only while this browser holds a lease on that seat, else null (C4c.2). A seat's own index rows
+ * `address` only while this device holds a lease, else null (C4c.2). A seat's own index rows
  * (`/api/index/wallet/<address>/…`) answer 403 without a lease, so a read of them waits for one instead of polling a
  * refusal: a key restored from storage with an expired lease is not a seat yet.
+ *
+ * The lease names the holder's address, but `/api/seat` answers `leased` to a joined device too (seat link, C4c), whose
+ * own key signs its reads and which the server resolves to the same seat. So a leased answer to this device is the
+ * proof; requiring the holder's address left a joined device with no resting calls (C11b).
  */
 export function leasedAddressOf<A extends string>(view: SeatLeaseView | null, address: A | null): A | null {
-  const leased = leasedOf(view);
-  return leased !== null && address !== null && leased.address === address ? address : null;
+  return leasedOf(view) !== null && address !== null ? address : null;
 }
 
 /**
- * The seat's number from its party hint (`seat-3::1220…` → 3), or null when the hint carries none. The number is a
- * label for the menu; the party id beside it is the fact.
+ * The seat's number from its party hint, or null when the hint carries none: `seat-3` (a bare user name),
+ * `pm-seat-3` (the DevNet Console hint) and `agari-user-seat-1-<run>` (the local bootstrap) all name a number. The
+ * number is a label for the menu; the party id beside it is the fact.
  */
 export function seatNumberOf(party: string): number | null {
   const hint = party.split("::")[0] ?? "";
-  const match = /^seat[-_]?(\d+)$/i.exec(hint);
+  const match = /(?:^|[-_])seat[-_]?(\d+)(?:[-_]|$)/i.exec(hint);
   return match ? Number(match[1]) : null;
 }
