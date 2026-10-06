@@ -132,7 +132,7 @@ export const LUCKY = {
     cashedOut: "Cashed out",
     eyebrow: "Lucky",
     line: (asset: string, side: string, m: number) => `${asset} · ${side} · ${m}×`,
-    pays: (contracts: string, symbol: string) => `pays ${contracts} ${symbol} before the settlement fee`,
+    pays: (contracts: string, symbol: string) => `paid ${contracts} ${symbol} in full; nothing is taken at settlement`,
     lostLine: (cost: string, symbol: string) => `${cost} ${symbol} staked`,
     voidLine: "the Window was voided — both sides get their stake and fee back",
     cashedLine: "closed at the venue's price before the Window settled",

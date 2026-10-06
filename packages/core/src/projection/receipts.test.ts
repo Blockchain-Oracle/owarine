@@ -19,6 +19,23 @@ describe("settlement receipts in history (engine 0.4.0)", () => {
     expect(out!.receipt).toEqual({ product: null, receiptIds: ["r1"], costBase: 5_100_000n, payoutBase: 10_000_000n, feeBase: 100_000n, detail: null });
   });
 
+  it("takes the ledger's own payout when the receipts cover every held leg (C9e): a void returns backing plus fee", () => {
+    const replayed = {
+      marketId: M, source: "wallet", outcome: "void", proceedsBase: 0n, stakeBase: 4_050_000n, payoutBase: 4_050_000n, pnlBase: 0n, feeBase: 0n,
+      legs: [{ outcomeIdx: 0, amountRaw: 10_000_000n, payoutBase: 4_050_000n }],
+    } as SettledRound;
+    const voidReceipt = r({ resolvedIdx: null, costBase: 4_050_000n, payoutBase: 4_050_000n, feeBase: 0n });
+    const [out] = withReceipts([replayed], [voidReceipt], 6);
+    expect(out).toMatchObject({ outcome: "void", payoutBase: 4_050_000n, pnlBase: 0n });
+    expect(out!.legs[0]!.payoutBase).toBe(4_050_000n);
+    // A win the receipts cover: paid in full, the P&L against the stake that includes the fee.
+    const won = withReceipts([{ ...replayed, outcome: "win", stakeBase: 5_100_000n, legs: [{ outcomeIdx: 0, amountRaw: 10_000_000n, payoutBase: 10_000_000n }] }], [r({})], 6)[0]!;
+    expect(won).toMatchObject({ outcome: "win", payoutBase: 10_000_000n, pnlBase: 4_900_000n });
+    // Not covered (only part of the held size has a receipt): the replay's figures stand.
+    const partial = withReceipts([replayed], [r({ resolvedIdx: null, lots: 4n, payoutBase: 1_620_000n })], 6)[0]!;
+    expect(partial.payoutBase).toBe(4_050_000n);
+  });
+
   it("builds a round from pair-leg receipts alone: a winning Up leg, paid", () => {
     const [out] = withReceipts([], [r({})], 6);
     expect(out).toMatchObject({ marketId: M, asset: "BTC", outcome: "win", stakeBase: 5_100_000n, payoutBase: 10_000_000n, pnlBase: 4_900_000n, claim: "paid", fillCount: 0 });

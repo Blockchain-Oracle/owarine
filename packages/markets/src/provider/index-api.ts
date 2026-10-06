@@ -141,6 +141,8 @@ export interface FillRow {
   maker_kind: number;
   price_ticks: number;
   lots: Dec;
+  /** The fee paid with the buy (`PM.Leg.feePaid`); "0" on a sale. Absent from rows that predate it. */
+  fee?: Dec;
 }
 
 export interface ActionRow {

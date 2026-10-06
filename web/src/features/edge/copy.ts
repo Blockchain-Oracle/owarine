@@ -76,7 +76,8 @@ export const EDGE = {
       averageLoss: "Average loss",
       bestRun: "Best run",
       runs: (n: number) => `${n} ${n === 1 ? "win" : "wins"}`,
-      fees: "Settlement fees",
+      /** The fee is charged with the stake at the fill and kept unless the Window voids (`PM.Leg`); nothing is taken at settlement. */
+      fees: "Fees kept by the venue",
       stake: "Settled stake",
       noWins: "No wins yet",
       noLosses: "No losses yet",

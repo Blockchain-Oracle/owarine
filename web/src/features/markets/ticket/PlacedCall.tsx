@@ -28,7 +28,7 @@ interface PlacedCallProps {
  * The instant a bet lands, the ticket becomes The Call — the reference's
  * `Ticket624Drawer` L807–836: the shareable card with Portfolio / Place another
  * under it. Every field on it is the booked order and the Window as the chain has
- * them; the return is net of the settlement fee once that read lands.
+ * them; the return is the full contract count (the fee was paid with the stake).
  */
 export function PlacedCall({ booked, market, nowMs, decimals, symbol, boost, onAnother }: PlacedCallProps) {
   // The moment the confirmation arrived, held for the life of the card so the

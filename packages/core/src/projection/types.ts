@@ -15,8 +15,16 @@ export interface LedgerFill {
   quantityRaw: bigint;
   /** Execution price in YES (UP) terms; a NO leg costs the complement (canon #20). */
   yesPriceRaw: bigint;
+  /** The fee paid with a buy when the call filled (`PM.Leg.feePaid`); absent = none. */
+  feeBase?: bigint;
   atMs: number;
   txHash: Signature;
+}
+
+/** What one held side cost, split the way the ledger splits a leg: backing and the fee escrowed with it. */
+export interface SideCost {
+  backingBase: bigint;
+  feeBase: bigint;
 }
 
 /** A complete-set mint or merge through the router — it touches both outcomes at once. */
@@ -33,8 +41,16 @@ export interface MarketLedger {
   marketId: MarketId;
   heldUpRaw: bigint;
   heldDownRaw: bigint;
-  /** Collateral paid for everything bought here, including the complement leg a short creates. */
+  /** Collateral paid for everything bought here, fees included, and the complement leg a short creates. */
   costBase: bigint;
+  /**
+   * What the legs still held on each side cost (`backingShare` and `feePaid`), reduced as the ledger reduces them on a
+   * sale (`BuyQuote_Accept`: the sold slice takes the ceiling of each). A void returns exactly this. Absent on ledgers
+   * not built by `buildLedgers`.
+   */
+  held?: { up: SideCost; down: SideCost };
+  /** Every fee paid with a buy here; absent = none recorded. */
+  feesBase?: bigint;
   /** Collateral received from sells and merges before settlement. */
   proceedsBase: bigint;
   /** Which sides the wallet ever bought — the words on a row that closed out before expiry. */
@@ -86,9 +102,9 @@ export interface SettledRound {
   stakeBase: bigint;
   /** Everything taken out on the book before expiry. */
   proceedsBase: bigint;
-  /** What settlement pays for the held legs, net of the settlement fee. */
+  /** What settlement pays for the held legs (`PM.Leg.legPayout`): a win's quantity, a void's backing plus fee. */
   payoutBase: bigint;
-  /** The settlement fee skimmed from winning legs. */
+  /** The fees the venue kept on this round: charged at the fill, returned on a void for the legs still held. */
   feeBase: bigint;
   /** proceeds + payout − stake. */
   pnlBase: bigint;

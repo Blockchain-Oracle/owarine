@@ -48,7 +48,8 @@ export const SHARE = {
     winsIfEvent: (side: "up" | "down") => `Wins if the committee attests ${side === "up" ? "YES" : "NO"}.`,
     youStake: "You stake",
     winIfLands: "Win if it lands",
-    afterFee: "after the settlement fee",
+    /** Canton charges the fee with the stake at the fill, so a win is paid in full. */
+    afterFee: "paid in full · fee included in the stake",
     /** The reference's caveat on a boosted call (`BetPlacedCard.tsx` L123–127) and its PNG line (`openBetShareCard.ts` L360). */
     leverageNote: (x: number) => `✦ ${x}× leverage. It can knock out before close.`,
     leverageLine: (x: number) => `${x}× LEVERAGE · CAN KNOCK OUT BEFORE THE CLOSE`,

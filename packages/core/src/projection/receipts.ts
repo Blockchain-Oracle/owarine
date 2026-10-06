@@ -68,6 +68,26 @@ function baseRound(first: ReceiptFacts, decimals: number, rs: readonly ReceiptFa
   };
 }
 
+const receiptRaw = (r: ReceiptFacts) => r.lots * r.cashUnit * PAIR_TICKS;
+
+/**
+ * A replayed round whose held legs the receipts cover side for side takes the ledger's own figures: what each side was
+ * paid, and the P&L from it. Partly covered (a leg refunded stale, which leaves no receipt), the replay's
+ * `PM.Leg.legPayout` figures stand and the receipts ride along.
+ */
+function paidAsReceipted(round: SettledRound, rs: readonly ReceiptFacts[]): SettledRound {
+  if (!round.legs?.length) return round;
+  const sides = round.legs.map((leg) => rs.filter((r) => r.outcomeIdx === leg.outcomeIdx));
+  const covered = round.legs.every((leg, i) => sum(sides[i]!, receiptRaw) === leg.amountRaw);
+  if (!covered || sum(rs, receiptRaw) !== round.legs.reduce((total, leg) => total + leg.amountRaw, 0n)) return round;
+  const legs = round.legs.map((leg, i) => ({ ...leg, payoutBase: sum(sides[i]!, (r) => r.payoutBase) }));
+  const payoutBase = sum(rs, (r) => r.payoutBase);
+  const pnlBase = round.proceedsBase + payoutBase - round.stakeBase;
+  const outcome: RoundOutcome = round.outcome === "void" ? "void" : payoutBase === 0n ? "loss" : pnlBase >= 0n ? "win" : "loss";
+  // The fee stays the replay's: it also counts fees kept on slices sold before expiry, which leave no receipt.
+  return { ...round, legs, payoutBase, pnlBase, outcome };
+}
+
 /** Rounds from the fill replay, with receipts attached, plus the rounds only the receipts know about. */
 export function withReceipts(rounds: readonly SettledRound[], receipts: readonly ReceiptFacts[], decimals: number): SettledRound[] {
   const pairs = new Map<string, ReceiptFacts[]>();
@@ -86,7 +106,7 @@ export function withReceipts(rounds: readonly SettledRound[], receipts: readonly
     }
     pairs.delete(round.marketId);
     const question = own[0]!.market.question;
-    out.push({ ...round, receipt: receiptOf(own), ...(question ? { question } : {}) });
+    out.push({ ...paidAsReceipted(round, own), receipt: receiptOf(own), ...(question ? { question } : {}) });
   }
   for (const rs of pairs.values()) {
     const base = baseRound(rs[0]!, decimals, rs);

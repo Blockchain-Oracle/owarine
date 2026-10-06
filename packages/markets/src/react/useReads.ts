@@ -100,7 +100,7 @@ export function useBookParams(poolAddress: Address | null): Reading<BookParams> 
   });
 }
 
-/** The settlement fee for one market, read at use time (the engine charges none, D-012). */
+/** The settlement fee for one market, read at use time (Canton charges none: the fee is taken at the fill, `PM.Leg`). */
 export function useSettlementFee(marketId: MarketId | null): Reading<number> | null {
   return useReadingQuery(keys.fee(marketId), () => settlementFeeBps(marketId as MarketId), { enabled: marketId !== null });
 }

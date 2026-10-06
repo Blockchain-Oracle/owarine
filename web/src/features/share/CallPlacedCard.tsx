@@ -24,7 +24,7 @@ interface CallPlacedCardProps {
  * a draining bar — because the call is still open.
  *
  * Honesty mirrors the PNG: no result is implied, the return is conditional ("win if
- * it lands") and net of the settlement fee when known, and the settle time is the
+ * it lands") and paid in full (the fee is in the stake), and the settle time is the
  * Window's real expiry. The reference pins the ticket dark; here it follows the
  * theme (share-card.css), on the user's 2026-09-01 ruling — the PNG stays dark.
  */

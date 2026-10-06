@@ -60,7 +60,7 @@ describe("a settled vault round", () => {
     expect(cranked?.claim).toBe("paid");
   });
 
-  it("books a losing side at zero and a void at half", () => {
+  it("books a losing side at zero and a void at what it cost (PM.Leg.legPayout, C9e)", () => {
     const loss = vaultRound(tally(), market({ winningOutcome: 1 }), 0);
     expect(loss?.outcome).toBe("loss");
     expect(loss?.payoutBase).toBe(0n);
@@ -68,7 +68,8 @@ describe("a settled vault round", () => {
 
     const voided = vaultRound(tally(), market({ voided: true, winningOutcome: null }), 0);
     expect(voided?.outcome).toBe("void");
-    expect(voided?.payoutBase).toBe(50n * ONE);
+    expect(voided?.payoutBase).toBe(60n * ONE);
+    expect(voided?.pnlBase).toBe(0n);
   });
 
   it("is null while the Window is open and when the tally is empty", () => {

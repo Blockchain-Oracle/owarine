@@ -1,4 +1,4 @@
-import { estPayoutBase } from "@agari/core/claims";
+import { winPayoutBase } from "@agari/core/claims";
 import type { OpenPosition, Verdict } from "@agari/core/types";
 import { assetSpotLine } from "@/features/markets/hero/units";
 import { money } from "~/features/portfolio/format";
@@ -57,14 +57,14 @@ export function activityProps({ position, openingRaw, spotRaw, symbol, verdict, 
       : verdict.outcome === "win"
         ? `Won ${money(verdict.payoutBase, d, symbol)}`
         : verdict.outcome === "void"
-          ? "Void · stake back"
+          ? "Void · stake and fee back"
           : "Lost";
   return {
     asset: position.asset,
     mark,
     side: up ? "Up" : "Down",
     up,
-    payout: money(estPayoutBase(held, "win"), d, symbol),
+    payout: money(winPayoutBase(held), d, symbol),
     strike: openingRaw !== null ? `Line ${assetSpotLine(position.asset, openingRaw)}` : "Opening print pending",
     // Once decided, the chain's closing print is the answer: the app's live price beside it would only contradict it.
     price: verdict === null && spotRaw !== null ? assetSpotLine(position.asset, spotRaw) : "",

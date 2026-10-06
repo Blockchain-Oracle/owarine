@@ -59,8 +59,9 @@ export const CLAIM = {
   title: "Claim everything",
   pageIntro: "Claim a win with one signature per Window, paid to your seat only. Unclaimed, the venue pays it to your seat a few minutes after settlement.",
   waiting: (n: number) => (n === 0 ? "Nothing waiting right now" : `${n} settled ${n === 1 ? "Window" : "Windows"} waiting`),
-  netLabel: "net of the settlement fee",
-  feeNote: (bps: number) => (bps === 0 ? "fee 0% — read from the ledger" : `fee ${(bps / 100).toString()}% — read from the ledger`),
+  /** Canton takes nothing at settlement: the fee was paid with the stake when the call filled, and a void returns it. */
+  netLabel: "paid in full, nothing taken at settlement",
+  feeNote: (bps: number) => (bps === 0 ? "the fee was paid with your stake; a void returns it" : `fee ${(bps / 100).toString()}% — read from the ledger`),
   oneSignatureEach: "One signature per Window — every leg in it is paid together, and each Window reports its own outcome.",
   contracts: "contracts",
   closed: "closed",

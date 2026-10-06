@@ -49,6 +49,8 @@ export function toLedgerFill(wallet: Address, fill: FillRow, grid: Grid | undefi
     side,
     quantityRaw: big(fill.lots) * grid.lotBase,
     yesPriceRaw: BigInt(fill.price_ticks) * grid.tickBase,
+    // Canton charges the fee with the stake at the fill and returns it on a void (`PM.Leg`); history counts it as paid in.
+    ...(fill.taker === wallet && fill.fee !== undefined && fill.fee !== null ? { feeBase: big(fill.fee) } : {}),
     atMs: sec(fill.ts_sec) * 1000,
     txHash: fill.signature as Signature,
   };

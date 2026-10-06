@@ -1,25 +1,39 @@
 import type { MarketId, OutcomeIdx } from "../types/market";
 import type { Signature } from "../types/primitives";
 import { oneUnit } from "../units/decimals";
-import type { LedgerFill, LedgerSetAction, MarketLedger } from "./types";
+import type { LedgerFill, LedgerSetAction, MarketLedger, SideCost } from "./types";
 
 type Event = { atMs: number; seq: number; marketId: MarketId; txHash: Signature; apply: (ledger: MarketLedger) => void };
 
 const UP: OutcomeIdx = 0;
 const DOWN: OutcomeIdx = 1;
 
+const noCost = (): SideCost => ({ backingBase: 0n, feeBase: 0n });
+
 function fresh(marketId: MarketId, atMs: number, txHash: Signature): MarketLedger {
-  return { marketId, heldUpRaw: 0n, heldDownRaw: 0n, costBase: 0n, proceedsBase: 0n, sidesTraded: [], fillCount: 0, shortCount: 0, firstAtMs: atMs, lastAtMs: atMs, entryTxHash: txHash };
+  return {
+    marketId, heldUpRaw: 0n, heldDownRaw: 0n, costBase: 0n, proceedsBase: 0n, held: { up: noCost(), down: noCost() }, feesBase: 0n,
+    sidesTraded: [], fillCount: 0, shortCount: 0, firstAtMs: atMs, lastAtMs: atMs, entryTxHash: txHash,
+  };
 }
+
+const sideCost = (ledger: MarketLedger, side: OutcomeIdx): SideCost => (side === UP ? ledger.held!.up : ledger.held!.down);
+const ceilDiv = (a: bigint, b: bigint) => (a + b - 1n) / b;
 
 function noteSide(ledger: MarketLedger, side: OutcomeIdx): void {
   if (!ledger.sidesTraded.includes(side)) ledger.sidesTraded.push(side);
 }
 
-function buy(ledger: MarketLedger, side: OutcomeIdx, quantityRaw: bigint, priceRaw: bigint, one: bigint): void {
+/** A buy books its backing and the fee paid with it (Canton charges the fee at the fill, `PM.Quote`). */
+function buy(ledger: MarketLedger, side: OutcomeIdx, quantityRaw: bigint, priceRaw: bigint, one: bigint, feeBase = 0n): void {
   if (side === UP) ledger.heldUpRaw += quantityRaw;
   else ledger.heldDownRaw += quantityRaw;
-  ledger.costBase += (quantityRaw * priceRaw) / one;
+  const backingBase = (quantityRaw * priceRaw) / one;
+  ledger.costBase += backingBase + feeBase;
+  ledger.feesBase = (ledger.feesBase ?? 0n) + feeBase;
+  const cost = sideCost(ledger, side);
+  cost.backingBase += backingBase;
+  cost.feeBase += feeBase;
   noteSide(ledger, side);
 }
 
@@ -34,6 +48,10 @@ function sell(ledger: MarketLedger, side: OutcomeIdx, quantityRaw: bigint, price
   const sold = quantityRaw < held ? quantityRaw : held;
   const shorted = quantityRaw - sold;
   if (sold > 0n) {
+    // The sold slice takes the ceiling of the backing and of the fee escrow; the kept leg keeps the rest (`BuyQuote_Accept`).
+    const cost = sideCost(ledger, side);
+    cost.backingBase -= ceilDiv(cost.backingBase * sold, held);
+    cost.feeBase -= ceilDiv(cost.feeBase * sold, held);
     if (side === UP) ledger.heldUpRaw -= sold;
     else ledger.heldDownRaw -= sold;
     ledger.proceedsBase += (sold * priceRaw) / one;
@@ -57,7 +75,7 @@ function fillEvent(fill: LedgerFill, seq: number, one: bigint): Event {
     txHash: fill.txHash,
     apply: (ledger) => {
       ledger.fillCount += 1;
-      if (isBuy) buy(ledger, side, fill.quantityRaw, priceRaw, one);
+      if (isBuy) buy(ledger, side, fill.quantityRaw, priceRaw, one, fill.feeBase ?? 0n);
       else sell(ledger, side, fill.quantityRaw, priceRaw, one);
     },
   };
@@ -75,11 +93,20 @@ function setEvent(action: LedgerSetAction, seq: number): Event {
         ledger.heldUpRaw += action.amountRaw;
         ledger.heldDownRaw += action.amountRaw;
         ledger.costBase += action.amountRaw;
+        // A complete set (the reference's router; Canton has none) backs each side with half its price.
+        ledger.held!.up.backingBase += action.amountRaw - action.amountRaw / 2n;
+        ledger.held!.down.backingBase += action.amountRaw / 2n;
         noteSide(ledger, UP);
         noteSide(ledger, DOWN);
       } else {
         const pairs = action.amountRaw < ledger.heldUpRaw ? action.amountRaw : ledger.heldUpRaw;
         const merged = pairs < ledger.heldDownRaw ? pairs : ledger.heldDownRaw;
+        if (merged > 0n) {
+          for (const [cost, heldRaw] of [[ledger.held!.up, ledger.heldUpRaw], [ledger.held!.down, ledger.heldDownRaw]] as const) {
+            cost.backingBase -= ceilDiv(cost.backingBase * merged, heldRaw);
+            cost.feeBase -= ceilDiv(cost.feeBase * merged, heldRaw);
+          }
+        }
         ledger.heldUpRaw -= merged;
         ledger.heldDownRaw -= merged;
         ledger.proceedsBase += merged;
