@@ -4,11 +4,11 @@
  * chose to publish (`/api/index/published/<address>/*`) through the same replay as the seat's own history. What it
  * never published is not here, and nothing says it is.
  */
-import type { WalletHistory } from "@agari/core/projection";
+import type { LedgerFill, WalletHistory } from "@agari/core/projection";
 import type { Reading } from "@agari/core/schemas";
 import type { Address, MarketId, OpenPosition } from "@agari/core/types";
 import { readVenueStatic } from "../runtime/accounts";
-import { pageAll, PAGE, replayHistory, type ReplayedWindow } from "./history";
+import { marketRows, pageAll, PAGE, replayHistory, toLedgerFill, type ReplayedWindow } from "./history";
 import { big, indexRows, sec, type FillRow, type ReceiptRow } from "./index-api";
 import { withReading } from "./reading";
 
@@ -61,5 +61,24 @@ export function listPublishedCalls(address: Address): Promise<Reading<OpenPositi
   return withReading(`published-calls:${address}`, async () => {
     const { open, decimals } = await replayPublished(address);
     return open.map((w) => publishedOpenPosition(w, decimals)).sort((a, b) => a.expirySec - b.expirySec);
+  });
+}
+
+/**
+ * Another seat's published calls as fills, newest first, from `sinceSec` on: the copy-a-trader signal (A-3b, C8). On
+ * Canton a trader's own fills are private to its lease (`wallet/*` answers 403 to anyone else, the runner included), so
+ * a copier follows only what the trader chose to publish, which is what the studio promises ("their published calls").
+ */
+export function listPublishedFills(address: Address, query: { sinceSec?: number; limit?: number } = {}): Promise<Reading<LedgerFill[]>> {
+  return withReading(`published-fills:${address}:${query.sinceSec ?? 0}`, async () => {
+    const all = await indexRows<FillRow>(`published/${address}/fills`, { limit: query.limit ?? PAGE });
+    const fills = query.sinceSec === undefined ? all : all.filter((f) => sec(f.ts_sec) >= query.sinceSec!);
+    const rows = await marketRows([...new Set(fills.map((f) => f.market))]);
+    return fills
+      .map((fill) => {
+        const row = rows.get(fill.market);
+        return toLedgerFill(address, fill, row ? { lotBase: big(row.lot_base), tickBase: big(row.tick_base) } : undefined);
+      })
+      .filter((fill): fill is LedgerFill => fill !== null);
   });
 }
