@@ -1,8 +1,9 @@
 /**
  * C8d part, private mode on Canton (L-39): seat G moves demo credits into its private bucket, signs one private call
  * (the reference's authorisation text, rebuilt by the route), the call lands as its own leg tagged private and paid
- * from the private bucket only; its public balance and positions do not show it; the receipt cannot be published; once
- * the venue settles the call, Cash out brings the payout home once; then the rest moves back out.
+ * from the private bucket only; its public balance and positions do not show it; the receipt cannot be published; when
+ * the venue settles the call its payout lands in the private bucket (abu-pm-main 0.5.2, K-315) and Cash out has nothing
+ * to move; then the rest moves back out.
  */
 import { formatCadence } from "@agari/core/copy";
 import { CLUSTER_ID } from "@agari/core/constants";
@@ -65,21 +66,21 @@ export async function runPrivate(ctx: Ctx): Promise<void> {
     return { outcome: r.json.status === "open" ? "pass" : "fail", detail: `${r.status} ${JSON.stringify(r.json).slice(0, 120)}`, evidence: "POST /api/private/cashout" };
   });
 
-  await step("private: once the venue settles it, Cash out brings the payout home once; the receipt is never published", async () => {
-    let row: { status: string; result: string | null; payoutBase: string | null } | undefined;
+  await step("private: once the venue settles it, the payout is already in the private bucket (0.5.2); Cash out moves nothing; the receipt is never published", async () => {
+    const before = BigInt((await web.call(G, "GET", "/api/private/balance")).json.balanceBase);
+    let row: { status: string; result: string | null; payoutBase: string | null; paidInto?: string | null } | undefined;
     while (Date.now() < (call.expirySec + 240) * 1000) {
-      row = ((await web.call(G, "GET", "/api/private/balance")).json.positions as { pairId: string; status: string; result: string | null; payoutBase: string | null }[]).find((x) => x.pairId === call.pairId);
-      if (row?.status === "settled") break;
+      row = ((await web.call(G, "GET", "/api/private/balance")).json.positions as { pairId: string; status: string; result: string | null; payoutBase: string | null; paidInto?: string | null }[]).find((x) => x.pairId === call.pairId);
+      if (row?.status === "credited") break;
       await sleep(8_000);
     }
-    if (row?.status !== "settled") return { outcome: "fail", detail: `still ${row?.status ?? "unlisted"} after the Window` };
+    if (row?.status !== "credited") return { outcome: "fail", detail: `still ${row?.status ?? "unlisted"} after the Window` };
+    const settled = BigInt((await web.call(G, "GET", "/api/private/balance")).json.balanceBase);
     const pub = await web.call(G, "POST", "/api/ledger/publications", { marketId: appMarketId(call.marketId), source: "receipt" });
-    const before = BigInt((await web.call(G, "GET", "/api/private/balance")).json.balanceBase);
     const c = await web.call(G, "POST", "/api/private/cashout", { commandId: randomUUID(), pairId: call.pairId, marketId: call.marketId });
-    const again = await web.call(G, "POST", "/api/private/cashout", { commandId: randomUUID(), pairId: call.pairId, marketId: call.marketId });
     const after = BigInt((await web.call(G, "GET", "/api/private/balance")).json.balanceBase);
-    const ok = c.json.status === "credited" && after - before === BigInt(c.json.payoutBase) && again.json.status === "done" && pub.status === 409;
-    return { outcome: ok ? "pass" : "fail", detail: `${row.result}: payout ${credits(row.payoutBase ?? "0")}; private ${credits(before)} → ${credits(after)}; second cash-out ${again.json.status}; publish receipt ${pub.status} ${pub.json.code ?? ""}`, evidence: "POST /api/private/cashout (Receipt_Dismiss + re-bucket)" };
+    const ok = row.paidInto === "private" && settled - before === BigInt(row.payoutBase ?? "0") && c.json.status === "done" && after === settled && pub.status === 409;
+    return { outcome: ok ? "pass" : "fail", detail: `${row.result}: payout ${credits(row.payoutBase ?? "0")} into ${row.paidInto ?? "the seat's balance"}; private ${credits(before)} → ${credits(settled)} at settlement; cash-out ${c.json.status}, private ${credits(after)}; publish receipt ${pub.status} ${pub.json.code ?? ""}`, evidence: "Leg_Settle → VenueCash \"private\" (abu-pm-main 0.5.2) · POST /api/private/cashout" };
   });
 
   await step("private: the rest moves back out to the seat's balance", async () => {
