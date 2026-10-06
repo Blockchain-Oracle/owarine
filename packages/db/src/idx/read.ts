@@ -98,13 +98,23 @@ export const seatRowsOf = (sql: Sql, alias: string, owner: string, lease: IdxSea
     ? sql`(${ownerIs(sql, alias, owner)} OR (${sql(alias)}.${sql(partyCol)} = ${lease.party} AND ${sql(alias)}.${sql(offsetCol)} >= ${lease.fromOffset}))`
     : ownerIs(sql, alias, owner);
 
+/**
+ * C2e (K-317): a private call (its leg tagged `beneficiary_ref = 'private'`, K-266) appears only in the seat's private list
+ * (`read-private.ts`), never in the seat's history, exits or receipts: since abu-pm-main 0.5.2 its payout lands in the
+ * private bucket, so a history row would show money the public balance never received.
+ */
+const notPrivateFill = (sql: Sql) => sql`NOT EXISTS (SELECT 1 FROM idx_legs pl WHERE pl.leg_cid = f.leg_cid AND pl.beneficiary_ref = 'private')`;
+const notPrivateReceipt = (sql: Sql) =>
+  sql`r.paid_into IS DISTINCT FROM 'private' AND NOT (r.product IS NULL AND EXISTS (SELECT 1 FROM idx_legs pl
+    WHERE pl.owner_party = r.owner_party AND pl.pair_id = r.pair_id AND NOT pl.is_venue AND pl.beneficiary_ref = 'private'))`;
+
 export function indexReader(sql: Sql) {
   return {
-    /** A seat's own fills, newest first (Masayume `getUserFills`). */
+    /** A seat's own fills, newest first (Masayume `getUserFills`); its private calls are not among them (K-317). */
     async walletFills(wallet: string, q: IdxFillQuery = {}): Promise<IdxRow[]> {
       return sql`
         SELECT ${fillCols(sql)} FROM idx_fills f
-        WHERE ${seatRowsOf(sql, "f", wallet, q.lease, "ledger_offset")}
+        WHERE ${seatRowsOf(sql, "f", wallet, q.lease, "ledger_offset")} AND ${notPrivateFill(sql)}
           ${q.market ? sql`AND f.market = ${q.market}` : sql``} ${q.book ? sql`AND f.terms_cid = ${q.book}` : sql``}
           ${q.sinceSec !== undefined ? sql`AND f.ts_sec >= ${q.sinceSec}` : sql``}
         ORDER BY f.ts_sec DESC, f.ledger_offset DESC, f.node_id DESC LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
@@ -128,6 +138,7 @@ export function indexReader(sql: Sql) {
             'payout', l.payout_base::text, 'lots', l.lots::text, 'outcome', l.outcome, 'legCid', l.leg_cid) AS data, 'finalized' AS commitment
         FROM idx_legs l
         WHERE ${seatRowsOf(sql, "l", wallet, q.lease, "created_offset")} AND NOT l.is_venue AND l.status IN ('settled', 'claimed', 'refunded_stale', 'closed_out')
+          AND l.beneficiary_ref IS DISTINCT FROM 'private'
         ORDER BY l.closed_offset DESC, l.leg_cid LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
     },
 
@@ -143,7 +154,7 @@ export function indexReader(sql: Sql) {
           r.created_ts_sec::text AS ts_sec, m.symbol, m.cadence_sec, m.basis, m.expiry_sec::text, m.state, m.winner, m.void_reason, m.void_detail,
           m.resolved_ts_sec::text, m.event_question, m.event_answer
         FROM idx_receipts r LEFT JOIN idx_markets m ON m.market = r.market
-        WHERE NOT r.dismissed AND ${seatRowsOf(sql, "r", owner, q.lease, "created_offset")}
+        WHERE NOT r.dismissed AND ${seatRowsOf(sql, "r", owner, q.lease, "created_offset")} AND ${notPrivateReceipt(sql)}
         ORDER BY r.created_offset DESC, r.receipt_cid LIMIT ${clamp(q.limit)}`;
     },
 
