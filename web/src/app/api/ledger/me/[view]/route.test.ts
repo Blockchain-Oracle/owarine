@@ -36,7 +36,7 @@ describe("/api/ledger/me/*: the answer names the key that asked (C11b)", () => {
 
   it("a joined key reads the same seat under its own key, so its client accepts the answer", async () => {
     caller = JOINED;
-    const body = await read();
-    expect([body.address, body.party, body.value.spendableBase]).toEqual([JOINED, "seat-1::1220aa", "998295536"]);
+    const answer = await read();
+    expect([answer.address, answer.party, answer.value.spendableBase]).toEqual([JOINED, "seat-1::1220aa", "998295536"]);
   });
 });
