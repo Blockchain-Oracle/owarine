@@ -9,7 +9,8 @@ import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { notify } from "@/lib/toast";
 import { ALERTS } from "./copy";
 import { sendNotification } from "./notifications";
-import { centsToRaw, checkAlerts, loadAlerts, pendingAssets, subscribeAlerts } from "./store";
+import { alertBasisOf } from "./basis";
+import { centsToRaw, checkAlerts, loadAlerts, pendingAssets, subscribeAlerts, type AlertBasis } from "./store";
 
 /** Spec §1.5: a Regular-basis rule reads only a tick the source published within the last minute. */
 const FRESH_TICK_SEC = 60;
@@ -19,8 +20,8 @@ const FRESH_TICK_SEC = 60;
  * display scale, and runs the stored rules against it on every tick that moves — only a tick that
  * is fresh and inside today's regular session, so a closed or stale print never fires a rule.
  */
-function AssetWatch({ asset, closesAtSec }: { asset: string; closesAtSec: number }) {
-  // A stored rule for an asset Agari doesn't list (an old BTC alert) reads nothing rather than a wrong price.
+function AssetWatch({ asset, closesAtSec, basis = "regular" }: { asset: string; closesAtSec: number | null; basis?: AlertBasis }) {
+  // A stored rule for an asset Agari doesn't list reads nothing rather than a wrong price.
   const reading = useAssetPrice(isTickerSymbol(asset) ? asset : null);
   const price = reading?.ok && !reading.stale ? reading.value : null;
   const raw = price ? feedRawToOracleRaw(basisRaw(price), price.decimals) : null;
@@ -30,20 +31,21 @@ function AssetWatch({ asset, closesAtSec }: { asset: string; closesAtSec: number
     if (raw === null || publishTimeSec === null) return;
     const nowSec = Math.floor(marketsProvider.nowMs() / 1000);
     // The session poll can trail the bell by a minute; the close itself is known, so a post-market tick never counts.
-    if (nowSec >= closesAtSec || nowSec - publishTimeSec > FRESH_TICK_SEC) return;
-    const fired = checkAlerts(asset, "regular", raw, ORACLE_SCALE);
+    // A 24/7 rule has no close (`closesAtSec` null): only the tick's freshness gates it.
+    if ((closesAtSec !== null && nowSec >= closesAtSec) || nowSec - publishTimeSec > FRESH_TICK_SEC) return;
+    const fired = checkAlerts(asset, basis, raw, ORACLE_SCALE);
     for (const alert of fired) {
       const title = ALERTS.fired.title(asset, alert.direction, assetPriceLine(asset, centsToRaw(alert.targetCents, ORACLE_SCALE)));
       const body = ALERTS.fired.body(assetPriceLine(asset, raw));
       sendNotification(title, body);
       notify.neutral(title, body);
     }
-  }, [asset, raw, publishTimeSec, closesAtSec]);
+  }, [asset, raw, publishTimeSec, closesAtSec, basis]);
 
   return null;
 }
 
-/** Regular-basis rules wait for the open: no price watch runs outside the NYSE session, or while it is unknown. */
+/** Regular-basis rules wait for the open: no price watch runs outside the NYSE session, or while it is unknown (24/7 rules do not, `AlertsWatcher`). */
 function SessionWatch({ assets }: { assets: string[] }) {
   const session = useMarketSession();
   const closesAtSec = session?.open ? session.status.closesAtSec : null;
@@ -68,12 +70,25 @@ function SessionWatch({ assets }: { assets: string[] }) {
  */
 export function AlertsWatcher() {
   const [assets, setAssets] = useState<string[]>([]);
+  const [allDay, setAllDay] = useState<string[]>([]);
 
   useEffect(() => {
-    const sync = () => setAssets(pendingAssets(loadAlerts(), "regular"));
+    const sync = () => {
+      const alerts = loadAlerts();
+      setAssets(pendingAssets(alerts, "regular"));
+      // C9e: 24/7 rules (BTC, ETH, pre-IPO, baskets) watch at any hour; a stock's 24/7 token basis is not offered yet.
+      setAllDay(pendingAssets(alerts, "token").filter((asset) => alertBasisOf(asset) === "token"));
+    };
     sync();
     return subscribeAlerts(sync);
   }, []);
 
-  return assets.length > 0 ? <SessionWatch assets={assets} /> : null;
+  return (
+    <>
+      {assets.length > 0 && <SessionWatch assets={assets} />}
+      {allDay.map((asset) => (
+        <AssetWatch key={`24/7:${asset}`} asset={asset} closesAtSec={null} basis="token" />
+      ))}
+    </>
+  );
 }

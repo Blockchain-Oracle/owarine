@@ -1,6 +1,7 @@
 import { Bell, Plus, X } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { alertBasisOf, alertFootLine } from "@/features/alerts/basis";
 import { ALERTS } from "@/features/alerts/copy";
 import { notificationState, requestNotificationPermission } from "@/features/alerts/notifications";
 import { addAlert, centsToRaw, loadAlerts, parseTargetCents, removeAlert, subscribeAlerts, type AlertDirection, type PriceAlert } from "@/features/alerts/store";
@@ -42,7 +43,7 @@ export function PriceAlerts({ asset, currentRaw }: { asset: string; currentRaw: 
     haptic.tap();
     await requestNotificationPermission();
     setNotifications(notificationState());
-    addAlert(asset, "regular", cents, direction);
+    addAlert(asset, alertBasisOf(asset), cents, direction);
     setTarget("");
   };
 
@@ -83,12 +84,25 @@ export function PriceAlerts({ asset, currentRaw }: { asset: string; currentRaw: 
           </View>
           <View style={styles.form}>
             <View style={styles.dir}>
-              <View style={[styles.dirBtn, { borderColor: mk.dirBorder }]}>
-                <Text style={[styles.dirText, quiet]}>{ALERTS.basis.regular}</Text>
-              </View>
-              <View style={[styles.dirBtn, { borderColor: mk.dirBorder }]} accessibilityLabel={`${ALERTS.basis.token}: ${ALERTS.basis.tokenPending}`} accessibilityState={{ disabled: true }}>
-                <Text style={[styles.dirText, quiet, styles.disabled]}>{ALERTS.basis.token}</Text>
-              </View>
+              {alertBasisOf(asset) === "token" ? (
+                <>
+                  <View style={[styles.dirBtn, { borderColor: mk.dirBorder }]} accessibilityLabel={`${ALERTS.basis.regular}: ${ALERTS.basis.noSession}`} accessibilityState={{ disabled: true }}>
+                    <Text style={[styles.dirText, quiet, styles.disabled]}>{ALERTS.basis.regular}</Text>
+                  </View>
+                  <View style={[styles.dirBtn, { borderColor: mk.dirBorder }]}>
+                    <Text style={[styles.dirText, quiet]}>{ALERTS.basis.allDay}</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={[styles.dirBtn, { borderColor: mk.dirBorder }]}>
+                    <Text style={[styles.dirText, quiet]}>{ALERTS.basis.regular}</Text>
+                  </View>
+                  <View style={[styles.dirBtn, { borderColor: mk.dirBorder }]} accessibilityLabel={`${ALERTS.basis.token}: ${ALERTS.basis.tokenPending}`} accessibilityState={{ disabled: true }}>
+                    <Text style={[styles.dirText, quiet, styles.disabled]}>{ALERTS.basis.token}</Text>
+                  </View>
+                </>
+              )}
             </View>
             <View style={styles.dir}>
               {dir("above", ALERTS.above)}
@@ -124,7 +138,7 @@ export function PriceAlerts({ asset, currentRaw }: { asset: string; currentRaw: 
             </View>
           ) : null}
           <Text style={[styles.foot, quiet, { borderTopColor: mk.popRule }]}>
-            {!session?.open ? ALERTS.foot.waiting(session?.label ?? null) : notifications === "granted" ? ALERTS.foot.on : ALERTS.foot.off}
+            {alertFootLine(asset, Boolean(session?.open), session?.label ?? null, notifications)}
           </Text>
         </View>
       ) : null}

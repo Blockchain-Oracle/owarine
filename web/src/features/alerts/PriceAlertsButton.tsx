@@ -8,6 +8,7 @@ import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { cn } from "@/lib/utils";
 import "./alerts-basis.css";
 import { ALERTS } from "./copy";
+import { alertBasisOf, alertFootLine } from "./basis";
 import { notificationState, requestNotificationPermission } from "./notifications";
 import { addAlert, centsToRaw, loadAlerts, parseTargetCents, removeAlert, subscribeAlerts, type AlertDirection, type PriceAlert } from "./store";
 
@@ -43,6 +44,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
   const [direction, setDirection] = useState<AlertDirection>("above");
   const [notifications, setNotifications] = useState(notificationState());
   const session = useMarketSession();
+  const allDay = alertBasisOf(asset) === "token";
   const wrapRef = useRef<HTMLDivElement>(null);
   const refs = useRef([wrapRef]);
 
@@ -66,7 +68,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
     if (targetCents === null) return;
     await requestNotificationPermission();
     setNotifications(notificationState());
-    addAlert(asset, "regular", targetCents, direction);
+    addAlert(asset, alertBasisOf(asset), targetCents, direction);
     setTargetPrice("");
   };
 
@@ -98,12 +100,25 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
 
           <div className="alerts-form">
             <div className="alerts-dir" role="group" aria-label={ALERTS.basis.label}>
-              <button type="button" className="alerts-dir-btn alerts-basis on" aria-pressed data-cursor="hover">
-                {ALERTS.basis.regular}
-              </button>
-              <button type="button" className="alerts-dir-btn alerts-basis" disabled title={ALERTS.basis.tokenPending} aria-label={`${ALERTS.basis.token}: ${ALERTS.basis.tokenPending}`}>
-                {ALERTS.basis.token}
-              </button>
+              {allDay ? (
+                <>
+                  <button type="button" className="alerts-dir-btn alerts-basis" disabled title={ALERTS.basis.noSession} aria-label={`${ALERTS.basis.regular}: ${ALERTS.basis.noSession}`}>
+                    {ALERTS.basis.regular}
+                  </button>
+                  <button type="button" className="alerts-dir-btn alerts-basis on" aria-pressed data-cursor="hover">
+                    {ALERTS.basis.allDay}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="alerts-dir-btn alerts-basis on" aria-pressed data-cursor="hover">
+                    {ALERTS.basis.regular}
+                  </button>
+                  <button type="button" className="alerts-dir-btn alerts-basis" disabled title={ALERTS.basis.tokenPending} aria-label={`${ALERTS.basis.token}: ${ALERTS.basis.tokenPending}`}>
+                    {ALERTS.basis.token}
+                  </button>
+                </>
+              )}
             </div>
             <div className="alerts-dir">
               <button type="button" onClick={() => setDirection("above")} className={cn("alerts-dir-btn above", direction === "above" && "on")} data-cursor="hover">
@@ -147,7 +162,7 @@ export function PriceAlertsButton({ asset, currentRaw }: PriceAlertsButtonProps)
             </ul>
           )}
 
-          <p className="alerts-foot">{!session?.open ? ALERTS.foot.waiting(session?.label ?? null) : notifications === "granted" ? ALERTS.foot.on : ALERTS.foot.off}</p>
+          <p className="alerts-foot">{alertFootLine(asset, Boolean(session?.open), session?.label ?? null, notifications)}</p>
         </div>
       )}
     </div>
