@@ -63,16 +63,21 @@ async function firmQuote(ctx: Ctx, seat: Seat, side: "up" | "down", stakeBase: b
   const until = Date.now() + 150_000;
   let last = "no Window with an open print yet";
   for (;;) {
-    const win = await quotingWindow(ctx);
-    if (win) {
-      const body = { marketId: appMarketId(win.data.marketId), side, stakeBase, displayedMaxCostBase: (stakeBase * 11n) / 10n };
-      let r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", body);
-      if (r.json.kind === "requote") r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", { ...body, displayedMaxCostBase: BigInt(r.json.quote.maxCostBase) });
-      if (r.json.kind === "quote") {
-        const q = (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.Quote, decodeQuote)).find((x) => x.cid === r.json.quoteCid);
-        if (q) return { win, q };
+    // A read or call that fails on a slow link (C4g) is retried until the deadline, like "no quote yet".
+    try {
+      const win = await quotingWindow(ctx);
+      if (win) {
+        const body = { marketId: appMarketId(win.data.marketId), side, stakeBase, displayedMaxCostBase: (stakeBase * 11n) / 10n };
+        let r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", body);
+        if (r.json.kind === "requote") r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", { ...body, displayedMaxCostBase: BigInt(r.json.quote.maxCostBase) });
+        if (r.json.kind === "quote") {
+          const q = (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.Quote, decodeQuote)).find((x) => x.cid === r.json.quoteCid);
+          if (q) return { win, q };
+        }
+        last = `${r.status} ${r.json.kind ?? ""} ${r.json.diagnosis?.kind ?? ""}: ${String(r.json.diagnosis?.technical ?? "").slice(0, 120)}`;
       }
-      last = `${r.status} ${r.json.kind ?? ""} ${r.json.diagnosis?.kind ?? ""}: ${String(r.json.diagnosis?.technical ?? "").slice(0, 120)}`;
+    } catch (error) {
+      last = `a read failed: ${error instanceof Error ? error.message : String(error)}`;
     }
     if (Date.now() > until) throw new Error(`no firm quote on ${ctx.config.lane} in 150 s (last: ${last})`);
     await sleep(3_000);

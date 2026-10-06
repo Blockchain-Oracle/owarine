@@ -29,13 +29,25 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const nowSec = () => Math.floor(Date.now() / 1000);
 const createdOf = (created: readonly CreatedEvent[], templateId: string) => created.find((e) => templateSuffix(e.templateId) === templateSuffix(templateId));
 
-/** Polls `probe` every `everyMs` until it returns a value; throws naming `what` after `timeoutMs`. */
+/**
+ * Polls `probe` every `everyMs` until it returns a value; throws naming `what` after `timeoutMs`. A probe that throws (a
+ * read timed out on a slow link: C4g, DevNet from this Mac) counts as "not yet" until the deadline, which then names
+ * the last error.
+ */
 export async function waitFor<T>(what: string, probe: () => Promise<T | null | undefined>, timeoutMs: number, everyMs = 2_000): Promise<T> {
   const until = Date.now() + timeoutMs;
+  let lastError: unknown = null;
   for (;;) {
-    const got = await probe();
-    if (got !== null && got !== undefined) return got;
-    if (Date.now() > until) throw new Error(`timed out after ${Math.round(timeoutMs / 1000)} s waiting for ${what}`);
+    try {
+      const got = await probe();
+      if (got !== null && got !== undefined) return got;
+    } catch (error) {
+      lastError = error;
+    }
+    if (Date.now() > until) {
+      const why = lastError ? ` (last read failed: ${lastError instanceof Error ? lastError.message : String(lastError)})` : "";
+      throw new Error(`timed out after ${Math.round(timeoutMs / 1000)} s waiting for ${what}${why}`);
+    }
     await sleep(everyMs);
   }
 }
