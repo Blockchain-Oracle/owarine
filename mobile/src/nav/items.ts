@@ -26,6 +26,15 @@ export interface NavSection {
   items: readonly NavItem[];
 }
 
+/**
+ * "Docs" in the drawer, as web's `docs-url.ts` resolves it: the docs host a build names (EXPO_PUBLIC_DOCS_URL, web's
+ * NEXT_PUBLIC_DOCS_URL), else the app's own explainer. The drawer pointed at the reference product's docs domain.
+ */
+const DOCS_LINK: { href: string; external: boolean } = (() => {
+  const configured = process.env.EXPO_PUBLIC_DOCS_URL?.trim().replace(/\/+$/, "");
+  return configured ? { href: configured, external: true } : { href: "/how-it-works", external: false };
+})();
+
 const item = (name: string, href: string, description: string, icon: LucideIcon, extra: Partial<NavItem> = {}): NavItem =>
   ({ name, href, description, icon, ...extra });
 
@@ -65,7 +74,7 @@ export const DRAWER_SECTIONS: readonly NavSection[] = [
   ] },
   { id: "learn", name: "Learn", description: "Guidance and context", items: [
     item("How it works", "/how-it-works", "Understand the product from end to end.", CircleHelp),
-    item("Docs", "https://docs.useagari.xyz", "Read step-by-step guides and product documentation.", BookOpen, { external: true }),
+    item("Docs", DOCS_LINK.href, "Read step-by-step guides and product documentation.", BookOpen, { external: DOCS_LINK.external }),
     item("Status", "/status", "Check connected services and contracts.", Activity),
   ] },
   { id: "account", name: "Account", description: "Recovery", items: [

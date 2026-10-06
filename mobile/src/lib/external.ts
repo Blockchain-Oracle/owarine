@@ -24,10 +24,28 @@ export function isProductUrl(url: string): boolean {
   }
 }
 
-export async function openExternal(url: string): Promise<void> {
-  if (isProductUrl(url)) throw new Error(`Refusing to open a product page in a browser: ${url}`);
-  await WebBrowser.openBrowserAsync(url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET });
+/**
+ * Where a link written for web goes on the phone. Web's shared code writes its own pages as paths: the activity row's
+ * proof (`txUrl`, `/proof?update=…`) and `docsUrl()` with no docs host (`/how-it-works`). The proof opens on the site;
+ * any other path is this app's own screen and opens natively. Before C11c both reached `openBrowserAsync` as bare
+ * paths, which iOS refuses ("The provided URL is not valid"), so the tap did nothing but raise a promise rejection.
+ */
+export function resolveLink(url: string): { kind: "browser"; url: string } | { kind: "app"; path: string } {
+  if (!url.startsWith("/") || url.startsWith("//")) return { kind: "browser", url };
+  const pathname = url.split(/[?#]/, 1)[0];
+  return pathname === PROOF_BASE_PATH ? { kind: "browser", url: `${SITE_URL}${url}` } : { kind: "app", path: url };
 }
+
+export async function openExternal(url: string): Promise<void> {
+  const link = resolveLink(url);
+  if (link.kind === "app") {
+    router.push(link.path as never);
+    return;
+  }
+  if (isProductUrl(link.url)) throw new Error(`Refusing to open a product page in a browser: ${link.url}`);
+  await WebBrowser.openBrowserAsync(link.url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET });
+}
+
 
 /**
  * X's sign-in through the web's `/native-auth` handoff, in an auth session (ASWebAuthenticationSession on iOS), which
