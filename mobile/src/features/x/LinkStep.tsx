@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
-import { TRADE_FROM_X, X_LINK_STATUS } from "@/features/x/copy";
+import { TRADE_FROM_X, X_LINK_STATUS, xGateLine } from "@/features/x/copy";
 import { FONT, useTheme } from "~/theme";
 import { tradeXTokens } from "~/theme/web/products/trade-x";
 import { Dot, Tick } from "./StepSpine";
@@ -36,7 +36,7 @@ export function LinkStep({ link, enabled }: { link: XLinkState; enabled: boolean
       </View>
     );
   }
-  if (!link.status?.configured) return <Text style={[styles.lede, { color: t.gray400 }]}>{X_LINK_STATUS.unavailable}</Text>;
+  if (!link.status?.configured) return <Text style={[styles.lede, { color: t.gray400 }]}>{xGateLine(link.status)}</Text>;
   if (!session) {
     return (
       <>

@@ -3,6 +3,7 @@ import { publicOrigin } from "@/lib/client-ip.server";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { readXConfig } from "@/features/x/config.server";
 import { authenticateUrl, requestToken } from "@/features/x/oauth.server";
+import { X_DEFAULT_RETURN, X_REASON_PARAM, X_RETURN_PARAM } from "@/features/x/protocol";
 import { X_OAUTH_COOKIES, X_OAUTH_TTL_SEC } from "@/features/x/session.server";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,12 @@ export async function GET(req: NextRequest) {
   const token = await requestToken({ consumerKey: config.consumerKey, consumerSecret: config.consumerSecret }, config.redirectUri);
   if ("error" in token) {
     console.error("X request token failed", { status: token.status, error: token.error });
-    return NextResponse.json({ configured: true, error: "request_token", status: token.status }, { status: 502 });
+    // C9e: this route is reached by a plain link, so a failure goes home with the reason the page already words
+    // ("X connection is temporarily unavailable. Please try again."), never to a raw error body.
+    const home = new URL(safeRet || X_DEFAULT_RETURN, callback.origin);
+    home.searchParams.set(X_RETURN_PARAM, "err");
+    home.searchParams.set(X_REASON_PARAM, "server");
+    return NextResponse.redirect(home);
   }
 
   const res = NextResponse.redirect(authenticateUrl(token.oauthToken));

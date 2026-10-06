@@ -25,7 +25,8 @@ export const X_ENV = {
   consumerSecret: "X_API_KEY_SECRET",
   redirectUri: "X_REDIRECT_URI",
   sessionSecret: "X_SESSION_SECRET",
-  executor: "X_EXECUTOR_ADDRESS",
+  /** C9e: the name the code actually reads (`X_EXECUTOR_PARTY`, else `NEXT_PUBLIC_X_EXECUTOR_PARTY`). */
+  executor: "X_EXECUTOR_PARTY",
 } as const;
 
 export function readXConfig(origin: string): XConfigReading {

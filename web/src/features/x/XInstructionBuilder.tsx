@@ -1,11 +1,11 @@
 "use client";
 
 import { noEntryCutoffSec } from "@agari/core/lifecycle";
-import { LAUNCH_TICKERS, TICKERS } from "@agari/core/market";
+import { TICKERS } from "@agari/core/market";
 import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
 import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
 import type { EventMarket } from "@agari/core/types";
-import { selectXWindow, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
+import { selectXWindow, X_BUILDER_ASSETS, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
 import { marketsProvider } from "@agari/markets";
 import { useLanes, useTick } from "@agari/markets/react";
 import { ArrowDownRight, ArrowUpRight, Check, Copy } from "lucide-react";
@@ -14,8 +14,8 @@ import { useVenue } from "@/features/markets/useVenue";
 import { X_HANDLE } from "./copy";
 import "./x-instruction.css";
 
-/** The launch tickers, each on its registry monogram (no company logos are drawn). */
-const ASSETS = LAUNCH_TICKERS.map((name) => ({
+/** The launch tickers and BTC/ETH, each on its registry monogram (no company logos are drawn). */
+const ASSETS = X_BUILDER_ASSETS.map((name) => ({
   name,
   label: TICKERS[name].name,
   Mark: ({ className }: { className?: string }) => <span className={className} aria-hidden>{TICKERS[name].monogram}</span>,

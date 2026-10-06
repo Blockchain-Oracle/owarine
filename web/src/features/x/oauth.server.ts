@@ -16,12 +16,21 @@ export interface RequestToken {
 }
 
 /** Step one: a temporary token bound to our callback. `oauth_callback_confirmed` must come back true. */
+/** X's token endpoints answer in well under a second; past this the sign-in is said as unreachable (C9e). */
+const X_TIMEOUT_MS = 10_000;
+
 export async function requestToken(consumer: OAuth1Consumer, callbackUrl: string): Promise<RequestToken | { error: string; status: number }> {
-  const response = await fetch(REQUEST_TOKEN_URL, {
-    method: "POST",
-    headers: { authorization: oauth1Header(consumer, "POST", REQUEST_TOKEN_URL, { oauth_callback: callbackUrl }) },
-    cache: "no-store",
-  });
+  let response: Response;
+  try {
+    response = await fetch(REQUEST_TOKEN_URL, {
+      method: "POST",
+      headers: { authorization: oauth1Header(consumer, "POST", REQUEST_TOKEN_URL, { oauth_callback: callbackUrl }) },
+      cache: "no-store",
+      signal: AbortSignal.timeout(X_TIMEOUT_MS),
+    });
+  } catch (error) {
+    return { error: error instanceof Error ? error.name : "unreachable", status: 0 };
+  }
   const text = await response.text();
   if (!response.ok) return { error: text.slice(0, 120), status: response.status };
   const params = new URLSearchParams(text);

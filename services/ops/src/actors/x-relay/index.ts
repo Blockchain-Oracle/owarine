@@ -24,12 +24,24 @@ const CURSOR_KEY = "mentions.since_id";
  * its key it heartbeats what is missing and never crashes; without `X_POSTING_ENABLED` it executes but
  * does not reply.
  */
+/** Every stage of an unconfigured relay reads "Disabled": it is off on purpose, not unverified. */
+export async function markRelayDisabled(): Promise<void> {
+  await Promise.all((["polling", "execution", "delivery"] as const).map((stage) => xSetStageHealth(stage, "disabled")));
+}
+
 export async function startXRelay(log: (why: string) => void, o: { venue?: VenueContext; routes?: { quotes: OpsRoute; exitQuotes: OpsRoute } | null } = {}): Promise<void> {
   const reading = readRelayEnv();
   if (!reading.ok) {
     const why = `not configured — set ${reading.missing.join(", ")}`;
+    // C9e: with a store to write to, the relay says it is switched off ("Disabled" on /trade-from-x) rather than
+    // leaving every stage "Not verified"; refreshed each heartbeat so it never reads as out of date.
+    const disabled = () => (process.env.DATABASE_URL ? markRelayDisabled().catch(() => undefined) : undefined);
     log(why);
-    setInterval(() => log(why), HEARTBEAT_MS);
+    void disabled();
+    setInterval(() => {
+      log(why);
+      void disabled();
+    }, HEARTBEAT_MS);
     return;
   }
   const relay = reading.env;

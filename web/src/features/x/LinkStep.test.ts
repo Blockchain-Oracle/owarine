@@ -24,12 +24,12 @@ describe("X account linking availability", () => {
     expect(loaded).toContain("Sign in with X");
     expect(loaded).not.toContain("Checking");
   });
-  it("shows a user-facing unavailable state for failed or unconfigured reads without leaking setup names", () => {
-    for (const missing of [null, { ...status, configured: false, missing: ["X_API_KEY", "X_API_KEY_SECRET", "X_SESSION_SECRET"] }]) {
-      const html = render({ status: missing });
-      expect(html).toContain("not available on this deployment");
-      expect(html).not.toMatch(/X_API_KEY|X_SESSION_SECRET|href=/);
-    }
+  it("names what sign-in waits on, or that the read failed, without leaking setup names (C9e)", () => {
+    const unconfigured = render({ status: { ...status, configured: false, missing: ["X_API_KEY", "X_API_KEY_SECRET", "X_SESSION_SECRET"] } });
+    expect(unconfigured).toContain("waits on the server&#x27;s X app keys");
+    const unread = render({ status: null });
+    expect(unread).toContain("couldn&#x27;t be read just now");
+    for (const html of [unconfigured, unread]) expect(html).not.toMatch(/X_API_KEY|X_SESSION_SECRET|href=/);
   });
   it("keeps an established wallet binding visible even when new sign-in is unavailable", () => {
     const html = render({ status: { ...status, configured: false, binding: { authorId: "99", handle: "caller", wallet: encodeBase58(new Uint8Array(32).fill(0xab)), since: 1 } } });

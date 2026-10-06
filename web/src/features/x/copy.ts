@@ -11,7 +11,17 @@ export const X_HANDLE = SHARE.handle;
 export const X_LINK_STATUS = {
   checking: "Checking your X connection…",
   unavailable: "X sign-in is not available on this deployment yet.",
+  /** C9e (D-015): the gate named in words (the reference never shows a variable name to a visitor). */
+  waitsOn: "X sign-in is not switched on here: it waits on the server's X app keys, which this deployment has not set.",
+  /** A failed status read is not an unconfigured rail. */
+  unreadable: "Your X connection couldn't be read just now. It is checked again every 15 seconds.",
 } as const;
+
+/** The line a screen shows while X sign-in cannot be used: unread, or waiting on named keys (C9e). */
+export function xGateLine(status: { configured: boolean; missing: readonly string[] } | null): string {
+  if (status === null) return X_LINK_STATUS.unreadable;
+  return status.missing.length > 0 ? X_LINK_STATUS.waitsOn : X_LINK_STATUS.unavailable;
+}
 
 export const X_ERRORS = {
   notConfigured: X_LINK_STATUS.unavailable,
@@ -66,7 +76,8 @@ export const TRADE_FROM_X = {
   opensFrom: "opens from your Trading Balance · settles back to you.",
   noWithdraw: "no withdraw path exists for the agent · verify:",
   proofs: {
-    contract: "the vault pays only its owner — test_AD5_no_divert",
+    /** C9e: the Canton proof (`daml/pm-tests` `Test.Grant`), not the Solana program's test. */
+    contract: "the grant buys only for its owner — Test.Grant.testGrantAuthority",
     caps: "every X order spends only from its allocated balance",
   },
   testnetNote: "demo credits · you can lose a call · the agent just can’t take your funds.",

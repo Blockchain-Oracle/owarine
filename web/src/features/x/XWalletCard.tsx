@@ -4,7 +4,7 @@ import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@agari/core/
 import { ChevronDown, RefreshCw, Unlink } from "lucide-react";
 import { useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
-import { X_CARD, X_HANDLE, X_LINK_STATUS } from "./copy";
+import { X_CARD, X_HANDLE, X_LINK_STATUS, xGateLine } from "./copy";
 import { useXGrant, type XGrantState } from "./useXGrant";
 import { useXStatus, type XLink } from "./useXStatus";
 import { XPermissionPanel } from "./XPermissionPanel";
@@ -126,7 +126,7 @@ export function XWalletCardView({ address, link, grant, compact = false, returnT
             <div className={balance && balance > 0n ? "xw-slab xw-slab--quiet" : "xw-slab"}>
               <div className="xw-slab-title">{balance && balance > 0n ? X_CARD.linkToBet : X_CARD.connectFirst}</div>
               {!status?.configured ? (
-                <p className="xw-slab-note">{X_LINK_STATUS.unavailable}</p>
+                <p className="xw-slab-note">{xGateLine(status)}</p>
               ) : (
                 <a href={startHref} className="xw-btn-v">
                   <XGlyph className="xw-icon" /> {X_CARD.connectX}
