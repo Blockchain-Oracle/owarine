@@ -8,6 +8,7 @@ import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { useReducedMotion, ZoomIn } from "react-native-reanimated";
 import { useChainNowMs } from "@/features/markets/useChainNow";
+import { usePlacedWindow } from "@/features/markets/ticket/placed-window";
 import { useSettlementFee } from "@/features/markets/verdict/useVerdict";
 import { buildCallTweetText, callBandLabel, callMultiple, callWinBase, shortCallId, type CallCard } from "@/features/share/call-card";
 import { SHARE } from "@/features/share/copy";
@@ -38,11 +39,14 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
   const { color } = useTheme();
   const reduce = useReducedMotion();
   const nowMs = useChainNowMs();
-  // The Window the fill landed in, held: inside the no-entry buffer the ticket advances while the call stays.
-  const [placedIn] = useState(() => market);
+  // The Window the fill landed in, from the order: inside the no-entry buffer the ticket advances, even while a firm
+  // quote is held, and the call stays (web's PlacedCall, `usePlacedWindow`).
+  const placedIn = usePlacedWindow(booked, market);
   const [placedAtMs] = useState(() => Date.now());
-  const opening = useOpeningPrice(placedIn.marketId);
-  const fee = useSettlementFee(placedIn.marketId, true);
+  const opening = useOpeningPrice(booked.marketId);
+  const fee = useSettlementFee(booked.marketId, true);
+  const paper = useRef<View>(null);
+  if (!placedIn) return null;
   const card: CallCard = {
     asset: placedIn.asset,
     side: booked.side,
@@ -63,7 +67,6 @@ export function CallReceipt({ booked, market, decimals, symbol, leverage = null,
   const sideInk = booked.side === "up" ? LIGHT.profit : LIGHT.loss;
   const pastBell = nowMs > 0 && nowMs >= placedIn.expirySec * 1000;
   const multiple = callMultiple(card);
-  const paper = useRef<View>(null);
 
   return (
     <View style={styles.stack}>
