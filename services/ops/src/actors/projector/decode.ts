@@ -12,6 +12,7 @@
  */
 import type { IdxAttestationEvidence, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxReceiptDetail, IdxUpdate } from "@agari/db";
 import type { CreatedEvent, Event, ExercisedEvent, JsTransaction } from "@agari/ledger";
+import { dependentCreated, dependentExercised, TICKETS_PACKAGE_NAME } from "./decode-dependents";
 
 type Rec = Record<string, unknown>;
 type Side = 0 | 1;
@@ -155,6 +156,7 @@ export function decodeTransaction(tx: JsTransaction, o: DecodeOptions = {}): Idx
         consuming: null, lastDescendant: null, marketKey: typeof a.marketId === "string" ? a.marketId : null, data: c.createArgument ?? null,
       });
       if (isPm(c.packageName)) facts.push(...createdFacts(name, c, a, parent.get(n.nodeId), o, cashBy, tx.synchronizerId || null));
+      else if (c.packageName === TICKETS_PACKAGE_NAME) facts.push(...dependentCreated(name, c));
     } else if (n.exercised) {
       const x = n.exercised;
       const name = templateName(x.templateId);
@@ -164,6 +166,7 @@ export function decodeTransaction(tx: JsTransaction, o: DecodeOptions = {}): Idx
         data: { choiceArgument: x.choiceArgument ?? null, exerciseResult: x.exerciseResult ?? null, actingParties: x.actingParties },
       });
       if (isPm(x.packageName)) facts.push(...exercisedFacts(name, x, parent.get(n.nodeId), within, cashBy, sum));
+      else if (x.packageName === TICKETS_PACKAGE_NAME) facts.push(...dependentExercised(name, x));
     } else if (n.archived) {
       events.push({
         nodeId: n.nodeId, kind: "archived", template: templateName(n.archived.templateId), packageName: n.archived.packageName ?? null,

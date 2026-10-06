@@ -10,6 +10,8 @@ export { tapeActions, tapeFills, tapeMarkets, tapeTickets, type TapeMarketsQuery
 export { proofArchives, proofPrints, proofWindow, type ProofArchiveRow, type ProofPrintRow, type ProofWindowRow } from "./idx/read-proof";
 export { publishedOn } from "./idx/read-publications";
 export { publishedFills, publishedReceipts } from "./idx/read-published";
+// C8d (C-DAML-03): product dependents, counted in the projection.
+export { openDependentSpans, openDependents, quoteIsCited, type DependentSpan } from "./idx/read-dependents";
 export { venueStats, type VenueStatsRow } from "./idx/read-venue-stats";
 export { latestRecount, recordRecount, type RecountRow } from "./audit";
 export { cursorHead, oracleFreshness, pipelineBacklog, type BacklogRow, type CursorHeadRow, type OracleFreshRow } from "./idx/read-status-canton";

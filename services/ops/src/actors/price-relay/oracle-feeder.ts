@@ -9,7 +9,7 @@
  */
 import { createHash } from "node:crypto";
 import { appendFileSync } from "node:fs";
-import { archivePrints } from "@agari/db";
+import { archivePrints, getDb, openDependentSpans, quoteIsCited, type DependentSpan } from "@agari/db";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { cmd, decodePriceQuote, failureText, pick, printCommandId, readActive, retireCommandId, submit, type RoleSession } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
@@ -123,17 +123,33 @@ async function post(state: FeederState, boundarySec: number, candles: Candle[], 
   return `posted @${new Date(boundarySec * 1000).toISOString().slice(11, 16)}Z T+${nowSec - boundarySec}s ${prices} (${out.ms} ms, ${archived})${out.recovered ? " · already posted" : ""}`;
 }
 
-/** Retires this oracle's quotes older than the retention, one batch per pass. */
+/**
+ * C-DAML-03: the Windows open products still depend on, from the projection (null when this process has none). A quote
+ * inside such a Window's life may yet be cited by a boost's knock-out or a product's settlement, so it is kept.
+ */
+async function dependentSpans(): Promise<DependentSpan[] | null> {
+  const db = getDb();
+  return db ? openDependentSpans(db) : null;
+}
+
+/** Retires this oracle's quotes older than the retention, one batch per pass, keeping any an open product may cite. */
 async function retire(state: FeederState, nowSec: number): Promise<string | null> {
   if (Date.now() - state.lastRetireMs < 10 * 60_000) return null;
   state.lastRetireMs = Date.now();
   const mine = pick(await readActive(state.session, [TEMPLATE_IDS.PriceQuote]), TEMPLATE_IDS.PriceQuote, decodePriceQuote).filter((q) => q.data.oracle === state.session.party);
-  const old = mine.filter((q) => q.data.boundarySec < nowSec - state.settings.retainSec).slice(0, 50);
-  if (old.length === 0) return null;
+  const aged = mine.filter((q) => q.data.boundarySec < nowSec - state.settings.retainSec);
+  if (aged.length === 0) return null;
+  // A projection that cannot be read now retires nothing this pass: a quote retired in error cannot be posted again.
+  const spans = await dependentSpans().catch(() => undefined);
+  if (spans === undefined) return `kept ${aged.length} aged quotes: the projection's dependents could not be read`;
+  const cited = spans ? aged.filter((q) => quoteIsCited(spans, q.data.symbol, q.data.boundarySec)) : [];
+  const old = aged.filter((q) => !cited.includes(q)).slice(0, 50);
+  const keptNote = cited.length ? `, kept ${cited.length} an open product may cite` : spans === null ? " (no projection here: dependents not checked)" : "";
+  if (old.length === 0) return `retired 0 quotes${keptNote}`;
   const cids = old.map((q) => q.cid);
   const out = await submit(state.session, { commandId: retireCommandId(oracleName(state.role), cids), commands: cids.map((c) => cmd.retirePriceQuote(c)) });
   if (out.kind === "done") state.counters.retired += cids.length;
-  return `retired ${cids.length} quotes older than ${state.settings.retainSec} s`;
+  return `retired ${cids.length} quotes older than ${state.settings.retainSec} s${keptNote}`;
 }
 
 export async function feederPass(state: FeederState): Promise<PassResult> {

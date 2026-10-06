@@ -41,6 +41,9 @@ export interface IdxPolicyVersion {
   closeAdmissionSec: number;
 }
 
+/** C-DAML-03: what a dependent is; a short is a boost on the Down side. */
+export type IdxDependentProduct = "range" | "moonshot" | "parlay" | "boost" | "short";
+
 export type IdxFact =
   | {
       kind: "series";
@@ -221,6 +224,10 @@ export type IdxFact =
       product: string | null;
     }
   | { kind: "publication-archived"; contractId: string }
+  // C8d (C-DAML-03): a product that pins Windows (abu-pm-tickets RangeRound, ParlayTicket's undecided legs, BoostPosition),
+  // counted here, in the projection, never on the ledger; and its end, by any consuming choice.
+  | { kind: "dependent"; contractId: string; product: IdxDependentProduct; owner: string; terms: { termsCid: string; marketKey: string }[] }
+  | { kind: "dependent-closed"; contractId: string; how: string }
   // 0.4.0 (C6d): committee events.
   | { kind: "event-terms"; contractId: string; termsCid: string; question: string; attestors: string[]; quorum: number }
   | { kind: "event-state"; contractId: string; termsCid: string; live: boolean }

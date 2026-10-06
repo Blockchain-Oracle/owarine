@@ -42,6 +42,26 @@ CREATE INDEX IF NOT EXISTS idx_resting_market_idx ON idx_resting (market, status
 
 -- A fill that came from a resting call, not from a firm quote: the seat's own activity reads it as "your resting call filled".
 ALTER TABLE idx_fills ADD COLUMN IF NOT EXISTS resting BOOLEAN NOT NULL DEFAULT false;
+
+-- C8d (C-DAML-03): the products that pin a Window's terms (abu-pm-tickets 0.1.3: RangeRound, each undecided leg of a
+-- ParlayTicket, BoostPosition), one row per (product contract, terms). Open while closed_ts_sec is null. Settlement and
+-- quote retention read the open count here, in the projection, never on the ledger (plan "Products and programs").
+-- Venue-wide counts only; the owner column never leaves the projection.
+CREATE TABLE IF NOT EXISTS idx_dependents (
+  product_cid        TEXT     NOT NULL,
+  terms_cid          TEXT     NOT NULL,
+  market_key         TEXT     NOT NULL,
+  product            TEXT     NOT NULL CHECK (product IN ('range', 'moonshot', 'parlay', 'boost', 'short')),
+  owner_party        TEXT     NOT NULL,
+  opened_update_id   TEXT     NOT NULL,
+  opened_offset      BIGINT   NOT NULL,
+  opened_ts_sec      BIGINT   NOT NULL,
+  closed_update_id   TEXT,
+  closed_ts_sec      BIGINT,
+  how                TEXT,
+  PRIMARY KEY (product_cid, terms_cid)
+);
+CREATE INDEX IF NOT EXISTS idx_dependents_open_idx ON idx_dependents (terms_cid) WHERE closed_ts_sec IS NULL;
 `;
 
 /** Every in-place addition to the projection since the first Canton cut: engine 0.4.0's, then 0.5.1's. */

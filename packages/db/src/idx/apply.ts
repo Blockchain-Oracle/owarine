@@ -31,6 +31,7 @@ import type postgres from "postgres";
 import { LANE_BASES } from "@agari/core/types";
 import { parseLaneKey } from "@agari/core/market";
 import { restCallRow, restClosedRow } from "./apply-rest";
+import { dependentClosed, dependentRows } from "./apply-dependents";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
 import type { IdxEvidence, IdxFact, IdxUpdate } from "./types";
 
@@ -358,6 +359,8 @@ async function applyFact(c: Ctx, f: IdxFact): Promise<void> {
       return market ? restCallRow(c.tx, c.u, c.tsSec, f, market) : undefined;
     }
     case "rest-closed": return restClosedRow(c.tx, c.u, c.tsSec, f);
+    case "dependent": return dependentRows(c.tx, c.u, c.tsSec, f);
+    case "dependent-closed": return dependentClosed(c.tx, c.u, c.tsSec, f);
     case "sale": return sale(c, f);
     case "leg-closed": return legClosed(c, f);
     case "publication": return publication(c, f);
