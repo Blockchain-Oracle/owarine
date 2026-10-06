@@ -1027,6 +1027,27 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** none yet.
 - **Approval:** default; overrulable.
 
+### K-315 — A private call pays back into the private bucket, and its receipt says so (abu-pm-main 0.5.2) (C2e)
+- **Date / owner:** 2026-10-06 · Claude (lane C2e).
+- **Evidence:** §1, §2 (7 Daml scripts, suite 273 ok), §5 (sandbox drive); `daml/abu-pm-main/daml/PM/Leg.daml` (`legPrivate`, `legBucket`), `PM/Publication.daml` (`paidInto`).
+- **Rule:** a user's leg tagged `beneficiaryRef = Some "private"` (K-266) pays its owner into the `private` bucket on `Leg_Settle`, `Leg_Claim` (won, lost, void) and `Leg_RefundStale`; the fee is the venue's exactly as on a public leg. `SettlementReceipt.paidInto` (Optional, the last field) is `Some "private"` for such a receipt and `None` for every other. A leg the venue owns is never private. `Leg_CloseOut` (seat drain, swept whole) and `BuyQuote_Accept` (never offered to a private call) keep their public buckets. The change is upgrade-compatible (one Optional field appended, choice bodies changed) and `dpm upgrade-check` passes against 0.5.1.
+- **User-visible:** a settled private call's payout is already in the private balance; the private list says "in private balance"; nothing waits for Cash out.
+- **Approval:** default; overrulable.
+
+### K-316 — R1 is rebuilt on main 0.5.2, and the dependents bump their versions (C2e)
+- **Date / owner:** 2026-10-06 · Claude (lane C2e).
+- **Evidence:** §3; `daml/released/MANIFEST.md`; `docs/plan/acceptance.md` on main (`64a80db9`) had no R1 upload row; `dpm upgrade-check` with tickets kept at 0.1.3 exits 1 with `KNOWN_PACKAGE_VERSION`.
+- **Rule:** as in K-235, nothing of R1 was uploaded, so main 0.5.2 replaces 0.5.1 as R1's main and the 0.5.1-based files leave `daml/released/`. Unlike K-235 the dependents bump (tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1): rebuilt against a new main they are new content, a participant or `dpm upgrade-check` refuses the same name and version twice, and with the bump each dependent is checked against its 0.5.1-set build and a sandbox that loaded the old set can take the new one as an upgrade. `abu-pm-governance` (never released, LocalNet-only) points at main 0.5.2 and keeps 0.1.0.
+- **User-visible:** none; Abu uploads the five files `devnet-r1.md` step 5 now names.
+- **Approval:** default; overrulable.
+
+### K-317 — A private call lives only in the private list; Cash out is for 0.5.1 receipts only (C2e)
+- **Date / owner:** 2026-10-06 · Claude (lane C2e).
+- **Evidence:** §4, §5; `packages/db/src/idx/read.ts`, `seat-activity.ts`, `read-private-history.test.ts`; `web/src/features/private/position.ts` (+ test); `services/ops/src/actors/venue/private-route.ts`.
+- **Rule:** the seat's history reads (fills, exits, receipts) and its own inbox (fills, settlements) leave out legs tagged `private` and receipts paid into `private`, so neither the Portfolio's history nor the inbox shows a win the public balance did not receive; the private list is the one place a private call appears (K-266). A receipt paid into `private` is "credited" at settlement; `/api/private/cashout` answers `done` and moves nothing; ops refuses to cash it out (`already-claimed`), since moving it again would spend the seat's public cash. A receipt from the 0.5.1 engine still cashes out once, as in C8d.
+- **User-visible:** private calls are absent from Portfolio history and the activity inbox; the private list's foot and the ticket note say the payout comes back by itself.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

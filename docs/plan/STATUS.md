@@ -1,13 +1,13 @@
-# STATUS — updated 2026-10-06 00:20 UTC by Claude (main)
+# STATUS — updated 2026-10-06 10:07 UTC by Claude (main)
 
 ```
 Where it runs:  local Canton sandbox only. Noders DevNet: the node is up (Canton 3.5.19, public preflight 6 Oct), nothing uploaded, not onboarded. Hosted URL: none yet.
-Repository:     one checkout, branch main only, no worktrees. Pushed to github.com/Blockchain-Oracle/hackcanton-pm (private until Abu makes it public; the Rules need it public by submission).
+Repository:     one checkout, branch main; short-lived lane worktrees under hackcanton-pm-wt/ are merged and removed the same day. Pushed to github.com/Blockchain-Oracle/hackcanton-pm (private until Abu makes it public; the Rules need it public by submission).
 Deadline:       delivery closes Fri 9 Oct 23:59 UTC.
 Capabilities:   live 0 · local 59 · not-live 162 (of 221; docs/plan/capabilities.json). A row goes live only with a DevNet acceptance row.
-Fast gate:      main on 6 Oct: typecheck green (all projects) · invariants 0 errors, 0 warnings · vitest 325 files, 2,524 tests passed, 61 skipped
-Daml:           dpm build --all green on 6 Oct, reproducing the released main DAR byte for byte. Last dpm test: 227 scripts (C7c, 30 Sep) plus the rail's 38 (C7b)
-DAR release R1: five files staged in daml/released/, none on Noders: abu-pm-main 0.5.1, tickets 0.1.3, agents 0.2.1, games 0.1.1, cc 0.1.0 (K-249). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
+Fast gate:      main on 6 Oct after C2e: typecheck green (all projects) · invariants 0 errors, 0 warnings · vitest 343 files, 2,596 tests passed, 65 skipped · db suites on Postgres 36 passed
+Daml:           abu-pm-main 0.5.2 (C2e, 6 Oct): dpm test 273 scripts green; dpm build --all on main reproduces all five released DARs byte for byte
+DAR release R1: five files staged in daml/released/, none on Noders: abu-pm-main 0.5.2, tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1 (K-316; upgrade-check clean against the 0.5.1 set). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
 Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); iOS (the App Store Connect record)
 ```
 
@@ -32,6 +32,7 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 | **C8** tickets, agents, desk, maker vault | `evidence/c8e`, `c8f`, `c8g`, `c8i`, `c2d-maker-vault.md`; C8j phase A (live desk timing, PreStocks prices) |
 | **C8d** baskets, venue mode, products, private mode, Earn, copy traders | `evidence/c8d-markets.md`, drive `scripts/drive/c8d-markets.ts`, `ux/c8d` (6 Oct) |
 | **C9e, C13b** games and social | `evidence/c9e-c13b-sweep.md`, `ux/c9e`: money lines match `PM.Leg.legPayout` (void = backing + fee), guest-seat history on its own side, season pool paid once, duel, Practice, Line Rider, Candle Hop, proof re-verify, takes, ticker rooms, Finnhub news |
+| **C2e** private payout | `evidence/c2e-private-payout.md`: abu-pm-main 0.5.2, `Test.PrivatePayout` 7 scripts, fresh-sandbox drive 8/8 (private win and void back into private, public balance unchanged) |
 | **C11b** iPhone on the simulator | `evidence/c11b-ios-sim.md`, `ux/c11b`: first run, Keychain seat, live prices, four calls filled and settled with update ids, who-sees-what empty for outsiders, seat link both ways, push handled via `simctl push` |
 | **C10f** public story | `evidence/c10f-public.md`, `ux/c10f`: landing and pitch, `/download` and `/demo` config point, Built on, `/who-sees-what`, docs site 43 pages |
 | **C4e** deploy rehearsal | `evidence/c4e-deploy.md`: three images, composed run behind Traefik, runbook measured |
@@ -74,5 +75,5 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
 - Resting calls and the Canton Coin rail run on the local sandbox only.
 - Sensei needs a working OpenAI key (the one on this Mac answers 401), and X sign-in, trade-from-X and the relay need X API keys; each page says what it waits on (C13b). A season winner whose seat has ended cannot be paid until a later DAR (K-296).
-- A settled private call pays into the seat's public balance until the user presses Cash out, because the released Daml pays every leg into `payout`; a direct private payout needs a later DAR (C8d). The venue-mode record and the dependents count are ops and projection only for the same reason (K-263, K-264).
+- The venue-mode record and the product-dependents count are ops and projection only; putting them on the ledger needs a later DAR (K-263, K-264). A private call pays back into the private bucket since abu-pm-main 0.5.2 (C2e, K-315).
 - Third-party marks (C-S25, K-250): only Canton Network, Noders and BitSafe logos are drawn, from their published brand kits; every other source, PreStocks included, is named in plain text.
