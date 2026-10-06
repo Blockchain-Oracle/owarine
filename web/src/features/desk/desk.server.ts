@@ -109,9 +109,13 @@ export const toSnapshot = (s: DbSnapshot): SnapshotWire => ({
   })),
 });
 
+/** A desk id is the store's uuid; any other key that is not an address names no desk (C5d: it was a 500 from Postgres). */
+const DESK_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** The desk by its owner's address or by its id: `/desk/[id]` accepts both, and so does every route. */
 export async function findDesk(store: DeskQueries, key: string, isAddress: boolean): Promise<DbDesk | null> {
-  return isAddress ? store.getDeskByOwner(DESK_CLUSTER, key) : store.getDeskById(key);
+  if (isAddress) return store.getDeskByOwner(DESK_CLUSTER, key);
+  return DESK_ID_RE.test(key) ? store.getDeskById(key) : null;
 }
 
 /** Approvals still waiting, plus the ones that expired unanswered in the last day (the page says so). */
