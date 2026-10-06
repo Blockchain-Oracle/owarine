@@ -12,8 +12,10 @@
  * No retries anywhere in the lane; idempotency is the commandId's. A quote gone at accept time (expired, withdrawn) is
  * re-quoted once and surfaced as `requote`, never silently re-accepted at a new price.
  */
+import { formatCadence } from "@agari/core/copy";
 import type { IntentJournal, OrderOutcome, OrderRequest, PhaseListener, StopGate, TxOutcome } from "@agari/core/ports";
 import { diagnosis, type Address, type Diagnosis, type MarketId, type Quote, type Signature } from "@agari/core/types";
+import { formatBaseUnits } from "@agari/core/units";
 import { ledgerRequest } from "../provider/ledger-api";
 import { acceptReplyWire, commandStatusWire, legsReplyWire, quoteReplyWire, type CommandStatus } from "../provider/ledger-wire";
 import { OrderRefusedError, RequoteError } from "./errors";
@@ -33,6 +35,15 @@ export const CONFIRM_POLL_MS = 1_500;
 export const CONFIRM_CAP_MS = 90_000;
 
 const refused = (d: Diagnosis) => ({ status: "refused" as const, diagnosis: d });
+
+/**
+ * What the journal says about an order, in the reference's words (`order-lane.ts` summarize at 661a24ee): recovery's
+ * toast reads it back to the reader, so it names the side, the asset, the cadence and the stake, never base units or a
+ * market id (C5d: "up 1000000 on CZ5k…" was shown).
+ */
+export function orderSummary({ side, market, stakeBase }: Pick<OrderRequest, "side" | "market" | "stakeBase">): string {
+  return `${side === "up" ? "Up" : "Down"} on ${market.asset} (${formatCadence(market.intervalSec)} Window), ${formatBaseUnits(stakeBase, market.decimals)} staked`;
+}
 const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** The firm quote the venue will honour for ~20 s, or a refusal; a price above the confirmed cap throws `RequoteError`. */
@@ -75,7 +86,7 @@ export async function submitSeatOrder(deps: SeatLaneDeps, request: OrderRequest,
     throw error;
   }
 
-  const record = await deps.journal.record({ kind: "order", wallet: deps.wallet, summary: `${request.side} ${request.stakeBase} on ${request.market.marketId}`, marketId: request.market.marketId });
+  const record = await deps.journal.record({ kind: "order", wallet: deps.wallet, summary: orderSummary(request), marketId: request.market.marketId });
   onPhase?.("submitted", { held: { quote: firm.quote, validUntilMs: firm.validUntilMs } });
   const reply = await ledgerRequest(`/quotes/${encodeURIComponent(firm.quoteCid)}/accept`, { method: "POST", body: { commandId: record.id }, wire: acceptReplyWire });
   const deadlineSec = Math.ceil(firm.validUntilMs / 1000);
