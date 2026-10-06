@@ -116,7 +116,7 @@ export const LUCKY = {
   placed: {
     title: "Placed",
     booked: (contracts: string, side: string, cents: number) => `Bought ${contracts} ${side} ${contracts === "1" ? "contract" : "contracts"} at ${cents}¢.`,
-    measured: (contracts: string, cost: string, symbol: string) => `On the tape: ${contracts} contracts for ${cost} ${symbol}.`,
+    measured: (contracts: string, cost: string, symbol: string) => `On the tape: ${contracts} ${contracts === "1" ? "contract" : "contracts"} for ${cost} ${symbol}.`,
     notOnTape: "Not on the tape yet — your history keeps checking and will say what filled.",
     pending: "It settles when the Window closes. The result lands here and in your history.",
     unknownTitle: "Sent, no receipt yet",
@@ -163,7 +163,7 @@ export const LUCKY = {
     undealt: "not dealt",
     stake: (amount: string, symbol: string) => `stake ${amount} ${symbol}`,
     cost: (amount: string, symbol: string) => `cost ${amount} ${symbol}`,
-    contracts: (n: string) => `${n} contracts`,
+    contracts: (n: string) => `${n} ${n === "1" ? "contract" : "contracts"}`,
     refusal: {
       "no-window": "no Window the venue's ladder could fill",
       "venue-unreadable": "the venue could not be read",
