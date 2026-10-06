@@ -11,6 +11,7 @@
  *   tsx drive/c4f-money.ts link                              show a code (written to --state.code), allow the key that joins
  *   tsx drive/c4f-money.ts reset                             let the seat go
  *   tsx drive/c4f-money.ts ledger                            the seat's cash, legs and receipts as the ledger holds them
+ *   tsx drive/c4f-money.ts record                            the record and each settled Window's verdict, as the screens compute them
  *
  *   env: C4F_WEB (http://localhost:3160), LEDGER_JSON_API_URL, AGARI_PARTIES_FILE, --state <scratch>/c4f-seat.json
  */
@@ -21,7 +22,11 @@ import { messageBytes } from "@agari/core/auth";
 import { encodeBase58, type Address } from "@agari/core/types";
 import { TEMPLATE_IDS } from "@agari/daml";
 import { createLedgerClient, noAuth } from "@agari/ledger";
-import { parseMarketsEnv } from "@agari/markets";
+import { deriveVerdict } from "@agari/core/claims";
+import { computeTraderEdge, type SettledRound } from "@agari/core/projection";
+import { formatBaseUnits } from "@agari/core/units";
+import { marketsProvider, parseMarketsEnv, registerSeatSigner } from "@agari/markets";
+import { configureMarkets } from "@agari/markets/runtime";
 import { decodeLeg, decodeOpenPrint, decodeTerms, decodeVenueCash, templateSuffix } from "@agari/markets/ops/canton";
 import { appMarketId } from "@agari/markets/server";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
@@ -184,7 +189,36 @@ async function ledger(): Promise<void> {
   log(`web /me/balance: ${me.status} ${me.json.value ? `spendable ${credits(BigInt(me.json.value.spendableBase))} vault ${me.json.value.vaultBase}` : JSON.stringify(me.json).slice(0, 200)}`);
 }
 
-const steps: Record<string, () => Promise<void>> = { seat: takeSeat, call: placeCall, link, reset, ledger };
+/**
+ * The record and every settled Window's verdict as the screens compute them, from the seat's own history over the web's
+ * routes: the round's stake (its settlement receipts' backing plus fee) is the verdict's cost basis (C4f).
+ */
+async function record(): Promise<void> {
+  const seat = await load();
+  configureMarkets(parseMarketsEnv({ cluster, ledgerApiPath: `${WEB}/api/ledger`, indexerUrl: `${WEB}/api/index` }));
+  const key = await crypto.subtle.importKey("jwk", seat.jwk, { name: "Ed25519" }, false, ["sign"]);
+  registerSeatSigner({ address: seat.address, signMessage: async (b) => new Uint8Array(await crypto.subtle.sign({ name: "Ed25519" }, key, b as Uint8Array<ArrayBuffer>)) });
+  const h = await marketsProvider.listWalletHistory(seat.address);
+  if (!h.ok) throw new Error(`history: ${h.error.kind} ${h.error.technical}`);
+  const money = (b: bigint) => formatBaseUnits(b, 6, { maxDp: 6, minDp: 6, signed: true });
+  const side = (r: SettledRound, idx: 0 | 1, f: (l: SettledRound["legs"][number]) => bigint) => r.legs.filter((l) => l.outcomeIdx === idx).reduce((sum, l) => sum + f(l), 0n);
+  for (const r of [...h.value.rounds].reverse()) {
+    const held = { upRaw: side(r, 0, (l) => l.amountRaw), downRaw: side(r, 1, (l) => l.amountRaw) };
+    const voided = r.outcome === "void";
+    const paying = r.legs.find((l) => l.payoutBase > 0n)?.outcomeIdx;
+    const winningOutcome = voided ? null : (paying ?? (held.upRaw > 0n ? 1 : 0));
+    const v = deriveVerdict({
+      marketId: r.marketId, settlement: { isResolved: !voided, isVoided: voided, winningOutcome }, holdings: held, feeBps: 0, decimals: 6,
+      costBasisBase: r.stakeBase - r.proceedsBase, paidBySide: voided ? { up: side(r, 0, (l) => l.payoutBase), down: side(r, 1, (l) => l.payoutBase) } : null, settledAtMs: r.settledAtMs,
+    });
+    const cost = v && v.costBasisBase !== null ? money(v.costBasisBase) : "unknown";
+    log(`  ${r.marketId.slice(0, 8)}… ${r.outcome}: stake ${money(r.stakeBase)} (receipt cost ${r.receipt ? money(r.receipt.costBase) : "—"}), paid ${money(r.payoutBase)}, P&L ${money(r.pnlBase)}; verdict ${v?.outcome ?? "—"}, cost ${cost}, P&L ${v ? money(v.pnlBase) : "—"}`);
+  }
+  const edge = computeTraderEdge(h.value.rounds, h.value.openCount);
+  log(`record: net ${formatBaseUnits(edge.netBase, 6)} (${edge.netBase} base) over ${edge.settledRounds} settled, ${edge.openRounds} open`);
+}
+
+const steps: Record<string, () => Promise<void>> = { seat: takeSeat, call: placeCall, link, reset, ledger, record };
 const step = steps[process.argv[2] ?? ""];
 if (!step) throw new Error(`usage: c4f-money.ts ${Object.keys(steps).join("|")}`);
 await step();
