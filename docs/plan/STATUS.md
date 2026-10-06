@@ -1,14 +1,14 @@
 # STATUS — updated 2026-10-06 10:07 UTC by Claude (main)
 
 ```
-Where it runs:  local Canton sandbox only. Noders DevNet: the node is up (Canton 3.5.19, public preflight 6 Oct), nothing uploaded, not onboarded. Hosted URL: none yet.
+Where it runs:  local Canton sandbox, and R1 is on Noders DevNet: 19 parties created and all five DARs uploaded and vetted on hackcanton-devnet-3 (6 Oct, acceptance.md). Not yet bootstrapped (needs Abu's devnet.env), no hosted URL yet.
 Repository:     one checkout, branch main; short-lived lane worktrees under hackcanton-pm-wt/ are merged and removed the same day. Pushed to github.com/Blockchain-Oracle/hackcanton-pm (private until Abu makes it public; the Rules need it public by submission).
 Deadline:       delivery closes Fri 9 Oct 23:59 UTC.
 Capabilities:   live 0 · local 104 · not-live 117 (of 221; docs/plan/capabilities.json, refreshed by C10g on 6 Oct). A row goes live only with a DevNet acceptance row.
 Fast gate:      main on 6 Oct after C4f: typecheck green (all projects) · invariants 0 errors, 0 warnings · vitest 350 files, 2,619 tests passed, 65 skipped · db suites on Postgres 36 passed
 Daml:           abu-pm-main 0.5.2 (C2e, 6 Oct): dpm test 273 scripts green; dpm build --all on main reproduces all five released DARs byte for byte
-DAR release R1: five files staged in daml/released/, none on Noders: abu-pm-main 0.5.2, tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1 (K-316; upgrade-check clean against the 0.5.1 set). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
-Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); iOS (the App Store Connect record)
+DAR release R1: five files in daml/released/, all uploaded and vetted on Noders 6 Oct: abu-pm-main 0.5.2, tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1 (K-316; upgrade-check clean against the 0.5.1 set). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
+Blocked on Abu: ~/.config/agari/canton/devnet.env (his platform login, for the bootstrap); the wallet's "Onboard yourself"; the hosted deploy (a domain); iOS (the App Store Connect record)
 ```
 
 ## Stages
