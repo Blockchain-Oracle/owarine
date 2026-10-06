@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { AGENTS } from "@/features/strategies/copy";
 import { money } from "@/features/strategies/format";
-import { strategyIdentity } from "@/features/strategies/identity";
+import { runnerHref, strategyIdentity } from "@/features/strategies/identity";
 import { ago, shortAddress } from "@/features/strategies/names";
 import type { StrategiesPayload } from "@/features/strategies/protocol";
 import { AgentPortrait } from "~/features/strategies/AgentPortrait";
@@ -89,11 +89,23 @@ export function AgentsBoard({ payload }: { payload: StrategiesPayload }) {
                     <AgentPortrait seed={identity.seed} name={identity.name} size="row" />
                     <View style={styles.whoText}>
                       <View style={styles.nameLine}>
-                        <Pressable onPress={() => void openLedgerLink("address", row.runner)} accessibilityRole="link" style={styles.shrink}>
-                          <Text numberOfLines={1} style={[ST.mono12, { color: color.ink }]}>
-                            {identity.name}
-                          </Text>
-                        </Pressable>
+                        {(() => {
+                          // web's `runnerHref` (C8g): a seat address opens its profile; a party runner (the house
+                          // agent-runner) has no page, so its one strategy is the place to read it, else no link.
+                          const href = runnerHref(row.runner, editions.length === 1 ? editions[0]!.strategyId : null);
+                          const name = (
+                            <Text numberOfLines={1} style={[ST.mono12, { color: color.ink }]}>
+                              {identity.name}
+                            </Text>
+                          );
+                          return href ? (
+                            <Pressable onPress={() => (href.startsWith("/u/") ? void openLedgerLink("address", row.runner) : router.push(href as never))} accessibilityRole="link" style={styles.shrink}>
+                              {name}
+                            </Pressable>
+                          ) : (
+                            <View style={styles.shrink}>{name}</View>
+                          );
+                        })()}
                         {top ? (
                           <Text style={[styles.badge, { color: t.vermilion, borderColor: t.vermilionD }]}>{AGENTS.desk.top}</Text>
                         ) : null}
