@@ -12,6 +12,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { SCHEMA_SQL } from "../schema";
 import { indexReader, type IdxSeatLease } from "./read";
 import { privatePositions } from "./read-private";
+import { seatActivityReader } from "./seat-activity";
 
 const URL_ = process.env.SEAT_PG_URL;
 const NS = "c2e_private_history_test";
@@ -25,6 +26,7 @@ describe.skipIf(!URL_)("private calls stay out of the seat's history (Postgres)"
   const admin = postgres(URL_ ?? "postgres://invalid", { max: 1, onnotice: () => undefined });
   const sql = postgres(URL_ ?? "postgres://invalid", { max: 1, onnotice: () => undefined, connection: { search_path: NS } });
   const reader = indexReader(sql);
+  const inbox = seatActivityReader(sql);
 
   const market = sql`
     INSERT INTO idx_markets (market, market_key, terms_cid, series_key, symbol, cadence_sec, market_index, cash_unit, trading_start_sec, lock_at_sec,
@@ -71,6 +73,12 @@ describe.skipIf(!URL_)("private calls stay out of the seat's history (Postgres)"
     expect((await reader.walletFills(ADDRESS, { lease: LEASE })).map((r) => r.pair_id)).toEqual(["pub"]);
     expect((await reader.walletActions(ADDRESS, { lease: LEASE })).map((r) => r.signature)).toEqual(["close-pub"]);
     expect((await reader.walletReceipts(ADDRESS, { lease: LEASE })).map((r) => r.receipt_cid)).toEqual(["r-pub"]);
+  });
+
+  it("the seat's inbox hears of the public call's fill and settlement only", async () => {
+    expect((await inbox.fills(ADDRESS, LEASE)).map((r) => r.signature)).toEqual(["u-pub"]);
+    const [settled] = await inbox.settlements(ADDRESS, LEASE);
+    expect({ cost: settled?.cost_base, payout: settled?.payout_base }).toEqual({ cost: "1230", payout: "2000" });
   });
 
   it("the private list reads both private calls, with the bucket the 0.5.2 receipt names", async () => {
