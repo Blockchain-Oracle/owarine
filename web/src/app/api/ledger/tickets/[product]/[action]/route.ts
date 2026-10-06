@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { ticketAcceptRequestWire, ticketExitRequestWire } from "@agari/markets";
 import { jsonBody, recordBusy, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { regionHold } from "@/lib/region.server";
 
 /**
  * The seat's own choices on a ticket (C8c), each with `actAs` = the lease's seat party ONLY, under the commandId the
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ pr
   const { product, action } = await context.params;
   if (!isProduct(product)) return refusal("unknown", `no ticket product ${product}`, 404);
   if (action !== "accept" && action !== "claim" && action !== "refund-stale") return refusal("unknown", `no ticket action ${action}`, 404);
+  // C5d (C-MKT-08): opening a ticket holds by region; its claim and stale refund are exits and never do.
+  const held = action === "accept" ? regionHold(request) : null;
+  if (held) return held;
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const { server, lease } = auth.seat;

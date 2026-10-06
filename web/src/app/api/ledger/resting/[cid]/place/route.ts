@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { writeRequestWire } from "@agari/markets";
 import { jsonBody, recordBusy, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { regionHold } from "@/lib/region.server";
 
 /**
  * The seat places the venue's offer (C7c): `RestOffer_Place` with `actAs` = the lease's seat party ONLY, under the
@@ -13,6 +14,8 @@ export const dynamic = "force-dynamic";
 const CID_RE = /^[0-9a-f]{40,400}$/;
 
 export async function POST(request: NextRequest, context: { params: Promise<{ cid: string }> }) {
+  const held = regionHold(request);
+  if (held) return held;
   const { cid } = await context.params;
   if (!CID_RE.test(cid)) return refusal("contract-revert", "not a contract id", 400);
   const auth = await seatFromRequest(request, { write: true });

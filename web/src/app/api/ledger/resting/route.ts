@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { restingRequestWire } from "@agari/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
+import { regionHold } from "@/lib/region.server";
 
 /**
  * The venue's offer to hold a pre-open resting call (C7c, K-235): the request as the seat confirmed it goes to ops over
@@ -12,6 +13,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
+  const held = regionHold(request);
+  if (held) return held;
   const auth = await seatFromRequest(request, { write: true });
   if (!auth.ok) return auth.response;
   const parsed = restingRequestWire.safeParse(await jsonBody(request));
