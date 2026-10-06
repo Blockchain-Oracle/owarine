@@ -13,7 +13,7 @@ import { GameProfileCard } from "./GameProfileCard";
 import { useLastGame } from "./last-game";
 import { MatchTile } from "./MatchTile";
 import { useRoomOccupancy, searchingNow } from "./duel/useRoomOccupancy";
-import { useSeason } from "./duel/useSeason";
+import { seasonIntroKey, useSeasonRead } from "./duel/useSeason";
 import { useGames } from "./GamesProvider";
 import { AchievementsPlate } from "./AchievementsPlate";
 import { SeasonBanner } from "./SeasonBanner";
@@ -39,7 +39,8 @@ export function GamesHub() {
    * one step a player might not want to take.
    */
   const occupancy = useRoomOccupancy();
-  const season = useSeason();
+  const seasonRead = useSeasonRead();
+  const season = seasonRead.season;
   const presence = (entry: GameEntry): string | null => {
     if (entry.id !== "duel") return null;
     if (!occupancy) return null;
@@ -119,7 +120,7 @@ export function GamesHub() {
           </Link>
           <Link href="/games/rank" className="gm-plate gm-link-plate" onClick={() => feedback("tap")}>
             <p className="gm-plate-title">{GAMES.rankPage.title}</p>
-            <p className="gm-plate-body">{season ? GAMES.rankPage.introSeason : GAMES.rankPage.intro}</p>
+            <p className="gm-plate-body">{GAMES.rankPage[seasonIntroKey(seasonRead)]}</p>
             <span className="gm-resume-cta">{GAMES.rank.cta}</span>
           </Link>
         </div>

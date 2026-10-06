@@ -3,7 +3,7 @@ import { isOk, type Reading } from "@agari/core/schemas";
 import { useRangeReserve } from "@agari/markets/react";
 import { GAMES } from "@/features/games/copy";
 import { searchingNow, useRoomOccupancy } from "@/features/games/duel/useRoomOccupancy";
-import { useSeason } from "@/features/games/duel/useSeason";
+import { seasonIntroKey, useSeasonRead } from "@/features/games/duel/useSeason";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { diagnosisCopy } from "@/lib/copy";
 import type { GameEntry } from "~/features/games/shell";
@@ -26,7 +26,8 @@ export type CardStatus =
 export function useHubStatus() {
   const reserve = useRangeReserve();
   const occupancy = useRoomOccupancy();
-  const season = useSeason();
+  const seasonRead = useSeasonRead();
+  const season = seasonRead.season;
   const session = useMarketSession();
   const closed = session !== null && !session.open;
 
@@ -52,7 +53,7 @@ export function useHubStatus() {
     return base;
   };
 
-  return { season, status, presence };
+  return { season, seasonIntro: seasonIntroKey(seasonRead), status, presence };
 }
 
 /** Range and Moonshot sit on one contract, so their cards report the contract. */
