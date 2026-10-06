@@ -323,6 +323,13 @@ export function createLedgerClient(cfg: LedgerClientConfig, deps: HttpDeps = {})
     auth: cfg.auth,
     version: () => http.request<LedgerApiVersion>("GET", "/v2/version"),
     ledgerEnd: () => ledgerEnd(),
+    /**
+     * The offset up to which the participant has pruned (`participantPrunedUpToInclusive`), 0 when it has not. A stream
+     * may begin, and an ACS snapshot may be taken, at this offset or later (`/docs/openapi`, GetUpdatesRequest and
+     * GetActiveContractsRequest); anything earlier answers PARTICIPANT_PRUNED_DATA_ACCESSED.
+     */
+    latestPrunedOffset: async (): Promise<Offset> =>
+      (await http.request<{ participantPrunedUpToInclusive?: Offset }>("GET", "/v2/state/latest-pruned-offsets")).participantPrunedUpToInclusive ?? 0,
     connectedSynchronizers: async () =>
       (await http.request<{ connectedSynchronizers?: ConnectedSynchronizer[] }>("GET", "/v2/state/connected-synchronizers"))
         .connectedSynchronizers ?? [],

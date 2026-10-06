@@ -53,17 +53,25 @@ describe.skipIf(!RUN)("projector loop (Postgres + scripted socket)", () => {
     await indexWriter(db).truncate();
     ScriptedWs.opened = [];
     ScriptedWs.pruned = false;
+    snapshots.length = 0;
   });
   afterAll(async () => {
     await db.end();
   });
 
-  const ledger = (acs: CreatedEvent[] = []) =>
+  /** `prunedAt`: what `/v2/state/latest-pruned-offsets` answers (an Error when it cannot be read). */
+  const snapshots: number[] = [];
+  const ledger = (acs: CreatedEvent[] = [], prunedAt: number | Error = PRUNED_BELOW) =>
     ({
       auth: noAuth(),
       ledgerEnd: async () => PRUNED_BELOW + 7,
-      async *iterateActiveContracts() {
-        yield { contracts: acs.map((createdEvent) => ({ createdEvent, synchronizerId: "s" })), activeAtOffset: PRUNED_BELOW + 7, nextPageToken: undefined };
+      latestPrunedOffset: async () => {
+        if (prunedAt instanceof Error) throw prunedAt;
+        return prunedAt;
+      },
+      async *iterateActiveContracts(o: { activeAtOffset: number }) {
+        snapshots.push(o.activeAtOffset);
+        yield { contracts: acs.map((createdEvent) => ({ createdEvent, synchronizerId: "s" })), activeAtOffset: o.activeAtOffset, nextPageToken: undefined };
       },
     }) as unknown as LedgerClient;
 
@@ -88,21 +96,35 @@ describe.skipIf(!RUN)("projector loop (Postgres + scripted socket)", () => {
     expect(f?.fills).toBe(1);
   });
 
-  it("falls back to an ACS snapshot when the participant has pruned below offset 0's history", async () => {
+  it("on a pruned participant, snapshots the ACS at the pruning offset and streams every later update from there", async () => {
     ScriptedWs.pruned = true;
     const acs = fixtures.accept!.events.flatMap((e) => ("CreatedEvent" in e ? [e.CreatedEvent] : []));
     const logs: string[] = [];
     const p = startProjectorLoop({ db, ledger: ledger(acs), baseUrl: "http://sandbox", auth: noAuth(), party: VENUE, log: (l) => logs.push(l), WebSocket: ScriptedWs, restartMs: 10 });
-    await p.waitFor(PRUNED_BELOW + 7, 10_000);
+    await p.waitFor(PRUNED_BELOW + 5, 10_000);
     await p.stop();
     const cursor = await indexWriter(db).cursor("venue");
-    expect(cursor).toMatchObject({ bootstrap: "acs", historyFromOffset: PRUNED_BELOW + 7 });
-    expect(ScriptedWs.opened).toEqual([0, PRUNED_BELOW + 7]);
+    expect(cursor).toMatchObject({ bootstrap: "acs", historyFromOffset: PRUNED_BELOW });
+    // The snapshot is taken at the pruning offset, not at the ledger end, and the stream resumes from that same offset.
+    expect(snapshots).toEqual([PRUNED_BELOW]);
+    expect(ScriptedWs.opened).toEqual([0, PRUNED_BELOW]);
     const legs = await db<{ origin: string }[]>`SELECT origin FROM idx_legs`;
     expect(legs.length).toBe(2);
     expect(legs.every((l) => l.origin === "snapshot")).toBe(true);
     const [g] = await db<{ fills: number }[]>`SELECT count(*)::int AS fills FROM idx_fills`;
     expect(g?.fills).toBe(0);
-    expect(logs.some((l) => l.includes("earlier history is not indexed"))).toBe(true);
+    expect(logs.some((l) => l.includes(`at offset ${PRUNED_BELOW} (the pruning offset)`) && l.includes("earlier history is not indexed"))).toBe(true);
+  });
+
+  it("falls back to the ledger end when the pruning offset cannot be read", async () => {
+    ScriptedWs.pruned = true;
+    const logs: string[] = [];
+    const p = startProjectorLoop({ db, ledger: ledger([], new Error("503")), baseUrl: "http://sandbox", auth: noAuth(), party: VENUE, log: (l) => logs.push(l), WebSocket: ScriptedWs, restartMs: 10 });
+    await p.waitFor(PRUNED_BELOW + 7, 10_000);
+    await p.stop();
+    expect(await indexWriter(db).cursor("venue")).toMatchObject({ bootstrap: "acs", historyFromOffset: PRUNED_BELOW + 7 });
+    expect(snapshots).toEqual([PRUNED_BELOW + 7]);
+    expect(ScriptedWs.opened).toEqual([0, PRUNED_BELOW + 7]);
+    expect(logs.some((l) => l.includes("pruning offset unreadable"))).toBe(true);
   });
 });
