@@ -1,5 +1,5 @@
 import { formatCadence } from "@agari/core/copy";
-import type { PrivatePosition } from "@agari/core/private";
+import { PRIVATE_BUCKET, type PrivatePosition } from "@agari/core/private";
 import { formatBaseUnits } from "@agari/core/units";
 import { LoaderCircle, ShieldCheck } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -29,8 +29,9 @@ interface Props {
 
 /**
  * web `PrivateClaims` in the plate (private-claims.css `.plate-rows .pc*`), on Canton (C8d): the seat's private calls
- * read from the ledger, each "On the ledger"; a settled one shows its result and Cash out, which brings its payout home
- * into the private balance once. Nothing to back up: the seat's own ledger is the record.
+ * read from the ledger, each "On the ledger"; a settled one shows its result, already in the private balance since
+ * abu-pm-main 0.5.2 (K-315); only a call the 0.5.1 engine paid into the public balance shows Cash out. Nothing to back up:
+ * the seat's own ledger is the record.
  */
 export function PrivateClaims({ positions, decimals, symbol }: Props) {
   const ink = usePlateInk();
@@ -90,7 +91,9 @@ export function PrivateClaims({ positions, decimals, symbol }: Props) {
                     <Text style={[styles.cashText, { color: ink.paper }]}>{busy ? PRIVATE.claims.cashingOut : PRIVATE.claims.cashOut}</Text>
                   </Pressable>
                 ) : (
-                  <Text style={[styles.status, { color: t.ink50 }]}>{p.status === "credited" ? PRIVATE.claims.credited : PRIVATE.claims.open}</Text>
+                  <Text style={[styles.status, { color: t.ink50 }]} accessibilityHint={p.paidInto === PRIVATE_BUCKET ? PRIVATE.claims.paidPrivateTitle : undefined}>
+                    {p.status === "credited" ? (p.paidInto === PRIVATE_BUCKET ? PRIVATE.claims.paidPrivate : PRIVATE.claims.credited) : PRIVATE.claims.open}
+                  </Text>
                 )}
               </View>
             </View>

@@ -8,8 +8,11 @@
  *   bet       a firm venue quote accepted with exactly that much private cash (`VenueCash_Split` keeps the bucket, so
  *             there is no change to leak) and `beneficiaryRef = "private"` on the leg: it is kept out of the public
  *             portfolio, exits and publications, and appears only in the private list.
- *   cash-out  once the venue settles the leg, its payout is moved back into the private bucket and the seat's
- *             settlement receipt is dismissed in the same transaction, so each private call cashes out once.
+ *   payout    abu-pm-main 0.5.2 (K-315): the venue's settle (or the owner's claim, or the stale refund) pays a private
+ *             call straight back into the private bucket, won, lost or void, and its settlement receipt names the
+ *             bucket (`paidInto = "private"`). Nothing waits for a cash-out and nothing touches the public balance.
+ *   cash-out  only for a call settled by the 0.5.1 engine, which paid the seat's public balance: its payout is moved
+ *             back into the private bucket and its receipt dismissed in the same transaction, once.
  *
  * What this is, said plainly: Canton already shows a seat's contracts only to the seat and the venue; private mode keeps
  * those calls off everything the seat can make public. It is not anonymity: the venue still sees every call.
@@ -31,10 +34,15 @@ export const privatePositionWire = z.object({
   lots: decimal,
   /** Stake plus fee, what the bet took from the private balance. */
   costBase: decimal,
-  /** open: the Window has not settled · settled: paid into the seat's balance, waiting to come home · credited: home. */
+  /**
+   * open: the Window has not settled · settled: paid into the seat's public balance by the 0.5.1 engine, waiting for Cash
+   * out · credited: home in the private bucket (0.5.2: at settlement; 0.5.1: after Cash out).
+   */
   status: z.enum(["open", "settled", "credited"]),
   result: z.enum(["won", "lost", "void"]).nullable(),
   payoutBase: decimal.nullable(),
+  /** The bucket the ledger's receipt says the payout landed in: `private` (0.5.2, at settlement); null before 0.5.2 or while open. */
+  paidInto: z.string().nullable().optional(),
   openedUpdateId: z.string(),
   openedAtSec: z.number().int(),
 });

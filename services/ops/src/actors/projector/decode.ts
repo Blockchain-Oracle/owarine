@@ -274,6 +274,7 @@ function createdFacts(
         kind: "receipt", contractId: cid, owner: str(a.owner), marketKey: str(a.marketId), pairId: str(a.pairId), outcome: side(a.outcome),
         resolved: a.resolved === null || a.resolved === undefined ? null : side(a.resolved), lots: str(a.lots), cashUnit: str(a.cashUnit),
         backingShare: str(a.backingShare), cost: str(a.cost), payout: str(a.payout), fee: str(a.fee), product: optText(a.product), detail: receiptDetail(a.detail),
+        paidInto: optText(a.paidInto),
       }];
     case "PM.Event:EventTerms":
       return [{ kind: "event-terms", contractId: cid, termsCid: str(a.termsCid), question: str(a.question), attestors: parties(a.attestors), quorum: int(a.quorum) }];
@@ -305,7 +306,8 @@ const LEG_EXIT: Record<string, "settled" | "claimed" | "refunded_stale" | "close
 };
 
 /** Buckets `PM.*` pays an exit into: owner payout, stale refund, close-out, sale, netting release; and the venue's fee. */
-const PAID = ["payout", "refund", "close-out", "sale", "netting"];
+/** The buckets a leg pays its owner into; `private` since abu-pm-main 0.5.2 (K-315: a private call pays back into it). */
+const PAID = ["payout", "refund", "close-out", "sale", "netting", "private"];
 const FEE = ["fee"];
 
 function exercisedFacts(

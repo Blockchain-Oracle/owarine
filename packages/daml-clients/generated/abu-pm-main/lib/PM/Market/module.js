@@ -20,7 +20,7 @@ var PM_Types = require('../../PM/Types/module');
 exports.MarketTerms = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Market:MarketTerms',
-    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Market:MarketTerms',
+    templateIdWithPackageId: '#f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a:PM.Market:MarketTerms',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -126,12 +126,12 @@ exports.MarketTerms = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.MarketTerms, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.MarketTerms, ['f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a', '#abu-pm-main']);
 
 exports.OpenPrint = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Market:OpenPrint',
-    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Market:OpenPrint',
+    templateIdWithPackageId: '#f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a:PM.Market:OpenPrint',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -171,12 +171,12 @@ exports.OpenPrint = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.OpenPrint, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.OpenPrint, ['f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a', '#abu-pm-main']);
 
 exports.Resolution = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Market:Resolution',
-    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Market:Resolution',
+    templateIdWithPackageId: '#f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a:PM.Market:Resolution',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -224,7 +224,7 @@ exports.Resolution = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.Resolution, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.Resolution, ['f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a', '#abu-pm-main']);
 
 exports.Terms_RecordOpen = {
   decoder: damlTypes.lazyMemo(function () {
@@ -320,7 +320,7 @@ exports.VoidStage = {
 exports.WindowState = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Market:WindowState',
-    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Market:WindowState',
+    templateIdWithPackageId: '#f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a:PM.Market:WindowState',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -352,4 +352,4 @@ exports.WindowState = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.WindowState, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.WindowState, ['f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a', '#abu-pm-main']);

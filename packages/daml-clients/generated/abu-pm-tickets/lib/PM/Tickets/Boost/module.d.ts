@@ -6,9 +6,9 @@
 import * as jtv from '@mojotech/json-type-validation';
 import * as damlTypes from '@daml/types';
 
-import * as pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580 from '@daml.js/abu-pm-main-0.5.1';
 import * as pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4 from '@daml.js/daml-prim-DA-Types-1.0.0';
 import * as pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69 from '@daml.js/ghc-stdlib-DA-Internal-Template-1.0.0';
+import * as pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a from '@daml.js/abu-pm-main-0.5.2';
 
 import * as PM_Tickets_Common from '../../../PM/Tickets/Common/module';
 
@@ -27,13 +27,13 @@ export declare interface BoostExitQuoteInterface {
     damlTypes.Choice<BoostExitQuote, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostExitQuote, undefined>>;
   BoostExit_Accept: 
-    damlTypes.Choice<BoostExitQuote, BoostExit_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<PM_Tickets_Common.Paid, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg>>, undefined> &
+    damlTypes.Choice<BoostExitQuote, BoostExit_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<PM_Tickets_Common.Paid, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Leg.Leg>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostExitQuote, undefined>>;
   BoostExit_Expire: 
-    damlTypes.Choice<BoostExitQuote, BoostExit_Expire, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>, undefined> &
+    damlTypes.Choice<BoostExitQuote, BoostExit_Expire, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostExitQuote, undefined>>;
   BoostExit_Withdraw: 
-    damlTypes.Choice<BoostExitQuote, BoostExit_Withdraw, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>, undefined> &
+    damlTypes.Choice<BoostExitQuote, BoostExit_Withdraw, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostExitQuote, undefined>>;
 }
 export declare const BoostExitQuote:
@@ -64,10 +64,10 @@ export declare type BoostPosition = {
   venue: damlTypes.Party,
   owner: damlTypes.Party,
   reserveId: string,
-  termsCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.MarketTerms>,
   marketId: string,
   pairId: string,
-  side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
+  side: pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Types.Side,
   priceTicks: damlTypes.Int,
   lots: damlTypes.Int,
   cashUnit: damlTypes.Int,
@@ -91,10 +91,10 @@ export declare interface BoostPositionInterface {
     damlTypes.Choice<BoostPosition, Boost_Claim, PM_Tickets_Common.Paid, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostPosition, undefined>>;
   Boost_KnockOut: 
-    damlTypes.Choice<BoostPosition, Boost_KnockOut, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<PM_Tickets_Common.Paid, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<BoostPosition, Boost_KnockOut, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<PM_Tickets_Common.Paid, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Leg.Leg>, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostPosition, undefined>>;
   Boost_OfferExit: 
-    damlTypes.Choice<BoostPosition, Boost_OfferExit, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<BoostExitQuote>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<BoostPosition, Boost_OfferExit, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple2<damlTypes.ContractId<BoostExitQuote>, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostPosition, undefined>>;
   Boost_RefundStale: 
     damlTypes.Choice<BoostPosition, Boost_RefundStale, PM_Tickets_Common.Paid, undefined> &
@@ -112,10 +112,10 @@ export declare type BoostQuote = {
   venue: damlTypes.Party,
   user: damlTypes.Party,
   reserveId: string,
-  termsCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.MarketTerms>,
+  termsCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.MarketTerms>,
   marketId: string,
   pairId: string,
-  side: pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Types.Side,
+  side: pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Types.Side,
   priceTicks: damlTypes.Int,
   lots: damlTypes.Int,
   cashUnit: damlTypes.Int,
@@ -136,7 +136,7 @@ export declare interface BoostQuoteInterface {
     damlTypes.Choice<BoostQuote, pkg9e70a8b3510d617f8a136213f33d6a903a10ca0eeec76bb06ba55d1ed9680f69.DA.Internal.Template.Archive, {}, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostQuote, undefined>>;
   BoostQuote_Accept: 
-    damlTypes.Choice<BoostQuote, BoostQuote_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<BoostPosition>, damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Leg.Leg>, damlTypes.Optional<damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>>>, undefined> &
+    damlTypes.Choice<BoostQuote, BoostQuote_Accept, pkg5aee9b21b8e9a4c4975b5f4c4198e6e6e8469df49e2010820e792f393db870f4.DA.Types.Tuple3<damlTypes.ContractId<BoostPosition>, damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Leg.Leg>, damlTypes.Optional<damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>>>, undefined> &
     damlTypes.ChoiceFrom<damlTypes.Template<BoostQuote, undefined>>;
   BoostQuote_Expire: 
     damlTypes.Choice<BoostQuote, BoostQuote_Expire, PM_Tickets_Common.Paid, undefined> &
@@ -151,7 +151,7 @@ export declare const BoostQuote:
   BoostQuoteInterface
 
 export declare type BoostQuote_Accept = {
-  cash: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>[],
+  cash: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>[],
 }
 
 export declare const BoostQuote_Accept:
@@ -171,7 +171,7 @@ export declare const BoostQuote_Withdraw:
   damlTypes.Serializable<BoostQuote_Withdraw>
 
 export declare type Boost_Claim = {
-  resolutionCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.Resolution>,
 }
 
 export declare const Boost_Claim:
@@ -179,15 +179,15 @@ export declare const Boost_Claim:
 
 export declare type Boost_KnockOut = {
   observedAt: damlTypes.Time,
-  quoteCids: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Oracle.PriceQuote>[],
-  shardCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>,
+  quoteCids: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Oracle.PriceQuote>[],
+  shardCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>,
 }
 
 export declare const Boost_KnockOut:
   damlTypes.Serializable<Boost_KnockOut>
 
 export declare type Boost_OfferExit = {
-  shardCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Money.VenueCash>,
+  shardCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Money.VenueCash>,
   exitTicks: damlTypes.Int,
   validUntil: damlTypes.Time,
 }
@@ -202,7 +202,7 @@ export declare const Boost_RefundStale:
   damlTypes.Serializable<Boost_RefundStale>
 
 export declare type Boost_Settle = {
-  resolutionCid: damlTypes.ContractId<pkg27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580.PM.Market.Resolution>,
+  resolutionCid: damlTypes.ContractId<pkgf29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a.PM.Market.Resolution>,
 }
 
 export declare const Boost_Settle:

@@ -4,7 +4,8 @@
  * wrong for the seat itself: a seat that never published would never hear that its Window settled. The web serves
  * these rows only to the seat that proves itself (cookie or signed read header) and passes its lease, so a recycled
  * seat never shows the previous visitor's activity. Row shapes are `SocialFillRow` / `SocialSettlementRow`, so the
- * feed maps them unchanged; `wallet` / `owner` is the visitor's address.
+ * feed maps them unchanged; `wallet` / `owner` is the visitor's address. A private call (K-266, K-317) is not in it: it
+ * appears only in the seat's private list, whose payout lands in the private bucket (abu-pm-main 0.5.2).
  */
 import type postgres from "postgres";
 import type { IdxSeatLease } from "./read";
@@ -30,6 +31,7 @@ export function seatActivityReader(sql: Sql) {
           (CASE WHEN f.resting THEN 'maker' ELSE 'taker' END) AS seat, m.symbol, m.cadence_sec, f.lots::text AS lots, (f.side_ticks * f.lots * f.cash_unit + COALESCE(f.fee, 0))::text AS amount_base, f.ts_sec::text AS ts_sec
         FROM idx_fills f JOIN idx_markets m ON m.market = f.market
         WHERE f.owner_party = ${lease.party} AND f.ledger_offset >= ${lease.fromOffset} AND m.symbol IS NOT NULL
+          AND NOT EXISTS (SELECT 1 FROM idx_legs pl WHERE pl.leg_cid = f.leg_cid AND pl.beneficiary_ref = 'private')
           ${q.sinceSec === undefined ? sql`` : sql`AND f.ts_sec >= ${q.sinceSec}`}
         ORDER BY f.ts_sec DESC, f.ledger_offset DESC LIMIT ${clamp(q.limit)}`;
     },
@@ -44,6 +46,7 @@ export function seatActivityReader(sql: Sql) {
           max(l.closed_update_id) AS last_signature, max(l.closed_ts_sec)::text AS last_ts_sec
         FROM idx_legs l JOIN idx_markets m ON m.market = l.market
         WHERE l.owner_party = ${lease.party} AND l.created_offset >= ${lease.fromOffset} AND NOT l.is_venue AND l.status <> ALL(${EXITED}::text[])
+          AND l.beneficiary_ref IS DISTINCT FROM 'private'
           AND m.state <> 'open' AND m.symbol IS NOT NULL ${q.sinceSec === undefined ? sql`` : sql`AND m.resolved_ts_sec >= ${q.sinceSec}`}
         GROUP BY l.market, m.symbol, m.cadence_sec, m.state, m.winner, m.resolved_ts_sec, m.expiry_sec, m.cash_unit
         ORDER BY m.resolved_ts_sec DESC NULLS LAST LIMIT ${clamp(q.limit)}`;

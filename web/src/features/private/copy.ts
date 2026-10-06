@@ -26,8 +26,8 @@ export const PRIVATE = {
     reallow: (balance: string, allowance: string) => `${balance} in your private balance, but the desk may spend only ${allowance} of it.`,
     reallowAction: "re-allow",
     pending: (window: string) => `A private bet on ${window} is still waiting for the chain. The next tap resumes it — nothing is charged twice.`,
-    /** The reference: "Always 1x. Cash out from this device." — the claim lives in this browser, and the list is on Portfolio. */
-    always: "Always 1×. Cash out on Portfolio once the Window settles.",
+    /** The reference: "Always 1x. Cash out from this device." On Canton (0.5.2, K-315) the settle pays the private balance itself. */
+    always: "Always 1×. The payout comes back to your private balance when the Window settles.",
     honesty: PRIVATE_HONESTY,
     signatures: "Adding funds moves demo credits from your seat's balance in one ledger write; the bet itself is one signature more, and moves nothing by itself.",
   },
@@ -85,7 +85,10 @@ export const PRIVATE = {
     open: "open",
     settled: "settled",
     credited: "credited",
-    foot: "The venue settles each call at its Window's close; Cash out brings the payout back into your private balance, once. Never published, never on a leaderboard.",
+    /** 0.5.2 (K-315): the ledger's receipt says the payout landed in the private bucket at settlement. */
+    paidPrivate: "in private balance",
+    paidPrivateTitle: "The venue paid this call straight back into your private balance; the ledger's receipt names the bucket",
+    foot: "The venue settles each call at its Window's close and pays it straight back into your private balance; a call settled before that change shows Cash out, which brings it home once. Never published, never on a leaderboard.",
     fileName: (date: string) => `agari-private-claims-${date}.json`,
     just: "just now",
     minutes: (m: number) => `${m}m ago`,

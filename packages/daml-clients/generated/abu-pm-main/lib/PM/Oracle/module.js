@@ -37,7 +37,7 @@ exports.Evidence = {
 exports.PriceQuote = damlTypes.assembleTemplate(
   {
     templateId: '#abu-pm-main:PM.Oracle:PriceQuote',
-    templateIdWithPackageId: '#27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580:PM.Oracle:PriceQuote',
+    templateIdWithPackageId: '#f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a:PM.Oracle:PriceQuote',
     keyDecoder: jtv.constant(undefined),
     keyEncode: function () { throw 'EncodeError'; },
     decoder: damlTypes.lazyMemo(function () {
@@ -97,7 +97,7 @@ exports.PriceQuote = damlTypes.assembleTemplate(
   },
 );
 
-damlTypes.registerTemplate(exports.PriceQuote, ['27a40a47feb36cca946fb08a56d1020e9673c26a8b40a206380778fb5c9ad580', '#abu-pm-main']);
+damlTypes.registerTemplate(exports.PriceQuote, ['f29dde00cb60f10b09382093a6d9650d3f79e8fb30b451d26f8a5086764cb53a', '#abu-pm-main']);
 
 exports.PriceQuote_Retire = {
   decoder: damlTypes.lazyMemo(function () {
