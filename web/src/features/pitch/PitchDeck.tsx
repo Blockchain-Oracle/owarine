@@ -7,7 +7,20 @@ import { PITCH } from "./copy";
 import { Mono, Tick } from "./primitives";
 import { SLIDES_A } from "./slides-a";
 import { slidesB } from "./slides-b";
+import { SLIDES_C } from "./slides-c";
+import type { Slide } from "./types";
 import { useVenueUsage } from "./useVenueUsage";
+
+/**
+ * The deck's reading order (C10f): the six judging criteria in the order a judge asks them — problem, who, answer, why
+ * Canton, the work, the evidence, go-to-market, money — then the product's reach, the team, the roadmap and the close.
+ */
+const ORDER = ["glance", "problem", "icp", "edge", "why-canton", "engine", "proof", "demand", "gtm", "revenue", "onboard", "mobile", "agents", "x", "team", "roadmap", "close"] as const;
+
+function inOrder(slides: Slide[]): Slide[] {
+  const byId = new Map(slides.map((slide) => [slide.id, slide]));
+  return ORDER.flatMap((id) => byId.get(id) ?? []);
+}
 
 /**
  * The folio — ported from `reference/yosuku/app/pitch/page.tsx` L646–696.
@@ -23,7 +36,7 @@ import { useVenueUsage } from "./useVenueUsage";
  */
 export function PitchDeck() {
   const usage = useVenueUsage();
-  const slides = useMemo(() => [...SLIDES_A, ...slidesB(usage)], [usage]);
+  const slides = useMemo(() => inOrder([...SLIDES_A, ...SLIDES_C, ...slidesB(usage)]), [usage]);
   const total = slides.length;
   const [index, setIndex] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);

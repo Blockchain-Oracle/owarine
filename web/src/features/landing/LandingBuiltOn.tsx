@@ -4,6 +4,7 @@ import Link from "next/link";
 import { proofHref } from "@/lib/routes";
 import { namesLine, type BuiltOnSource, type SourceTally } from "./built-on";
 import { LANDING } from "./copy";
+import { SPONSORS_COPY } from "./sponsors";
 import { useBuiltOn } from "./useBuiltOn";
 import "./built-on.css";
 
@@ -32,7 +33,7 @@ function Column({ tally, proof }: { tally: SourceTally; proof: string | null }) 
 }
 
 /**
- * The band under the hero (S25): the original sources the venue's Windows have settled on, by their plain names, each
+ * The band's price row (S25), under the platforms it is built on (`LandingSponsors`): the original sources the venue's Windows have settled on, by their plain names, each
  * with the count of Windows its prints closed and a link to the newest one's print proof. The figures are the index's
  * print mix (`/status`'s read), so the columns are the sources that printed and nothing here is written by hand.
  */
@@ -43,7 +44,7 @@ export function LandingBuiltOn() {
   const note = reading === null ? builtOn.reading : !value ? builtOn.unread : value.tally.length === 0 ? builtOn.none : null;
   return (
     <div className="lp-built">
-      <p className="section-eyebrow lp-built-label">{builtOn.label}</p>
+      <p className="section-eyebrow lp-built-label">{SPONSORS_COPY.prices}</p>
       <div className="lp-built-cols">
         {value?.tally.map((tally) => (
           <Column key={tally.source} tally={tally} proof={value.proof[tally.source] ?? null} />

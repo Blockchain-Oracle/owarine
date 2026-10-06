@@ -1,0 +1,57 @@
+/* C10f: the landing's business story — "Your position stays yours" and "From sandbox to MainNet". Built only from the
+   landing's own grammar (.lp-steps columns, .lp-lane cards, .lp-proof-label rows); these rules add spacing and the
+   fact lists, every colour a theme token. */
+
+/* ── Your position stays yours ───────────────────────────────────────── */
+.lp-why-col { padding-bottom: 24px; }
+.lp-why-kicker { margin-top: 0; color: var(--vermilion); }
+.lp-why-body { max-width: 44ch; color: var(--gray-300); }
+.lp-why-facts {
+  list-style: none; margin: 20px 0 0; padding: 16px 0 0;
+  display: flex; flex-direction: column; gap: 10px;
+  border-top: 1px solid var(--gray-800);
+}
+.lp-why-fact {
+  position: relative; padding-left: 16px;
+  font-size: 13px; line-height: 1.55; color: var(--gray-400);
+}
+.lp-why-fact::before {
+  content: ""; position: absolute; left: 0; top: 0.6em;
+  width: 6px; height: 1px; background: var(--gray-600);
+}
+.lp-why-matrix {
+  display: inline-block; margin-top: 28px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+/* ── From sandbox to MainNet ─────────────────────────────────────────── */
+.lp-next-label { margin: 0 0 14px; }
+.lp-next-phases { list-style: none; margin: 0 0 48px; padding: 0; }
+.lp-next-phase { min-height: 0; }
+.lp-next-phase[data-phase="0"] .lp-lane-clock { color: var(--vermilion); }
+.lp-next-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; align-items: start; }
+.lp-next-rows { margin: 0; border-top: 1px solid var(--gray-800); }
+.lp-next-row { padding: 14px 0; border-bottom: 1px solid var(--gray-800); }
+.lp-next-row dt {
+  margin: 0 0 6px;
+  font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em;
+  color: var(--white);
+}
+.lp-next-row dd { margin: 0; font-size: 14px; line-height: 1.6; color: var(--gray-400); }
+.lp-next-targets {
+  list-style: none; margin: 0; padding: 0;
+  border-top: 1px solid var(--gray-800);
+}
+.lp-next-targets li {
+  padding: 14px 0; border-bottom: 1px solid var(--gray-800);
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.5; color: var(--gray-300);
+}
+.lp-next-note { margin-top: 14px; }
+.lp-next-pitch {
+  display: inline-block; margin-top: 20px;
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+@media (max-width: 1024px) {
+  .lp-next-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}

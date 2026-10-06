@@ -283,3 +283,6 @@ body:has(.reel-page) .page-shell {
 @media (max-width: 720px) {
   [data-strip="off"] .header { top: 20px; }
 }
+
+/* K-250: the trademark attribution under the footer credit — Canton's guidelines ask for it wherever its mark is used. */
+.footer-attribution { margin: 18px 0 0; max-width: 96ch; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--gray-600); }

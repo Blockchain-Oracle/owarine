@@ -80,6 +80,11 @@ export interface EventMarket {
   policyVersion: number;
   /** The policy's primary source, known at listing; null when neither the opening print nor the Series policy was read. */
   printSource: PrintSource | null;
+  /**
+   * The Window's policy `printSource` text (`attested:redstone:TSLA`, core `parsePrintSource`), when the index projects
+   * it. On Canton every print is attested, so this names the original source the oracle parties read (C-S25).
+   */
+  printSourceText?: string | null;
   collateral: Address;
   decimals: number;
   status: IndexedStatus;

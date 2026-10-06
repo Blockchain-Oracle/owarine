@@ -1,9 +1,9 @@
 ---
 title: "The Daml packages"
-description: "The four packages behind Agari, who signs each contract, and what the ledger enforces."
+description: "The Daml packages behind Agari, who signs each contract, and what the ledger enforces."
 ---
 
-Agari's rules are four Daml packages (Daml SDK 3.5), tested by the `pm-tests` Daml Script suite (227 scripts pass). Every contract names the parties that sign it and the parties that may see it; the ledger enforces both. The release files, with package ids and hashes, are in `daml/released/`, and `dpm upgrade-check` passes from the previous versions.
+Agari's rules are five Daml packages released together as R1 (Daml SDK 3.5), plus a sixth for governed resolution that runs on LocalNet only, all tested by the `pm-tests` Daml Script suite (227 scripts pass, plus the Canton Coin rail's 38 and governance's 14). Every contract names the parties that sign it and the parties that may see it; the ledger enforces both. The release files, with package ids and hashes, are in `daml/released/`, and `dpm upgrade-check` passes from the previous versions.
 
 | Package | Version | What it holds |
 | --- | --- | --- |
@@ -11,6 +11,8 @@ Agari's rules are four Daml packages (Daml SDK 3.5), tested by the `pm-tests` Da
 | `abu-pm-tickets` | 0.1.3 | Range and Moonshot, Parlay, Boost (a short is Boost on Down) and Earn. |
 | `abu-pm-agents` | 0.2.1 | Strategies, subscriptions, creator fees, grant top-ups and the desk mandate. |
 | `abu-pm-games` | 0.1.1 | Duels, their results and the season prize pool. |
+| `abu-pm-cc` | 0.1.0 | The Canton Coin rail on the CIP-56 token standard: a deposit credits exactly the coin received, a withdrawal is a token-standard transfer back, and an auditor sees the coin held against the coin owed. Proved in Daml Script and unit tests; not run on a network yet, and off in code until DevNet proves it. |
+| `abu-pm-governance` | 0.1.0 | Governed resolution: the resolver becomes a committee on BitSafe's released `GovernanceRules`, so a print, a resolve or a void needs two of three confirmations. LocalNet only, never part of R1. See [Built on](/architecture/built-on). |
 
 ## The core contracts
 

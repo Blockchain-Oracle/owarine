@@ -24,7 +24,7 @@ export function ProductMap() {
         <span className={mapStyles.foundationLabel}>Know the network</span>
         <span className={mapStyles.foundationParts}>
           <span>Demo-credit calls <b aria-hidden="true">·</b> paper desk practice</span>
-          <span>Separate mainnet live step</span>
+          <span>Live desk planned on the Canton Coin rail</span>
         </span>
         <ArrowRight size={18} className={mapStyles.foundationArrow} aria-hidden="true"/>
       </Link>

@@ -5,11 +5,12 @@
  */
 export const OG_COPY = {
   site: {
-    alt: "Agari: call whether a US stock closes a Window up or down, settled on Canton from the signed price print.",
-    eyebrow: "Stock Windows on Canton",
-    line: "Settled on the signed price print.",
+    alt: "Agari: private prediction markets on Canton. Call the move at the venue's firm quote; only you and the venue see the position, and three oracle parties sign the close.",
+    eyebrow: "Private calls on Canton",
+    line: "Only you and the venue see your position.",
   },
-  honesty: "Canton test network · demo credits",
+  /** Every card's foot: the network by its name (C10f, Canton brand constant) and the honesty line, in text, no mark. */
+  honesty: "Built on Canton Network · test network · demo credits",
   ticker: {
     /** The route's static `alt`: one image route serves every ticker, so the line names none. */
     routeAlt: "A stock on Agari: its mark, its name and its last close.",

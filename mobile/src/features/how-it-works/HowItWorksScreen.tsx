@@ -13,11 +13,12 @@ import { Card, HIW_FONT, Rise } from "./Blocks";
 import { FaqSection } from "./Faq";
 import { MechanicsSection, SessionsSection, StepsSection } from "./SectionsA";
 import { AsidesSection, BasketsDeskSection, SettlementSection } from "./SectionsB";
+import { BuiltOnSection, LegSection } from "./SectionsC";
 
 /**
  * `/how-it-works` — web HowItWorksPage.tsx at 402 px, section for section: the back link, the hero, getting started,
- * the payout example, sessions and lanes, key mechanics, pricing, fees, settlement, halts and voids, the architecture,
- * baskets and the desk, the FAQ and the mint call to action.
+ * the payout example, sessions and lanes, key mechanics, pricing, fees, the Leg and who sees it (C10f), settlement,
+ * halts and voids, the architecture, baskets and the desk, Built On (C10f), the FAQ and the mint call to action.
  */
 export function HowItWorksScreen() {
   const { name, color } = useTheme();
@@ -43,9 +44,11 @@ export function HowItWorksScreen() {
       <StepsSection />
       <SessionsSection />
       <MechanicsSection />
+      <LegSection />
       <SettlementSection />
       <AsidesSection />
       <BasketsDeskSection />
+      <BuiltOnSection />
       <FaqSection />
 
       <Rise baseMs={700}>

@@ -39,3 +39,20 @@
   .lp-built-col { padding: 20px 0; border-left: 0; }
   .lp-built-col + .lp-built-col { border-top: 1px solid var(--gray-800); }
 }
+
+/* C-S25 (C10f): the band's first row — the three platforms it is built on, each mark alone in its column (K-250) —
+   above the price sources, which keep the row grammar above under their own "Prices from" label. */
+.lp-sponsors { padding-bottom: 32px; margin-bottom: 32px; border-bottom: 1px solid var(--gray-800); }
+.lp-sponsor-cols { list-style: none; margin: 0; padding: 0; }
+.lp-sponsor-mark { --mark-height: 30px; margin-bottom: 4px; }
+.lp-sponsor[data-sponsor="noders"] .lp-sponsor-mark { --mark-height: 36px; }
+.lp-sponsor[data-sponsor="bitsafe"] .lp-sponsor-mark { --mark-height: 22px; margin-block: 4px 8px; }
+.lp-sponsor-role {
+  margin: 0;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--vermilion);
+}
+.lp-sponsor .lp-built-what { color: var(--gray-400); }
+@media (max-width: 600px) {
+  .lp-sponsors { padding-bottom: 0; margin-bottom: 24px; }
+}

@@ -1,0 +1,6 @@
+/* K-250: a sponsor's supplied mark at a set height, its width from the file's own aspect, one variant per theme. */
+.sponsor-mark { display: inline-flex; align-items: center; height: var(--mark-height, 28px); }
+.sponsor-mark img { display: block; height: 100%; width: auto; aspect-ratio: var(--mark-aspect); }
+.sponsor-mark .sponsor-mark-light { display: none; }
+[data-theme="light"] .sponsor-mark .sponsor-mark-light { display: block; }
+[data-theme="light"] .sponsor-mark .sponsor-mark-dark { display: none; }

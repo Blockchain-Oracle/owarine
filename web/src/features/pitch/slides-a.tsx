@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PITCH } from "./copy";
 import { LogoCard, LedgerMark } from "./marks";
-import { FrozenPhone, PhoneMock, XBetCard } from "./mocks";
+import { PhoneMock, XBetCard } from "./mocks";
 import { CountUp, Emph, Glance, Kicker, Mono, Pill, Rise, SpecPanel } from "./primitives";
 import type { Slide } from "./types";
 
@@ -20,7 +20,6 @@ const EVENTS_PROGRAM = "0.2.0";
 
 const C = PITCH.cover;
 const E = PITCH.engine;
-const G = PITCH.gap;
 const D = PITCH.edge;
 const X = PITCH.x;
 const P = PITCH.proof;
@@ -99,32 +98,7 @@ export const SLIDES_A: Slide[] = [
     ),
   },
 
-  // 03 · THE PROBLEM — the market is shut for 135 hours of every 168
-  {
-    id: "gap",
-    section: G.section,
-    render: () => (
-      <div className="pitch-row pitch-row-art">
-        <div className="pitch-col pitch-col-54">
-          <Kicker>{G.kicker}</Kicker>
-          <Rise i={1} className="pitch-h1 pitch-h1-art">
-            {G.h1a}
-            <br />
-            {G.h1b}
-            <Emph delay={0.7}>{G.emph}</Emph>.
-          </Rise>
-          <Rise i={2} className="pitch-lead">
-            {G.lead}
-          </Rise>
-        </div>
-        <div className="pitch-art pitch-art-right">
-          <FrozenPhone tilt={4} i={3} />
-        </div>
-      </div>
-    ),
-  },
-
-  // 04 · OUR EDGE (value prop = experience)
+  // OUR ANSWER — the desk, in four parts
   {
     id: "edge",
     section: D.section,
@@ -257,13 +231,13 @@ export const SLIDES_A: Slide[] = [
         <Rise i={3} className="pitch-cells-wrap">
           <div className="pitch-cells pitch-cells-3">
             {O.cells.map(([n, l, state], index) => (
-              <div key={n} className="pitch-cell" data-live={state === "LIVE" ? "true" : "false"}>
+              <div key={n} className="pitch-cell" data-live={state === "LOCAL SANDBOX" ? "true" : "false"}>
                 <div className="pitch-cell-head">
                   {index === 2 && <LogoCard s={26} />}
                   <div className="pitch-cell-name">{n}</div>
                 </div>
                 <div className="pitch-cell-sub">
-                  <Mono tone={state === "LIVE" ? "live" : "verm"}>{state}</Mono>
+                  <Mono tone={state === "LOCAL SANDBOX" ? "live" : "verm"}>{state}</Mono>
                   <Mono tone="mute">{l}</Mono>
                 </div>
               </div>

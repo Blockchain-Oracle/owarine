@@ -5,13 +5,15 @@
  */
 export const HOW_IT_WORKS = {
   title: "How It Works",
-  lead: "Call where a stock closes its Window. Trade UP or DOWN with credits. Settle on a signed price, on the ledger.",
+  lead: "Call where a price closes its Window, at the venue's firm quote, in a position only you and the venue can see. Settled on a price three oracle parties sign, on the Canton ledger.",
   back: "Back to Markets",
   sections: {
     steps: "Getting Started",
     example: "Payout Example",
     sessions: "Sessions & Lanes",
     mechanics: "Key Mechanics",
+    leg: "The Leg and Who Sees It",
+    builtOn: "Built On",
     pricing: "How a Price Is Made",
     fees: "Fee Structure",
     settlement: "Settlement Process",
@@ -49,7 +51,7 @@ export const HOW_IT_WORKS = {
     outcome: "TSLA closes at or above the line",
     get: "You get",
     payout: "100 credits",
-    profit: "(+36 credits before the settlement fee)",
+    profit: "(+36 credits, less the fee paid with the fill)",
   },
   formula: {
     identity: "price(DOWN) = 1 − price(UP)",
