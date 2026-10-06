@@ -15,7 +15,7 @@ import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
 import type { ContractId, DisclosedContract, LedgerClient, Party } from "@agari/ledger";
 import { diagnosis, type Signature } from "@agari/core/types";
 import { decodeLeg, decodeResolution, templateSuffix, type LegC } from "../ops/canton/decode";
-import { gcmd } from "../ops/games";
+import { gcmd, pickQuantityOf } from "../ops/games";
 import { decodeDuelMatch, decodeDuelOpen, type DuelMatchC, type DuelOpenC } from "../ops/games/decode";
 import type { DuelAction, DuelWriteReply, DuelWriteRequest } from "../provider/games-wire";
 import { appMarketId, seatCommandId } from "./ids";
@@ -153,7 +153,7 @@ export function createGamesSeat(cfg: GamesSeatConfig) {
       if (!leg) return { kind: "unknown", diagnosis: diagnosis("send-unknown", "the pick's leg landed but is not yet visible to the seat") };
     }
     const cost = leg.data.backingShare + leg.data.feePaid;
-    return run(actor, req.commandId, offset, { commands: [gcmd.recordPick(m.cid, actor.party, i, leg.cid)], ctx: { step: "accept", legCids: [leg.cid] } }, { quantity: leg.data.lots * leg.data.cashUnit, costBase: cost });
+    return run(actor, req.commandId, offset, { commands: [gcmd.recordPick(m.cid, actor.party, i, leg.cid)], ctx: { step: "accept", legCids: [leg.cid] } }, { quantity: pickQuantityOf(leg.data.lots, leg.data.cashUnit), costBase: cost });
   }
 
   /** One duel action for this seat. `address` is the lease's seat address (the deckmaster's pairing is by address). */
