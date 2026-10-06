@@ -8,6 +8,8 @@ export interface PlateInk {
   line: string;
   figure: string;
   wallet: string;
+  /** C7a: open positions at the mid (`.lp-bar-positions`). */
+  positions: string;
   account: string;
 }
 
@@ -18,5 +20,5 @@ export interface PlateInk {
  */
 export function usePlateInk(): PlateInk {
   const t = usePortfolioTokens();
-  return { paper: t.lpPaper, raised: t.lpPaperRaised, ink: t.lpInk, mute: t.lpMute, line: t.lpLine, figure: t.vermilion, wallet: t.vermilion, account: t.barAccount };
+  return { paper: t.lpPaper, raised: t.lpPaperRaised, ink: t.lpInk, mute: t.lpMute, line: t.lpLine, figure: t.vermilion, wallet: t.vermilion, positions: t.barPositions, account: t.barAccount };
 }

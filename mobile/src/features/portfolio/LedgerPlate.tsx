@@ -41,48 +41,57 @@ interface LedgerPlateProps {
 }
 
 /**
- * web `LedgerPlate` + ledger-plate.css at 402 px (`.ledger-plate` 16/14, radius 5, the tick band): "Ready to bet", the
- * vermilion figure, the whole amount when some sits elsewhere, the full-width pill, the two-segment bar and its legs.
+ * web `LedgerPlate` + ledger-plate.css at 402 px (`.ledger-plate` 16/14, radius 5, the tick band), as C7a made it: the one
+ * number is the balance sheet (demo credits, open positions at the venue mid, what is waiting to be collected), "ready to
+ * bet" under it with the named pools that are never summed in, the full-width pill, then the three-segment bar and its
+ * legs. The phone kept the Solana-era "In your seat / In your Trading Balance" legs until C4f: on Canton the seat's cash
+ * is the Trading Balance (K-087), so the second leg read 0.00 beside a Trading Balance panel holding the same cash.
  */
 export function LedgerPlate({ money, symbol, openBets, settled, onPrimary, children }: LedgerPlateProps) {
   const ink = usePlateInk();
   const { decimals } = money;
-  const empty = money.walletBase === 0n && money.accountBase === 0n;
-  const total = money.walletBase + money.accountBase;
-  const walletPct = total > 0n ? Number((money.walletBase * 100n) / total) : 0;
-  const elsewhere = money.pools.reduce((sum, pool) => sum + (pool.amountBase ?? 0n), 0n);
-  const figure = money.totalUnknown ? "0.00" : fmt2(money.readyToBetBase, decimals);
+  const credits = money.walletBase + money.accountBase;
+  const empty = credits === 0n && money.positionsBase === 0n && money.claimableBase === 0n;
+  const total = money.totalBase;
+  const pct = (part: bigint) => (total > 0n ? Number((part * 1000n) / total) / 10 : 0);
+  /** Pools that are yours but not in this figure: named with their amounts, never added. */
+  const named = money.pools.filter((pool) => (pool.amountBase ?? 0n) > 0n);
+  const figure = money.totalUnknown ? "0.00" : fmt2(total, decimals);
 
   return (
     <View style={[styles.plate, { backgroundColor: ink.paper }]}>
       <PlateTicks color={ink.line} />
       <View style={styles.top}>
         <View>
-          <Text style={[styles.eyebrow, { color: ink.mute }]}>{PLATE.eyebrow}</Text>
-          <View style={styles.figureRow} accessible accessibilityLabel={`${PLATE.eyebrow}: ${figure} ${symbol}`}>
-            <Text style={[styles.figure, { color: ink.figure }, !money.totalReady && styles.pending]}>{figure}</Text>
+          <Text style={[styles.eyebrow, { color: ink.mute }]}>{PLATE.balanceEyebrow}</Text>
+          <View style={styles.figureRow} accessible accessibilityLabel={`${PLATE.balanceEyebrow}: ${figure} ${symbol}`}>
+            <Text style={[styles.figure, { color: ink.figure }, !money.totalBaseReady && styles.pending]}>{figure}</Text>
             <Text style={[styles.unit, { color: ink.mute }]}>{symbol}</Text>
           </View>
-          {elsewhere > 0n ? (
-            <Text style={[styles.elsewhere, { color: ink.mute }]}>
-              <Text style={[styles.tab, { color: ink.ink }]}>{fmt2(money.readyToBetBase + elsewhere, decimals)}</Text> {PLATE.yours}
-              {" · "}
-              <Text style={[styles.tab, { color: ink.ink }]}>{fmt2(elsewhere, decimals)}</Text> {PLATE.elsewhere}
-            </Text>
-          ) : null}
+          <Text style={[styles.elsewhere, { color: ink.mute }]}>
+            <Text style={[styles.tab, { color: ink.ink }]}>{fmt2(money.readyToBetBase, decimals)}</Text> {PLATE.readyToBet}
+            {named.map((pool) => (
+              <Text key={pool.id}>
+                {" · "}
+                {pool.label} <Text style={[styles.tab, { color: ink.ink }]}>{fmt2(pool.amountBase ?? 0n, decimals)}</Text> {PLATE.notSummed}
+              </Text>
+            ))}
+          </Text>
         </View>
         <PillButton label={empty ? PLATE.getTest : PLATE.addMoney} onPress={onPrimary} block />
       </View>
 
       <View style={styles.split} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <View style={[styles.bar, { backgroundColor: ink.line }]}>
-          <View style={{ width: `${walletPct}%`, backgroundColor: ink.wallet }} />
-          <View style={{ width: `${100 - walletPct}%`, backgroundColor: ink.account }} />
+          <View style={{ width: `${pct(credits)}%`, backgroundColor: ink.wallet }} />
+          <View style={{ width: `${pct(money.positionsBase)}%`, backgroundColor: ink.positions }} />
+          <View style={{ width: `${pct(money.claimableBase)}%`, backgroundColor: ink.account }} />
         </View>
       </View>
       <View style={styles.legs}>
-        <Leg dot={ink.wallet} label={PLATE.inWallet} value={fmt2(money.walletBase, decimals)} />
-        <Leg dot={ink.account} label={PLATE.inAccount} value={fmt2(money.accountBase, decimals)} />
+        <Leg dot={ink.wallet} label={PLATE.legs.credits} value={fmt2(credits, decimals)} />
+        <Leg dot={ink.positions} label={PLATE.legs.positions} value={fmt2(money.positionsBase, decimals)} />
+        <Leg dot={ink.account} label={PLATE.legs.collect} value={fmt2(money.claimableBase, decimals)} />
         <Text style={[styles.counts, { color: ink.mute }]}>
           <Text style={[styles.tab, { color: ink.ink }]}>{openBets}</Text> {PLATE.open} <Text style={{ color: ink.line }}>·</Text>{" "}
           <Text style={[styles.tab, { color: ink.ink }]}>{settled}</Text> {PLATE.settled}
