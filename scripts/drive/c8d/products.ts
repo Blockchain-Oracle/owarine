@@ -92,9 +92,9 @@ export async function runProducts(ctx: Ctx): Promise<void> {
 }
 
 /**
- * A knock-out on purpose: wait for a BTC-5m Window whose one side is priced at or under 30¢ with time left, take that
- * side at 3x (its barrier then sits near the price), and watch the ticket keeper post `Boost_KnockOut` at the first
- * quorum print past it. Tries Window after Window for up to `--knockout-min` minutes (default 30).
+ * A knock-out on purpose: on each BTC-5m Window with time left, take the cheap side at 3x (when it is priced at or
+ * under `--knockout-max`, default 0.60) and watch the ticket keeper post `Boost_KnockOut` at the first quorum print
+ * past its barrier. Tries Window after Window for up to `--knockout-min` minutes (default 30).
  */
 export async function runKnockout(ctx: Ctx): Promise<void> {
   const url = process.env.DATABASE_URL;
@@ -102,6 +102,9 @@ export async function runKnockout(ctx: Ctx): Promise<void> {
   const sql = postgres(url, { max: 2 });
   const C = await seat(ctx, "C");
   const minutes = Number(process.argv[process.argv.indexOf("--knockout-min") + 1]) || 30;
+  // The cheap side's price ceiling: a 3x boost's barrier sits where its side has lost about a quarter of its price, so
+  // any side under 0.6 can be knocked out by an ordinary five-minute move; lower ceilings wait longer for a Window.
+  const ceiling = Number(process.argv[process.argv.indexOf("--knockout-max") + 1]) || 0.6;
   const until = Date.now() + minutes * 60_000;
   const tried: string[] = [];
   try {
@@ -116,7 +119,7 @@ export async function runKnockout(ctx: Ctx): Promise<void> {
         const look = async (side: "up" | "down") => (await ctx.web.call(C, "POST", "/api/ledger/tickets/boost", { op: "preview", marketId, side, stakeBase: 4_000_000n, leverageBps: 30_000 })).json;
         const [up, down] = await Promise.all([look("up"), look("down")]);
         const pick = [["up", up], ["down", down]].map(([s, p]) => ({ side: s as "up" | "down", price: (p as Record<string, any>).kind === "preview" ? Number((p as Record<string, any>).quote.priceRaw) / 1e6 : 1 })).sort((a, b) => a.price - b.price)[0]!;
-        if (pick.price > 0.3 || pick.price < 0.06) {
+        if (pick.price > ceiling || pick.price < 0.06) {
           await sleep(5_000);
           continue;
         }
