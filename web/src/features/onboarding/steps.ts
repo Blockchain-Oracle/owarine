@@ -1,3 +1,5 @@
+import { networkLabel } from "@agari/markets/chain";
+
 /**
  * The first-run walkthrough — ported from reference/yosuku/components/Tutorial.tsx (L19–41).
  *
@@ -29,8 +31,10 @@ export interface TutorialStep {
 export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
     title: "Welcome to Agari",
-    description:
-      "A prediction market on stock and crypto prices, on Canton. Pick a side of a live Window, and a signed oracle price settles it at the close — the price decides, nobody else. This is Canton DevNet: demo credits only, no real money.",
+    // The configured network by name (C4f): a LocalNet build never says DevNet.
+    get description() {
+      return `A prediction market on stock and crypto prices, on Canton. Pick a side of a live Window, and a signed oracle price settles it at the close — the price decides, nobody else. This is ${networkLabel()}: demo credits only, no real money.`;
+    },
   },
   {
     title: "How a Window works",
@@ -61,6 +65,8 @@ export const TUTORIAL_UI = {
   done: "Get started",
   lastStep: "Last step",
   connectTitle: "Take a seat to start trading",
-  connectNote: "No wallet app needed. Canton DevNet, so these are demo credits — and every call is yours alone to place.",
+  get connectNote(): string {
+    return `No wallet app needed. ${networkLabel()}, so these are demo credits — and every call is yours alone to place.`;
+  },
   progress: (step: number, total: number) => `Step ${step} of ${total}`,
 } as const;
