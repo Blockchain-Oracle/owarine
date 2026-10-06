@@ -100,10 +100,16 @@ export const seatRowsOf = (sql: Sql, alias: string, owner: string, lease: IdxSea
 
 export function indexReader(sql: Sql) {
   return {
-    /** A seat's own fills, newest first (Masayume `getUserFills`). */
+    /**
+     * A seat's own fills, newest first (Masayume `getUserFills`). Every row here is the seat's (its address or its leased
+     * party), so `taker` names the wallet asked for (C9e): the replay attributes a fill to the wallet only when `taker`
+     * equals it, and the projector writes no `owner_address` for a leased party, so the default label (the party id)
+     * made every own buy replay as the complement side — a guest seat's history, Trader Edge and verdict cost basis
+     * read 1 − price.
+     */
     async walletFills(wallet: string, q: IdxFillQuery = {}): Promise<IdxRow[]> {
       return sql`
-        SELECT ${fillCols(sql)} FROM idx_fills f
+        SELECT ${fillCols(sql, sql`${wallet}::text`)} FROM idx_fills f
         WHERE ${seatRowsOf(sql, "f", wallet, q.lease, "ledger_offset")}
           ${q.market ? sql`AND f.market = ${q.market}` : sql``} ${q.book ? sql`AND f.terms_cid = ${q.book}` : sql``}
           ${q.sinceSec !== undefined ? sql`AND f.ts_sec >= ${q.sinceSec}` : sql``}
