@@ -16,6 +16,7 @@ import { TEMPLATE_IDS } from "@agari/daml";
 import { decodeVenueAccount, failureText, pick, readActive, submit } from "@agari/markets/ops/canton";
 import { gcmd, seasonCommandId } from "@agari/markets/ops/games";
 import type { ArenaDesk } from "./desk";
+import { venueModeRefusalNow } from "../../runtime/venue-mode";
 
 type Handler = (body: unknown) => Promise<{ status: number; body: unknown }>;
 
@@ -41,6 +42,9 @@ export function arenaRoutes(desk: ArenaDesk): Record<string, Handler> {
       const party = str(b, "party");
       const address = str(b, "address");
       if (!matchId || !party || !address) return { status: 400, body: { diagnosis: diagnosis("unknown", "expected {matchId, party, address}") } };
+      // C-DAML-02: a new match puts stakes at risk, so it asks the venue mode.
+      const modeWhy = venueModeRefusalNow("open-position");
+      if (modeWhy) return refused(diagnosis("market-not-trading", modeWhy));
       const deal = desk.pendingDeal(matchId);
       if (!deal) return refused(diagnosis("order-expired", "no sealed deck is waiting for that match (opened already, dissolved, or never dealt)"));
       // C4c: the pairing names the key that queued, which is the lease's own key or a key joined to it by a seat link;

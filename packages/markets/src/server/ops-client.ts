@@ -49,8 +49,8 @@ export interface TicketDeskReplies {
   earn: EarnReply;
 }
 
-/** The season admin's routes: signed with `OPS_ADMIN_SECRET`, closed without it (C4d L4). */
-export const OPS_ADMIN_PATHS: ReadonlySet<string> = new Set([`${OPS_GAMES_PREFIX}season/distribute`, `${OPS_GAMES_PREFIX}season/withdraw`]);
+/** The admin routes (the season admin's, and the venue mode, C-DAML-02): signed with `OPS_ADMIN_SECRET`, closed without it (C4d L4). */
+export const OPS_ADMIN_PATHS: ReadonlySet<string> = new Set([`${OPS_GAMES_PREFIX}season/distribute`, `${OPS_GAMES_PREFIX}season/withdraw`, "/internal/admin/venue-mode"]);
 
 const NONCE = /^[0-9a-f]{32}$/;
 export const opsNonce = (): string => randomBytes(16).toString("hex");

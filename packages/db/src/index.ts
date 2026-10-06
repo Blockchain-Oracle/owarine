@@ -52,3 +52,5 @@ export * from "./take-tags";
 export * from "./idx/social-gate";
 // C4d (K-210): a draining seat's desks are closed in the index with it.
 export * from "./desk-lease";
+// C8d (C-DAML-02): the venue mode's audit log, written by ops' admin route.
+export * from "./venue-mode";

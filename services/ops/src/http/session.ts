@@ -11,6 +11,7 @@ import { heartbeats } from "../runtime/heartbeat";
 import type { PythEntitlementStore } from "../runtime/pyth-entitlement";
 import type { SessionEvents } from "../runtime/session-events";
 import type { SourceHealthStore } from "../runtime/source-health";
+import { venueMode } from "../runtime/venue-mode";
 
 const UPCOMING = 5;
 const RECENT = 5;
@@ -60,6 +61,8 @@ export function sessionBody({ sessions, halts, events, pythIndex, attested }: Se
         }
       : null,
     lanes: (roller?.detail.lanes as Record<string, string> | undefined) ?? {},
+    /** C-DAML-02: the venue mode new risk asks (open, reduce-only, paused); exits never do. */
+    venueMode: (({ mode, reason, setAtSec, source }) => ({ mode, reason, setAtSec, source }))(venueMode()),
     sources: { pythTrialLastCloseSec: PYTH_TRIAL_LAST_CLOSE_SEC, pythIndex: pythIndexSources(pythIndex), attested: attested?.all() ?? {} },
     /** Halted lanes by asset (ticker, or xStock for the token lane); `{}` when nothing is halted. */
     halts: halts?.board() ?? {},

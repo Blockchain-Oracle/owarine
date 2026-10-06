@@ -23,6 +23,7 @@ import type { Lease, ShardPool } from "../quote-issuer/pool";
 import type { LadderEntry } from "../market-maker/seat/ladder-board";
 import { createdOne, submitWithPools, type Desk } from "./desk";
 import { failed, isAnswer, lease, nowSec, onReserve, refused, reply, seatOf, split, windowFor, type Answer } from "./common";
+import { venueModeRefusalNow } from "../../runtime/venue-mode";
 
 function rangeRefusal(r: RangeRefusal | { kind: "too-late"; leftSec: number; minSec: number } | { kind: "centre"; centerQE6: number }): Answer {
   switch (r.kind) {
@@ -95,6 +96,8 @@ export async function handleRange(d: Desk, body: unknown): Promise<Answer> {
   const seat = seatOf(d, parts.seat);
   if (isAnswer(seat)) return seat;
   if (d.draining?.has(seat.party)) return refused("market-not-trading", "this seat is draining: no new tickets");
+  const modeWhy = venueModeRefusalNow("open-position");
+  if (modeWhy) return refused("market-not-trading", modeWhy);
   const p = priceRange(w, band, { kind: "fixPayout", maxPayoutBase: req.maxPayoutBase }, params, now);
   if (!p.ok) return rangeRefusal(p.refusal);
   if (p.quote.stakeBase > req.maxStakeBase) return reply({ kind: "requote", stakeBase: p.quote.stakeBase, maxPayoutBase: p.quote.maxPayoutBase });
@@ -146,6 +149,8 @@ export async function handleParlay(d: Desk, body: unknown): Promise<Answer> {
   const seat = seatOf(d, parts.seat);
   if (isAnswer(seat)) return seat;
   if (d.draining?.has(seat.party)) return refused("market-not-trading", "this seat is draining: no new tickets");
+  const modeWhy = venueModeRefusalNow("open-position");
+  if (modeWhy) return refused("market-not-trading", modeWhy);
   const p = priceParlay(legs, { kind: "fixPayout", maxPayoutBase: req.maxPayoutBase }, params, now);
   if (!p.ok) return parlayRefusal(p.refusal);
   if (p.quote.stakeBase > req.maxStakeBase) return reply({ kind: "requote", stakeBase: p.quote.stakeBase, maxPayoutBase: p.quote.maxPayoutBase });
@@ -193,6 +198,9 @@ export async function handleBoost(d: Desk, body: unknown): Promise<Answer> {
   const seat = seatOf(d, parts.seat);
   if (isAnswer(seat)) return seat;
   if (d.draining?.has(seat.party)) return refused("market-not-trading", "this seat is draining: no new boosts");
+  // A boost's exit returned above, before this: a way out never asks the venue mode.
+  const modeWhy = venueModeRefusalNow("open-position");
+  if (modeWhy) return refused("market-not-trading", modeWhy);
   if (!p.ok) return boostRefusal(p.refusal);
   if (p.quote.quantityRaw < req.minQuantityRaw) return reply({ kind: "requote", quote: p.quote, proceedsBase: null });
   const t = p.terms;

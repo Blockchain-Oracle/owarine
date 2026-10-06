@@ -2,7 +2,7 @@
  * How a lane reads on every surface (session-lanes.md §5): its tab key and label, the asset it prices, its ET clock
  * words and its source note. Pure, so the cards, the hero, the ticket and the `/dev` fixtures say the same thing.
  */
-import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, noSourceReason, TICKERS, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
+import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, noSourceReason, TICKERS, venueModeOfState, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
 import { HALT_REASONS, type EarningsEvent, type EventMarket, type HaltReason, type LaneBasis } from "@agari/core/types";
 import { formatCadence, HERO, LANE_STATE, MARKETS } from "@/lib/copy";
 
@@ -93,6 +93,9 @@ const HALTED_STATE = /^paused: halted \(([a-z-]+)\)/;
  * lane as a reader would: "No 5m TSLA Window", "No QQQ Gap Window".
  */
 export function pausedCopy(state: string, asset: string, basis: LaneBasis, intervalSec: number): { headline: string; why: string } {
+  // C-DAML-02: the venue's own mode, not this lane's source.
+  const venue = venueModeOfState(state);
+  if (venue) return { headline: MARKETS.paused.venueMode(venue.mode), why: MARKETS.paused.venueModeWhy(venue.reason) };
   const [lead, tail] = basis === "gap" ? [`${asset} ${LANE_STATE.tab.gap}`, ""] : [asset, laneCadenceLabel(basis, intervalSec)];
   const reason = HALTED_STATE.exec(state)?.[1];
   if (reason && (HALT_REASONS as readonly string[]).includes(reason)) {

@@ -32,6 +32,7 @@ export const STATUS = {
     mix: (cadence: string) => `Print sources · ${cadence} Windows`,
     pythTrial: "Pyth trial · sessions left",
     pythIndex: "Pyth valuation index · entitlement",
+    venueMode: "Venue mode · new positions",
     redstone: "RedStone gateway · latency, signers",
     switchboard: "Switchboard · quote success",
     crossCheck: "Cross-check · agreement",
@@ -115,6 +116,8 @@ export const STATUS = {
     pythIndexDenied: (names: string, reason: string | null) => `${names}: not entitled${reason ? ` (${reason})` : ""}`,
     pythIndexProbed: (clock: string) => `probed ${clock}`,
     pythIndexUnprobed: "not probed yet",
+    venueModeOpen: "open: new positions, supply and Windows are taken",
+    venueModeHeld: (mode: string, reason: string | null, since: string) => `${mode}${reason ? ` (${reason})` : ""} since ${since}: no new positions, supply or Windows; exits, claims and refunds stay open`,
 
     archive: (feeds: number, fetchSec: number, minSigners: number, late: number) =>
       `${plural(feeds, "feed")} · slowest fetch ${fetchSec}s · min ${plural(minSigners, "signer")} · ${n(late)} late`,

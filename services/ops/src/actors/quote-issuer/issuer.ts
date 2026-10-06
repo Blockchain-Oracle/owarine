@@ -21,6 +21,7 @@ import { emitVenueEvent } from "../venue/events";
 import type { MakerVault } from "../maker-vault/vault";
 import { PoolBusyError, type Lease, type ShardPool } from "./pool";
 import { submitWithShards } from "./pooled-submit";
+import { venueModeRefusalNow } from "../../runtime/venue-mode";
 
 export interface IssuerDeps {
   venue: RoleSession;
@@ -126,6 +127,9 @@ export const latencies: number[] = [];
 export async function issueQuote(d: IssuerDeps, req: QuoteRequest): Promise<Answer> {
   if (d.infrastructure.has(req.party)) return refused("unknown", "an infrastructure party is not a seat");
   if (d.draining?.has(req.party)) return refused("market-not-trading", "this seat is draining: no new quotes");
+  // C-DAML-02: a new position asks the venue mode; the exit issuer never does.
+  const modeWhy = venueModeRefusalNow("open-position");
+  if (modeWhy) return refused("market-not-trading", modeWhy);
   const entry = d.board.get({ marketId: req.marketId });
   if (!entry || entry.state !== "quoting") return refused("market-not-trading", "the venue is not quoting this Window (no open print yet, or its quoting time is over)");
   const nowMs = Date.now();

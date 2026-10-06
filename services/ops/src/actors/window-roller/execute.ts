@@ -26,6 +26,8 @@ import { gapSpanOf } from "./plan-gap";
 import { planByBasis } from "./plan-basis";
 import { describeVersion, type VersionWindow } from "./versions";
 import { emitVenueEvent } from "../venue/events";
+import { venueModePausedState } from "@agari/core/market";
+import { venueMode, venueModeRefusalNow } from "../../runtime/venue-mode";
 
 export interface RollerSettings {
   leadSec: number;
@@ -218,6 +220,10 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
   };
   const lanes: Record<string, string> = {};
   let wakeSec = nowSec + 15;
+  // C-DAML-02: opening a Window needs the venue open (the reference's roller_open_window needs Normal). Open Windows
+  // still resolve and settle; only new ones wait.
+  const modeWhy = venueModeRefusalNow("open-window");
+  const mode = venueMode();
   for (const s of series) {
     const basis = basisOf(s.data);
     if (!basis) {
@@ -225,10 +231,11 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
       continue;
     }
     const plan = planByBasis(basis, planSeriesOf(s.data), clock);
-    if (plan.kind === "open") lanes[s.data.seriesKey] = await open(state, s, plan, notes);
+    if (plan.kind === "open" && modeWhy) lanes[s.data.seriesKey] = venueModePausedState(mode.mode, mode.reason);
+    else if (plan.kind === "open") lanes[s.data.seriesKey] = await open(state, s, plan, notes);
     else lanes[s.data.seriesKey] = plan.kind === "wait" && state.last.get(s.data.seriesKey) ? state.last.get(s.data.seriesKey)! : plan.state;
     if ((plan.kind === "wait" || plan.kind === "paused") && plan.wakeSec < wakeSec) wakeSec = plan.wakeSec;
-    if (plan.kind === "open") wakeSec = nowSec;
+    if (plan.kind === "open" && !modeWhy) wakeSec = nowSec;
   }
   const counts = Object.values(lanes).reduce<Record<string, number>>((acc, v) => ((acc[v.split(/[: #]/)[0]!] = (acc[v.split(/[: #]/)[0]!] ?? 0) + 1), acc), {});
   const summary = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(", ");

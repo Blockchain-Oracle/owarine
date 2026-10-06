@@ -11,6 +11,7 @@ import { earnRequestWire } from "@agari/markets/server";
 import { createdOne, type Desk } from "./desk";
 import { handleMakerEarn } from "../maker-vault/earn";
 import { DeskRefusal, failed, isAnswer, lease, nowSec, onReserve, refused, reply, seatOf, split, type Answer } from "./common";
+import { venueModeRefusalNow } from "../../runtime/venue-mode";
 
 export const LIQUIDITY_QUOTE_LIFE_SEC = 30;
 
@@ -33,6 +34,9 @@ export async function handleEarn(d: Desk, body: unknown): Promise<Answer> {
   const requestId = randomUUID();
   if (req.op === "supply") {
     if (req.amountBase <= 0n) return refused("below-min-quantity", "supply must be positive");
+    // C-DAML-02: new supply asks the venue mode; a withdrawal (below) never does.
+    const modeWhy = venueModeRefusalNow("supply");
+    if (modeWhy) return refused("market-not-trading", modeWhy);
     try {
       const out = await onReserve(d, reserve, [], ({ navCid }) => ({ commandId: `earn:supply:${requestId}`, commands: [tcmd.issueSupply(navCid, { provider: seat.party, cashIn: req.amountBase, validUntilSec })] }));
       if (out.kind === "dry") return refused("not-deployed", `DRY RUN: ${out.note}`);
