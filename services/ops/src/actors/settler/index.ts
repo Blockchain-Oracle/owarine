@@ -11,9 +11,10 @@
 import { TEMPLATE_IDS } from "@agari/daml";
 import { getDb, openDependentSpans } from "@agari/db";
 import {
-  cmd, decodeLeg, decodeNettedResidual, decodeResolution, failureText, inactiveCids, isInactive, pick, readActive, refusalId, residualCommandId,
-  settleBatchCommandId, submit, type ResolutionC, type RoleSession,
+  cmd, decodeLeg, decodeNettedResidual, decodeResolution, failureText, inactiveCids, isInactive, learnTerms, legBookOf, pick, readActive, refusalId,
+  residualCommandId, settleBatchCommandId, submit, type Active, type LegC, type ResolutionC, type RoleSession, type TermsC,
 } from "@agari/markets/ops/canton";
+import { bcmd } from "@agari/markets/ops/book";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
 import { createVenueContext, type VenueContext } from "../venue/context";
@@ -33,7 +34,9 @@ interface SettlerState {
   deskCid: () => Promise<string>;
   batchSize: number;
   resolutions: Map<string, { cid: string; data: ResolutionC }>;
-  counters: { legs: number; batches: number; residuals: number; failed: number; stale: number };
+  /** Terms of the Windows legs name, learned by id (C4g): when each can have a Resolution. */
+  terms: Map<string, TermsC>;
+  counters: { legs: number; batches: number; residuals: number; failed: number; stale: number; venueRefunds: number };
   timings: SettleTiming[];
   /** Markets already alarmed about, so a stale-leg alarm is said once, not every pass. */
   alarmed: Set<string>;
@@ -69,21 +72,51 @@ async function settle(st: SettlerState, marketId: string, resolutionCid: string,
   }
 }
 
+/**
+ * The venue's own desk legs past `refundAfter` (C4g). Such a leg can no longer settle, and only its owner may take the
+ * stale refund; the owner is the venue, so the settler takes it, as the maker vault does for its book (`mrefund`) and
+ * `first-call` did by hand. Before this the venue's backing stayed locked in the leg for good after any Window the
+ * resolver could not finish in time (DevNet from a slow link: BTC-1m:338). A seat's stale leg is the seat's to refund.
+ */
+async function refundVenueStale(st: SettlerState, legs: readonly Active<LegC>[], nowSec: number): Promise<{ notes: string[]; refunded: Set<string> }> {
+  const notes: string[] = [];
+  const refunded = new Set<string>();
+  for (const l of legs.filter((x) => x.data.owner === st.venue.party && legBookOf(x.data) === null && x.data.refundAfterSec < nowSec - 1)) {
+    try {
+      const out = await submit(st.venue, { commandId: `vstale:${l.cid}`, commands: [bcmd.refundBookLeg(l.cid)] });
+      if (out.kind === "done") {
+        st.counters.venueRefunds++;
+        refunded.add(l.cid);
+        notes.push(`refunded the venue's own stale leg on ${l.data.marketId} (backing ${l.data.backingShare})`);
+      }
+    } catch (error) {
+      if (isInactive(error)) refunded.add(l.cid);
+      else notes.push(`venue stale refund ${l.data.marketId} failed: ${failureText(error)}`);
+    }
+  }
+  return { notes, refunded };
+}
+
 export async function settlerPass(st: SettlerState): Promise<PassResult> {
   const acs = await readActive(st.venue, [TEMPLATE_IDS.Leg, TEMPLATE_IDS.NettedResidual]);
   const legs = pick(acs, TEMPLATE_IDS.Leg, decodeLeg).filter((l) => l.data.venue === st.venue.party);
   const residuals = pick(acs, TEMPLATE_IDS.NettedResidual, decodeNettedResidual);
   const terms = new Set([...legs.map((l) => l.data.termsCid), ...residuals.map((r) => r.data.termsCid)]);
-  if ([...terms].some((t) => !st.resolutions.has(t))) {
-    // Resolutions are immutable: read them only when a leg names a market not seen resolved yet.
-    for (const r of pick(await readActive(st.venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution)) st.resolutions.set(r.data.termsCid, r);
-  }
   const nowSec = Math.floor(Date.now() / 1000);
-  const notes: string[] = [];
+  const unresolved = [...terms].filter((t) => !st.resolutions.has(t));
+  if (unresolved.length > 0) {
+    // Resolutions are immutable, and one exists for every Window the venue ever ran (none is archived): read them only
+    // when a leg's Window has passed its expiry, the earliest a Window holding a leg can resolve (C4g). Before this,
+    // every pass during live trading re-read them all (650 KB on DevNet after 4 h, growing).
+    await learnTerms(st.venue, st.terms, unresolved).catch(() => 0);
+    const due = unresolved.some((t) => (st.terms.get(t)?.expirySec ?? 0) <= nowSec + 1);
+    if (due) for (const r of pick(await readActive(st.venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution)) st.resolutions.set(r.data.termsCid, r);
+  }
+  const { notes, refunded } = await refundVenueStale(st, legs, nowSec);
   let pending = 0;
   for (const termsCid of terms) {
     const res = st.resolutions.get(termsCid);
-    const mine = legs.filter((l) => l.data.termsCid === termsCid);
+    const mine = legs.filter((l) => l.data.termsCid === termsCid && !refunded.has(l.cid));
     if (!res) {
       pending += mine.length;
       continue;
@@ -151,8 +184,8 @@ export async function startSettler(deps: VenueDeps, venue: VenueContext = create
   }
   const size = Number(process.env.SETTLE_BATCH);
   const st: SettlerState = {
-    venue: session, deskCid: venue.deskCid, batchSize: Number.isInteger(size) && size > 0 ? size : DEFAULT_BATCH, resolutions: new Map(),
-    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0 }, timings: settleTimings, alarmed: new Set(), log: deps.log,
+    venue: session, deskCid: venue.deskCid, batchSize: Number.isInteger(size) && size > 0 ? size : DEFAULT_BATCH, resolutions: new Map(), terms: new Map(),
+    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0, venueRefunds: 0 }, timings: settleTimings, alarmed: new Set(), log: deps.log,
   };
   deps.log(`settler as ${session.party.split("::")[0]}, batches of ${st.batchSize}`);
   return runActor({ name: "settler", log: deps.log, dryRun: session.dryRun, everyMs: 3_000, pass: () => settlerPass(st) });

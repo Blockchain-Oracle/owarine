@@ -78,7 +78,7 @@ export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirector
   async function read(): Promise<ArenaSnapshot> {
     const [withBlob, acs] = await Promise.all([
       venue.client.activeContracts({ parties: [venue.party], templateIds: [G.ArenaTerms], includeCreatedEventBlob: true }),
-      readActive(venue, [G.DuelOpen, G.DuelMatch, G.SeasonPool, TEMPLATE_IDS.Resolution]),
+      readActive(venue, [G.DuelOpen, G.DuelMatch, G.SeasonPool]),
     ]);
     const mine = <X extends { venue: string }>(xs: Active<X>[]) => xs.filter((x) => x.data.venue === venue.party);
     let terms: ArenaTermsActive | null = null;
@@ -92,10 +92,14 @@ export function createArenaDesk(input: { venue: RoleSession; seats: SeatDirector
         onBad(e.contractId, error);
       }
     }
-    const resolutions = new Map<string, Active<ResolutionC>>();
-    for (const r of mine(pick(acs, TEMPLATE_IDS.Resolution, decodeResolution, onBad))) resolutions.set(r.data.termsCid, r);
     const opens = mine(pick(acs, G.DuelOpen, decodeDuelOpen, onBad));
     const matches = mine(pick(acs, G.DuelMatch, decodeDuelMatch, onBad));
+    // Only a live match scores picks on resolved Windows (the duel settler). A Resolution exists for every Window the
+    // venue ever ran and none is archived, so they are read only when a match is live (C4g: 650 KB every 4 s otherwise).
+    const resolutions = new Map<string, Active<ResolutionC>>();
+    if (matches.length > 0) {
+      for (const r of mine(pick(await readActive(venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution, onBad))) resolutions.set(r.data.termsCid, r);
+    }
     await seats.learn([...opens, ...matches].flatMap((m) => [m.data.creator, m.data.challenger]));
     for (const o of opens) pending.delete(o.data.matchId);
     for (const m of matches) pending.delete(m.data.matchId);

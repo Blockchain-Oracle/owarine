@@ -8,8 +8,9 @@
  *           stale step freeze ops (SIGSTOP) for its whole life and thaw it after (SIGCONT).
  *   devnet  Noders: the platform user's token (`LEDGER_AUTH_MODE=password`, the `LEDGER_OIDC_*` names from
  *           ~/.config/agari/canton/devnet.env), an https web, the parties file `bootstrap-devnet.ts` wrote
- *           (~/.config/agari/canton/parties.devnet.json). Ops runs on Coolify: the stale step runs only with
- *           `--ops-stopped` (pm-ops stopped by hand first), never by signalling a process.
+ *           (~/.config/agari/canton/parties.devnet.json). Ops runs on Coolify, or on this Mac with the web on
+ *           http://localhost (C4g): the stale step runs only with `--ops-stopped` (ops stopped by hand first), never by
+ *           signalling a process.
  */
 import { join, relative, resolve } from "node:path";
 
@@ -38,6 +39,12 @@ export interface FirstCallConfig {
 
 type Env = Record<string, string | undefined>;
 
+/**
+ * A web on this machine: until there is a domain, this Mac's `next start` stands in for Coolify against DevNet (C4g).
+ * Loopback is a secure context in a browser, so the seat key works there as it does on https.
+ */
+const LOOPBACK_HTTP = /^http:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/;
+
 const valueOf = (argv: readonly string[], name: string): string | undefined => {
   const i = argv.indexOf(name);
   return i >= 0 ? argv[i + 1] : undefined;
@@ -58,7 +65,7 @@ export function firstCallConfig(argv: readonly string[], env: Env, o: { home: st
 
   const web = (valueOf(argv, "--web") ?? env.AGARI_WEB_ORIGIN ?? (network === "local" ? "http://localhost:3120" : env.NEXT_PUBLIC_APP_ORIGIN ?? "")).replace(/\/+$/, "");
   if (!web) return { error: "--network devnet needs the web origin: --web https://<web domain> (or NEXT_PUBLIC_APP_ORIGIN)" };
-  if (network === "devnet" && !web.startsWith("https://")) return { error: "--network devnet calls the hosted web over https" };
+  if (network === "devnet" && !web.startsWith("https://") && !LOOPBACK_HTTP.test(web)) return { error: "--network devnet calls the hosted web over https (or this machine's own web on http://localhost)" };
 
   const opsArg = valueOf(argv, "--ops") ?? (network === "local" ? "http://127.0.0.1:8727" : undefined);
   const ops = opsArg ? opsArg.replace(/\/+$/, "") : null;

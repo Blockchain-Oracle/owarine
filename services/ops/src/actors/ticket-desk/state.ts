@@ -14,9 +14,14 @@ import {
 
 const T = TICKET_TEMPLATE_IDS;
 
+/**
+ * What every pass reads. `Resolution` is not here: one exists for every Window the venue ever ran and none is archived,
+ * so reading them all every 4 s grew with the venue's age (650 KB per pass on DevNet after 4 h, C4g). They are read only
+ * when a live round, ticket or position can use one (`readDesk`).
+ */
 export const DESK_TEMPLATES = [
   T.RiskBook, T.EarnDesk, T.RangeQuote, T.RangeRound, T.ParlayQuote, T.ParlayTicket, T.BoostQuote, T.BoostPosition, T.BoostExitQuote,
-  TEMPLATE_IDS.NavStatement, TEMPLATE_IDS.LpShare, TEMPLATE_IDS.SupplyQuote, TEMPLATE_IDS.WithdrawQuote, TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Resolution,
+  TEMPLATE_IDS.NavStatement, TEMPLATE_IDS.LpShare, TEMPLATE_IDS.SupplyQuote, TEMPLATE_IDS.WithdrawQuote, TEMPLATE_IDS.VenueCash,
 ] as const;
 
 export const reserveBucket = (reserveId: string) => `reserve:${reserveId}`;
@@ -62,8 +67,14 @@ export async function readDesk(venue: RoleSession, onBad?: (cid: string, error: 
     if (!isTicketReserve(id)) continue;
     cash.set(id, [...(cash.get(id) ?? []), c]);
   }
+  const rounds = mine(pick(acs, T.RangeRound, decodeRangeRound, onBad));
+  const tickets = mine(pick(acs, T.ParlayTicket, decodeParlayTicket, onBad));
+  const positions = mine(pick(acs, T.BoostPosition, decodeBoostPosition, onBad));
+  // The keeper settles, resolves legs of and knocks out only these three: with none live, no Resolution is needed.
   const resolutions = new Map<string, Active<ResolutionC>>();
-  for (const r of mine(pick(acs, TEMPLATE_IDS.Resolution, decodeResolution, onBad))) resolutions.set(r.data.termsCid, r);
+  if (rounds.length + tickets.length + positions.length > 0) {
+    for (const r of mine(pick(await readActive(venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution, onBad))) resolutions.set(r.data.termsCid, r);
+  }
   const earn = acs.find((c) => c.createdEvent.templateId.endsWith(":PM.Tickets.Earn:EarnDesk") && (c.createdEvent.createArgument as { venue?: string }).venue === me);
   return {
     atMs: Date.now(),
@@ -75,11 +86,11 @@ export async function readDesk(venue: RoleSession, onBad?: (cid: string, error: 
     supplyQuotes: mine(pick(acs, TEMPLATE_IDS.SupplyQuote, decodeSupplyQuote, onBad)),
     withdrawQuotes: mine(pick(acs, TEMPLATE_IDS.WithdrawQuote, decodeWithdrawQuote, onBad)),
     rangeQuotes: mine(pick(acs, T.RangeQuote, decodeRangeQuote, onBad)),
-    rounds: mine(pick(acs, T.RangeRound, decodeRangeRound, onBad)),
+    rounds,
     parlayQuotes: mine(pick(acs, T.ParlayQuote, decodeParlayQuote, onBad)),
-    tickets: mine(pick(acs, T.ParlayTicket, decodeParlayTicket, onBad)),
+    tickets,
     boostQuotes: mine(pick(acs, T.BoostQuote, decodeBoostQuote, onBad)),
-    positions: mine(pick(acs, T.BoostPosition, decodeBoostPosition, onBad)),
+    positions,
     exitQuotes: mine(pick(acs, T.BoostExitQuote, decodeBoostExitQuote, onBad)),
     resolutions,
   };

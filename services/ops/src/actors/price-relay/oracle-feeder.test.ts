@@ -65,6 +65,45 @@ describe("feeder pass", () => {
   });
 });
 
+describe("retiring after a post (C4g)", () => {
+  const fetchImpl: Fetch = async (url) => ({ ok: true, status: 200, text: async () => JSON.stringify([[T - 60, 1, 2, 1, url.includes("BTC") ? 65000.5 : 2500.25, 1]]) });
+  const aged = (cid: string, boundarySec: number) => ({
+    createdEvent: {
+      contractId: cid, templateId: "pkg:PM.Oracle:PriceQuote",
+      createArgument: { oracle: "o::1220ab", venue: "v::1220ab", resolver: "r::1220ab", symbol: "BTC", boundaryT: new Date(boundarySec * 1000).toISOString(), priceE8: "1", barStart: new Date((boundarySec - 60) * 1000).toISOString(), barLenSec: "60", fetchedAt: new Date(boundarySec * 1000).toISOString(), payloadHash: "h", policyVersion: "1" },
+    },
+    synchronizerId: "s",
+  });
+  const world = (lastRetireMs: number) => {
+    const submitAndWaitForTransaction = vi.fn(async () => ({ transaction: { events: [], updateId: "u", offset: 1, effectiveAt: "", synchronizerId: "", recordTime: "" }, submissionId: "s", attempts: 1, recovered: false }));
+    const activeContracts = vi.fn(async () => ({ contracts: [aged("00old", T - 3_600), aged("00fresh", T - 60)] }));
+    const client = { submitAndWaitForTransaction, activeContracts } as unknown as LedgerClient;
+    const state = {
+      role: "oracle-coinbase" as const, exchange: "coinbase" as const, session: { role: "oracle-coinbase", party: "o::1220ab", client, dryRun: false },
+      venue: "v::1220ab", resolver: "r::1220ab", policyVersion: 1, settings: { symbols: ["BTC", "ETH"], retainSec: 900, fetchImpl, nowSec: () => T + 11 },
+      done: new Set<number>(), pending: new Map(), lastRetireMs, counters: { posted: 0, recovered: 0, partial: 0, missed: 0, failed: 0, retired: 0 }, log: () => {},
+    };
+    return { state, submitAndWaitForTransaction };
+  };
+
+  it("retires the quotes past the retention right after posting, when the last retire is 10 min old", async () => {
+    const w = world(0);
+    const r = await feederPass(w.state);
+    expect(r.why).toMatch(/^posted @.* · retired 1 quotes older than 900 s/);
+    const ids = (w.submitAndWaitForTransaction.mock.calls as unknown as Array<[{ commandId: string; commands: unknown[] }]>).map(([c]) => c.commandId);
+    expect(ids[0]).toBe(`print:coinbase:${T}`);
+    expect(ids[1]).toMatch(/^retire:/);
+    expect(JSON.stringify(w.submitAndWaitForTransaction.mock.calls[1])).toContain("00old");
+    expect(JSON.stringify(w.submitAndWaitForTransaction.mock.calls[1])).not.toContain("00fresh");
+  });
+
+  it("does not retire again within 10 min", async () => {
+    const w = world(Date.now());
+    await feederPass(w.state);
+    expect(w.submitAndWaitForTransaction).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("a late wake", () => {
   const body = (b: number) => JSON.stringify([[b - 60, 1, 2, 1, 65000.5, 1]]);
   const fetchImpl: Fetch = async () => ({ ok: true, status: 200, text: async () => body(T) });

@@ -32,7 +32,15 @@ describe("first-call configuration", () => {
     expect(cfg(["--network", "devnet", "--web", "https://pm.example.invalid"], { LEDGER_AUTH_MODE: "none", LEDGER_JSON_API_URL: "http://localhost:7525" })).toEqual({ error: expect.stringMatching(/LEDGER_AUTH_MODE=password/) });
     expect(cfg(["--network", "devnet", "--web", "https://pm.example.invalid"], { ...devnetEnv, LEDGER_JSON_API_URL: "http://plain.example.invalid" })).toEqual({ error: expect.stringMatching(/https LEDGER_JSON_API_URL/) });
     expect(cfg(["--network", "devnet"], devnetEnv)).toEqual({ error: expect.stringMatching(/web origin/) });
-    expect(cfg(["--network", "devnet", "--web", "http://localhost:3120"], devnetEnv)).toEqual({ error: expect.stringMatching(/https/) });
+    expect(cfg(["--network", "devnet", "--web", "http://pm.example.invalid"], devnetEnv)).toEqual({ error: expect.stringMatching(/https/) });
+    expect(cfg(["--network", "devnet", "--web", "http://localhost.example.invalid:3190"], devnetEnv)).toEqual({ error: expect.stringMatching(/https/) });
+  });
+
+  it("devnet takes this machine's own web over http on loopback (C4g: the Mac stands in for Coolify)", () => {
+    const c = ok(cfg(["--network", "devnet", "--web", "http://localhost:3190/", "--ops", "http://localhost:8790"], devnetEnv));
+    expect(c).toMatchObject({ network: "devnet", web: "http://localhost:3190", ops: "http://localhost:8790", partiesPath: `${home}/.config/agari/canton/parties.devnet.json` });
+    expect(ok(cfg(["--network", "devnet", "--web", "http://127.0.0.1:3190"], devnetEnv)).web).toBe("http://127.0.0.1:3190");
+    expect(cfg(["--network", "devnet", "--web", "http://localhost:3190", "--ops-pid", "4242"], devnetEnv)).toEqual({ error: expect.stringMatching(/local only/) });
   });
 
   it("devnet reads the parties file bootstrap-devnet wrote, and ops is not assumed reachable", () => {

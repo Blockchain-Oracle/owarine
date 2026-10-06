@@ -14,8 +14,8 @@
  */
 import { TEMPLATE_IDS } from "@agari/daml";
 import {
-  cmd, decodeEventAttestation, decodeEventState, decodeEventTerms, decodeEventVerdict, decodeOpenPrint, decodePriceQuote, decodeResolution, decodeTerms,
-  decodeWindowState, failureText, isInactive, pick, readActive, recordOpenCommandId, refusalId, resolveCommandId, submit, templateSuffix, type Active,
+  cmd, decodeEventAttestation, decodeEventState, decodeEventTerms, decodeEventVerdict, decodeOpenPrint, decodePriceQuote, decodeResolution,
+  decodeWindowState, failureText, isInactive, learnTerms, pick, readActive, recordOpenCommandId, refusalId, resolveCommandId, submit, templateSuffix, type Active,
   type PriceQuoteC, type RoleSession, type TermsC,
 } from "@agari/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
@@ -46,9 +46,9 @@ interface ResolverState {
 const label = (t: TermsC) => `${t.marketId} ${new Date(t.tradingStartSec * 1000).toISOString().slice(11, 16)}Z`;
 const priceText = (e8: bigint | null) => (e8 === null ? "-" : `${e8 / 100_000_000n}.${(e8 % 100_000_000n).toString().padStart(8, "0").replace(/0+$/, "") || "0"}`);
 
+/** Learns each new Window's terms by id (C4g): paging MarketTerms returns every Window the venue ever ran. */
 async function knownTerms(state: ResolverState, cids: readonly string[]): Promise<void> {
-  if (cids.every((c) => state.terms.has(c))) return;
-  for (const t of pick(await readActive(state.session, [TEMPLATE_IDS.MarketTerms]), TEMPLATE_IDS.MarketTerms, decodeTerms)) state.terms.set(t.cid, t.data);
+  await learnTerms(state.session, state.terms, cids);
 }
 
 /** One event's `Event_Resolve` or `Event_Void`: the outcome is the verdict's (YES / NO / void with its reason). */
@@ -167,11 +167,18 @@ export async function resolverPass(state: ResolverState): Promise<PassResult> {
       prints: { open: true, close: ready(t, rule.boundarySec, ev.length, nowSec) && nowSec >= rule.earliestSec, checkOpen: false, checkClose: false }, check: { configured: false, admissionSec: 0 },
       bookReleased: true, ledgerClosed: true, dependents: 0, resolvedSec: 0, retentionSec: 0, redeemGraceSec: 0, bookOrderCount: null, seats: null,
     });
-    if (action.kind === "settle" && nowSec <= t.closeDeadlineSec) {
+    // C4g: a resolver that reaches a Window after its close deadline (a slow link, a restart) finds the quorum in time but
+    // may no longer resolve; the ledger then takes only `Terms_Void` (AfterOpen), whose quotes name the reason
+    // (`ResolverAbsent` when they met the quorum). Before this the Window stayed open for good: legs unsettled until
+    // refundAfter and the settler alarming.
+    const late = action.kind === "settle" && nowSec > t.closeDeadlineSec;
+    if (action.kind === "settle" && !late) {
       const median = lowerMedian(ev.map((q) => q.data.priceE8));
       state.log(`${label(t)} close quorum ${ev.length}/${t.oracles.length}, median ${priceText(median)}: resolving`);
       jobs.push(send(state, "resolve", termsCid, t, resolveCommandId(termsCid), cmd.resolve(termsCid, op.cid, ev.map((q) => q.cid))));
-    } else if (action.kind === "void") {
+    } else if (late && nowSec <= t.closeDeadlineSec + VOID_MARGIN_SEC) {
+      wakeSec = Math.min(wakeSec, t.closeDeadlineSec + VOID_MARGIN_SEC + 1);
+    } else if (action.kind === "void" || late) {
       jobs.push(send(state, "void", termsCid, t, resolveCommandId(termsCid), cmd.voidTerms(termsCid, { tag: "AfterOpen", openCid: op.cid }, ev.map((q) => q.cid))));
     } else if (action.kind === "wait") wakeSec = Math.min(wakeSec, Math.max(nowSec + 1, action.untilSec));
   }

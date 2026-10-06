@@ -179,7 +179,12 @@ export async function feederPass(state: FeederState): Promise<PassResult> {
     state.done.add(boundarySec);
     if (!complete) state.counters.partial++;
     if (state.done.size > 100) state.done.delete(Math.min(...state.done));
-    return { ...idle(line), why: line };
+    // C4g: the retire also runs right after a post (still at most once per 10 min). Run only from the idle branch, it
+    // came only when a pass woke between boundaries, every 16 min or so on DevNet, so quotes far past the retention
+    // piled up (450 instead of ~90 at ORACLE_RETAIN_SEC=900) and every resolver pass read them all.
+    const retired = await retire(state, nowSec).catch((error: unknown) => `retire failed: ${failureText(error)}`);
+    const why = retired ? `${line} · ${retired}` : line;
+    return { ...idle(why), why };
   } catch (error) {
     state.counters.failed++;
     return { why: `post @${boundarySec} failed (will retry under the same command id): ${failureText(error)}`, nextDelayMs: 2_000 };

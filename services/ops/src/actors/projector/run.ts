@@ -5,9 +5,12 @@
  * dropped socket resumes from the cursor (`@agari/ledger` streamUpdates does both).
  *
  * Bootstrap: with no cursor it replays from offset 0 (a fresh sandbox, or a participant that keeps its history). If the
- * participant has pruned below the requested offset, the stream fails fatally; the loop then pages the venue's ACS at the
- * ledger end, writes it as one `acs:<offset>` update (legs with origin `snapshot`, no fills), marks the cursor
- * `bootstrap = 'acs'` with `history_from_offset`, and streams from there. `/status` shows that earlier history is absent.
+ * participant has pruned below the requested offset, the stream fails fatally; the loop then reads the participant's
+ * pruning offset (`/v2/state/latest-pruned-offsets`), pages the venue's ACS at that offset, writes it as one
+ * `acs:<offset>` update (legs with origin `snapshot`, no fills), marks the cursor `bootstrap = 'acs'` with
+ * `history_from_offset`, and streams from there: every update the participant still keeps is indexed (C4g, Noders DevNet
+ * pruned up to an offset two million below its end, before our parties existed). Only when that offset cannot be read
+ * does it fall back to the ledger end. `/status` shows that earlier history is absent.
  */
 import { indexWriter, type Db } from "@agari/db";
 import { streamUpdates, type JsTransaction, type LedgerClient, type LedgerError, type StreamState, type TokenSource, type WebSocketCtor } from "@agari/ledger";
@@ -85,9 +88,18 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
     notify();
   }
 
+  /** The earliest offset the participant still serves: its pruning offset, else (unreadable or 0) the ledger end. */
+  async function snapshotOffset(): Promise<{ offset: number; from: "pruning offset" | "ledger end" }> {
+    const pruned = await cfg.ledger.latestPrunedOffset().catch((e: unknown) => {
+      cfg.log(`pruning offset unreadable (${String(e)}); snapshotting at the ledger end`);
+      return 0;
+    });
+    return pruned > 0 ? { offset: pruned, from: "pruning offset" } : { offset: await cfg.ledger.ledgerEnd(), from: "ledger end" };
+  }
+
   async function bootstrapFromAcs(): Promise<number> {
     stats.state = "bootstrapping";
-    const end = await cfg.ledger.ledgerEnd();
+    const { offset: end, from } = await snapshotOffset();
     const created: JsTransaction["events"] = [];
     let nodeId = 0;
     // One synchronizer per participant here; the snapshot carries the first contract's (a Resolution's disclosure needs it).
@@ -101,7 +113,7 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
     const snapshot: JsTransaction = { updateId: `acs:${end}`, offset: end, effectiveAt: new Date().toISOString(), recordTime: new Date().toISOString(), synchronizerId, events: created };
     await writer.applyUpdate(stream, cfg.party, decodeTransaction(snapshot, { snapshot: true }));
     await writer.markAcsBootstrap(stream, cfg.party, end);
-    cfg.log(`participant pruned below the requested offset: bootstrapped ${created.length} active contracts at offset ${end}; earlier history is not indexed`);
+    cfg.log(`participant pruned below the requested offset: bootstrapped ${created.length} active contracts at offset ${end} (the ${from}), streaming from there; earlier history is not indexed`);
     return end;
   }
 

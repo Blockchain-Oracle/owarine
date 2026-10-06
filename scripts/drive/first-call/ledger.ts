@@ -29,13 +29,25 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const nowSec = () => Math.floor(Date.now() / 1000);
 const createdOf = (created: readonly CreatedEvent[], templateId: string) => created.find((e) => templateSuffix(e.templateId) === templateSuffix(templateId));
 
-/** Polls `probe` every `everyMs` until it returns a value; throws naming `what` after `timeoutMs`. */
+/**
+ * Polls `probe` every `everyMs` until it returns a value; throws naming `what` after `timeoutMs`. A probe that throws (a
+ * read timed out on a slow link: C4g, DevNet from this Mac) counts as "not yet" until the deadline, which then names
+ * the last error.
+ */
 export async function waitFor<T>(what: string, probe: () => Promise<T | null | undefined>, timeoutMs: number, everyMs = 2_000): Promise<T> {
   const until = Date.now() + timeoutMs;
+  let lastError: unknown = null;
   for (;;) {
-    const got = await probe();
-    if (got !== null && got !== undefined) return got;
-    if (Date.now() > until) throw new Error(`timed out after ${Math.round(timeoutMs / 1000)} s waiting for ${what}`);
+    try {
+      const got = await probe();
+      if (got !== null && got !== undefined) return got;
+    } catch (error) {
+      lastError = error;
+    }
+    if (Date.now() > until) {
+      const why = lastError ? ` (last read failed: ${lastError instanceof Error ? lastError.message : String(lastError)})` : "";
+      throw new Error(`timed out after ${Math.round(timeoutMs / 1000)} s waiting for ${what}${why}`);
+    }
     await sleep(everyMs);
   }
 }
@@ -125,21 +137,22 @@ export function ledgerKit(client: LedgerClient, roles: Roles, run: string) {
     return { quoteCid: quote.contractId, cost: o.lots * BigInt(o.priceTicks) * terms.data.cashUnit, fee, updateId: issued.updateId };
   }
 
-  /** One print per oracle at `boundarySec`, the prices in oracle order. */
+  /**
+   * One print per oracle at `boundarySec`, the prices in oracle order, in ONE transaction acting as all three oracles
+   * (C4g): posted one by one over DevNet's 5 s round trips, ops' resolver saw the first two 16 s past the boundary and
+   * recorded the open on that 2-of-3 quorum before the third, disagreeing, print landed.
+   */
   async function prints(terms: Row<TermsC>, boundarySec: number, pricesE8: readonly bigint[]): Promise<{ quoteCids: string[]; updateIds: string[] }> {
-    const quoteCids: string[] = [];
-    const updateIds: string[] = [];
-    for (const [i, oracle] of roles.oracles.entries()) {
-      const out = await write("oracle", oracle, "print", [
-        cmd.createPriceQuote({
-          oracle, venue: roles.venue, resolver: roles.resolver, symbol: terms.data.symbol, boundarySec, priceE8: pricesE8[i]!, barLenSec: 60,
-          fetchedAtSec: Math.max(boundarySec, nowSec()), payloadHash: `sha256:first-call-${run}-${i}`, policyVersion: terms.data.policyVersion,
-        }),
-      ]);
-      quoteCids.push(createdOf(out.created, TEMPLATE_IDS.PriceQuote)!.contractId);
-      updateIds.push(out.updateId);
-    }
-    return { quoteCids, updateIds };
+    const commands = roles.oracles.map((oracle, i) =>
+      cmd.createPriceQuote({
+        oracle, venue: roles.venue, resolver: roles.resolver, symbol: terms.data.symbol, boundarySec, priceE8: pricesE8[i]!, barLenSec: 60,
+        fetchedAtSec: Math.max(boundarySec, nowSec()), payloadHash: `sha256:first-call-${run}-${i}`, policyVersion: terms.data.policyVersion,
+      }),
+    );
+    const out = await write("oracle", roles.oracles[0], "prints", commands, roles.oracles.slice(1));
+    const quotes = out.created.filter((e) => templateSuffix(e.templateId) === templateSuffix(TEMPLATE_IDS.PriceQuote));
+    const quoteCids = roles.oracles.map((oracle) => quotes.find((q) => (q.createArgument as { oracle: string }).oracle === oracle)!.contractId);
+    return { quoteCids, updateIds: [out.updateId] };
   }
 
   /** `Terms_RecordOpen` as the resolver: a void `Resolution` when the prints disagree, else the `OpenPrint`. */

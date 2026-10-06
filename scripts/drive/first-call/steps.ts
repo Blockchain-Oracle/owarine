@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { TEMPLATE_IDS } from "@agari/daml";
 import type { LedgerClient } from "@agari/ledger";
 import { appMarketId } from "@agari/markets/server";
-import { decodeLeg, decodeOpenPrint, decodeQuote, decodeResolution, decodeTerms, decodeVenueCash, type LegC, type TermsC } from "@agari/markets/ops/canton";
+import { decodeLeg, decodeOpenPrint, decodeQuote, decodeResolution, decodeVenueCash, learnTerms, type LegC, type TermsC } from "@agari/markets/ops/canton";
 import { shortParty } from "../../bootstrap/devnet-parties";
 import type { CheckRow } from "../../bootstrap/rows";
 import { staleBlocker, type FirstCallConfig } from "./config";
@@ -42,13 +42,20 @@ const receiptOf = (ctx: Ctx, seat: Seat, pairId: string) => async () =>
   (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.SettlementReceipt, decodeReceipt)).find((r) => r.data.pairId === pairId);
 const mask = (text: string) => text.replace(/([A-Za-z0-9_\-:.]+)::1220[0-9a-f]{64}/g, "$1::1220…");
 
+/** Every Window's terms this run has seen, learned by id: MarketTerms is never archived, so paging it grows with the venue. */
+const knownTerms = new Map<string, TermsC>();
+
 /** The lane's Window that ops is quoting now: open print recorded, at least 12 s before lock (a quote lives 20 s at most). */
 async function quotingWindow(ctx: Ctx): Promise<Row<TermsC> | undefined> {
   const now = Date.now() / 1000;
-  const terms = (await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.MarketTerms, decodeTerms)).filter((t) => t.data.seriesKey === ctx.config.lane && t.data.tradingStartSec <= now && t.data.lockAtSec - now >= 12);
-  if (!terms.length) return undefined;
-  const opened = new Set((await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.OpenPrint, decodeOpenPrint)).map((o) => o.data.termsCid));
-  return terms.find((t) => opened.has(t.cid));
+  // C4g: the open prints are few (live Windows only); their terms are read by id, once each, not by paging MarketTerms.
+  const opens = await ctx.kit.acs(ctx.roles.venue, TEMPLATE_IDS.OpenPrint, decodeOpenPrint);
+  await learnTerms({ role: "venue", party: ctx.roles.venue, client: ctx.client, dryRun: false }, knownTerms, opens.map((o) => o.data.termsCid));
+  for (const o of opens) {
+    const t = knownTerms.get(o.data.termsCid);
+    if (t && t.seriesKey === ctx.config.lane && t.tradingStartSec <= now && t.lockAtSec - now >= 12) return { cid: o.data.termsCid, data: t, offset: o.offset };
+  }
+  return undefined;
 }
 
 /** A firm quote from ops through the web on the lane's quoting Window, requoting once if the cap is low. */
@@ -56,16 +63,21 @@ async function firmQuote(ctx: Ctx, seat: Seat, side: "up" | "down", stakeBase: b
   const until = Date.now() + 150_000;
   let last = "no Window with an open print yet";
   for (;;) {
-    const win = await quotingWindow(ctx);
-    if (win) {
-      const body = { marketId: appMarketId(win.data.marketId), side, stakeBase, displayedMaxCostBase: (stakeBase * 11n) / 10n };
-      let r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", body);
-      if (r.json.kind === "requote") r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", { ...body, displayedMaxCostBase: BigInt(r.json.quote.maxCostBase) });
-      if (r.json.kind === "quote") {
-        const q = (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.Quote, decodeQuote)).find((x) => x.cid === r.json.quoteCid);
-        if (q) return { win, q };
+    // A read or call that fails on a slow link (C4g) is retried until the deadline, like "no quote yet".
+    try {
+      const win = await quotingWindow(ctx);
+      if (win) {
+        const body = { marketId: appMarketId(win.data.marketId), side, stakeBase, displayedMaxCostBase: (stakeBase * 11n) / 10n };
+        let r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", body);
+        if (r.json.kind === "requote") r = await ctx.web.call(seat, "POST", "/api/ledger/quotes", { ...body, displayedMaxCostBase: BigInt(r.json.quote.maxCostBase) });
+        if (r.json.kind === "quote") {
+          const q = (await ctx.kit.acs(seat.party!, TEMPLATE_IDS.Quote, decodeQuote)).find((x) => x.cid === r.json.quoteCid);
+          if (q) return { win, q };
+        }
+        last = `${r.status} ${r.json.kind ?? ""} ${r.json.diagnosis?.kind ?? ""}: ${String(r.json.diagnosis?.technical ?? "").slice(0, 120)}`;
       }
-      last = `${r.status} ${r.json.kind ?? ""} ${r.json.diagnosis?.kind ?? ""}: ${String(r.json.diagnosis?.technical ?? "").slice(0, 120)}`;
+    } catch (error) {
+      last = `a read failed: ${error instanceof Error ? error.message : String(error)}`;
     }
     if (Date.now() > until) throw new Error(`no firm quote on ${ctx.config.lane} in 150 s (last: ${last})`);
     await sleep(3_000);
@@ -196,10 +208,13 @@ export async function runMain(ctx: Ctx): Promise<void> {
     for (const [seat, leg] of [[A, legA], [B, legB]] as const) {
       if (!leg) continue;
       const got = await waitFor(`${seat.name}'s settlement receipt`, receiptOf(ctx, seat, leg.data.pairId), 180_000, 3_000);
-      const won = got.data.resolved === leg.data.outcome;
-      const expect = won ? leg.data.lots * 1000n * leg.data.cashUnit : 0n;
+      // A void (C4g: B's Window voided MissingPrint(CloseSlot) on DevNet) pays cost plus fee back (`PM.Leg.legPayout`).
+      const voided = got.data.resolved === null;
+      const won = !voided && got.data.resolved === leg.data.outcome;
+      const expect = voided ? leg.data.backingShare + leg.data.feePaid : won ? leg.data.lots * 1000n * leg.data.cashUnit : 0n;
       ok &&= got.data.payout === expect && !(await legOf(ctx, seat, leg.data.marketId));
-      out.push(`${seat.name} ${leg.data.outcome} ${won ? `won: paid ${credits(got.data.payout)}` : "lost: paid 0"} credits`);
+      const what = voided ? `void: paid back ${credits(got.data.payout)} (cost ${credits(leg.data.backingShare)} + fee ${credits(leg.data.feePaid)})` : won ? `won: paid ${credits(got.data.payout)}` : `lost: paid ${credits(got.data.payout)}`;
+      out.push(`${seat.name} ${leg.data.outcome} ${what} credits`);
       ids.push(await kit.updateIdAt(seat.party!, got.offset));
     }
     return { outcome: ok ? "pass" : "fail", detail: `${out.join("; ")}; no command from either seat after its accept`, evidence: `updates ${[...new Set(ids)].join(", ")}` };
@@ -226,11 +241,12 @@ export async function runVoid(ctx: Ctx): Promise<void> {
   await ctx.step("void on disagreement (the three opens disagree)", async () => {
     const pr = await ctx.kit.prints(d!.win.terms, d!.win.terms.data.tradingStartSec, [100_000_000n, 100_000_000n, 110_000_000n]);
     // Ops' resolver records any Window's open once three prints are in: it may record this void before the drive does.
-    const mine = await ctx.kit.recordOpen(d!.win.terms, d!.win.stateCid, pr.quoteCids).catch(() => null);
-    const byOps = mine ? null : await waitFor("the void Resolution", async () => (await ctx.kit.acs(ctx.roles.resolver, TEMPLATE_IDS.Resolution, decodeResolution)).find((x) => x.data.marketId === d!.win.terms.data.marketId), 30_000);
+    let ownFailed = "";
+    const mine = await ctx.kit.recordOpen(d!.win.terms, d!.win.stateCid, pr.quoteCids).catch((e: unknown) => ((ownFailed = e instanceof Error ? e.message.slice(0, 120) : String(e)), null));
+    const byOps = mine ? null : await waitFor("the void Resolution", async () => (await ctx.kit.acs(ctx.roles.resolver, TEMPLATE_IDS.Resolution, decodeResolution)).find((x) => x.data.marketId === d!.win.terms.data.marketId), 120_000);
     const r = mine?.resolution ? decodeResolution(mine.resolution.createArgument) : byOps?.data ?? null;
     const ok = !!r && r.outcome === null && r.voidReason?.tag === "SourceDisagreement";
-    const who = mine ? "the drive's Terms_RecordOpen (as the resolver)" : "ops' resolver, which recorded it first,";
+    const who = mine ? "the drive's Terms_RecordOpen (as the resolver)" : `ops' resolver, which recorded it first (the drive's own attempt: ${ownFailed || "refused"}),`;
     const voidId = mine ? mine.updateId : byOps ? await ctx.kit.updateIdAt(ctx.roles.resolver, byOps.offset) : "—";
     return { outcome: ok ? "pass" : "fail", detail: `prints 1.00, 1.00 and 1.10 are 10% apart and the Series allows 1%: ${who} ${r ? `voided the Window (${r.voidReason?.tag}, ${r.voidReason?.slot})` : "recorded an open instead"}`, evidence: `prints ${pr.updateIds.join(", ")}; void ${voidId}` };
   });

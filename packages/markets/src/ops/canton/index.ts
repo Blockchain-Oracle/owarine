@@ -5,6 +5,7 @@
  */
 export * as cmd from "./commands";
 export type { EventAttestationInput, IssueBuyQuoteInput, IssueQuoteInput, OfferRestInput, PriceQuoteInput, SeriesInput, VoidStageInput } from "./commands";
+export * from "./by-id";
 export * from "./decode";
 export * from "./decode-book";
 export * from "./decode-event";
