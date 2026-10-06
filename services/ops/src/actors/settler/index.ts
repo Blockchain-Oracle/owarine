@@ -78,20 +78,23 @@ async function settle(st: SettlerState, marketId: string, resolutionCid: string,
  * `first-call` did by hand. Before this the venue's backing stayed locked in the leg for good after any Window the
  * resolver could not finish in time (DevNet from a slow link: BTC-1m:338). A seat's stale leg is the seat's to refund.
  */
-async function refundVenueStale(st: SettlerState, legs: readonly Active<LegC>[], nowSec: number): Promise<string[]> {
+async function refundVenueStale(st: SettlerState, legs: readonly Active<LegC>[], nowSec: number): Promise<{ notes: string[]; refunded: Set<string> }> {
   const notes: string[] = [];
+  const refunded = new Set<string>();
   for (const l of legs.filter((x) => x.data.owner === st.venue.party && legBookOf(x.data) === null && x.data.refundAfterSec < nowSec - 1)) {
     try {
       const out = await submit(st.venue, { commandId: `vstale:${l.cid}`, commands: [bcmd.refundBookLeg(l.cid)] });
       if (out.kind === "done") {
         st.counters.venueRefunds++;
+        refunded.add(l.cid);
         notes.push(`refunded the venue's own stale leg on ${l.data.marketId} (backing ${l.data.backingShare})`);
       }
     } catch (error) {
-      if (!isInactive(error)) notes.push(`venue stale refund ${l.data.marketId} failed: ${failureText(error)}`);
+      if (isInactive(error)) refunded.add(l.cid);
+      else notes.push(`venue stale refund ${l.data.marketId} failed: ${failureText(error)}`);
     }
   }
-  return notes;
+  return { notes, refunded };
 }
 
 export async function settlerPass(st: SettlerState): Promise<PassResult> {
@@ -109,12 +112,11 @@ export async function settlerPass(st: SettlerState): Promise<PassResult> {
     const due = unresolved.some((t) => (st.terms.get(t)?.expirySec ?? 0) <= nowSec + 1);
     if (due) for (const r of pick(await readActive(st.venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution)) st.resolutions.set(r.data.termsCid, r);
   }
-  const notes: string[] = [];
-  for (const n of await refundVenueStale(st, legs, nowSec)) notes.push(n);
+  const { notes, refunded } = await refundVenueStale(st, legs, nowSec);
   let pending = 0;
   for (const termsCid of terms) {
     const res = st.resolutions.get(termsCid);
-    const mine = legs.filter((l) => l.data.termsCid === termsCid);
+    const mine = legs.filter((l) => l.data.termsCid === termsCid && !refunded.has(l.cid));
     if (!res) {
       pending += mine.length;
       continue;

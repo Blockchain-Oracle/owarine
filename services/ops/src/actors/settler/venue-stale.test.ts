@@ -27,6 +27,7 @@ const suffix = (t: string) => t.split(":").slice(1).join(":");
 function world(contracts: CreatedEvent[]) {
   const reads: string[][] = [];
   const submitted: Array<{ commandId: string; commands: unknown[] }> = [];
+  const logs: string[] = [];
   const client = {
     activeContracts: async (q: { templateIds?: string[] }) => {
       const want = (q.templateIds ?? []).map(suffix);
@@ -42,9 +43,9 @@ function world(contracts: CreatedEvent[]) {
   const venue: RoleSession = { role: "venue", party: VENUE, client, dryRun: false };
   const st = {
     venue, deskCid: async () => "00desk", batchSize: 25, resolutions: new Map(), terms: new Map(),
-    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0, venueRefunds: 0 }, timings: [], alarmed: new Set<string>(), log: () => {},
+    counters: { legs: 0, batches: 0, residuals: 0, failed: 0, stale: 0, venueRefunds: 0 }, timings: [], alarmed: new Set<string>(), log: (l: string) => logs.push(l),
   };
-  return { st: st as unknown as Parameters<typeof settlerPass>[0], reads, submitted, readResolutions: () => reads.some((r) => r.includes(suffix(TEMPLATE_IDS.Resolution))) };
+  return { st: st as unknown as Parameters<typeof settlerPass>[0], reads, submitted, logs, readResolutions: () => reads.some((r) => r.includes(suffix(TEMPLATE_IDS.Resolution))) };
 }
 
 describe("the settler and the venue's stale legs", () => {
@@ -62,6 +63,8 @@ describe("the settler and the venue's stale legs", () => {
     const sent = JSON.stringify(w.submitted[0]!.commands);
     expect(sent).toContain("Leg_RefundStale");
     expect(sent).toContain("00venueleg");
+    // The alarm, when the Window is resolved, counts only the legs still unsettled: not the one just refunded.
+    expect(w.logs.some((l) => l.startsWith("refunded the venue's own stale leg"))).toBe(true);
   });
 
   it("leaves a venue leg before its refundAfter alone", async () => {
