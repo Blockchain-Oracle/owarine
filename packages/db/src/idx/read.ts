@@ -100,10 +100,15 @@ export const seatRowsOf = (sql: Sql, alias: string, owner: string, lease: IdxSea
 
 export function indexReader(sql: Sql) {
   return {
-    /** A seat's own fills, newest first (Masayume `getUserFills`). */
+    /**
+     * A seat's own fills, newest first (Masayume `getUserFills`). Every row is the seat's own leg, so its taker is the seat
+     * as the caller names it: the projector records a fill by party, not address, and a taker of the party id made the
+     * client's replay (`toLedgerFill`: taker === wallet) read each fill as the venue's opposite side, inverting the seat's
+     * record (C11b: "+0.82 credits, 67 %" on a seat that lost 0.83 over three calls, one won).
+     */
     async walletFills(wallet: string, q: IdxFillQuery = {}): Promise<IdxRow[]> {
       return sql`
-        SELECT ${fillCols(sql)} FROM idx_fills f
+        SELECT ${fillCols(sql, sql`${wallet}::text`)} FROM idx_fills f
         WHERE ${seatRowsOf(sql, "f", wallet, q.lease, "ledger_offset")}
           ${q.market ? sql`AND f.market = ${q.market}` : sql``} ${q.book ? sql`AND f.terms_cid = ${q.book}` : sql``}
           ${q.sinceSec !== undefined ? sql`AND f.ts_sec >= ${q.sinceSec}` : sql``}

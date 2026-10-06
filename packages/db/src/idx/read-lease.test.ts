@@ -98,6 +98,11 @@ describe.skipIf(!URL_)("seat history over a recycled seat party (Postgres)", () 
     expect(rows.map((r) => r.signature).sort()).toEqual(["u-bob-1", "u-bob-2"]);
   });
 
+  it("Bob's fills name Bob as their taker, so his replay reads his side, not the venue's (C11b)", async () => {
+    const rows = await reader.walletFills(BOB, { lease: BOB_LEASE });
+    expect(rows.map((r) => [r.taker, r.taker_kind, r.maker_kind])).toEqual([[BOB, 0, 2], [BOB, 0, 2]]);
+  });
+
   it("Bob's exits, quotes and receipts are his alone", async () => {
     expect((await reader.walletActions(BOB, { lease: BOB_LEASE })).map((r) => r.signature)).toEqual(["close-u-bob-1"]);
     expect((await reader.orders({ owner: BOB, lease: BOB_LEASE })).map((r) => r.quote_cid)).toEqual(["q-bob"]);
