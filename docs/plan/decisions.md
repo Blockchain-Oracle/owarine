@@ -950,6 +950,83 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** the ladder's and hub's countdown.
 - **Approval:** default; overrulable.
 
+### K-305 — The phone proves its seat with signed headers only; its fetch never stores or sends cookies (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** §"What was broken" C11b.1. React Native XHR `withCredentials` defaults to true; `RCTNetworking.mm` sets `HTTPShouldHandleCookies` from it.
+- **Rule:** `mobile/src/polyfills.ts` sends every request with `credentials: "omit"`. The phone's seat proof is the read header (reads) and the one-request write proof (writes).
+- **User-visible:** calls place from the phone.
+- **Approval:** default; overrulable.
+
+### K-306 — A cookie that may not write defers to the write proof (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** C11b.2; `seat-write-auth.test.ts`.
+- **Rule:** in `seatFromRequest`, a cookie write without our Origin and CSRF header is refused only when no write proof comes with it. With a proof, the proof alone decides. A cross-site page cannot make a proof for someone else's key, so the cookie still guards what it guarded.
+- **User-visible:** none on web; any native client works.
+- **Approval:** default; overrulable.
+
+### K-307 — The Call describes the order's Window (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** C11b.3; the BTC-1m:34 fill at T+21.
+- **Rule:** the placed card reads the Window by `booked.marketId` (`usePlacedWindow`). The Window in hand is used only when it is the order's own.
+- **User-visible:** a call held across the 1-minute no-entry cutoff shows its own bell and verdict.
+- **Approval:** default; overrulable.
+
+### K-308 — A seat's own index rows carry its read header (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** C11b.4.
+- **Rule:** `indexRows` adds `x-agari-seat-read` to `wallet/…` paths when a seat key is registered, and never to public paths.
+- **User-visible:** the phone's portfolio, history and verdicts load.
+- **Approval:** default; overrulable.
+
+### K-309 — A seat's fills name the seat as taker (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** C11b.6.
+- **Rule:** `indexReader.walletFills(wallet)` returns `taker = wallet`, since every row it returns is that seat's own leg. Public tapes keep their published handle.
+- **User-visible:** record, win rate and P&L read the seat's own side on web and phone.
+- **Approval:** default; overrulable.
+
+### K-310 — `/api/ledger/me/*` answers under the key that asked (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** C11b.7.
+- **Rule:** the reply's `address` is `seat.caller` (the lease's own key or a key joined to it). Party and offset stay as they were.
+- **User-visible:** a device joined by a seat link shows the seat's balance and positions.
+- **Approval:** default; overrulable.
+
+### K-311 — The Live Activity never re-follows a Window it ended (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** C11b.5.
+- **Rule:** ended Windows are kept for the launch and skipped by `pickFollowed`. The next bet, if any, is followed.
+- **User-visible:** the app no longer freezes at a settle.
+- **Approval:** default; overrulable.
+
+### K-312 — Push is proven on the simulator in the drain's own shape; the remote path waits on the EAS project (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** §Push.
+- **Rule:**
+  - the drain is exercised for real with Expo's endpoint answered locally;
+  - a device row for a simulator is local-only and deleted after;
+  - the APNs payload puts the message's `data` under `body`, as expo-notifications reads it;
+  - nothing is sent to Expo until the EAS project exists.
+- **User-visible:** "This phone could not get a push address" until then.
+- **Approval:** default; overrulable.
+
+### K-313 — Lane simulators are made per lane and driven by the iOS Simulator tool (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** §Setup. Metro started with `--localhost` listened on `[::1]` only, and the dev client asked `127.0.0.1`.
+- **Rule:**
+  - each lane runs `xcrun simctl create "<lane> iPhone 17"` and deletes it at the end;
+  - start Metro without `--localhost` and open the dev client by `agaricanton://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<port>`;
+  - evidence screenshots come from `simctl io`.
+- **User-visible:** none.
+- **Approval:** default; overrulable.
+
+### K-314 — Side-by-side items that change a shared phone component go to Abu (C11b) (C11b)
+- **Date / owner:** 2026-10-06 · Claude (C11b).
+- **Evidence:** §Side by side.
+- **Rule:** the section-header truncation and the tab-count pills are listed for Abu, not changed in this lane: each touches a shared component, and web's own 390 view overflows.
+- **User-visible:** none yet.
+- **Approval:** default; overrulable.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.

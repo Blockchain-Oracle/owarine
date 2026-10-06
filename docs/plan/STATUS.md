@@ -32,6 +32,7 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 | **C8** tickets, agents, desk, maker vault | `evidence/c8e`, `c8f`, `c8g`, `c8i`, `c2d-maker-vault.md`; C8j phase A (live desk timing, PreStocks prices) |
 | **C8d** baskets, venue mode, products, private mode, Earn, copy traders | `evidence/c8d-markets.md`, drive `scripts/drive/c8d-markets.ts`, `ux/c8d` (6 Oct) |
 | **C9e, C13b** games and social | `evidence/c9e-c13b-sweep.md`, `ux/c9e`: money lines match `PM.Leg.legPayout` (void = backing + fee), guest-seat history on its own side, season pool paid once, duel, Practice, Line Rider, Candle Hop, proof re-verify, takes, ticker rooms, Finnhub news |
+| **C11b** iPhone on the simulator | `evidence/c11b-ios-sim.md`, `ux/c11b`: first run, Keychain seat, live prices, four calls filled and settled with update ids, who-sees-what empty for outsiders, seat link both ways, push handled via `simctl push` |
 | **C10f** public story | `evidence/c10f-public.md`, `ux/c10f`: landing and pitch, `/download` and `/demo` config point, Built on, `/who-sees-what`, docs site 43 pages |
 | **C4e** deploy rehearsal | `evidence/c4e-deploy.md`: three images, composed run behind Traefik, runbook measured |
 | **C9** games | `evidence/c9b`, `c9c`, `c9d-seats-games.md`; Lucky placed from its own screen (`ux/c8j`) |
@@ -46,7 +47,7 @@ Blocked on Abu: DevNet R1 (his Console session); the hosted deploy (a domain); i
 | **C4 / M1** first call, hosted | local only | a domain and its DNS records; R1 on DevNet |
 | **C8d** valuation lanes (OPENAIV/ANTHROPICV) | gated, said on the page (C8d) | a Pyth key entitled to `pyth-indices` (the probe still answers 403) |
 | **C10** public story | copy and docs merged | landing and `/download` updates; docs site on Coolify |
-| **C11** iOS | typechecks and exports | Abu: app name, Apple identifiers, App Store Connect record. Never run on a simulator or device |
+| **C11** iOS | runs on the simulator end to end (C11b) | Abu: app name, Apple identifiers, App Store Connect record (then EAS, TestFlight and real push). Not yet run on a device |
 | **BitSafe** | B2 merged (abu-pm-governance 0.1.0, 14 Daml tests) | the LocalNet run; the Gold path's 4 Oct deadline has passed, so the contribution pool is the target |
 | **Grofty** | not started | an invite (MainNet only) |
 | **Business** | B1 drafts merged | nothing sent; 0 interviews, 0 usability tests |
@@ -69,7 +70,7 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 
 - The Docker images are proven on this Mac only (C4e, `docs/evidence/c4e-deploy.md`): all three build on arm64 and amd64 and the composed run behind Coolify-flag Traefik showed 25 required `/status` rows green. Not yet built on the Coolify server; six Coolify settings must be set by hand (runbook §3–4).
 - In C4e's unattended run the oracle prints stopped 03:01–07:12 UTC on 6 Oct and 563 Windows voided with their reason; the cause is unproven (the same hours saw a network outage on this Mac). Re-check on the first long DevNet soak.
-- The phone has never run against Canton: it typechecks and exports only.
+- The phone runs on the iOS Simulator against a local stack (C11b), never yet on a device or against DevNet. Real push delivery waits on the EAS project, which waits on the App Store Connect record.
 - Pyth, the Pyth index and Switchboard are down on Canton (no entitled key; Switchboard Surge not answering). Stocks settle on RedStone and Alpaca, xStocks on the Jupiter Price v3 median.
 - Resting calls and the Canton Coin rail run on the local sandbox only.
 - Sensei needs a working OpenAI key (the one on this Mac answers 401), and X sign-in, trade-from-X and the relay need X API keys; each page says what it waits on (C13b). A season winner whose seat has ended cannot be paid until a later DAR (K-296).
