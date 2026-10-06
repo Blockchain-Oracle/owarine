@@ -74,11 +74,11 @@ export async function quotingWindow(ctx: Ctx, seriesKey: string, leadSec = 15): 
 }
 
 /** A firm quote from ops through the web, requoting once if the displayed cap is low; retries for `forMs`. */
-export async function firmQuote(ctx: Ctx, s: Seat, seriesKey: string, side: "up" | "down", stakeBase: bigint, forMs = 150_000) {
+export async function firmQuote(ctx: Ctx, s: Seat, seriesKey: string, side: "up" | "down", stakeBase: bigint, forMs = 150_000, leadSec = 15) {
   const until = Date.now() + forMs;
   let last = "no Window with an open print yet";
   for (;;) {
-    const win = await quotingWindow(ctx, seriesKey);
+    const win = await quotingWindow(ctx, seriesKey, leadSec);
     if (win) {
       const body = { marketId: appMarketId(win.data.marketId), side, stakeBase, displayedMaxCostBase: (stakeBase * 12n) / 10n };
       let r = await ctx.web.call(s, "POST", "/api/ledger/quotes", body);
