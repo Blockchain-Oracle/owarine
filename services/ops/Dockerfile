@@ -33,7 +33,9 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/ledger/package.json ./packages/ledger/
 COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
+# pnpm's registry metadata cache (~/.cache/pnpm) is a cache mount too, not 241 MB of registry JSON in the layer (C4e).
 RUN --mount=type=cache,id=agari-pnpm-store,target=/pnpm/store \
+    --mount=type=cache,id=agari-pnpm-metadata,target=/root/.cache/pnpm \
     pnpm install --frozen-lockfile --filter "@agari/ops..."
 
 # The sources the service runs: its own (with config/) and the packages it imports.
