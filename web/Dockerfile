@@ -33,7 +33,10 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/ledger/package.json ./packages/ledger/
 COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
+# pnpm's registry metadata cache (~/.cache/pnpm) is a cache mount too: as a plain directory it baked 241 MB of
+# registry JSON into this layer (C4e, measured 6 Oct).
 RUN --mount=type=cache,id=agari-pnpm-store,target=/pnpm/store \
+    --mount=type=cache,id=agari-pnpm-metadata,target=/root/.cache/pnpm \
     pnpm install --frozen-lockfile --filter "web..."
 
 # The sources. `.dockerignore` keeps node_modules, .next, data and the reference out of the context. Web reads

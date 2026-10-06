@@ -65,6 +65,7 @@ export const STATUS = {
 
   detail: {
     rpc: (slot: string, offsetSec: string) => `offset ${slot} · server clock ${offsetSec}s vs this clock`,
+    rpcDown: (why: string) => `the ledger end could not be read · ${why}`,
     noPrint: "the feed has no print for this asset",
     price: (price: string, printedAt: string) => `${price} · printed ${printedAt}`,
     storeOff: "not connected on this deployment — set DATABASE_URL",

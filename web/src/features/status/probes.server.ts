@@ -3,6 +3,7 @@ import type { Reading } from "@agari/core/schemas";
 import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
 import { getDb, isDbConfigured } from "@agari/db";
 import { marketsProvider, syncClock } from "@agari/markets";
+import { readLedgerEnd } from "@/app/api/venue/venue.server";
 import { createFaucetService } from "@/features/funding/faucet-service.server";
 import { faucetConfig } from "@/features/funding/faucet-config.server";
 import { missingCredentialHint, resolveModel } from "@/features/sensei/model.server";
@@ -28,6 +29,8 @@ const diagnose = createDiagnosticRunner(10_000);
 /** Balances move by claims and refills, not by the second: one chain read a minute however many viewers poll. */
 const FAUCET_REUSE_MS = 60_000;
 const LAMPORT_DECIMALS = 9;
+/** The ledger-end read's own bound: wider than the clock route's 1.5 s, because a DevNet read may first take a token. */
+const LEDGER_END_PROBE_MS = 5_000;
 
 function fresh<T>(reading: Reading<T>): T {
   if (!reading.ok) throw new Error(reading.error.technical || reading.error.kind);
@@ -44,8 +47,15 @@ const elapsed = (error: unknown) => error instanceof DiagnosticFailure ? error.e
 export async function probeRpc(): Promise<{ pipeline: StatusPipeline; slot: number | null }> {
   const label = STATUS.pipelines.rpc;
   try {
-    const clock = await diagnose("rpc", ({ step }) => step("RPC chain head", async () => fresh(await syncClock())));
-    const { slot, rttMs, offsetMs } = clock.value;
+    // The clock route falls back to the projection's cursor, and the clock reading to 0, when the ledger does not
+    // answer; the row's verdict and offset come from a read of the ledger itself (C4e: it read "offset 0" in green).
+    const [clock, end] = await Promise.all([
+      diagnose("rpc", ({ step }) => step("RPC chain head", async () => fresh(await syncClock()))),
+      readLedgerEnd(LEDGER_END_PROBE_MS),
+    ]);
+    if (!end.ok) return { pipeline: down("rpc", label, STATUS.detail.rpcDown(end.why), false, true, clock.elapsedMs), slot: null };
+    const slot = end.offset;
+    const { rttMs, offsetMs } = clock.value;
     // Block times are whole seconds, so a head a second "behind" is normal; one minutes
     // behind is a chain that stopped, not a slow socket.
     const lagSec = Math.max(0, Math.round(-offsetMs / 1000));

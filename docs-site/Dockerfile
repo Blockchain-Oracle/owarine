@@ -14,7 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+# pnpm's registry metadata cache (~/.cache/pnpm) is a cache mount too, not 130 MB of registry JSON in the layer (C4e).
 RUN --mount=type=cache,id=agari-docs-pnpm-store,target=/pnpm/store \
+    --mount=type=cache,id=agari-docs-pnpm-metadata,target=/root/.cache/pnpm \
     pnpm install --frozen-lockfile
 
 COPY . .
