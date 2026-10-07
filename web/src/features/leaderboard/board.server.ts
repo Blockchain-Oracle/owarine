@@ -23,8 +23,7 @@ const DAY_MS = 86_400_000;
 const LOOKBACK_MS = 2 * DAY_MS;
 const LONGEST_CADENCE_SEC = 3_600;
 const SETTLE_TAIL_SEC = 900;
-/** Ranked rows kept per scan: enough that a re-rank by ROI still finds the top 50 by return, not by PnL. */
-const KEPT = 500;
+/** Rows served per rank: the scan keeps the top 50 by PnL and the top 50 by ROI (`topByEither`), so either order is exact. */
 const TOP = 50;
 /** `all` reaches back this far: before the Canton venue's first Window. */
 const VENUE_EPOCH_MS = Date.UTC(2026, 0, 1);
@@ -108,14 +107,14 @@ async function compute(period: BoardPeriod, nowMs: number): Promise<BoardCache> 
     const startMs = period === "all" ? VENUE_EPOCH_MS : nowMs - (ROLLING_MS[period] ?? DAY_MS);
     const lookbackMs = period === "24h" ? nowMs - LOOKBACK_MS : startMs - DAY_MS;
     const board = unwrap(
-      await readVenueBoard({ venueId, windowStartMs: startMs, windowEndMs: nowMs, lookbackSec: Math.max(0, Math.floor(lookbackMs / 1000)), top: KEPT, operators, publishedOnly: period !== "24h" }),
+      await readVenueBoard({ venueId, windowStartMs: startMs, windowEndMs: nowMs, lookbackSec: Math.max(0, Math.floor(lookbackMs / 1000)), top: TOP, operators, publishedOnly: period !== "24h" }),
     );
     return serialize(board, period, null, nowMs);
   }
   const session = await latestSession(env.priceFeedUrl, Math.floor(nowMs / 1000));
   const endMs = Math.min(nowMs, (session.closeSec + SETTLE_TAIL_SEC) * 1000);
   const board = unwrap(
-    await readVenueBoard({ venueId, windowStartMs: session.openSec * 1000, windowEndMs: endMs, lookbackSec: session.openSec - LONGEST_CADENCE_SEC, top: KEPT, operators }),
+    await readVenueBoard({ venueId, windowStartMs: session.openSec * 1000, windowEndMs: endMs, lookbackSec: session.openSec - LONGEST_CADENCE_SEC, top: TOP, operators }),
   );
   return serialize(board, period, session, nowMs);
 }
@@ -136,7 +135,7 @@ export const BOARD_CACHE_TAG = "owarine-venue-board";
 /** Key by the deployment's data source and the period, never by a per-request timestamp. */
 export function readBoard(period: BoardPeriod): Promise<BoardCache> {
   const { cluster, venueId, indexerUrl } = webEnv.markets;
-  return unstable_cache(() => computeBoard(period), ["owarine-venue-board-v6", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
+  return unstable_cache(() => computeBoard(period), ["owarine-venue-board-v7", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
 }
 
 type WireRanking = LeaderboardPayload["rankings"][number];

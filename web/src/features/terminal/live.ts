@@ -5,6 +5,22 @@ import { computeLivePnl, ladderSpotSymbol, type LivePnlView } from "@owarine/mar
 import { ladderSnapshot, liveSpot, livePnl, subscribeBook, subscribeSpot } from "@owarine/markets/runtime";
 import { useEffect, useRef, useState } from "react";
 
+/**
+ * Watches the Window on screen: keeps its ladder stream open whether or not anything is held or quoted, so the screen
+ * knows when the venue is actually quoting it, and re-renders on each ladder for it.
+ */
+export function useWatchedLadder(market: { marketId: string; poolAddress: string; decimals: number } | null): ReturnType<typeof ladderSnapshot> {
+  const [, bump] = useState(0);
+  const id = market?.marketId ?? null;
+  useEffect(() => {
+    if (!market) return;
+    return subscribeBook({ marketId: market.marketId as MarketId, poolAddress: market.poolAddress as Address, decimals: market.decimals }, () => bump((n) => n + 1));
+    // The Window's identity is its id; its other fields don't change under it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+  return ladderSnapshot(id);
+}
+
 /** Tradash commits prices to its store at most every 200 ms per symbol (leading edge); PnL and reactions run on that. */
 export const COMMIT_MS = 200;
 

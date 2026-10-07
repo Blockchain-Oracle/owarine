@@ -21,12 +21,19 @@ export function fixedText(value: number, dp: number): string {
   return (Math.round(scaled) / 10 ** dp).toFixed(dp);
 }
 
-/** Base units → "24.54" (2 dp), or signed with a true minus ("+3.7561" / "−5.74") at magnitude decimals when `signed`. */
+/** Base units → "24.54", or signed with a true minus ("+3.76" / "−5.74") when `signed`; 2 dp either way (settled figures). */
 export function money(base: bigint, decimals: number, signed = false): string {
   const n = Number(base) / 10 ** decimals;
   if (!signed) return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const dp = 2;
   return `${n < 0 ? "−" : "+"}${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp })}`;
+}
+
+/** A live PnL in base units, signed at Tradash's magnitude decimals ("+0.0412", "+12.345", "−1,204.50"), so it keeps moving. */
+export function livePnlText(base: bigint, decimals: number): string {
+  const n = Number(base) / 10 ** decimals;
+  const dp = moneyDecimals(n);
+  return `${n < 0 ? "−" : "+"}${Number(fixedText(n, dp)).toLocaleString("en-US", { minimumFractionDigits: dp, maximumFractionDigits: dp })}`;
 }
 
 /** What a right call pays per credit staked at `ticks` (0–1000): 1000 / ticks, as "1.9×". */

@@ -5,7 +5,6 @@ import { isOk } from "@owarine/core/schemas";
 import type { MarketId, OpenPosition, Side } from "@owarine/core/types";
 import { marketsProvider } from "@owarine/markets";
 import { ladderSpotSymbol, useBalanceSheet, useOpeningPrice, usePositions, useStakeQuote, type LivePnlView } from "@owarine/markets/react";
-import { ladderSnapshot } from "@owarine/markets/runtime";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { installHaptics, setHapticsEnabled } from "@/lib/haptics";
@@ -16,12 +15,12 @@ import { useChartFeedback } from "./useChartFeedback";
 import { ChartControls } from "./ui/ChartControls";
 import { entryOf, useEntries } from "./entries";
 import { money, multipleOf } from "./format";
-import { breakEvenSpot, useCommittedSpot, useLiveBook } from "./live";
+import { breakEvenSpot, useCommittedSpot, useLiveBook, useWatchedLadder } from "./live";
 import { settlePaper, useModeState, type TradeMode } from "./mode";
 import { stakeFor, useTradeSettings, useTradeSettingsState } from "./settings";
 import { TradeToasts, toast } from "./toasts";
-import { AssetChip, EquityPill, SettingsStack, ViewPositionPill, WindowChip } from "./ui/Chrome";
-import { PositionsList, totalsOf, UnrealizedCard } from "./ui/PositionsPanel";
+import { AssetChip, EquityPill, SettingsStack, ViewPositionPill, WindowChip, type WindowState } from "./ui/Chrome";
+import { PositionsList, positionValueBase, totalsOf, UnrealizedCard } from "./ui/PositionsPanel";
 import { useReplayRecorder } from "./replay";
 import { useAppUpdate } from "./useAppUpdate";
 import { ReactionOverlay } from "./ui/ReactionOverlay";
@@ -115,22 +114,27 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
     return [...symbols].sort((a, b) => (a === "BTC" ? -1 : b === "BTC" ? 1 : a === "ETH" ? -1 : b === "ETH" ? 1 : a.localeCompare(b))).map((s) => ({ symbol: s, lanes: lanesFor(win.set, s) }));
   }, [win.set]);
   const market = win.market;
-  const ladder = market ? (ladderSnapshot(market.marketId)?.ladder ?? null) : null;
+  const ladder = useWatchedLadder(market ? { marketId: market.marketId, poolAddress: market.poolAddress, decimals: market.decimals } : null)?.ladder ?? null;
   const spotSymbol = ladder ? (ladderSpotSymbol(ladder) ?? symbol) : symbol;
   const openPrint = useOpeningPrice(market?.marketId ?? null);
   const linePrice = ladder?.openPriceE8 ? Number(ladder.openPriceE8) / 1e8 : openPrint && isOk(openPrint) && openPrint.value !== null ? Number(openPrint.value) / 1e8 : null;
   const spot = useCommittedSpot(spotSymbol);
-  // "pricing": the Window has started but its opening print isn't on the ledger yet (the oracles post at T + 10 s and
-  // the venue quotes only once the print is recorded), so there is nothing to fill.
-  const windowState: "trading" | "pricing" | "locked" | "next" | "none" = !market
+  // The Window's readiness from what the venue actually serves: scheduled; started but its opening print not recorded
+  // ("pricing"); print in but no live quote ("waiting" — stale spot, no volatility, a halt); quoting; past the quote
+  // cutoff ("locked"). The cutoff mirrors the pricer's `quotingUntilSec` when no ladder carries it.
+  const cutoffSec = market ? (ladder?.quotingUntilSec ?? Math.min(market.lockAtSec, market.expirySec - Math.min(60, Math.floor((market.expirySec - market.tradingStartSec) / 4)))) : 0;
+  const quoting = ladder !== null && ladder.state === "quoting" && nowSec <= ladder.quotingUntilSec;
+  const windowState: WindowState = !market
     ? "none"
     : nowSec < market.tradingStartSec
       ? "next"
-      : nowSec >= (ladder?.quotingUntilSec ?? market.lockAtSec)
+      : nowSec >= cutoffSec
         ? "locked"
         : linePrice === null
           ? "pricing"
-          : "trading";
+          : !quoting
+            ? "waiting"
+            : "trading";
 
   // Money.
   const sheetReading = useBalanceSheet(mode === "live" ? address : null);
@@ -173,9 +177,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const active = positions.find((p) => p.marketId === market?.marketId) ?? null;
   const activeLive = active ? (book.get(active.id) ?? null) : null;
   const totals = totalsOf(positions, book);
-  // A position with no exit to price it by (locked before the close) counts at cost in equity, as it does in PnL.
-  const exitOrCost = (p: TerminalPosition, v: LivePnlView | undefined) => (v && v.fillableLots > 0n ? v.exitBase : p.costBasisBase);
-  const equity = cashBase === null ? null : mode === "demo" ? toCredits(cashBase) + totals.pnl : toCredits(cashBase) + positions.reduce((s, p) => s + toCredits(exitOrCost(p, book.get(p.id))), 0);
+  const equity = cashBase === null ? null : mode === "demo" ? toCredits(cashBase) + totals.pnl : toCredits(cashBase) + positions.reduce((s, p) => s + toCredits(positionValueBase(p, book.get(p.id))), 0);
 
   const trade = useTerminalTrade({
     mode, market, spot, stakeBase, availableBase: cashBase, quotes, slippageBps: settings.slippageBps, linePrice,
@@ -285,7 +287,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
     <SettingsStack asset={symbol} size={stakeCredits} pays={upTicks && downTicks ? `${multipleOf(upTicks)}·${multipleOf(downTicks)}` : "—"} fees={feesCredits} trailPct={settings.trailPct} onOpen={() => openSheet("settings")} />
   );
   const windowChip = (
-    <WindowChip lanes={win.lanes} intervalSec={win.intervalSec} onPick={setLane} closeSec={market?.expirySec ?? null} lockSec={ladder?.quotingUntilSec ?? market?.lockAtSec ?? null} nowSec={nowSec} state={windowState} />
+    <WindowChip lanes={win.lanes} intervalSec={win.intervalSec} onPick={setLane} closeSec={market?.expirySec ?? null} lockSec={market ? cutoffSec : null} nowSec={nowSec} state={windowState} />
   );
   const sheets = (
     <TerminalSheets

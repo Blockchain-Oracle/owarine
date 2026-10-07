@@ -220,7 +220,7 @@ export function LeaderboardSheet({ open, onClose }: { open: boolean; onClose: ()
             </button>
           </div>
         ) : rankings.length === 0 ? (
-          <p className="py-10 text-center text-ow-caption text-ow-muted">{period === "all" ? "No ranked traders yet. Close a trade to get on the board." : "No trades in this period."}</p>
+          <p className="py-10 text-center text-ow-caption text-ow-muted">{period === "all" ? "No ranked traders yet. Publish a call from your open positions, and it counts here once it settles." : "No published trades in this period."}</p>
         ) : (
           <>
             <Podium top={rankings.slice(0, 3)} decimals={decimals} rankBy={rankBy} you={address} onPick={(i) => pick(rankings[i]!)} />
@@ -246,9 +246,9 @@ export function LeaderboardSheet({ open, onClose }: { open: boolean; onClose: ()
                 </li>
               ))}
             </ul>
-            {!data.meta.complete ? <p className="text-center text-ow-micro text-ow-muted">Partial: the scan hit its page cap for this period.</p> : null}
           </>
         )}
+        {data && !data.meta.complete ? <p className="text-center text-ow-micro text-ow-muted">Partial: the scan hit its page cap for this period, so some published trades are missing.</p> : null}
       </div>
     </Sheet>
   );

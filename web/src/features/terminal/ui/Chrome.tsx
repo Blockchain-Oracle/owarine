@@ -34,6 +34,9 @@ export function AssetChip({ asset, name, price, onOpen }: { asset: string; name:
 }
 
 /** Owarine's addition: which Window length you trade, and how long until this Window's close print. */
+/** A Window's readiness, as the terminal shows it (`TerminalScreen`). */
+export type WindowState = "trading" | "pricing" | "waiting" | "locked" | "next" | "none";
+
 export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowSec, state }: {
   lanes: readonly TerminalLane[];
   intervalSec: number | null;
@@ -41,7 +44,7 @@ export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowS
   closeSec: number | null;
   lockSec: number | null;
   nowSec: number;
-  state: "trading" | "pricing" | "locked" | "next" | "none";
+  state: WindowState;
 }) {
   return (
     <div className="ow-glass flex items-center gap-1 rounded-full p-1">
@@ -57,7 +60,7 @@ export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowS
         </button>
       ))}
       <span className="ow-num px-2 text-ow-caption text-ow-muted">
-        {state === "trading" && lockSec !== null ? `trades ${untilText(lockSec, nowSec)}` : state === "locked" && closeSec !== null ? `closes ${untilText(closeSec, nowSec)}` : state === "next" ? "next Window soon" : state === "pricing" ? "pricing…" : "no Window"}
+        {state === "trading" && lockSec !== null ? `trades ${untilText(lockSec, nowSec)}` : state === "locked" && closeSec !== null ? `closes ${untilText(closeSec, nowSec)}` : state === "next" ? "next Window soon" : state === "pricing" ? "pricing…" : state === "waiting" ? "awaiting a quote" : "no Window"}
       </span>
     </div>
   );

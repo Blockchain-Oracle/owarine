@@ -9,3 +9,12 @@ describe("fixedText", () => {
     expect(fixedText(0.1 + 0.2, 2)).toBe("0.30");
   });
 });
+
+describe("livePnlText", () => {
+  it("keeps Tradash's magnitude decimals with a true minus", async () => {
+    const { livePnlText } = await import("./format");
+    expect(livePnlText(41_200n, 6)).toBe("+0.0412");
+    expect(livePnlText(12_345_000n, 6)).toBe("+12.345");
+    expect(livePnlText(-1_204_500_000n, 6)).toBe("−1,204.50");
+  });
+});

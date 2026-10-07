@@ -8,8 +8,10 @@ import { Odometer } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "../chart/engine";
+import { PublishToggle } from "./PublishToggle";
 import { clockText, moneyDecimals, multipleOf } from "../format";
 import type { TerminalPosition } from "../useTerminalTrade";
+export { positionValueBase } from "../position-value";
 
 const num = (base: bigint, decimals: number) => Number(base) / 10 ** decimals;
 
@@ -109,6 +111,9 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
   const avgTicks = held > 0n ? (1000 * Number(p.costBasisBase)) / Number(held) : 0;
   const nowTicks = p.side === "up" ? live?.upPriceTicks : live?.downPriceTicks;
   const locked = live?.locked ?? false;
+  // A thin board takes only part of it: PnL covers that part, the rest stays at cost until it can sell or settles.
+  const partial = priced && live.fillableLots < live.heldLots;
+  const sellablePct = priced && live.heldLots > 0n ? Number((live.fillableLots * 100n) / live.heldLots) : 0;
   const Dir = p.side === "up" ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="rounded-ow-card bg-ow-card">
@@ -122,6 +127,7 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
           </span>
           <span className="block truncate text-ow-micro text-ow-muted">
             {cadence(p.intervalSec)} · {locked ? `settles ${clockText(p.expirySec)}` : `pays ${multipleOf(avgTicks)}`}
+            {partial ? ` · ${sellablePct}% sellable now` : ""}
           </span>
         </span>
         <span className="flex flex-col items-end">
@@ -160,6 +166,7 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
               <button type="button" disabled={locked} onClick={() => onReduce(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
                 <Minus className="size-4" /> Reduce
               </button>
+              {p.mode === "live" ? <PublishToggle marketId={p.marketId} /> : null}
             </div>
           </motion.div>
         ) : null}

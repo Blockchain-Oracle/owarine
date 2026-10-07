@@ -65,7 +65,7 @@ export interface BoardSlice {
   rankedTraders: number;
   totalWallets: number;
   closedCalls: number;
-  /** Stake of the ranked rows served (the top `scope.top`). */
+  /** Stake of the ranked rows served (the top `scope.top` by PnL and by ROI). */
   totalVolumeBase: bigint;
 }
 
@@ -99,9 +99,20 @@ function roundMarketOf(row: MarketRow, decimals: number): RoundMarket {
   };
 }
 
+/**
+ * The top `n` by PnL together with the top `n` by return on stake, both picked from the whole ranking and kept in the
+ * PnL order: a reader re-ranking by ROI then finds the real ROI leaders, which a PnL cut alone can drop.
+ */
+export function topByEither(rankings: readonly TraderRanking[], n: number): TraderRanking[] {
+  const byRoi = rankings.map((r, i) => [r, i] as const).sort(([a, i], [b, j]) => (b.roiBps ?? -Infinity) - (a.roiBps ?? -Infinity) || i - j);
+  const keep = new Set<number>([...rankings.keys()].slice(0, n));
+  for (const [, i] of byRoi.slice(0, n)) keep.add(i);
+  return rankings.filter((_, i) => keep.has(i));
+}
+
 function sliceOf(byWallet: ReadonlyMap<Address, readonly SettledRound[]>, scope: BoardScope): BoardSlice {
   const { rankings, closedCalls, totalWallets } = rankTraders(byWallet, scope);
-  const top = rankings.slice(0, scope.top);
+  const top = topByEither(rankings, scope.top);
   return { rankings: top, rankedTraders: rankings.length, totalWallets, closedCalls, totalVolumeBase: top.reduce((sum, r) => sum + r.volumeBase, 0n) };
 }
 
