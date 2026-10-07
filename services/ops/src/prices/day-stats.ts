@@ -1,10 +1,12 @@
 /**
  * 24-hour stats per crypto symbol for the market picker (revamp step 3, Tradash's "Last price / 24h change" and Hot):
  * Coinbase Exchange `/products/<S>-USD/stats` (open, high, low, volume over the last 24 h), read at most once a minute.
- * Display only. `/prices/day` serves `{ [symbol]: { openE8, highE8, lowE8, volume } }`; a symbol whose read failed is
+ * Stocks and ETFs come from Alpaca's snapshots when ops holds Alpaca keys, their change quoted against the previous
+ * close (`alpaca-bars.ts`). Display only. `/prices/day` serves `{ [symbol]: { openE8, highE8, lowE8, volume } }`; a symbol whose read failed is
  * absent rather than guessed.
  */
-import { CRYPTO_SYMBOLS } from "@owarine/core/market";
+import { CRYPTO_SYMBOLS, TICKER_SYMBOLS } from "@owarine/core/market";
+import { alpacaDay, alpacaSymbolOf, type AlpacaKeys } from "./alpaca-bars";
 import { decimalToE8, type Fetch } from "./candles";
 
 export interface DayStats {
@@ -16,12 +18,14 @@ export interface DayStats {
 
 const CACHE_MS = 60_000;
 
-export function createDayStats(fetchImpl: Fetch = fetch as Fetch): () => Promise<Record<string, DayStats>> {
+const STOCKS = TICKER_SYMBOLS.filter((s) => alpacaSymbolOf(s) !== null);
+
+export function createDayStats(fetchImpl: Fetch = fetch as Fetch, alpaca: AlpacaKeys | null = null): () => Promise<Record<string, DayStats>> {
   let cached: { atMs: number; body: Promise<Record<string, DayStats>> } | null = null;
   const read = async (): Promise<Record<string, DayStats>> => {
     const out: Record<string, DayStats> = {};
-    await Promise.all(
-      CRYPTO_SYMBOLS.map(async (symbol) => {
+    await Promise.all([
+      ...CRYPTO_SYMBOLS.map(async (symbol) => {
         try {
           const r = await fetchImpl(`https://api.exchange.coinbase.com/products/${symbol}-USD/stats`, { headers: { "user-agent": "owarine-day-stats" }, signal: AbortSignal.timeout(5_000) });
           if (!r.ok) return;
@@ -32,7 +36,13 @@ export function createDayStats(fetchImpl: Fetch = fetch as Fetch): () => Promise
           // Absent, not guessed.
         }
       }),
-    );
+      alpaca
+        ? alpacaDay(fetchImpl, alpaca, STOCKS).then(
+            (stocks) => void Object.assign(out, stocks),
+            () => undefined,
+          )
+        : Promise.resolve(),
+    ]);
     return out;
   };
   return () => {

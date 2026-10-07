@@ -21,6 +21,8 @@ import { latestBody, streamSpot } from "./spot-sse";
 import { createRecentRing, type RecentRing } from "../prices/recent-ring";
 import { createDayStats } from "../prices/day-stats";
 import { createChartCandles } from "../prices/chart-candles";
+import { alpacaKeys } from "../actors/price-relay";
+import type { Fetch } from "../prices/candles";
 import type { LadderBoard } from "../actors/market-maker/seat/ladder-board";
 import { handleInternal, type InternalRoutes } from "./internal";
 import { ladderLatestBody, streamLadders } from "./ladder-sse";
@@ -56,8 +58,10 @@ export function startOpsHttp(input: {
   recent?: RecentRing | null;
 }): Promise<OpsHttp> {
   const recent = input.recent ?? (input.spot ? createRecentRing(input.spot) : null);
-  const dayStats = createDayStats();
-  const chartCandles = createChartCandles();
+  // Stocks and ETFs chart from Alpaca when ops holds its market-data keys (the same keys the spot relay polls with).
+  const alpaca = alpacaKeys(process.env);
+  const dayStats = createDayStats(fetch as Fetch, alpaca);
+  const chartCandles = createChartCandles(fetch as Fetch, alpaca);
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://ops").pathname;
     const json = (status: number, body: unknown) => {
