@@ -66,7 +66,7 @@ export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowS
 /** Tradash's equity pill `a5`: equity in rolling digits and the avatar; "Take a seat" with no account in live mode. */
 export function EquityPill({ equity, demo, onOpen }: { equity: number | null; demo: boolean; onOpen: () => void }) {
   return (
-    <button type="button" onClick={() => (tap(), onOpen())} className="ow-glass flex h-11 shrink-0 items-center gap-2 rounded-full pr-1 pl-3 lg:pl-4">
+    <button type="button" aria-label="Account" onClick={() => (tap(), onOpen())} className="ow-glass flex h-11 shrink-0 items-center gap-2 rounded-full pr-1 pl-3 lg:pl-4">
       {demo ? <span className="hidden rounded-full bg-ow-recessed px-1.5 text-ow-micro font-bold text-ow-muted lg:inline">DEMO</span> : null}
       <span className="text-ow-lead font-bold">{equity === null ? "Take a seat" : <Odometer kind="plain" value={equity} decimals={2} />}</span>
       <span className="grid size-9 place-items-center rounded-full bg-ow-pink">

@@ -42,6 +42,8 @@ export interface TapeBounds {
   windowStartMs: number;
   windowEndMs: number;
   lookbackSec: number;
+  /** Scan only Windows with a published trade (long boards; traction, which counts every Window, leaves it off). */
+  publishedOnly?: boolean;
 }
 
 async function pageTape<T>(path: string, query: Record<string, number>): Promise<Paged<T>> {
@@ -62,7 +64,7 @@ export async function scanTape(bounds: TapeBounds): Promise<TapeScan> {
   const to = ceilSec(bounds.windowEndMs);
   // A Window that settled inside the window traded before it settled, so its tape ends at the window's end too.
   const [markets, fills, actions, tickets] = await Promise.all([
-    pageTape<MarketRow>("tape/markets", { from, to, lookback: bounds.lookbackSec }),
+    pageTape<MarketRow>("tape/markets", { from, to, lookback: bounds.lookbackSec, ...(bounds.publishedOnly ? { published: 1 } : {}) }),
     pageTape<FillRow>("tape/fills", { since: bounds.lookbackSec, until: to }),
     pageTape<TapeActionRow>("tape/actions", { since: bounds.lookbackSec, until: to }),
     pageTape<TapeTicketRow>("tape/tickets", { since: from, until: to }),

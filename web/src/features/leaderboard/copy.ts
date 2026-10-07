@@ -22,12 +22,16 @@ const pastDate = (span: BoardSpan): string | null => (span.period === "session" 
 /** "the last 24 hours", "this session", "the Mon, Sep 14 session". */
 function spanWords(span: BoardSpan): string {
   if (span.period === "24h") return "the last 24 hours";
+  if (span.period === "7d") return "the last 7 days";
+  if (span.period === "30d") return "the last 30 days";
+  if (span.period === "all") return "all time";
   const date = pastDate(span);
   return date ? `the ${date} session` : "this session";
 }
 
 function coverage(span: BoardSpan, complete: boolean): string {
   if (span.period === "24h") return complete ? "full day" : "partial day";
+  if (span.period !== "session") return complete ? "complete" : "partial";
   if (!complete) return "partial session";
   return span.live ? "session so far" : "full session";
 }
@@ -38,12 +42,12 @@ export const LEADERBOARD = {
   hero: {
     eyebrow: "Everyone trading on Owarine",
     title: ["The", "house", "of names."] as const,
-    traders: (period: BoardPeriod) => (period === "24h" ? "Traders on Owarine · 24h" : "Traders on Owarine · session"),
+    traders: (period: BoardPeriod) => `Traders on Owarine · ${period === "session" ? "session" : period === "all" ? "all time" : period}`,
     staked: "Total staked · top 50",
     nextClose: "Next market closes in",
-    stamp: (period: BoardPeriod) => (period === "24h" ? "TODAY'S BOARD" : "SESSION BOARD"),
-    stampSub: (span: BoardSpan) => (span.period === "24h" ? "ROLLING" : span.sessionDate === null ? "—" : dateLabel(span.sessionDate).toUpperCase()),
-    periods: { session: "This session", "24h": "Last 24 hours" } as Record<BoardPeriod, string>,
+    stamp: (period: BoardPeriod) => ({ session: "SESSION BOARD", "24h": "TODAY'S BOARD", "7d": "THIS WEEK", "30d": "THIS MONTH", all: "ALL TIME" })[period],
+    stampSub: (span: BoardSpan) => (span.period !== "session" ? "ROLLING" : span.sessionDate === null ? "—" : dateLabel(span.sessionDate).toUpperCase()),
+    periods: { session: "This session", "24h": "Last 24 hours", "7d": "Last 7 days", "30d": "Last 30 days", all: "All time" } as Record<BoardPeriod, string>,
     periodGroup: "Board period",
     closedCalls: (n: number, span: BoardSpan, complete: boolean, ticker: string | null) =>
       `${n.toLocaleString()} closed calls${ticker ? ` · ${ticker}` : ""} · ${coverage(span, complete)}`,

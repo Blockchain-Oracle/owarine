@@ -3,9 +3,18 @@ import type { Address } from "@owarine/core/types";
 import { z } from "zod";
 import { tractionSchema } from "@/features/stats/protocol";
 
-/** "This session" first: a stock venue's day is its session; "24h" is Masayume's rolling board. */
-export const BOARD_PERIODS = ["session", "24h"] as const;
+/**
+ * "This session" first: a stock venue's day is its session; "24h" is Masayume's rolling board; "7d", "30d" and "all"
+ * are Tradash's Weekly, Monthly and All time.
+ */
+export const BOARD_PERIODS = ["session", "24h", "7d", "30d", "all"] as const;
 export type BoardPeriod = (typeof BOARD_PERIODS)[number];
+/** Rolling periods by length; `all` reaches back to the venue's first Window. */
+export const ROLLING_MS: Partial<Record<BoardPeriod, number>> = { "24h": 86_400_000, "7d": 7 * 86_400_000, "30d": 30 * 86_400_000 };
+
+/** Tradash's "Rank by": realised PnL (the board's own order) or return on stake. */
+export const RANK_BY = ["pnl", "roi"] as const;
+export type RankBy = (typeof RANK_BY)[number];
 
 /** The NYSE session a `session` board covers: `[openSec, closeSec + 15 min)`, capped at the time it was computed. */
 const sessionSchema = z.object({ date: z.string(), openSec: z.number(), closeSec: z.number() });

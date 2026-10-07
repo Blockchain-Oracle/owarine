@@ -44,6 +44,9 @@
   --ow-up-on-black: #3DDC5A;    /* PnL on a black pill, both themes */
   --ow-down-on-black: #FF6B63;
   --ow-breakeven: #D99A00;      /* the chart's break-even line (Tradash's amber) */
+  --ow-medal-gold: #E8B210;     /* leaderboard podium badges, both themes */
+  --ow-medal-silver: #A7AFB8;
+  --ow-medal-bronze: #C77A3A;
   --ow-sky-gradient: linear-gradient(180deg, #02A6F0 0%, #02BBFF 38%, #7FD9FF 78%, #D9F3FF 100%);
 
   --ow-sheet-w: 420px;
@@ -109,6 +112,9 @@ body {
   --color-ow-pink: var(--ow-pink);
   --color-ow-pink-pressed: var(--ow-pink-pressed);
   --color-ow-pink-ink: var(--ow-pink-ink);
+  --color-ow-medal-gold: var(--ow-medal-gold);
+  --color-ow-medal-silver: var(--ow-medal-silver);
+  --color-ow-medal-bronze: var(--ow-medal-bronze);
   --color-ow-on-pink: var(--ow-on-pink);
   --color-ow-up: var(--ow-up);
   --color-ow-up-line: var(--ow-up-line);

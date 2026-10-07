@@ -14,7 +14,7 @@ export const LEADERBOARD_KEY = ["owarine", "leaderboard"] as const;
  */
 export function useLeaderboard(board: BoardQuery): Reading<BoardData> | null {
   const query = useQuery({
-    queryKey: [...LEADERBOARD_KEY, board.period, board.ticker],
+    queryKey: [...LEADERBOARD_KEY, board.period, board.ticker, board.rankBy ?? "pnl"],
     queryFn: ({ signal }) => readLeaderboard(signal, board),
     staleTime: POLL_MS,
     retry: false,

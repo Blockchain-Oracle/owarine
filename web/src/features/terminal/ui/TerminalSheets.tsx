@@ -10,12 +10,13 @@ import { AccountSheet, type AccountView } from "./sheets/AccountSheet";
 import { MarketsSheet, type PickerMarket } from "./sheets/MarketsSheet";
 import { AdjustSheet, PositionsSheet, ShareSheet, subjectOfPosition, type ShareSubject } from "./sheets/PositionSheets";
 import { ReplaySheet } from "./sheets/ReplaySheet";
+import { LeaderboardSheet } from "./sheets/LeaderboardSheet";
 import type { Episode } from "../replay";
 import { useState } from "react";
 import { SettingsSheet } from "./sheets/SettingsSheet";
 import { Tutorial } from "./sheets/Tutorial";
 
-export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "tutorial";
+export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "leaderboard" | "tutorial";
 
 const DAY_MS = 86_400_000;
 
@@ -83,12 +84,14 @@ export function TerminalSheets(props: {
         todayPnl={todayRealized + props.totalsPnl}
         onTour={() => onOpen("tutorial")}
         onTakeSeat={props.onTakeSeat}
+        onLeaderboard={() => onOpen("leaderboard")}
         onReplay={(row, episode) => {
           const exit = episode.samples.at(-1)?.[1] ?? null;
           setReplay({ episode, finalPnl: row.pnl, subject: { asset: row.asset, side: row.side, intervalSec: row.intervalSec, pnl: row.pnl, cost: row.cost, entry: episode.entrySpot, exit, closed: true } });
           onOpen("replay");
         }}
       />
+      <LeaderboardSheet open={open === "leaderboard"} onClose={onClose} />
       <ReplaySheet
         open={open === "replay"}
         onClose={onClose}

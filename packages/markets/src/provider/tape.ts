@@ -50,6 +50,7 @@ export interface ScanScope {
   windowEndMs: number;
   /** Fetch fills from here; must precede the window by the longest cadence. */
   lookbackSec: number;
+  publishedOnly?: boolean;
 }
 
 export interface BoardScope extends ScanScope {

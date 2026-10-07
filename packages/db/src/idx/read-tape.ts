@@ -19,6 +19,8 @@ export interface TapeMarketsQuery {
   toSec: number;
   /** Only Windows whose trading started at or after this second (their whole tape is in hand). */
   lookbackSec: number;
+  /** Only Windows somebody published a trade in: a week's or a month's board would otherwise page every empty Window. */
+  publishedOnly?: boolean;
   limit?: number;
   offset?: number;
 }
@@ -38,6 +40,7 @@ export async function tapeMarkets(sql: Sql, q: TapeMarketsQuery): Promise<IdxRow
     FROM idx_markets m LEFT JOIN idx_series s ON s.series = m.series
     WHERE m.expiry_sec >= ${q.lookbackSec} AND m.trading_start_sec >= ${q.lookbackSec}
       AND (m.expiry_sec >= ${q.fromSec} OR (m.resolved_ts_sec >= ${q.fromSec} AND m.resolved_ts_sec < ${q.toSec}))
+      AND (${!q.publishedOnly} OR EXISTS (SELECT 1 FROM idx_publications p WHERE p.market = m.market))
     ORDER BY m.expiry_sec, m.market LIMIT ${clamp(q.limit)} OFFSET ${skip(q.offset)}`;
 }
 

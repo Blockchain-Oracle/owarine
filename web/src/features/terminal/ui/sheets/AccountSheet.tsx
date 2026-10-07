@@ -104,7 +104,7 @@ function Toggle({ label, sub, on, onChange }: { label: string; sub?: string; on:
  * Tradash's Account sheet `ae`, for a seat: profile, the balance with today's P&L, the money actions, Trading and App
  * groups, and the demo reset; its Settings (mode, feedback, music, Close tolerance) and Trade history (stats + list).
  */
-export function AccountSheet({ open, onClose, initialView, mode, equity, todayPnl, onTour, onTakeSeat, onReplay }: {
+export function AccountSheet({ open, onClose, initialView, mode, equity, todayPnl, onTour, onTakeSeat, onReplay, onLeaderboard }: {
   open: boolean;
   onClose: () => void;
   initialView: AccountView;
@@ -114,6 +114,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
   onTour: () => void;
   onTakeSeat: () => void;
   onReplay: (row: HistoryRow, episode: Episode) => void;
+  onLeaderboard: () => void;
 }) {
   const [view, setView] = useState<AccountView>(initialView);
   const [viewFor, setViewFor] = useState(initialView);
@@ -178,7 +179,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
             </div>
             <Group title="TRADING">
               <Item icon={History} label="Trade history" onClick={() => setView("history")} />
-              <Item icon={Trophy} label="Leaderboard" href="/leaderboard" />
+              <Item icon={Trophy} label="Leaderboard" onClick={onLeaderboard} />
               <Item icon={Settings} label="Settings" onClick={() => setView("settings")} />
             </Group>
             <Group title="APP">
