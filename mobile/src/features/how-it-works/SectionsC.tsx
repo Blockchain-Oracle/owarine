@@ -12,7 +12,7 @@ import { Body, Card, CardHead, HIW_FONT, Label, Params, Rise, Section } from "./
 const W = HOW_IT_WORKS;
 
 /** web BuiltOn.tsx's per-brand mark height (how-it-works-canton.css `--mark-height`). */
-const MARK_HEIGHT: Record<string, number> = { canton: 26, noders: 32, bitsafe: 20 };
+const MARK_HEIGHT: Record<string, number> = { canton: 26, noders: 32 };
 
 /**
  * web WhoSeesIt.tsx (C10f, C-N34): the two-sided Leg in the pricing card's grammar — the lead, the formula box, the
@@ -56,7 +56,7 @@ export function LegSection() {
   );
 }
 
-/** web BuiltOn.tsx (C-S25): Canton Network, Noders and BitSafe, each card with its own mark (K-250), role and line. */
+/** web BuiltOn.tsx (C-S25): Canton Network and Noders, each card with its own mark (K-250), role and line. */
 export function BuiltOnSection() {
   const { name } = useTheme();
   const t = hiwTokens(name);

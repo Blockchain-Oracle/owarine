@@ -42,8 +42,7 @@ See the table in `materials/04-gtm.md`. The drafts are in `outreach.md`.
 1. **Direct:** 15 personal messages (`outreach.md`), then a demo seat for everyone who replies.
 2. **HackCanton community:** the participant Telegram, and publishing the project early on the Projects tab.
 3. **Canton forum:** a post asking for criticism of the privacy matrix, as CompressRail did. Send it once the hosted demo is live.
-4. **Wallet:** Grofty, an add-on that is not built yet.
-5. **After the hackathon:** the AppsFactory accelerator and Crowdloans; Featured App status once a node on MainNet shows activity a reviewer can verify.
+4. **After the hackathon:** the AppsFactory accelerator and Crowdloans; Featured App status once a node on MainNet shows activity a reviewer can verify.
 
 ## Next 90 days (if the thesis holds)
 

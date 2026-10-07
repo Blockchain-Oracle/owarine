@@ -2,7 +2,7 @@
  * mobile-review-hygiene (plan, iOS section "Review hygiene"): what App Review reads in the binary stays true.
  *  - `ITSAppUsesNonExemptEncryption = false` (`ios.config.usesNonExemptEncryption: false` in app.config.js);
  *  - the first-run gate says "demo credits", "no cash value" and "test network" (`SEAT.terms`, the last onboarding page);
- *  - no purchase path of any kind, and no real-money connector (the Grofty/PartyLayer rail is web-only, guideline
+ *  - no purchase path of any kind, and no real-money connector (any real-money wallet rail is web-only, guideline
  *    2.3.1): no in-app purchase or payment module in the app's manifest or source.
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -12,7 +12,7 @@ import { codeLines, readText, walkFiles } from "./walk.mjs";
 
 const CONFIG = "mobile/app.config.js";
 const GATE = "mobile/src/wallet/seat-copy.ts";
-const PURCHASE = /(expo-in-app-purchases|react-native-iap|expo-iap|react-native-purchases|@revenuecat\/|@stripe\/|@partylayer\/|grofty|StoreKit|SKPaymentQueue)/i;
+const PURCHASE = /(expo-in-app-purchases|react-native-iap|expo-iap|react-native-purchases|@revenuecat\/|@stripe\/|StoreKit|SKPaymentQueue)/i;
 
 export function mobileReviewHygiene(rule, ctx) {
   const findings = [];

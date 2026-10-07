@@ -12,7 +12,6 @@
 .hiw-built-card { display: flex; flex-direction: column; gap: 10px; }
 .hiw-built-mark { --mark-height: 26px; margin-bottom: 6px; }
 .hiw-built-card[data-sponsor="noders"] .hiw-built-mark { --mark-height: 32px; margin-bottom: 0; }
-.hiw-built-card[data-sponsor="bitsafe"] .hiw-built-mark { --mark-height: 20px; margin-block: 3px 9px; }
 .hiw-built-role { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hiw-blue); }
 @media (max-width: 900px) { .hiw-built { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) { .hiw-who-rows > div { grid-template-columns: minmax(0, 1fr); } }

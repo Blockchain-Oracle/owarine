@@ -1,5 +1,5 @@
 /**
- * Who this is built on (C-S25, C10f): Canton Network, Noders (and its AppsFactory platform) and BitSafe, each with what
+ * Who this is built on (C-S25, C10f): Canton Network and Noders (and its AppsFactory platform), each with what
  * it does for this product today, said truthfully. Pure data, shared by the web's "Built on" band and How It Works and
  * by the phone's How It Works (the phone resolves `@/` to `web/src`), so the words cannot drift between them.
  *
@@ -8,7 +8,7 @@
  * guidelines also ask for the attribution line (`CANTON_ATTRIBUTION`), which the site footer and the docs carry.
  * Every other third-party name in the product (the price sources, PreStocks) goes as plain text.
  */
-export type SponsorId = "canton" | "noders" | "bitsafe";
+export type SponsorId = "canton" | "noders";
 
 export interface Sponsor {
   id: SponsorId;
@@ -38,25 +38,16 @@ export const SPONSORS: readonly Sponsor[] = [
     id: "noders",
     name: "Noders",
     role: "The node and the hackathon",
-    line: "Noders organises HackCanton Season 3 on its AppsFactory platform and hosts the shared DevNet node (Canton 3.5.19) these packages go to next. Nothing is uploaded there yet.",
+    line: "Noders organises HackCanton Season 3 on its AppsFactory platform and hosts the shared DevNet node (Canton 3.5.19) where these packages are uploaded and the first call settled.",
     href: "https://noders.team",
     kit: "https://noders.team/brandkit",
     aspect: 961 / 320,
-  },
-  {
-    id: "bitsafe",
-    name: "BitSafe",
-    role: "Governed resolution",
-    line: "abu-pm-governance runs resolution through BitSafe's released GovernanceRules, so a two-of-three committee, not one key, records and resolves a Window. Its 14 Daml tests pass; the multi-node LocalNet run is next.",
-    href: "https://bitsafe.finance",
-    kit: "https://bitsafe.finance/brand-kit",
-    aspect: 211 / 36,
   },
 ];
 
 /** The notice Canton's trademark guidelines ask for wherever a Canton mark is used. */
 export const CANTON_ATTRIBUTION =
-  "Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. The Noders and BitSafe marks belong to their owners and are used as their brand kits allow.";
+  "Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. The Noders mark belongs to its owner and is used as its brand kit allows.";
 
 export const SPONSORS_COPY = {
   label: "Built on",

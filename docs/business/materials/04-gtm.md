@@ -12,7 +12,7 @@ A **private event-risk desk**: firm two-way prices, positions nobody else can se
 |---|---|---|---|---|
 | 1–5 | Small crypto trading desks and prop traders | Personal outreach on X and Telegram (drafts in `docs/business/outreach.md`) | A 20-minute interview, then a seat on the demo | Abu sends, 30 Sep – 2 Oct |
 | 6–8 | Canton finance builders (S1/S2 RFQ and desk teams) | GitHub and the HackCanton Telegram | A critique of the privacy design, and a try | Abu sends, 30 Sep – 2 Oct |
-| 9–10 | Canton validator and wallet operators | Canton forum post and the Grofty community | A seat, and a view of the trust boundary | Forum post after the hosted demo is live |
+| 9–10 | Canton validator and wallet operators | Canton forum post and the Canton wallet communities | A seat, and a view of the trust boundary | Forum post after the hosted demo is live |
 
 ## Who pays and how
 
@@ -24,7 +24,7 @@ A **private event-risk desk**: firm two-way prices, positions nobody else can se
 
 1. **Private positions pull size.** Test: ask 5 traders whether they have shrunk or moved a trade because it was visible. The target is 3 of 5.
 2. **No wallet install converts.** A guest seat lets a stranger place a call in under a minute. Test: 3 usability tests, timed.
-3. **Canton-native distribution.** The routes are Featured App status (needs a node on MainNet and verifiable activity), the AppsFactory accelerator, and wallet integrations such as Grofty. Test: one message to Grofty and one forum post. Neither is sent yet.
+3. **Canton-native distribution.** The routes are Featured App status (needs a node on MainNet and verifiable activity), the AppsFactory accelerator, and Canton wallet integrations. Test: one forum post. Not sent yet.
 
 ## Why this fits Canton's users
 

@@ -1,28 +1,23 @@
 ---
-title: "Built on Canton, Noders and BitSafe"
-description: "What each platform does for Agari today: the Canton ledger, the Noders DevNet node and hackathon, and BitSafe's governance engine for resolution."
+title: "Built on Canton and Noders"
+description: "What each platform does for Agari today: the Canton ledger, and the Noders DevNet node and hackathon."
 ---
 
 <SponsorLogos />
 
-Agari is built on three platforms. Each row below says what that platform does for the product **today**, and where the evidence is. Everything described runs on a local Canton sandbox; nothing is on DevNet or a hosted URL yet.
+Agari is built on two platforms. Each row below says what that platform does for the product **today**, and where the evidence is.
 
 | Platform | What it does for Agari | State |
 | --- | --- | --- |
-| **Canton Network** | The ledger. Every position is a `Leg` contract signed by its owner and the venue, so no other party's node receives it. The money rules, quotes, prints, resolution and settlement are five Daml packages written for this venue ([The Daml packages](/architecture/programs)). | Built and tested on a local Canton sandbox |
-| **Noders** | Noders organises HackCanton Season 3 on its AppsFactory platform and runs the shared DevNet node (Canton 3.5.19) the five packages go to next. Parties on that node are created in the Noders Console, and every upload is made there. | The node answers; nothing is uploaded yet |
-| **BitSafe** | `abu-pm-governance` runs resolution through BitSafe's released `GovernanceRules` (the Decentralization Manager's engine, vendored byte for byte under Apache 2.0), so a two-of-three committee, not one key, records a Window's prints and resolves or voids it. Routine Windows can run through a delegate the committee appoints and revokes. | 14 Daml tests pass; the multi-node LocalNet run is next |
+| **Canton Network** | The ledger. Every position is a `Leg` contract signed by its owner and the venue, so no other party's node receives it. The money rules, quotes, prints, resolution and settlement are five Daml packages written for this venue ([The Daml packages](/architecture/programs)). | Uploaded and vetted on the Noders DevNet node |
+| **Noders** | Noders organises HackCanton Season 3 on its AppsFactory platform and runs the shared DevNet node (Canton 3.5.19). Parties on that node are created in the Noders Console, and every upload is made there. | The five packages are vetted there and the first call settled on 6 Oct |
 
 ## Why Canton
 
 A prediction market's positions are the information a competitor wants. On a public chain, owner, side and size are readable in the block that records them. On Canton a contract goes only to its stakeholders' nodes: a `Leg` has two signatories, the owner and the venue, and an outsider's ledger query comes back empty. The app runs that query live in "Who can see this", with the request body on screen, and `Test.Privacy.testOutsiderSeesNothing` proves it in Daml. <AppLink href="/who-sees-what">Who sees what</AppLink> lists every contract and the parties that receive it.
 
-## Why governed resolution
-
-The only irreversible act in a prediction market is settlement. The venue already cannot resolve a Window (`Test.Resolution.testVenueCannotResolve`), but the resolver is still one party with one key. With BitSafe's governance engine the resolver becomes a committee: a resolve names the expected side, needs two confirmations, executes exactly once, and fails if the evidence says otherwise. `abu-pm-main` itself does not change.
-
 ## Marks and attribution
 
-Each mark above is the file its owner's published brand kit supplies, shown unmodified: [Canton](https://www.canton.network/brand-kit-trademark-use), [Noders](https://noders.team/brandkit) and [BitSafe](https://bitsafe.finance/brand-kit). Every other source Agari names, such as the exchanges, RedStone, Alpaca, Jupiter Price v3 and PreStocks, is named in plain text, because no brand kit or written permission for those marks is recorded.
+Each mark above is the file its owner's published brand kit supplies, shown unmodified: [Canton](https://www.canton.network/brand-kit-trademark-use) and [Noders](https://noders.team/brandkit). Every other source Agari names, such as the exchanges, RedStone, Alpaca, Jupiter Price v3 and PreStocks, is named in plain text, because no brand kit or written permission for those marks is recorded.
 
-Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. The Noders and BitSafe marks belong to their owners.
+Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. The Noders mark belongs to its owner.

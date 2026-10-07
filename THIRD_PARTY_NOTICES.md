@@ -81,14 +81,6 @@ Other packaged libraries retain their own notices. Examples verified in the inst
 
 `agari-events` and `agari-vault` are Rust/Anchor programs written for this port. Their design drew on published patterns (Phoenix v1's matching-loop shape, `lib-sokoban`'s slab allocator, Polymarket's `ctf-exchange` match-type split, BetDexLabs/Monaco's price-ladder idea), but a source check of `anchor/programs/agari-events/src` and `packages/core` at this stage (2026-09-15) found no code, comment or file lifted from those references or from `reference/phoenix-v1`/`reference/sokoban`. No third-party program-code credit is asserted for the engine beyond the game-reference credit above; this line is re-checked if that changes.
 
-## BitSafe governance packages
-
-`daml/vendor/bitsafe/` carries two released Daml packages from BitSafe's Decentralization Manager, byte for byte: `governance-action-v1-0.1.0.dar` (the `GovernableAction` interface that `abu-pm-governance` implements) and `governance-core-v1-0.1.0.dar` (`GovernanceRules`, used by the Daml Script tests in `pm-tests`).
-
-- Source: [DLC-link/decentralization-manager](https://github.com/DLC-link/decentralization-manager), `releases/v1/`, at commit `7b4966d` (2026-09-21).
-- Licence: Apache License 2.0. The upstream `LICENSE` and `NOTICE` ("Canton Decentralized Party Manager — Copyright 2026 BitSafe Finance") are kept beside the files; hashes and package ids are in [`daml/vendor/bitsafe/README.md`](daml/vendor/bitsafe/README.md).
-- `abu-pm-governance` itself is written for this project; it implements the interface and copies no upstream Daml source.
-
 ## Canton token standard packages
 
 `daml/vendor/splice/` carries four released Daml packages from the Splice repository, byte for byte: the CIP-0056 V1 interfaces `abu-pm-cc` implements against (`splice-api-token-metadata-v1`, `splice-api-token-holding-v1`, `splice-api-token-transfer-instruction-v1`, all 1.0.0) and the token standard's own mock registry `splice-test-token-v1` 1.0.1, which `pm-tests` uses to drive the Canton Coin rail and which is never uploaded to a participant.
@@ -105,4 +97,3 @@ The "Built on" band, How It Works (web and phone) and the docs site's "Built on"
 | --- | --- | --- |
 | Canton | `web/public/brands/canton-on-{light,dark}.svg`, the same in `docs-site/public/brands/` and `mobile/assets/logos/canton{,_dark}.svg` | [Canton brand kit and trademark use](https://www.canton.network/brand-kit-trademark-use) (`canton-logo-black.svg`, `canton-logo-white.svg`). Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. That notice is printed in the site footer and on the docs page. |
 | Noders | `noders-on-{light,dark}.svg` (logo and text, full colour, light and dark ground) | [Noders brand assets](https://noders.team/brandkit) |
-| BitSafe | `bitsafe-on-{light,dark}.svg` (primary lockup and reversed lockup) | [BitSafe brand kit](https://bitsafe.finance/brand-kit): "for partner listings, editorial use, and ecosystem integrations. Use the files exactly as supplied." |

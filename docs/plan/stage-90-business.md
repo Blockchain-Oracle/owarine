@@ -12,7 +12,7 @@
 
 ## Steps
 
-- [ ] Tue 29: six platform materials drafted as markdown (Abu uploads); project published to the Projects tab; profile on Track 2; a message to Grofty; 15 interview outreach messages; `docs/brief.md`
+- [ ] Tue 29: six platform materials drafted as markdown (Abu uploads); project published to the Projects tab; profile on Track 2; 15 interview outreach messages; `docs/brief.md`
 - [ ] Daily: an evening facts file (commits, update ids, gates) for Abu's journal entry, in his words
 - [ ] Wed 30 – Thu 1: ICP document, interview guide, at least 3 bookings
 - [ ] Thu 1 – Tue 6: at least 5 interviews; summaries only from Abu's notes

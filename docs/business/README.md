@@ -22,7 +22,7 @@ These are the drafts for the five judging criteria that score more than code, pl
 | `materials/06-pitch.md` | Upload 6 (fill in the links and one quote) | Pitch Materials |
 | `icp.md` | Working ICP, with hypotheses H1–H5 to test | ICP |
 | `interview-guide.md` | A 20–30 minute problem interview | Metrics |
-| `outreach.md` | 15 tailored drafts, plus Grofty and Noders messages | Metrics, GTM |
+| `outreach.md` | 15 tailored drafts, plus a Noders message | Metrics, GTM |
 | `usability-test-script.md` | 3 sessions: web and phone | Metrics, MVP |
 | `metrics.md` | Every metric, with its source and how to re-measure it | Metrics |
 | `privacy-matrix.md` | Who sees what, per contract and party, and the commands to prove it | MVP, Pitch |
@@ -32,13 +32,12 @@ These are the drafts for the five judging criteria that score more than code, pl
 | `deck-outline.md` | 10 slides | Pitch |
 | `demo-script.md` | The 90-second demo, adjusted to the evidence | MVP, Pitch |
 | `prior-work-disclosure.md` | The verbatim rule, the tag, the diff stat, and a README section draft | MVP (eligibility) |
-| `bitsafe.md` | The BitSafe add-on: governed resolution, the criteria verbatim with evidence, the LocalNet run plan, go/no-go | BitSafe sponsor challenge (Contribution pool) |
 
 ## What Abu does
 
 - **Every day:** click "claim mana" on the HackCanton dashboard. You need 10 separate days to reach 1,000.
 - **Every evening:** write the journal entry in your own words. Nobody else writes it.
-- **This week:** send the outreach messages in `outreach.md` (edit them first). Also send the Grofty and Noders messages.
+- **This week:** send the outreach messages in `outreach.md` (edit them first). Also send the Noders message.
 - **1–6 Oct:** run at least 5 interviews with `interview-guide.md`. Write one row per interview in the log.
 - **5–6 Oct:** run 3 usability tests with `usability-test-script.md`.
 - **Before uploading:** check the dashboard's six material hints, then upload the six files in `materials/` with the links filled in.

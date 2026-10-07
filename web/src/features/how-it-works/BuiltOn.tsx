@@ -5,7 +5,7 @@ import { HOW_IT_WORKS } from "./copy";
 import { BUILT_ON_LEAD } from "./leg";
 import { riseDelay } from "./rise";
 
-/** "Built On" (C-S25): Canton Network, Noders and BitSafe as the architecture cards, each with its own mark (K-250). */
+/** "Built On" (C-S25): Canton Network and Noders as the architecture cards, each with its own mark (K-250). */
 export function BuiltOn() {
   return (
     <section className="hiw-section" aria-label={HOW_IT_WORKS.sections.builtOn}>

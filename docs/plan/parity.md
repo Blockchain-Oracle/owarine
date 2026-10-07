@@ -276,12 +276,10 @@ Status as of 6 Oct (C10g): rows proven on the local sandbox, or as static pages 
 | C-ADD-04 | iOS first-run demo-credits gate | Additive | Partial | C11 | "Demo credits, no cash value, test network" | new | local sandbox (iOS Simulator): [c11b-ios-sim](../evidence/c11b-ios-sim.md) · [ux/c11b](../evidence/ux/c11b) |
 | C-ADD-05 | 1-minute demo lane resolved by the three oracle parties | Additive | Partial | C3 | Not in the reference (300/900/3600 s + Gap) | new | local sandbox: [c3-gate](../evidence/c3-gate-2026-09-29.md) · [c2z-r1-rehearsal](../evidence/c2z-r1-rehearsal.md) |
 | C-ADD-06 | Institutional event markets resolved by committee attestation | Additive | Partial | C6 | The reference has none | new | local sandbox: [c6-lanes](../evidence/c6-lanes-2026-09-29.md) · [c6d-gap-events](../evidence/c6d-gap-events.md) · [c6e-stocks-events](../evidence/c6e-stocks-events.md) |
-| C-ADD-07 | BitSafe governed resolution (`abu-pm-governance`) | Additive | Pending | BitSafe add-on | Never on the critical path; go/no-go Thu 1 morning | new | — |
 | C-ADD-08 | Ticket write-progress steps (desk-kit `StepProgress`) and firm-quote ring (20 s) | Additive | Partial | C1, C4 | D-081 direction choice by Abu (default K-010) | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` |
 | C-ADD-09 | Resolution timeline on `/proof/<market>` beside `ReverifyButton` | Additive | Partial | C5 | desk-kit `Timeline`; web only | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [ux/c5](../evidence/ux/c5) |
 | C-ADD-10 | Seat pool-full, draining and waitlist plates | Additive | Partial | C4 | desk-kit `EmptyState` + `CountdownRing` + `StatusDot` | new | local sandbox: [ux/c4b](../evidence/ux/c4b) · `526b332` · [c9d-seats-games](../evidence/c9d-seats-games.md) |
 | C-ADD-11 | Privacy matrix page with a runnable command; trust-boundary statement on `/proof` | Additive | Partial | C5, C10 | Web only | new | local, no ledger needed: [c10f-public](../evidence/c10f-public.md) · [ux/c10f](../evidence/ux/c10f) |
-| C-ADD-12 | Grofty money rail (PartyLayer connector, web only) | Additive | Pending | Grofty add-on | Never ships in the iOS binary | new | — |
 
 ## Owner removals carried (for traceability)
 

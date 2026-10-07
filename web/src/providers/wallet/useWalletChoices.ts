@@ -35,7 +35,7 @@ function writeRecent(id: string): void {
 export interface WalletChoices {
   /** Connectors that work in this browser now, the recent one first (RainbowKit's "Installed"): the guest seat. */
   installed: ReadonlyArray<{ wallet: DiscoveredWallet; recent: boolean }>;
-  /** Connectors offered but not available here (Masayume's "Browser" group). Empty until the Grofty connector lands. */
+  /** Connectors offered but not available here (Masayume's "Browser" group). Empty until a wallet connector lands. */
   browser: readonly KnownWallet[];
   connect(wallet: DiscoveredWallet): Promise<ConnectOutcome>;
 }

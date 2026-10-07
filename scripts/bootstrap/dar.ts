@@ -78,8 +78,7 @@ export interface RepoDar {
 }
 
 /**
- * The DevNet release set, in upload order (`devnet-r1.md` step 5). Only these go to Noders: `abu-pm-governance` is the
- * BitSafe add-on's LocalNet package (K-150) and is never part of a DevNet release, so it is not listed here.
+ * The DevNet release set, in upload order (`devnet-r1.md` step 5). Only these go to Noders.
  * `abu-pm-cc` (the Canton Coin rail) rides with R1 so one Console session uploads everything (K-249).
  */
 export const RELEASE_PACKAGES = ["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games", "abu-pm-cc"] as const;

@@ -1,6 +1,6 @@
 {
   "$comment": "Capability registry: one entry per parity row. States: `not-live` (nothing proven yet); `local` (works end to end on the local Canton sandbox stack with the real ops process, proven by every path in `evidence`; not yet on Noders DevNet or a hosted URL); `live` (on DevNet and the hosted URL: its gate has passed and `acceptanceRow` names a row in docs/plan/acceptance.md). The `capabilities-evidence` invariant fails on `local` or `live` without evidence, and on `live` without its acceptance row.",
-  "updated": "2026-10-06",
+  "updated": "2026-10-07",
   "capabilities": [
     {
       "id": "L-01",
@@ -2820,17 +2820,6 @@
       ]
     },
     {
-      "id": "C-ADD-07",
-      "capability": "BitSafe governed resolution (abu-pm-governance)",
-      "state": "not-live",
-      "dependsOn": [
-        "BitSafe add-on"
-      ],
-      "parityRow": "C-ADD-07",
-      "acceptanceRow": null,
-      "evidence": []
-    },
-    {
       "id": "C-ADD-08",
       "capability": "Ticket write-progress steps (desk-kit StepProgress) and firm-quote ring (20 s)",
       "state": "local",
@@ -2891,17 +2880,6 @@
         "docs/evidence/ux/c10f"
       ],
       "note": "Static page, checked with no ledger or ops (C10f); its commands are shown, not run there"
-    },
-    {
-      "id": "C-ADD-12",
-      "capability": "Grofty money rail (PartyLayer connector, web only)",
-      "state": "not-live",
-      "dependsOn": [
-        "Grofty add-on"
-      ],
-      "parityRow": "C-ADD-12",
-      "acceptanceRow": null,
-      "evidence": []
     },
     {
       "id": "C-X01",

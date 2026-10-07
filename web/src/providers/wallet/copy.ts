@@ -75,7 +75,7 @@ export interface KnownWallet {
 
 /**
  * Connectors offered when not available here, in RainbowKit's "Browser" group and on the Get step. Empty until the
- * Grofty connector lands (plan §F); the guest seat needs nothing installed.
+ * wallet connector lands (plan §F); the guest seat needs nothing installed.
  */
 export const KNOWN_WALLETS: readonly KnownWallet[] = [];
 

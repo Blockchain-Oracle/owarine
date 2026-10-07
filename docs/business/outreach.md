@@ -59,8 +59,5 @@ Project facts below come from their public pages (summarised in the knowledge ba
 
 ## Not interviews (sent separately, not counted in the 15)
 
-**Grofty (wallet add-on). Channel: https://t.me/Grofty_Community**
-> Hi, I'm entering HackCanton S3 with a private event-risk desk on Daml. I'd like to try the Grofty wallet with a custom Daml package for the money rail. Could I get dApp access, or a pointer to the right person?
-
 **Noders (seat quota). Channel: the HackCanton Telegram.**
 > Hi, my demo gives each visitor a guest seat, which is a party on the sandbox, so strangers can place a call without a wallet. Could my party quota be raised a little for the judging week? Separately, all my parties act through one platform user. Is a second platform account possible, so the seat split is enforced by the ledger and not only by my code?

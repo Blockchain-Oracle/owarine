@@ -7,7 +7,7 @@ Deadline:       delivery closes Fri 9 Oct 23:59 UTC.
 Capabilities:   live 0 · local 104 · not-live 117 (of 221; docs/plan/capabilities.json, refreshed by C10g on 6 Oct). A row goes live only with a DevNet acceptance row.
 Fast gate:      main on 6 Oct after C4f: typecheck green (all projects) · invariants 0 errors, 0 warnings · vitest 350 files, 2,619 tests passed, 65 skipped · db suites on Postgres 36 passed
 Daml:           abu-pm-main 0.5.2 (C2e, 6 Oct): dpm test 273 scripts green; dpm build --all on main reproduces all five released DARs byte for byte
-DAR release R1: five files in daml/released/, all uploaded and vetted on Noders 6 Oct: abu-pm-main 0.5.2, tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1 (K-316; upgrade-check clean against the 0.5.1 set). abu-pm-governance 0.1.0 (BitSafe) is LocalNet-only
+DAR release R1: five files in daml/released/, all uploaded and vetted on Noders 6 Oct: abu-pm-main 0.5.2, tickets 0.1.4, agents 0.2.2, games 0.1.2, cc 0.1.1 (K-316; upgrade-check clean against the 0.5.1 set).
 Blocked on Abu: the hosted deploy (a domain); iOS (the App Store Connect record); wallet onboarding waits on Noders (user created by the Console without a primary party, acceptance.md)
 ```
 
@@ -50,8 +50,6 @@ Blocked on Abu: the hosted deploy (a domain); iOS (the App Store Connect record)
 | **C8d** valuation lanes (OPENAIV/ANTHROPICV) | gated, said on the page (C8d) | a Pyth key entitled to `pyth-indices` (the probe still answers 403) |
 | **C10** public story | copy and docs merged | landing and `/download` updates; docs site on Coolify |
 | **C11** iOS | runs on the simulator end to end (C11b) | Abu: app name, Apple identifiers, App Store Connect record (then EAS, TestFlight and real push). Not yet run on a device |
-| **BitSafe** | B2 merged (abu-pm-governance 0.1.0, 14 Daml tests) | the LocalNet run; the Gold path's 4 Oct deadline has passed, so the contribution pool is the target |
-| **Grofty** | not started | an invite (MainNet only) |
 | **Business** | B1 drafts merged | nothing sent; 0 interviews, 0 usability tests |
 
 ## MainNet and TestNet
@@ -77,4 +75,4 @@ Everything else has a default in `decisions.md` that Abu can overrule.
 - Resting calls and the Canton Coin rail run on the local sandbox only.
 - Sensei needs a working OpenAI key (the one on this Mac answers 401), and X sign-in, trade-from-X and the relay need X API keys; each page says what it waits on (C13b). A season winner whose seat has ended cannot be paid until a later DAR (K-296).
 - The venue-mode record and the product-dependents count are ops and projection only; putting them on the ledger needs a later DAR (K-263, K-264). A private call pays back into the private bucket since abu-pm-main 0.5.2 (C2e, K-315).
-- Third-party marks (C-S25, K-250): only Canton Network, Noders and BitSafe logos are drawn, from their published brand kits; every other source, PreStocks included, is named in plain text.
+- Third-party marks (C-S25, K-250): only Canton Network and Noders logos are drawn, from their published brand kits; every other source, PreStocks included, is named in plain text.

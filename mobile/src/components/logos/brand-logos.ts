@@ -7,12 +7,12 @@ import type { ImageSource } from "expo-image";
  * PreStocks) go by their plain names on the phone: no written permission for their marks is recorded in docs/plan, so
  * none is drawn (the Coinbase entry below is not used by any screen).
  *
- * K-250 (C10f): the three platforms the product is built on are drawn from their own published brand kits — Canton
- * (canton.network/brand-kit-trademark-use), Noders (noders.team/brandkit), BitSafe (bitsafe.finance/brand-kit) — each
+ * K-250 (C10f): the two platforms the product is built on are drawn from their own published brand kits — Canton
+ * (canton.network/brand-kit-trademark-use), and Noders (noders.team/brandkit) — each
  * file as supplied, the light-ground variant on paper and the dark-ground one on ink, never recoloured.
  */
 export type BrandLogo = "x" | "coinbase";
-export type SponsorLogo = "canton" | "noders" | "bitsafe";
+export type SponsorLogo = "canton" | "noders";
 
 export const BRAND_LOGOS: Record<BrandLogo, { light: ImageSource; dark: ImageSource }> = {
   x: { light: require("../../../assets/logos/x.svg"), dark: require("../../../assets/logos/x_dark.svg") },
@@ -24,5 +24,4 @@ export const BRAND_LOGOS: Record<BrandLogo, { light: ImageSource; dark: ImageSou
 export const SPONSOR_LOGOS: Record<SponsorLogo, { light: ImageSource; dark: ImageSource }> = {
   canton: { light: require("../../../assets/logos/canton.svg"), dark: require("../../../assets/logos/canton_dark.svg") },
   noders: { light: require("../../../assets/logos/noders.svg"), dark: require("../../../assets/logos/noders_dark.svg") },
-  bitsafe: { light: require("../../../assets/logos/bitsafe.svg"), dark: require("../../../assets/logos/bitsafe_dark.svg") },
 };

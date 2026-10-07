@@ -2,7 +2,7 @@ import { SponsorMark } from "@/components/brand/SponsorMark";
 import { SPONSORS, SPONSORS_COPY } from "./sponsors";
 
 /**
- * The "Built on" row of the band (C-S25): Canton Network, Noders and BitSafe, each as its own mark in its own column
+ * The "Built on" row of the band (C-S25): Canton Network and Noders, each as its own mark in its own column
  * (K-250), what it does for this product today, and a link to it. The price sources follow in the band's second row.
  */
 export function LandingSponsors() {

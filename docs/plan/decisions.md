@@ -1097,6 +1097,12 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **User-visible:** "Who sees what on the ledger" is whole on the phone; all four tabs fit at 320 and 390 on web.
 - **Approval:** default; overrulable.
 
+### K-400 — BitSafe and Grofty are removed from the product (owner)
+- **Date / owner:** 2026-10-07 · **Abu**
+- **Rule:** the two sponsor add-ons that depend on other companies are dropped: `abu-pm-governance` and the vendored BitSafe packages leave `daml/`, the BitSafe mark leaves "Built on" (web, phone, docs site), and the Grofty connector is no longer planned. Parity rows C-ADD-07 and C-ADD-12 are removed with this entry as their record. Canton and Noders stay credited: they are the network and the node the product runs on.
+- **Unchanged:** R1's released DARs. Two comments in `abu-pm-main` still describe the single-controller accept as wallet-compatible by naming Grofty; editing them would change the released DAR bytes, so they wait for the next DAR release.
+- **Approval:** Abu, 2026-10-07.
+
 ## Open questions
 
 None. Every pending choice in the plan has a default, recorded above. Abu overrules any of them by saying so, and the change becomes a new entry.
