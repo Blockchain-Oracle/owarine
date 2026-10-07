@@ -17,3 +17,12 @@ describe("pickWindow on a staggered lane", () => {
     expect(pickWindow([older, newer], 1_065)?.marketId).toBe(older.marketId);
   });
 });
+
+describe("pickWindow with a Window it can't draw", () => {
+  const stock = w("TSLA-15m:126", 1_000, 900);
+  const token = w("TSLAx-15m:126", 1_000, 900);
+  it("prefers the quoted Window with a live spot", () => {
+    expect(pickWindow([stock, token], 1_100, () => true, (id) => id === stock.marketId)?.marketId).toBe(stock.marketId);
+    expect(pickWindow([token, stock], 1_100, () => true, (id) => id === stock.marketId)?.marketId).toBe(stock.marketId);
+  });
+});

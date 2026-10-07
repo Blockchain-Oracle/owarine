@@ -2,8 +2,8 @@
 
 import { formatCadence } from "@owarine/core/copy";
 import type { EventMarket, LaneSet } from "@owarine/core/types";
-import { useLanes } from "@owarine/markets/react";
-import { ladderSnapshot } from "@owarine/markets/runtime";
+import { ladderSpotSymbol, useLanes } from "@owarine/markets/react";
+import { ladderSnapshot, liveSpot } from "@owarine/markets/runtime";
 import { useMemo } from "react";
 import { useVenue } from "@/features/markets/useVenue";
 
@@ -32,10 +32,12 @@ export interface TerminalWindow {
  * newer Window as soon as it is priced and before the older one's cut-off. With none quoting, the trading Window that
  * closes first (it is the one about to be priced or settled); else the soonest still to start.
  */
-export function pickWindow(markets: readonly EventMarket[], nowSec: number, isQuoting: (marketId: string) => boolean = () => false): EventMarket | null {
+export function pickWindow(markets: readonly EventMarket[], nowSec: number, isQuoting: (marketId: string) => boolean = () => false, hasSpot: (marketId: string) => boolean = () => true): EventMarket | null {
   const live = markets.filter((m) => m.kind !== "event" && !m.voided && m.expirySec > nowSec);
   const trading = live.filter((m) => m.tradingStartSec <= nowSec && nowSec < m.lockAtSec).sort((a, b) => a.expirySec - b.expirySec);
-  const quoting = trading.filter((m) => isQuoting(m.marketId));
+  // A Window the screen can't draw (no live spot for what it settles on, e.g. an xStock while its price source is down)
+  // only wins when nothing else is quoted: TSLA's stock Window beats its TSLAx token Window then.
+  const quoting = trading.filter((m) => isQuoting(m.marketId)).sort((a, b) => Number(hasSpot(a.marketId)) - Number(hasSpot(b.marketId)) || a.expirySec - b.expirySec);
   if (quoting.length) return quoting.at(-1)!;
   if (trading[0]) return trading[0];
   return live.filter((m) => m.tradingStartSec > nowSec).sort((a, b) => a.tradingStartSec - b.tradingStartSec)[0] ?? null;
@@ -63,10 +65,19 @@ export function useTerminalWindow(asset: string, wantIntervalSec: number | null,
       set,
       lanes,
       intervalSec,
-      market: intervalSec === null ? null : pickWindow(markets, nowSec, (id) => {
-        const l = ladderSnapshot(id)?.ladder;
-        return l !== undefined && l.state === "quoting" && nowSec <= l.quotingUntilSec;
-      }),
+      market: intervalSec === null ? null : pickWindow(
+        markets,
+        nowSec,
+        (id) => {
+          const l = ladderSnapshot(id)?.ladder;
+          return l !== undefined && l.state === "quoting" && nowSec <= l.quotingUntilSec;
+        },
+        (id) => {
+          const l = ladderSnapshot(id)?.ladder;
+          const sym = l ? ladderSpotSymbol(l) : null;
+          return sym !== null && liveSpot(sym) !== null;
+        },
+      ),
       loading: reading === null || (reading.ok === false && set === null && !venue.venueFailure && venue.venueId === null),
       failure: venue.venueFailure ? venue.venueFailure.technical : reading && !reading.ok ? reading.error.technical : null,
     };
