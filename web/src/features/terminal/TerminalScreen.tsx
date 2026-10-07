@@ -22,6 +22,7 @@ import { stakeFor, useTradeSettings, useTradeSettingsState } from "./settings";
 import { TradeToasts, toast } from "./toasts";
 import { AssetChip, EquityPill, SettingsStack, ViewPositionPill, WindowChip } from "./ui/Chrome";
 import { PositionsList, totalsOf, UnrealizedCard } from "./ui/PositionsPanel";
+import { useReplayRecorder } from "./replay";
 import { ReactionOverlay } from "./ui/ReactionOverlay";
 import { TerminalNav } from "./ui/TerminalNav";
 import { TerminalSheets, type SheetName } from "./ui/TerminalSheets";
@@ -156,6 +157,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       });
   }, [mode, modeState.positions, seatPositions, entries, market?.marketId, linePrice]);
   const book = useLiveBook(positions);
+  useReplayRecorder(positions, book);
   const active = positions.find((p) => p.marketId === market?.marketId) ?? null;
   const activeLive = active ? (book.get(active.id) ?? null) : null;
   const totals = totalsOf(positions, book);
@@ -292,6 +294,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       book={book}
       markets={pickerMarkets}
       nowSec={nowSec}
+      spot={spot}
       totalsPnl={totals.pnl}
       closingAll={closingAll}
       onCloseAll={() => void closeAll()}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useWalletHistory } from "@owarine/markets/react";
-import { ArrowDownRight, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ArrowUpRight, ChevronRight, CircleHelp, Download, History, Settings, Trophy } from "lucide-react";
+import { ArrowDownRight, ArrowDownToLine, ArrowLeftRight, ArrowUpFromLine, ArrowUpRight, ChevronRight, CircleHelp, Download, History, Play, Settings, Trophy } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Odometer, Seal, Sheet } from "@/components/kit";
@@ -13,13 +13,16 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { moneyDecimals } from "../../format";
 import { resetDemo, setMode, useModeState, type TradeMode } from "../../mode";
 import { MUSIC_TRACKS, setTradeSettings, SLIPPAGE_CHOICES_BPS, useTradeSettings } from "../../settings";
+import { episodeFor, replayable, useEpisodes, type Episode } from "../../replay";
 import { toast } from "../../toasts";
 
 export type AccountView = "menu" | "settings" | "history";
 const tap = () => (playTrade("tap"), haptic("tap"));
 
-interface HistoryRow {
+export interface HistoryRow {
   id: string;
+  /** The Window, where the row knows it (seat rows); paper rows match their replay by id. */
+  marketId?: string;
   asset: string;
   side: "up" | "down";
   intervalSec: number;
@@ -47,7 +50,7 @@ function useHistoryRows(mode: TradeMode): { rows: HistoryRow[]; loading: boolean
   return {
     loading: false,
     rows: seat.value.rounds.map((r) => ({
-      id: `${r.marketId}:${r.openedAtMs}`, asset: r.asset, side: r.sidesTraded[0] === 1 ? "down" : "up", intervalSec: r.intervalSec, pnl: Number(r.pnlBase) / d, cost: Number(r.stakeBase) / d,
+      id: `${r.marketId}:${r.openedAtMs}`, marketId: r.marketId, asset: r.asset, side: r.sidesTraded[0] === 1 ? "down" : "up", intervalSec: r.intervalSec, pnl: Number(r.pnlBase) / d, cost: Number(r.stakeBase) / d,
       openedAtMs: r.openedAtMs, closedAtMs: r.settledAtMs ?? r.expirySec * 1000, tag: r.outcome === "closed" ? null : "SETTLED",
     })),
   };
@@ -101,7 +104,7 @@ function Toggle({ label, sub, on, onChange }: { label: string; sub?: string; on:
  * Tradash's Account sheet `ae`, for a seat: profile, the balance with today's P&L, the money actions, Trading and App
  * groups, and the demo reset; its Settings (mode, feedback, music, Close tolerance) and Trade history (stats + list).
  */
-export function AccountSheet({ open, onClose, initialView, mode, equity, todayPnl, onTour, onTakeSeat }: {
+export function AccountSheet({ open, onClose, initialView, mode, equity, todayPnl, onTour, onTakeSeat, onReplay }: {
   open: boolean;
   onClose: () => void;
   initialView: AccountView;
@@ -110,6 +113,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
   todayPnl: number;
   onTour: () => void;
   onTakeSeat: () => void;
+  onReplay: (row: HistoryRow, episode: Episode) => void;
 }) {
   const [view, setView] = useState<AccountView>(initialView);
   const [viewFor, setViewFor] = useState(initialView);
@@ -223,7 +227,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
             </Group>
           </div>
         ) : (
-          <TradeHistory rows={history.rows} loading={history.loading} />
+          <TradeHistory rows={history.rows} loading={history.loading} onReplay={onReplay} />
         )}
       </Sheet>
       <AddFunds open={funds} onClose={() => setFunds(false)} />
@@ -231,7 +235,8 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
   );
 }
 
-function TradeHistory({ rows, loading }: { rows: HistoryRow[]; loading: boolean }) {
+function TradeHistory({ rows, loading, onReplay }: { rows: HistoryRow[]; loading: boolean; onReplay: (row: HistoryRow, episode: Episode) => void }) {
+  const episodes = useEpisodes();
   const closed = rows;
   const wins = closed.filter((r) => r.pnl > 0).length;
   let streak = 0;
@@ -274,14 +279,21 @@ function TradeHistory({ rows, loading }: { rows: HistoryRow[]; loading: boolean 
           {closed.map((r) => {
             const Dir = r.side === "up" ? ArrowUpRight : ArrowDownRight;
             const roi = r.cost > 0 ? (r.pnl / r.cost) * 100 : 0;
+            const ep = episodeFor(episodes, r);
+            const canReplay = ep !== null && replayable(ep);
             return (
-              <li key={r.id} className="flex items-center gap-3 rounded-ow-card bg-ow-recessed/40 px-3 py-2.5">
+              <li
+                key={r.id}
+                onClick={canReplay ? () => (tap(), onReplay(r, ep!)) : undefined}
+                className={cn("flex items-center gap-3 rounded-ow-card bg-ow-recessed/40 px-3 py-2.5", canReplay && "cursor-pointer hover:bg-ow-recessed")}
+              >
                 <span className={cn("grid size-9 place-items-center rounded-full", r.side === "up" ? "ow-up-soft" : "ow-down-soft")}>
                   <Dir className="size-4" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5 text-ow-body font-semibold">
                     {r.asset}
+                    {canReplay ? <Play aria-label="Replayable" className="size-3.5 text-ow-pink-ink" /> : null}
                     {r.tag ? <span className="rounded bg-ow-card px-1 text-ow-micro font-bold text-ow-muted">{r.tag}</span> : null}
                   </span>
                   <span className="text-ow-micro text-ow-muted">

@@ -12,6 +12,15 @@ export function moneyDecimals(value: number): number {
   return 4;
 }
 
+/**
+ * `|value|` at `dp` decimals, rounding half up on the decimal value the screen shows — so 191.475 reads "191.48" here
+ * as it does on the Odometer, where `toFixed` would see the double 191.47499… and print "191.47".
+ */
+export function fixedText(value: number, dp: number): string {
+  const scaled = Number((Math.abs(value) * 10 ** dp).toPrecision(12));
+  return (Math.round(scaled) / 10 ** dp).toFixed(dp);
+}
+
 /** Base units → "24.54" (2 dp), or signed with a true minus ("+3.7561" / "−5.74") at magnitude decimals when `signed`. */
 export function money(base: bigint, decimals: number, signed = false): string {
   const n = Number(base) / 10 ** decimals;

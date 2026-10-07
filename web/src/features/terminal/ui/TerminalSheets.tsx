@@ -8,11 +8,14 @@ import type { TerminalPosition } from "../useTerminalTrade";
 import type { TerminalLane } from "../useTerminalWindow";
 import { AccountSheet, type AccountView } from "./sheets/AccountSheet";
 import { MarketsSheet, type PickerMarket } from "./sheets/MarketsSheet";
-import { AdjustSheet, PositionsSheet, ShareSheet } from "./sheets/PositionSheets";
+import { AdjustSheet, PositionsSheet, ShareSheet, subjectOfPosition, type ShareSubject } from "./sheets/PositionSheets";
+import { ReplaySheet } from "./sheets/ReplaySheet";
+import type { Episode } from "../replay";
+import { useState } from "react";
 import { SettingsSheet } from "./sheets/SettingsSheet";
 import { Tutorial } from "./sheets/Tutorial";
 
-export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "tutorial";
+export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "tutorial";
 
 const DAY_MS = 86_400_000;
 
@@ -37,6 +40,7 @@ export function TerminalSheets(props: {
   book: ReadonlyMap<string, LivePnlView>;
   markets: readonly PickerMarket[];
   nowSec: number;
+  spot: number | null;
   totalsPnl: number;
   closingAll: boolean;
   onCloseAll: () => void;
@@ -52,6 +56,9 @@ export function TerminalSheets(props: {
   const todayRealized = mode === "demo" ? modeState.history.filter((t) => t.closedAtMs >= since).reduce((s, t) => s + Number(t.pnlBase) / 1e6, 0) : 0;
   const accountView: AccountView = open === "history" ? "history" : open === "account-settings" ? "settings" : "menu";
   const fresh = target ? (props.positions.find((p) => p.id === target.id) ?? null) : null;
+  const [replay, setReplay] = useState<{ episode: Episode; finalPnl: number; subject: ShareSubject } | null>(null);
+  const [tradeShare, setTradeShare] = useState<ShareSubject | null>(null);
+  const shareSubject = fresh ? subjectOfPosition(fresh, props.book.get(fresh.id) ?? null, props.spot) : tradeShare;
   return (
     <>
       <MarketsSheet open={open === "markets"} onClose={onClose} markets={props.markets} current={props.symbol} onPick={props.onPickSymbol} />
@@ -76,6 +83,21 @@ export function TerminalSheets(props: {
         todayPnl={todayRealized + props.totalsPnl}
         onTour={() => onOpen("tutorial")}
         onTakeSeat={props.onTakeSeat}
+        onReplay={(row, episode) => {
+          const exit = episode.samples.at(-1)?.[1] ?? null;
+          setReplay({ episode, finalPnl: row.pnl, subject: { asset: row.asset, side: row.side, intervalSec: row.intervalSec, pnl: row.pnl, cost: row.cost, entry: episode.entrySpot, exit, closed: true } });
+          onOpen("replay");
+        }}
+      />
+      <ReplaySheet
+        open={open === "replay"}
+        onClose={onClose}
+        episode={replay?.episode ?? null}
+        finalPnl={replay?.finalPnl ?? null}
+        onShare={() => {
+          setTradeShare(replay?.subject ?? null);
+          onOpen("share", null);
+        }}
       />
       <PositionsSheet
         open={open === "positions"}
@@ -101,7 +123,7 @@ export function TerminalSheets(props: {
         onAdd={props.onAdd}
         onReduce={props.onReduce}
       />
-      <ShareSheet open={open === "share"} onClose={onClose} position={fresh} live={fresh ? (props.book.get(fresh.id) ?? null) : null} />
+      <ShareSheet open={open === "share"} onClose={onClose} subject={shareSubject} />
       <Tutorial
         open={open === "tutorial"}
         onDone={(choice) => {

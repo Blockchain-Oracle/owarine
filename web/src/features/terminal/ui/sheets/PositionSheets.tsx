@@ -7,7 +7,9 @@ import { ShareCharm, Sheet } from "@/components/kit";
 import { haptic } from "@/lib/haptics";
 import { playTrade } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
-import { multipleOf } from "../../format";
+import { formatPrice } from "../../chart/engine";
+import { fixedText, multipleOf } from "../../format";
+import { renderCharmPng, saveCharm } from "../../share-png";
 import type { TerminalPosition } from "../../useTerminalTrade";
 import { PositionsList, totalsOf, UnrealizedCard } from "../PositionsPanel";
 
@@ -145,26 +147,47 @@ type ShareMode = "pnl" | "roi" | "both";
 export function shareText(asset: string, side: "up" | "down", pnl: number, roiPct: number): string {
   const dir = side === "up" ? "Up" : "Down";
   if (roiPct >= 100) return `+${Math.round(roiPct)}% ${dir} on ${asset} on Owarine. let it ride 🚀`;
-  if (roiPct >= 25) return `+${Math.round(roiPct)}% on ${asset} (+${pnl.toFixed(2)}). green day`;
-  if (pnl >= 0) return `+${pnl.toFixed(2)} on ${asset}. up only`;
+  if (roiPct >= 25) return `+${Math.round(roiPct)}% on ${asset} (+${fixedText(pnl, 2)}). green day`;
+  if (pnl >= 0) return `+${fixedText(pnl, 2)} on ${asset}. up only`;
   if (roiPct <= -50) return `${Math.round(roiPct)}% on ${asset}. rough one, on to the next`;
-  return `${pnl.toFixed(2)} on ${asset}. taking the L, moving on`;
+  return `−${fixedText(pnl, 2)} on ${asset}. taking the L, moving on`;
 }
 
-/** The share sheet: the keychain charm with PnL / ROI / Both, and Share on X with the result's own words. */
-export function ShareSheet({ open, onClose, position, live }: { open: boolean; onClose: () => void; position: TerminalPosition | null; live: LivePnlView | null }) {
+/** What a share card is about: an open position (Mark) or a closed trade (Exit). */
+export interface ShareSubject {
+  asset: string;
+  side: "up" | "down";
+  intervalSec: number;
+  pnl: number;
+  cost: number;
+  entry: number | null;
+  exit: number | null;
+  closed: boolean;
+}
+
+/** The share subject for an open position, valued by the live book. */
+export function subjectOfPosition(p: TerminalPosition, live: LivePnlView | null, spot: number | null): ShareSubject {
+  return {
+    asset: p.asset, side: p.side, intervalSec: p.intervalSec, cost: num(p.costBasisBase, p.decimals), pnl: live && live.fillableLots > 0n ? num(live.pnlBase, p.decimals) : 0,
+    entry: p.entrySpot, exit: spot, closed: false,
+  };
+}
+
+/** The share sheet: the keychain charm with PnL / ROI / Both, Download (PNG) and Share on X with the result's own words. */
+export function ShareSheet({ open, onClose, subject }: { open: boolean; onClose: () => void; subject: ShareSubject | null }) {
   const [mode, setMode] = useState<ShareMode>("both");
-  if (!position) return null;
-  const cost = num(position.costBasisBase, position.decimals);
-  const pnl = live && live.fillableLots > 0n ? num(live.pnlBase, position.decimals) : 0;
+  const [saving, setSaving] = useState<"idle" | "preparing" | "saving" | "retry">("idle");
+  if (!subject) return null;
+  const { asset, side, pnl, cost } = subject;
   const roi = cost > 0 ? (pnl / cost) * 100 : 0;
-  const signedPnl = `${pnl >= 0 ? "+" : "−"}${Math.abs(pnl).toFixed(2)}`;
-  const signedRoi = `${roi >= 0 ? "+" : "−"}${Math.abs(roi).toFixed(1)}%`;
+  const signedPnl = `${pnl >= 0 ? "+" : "−"}${fixedText(pnl, 2)}`;
+  const signedRoi = `${roi >= 0 ? "+" : "−"}${fixedText(roi, 1)}%`;
   const result = mode === "pnl" ? signedPnl : mode === "roi" ? signedRoi : `${signedPnl} · ${signedRoi}`;
-  const call = `${position.asset} ${position.side.toUpperCase()} ${position.intervalSec % 3600 === 0 ? `${position.intervalSec / 3600}H` : `${Math.round(position.intervalSec / 60)}M`}`;
-  const intent = `https://x.com/intent/post?text=${encodeURIComponent(shareText(position.asset, position.side, pnl, roi))}&url=${encodeURIComponent(typeof window === "undefined" ? "" : `${window.location.origin}/trade/${position.asset}`)}`;
+  const call = `${asset} ${side.toUpperCase()} ${subject.intervalSec % 3600 === 0 ? `${subject.intervalSec / 3600}H` : `${Math.round(subject.intervalSec / 60)}M`}`;
+  const link = typeof window === "undefined" ? "" : `${window.location.origin}/trade/${asset}`;
+  const intent = `https://x.com/intent/post?text=${encodeURIComponent(shareText(asset, side, pnl, roi))}&url=${encodeURIComponent(link)}`;
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Share position">
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()} title={subject.closed ? "Share trade" : "Share position"}>
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-1 rounded-full bg-ow-recessed p-1">
           {(["pnl", "roi", "both"] as const).map((m) => (
@@ -174,9 +197,33 @@ export function ShareSheet({ open, onClose, position, live }: { open: boolean; o
           ))}
         </div>
         <ShareCharm call={call} result={result} win={pnl >= 0} footnote="Private on Canton · owarine" />
-        <a href={intent} target="_blank" rel="noreferrer" onClick={tap} className="flex h-12 w-full items-center justify-center rounded-full bg-ow-ink font-bold text-ow-inverse">
-          Share on X
-        </a>
+        <div className="grid w-full grid-cols-2 gap-2">
+          <button
+            type="button"
+            disabled={saving === "preparing" || saving === "saving"}
+            onClick={async () => {
+              tap();
+              try {
+                setSaving("preparing");
+                const blob = await renderCharmPng({
+                  call, result, win: pnl >= 0, entry: subject.entry ? `$${formatPrice(subject.entry)}` : null, exit: subject.exit ? `$${formatPrice(subject.exit)}` : null,
+                  exitLabel: subject.closed ? "Exit" : "Mark", url: link,
+                });
+                setSaving("saving");
+                await saveCharm(blob, `owarine-${asset.toLowerCase()}-${pnl >= 0 ? "profit" : "loss"}.png`);
+                setSaving("idle");
+              } catch {
+                setSaving("retry");
+              }
+            }}
+            className="flex h-12 items-center justify-center rounded-full bg-ow-recessed font-bold disabled:opacity-60"
+          >
+            {saving === "preparing" ? "Preparing…" : saving === "saving" ? "Saving…" : saving === "retry" ? "Retry" : "Download"}
+          </button>
+          <a href={intent} target="_blank" rel="noreferrer" onClick={tap} className="flex h-12 items-center justify-center rounded-full bg-ow-ink font-bold text-ow-inverse">
+            Share on X
+          </a>
+        </div>
       </div>
     </Sheet>
   );
