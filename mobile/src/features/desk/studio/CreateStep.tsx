@@ -1,5 +1,5 @@
-import type { DeskMandate } from "@agari/core/desk";
-import type { Address } from "@agari/core/types";
+import type { DeskMandate } from "@owarine/core/desk";
+import type { Address } from "@owarine/core/types";
 import { router } from "expo-router";
 import { FlaskConical, Rocket } from "lucide-react-native";
 import { useState } from "react";

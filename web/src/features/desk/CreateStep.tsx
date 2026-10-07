@@ -1,7 +1,7 @@
 "use client";
 
-import type { DeskMandate } from "@agari/core/desk";
-import type { Address } from "@agari/core/types";
+import type { DeskMandate } from "@owarine/core/desk";
+import type { Address } from "@owarine/core/types";
 import { BellRing, CircleCheckBig, FlaskConical, Rocket, Wallet } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";

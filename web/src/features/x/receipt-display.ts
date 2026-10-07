@@ -1,6 +1,6 @@
-import { X_RECEIPT_STATUSES, type XReceipt, type XReceiptStatus } from "@agari/core/x";
-import { isSignature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { X_RECEIPT_STATUSES, type XReceipt, type XReceiptStatus } from "@owarine/core/x";
+import { isSignature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 
 const LABELS: Record<XReceiptStatus, string> = {
   filled: "Order filled",

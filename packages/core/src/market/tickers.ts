@@ -6,7 +6,7 @@ import { CRYPTO_ROWS, CRYPTO_SYMBOLS, type CryptoSymbol } from "./crypto";
 import { PYTH_INDEX_FEEDS, VALUATION_ROWS, VALUATION_SYMBOLS, type ValuationSymbol } from "./valuation";
 
 /**
- * The equity universe Agari can list (plan §2.2, D-011).
+ * The equity universe Owarine can list (plan §2.2, D-011).
  *
  * This registry says what each ticker IS: its on-chain series id, feed ids, venue symbols and the
  * verified xStock token. It does not say whether a lane is live. That depends on a signed source

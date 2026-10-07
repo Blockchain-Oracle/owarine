@@ -1,7 +1,7 @@
 "use client";
 
-import type { BlockerContext, BlockerKind } from "@agari/core/copy";
-import type { Side } from "@agari/core/types";
+import type { BlockerContext, BlockerKind } from "@owarine/core/copy";
+import type { Side } from "@owarine/core/types";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { TICKET } from "@/lib/copy";

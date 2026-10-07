@@ -1,4 +1,4 @@
-import { isTickerSymbol, TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { earningsWithin } from "@/lib/finnhub.server";
 import type { SenseiRequest } from "./protocol";
 import { EARNINGS_DAYS, type EarningsTurn } from "./turn-lines";

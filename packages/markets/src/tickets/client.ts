@@ -5,9 +5,9 @@
  * ticket is a contract, so its id is the first 52 bits of its contract id, and this module remembers which contract
  * each id it handed out stands for.
  */
-import { err, ok, type Reading } from "@agari/core/schemas";
-import { seriesIdFromDaml } from "@agari/core/market";
-import { diagnosis, type Address } from "@agari/core/types";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import { seriesIdFromDaml } from "@owarine/core/market";
+import { diagnosis, type Address } from "@owarine/core/types";
 import { ledgerRequest } from "../provider/ledger-api";
 import { meReplyWire } from "../provider/ledger-wire";
 import {
@@ -100,7 +100,7 @@ export function forgetTicketReads(): void {
 
 // ---- prices and firm quotes -----------------------------------------------------------------------------------
 
-type Call<T> = { ok: true; value: T } | { ok: false; diagnosis: import("@agari/core/types").Diagnosis };
+type Call<T> = { ok: true; value: T } | { ok: false; diagnosis: import("@owarine/core/types").Diagnosis };
 
 export async function rangeCall(body: Record<string, unknown>): Promise<Call<RangeTicketReply>> {
   return ledgerRequest("/tickets/range", { method: "POST", body, wire: rangeTicketReplyWire });
@@ -118,7 +118,7 @@ export async function earnCall(body: Record<string, unknown>): Promise<Call<Earn
 /** A preview reply as a `Reading`: the price, or the reserve's own refusal. */
 export function asReading<R extends { kind: string }, T>(call: Call<R>, pick: (reply: R) => T | null): Reading<T> {
   if (!call.ok) return err(call.diagnosis);
-  const reply = call.value as R & { diagnosis?: import("@agari/core/types").Diagnosis };
+  const reply = call.value as R & { diagnosis?: import("@owarine/core/types").Diagnosis };
   if (reply.kind === "refused" && reply.diagnosis) return err(reply.diagnosis);
   const value = pick(call.value);
   return value === null ? err(diagnosis("unknown", `unexpected ${reply.kind} reply`)) : ok(value, nowMs());

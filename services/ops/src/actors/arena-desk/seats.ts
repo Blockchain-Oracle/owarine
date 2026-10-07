@@ -1,7 +1,7 @@
 /**
  * Seats and parties, for the duel: the ledger names parties, the room and every screen name seat addresses (the seat
  * key the browser or phone holds). The web's seat pool (`seat_pool`, the same Postgres) is the one record of which
- * address leases which party; this reads it, read-only, through the shared resolution (`@agari/db` `seatPartyFor` and
+ * address leases which party; this reads it, read-only, through the shared resolution (`@owarine/db` `seatPartyFor` and
  * `seatHolders`, C4c), and remembers every pairing it has seen for the life of the process, so a match that outlives
  * its seat's lease still shows the players who played it.
  *
@@ -13,9 +13,9 @@
  * With no database (a bare local run) nothing maps and every party reads as its derived address-shaped id
  * (`partyAddress`), which is stable and never a real seat's address, so nothing on a screen is wrong about who is who.
  */
-import type { Address } from "@agari/core/types";
-import { seatHolders, seatPartyFor, type Db } from "@agari/db";
-import { partyAddress } from "@agari/markets/ops/games";
+import type { Address } from "@owarine/core/types";
+import { seatHolders, seatPartyFor, type Db } from "@owarine/db";
+import { partyAddress } from "@owarine/markets/ops/games";
 
 export interface SeatDirectory {
   /** The seat address a party is known by, or its derived id. Synchronous: call `learn` first for fresh parties. */

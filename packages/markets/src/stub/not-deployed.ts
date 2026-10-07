@@ -1,11 +1,11 @@
-import { err, type ReadingErr } from "@agari/core/schemas";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
+import { err, type ReadingErr } from "@owarine/core/schemas";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
 import { ReadingError } from "../errors/reading-error";
 
 /**
  * The one honest answer the C1 stub gives for anything that needs the ledger (the reference's D-015, carried to Canton).
  *
- * `@agari/markets` keeps the reference's export map and hook names, but until the Daml packages are on a participant
+ * `@owarine/markets` keeps the reference's export map and hook names, but until the Daml packages are on a participant
  * (C2) and the Canton adapter lands (C4) there is no market, ladder, print, balance or ledger clock to read. Every
  * ledger read returns this diagnosis instead of a fabricated value, and every write is refused with it before anything
  * is journaled or signed.

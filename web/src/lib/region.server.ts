@@ -13,7 +13,7 @@ import { isRestrictedCountry, REGION_HEADER, RESTRICTED } from "./region-mark";
  */
 export function regionRestricted(req: Request): boolean {
   if (req.headers.get(REGION_HEADER) === RESTRICTED) return true;
-  if (isRestrictedCountry(process.env.AGARI_REGION_OVERRIDE)) return true;
+  if (isRestrictedCountry(process.env.OWARINE_REGION_OVERRIDE)) return true;
   return isRestrictedCountry(visitorCountry(req));
 }
 

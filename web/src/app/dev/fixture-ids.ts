@@ -4,7 +4,7 @@
  * fixture keeps its identity (and stays distinct) while every value passes the real `Address`/`MarketId`/`Signature`
  * checks at render time. Nothing here is a real account.
  */
-import { encodeBase58, toAddress, toMarketId, toSignature, type Address, type MarketId, type Signature } from "@agari/core/types";
+import { encodeBase58, toAddress, toMarketId, toSignature, type Address, type MarketId, type Signature } from "@owarine/core/types";
 
 function padded(hexOrNumber: string | number | bigint, width: number): Uint8Array {
   const value = typeof hexOrNumber === "string" ? BigInt(hexOrNumber.startsWith("0x") ? hexOrNumber : `0x${hexOrNumber}`) : BigInt(hexOrNumber);

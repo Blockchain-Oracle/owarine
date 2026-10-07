@@ -1,7 +1,7 @@
 "use client";
 
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import type { Signature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
 import type { ReactNode } from "react";
 import { CONTROLS, MONEY } from "./copy-controls";

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { encodeBase58, toAddress, toSignature } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
+import { encodeBase58, toAddress, toSignature } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
 import { completeCopySetup, type CopySetupInput, type CopySetupPorts } from "./copy-setup";
 import type { CopyProgress } from "./copy-progress";
 

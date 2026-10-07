@@ -1,4 +1,4 @@
-import { MAKER_NOT_DEPLOYED } from "@agari/core/maker";
+import { MAKER_NOT_DEPLOYED } from "@owarine/core/maker";
 
 /**
  * `/earn` — the reference's words (`app/earn/page.tsx`), facts adapted to DreamDEX: the vault is not the
@@ -16,7 +16,7 @@ export const EARN = {
     paused: "Paused · maker vault",
     /** Canton: the venue's issuer quotes for the vault only while `MAKER_MODE=vault` is on. */
     noMaker: "Maker off · no new quotes",
-    brand: "Agari MM",
+    brand: "Owarine MM",
     perShare: "/ share",
     sinceLaunch: "Up from 1.0000 at launch",
     belowLaunch: (noun: string) => `Below 1.0000 — the ${noun} is carrying a loss`,

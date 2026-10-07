@@ -1,18 +1,15 @@
-# HackCanton Season 3 — a prediction market on Canton (working name)
+# Owarine 終値
 
-A port of Abu's prediction market, web and iOS, from Solana to **Canton and Daml**, entered in HackCanton League Season 3, Track 2 (Financial Applications). The plan: Up/Down calls on short price windows for stocks and crypto, with games, agents and desks, designed so that each position is visible only to its owner and the venue. The core loop (take a seat, make a call, settle on a signed price, get paid) runs end to end on a local Canton sandbox; DevNet and a hosted URL come next.
-
-The product name is not chosen yet; the code still carries the reference's identity until the rename step.
+**Call the close.** Owarine (終値, "closing price") is a prediction market on **Canton and Daml**, on the web and as a native phone app: Up/Down calls on short price Windows for stocks and crypto, with games, agents and desks. Every position is a contract signed by its owner and the venue, so no one else's node ever receives it. Entered in HackCanton League Season 3, Track 2 (Financial Applications).
 
 ## Status
 
-Everything proven so far runs on a **local Canton sandbox** (Canton 3.5.17, dpm 3.5.10). Nothing is on Noders DevNet yet and there is no hosted URL. The native iPhone app has not run against Canton: it typechecks only.
+- **On Noders DevNet:** five Daml packages uploaded and vetted, the venue bootstrapped, and the first call passed on 6 Oct from four viewpoints: a seat took a firm quote and accepted it, the owner saw its position, an outsider's query returned nothing, three oracles attested, the resolver settled it, a void refunded stake and fee, and a stale refund worked with the venue's operations stopped. Every command is logged, failures included, in [`docs/plan/acceptance.md`](docs/plan/acceptance.md).
+- **Daml:** `abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents`, `abu-pm-games` and the Canton Coin rail `abu-pm-cc`, with the `pm-tests` Daml Script suite, all written in the window. `daml/released/` holds the uploaded files; `dpm build --all` reproduces them byte for byte.
+- **Phone:** the iPhone app runs end to end on the iOS Simulator against a local stack; TestFlight and an Android build come next.
+- **Capabilities:** [`docs/plan/capabilities.json`](docs/plan/capabilities.json) records each one's state and evidence; the `capabilities-evidence` invariant fails anything marked live without its DevNet row.
 
-- **Daml:** four packages (`abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents`, `abu-pm-games`) and the `pm-tests` Daml Script suite, all written in the window.
-- **Capabilities:** in [`docs/plan/capabilities.json`](docs/plan/capabilities.json), 49 of 221 are `local` (each cites its evidence note in [`docs/evidence/`](docs/evidence/)) and none is `live`. A capability becomes `live` only when its DevNet acceptance row exists; the `capabilities-evidence` invariant enforces that.
-- **Waiting on Abu:** Noders onboarding (DevNet), the App Store Connect record (iOS), the domain (hosting).
-
-Where a surface is not connected yet, the app says so ("Not connected yet · waiting on …") instead of showing invented data. [`docs/plan/STATUS.md`](docs/plan/STATUS.md) has the numbers by stage and what is in flight; the plan starts at [`docs/plan/00-plan.md`](docs/plan/00-plan.md).
+[`docs/plan/STATUS.md`](docs/plan/STATUS.md) has the numbers by stage; the plan starts at [`docs/plan/00-plan.md`](docs/plan/00-plan.md).
 
 ## Run it locally
 
@@ -29,13 +26,13 @@ pnpm install
 dpm sandbox --json-api-port 7575
 
 # 3. Bootstrap it: upload the DARs, allocate the venue parties, create the Series, cash shards,
-#    ticket reserves, arena and a guest-seat pool; writes ~/.config/agari/canton/parties.json.
+#    ticket reserves, arena and a guest-seat pool; writes ~/.config/owarine/canton/parties.json.
 #    It refuses anything but an unauthenticated local sandbox.
 LEDGER_JSON_API_URL=http://127.0.0.1:7575 LEDGER_AUTH_MODE=none \
-  pnpm --filter @agari/scripts exec tsx bootstrap-local.ts --seats 6
+  pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts --seats 6
 
 # 4. Environment: copy the examples and fill them in (DATABASE_URL, OPS_INTERNAL_SECRET,
-#    AGARI_SEAT_COOKIE_SECRET, AGARI_PARTIES_FILE, LEDGER_JSON_API_URL=http://127.0.0.1:7575, LEDGER_AUTH_MODE=none)
+#    OWARINE_SEAT_COOKIE_SECRET, OWARINE_PARTIES_FILE, LEDGER_JSON_API_URL=http://127.0.0.1:7575, LEDGER_AUTH_MODE=none)
 cp .env.example .env.local
 cp services/ops/.env.example services/ops/.env.local
 cp web/.env.example web/.env.local
@@ -53,12 +50,12 @@ Then open `/markets`, take a guest seat (the browser makes its key; the venue le
 
 The Rules: "Work submitted for judging must be done during the delivery phase, September 18 – October 9, 2026. You may build on a pre-existing codebase, but you must disclose it, and the work done during the hackathon must be clearly identifiable. Judges evaluate only that work."
 
-**Prior work.** Commit `6f3f3cf`, tagged **`hackcanton-s3-start`**, imports Agari, Abu's prediction market on Solana (web, native iOS app, packages, ops, docs site) at `661a24ee`, without its Solana programs. Agari's own commits of 14–27 Sep were made for a separate Solana hackathon and count as prior work here. Lineage: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and [`docs/plan/references.md`](docs/plan/references.md).
+**Prior work.** Owarine was called Agari before 7 Oct. Commit `6f3f3cf`, tagged **`hackcanton-s3-start`**, imports Agari, Abu's prediction market on Solana (web, native iOS app, packages, ops, docs site) at `661a24ee`, without its Solana programs. Agari's own commits of 14–27 Sep were made for a separate Solana hackathon and count as prior work here. Lineage: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) and [`docs/plan/references.md`](docs/plan/references.md).
 
 **Built in the window.** Everything after the tag:
-- the four Daml packages and their Daml Script tests (`daml/`, all new);
+- the five Daml packages and their Daml Script tests (`daml/`, all new);
 - the JSON Ledger API v2 client (`packages/ledger`);
-- the Canton adapter behind `@agari/markets`;
+- the Canton adapter behind `@owarine/markets`;
 - the venue operations (`services/ops`);
 - the seat, privacy-view, proof and receipt surfaces on the web.
 

@@ -1,11 +1,11 @@
 import type { NextRequest } from "next/server";
-import { classifyRejection } from "@agari/markets/server";
+import { classifyRejection } from "@owarine/markets/server";
 import { diagnosisReply, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**
  * The seat's Canton Coin path (C7b): what it deposited and may take back (its allowance), its cash, its receipts and
  * pending asks, the token-standard coin it holds, the listing's stated rate and the venue's latest reserve statement.
- * Read AS the leased party only. While the capability is `not-live` (`@agari/core/cc`) it says so, with the reason.
+ * Read AS the leased party only. While the capability is `not-live` (`@owarine/core/cc`) it says so, with the reason.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

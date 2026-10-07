@@ -1,7 +1,7 @@
-import { roomRef, stakeTier, type DeckCommitment, type DuelMode, type MatchPlayers, type ServerMessage, type StakeTierId } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32 } from "@agari/core/types";
-import { getArenaMatch } from "@agari/markets/games";
+import { roomRef, stakeTier, type DeckCommitment, type DuelMode, type MatchPlayers, type ServerMessage, type StakeTierId } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { getArenaMatch } from "@owarine/markets/games";
 import type { RoomContext } from "../game-room/handlers";
 
 /**

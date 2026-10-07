@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { NEWS } from "./copy";
 
 /** The page head (reference `app/news/page.tsx`); `symbol` names the ticker the wire is narrowed to. */

@@ -1,10 +1,10 @@
 "use client";
 
-import { RANGE_STAKE_HEADROOM_BPS, moonshotPayoutCapBase, type RangeMode, type RangeReserveState } from "@agari/core/range";
-import { isOk } from "@agari/core/schemas";
-import type { MarketId, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet } from "@agari/markets/react";
+import { RANGE_STAKE_HEADROOM_BPS, moonshotPayoutCapBase, type RangeMode, type RangeReserveState } from "@owarine/core/range";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil, oneUnit, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { Rocket, Wallet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

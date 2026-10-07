@@ -1,9 +1,9 @@
 /**
- * `@agari/markets/ops/indexer`: the reference indexer's chain access and event decode. On Canton the indexer becomes the
+ * `@owarine/markets/ops/indexer`: the reference indexer's chain access and event decode. On Canton the indexer becomes the
  * projector over `/v2/updates` as the venue (C3); until then every read refuses as not live and nothing is decoded.
- * The wire shapes are kept so `services/ops` and `@agari/db` keep compiling their rows. Server-only.
+ * The wire shapes are kept so `services/ops` and `@owarine/db` keep compiling their rows. Server-only.
  */
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { opsNotLive } from "../shapes";
 
 type Numeric = number | bigint | string;
@@ -95,8 +95,8 @@ export interface IndexerRpc {
 }
 
 /** The reference's program id has no Canton meaning; the venue's package name replaces it in C3. */
-export const AGARI_EVENTS_PROGRAM_ID = "";
-export const AGARI_VAULT_PROGRAM_ID = "";
+export const OWARINE_EVENTS_PROGRAM_ID = "";
+export const OWARINE_VAULT_PROGRAM_ID = "";
 
 const refuse = async (): Promise<never> => {
   throw opsNotLive("ops/indexer");
@@ -113,7 +113,7 @@ export async function createIndexerRpc(_config: IndexerRpcConfig): Promise<Index
   };
 }
 
-export async function eventAuthorityOf(_programId = AGARI_EVENTS_PROGRAM_ID): Promise<string> {
+export async function eventAuthorityOf(_programId = OWARINE_EVENTS_PROGRAM_ID): Promise<string> {
   throw opsNotLive("ops/indexer");
 }
 

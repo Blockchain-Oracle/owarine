@@ -1,5 +1,5 @@
-import { DESK_PRESETS, MANDATE_MAX_TOKENS, nameOf, presetById } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import { DESK_PRESETS, MANDATE_MAX_TOKENS, nameOf, presetById } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
 import { Plus, RotateCcw, Scale, X } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from "react-native-reanimated";

@@ -1,9 +1,9 @@
 "use client";
 
-import { ownCentsOf } from "@agari/core/orders";
-import type { Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import { ownCentsOf } from "@owarine/core/orders";
+import type { Signature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import type { ReactNode } from "react";
 import { Hash, Money, Odds } from "@/components/data";
 import { ErrorState } from "@/components/states";

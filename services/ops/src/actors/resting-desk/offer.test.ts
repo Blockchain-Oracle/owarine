@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { LedgerClient } from "@agari/ledger";
-import { marketIdFromDaml } from "@agari/core/market";
-import { restingOfferReplyWire } from "@agari/markets";
-import type { Active, TermsC } from "@agari/markets/ops/canton";
+import type { LedgerClient } from "@owarine/ledger";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { restingOfferReplyWire } from "@owarine/markets";
+import type { Active, TermsC } from "@owarine/markets/ops/canton";
 import { jsonText } from "../../http/health";
 import { createLadderBoard } from "../market-maker/seat/ladder-board";
 import { offer, type OfferDeps } from "./offer";

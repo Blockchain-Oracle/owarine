@@ -1,7 +1,7 @@
 "use client";
 
-import { LAUNCH_TICKERS } from "@agari/core/market";
-import { ok } from "@agari/core/schemas";
+import { LAUNCH_TICKERS } from "@owarine/core/market";
+import { ok } from "@owarine/core/schemas";
 import { SectionHeader } from "@/components/chrome";
 import { HeroAssetChartView } from "@/features/markets/hero/HeroAssetChart";
 import { NextWindowCardView } from "@/features/markets/lanes/NextWindowCard";

@@ -1,6 +1,6 @@
 "use client";
 
-import { isTickerSymbol } from "@agari/core/market";
+import { isTickerSymbol } from "@owarine/core/market";
 import { useSearchParams } from "next/navigation";
 import { NewsFeed } from "./NewsFeed";
 import { NewsHead } from "./NewsHead";

@@ -1,6 +1,6 @@
-import { diagnosisCopy, formatCadence } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@agari/core/types";
-import { formatBaseUnits, formatUtc, secToMs, shortHex } from "@agari/core/units";
+import { diagnosisCopy, formatCadence } from "@owarine/core/copy";
+import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@owarine/core/types";
+import { formatBaseUnits, formatUtc, secToMs, shortHex } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { itemKey, legWords, progressCounts } from "@/features/markets/claims/claim-run";
 import type { ClaimItem, ClaimRun } from "@/features/markets/claims/types";

@@ -1,7 +1,7 @@
-import { settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
-import type { Address, MarketId } from "@agari/core/types";
-import { oneUnit } from "@agari/core/units";
-import { ok, type Reading } from "@agari/core";
+import { settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@owarine/core/projection";
+import type { Address, MarketId } from "@owarine/core/types";
+import { oneUnit } from "@owarine/core/units";
+import { ok, type Reading } from "@owarine/core";
 import type { BoardData } from "@/features/leaderboard";
 import { DECIMALS, FIXED_NOW_MS, TX_HASH } from "../states/fixtures";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";

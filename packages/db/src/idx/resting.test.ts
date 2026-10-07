@@ -17,9 +17,9 @@ import type { IdxFact, IdxUpdate } from "./types";
 
 const URL_ = process.env.SEAT_PG_URL;
 const NS = "c7c_resting_test";
-const VENUE = "agari-venue::1220bb";
-const ALICE = "agari-user-seat-1::1220aa";
-const BOB = "agari-user-seat-2::1220cc";
+const VENUE = "owarine-venue::1220bb";
+const ALICE = "owarine-user-seat-1::1220aa";
+const BOB = "owarine-user-seat-2::1220cc";
 const STREAM = "venue";
 const T = 1_790_000_000;
 const LEASE: IdxSeatLease = { party: ALICE, fromOffset: 1 };

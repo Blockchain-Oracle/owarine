@@ -1,4 +1,4 @@
-import { reverify, sha256Hex, type SourceInput } from "@agari/core/proof";
+import { reverify, sha256Hex, type SourceInput } from "@owarine/core/proof";
 import type { ReverifyResult } from "@/features/proof";
 import { buildProofView, toProofResolution, type CantonProofView, type PrintRowWire, type WindowRowWire } from "@/features/proof/canton-proof";
 import { party, updateId, VENUE, RESOLVER } from "../canton-ids";
@@ -9,9 +9,9 @@ import { party, updateId, VENUE, RESOLVER } from "../canton-ids";
  * values; the views and reports are built by the same code the live page runs.
  */
 const T = Math.floor(Date.UTC(2026, 8, 29, 14, 35, 0) / 1000);
-const CB = party("agari-oracle-coinbase-r1", "0a1b2c3d4e5f6071");
-const KR = party("agari-oracle-kraken-r1", "1b2c3d4e5f607182");
-const BS = party("agari-oracle-bitstamp-r1", "2c3d4e5f60718293");
+const CB = party("owarine-oracle-coinbase-r1", "0a1b2c3d4e5f6071");
+const KR = party("owarine-oracle-kraken-r1", "1b2c3d4e5f607182");
+const BS = party("owarine-oracle-bitstamp-r1", "2c3d4e5f60718293");
 const ORACLES = [CB, KR, BS];
 
 const coinbaseBody = (boundary: number, close: string) => `[[${boundary - 60},1,2,1.5,${close},3]]`;

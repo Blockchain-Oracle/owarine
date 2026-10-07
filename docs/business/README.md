@@ -7,7 +7,7 @@ These are the drafts for the five judging criteria that score more than code, pl
 1. **The six materials' exact names are not known.** The Opening Ceremony said publishing needs "six materials", uploaded as markdown files with hints on the dashboard. The names and hints were never captured (`s3-updates-2026-09-29.md`: "UNVERIFIED"). The six files in `materials/` are named for the six judging criteria, which is the likeliest match. **Abu:** check the dashboard hints, then rename or merge the files to match before uploading.
 2. **Everything proven so far runs on a local Canton sandbox.** Nothing has run yet on Noders DevNet, on a hosted URL, or in the iOS app against Canton. Every file says this where it matters. Update the files when those land.
 3. **No interviews or usability tests have happened yet.** Every validation field is empty, on purpose. Fill them from Abu's own notes only.
-4. **The app still shows the name "Agari"** (K-007: neutral until Abu names it). If he renames it, search and replace "Agari" in these files.
+4. **The app still shows the name "Owarine"** (K-007: neutral until Abu names it). If he renames it, search and replace "Owarine" in these files.
 
 ## Index
 

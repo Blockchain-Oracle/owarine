@@ -1,4 +1,4 @@
-import { crowdFlow, type Db } from "@agari/db";
+import { crowdFlow, type Db } from "@owarine/db";
 import type { SentimentReading } from "@/features/news/protocol";
 
 /** Spec §1.5 (Q-S13-1): the last hour of flow; below 20 fills the share is not a reading. */

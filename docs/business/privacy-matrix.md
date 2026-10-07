@@ -60,7 +60,7 @@ Look for `Test.Privacy:testOutsiderSeesNothing` and `Test.Privacy:testUserSeesOn
 **2. The live routes against a real sandbox and a real `next start`.** From the header of `scripts/drive/seat-routes-it.ts`: a sandbox on :7595 loaded with the `abu-pm-main` DAR, Postgres on :5434, and `pnpm build` done.
 
 ```sh
-pnpm --filter @agari/scripts exec tsx drive/seat-routes-it.ts
+pnpm --filter @owarine/scripts exec tsx drive/seat-routes-it.ts
 ```
 
 Among its 38 checks:

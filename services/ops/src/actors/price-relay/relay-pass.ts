@@ -4,8 +4,8 @@
  * S6 lane dispatch (session-lanes.md §6): Gap archive opens (6a) take their slots first; Switchboard and token
  * attested slots go to their lane passes (6b). Gap slots otherwise ride the same (source, T) units as Regular ones.
  */
-import { emptySlots, inBatches, recordPythBoundary, recordRedstoneSlot, type PrintSlot, type SlotOutcome } from "@agari/markets/ops/prints";
-import type { OpsClient } from "@agari/markets/ops";
+import { emptySlots, inBatches, recordPythBoundary, recordRedstoneSlot, type PrintSlot, type SlotOutcome } from "@owarine/markets/ops/prints";
+import type { OpsClient } from "@owarine/markets/ops";
 import type { PassResult } from "../../runtime/actor";
 import { isPythIndexFeed } from "../../runtime/pyth-entitlement";
 import { recordAttested, type AttestedContext } from "./attest-sign";

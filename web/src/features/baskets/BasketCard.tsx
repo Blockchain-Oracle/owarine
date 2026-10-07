@@ -1,8 +1,8 @@
 "use client";
 
-import { TICKERS, type Basket } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import { TICKERS, type Basket } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { Countdown } from "@/components/data";
 import { LogoStack, Sparkline } from "@/components/ui/desk-kit";

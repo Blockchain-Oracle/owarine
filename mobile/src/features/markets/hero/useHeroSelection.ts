@@ -1,5 +1,5 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket, Lane, LaneSet, MarketId } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, Lane, LaneSet, MarketId } from "@owarine/core/types";
 import { findMarket, useResolveDeepLink } from "@/lib/deep-link";
 
 export interface HeroSelection {

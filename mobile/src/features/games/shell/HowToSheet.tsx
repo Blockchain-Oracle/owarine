@@ -1,4 +1,4 @@
-import type { GameId } from "@agari/core/games";
+import type { GameId } from "@owarine/core/games";
 import { StyleSheet, Text, View } from "react-native";
 import { GAMES } from "@/features/games/copy";
 import { FONT } from "~/theme";

@@ -8,8 +8,8 @@
  * relay stops asking the gateway for a boundary it no longer serves. The admission rule is unchanged: past
  * `T + strict_sec` the engine needs `threshold` (3) packages, and every archived package carries its original signature.
  */
-import { archivedAtBoundary, isDbConfigured } from "@agari/db";
-import { inBatches, recordRedstoneSlot, type PrintSlot, type SlotOutcome } from "@agari/markets/ops/prints";
+import { archivedAtBoundary, isDbConfigured } from "@owarine/db";
+import { inBatches, recordRedstoneSlot, type PrintSlot, type SlotOutcome } from "@owarine/markets/ops/prints";
 import type { LanePassResult } from "./lane-pass";
 import type { RelayContext } from "./relay-pass";
 import { feedAt } from "./redstone-fetch";

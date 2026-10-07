@@ -1,7 +1,7 @@
-import type { OrderOutcome } from "@agari/core/ports";
-import type { XReceipt, XRefusalCode } from "@agari/core/x";
+import type { OrderOutcome } from "@owarine/core/ports";
+import type { XReceipt, XRefusalCode } from "@owarine/core/x";
 import { REFUSAL_DETAILS } from "./reply-format";
-import type { Diagnosis } from "@agari/core/types";
+import type { Diagnosis } from "@owarine/core/types";
 
 type OutcomeReceipt = Pick<XReceipt, "status" | "reason" | "txHash" | "refusalCode" | "bookedCostBase" | "bookedContractsRaw" | "avgPriceBps">;
 

@@ -1,8 +1,8 @@
-import { formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import { formatCadence, TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useTick } from "@agari/markets/react";
+import { formatSessionSpan, sessionCountdown } from "@owarine/core/copy";
+import { formatCadence, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { useTick } from "@owarine/markets/react";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { formatDayChange } from "@/features/markets/asset-history/day-change";

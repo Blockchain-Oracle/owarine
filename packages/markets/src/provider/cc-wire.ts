@@ -4,7 +4,7 @@
  * are integer strings on the wire and stay strings here: the screens format them with `formatBaseUnits`, they never
  * compute with them as a float.
  */
-import { diagnosisSchema } from "@agari/core/types";
+import { diagnosisSchema } from "@owarine/core/types";
 import { z } from "zod";
 
 const digits = z.string().regex(/^\d{1,20}$/, "a non-negative integer string");

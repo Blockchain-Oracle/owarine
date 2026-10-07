@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket } from "@agari/core/types";
-import { bpsToOddsCents } from "@agari/core/units";
-import { useBook } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket } from "@owarine/core/types";
+import { bpsToOddsCents } from "@owarine/core/units";
+import { useBook } from "@owarine/markets/react";
 
 export interface TopOfBook {
   /** Cents to buy $1 of UP, from the best resting ask; null when nothing rests there. */

@@ -3,7 +3,7 @@
  * Same rules as `../canton/decode.ts`: Daml `Int` → `bigint` (small counters → safe `number`), `Time` → epoch seconds,
  * `Optional` → `null` when absent, variants as `{ tag, value }`, enums as their constructor name.
  */
-import { fromDamlInt, type ContractId, type Party } from "@agari/ledger/pure";
+import { fromDamlInt, type ContractId, type Party } from "@owarine/ledger/pure";
 import { DecodeError, timeSec, type Side } from "../canton/decode";
 
 type Raw = Record<string, unknown>;

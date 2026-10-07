@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X } from "lucide-react-native";
-import { diagnosisCopy } from "@agari/core/copy";
+import { diagnosisCopy } from "@owarine/core/copy";
 import { FUNDING } from "@/features/funding/copy";
 import { useSeatCredit } from "@/features/funding/useSeatCredit";
 import { useWalletSession } from "@/lib/wallet-session";

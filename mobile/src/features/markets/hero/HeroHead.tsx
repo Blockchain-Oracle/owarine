@@ -1,5 +1,5 @@
-import { neededMove } from "@agari/core/market";
-import type { Lane } from "@agari/core/types";
+import { neededMove } from "@owarine/core/market";
+import type { Lane } from "@owarine/core/types";
 import type { ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { assetPairUnit, assetPriceLine } from "@/features/markets/hero/units";

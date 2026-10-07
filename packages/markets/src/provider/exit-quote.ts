@@ -4,11 +4,11 @@
  * is the last level reached padded down, the mirror of `quote_stake`'s padding, and `minProceeds` is what a fill at
  * that limit pays at least. Null when nothing would fill; a Window that is not trading is an error reading.
  */
-import { ONCHAIN_STATUS } from "@agari/core/lifecycle";
-import { exitWalk, outcomeLevels } from "@agari/core/market";
-import type { QuoteTarget } from "@agari/core/ports";
-import type { Reading } from "@agari/core/schemas";
-import { diagnosis, type ExitQuote, type Side } from "@agari/core/types";
+import { ONCHAIN_STATUS } from "@owarine/core/lifecycle";
+import { exitWalk, outcomeLevels } from "@owarine/core/market";
+import type { QuoteTarget } from "@owarine/core/ports";
+import type { Reading } from "@owarine/core/schemas";
+import { diagnosis, type ExitQuote, type Side } from "@owarine/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { readBook, readMarket, readSeries, type BookState, type SeriesFacts } from "../runtime/accounts";
 import { BOOK_LEVELS, bookFilter, onchainStatus } from "../runtime/mappers";

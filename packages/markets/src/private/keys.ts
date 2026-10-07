@@ -1,4 +1,4 @@
-import { decodeBase58, type Hash32, type Signature } from "@agari/core/types";
+import { decodeBase58, type Hash32, type Signature } from "@owarine/core/types";
 
 /** The three keys one private bet uses on the ledger, derived from one secret the owner and the desk alone hold. */
 export interface SlotKeys {

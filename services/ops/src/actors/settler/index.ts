@@ -8,13 +8,13 @@
  * Deleted with the Solana settler: sweep, redeem-for with ATA create, release book, close ledger, close market,
  * seats and retention. The print-wait and void decisions moved to the resolver, which reuses `decide.ts`.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { getDb, openDependentSpans } from "@agari/db";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { getDb, openDependentSpans } from "@owarine/db";
 import {
   cmd, decodeLeg, decodeNettedResidual, decodeResolution, failureText, inactiveCids, isInactive, learnTerms, legBookOf, pick, readActive, refusalId,
   residualCommandId, settleBatchCommandId, submit, type Active, type LegC, type ResolutionC, type RoleSession, type TermsC,
-} from "@agari/markets/ops/canton";
-import { bcmd } from "@agari/markets/ops/book";
+} from "@owarine/markets/ops/canton";
+import { bcmd } from "@owarine/markets/ops/book";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
 import { createVenueContext, type VenueContext } from "../venue/context";

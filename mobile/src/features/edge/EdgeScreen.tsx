@@ -1,5 +1,5 @@
-import { computeTraderEdge } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
+import { computeTraderEdge } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
 import { router } from "expo-router";
 import { useMemo, useState, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";

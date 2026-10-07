@@ -1,11 +1,11 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { useReadingQuery } from "@owarine/markets/react";
 import { auditPayloadSchema, type AuditPayload } from "./audit";
 
 const POLL_MS = 30_000;
-export const AUDIT_KEY = ["agari", "stats", "audit"] as const;
+export const AUDIT_KEY = ["owarine", "stats", "audit"] as const;
 
 async function readAudit(): Promise<Reading<AuditPayload>> {
   const response = await fetch("/api/stats/audit", { cache: "no-store" });

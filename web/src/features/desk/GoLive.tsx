@@ -1,6 +1,6 @@
 "use client";
 
-import { DESK_MINTS, type DeskMainnetSession } from "@agari/markets/desk";
+import { DESK_MINTS, type DeskMainnetSession } from "@owarine/markets/desk";
 import { useEffect, useState } from "react";
 import { DESK } from "./copy";
 import { GO_LIVE } from "./copy-controls";

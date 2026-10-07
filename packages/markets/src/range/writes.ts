@@ -4,9 +4,9 @@
  * cap), then the seat's own `RangeQuote_Accept`. Settle and claim are the owner's `Round_Claim` against the Window's
  * resolution; the stale void is `Round_RefundStale`. Supply and withdraw go to the range reserve's Earn quotes.
  */
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import type { RangeIntent } from "@agari/core/range";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import type { RangeIntent } from "@owarine/core/range";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
 import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { acceptTicketQuote, asTxOutcome, exitTicket } from "../submitter/ticket-lane";
 import { rangeCall, rememberTicket, ticketCidOf } from "../tickets/client";

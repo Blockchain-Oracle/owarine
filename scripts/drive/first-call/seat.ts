@@ -4,9 +4,9 @@
  * to the web directly, or through another base URL (the drop proxy) with the same Origin.
  */
 import { webcrypto } from "node:crypto";
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58, type Address } from "@agari/core/types";
-import { seatLeaseText, toWire } from "@agari/markets";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58, type Address } from "@owarine/core/types";
+import { seatLeaseText, toWire } from "@owarine/markets";
 
 export type Cluster = Parameters<typeof seatLeaseText>[2];
 
@@ -34,7 +34,7 @@ export async function newSeat(name: string): Promise<Seat> {
 
 export function webClient(web: string, cluster: Cluster) {
   async function call(seat: Seat | null, method: string, path: string, body?: unknown, o: { via?: string; timeoutMs?: number } = {}): Promise<Reply> {
-    const headers: Record<string, string> = { accept: "application/json", origin: web, "x-agari-seat": "1" };
+    const headers: Record<string, string> = { accept: "application/json", origin: web, "x-owarine-seat": "1" };
     if (body !== undefined) headers["content-type"] = "application/json";
     if (seat?.cookie) headers.cookie = seat.cookie;
     const res = await fetch(`${o.via ?? web}${path}`, {
@@ -42,7 +42,7 @@ export function webClient(web: string, cluster: Cluster) {
       ...(body === undefined ? {} : { body: JSON.stringify(toWire(body)) }),
     });
     const setCookie = res.headers.get("set-cookie");
-    if (seat && setCookie?.startsWith("agari_seat=")) seat.cookie = setCookie.split(";")[0]!;
+    if (seat && setCookie?.startsWith("owarine_seat=")) seat.cookie = setCookie.split(";")[0]!;
     const json = (await res.json().catch(() => null)) as Record<string, any> | null;
     return { status: res.status, json: json ?? {} };
   }

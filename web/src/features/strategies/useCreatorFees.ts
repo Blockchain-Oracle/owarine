@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { Address, Signature } from "@agari/core/types";
-import { useCreatorPayouts } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Signature } from "@owarine/core/types";
+import { useCreatorPayouts } from "@owarine/markets/react";
 import { useCallback, useState } from "react";
 import type { DeskBusy, DeskWriteResult } from "./useDeskWrites";
 

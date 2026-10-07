@@ -54,8 +54,8 @@ export function ipBucket(ip: string): string {
 
 /**
  * The origin a browser sees for this request. Behind a proxy that ends TLS, `request.url` is the scheme the server
- * itself spoke — `http://useagari.xyz` inside the container — while the browser sent `Origin: https://useagari.xyz`,
- * and a same-origin check against `request.url` refused every claim with "Open the faucet from Agari." When a
+ * itself spoke — `http://owarine.com` inside the container — while the browser sent `Origin: https://owarine.com`,
+ * and a same-origin check against `request.url` refused every claim with "Open the faucet from Owarine." When a
  * proxy is named (`TRUSTED_PROXY`), its `x-forwarded-proto` is the scheme; otherwise the request's own.
  */
 export function publicOrigin(request: Request): string {

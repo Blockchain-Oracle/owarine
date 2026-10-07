@@ -1,7 +1,7 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
-import { marketDeepLink } from "@agari/core/urls";
+import { countdown } from "@owarine/core/lifecycle";
+import { marketDeepLink } from "@owarine/core/urls";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Countdown, Money } from "@/components/data";

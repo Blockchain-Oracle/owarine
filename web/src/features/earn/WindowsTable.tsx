@@ -1,9 +1,9 @@
 "use client";
 
-import type { MakerWindowView } from "@agari/core/maker";
-import { formatCadence } from "@agari/core/market";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import type { MakerWindowView } from "@owarine/core/maker";
+import { formatCadence } from "@owarine/core/market";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { EARN } from "./copy";
 import { money2 } from "./format";
 import type { EarnBusy } from "./useEarnWrites";

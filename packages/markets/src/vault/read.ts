@@ -5,9 +5,9 @@
  * seat's own legs on Canton (a grant's agent buys them in the owner's name), which the seat's positions already show;
  * the per-Window vault slot therefore holds nothing apart from them.
  */
-import { err, ok, type Reading } from "@agari/core/schemas";
-import type { Address, OnchainSnapshot } from "@agari/core/types";
-import type { VaultGrant, VaultHoldings, VaultSnapshot } from "@agari/core/vault";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import type { Address, OnchainSnapshot } from "@owarine/core/types";
+import type { VaultGrant, VaultHoldings, VaultSnapshot } from "@owarine/core/vault";
 import { ReadingError } from "../errors/reading-error";
 import { agentsReceiptReplyWire, grantReplyWire, vaultReplyWire } from "../provider/agents-wire";
 import { nowMs } from "../provider/clock";

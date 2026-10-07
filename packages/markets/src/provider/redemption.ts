@@ -3,8 +3,8 @@
  * `redeem_for` after the claim grace. Read from the index (`wallet/:w/actions`), so the verdict can say "Paid
  * automatically" with the transaction once the seat is gone from the Ledger.
  */
-import type { Reading } from "@agari/core/schemas";
-import { toSignature, type Address, type MarketId, type Signature } from "@agari/core/types";
+import type { Reading } from "@owarine/core/schemas";
+import { toSignature, type Address, type MarketId, type Signature } from "@owarine/core/types";
 import { indexRows, type ActionRow } from "./index-api";
 import { withReading } from "./reading";
 

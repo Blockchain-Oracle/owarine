@@ -3,8 +3,8 @@
  * without it. `{}` reads the mode; `{ mode, reason }` sets it (`open`, `reduce-only`, `paused`), writing the audit log
  * first. The answer is the mode now, so the caller sees what new risk will meet.
  */
-import { isVenueMode } from "@agari/core/market";
-import { diagnosis } from "@agari/core/types";
+import { isVenueMode } from "@owarine/core/market";
+import { diagnosis } from "@owarine/core/types";
 import type { InternalHandler } from "../../http/internal";
 import { setVenueMode, venueMode } from "../../runtime/venue-mode";
 

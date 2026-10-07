@@ -1,8 +1,8 @@
 "use client";
 
-import { deskApprovalText, deskCheckNowText, deskMandateText, mandateFingerprint, mandateToWire, type DeskMandate, type DeskMode } from "@agari/core/desk";
-import type { Signature } from "@agari/core/types";
-import { createDeskMainnetSession, DeskSendError, type DeskMainnetSession, type DeskWriteResult as SessionWriteResult } from "@agari/markets/desk";
+import { deskApprovalText, deskCheckNowText, deskMandateText, mandateFingerprint, mandateToWire, type DeskMandate, type DeskMode } from "@owarine/core/desk";
+import type { Signature } from "@owarine/core/types";
+import { createDeskMainnetSession, DeskSendError, type DeskMainnetSession, type DeskWriteResult as SessionWriteResult } from "@owarine/markets/desk";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { signText, useOwnerWallet } from "@/lib/wallet-session";
 import { useMainnetWalletSession, type MainnetWalletSession } from "@/providers/wallet/mainnet-signer";

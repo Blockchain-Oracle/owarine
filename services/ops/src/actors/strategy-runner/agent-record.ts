@@ -1,9 +1,9 @@
-import { isOk } from "@agari/core/schemas";
-import { type AgentPastWindow, type AgentRecordSummary, type AgentWindowOutcome, type FillSettlement } from "@agari/core/strategies";
-import { SIDE_TO_OUTCOME, toMarketId, type MarketId, type Side } from "@agari/core/types";
-import { utcDayOf } from "@agari/core/vault";
-import { listStrategyDecisions, listStrategyFills } from "@agari/db";
-import { marketsProvider } from "@agari/markets";
+import { isOk } from "@owarine/core/schemas";
+import { type AgentPastWindow, type AgentRecordSummary, type AgentWindowOutcome, type FillSettlement } from "@owarine/core/strategies";
+import { SIDE_TO_OUTCOME, toMarketId, type MarketId, type Side } from "@owarine/core/types";
+import { utcDayOf } from "@owarine/core/vault";
+import { listStrategyDecisions, listStrategyFills } from "@owarine/db";
+import { marketsProvider } from "@owarine/markets";
 
 const RECENT_WINDOWS = 5;
 

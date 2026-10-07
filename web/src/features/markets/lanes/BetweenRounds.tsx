@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { Address, LaneBasis } from "@agari/core/types";
-import { secToMs } from "@agari/core/units";
-import { marketsProvider } from "@agari/markets";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, LaneBasis } from "@owarine/core/types";
+import { secToMs } from "@owarine/core/units";
+import { marketsProvider } from "@owarine/markets";
 import { EmptyState, LoadingState } from "@/components/states";
 import { betweenRoundsLine, MARKETS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";

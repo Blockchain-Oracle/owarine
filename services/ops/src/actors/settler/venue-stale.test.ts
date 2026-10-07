@@ -5,9 +5,9 @@
  * pass re-read every Resolution the venue ever had; now only once a leg's Window has passed its expiry.
  */
 import { readFileSync } from "node:fs";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent, JsTransaction, LedgerClient } from "@agari/ledger";
-import { decodeTerms, type RoleSession } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { CreatedEvent, JsTransaction, LedgerClient } from "@owarine/ledger";
+import { decodeTerms, type RoleSession } from "@owarine/markets/ops/canton";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { settlerPass } from "./index";
 

@@ -1,7 +1,7 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket, LaneBasis, MarketId, Side } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, LaneBasis, MarketId, Side } from "@owarine/core/types";
 import { MarketCard } from "./MarketCard";
 import { PausedCard } from "./PausedCard";
 

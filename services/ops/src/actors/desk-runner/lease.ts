@@ -1,4 +1,4 @@
-import { getDb, type Db } from "@agari/db";
+import { getDb, type Db } from "@owarine/db";
 
 /**
  * The party a desk row's owner leases RIGHT NOW (C4d, K-210), from the web's lease table in the same database: the key
@@ -6,7 +6,7 @@ import { getDb, type Db } from "@agari/db";
  * idle-expired, drained or recycled to someone else), and null without a database. A desk is traded and read only
  * through this: a row whose owner no longer leases the mandate's party is not that owner's desk any more.
  *
- * The same resolution as the web's seat store `byAddress`; C4c moves both onto `@agari/db`'s one helper.
+ * The same resolution as the web's seat store `byAddress`; C4c moves both onto `@owarine/db`'s one helper.
  */
 const UNDEFINED_TABLE = "42P01";
 

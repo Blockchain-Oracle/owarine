@@ -3,7 +3,7 @@
  * correctness lives in core's tests; what is in doubt here is the database's part: gap-free `seq`, `prev_hash`
  * links, a body that names the wrong slot refused, the feed's quiet-check filter, and one check-now per ten minutes.
  */
-import { hashRecord, ZERO_HASH } from "@agari/core/desk";
+import { hashRecord, ZERO_HASH } from "@owarine/core/desk";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sslFor } from "./client";

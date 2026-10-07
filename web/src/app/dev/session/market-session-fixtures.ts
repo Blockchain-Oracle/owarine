@@ -3,8 +3,8 @@
  * builds (`toMarketSession`), over an Alpaca-shaped calendar and fixed clocks, so a chip or a blocker renders here exactly
  * as it would on `/markets`.
  */
-import { calendarFromAlpaca, corporatePausedState, datesBetween, haltPausedState, weekdayOfDate, type SessionCalendar } from "@agari/core/market";
-import type { CorporateSkip, EarningsEvent, HaltBoard } from "@agari/core/types";
+import { calendarFromAlpaca, corporatePausedState, datesBetween, haltPausedState, weekdayOfDate, type SessionCalendar } from "@owarine/core/market";
+import type { CorporateSkip, EarningsEvent, HaltBoard } from "@owarine/core/types";
 import { toMarketSession, type MarketSession } from "@/features/markets/session";
 
 const HOLIDAYS = new Set(["2026-11-26"]);

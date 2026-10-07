@@ -1,7 +1,7 @@
 "use client";
 
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { capResetsAtSec, dailyHeadroomBase } from "@agari/core/vault";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import { capResetsAtSec, dailyHeadroomBase } from "@owarine/core/vault";
 import { Hash, UtcTime } from "@/components/data";
 import { Button } from "@/components/ui/button";
 import { notify } from "@/lib/toast";

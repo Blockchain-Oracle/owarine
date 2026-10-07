@@ -1,6 +1,6 @@
-import { isAddress } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
-import { isDbConfigured, xLinkByWallet } from "@agari/db";
+import { isAddress } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
+import { isDbConfigured, xLinkByWallet } from "@owarine/db";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PROFILE } from "@/features/profile/copy";

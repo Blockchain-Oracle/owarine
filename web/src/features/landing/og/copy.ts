@@ -5,7 +5,7 @@
  */
 export const OG_COPY = {
   site: {
-    alt: "Agari: private prediction markets on Canton. Call the move at the venue's firm quote; only you and the venue see the position, and three oracle parties sign the close.",
+    alt: "Owarine: private prediction markets on Canton. Call the move at the venue's firm quote; only you and the venue see the position, and three oracle parties sign the close.",
     eyebrow: "Private calls on Canton",
     line: "Only you and the venue see your position.",
   },
@@ -13,7 +13,7 @@ export const OG_COPY = {
   honesty: "Built on Canton Network · test network · demo credits",
   ticker: {
     /** The route's static `alt`: one image route serves every ticker, so the line names none. */
-    routeAlt: "A name on Agari: its mark, its name and its last close or live print.",
+    routeAlt: "A name on Owarine: its mark, its name and its last close or live print.",
     eyebrow: "Ticker",
     lastClose: (clock: string) => `Last close · ${clock} ET`,
     noPrice: "Up or Down Windows on the NYSE clock.",
@@ -25,7 +25,7 @@ export const OG_COPY = {
     unlistedWhy: (why: string) => `Waiting on a Pyth key that may read the index: ${why}.`,
   },
   market: {
-    alt: "An Up or Down Window on Agari",
+    alt: "An Up or Down Window on Owarine",
     eyebrow: "Window",
     question: "Up or Down?",
     closesAt: (when: string) => `Closes ${when} ET`,

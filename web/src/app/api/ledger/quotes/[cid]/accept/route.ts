@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { writeRequestWire } from "@agari/markets";
+import { writeRequestWire } from "@owarine/markets";
 import { jsonBody, recordBusy, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 import { regionHold } from "@/lib/region.server";
 

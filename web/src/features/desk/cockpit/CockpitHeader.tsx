@@ -1,6 +1,6 @@
 "use client";
 
-import { nameOf, presetById } from "@agari/core/desk";
+import { nameOf, presetById } from "@owarine/core/desk";
 import { LogoStack, StatusDot, type DotTone } from "@/components/ui/desk-kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { DESK } from "../copy";

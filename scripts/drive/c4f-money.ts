@@ -13,22 +13,22 @@
  *   tsx drive/c4f-money.ts ledger                            the seat's cash, legs and receipts as the ledger holds them
  *   tsx drive/c4f-money.ts record                            the record and each settled Window's verdict, as the screens compute them
  *
- *   env: C4F_WEB (http://localhost:3160), LEDGER_JSON_API_URL, AGARI_PARTIES_FILE, --state <scratch>/c4f-seat.json
+ *   env: C4F_WEB (http://localhost:3160), LEDGER_JSON_API_URL, OWARINE_PARTIES_FILE, --state <scratch>/c4f-seat.json
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { randomUUID, webcrypto } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58, type Address } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { createLedgerClient, noAuth } from "@agari/ledger";
-import { deriveVerdict } from "@agari/core/claims";
-import { computeTraderEdge, type SettledRound } from "@agari/core/projection";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketsProvider, parseMarketsEnv, registerSeatSigner } from "@agari/markets";
-import { configureMarkets } from "@agari/markets/runtime";
-import { decodeLeg, decodeOpenPrint, decodeTerms, decodeVenueCash, templateSuffix } from "@agari/markets/ops/canton";
-import { appMarketId } from "@agari/markets/server";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58, type Address } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { createLedgerClient, noAuth } from "@owarine/ledger";
+import { deriveVerdict } from "@owarine/core/claims";
+import { computeTraderEdge, type SettledRound } from "@owarine/core/projection";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketsProvider, parseMarketsEnv, registerSeatSigner } from "@owarine/markets";
+import { configureMarkets } from "@owarine/markets/runtime";
+import { decodeLeg, decodeOpenPrint, decodeTerms, decodeVenueCash, templateSuffix } from "@owarine/markets/ops/canton";
+import { appMarketId } from "@owarine/markets/server";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 import { arg } from "./cli";
 import { webClient, type Seat } from "./first-call/seat";
@@ -39,7 +39,7 @@ const cluster = parseMarketsEnv({ cluster: process.env.NEXT_PUBLIC_CANTON_NETWOR
 const web = webClient(WEB, cluster);
 const client = createLedgerClient({ baseUrl: process.env.LEDGER_JSON_API_URL ?? "http://localhost:7604", auth: noAuth(), userId: "c4f-drive" });
 const parties = readPartiesFile();
-if (!parties) throw new Error("no parties file (AGARI_PARTIES_FILE)");
+if (!parties) throw new Error("no parties file (OWARINE_PARTIES_FILE)");
 const venue = parties.parties.venue!;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const credits = (base: bigint) => `${base < 0n ? "-" : ""}${(Number(base < 0n ? -base : base) / 1_000_000).toFixed(6)}`;

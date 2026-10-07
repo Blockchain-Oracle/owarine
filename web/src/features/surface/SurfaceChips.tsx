@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { formatClock, remainingSec } from "@agari/core/units";
+import { formatCadence, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { formatClock, remainingSec } from "@owarine/core/units";
 import { cn } from "@/lib/utils";
 import { SURFACE } from "./copy";
 

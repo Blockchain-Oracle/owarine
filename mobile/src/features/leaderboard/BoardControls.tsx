@@ -1,4 +1,4 @@
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { LEADERBOARD } from "@/features/leaderboard/copy";
 import type { BoardQuery } from "@/features/leaderboard/leaderboard-client";

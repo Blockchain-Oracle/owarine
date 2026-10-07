@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { IntentJournal } from "@agari/core/ports";
-import { xRecordExecutionJournal } from "@agari/db";
+import type { IntentJournal } from "@owarine/core/ports";
+import { xRecordExecutionJournal } from "@owarine/db";
 
 /** The shared order lane's journal writes directly onto the already-claimed mention. */
 export function createXExecutionJournal(write = xRecordExecutionJournal) {

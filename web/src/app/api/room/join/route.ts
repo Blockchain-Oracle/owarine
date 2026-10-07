@@ -1,4 +1,4 @@
-import { isDbConfigured } from "@agari/db";
+import { isDbConfigured } from "@owarine/db";
 import { NextResponse } from "next/server";
 import { admittingStep, GateUnreadableError, mintToken, verifyJoinSignature } from "@/features/room/gate.server";
 import { ROOM_ERRORS } from "@/features/room/copy";

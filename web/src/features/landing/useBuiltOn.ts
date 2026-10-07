@@ -1,8 +1,8 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import type { TickerSymbol } from "@agari/core/market";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import type { TickerSymbol } from "@owarine/core/market";
+import { useReadingQuery } from "@owarine/markets/react";
 import { indexConfigured, indexGet } from "@/lib/index-read";
 import { BUILT_ON_FROM_SEC, builtOnTally, printedSource, type BuiltOnSource, type MixRow, type SourceTally } from "./built-on";
 
@@ -53,5 +53,5 @@ async function readBuiltOn(): Promise<Reading<BuiltOn>> {
 
 /** The landing's "Built on" figures: one print-mix read and a few one-page Window reads, cached, never polled. */
 export function useBuiltOn(): Reading<BuiltOn> | null {
-  return useReadingQuery(["agari", "landing", "built-on", BUILT_ON_FROM_SEC], readBuiltOn, { staleTimeMs: STALE_MS, gcTimeMs: GC_MS, needs: [] });
+  return useReadingQuery(["owarine", "landing", "built-on", BUILT_ON_FROM_SEC], readBuiltOn, { staleTimeMs: STALE_MS, gcTimeMs: GC_MS, needs: [] });
 }

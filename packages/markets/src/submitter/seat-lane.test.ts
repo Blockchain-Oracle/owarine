@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import type { IntentRecord, OrderRequest } from "@agari/core/ports";
-import type { EventMarket, Quote } from "@agari/core/types";
-import { SEAT_READ_HEADER, SEAT_WRITE_HEADER } from "@agari/core/auth";
+import type { IntentRecord, OrderRequest } from "@owarine/core/ports";
+import type { EventMarket, Quote } from "@owarine/core/types";
+import { SEAT_READ_HEADER, SEAT_WRITE_HEADER } from "@owarine/core/auth";
 import { parseMarketsEnv } from "../env";
 import { registerSeatSigner } from "../provider/ledger-api";
 import { toWire } from "../provider/ledger-wire";
@@ -60,7 +60,7 @@ describe("seat order lane", () => {
     // C5d: recovery reads this back to the reader, so it is words, never base units or a market id.
     expect(journaledAtAccept[0]!.summary).toBe("Up on BTC (5m Window), 0.06 staked");
     expect(calls[1]!.body).toEqual({ commandId: journaledAtAccept[0]!.id });
-    expect(calls[1]!.headers.get("x-agari-seat")).toBe("1");
+    expect(calls[1]!.headers.get("x-owarine-seat")).toBe("1");
     expect(phases).toEqual(["submitted", "confirmed"]);
     expect(await records(journal)).toEqual([]);
   });

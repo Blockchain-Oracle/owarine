@@ -1,5 +1,5 @@
-import type { Signature } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
+import type { Signature } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
 import { router } from "expo-router";
 import { memo, useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

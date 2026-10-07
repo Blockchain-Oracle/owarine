@@ -1,7 +1,7 @@
 # The ops service — one long-running Node process (AD-8): the Canton venue (roller, oracle feeders, resolver, pricer,
 # issuer, settler, sweeper), the projector, the duel room, the matchmaker and the keepers. Built from the repo root so
 # the workspace packages it imports as TypeScript source are present; run through tsx exactly as
-# `pnpm --filter @agari/ops start` does.
+# `pnpm --filter @owarine/ops start` does.
 #
 #   docker build -f services/ops/Dockerfile .
 #
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certifi
 WORKDIR /app
 
 # Every workspace member's manifest, so the lockfile's importer set matches and the install layer is cached until a
-# dependency changes. The Daml bindings' generated packages are linked by `@agari/daml`, so they come first too.
+# dependency changes. The Daml bindings' generated packages are linked by `@owarine/daml`, so they come first too.
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY web/package.json ./web/
 COPY mobile/package.json ./mobile/
@@ -34,9 +34,9 @@ COPY packages/ledger/package.json ./packages/ledger/
 COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
 # pnpm's registry metadata cache (~/.cache/pnpm) is a cache mount too, not 241 MB of registry JSON in the layer (C4e).
-RUN --mount=type=cache,id=agari-pnpm-store,target=/pnpm/store \
-    --mount=type=cache,id=agari-pnpm-metadata,target=/root/.cache/pnpm \
-    pnpm install --frozen-lockfile --filter "@agari/ops..."
+RUN --mount=type=cache,id=owarine-pnpm-store,target=/pnpm/store \
+    --mount=type=cache,id=owarine-pnpm-metadata,target=/root/.cache/pnpm \
+    pnpm install --frozen-lockfile --filter "@owarine/ops..."
 
 # The sources the service runs: its own (with config/) and the packages it imports.
 COPY packages/brain ./packages/brain
@@ -57,4 +57,4 @@ EXPOSE 8080 8787
 # Liveness only: any HTTP answer from /health counts. Its body can read not-ok for a third-party feed (K-027), and a
 # restart would not fix that; a process that stopped answering is what Coolify should restart.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 CMD curl -s -o /dev/null http://127.0.0.1:8080/health || exit 1
-CMD ["pnpm", "--filter", "@agari/ops", "start"]
+CMD ["pnpm", "--filter", "@owarine/ops", "start"]

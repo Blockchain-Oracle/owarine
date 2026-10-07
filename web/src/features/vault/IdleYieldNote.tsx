@@ -1,9 +1,9 @@
 "use client";
 
-import { oneUnit } from "@agari/core/units";
-import { sharePriceRawOf } from "@agari/core/reserves";
-import { isOk } from "@agari/core/schemas";
-import { useLeverageReserve, useMakerVault, useParlayReserve, useRangeReserve } from "@agari/markets/react";
+import { oneUnit } from "@owarine/core/units";
+import { sharePriceRawOf } from "@owarine/core/reserves";
+import { isOk } from "@owarine/core/schemas";
+import { useLeverageReserve, useMakerVault, useParlayReserve, useRangeReserve } from "@owarine/markets/react";
 import Link from "next/link";
 import { formatSharePrice } from "@/features/earn/format";
 import { VAULT } from "./copy";

@@ -1,7 +1,7 @@
 "use client";
 
-import { FAUCET_UNITS } from "@agari/core/constants";
-import { formatBaseUnits } from "@agari/core/units";
+import { FAUCET_UNITS } from "@owarine/core/constants";
+import { formatBaseUnits } from "@owarine/core/units";
 import Link from "next/link";
 import { OPEN_FUNDS_EVENT } from "@/features/funding";
 import { FastChip, RouteControl, type FundingSource } from "@/features/session";

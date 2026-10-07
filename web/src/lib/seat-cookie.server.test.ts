@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toAddress } from "@agari/core/types";
+import { toAddress } from "@owarine/core/types";
 import { mintSeatCookie, readSeatCookie, SEAT_COOKIE, SEAT_COOKIE_TTL_MS, seatCookieFrom } from "./seat-cookie.server";
 
 const SECRET = "s".repeat(40);
@@ -28,7 +28,7 @@ describe("seat cookie", () => {
 
   it("finds the seat cookie in a Cookie header among others", () => {
     const { value } = mintSeatCookie(SECRET, LEASE, ADDRESS, NOW);
-    const headers = new Headers({ cookie: `agari.region=ok; ${SEAT_COOKIE}=${encodeURIComponent(value)}; theme=dark` });
+    const headers = new Headers({ cookie: `owarine.region=ok; ${SEAT_COOKIE}=${encodeURIComponent(value)}; theme=dark` });
     expect(seatCookieFrom(headers)).toBe(value);
     expect(seatCookieFrom(new Headers({ cookie: "theme=dark" }))).toBeNull();
   });

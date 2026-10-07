@@ -1,10 +1,10 @@
 "use client";
 
-import { ownCentsOf } from "@agari/core/orders";
-import type { HeldQuote, OrderOutcome, OrderRequest, WritePhase } from "@agari/core/ports";
-import type { Address, MarketId, Quote, Side, Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
+import { ownCentsOf } from "@owarine/core/orders";
+import type { HeldQuote, OrderOutcome, OrderRequest, WritePhase } from "@owarine/core/ports";
+import type { Address, MarketId, Quote, Side, Signature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { invalidateAfterWrite, useSigner, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { PREOPEN, TICKET } from "@/lib/copy";

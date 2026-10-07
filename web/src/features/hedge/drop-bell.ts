@@ -1,12 +1,12 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
 
 /**
  * The "tell me if it drops" bell (plan Step 8): an opt-in, device-local rule per stock the wallet holds — "tell me if
  * OpenAI falls 3% within an hour". The list of switched-on stocks lives in localStorage like the price alerts do; the
- * hour of prices it is judged against lives in the tab (`DropBellWatcher`), so the bell only watches while Agari is
+ * hour of prices it is judged against lives in the tab (`DropBellWatcher`), so the bell only watches while Owarine is
  * open. Integer maths throughout: the drop is measured in basis points against the hour's high, never as a float.
  */
-export const DROP_BELL_KEY = "agari.dropBell";
+export const DROP_BELL_KEY = "owarine.dropBell";
 /** The rule's one size: a fall of 3% (300 bps) from the highest price of the trailing hour. */
 export const DROP_BPS = 300n;
 export const DROP_WINDOW_SEC = 3600;

@@ -1,6 +1,6 @@
 "use client";
 
-import { MarketsProvider } from "@agari/markets/react";
+import { MarketsProvider } from "@owarine/markets/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { AlertsWatcher } from "@/features/alerts";

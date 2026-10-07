@@ -1,4 +1,4 @@
-import type { LedgerClient } from "@agari/ledger";
+import type { LedgerClient } from "@owarine/ledger";
 import { describe, expect, it, vi } from "vitest";
 import { archivedByExercise } from "./history";
 

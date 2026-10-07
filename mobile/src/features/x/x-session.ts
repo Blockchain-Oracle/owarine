@@ -1,4 +1,4 @@
-import { X_SESSION_HEADER } from "@agari/core/x";
+import { X_SESSION_HEADER } from "@owarine/core/x";
 import * as SecureStore from "expo-secure-store";
 import { appKey } from "~/lib/keys";
 

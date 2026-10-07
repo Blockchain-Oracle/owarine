@@ -1,5 +1,5 @@
-import type { ReserveKind } from "@agari/core/reserves";
-import { isOk } from "@agari/core/schemas";
+import type { ReserveKind } from "@owarine/core/reserves";
+import { isOk } from "@owarine/core/schemas";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";

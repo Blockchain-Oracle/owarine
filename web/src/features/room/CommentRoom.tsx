@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { LockIcon, SendIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";

@@ -3,22 +3,22 @@
  * cookie rides along), an absolute URL on the phone (`EXPO_PUBLIC_SITE_URL`), which proves the seat with the signed
  * seat header instead. No ledger credential, party id or ledger URL ever appears here.
  *
- * The seat READ header (`x-agari-seat-read`, `@agari/core/auth`) is signed by the registered seat key once and reused
+ * The seat READ header (`x-owarine-seat-read`, `@owarine/core/auth`) is signed by the registered seat key once and reused
  * for four of its five minutes, so a screen's reads cost no extra signatures; the server takes it for reads only. Every
  * write (any method but GET) is signed on its own instead (C4d M2b): the WRITE proof names the method, the path with
  * its query, the SHA-256 of the exact body bytes sent and a fresh nonce, and the server takes it once within 30 s.
- * `x-agari-seat: 1` is the custom header the server requires on cookie-authenticated writes (with the Origin check),
+ * `x-owarine-seat: 1` is the custom header the server requires on cookie-authenticated writes (with the Origin check),
  * which a cross-site form cannot send.
  */
 import {
   bodySha256, formatSeatReadHeader, formatSeatWriteHeader, messageBytes, SEAT_READ_HEADER, SEAT_READ_TTL_MS, SEAT_WRITE_HEADER, seatReadText, seatWriteText,
-} from "@agari/core/auth";
-import { diagnosis, diagnosisSchema, encodeBase58, type Address, type Diagnosis, type Signature } from "@agari/core/types";
+} from "@owarine/core/auth";
+import { diagnosis, diagnosisSchema, encodeBase58, type Address, type Diagnosis, type Signature } from "@owarine/core/types";
 import { z } from "zod";
 import { peekClient } from "../runtime/read-runtime";
 import { toWire } from "./ledger-wire";
 
-export const SEAT_CSRF_HEADER = "x-agari-seat";
+export const SEAT_CSRF_HEADER = "x-owarine-seat";
 
 export type LedgerCallResult<T> = { ok: true; value: T } | { ok: false; diagnosis: Diagnosis; status: number | null };
 

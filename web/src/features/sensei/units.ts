@@ -1,5 +1,5 @@
-import { oneCent, oneUnit } from "@agari/core/units";
-import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
+import { oneCent, oneUnit } from "@owarine/core/units";
+import { ORACLE_PRICE_SCALE } from "@owarine/markets/identity";
 import { WHOLE_DOLLARS_FROM } from "../markets/hero/units";
 
 const CENTS_DP = 2;

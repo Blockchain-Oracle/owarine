@@ -8,11 +8,11 @@ export const PROOF_REPLAY_KEY_ENV = "PROOF_REPLAY_PRIVATE_KEY";
 
 /**
  * The `proof-replay` role's 64-byte keypair (D-041): `PROOF_REPLAY_PRIVATE_KEY` on a server, else
- * `~/.config/agari/devnet/proof-replay.json` (`AGARI_KEYS_DIR` overrides the directory), the faucet's lookup (D-034).
+ * `~/.config/owarine/devnet/proof-replay.json` (`OWARINE_KEYS_DIR` overrides the directory), the faucet's lookup (D-034).
  * Never `price-relay`: the relay's hourly sweep closes every price update its key wrote. The bytes are never logged.
  */
 export function proofReplaySecret(env: Record<string, string | undefined>): Uint8Array | null {
-  const text = env[PROOF_REPLAY_KEY_ENV] || readRoleFile(env.AGARI_KEYS_DIR || join(homedir(), ".config", "agari", "devnet"));
+  const text = env[PROOF_REPLAY_KEY_ENV] || readRoleFile(env.OWARINE_KEYS_DIR || join(homedir(), ".config", "owarine", "devnet"));
   if (!text) return null;
   try {
     return parseSecretKey(text);

@@ -1,4 +1,4 @@
-import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
+import { diagnosis, type Diagnosis, type DiagnosisKind } from "@owarine/core/types";
 import { ReadingError } from "./reading-error";
 
 /** Wallet Standard wallets (Phantom, Solflare, Backpack) use 4001 for a user's refusal, as EIP-1193 did. */

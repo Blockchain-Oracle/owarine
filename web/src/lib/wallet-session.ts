@@ -1,8 +1,8 @@
 "use client";
 
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58, toSignature, type Address, type Signature } from "@agari/core/types";
-import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58, toSignature, type Address, type Signature } from "@owarine/core/types";
+import type { WalletSession as MarketsWalletSession } from "@owarine/markets/react";
 import { useWalletShell } from "@/providers/wallet/wallet-shell-context";
 
 export interface WalletSession {
@@ -50,7 +50,7 @@ export function useOwnerWallet(): MarketsWalletSession | null {
 }
 
 /**
- * Signs one of Agari's texts (`@agari/core` builders: faucet, X link, duel room, private desk) and returns the base58
+ * Signs one of Owarine's texts (`@owarine/core` builders: faucet, X link, duel room, private desk) and returns the base58
  * signature the server verifies with `verifySignedMessage`. The seat key signs exactly the UTF-8 bytes (D-012).
  */
 export async function signText(wallet: MarketsWalletSession, text: string): Promise<Signature> {

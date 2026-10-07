@@ -6,9 +6,9 @@
  *
  * All amounts are base units of demo credits (6 decimals, as `CASH_DECIMALS`).
  */
-import type { LeverageParams } from "@agari/core/leverage";
-import type { ParlayParams } from "@agari/core/parlay";
-import type { RangeParams } from "@agari/core/range";
+import type { LeverageParams } from "@owarine/core/leverage";
+import type { ParlayParams } from "@owarine/core/parlay";
+import type { RangeParams } from "@owarine/core/range";
 
 export const TICKET_RESERVES = ["range", "parlay", "boost"] as const;
 export type TicketReserveId = (typeof TICKET_RESERVES)[number];

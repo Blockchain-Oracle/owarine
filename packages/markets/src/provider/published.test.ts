@@ -1,5 +1,5 @@
-import type { MarketLedger } from "@agari/core/projection";
-import type { MarketId, Signature } from "@agari/core/types";
+import type { MarketLedger } from "@owarine/core/projection";
+import type { MarketId, Signature } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import type { MarketRow } from "./index-api";
 import { publishedOpenPosition } from "./published";

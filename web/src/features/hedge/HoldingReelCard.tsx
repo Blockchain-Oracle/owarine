@@ -1,8 +1,8 @@
 "use client";
 
-import { TICKERS } from "@agari/core/market";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
+import { TICKERS } from "@owarine/core/market";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { memo } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

@@ -28,8 +28,8 @@
  *   SettlementReceipt created / dismissed → idx_receipts insert / dismissed (pair legs and tickets alike)
  */
 import type postgres from "postgres";
-import { LANE_BASES } from "@agari/core/types";
-import { parseLaneKey } from "@agari/core/market";
+import { LANE_BASES } from "@owarine/core/types";
+import { parseLaneKey } from "@owarine/core/market";
 import { restCallRow, restClosedRow } from "./apply-rest";
 import { dependentClosed, dependentRows } from "./apply-dependents";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";

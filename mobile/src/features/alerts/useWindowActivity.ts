@@ -1,7 +1,7 @@
-import { isOk } from "@agari/core/schemas";
-import type { MarketId, OpenPosition } from "@agari/core/types";
-import { collateralOrNull } from "@agari/markets";
-import { useMarket, useOpeningPrice, usePositions } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId, OpenPosition } from "@owarine/core/types";
+import { collateralOrNull } from "@owarine/markets";
+import { useMarket, useOpeningPrice, usePositions } from "@owarine/markets/react";
 import * as Notifications from "expo-notifications";
 import { after, type LiveActivity } from "expo-widgets";
 import { useEffect, useRef, useState } from "react";

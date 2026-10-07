@@ -6,11 +6,11 @@
  * The range basis is the Window's own: its opening print, the venue ladder's fair price read as P(close ≥ open)
  * (`centerQE6 = fairTicks × 1000`), and the house σ for the symbol.
  */
-import type { BookLevel } from "@agari/core/market";
-import { budgetFor, knockoutLine, terms as boostTermsOf, type LeverageParams, type LeverageQuote, type LeverageRefusal } from "@agari/core/leverage";
-import { quoteParlay, type ParlayMode, type ParlayParams, type ParlayQuote, type ParlayRefusal } from "@agari/core/parlay";
-import { probitE4, quoteRange, stdE8, type RangeBasis, type RangeMode, type RangeParams, type RangeQuote, type RangeRefusal, type RangeSide } from "@agari/core/range";
-import type { BookLevelView } from "@agari/core/types";
+import type { BookLevel } from "@owarine/core/market";
+import { budgetFor, knockoutLine, terms as boostTermsOf, type LeverageParams, type LeverageQuote, type LeverageRefusal } from "@owarine/core/leverage";
+import { quoteParlay, type ParlayMode, type ParlayParams, type ParlayQuote, type ParlayRefusal } from "@owarine/core/parlay";
+import { probitE4, quoteRange, stdE8, type RangeBasis, type RangeMode, type RangeParams, type RangeQuote, type RangeRefusal, type RangeSide } from "@owarine/core/range";
+import type { BookLevelView } from "@owarine/core/types";
 import { bidLevels, walkExit, walkStake } from "../ops/canton/quote-walk";
 import { sigmaFor, TICKET_DECIMALS, TICKET_ONE, TICKET_QUOTE_LIFE_SEC } from "./params";
 

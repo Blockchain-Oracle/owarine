@@ -3,7 +3,7 @@
  * generated agari-events client; on Canton the same values become `Series` contract fields (C2x), so they are kept as
  * local, chain-free types and the pure planning code (`policies.ts`, `venue-spec.ts`) keeps working.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { PrintPolicy } from "../ops/shapes";
 
 /** One print source policy, as a Series policy version takes it. */

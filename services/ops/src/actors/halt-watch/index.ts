@@ -11,7 +11,7 @@
  * the 24/7 lanes always. A change needs two observations in a row (the issuer flag one), so one late tick or one failed
  * read never flips a lane. `HALT_WATCH_FIXTURE=<json>` injects raw observations for a proof run (`fixture.ts`).
  */
-import { HALT_ASSETS, haltLabel, primarySourceAt, TICKER_SYMBOLS, XSTOCK_SYMBOLS } from "@agari/core/market";
+import { HALT_ASSETS, haltLabel, primarySourceAt, TICKER_SYMBOLS, XSTOCK_SYMBOLS } from "@owarine/core/market";
 import { currentPreStocksSpot, PRESTOCKS_BOOT_SPREAD_MS } from "../../prices/prestocks-spot";
 import { runActor, type PassResult, type VenueDeps } from "../../runtime";
 import { alpacaKeys } from "../price-relay";

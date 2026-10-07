@@ -1,7 +1,7 @@
-import { formatCadence } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@agari/core/types";
-import { secToMs } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import { OUTCOME_TO_SIDE, type ClaimLeg, type ClaimableRow } from "@owarine/core/types";
+import { secToMs } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import { Hash, Money, UtcTime } from "@/components/data";
 import { CLAIM, diagnosisCopy } from "@/lib/copy";
 import { webEnv } from "@/lib/env";

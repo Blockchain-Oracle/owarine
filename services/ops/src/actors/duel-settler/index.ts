@@ -13,11 +13,11 @@
  *
  * The cards themselves are ordinary legs: the venue's settler pays them leg by leg, independent of the pot.
  */
-import { duelDeckHash } from "@agari/markets/games";
-import type { Command } from "@agari/ledger";
-import { failureText, isInactive, submit } from "@agari/markets/ops/canton";
-import { duelCommandId, gcmd, type DuelMatchC } from "@agari/markets/ops/games";
-import { getDeck, isDbConfigured, markDeckRevealed } from "@agari/db";
+import { duelDeckHash } from "@owarine/markets/games";
+import type { Command } from "@owarine/ledger";
+import { failureText, isInactive, submit } from "@owarine/markets/ops/canton";
+import { duelCommandId, gcmd, type DuelMatchC } from "@owarine/markets/ops/games";
+import { getDeck, isDbConfigured, markDeckRevealed } from "@owarine/db";
 import type { PassResult } from "../../runtime/actor";
 import type { ArenaDesk } from "../arena-desk/desk";
 import { deckKey, fromJournal, open, type RevealMaterial } from "../matchmaker/seal";

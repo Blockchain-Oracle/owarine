@@ -1,19 +1,19 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import type { StrategySubscription } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
-import { useReadingQuery } from "@agari/markets/react";
-import { listSubscriptionsOf } from "@agari/markets/strategies";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import type { StrategySubscription } from "@owarine/core/strategies";
+import type { Address } from "@owarine/core/types";
+import { useReadingQuery } from "@owarine/markets/react";
+import { listSubscriptionsOf } from "@owarine/markets/strategies";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { healthPayloadSchema, strategiesPayloadSchema, type HealthPayload, type StrategiesPayload } from "./protocol";
 
 const POLL_MS = 30_000;
 const HEALTH_POLL_MS = 60_000;
-export const STRATEGIES_KEY = ["agari", "strategies"] as const;
-export const strategyHealthKey = (ids: string) => ["agari", "strategies", "health", ids] as const;
-export const subscriptionsKey = (wallet: string | null) => ["agari", "strategies", "subscriptions", wallet] as const;
+export const STRATEGIES_KEY = ["owarine", "strategies"] as const;
+export const strategyHealthKey = (ids: string) => ["owarine", "strategies", "health", ids] as const;
+export const subscriptionsKey = (wallet: string | null) => ["owarine", "strategies", "subscriptions", wallet] as const;
 
 async function readStrategies(): Promise<Reading<StrategiesPayload>> {
   const response = await fetch("/api/strategies", { cache: "no-store" });

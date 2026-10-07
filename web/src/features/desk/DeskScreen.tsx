@@ -1,6 +1,6 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
+import { isOk } from "@owarine/core/schemas";
 import { Lock, ServerOff } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { ErrorState } from "@/components/states";

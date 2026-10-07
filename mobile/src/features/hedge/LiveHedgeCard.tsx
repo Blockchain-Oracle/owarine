@@ -1,8 +1,8 @@
-import type { Reading } from "@agari/core";
-import { TICKERS } from "@agari/core/market";
-import type { LaneSet, MarketId, Side } from "@agari/core/types";
-import { collateralOrNull } from "@agari/markets";
-import { useBalanceSheet } from "@agari/markets/react";
+import type { Reading } from "@owarine/core";
+import { TICKERS } from "@owarine/core/market";
+import type { LaneSet, MarketId, Side } from "@owarine/core/types";
+import { collateralOrNull } from "@owarine/markets";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { useEffect, useState } from "react";
 import { calmSet, holdsPreIpo } from "@/features/hedge/calm";
 import { HEDGE } from "@/features/hedge/copy";

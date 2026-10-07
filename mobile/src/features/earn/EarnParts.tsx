@@ -1,4 +1,4 @@
-import type { ReserveSheet } from "@agari/core/reserves";
+import type { ReserveSheet } from "@owarine/core/reserves";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

@@ -1,6 +1,6 @@
 "use client";
 
-import { quickChips } from "@agari/core/sizing";
+import { quickChips } from "@owarine/core/sizing";
 import { Button } from "@/components/ui/button";
 import { TICKET } from "@/lib/copy";
 

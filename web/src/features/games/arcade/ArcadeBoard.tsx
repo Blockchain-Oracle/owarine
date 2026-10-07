@@ -1,6 +1,6 @@
 "use client";
 
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import type { PostState } from "./ArcadeOverlays";
 import { ARCADE } from "./copy";
 import type { PostAbility } from "./useArcadeScore";

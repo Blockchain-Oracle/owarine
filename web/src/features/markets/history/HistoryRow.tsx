@@ -1,11 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { formatCadence } from "@agari/core/copy";
-import { roundSettledAtMs, type SettledRound } from "@agari/core/projection";
-import { OUTCOME_TO_SIDE } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
-import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import { roundSettledAtMs, type SettledRound } from "@owarine/core/projection";
+import { OUTCOME_TO_SIDE } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
+import { txUrl } from "@owarine/core/urls";
 import Link from "next/link";
 import { Money } from "@/components/data";
 import { VAULT } from "@/features/vault";

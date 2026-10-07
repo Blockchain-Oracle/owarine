@@ -5,9 +5,9 @@
  * issuer in this process when the venue runs here, else from ops over its signed internal route
  * (`OPS_INTERNAL_URL` + `OPS_INTERNAL_SECRET`). Nothing is guessed: a missing piece is named, and the actor idles.
  */
-import { routeQuoteSource, opsQuoteSource, type OpsRoute, type QuoteSource } from "@agari/markets/ops/agents";
-import { createOpsClient } from "@agari/markets/server";
-import type { IntentJournal } from "@agari/core/ports";
+import { routeQuoteSource, opsQuoteSource, type OpsRoute, type QuoteSource } from "@owarine/markets/ops/agents";
+import { createOpsClient } from "@owarine/markets/server";
+import type { IntentJournal } from "@owarine/core/ports";
 import { createVenueContext, type VenueContext } from "../venue/context";
 import { createAgentSession, type AgentSession } from "./session";
 

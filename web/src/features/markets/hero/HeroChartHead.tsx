@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket, Lane } from "@agari/core/types";
+import type { EventMarket, Lane } from "@owarine/core/types";
 import { LANE_STATE } from "@/lib/copy";
 import { etWeekday, laneAssetLabel, type LaneTabKey } from "../lanes/lane-view";
 import { AssetDisc } from "./asset-mark";

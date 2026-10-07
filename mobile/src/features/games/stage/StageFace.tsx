@@ -1,5 +1,5 @@
-import type { DeckCard } from "@agari/core/games";
-import { formatClock } from "@agari/core/units";
+import type { DeckCard } from "@owarine/core/games";
+import { formatClock } from "@owarine/core/units";
 import { Clock as ClockIcon } from "lucide-react-native";
 import { useEffect, type ReactNode } from "react";
 import { StyleSheet, Text, View, type TextStyle } from "react-native";

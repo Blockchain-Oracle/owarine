@@ -17,7 +17,7 @@ import { finding } from "./report.mjs";
 import { walkFiles } from "./walk.mjs";
 
 /** Packages a native bundle must never reach: DOM-only UI, Next internals, server-only code, Node built-ins. */
-const DENIED = /^(@base-ui\/|react-dom(\/|$)|next(\/|$)|@number-flow\/react|lightweight-charts|motion(\/|$)|framer-motion|server-only$|@agari\/db(\/|$)|@agari\/ledger$|@agari\/brain(\/|$)|@ai-sdk\/|ai$|@anthropic-ai\/|node:|postgres$)/;
+const DENIED = /^(@base-ui\/|react-dom(\/|$)|next(\/|$)|@number-flow\/react|lightweight-charts|motion(\/|$)|framer-motion|server-only$|@owarine\/db(\/|$)|@owarine\/ledger$|@owarine\/brain(\/|$)|@ai-sdk\/|ai$|@anthropic-ai\/|node:|postgres$)/;
 /** Module shims in mobile/metro.config.js: resolved to the app's own stand-ins, so never a finding. */
 const MODULE_SHIMS = new Set(["next/navigation", "lucide-react", "undici", "crypto"]);
 const EXTS = [".native.tsx", ".native.ts", ".ios.tsx", ".ios.ts", ".tsx", ".ts", ".mjs", ".js", ".cjs"];
@@ -38,7 +38,7 @@ function workspacePackages(root) {
     for (const { abs } of walkFiles(root, dir, ["package.json"])) {
       if (abs.includes("node_modules")) continue;
       const pkg = JSON.parse(readFileSync(abs, "utf8"));
-      if (pkg.name?.startsWith("@agari/")) map.set(pkg.name, { dir: dirname(abs), exports: pkg.exports ?? { ".": pkg.main ?? "./index.ts" } });
+      if (pkg.name?.startsWith("@owarine/")) map.set(pkg.name, { dir: dirname(abs), exports: pkg.exports ?? { ".": pkg.main ?? "./index.ts" } });
     }
   }
   return map;

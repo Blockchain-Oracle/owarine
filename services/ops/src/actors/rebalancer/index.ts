@@ -4,7 +4,7 @@
  * oversized one to the target size (`VenueCash_Split`, `split:<cid>`), leasing from the issuer's pool so it never
  * races a quote for the same shard.
  */
-import { cmd, failureText, mergeCashCommandId, splitCashCommandId, type RoleSession } from "@agari/markets/ops/canton";
+import { cmd, failureText, mergeCashCommandId, splitCashCommandId, type RoleSession } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { submitWithShards } from "../quote-issuer/pooled-submit";

@@ -1,9 +1,9 @@
 /**
- * The projection's ids for ledger text: the canonical derivation in `@agari/core/market` (`marketIdFromDaml`,
- * `seriesIdFromDaml`), which `@agari/markets/server` `appMarketId` also uses, so `/api/index/*` rows carry the same
+ * The projection's ids for ledger text: the canonical derivation in `@owarine/core/market` (`marketIdFromDaml`,
+ * `seriesIdFromDaml`), which `@owarine/markets/server` `appMarketId` also uses, so `/api/index/*` rows carry the same
  * `MarketId` the seat routes return. The Daml text is kept beside it (`market_key`, `series_key`).
  */
-import { marketIdFromDaml, seriesIdFromDaml } from "@agari/core/market";
+import { marketIdFromDaml, seriesIdFromDaml } from "@owarine/core/market";
 
 /** A Window's `MarketId` from `MarketTerms.marketId` (the Daml text `<seriesKey>:<index>`). */
 export const marketIdOfKey = (marketKey: string): string => marketIdFromDaml(marketKey);

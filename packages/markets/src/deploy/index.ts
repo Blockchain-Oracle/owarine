@@ -1,9 +1,9 @@
 /**
- * `@agari/markets/deploy`: server-only operator tooling. Scripts read keypair files and JSON, then call these. Not
+ * `@owarine/markets/deploy`: server-only operator tooling. Scripts read keypair files and JSON, then call these. Not
  * re-exported from the package root. C1 stub: the pure venue specs and price policies are live (the Daml `Series`
  * contracts take the same values, C2x); every ledger step refuses as not live.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { DeployClient, KeyPairSigner } from "./client";
 import type { PriceSources } from "./policies";
 import { deployNotLive, type StepLog, type VenueRecord } from "./send";

@@ -9,7 +9,7 @@ const POLL_MS = 15_000;
 /** The mentions the relay executed for this wallet; `null` until the first answer. */
 export function useXReceipts(wallet: string | null): XReceiptsFeed | null {
   const query = useQuery({
-    queryKey: ["agari", "x-receipts", wallet],
+    queryKey: ["owarine", "x-receipts", wallet],
     queryFn: async () => {
       const response = await fetch(`/api/x/receipts?wallet=${encodeURIComponent(wallet as string)}`, { cache: "no-store", headers: await seatReadHeaders() });
       if (!response.ok) throw new Error(`receipts ${response.status}`);

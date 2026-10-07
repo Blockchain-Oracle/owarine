@@ -4,9 +4,9 @@
  * `ParlayQuote_Accept`. Resolving a leg and claiming are the owner's `Ticket_ClaimLeg` (the next leg in expiry order,
  * against its Window's resolution), or the stale void past `voidAfter`.
  */
-import type { ParlayIntent } from "@agari/core/parlay";
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
+import type { ParlayIntent } from "@owarine/core/parlay";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
 import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { acceptTicketQuote, asTxOutcome, exitTicket } from "../submitter/ticket-lane";
 import { parlayCall, rememberTicket, ticketCidOf } from "../tickets/client";

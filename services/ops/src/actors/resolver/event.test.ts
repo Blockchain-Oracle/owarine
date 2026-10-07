@@ -1,4 +1,4 @@
-import type { Active, EventAttestationC, EventTermsC } from "@agari/markets/ops/canton";
+import type { Active, EventAttestationC, EventTermsC } from "@owarine/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import { decideEvent, EVENT_ALL_MEMBERS_WAIT_SEC, eventEvidence } from "./event";
 

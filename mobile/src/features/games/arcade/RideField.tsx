@@ -11,7 +11,7 @@ import {
   type ArcadeRunConfig,
   type RideState,
   type Rng,
-} from "@agari/core/games/arcade";
+} from "@owarine/core/games/arcade";
 import type { RideCue, RideHud } from "@/features/games/arcade/RideCanvas";
 import { createRideFx, drawRide } from "@/features/games/arcade/ride-draw";
 import { IDLE_SEED, type ArcadeRun, type RunEnd } from "@/features/games/arcade/run";

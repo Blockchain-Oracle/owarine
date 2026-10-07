@@ -1,8 +1,8 @@
 "use client";
 
-import { type TickerSymbol } from "@agari/core/market";
-import type { MarketId } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { type TickerSymbol } from "@owarine/core/market";
+import type { MarketId } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { formatCadence, PREOPEN } from "@/lib/copy";

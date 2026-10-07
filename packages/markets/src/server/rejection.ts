@@ -5,8 +5,8 @@
  * 3.5.17 sandbox (`scripts/drive/probe-rejections.ts`). Noders may return only a trace id; the trace id is always kept
  * in `technical` so a report can be matched to the participant's log.
  */
-import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
-import { LedgerError } from "@agari/ledger";
+import { diagnosis, type Diagnosis, type DiagnosisKind } from "@owarine/core/types";
+import { LedgerError } from "@owarine/ledger";
 import { ReadingError } from "../errors/reading-error";
 
 /** Which seat action failed: a submit's outcome can be unknown, a read's never is. */

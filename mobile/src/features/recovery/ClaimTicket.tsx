@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { CLAIM } from "@/features/x/copy";
-import { AgariMark } from "~/components/shell/AgariMark";
+import { OwarineMark } from "~/components/shell/OwarineMark";
 import { FONT, useTheme } from "~/theme";
 import { activityTokens } from "~/theme/web/portfolio-activity";
 
@@ -20,7 +20,7 @@ export function ClaimTicket({ amount, handle, done, symbol }: { amount: string |
       <View style={styles.body}>
         <View style={styles.head}>
           <View style={styles.brand}>
-            <AgariMark width={22} height={22} figure={t.xrInk} />
+            <OwarineMark width={22} height={22} figure={t.xrInk} />
             <Text style={[styles.brandText, { color: t.xrInk }]}>{C.brand}</Text>
           </View>
           <View style={[styles.pill, { backgroundColor: known ? t.xrPillKnown : t.xrPill }]}>

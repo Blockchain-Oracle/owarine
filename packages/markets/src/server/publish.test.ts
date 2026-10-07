@@ -1,5 +1,5 @@
-import { TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type LedgerClient } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type LedgerClient } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { appMarketId } from "./ids";
 import { publishCall, publishCommandId, readPublications, retractCall } from "./publish";

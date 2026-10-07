@@ -1,5 +1,5 @@
-import { encodeBase58, type EventMarket } from "@agari/core/types";
-import { agentPrompt, EMPTY_AGENT_RECORD, moveBps } from "@agari/core/strategies";
+import { encodeBase58, type EventMarket } from "@owarine/core/types";
+import { agentPrompt, EMPTY_AGENT_RECORD, moveBps } from "@owarine/core/strategies";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ opening: vi.fn(), price: vi.fn(), history: vi.fn(), quote: vi.fn() }));

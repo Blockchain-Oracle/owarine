@@ -3,10 +3,10 @@
  * rejection once and prints the `JsCantonError` fields, which `packages/markets/src/server/rejection.test.ts` keeps as
  * fixtures. Party allocation is local-only, so this never runs against Noders.
  *
- *   LEDGER_JSON_API_URL=http://localhost:7595 pnpm --filter @agari/scripts exec tsx drive/probe-rejections.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7595 pnpm --filter @owarine/scripts exec tsx drive/probe-rejections.ts
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { createLedgerClient, LedgerError, noAuth } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { createLedgerClient, LedgerError, noAuth } from "@owarine/ledger";
 import { sandboxWorld, waitForLedger } from "./lib/sandbox-world";
 
 const client = createLedgerClient({ baseUrl: process.env.LEDGER_JSON_API_URL ?? "http://localhost:7595", auth: noAuth(), userId: "c4a-probe", maxAttempts: 1 });

@@ -1,5 +1,5 @@
-import { formatUsdc, pct as corePct } from "@agari/core/desk";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatUsdc, pct as corePct } from "@owarine/core/desk";
+import { formatBaseUnits } from "@owarine/core/units";
 
 /** The desk's numbers as words: dollars with grouping, tokens to four places, percentages to one, plain relative times. */
 const USDC_DP = 6;

@@ -1,5 +1,5 @@
-import { formatCadence } from "@agari/core/market";
-import type { EventMarket, MarketId } from "@agari/core/types";
+import { formatCadence } from "@owarine/core/market";
+import type { EventMarket, MarketId } from "@owarine/core/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RANGE } from "@/features/range/copy";
 import { usdBand } from "@/features/range/format";

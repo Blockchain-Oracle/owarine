@@ -1,11 +1,11 @@
 /**
  * abu-pm-main contract payloads (Daml-LF JSON) → the typed shapes the venue actors read. Server-only.
  *
- * Every Daml `Int` arrives as a string and becomes a `bigint` through `@agari/ledger`'s `fromDamlInt`, never `Number`,
+ * Every Daml `Int` arrives as a string and becomes a `bigint` through `@owarine/ledger`'s `fromDamlInt`, never `Number`,
  * except small counters (index, cadence, quorum, ticks, seconds) that are range-checked into a safe `number`. Every
  * Daml `Time` becomes epoch seconds (`…Sec`), floored: the engine's deadlines are whole seconds.
  */
-import { fromDamlInt, type ContractId, type CreatedEvent, type Party } from "@agari/ledger/pure";
+import { fromDamlInt, type ContractId, type CreatedEvent, type Party } from "@owarine/ledger/pure";
 
 export type Side = "SideUp" | "SideDown";
 export type SlotName = "OpenSlot" | "CloseSlot";

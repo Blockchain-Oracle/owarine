@@ -1,4 +1,4 @@
-import { parsePrintSource, TICKERS, TICKER_SYMBOLS, type AttestedSource, type TickerSymbol } from "@agari/core/market";
+import { parsePrintSource, TICKERS, TICKER_SYMBOLS, type AttestedSource, type TickerSymbol } from "@owarine/core/market";
 
 /**
  * The landing's "Built on" figures (S25), pure over the index's `status/prints` rows (the `/status` print-source mix):

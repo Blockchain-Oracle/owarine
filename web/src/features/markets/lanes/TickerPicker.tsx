@@ -1,7 +1,7 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
-import type { LaneBasis } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { LaneBasis } from "@owarine/core/types";
 import { MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { AssetDisc } from "../hero/asset-mark";
@@ -22,7 +22,7 @@ interface TickerPickerProps {
 /**
  * Filters the active lane by ticker (first-call.md §6). A lane carries up to nine tickers where
  * Masayume's carried two, so "All" is the reference's own view and each tab narrows it. The pin
- * (`agari.ticker`) survives a cadence switch and a reload, and the hero follows it.
+ * (`owarine.ticker`) survives a cadence switch and a reload, and the hero follows it.
  */
 export function TickerPicker({ tickers, basis, paused, ticker, onPick }: TickerPickerProps) {
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { nameOf } from "@agari/core/desk";
+import { nameOf } from "@owarine/core/desk";
 import { Clock3, Hand, OctagonAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { RadialGauge } from "@/components/ui/desk-kit";

@@ -1,8 +1,8 @@
 "use client";
 
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, type BasketSymbol } from "@agari/core/market";
-import type { LaneSet } from "@agari/core/types";
-import { useAssetPrice } from "@agari/markets/react";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, type BasketSymbol } from "@owarine/core/market";
+import type { LaneSet } from "@owarine/core/types";
+import { useAssetPrice } from "@owarine/markets/react";
 import { SectionHeader } from "@/components/chrome";
 import { useHoldings } from "@/features/hedge/useHoldings";
 import { basisRaw, feedRawToOracleRaw } from "@/features/markets/hero/units";

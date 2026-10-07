@@ -4,7 +4,7 @@
  * which only polls feeds the key is entitled to; a lane the roller has not listed never reaches here. Halts key by the
  * lane's own symbol (`tokenLaneAsset` answers the valuation ticker itself).
  */
-import { haltOf, TICKERS } from "@agari/core/market";
+import { haltOf, TICKERS } from "@owarine/core/market";
 import { currentPythIndexSpot, type PythIndexSpotFeed } from "../../../prices/pyth-index-spot";
 import { fairYesTicks } from "./fair";
 import type { LaneQuote, LaneQuoteInput } from "./lane-quote";

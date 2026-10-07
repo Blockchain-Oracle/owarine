@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { isJournalId, seatCommandId, type SeatIntent } from "@agari/markets/server";
+import { isJournalId, seatCommandId, type SeatIntent } from "@owarine/markets/server";
 import { replyWith, refusal, seatFromRequest } from "@/lib/seat.server";
 
 /**

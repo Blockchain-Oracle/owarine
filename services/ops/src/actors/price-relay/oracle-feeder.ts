@@ -9,9 +9,9 @@
  */
 import { createHash } from "node:crypto";
 import { appendFileSync } from "node:fs";
-import { archivePrints, getDb, openDependentSpans, quoteIsCited, type DependentSpan } from "@agari/db";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, decodePriceQuote, failureText, pick, printCommandId, readActive, retireCommandId, submit, type RoleSession } from "@agari/markets/ops/canton";
+import { archivePrints, getDb, openDependentSpans, quoteIsCited, type DependentSpan } from "@owarine/db";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { cmd, decodePriceQuote, failureText, pick, printCommandId, readActive, retireCommandId, submit, type RoleSession } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
 import { ORACLE_ROLES, type OracleRole } from "../../runtime/keys";

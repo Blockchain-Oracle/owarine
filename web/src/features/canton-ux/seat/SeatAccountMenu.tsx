@@ -1,6 +1,6 @@
 "use client";
 
-import { partyLead, shortHex } from "@agari/core/units";
+import { partyLead, shortHex } from "@owarine/core/units";
 import { Check, Copy } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";

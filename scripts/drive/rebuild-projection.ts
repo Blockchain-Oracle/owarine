@@ -1,11 +1,11 @@
 // Rebuild == live (C3 gate): with ops stopped, catch the live projection up to the ledger end, replay the venue's whole
 // ledger from offset 0 into a second database, and compare every idx_* table row for row.
 //   DATABASE_URL=… REBUILD_DATABASE_URL=… VENUE_PARTY=… LEDGER_JSON_API_URL=… \
-//     pnpm --filter @agari/scripts exec tsx drive/rebuild-projection.ts
+//     pnpm --filter @owarine/scripts exec tsx drive/rebuild-projection.ts
 // Exits 0 only when every table is equal. The rebuild database is truncated first.
 import postgres from "postgres";
-import { ensureSchema, getDb, indexWriter, SCHEMA_SQL, type Db } from "@agari/db";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
+import { ensureSchema, getDb, indexWriter, SCHEMA_SQL, type Db } from "@owarine/db";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
 import { startProjectorLoop } from "../../services/ops/src/actors/projector/run";
 
 const TABLES: Record<string, string> = {

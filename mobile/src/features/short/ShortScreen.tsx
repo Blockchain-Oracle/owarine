@@ -1,7 +1,7 @@
-import type { LeverageReserveState } from "@agari/core/leverage";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket } from "@agari/core/types";
-import { useBalanceSheet, useLeverageReserve } from "@agari/markets/react";
+import type { LeverageReserveState } from "@owarine/core/leverage";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket } from "@owarine/core/types";
+import { useBalanceSheet, useLeverageReserve } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";

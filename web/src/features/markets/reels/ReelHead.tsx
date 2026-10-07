@@ -1,8 +1,8 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
-import type { EventMarket } from "@agari/core/types";
-import { formatClock } from "@agari/core/units";
+import { countdown } from "@owarine/core/lifecycle";
+import type { EventMarket } from "@owarine/core/types";
+import { formatClock } from "@owarine/core/units";
 import { formatCadence, REELS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { useChainNowMs } from "../useChainNow";

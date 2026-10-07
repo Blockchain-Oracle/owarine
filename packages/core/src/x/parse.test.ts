@@ -15,10 +15,10 @@ const refused = (text: string) => {
 
 describe("parseInstruction", () => {
   it("reads the canonical grammar", () => {
-    expect(ok("@agari tsla up 5 15m")).toEqual({ side: "up", asset: "TSLA", cadence: "15m", intervalSec: 900, stakeBase: 5_000_000n });
+    expect(ok("@owarine tsla up 5 15m")).toEqual({ side: "up", asset: "TSLA", cadence: "15m", intervalSec: 900, stakeBase: 5_000_000n });
   });
   it("accepts any token order, a $ sign, decimals and synonyms", () => {
-    expect(ok("@agari 1h $10.5 DOWN nvda")).toEqual({ side: "down", asset: "NVDA", cadence: "1h", intervalSec: 3_600, stakeBase: 10_500_000n });
+    expect(ok("@owarine 1h $10.5 DOWN nvda")).toEqual({ side: "down", asset: "NVDA", cadence: "1h", intervalSec: 3_600, stakeBase: 10_500_000n });
     expect(ok("tesla long 25 usdc 5m please")).toMatchObject({ side: "up", asset: "TSLA", cadence: "5m" });
     expect(ok("short alphabet 1 1h")).toMatchObject({ side: "down", asset: "GOOGL", cadence: "1h" });
     expect(ok("META up 2 15m")).toMatchObject({ asset: "META" });
@@ -39,7 +39,7 @@ describe("parseInstruction", () => {
     expect(refused(`TSLA up 5 ${duration}`)).toBe("cadence-not-listed");
   });
   it("refuses every ambiguity by name", () => {
-    expect(refused("@agari tsla up down 5 15m")).toBe("two-sides");
+    expect(refused("@owarine tsla up down 5 15m")).toBe("two-sides");
     expect(refused("tsla nvidia up 5 15m")).toBe("two-assets");
     expect(refused("tsla up 5 10 15m")).toBe("two-stakes");
     expect(refused("tsla up 5 15m 1h")).toBe("two-cadences");
@@ -54,7 +54,7 @@ describe("parseInstruction", () => {
     expect(refused("tsla up 5 30m")).toBe("cadence-not-listed");
     expect(refused("tsla up 0 15m")).toBe("bad-stake");
     expect(refused("tsla up 5 15m 3x")).toBe("unknown-token");
-    expect(refused("@agari")).toBe("empty");
+    expect(refused("@owarine")).toBe("empty");
   });
   it("refuses a stake finer than the collateral", () => {
     expect(refused("tsla up 0.0000001 15m")).toBe("bad-stake");

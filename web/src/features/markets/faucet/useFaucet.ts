@@ -1,11 +1,11 @@
 "use client";
 
-import { FAUCET_UNITS, FEE_RESERVE_LAMPORTS } from "@agari/core/constants";
-import type { FaucetClaimView, FaucetStatus, TusdcFaucetClaimView } from "@agari/core/faucet";
-import type { WritePhase } from "@agari/core/ports";
-import type { Diagnosis, Signature } from "@agari/core/types";
-import { collateralOrNull } from "@agari/markets";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
+import { FAUCET_UNITS, FEE_RESERVE_LAMPORTS } from "@owarine/core/constants";
+import type { FaucetClaimView, FaucetStatus, TusdcFaucetClaimView } from "@owarine/core/faucet";
+import type { WritePhase } from "@owarine/core/ports";
+import type { Diagnosis, Signature } from "@owarine/core/types";
+import { collateralOrNull } from "@owarine/markets";
+import { invalidateAfterWrite, useSigner, useSubmitter } from "@owarine/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { announceCredit } from "@/features/funding/credited";

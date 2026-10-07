@@ -1,4 +1,4 @@
-import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits, shortHex } from "@owarine/core/units";
 import * as Clipboard from "expo-clipboard";
 import { ChevronDown, RefreshCw, Unlink } from "lucide-react-native";
 import { useState } from "react";

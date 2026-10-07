@@ -1,4 +1,4 @@
-import { FIELD_H, FIELD_W } from "@agari/core/games/arcade";
+import { FIELD_H, FIELD_W } from "@owarine/core/games/arcade";
 import { useImperativeHandle, useState, type Ref } from "react";
 import { StyleSheet } from "react-native";
 import Svg, { Defs, Path, RadialGradient } from "react-native-svg";

@@ -1,7 +1,7 @@
-import { diagnosis } from "@agari/core/types";
-import { joinSeatLink, type LedgerCallResult, type SeatLeaseView } from "@agari/markets";
-import { keys, type WalletSession } from "@agari/markets/react";
-import { seatSession } from "@agari/markets/sessions/mobile";
+import { diagnosis } from "@owarine/core/types";
+import { joinSeatLink, type LedgerCallResult, type SeatLeaseView } from "@owarine/markets";
+import { keys, type WalletSession } from "@owarine/markets/react";
+import { seatSession } from "@owarine/markets/sessions/mobile";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";

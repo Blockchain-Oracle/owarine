@@ -1,5 +1,5 @@
-import { deskCopy, mandateFromWire, nameOf, thresholdBps, type DeskMandate } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
+import { deskCopy, mandateFromWire, nameOf, thresholdBps, type DeskMandate } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
 import { DESK } from "./copy";
 import { nextTopOfHour } from "./format";
 import { CHECK_EVERY_SEC, GO_LIVE_CHECKS, LATE_AFTER_SEC, type ApprovalWire, type DeskState, type DeskViewWire, type SnapshotHoldingWire } from "./protocol";

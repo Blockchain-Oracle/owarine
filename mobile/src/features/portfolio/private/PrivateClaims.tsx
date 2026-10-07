@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import { PRIVATE_BUCKET, type PrivatePosition } from "@agari/core/private";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import { PRIVATE_BUCKET, type PrivatePosition } from "@owarine/core/private";
+import { formatBaseUnits } from "@owarine/core/units";
 import { LoaderCircle, ShieldCheck } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PRIVATE } from "@/features/private/copy";

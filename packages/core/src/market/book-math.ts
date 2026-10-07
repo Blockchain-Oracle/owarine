@@ -137,7 +137,7 @@ export interface StakeQuote {
   escrowCash: bigint;
 }
 
-/** Port of `quoteBinaryStakeOverBook` on the Agari grid (`tick = lot = 1`, `one = 1000`). Null when nothing fits. */
+/** Port of `quoteBinaryStakeOverBook` on the Owarine grid (`tick = lot = 1`, `one = 1000`). Null when nothing fits. */
 export function quoteStake(
   levels: readonly BookLevel[],
   side: "BUY_YES" | "BUY_NO",

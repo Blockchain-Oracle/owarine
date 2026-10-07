@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { diagnosis, encodeBase58, toMarketId, type DiagnosisKind, type Quote, type Signature } from "@agari/core/types";
+import { diagnosis, encodeBase58, toMarketId, type DiagnosisKind, type Quote, type Signature } from "@owarine/core/types";
 import { outcomeToReceipt } from "./receipt-outcome";
 
 const HASH = encodeBase58(new Uint8Array(64).fill(0xab)) as Signature;

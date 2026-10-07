@@ -1,6 +1,6 @@
-import { SETTLING } from "@agari/core/copy";
-import { countdown } from "@agari/core/lifecycle";
-import { formatClock } from "@agari/core/units";
+import { SETTLING } from "@owarine/core/copy";
+import { countdown } from "@owarine/core/lifecycle";
+import { formatClock } from "@owarine/core/units";
 import { Text, type StyleProp, type TextStyle } from "react-native";
 import { useTheme } from "~/theme";
 

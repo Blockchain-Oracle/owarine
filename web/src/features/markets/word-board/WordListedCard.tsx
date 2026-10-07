@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence, isTickerSymbol, TICKERS } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import { formatCadence, isTickerSymbol, TICKERS } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { useState } from "react";
 import { CLOSED } from "@/lib/copy-closed";

@@ -3,8 +3,8 @@
  * payout comes home, or (0.5.2, K-315) the receipt that says the payout is home already. Read as the seat; a receipt
  * created before the lease began is an earlier visitor's (K-224).
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
 
 export interface SeatReceiptRef {
   cid: string;

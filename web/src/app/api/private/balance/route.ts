@@ -1,8 +1,8 @@
-import { privateMoveRequestWire } from "@agari/core/private";
+import { privateMoveRequestWire } from "@owarine/core/private";
 import type { NextRequest } from "next/server";
 import { privateBalance } from "@/features/private/canton.server";
 import { diagnosisReply, jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
-import { classifyRejection } from "@agari/markets/server";
+import { classifyRejection } from "@owarine/markets/server";
 
 /**
  * The seat's private bucket (C8d, L-39).

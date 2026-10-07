@@ -1,10 +1,10 @@
-import type { BlockerKind } from "@agari/core/copy";
-import type { LeverageQuote } from "@agari/core/leverage";
-import { isSettled, type MarketPhase } from "@agari/core/lifecycle";
-import type { Reading } from "@agari/core/schemas";
-import { admissibilityBlocker, belowMinStake } from "@agari/core/sizing";
-import type { Diagnosis, HaltEntry, LaneBasis, Quote, Side } from "@agari/core/types";
-import type { FundingCheck } from "@agari/markets";
+import type { BlockerKind } from "@owarine/core/copy";
+import type { LeverageQuote } from "@owarine/core/leverage";
+import { isSettled, type MarketPhase } from "@owarine/core/lifecycle";
+import type { Reading } from "@owarine/core/schemas";
+import { admissibilityBlocker, belowMinStake } from "@owarine/core/sizing";
+import type { Diagnosis, HaltEntry, LaneBasis, Quote, Side } from "@owarine/core/types";
+import type { FundingCheck } from "@owarine/markets";
 import type { WalletSession } from "@/lib/wallet-session";
 
 export interface TicketBlockerInput {

@@ -1,6 +1,6 @@
-import type { Address, MarketId } from "@agari/core/types";
+import type { Address, MarketId } from "@owarine/core/types";
 
-const QUERY_KEY_SCOPE = "agari";
+const QUERY_KEY_SCOPE = "owarine";
 const APP = "markets";
 
 /** Query keys for every port read, in one family so a write's invalidation reaches every read it can change. */

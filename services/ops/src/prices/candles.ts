@@ -6,10 +6,10 @@
  *
  * What is archived and hashed is the exact response text, byte for byte; the price is read from it once.
  */
-import { candleUrl, closeFromPayload, decimalToE8, type Exchange } from "@agari/core/proof";
+import { candleUrl, closeFromPayload, decimalToE8, type Exchange } from "@owarine/core/proof";
 
-/** The URLs and payload rules are pure and shared with the proof page's re-verify (`@agari/core/proof`). */
-export { candleUrl, closeFromPayload, decimalToE8, EXCHANGES, type Exchange } from "@agari/core/proof";
+/** The URLs and payload rules are pure and shared with the proof page's re-verify (`@owarine/core/proof`). */
+export { candleUrl, closeFromPayload, decimalToE8, EXCHANGES, type Exchange } from "@owarine/core/proof";
 
 export interface Candle {
   exchange: Exchange;
@@ -27,7 +27,7 @@ export interface Candle {
 
 export type Fetch = (url: string, init?: RequestInit) => Promise<{ ok: boolean; status: number; text(): Promise<string> }>;
 
-const UA = { "user-agent": "agari-oracle-feeder" };
+const UA = { "user-agent": "owarine-oracle-feeder" };
 
 /** Fetches the closed candle ending at `boundarySec`, or null when the exchange has not finalised it. Throws on HTTP failure. */
 export async function fetchCandle(exchange: Exchange, symbol: string, boundarySec: number, fetchImpl: Fetch = fetch as Fetch): Promise<Candle | null> {

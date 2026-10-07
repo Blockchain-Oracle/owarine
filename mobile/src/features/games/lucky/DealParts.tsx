@@ -1,4 +1,4 @@
-import type { Side } from "@agari/core/types";
+import type { Side } from "@owarine/core/types";
 import { StyleSheet, Text } from "react-native";
 import { Press } from "~/features/games/frame";
 import { FONT } from "~/theme";

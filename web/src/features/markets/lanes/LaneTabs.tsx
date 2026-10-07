@@ -1,6 +1,6 @@
 "use client";
 
-import type { Lane } from "@agari/core/types";
+import type { Lane } from "@owarine/core/types";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MARKETS } from "@/lib/copy";
 import { compareLaneTabKeys, laneTabKey, laneTabLabel, laneTabParts, type LaneTabKey } from "./lane-view";

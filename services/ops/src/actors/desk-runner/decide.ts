@@ -3,8 +3,8 @@
  * no budget left, is an answer with the reason named and no decision: the desk then does nothing that hour and the
  * record says exactly why. The budget is warmed from the records on boot, so a restart never doubles it.
  */
-import { decideDeskTiming } from "@agari/brain";
-import { DESK_TIMING_PROMPT_VERSION, type DeskEvidencePack, type DeskTimingAnswer } from "@agari/core/desk";
+import { decideDeskTiming } from "@owarine/brain";
+import { DESK_TIMING_PROMPT_VERSION, type DeskEvidencePack, type DeskTimingAnswer } from "@owarine/core/desk";
 import type { RunnerContext } from "./types";
 
 const HOUR_MS = 3_600_000;

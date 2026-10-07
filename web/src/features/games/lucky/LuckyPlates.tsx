@@ -1,8 +1,8 @@
 "use client";
 
-import type { BookedOrder } from "@agari/core/ports";
-import { bpsToOddsCents, formatBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import type { BookedOrder } from "@owarine/core/ports";
+import { bpsToOddsCents, formatBaseUnits } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import Link from "next/link";
 import { Hash } from "@/components/data";
 import { SIDE_WORD } from "@/features/markets/side-styles";

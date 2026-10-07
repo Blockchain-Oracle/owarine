@@ -1,6 +1,6 @@
-import { SUBMITTED_UNKNOWN } from "@agari/core/copy";
-import { ownCentsOf } from "@agari/core/orders";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { SUBMITTED_UNKNOWN } from "@owarine/core/copy";
+import { ownCentsOf } from "@owarine/core/orders";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";

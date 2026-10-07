@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { FaucetError } from "@agari/core/faucet";
-import { addressSchema } from "@agari/core/types";
+import { FaucetError } from "@owarine/core/faucet";
+import { addressSchema } from "@owarine/core/types";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { faucetBody, faucetErrorResponse, faucetForRequest } from "@/features/funding/faucet-config.server";
 

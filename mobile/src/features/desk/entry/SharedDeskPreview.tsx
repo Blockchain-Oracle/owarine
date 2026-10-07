@@ -1,5 +1,5 @@
-import { presetById } from "@agari/core/desk";
-import { isOk } from "@agari/core/schemas";
+import { presetById } from "@owarine/core/desk";
+import { isOk } from "@owarine/core/schemas";
 import { router } from "expo-router";
 import { ArrowUpRight, CircleDashed } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";

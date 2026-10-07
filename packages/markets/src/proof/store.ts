@@ -1,6 +1,6 @@
 /**
- * What the replay needs from storage (implemented by `@agari/db` `proofStore`, `packages/db/src/proofs.ts`). Rows are
- * JSON-safe: integers travel as decimal strings, so `@agari/db` never imports Kit or core.
+ * What the replay needs from storage (implemented by `@owarine/db` `proofStore`, `packages/db/src/proofs.ts`). Rows are
+ * JSON-safe: integers travel as decimal strings, so `@owarine/db` never imports Kit or core.
  */
 
 /** A recorded print (`idx_prints` joined to its Window's ticker). */

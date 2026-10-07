@@ -1,6 +1,6 @@
-import { LUCKY_VERIFIED } from "@agari/core/games";
-import type { Address } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
+import { LUCKY_VERIFIED } from "@owarine/core/games";
+import type { Address } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
 import { router, type Href } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";

@@ -4,7 +4,7 @@
  * parsed back to bigint strictly; contract ids are hex; a party never travels from a browser (the web adds it from the
  * lease on its way to ops).
  */
-import { diagnosisSchema, isMarketId, isSignature, type MarketId, type Signature } from "@agari/core/types";
+import { diagnosisSchema, isMarketId, isSignature, type MarketId, type Signature } from "@owarine/core/types";
 import { z } from "zod";
 
 const baseUnits = z.string().regex(/^-?\d+$/, "an integer string").transform((s) => BigInt(s));
@@ -154,7 +154,7 @@ export const ticketReserveStateWire = z.object({
 });
 export type TicketReserveState = z.output<typeof ticketReserveStateWire>;
 
-/** One Window of the maker vault's book, in the reference's `MakerWindowView` terms (`@agari/markets/ops/book` views). */
+/** One Window of the maker vault's book, in the reference's `MakerWindowView` terms (`@owarine/markets/ops/book` views). */
 export const makerWindowWire = z.object({
   marketId,
   escrowOutBase: baseUnits,

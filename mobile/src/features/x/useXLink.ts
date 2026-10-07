@@ -1,5 +1,5 @@
-import { shortHex } from "@agari/core/units";
-import { xLinkMessage, xUnlinkMessage } from "@agari/core/x";
+import { shortHex } from "@owarine/core/units";
+import { xLinkMessage, xUnlinkMessage } from "@owarine/core/x";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { X_CARD, X_ERRORS, X_OAUTH_FALLBACK, X_OAUTH_MESSAGES } from "@/features/x/copy";
@@ -11,7 +11,7 @@ import { setForwardedXSession, xSessionHeaders } from "./x-session";
 export type XBusy = "" | "link" | "unlink" | "sign-in";
 
 const POLL_MS = 15_000;
-export const xStatusKey = (wallet: string | null) => ["agari", "x-status", wallet] as const;
+export const xStatusKey = (wallet: string | null) => ["owarine", "x-status", wallet] as const;
 
 async function fetchStatus(wallet: string | null): Promise<XStatus | null> {
   const q = wallet ? `?wallet=${encodeURIComponent(wallet)}` : "";

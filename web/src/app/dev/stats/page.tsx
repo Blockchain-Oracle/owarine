@@ -1,7 +1,7 @@
 "use client";
 
-import { oneUnit } from "@agari/core/units";
-import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { oneUnit } from "@owarine/core/units";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
 import { SectionHeader } from "@/components/chrome";
 import { StatsView, type TractionData } from "@/features/stats";
 import type { AuditPayload } from "@/features/stats/audit";

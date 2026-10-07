@@ -1,5 +1,5 @@
-import { txUrl } from "@agari/core/urls";
-import { diagnosis, type ClaimableRow, type Signature } from "@agari/core/types";
+import { txUrl } from "@owarine/core/urls";
+import { diagnosis, type ClaimableRow, type Signature } from "@owarine/core/types";
 import { IDLE_RUN, itemsFromRows } from "@/features/markets/claims";
 import type { ClaimItem, ClaimRun } from "@/features/markets/claims";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";

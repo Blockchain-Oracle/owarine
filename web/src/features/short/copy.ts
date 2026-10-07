@@ -1,4 +1,4 @@
-import { LEVERAGE_NOT_DEPLOYED } from "@agari/core/leverage";
+import { LEVERAGE_NOT_DEPLOYED } from "@owarine/core/leverage";
 
 /**
  * `/short` — A-1b, the inverse position.

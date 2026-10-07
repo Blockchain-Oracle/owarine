@@ -12,7 +12,7 @@ describe("the venue context on DevNet (C2y)", () => {
     const path = join(mkdtempSync(join(tmpdir(), "ops-devnet-")), "parties.devnet.json");
     writeFileSync(path, JSON.stringify({ network: "devnet", createdAtMs: 1, parties: Object.fromEntries(CANTON_ROLES.map((r, i) => [r, party(r, i + 1)])), users: {}, policyVersion: 1 }));
     const ctx = createVenueContext({
-      AGARI_PARTIES_FILE: path,
+      OWARINE_PARTIES_FILE: path,
       DRY_RUN: "1",
       LEDGER_JSON_API_URL: "https://ledger-api-json.participant.example.test",
       LEDGER_AUTH_MODE: "password",

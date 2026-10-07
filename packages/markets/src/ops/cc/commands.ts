@@ -4,8 +4,8 @@
  * standard fixes. Templates are named by package name (`#abu-pm-cc:…`), so a compatible upgrade never changes a caller.
  * Amounts that are `Decimal` on the wire come from `atomicToCc`, never from a number.
  */
-import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, type Cc } from "@agari/daml";
-import { atomicToCc, toDamlInt, type Command, type ContractId, type DisclosedContract, type Party } from "@agari/ledger/pure";
+import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, type Cc } from "@owarine/daml";
+import { atomicToCc, toDamlInt, type Command, type ContractId, type DisclosedContract, type Party } from "@owarine/ledger/pure";
 import { isoOfSec } from "../canton/decode";
 
 /** One ledger command of the rail. */

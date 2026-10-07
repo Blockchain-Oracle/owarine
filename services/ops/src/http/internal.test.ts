@@ -1,7 +1,7 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { adminSignature } from "@agari/markets/games";
-import { OPS_NONCE_HEADER, OPS_SIG_HEADER, OPS_TS_HEADER, opsNonce, opsSignature } from "@agari/markets/server";
+import { adminSignature } from "@owarine/markets/games";
+import { OPS_NONCE_HEADER, OPS_SIG_HEADER, OPS_TS_HEADER, opsNonce, opsSignature } from "@owarine/markets/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { handleInternal, type InternalRoutes } from "./internal";
 

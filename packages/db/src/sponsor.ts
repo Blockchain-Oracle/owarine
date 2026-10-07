@@ -4,13 +4,13 @@
  * decision — read the window, apply the gates, record the row — happens inside one transaction behind an advisory
  * lock, so a co-sign is counted exactly once and a cap can never be crossed by a race.
  *
- * The gate rules themselves stay in `@agari/markets/sponsor` (`gateVerdict`): this store takes them as `decide`, so
+ * The gate rules themselves stay in `@owarine/markets/sponsor` (`gateVerdict`): this store takes them as `decide`, so
  * there is one copy of the policy and this package keeps no dependency on the adapter.
  */
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
 
-/** One issued co-sign, in the shape the gates count (`CosignRow` in `@agari/markets/sponsor`). */
+/** One issued co-sign, in the shape the gates count (`CosignRow` in `@owarine/markets/sponsor`). */
 export interface CosignRecord {
   signature: string;
   signer: string;
@@ -28,7 +28,7 @@ export interface CosignLedger<L, V extends { ok: boolean }> {
 
 /** Nothing older than yesterday can count towards an hour or towards today (the gates' widest window). */
 const WINDOW_MS = 86_400_000 + 3_600_000;
-/** This table's own advisory lock, derived once from "agari.sponsor_cosigns" and written down rather than recomputed. */
+/** This table's own advisory lock, derived once from "owarine.sponsor_cosigns" and written down rather than recomputed. */
 const COSIGN_LOCK_KEY = "512744901337211";
 
 type Row = Record<string, string>;

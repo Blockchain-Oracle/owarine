@@ -3,9 +3,9 @@ import { disagrees, lowerMedian, missingReason, parseVoidDetail, spreadBps, winn
 import { exchangeOfParty, identifySource, recountResolution, reverify, sha256Hex, type EvidenceItem, type ProofResolution, type SourceInput } from "./reverify";
 
 const T = 1_790_000_040 - (1_790_000_040 % 60);
-const CB = "agari-oracle-coinbase-r1::1220aa";
-const KR = "agari-oracle-kraken-r1::1220bb";
-const BS = "agari-oracle-bitstamp-r1::1220cc";
+const CB = "owarine-oracle-coinbase-r1::1220aa";
+const KR = "owarine-oracle-kraken-r1::1220bb";
+const BS = "owarine-oracle-bitstamp-r1::1220cc";
 
 /** A Coinbase candles body whose candle starting at `boundary − 60` closes at `close`. */
 const coinbaseBody = (boundary: number, close: number) => JSON.stringify([[boundary - 60, 1, 2, 1.5, close, 3]]);

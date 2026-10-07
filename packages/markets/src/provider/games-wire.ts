@@ -4,8 +4,8 @@
  * as decimal strings and is parsed back to bigint strictly; a party never travels from a browser (the web adds it from
  * the lease on its way to ops, and a view names players by their seat addresses only).
  */
-import { ARENA_STATUSES, type ArenaMatch, type ArenaPick, type ArenaStatus } from "@agari/core/games";
-import { diagnosisSchema, isAddress, isHash32, isMarketId, isSignature, type Address, type Hash32, type MarketId, type Signature } from "@agari/core/types";
+import { ARENA_STATUSES, type ArenaMatch, type ArenaPick, type ArenaStatus } from "@owarine/core/games";
+import { diagnosisSchema, isAddress, isHash32, isMarketId, isSignature, type Address, type Hash32, type MarketId, type Signature } from "@owarine/core/types";
 import { z } from "zod";
 
 const baseUnits = z.string().regex(/^-?\d+$/, "an integer string").transform((s) => BigInt(s));

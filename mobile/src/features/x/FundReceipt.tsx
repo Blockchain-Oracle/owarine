@@ -1,5 +1,5 @@
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
-import { X_GRANT } from "@agari/core/x";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { X_GRANT } from "@owarine/core/x";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { TRADE_FROM_X } from "@/features/x/copy";

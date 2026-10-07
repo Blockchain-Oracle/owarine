@@ -1,5 +1,5 @@
-import type { XReceipt } from "@agari/core/x";
-import type { XReplyJob } from "@agari/db";
+import type { XReceipt } from "@owarine/core/x";
+import type { XReplyJob } from "@owarine/db";
 import { createReplyPresentation, replyText, type ReplyPresentation } from "./reply-format";
 import type { XTransport } from "./transport";
 

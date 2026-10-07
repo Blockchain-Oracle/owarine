@@ -1,4 +1,4 @@
-import { addDays, etDateOf, isTickerSymbol, SEC_PER_DAY, SEC_PER_HOUR, type TickerSymbol } from "@agari/core/market";
+import { addDays, etDateOf, isTickerSymbol, SEC_PER_DAY, SEC_PER_HOUR, type TickerSymbol } from "@owarine/core/market";
 import { z } from "zod";
 
 /**
@@ -42,7 +42,7 @@ interface ClientState {
 }
 
 // One budget and one cache per process, even when several route bundles each load their own copy of this module.
-const STATE_KEY = Symbol.for("agari.finnhub.client");
+const STATE_KEY = Symbol.for("owarine.finnhub.client");
 const globalStore = globalThis as typeof globalThis & { [STATE_KEY]?: ClientState };
 const state: ClientState = (globalStore[STATE_KEY] ??= { callsAtMs: [], cache: new Map(), inFlight: new Map() });
 

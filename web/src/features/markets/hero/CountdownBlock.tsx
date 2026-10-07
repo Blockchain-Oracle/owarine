@@ -1,6 +1,6 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
+import { countdown } from "@owarine/core/lifecycle";
 import { Countdown, CountdownRing } from "@/components/data";
 
 interface CountdownBlockProps {

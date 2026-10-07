@@ -1,10 +1,10 @@
 "use client";
 
-import { STAKE_TIERS, type MatchState } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32 } from "@agari/core/types";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { useArenaMatch, useArenaState } from "@agari/markets/react";
+import { STAKE_TIERS, type MatchState } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import { useArenaMatch, useArenaState } from "@owarine/markets/react";
 import type { CSSProperties } from "react";
 import { useVenue } from "@/features/markets";
 import { addressHue } from "@/lib/address-hue";

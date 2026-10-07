@@ -1,5 +1,5 @@
-import { DESK_PRESETS, nameOf } from "@agari/core/desk";
-import { BASKETS } from "@agari/core/market";
+import { DESK_PRESETS, nameOf } from "@owarine/core/desk";
+import { BASKETS } from "@owarine/core/market";
 import { Blocks } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";

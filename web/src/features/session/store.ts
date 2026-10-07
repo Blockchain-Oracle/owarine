@@ -1,7 +1,7 @@
 "use client";
 
-import { isAddress, type Address } from "@agari/core/types";
-import type { SessionKey } from "@agari/markets";
+import { isAddress, type Address } from "@owarine/core/types";
+import type { SessionKey } from "@owarine/markets";
 import { del, get, set } from "idb-keyval";
 
 /**
@@ -16,8 +16,8 @@ export interface StoredSessionKey {
   createdAtMs: number;
 }
 
-const KEY_PREFIX = "agari.sessionKey.";
-const DEVICE_KEY = "agari.device";
+const KEY_PREFIX = "owarine.sessionKey.";
+const DEVICE_KEY = "owarine.device";
 
 // Base58 is case-sensitive: the owner key is stored exactly as written (D-010).
 const keyFor = (owner: Address) => `${KEY_PREFIX}${owner}`;

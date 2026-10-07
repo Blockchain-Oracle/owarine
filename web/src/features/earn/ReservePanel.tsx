@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReserveSheet } from "@agari/core/reserves";
-import { oneUnit } from "@agari/core/units";
+import type { ReserveSheet } from "@owarine/core/reserves";
+import { oneUnit } from "@owarine/core/units";
 import { EARN } from "./copy";
 import { formatSharePrice, money2, sharePriceDeltaPct, utilizationPct } from "./format";
 import type { ReserveWords } from "./reserves";
@@ -19,7 +19,7 @@ interface ReservePanelProps {
  * above par, reserve value, utilization with its meter. Every number is the live contract, or the panel says so.
  * The reference's decorative curve beside "Up from 1.0000" drew no data, so it is not here (doc 05 §No fake-data).
  *
- * The reference had one vault; Agari has four reserves keeping the same books, so the words are the tab's and
+ * The reference had one vault; Owarine has four reserves keeping the same books, so the words are the tab's and
  * the arithmetic is the sheet's.
  */
 export function ReservePanel({ sheet, symbol, words, status }: ReservePanelProps) {

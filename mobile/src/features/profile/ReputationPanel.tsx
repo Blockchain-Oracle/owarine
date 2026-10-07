@@ -1,4 +1,4 @@
-import type { Badge, ReputationData } from "@agari/core/projection";
+import type { Badge, ReputationData } from "@owarine/core/projection";
 import { BadgeCheck, ChartNoAxesCombined, Crown, Droplets, Flame, Target, type LucideIcon } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { HISTORY } from "@/features/markets/history/copy";

@@ -1,4 +1,4 @@
-import AgariMark from "@/components/shell/AgariMark";
+import OwarineMark from "@/components/shell/OwarineMark";
 import { CLAIM } from "./copy";
 
 const BARS = Array.from({ length: 46 }, (_, i) => 2 + ((i * 7 + 3) % 5));
@@ -12,7 +12,7 @@ export function ClaimReceiptCard({ amount, handle, done, symbol }: { amount: str
       <div className="xr-body">
         <div className="xr-head">
           <div className="xr-brand">
-            <span className="xr-mark"><AgariMark /></span>
+            <span className="xr-mark"><OwarineMark /></span>
             <span>{CLAIM.card.brand}</span>
           </div>
           <span className={`xr-pill${known ? " xr-pill--known" : ""}`}>

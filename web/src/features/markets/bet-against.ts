@@ -1,14 +1,14 @@
 "use client";
 
-import type { Side } from "@agari/core/types";
+import type { Side } from "@owarine/core/types";
 import { useSyncExternalStore } from "react";
 
-const KEY = "agari.bet-against";
+const KEY = "owarine.bet-against";
 
 /**
  * "I think it falls" as a page-wide mode (A-1a).
  *
- * Agari's bearish trade is the one it already has: a DOWN call on the same Window, at the same book, against the
+ * Owarine's bearish trade is the one it already has: a DOWN call on the same Window, at the same book, against the
  * same house. What was missing was a way to say so once instead of picking DOWN on every ticket — so this holds
  * the choice, and the surfaces that offer a side put DOWN first while it is on.
  *

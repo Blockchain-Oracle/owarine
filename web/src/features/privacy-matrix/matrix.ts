@@ -92,7 +92,7 @@ export const RUN_IT: readonly RunStep[] = [
     title: "The live routes, against a sandbox",
     body: "Drives the real seat routes against a Canton sandbox and a production build of the web app.",
     file: "scripts/drive/seat-routes-it.ts",
-    code: "pnpm --filter @agari/scripts exec tsx drive/seat-routes-it.ts",
+    code: "pnpm --filter @owarine/scripts exec tsx drive/seat-routes-it.ts",
     look: "\"seat B's positions are empty\" and \"/api/view?as=outsider is empty and echoes its filtersByParty\" pass.",
   },
   {

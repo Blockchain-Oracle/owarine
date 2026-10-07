@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { encodeBase58 } from "@agari/core/types";
-import type { XReceipt } from "@agari/core/x";
+import { encodeBase58 } from "@owarine/core/types";
+import type { XReceipt } from "@owarine/core/x";
 import { deliverReplies, startReplyDelivery, type ReplyDeliveryContext } from "./reply-delivery";
 
 const receipt: XReceipt = {

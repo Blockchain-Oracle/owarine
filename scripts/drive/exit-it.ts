@@ -8,13 +8,13 @@
  *
  * Latency is measured per call (quote, accept, exit quote, sale accept) and printed as p50 / max.
  *
- *   SITE=http://localhost:3150 LADDER=http://localhost:8807 DATABASE_URL=… pnpm --filter @agari/scripts exec tsx drive/exit-it.ts
+ *   SITE=http://localhost:3150 LADDER=http://localhost:8807 DATABASE_URL=… pnpm --filter @owarine/scripts exec tsx drive/exit-it.ts
  */
 import { randomUUID, webcrypto } from "node:crypto";
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58, type Address } from "@agari/core/types";
-import { parseMarketsEnv, seatLeaseText, toWire } from "@agari/markets";
-import { feeFor } from "@agari/markets/ops/canton";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58, type Address } from "@owarine/core/types";
+import { parseMarketsEnv, seatLeaseText, toWire } from "@owarine/markets";
+import { feeFor } from "@owarine/markets/ops/canton";
 import postgres from "postgres";
 
 const SITE = process.env.SITE ?? "http://localhost:3150";
@@ -36,7 +36,7 @@ const sign = async (text: string) => encodeBase58(new Uint8Array(await crypto.su
 let cookie = "";
 
 async function call(method: string, path: string, body?: unknown, label?: string) {
-  const headers: Record<string, string> = { accept: "application/json", origin: SITE, "x-agari-seat": "1" };
+  const headers: Record<string, string> = { accept: "application/json", origin: SITE, "x-owarine-seat": "1" };
   if (body !== undefined) headers["content-type"] = "application/json";
   if (cookie) headers.cookie = cookie;
   const t0 = performance.now();
@@ -44,7 +44,7 @@ async function call(method: string, path: string, body?: unknown, label?: string
   const ms = Math.round(performance.now() - t0);
   if (label) (timings[label] ??= []).push(ms);
   const setCookie = res.headers.get("set-cookie");
-  if (setCookie?.startsWith("agari_seat=")) cookie = setCookie.split(";")[0]!;
+  if (setCookie?.startsWith("owarine_seat=")) cookie = setCookie.split(";")[0]!;
   const json = (await res.json().catch(() => null)) as Record<string, any> | null;
   return { status: res.status, json: json ?? {}, ms };
 }

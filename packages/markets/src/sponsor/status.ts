@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 
 /**
  * The fee sponsor's status for `GET /api/sponsor`. On Canton the venue's participant pays the synchronizer traffic and

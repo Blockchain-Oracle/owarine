@@ -1,4 +1,4 @@
-import type { StrategySubscription } from "@agari/core/strategies";
+import type { StrategySubscription } from "@owarine/core/strategies";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";

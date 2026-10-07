@@ -2,12 +2,12 @@
  * The projector (plan "Venue operations and the projector"): the venue party's ledger view mirrored into Postgres for
  * `/api/index/*`. Replaces the Solana indexer. Read-only on the ledger (it never submits), so DRY_RUN changes nothing.
  *
- * Env: `DATABASE_URL`; the `@agari/ledger` variables (`LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE`, …); `VENUE_PARTY` (the
+ * Env: `DATABASE_URL`; the `@owarine/ledger` variables (`LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE`, …); `VENUE_PARTY` (the
  * projected party); optional `PROJECTOR_STREAM` (cursor row, default `venue`) and `PROJECTOR_HEARTBEAT_MS`.
  */
 import { roleParty } from "../../runtime/keys";
-import { ensureSchema, getDb, indexReader, type Db } from "@agari/db";
-import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient, type WebSocketCtor } from "@agari/ledger";
+import { ensureSchema, getDb, indexReader, type Db } from "@owarine/db";
+import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient, type WebSocketCtor } from "@owarine/ledger";
 import { runActor, type VenueDeps } from "../../runtime";
 import { startProjectorLoop, type Projector } from "./run";
 
@@ -26,7 +26,7 @@ export interface ProjectorOverrides {
   /** Heartbeat name on `/health` (default `projector`; the `indexer` shim keeps the name web's /status row reads today). */
   heartbeatName?: string;
   /** Per applied transaction (C9b: the duel projection). */
-  onApplied?: (tx: import("@agari/ledger").JsTransaction) => Promise<void>;
+  onApplied?: (tx: import("@owarine/ledger").JsTransaction) => Promise<void>;
 }
 
 /** Starts the projector actor; null (with a logged reason) when there is no database or no venue party. */

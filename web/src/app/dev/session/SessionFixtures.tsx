@@ -1,9 +1,9 @@
 "use client";
 
-import { CLUSTER_ID, LAMPORTS_PER_SOL } from "@agari/core/constants";
-import type { TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Address } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
+import { CLUSTER_ID, LAMPORTS_PER_SOL } from "@owarine/core/constants";
+import type { TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Address } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
 import { useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { RouteControl, SESSION, SessionChip, SessionControl, SessionManagerBody, type FundingSource, type SessionKeyView, type SessionStatus } from "@/features/session";
@@ -20,7 +20,7 @@ const VAULT = fixtureAddress("0x0000000000000000000000000000000000000ee1");
 const NOW_SEC = 1_788_400_000;
 const SYMBOL = "credits";
 /** The wire allowlist `GET /api/sponsor` reports (tap-trading.md §3); a copy here keeps the client bundle free of the server policy. */
-const SPONSOR_ALLOWLIST = ["agari_vault:actor_place_for", "agari_vault:public_crank_settle", "agari_vault:owner_withdraw", "agari_vault:owner_withdraw_private", "agari_vault:owner_revoke"];
+const SPONSOR_ALLOWLIST = ["owarine_vault:actor_place_for", "owarine_vault:public_crank_settle", "owarine_vault:owner_withdraw", "owarine_vault:owner_withdraw_private", "owarine_vault:owner_revoke"];
 
 function grant(actor: Address, expiresAtSec: number, revoked = false): VaultGrant {
   return {

@@ -2,8 +2,8 @@
 //   pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/verify-projection.ts [--json]
 // Env: DATABASE_URL, VENUE_PARTY, LEDGER_JSON_API_URL (+ LEDGER_AUTH_MODE and its variables), PROJECTOR_STREAM.
 // Exits 0 when the ledger's active contracts at the cursor offset equal the projection's live rows, else 1.
-import { getDb } from "@agari/db";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
+import { getDb } from "@owarine/db";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
 import { verifyProjection } from "../../services/ops/src/actors/projector/verify";
 import { flag } from "./cli";
 

@@ -3,7 +3,7 @@ import { appKey } from "~/lib/keys";
 
 /**
  * web `lifecycle-cursor.ts`: what the lifecycle watcher has already announced, per wallet, under
- * web's `agari.activity.seenThrough` — here, under the app's prefix, in the app's MMKV store for web's localStorage, so a relaunch never re-announces.
+ * web's `owarine.activity.seenThrough` — here, under the app's prefix, in the app's MMKV store for web's localStorage, so a relaunch never re-announces.
  */
 const STORAGE_KEY = appKey("activity.seenThrough");
 const IDS_MAX = 100;

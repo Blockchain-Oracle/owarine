@@ -1,6 +1,6 @@
 "use client";
 
-import { partyLead } from "@agari/core/units";
+import { partyLead } from "@owarine/core/units";
 import { Dialog } from "@base-ui/react/dialog";
 import { useEffect, useState, type ReactNode } from "react";
 import { WALLET_MODAL } from "./copy";

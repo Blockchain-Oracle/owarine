@@ -1,4 +1,4 @@
-import { parseMarketsEnv, type MarketsEnv } from "@agari/markets/env";
+import { parseMarketsEnv, type MarketsEnv } from "@owarine/markets/env";
 import { z } from "zod";
 
 const webOnlySchema = z.object({
@@ -16,8 +16,8 @@ export const webEnv: WebEnv = {
   markets: parseMarketsEnv({
     cluster: process.env.NEXT_PUBLIC_CANTON_NETWORK,
     ledgerApiPath: process.env.NEXT_PUBLIC_LEDGER_API_PATH,
-    indexerUrl: process.env.NEXT_PUBLIC_AGARI_INDEXER_URL,
-    venueId: process.env.NEXT_PUBLIC_AGARI_VENUE_ID,
+    indexerUrl: process.env.NEXT_PUBLIC_OWARINE_INDEXER_URL,
+    venueId: process.env.NEXT_PUBLIC_OWARINE_VENUE_ID,
     priceFeedUrl: process.env.NEXT_PUBLIC_PRICE_FEED_URL,
     ladderUrl: process.env.NEXT_PUBLIC_LADDER_URL,
     packageName: process.env.NEXT_PUBLIC_DAML_PACKAGE_NAME,

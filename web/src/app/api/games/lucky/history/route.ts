@@ -1,5 +1,5 @@
-import type { Address } from "@agari/core/types";
-import { isAddress } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { luckyHistory } from "@/features/games/lucky/lucky-settle.server";
 import { provesAddress } from "@/lib/auth/proven-seat.server";

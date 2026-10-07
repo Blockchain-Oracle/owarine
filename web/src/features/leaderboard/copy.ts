@@ -32,13 +32,13 @@ function coverage(span: BoardSpan, complete: boolean): string {
   return span.live ? "session so far" : "full session";
 }
 
-/** `/leaderboard` — ported from the reference's leaderboard page; facts adapted to Agari's sessions and tickers. */
+/** `/leaderboard` — ported from the reference's leaderboard page; facts adapted to Owarine's sessions and tickers. */
 export const LEADERBOARD = {
   title: "Leaderboard",
   hero: {
-    eyebrow: "Everyone trading on Agari",
+    eyebrow: "Everyone trading on Owarine",
     title: ["The", "house", "of names."] as const,
-    traders: (period: BoardPeriod) => (period === "24h" ? "Traders on Agari · 24h" : "Traders on Agari · session"),
+    traders: (period: BoardPeriod) => (period === "24h" ? "Traders on Owarine · 24h" : "Traders on Owarine · session"),
     staked: "Total staked · top 50",
     nextClose: "Next market closes in",
     stamp: (period: BoardPeriod) => (period === "24h" ? "TODAY'S BOARD" : "SESSION BOARD"),
@@ -62,7 +62,7 @@ export const LEADERBOARD = {
   podium: {
     number: "01",
     title: "The podium",
-    desc: (span: BoardSpan) => `The top three on Agari by profit over ${spanWords(span)}, whoever they traded through.`,
+    desc: (span: BoardSpan) => `The top three on Owarine by profit over ${spanWords(span)}, whoever they traded through.`,
     ordinals: { 1: "1ST", 2: "2ND", 3: "3RD" } as Record<1 | 2 | 3, string>,
     sash: "GRAND CHAMPION",
     streak: (n: number) => `${n} WIN STREAK`,
@@ -87,7 +87,7 @@ export const LEADERBOARD = {
   activity: {
     number: "03",
     title: "Live activity",
-    desc: "The latest published calls on Agari. Click any row → its ledger update.",
+    desc: "The latest published calls on Owarine. Click any row → its ledger update.",
     updated: (ago: string) => `updated ${ago}`,
     reading: "reading the chain…",
     unreachable: "couldn't reach the chain, retrying…",

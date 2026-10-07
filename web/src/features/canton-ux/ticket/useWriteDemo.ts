@@ -1,6 +1,6 @@
 "use client";
 
-import type { WritePhase } from "@agari/core/ports";
+import type { WritePhase } from "@owarine/core/ports";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { QUOTE_TTL_SEC } from "./copy";
 

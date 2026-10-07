@@ -1,8 +1,8 @@
-import { venueFactsWire, marketFactsWire } from "@agari/markets";
+import { venueFactsWire, marketFactsWire } from "@owarine/markets";
 import { describe, expect, it } from "vitest";
 import { marketFacts, policySources, seriesFacts, sourceOf, venueFacts, venueIdFromParty } from "./venue-facts";
 
-const VENUE = "agari-venue-mum6iua9::1220d061948d597f97645e8ad8ac39c57c7b2ba56450f292e74f9009bc1cca48a23b";
+const VENUE = "owarine-venue-mum6iua9::1220d061948d597f97645e8ad8ac39c57c7b2ba56450f292e74f9009bc1cca48a23b";
 
 describe("/api/venue facts from projection rows", () => {
   it("derives the venue's ids from its party, the same on every host", () => {

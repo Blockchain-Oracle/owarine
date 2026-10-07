@@ -1,8 +1,8 @@
 "use client";
 
 import { seatWriteHeaders } from "@/lib/seat-fetch";
-import type { BookedOrder } from "@agari/core/ports";
-import type { Address, Hash32, Signature } from "@agari/core/types";
+import type { BookedOrder } from "@owarine/core/ports";
+import type { Address, Hash32, Signature } from "@owarine/core/types";
 import { useCallback, useRef, useState } from "react";
 import { deviceId } from "@/features/session/store";
 import { isDealt, type DealtLuckyWire, type LuckyCommitWire, type LuckyDealWire, type LuckyPlacedStatus, type LuckyPlacedWire } from "./lucky-wire";
@@ -58,7 +58,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   const proof = path === "commit" ? await seatWriteHeaders("POST", url, text) : {};
   const response = await fetch(url, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-agari-device": deviceId(), ...proof },
+    headers: { "content-type": "application/json", "x-owarine-device": deviceId(), ...proof },
     body: text,
   });
   const json = (await response.json().catch(() => ({}))) as T & { error?: string };

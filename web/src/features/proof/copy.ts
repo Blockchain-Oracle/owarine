@@ -1,4 +1,4 @@
-import type { CheckKind, ProofSlot, VoidKind } from "@agari/core/proof";
+import type { CheckKind, ProofSlot, VoidKind } from "@owarine/core/proof";
 
 /**
  * `/proof/<market>` on Canton (proof-analytics.md §2.6, re-pointed): the evidence behind a Window's result. The page is

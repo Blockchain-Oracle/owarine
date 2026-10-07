@@ -1,4 +1,4 @@
-import type { Diagnosis } from "@agari/core/types";
+import type { Diagnosis } from "@owarine/core/types";
 import { useNowMs } from "@/components/data/useNowMs";
 import { DUEL } from "@/features/games/duel/copy";
 import type { DealingView } from "@/features/games/duel/useDuelRoom";

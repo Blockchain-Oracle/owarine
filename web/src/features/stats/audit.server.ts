@@ -1,5 +1,5 @@
 import "server-only";
-import { getDb, K_ANON_FLOOR, latestRecount, venueStats } from "@agari/db";
+import { getDb, K_ANON_FLOOR, latestRecount, venueStats } from "@owarine/db";
 import { webEnv } from "@/lib/env";
 import { recountSchema, reserveSchema, type AuditPayload } from "./audit";
 

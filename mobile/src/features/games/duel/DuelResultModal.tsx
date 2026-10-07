@@ -1,4 +1,4 @@
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import * as Clipboard from "expo-clipboard";
 import * as Sharing from "expo-sharing";
 import { useEffect, useRef, useState } from "react";

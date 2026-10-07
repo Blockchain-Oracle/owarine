@@ -1,5 +1,5 @@
-import type { Reading } from "@agari/core/schemas";
-import type { BalanceSheet } from "@agari/core/types";
+import type { Reading } from "@owarine/core/schemas";
+import type { BalanceSheet } from "@owarine/core/types";
 import type { ReactNode } from "react";
 import { ReadingBoundary } from "@/components/states";
 import { BalanceSheetPanel } from "./BalanceSheetPanel";

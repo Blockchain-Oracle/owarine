@@ -1,4 +1,4 @@
-import { verifySignedMessage, type Ed25519Verify, type SignedMessage } from "@agari/core/auth";
+import { verifySignedMessage, type Ed25519Verify, type SignedMessage } from "@owarine/core/auth";
 
 /**
  * ed25519 over raw bytes with the runtime's own WebCrypto (Node ≥ 22 and every edge runtime support `Ed25519`), so the

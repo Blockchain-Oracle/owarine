@@ -1,13 +1,13 @@
 "use client";
 
-import type { BookedOrder } from "@agari/core/ports";
-import { isOk } from "@agari/core/schemas";
-import { LUCKY_ALLDAY_ASSETS, LUCKY_ASSETS } from "@agari/core/games";
-import { assetTicker } from "@agari/core/market";
-import { belowMinStake, minStakeBase } from "@agari/core/sizing";
-import type { Signature } from "@agari/core/types";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet, useSigner } from "@agari/markets/react";
+import type { BookedOrder } from "@owarine/core/ports";
+import { isOk } from "@owarine/core/schemas";
+import { LUCKY_ALLDAY_ASSETS, LUCKY_ASSETS } from "@owarine/core/games";
+import { assetTicker } from "@owarine/core/market";
+import { belowMinStake, minStakeBase } from "@owarine/core/sizing";
+import type { Signature } from "@owarine/core/types";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet, useSigner } from "@owarine/markets/react";
 import { useCallback, useState } from "react";
 import { useVenue } from "@/features/markets";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
@@ -32,7 +32,7 @@ import "./lucky.css";
  * the chips reuse the Ticket's own, and the stake must clear the venue's floor before the reels move.
  */
 
-const STAKE_KEY = "agari.games.luckyStake";
+const STAKE_KEY = "owarine.games.luckyStake";
 const stakeCodec = { parse: (raw: string) => (/^\d*\.?\d*$/.test(raw) ? raw : null), serialize: (v: string) => v };
 
 function sanitize(text: string): string {

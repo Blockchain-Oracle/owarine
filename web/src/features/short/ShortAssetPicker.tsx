@@ -1,6 +1,6 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { useRef, type KeyboardEvent } from "react";
 import { Sparkline } from "@/components/ui/desk-kit";
 import type { DeskMarks } from "@/features/desk/useDeskMarks";

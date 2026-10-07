@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { legsRequestWire } from "@agari/markets";
+import { legsRequestWire } from "@owarine/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /** Shared by `claim` and `refund-stale`: the Window is named, the legs are the lease's party's own. */

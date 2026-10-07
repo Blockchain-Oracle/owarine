@@ -1,6 +1,6 @@
 "use client";
 
-import type { WritePhase } from "@agari/core/ports";
+import type { WritePhase } from "@owarine/core/ports";
 import { Money } from "@/components/data/Money";
 import { BlockedButton } from "@/components/states";
 import { Button } from "@/components/ui/button";

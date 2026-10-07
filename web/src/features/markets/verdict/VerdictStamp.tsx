@@ -1,4 +1,4 @@
-import type { VerdictOutcome } from "@agari/core/types";
+import type { VerdictOutcome } from "@owarine/core/types";
 import { verdictStrings } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 
@@ -8,7 +8,7 @@ interface VerdictStampProps {
   className?: string;
 }
 
-/** Color law: vermilion belongs to 上がり alone; a loss is printed in neutral ink, a void in muted ink. */
+/** Color law: the accent belongs to 的中 alone; a loss is printed in neutral ink, a void in muted ink. */
 const STAMP_INK: Record<VerdictOutcome, string> = {
   win: "text-(--verdict-stamp-win-ink)",
   loss: "text-(--verdict-stamp-loss-ink)",

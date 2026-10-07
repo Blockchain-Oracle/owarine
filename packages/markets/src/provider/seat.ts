@@ -3,9 +3,9 @@
  * the lease view `/api/seat` answers with, and the calls. The server derives everything else (which party, whether
  * the pool is full) from its own table; the request carries only the seat's address, a time and a signature.
  */
-import { networkLine, SIGNED_MESSAGE_BRAND, messageBytes } from "@agari/core/auth";
-import type { Cluster } from "@agari/core/constants";
-import { diagnosisSchema, encodeBase58, type Address } from "@agari/core/types";
+import { networkLine, SIGNED_MESSAGE_BRAND, messageBytes } from "@owarine/core/auth";
+import type { Cluster } from "@owarine/core/constants";
+import { diagnosisSchema, encodeBase58, type Address } from "@owarine/core/types";
 import { z } from "zod";
 import type { SeatSigner } from "../sessions/seat-signer";
 import { ledgerRequest, type LedgerCallResult } from "./ledger-api";

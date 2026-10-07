@@ -1,4 +1,4 @@
-import { impliedMultipleHundredths } from "@agari/core/games";
+import { impliedMultipleHundredths } from "@owarine/core/games";
 
 /** `294` hundredths → `2.94×`; a whole multiple drops its zeros (`300` → `3×`). Integer in, string out — no float. */
 export function formatMultiple(hundredths: number): string {

@@ -2,8 +2,8 @@
  * Canned holdings and Windows for `/dev/hedge` (session-lanes.md §4): the card's three targets (a trading Gap, a Regular
  * Window in session, a weekend token Window), a holding with no fresh spot, and the cases where no card shows.
  */
-import { BASKET_INDEX_BASE_E8, isTickerSymbol } from "@agari/core/market";
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import { BASKET_INDEX_BASE_E8, isTickerSymbol } from "@owarine/core/market";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { type HedgePick, pickHedge, type HoldingView } from "@/features/hedge";
 import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
 import { fixtureAddress, fixtureMarketId } from "../fixture-ids";

@@ -1,6 +1,6 @@
-import { SETTLING } from "@agari/core/copy";
-import { countdown } from "@agari/core/lifecycle";
-import { formatClock } from "@agari/core/units";
+import { SETTLING } from "@owarine/core/copy";
+import { countdown } from "@owarine/core/lifecycle";
+import { formatClock } from "@owarine/core/units";
 import { Loader2 } from "lucide-react-native";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Animated, Easing, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";

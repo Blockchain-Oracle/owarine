@@ -1,6 +1,6 @@
-import { isTickerSymbol } from "@agari/core/market";
-import type { MarketId } from "@agari/core/types";
-import { useMarket } from "@agari/markets/react";
+import { isTickerSymbol } from "@owarine/core/market";
+import type { MarketId } from "@owarine/core/types";
+import { useMarket } from "@owarine/markets/react";
 import { useState } from "react";
 import { ROOM } from "@/features/room/copy";
 import { tickerRoomId } from "@/features/room/room-id";

@@ -3,8 +3,8 @@
  * itself, against the hourly PreStocks mark a day after. Both are prices the desk could really have got. A record
  * without a name, a side or a price is graded "ungradable", never quietly a win.
  */
-import { GRADE_AFTER_SEC, gradeDecision, OUTCOME_COLUMN, parseDecimal, PRICE_DECIMALS, type PlannedOutcome } from "@agari/core/desk";
-import type { DeskRow } from "@agari/db";
+import { GRADE_AFTER_SEC, gradeDecision, OUTCOME_COLUMN, parseDecimal, PRICE_DECIMALS, type PlannedOutcome } from "@owarine/core/desk";
+import type { DeskRow } from "@owarine/db";
 import type { RunnerContext } from "./types";
 
 /** The price the desk was looking at when it decided: the spot in its evidence, else the holding's spot. */

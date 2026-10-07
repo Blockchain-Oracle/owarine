@@ -3,8 +3,8 @@
  * the venue's words (a firm quote, a range ticket, Earn supply), a seat's way out is not (an exit sells its leg back),
  * the roller holds new Windows, `/session`, `/api/venue` and `/status` say so; then open again and a quote lands.
  */
-import { appMarketId, opsNonce, opsSignature, OPS_NONCE_HEADER, OPS_SIG_HEADER, OPS_TS_HEADER } from "@agari/markets/server";
-import { decodeLeg } from "@agari/markets/ops/canton";
+import { appMarketId, opsNonce, opsSignature, OPS_NONCE_HEADER, OPS_SIG_HEADER, OPS_TS_HEADER } from "@owarine/markets/server";
+import { decodeLeg } from "@owarine/markets/ops/canton";
 import { firmQuote, quotingWindow, randomUUID, seat, sleep, TEMPLATE_IDS, type Ctx } from "./common";
 
 const MODE_PATH = "/internal/admin/venue-mode";

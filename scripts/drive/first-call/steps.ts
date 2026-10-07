@@ -3,10 +3,10 @@
  * (the drive's own Series). Each check is one `step`, and so one acceptance row.
  */
 import { randomUUID } from "node:crypto";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
-import { appMarketId } from "@agari/markets/server";
-import { decodeLeg, decodeOpenPrint, decodeQuote, decodeResolution, decodeVenueCash, learnTerms, type LegC, type TermsC } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
+import { appMarketId } from "@owarine/markets/server";
+import { decodeLeg, decodeOpenPrint, decodeQuote, decodeResolution, decodeVenueCash, learnTerms, type LegC, type TermsC } from "@owarine/markets/ops/canton";
 import { shortParty } from "../../bootstrap/devnet-parties";
 import type { CheckRow } from "../../bootstrap/rows";
 import { staleBlocker, type FirstCallConfig } from "./config";

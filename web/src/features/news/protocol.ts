@@ -1,4 +1,4 @@
-import { TICKER_SYMBOLS } from "@agari/core/market";
+import { TICKER_SYMBOLS } from "@owarine/core/market";
 import { z } from "zod";
 
 export const SENTIMENTS = ["positive", "negative", "neutral"] as const;

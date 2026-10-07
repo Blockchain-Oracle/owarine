@@ -1,5 +1,5 @@
-import type { DeskRow } from "@agari/db";
-import type { Ladder } from "@agari/markets/runtime";
+import type { DeskRow } from "@owarine/db";
+import type { Ladder } from "@owarine/markets/runtime";
 import { describe, expect, it, vi } from "vitest";
 import { wakesDue } from "./index";
 import { hourCheckWaitsFor, HOUR_WINDOWS_GRACE_SEC } from "./schedule";

@@ -1,7 +1,7 @@
-import { diagnosisCopy } from "@agari/core/copy";
-import { leverageBpsOf, type LeverageReserveState } from "@agari/core/leverage";
-import type { EventMarket } from "@agari/core/types";
-import { bpsToOddsCents, formatBaseUnits, parseDecimalToBaseUnits, priceRawToBps } from "@agari/core/units";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { leverageBpsOf, type LeverageReserveState } from "@owarine/core/leverage";
+import type { EventMarket } from "@owarine/core/types";
+import { bpsToOddsCents, formatBaseUnits, parseDecimalToBaseUnits, priceRawToBps } from "@owarine/core/units";
 import { useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useLeverageQuote } from "@/features/leverage/useLeverageQuote";

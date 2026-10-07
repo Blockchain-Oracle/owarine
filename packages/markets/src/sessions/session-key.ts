@@ -1,5 +1,5 @@
-import type { IntentJournal } from "@agari/core/ports";
-import type { Address } from "@agari/core/types";
+import type { IntentJournal } from "@owarine/core/ports";
+import type { Address } from "@owarine/core/types";
 import type { MarketsEnv } from "../env";
 import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
 import type { WriteRpc } from "../submitter/write-rpc";

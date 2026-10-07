@@ -1,12 +1,12 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { useReadingQuery } from "@owarine/markets/react";
 import { sentimentReadingSchema, type SentimentReading } from "./protocol";
 
 /** Spec §4: the route shares an answer for 30 s; the marquee asks once a minute while the tab is visible. */
 const POLL_MS = 60_000;
-export const SENTIMENT_KEY = ["agari", "social", "sentiment"] as const;
+export const SENTIMENT_KEY = ["owarine", "social", "sentiment"] as const;
 
 async function readSentiment(): Promise<Reading<SentimentReading>> {
   const response = await fetch("/api/sentiment");

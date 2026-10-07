@@ -1,4 +1,4 @@
-import { isAddress } from "@agari/core/types";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { readMarketFacts } from "../../venue.server";
 

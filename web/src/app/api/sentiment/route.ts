@@ -1,4 +1,4 @@
-import { getDb } from "@agari/db";
+import { getDb } from "@owarine/db";
 import { NextResponse } from "next/server";
 import { readCrowd } from "./crowd";
 

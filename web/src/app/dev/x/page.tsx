@@ -1,7 +1,7 @@
 "use client";
 
-import { xGrantCaps, xPermissionState, type XReceipt } from "@agari/core/x";
-import type { VaultGrant } from "@agari/core/vault";
+import { xGrantCaps, xPermissionState, type XReceipt } from "@owarine/core/x";
+import type { VaultGrant } from "@owarine/core/vault";
 import { SectionHeader } from "@/components/chrome";
 import { ClaimReceiptCard, XReceiptsList, XWalletCardView, type XGrantState, type XLink, type XStatus } from "@/features/x";
 import { WALLET } from "../states/fixtures";
@@ -22,7 +22,7 @@ const OTHER = fixtureAddress("0x1111111111111111111111111111111111111111");
 const noop = async () => undefined;
 
 function status(over: Partial<XStatus>): XStatus {
-  return { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: EXECUTOR, handle: "@useagari", ...over };
+  return { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: EXECUTOR, handle: "@owarine", ...over };
 }
 
 function link(over: Partial<XLink> & { status: XStatus | null }): XLink {
@@ -61,11 +61,11 @@ const RECEIPTS: XReceipt[] = (["filled", "nothing-filled", "refused", "submitted
   side: i % 2 ? "down" : "up", stakeBase: "5000000", status: s,
   reason: s === "refused" ? "Review your trading permission and spending limits." : s === "unknown" ? "The transaction needs checking." : null,
   refusalCode: s === "refused" ? "permission-denied" : null,
-  txHash: s === "filled" || s === "reverted" ? fixtureSignature(`0x${"9f".repeat(32)}`) : null, instruction: "@agari tsla up 5 15m", atMs: X_FIXTURE_NOW_SEC * 1000 - i * 600_000,
+  txHash: s === "filled" || s === "reverted" ? fixtureSignature(`0x${"9f".repeat(32)}`) : null, instruction: "@owarine tsla up 5 15m", atMs: X_FIXTURE_NOW_SEC * 1000 - i * 600_000,
 }));
 RECEIPTS.push(
   { ...RECEIPTS[2]!, mentionId: "190", refusalCode: "window-entry-closed", asset: "TSLA", intervalSec: 900, entryClosesAtSec: X_FIXTURE_NOW_SEC - 30 },
-  { ...RECEIPTS[2]!, mentionId: "191", refusalCode: "instruction-invalid", parseRefusal: "no-cadence", instruction: "@agari TSLA long 5" },
+  { ...RECEIPTS[2]!, mentionId: "191", refusalCode: "instruction-invalid", parseRefusal: "no-cadence", instruction: "@owarine TSLA long 5" },
 );
 
 export default function DevXPage() {

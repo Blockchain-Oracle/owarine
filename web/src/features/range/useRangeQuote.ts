@@ -1,11 +1,11 @@
 "use client";
 
-import { REQUOTE_MS } from "@agari/core/constants";
-import type { RangeMode, RangeParams, RangeQuote } from "@agari/core/range";
-import type { Diagnosis } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { quoteRangeOnchain, type RangeBand } from "@agari/markets/range";
-import { keys, useReadingQuery } from "@agari/markets/react";
+import { REQUOTE_MS } from "@owarine/core/constants";
+import type { RangeMode, RangeParams, RangeQuote } from "@owarine/core/range";
+import type { Diagnosis } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { quoteRangeOnchain, type RangeBand } from "@owarine/markets/range";
+import { keys, useReadingQuery } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useDebounced } from "../markets/ticket/useDebounced";

@@ -1,4 +1,4 @@
-import { formatClock } from "@agari/core/units";
+import { formatClock } from "@owarine/core/units";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Line, Path } from "react-native-svg";

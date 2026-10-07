@@ -25,6 +25,6 @@ export default async function Page({ params }: Props) {
 export function generateStaticParams() { return source.generateParams(); }
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const page=source.getPage((await params).slug);if(!page)notFound();
-  const shareImage = {url:'/opengraph-image',width:1200,height:630,type:'image/png',alt:'Agari Docs — step-by-step guides for the Canton test network build'};
+  const shareImage = {url:'/opengraph-image',width:1200,height:630,type:'image/png',alt:'Owarine Docs — step-by-step guides for the Canton test network build'};
   return {title:page.data.title,description:page.data.description,alternates:{canonical:page.url},openGraph:{title:page.data.title,description:page.data.description,type:'article',images:[shareImage]},twitter:{card:'summary_large_image',title:page.data.title,description:page.data.description,images:[shareImage]}};
 }

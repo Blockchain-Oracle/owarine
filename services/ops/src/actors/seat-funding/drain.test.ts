@@ -3,14 +3,14 @@
  * web's lease route, which only looked when the pool was already full, so empty seats sat `draining`).
  */
 import { describe, expect, it } from "vitest";
-import { AGENT_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import type { RecycleCheck, RecycleOutcome } from "@agari/db";
-import type { ActiveContract, LedgerClient } from "@agari/ledger";
-import type { RoleSession } from "@agari/markets/ops/canton";
+import { AGENT_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import type { RecycleCheck, RecycleOutcome } from "@owarine/db";
+import type { ActiveContract, LedgerClient } from "@owarine/ledger";
+import type { RoleSession } from "@owarine/markets/ops/canton";
 import { createSeatDrainPass, sweepCommandId } from "./drain";
 
 const VENUE = "venue::1220ff";
-const SEAT = "agari-user-seat-1::1220aa";
+const SEAT = "owarine-user-seat-1::1220aa";
 const suffix = (t: string) => t.slice(t.indexOf(":"));
 
 interface Fake {

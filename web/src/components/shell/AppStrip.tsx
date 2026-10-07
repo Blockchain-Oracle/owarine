@@ -7,7 +7,7 @@
 // single point of colour on the one word you might act on. It can be dismissed, which is
 // the difference between a message and a nag; the dismissal sticks.
 //
-// Truth correction vs. the reference: Yosuku advertises a native iOS app here. Agari has
+// Truth correction vs. the reference: Yosuku advertises a native iOS app here. Owarine has
 // no native build (native is Blocked — no native source), so claiming one would be false.
 // The installable PWA is real, and testnet collateral is a fact worth stating up front.
 import { usePathname } from "next/navigation";
@@ -16,7 +16,7 @@ import Link from "next/link";
 import { isIslandRoute } from "./ShellChrome";
 import { useEffect, useState } from "react";
 
-const KEY = "agari.appstrip.dismissed";
+const KEY = "owarine.appstrip.dismissed";
 const ROTATE_MS = 7000;
 
 // Statements, not slogans. Each is a fact that survives being read twice.

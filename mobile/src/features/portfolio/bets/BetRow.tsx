@@ -1,7 +1,7 @@
-import { formatCadence } from "@agari/core/copy";
+import { formatCadence } from "@owarine/core/copy";
 import type { ReactNode } from "react";
-import { countdown } from "@agari/core/lifecycle";
-import type { OpenPosition } from "@agari/core/types";
+import { countdown } from "@owarine/core/lifecycle";
+import type { OpenPosition } from "@owarine/core/types";
 import { PORTFOLIO } from "@/lib/copy";
 import { clockLeft, heldSide, sidesWord } from "../format";
 import { CashOutLink } from "./CashOutLink";

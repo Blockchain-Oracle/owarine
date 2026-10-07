@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { answer, DESK_ERRORS, loadDesk, provenViewer, refuse } from "@/features/desk/auth.server";
 import { operatorAddress, readChain } from "@/features/desk/chain.server";

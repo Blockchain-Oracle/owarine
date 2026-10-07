@@ -1,4 +1,4 @@
-import { AgariMark } from "@/components/shell";
+import { OwarineMark } from "@/components/shell";
 import { DemoFilm } from "@/features/demo/DemoFilm";
 import type { PublicRelease } from "@/lib/release";
 import { INSTALL } from "./copy";
@@ -76,7 +76,7 @@ export function DownloadPage({ release }: { release: PublicRelease }) {
         {INSTALL.points.map((point) => (
           <article key={point.title}>
             <span className="dl-pt-mark">
-              <AgariMark figure="currentColor" />
+              <OwarineMark figure="currentColor" />
             </span>
             <h3>{point.title}</h3>
             <p>{point.body}</p>

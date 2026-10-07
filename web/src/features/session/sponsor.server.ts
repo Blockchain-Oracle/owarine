@@ -1,11 +1,11 @@
-import type { Address } from "@agari/core/types";
-import { ensureMarkets, loadVaultDeployment, marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@agari/markets";
-import { keypairAddress } from "@agari/markets/sessions";
-import { sponsorLimitsFrom, sponsorRoleSecret } from "@agari/markets/sponsor";
+import type { Address } from "@owarine/core/types";
+import { ensureMarkets, loadVaultDeployment, marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@owarine/markets";
+import { keypairAddress } from "@owarine/markets/sessions";
+import { sponsorLimitsFrom, sponsorRoleSecret } from "@owarine/markets/sponsor";
 
 /**
  * Server env for the sponsor routes. The fee-payer co-sign itself (policy, key, ledger) lives in
- * `@agari/markets/sponsor` (tap-trading.md §3, D-065); what stays here is the shared env mapping and the games'
+ * `@owarine/markets/sponsor` (tap-trading.md §3, D-065); what stays here is the shared env mapping and the games'
  * view of the same `sponsor` role (S12), which shares the key and the hourly gates but not the co-sign policy.
  */
 

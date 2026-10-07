@@ -8,8 +8,8 @@
  * where the cross-source basis cancels. When the crossbar fails the last reading stays and ages out as not fresh; it
  * never falls back to Jupiter, whose level is the very gap this closes.
  */
-import { TICKERS, TOKEN_LANE_TICKERS, XSTOCK_SYMBOLS, type XStockSymbol } from "@agari/core/market";
-import { simulateSurgeE8 } from "@agari/markets/ops/prints";
+import { TICKERS, TOKEN_LANE_TICKERS, XSTOCK_SYMBOLS, type XStockSymbol } from "@owarine/core/market";
+import { simulateSurgeE8 } from "@owarine/markets/ops/prints";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
 import type { SpotFeed, SpotQuote } from "./spot";
@@ -24,7 +24,7 @@ export interface SwitchboardSpotHandle {
   stop(): void;
 }
 
-/** The C1/C3 stub's refusal (`@agari/markets` `notDeployedError`): the feed has no Canton adapter yet. */
+/** The C1/C3 stub's refusal (`@owarine/markets` `notDeployedError`): the feed has no Canton adapter yet. */
 const isNotDeployed = (reason: unknown) => (reason as { diagnosis?: { kind?: string } } | null)?.diagnosis?.kind === "not-deployed";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

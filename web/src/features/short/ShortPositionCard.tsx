@@ -1,9 +1,9 @@
 "use client";
 
-import { shortHealth, shortMarkPriceRaw, shortPnl, shortPriced, shortResult, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
-import { countdown } from "@agari/core/lifecycle";
-import { bpsToOddsCents, formatBaseUnits, priceRawToBps, shortHex } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
+import { shortHealth, shortMarkPriceRaw, shortPnl, shortPriced, shortResult, type LeverageMark, type LeveragePosition } from "@owarine/core/leverage";
+import { countdown } from "@owarine/core/lifecycle";
+import { bpsToOddsCents, formatBaseUnits, priceRawToBps, shortHex } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { Countdown, Money } from "@/components/data";
 import { formatCadence, PORTFOLIO } from "@/lib/copy";

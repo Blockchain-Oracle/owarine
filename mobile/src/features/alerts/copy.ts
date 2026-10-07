@@ -3,7 +3,7 @@ import type { PushKind } from "@/features/push/protocol";
 /** The phone's notification settings and the Live Activity / widget words (S26.4). */
 export const ALERTS = {
   title: "Notifications",
-  intro: "Hear about your calls when Agari is closed: fills, results and money waiting for you.",
+  intro: "Hear about your calls when Owarine is closed: fills, results and money waiting for you.",
   on: "Turn on notifications",
   off: "Turn off notifications",
   switching: "Working…",
@@ -24,11 +24,11 @@ export const ALERTS = {
   },
   widget: {
     title: "Home Screen widget",
-    body: "Add the Agari widget from the Home Screen's edit menu to see the next Windows to close.",
+    body: "Add the Owarine widget from the Home Screen's edit menu to see the next Windows to close.",
   },
   errors: {
     connect: "Take a seat first.",
-    denied: "Notifications are off for Agari in Settings. Turn them on there, then try again.",
+    denied: "Notifications are off for Owarine in Settings. Turn them on there, then try again.",
     token: "This phone could not get a push address",
     failed: "That did not work. Try again.",
   },

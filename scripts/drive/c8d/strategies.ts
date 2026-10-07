@@ -4,9 +4,9 @@
  * with a funded permission naming the house runner. ops' strategy runner places E's calls on its own reading of the
  * prints and F's calls after seat A publishes one of its own; the agents board lists the runner.
  */
-import { encodeStrategyMetadata } from "@agari/core/strategies";
-import { appMarketId } from "@agari/markets/server";
-import { decodeLeg } from "@agari/markets/ops/canton";
+import { encodeStrategyMetadata } from "@owarine/core/strategies";
+import { appMarketId } from "@owarine/markets/server";
+import { decodeLeg } from "@owarine/markets/ops/canton";
 import type { Seat } from "../first-call/seat";
 import { firmQuote, randomUUID, seat, sleep, TEMPLATE_IDS, type Ctx } from "./common";
 

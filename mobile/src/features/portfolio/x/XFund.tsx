@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { X_CARD } from "@/features/x/copy";
 import { FONT } from "~/theme";

@@ -1,4 +1,4 @@
-import { nameOf, presetById, type DeskMandate } from "@agari/core/desk";
+import { nameOf, presetById, type DeskMandate } from "@owarine/core/desk";
 import { Check, CircleDashed, RefreshCw } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";

@@ -10,9 +10,9 @@
  * `ticks × 10^(decimals − 3)`. A grant's day index counts from its `dayZero`, which the app always sets to 00:00 UTC,
  * so `spentDay` is the reference's UTC day number.
  */
-import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
-import type { GrantKind, VaultCaps, VaultGrant } from "@agari/core/vault";
+import type { StrategyRecord, StrategySubscription } from "@owarine/core/strategies";
+import type { Address } from "@owarine/core/types";
+import type { GrantKind, VaultCaps, VaultGrant } from "@owarine/core/vault";
 import type { AgentGrantC, CreatorPayoutC, EnvelopeC, GrantCapsC, StrategyC, StrategyListingC, SubscriptionC } from "./decode";
 import { capFromDaml, capToDaml, DAML_NO_CAP, grantIdOf, rawOfTicks, strategyNumOf, ticksOfRaw } from "./ids";
 

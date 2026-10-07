@@ -1,8 +1,8 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import type { TickerSymbol } from "@agari/core/market";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import type { TickerSymbol } from "@owarine/core/market";
+import { useReadingQuery } from "@owarine/markets/react";
 import { z } from "zod";
 
 const POLL_MS = 30_000;
@@ -57,9 +57,9 @@ async function readAllFacts(): Promise<Reading<Record<string, PreIpoFactsView>>>
 
 /** Every pre-IPO name's facts in one read (the holdings surfaces judge "calm" from it); off until a pre-IPO holding exists. */
 export function usePreIpoFactsAll(enabled: boolean): Reading<Record<string, PreIpoFactsView>> | null {
-  return useReadingQuery(["agari", "prestocks", "facts", "all"] as const, readAllFacts, { pollMs: POLL_MS, enabled, needs: [] });
+  return useReadingQuery(["owarine", "prestocks", "facts", "all"] as const, readAllFacts, { pollMs: POLL_MS, enabled, needs: [] });
 }
 
 export function usePreIpoFacts(symbol: TickerSymbol | null): Reading<PreIpoFactsView> | null {
-  return useReadingQuery(["agari", "prestocks", "facts", symbol] as const, () => readFacts(symbol as TickerSymbol), { pollMs: POLL_MS, enabled: symbol !== null, needs: [] });
+  return useReadingQuery(["owarine", "prestocks", "facts", symbol] as const, () => readFacts(symbol as TickerSymbol), { pollMs: POLL_MS, enabled: symbol !== null, needs: [] });
 }

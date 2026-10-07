@@ -4,7 +4,7 @@
  * own. A denied feed is never asked: today this archives nothing and costs nothing. Rows land in `print_archive` under
  * `pyth:<index hex>`, which the valuation lane's chart and proof replay read.
  */
-import { archivedKeys, archivePrints } from "@agari/db";
+import { archivedKeys, archivePrints } from "@owarine/db";
 import type { PythEntitlementStore } from "../../runtime/pyth-entitlement";
 import type { BoundaryCache } from "./boundary-cache";
 import { pythRows } from "./pyth-archive";

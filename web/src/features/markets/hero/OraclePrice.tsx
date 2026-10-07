@@ -1,4 +1,4 @@
-import { formatOracleRaw } from "@agari/core/units";
+import { formatOracleRaw } from "@owarine/core/units";
 import { cn } from "@/lib/utils";
 import { isBasketAsset, ORACLE_SCALE, POINTS_UNIT } from "./units";
 

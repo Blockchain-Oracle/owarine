@@ -1,4 +1,4 @@
-import type { Hash32 } from "@agari/core/types";
+import type { Hash32 } from "@owarine/core/types";
 import { useGameScreen } from "../shell";
 import { DuelStage } from "./DuelStage";
 

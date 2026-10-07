@@ -5,7 +5,7 @@
  * from the catalogue, or a mint the registry does not know) has no index: the accessors skip it rather than fill it.
  * Units are points at expo −8 (`1e11` = 1,000.00000000 pts), never dollars.
  */
-import { basketIndexE8, type Basket, type BasketSymbol, type PreIpoSymbol } from "@agari/core/market";
+import { basketIndexE8, type Basket, type BasketSymbol, type PreIpoSymbol } from "@owarine/core/market";
 import type { PreStocksSnapshot } from "./prestocks-spot";
 
 export interface BasketIndexSample {

@@ -1,7 +1,7 @@
 import "server-only";
-import { candleUrl, identifySource, isExchange, reverify, type ArchivedPayload, type Exchange, type ProofSlot, type Refetch, type ReverifyReport, type SourceInput } from "@agari/core/proof";
-import { getDb, proofArchives, proofPrints, proofWindow } from "@agari/db";
-import type { MarketId } from "@agari/core/types";
+import { candleUrl, identifySource, isExchange, reverify, type ArchivedPayload, type Exchange, type ProofSlot, type Refetch, type ReverifyReport, type SourceInput } from "@owarine/core/proof";
+import { getDb, proofArchives, proofPrints, proofWindow } from "@owarine/db";
+import type { MarketId } from "@owarine/core/types";
 import { buildProofView, toProofResolution, type CantonProofView } from "./canton-proof";
 
 /**
@@ -33,7 +33,7 @@ export type Fetcher = (url: string, init: RequestInit) => Promise<{ ok: boolean;
 /** A candle as the exchange serves it now; an HTTP error or a timeout is "can't re-fetch", never a failed check. */
 async function refetch(fetcher: Fetcher, exchange: Exchange, symbol: string, boundarySec: number): Promise<Refetch> {
   try {
-    const r = await fetcher(candleUrl(exchange, symbol, boundarySec), { headers: { "user-agent": "agari-proof-reverify" }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), cache: "no-store" });
+    const r = await fetcher(candleUrl(exchange, symbol, boundarySec), { headers: { "user-agent": "owarine-proof-reverify" }, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS), cache: "no-store" });
     if (!r.ok) return { kind: "unavailable", why: `the exchange answered HTTP ${r.status}` };
     return { kind: "ok", payload: await r.text() };
   } catch (error) {

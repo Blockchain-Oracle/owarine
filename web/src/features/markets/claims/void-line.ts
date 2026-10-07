@@ -4,10 +4,10 @@
  * headline and the reason line; `VOID_SHARE_WORD` the stamp. The web read model has no check prints, so a divergence
  * names no check source unless a caller (a `/dev` fixture) passes one.
  */
-import { VOID_SHARE_WORD, voidDetail, voidLines } from "@agari/core/market";
-import type { EventMarket, MarketId, PrintSource, Resolution, VoidDetail } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { keys, useMarket, useReadingQuery } from "@agari/markets/react";
+import { VOID_SHARE_WORD, voidDetail, voidLines } from "@owarine/core/market";
+import type { EventMarket, MarketId, PrintSource, Resolution, VoidDetail } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { keys, useMarket, useReadingQuery } from "@owarine/markets/react";
 
 export interface VoidWords {
   /** "VOID · MISSING PRINT" / "VOID · CROSS-CHECK DIVERGENCE". */

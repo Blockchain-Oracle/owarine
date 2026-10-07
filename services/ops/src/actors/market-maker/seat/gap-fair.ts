@@ -6,7 +6,7 @@
  * price, which carries the ScaledUiAmount multiplier, so it is quoted per share like the print). A name without an xStock,
  * or whose xStock spot is stale or issuer-halted, quotes 500 wide: it knows nothing past Friday's print.
  */
-import { TICKERS, type XStockSymbol } from "@agari/core/market";
+import { TICKERS, type XStockSymbol } from "@owarine/core/market";
 import { fairYesTicks } from "./fair";
 import type { LaneQuote, LaneQuoteInput } from "./lane-quote";
 import type { MakerPhase } from "./quote";

@@ -4,8 +4,8 @@
  * source of its own at boot, so the room, the projector and the settler read the same `ArenaMatchView` the screens do
  * without an HTTP hop to themselves. One registry, so every export keeps the reference's name and shape.
  */
-import { err, ok, type Reading } from "@agari/core/schemas";
-import type { Hash32 } from "@agari/core/types";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import type { Hash32 } from "@owarine/core/types";
 import { ledgerRequest } from "../provider/ledger-api";
 import { nowMs } from "../provider/clock";
 import { arenaMatchViewWire, arenaStateWire, seasonPoolWire, type ArenaMatchViewReply, type ArenaStateReply, type SeasonPoolReply } from "../provider/games-wire";

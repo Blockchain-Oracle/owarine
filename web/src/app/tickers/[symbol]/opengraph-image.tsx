@@ -1,4 +1,4 @@
-import { isTickerSymbol } from "@agari/core/market";
+import { isTickerSymbol } from "@owarine/core/market";
 import { OG_COPY } from "@/features/landing/og/copy";
 import { siteImage } from "@/features/landing/og/site-image";
 import { OG_CONTENT_TYPE, OG_SIZE } from "@/features/landing/og/theme";

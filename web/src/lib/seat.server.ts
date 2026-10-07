@@ -1,8 +1,8 @@
 import "server-only";
-import { SEAT_READ_HEADER, SEAT_WRITE_HEADER } from "@agari/core/auth";
-import { diagnosis, type Address, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
-import { toWire } from "@agari/markets";
-import { errorRef } from "@agari/markets/server";
+import { SEAT_READ_HEADER, SEAT_WRITE_HEADER } from "@owarine/core/auth";
+import { diagnosis, type Address, type Diagnosis, type DiagnosisKind } from "@owarine/core/types";
+import { toWire } from "@owarine/markets";
+import { errorRef } from "@owarine/markets/server";
 import { NextResponse, type NextRequest } from "next/server";
 import { seatCaller } from "./auth/seat-caller.server";
 import { requestText, seatWriter } from "./auth/seat-write.server";
@@ -17,7 +17,7 @@ import type { LeaseRow } from "./seat-store.server";
  *
  * Two proofs, one answer: the HttpOnly seat cookie (web) names a lease id, or a signed seat header (the phone) names an
  * address; either way the lease row must be live and match. A cookie-authenticated write must also come from our own
- * origin and carry `x-agari-seat: 1`, which a cross-site form cannot send. On the phone a read takes the signed READ
+ * origin and carry `x-owarine-seat: 1`, which a cross-site form cannot send. On the phone a read takes the signed READ
  * header (reused for minutes, reads only), and a write takes the per-request WRITE proof only: its method, path, body
  * and a one-time nonce, within 30 seconds (C4d M2b). A key joined to the lease by a seat link (iOS step 2b) proves
  * itself the same ways and answers the same lease.
@@ -31,7 +31,7 @@ export interface SeatContext {
 }
 
 export const PRIVATE = { "cache-control": "private, no-store" } as const;
-const CSRF_HEADER = "x-agari-seat";
+const CSRF_HEADER = "x-owarine-seat";
 /** Renewing on every call would write a row per read; once per this long is enough for a 15-minute idle clock. */
 const TOUCH_EVERY_MS = 20_000;
 
@@ -78,7 +78,7 @@ export async function seatFromRequest(request: NextRequest, o: { write: boolean 
   const server = state.server;
   const now = Date.now();
 
-  const cookie = readSeatCookie(server.env.AGARI_SEAT_COOKIE_SECRET, request.cookies.get(SEAT_COOKIE)?.value ?? seatCookieFrom(request.headers), now);
+  const cookie = readSeatCookie(server.env.OWARINE_SEAT_COOKIE_SECRET, request.cookies.get(SEAT_COOKIE)?.value ?? seatCookieFrom(request.headers), now);
   let lease: LeaseRow | null = null;
   let via: SeatContext["via"] = "cookie";
   let caller: string | null = cookie?.address ?? null;

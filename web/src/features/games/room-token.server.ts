@@ -10,11 +10,11 @@ import {
   roomTokenExpiresAtMs,
   verifyRoomToken,
   type RoomTokenClaims,
-} from "@agari/core/games";
-import { isSignature, type Address } from "@agari/core/types";
+} from "@owarine/core/games";
+import { isSignature, type Address } from "@owarine/core/types";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
-import { ensureMarkets, parseMarketsEnv } from "@agari/markets";
-import { resolveArenaDeployment } from "@agari/markets/games";
+import { ensureMarkets, parseMarketsEnv } from "@owarine/markets";
+import { resolveArenaDeployment } from "@owarine/markets/games";
 import { seatServer } from "@/lib/ledger.server";
 
 /**

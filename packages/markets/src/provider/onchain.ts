@@ -2,9 +2,9 @@
  * Head-fresh Window reads from the ledger (first-call.md §2.2): the write gate's snapshot, a seat's holdings, and the
  * opening print. A Window whose contracts are archived answers from its projection row.
  */
-import { ONCHAIN_STATUS } from "@agari/core/lifecycle";
-import type { Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type Holdings, type MarketId, type OnchainSnapshot } from "@agari/core/types";
+import { ONCHAIN_STATUS } from "@owarine/core/lifecycle";
+import type { Reading } from "@owarine/core/schemas";
+import { diagnosis, type Address, type Holdings, type MarketId, type OnchainSnapshot } from "@owarine/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { readMarket, readSeat, readSeries, readVenue } from "../runtime/accounts";
 import { toOnchainSnapshot, winningOutcomeOf } from "../runtime/mappers";

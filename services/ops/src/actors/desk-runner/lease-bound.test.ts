@@ -1,7 +1,7 @@
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import type { DeskRow } from "@agari/db";
-import type { LedgerClient } from "@agari/ledger";
-import { legacyDeskAddressOf } from "@agari/markets/ops/agents";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import type { DeskRow } from "@owarine/db";
+import type { LedgerClient } from "@owarine/ledger";
+import { legacyDeskAddressOf } from "@owarine/markets/ops/agents";
 import { describe, expect, it, vi } from "vitest";
 import { LEASE_ENDED, reconcile } from "./reconcile";
 import type { RunnerContext } from "./types";

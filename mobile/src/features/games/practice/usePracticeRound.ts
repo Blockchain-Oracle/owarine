@@ -11,11 +11,11 @@ import {
   type PracticeClose,
   type PracticeRound,
   type PracticeScore,
-} from "@agari/core/games";
-import { PRICE_STALE_AFTER_MS } from "@agari/core/constants";
-import { isOk } from "@agari/core/schemas";
-import type { AssetPrice } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+} from "@owarine/core/games";
+import { PRICE_STALE_AFTER_MS } from "@owarine/core/constants";
+import { isOk } from "@owarine/core/schemas";
+import type { AssetPrice } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";

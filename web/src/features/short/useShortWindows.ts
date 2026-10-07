@@ -1,10 +1,10 @@
 "use client";
 
-import { isStalledOpening, phase } from "@agari/core/lifecycle";
-import { assetTicker, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { isStalledOpening, phase } from "@owarine/core/lifecycle";
+import { assetTicker, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate, type TickerSymbol } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { useVenue } from "../markets/useVenue";
 

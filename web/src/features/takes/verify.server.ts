@@ -1,4 +1,4 @@
-import { isAddress, isSignature, type Side } from "@agari/core/types";
+import { isAddress, isSignature, type Side } from "@owarine/core/types";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { takeMessage } from "./protocol";
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { formatCadence } from "@agari/core/copy";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import type { Signature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import { XIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { assetPriceLine } from "@/features/markets/hero/units";

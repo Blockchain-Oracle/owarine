@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReserveKind } from "@agari/core/reserves";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import type { ReserveKind } from "@owarine/core/reserves";
+import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
@@ -37,7 +37,7 @@ export function useLaneRunner<B extends string>(): LaneRunner<B> {
 
   const refresh = useCallback(async () => {
     if (address) await invalidateAfterWrite(queryClient, { wallet: address });
-    await queryClient.invalidateQueries({ queryKey: ["agari", "makerVault"], exact: false });
+    await queryClient.invalidateQueries({ queryKey: ["owarine", "makerVault"], exact: false });
   }, [address, queryClient]);
 
   const run = useCallback(

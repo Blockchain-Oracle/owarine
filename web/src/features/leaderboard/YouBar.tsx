@@ -1,4 +1,4 @@
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import Link from "next/link";
 import { LEADERBOARD, type BoardSpan } from "./copy";
 import { glyphFromAddress } from "./glyph";

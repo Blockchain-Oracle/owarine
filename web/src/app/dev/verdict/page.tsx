@@ -1,6 +1,6 @@
 "use client";
 
-import { isMarketId } from "@agari/core/types";
+import { isMarketId } from "@owarine/core/types";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { SectionHeader } from "@/components/chrome";

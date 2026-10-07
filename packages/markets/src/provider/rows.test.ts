@@ -1,6 +1,6 @@
-import { groupIntoLanes, isCommitteeMarket } from "@agari/core/market";
-import { phase } from "@agari/core/lifecycle";
-import type { Address } from "@agari/core/types";
+import { groupIntoLanes, isCommitteeMarket } from "@owarine/core/market";
+import { phase } from "@owarine/core/lifecycle";
+import type { Address } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import type { VenueFacts } from "../runtime/accounts";
 import type { MarketRow } from "./index-api";

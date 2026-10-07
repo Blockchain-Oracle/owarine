@@ -1,4 +1,4 @@
-import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
+import { parseStrategyMetadata, type StrategySubscription } from "@owarine/core/strategies";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
 import { money } from "@/features/strategies/format";

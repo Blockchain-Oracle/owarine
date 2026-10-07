@@ -17,8 +17,8 @@ import { crowdFlow } from "./social-activity";
 
 const URL_ = process.env.SEAT_PG_URL;
 const NS = "c13a_lease_test";
-const PARTY = "agari-user-seat-1::1220aa";
-const VENUE = "agari-venue::1220bb";
+const PARTY = "owarine-user-seat-1::1220aa";
+const VENUE = "owarine-venue::1220bb";
 const ALICE = "AliceSeatAddress1111111111111111111111111111";
 const BOB = "BobSeatAddress22222222222222222222222222222222";
 const T = 1_790_000_000;

@@ -4,7 +4,7 @@ import { decodeBase58 } from "../types/base58";
 import { isEd25519Signature, type Address, type Signature } from "../types/primitives";
 
 /**
- * Every text Agari asks a wallet (or a browser key) to sign, and how a server checks it.
+ * Every text Owarine asks a wallet (or a browser key) to sign, and how a server checks it.
  *
  * A Solana wallet signs raw bytes with ed25519 (Wallet Standard `solana:signMessage`). There is
  * no EIP-191 prefix: the signature covers exactly the UTF-8 bytes of the text. So the browser and the server must
@@ -16,14 +16,14 @@ import { isEd25519Signature, type Address, type Signature } from "../types/primi
  * desk relies on when it derives a bet's keys from the signature.
  */
 
-export const SIGNED_MESSAGE_BRAND = "Agari";
+export const SIGNED_MESSAGE_BRAND = "Owarine";
 
 /** The line that binds a signed text to one cluster, so a devnet signature is never a mainnet one. */
 export function networkLine(cluster: Cluster): string {
   return `Network: ${CLUSTER_LABEL[cluster]}`;
 }
 
-/** WHATWG TextEncoder: global in every runtime Agari targets (browsers, Node, workers); declared here because core compiles with no DOM or Node lib. */
+/** WHATWG TextEncoder: global in every runtime Owarine targets (browsers, Node, workers); declared here because core compiles with no DOM or Node lib. */
 declare const TextEncoder: new () => { encode(input: string): Uint8Array };
 
 const encoder = new TextEncoder();

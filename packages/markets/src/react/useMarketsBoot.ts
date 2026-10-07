@@ -1,6 +1,6 @@
-import { CLOCK_RESYNC_MS, MARKETS_POLL_MS } from "@agari/core/constants";
-import { combineReadings, isOk, mapReading, type Reading } from "@agari/core/schemas";
-import type { ClockSync } from "@agari/core/types";
+import { CLOCK_RESYNC_MS, MARKETS_POLL_MS } from "@owarine/core/constants";
+import { combineReadings, isOk, mapReading, type Reading } from "@owarine/core/schemas";
+import type { ClockSync } from "@owarine/core/types";
 import type { CollateralInfo } from "../collateral";
 import type { MarketsEnv } from "../env";
 import { mark } from "../perf/milestones";

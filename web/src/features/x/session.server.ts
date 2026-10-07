@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-export { X_SESSION_HEADER } from "@agari/core/x";
+export { X_SESSION_HEADER } from "@owarine/core/x";
 
 /**
  * The "Sign in with X" session — a port of the reference's `lib/claimOAuth.ts`.

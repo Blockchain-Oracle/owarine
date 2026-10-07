@@ -1,6 +1,6 @@
 "use client";
 
-import type { Lane } from "@agari/core/types";
+import type { Lane } from "@owarine/core/types";
 import { HERO_HEAD } from "@/lib/copy";
 import { compareLaneTabKeys, laneTabKey, laneTabLabel, laneTabParts, type LaneTabKey } from "../lanes/lane-view";
 

@@ -1,10 +1,10 @@
 "use client";
 
-import type { RangeSide } from "@agari/core/range";
-import type { MarketId } from "@agari/core/types";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import type { RangeOpenOutcome } from "@agari/markets/range";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import type { RangeSide } from "@owarine/core/range";
+import type { MarketId } from "@owarine/core/types";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import type { RangeOpenOutcome } from "@owarine/markets/range";
+import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

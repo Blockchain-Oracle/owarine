@@ -1,5 +1,5 @@
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import type { Address } from "@agari/core/types";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import type { Address } from "@owarine/core/types";
 import { getWalletCollateral } from "../provider/reads";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";

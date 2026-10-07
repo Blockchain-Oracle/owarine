@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence, type BlockerContext } from "@agari/core/copy";
-import type { Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence, type BlockerContext } from "@owarine/core/copy";
+import type { Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { SIDE_WORD } from "../markets/side-styles";

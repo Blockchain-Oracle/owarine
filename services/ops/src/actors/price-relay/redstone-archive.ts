@@ -1,5 +1,5 @@
 /** RedStone boundary → `print_archive` rows (venue-ops.md §6.4): the feed's exact gateway array, signer count, median. */
-import type { PrintArchiveRow } from "@agari/db";
+import type { PrintArchiveRow } from "@owarine/db";
 import { feedAt, type GatewayResponse } from "./redstone-fetch";
 import type { RelaySources } from "./sources";
 

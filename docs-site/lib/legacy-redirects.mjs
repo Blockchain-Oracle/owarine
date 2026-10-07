@@ -1,4 +1,4 @@
-/** Old Masayume-shaped docs URLs, kept only when they have a current Agari guide. */
+/** Old Masayume-shaped docs URLs, kept only when they have a current Owarine guide. */
 export const legacyRedirects = [
   ['/games/practice', '/games/practice-and-arcade'],
   ['/games/duel', '/games/duel-and-lucky'],

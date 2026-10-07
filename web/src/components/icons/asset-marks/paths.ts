@@ -1,4 +1,4 @@
-import type { BrandSlug } from "@agari/core/market";
+import type { BrandSlug } from "@owarine/core/market";
 
 /**
  * The glyphs behind the asset marks (D-085), vendored so no mark is ever fetched at runtime and

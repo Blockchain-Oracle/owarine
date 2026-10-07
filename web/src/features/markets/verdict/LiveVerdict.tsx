@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
+import type { MarketId } from "@owarine/core/types";
 import { EmptyState, LoadingState, ReadingBoundary } from "@/components/states";
 import { SETTLING, VERDICT_UI } from "@/lib/copy";
 import { useWalletSession } from "@/lib/wallet-session";

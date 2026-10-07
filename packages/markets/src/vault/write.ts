@@ -1,5 +1,5 @@
-import type { PhaseListener, TxOutcome, VaultIntent } from "@agari/core/ports";
-import { formatBaseUnits } from "@agari/core/units";
+import type { PhaseListener, TxOutcome, VaultIntent } from "@owarine/core/ports";
+import { formatBaseUnits } from "@owarine/core/units";
 import { refusedFor } from "../stub/product";
 import { agentsVaultLane } from "../submitter/agents-lane";
 import type { SeatLaneDeps } from "../submitter/seat-lane";

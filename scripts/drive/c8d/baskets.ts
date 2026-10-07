@@ -5,8 +5,8 @@
  *   valuation  a valuation lane is on the ledger if and only if ops' probe says the venue may read its index, and the
  *              web's `/api/pyth-index` says why when it may not
  */
-import { BASKET_TICKERS, TICKERS, VALUATION_TICKERS, laneKey } from "@agari/core/market";
-import { decodeLeg, decodeOpenPrint, decodePriceQuote, decodeSeries, decodeTerms } from "@agari/markets/ops/canton";
+import { BASKET_TICKERS, TICKERS, VALUATION_TICKERS, laneKey } from "@owarine/core/market";
+import { decodeLeg, decodeOpenPrint, decodePriceQuote, decodeSeries, decodeTerms } from "@owarine/markets/ops/canton";
 import { credits, firmQuote, hint, randomUUID, seat, short, TEMPLATE_IDS, type Ctx } from "./common";
 
 const basketKeys = BASKET_TICKERS.map((s) => laneKey(s, "token", 3_600));

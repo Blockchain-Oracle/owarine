@@ -1,6 +1,6 @@
-import { PRICE_STALE_AFTER_MS } from "@agari/core/constants";
-import type { DeckCard } from "@agari/core/games";
-import { secToMs } from "@agari/core/units";
+import { PRICE_STALE_AFTER_MS } from "@owarine/core/constants";
+import type { DeckCard } from "@owarine/core/games";
+import { secToMs } from "@owarine/core/units";
 import { TriangleAlert } from "lucide-react-native";
 import { useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";

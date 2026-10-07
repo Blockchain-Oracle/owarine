@@ -1,5 +1,5 @@
 /**
- * C4c: every ops path that turns a seat key into a party goes through `@agari/db`'s one resolution, and it knows keys
+ * C4c: every ops path that turns a seat key into a party goes through `@owarine/db`'s one resolution, and it knows keys
  * joined by a seat link for the CURRENT lease only (skipped unless SEAT_PG_URL is set; the test works in its own
  * schema, so it never touches the web's seat tables):
  *
@@ -10,15 +10,15 @@
  */
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { getDb, seatPartyFor } from "@agari/db";
+import { getDb, seatPartyFor } from "@owarine/db";
 import { ownerPartyOf } from "./agents/session";
 import { createSeatDirectory } from "./arena-desk/seats";
 import { seatAddressOf } from "./desk-runner/discover";
 
 const URL_ = process.env.SEAT_PG_URL;
 const SCHEMA = "c4c_seat_keys";
-const A = "agari-user-seat-1::1220aaaa0001";
-const B = "agari-user-seat-2::1220bbbb0002";
+const A = "owarine-user-seat-1::1220aaaa0001";
+const B = "owarine-user-seat-2::1220bbbb0002";
 
 describe.skipIf(!URL_)("seat keys: one resolution for ops (Postgres)", () => {
   // Its own schema: an unknown URL parameter is a connection parameter to postgres.js, so every pooled connection has it.

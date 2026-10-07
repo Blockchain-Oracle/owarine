@@ -8,7 +8,7 @@ import { networkLine, SIGNED_MESSAGE_BRAND } from "./signed-message";
  * splits unambiguously. From C4 the seat cookie also authorises these reads; the header stays for the iOS app, which
  * sends a signed seat header rather than a cookie.
  */
-export const SEAT_READ_HEADER = "x-agari-seat-read";
+export const SEAT_READ_HEADER = "x-owarine-seat-read";
 /** A read proof is good for five minutes, so a captured header cannot be replayed later (the X link's rule). */
 export const SEAT_READ_TTL_MS = 5 * 60_000;
 /** Clock skew allowed for a proof issued slightly in the future. */

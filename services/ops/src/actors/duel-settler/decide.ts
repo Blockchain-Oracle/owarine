@@ -1,4 +1,4 @@
-import type { DuelMatchC, DuelOpenC, PickC } from "@agari/markets/ops/games";
+import type { DuelMatchC, DuelOpenC, PickC } from "@owarine/markets/ops/games";
 
 /**
  * What the arena will accept for one duel right now: every venue choice's precondition, restated from

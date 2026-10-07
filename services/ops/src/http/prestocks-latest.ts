@@ -7,7 +7,7 @@
  * from the newest read that priced every member, that read's member prices with each member's move from its frozen
  * base, and the index's own movement over the reads the feed still holds.
  */
-import { BASKET_SYMBOLS, BASKETS, memberMoveBps, referencePremiumBps, type BasketSymbol, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, memberMoveBps, referencePremiumBps, type BasketSymbol, type PreIpoSymbol, type TickerSymbol } from "@owarine/core/market";
 import { basketIndexHistory, basketIndexLatest } from "../prices/basket-index";
 import type { PreStocksSample, PreStocksSpotFeed } from "../prices/prestocks-spot";
 import { FRESH_MAX_AGE_SEC } from "./spot-sse";

@@ -1,7 +1,7 @@
-import { isTickerSymbol, TICKERS } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { formatWallClock } from "@agari/core/units";
-import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
+import { isTickerSymbol, TICKERS } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { formatWallClock } from "@owarine/core/units";
+import { ORACLE_PRICE_SCALE } from "@owarine/markets/identity";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTopOfBook } from "@/features/markets/hero/useTopOfBook";

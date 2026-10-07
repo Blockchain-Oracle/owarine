@@ -1,14 +1,14 @@
 "use client";
 
-import type { FaucetClaimStatus } from "@agari/core/faucet";
+import type { FaucetClaimStatus } from "@owarine/core/faucet";
 
 /** The fields both claim kinds (SOL top-up, tUSDC mint) share. */
 type ClaimFacts = { txHash: string; status: FaucetClaimStatus; nextClaimAtMs: number } | null | undefined;
-import { isOk } from "@agari/core/schemas";
-import { isSignature, type Address } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
-import { useWalletCollateral } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { isSignature, type Address } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
+import { useWalletCollateral } from "@owarine/markets/react";
 import type { useFaucet } from "@/features/markets/faucet/useFaucet";
 import { webEnv } from "@/lib/env";
 import { FUNDING } from "./copy";

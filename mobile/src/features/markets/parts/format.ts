@@ -1,4 +1,4 @@
-import { formatOracleRaw } from "@agari/core/units";
+import { formatOracleRaw } from "@owarine/core/units";
 import { isBasketAsset, ORACLE_SCALE, POINTS_UNIT } from "@/features/markets/hero/units";
 
 /** web's `oraclePriceText` (hero/OraclePrice.tsx, a DOM file): a print on the oracle scale, points for a basket. */

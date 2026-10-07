@@ -1,4 +1,4 @@
-# ICP / Audience: Agari on Canton
+# ICP / Audience: Owarine on Canton
 
 *Platform material 2 of 6. The criterion reads: "Specificity and understanding of the target user."*
 

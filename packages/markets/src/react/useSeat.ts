@@ -1,8 +1,8 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import type { Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { ledgerRequest } from "../provider/ledger-api";

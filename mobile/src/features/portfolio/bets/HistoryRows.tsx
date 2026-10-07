@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import { roundSettledAtMs, type SettledRound, type WalletHistory } from "@agari/core/projection";
-import { OUTCOME_TO_SIDE } from "@agari/core/types";
+import { formatCadence } from "@owarine/core/copy";
+import { roundSettledAtMs, type SettledRound, type WalletHistory } from "@owarine/core/projection";
+import { OUTCOME_TO_SIDE } from "@owarine/core/types";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

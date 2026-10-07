@@ -1,4 +1,4 @@
-import type { DeckCard, Pick } from "@agari/core/games";
+import type { DeckCard, Pick } from "@owarine/core/games";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { STAGE } from "@/features/games/stage/copy";

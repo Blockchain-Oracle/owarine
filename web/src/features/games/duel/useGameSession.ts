@@ -1,8 +1,8 @@
 "use client";
 
-import type { ArenaAgentGrant } from "@agari/core/games";
-import type { Address } from "@agari/core/types";
-import type { SubmitterSession } from "@agari/markets";
+import type { ArenaAgentGrant } from "@owarine/core/games";
+import type { Address } from "@owarine/core/types";
+import type { SubmitterSession } from "@owarine/markets";
 import { useCallback } from "react";
 
 /**

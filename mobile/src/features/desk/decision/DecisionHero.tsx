@@ -1,5 +1,5 @@
-import { nameOf, type DeskRecordBody } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
+import { nameOf, type DeskRecordBody } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
 import { StyleSheet, Text, View } from "react-native";
 import { namesIn } from "@/features/desk/activity/activity-model";
 import { DESK } from "@/features/desk/copy";

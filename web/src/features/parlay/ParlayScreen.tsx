@@ -1,8 +1,8 @@
 "use client";
 
-import type { ParlayReserveState } from "@agari/core/parlay";
-import { isOk } from "@agari/core/schemas";
-import { useParlayReserve } from "@agari/markets/react";
+import type { ParlayReserveState } from "@owarine/core/parlay";
+import { isOk } from "@owarine/core/schemas";
+import { useParlayReserve } from "@owarine/markets/react";
 import { CapabilityPending, SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";
 import { useVenue } from "../markets/useVenue";

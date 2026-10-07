@@ -1,4 +1,4 @@
-import type { Address, Signature } from "@agari/core/types";
+import type { Address, Signature } from "@owarine/core/types";
 
 /**
  * Fee sponsorship. Canton charges the user no per-transaction fee (the venue's participant pays traffic), so there is

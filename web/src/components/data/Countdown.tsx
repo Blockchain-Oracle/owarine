@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { SETTLING } from "@/lib/copy";
 import { cn } from "@/lib/utils";
-import { countdown, type Countdown as CountdownState } from "@agari/core/lifecycle";
-import { formatClock } from "@agari/core/units";
+import { countdown, type Countdown as CountdownState } from "@owarine/core/lifecycle";
+import { formatClock } from "@owarine/core/units";
 import { useNowMs } from "./useNowMs";
 
 const ANNOUNCE_AT_SEC = 60;

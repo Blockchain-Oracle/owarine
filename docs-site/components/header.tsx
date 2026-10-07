@@ -16,7 +16,7 @@ export function Header() {
   useEffect(() => setMounted(true), []);
   const dark = mounted && resolvedTheme === 'dark';
   return <header className="docs-header">
-    <Link href="/" aria-label="Agari documentation home"><Brand docs/></Link>
+    <Link href="/" aria-label="Owarine documentation home"><Brand docs/></Link>
     <div className="header-actions">
       <button className="docs-search" onClick={() => setOpenSearch(true)} aria-label="Search the docs"><Search size={18}/><span>Search the docs…</span><kbd>⌘ K</kbd></button>
       <button className="theme-button" onClick={() => setTheme(dark ? 'light' : 'dark')} aria-label={`Switch to ${dark ? 'light' : 'dark'} mode`}>{dark ? <Sun size={20}/> : <Moon size={20}/>}</button>

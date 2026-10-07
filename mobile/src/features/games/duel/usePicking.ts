@@ -8,11 +8,11 @@ import {
   type DeckCard,
   type MatchState,
   type Pick,
-} from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32 } from "@agari/core/types";
-import { quoteArenaPick } from "@agari/markets/games";
-import { useArenaState } from "@agari/markets/react";
+} from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { quoteArenaPick } from "@owarine/markets/games";
+import { useArenaState } from "@owarine/markets/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNowMs } from "@/components/data/useNowMs";
 import { DUEL } from "@/features/games/duel/copy";

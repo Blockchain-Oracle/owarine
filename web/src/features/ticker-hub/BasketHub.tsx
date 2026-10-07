@@ -1,10 +1,10 @@
 "use client";
 
-import { basketMembersHeld, isBasketCoverable, type Basket, type BasketSymbol } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
-import { useAssetPrice } from "@agari/markets/react";
+import { basketMembersHeld, isBasketCoverable, type Basket, type BasketSymbol } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
+import { useAssetPrice } from "@owarine/markets/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";

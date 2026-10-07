@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { useSyncExternalStore } from "react";
 import { dropBellsSnapshot, setDropBell } from "@/features/hedge/drop-bell";
 

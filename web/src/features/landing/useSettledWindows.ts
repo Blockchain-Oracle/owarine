@@ -1,9 +1,9 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
-import type { Address, EventMarket } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useReadingQuery } from "@agari/markets/react";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, EventMarket } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { useReadingQuery } from "@owarine/markets/react";
 
 /** The proof strip shows the newest few; the index answers them from one `markets?settled=1` read. */
 const SETTLED_SHOWN = 5;
@@ -15,11 +15,11 @@ const GC_MS = 30 * 60_000;
 /**
  * The venue's last settled Windows, newest first, for the landing's proof strip. The markets port's own `listSettled`
  * over the index; no poll (the landing is a story, not a board), and only the venue boot fact, as the lane read needs.
- * The key sits beside the markets family (`agari/markets/…`) without joining its write invalidation: a call never
+ * The key sits beside the markets family (`owarine/markets/…`) without joining its write invalidation: a call never
  * changes which Windows settled.
  */
 export function useSettledWindows(venueId: Address | null): Reading<EventMarket[]> | null {
-  return useReadingQuery(["agari", "landing", "settled", venueId, SETTLED_SHOWN], () => marketsProvider.listSettled(venueId as Address, SETTLED_SHOWN), {
+  return useReadingQuery(["owarine", "landing", "settled", venueId, SETTLED_SHOWN], () => marketsProvider.listSettled(venueId as Address, SETTLED_SHOWN), {
     enabled: venueId !== null,
     staleTimeMs: STALE_MS,
     gcTimeMs: GC_MS,

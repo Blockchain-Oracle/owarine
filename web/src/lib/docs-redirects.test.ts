@@ -10,7 +10,7 @@ async function responseFor(path: string, docsOrigin?: string) {
   vi.stubEnv("NEXT_PUBLIC_DOCS_URL", docsOrigin);
   vi.resetModules();
   const { default: nextConfig } = await import("../../next.config");
-  return unstable_getResponseFromNextConfig({ url: `https://agari.app${path}`, nextConfig });
+  return unstable_getResponseFromNextConfig({ url: `https://owarine.app${path}`, nextConfig });
 }
 
 describe("retired documentation bookmarks", () => {
@@ -31,7 +31,7 @@ describe("retired documentation bookmarks", () => {
   it("lands a nested guide bookmark on the in-app explainer while no docs host is configured", async () => {
     const response = await responseFor("/docs/start/wallet");
     expect(response.status).toBe(307);
-    expect(getRedirectUrl(response)).toBe("https://agari.app/how-it-works");
+    expect(getRedirectUrl(response)).toBe("https://owarine.app/how-it-works");
   });
 
   it("preserves nested guides and their query on a configured docs origin", async () => {

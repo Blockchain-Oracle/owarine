@@ -7,7 +7,7 @@ function origin(value: string | undefined, fallback: string) {
 // `https://<domain>` and `https://docs.<domain>`); until then the defaults are the local app and docs servers, so no
 // link leaves for another product's site.
 export const site = {
-  name: 'Agari',
+  name: 'Owarine',
   docs: origin(process.env.NEXT_PUBLIC_DOCS_URL, 'http://localhost:3153'),
   app: origin(process.env.NEXT_PUBLIC_APP_URL, 'http://localhost:3000'),
   // The one repository for the app and these docs: the sidebar's GitHub link, llms.txt's README entry and per-page

@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { exitAcceptRequestWire } from "@agari/markets";
+import { exitAcceptRequestWire } from "@owarine/markets";
 import { jsonBody, recordBusy, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

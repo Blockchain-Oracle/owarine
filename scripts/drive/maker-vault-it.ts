@@ -10,16 +10,16 @@
  *
  * At each step it prints the vault's statement and checks what the ledger holds for the book against it.
  *
- *   LEDGER_JSON_API_URL=http://localhost:7585 AGARI_PARTIES_FILE=… OPS=http://localhost:8787 OPS_INTERNAL_SECRET=… \
- *     pnpm --filter @agari/scripts exec tsx drive/maker-vault-it.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7585 OWARINE_PARTIES_FILE=… OPS=http://localhost:8787 OPS_INTERNAL_SECRET=… \
+ *     pnpm --filter @owarine/scripts exec tsx drive/maker-vault-it.ts
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
-import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { MAKER_BOOK } from "@agari/markets/ops/book";
-import { cmd, decodeBookReceipt, decodeLeg, decodeQuote, decodeVenueCash, legBookOf, pick } from "@agari/markets/ops/canton";
-import { tcmd } from "@agari/markets/ops/tickets";
-import { createOpsClient, type MakerStateWire } from "@agari/markets/server";
+import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { MAKER_BOOK } from "@owarine/markets/ops/book";
+import { cmd, decodeBookReceipt, decodeLeg, decodeQuote, decodeVenueCash, legBookOf, pick } from "@owarine/markets/ops/canton";
+import { tcmd } from "@owarine/markets/ops/tickets";
+import { createOpsClient, type MakerStateWire } from "@owarine/markets/server";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 
 const OPS = process.env.OPS ?? "http://localhost:8787";

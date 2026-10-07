@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent } from "@agari/ledger";
+import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import type { CreatedEvent } from "@owarine/ledger";
 import { holdingsOf, holdingsText, isSeatEmpty } from "./seat-holdings";
 
-const SEAT = "agari-user-seat-1::1220aa";
-const OTHER = "agari-user-seat-2::1220bb";
+const SEAT = "owarine-user-seat-1::1220aa";
+const OTHER = "owarine-user-seat-2::1220bb";
 const VENUE = "venue::1220ff";
 const NOW = Date.parse("2026-09-29T12:00:00Z");
 const LATER = "2026-09-29T12:05:00Z";

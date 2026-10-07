@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
-import { encodeBase58 } from "@agari/core/types";
-import type { XReceiptStatus } from "@agari/core/x";
+import { encodeBase58 } from "@owarine/core/types";
+import type { XReceiptStatus } from "@owarine/core/x";
 import { renderReplyCardPng, renderReplyCardSvg } from "./reply-card";
 import { createReplyPresentation } from "./reply-format";
 
@@ -49,7 +49,7 @@ describe("receipt reply artwork", () => {
     expect(svg).toContain("Open the receipt for details.");
     expect(svg).toContain("Canton DevNet");
     expect(svg).toContain("CANTON DEVNET");
-    expect(svg).toContain("— Agari</title>");
+    expect(svg).toContain("— Owarine</title>");
     expect(svg).not.toMatch(/masayume|somnia|shannon|testnet/i);
     expect(svg).not.toMatch(/\bBTC\b|\bcredits\b|0x[\da-f]+|paid out|profit|win/i);
   });

@@ -1,5 +1,5 @@
-import { LUCKY_ASSETS_V2, LUCKY_MULTIPLIERS, LUCKY_POLICY_V2, mapLuckyDraw } from "@agari/core/games";
-import { encodeBase58, toAddress, type Hash32 } from "@agari/core/types";
+import { LUCKY_ASSETS_V2, LUCKY_MULTIPLIERS, LUCKY_POLICY_V2, mapLuckyDraw } from "@owarine/core/games";
+import { encodeBase58, toAddress, type Hash32 } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { luckyDigest } from "./lucky-digest.server";
 
@@ -21,7 +21,7 @@ describe("the server's HMAC", () => {
   });
 
   it("agrees with WebCrypto, which is what the browser's check runs", async () => {
-    const { luckyDrawMessage } = await import("@agari/core/games");
+    const { luckyDrawMessage } = await import("@owarine/core/games");
     const input = { clientSeed: CLIENT_SEED, wallet: WALLET, nonce: 7, policyVersion: LUCKY_POLICY_V2 };
     const hexBytes = (hex: string) => Uint8Array.from((hex.slice(2).match(/../g) ?? []).map((pair) => Number.parseInt(pair, 16)));
     const key = await globalThis.crypto.subtle.importKey("raw", hexBytes(SERVER_SEED), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);

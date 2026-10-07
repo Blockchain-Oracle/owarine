@@ -1,5 +1,5 @@
 ---
-title: "PreStocks and Pyth in Agari"
+title: "PreStocks and Pyth in Owarine"
 description: "How PreStocks prices reach Canton Windows as attested prints, and why Pyth is not used on Canton today."
 ---
 
@@ -28,7 +28,7 @@ Open in the app: <AppLink href="/baskets">Baskets</AppLink>, <AppLink href="/tic
 
 Pyth publishes equity prices (for example [TSLA/USD](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD), [QQQ/USD](https://app.pyth.com/explore/Equity.US.QQQ%2FUSD), [VOO/USD](https://app.pyth.com/explore/Equity.US.VOO%2FUSD)) and pre-IPO valuation indices for [OpenAI](https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD) and [Anthropic](https://app.pyth.com/explore/Equity.Index.ANTHROPIC%2FUSD). There is no Pyth contract on Canton, and none would be needed: an oracle feeder could fetch the update for the exact boundary second, archive it and post it through the same quorum as every other print. The code path exists; the key does not.
 
-The reference's Pyth trial ended on 25 September, and no key entitled to these feeds is available. So QQQ and VOO, whose only source was Pyth, now settle on Alpaca's last IEX trade (the other stocks read RedStone), and the valuation lanes (`OPENAIV`, `ANTHROPICV`) are not registered. They are listed only once a key reads the indices, and the index rows are left off the pages rather than shown dead. The index measures company valuation while a token Window settles on the token price, so Agari never uses one as a cross-check for the other.
+The reference's Pyth trial ended on 25 September, and no key entitled to these feeds is available. So QQQ and VOO, whose only source was Pyth, now settle on Alpaca's last IEX trade (the other stocks read RedStone), and the valuation lanes (`OPENAIV`, `ANTHROPICV`) are not registered. They are listed only once a key reads the indices, and the index rows are left off the pages rather than shown dead. The index measures company valuation while a token Window settles on the token price, so Owarine never uses one as a cross-check for the other.
 
 ## Where to check the current state
 

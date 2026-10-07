@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import { parseLaneKey, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@agari/core/market";
-import type { LaneBasis } from "@agari/core/types";
+import { formatCadence } from "@owarine/core/copy";
+import { parseLaneKey, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@owarine/core/market";
+import type { LaneBasis } from "@owarine/core/types";
 import { firstWindowStartSec } from "../markets/lanes/next-window";
 import type { MarketSession } from "../markets/session";
 

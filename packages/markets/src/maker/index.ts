@@ -1,7 +1,7 @@
 /** Earn's maker vault on Canton (abu-pm-main 0.5.0, K-092, K-200): reads through the ticket routes, writes through the seat's lane. */
-import type { MakerWindowView } from "@agari/core/maker";
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address, MarketId } from "@agari/core/types";
+import type { MakerWindowView } from "@owarine/core/maker";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address, MarketId } from "@owarine/core/types";
 import { notDeployedError } from "../stub/not-deployed";
 import { readBook, readSeries } from "../runtime/accounts";
 import { toBookDepth } from "../runtime/mappers";

@@ -1,4 +1,4 @@
-import { formatCadence } from "@agari/core/copy";
+import { formatCadence } from "@owarine/core/copy";
 import { BlurView } from "expo-blur";
 import { X } from "lucide-react-native";
 import type { ReactNode } from "react";

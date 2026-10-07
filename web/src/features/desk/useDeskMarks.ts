@@ -1,6 +1,6 @@
 "use client";
 
-import { basketIndexE8, BASKETS, type BasketSymbol, type PreIpoSymbol } from "@agari/core/market";
+import { basketIndexE8, BASKETS, type BasketSymbol, type PreIpoSymbol } from "@owarine/core/market";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -13,7 +13,7 @@ export type DeskMarks = Record<string, Array<{ atSec: number; tokenE8: bigint }>
 
 export function useDeskMarks(): DeskMarks | null {
   const q = useQuery({
-    queryKey: ["agari", "desk", "marks"],
+    queryKey: ["owarine", "desk", "marks"],
     queryFn: async (): Promise<DeskMarks | null> => {
       const response = await fetch("/api/desk/marks");
       if (!response.ok) return null;

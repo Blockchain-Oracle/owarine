@@ -1,5 +1,5 @@
-import { formatEtClock } from "@agari/core/market";
-import type { Resolution } from "@agari/core/types";
+import { formatEtClock } from "@owarine/core/market";
+import type { Resolution } from "@owarine/core/types";
 import { printSourceName } from "../price-source/source-label";
 
 /**

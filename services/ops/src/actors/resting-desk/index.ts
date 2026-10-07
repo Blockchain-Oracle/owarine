@@ -12,8 +12,8 @@
  * `RESTING_FILL=off` keeps the venue from ever taking a call (the reference's post-only maker, `MM_ORDER_TYPE=post-only`):
  * calls still rest and refund, but nothing fills them. Default on: the reference's limit mode, at the call's own price.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, createdOf, pick, readActive, restDeskCommandId, submit } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { cmd, createdOf, pick, readActive, restDeskCommandId, submit } from "@owarine/markets/ops/canton";
 import { runActor } from "../../runtime/actor";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import type { MakerVault } from "../maker-vault/vault";

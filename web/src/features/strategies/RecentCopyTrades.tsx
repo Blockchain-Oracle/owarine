@@ -1,7 +1,7 @@
 "use client";
 
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import type { Signature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import { useMemo } from "react";
 import { AgentPortrait } from "./AgentPortrait";
 import { STRATEGIES } from "./copy";

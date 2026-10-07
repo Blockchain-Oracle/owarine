@@ -1,7 +1,7 @@
 "use client";
 
 import { seatReadHeaders } from "@/lib/seat-fetch";
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { useCallback, useEffect, useState } from "react";
 import type { LuckyBoardWire, LuckyHistoryWire } from "./lucky-wire";
 

@@ -36,7 +36,7 @@ const NextWindow = (props: NextWindowProps, environment: WidgetEnvironment) => {
   const shown = live.slice(0, small ? 1 : environment.widgetFamily === "systemMedium" ? 3 : 6);
   const head = (
     <HStack spacing={4}>
-      <Text modifiers={[font({ weight: "heavy", size: 13 }), foregroundStyle(c.accent)]}>AGARI</Text>
+      <Text modifiers={[font({ weight: "heavy", size: 13 }), foregroundStyle(c.accent)]}>OWARINE</Text>
       <Spacer />
       {small ? null : <Text modifiers={[font({ size: 11 }), foregroundStyle(c.muted)]}>{shown.length > 0 ? "Next to close" : "Market"}</Text>}
     </HStack>
@@ -48,7 +48,7 @@ const NextWindow = (props: NextWindowProps, environment: WidgetEnvironment) => {
         {head}
         <Spacer />
         <Text modifiers={[font({ weight: "bold", size: 16 }), foregroundStyle(c.ink)]}>{props.closedLine !== "" ? "Closed" : "Between Windows"}</Text>
-        <Text modifiers={[font({ size: 12 }), foregroundStyle(c.muted)]}>{props.closedLine !== "" ? props.closedLine : "Open Agari for the next call"}</Text>
+        <Text modifiers={[font({ size: 12 }), foregroundStyle(c.muted)]}>{props.closedLine !== "" ? props.closedLine : "Open Owarine for the next call"}</Text>
       </VStack>
     );
   }

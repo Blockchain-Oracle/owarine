@@ -1,4 +1,4 @@
-import { SEAT_LINK_CODE_LENGTH } from "@agari/markets";
+import { SEAT_LINK_CODE_LENGTH } from "@owarine/markets";
 import { useEffect, useRef } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { FONT, RADIUS, useTheme } from "~/theme";

@@ -1,5 +1,5 @@
 /** Hermes (Pyth trial) fetches. `PYTH_API_KEY` is sent as a Bearer header only: never logged, never in a URL. */
-import { toE8 } from "@agari/markets/ops/prints";
+import { toE8 } from "@owarine/markets/ops/prints";
 
 export const HERMES = "https://hermes.pyth.network";
 

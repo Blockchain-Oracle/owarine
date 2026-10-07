@@ -1,6 +1,6 @@
 "use client";
 
-import { describeTargets, nameOf } from "@agari/core/desk";
+import { describeTargets, nameOf } from "@owarine/core/desk";
 import { CalendarClock, Coins, Hand, PieChart, ShieldAlert, ShieldCheck, TrendingUp, Waves, Cpu, NotebookPen, PencilLine } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";

@@ -1,8 +1,8 @@
-import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
-import { DEFAULT_CLUSTER } from "@agari/core/constants";
-import { COMPOSER_PERMANENCE } from "@agari/core/copy";
-import type { TickerSymbol } from "@agari/core/market";
-import { addressSchema, marketIdSchema, type Address, type MarketId, type Side } from "@agari/core/types";
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@owarine/core/auth";
+import { DEFAULT_CLUSTER } from "@owarine/core/constants";
+import { COMPOSER_PERMANENCE } from "@owarine/core/copy";
+import type { TickerSymbol } from "@owarine/core/market";
+import { addressSchema, marketIdSchema, type Address, type MarketId, type Side } from "@owarine/core/types";
 import { z } from "zod";
 
 /** One confident sentence, not an essay — the reference's own cap (`lib/sui/takes.ts` L23). */

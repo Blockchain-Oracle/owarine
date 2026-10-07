@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { ledgerEnvSchema } from "@agari/ledger";
+import { ledgerEnvSchema } from "@owarine/ledger";
 import { z } from "zod";
 
 /**
@@ -7,7 +7,7 @@ import { z } from "zod";
  * in `instrumentation.ts` with zod 4, failing loudly in production). Nothing here is `NEXT_PUBLIC_`: the browser never
  * sees a party id it was not leased, a secret, or the ledger credential. Only variable NAMES are ever printed.
  *
- * Parties come from the bootstrap's `parties.json` (`AGARI_PARTIES_FILE`: `{ venue, seats: [...], personas: { alice,
+ * Parties come from the bootstrap's `parties.json` (`OWARINE_PARTIES_FILE`: `{ venue, seats: [...], personas: { alice,
  * bob, outsider } }`), and any of them can be overridden by its own variable.
  */
 const party = z.string().regex(/^[A-Za-z0-9_\-:.]+::[0-9a-f]{68}$/, "a Canton party id (<hint>::1220<fingerprint>)");
@@ -15,20 +15,20 @@ const secret = z.string().min(32, "at least 32 characters");
 
 export const webServerEnvSchema = z.object({
   DATABASE_URL: z.url().optional(),
-  AGARI_SEAT_COOKIE_SECRET: secret.optional(),
+  OWARINE_SEAT_COOKIE_SECRET: secret.optional(),
   OPS_INTERNAL_URL: z.url().optional(),
   OPS_INTERNAL_SECRET: secret.optional(),
-  AGARI_PARTIES_FILE: z.string().min(1).optional(),
-  AGARI_VENUE_PARTY: party.optional(),
+  OWARINE_PARTIES_FILE: z.string().min(1).optional(),
+  OWARINE_VENUE_PARTY: party.optional(),
   /** Comma-separated seat parties; the lease pool. */
-  AGARI_SEAT_PARTIES: z.string().optional(),
-  AGARI_PERSONA_ALICE: party.optional(),
-  AGARI_PERSONA_BOB: party.optional(),
-  AGARI_PERSONA_OUTSIDER: party.optional(),
+  OWARINE_SEAT_PARTIES: z.string().optional(),
+  OWARINE_PERSONA_ALICE: party.optional(),
+  OWARINE_PERSONA_BOB: party.optional(),
+  OWARINE_PERSONA_OUTSIDER: party.optional(),
   /** C8f: the agent-runner party (strategy runner, X executor and desk operator); else the parties file's `agent-runner`. */
-  AGARI_AGENT_RUNNER_PARTY: party.optional(),
-  AGARI_SEAT_IDLE_TTL_SEC: z.coerce.number().int().positive().default(900),
-  AGARI_SEAT_HARD_CAP_SEC: z.coerce.number().int().positive().default(14_400),
+  OWARINE_AGENT_RUNNER_PARTY: party.optional(),
+  OWARINE_SEAT_IDLE_TTL_SEC: z.coerce.number().int().positive().default(900),
+  OWARINE_SEAT_HARD_CAP_SEC: z.coerce.number().int().positive().default(14_400),
 });
 
 export type WebServerEnv = z.output<typeof webServerEnvSchema>;
@@ -81,18 +81,18 @@ export interface SeatParties {
 }
 
 export function seatParties(env: WebServerEnv): SeatParties {
-  const file = env.AGARI_PARTIES_FILE ? partiesFileSchema.parse(JSON.parse(readFileSync(env.AGARI_PARTIES_FILE, "utf8"))) : null;
-  const listed = env.AGARI_SEAT_PARTIES?.split(",").map((s) => s.trim()).filter(Boolean);
+  const file = env.OWARINE_PARTIES_FILE ? partiesFileSchema.parse(JSON.parse(readFileSync(env.OWARINE_PARTIES_FILE, "utf8"))) : null;
+  const listed = env.OWARINE_SEAT_PARTIES?.split(",").map((s) => s.trim()).filter(Boolean);
   const seats = listed && listed.length > 0 ? listed.map((s) => party.parse(s)) : (file?.seats ?? []);
   return {
-    venue: env.AGARI_VENUE_PARTY ?? file?.venue ?? null,
-    agentRunner: env.AGARI_AGENT_RUNNER_PARTY ?? file?.agentRunner ?? null,
+    venue: env.OWARINE_VENUE_PARTY ?? file?.venue ?? null,
+    agentRunner: env.OWARINE_AGENT_RUNNER_PARTY ?? file?.agentRunner ?? null,
     oracles: file?.oracles ?? [],
     seats: [...new Set(seats)],
     personas: {
-      alice: env.AGARI_PERSONA_ALICE ?? file?.personas.alice ?? null,
-      bob: env.AGARI_PERSONA_BOB ?? file?.personas.bob ?? null,
-      outsider: env.AGARI_PERSONA_OUTSIDER ?? file?.personas.outsider ?? null,
+      alice: env.OWARINE_PERSONA_ALICE ?? file?.personas.alice ?? null,
+      bob: env.OWARINE_PERSONA_BOB ?? file?.personas.bob ?? null,
+      outsider: env.OWARINE_PERSONA_OUTSIDER ?? file?.personas.outsider ?? null,
     },
   };
 }
@@ -116,17 +116,17 @@ export function checkWebServerEnv(source: Record<string, string | undefined> = p
     return { problems, env: null };
   }
   const env = parsed.data;
-  const required: (keyof WebServerEnv)[] = ["DATABASE_URL", "AGARI_SEAT_COOKIE_SECRET", "OPS_INTERNAL_URL", "OPS_INTERNAL_SECRET"];
+  const required: (keyof WebServerEnv)[] = ["DATABASE_URL", "OWARINE_SEAT_COOKIE_SECRET", "OPS_INTERNAL_URL", "OPS_INTERNAL_SECRET"];
   for (const name of required) if (env[name] === undefined) problems.push(`${name}: required for the seat routes`);
   try {
     const parties = seatParties(env);
-    if (!parties.venue) problems.push("AGARI_VENUE_PARTY: required (or `venue` in AGARI_PARTIES_FILE)");
-    if (parties.seats.length === 0) problems.push("AGARI_SEAT_PARTIES: at least one seat party (or `seats` in AGARI_PARTIES_FILE)");
+    if (!parties.venue) problems.push("OWARINE_VENUE_PARTY: required (or `venue` in OWARINE_PARTIES_FILE)");
+    if (parties.seats.length === 0) problems.push("OWARINE_SEAT_PARTIES: at least one seat party (or `seats` in OWARINE_PARTIES_FILE)");
     // C4d L5: a visitor acts as their seat party, so a seat party must never be one the venue's own actors act as.
     const infra = new Set([parties.venue, parties.agentRunner, ...parties.oracles, ...Object.values(parties.personas)].filter(Boolean));
-    if (parties.seats.some((s) => infra.has(s))) problems.push("AGARI_SEAT_PARTIES: a seat party is also the venue, the agent runner, an oracle or a persona");
+    if (parties.seats.some((s) => infra.has(s))) problems.push("OWARINE_SEAT_PARTIES: a seat party is also the venue, the agent runner, an oracle or a persona");
   } catch (error) {
-    problems.push(`AGARI_PARTIES_FILE: ${error instanceof Error ? error.message.split("\n")[0] : "unreadable"}`);
+    problems.push(`OWARINE_PARTIES_FILE: ${error instanceof Error ? error.message.split("\n")[0] : "unreadable"}`);
   }
   return { problems, env };
 }

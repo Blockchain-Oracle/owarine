@@ -1,4 +1,4 @@
-import type { ReserveSheet } from "@agari/core/reserves";
+import type { ReserveSheet } from "@owarine/core/reserves";
 import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 import { EARN } from "@/features/earn/copy";

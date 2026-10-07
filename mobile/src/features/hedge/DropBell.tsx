@@ -1,6 +1,6 @@
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
-import { marketsProvider } from "@agari/markets";
-import { useAssetPrice } from "@agari/markets/react";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { marketsProvider } from "@owarine/markets";
+import { useAssetPrice } from "@owarine/markets/react";
 import { Bell, BellRing } from "lucide-react-native";
 import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";

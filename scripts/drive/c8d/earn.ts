@@ -3,7 +3,7 @@
  * maker vault, Range & Moonshot, Parlay, Boost — through the same route the Earn tabs use (a firm supply quote from ops,
  * `Supply_Accept` by the seat), and holds an `LpShare` in each; then withdraws the range shares back.
  */
-import { decodeLpShare } from "@agari/markets/ops/tickets";
+import { decodeLpShare } from "@owarine/markets/ops/tickets";
 import { randomUUID, seat, TEMPLATE_IDS, type Ctx } from "./common";
 
 const RESERVES = ["maker", "range", "parlay", "boost"] as const;

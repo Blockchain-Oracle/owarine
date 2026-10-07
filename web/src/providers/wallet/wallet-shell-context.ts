@@ -1,9 +1,9 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
-import { diagnosis } from "@agari/core/types";
-import type { LedgerCallResult, SeatLeaseView } from "@agari/markets";
-import type { WalletSession as MarketsWalletSession } from "@agari/markets/react";
+import type { Address } from "@owarine/core/types";
+import { diagnosis } from "@owarine/core/types";
+import type { LedgerCallResult, SeatLeaseView } from "@owarine/markets";
+import type { WalletSession as MarketsWalletSession } from "@owarine/markets/react";
 import { createContext, useContext } from "react";
 
 /**

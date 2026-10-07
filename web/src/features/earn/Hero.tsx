@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReserveSheet } from "@agari/core/reserves";
+import type { ReserveSheet } from "@owarine/core/reserves";
 import { CapabilityPending } from "@/components/shell";
 import { EARN } from "./copy";
 import { ReservePanel } from "./ReservePanel";

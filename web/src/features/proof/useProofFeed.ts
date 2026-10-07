@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { useReadingQuery } from "@owarine/markets/react";
 import { indexConfigured, indexGet } from "@/lib/index-read";
 import { toFeed, type FeedRow, type SettledRowWire } from "./feed";
 
@@ -21,5 +21,5 @@ async function readFeed(): Promise<Reading<FeedRow[]>> {
 
 /** `/proof`'s rows: cached, never polled; a returning tab reads them again. */
 export function useProofFeed(): Reading<FeedRow[]> | null {
-  return useReadingQuery(["agari", "proof", "feed", FEED_LIMIT], readFeed, { staleTimeMs: STALE_MS, gcTimeMs: GC_MS, needs: [] });
+  return useReadingQuery(["owarine", "proof", "feed", FEED_LIMIT], readFeed, { staleTimeMs: STALE_MS, gcTimeMs: GC_MS, needs: [] });
 }

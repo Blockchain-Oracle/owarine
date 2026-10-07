@@ -1,12 +1,12 @@
-import { duelDeckPreimage, type DuelDeckInput } from "@agari/core/games";
-import type { Hash32, Hex } from "@agari/core/types";
+import { duelDeckPreimage, type DuelDeckInput } from "@owarine/core/games";
+import type { Hash32, Hex } from "@owarine/core/types";
 import { sha256 } from "@noble/hashes/sha2";
 import { keccak_256 } from "@noble/hashes/sha3";
 import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils";
 
 /**
  * keccak-256 over the bytes a `0x`-hex string encodes: the hash the off-ledger commitments are taken over (a room
- * client seed's commitment, a Lucky seed and its candidate set). `@agari/core` carries no crypto by design, so it builds
+ * client seed's commitment, a Lucky seed and its candidate set). `@owarine/core` carries no crypto by design, so it builds
  * the preimage and the caller hashes it. The duel deck no longer uses it: its reveal is checked on the ledger, and the
  * ledger's hash is `DA.Text.sha256` (below).
  */

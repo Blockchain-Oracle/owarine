@@ -1,7 +1,7 @@
 "use client";
 
-import { xLinkMessage, xUnlinkMessage } from "@agari/core/x";
-import { shortHex } from "@agari/core/units";
+import { xLinkMessage, xUnlinkMessage } from "@owarine/core/x";
+import { shortHex } from "@owarine/core/units";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { X_ERRORS, X_OAUTH_EXPIRED, X_OAUTH_FALLBACK, X_OAUTH_MESSAGES, xOauthRejected, X_CARD } from "./copy";

@@ -10,8 +10,8 @@
  * - **Key:** `FINNHUB_API_KEY` is sent only as the `X-Finnhub-Token` header, never in a URL or a log line.
  * S13 owns the web client and `/api/earnings` (D-071); this is the ops read that serves the flags.
  */
-import { EARNINGS_SYMBOLS, earningsRange, parseFinnhubEarnings, type TickerSymbol } from "@agari/core/market";
-import type { EarningsEvent } from "@agari/core/types";
+import { EARNINGS_SYMBOLS, earningsRange, parseFinnhubEarnings, type TickerSymbol } from "@owarine/core/market";
+import type { EarningsEvent } from "@owarine/core/types";
 import { errorText, runActor, type VenueDeps } from "../runtime";
 
 const PASS_MS = 6 * 60 * 60_000;

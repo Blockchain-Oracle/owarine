@@ -1,4 +1,4 @@
-import type { EventMarket } from "@agari/core/types";
+import type { EventMarket } from "@owarine/core/types";
 import type { DeskReelDecision } from "@/features/desk/DeskReelCard";
 import type { HedgePick } from "@/features/hedge/hedge-target";
 import type { FeedTake } from "./protocol";

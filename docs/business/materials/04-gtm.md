@@ -1,4 +1,4 @@
-# GTM Materials: Agari on Canton
+# GTM Materials: Owarine on Canton
 
 *Platform material 4 of 6. The criterion reads: "Plausibility of the distribution strategy and audience fit."*
 

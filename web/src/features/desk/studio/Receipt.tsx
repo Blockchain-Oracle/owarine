@@ -1,6 +1,6 @@
 "use client";
 
-import { nameOf, presetById, type DeskMandate } from "@agari/core/desk";
+import { nameOf, presetById, type DeskMandate } from "@owarine/core/desk";
 import { LogoStack, PartitionBar } from "@/components/ui/desk-kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { DESK } from "../copy";

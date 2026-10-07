@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/desk`: the agent desk on Canton (C8f). The reference's mainnet desk (Jupiter on Solana) is a
+ * `@owarine/markets/desk`: the agent desk on Canton (C8f). The reference's mainnet desk (Jupiter on Solana) is a
  * `DeskMandate` whose live leg trades this venue's own markets with venue cash (K-090, `canton.ts`); practice desks stay
  * paper ledgers (K-091). Reads go over the ledger on a server and over the app's routes in a browser or the phone; the
  * owner writes through the routes as the leased seat; the operator (the agent-runner party) trades, sells, seals and

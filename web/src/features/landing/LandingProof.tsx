@@ -1,5 +1,5 @@
-import type { Address } from "@agari/core/types";
-import { addressUrl } from "@agari/core/urls";
+import type { Address } from "@owarine/core/types";
+import { addressUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
 import { shortAddress } from "../strategies/names";
 import { LANDING } from "./copy";

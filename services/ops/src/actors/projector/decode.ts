@@ -10,8 +10,8 @@
  * Daml-LF JSON: Int arrives as a decimal string, Time as ISO-8601 (microseconds), an enum as its constructor name, a
  * variant as `{tag, value}`, an Optional as null or the value, a tuple as `{_1, _2, …}`.
  */
-import type { IdxAttestationEvidence, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxReceiptDetail, IdxUpdate } from "@agari/db";
-import type { CreatedEvent, Event, ExercisedEvent, JsTransaction } from "@agari/ledger";
+import type { IdxAttestationEvidence, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxReceiptDetail, IdxUpdate } from "@owarine/db";
+import type { CreatedEvent, Event, ExercisedEvent, JsTransaction } from "@owarine/ledger";
 import { dependentCreated, dependentExercised, TICKETS_PACKAGE_NAME } from "./decode-dependents";
 
 type Rec = Record<string, unknown>;

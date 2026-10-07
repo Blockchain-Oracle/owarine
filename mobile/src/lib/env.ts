@@ -1,4 +1,4 @@
-import { marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@agari/markets/env";
+import { marketsEnvInputFrom, parseMarketsEnv, type MarketsEnv } from "@owarine/markets/env";
 
 /**
  * The web deploy the app talks to; every API the app reads is a route on it. The Canton product's hosted domain is not
@@ -35,7 +35,7 @@ const OPS_URL = opsOrigin(SITE_URL, process.env.EXPO_PUBLIC_OPS_URL);
 export const marketsEnv: MarketsEnv = parseMarketsEnv({
   ...marketsEnvInputFrom({
     NEXT_PUBLIC_CANTON_NETWORK: process.env.EXPO_PUBLIC_CANTON_NETWORK,
-    NEXT_PUBLIC_AGARI_VENUE_ID: process.env.EXPO_PUBLIC_VENUE_ID,
+    NEXT_PUBLIC_OWARINE_VENUE_ID: process.env.EXPO_PUBLIC_VENUE_ID,
     NEXT_PUBLIC_PRICE_FEED_URL: process.env.EXPO_PUBLIC_PRICE_FEED_URL || OPS_URL,
     NEXT_PUBLIC_LADDER_URL: process.env.EXPO_PUBLIC_LADDER_URL || OPS_URL,
     NEXT_PUBLIC_DAML_PACKAGE_NAME: process.env.EXPO_PUBLIC_DAML_PACKAGE_NAME,

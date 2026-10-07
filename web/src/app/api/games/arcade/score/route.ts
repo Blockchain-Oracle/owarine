@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   // C4c (M1): a score is posted as the token's wallet only by the seat that wallet belongs to.
   const auth = await seatFromRequest(req, { write: true });
   if (!auth.ok) return NextResponse.json({ error: "take a seat first: scores are posted by a seat" }, { status: auth.response.status === 503 ? 503 : 401 });
-  const verdict = await acceptScore(parsed.data, req.headers.get("x-agari-device") ?? "", Date.now(), seatVouch(auth.seat));
+  const verdict = await acceptScore(parsed.data, req.headers.get("x-owarine-device") ?? "", Date.now(), seatVouch(auth.seat));
   if (!verdict.ok) return NextResponse.json({ error: verdict.error }, { status: verdict.status });
   return NextResponse.json(verdict.body);
 }

@@ -2,8 +2,8 @@
  * Canned Windows for the S6 lane states (session-lanes.md §5): the real 09-18 Gap at each of its phases, a weekend TSLAx
  * token Window, and the Regular Windows the ticket blockers and void claims are shown on. Prints are × 10⁻⁸.
  */
-import { corporatePausedState, haltPausedState, venueModePausedState, voidDetail } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import { corporatePausedState, haltPausedState, venueModePausedState, voidDetail } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import type { GivenVoid } from "@/features/markets/claims/void-line";
 import type { MarketCardData } from "@/features/markets/lanes/MarketCardView";
 import { fixtureAddress, fixtureMarketId } from "../fixture-ids";

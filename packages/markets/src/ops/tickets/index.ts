@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/ops/tickets`: the ticket products on Canton (C8c), server-only. Decoders for abu-pm-tickets and the
+ * `@owarine/markets/ops/tickets`: the ticket products on Canton (C8c), server-only. Decoders for abu-pm-tickets and the
  * `PM.Reserve` contracts, and one command builder per choice ops or the seat's server half exercises.
  */
 export * as tcmd from "./commands";

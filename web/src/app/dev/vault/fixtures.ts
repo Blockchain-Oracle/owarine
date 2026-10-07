@@ -1,7 +1,7 @@
-import { CLUSTER_ID } from "@agari/core/constants";
-import { err, ok, stale, type Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type MarketId, type OpenPosition } from "@agari/core/types";
-import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@agari/core/vault";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import { err, ok, stale, type Reading } from "@owarine/core/schemas";
+import { diagnosis, type Address, type MarketId, type OpenPosition } from "@owarine/core/types";
+import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@owarine/core/vault";
 import { CASH_OUT } from "@/features/markets/portfolio/useCashOut";
 import type { CashOutState } from "@/features/markets/portfolio/BetRow";
 import type { VAULT } from "@/features/vault";

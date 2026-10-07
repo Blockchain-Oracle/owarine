@@ -1,5 +1,5 @@
-import { TICKER_SYMBOLS } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
+import { TICKER_SYMBOLS } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
 import { z } from "zod";
 import { tractionSchema } from "@/features/stats/protocol";
 

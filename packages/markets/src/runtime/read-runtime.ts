@@ -5,17 +5,17 @@
  * credential. Every signer lives in its own `SubmitterSession` (../sessions), so a read-endpoint change can never move
  * a write's authority. It is a descriptor, not a connection.
  */
-import { CLUSTER_ID } from "@agari/core/constants";
+import { CLUSTER_ID } from "@owarine/core/constants";
 import { cantonVaultDeployment } from "../vault/deployment";
-import type { Cluster } from "@agari/core/constants";
-import type { ArenaDeployment } from "@agari/core/games";
-import type { LeverageDeployment } from "@agari/core/leverage";
-import type { MakerDeployment } from "@agari/core/maker";
-import type { ParlayDeployment } from "@agari/core/parlay";
-import type { PrivateDeployment } from "@agari/core/private";
-import type { RangeDeployment } from "@agari/core/range";
-import type { Address } from "@agari/core/types";
-import type { VaultDeployment } from "@agari/core/vault";
+import type { Cluster } from "@owarine/core/constants";
+import type { ArenaDeployment } from "@owarine/core/games";
+import type { LeverageDeployment } from "@owarine/core/leverage";
+import type { MakerDeployment } from "@owarine/core/maker";
+import type { ParlayDeployment } from "@owarine/core/parlay";
+import type { PrivateDeployment } from "@owarine/core/private";
+import type { RangeDeployment } from "@owarine/core/range";
+import type { Address } from "@owarine/core/types";
+import type { VaultDeployment } from "@owarine/core/vault";
 import type { MarketsEnv } from "../env";
 import { mark } from "../perf/milestones";
 
@@ -24,7 +24,7 @@ export interface ReadClient {
   cluster: Cluster;
   /** Our own ledger route handlers (`/api/ledger`); the browser never talks to a participant directly. */
   ledgerApiPath: string;
-  /** The configured venue id (`NEXT_PUBLIC_AGARI_VENUE_ID`); null until the venue boots. */
+  /** The configured venue id (`NEXT_PUBLIC_OWARINE_VENUE_ID`); null until the venue boots. */
   venueId: Address | null;
   /** `/api/index` base; null = no projection, lists read `indexer-down`. */
   indexerUrl: string | null;

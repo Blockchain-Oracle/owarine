@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BASKET_SYMBOLS, BASKETS, type Basket } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, type Basket } from "@owarine/core/market";
 import { preStocksBasketFeedHex } from "../prices/prestocks";
 import { SOURCE, ZERO_POLICY } from "./policies";
 import { BASIS, preStocksBasketFeedId, preStocksBasketSeries } from "./venue-spec";

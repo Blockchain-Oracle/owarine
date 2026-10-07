@@ -1,5 +1,5 @@
-import { LUCKY_ASSETS, LUCKY_MULTIPLIERS } from "@agari/core/games";
-import type { Side } from "@agari/core/types";
+import { LUCKY_ASSETS, LUCKY_MULTIPLIERS } from "@owarine/core/games";
+import type { Side } from "@owarine/core/types";
 import { useEffect, useRef, useState } from "react";
 import { AccessibilityInfo, StyleSheet, View } from "react-native";
 import { LUCKY } from "@/features/games/lucky/copy";

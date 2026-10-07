@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { StrategySubscription } from "@agari/core/strategies";
-import { encodeBase58, toAddress } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
+import type { StrategySubscription } from "@owarine/core/strategies";
+import { encodeBase58, toAddress } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
 import { copyProgressKey, matchesProgressGrant, parseCopyProgress, type CopyProgress } from "./copy-progress";
 import { strategyIdentity } from "./identity";
 import { copyStateOf } from "./lifecycle";

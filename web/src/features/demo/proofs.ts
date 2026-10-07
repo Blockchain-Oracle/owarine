@@ -1,5 +1,5 @@
-import type { Address, Signature } from "@agari/core/types";
-import { addressUrl, txUrl } from "@agari/core/urls";
+import type { Address, Signature } from "@owarine/core/types";
+import { addressUrl, txUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
 
 /**

@@ -2,8 +2,8 @@
  * The desk's shapes on the app's ledger routes (`/api/ledger/desk/*`): bigints travel as decimal strings, everything is
  * validated on arrival (it crosses a browser). Shared by the routes and the browser/phone reader so the two cannot drift.
  */
-import { diagnosisSchema, type Address, type Hash32, type Signature } from "@agari/core/types";
-import { DESK_MODES } from "@agari/core/desk";
+import { diagnosisSchema, type Address, type Hash32, type Signature } from "@owarine/core/types";
+import { DESK_MODES } from "@owarine/core/desk";
 import { z } from "zod";
 import type { DeskState, OwnerDeskBalances, SealedAction } from "./types";
 

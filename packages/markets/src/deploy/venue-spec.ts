@@ -2,8 +2,8 @@
  * What `init-events` ensures on a cluster: the launch grid, the authorities and the S2 Series set (plan §7.2 S2).
  * Values mirror the LiteSVM fixtures (`anchor/tests/src/fixtures.rs`), which the engine tests run against.
  */
-import { TICKERS, type Basket, type TickerSymbol } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
+import { TICKERS, type Basket, type TickerSymbol } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
 import type { AuthoritiesArgs, SeriesRegisterArgs } from "./specs";
 import { preStocksBasketFeedHex, preStocksFeedHex } from "../prices/prestocks";
 import { asciiFeedId, I64_MAX, policyVersions, pythIndexPolicyVersions, redstoneSigners, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources } from "./policies";
@@ -49,7 +49,7 @@ export type SeriesSpec = {
 
 /** Drive-only Series id: never in the core ticker registry, so the app never lists it (D-027). */
 export const DRIVE_TEST_TICKER = 900;
-export const DRIVE_ATTESTED_FEED = asciiFeedId("agari-drive-attested:TSLA");
+export const DRIVE_ATTESTED_FEED = asciiFeedId("owarine-drive-attested:TSLA");
 
 /**
  * The drive's test Series: an attested primary (10 s correction delay, 60 s bars) checked against RedStone TSLA, so one

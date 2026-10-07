@@ -1,7 +1,7 @@
 "use client";
 
-import { DEFAULT_LIMITS, DEFAULT_MONEY } from "@agari/core/desk";
-import { BASKET_SYMBOLS } from "@agari/core/market";
+import { DEFAULT_LIMITS, DEFAULT_MONEY } from "@owarine/core/desk";
+import { BASKET_SYMBOLS } from "@owarine/core/market";
 import { ArrowRight, Ban, Check, CircleDashed, ShieldCheck } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";

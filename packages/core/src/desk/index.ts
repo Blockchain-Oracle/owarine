@@ -1,5 +1,5 @@
 /**
- * `@agari/core/desk` (S21, D-126): the desk's pure arithmetic, schemas and words. The ops runner (C4), the web (C5) and
+ * `@owarine/core/desk` (S21, D-126): the desk's pure arithmetic, schemas and words. The ops runner (C4), the web (C5) and
  * the markets desk layer (C3) import from here; nothing here touches the chain, the network or a clock.
  */
 export * from "./banned-words";

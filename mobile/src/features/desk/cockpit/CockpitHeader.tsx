@@ -1,4 +1,4 @@
-import { nameOf, presetById } from "@agari/core/desk";
+import { nameOf, presetById } from "@owarine/core/desk";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { COCKPIT } from "@/features/desk/cockpit/copy-cockpit";

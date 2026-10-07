@@ -1,8 +1,8 @@
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ readActive: vi.fn(), submit: vi.fn() }));
-vi.mock("@agari/markets/ops/canton", async (original) => ({ ...(await original<object>()), readActive: mocks.readActive, submit: mocks.submit }));
+vi.mock("@owarine/markets/ops/canton", async (original) => ({ ...(await original<object>()), readActive: mocks.readActive, submit: mocks.submit }));
 
 import { handleEnrol } from "./enrol";
 

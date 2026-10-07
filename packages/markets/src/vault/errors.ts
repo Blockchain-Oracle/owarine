@@ -3,7 +3,7 @@
  * refusal copy reads `errorName` unchanged. On Canton the trading balance is `VenueCash` (C7a) and its choices fail
  * with stable `failWithStatus` ids that map onto the same names; the table stays the single wording source.
  */
-import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
+import { diagnosis, type Diagnosis, type DiagnosisKind } from "@owarine/core/types";
 
 export const VAULT_ERROR_RANGE = { min: 7000, max: 7299 } as const;
 /**

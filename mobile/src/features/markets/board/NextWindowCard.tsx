@@ -1,7 +1,7 @@
-import { formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import type { TickerSymbol } from "@agari/core/market";
-import type { LaneBasis, MarketId } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { formatSessionSpan, sessionCountdown } from "@owarine/core/copy";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { LaneBasis, MarketId } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { Text, View } from "react-native";
 import { formatDayChange } from "@/features/markets/asset-history/day-change";

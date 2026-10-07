@@ -1,5 +1,5 @@
-import type { EventMarket } from "@agari/core/types";
-import { useOpeningPrice } from "@agari/markets/react";
+import type { EventMarket } from "@owarine/core/types";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Svg, { Line, Path, Rect, Text as SvgText } from "react-native-svg";

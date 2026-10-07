@@ -4,9 +4,9 @@
  * cash-out is a firm whole-position buy-back (`Boost_OfferExit`) the seat accepts; settle and claim are the owner's
  * `Boost_Claim` (or the stale refund past `refundAfter`). Knock-out is the venue's alone, on the Window's oracle quorum.
  */
-import type { LeverageIntent } from "@agari/core/leverage";
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
+import type { LeverageIntent } from "@owarine/core/leverage";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
 import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { acceptTicketQuote, asTxOutcome, exitTicket } from "../submitter/ticket-lane";
 import { boostCall, rememberTicket, ticketCidOf } from "../tickets/client";

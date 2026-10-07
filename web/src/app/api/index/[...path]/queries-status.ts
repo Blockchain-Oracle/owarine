@@ -1,4 +1,4 @@
-import { statusReader } from "@agari/db";
+import { statusReader } from "@owarine/db";
 import { z } from "zod";
 import { BadRequest, type IndexQuery } from "./queries";
 

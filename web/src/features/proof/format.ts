@@ -1,4 +1,4 @@
-import type { Exchange } from "@agari/core/proof";
+import type { Exchange } from "@owarine/core/proof";
 
 const E8 = 100_000_000n;
 

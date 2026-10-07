@@ -13,13 +13,13 @@
  *   reply    `{ kind: "quote", quoteCids, exit, validUntilMs }` · `{ kind: "requote", exit }` · `{ kind: "refused", diagnosis }`
  */
 import { randomUUID } from "node:crypto";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { diagnosis, isMarketId, type DiagnosisKind, type ExitQuote } from "@agari/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { diagnosis, isMarketId, type DiagnosisKind, type ExitQuote } from "@owarine/core/types";
 import {
   allocateLegs, bidLevels, cmd, decodeBuyQuote, decodeLeg, exitQuoteCommandId, failureText, isIndefinite, pick, readActive, refusalId,
   templateSuffix, walkExit, type Side, type WalkedExit,
-} from "@agari/markets/ops/canton";
-import { CASH_DECIMALS } from "@agari/markets/server";
+} from "@owarine/markets/ops/canton";
+import { CASH_DECIMALS } from "@owarine/markets/server";
 import { emitVenueEvent } from "../venue/events";
 import { consume, latencies, type IssuerDeps } from "./issuer";
 import { PoolBusyError, type Lease, type ShardPool } from "./pool";

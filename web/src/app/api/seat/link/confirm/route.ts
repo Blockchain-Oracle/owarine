@@ -1,5 +1,5 @@
 import { type NextRequest } from "next/server";
-import { normalizeSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
+import { normalizeSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@owarine/markets";
 import { z } from "zod";
 import { jsonBody, refusal, replyWith, seatFromRequest, serverFault } from "@/lib/seat.server";
 

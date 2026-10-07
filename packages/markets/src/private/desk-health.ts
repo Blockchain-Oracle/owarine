@@ -1,5 +1,5 @@
-import { CLUSTER_ID, DEFAULT_CLUSTER } from "@agari/core/constants";
-import type { PrivateStatus } from "@agari/core/private";
+import { CLUSTER_ID, DEFAULT_CLUSTER } from "@owarine/core/constants";
+import type { PrivateStatus } from "@owarine/core/private";
 import type { DeskClient } from "./desk-client";
 import { PRIVATE_NOT_LIVE_WORDS } from "./reads";
 

@@ -1,6 +1,6 @@
-import type { IntentRecord } from "@agari/core/ports";
-import type { Address, MarketId } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
+import type { IntentRecord } from "@owarine/core/ports";
+import type { Address, MarketId } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
 import type { WriteEvidence } from "./evidence";
 import type { WriteRpc } from "./write-rpc";
 

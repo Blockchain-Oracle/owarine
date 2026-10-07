@@ -1,8 +1,8 @@
 "use client";
 
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { useReadingQuery } from "@agari/markets/react";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { useReadingQuery } from "@owarine/markets/react";
 import { z } from "zod";
 import { newsReading } from "@/features/news/news-reading";
 import type { Article } from "@/features/news/protocol";
@@ -21,10 +21,10 @@ async function readNews(symbol: TickerSymbol): Promise<Reading<Article[]>> {
   return newsReading(response.status, await response.json().catch(() => null), Date.now());
 }
 
-/** One ticker's headlines (`["agari","news", symbol]`), polled while the tab is visible; a failed refresh keeps the last ones. */
+/** One ticker's headlines (`["owarine","news", symbol]`), polled while the tab is visible; a failed refresh keeps the last ones. */
 /** Null for a basket (S19): a group of companies has no wire of its own, so nothing is asked. */
 export function useTickerNews(symbol: TickerSymbol | null): Reading<Article[]> | null {
-  return useReadingQuery(["agari", "news", symbol], () => readNews(symbol as TickerSymbol), { pollMs: NEWS_POLL_MS, enabled: symbol !== null, needs: [] });
+  return useReadingQuery(["owarine", "news", symbol], () => readNews(symbol as TickerSymbol), { pollMs: NEWS_POLL_MS, enabled: symbol !== null, needs: [] });
 }
 
 /** `GET /api/earnings?symbol` (lane 13c): `lib/finnhub.server.ts`'s `EarningsEvent` list and the day the answer covers through. */
@@ -44,7 +44,7 @@ async function readEarnings(symbol: TickerSymbol): Promise<Reading<EarningsPaylo
 
 /** The next report for one ticker: `known` once the calendar answered (an empty answer is a real "none scheduled"). */
 export function useNextEarnings(symbol: TickerSymbol | null): { event: EarningsPayload["events"][number] | null; known: boolean } {
-  const reading = useReadingQuery(["agari", "social", "earnings", symbol], () => readEarnings(symbol as TickerSymbol), { staleTimeMs: EARNINGS_STALE_MS, enabled: symbol !== null, needs: [] });
+  const reading = useReadingQuery(["owarine", "social", "earnings", symbol], () => readEarnings(symbol as TickerSymbol), { staleTimeMs: EARNINGS_STALE_MS, enabled: symbol !== null, needs: [] });
   if (!reading?.ok) return { event: null, known: false };
   const next = reading.value.events.filter((event) => event.symbol === symbol).sort((a, b) => (a.dateEt < b.dateEt ? -1 : 1))[0] ?? null;
   return { event: next, known: true };

@@ -1,4 +1,4 @@
-import { OUTCOME_TO_SIDE, type ClaimableRow, type MarketId } from "@agari/core/types";
+import { OUTCOME_TO_SIDE, type ClaimableRow, type MarketId } from "@owarine/core/types";
 import { CLAIM } from "@/lib/copy";
 import type { ClaimItem, ClaimRun } from "./types";
 

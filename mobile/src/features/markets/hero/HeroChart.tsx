@@ -1,7 +1,7 @@
-import { countdown } from "@agari/core/lifecycle";
-import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
-import { formatClock } from "@agari/core/units";
-import { useOpeningPrice } from "@agari/markets/react";
+import { countdown } from "@owarine/core/lifecycle";
+import type { EventMarket, Lane, MarketId, Side } from "@owarine/core/types";
+import { formatClock } from "@owarine/core/units";
+import { useOpeningPrice } from "@owarine/markets/react";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useChartSeries } from "@/features/markets/hero/useChartSeries";

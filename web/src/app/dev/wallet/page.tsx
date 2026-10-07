@@ -1,7 +1,7 @@
 "use client";
 
-import { CLUSTER_LABEL } from "@agari/core/constants";
-import { useSigner } from "@agari/markets/react";
+import { CLUSTER_LABEL } from "@owarine/core/constants";
+import { useSigner } from "@owarine/markets/react";
 import { SectionHeader } from "@/components/chrome";
 import { Hash } from "@/components/data";
 import { BalancePlate } from "@/features/markets/balance";

@@ -1,4 +1,4 @@
-import type { ArcadeGame } from "@agari/core/games/arcade";
+import type { ArcadeGame } from "@owarine/core/games/arcade";
 
 /**
  * The few words the phone says differently from web's `arcade/copy.ts` (everything else is web's copy, imported).

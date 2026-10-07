@@ -1,4 +1,4 @@
-import { CLUSTER_LABEL, DEFAULT_CLUSTER, PROOF_BASE_PATH, type Cluster } from "@agari/core/constants";
+import { CLUSTER_LABEL, DEFAULT_CLUSTER, PROOF_BASE_PATH, type Cluster } from "@owarine/core/constants";
 import { DEVNET_DEFAULTS, parseMarketsEnv } from "./env";
 import { peekClient } from "./runtime/read-runtime";
 

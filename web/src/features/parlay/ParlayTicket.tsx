@@ -1,13 +1,13 @@
 "use client";
 
-import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
-import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import type { ParlayQuote, ParlayReserveState } from "@owarine/core/parlay";
+import type { Diagnosis, EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import { AlertCircle, Loader2, Trophy } from "lucide-react";
 import { Countdown } from "@/components/data";
 import { diagnosisCopy } from "@/lib/copy";
-import { formatCadence } from "@agari/core/market";
+import { formatCadence } from "@owarine/core/market";
 import { cn } from "@/lib/utils";
 import { PARLAY } from "./copy";
 import { formatBpsPct, formatLine, formatMultiplier, formatProbPct, parseThinBook, utilizationPct } from "./format";

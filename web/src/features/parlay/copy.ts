@@ -1,4 +1,4 @@
-import { PARLAY_NOT_DEPLOYED } from "@agari/core/parlay";
+import { PARLAY_NOT_DEPLOYED } from "@owarine/core/parlay";
 
 /**
  * `/parlay` — the reference's words (`app/parlay/page.tsx`, `components/ParlayBuilder.tsx`,

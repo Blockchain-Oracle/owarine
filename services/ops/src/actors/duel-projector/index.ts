@@ -1,9 +1,9 @@
-import { isDbConfigured } from "@agari/db";
-import type { JsTransaction } from "@agari/ledger";
-import { resolveArenaDeployment } from "@agari/markets/games";
+import { isDbConfigured } from "@owarine/db";
+import type { JsTransaction } from "@owarine/ledger";
+import { resolveArenaDeployment } from "@owarine/markets/games";
 import type { RoomContext } from "../game-room/handlers";
 import { currentArenaDesk } from "../arena-desk";
-import { partyAddress } from "@agari/markets/ops/games";
+import { partyAddress } from "@owarine/markets/ops/games";
 import { applyEvent, type ApplyDeps } from "./apply";
 import { createMatchCache } from "./facts";
 import { createDuelTranslator } from "./ledger";

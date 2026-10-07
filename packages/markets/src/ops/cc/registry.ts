@@ -10,7 +10,7 @@
  * choice-specific and their disclosed contracts expire.
  */
 import { z } from "zod";
-import type { DisclosedContract } from "@agari/ledger/pure";
+import type { DisclosedContract } from "@owarine/ledger/pure";
 import type { RegistryContext } from "./commands";
 
 export class RegistryError extends Error {

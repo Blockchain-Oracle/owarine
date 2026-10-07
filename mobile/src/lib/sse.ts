@@ -1,4 +1,4 @@
-import { setStreamFactory } from "@agari/markets/runtime";
+import { setStreamFactory } from "@owarine/markets/runtime";
 import { AppState } from "react-native";
 import EventSource from "react-native-sse";
 import { makeStreamFactory } from "./sse-source";

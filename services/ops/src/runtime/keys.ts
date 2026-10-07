@@ -10,14 +10,14 @@ export type OpsRole = "roller" | "price-relay" | "price-attestor" | "settler" | 
 export const roleEnvName = (role: OpsRole) => `${role.replaceAll("-", "_").toUpperCase()}_PRIVATE_KEY`;
 
 /**
- * A role's 64-byte keypair: the `<ROLE>_PRIVATE_KEY` env var (Fly), else `~/.config/agari/devnet/<role>.json`
- * (`AGARI_KEYS_DIR` overrides the directory). Null means scan-and-report: never a guessed or shared signer.
+ * A role's 64-byte keypair: the `<ROLE>_PRIVATE_KEY` env var (Fly), else `~/.config/owarine/devnet/<role>.json`
+ * (`OWARINE_KEYS_DIR` overrides the directory). Null means scan-and-report: never a guessed or shared signer.
  * Off-ledger signatures only (the desk and the legacy actors); on Canton a role acts as a party, see `roleParty`.
  */
 export function roleSecret(role: OpsRole, env: NodeJS.ProcessEnv = process.env): Uint8Array | null {
   const fromEnv = readSecretKey(env[roleEnvName(role)]);
   if (fromEnv) return fromEnv;
-  const file = join(env.AGARI_KEYS_DIR ?? join(homedir(), ".config", "agari", "devnet"), `${role}.json`);
+  const file = join(env.OWARINE_KEYS_DIR ?? join(homedir(), ".config", "owarine", "devnet"), `${role}.json`);
   return existsSync(file) ? readSecretKey(readFileSync(file, "utf8")) : null;
 }
 
@@ -43,8 +43,8 @@ export interface PartiesFile {
   policyVersion?: number;
 }
 
-/** `AGARI_PARTIES_FILE`, else `~/.config/agari/canton/parties.json` (beside the role keys, never in the repo). */
-export const partiesFilePath = (env: NodeJS.ProcessEnv = process.env) => env.AGARI_PARTIES_FILE || join(homedir(), ".config", "agari", "canton", "parties.json");
+/** `OWARINE_PARTIES_FILE`, else `~/.config/owarine/canton/parties.json` (beside the role keys, never in the repo). */
+export const partiesFilePath = (env: NodeJS.ProcessEnv = process.env) => env.OWARINE_PARTIES_FILE || join(homedir(), ".config", "owarine", "canton", "parties.json");
 
 export function readPartiesFile(env: NodeJS.ProcessEnv = process.env): PartiesFile | null {
   const path = partiesFilePath(env);

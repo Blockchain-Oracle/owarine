@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import type { MarketId } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import type { MarketId } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import type { ReactNode } from "react";
 import { Money } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";

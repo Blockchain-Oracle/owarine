@@ -1,17 +1,17 @@
 "use client";
 
-import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
-import type { VaultGrant } from "@agari/core/vault";
-import type { Address } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import { parseStrategyMetadata, type StrategySubscription } from "@owarine/core/strategies";
+import type { VaultGrant } from "@owarine/core/vault";
+import type { Address } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import { XIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
 import { AgentMemory } from "./AgentMemory";
 import { AgentPortrait } from "./AgentPortrait";
 import { progressCaps } from "./copy-progress";
-import { useBalanceSheet } from "@agari/markets/react";
-import { isOk } from "@agari/core/schemas";
+import { useBalanceSheet } from "@owarine/markets/react";
+import { isOk } from "@owarine/core/schemas";
 import { checkCopyForm } from "./copy-form";
 import { COPY_FORM } from "./copy-form-copy";
 import { CopyFormFields } from "./CopyFormFields";

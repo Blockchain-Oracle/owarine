@@ -1,6 +1,6 @@
 "use client";
 
-import { nameOf, presetById, type DeskMandate } from "@agari/core/desk";
+import { nameOf, presetById, type DeskMandate } from "@owarine/core/desk";
 import { Check, CircleDashed, RefreshCw } from "lucide-react";
 import { Donut, NumberTicker, StatusDot } from "@/components/ui/desk-kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReserveKind } from "@agari/core/reserves";
+import type { ReserveKind } from "@owarine/core/reserves";
 import { EARN } from "./copy";
 import { RESERVES, RESERVE_TABS } from "./reserves";
 

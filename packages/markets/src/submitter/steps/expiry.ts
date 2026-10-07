@@ -1,6 +1,6 @@
-import { orderExpirySec, type EntryWindow } from "@agari/core/lifecycle";
-import { diagnosis } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
+import { orderExpirySec, type EntryWindow } from "@owarine/core/lifecycle";
+import { diagnosis } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
 import { OrderRefusedError } from "../errors";
 
 /**

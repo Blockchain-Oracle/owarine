@@ -1,4 +1,4 @@
-import { isHash32 } from "@agari/core/types";
+import { isHash32 } from "@owarine/core/types";
 import { diagnosisReply, refusal, replyWith } from "@/lib/seat.server";
 import { seatServer } from "@/lib/ledger.server";
 

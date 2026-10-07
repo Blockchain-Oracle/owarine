@@ -3,8 +3,8 @@
  * rows as the index sends them, projected by core `restingOrderView` so the rows render exactly what a live read would.
  * Integers throughout: lots of 1,000 base contracts, a cash unit of 1, prices in YES ticks.
  */
-import type { RestedOrder } from "@agari/core/ports";
-import { restingOrderView, type RestingOrderRow, type RestingOrderView, type RestingOrderWindow } from "@agari/core/projection";
+import type { RestedOrder } from "@owarine/core/ports";
+import { restingOrderView, type RestingOrderRow, type RestingOrderView, type RestingOrderWindow } from "@owarine/core/projection";
 import { CLOCK } from "../session/market-session-fixtures";
 import { DECIMALS, TX_HASH, WALLET } from "./fixtures";
 import { REGULAR_UPCOMING } from "./lane-fixtures";

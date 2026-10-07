@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { useMemo } from "react";
 import { useWalletShell } from "./wallet-shell-context";
 

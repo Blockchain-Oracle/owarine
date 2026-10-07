@@ -1,8 +1,8 @@
 "use client";
 
-import type { RangeReserveState } from "@agari/core/range";
-import { isOk } from "@agari/core/schemas";
-import { useRangeReserve } from "@agari/markets/react";
+import type { RangeReserveState } from "@owarine/core/range";
+import { isOk } from "@owarine/core/schemas";
+import { useRangeReserve } from "@owarine/markets/react";
 import { CapabilityPending, SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";
 import { useVenue } from "../markets/useVenue";

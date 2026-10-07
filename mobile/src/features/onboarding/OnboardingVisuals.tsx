@@ -1,5 +1,5 @@
-import { phase } from "@agari/core/lifecycle";
-import type { EventMarket } from "@agari/core/types";
+import { phase } from "@owarine/core/lifecycle";
+import type { EventMarket } from "@owarine/core/types";
 import { ChartNoAxesCombined, Dices, Handshake, Layers3, Mountain, Rocket, type LucideIcon } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { useLanesState } from "@/features/markets/lanes/useLanes";

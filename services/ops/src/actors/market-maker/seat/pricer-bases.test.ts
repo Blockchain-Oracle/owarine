@@ -1,4 +1,4 @@
-import type { TermsC } from "@agari/markets/ops/canton";
+import type { TermsC } from "@owarine/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import type { SpotFeed } from "../../../prices/spot";
 import { readSeatMakerEnv } from "./env";

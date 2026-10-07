@@ -1,6 +1,6 @@
-import { isDbConfigured, xReceiptsByWallet } from "@agari/db";
-import type { XReceipt } from "@agari/core/x";
-import { isAddress } from "@agari/core/types";
+import { isDbConfigured, xReceiptsByWallet } from "@owarine/db";
+import type { XReceipt } from "@owarine/core/x";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { X_RECEIPTS_LIMIT, type XReceiptsFeed } from "@/features/x/protocol";
 import { provesAddress } from "@/lib/auth/proven-seat.server";

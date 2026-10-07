@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { duelDeckPreimage, toLedgerCommitment } from "@agari/core/games";
+import { duelDeckPreimage, toLedgerCommitment } from "@owarine/core/games";
 import { describe, expect, it } from "vitest";
 import { deckCommitment, duelDeckHash, keccak256, sha256Text } from "./commitment";
 

@@ -1,13 +1,13 @@
-import { isOk } from "@agari/core/schemas";
-import { isSignature, toMarketId, type Address } from "@agari/core/types";
-import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, listStrategyFills, listStrategyOwners, listUnresolvedStrategyAttempts, recordAttemptFill, type StrategyFillRecord } from "@agari/db";
-import { marketsProvider, readRecoveryCursor } from "@agari/markets";
+import { isOk } from "@owarine/core/schemas";
+import { isSignature, toMarketId, type Address } from "@owarine/core/types";
+import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, listStrategyFills, listStrategyOwners, listUnresolvedStrategyAttempts, recordAttemptFill, type StrategyFillRecord } from "@owarine/db";
+import { marketsProvider, readRecoveryCursor } from "@owarine/markets";
 import type { AgentSession } from "../agents/session";
 
 /** What an actor needs of its agent session (tests pass a stand-in). */
 type AgentSessionLike = Pick<AgentSession, "address" | "submitter"> & Partial<Pick<AgentSession, "recoveryCursor">>;
-import { listStrategySubscribers } from "@agari/markets/strategies";
-import { getVaultGrant, listVaultTallies, recoverVaultExecution } from "@agari/markets/vault";
+import { listStrategySubscribers } from "@owarine/markets/strategies";
+import { getVaultGrant, listVaultTallies, recoverVaultExecution } from "@owarine/markets/vault";
 
 /** True only when the attempt's Window can no longer trade and the owner's vault holds nothing on it. */
 async function provedNothingHeld(attempt: { owner: string; marketId: string }): Promise<boolean> {

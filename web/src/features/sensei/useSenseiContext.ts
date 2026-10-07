@@ -1,10 +1,10 @@
 "use client";
 
-import { formatCadence, TICKERS } from "@agari/core/market";
-import { roundSettledAtMs, type SettledRound } from "@agari/core/projection";
-import type { OpenPosition } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { usePositions, useWalletHistory } from "@agari/markets/react";
+import { formatCadence, TICKERS } from "@owarine/core/market";
+import { roundSettledAtMs, type SettledRound } from "@owarine/core/projection";
+import type { OpenPosition } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { usePositions, useWalletHistory } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useDeskView } from "@/features/desk/useDesk";

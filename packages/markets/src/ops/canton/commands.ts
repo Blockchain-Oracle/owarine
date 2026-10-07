@@ -1,11 +1,11 @@
 /**
  * Ledger commands for the venue actors, one builder per abu-pm-main choice they exercise. Arguments are typed by the
- * generated bindings (`@agari/daml`), encoded as Daml-LF JSON: Int as a decimal string, Time as ISO-8601, enums as
+ * generated bindings (`@owarine/daml`), encoded as Daml-LF JSON: Int as a decimal string, Time as ISO-8601, enums as
  * their constructor name, variants as `{ tag, value }`. Templates are named by package name (`#abu-pm-main:…`), so a
  * compatible upgrade of the package never changes an actor.
  */
-import { TEMPLATE_IDS, type PM } from "@agari/daml";
-import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
+import { TEMPLATE_IDS, type PM } from "@owarine/daml";
+import { toDamlInt, type Command, type ContractId, type Party } from "@owarine/ledger/pure";
 import { isoOfSec, type Side } from "./decode";
 
 const exercise = (templateId: string, contractId: ContractId, choice: string, choiceArgument: unknown): Command => ({

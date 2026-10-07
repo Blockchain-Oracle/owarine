@@ -1,8 +1,8 @@
 "use client";
 
-import { shortHex } from "@agari/core/units";
-import { formatBaseUnits } from "@agari/core/units";
-import { addressUrl, txUrl } from "@agari/core/urls";
+import { shortHex } from "@owarine/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
+import { addressUrl, txUrl } from "@owarine/core/urls";
 import type { ReactNode } from "react";
 import { ago, STATS } from "./copy";
 import type { TractionEvent } from "./protocol";

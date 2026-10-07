@@ -1,7 +1,7 @@
-import { luckyBestStreak, luckyStreak, luckyVerdict, type LuckyResult } from "@agari/core/games";
-import { buildLedgers, type LedgerFill, type MarketLedger } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
-import { toMarketId, type Address, type Hash32, type EventMarket, type MarketId, type Signature } from "@agari/core/types";
+import { luckyBestStreak, luckyStreak, luckyVerdict, type LuckyResult } from "@owarine/core/games";
+import { buildLedgers, type LedgerFill, type MarketLedger } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
+import { toMarketId, type Address, type Hash32, type EventMarket, type MarketId, type Signature } from "@owarine/core/types";
 import {
   gamesStoreConfigured,
   getLuckyDraw,
@@ -11,9 +11,9 @@ import {
   recordLuckyPlacement,
   recordLuckyResult,
   type LuckyDrawRow,
-} from "@agari/db";
-import { ensureMarkets, listWalletFills, marketsProvider } from "@agari/markets";
-import { bookedFrom } from "@agari/markets/server";
+} from "@owarine/db";
+import { ensureMarkets, listWalletFills, marketsProvider } from "@owarine/markets";
+import { bookedFrom } from "@owarine/markets/server";
 import { marketsEnvFromProcess } from "@/features/session/sponsor.server";
 import { seatServer } from "@/lib/ledger.server";
 import type { LuckyBoardWire, LuckyHistoryWire, LuckyPlacedStatus, LuckyPlacedWire, LuckyRowWire } from "./lucky-wire";

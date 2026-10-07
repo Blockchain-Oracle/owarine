@@ -1,5 +1,5 @@
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import { nowMs } from "./provider/clock";
 import { withReading } from "./provider/reading";
 import { readVenueStatic } from "./runtime/accounts";

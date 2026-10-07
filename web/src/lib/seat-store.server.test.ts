@@ -4,7 +4,7 @@
  *   docker run -d --name pm-c4a-pg -e POSTGRES_PASSWORD=pm -p 5434:5432 postgres:16
  *   SEAT_PG_URL=postgres://postgres:pm@localhost:5434/pm_c4a pnpm --filter web exec vitest run src/lib/seat-store.server.test.ts
  */
-import { getDb, RECYCLE_SETTLE_MS } from "@agari/db";
+import { getDb, RECYCLE_SETTLE_MS } from "@owarine/db";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
 import { createSeatStore, DEFAULT_RULES, type LeaseRules } from "./seat-store.server";
@@ -15,7 +15,7 @@ const RULES: LeaseRules = { ...DEFAULT_RULES, idleTtlMs: 900_000, hardCapMs: 4 *
 const T0 = 1_790_000_000_000;
 
 describe.skipIf(!URL_)("seat store (Postgres)", () => {
-  // `@agari/db`'s own client, pointed at the test database (the store uses exactly this in the app).
+  // `@owarine/db`'s own client, pointed at the test database (the store uses exactly this in the app).
   if (URL_) process.env.DATABASE_URL = URL_;
   const db = getDb()!;
   const lease = (store: ReturnType<typeof createSeatStore>, address: string, now = T0) =>

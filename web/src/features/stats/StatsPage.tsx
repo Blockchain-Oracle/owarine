@@ -1,14 +1,14 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
+import type { Reading } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { ago, fmtCount, STATS } from "./copy";
 import { GrowthCurve } from "./GrowthCurve";
 import { ActivityList, SectionHead, Stat } from "./StatsSections";
 import type { TractionData } from "./protocol";
 import { useTraction } from "./useTraction";
-import { useCollateralFact } from "@agari/markets/react";
+import { useCollateralFact } from "@owarine/markets/react";
 import type { AuditPayload } from "./audit";
 import { AuditSection } from "./AuditSection";
 import { useAudit } from "./useAudit";
@@ -16,7 +16,7 @@ import { useAudit } from "./useAudit";
 /**
  * `/stats` — ported from `reference/yosuku/app/stats/page.tsx`: the hero that answers "can they
  * get users?" in five seconds, then Growth, Adoption and Live activity. The reference proved its
- * numbers through the gas it sponsored; Agari sponsors nothing, so the proof is the venue's
+ * numbers through the gas it sponsored; Owarine sponsors nothing, so the proof is the venue's
  * own fill tape, over the last 24 hours the indexer serves in one scan. Nothing here is floored
  * against a stored high-water mark: a rolling day legitimately goes down.
  */

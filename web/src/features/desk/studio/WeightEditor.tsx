@@ -1,7 +1,7 @@
 "use client";
 
-import { DESK_PRESETS, MANDATE_MAX_TOKENS, nameOf, presetById } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import { DESK_PRESETS, MANDATE_MAX_TOKENS, nameOf, presetById } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
 import { Plus, RotateCcw, Scale, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Donut, NumberTicker, PartitionBar, Slider } from "@/components/ui/desk-kit";

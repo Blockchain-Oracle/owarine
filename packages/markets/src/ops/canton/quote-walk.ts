@@ -5,7 +5,7 @@
  * A firm quote has one price for all its lots: the depth-weighted average over the levels it consumes, rounded up
  * (`vwapOverDepth` rounds cost up, in the venue's favour by at most one tick). Integers only.
  */
-import { exitWalk, vwapOverDepth, type BookLevel } from "@agari/core/market";
+import { exitWalk, vwapOverDepth, type BookLevel } from "@owarine/core/market";
 
 export const PAIR_TICKS = 1000n;
 export const FEE_DENOMINATOR = 10_000_000_000n;

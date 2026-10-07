@@ -1,8 +1,8 @@
 import { fixtureWindow } from "../fixture-window";
-import { diagnosis } from "@agari/core/types";
-import { err, ok } from "@agari/core/schemas";
-import { termPoints, type TermPoint } from "@agari/core/surface";
-import { toMarketId, type Address, type BookDepth, type BookLevelView, type EventMarket, type MarketId } from "@agari/core/types";
+import { diagnosis } from "@owarine/core/types";
+import { err, ok } from "@owarine/core/schemas";
+import { termPoints, type TermPoint } from "@owarine/core/surface";
+import { toMarketId, type Address, type BookDepth, type BookLevelView, type EventMarket, type MarketId } from "@owarine/core/types";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 // Canned books; nothing here is a real market, pool or order.

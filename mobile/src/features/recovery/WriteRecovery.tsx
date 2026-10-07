@@ -1,5 +1,5 @@
-import { recoverUnresolved, type RecoveryResult, type SubmitterSession } from "@agari/markets";
-import { useUserSession } from "@agari/markets/react";
+import { recoverUnresolved, type RecoveryResult, type SubmitterSession } from "@owarine/markets";
+import { useUserSession } from "@owarine/markets/react";
 import { useEffect } from "react";
 import { RECOVERY } from "@/features/recovery/copy";
 import { pushToast } from "~/components/toast/store";

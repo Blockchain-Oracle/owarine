@@ -9,10 +9,10 @@
  * The Solana keeper it replaces cranked `leverage_settle` / `leverage_knock_out` with its own key over the markets
  * adapter; on Canton that path has no signer and no reader, so it is gone.
  */
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { getDb } from "@agari/db";
-import { decodePriceQuote, decodeTerms, pick, readActive } from "@agari/markets/ops/canton";
-import { decodeBoostPosition } from "@agari/markets/ops/tickets";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { getDb } from "@owarine/db";
+import { decodePriceQuote, decodeTerms, pick, readActive } from "@owarine/markets/ops/canton";
+import { decodeBoostPosition } from "@owarine/markets/ops/tickets";
 import { runActor } from "../../runtime/actor";
 import { createVenueContext } from "../venue/context";
 import { describeBook, markBoost } from "./book";

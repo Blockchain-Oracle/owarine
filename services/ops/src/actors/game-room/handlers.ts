@@ -7,11 +7,11 @@ import {
   type ClientMessage,
   type MatchState,
   type ServerMessage,
-} from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import { isHash32, type Address, type Hash32 } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { readArenaAgent } from "@agari/markets/games";
+} from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import { isHash32, type Address, type Hash32 } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { readArenaAgent } from "@owarine/markets/games";
 import type { PendingMatch } from "../matchmaker/pending";
 import type { RoomConnection, RoomHub } from "./hub";
 import { buildMatchSnapshot } from "./snapshot";

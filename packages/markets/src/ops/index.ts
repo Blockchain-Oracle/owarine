@@ -1,6 +1,6 @@
 /**
- * `@agari/markets/ops`: what every venue actor shares. Server-only; not re-exported from the package root. Each lane's
- * surface is its own subpath (`@agari/markets/ops/<lane>`). C1 stub: pure helpers are live, every ledger call refuses
+ * `@owarine/markets/ops`: what every venue actor shares. Server-only; not re-exported from the package root. Each lane's
+ * surface is its own subpath (`@owarine/markets/ops/<lane>`). C1 stub: pure helpers are live, every ledger call refuses
  * as not live until the C3 adapter gives each role party its ledger session.
  */
 export { createOpsClient, type OpsClient, type OpsClientConfig } from "./client";

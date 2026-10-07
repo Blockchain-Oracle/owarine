@@ -1,4 +1,4 @@
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import { useEffect, useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";

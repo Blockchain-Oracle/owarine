@@ -1,9 +1,9 @@
 "use client";
 
-import { computeBadges, computeTraderEdge, reputationOf, type WalletHistory } from "@agari/core/projection";
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { useMakerShares, useMakerVault } from "@agari/markets/react";
+import { computeBadges, computeTraderEdge, reputationOf, type WalletHistory } from "@owarine/core/projection";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { useMakerShares, useMakerVault } from "@owarine/markets/react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";

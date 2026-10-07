@@ -11,7 +11,7 @@ import {
   type ClaimableRow,
   type MarketId,
   type OpenPosition,
-} from "@agari/core/types";
+} from "@owarine/core/types";
 import type { LegView, QuoteView, ResolutionView, TermsView } from "./contracts";
 import type { SeatSnapshot } from "./reads";
 

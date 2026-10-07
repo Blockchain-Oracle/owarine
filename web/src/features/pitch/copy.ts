@@ -19,7 +19,7 @@
  * the lineage belongs — it is the one place in the product that says where this came from.
  */
 export const PITCH = {
-  brand: "agari",
+  brand: "owarine",
   builtOn: "Built on Canton",
   prev: "prev",
   next: "next",
@@ -55,7 +55,7 @@ export const PITCH = {
     h1a: "We ported the product.",
     h1b: "We wrote the ",
     emph: "engine",
-    lead: "Agari is a source-led port of Masayume, this builder's crypto prediction market on another chain: its shell, its ticket, its type and spacing, its words. Agari itself first shipped on another chain as well: prior work, disclosed at the tag hackcanton-s3-start. What is underneath is new and was written in the delivery window: five Daml packages for the quotes, the legs, the signed prints, resolution and settlement, a JSON Ledger API client, and the venue's operations. The Daml is the only thing that decides an outcome.",
+    lead: "Owarine is a source-led port of Masayume, this builder's crypto prediction market on another chain: its shell, its ticket, its type and spacing, its words. Owarine itself first shipped on another chain, as Agari: prior work, disclosed at the tag hackcanton-s3-start. What is underneath is new and was written in the delivery window: five Daml packages for the quotes, the legs, the signed prints, resolution and settlement, a JSON Ledger API client, and the venue's operations. The Daml is the only thing that decides an outcome.",
     panelTitle: "ABU-PM-MAIN · THE ENGINE",
     panelBadge: "ON A CANTON SANDBOX",
     rows: [
@@ -89,7 +89,7 @@ export const PITCH = {
     h1a: "X is the tape.",
     h1b: "So we'll call ",
     emph: "there",
-    lead: "Reply to a market post and the call is placed — that is a stage after this one, not this one. The design is already in the Daml grants: a grant that lets a relay open a position you own and nothing else, capped and revocable, so a bot near your money is safe. No Agari X account exists yet; creating one is the owner's call.",
+    lead: "Reply to a market post and the call is placed — that is a stage after this one, not this one. The design is already in the Daml grants: a grant that lets a relay open a position you own and nothing else, capped and revocable, so a bot near your money is safe. No Owarine X account exists yet; creating one is the owner's call.",
     pills: ["After the deadline", "Un-drainable by design", "Not live"],
   },
 
@@ -173,7 +173,7 @@ export const PITCH = {
     exactLabel: "problem interviews with desk traders — a target for October, not a result",
     exactSource: "docs/business/metrics.md · results only from interview notes",
     partial: "partial day — the scan hit a paging cap",
-    lead: "Counted live from the venue's own projection at /leaderboard, not self-reported. These are the venue's seats, not only ours — Agari reads the whole ledger view and ranks it, so the number is honest about how small a test-network venue this age is. The third figure is a target and says so.",
+    lead: "Counted live from the venue's own projection at /leaderboard, not self-reported. These are the venue's seats, not only ours — Owarine reads the whole ledger view and ranks it, so the number is honest about how small a test-network venue this age is. The third figure is a target and says so.",
   },
 
   revenue: {

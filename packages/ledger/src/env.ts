@@ -21,7 +21,7 @@ const common = {
 
 const noneSchema = z.object({
   LEDGER_AUTH_MODE: z.literal("none"),
-  LEDGER_USER_ID: z.string().regex(/^[a-zA-Z0-9@^$.!`\-#+'~_|:]{1,128}$/).default("agari-local"),
+  LEDGER_USER_ID: z.string().regex(/^[a-zA-Z0-9@^$.!`\-#+'~_|:]{1,128}$/).default("owarine-local"),
   ...common,
 });
 

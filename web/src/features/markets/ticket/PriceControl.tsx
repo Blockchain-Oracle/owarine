@@ -1,7 +1,7 @@
 "use client";
 
-import { isPriceCents } from "@agari/core/orders";
-import type { Side } from "@agari/core/types";
+import { isPriceCents } from "@owarine/core/orders";
+import type { Side } from "@owarine/core/types";
 import { useEffect, useState } from "react";
 import { PREOPEN } from "@/lib/copy";
 import { SIDE_WORD } from "../side-styles";

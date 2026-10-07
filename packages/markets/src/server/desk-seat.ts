@@ -10,13 +10,13 @@
  *   withdraw  Mandate_Withdraw (never blocked by the desk's state); `close` = Mandate_Close
  *   limits · mode · operator · revoke · pause · unpause   the owner's controls of the same names
  */
-import { PRIVATE_BUCKET } from "@agari/core/private";
-import type { PreIpoSymbol } from "@agari/core/market";
-import { PRE_IPO_SYMBOLS } from "@agari/core/market";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
-import type { DeskMode } from "@agari/core/desk";
-import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { Command, CreatedEvent, LedgerClient, Party } from "@agari/ledger";
+import { PRIVATE_BUCKET } from "@owarine/core/private";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { PRE_IPO_SYMBOLS } from "@owarine/core/market";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
+import type { DeskMode } from "@owarine/core/desk";
+import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { Command, CreatedEvent, LedgerClient, Party } from "@owarine/ledger";
 import { acmd } from "../ops/agents";
 import { decodeDeskMandate, decodeDeskMark, decodeDeskOffer, type DeskMandateC, type DeskMarkC } from "../ops/agents/decode";
 import { utcDayStartSec } from "../ops/agents/ids";

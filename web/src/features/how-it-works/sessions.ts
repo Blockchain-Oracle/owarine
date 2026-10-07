@@ -3,7 +3,7 @@ import { CalendarClockIcon, ClockIcon, MoonIcon, OctagonAlertIcon, ScaleIcon, Wa
 /**
  * The facts Masayume's venue never had: a market clock.
  *
- * Masayume traded BTC and ETH, which never close, so its `/how-it-works` has no session, no lane and no halt. Agari
+ * Masayume traded BTC and ETH, which never close, so its `/how-it-works` has no session, no lane and no halt. Owarine
  * trades stocks, so the page keeps every Masayume section and adds two of its own in the same card grammar (D-081,
  * D-093): "Sessions & Lanes" after Getting Started, and "Halts, Voids & Your Money" after the Settlement Process.
  *

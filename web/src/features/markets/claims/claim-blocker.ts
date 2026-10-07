@@ -1,4 +1,4 @@
-import type { BlockerKind } from "@agari/core/copy";
+import type { BlockerKind } from "@owarine/core/copy";
 import type { WalletSession } from "@/lib/wallet-session";
 import type { ClaimRun } from "./types";
 

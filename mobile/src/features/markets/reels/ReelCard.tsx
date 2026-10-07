@@ -1,8 +1,8 @@
-import { countdown } from "@agari/core/lifecycle";
-import { neededMove } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { formatClock } from "@agari/core/units";
-import { useOpeningPrice } from "@agari/markets/react";
+import { countdown } from "@owarine/core/lifecycle";
+import { neededMove } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { formatClock } from "@owarine/core/units";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { memo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useOracleSpot } from "@/features/markets/hero/useOracleSpot";

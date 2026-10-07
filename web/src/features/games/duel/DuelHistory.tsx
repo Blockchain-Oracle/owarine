@@ -1,9 +1,9 @@
 "use client";
 
 import { seatReadHeaders } from "@/lib/seat-fetch";
-import type { DuelHistoryRow } from "@agari/db";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import type { DuelHistoryRow } from "@owarine/db";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Pager } from "@/components/chrome";

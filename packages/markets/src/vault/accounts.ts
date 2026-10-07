@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 
 /** An owner's trading-balance account in base units (`VenueCash` on Canton, C7a). */
 export interface VaultAccountView {

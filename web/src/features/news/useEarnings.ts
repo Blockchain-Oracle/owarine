@@ -1,14 +1,14 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import type { TickerSymbol } from "@agari/core/market";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import type { TickerSymbol } from "@owarine/core/market";
+import { useReadingQuery } from "@owarine/markets/react";
 import { earningsPayloadSchema, type EarningsPayload } from "./protocol";
 
 /** The calendar moves once a day at most; the route and the Finnhub client both hold it for 6 h (spec §4). */
 const STALE_MS = 6 * 3_600_000;
 
-export const earningsKey = (symbol: TickerSymbol | null) => ["agari", "social", "earnings", symbol] as const;
+export const earningsKey = (symbol: TickerSymbol | null) => ["owarine", "social", "earnings", symbol] as const;
 
 async function readEarnings(symbol: TickerSymbol): Promise<Reading<EarningsPayload>> {
   const response = await fetch(`/api/earnings?symbol=${symbol}`);

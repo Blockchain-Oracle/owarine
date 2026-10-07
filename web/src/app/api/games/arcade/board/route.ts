@@ -1,5 +1,5 @@
-import { isArcadeGame } from "@agari/core/games/arcade";
-import { isAddress } from "@agari/core/types";
+import { isArcadeGame } from "@owarine/core/games/arcade";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { readBoard } from "@/features/games/arcade/score.server";
 

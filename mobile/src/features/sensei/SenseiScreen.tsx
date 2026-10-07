@@ -1,8 +1,8 @@
-import { ADVICE_COPY } from "@agari/core/copy";
-import { countdown } from "@agari/core/lifecycle";
-import type { TickerSymbol } from "@agari/core/market";
-import type { LaneSet } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { ADVICE_COPY } from "@owarine/core/copy";
+import { countdown } from "@owarine/core/lifecycle";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { LaneSet } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useMemo, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

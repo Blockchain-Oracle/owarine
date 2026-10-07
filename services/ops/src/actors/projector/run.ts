@@ -2,7 +2,7 @@
  * The projector's stream loop, independent of the actor runtime so the dev runner, the rebuild and the tests drive it
  * directly. One `/v2/updates` WebSocket as the venue party with LEDGER_EFFECTS; each transaction is decoded and written
  * with the cursor in one DB transaction; `OffsetCheckpoint`s advance the cursor while idle; a token re-grant or a
- * dropped socket resumes from the cursor (`@agari/ledger` streamUpdates does both).
+ * dropped socket resumes from the cursor (`@owarine/ledger` streamUpdates does both).
  *
  * Bootstrap: with no cursor it replays from offset 0 (a fresh sandbox, or a participant that keeps its history). If the
  * participant has pruned below the requested offset, the stream fails fatally; the loop then reads the participant's
@@ -12,8 +12,8 @@
  * pruned up to an offset two million below its end, before our parties existed). Only when that offset cannot be read
  * does it fall back to the ledger end. `/status` shows that earlier history is absent.
  */
-import { indexWriter, type Db } from "@agari/db";
-import { streamUpdates, type JsTransaction, type LedgerClient, type LedgerError, type StreamState, type TokenSource, type WebSocketCtor } from "@agari/ledger";
+import { indexWriter, type Db } from "@owarine/db";
+import { streamUpdates, type JsTransaction, type LedgerClient, type LedgerError, type StreamState, type TokenSource, type WebSocketCtor } from "@owarine/ledger";
 import { decodeTransaction } from "./decode";
 
 export interface ProjectorConfig {

@@ -14,11 +14,11 @@
  * it beside the venue's figures as `maker`. Its cash is a reserve bucket, so it is never in `freeBase`; its quote locks
  * and legs are in `lockedBase` and `venueLegBase` as before, and also inside `maker.assetsBase`.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { decodeLeg, decodeQuote, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { decodeLeg, decodeQuote, decodeVenueCash, pick, readActive, type RoleSession } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { MakerVault } from "../maker-vault/vault";
-import { failureText } from "@agari/markets/ops/canton";
+import { failureText } from "@owarine/markets/ops/canton";
 import { isShardBucket } from "../quote-issuer/pool";
 
 export interface ReserveSnapshot {

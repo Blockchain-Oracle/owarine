@@ -11,10 +11,10 @@
 //      with the projection's open legs and live quotes at the same offset.
 // Exits 0 when the projection recount has zero diffs and the reserve at the offset matches the projection, else 1.
 import "../../services/ops/src/actors/venue/quiet-codegen";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { getDb, indexWriter, recordRecount } from "@agari/db";
-import { ledgerClientFromEnv, parseLedgerEnv, type ActiveContract } from "@agari/ledger";
-import { decodeLeg, decodeQuote, decodeVenueCash, pick } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { getDb, indexWriter, recordRecount } from "@owarine/db";
+import { ledgerClientFromEnv, parseLedgerEnv, type ActiveContract } from "@owarine/ledger";
+import { decodeLeg, decodeQuote, decodeVenueCash, pick } from "@owarine/markets/ops/canton";
 import { verifyProjection } from "../../services/ops/src/actors/projector/verify";
 import { roleParty } from "../../services/ops/src/runtime/keys";
 import { flag } from "./cli";

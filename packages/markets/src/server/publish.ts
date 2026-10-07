@@ -12,11 +12,11 @@
  * A pair leg's receipts publish together (each pair once); a ticket's receipt is named by `receiptId`, and its
  * `Publication` carries the ticket's `product`.
  */
-import { PM, TEMPLATE_IDS } from "@agari/daml";
+import { PM, TEMPLATE_IDS } from "@owarine/daml";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
-import type { MarketId, Side } from "@agari/core/types";
-import { fromDamlInt, LedgerError, type Command, type LedgerClient, type Party } from "@agari/ledger";
+import type { MarketId, Side } from "@owarine/core/types";
+import { fromDamlInt, LedgerError, type Command, type LedgerClient, type Party } from "@owarine/ledger";
 import { entityOf } from "./contracts";
 import { appMarketId } from "./ids";
 import type { SeatReader } from "./reads";

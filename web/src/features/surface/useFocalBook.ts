@@ -1,9 +1,9 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
-import { bookStructure, type BookStructure } from "@agari/core/surface";
-import type { BookDepth, BookParams, EventMarket } from "@agari/core/types";
-import { useBook, useBookParams, useOpeningPrice, useSettlementFee } from "@agari/markets/react";
+import type { Reading } from "@owarine/core/schemas";
+import { bookStructure, type BookStructure } from "@owarine/core/surface";
+import type { BookDepth, BookParams, EventMarket } from "@owarine/core/types";
+import { useBook, useBookParams, useOpeningPrice, useSettlementFee } from "@owarine/markets/react";
 import { useOracleSpot } from "../markets/hero/useOracleSpot";
 
 export interface FocalBook {

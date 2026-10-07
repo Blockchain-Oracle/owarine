@@ -1,11 +1,11 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
-import { ownCentsOf } from "@agari/core/orders";
-import type { RestedOrder } from "@agari/core/ports";
-import type { EventMarket } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import { ownCentsOf } from "@owarine/core/orders";
+import type { RestedOrder } from "@owarine/core/ports";
+import type { EventMarket } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import Link from "next/link";
 import { Hash, Money } from "@/components/data";
 import { PREOPEN } from "@/lib/copy";

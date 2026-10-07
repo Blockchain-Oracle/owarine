@@ -1,6 +1,6 @@
 import { seatReadHeaders } from "@/lib/seat-fetch";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import { router, type Href } from "expo-router";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
@@ -13,7 +13,7 @@ import { StageHead } from "~/features/games/stage";
 import { Body, Refusal } from "../../duel/parts";
 import { HistoryPager, HistoryRow, historyStyles } from "./HistoryParts";
 
-/** The fields of `@agari/db`'s DuelHistoryRow this list reads, as `/api/games/history` sends them. */
+/** The fields of `@owarine/db`'s DuelHistoryRow this list reads, as `/api/games/history` sends them. */
 interface DuelRow {
   matchId: string;
   mode: string;

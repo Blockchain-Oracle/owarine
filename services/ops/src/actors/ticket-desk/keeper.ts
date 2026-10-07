@@ -15,10 +15,10 @@
  * Every write carries a stable command id, so a crash-retry is deduplicated by the participant. Settle and claim race
  * the owner's own `*_Claim`: whichever lands first pays, the other finds the ticket gone.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { Command } from "@agari/ledger";
-import { cmd, decodePriceQuote, decodeTerms, digest, failureText, isInactive, pick, readActive, submit, type Active, type PriceQuoteC, type TermsC } from "@agari/markets/ops/canton";
-import { nextParlayLeg, tcmd, TICKET_RESERVES, type BoostPositionC } from "@agari/markets/ops/tickets";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { Command } from "@owarine/ledger";
+import { cmd, decodePriceQuote, decodeTerms, digest, failureText, isInactive, pick, readActive, submit, type Active, type PriceQuoteC, type TermsC } from "@owarine/markets/ops/canton";
+import { nextParlayLeg, tcmd, TICKET_RESERVES, type BoostPositionC } from "@owarine/markets/ops/tickets";
 import type { PassResult } from "../../runtime/actor";
 import { PoolBusyError } from "../quote-issuer/pool";
 import { submitWithShards } from "../quote-issuer/pooled-submit";

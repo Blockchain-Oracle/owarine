@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { haptic } from "~/components/kit";
-import { AgariMark } from "~/components/shell/AgariMark";
+import { OwarineMark } from "~/components/shell/OwarineMark";
 import { FONT, useTheme } from "~/theme";
 import { playOnboarding } from "./onboarding-sound";
 
@@ -19,7 +19,7 @@ const MARK = 88;
 const HOLD_MS = 2100;
 
 /**
- * The first second of the app: the Window Cut mark springs up, AGARI tracks in from wide letter-spacing, then 上がり
+ * The first second of the app: the Window Cut mark springs up, OWARINE tracks in from wide letter-spacing, then 終値
  * lands like a hanko stamp with the brand chime and a heavy tap. A tap anywhere moves on; Reduce Motion skips it.
  */
 export function BrandIntro({ onDone }: { onDone: () => void }) {
@@ -57,14 +57,14 @@ export function BrandIntro({ onDone }: { onDone: () => void }) {
   if (reduce) return null;
   return (
     <Animated.View style={[StyleSheet.absoluteFill, styles.fill, { backgroundColor: color.ground }, fade]}>
-      <Pressable style={styles.center} onPress={onDone} accessibilityRole="button" accessibilityLabel="Agari 上がり. Tap to continue">
+      <Pressable style={styles.center} onPress={onDone} accessibilityRole="button" accessibilityLabel="Owarine 終値. Tap to continue">
         <Animated.View style={markStyle}>
-          <AgariMark width={MARK} height={MARK} />
+          <OwarineMark width={MARK} height={MARK} />
         </Animated.View>
         <View style={styles.words}>
-          <Animated.Text style={[styles.name, { color: color.ink }, wordStyle]}>AGARI</Animated.Text>
+          <Animated.Text style={[styles.name, { color: color.ink }, wordStyle]}>OWARINE</Animated.Text>
           <Animated.View style={[styles.stamp, { borderColor: color.accent }, stampStyle]}>
-            <Text style={[styles.jp, { color: color.accent }]}>上がり</Text>
+            <Text style={[styles.jp, { color: color.accent }]}>終値</Text>
           </Animated.View>
         </View>
       </Pressable>

@@ -1,4 +1,4 @@
-import { nameOf } from "@agari/core/desk";
+import { nameOf } from "@owarine/core/desk";
 import type { StudioDraft } from "@/features/desk/draft";
 import { chosenOf, pctLabel } from "@/features/desk/studio/studio-model";
 import type { Palette } from "~/theme";

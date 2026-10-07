@@ -1,9 +1,9 @@
 "use client";
 
-import type { TxOutcome } from "@agari/core/ports";
-import type { ClaimableRow, Diagnosis } from "@agari/core/types";
-import { diagnose, nowMs, type MarketsSubmitter } from "@agari/markets";
-import { invalidateAfterWrite, useExitLegs, useSigner, useSubmitter } from "@agari/markets/react";
+import type { TxOutcome } from "@owarine/core/ports";
+import type { ClaimableRow, Diagnosis } from "@owarine/core/types";
+import { diagnose, nowMs, type MarketsSubmitter } from "@owarine/markets";
+import { invalidateAfterWrite, useExitLegs, useSigner, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { IDLE_RUN, itemsFromRows } from "./claim-run";

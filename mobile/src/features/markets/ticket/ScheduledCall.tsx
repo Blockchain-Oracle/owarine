@@ -1,8 +1,8 @@
-import { formatCadence } from "@agari/core/copy";
-import { ownCentsOf } from "@agari/core/orders";
-import type { RestedOrder } from "@agari/core/ports";
-import type { EventMarket } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import { ownCentsOf } from "@owarine/core/orders";
+import type { RestedOrder } from "@owarine/core/ports";
+import type { EventMarket } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { laneAssetLabel } from "@/features/markets/lanes/lane-view";

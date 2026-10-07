@@ -1,8 +1,8 @@
-import { isTickerSymbol, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
 
 /**
- * "Calm" pre-IPO names (plan §2, D-100): a token almost nobody trades does not move, and Agari resolves a flat Window
+ * "Calm" pre-IPO names (plan §2, D-100): a token almost nobody trades does not move, and Owarine resolves a flat Window
  * as Up, so offering its holder a Down bet as cover would be unfair. The judgement is measured, never assumed: the
  * PreStocks feed's own trailing window (`/prestocks/latest` `move`), high to low in basis points, over at least a
  * quarter of an hour of samples. A name that wakes up stops being calm with no code change.

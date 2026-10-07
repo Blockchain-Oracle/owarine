@@ -1,6 +1,6 @@
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import { getDb } from "@agari/db";
-import type { MarketsEnv } from "@agari/markets";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import { getDb } from "@owarine/db";
+import type { MarketsEnv } from "@owarine/markets";
 import { SESSION_OPEN_STATES } from "./grade";
 import { readOpsHealth, readOpsSession, type OpsRead, type OpsSession } from "./ops.server";
 import { probeIndex, relayCounters } from "./probes-index.server";

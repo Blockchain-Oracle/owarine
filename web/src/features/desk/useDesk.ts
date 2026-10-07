@@ -1,12 +1,12 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { SEAT_READ_HEADER } from "@agari/core/auth";
-import type { PreIpoSymbol } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
-import { createBrowserDeskRpc, readOwnerDeskBalances, type DeskRpc, type OwnerDeskBalances } from "@agari/markets/desk";
-import { seatReadHeaderValue } from "@agari/markets";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { SEAT_READ_HEADER } from "@owarine/core/auth";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
+import { createBrowserDeskRpc, readOwnerDeskBalances, type DeskRpc, type OwnerDeskBalances } from "@owarine/markets/desk";
+import { seatReadHeaderValue } from "@owarine/markets";
+import { useReadingQuery } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import type { z } from "zod";
@@ -27,12 +27,12 @@ export const DESK_NOT_SHARED = "desk-not-shared";
 export const DESK_NOT_FOUND = "desk-not-found";
 
 export const deskKeys = {
-  all: ["agari", "desk"] as const,
-  view: (key: string | null, viewer: string | null) => ["agari", "desk", "view", key, viewer] as const,
-  records: (key: string | null, viewer: string | null, before: number | null) => ["agari", "desk", "records", key, viewer, before] as const,
-  decision: (key: string | null, seq: number | null, viewer: string | null) => ["agari", "desk", "decision", key, seq, viewer] as const,
-  feed: (key: string | null, viewer: string | null) => ["agari", "desk", "feed", key, viewer] as const,
-  balances: (owner: string | null, symbols: string) => ["agari", "desk", "balances", owner, symbols] as const,
+  all: ["owarine", "desk"] as const,
+  view: (key: string | null, viewer: string | null) => ["owarine", "desk", "view", key, viewer] as const,
+  records: (key: string | null, viewer: string | null, before: number | null) => ["owarine", "desk", "records", key, viewer, before] as const,
+  decision: (key: string | null, seq: number | null, viewer: string | null) => ["owarine", "desk", "decision", key, seq, viewer] as const,
+  feed: (key: string | null, viewer: string | null) => ["owarine", "desk", "feed", key, viewer] as const,
+  balances: (owner: string | null, symbols: string) => ["owarine", "desk", "balances", owner, symbols] as const,
 };
 
 const viewerQuery = (viewer: string | null): string => (viewer ? `viewer=${encodeURIComponent(viewer)}` : "");
@@ -68,7 +68,7 @@ export function useDecision(key: string | null, seq: number | null, viewer: Addr
   return useReadingQuery(deskKeys.decision(key, seq, viewer), () => readRoute(url, decisionSchema), { enabled: key !== null && seq !== null, needs: [] });
 }
 
-/** What happened after `since`, for the watcher: polled once a minute while Agari is open, only by the owner. */
+/** What happened after `since`, for the watcher: polled once a minute while Owarine is open, only by the owner. */
 export function useDeskFeed(key: string | null, viewer: Address | null, since: number, enabled: boolean, pollMs: number) {
   const url = `/api/desk/${encodeURIComponent(key as string)}/feed?${viewerQuery(viewer)}&since=${since}`;
   return useReadingQuery(deskKeys.feed(key, viewer), () => readRoute(url, feedSchema), { pollMs, enabled: enabled && key !== null && viewer !== null, needs: [] });

@@ -12,9 +12,9 @@
  * never holds its preimage), and there are no agent keys or arena credit (the seat's server acts for it, and a decided
  * pot is paid straight into each player's cash).
  */
-import type { ArenaIntent } from "@agari/core/games";
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Diagnosis, type Signature } from "@agari/core/types";
+import type { ArenaIntent } from "@owarine/core/games";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis, type Signature } from "@owarine/core/types";
 import { ledgerRequest } from "../provider/ledger-api";
 import { duelWriteReplyWire, type DuelAction, type DuelWriteReply } from "../provider/games-wire";
 import { pollCommand, type SeatLaneDeps } from "../submitter/seat-lane";

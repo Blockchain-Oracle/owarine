@@ -8,8 +8,8 @@
  *                    `min(shareA + shareB, quantity)` and keeps the rest owed in a `NettedResidual`, which the settler
  *                    pays out at resolution.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, decodeLeg, failureText, isInactive, legBookOf, netLegsCommandId, pick, readActive, submit, type Active, type LegC, type RoleSession } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { cmd, decodeLeg, failureText, isInactive, legBookOf, netLegsCommandId, pick, readActive, submit, type Active, type LegC, type RoleSession } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { venueCashCreated } from "../quote-issuer/pooled-submit";

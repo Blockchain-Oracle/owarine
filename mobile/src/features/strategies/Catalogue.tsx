@@ -1,4 +1,4 @@
-import { isOk } from "@agari/core/schemas";
+import { isOk } from "@owarine/core/schemas";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useChainNowMs } from "@/features/markets/useChainNow";

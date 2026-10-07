@@ -31,9 +31,9 @@ Use the HackCanton account throughout. The agent is ready when Abu starts, and t
 | 12–19 | `pm-seat-1` … `pm-seat-8` | visitor seats (the lease pool) |
 
    Each party should show the **Act-as on** badge. If one does not, click **Assign can-act-as** on it.
-4. **Put the party ids in a file on this Mac.** Either way works. Party ids are not secrets, but they never go into Git, so the file lives in `~/.config/agari/canton/`:
-   - **Easiest:** Console → Parties, select the whole list, copy it, and paste it into a new text file `~/.config/agari/canton/parties.devnet.txt`. The script finds each party by its hint.
-   - **Or:** copy `docs/plan/runbooks/devnet-parties.example.json` to `~/.config/agari/canton/parties.devnet.json` and paste each full id (`pm-venue::1220…`) into its slot. Leave unused seats as `""`.
+4. **Put the party ids in a file on this Mac.** Either way works. Party ids are not secrets, but they never go into Git, so the file lives in `~/.config/owarine/canton/`:
+   - **Easiest:** Console → Parties, select the whole list, copy it, and paste it into a new text file `~/.config/owarine/canton/parties.devnet.txt`. The script finds each party by its hint.
+   - **Or:** copy `docs/plan/runbooks/devnet-parties.example.json` to `~/.config/owarine/canton/parties.devnet.json` and paste each full id (`pm-venue::1220…`) into its slot. Leave unused seats as `""`.
 5. **Upload the DARs, in this order.** For each: Console → **Collections** → **Upload DAR** → pick the HackCanton node → choose the file → **Upload**. Wait for each to show as vetted before the next.
    1. `daml/released/abu-pm-main-0.5.2.dar`
    2. `daml/released/abu-pm-tickets-0.1.4.dar`
@@ -43,7 +43,7 @@ Use the HackCanton account throughout. The agent is ready when Abu starts, and t
 
    These five files are R1. Their package ids and sha256 hashes are in `daml/released/MANIFEST.md`. Before uploading, `shasum -a 256 daml/released/*.dar` must print the manifest's hashes. The order matters because tickets, agents, games and cc are each built against main. Package names are shared across the participant, and the Console cannot delete a DAR, so there is no undo. If an upload says a package with that name and version already exists with different content, stop and tell the agent (a name collision, K-009).
 6. **Put the platform credential in two places. The agent never sees it.**
-   1. On this Mac: copy `docs/plan/runbooks/devnet.env.example` to `~/.config/agari/canton/devnet.env`. Fill the two empty lines (`LEDGER_OIDC_USERNAME` and `LEDGER_OIDC_PASSWORD`, the HackCanton login). Then run `chmod 600 ~/.config/agari/canton/devnet.env`. The agent's commands load this file and never print it.
+   1. On this Mac: copy `docs/plan/runbooks/devnet.env.example` to `~/.config/owarine/canton/devnet.env`. Fill the two empty lines (`LEDGER_OIDC_USERNAME` and `LEDGER_OIDC_PASSWORD`, the HackCanton login). Then run `chmod 600 ~/.config/owarine/canton/devnet.env`. The agent's commands load this file and never print it.
    2. In Coolify (K-035 option A, the default): paste the same names and values into the secret store of **both** pm-web and pm-ops. If the preflight says the realm keeps only one session per login, put them in pm-ops only (option B), and tell the agent.
 
    The password is rotated after judging.
@@ -68,7 +68,7 @@ Every command below prints a table, then its results as `docs/plan/acceptance.md
 
    ```
    pnpm devnet:preflight https://ledger-api-json.participant.hackcanton-01.devnet.naas.noders.services \
-     --origin https://<web domain> --parties ~/.config/agari/canton/parties.devnet.txt
+     --origin https://<web domain> --parties ~/.config/owarine/canton/parties.devnet.txt
    ```
 
    It prints one row per check:
@@ -81,14 +81,14 @@ Every command below prints a table, then its results as `docs/plan/acceptance.md
    - The connected `synchronizerId`.
 
    It never lists `/v2/parties` or `/v2/users`.
-2. **Bootstrap, checks only:** `pnpm devnet:bootstrap --parties ~/.config/agari/canton/parties.devnet.txt --check-only` (or `parties.devnet.json`, whichever file Abu made).
+2. **Bootstrap, checks only:** `pnpm devnet:bootstrap --parties ~/.config/owarine/canton/parties.devnet.txt --check-only` (or `parties.devnet.json`, whichever file Abu made).
    - Each party is looked up by id (`GET /v2/parties/{party}`) and checked against the user's act-as rights.
    - Each DAR's main package id must be in `GET /v2/packages` and registered.
    - Any FAIL stops the run here. A party without act-as is fixed with **Assign can-act-as** in the Console. A missing package id means the upload is missing or came from another build.
 3. **Bootstrap, dry run:** the same command with `--dry-run` instead of `--check-only`.
    - Every independent write is prepared against live state (`/v2/interactive-submission/prepare`), and nothing is executed. That covers the desk, the shards, each Series, the EarnDesk, the reserve statements and books, the LP invite, the arena and the season pool.
    - The writes that need an earlier write's contract are named but not prepared: the LP accept, the supplies, the first NAV statement and the season funding.
-4. **Bootstrap:** `LEDGER_SUBMIT_TIMEOUT_MS=300000 LEDGER_REQUEST_TIMEOUT_MS=120000 pnpm devnet:bootstrap --parties ~/.config/agari/canton/parties.devnet.txt`. The two timeouts give a slow first transaction time to land instead of being re-sent. They are not secrets and go on the command line; `devnet.env` stays Abu's.
+4. **Bootstrap:** `LEDGER_SUBMIT_TIMEOUT_MS=300000 LEDGER_REQUEST_TIMEOUT_MS=120000 pnpm devnet:bootstrap --parties ~/.config/owarine/canton/parties.devnet.txt`. The two timeouts give a slow first transaction time to land instead of being re-sent. They are not secrets and go on the command line; `devnet.env` stays Abu's.
    - The options are the same as local:
      - `--seats 8` is the default, the plan's budget. If fewer seats are filled, the pool is smaller.
      - `--shards 16`
@@ -96,7 +96,7 @@ Every command below prints a table, then its results as `docs/plan/acceptance.md
      - `--reserve-seed 10000`
      - `--no-tickets`
      - `--no-games`
-   - It creates whatever is missing and writes `~/.config/agari/canton/parties.devnet.json` (mode 600), the K-026 file that ops and the web read.
+   - It creates whatever is missing and writes `~/.config/owarine/canton/parties.devnet.json` (mode 600), the K-026 file that ops and the web read.
    - Each write is an acceptance row with its update id.
    - Re-running is safe: a second run finds everything and sends nothing ("0 executed"). The rehearsal measured it: 139 writes in 4 min 17 s, then a re-run with 0 executed in 40 s.
    - The run prints its id at the start (`run devnet-…`). Every write's commandId ends in it.
@@ -104,14 +104,14 @@ Every command below prints a table, then its results as `docs/plan/acceptance.md
    - **If the pending write was rejected**, the run stops with that write's own rejection, usually `MEDIATOR_SAYS_TX_TIMED_OUT` or `NOT_SEQUENCED_TIMEOUT`: the participant was too slow to confirm it. Nothing landed for that write. The fallback is to wait a minute and run the same command again, adding `--run <the printed id>`. The rehearsal hit this twice on a swapped-out sandbox, before C3f, when it still showed as `SUBMISSION_ALREADY_IN_FLIGHT`.
    - **If the wait runs out**, the error says `commandId …: outcome unknown`, and the write may still land. Re-run with `--run <the printed id>`. The pending write is then resolved under its own commandId (deduplicated if it landed, waited on if it is still in flight). A run with a fresh id would re-send it under a new commandId. For a very slow node, prefix `LEDGER_INFLIGHT_WAIT_MS=600000`.
 5. **Point the hosted apps at DevNet.** This comes before the smoke: `first-call.ts` drives the hosted web and ops, and DevNet has one writer, so no local ops may run against it.
-   1. Mount `parties.devnet.json` in Coolify as `/data/parties.json` for pm-ops and pm-web, with `AGARI_PARTIES_FILE=/data/parties.json`.
+   1. Mount `parties.devnet.json` in Coolify as `/data/parties.json` for pm-ops and pm-web, with `OWARINE_PARTIES_FILE=/data/parties.json`.
    2. Set `LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE=password` and the `LEDGER_OIDC_*` names Abu filled. The names are listed in `web/.env.example` and `services/ops/.env.example`.
    3. Redeploy pm-ops, first with `DRY_RUN=1` and then with `0`. Then redeploy pm-web.
    4. Run the probes in `coolify-deploy.md` §6.
 6. **Four-viewpoint smoke on DevNet** (`scripts/drive/first-call.ts`). Rehearsed locally in C2z; the DevNet path is unit-tested only until this step.
 
    ```
-   pnpm --filter @agari/scripts exec tsx --env-file=$HOME/.config/agari/canton/devnet.env drive/first-call.ts \
+   pnpm --filter @owarine/scripts exec tsx --env-file=$HOME/.config/owarine/canton/devnet.env drive/first-call.ts \
      --network devnet --web https://<web domain> --only main,void
    ```
 
@@ -146,7 +146,7 @@ The C2z rehearsal (`docs/evidence/c2z-r1-rehearsal.md`) ran the whole sequence o
 5. Start `drive/ops-local.ts` and `next start` on the file it wrote.
 6. Run `drive/first-call.ts --network local --parties <that file> --ops-pid <the ops node's pid>`.
 
-A rehearsal must pass `--out`. The default for a text input is `~/.config/agari/canton/parties.devnet.json`, the DevNet file, and with `--allow-local` the script now refuses to write there.
+A rehearsal must pass `--out`. The default for a text input is `~/.config/owarine/canton/parties.devnet.json`, the DevNet file, and with `--allow-local` the script now refuses to write there.
 
 ## If something fails
 

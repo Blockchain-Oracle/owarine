@@ -1,4 +1,4 @@
-import type { ArcadeGame } from "@agari/core/games/arcade";
+import type { ArcadeGame } from "@owarine/core/games/arcade";
 import { ARCADE } from "@/features/games/arcade/copy";
 import { Check } from "lucide-react-native";
 import type { ReactNode } from "react";

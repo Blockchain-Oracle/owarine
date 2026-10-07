@@ -1,4 +1,4 @@
-import { nameOf } from "@agari/core/desk";
+import { nameOf } from "@owarine/core/desk";
 import { Clock3, Hand, OctagonAlert } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";

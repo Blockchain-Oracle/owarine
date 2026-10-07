@@ -2,7 +2,7 @@
  * How the settler cuts one market's legs into `Desk_SettleBatch` calls (review B6): the legs that pay users first, then
  * the users' losing legs, then the venue's own; `size` legs a batch. Pure.
  */
-import type { Active, LegC, ResolutionC } from "@agari/markets/ops/canton";
+import type { Active, LegC, ResolutionC } from "@owarine/markets/ops/canton";
 
 export const DEFAULT_BATCH = 25;
 

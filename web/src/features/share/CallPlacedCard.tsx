@@ -1,8 +1,8 @@
 "use client";
 
-import { ADVICE_COPY } from "@agari/core/copy";
-import { formatBaseUnits, formatClock, formatUtc, remainingSec, secToMs } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import { ADVICE_COPY } from "@owarine/core/copy";
+import { formatBaseUnits, formatClock, formatUtc, remainingSec, secToMs } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import type { ReactNode } from "react";
 import { callBandLabel, callDirLabel, callMultiple, callWinBase, callWinsIf, shortCallId, type CallCard } from "./call-card";
 import { SHARE } from "./copy";

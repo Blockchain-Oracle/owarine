@@ -1,9 +1,9 @@
-import { isOk } from "@agari/core/schemas";
-import { deriveRunnerHealth, parseStrategyMetadata, scoreFill, strategyRecord, type AgentWindowOutcome, type FillSettlement, type StrategyFill, type StrategyRecord } from "@agari/core/strategies";
-import { SIDE_TO_OUTCOME, toMarketId, type Address, type MarketId, type Signature } from "@agari/core/types";
-import { isDbConfigured, latestHeartbeats, listPlaybooks, listStrategyDecisions, listStrategyFills, recentHeartbeats, type StrategyDecisionRecord, type StrategyFillRecord } from "@agari/db";
-import { ensureMarkets, loadCollateral, marketsProvider, mapPool, parseMarketsEnv, unwrap } from "@agari/markets";
-import { listStrategies, resolveRegistryDeployment } from "@agari/markets/strategies";
+import { isOk } from "@owarine/core/schemas";
+import { deriveRunnerHealth, parseStrategyMetadata, scoreFill, strategyRecord, type AgentWindowOutcome, type FillSettlement, type StrategyFill, type StrategyRecord } from "@owarine/core/strategies";
+import { SIDE_TO_OUTCOME, toMarketId, type Address, type MarketId, type Signature } from "@owarine/core/types";
+import { isDbConfigured, latestHeartbeats, listPlaybooks, listStrategyDecisions, listStrategyFills, recentHeartbeats, type StrategyDecisionRecord, type StrategyFillRecord } from "@owarine/db";
+import { ensureMarkets, loadCollateral, marketsProvider, mapPool, parseMarketsEnv, unwrap } from "@owarine/markets";
+import { listStrategies, resolveRegistryDeployment } from "@owarine/markets/strategies";
 import type { DecisionWire, FillWire, HealthPayload, StrategiesPayload, StrategyWire } from "./protocol";
 import { ensureStrategyReader } from "@/lib/agents.server";
 
@@ -21,7 +21,7 @@ let cache: { payload: StrategiesPayload; atMs: number } | null = null;
 let inFlight: Promise<StrategiesPayload> | null = null;
 
 function boot(): void {
-  ensureMarkets(parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_AGARI_VENUE_ID }));
+  ensureMarkets(parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_OWARINE_VENUE_ID }));
 }
 
 function toFill(row: StrategyFillRecord): StrategyFill {

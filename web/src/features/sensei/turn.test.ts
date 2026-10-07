@@ -1,4 +1,4 @@
-import { TICKER_SYMBOLS } from "@agari/core/market";
+import { TICKER_SYMBOLS } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 import { asksForAdvice, senseiTurnContext } from "./prompt";
 import type { SenseiRequest } from "./protocol";

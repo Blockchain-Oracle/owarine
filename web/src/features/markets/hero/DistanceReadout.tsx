@@ -1,5 +1,5 @@
-import { neededMove } from "@agari/core/market";
-import type { Side } from "@agari/core/types";
+import { neededMove } from "@owarine/core/market";
+import type { Side } from "@owarine/core/types";
 import { HERO } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { OraclePrice } from "./OraclePrice";

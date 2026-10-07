@@ -1,8 +1,8 @@
 "use client";
 
-import { RANGE_NOT_DEPLOYED, type RangeReserveState } from "@agari/core/range";
-import { isOk, type Reading } from "@agari/core/schemas";
-import { useRangeReserve } from "@agari/markets/react";
+import { RANGE_NOT_DEPLOYED, type RangeReserveState } from "@owarine/core/range";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import { useRangeReserve } from "@owarine/markets/react";
 import Link from "next/link";
 import SectionHead from "@/components/shell/SectionHead";
 import { diagnosisCopy } from "@/lib/copy";

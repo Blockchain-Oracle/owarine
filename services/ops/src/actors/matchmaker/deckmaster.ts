@@ -1,9 +1,9 @@
 import { randomBytes } from "node:crypto";
-import { nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@agari/core/games";
-import type { Hash32, MarketId } from "@agari/core/types";
-import { putDeck } from "@agari/db";
-import { duelDeckHash, keccak256 } from "@agari/markets/games";
-import { arenaAddressOf } from "@agari/markets/ops/games";
+import { nextDealableSec, selectDeck, type ArenaParams, type DeckCandidate, type DeckCard, type DeckLane } from "@owarine/core/games";
+import type { Hash32, MarketId } from "@owarine/core/types";
+import { putDeck } from "@owarine/db";
+import { duelDeckHash, keccak256 } from "@owarine/markets/games";
+import { arenaAddressOf } from "@owarine/markets/ops/games";
 import { currentLadderBoard } from "../arena-desk";
 import { DECK_KEY_ENV, deckKey, journal, seal, type RevealMaterial } from "./seal";
 

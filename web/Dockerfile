@@ -6,7 +6,7 @@
 # Layered for the deploy train (S16): the install layer is keyed on the manifests and the lockfile alone, so a
 # code-only push reuses it; the pnpm store and Next's compiler cache persist between builds as BuildKit cache
 # mounts. Nixpacks rebuilt its Nix environment and re-downloaded every package on every deploy, which on a
-# 2-vCPU host was twenty minutes before a line of Agari was compiled.
+# 2-vCPU host was twenty minutes before a line of Owarine was compiled.
 FROM node:22-slim AS build
 ENV PNPM_HOME=/pnpm \
     PATH=/pnpm:$PATH \
@@ -20,7 +20,7 @@ WORKDIR /app
 
 # Every workspace member's manifest, so the lockfile's importer set matches and this layer is cached until a
 # dependency changes.
-# The Daml bindings' generated packages are linked (`link:`/`file:`) by `@agari/daml`, so they come before the install.
+# The Daml bindings' generated packages are linked (`link:`/`file:`) by `@owarine/daml`, so they come before the install.
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY web/package.json ./web/
 COPY mobile/package.json ./mobile/
@@ -35,8 +35,8 @@ COPY packages/markets/package.json ./packages/markets/
 COPY services/ops/package.json ./services/ops/
 # pnpm's registry metadata cache (~/.cache/pnpm) is a cache mount too: as a plain directory it baked 241 MB of
 # registry JSON into this layer (C4e, measured 6 Oct).
-RUN --mount=type=cache,id=agari-pnpm-store,target=/pnpm/store \
-    --mount=type=cache,id=agari-pnpm-metadata,target=/root/.cache/pnpm \
+RUN --mount=type=cache,id=owarine-pnpm-store,target=/pnpm/store \
+    --mount=type=cache,id=owarine-pnpm-metadata,target=/root/.cache/pnpm \
     pnpm install --frozen-lockfile --filter "web..."
 
 # The sources. `.dockerignore` keeps node_modules, .next, data and the reference out of the context. Web reads
@@ -50,7 +50,7 @@ RUN node scripts/geo/fetch-dbip.mjs
 
 # `NEXT_PUBLIC_*` values are inlined here, so the deploy passes them as build arguments (Coolify injects every
 # build-time variable as an ARG in front of this line).
-RUN --mount=type=cache,id=agari-next-cache,target=/app/web/.next/cache \
+RUN --mount=type=cache,id=owarine-next-cache,target=/app/web/.next/cache \
     pnpm --filter web build
 
 # Coolify's Traefik is the only proxy in front (K-003, no Cloudflare): trust the hop it appends to X-Forwarded-For and

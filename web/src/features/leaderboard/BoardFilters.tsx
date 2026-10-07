@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { TickerPicker } from "@/features/markets/lanes/TickerPicker";
 import { cn } from "@/lib/utils";
 import { LEADERBOARD } from "./copy";

@@ -1,5 +1,5 @@
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { Command } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { Command } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { exactCash, type ExactCashDeps } from "./exact-cash";
 

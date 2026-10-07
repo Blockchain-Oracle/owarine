@@ -1,6 +1,6 @@
-import type { MarketId } from "@agari/core/types";
-import { partyLead } from "@agari/core/units";
-import { useLedgerViews, type LedgerViewAs } from "@agari/markets/react";
+import type { MarketId } from "@owarine/core/types";
+import { partyLead } from "@owarine/core/units";
+import { useLedgerViews, type LedgerViewAs } from "@owarine/markets/react";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy, RefreshCw, UserX } from "lucide-react-native";
 import { useEffect, useState } from "react";

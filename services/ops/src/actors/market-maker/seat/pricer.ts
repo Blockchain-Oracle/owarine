@@ -12,14 +12,14 @@
  *   event   a committee event (engine 0.4.0 `EventTerms`, no open print): even odds quoted wide (core
  *           `EVENT_FAIR_TICKS ± EVENT_HALF_SPREAD_TICKS`) from its start until it stops taking quotes.
  */
-import { CALENDAR_YEAR_SEC, EVENT_FAIR_TICKS, EVENT_HALF_SPREAD_TICKS, parseLaneKey, spotSymbolOf, TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { HaltBoard } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
+import { CALENDAR_YEAR_SEC, EVENT_FAIR_TICKS, EVENT_HALF_SPREAD_TICKS, parseLaneKey, spotSymbolOf, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { HaltBoard } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   decodeEventState, decodeEventTerms, decodeLeg, decodeOpenPrint, decodeQuote, learnTerms, pick, readActive, type Active, type LegC, type QuoteC, type RoleSession,
   type TermsC,
-} from "@agari/markets/ops/canton";
-import { marketIdFromDaml, seriesIdFromDaml } from "@agari/core/market";
+} from "@owarine/markets/ops/canton";
+import { marketIdFromDaml, seriesIdFromDaml } from "@owarine/core/market";
 import type { SpotFeed } from "../../../prices/spot";
 import type { VolBoard } from "../../../prices/vol-meter";
 import { runActor, type PassResult } from "../../../runtime/actor";

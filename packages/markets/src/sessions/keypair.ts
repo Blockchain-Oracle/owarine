@@ -1,4 +1,4 @@
-import { decodeBase58, encodeBase58, toAddress, type Address } from "@agari/core/types";
+import { decodeBase58, encodeBase58, toAddress, type Address } from "@owarine/core/types";
 
 /**
  * An ed25519 keypair as 64 bytes: the 32-byte seed followed by its 32-byte public key (the seat key's layout, and the

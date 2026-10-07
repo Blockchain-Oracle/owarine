@@ -1,4 +1,4 @@
-import type { DeckCard, Pick } from "@agari/core/games";
+import type { DeckCard, Pick } from "@owarine/core/games";
 import { useEffect, useRef, type ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {

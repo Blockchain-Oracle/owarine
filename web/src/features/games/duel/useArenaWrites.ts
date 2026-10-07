@@ -9,11 +9,11 @@ import {
   type ArenaIntent,
   type Pick,
   type StakeTierId,
-} from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import { diagnosis, type Address, type Hash32, type Diagnosis, type MarketId } from "@agari/core/types";
-import { quoteArenaPick, type ArenaPickOutcome } from "@agari/markets/games";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+} from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import { diagnosis, type Address, type Hash32, type Diagnosis, type MarketId } from "@owarine/core/types";
+import { quoteArenaPick, type ArenaPickOutcome } from "@owarine/markets/games";
+import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";

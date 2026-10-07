@@ -1,4 +1,4 @@
-import type { Address, Diagnosis } from "@agari/core/types";
+import type { Address, Diagnosis } from "@owarine/core/types";
 
 /** Which write is being funded; kept for the same call sites as the reference's fee lanes (D-015). */
 export type FeeLane = "order" | "faucet" | "redeem" | "vault" | "vault-order" | "parlay" | "range" | "maker" | "leverage" | "private" | "arena";

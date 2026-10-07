@@ -1,6 +1,6 @@
 "use client";
 
-import { isRestable } from "@agari/core/lifecycle";
+import { isRestable } from "@owarine/core/lifecycle";
 import { useEffect, useState } from "react";
 import { TICKET } from "@/lib/copy";
 import { ScheduleTicket } from "./ScheduleTicket";

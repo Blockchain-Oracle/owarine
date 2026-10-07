@@ -1,4 +1,4 @@
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import { LinearGradient } from "expo-linear-gradient";
 import { ArrowRight, Check, Loader2 } from "lucide-react-native";
 import { useEffect, useRef } from "react";

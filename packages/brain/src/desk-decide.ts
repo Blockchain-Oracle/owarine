@@ -5,7 +5,7 @@
  * with no decision, and the desk does nothing that hour: it fails closed. The provider switch stays `resolveModel()`;
  * `DESK_AI_MODEL` names a model for the desk alone, ahead of `AI_MODEL`.
  */
-import { checkDeskTiming, DESK_TIMING_PROMPT_VERSION, DESK_TIMING_SYSTEM_PROMPT, deskTimingSchema, quotesPrivateText, styleWordsUsed, type DeskTiming, type DeskTimingAnswer } from "@agari/core/desk";
+import { checkDeskTiming, DESK_TIMING_PROMPT_VERSION, DESK_TIMING_SYSTEM_PROMPT, deskTimingSchema, quotesPrivateText, styleWordsUsed, type DeskTiming, type DeskTimingAnswer } from "@owarine/core/desk";
 import { APICallError, generateObject, NoObjectGeneratedError, type LanguageModel } from "ai";
 import { modelLabel } from "./agent-read";
 import { missingCredentialHint, resolveModel, type ResolvedModel } from "./model";

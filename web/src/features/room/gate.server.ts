@@ -1,7 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { isAddress, isSignature, type Address, type MarketId } from "@agari/core/types";
-import { hasBet, hasBetOnSymbol, hasIndexedBet, hasIndexedBetOnSymbol, indexedWindowState } from "@agari/db";
-import { ensureMarkets, marketsProvider } from "@agari/markets";
+import { isAddress, isSignature, type Address, type MarketId } from "@owarine/core/types";
+import { hasBet, hasBetOnSymbol, hasIndexedBet, hasIndexedBetOnSymbol, indexedWindowState } from "@owarine/db";
+import { ensureMarkets, marketsProvider } from "@owarine/markets";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { webEnv } from "@/lib/env";
 import { ROOM_TOKEN_TTL_MS, roomJoinMessage } from "./protocol";

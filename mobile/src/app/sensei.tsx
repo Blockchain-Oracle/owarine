@@ -1,6 +1,6 @@
-import { isTickerSymbol } from "@agari/core/market";
-import { isMarketId } from "@agari/core/types";
-import { useMarket } from "@agari/markets/react";
+import { isTickerSymbol } from "@owarine/core/market";
+import { isMarketId } from "@owarine/core/types";
+import { useMarket } from "@owarine/markets/react";
 import { useLocalSearchParams } from "expo-router";
 import { SenseiDrawer } from "~/features/sensei/SenseiDrawer";
 import { SenseiScreen } from "~/features/sensei/SenseiScreen";

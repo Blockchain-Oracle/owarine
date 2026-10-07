@@ -1,5 +1,5 @@
-import { messageSignatureSchema } from "@agari/core/auth";
-import { addressSchema } from "@agari/core/types";
+import { messageSignatureSchema } from "@owarine/core/auth";
+import { addressSchema } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";

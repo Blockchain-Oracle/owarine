@@ -1,8 +1,8 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
-import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
-import { mark } from "@agari/markets/perf";
+import type { Reading } from "@owarine/core/schemas";
+import type { Diagnosis, DiagnosisKind } from "@owarine/core/types";
+import { mark } from "@owarine/markets/perf";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 

@@ -5,11 +5,11 @@
  * real thing by setting a value and restarting, with no code change and no rebuild. None of them is a secret, and
  * none is `NEXT_PUBLIC_*`: the pages read them on the server and render the result.
  *
- *   AGARI_TESTFLIGHT_URL       https://testflight.apple.com/join/<code>
- *   AGARI_ANDROID_APK_URL      https://… .apk (a GitHub release asset)
- *   AGARI_ANDROID_APK_SHA256   64 hex characters, the file's sha256sum
- *   AGARI_ANDROID_APK_VERSION  optional, "0.1.0"
- *   AGARI_DEMO_VIDEO_URL       a YouTube link (watch, youtu.be or embed) or a direct https .mp4 / .webm file
+ *   OWARINE_TESTFLIGHT_URL       https://testflight.apple.com/join/<code>
+ *   OWARINE_ANDROID_APK_URL      https://… .apk (a GitHub release asset)
+ *   OWARINE_ANDROID_APK_SHA256   64 hex characters, the file's sha256sum
+ *   OWARINE_ANDROID_APK_VERSION  optional, "0.1.0"
+ *   OWARINE_DEMO_VIDEO_URL       a YouTube link (watch, youtu.be or embed) or a direct https .mp4 / .webm file
  *
  * A malformed value counts as unset: the page keeps naming what it waits on rather than linking somewhere wrong.
  */
@@ -54,10 +54,10 @@ export function parseTestflightUrl(raw: string | undefined): string | null {
 
 /** The APK needs both its file and its checksum: a download nobody can verify is not offered. */
 export function parseAndroidRelease(env: Env): AndroidRelease | null {
-  const url = httpsUrl(env.AGARI_ANDROID_APK_URL);
-  const sha256 = env.AGARI_ANDROID_APK_SHA256?.trim().toLowerCase() ?? "";
+  const url = httpsUrl(env.OWARINE_ANDROID_APK_URL);
+  const sha256 = env.OWARINE_ANDROID_APK_SHA256?.trim().toLowerCase() ?? "";
   if (!url || !url.pathname.toLowerCase().endsWith(".apk") || !SHA256.test(sha256)) return null;
-  const version = env.AGARI_ANDROID_APK_VERSION?.trim() ?? "";
+  const version = env.OWARINE_ANDROID_APK_VERSION?.trim() ?? "";
   return { url: url.toString(), sha256, version: VERSION.test(version) ? version : null };
 }
 
@@ -77,8 +77,8 @@ export function parseDemoFilm(raw: string | undefined): DemoFilm | null {
 
 export function readPublicRelease(env: Env = process.env): PublicRelease {
   return {
-    testflightUrl: parseTestflightUrl(env.AGARI_TESTFLIGHT_URL),
+    testflightUrl: parseTestflightUrl(env.OWARINE_TESTFLIGHT_URL),
     android: parseAndroidRelease(env),
-    demoFilm: parseDemoFilm(env.AGARI_DEMO_VIDEO_URL),
+    demoFilm: parseDemoFilm(env.OWARINE_DEMO_VIDEO_URL),
   };
 }

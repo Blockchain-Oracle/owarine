@@ -3,7 +3,7 @@
  * a boundary once and cuts each feed's array out of the response text: the archive keeps those exact bytes, and values
  * are parsed from source text, never through a float.
  */
-import { decimalToE8, packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, type RedStonePackage } from "@agari/markets/ops/prints";
+import { decimalToE8, packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, type RedStonePackage } from "@owarine/markets/ops/prints";
 
 export interface GatewayResponse {
   text: string;

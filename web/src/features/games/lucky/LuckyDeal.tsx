@@ -1,15 +1,15 @@
 "use client";
 
-import { formatCadence, type BlockerContext } from "@agari/core/copy";
-import { luckyDrifted } from "@agari/core/games";
-import { phase as phaseOf } from "@agari/core/lifecycle";
-import type { BookedOrder } from "@agari/core/ports";
-import { isOk } from "@agari/core/schemas";
-import { minStakeBase } from "@agari/core/sizing";
-import { toMarketId, type EventMarket, type Signature } from "@agari/core/types";
-import { bpsToOddsCents, formatBaseUnits, formatClock } from "@agari/core/units";
-import { useBalanceSheet, useMarket, useOnchain, useOpeningPrice, useSigner, useStakeQuote } from "@agari/markets/react";
-import { QUOTE_STALE_AFTER_MS } from "@agari/core/constants";
+import { formatCadence, type BlockerContext } from "@owarine/core/copy";
+import { luckyDrifted } from "@owarine/core/games";
+import { phase as phaseOf } from "@owarine/core/lifecycle";
+import type { BookedOrder } from "@owarine/core/ports";
+import { isOk } from "@owarine/core/schemas";
+import { minStakeBase } from "@owarine/core/sizing";
+import { toMarketId, type EventMarket, type Signature } from "@owarine/core/types";
+import { bpsToOddsCents, formatBaseUnits, formatClock } from "@owarine/core/units";
+import { useBalanceSheet, useMarket, useOnchain, useOpeningPrice, useSigner, useStakeQuote } from "@owarine/markets/react";
+import { QUOTE_STALE_AFTER_MS } from "@owarine/core/constants";
 import { Clock } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { Money } from "@/components/data";

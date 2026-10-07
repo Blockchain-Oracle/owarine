@@ -1,9 +1,9 @@
 "use client";
 
-import type { LaneSet, MarketId } from "@agari/core/types";
-import { isMarketId } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useLanes, useMarketsBoot } from "@agari/markets/react";
+import type { LaneSet, MarketId } from "@owarine/core/types";
+import { isMarketId } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { useLanes, useMarketsBoot } from "@owarine/markets/react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { SectionHeader } from "@/components/chrome";

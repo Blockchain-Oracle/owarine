@@ -1,5 +1,5 @@
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
 import { describe, expect, it, vi } from "vitest";
 import { createTicketSeat } from "./tickets";
 import { toTicketSnapshot } from "./tickets-read";

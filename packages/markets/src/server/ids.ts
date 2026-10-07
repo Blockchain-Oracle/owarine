@@ -1,10 +1,10 @@
-import { marketIdFromDaml, MARKET_ID_DOMAIN } from "@agari/core/market";
-import type { MarketId } from "@agari/core/types";
+import { marketIdFromDaml, MARKET_ID_DOMAIN } from "@owarine/core/market";
+import type { MarketId } from "@owarine/core/types";
 
 /**
  * The app's `MarketId` for a Daml market (plan §2): base58 of SHA-256 over a domain tag and the terms' `marketId`
  * (`<seriesKey>:<index>`), so it passes `isMarketId` like every other id the app keys on. One canonical, pure
- * implementation lives in `@agari/core/market` (`marketIdFromDaml`); ops, the projector, these routes and the phone
+ * implementation lives in `@owarine/core/market` (`marketIdFromDaml`); ops, the projector, these routes and the phone
  * all derive the same id from the same terms.
  */
 export { MARKET_ID_DOMAIN };

@@ -1,4 +1,4 @@
-import { isDbConfigured, xLinkByAuthor, xLinkUpsert } from "@agari/db";
+import { isDbConfigured, xLinkByAuthor, xLinkUpsert } from "@owarine/db";
 import { NextResponse, type NextRequest } from "next/server";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { X_ERRORS } from "@/features/x/copy";

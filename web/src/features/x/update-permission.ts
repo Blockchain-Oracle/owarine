@@ -1,7 +1,7 @@
-import type { Submitter, TxOutcome } from "@agari/core/ports";
-import { isAddress, isSignature, type Address, type Signature } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
-import { X_GRANT, xGrantCaps } from "@agari/core/x";
+import type { Submitter, TxOutcome } from "@owarine/core/ports";
+import { isAddress, isSignature, type Address, type Signature } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
+import { X_GRANT, xGrantCaps } from "@owarine/core/x";
 
 export interface XUpdateProgress {
   version: 1;

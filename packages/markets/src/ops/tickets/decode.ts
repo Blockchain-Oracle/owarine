@@ -3,7 +3,7 @@
  * Server-only. Same rules as `../canton/decode.ts`: every Daml `Int` a `bigint` through `fromDamlInt`, small counters
  * range-checked into a `number`, every `Time` epoch seconds.
  */
-import { fromDamlInt, type ContractId, type Party } from "@agari/ledger/pure";
+import { fromDamlInt, type ContractId, type Party } from "@owarine/ledger/pure";
 import { DecodeError, timeSec, type Side } from "../canton/decode";
 
 type Raw = Record<string, unknown>;

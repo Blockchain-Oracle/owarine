@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { ArrowRight, Lock, ShieldCheck, Unplug } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";

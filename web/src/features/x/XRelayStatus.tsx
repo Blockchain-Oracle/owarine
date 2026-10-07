@@ -1,4 +1,4 @@
-import type { XRelayHealth } from "@agari/db";
+import type { XRelayHealth } from "@owarine/db";
 import { relayStageLabel } from "./relay-health";
 
 /** OAuth, the polling worker, execution and public reply delivery are different facts. */

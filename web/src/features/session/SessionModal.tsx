@@ -1,7 +1,7 @@
 "use client";
 
-import type { Diagnosis } from "@agari/core/types";
-import { useBalanceSheet } from "@agari/markets/react";
+import type { Diagnosis } from "@owarine/core/types";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { Loader2, Sparkles, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";

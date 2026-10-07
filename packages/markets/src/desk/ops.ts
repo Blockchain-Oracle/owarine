@@ -8,10 +8,10 @@
  * participant, so there is nothing to initialise, and a company is not a mint, so there are no token accounts (every
  * account helper names the desk itself).
  */
-import type { PreIpoSymbol } from "@agari/core/market";
-import { diagnosis, type Address, type Hash32, type Signature } from "@agari/core/types";
-import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { ActiveContract, CreatedEvent, LedgerClient, Party } from "@agari/ledger";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { diagnosis, type Address, type Hash32, type Signature } from "@owarine/core/types";
+import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { ActiveContract, CreatedEvent, LedgerClient, Party } from "@owarine/ledger";
 import { ReadingError } from "../errors/reading-error";
 import { activeOf, decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import { decodeDeskDecision, decodeDeskMandate, decodeDeskMark, type DeskDecisionC, type DeskMandateC, type DeskMarkC } from "../ops/agents/decode";

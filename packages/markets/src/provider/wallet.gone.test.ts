@@ -19,7 +19,7 @@ function answers(...replies: Array<{ status: number; body: unknown }>): void {
   });
 }
 
-const leased = (value: unknown) => ({ status: 200, body: { value, address: WALLET, party: "agari-user-seat-1::1220", offset: 9 } });
+const leased = (value: unknown) => ({ status: 200, body: { value, address: WALLET, party: "owarine-user-seat-1::1220", offset: 9 } });
 const refused = (status: number, kind: string) => ({ status, body: { diagnosis: { kind, retryable: false, technical: "this seat's lease has ended; take a seat again" } } });
 
 afterEach(() => vi.unstubAllGlobals());

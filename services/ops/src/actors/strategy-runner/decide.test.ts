@@ -1,8 +1,8 @@
-import { encodeBase58, type Address, type EventMarket } from "@agari/core/types";
+import { encodeBase58, type Address, type EventMarket } from "@owarine/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ lanes: vi.fn(), opening: vi.fn(), price: vi.fn() }));
-vi.mock("@agari/markets", () => ({ marketsProvider: { listLiveLanes: mocks.lanes, getOpeningPrice: mocks.opening, getAssetPrice: mocks.price } }));
+vi.mock("@owarine/markets", () => ({ marketsProvider: { listLiveLanes: mocks.lanes, getOpeningPrice: mocks.opening, getAssetPrice: mocks.price } }));
 import { scanVenue } from "./decide";
 
 const VENUE = encodeBase58(new Uint8Array(32).fill(0x22)) as Address;

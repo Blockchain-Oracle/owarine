@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { encodeBase58, toAddress, type Address, type MarketId } from "@agari/core/types";
-import { utcDayOf, type VaultGrant } from "@agari/core/vault";
+import { encodeBase58, toAddress, type Address, type MarketId } from "@owarine/core/types";
+import { utcDayOf, type VaultGrant } from "@owarine/core/vault";
 import golden from "../../../core/src/vault/caps.vectors.json";
 import { grantBuyRefusal } from "./refusal";
 

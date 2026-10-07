@@ -1,9 +1,9 @@
 "use client";
 
-import { TICKERS } from "@agari/core/market";
-import type { LaneSet, MarketId, Side } from "@agari/core/types";
-import { collateralOrNull } from "@agari/markets";
-import { useBalanceSheet } from "@agari/markets/react";
+import { TICKERS } from "@owarine/core/market";
+import type { LaneSet, MarketId, Side } from "@owarine/core/types";
+import { collateralOrNull } from "@owarine/markets";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { useEffect, useState } from "react";
 import { notify } from "@/lib/toast";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -17,12 +17,12 @@ import { calmSet, holdsPreIpo } from "./calm";
 import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { HedgeTeaser } from "./HedgeTeaser";
 import { useHoldings, type HoldingView } from "./useHoldings";
-import type { Reading } from "@agari/core";
+import type { Reading } from "@owarine/core";
 
 const FALLBACK_SYMBOL = "credits";
 const FALLBACK_DECIMALS = 6;
 // Base58 is case-sensitive: the address is keyed exactly as written (D-010), as `features/funding/credited.ts` does.
-const NOTICED_KEY = (address: string) => `agari.holdings.noticed.${address}`;
+const NOTICED_KEY = (address: string) => `owarine.holdings.noticed.${address}`;
 
 interface LiveHedgeCardProps {
   laneSet: LaneSet | null;

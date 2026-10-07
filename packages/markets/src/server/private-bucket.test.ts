@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { privateRequestId } from "@agari/core/private";
+import { privateRequestId } from "@owarine/core/private";
 import { toSnapshot } from "./reads";
 
 const createdAt = "2026-10-06T07:50:00Z";

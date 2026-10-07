@@ -11,7 +11,7 @@
  * flipping a live lane to "unknown" would void its Window. Without a key every feed is `unknown` and nothing probes.
  * The state switches on with no deploy: the next hourly probe after a key with `pyth-indices` lands answers 200.
  */
-import { PRE_IPO_TICKERS, TICKERS, type PreIpoSymbol } from "@agari/core/market";
+import { PRE_IPO_TICKERS, TICKERS, type PreIpoSymbol } from "@owarine/core/market";
 import { errorText, redact } from "./env";
 
 export const HERMES_LATEST_URL = "https://hermes.pyth.network/v2/updates/price/latest";

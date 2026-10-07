@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/ops/prints`: the price relay's ledger surface. Server-only. Pure slot planning and the off-chain
+ * `@owarine/markets/ops/prints`: the price relay's ledger surface. Server-only. Pure slot planning and the off-chain
  * fetchers (RedStone, Jupiter, PreStocks) are live; recording a print refuses as not live until the oracle parties
  * post `PriceQuote` contracts (C3).
  */

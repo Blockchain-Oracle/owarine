@@ -1,6 +1,6 @@
-import { toVerdict, type SettledRound } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
-import { useMarket, useResolution } from "@agari/markets/react";
+import { toVerdict, type SettledRound } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
+import { useMarket, useResolution } from "@owarine/markets/react";
 import { X } from "lucide-react-native";
 import { Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { Easing, FadeIn, useReducedMotion, withTiming } from "react-native-reanimated";

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { CLUSTER_ID, DEFAULT_CLUSTER } from "@agari/core/constants";
-import { addressSchema, signatureSchema } from "@agari/core/types";
-import type { VaultCaps, VaultGrant } from "@agari/core/vault";
+import { CLUSTER_ID, DEFAULT_CLUSTER } from "@owarine/core/constants";
+import { addressSchema, signatureSchema } from "@owarine/core/types";
+import type { VaultCaps, VaultGrant } from "@owarine/core/vault";
 
 const integer = z.string().regex(/^\d+$/);
 const hash = signatureSchema;
@@ -16,7 +16,7 @@ export const copyProgressSchema = z.object({
 });
 export type CopyProgress = z.infer<typeof copyProgressSchema>;
 /** Base58 is case-sensitive, so the key keeps both addresses exactly as written (D-010). */
-export const copyProgressKey = (wallet: string, vault: string) => `agari.copy-progress:${CLUSTER_ID[DEFAULT_CLUSTER]}:${vault}:${wallet}`;
+export const copyProgressKey = (wallet: string, vault: string) => `owarine.copy-progress:${CLUSTER_ID[DEFAULT_CLUSTER]}:${vault}:${wallet}`;
 export function parseCopyProgress(raw: string | null): CopyProgress | null {
   try { const result = copyProgressSchema.safeParse(JSON.parse(raw ?? "null")); return result.success ? result.data : null; } catch { return null; }
 }

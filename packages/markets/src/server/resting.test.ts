@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { errorFromResponse, type JsTransaction, type LedgerClient } from "@agari/ledger";
+import { errorFromResponse, type JsTransaction, type LedgerClient } from "@owarine/ledger";
 import type { RestingCallView, RestingOfferView } from "./contracts";
 import { appMarketId } from "./ids";
 import { busyUntilMs } from "./map";

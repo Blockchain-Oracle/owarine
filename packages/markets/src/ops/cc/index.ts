@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/ops/cc`: the Canton Coin rail's venue side (C7b). Server-only; not re-exported from the package root.
+ * `@owarine/markets/ops/cc`: the Canton Coin rail's venue side (C7b). Server-only; not re-exported from the package root.
  * Decoders for abu-pm-cc and the CIP-56 views, the choice builders, the pure planners, the registry client and the pass
  * that reads the ledger and executes the plans. See `docs/evidence/c7b-canton-coin.md` for what is proven and what waits
  * for DevNet.

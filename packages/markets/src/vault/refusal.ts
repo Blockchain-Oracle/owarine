@@ -4,10 +4,10 @@
  * `simulateCaps` in the program's order.
  * Pure, so the caps vectors and the client mirror are checked without a chain.
  */
-import type { MarketId, Quote, Side } from "@agari/core/types";
-import { diagnosis, type Address, type Diagnosis } from "@agari/core/types";
-import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@agari/core/units";
-import { simulateCaps, type CapRefusal, type VaultGrant } from "@agari/core/vault";
+import type { MarketId, Quote, Side } from "@owarine/core/types";
+import { diagnosis, type Address, type Diagnosis } from "@owarine/core/types";
+import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@owarine/core/units";
+import { simulateCaps, type CapRefusal, type VaultGrant } from "@owarine/core/vault";
 
 const ERROR_NAMES: Record<CapRefusal["kind"], string> = {
   revoked: "GrantIsRevoked",

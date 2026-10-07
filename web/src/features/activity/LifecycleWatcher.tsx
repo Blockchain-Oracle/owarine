@@ -1,6 +1,6 @@
 "use client";
 
-import { marketsProvider } from "@agari/markets";
+import { marketsProvider } from "@owarine/markets";
 import { useEffect, useRef } from "react";
 import { sendNotification } from "@/features/alerts/notifications";
 import { localFillSignatures } from "@/features/room/record-bet";

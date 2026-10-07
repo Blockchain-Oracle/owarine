@@ -4,7 +4,7 @@
  * venue's ladders and firm quotes come from the ops process itself when the venue runs here, else from
  * `OPS_INTERNAL_URL` (signed with `OPS_INTERNAL_SECRET`; `/ladders/latest` is public). Practice desks need nothing.
  */
-import type { DeskCluster } from "@agari/db";
+import type { DeskCluster } from "@owarine/db";
 import { roleParty } from "../../runtime/keys";
 
 export interface DeskRunnerEnv {

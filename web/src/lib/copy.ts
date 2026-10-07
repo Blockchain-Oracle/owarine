@@ -1,6 +1,6 @@
-export * from "@agari/core/copy";
+export * from "@owarine/core/copy";
 
-/** Surface labels only — contract strings live in @agari/core/copy. */
+/** Surface labels only — contract strings live in @owarine/core/copy. */
 export const NAV = {
   markets: "Markets",
   reels: "Reels",
@@ -113,7 +113,7 @@ export const DEV = {
 export const MARKETS = {
   title: "Markets",
   /** `/markets/<id>`'s own title and preview line, so a shared Window names itself rather than the whole board.
-   *  The root layout appends `· Agari`, so the brand does not belong here. */
+   *  The root layout appends `· Owarine`, so the brand does not belong here. */
   windowTitle: (asset: string, cadence: string) => `${asset} ${cadence}`,
   windowDescription: (asset: string, cadence: string) => `Call ${asset} up or down on this ${cadence} Window.`,
   up: "UP",

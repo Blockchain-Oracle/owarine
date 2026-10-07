@@ -1,11 +1,11 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import type { TickerSymbol } from "@agari/core/market";
-import type { Reading } from "@agari/core/schemas";
-import { type Address, type IndexedStatus, type MarketId } from "@agari/core/types";
-import { getMarketsLite, listVaultTallies, tallyToLedger, withReading } from "@agari/markets";
-import { useReadingQuery } from "@agari/markets/react";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Reading } from "@owarine/core/schemas";
+import { type Address, type IndexedStatus, type MarketId } from "@owarine/core/types";
+import { getMarketsLite, listVaultTallies, tallyToLedger, withReading } from "@owarine/markets";
+import { useReadingQuery } from "@owarine/markets/react";
 import type { QueryClient } from "@tanstack/react-query";
 
 /** One open Window the vault holds for the wallet: what it holds and what it cost, never a mark it cannot read. */
@@ -24,7 +24,7 @@ export interface VaultOpenBet {
 const SETTLED: ReadonlySet<IndexedStatus> = new Set<IndexedStatus>(["Resolved", "Voided", "Finalized"]);
 
 /** In the markets family, so the persisted read cache can keep it with the wallet's other open bets. */
-export const vaultOpenBetsKey = (wallet: string | null) => ["agari", "markets", "vaultOpenBets", wallet] as const;
+export const vaultOpenBetsKey = (wallet: string | null) => ["owarine", "markets", "vaultOpenBets", wallet] as const;
 
 export async function listVaultOpenBets(wallet: Address): Promise<Reading<VaultOpenBet[]>> {
   return withReading(`vault-open-bets:${wallet}`, async (inner) => {

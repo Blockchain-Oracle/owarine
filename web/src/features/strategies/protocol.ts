@@ -1,6 +1,6 @@
-import { SIGNED_MESSAGE_BRAND, messageSignatureSchema } from "@agari/core/auth";
-import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, type RunnerHealthKind } from "@agari/core/strategies";
-import { addressSchema } from "@agari/core/types";
+import { SIGNED_MESSAGE_BRAND, messageSignatureSchema } from "@owarine/core/auth";
+import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, type RunnerHealthKind } from "@owarine/core/strategies";
+import { addressSchema } from "@owarine/core/types";
 import { z } from "zod";
 
 /** Wire shape of `/api/strategies` — base units travel as decimal strings, never floats. */

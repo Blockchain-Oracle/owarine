@@ -33,7 +33,7 @@ const send = (method, params = {}) => new Promise((r) => { const i = ++id; pendi
 await send("Emulation.setDeviceMetricsOverride", { width: 402, height: 874, deviceScaleFactor: 2, mobile: true });
 await send("Emulation.setTouchEmulationEnabled", { enabled: true });
 await send("Page.navigate", { url }); await sleep(2500);
-await send("Runtime.evaluate", { expression: `localStorage.setItem('agari_theme','${theme}');localStorage.setItem('agari.tutorialSeen','1')` });
+await send("Runtime.evaluate", { expression: `localStorage.setItem('owarine_theme','${theme}');localStorage.setItem('owarine.tutorialSeen','1')` });
 await send("Page.navigate", { url }); await sleep(wait);
 
 const PROPS = ["display", "flex-direction", "align-items", "justify-content", "flex-wrap", "gap", "position", "width", "height", "padding", "margin",

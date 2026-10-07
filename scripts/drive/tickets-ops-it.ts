@@ -6,15 +6,15 @@
  *   fund seat-1 → range quote → accept → parlay quote (two Windows) → accept → boost 2x quote → accept → exit quote
  *   → Earn supply 50 → accept → withdraw 10 shares → accept → the reserves' state before and after
  *
- *   LEDGER_JSON_API_URL=http://localhost:7645 AGARI_PARTIES_FILE=… OPS=http://localhost:8847 OPS_INTERNAL_SECRET=… \
- *     pnpm --filter @agari/scripts exec tsx drive/tickets-ops-it.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7645 OWARINE_PARTIES_FILE=… OPS=http://localhost:8847 OPS_INTERNAL_SECRET=… \
+ *     pnpm --filter @owarine/scripts exec tsx drive/tickets-ops-it.ts
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
-import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { decodeVenueCash, pick } from "@agari/markets/ops/canton";
-import { tcmd } from "@agari/markets/ops/tickets";
-import { createOpsClient } from "@agari/markets/server";
+import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { decodeVenueCash, pick } from "@owarine/markets/ops/canton";
+import { tcmd } from "@owarine/markets/ops/tickets";
+import { createOpsClient } from "@owarine/markets/server";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 
 const OPS = process.env.OPS ?? "http://localhost:8847";

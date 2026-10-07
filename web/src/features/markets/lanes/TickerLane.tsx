@@ -1,7 +1,7 @@
 "use client";
 
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, Lane, MarketId, Side } from "@owarine/core/types";
 import { Pager } from "@/components/chrome";
 import { EmptyState } from "@/components/states";
 import { MARKETS } from "@/lib/copy";

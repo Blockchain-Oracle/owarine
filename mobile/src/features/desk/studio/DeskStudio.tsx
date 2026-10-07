@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { ArrowLeft, ArrowRight } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";

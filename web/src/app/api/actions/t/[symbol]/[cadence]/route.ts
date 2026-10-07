@@ -1,8 +1,8 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
 import {
   actionHeaders, selectActionWindow, windowAction, X_CADENCES, X_REFUSAL_DETAILS, windowActionTitle, type ActionGetResponse, type XCadence,
-} from "@agari/core/x";
-import { ensureMarkets, marketsProvider } from "@agari/markets";
+} from "@owarine/core/x";
+import { ensureMarkets, marketsProvider } from "@owarine/markets";
 import { webEnv } from "@/lib/env";
 import { publicOrigin } from "@/lib/client-ip.server";
 
@@ -38,7 +38,7 @@ function absent(symbol: TickerSymbol, cadence: XCadence, icon: string, code: key
     type: "action",
     icon,
     title: windowActionTitle({ asset: symbol, intervalSec: X_CADENCES[cadence] }),
-    description: `Agari runs ${symbol} price Windows on a ${cadence} cadence. This one is not open for calls right now.`,
+    description: `Owarine runs ${symbol} price Windows on a ${cadence} cadence. This one is not open for calls right now.`,
     label: "Closed",
     disabled: true,
     error: { message: X_REFUSAL_DETAILS[code] },
@@ -48,7 +48,7 @@ function absent(symbol: TickerSymbol, cadence: XCadence, icon: string, code: key
 export async function GET(request: Request, { params }: { params: Promise<{ symbol: string; cadence: string }> }) {
   const { symbol: rawSymbol, cadence: rawCadence } = await params;
   const symbol = rawSymbol.toUpperCase();
-  if (!isTickerSymbol(symbol)) return fail("Agari does not list that ticker.", 404);
+  if (!isTickerSymbol(symbol)) return fail("Owarine does not list that ticker.", 404);
   if (!Object.hasOwn(X_CADENCES, rawCadence)) return fail(`Choose one of ${Object.keys(X_CADENCES).join(", ")}.`, 400);
   const cadence = rawCadence as XCadence;
 

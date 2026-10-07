@@ -5,7 +5,7 @@
  * pricer reads `sigmaBps(symbol)`: until a crypto symbol has a measurement it is not priced at all, so no crypto fair
  * value ever runs on the old 60 % placeholder. `MM_SIGMA_BPS` still overrides per symbol.
  */
-import { CALENDAR_YEAR_SEC, CRYPTO_SYMBOLS, medianSigmaBps, realisedVol, type CryptoSymbol } from "@agari/core/market";
+import { CALENDAR_YEAR_SEC, CRYPTO_SYMBOLS, medianSigmaBps, realisedVol, type CryptoSymbol } from "@owarine/core/market";
 import { EXCHANGES, type Exchange, type Fetch } from "./candles";
 import { fetchCloseHistory } from "./candle-history";
 import { runActor } from "../runtime/actor";

@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosisCopy } from "@agari/core/copy";
-import type { Diagnosis, EventMarket, MarketId, Side } from "@agari/core/types";
+import { diagnosisCopy } from "@owarine/core/copy";
+import type { Diagnosis, EventMarket, MarketId, Side } from "@owarine/core/types";
 import { EventCard } from "./EventCard";
 import { EVENT_BOARD } from "./copy";
 

@@ -8,7 +8,7 @@
  * refund and is recorded by that command's own receipt, so a gone instruction that neither exercise explains stays
  * `unknown` and the planner waits rather than guessing.
  */
-import type { JsTransaction, JsUpdateEnvelope, LedgerClient, Party } from "@agari/ledger";
+import type { JsTransaction, JsUpdateEnvelope, LedgerClient, Party } from "@owarine/ledger";
 
 export type ArchiveKind = "accepted" | "rejected";
 

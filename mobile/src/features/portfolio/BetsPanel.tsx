@@ -1,6 +1,6 @@
-import { isOk } from "@agari/core/schemas";
-import { marketsProvider } from "@agari/markets";
-import { keys, useLeverageReserve, useMyLeveragePositions, usePositions, useRestingOrders } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { marketsProvider } from "@owarine/markets";
+import { keys, useLeverageReserve, useMyLeveragePositions, usePositions, useRestingOrders } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState, type ReactNode } from "react";

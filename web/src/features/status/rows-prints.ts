@@ -1,4 +1,4 @@
-import { formatEtClock } from "@agari/core/market";
+import { formatEtClock } from "@owarine/core/market";
 import { STATUS } from "./copy";
 import { dueBoundarySec, divergenceCentiBps, formatCentiBps, gradeCrossCheck, gradeRelay, laneKind } from "./grade";
 import { pipelineRow } from "./pipeline";

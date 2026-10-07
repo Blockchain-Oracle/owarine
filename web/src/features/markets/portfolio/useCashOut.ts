@@ -1,11 +1,11 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { OrderRoute, WritePhase } from "@agari/core/ports";
-import type { Diagnosis, ExitQuote, MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketsProvider, type HeldExit } from "@agari/markets";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { OrderRoute, WritePhase } from "@owarine/core/ports";
+import type { Diagnosis, ExitQuote, MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketsProvider, type HeldExit } from "@owarine/markets";
+import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

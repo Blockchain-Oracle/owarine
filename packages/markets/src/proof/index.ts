@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/proof`: the proof replay's surface. On Canton an archived price is re-verified from its payload and
+ * `@owarine/markets/proof`: the proof replay's surface. On Canton an archived price is re-verified from its payload and
  * the `PriceQuote` contract's `payloadHash` (C5); until then every replay is refused. Server-only; not re-exported from
  * the root, and a route imports it lazily.
  */

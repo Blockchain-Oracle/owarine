@@ -1,6 +1,6 @@
-import { isEligible } from "@agari/core/games";
-import { countRankedFinalized, gamesStoreConfigured, ladderRankOf, listTopRatings, readRatings } from "@agari/db";
-import { isAddress } from "@agari/core/types";
+import { isEligible } from "@owarine/core/games";
+import { countRankedFinalized, gamesStoreConfigured, ladderRankOf, listTopRatings, readRatings } from "@owarine/db";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { seasonConfig } from "@/features/games/season.server";
 

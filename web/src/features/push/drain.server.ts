@@ -1,7 +1,7 @@
-import { isOk } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { listPushDevices, recordPushSent, retirePushTokens, sentPushIds, type PushDevice } from "@agari/db";
-import { loadCollateral } from "@agari/markets";
+import { isOk } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { listPushDevices, recordPushSent, retirePushTokens, sentPushIds, type PushDevice } from "@owarine/db";
+import { loadCollateral } from "@owarine/markets";
 import { LATE_SEC, selectAnnouncements } from "@/features/activity/announce";
 import { LIFECYCLE } from "@/features/activity/copy";
 import { notificationOf, type MoneyUnits } from "@/features/activity/describe";

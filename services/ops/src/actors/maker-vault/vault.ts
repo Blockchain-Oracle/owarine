@@ -9,11 +9,11 @@
  *   decide     whether the book takes a pair quote or an exit (`bookTakes`), else the venue desk does
  *   state      what `/api/ledger/tickets/state` serves as `maker`
  */
-import { marketIdFromDaml } from "@agari/core/market";
-import { inactiveCids, isInactive, submit, templateSuffix, type RoleSession, type SubmitOutcome } from "@agari/markets/ops/canton";
-import { bcmd, bookTakes, bookWindows, makerNav, unsettledExpired, type BookWindow, type MakerSnapshot } from "@agari/markets/ops/book";
-import type { MakerParams } from "@agari/core/maker";
-import { TEMPLATE_IDS } from "@agari/daml";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { inactiveCids, isInactive, submit, templateSuffix, type RoleSession, type SubmitOutcome } from "@owarine/markets/ops/canton";
+import { bcmd, bookTakes, bookWindows, makerNav, unsettledExpired, type BookWindow, type MakerSnapshot } from "@owarine/markets/ops/book";
+import type { MakerParams } from "@owarine/core/maker";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import type { LadderEntry } from "../market-maker/seat/ladder-board";
 import { ShardPool } from "../quote-issuer/pool";
 import { readMakerSnapshot } from "./state";

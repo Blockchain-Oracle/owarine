@@ -1,9 +1,9 @@
 /** The range reserve on Canton (C8c): the `range` ticket reserve, read and priced through `/api/ledger/tickets/*`. */
-import { multiplierMilli, type RangeBasis, type RangeDeployment, type RangeIntent, type RangeMode, type RangeParams, type RangeQuote, type RangeReserveState, type RangeRound, type RangeSide } from "@agari/core/range";
-import type { IntentJournal, PhaseListener } from "@agari/core/ports";
-import type { Reading } from "@agari/core/schemas";
-import type { TickerSymbol } from "@agari/core/market";
-import type { Address, Diagnosis, MarketId, Signature } from "@agari/core/types";
+import { multiplierMilli, type RangeBasis, type RangeDeployment, type RangeIntent, type RangeMode, type RangeParams, type RangeQuote, type RangeReserveState, type RangeRound, type RangeSide } from "@owarine/core/range";
+import type { IntentJournal, PhaseListener } from "@owarine/core/ports";
+import type { Reading } from "@owarine/core/schemas";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Address, Diagnosis, MarketId, Signature } from "@owarine/core/types";
 import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";
 import { cantonNotLive } from "../stub/not-deployed";

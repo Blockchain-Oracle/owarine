@@ -1,7 +1,7 @@
 "use client";
 
-import { joinSeatLink, type SeatLeaseView } from "@agari/markets";
-import { keys, type WalletSession as MarketsWalletSession } from "@agari/markets/react";
+import { joinSeatLink, type SeatLeaseView } from "@owarine/markets";
+import { keys, type WalletSession as MarketsWalletSession } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { webEnv } from "@/lib/env";
@@ -21,7 +21,7 @@ const subscribeNothing = () => () => undefined;
  *
  * - **Server render and hydration:** the state is always "ready, disconnected", so "Take a seat" is in the first paint
  *   on both sides.
- * - **After hydration:** "restoring" only while a browser that holds a seat (`agari.seat`) reads its key back from
+ * - **After hydration:** "restoring" only while a browser that holds a seat (`owarine.seat`) reads its key back from
  *   IndexedDB, a few milliseconds. A browser without one is ready at once.
  * - A seat and its lease are only ever taken on an explicit click, never on page load (the lease rule, plan §4). A
  *   returning browser reads its lease (which renews it); a lapsed one is offered again from the account menu.

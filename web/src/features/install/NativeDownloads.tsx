@@ -121,7 +121,7 @@ function IosCard({ testflightUrl }: { testflightUrl: string | null }) {
  */
 export function NativeDownloads({ release }: { release: Pick<PublicRelease, "android" | "testflightUrl"> }) {
   return (
-    <section className="dl-native" aria-label="Get Agari on your phone">
+    <section className="dl-native" aria-label="Get Owarine on your phone">
       <AndroidCard apk={release.android} />
       <IosCard testflightUrl={release.testflightUrl} />
     </section>

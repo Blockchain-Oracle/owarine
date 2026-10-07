@@ -1,4 +1,4 @@
-import type { StreamFactory, StreamSource } from "@agari/markets/runtime";
+import type { StreamFactory, StreamSource } from "@owarine/markets/runtime";
 
 /**
  * The phone's SSE adapter for the read runtime (ops `/prices/stream`, the venue's `/ladders/stream`), apart from

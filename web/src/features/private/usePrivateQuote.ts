@@ -1,10 +1,10 @@
 "use client";
 
-import { REQUOTE_MS } from "@agari/core/constants";
-import type { PrivateQuote } from "@agari/core/private";
-import type { Diagnosis, EventMarket, Side } from "@agari/core/types";
-import { sizePrivateForStake } from "@agari/markets/private";
-import { keys, useReadingQuery } from "@agari/markets/react";
+import { REQUOTE_MS } from "@owarine/core/constants";
+import type { PrivateQuote } from "@owarine/core/private";
+import type { Diagnosis, EventMarket, Side } from "@owarine/core/types";
+import { sizePrivateForStake } from "@owarine/markets/private";
+import { keys, useReadingQuery } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useDebounced } from "../markets/ticket/useDebounced";

@@ -9,7 +9,7 @@ import type { Slide } from "./types";
 
 /**
  * Slides 01–08 — ported from `reference/yosuku/app/pitch/page.tsx` L281–469, layout
- * for layout. The words are Agari's and every claim has a source named in `copy.ts`;
+ * for layout. The words are Owarine's and every claim has a source named in `copy.ts`;
  * where the reference asserts something we do not have (a live X rail, a card on-ramp,
  * native apps) the slide keeps its place and says LATER or NOT LIVE.
  */

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
-import { addDays, calendarFromAlpaca, datesBetween, etDateOf, weekdayOfDate, type SessionCalendar } from "@agari/core/market";
-import { policyVersions, type PriceSources } from "@agari/markets/deploy";
+import { addDays, calendarFromAlpaca, datesBetween, etDateOf, weekdayOfDate, type SessionCalendar } from "@owarine/core/market";
+import { policyVersions, type PriceSources } from "@owarine/markets/deploy";
 import { describe, expect, it } from "vitest";
 import type { PlanClock, PlanSeries } from "./plan";
 import { planGapSeries } from "./plan-gap";

@@ -3,7 +3,7 @@
  * `gapLeadSec`, the check-bound exception, a halt on the ticker, and the corporate skip on either the Friday or the
  * Monday. Pure, like `plan.ts`. Lane 6a owns this file.
  */
-import { corporateActionFor, corporatePausedState, gapWindows, haltOf, haltPausedState, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
+import { corporateActionFor, corporatePausedState, gapWindows, haltOf, haltPausedState, type ScheduledWindow, type TickerSymbol } from "@owarine/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, reasonBy, usableBy } from "./versions";
 

@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import type { ReadoutCells } from "./ReadoutStrip";
 
 /** Every bet kind reduced to the reference's three numbers. Structural types, so no reserve's module is imported for a string. */

@@ -1,9 +1,9 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
-import { assetTicker } from "@agari/core/market";
-import { secToMs } from "@agari/core/units";
-import { addressUrl, marketDeepLink } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import { assetTicker } from "@owarine/core/market";
+import { secToMs } from "@owarine/core/units";
+import { addressUrl, marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { memo, type CSSProperties } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

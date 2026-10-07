@@ -1,11 +1,11 @@
-import { PRINT_EXPO } from "@agari/core/market";
-import { toMarketId, type MarketId } from "@agari/core/types";
+import { PRINT_EXPO } from "@owarine/core/market";
+import { toMarketId, type MarketId } from "@owarine/core/types";
 
 /** Decimal places of every recorded print: prints are normalized on-chain to expo −8 (spec `prints.md` §4.6). */
 export const ORACLE_PRICE_SCALE = -PRINT_EXPO;
 
 /**
- * Which price series tracks a Window's prints; the chart and the Fair Value model read this one. Agari's prints are
+ * Which price series tracks a Window's prints; the chart and the Fair Value model read this one. Owarine's prints are
  * signed spot prices at exact T (Pyth, RedStone), so the chart follows spot.
  */
 export const PRICE_BASIS: "spot" | "ema" = "spot";

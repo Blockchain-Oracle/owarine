@@ -1,4 +1,4 @@
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ago, STATS } from "@/features/stats/copy";

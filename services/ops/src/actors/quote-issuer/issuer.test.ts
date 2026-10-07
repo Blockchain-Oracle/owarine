@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import type { LedgerClient } from "@agari/ledger";
-import { marketIdFromDaml } from "@agari/core/market";
+import type { LedgerClient } from "@owarine/ledger";
+import { marketIdFromDaml } from "@owarine/core/market";
 import { createLadderBoard } from "../market-maker/seat/ladder-board";
 import { readPricerSettings } from "../market-maker/seat/pricer";
-import { quoteReplyWire } from "@agari/markets";
+import { quoteReplyWire } from "@owarine/markets";
 import { jsonText } from "../../http/health";
 import { issueQuote, parseQuoteRequest } from "./issuer";
 import { ShardPool } from "./pool";

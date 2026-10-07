@@ -9,13 +9,13 @@
  * snapshot plus the desk's own confirmed actions: anything left over came from outside (the owner adding or taking
  * money) and moves the loss-limit baseline, never the loss. Practice: the paper ledger is the state.
  */
-import { MIN_TRADE_E6 } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { isUpdateId } from "@agari/core/types";
-import type { DeskRow } from "@agari/db";
-import { deskStateOf, findLeasedMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@agari/markets/desk/server";
-import type { DeskMandateC } from "@agari/markets/ops/agents";
-import type { Ladder } from "@agari/markets/runtime";
+import { MIN_TRADE_E6 } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
+import { isUpdateId } from "@owarine/core/types";
+import type { DeskRow } from "@owarine/db";
+import { deskStateOf, findLeasedMandate, lotPriceE8, mintOf, quotingWindow, readDeskEventsOf, readDeskHistory, sealedActionsOf, signatureOutcome, symbolOfMarket } from "@owarine/markets/desk/server";
+import type { DeskMandateC } from "@owarine/markets/ops/agents";
+import type { Ladder } from "@owarine/markets/runtime";
 import { errorText } from "../../runtime/env";
 import { leasePartyOf } from "./lease";
 import { loadPaper, paperPositions } from "./paper";

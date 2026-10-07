@@ -1,5 +1,5 @@
-import { exchangeOfParty } from "@agari/core/proof";
-import type { BacklogRow, OracleFreshRow } from "@agari/db";
+import { exchangeOfParty } from "@owarine/core/proof";
+import type { BacklogRow, OracleFreshRow } from "@owarine/db";
 import { STATUS } from "./copy";
 import type { Verdict } from "./grade";
 import { pipelineRow } from "./pipeline";

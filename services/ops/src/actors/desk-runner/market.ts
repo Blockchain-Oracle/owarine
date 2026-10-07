@@ -10,9 +10,9 @@
  *   practice (K-091)    a paper fill at the feed's token print, multiplier 1; PreStocks' 1 % fee is taken off the
  *                       received leg by the paper ledger and counted in the cost here
  */
-import { costBpsFor, gapOf, PAPER_FEE_BPS, rawFor, valueE6, type DeskCandidate, type DeskMarketRead } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
-import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, quotingWindow, USDC_MAINNET, type JupiterQuote } from "@agari/markets/desk/server";
+import { costBpsFor, gapOf, PAPER_FEE_BPS, rawFor, valueE6, type DeskCandidate, type DeskMarketRead } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, quotingWindow, USDC_MAINNET, type JupiterQuote } from "@owarine/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import type { DeskStanding, RunnerContext } from "./types";
 import { priceView } from "./value";
@@ -20,7 +20,7 @@ import { priceView } from "./value";
 /** Practice units carry no mint multiplier: one unit is one token at the printed price (K-091). */
 export const PRACTICE_MULTIPLIER_E12 = 1_000_000_000_000n;
 /** The route label a paper fill carries; unknown to `paperFeeBpsFor`, so the paper ledger takes the full fee. */
-export const PAPER_ROUTE_LABEL = "Agari paper";
+export const PAPER_ROUTE_LABEL = "Owarine paper";
 /**
  * Kept for the record's shape: a live desk's reference is posted fresh (as marks) right before each action, so it is
  * never older than this when the ledger measures against it.

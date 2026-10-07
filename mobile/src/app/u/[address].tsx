@@ -1,4 +1,4 @@
-import { isAddress } from "@agari/core/types";
+import { isAddress } from "@owarine/core/types";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { ProfileScreen } from "~/features/profile/ProfileScreen";
 import { marketsWithNote, NOTE_KIND } from "@/lib/routes";

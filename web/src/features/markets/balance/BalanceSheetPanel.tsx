@@ -1,4 +1,4 @@
-import type { BalanceSheet } from "@agari/core/types";
+import type { BalanceSheet } from "@owarine/core/types";
 import { KeepCase, Money } from "@/components/data";
 import { StaleTick, type ReadingMeta } from "@/components/states";
 import type { ReactNode } from "react";

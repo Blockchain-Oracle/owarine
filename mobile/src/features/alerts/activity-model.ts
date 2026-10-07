@@ -1,5 +1,5 @@
-import { winPayoutBase } from "@agari/core/claims";
-import type { OpenPosition, Verdict } from "@agari/core/types";
+import { winPayoutBase } from "@owarine/core/claims";
+import type { OpenPosition, Verdict } from "@owarine/core/types";
 import { assetSpotLine } from "@/features/markets/hero/units";
 import { money } from "~/features/portfolio/format";
 import { DARK, LIGHT, type Palette } from "~/theme/palette";

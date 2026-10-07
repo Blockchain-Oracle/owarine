@@ -24,7 +24,7 @@ import { signWindowShare, windowShareUrl, type WindowShare } from "./share-link"
 
 export type ActionType = "action" | "completed";
 
-/** The spec's linked-action kinds; on Canton Agari only returns `external-link` (C13a). */
+/** The spec's linked-action kinds; on Canton Owarine only returns `external-link` (C13a). */
 export type LinkedActionType = "transaction" | "message" | "post" | "external-link" | "inline-link";
 
 export type ActionParameterType =

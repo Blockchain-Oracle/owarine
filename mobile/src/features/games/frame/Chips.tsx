@@ -1,4 +1,4 @@
-import type { EconomicKind } from "@agari/core/games";
+import type { EconomicKind } from "@owarine/core/games";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 import { FONT } from "~/theme";
 import { useGamesTokens } from "./tokens";

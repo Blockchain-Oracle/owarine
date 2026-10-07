@@ -7,11 +7,11 @@
  *      statement's 1:1 price): its cash lands in `reserve:maker`, four shards the issuer can lock quotes from,
  *   3. publishes the first statement on ledger (`Maker_PublishNav`); from then on the reserve reporter publishes.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { Command, CreatedEvent, LedgerClient } from "@agari/ledger";
-import { bcmd, MAKER_BOOK, MAKER_RESERVE } from "@agari/markets/ops/book";
-import { cmd, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
-import { decodeLpShare, decodeNavStatement, tcmd } from "@agari/markets/ops/tickets";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { Command, CreatedEvent, LedgerClient } from "@owarine/ledger";
+import { bcmd, MAKER_BOOK, MAKER_RESERVE } from "@owarine/markets/ops/book";
+import { cmd, decodeVenueCash, pick, readActive, type RoleSession } from "@owarine/markets/ops/canton";
+import { decodeLpShare, decodeNavStatement, tcmd } from "@owarine/markets/ops/tickets";
 import { arg } from "./drive/cli";
 
 const CREDIT = 1_000_000n;

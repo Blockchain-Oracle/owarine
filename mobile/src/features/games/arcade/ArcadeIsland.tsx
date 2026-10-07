@@ -1,4 +1,4 @@
-import type { ArcadeGame } from "@agari/core/games/arcade";
+import type { ArcadeGame } from "@owarine/core/games/arcade";
 import type { PostState } from "@/features/games/arcade/ArcadeOverlays";
 import type { FlapCue, FlapHud } from "@/features/games/arcade/FlapCanvas";
 import type { RideCue, RideHud } from "@/features/games/arcade/RideCanvas";

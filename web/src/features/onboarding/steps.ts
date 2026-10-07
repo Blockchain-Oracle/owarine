@@ -1,4 +1,4 @@
-import { networkLabel } from "@agari/markets/chain";
+import { networkLabel } from "@owarine/markets/chain";
 
 /**
  * The first-run walkthrough — ported from reference/yosuku/components/Tutorial.tsx (L19–41).
@@ -30,7 +30,7 @@ export interface TutorialStep {
 
 export const TUTORIAL_STEPS: readonly TutorialStep[] = [
   {
-    title: "Welcome to Agari",
+    title: "Welcome to Owarine",
     // The configured network by name (C4f): a LocalNet build never says DevNet.
     get description() {
       return `A prediction market on stock and crypto prices, on Canton. Pick a side of a live Window, and a signed oracle price settles it at the close — the price decides, nobody else. This is ${networkLabel()}: demo credits only, no real money.`;

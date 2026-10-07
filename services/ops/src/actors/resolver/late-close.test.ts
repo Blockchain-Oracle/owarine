@@ -5,9 +5,9 @@
  * past its close with no Resolution). It must void it (AfterOpen), naming the quotes, and never try to resolve it.
  */
 import { readFileSync } from "node:fs";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent, JsTransaction, LedgerClient } from "@agari/ledger";
-import { decodeTerms, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { CreatedEvent, JsTransaction, LedgerClient } from "@owarine/ledger";
+import { decodeTerms, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { resolverPass } from "./index";
 

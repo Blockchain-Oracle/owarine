@@ -1,10 +1,10 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it, vi } from "vitest";
-import { GAMES_TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
-import type { SeasonClosure } from "@agari/db";
-import type { Address } from "@agari/core/types";
+import { GAMES_TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
+import type { SeasonClosure } from "@owarine/db";
+import type { Address } from "@owarine/core/types";
 import { createArenaDesk, type SeasonClosureStore } from "./desk";
 import { arenaRoutes, ARENA_ROUTES } from "./routes";
 import { createSeatDirectory } from "./seats";
@@ -80,8 +80,8 @@ describe("the season admin's withdrawal (K-105)", () => {
 });
 
 describe("the creator's open, by party (C4c: a key joined by a seat link queues and opens as its seat)", () => {
-  const SEAT_A = "agari-user-seat-1::1220aaaa0001";
-  const SEAT_B = "agari-user-seat-2::1220bbbb0002";
+  const SEAT_A = "owarine-user-seat-1::1220aaaa0001";
+  const SEAT_B = "owarine-user-seat-2::1220bbbb0002";
   const MATCH = `0x${"ab".repeat(32)}`;
   const PHONE_A = "PhoneA11111111111111111111111111111111111111" as Address;
   const WEB_B = "WebB2222222222222222222222222222222222222222" as Address;

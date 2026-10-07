@@ -4,17 +4,17 @@
  * confirmed, and otherwise exercises `Desk_IssueQuote` on a shard leased from the pool: a firm `Quote` for this seat,
  * alive 20 s, the venue's stake locked inside it. The accept is the user's own (`Quote_Accept`), never ops'.
  *
- * The contract is the web's (`@agari/markets/server` `OpsQuoteRequest`, `quoteReplyWire`):
+ * The contract is the web's (`@owarine/markets/server` `OpsQuoteRequest`, `quoteReplyWire`):
  *   request  `{ marketId, side, stakeBase, displayedMaxCostBase, party, leaseId }`, bigints as strings, `marketId` the
- *            app's id (`@agari/core` `marketIdFromDaml`), `party` taken by the web from the lease only
+ *            app's id (`@owarine/core` `marketIdFromDaml`), `party` taken by the web from the lease only
  *   reply    `{ kind: "quote", quoteCid, quote, validUntilMs }` · `{ kind: "requote", quote }` · `{ kind: "refused", diagnosis }`
  */
 import { randomUUID } from "node:crypto";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { diagnosis, isMarketId, type Diagnosis, type DiagnosisKind, type Quote } from "@agari/core/types";
-import { bpsToOddsCents, oneCent } from "@agari/core/units";
-import { cmd, failureText, isIndefinite, quoteCommandId, refusalId, templateSuffix, walkStake, type RoleSession, type Side, type WalkedQuote } from "@agari/markets/ops/canton";
-import { CASH_DECIMALS } from "@agari/markets/server";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { diagnosis, isMarketId, type Diagnosis, type DiagnosisKind, type Quote } from "@owarine/core/types";
+import { bpsToOddsCents, oneCent } from "@owarine/core/units";
+import { cmd, failureText, isIndefinite, quoteCommandId, refusalId, templateSuffix, walkStake, type RoleSession, type Side, type WalkedQuote } from "@owarine/markets/ops/canton";
+import { CASH_DECIMALS } from "@owarine/markets/server";
 import type { LadderBoard, LadderEntry } from "../market-maker/seat/ladder-board";
 import type { PricerSettings } from "../market-maker/seat/pricer";
 import { emitVenueEvent } from "../venue/events";

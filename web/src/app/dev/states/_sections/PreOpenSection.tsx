@@ -1,6 +1,6 @@
 "use client";
 
-import { restingQuote } from "@agari/core/orders";
+import { restingQuote } from "@owarine/core/orders";
 import { useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { Money } from "@/components/data";

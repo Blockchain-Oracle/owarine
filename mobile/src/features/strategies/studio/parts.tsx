@@ -5,7 +5,7 @@ import { FieldLabel, ST, useStrat } from "../ui";
 
 /** A new portrait seed, as web's `crypto.randomUUID()`. */
 export function newPortraitSeed(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `agari-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  return globalThis.crypto?.randomUUID?.() ?? `owarine-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
 /** web StudioForm `Field`: the desk field label over its control. */

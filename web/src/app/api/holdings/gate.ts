@@ -1,4 +1,4 @@
-import type { HoldingsBody } from "@agari/markets/holdings";
+import type { HoldingsBody } from "@owarine/markets/holdings";
 import { rateLimitKey } from "@/lib/client-ip.server";
 
 /** session-lanes.md §4: 60 s per owner, 30 requests a minute per IP. In memory: nothing about an owner is stored. */

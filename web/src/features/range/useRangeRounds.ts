@@ -1,12 +1,12 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import { classifyRangeBand, type RangeBandKind, type RangeRound } from "@agari/core/range";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, IndexedStatus, MarketId } from "@agari/core/types";
-import { marketsProvider, withReading } from "@agari/markets";
-import { listRangesOf } from "@agari/markets/range";
-import { keys, useReadingQuery } from "@agari/markets/react";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import { classifyRangeBand, type RangeBandKind, type RangeRound } from "@owarine/core/range";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, IndexedStatus, MarketId } from "@owarine/core/types";
+import { marketsProvider, withReading } from "@owarine/markets";
+import { listRangesOf } from "@owarine/markets/range";
+import { keys, useReadingQuery } from "@owarine/markets/react";
 
 /** A round with the Window it sits on read beside it, so the slip can say what it is and when it can settle. */
 export interface RangeRoundView extends RangeRound {

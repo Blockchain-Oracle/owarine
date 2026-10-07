@@ -19,25 +19,25 @@ const FILES = { root: ".env.local", web: "web/.env.local", ops: "services/ops/.e
 /** [name, need] */
 const GROUPS = {
   root: [
-    ["LEDGER_JSON_API_URL", "optional"], ["LEDGER_AUTH_MODE", "optional"], ["AGARI_PARTIES_FILE", "optional"], ["DATABASE_URL", "optional"],
+    ["LEDGER_JSON_API_URL", "optional"], ["LEDGER_AUTH_MODE", "optional"], ["OWARINE_PARTIES_FILE", "optional"], ["DATABASE_URL", "optional"],
     ["ALPACA_ENDPOINT", "feature"], ["ALPACA_KEY_ID", "feature"], ["ALPACA_SECRET_KEY", "feature"], ["FINNHUB_API_KEY", "feature"],
     ["PYTH_API_KEY", "optional"], ["JUPITER_API_KEY", "optional"], ["OPS_INTERNAL_URL", "optional"], ["OPS_ADMIN_SECRET", "optional"],
   ],
   web: [
-    ["DATABASE_URL", "boot"], ["AGARI_SEAT_COOKIE_SECRET", "boot"], ["OPS_INTERNAL_URL", "boot"], ["OPS_INTERNAL_SECRET", "boot"],
-    ["AGARI_PARTIES_FILE", "boot"], ["LEDGER_JSON_API_URL", "boot"], ["LEDGER_AUTH_MODE", "boot"],
+    ["DATABASE_URL", "boot"], ["OWARINE_SEAT_COOKIE_SECRET", "boot"], ["OPS_INTERNAL_URL", "boot"], ["OPS_INTERNAL_SECRET", "boot"],
+    ["OWARINE_PARTIES_FILE", "boot"], ["LEDGER_JSON_API_URL", "boot"], ["LEDGER_AUTH_MODE", "boot"],
     ["TRUSTED_PROXY", "hosted"],
     ["NEXT_PUBLIC_APP_ORIGIN", "build"], ["NEXT_PUBLIC_SITE_URL", "build"], ["NEXT_PUBLIC_DOCS_URL", "build"],
     ["NEXT_PUBLIC_PRICE_FEED_URL", "build"], ["NEXT_PUBLIC_LADDER_URL", "build"], ["NEXT_PUBLIC_CANTON_NETWORK", "optional"],
-    ["NEXT_PUBLIC_AGARI_VENUE_ID", "optional"], ["NEXT_PUBLIC_SHARED_DESK_ID", "optional"],
+    ["NEXT_PUBLIC_OWARINE_VENUE_ID", "optional"], ["NEXT_PUBLIC_SHARED_DESK_ID", "optional"],
     ["ROOM_TOKEN_SECRET", "feature"], ["GAME_ROOM_PUBLIC_URL", "feature"], ["PUSH_DRAIN_SECRET", "feature"], ["EXPO_ACCESS_TOKEN", "feature"],
     ["FINNHUB_API_KEY", "feature"], ["AI_MODEL", "feature"], ["X_API_KEY", "feature"], ["X_API_KEY_SECRET", "feature"],
     ["X_REDIRECT_URI", "feature"], ["X_SESSION_SECRET", "feature"], ["IOS_APP_ID", "feature"],
   ],
   ops: [
-    ["DATABASE_URL", "boot"], ["DRY_RUN", "boot"], ["OPS_INTERNAL_SECRET", "boot"], ["AGARI_PARTIES_FILE", "boot"],
+    ["DATABASE_URL", "boot"], ["DRY_RUN", "boot"], ["OPS_INTERNAL_SECRET", "boot"], ["OWARINE_PARTIES_FILE", "boot"],
     ["LEDGER_JSON_API_URL", "boot"], ["LEDGER_AUTH_MODE", "boot"],
-    ["AGARI_WEB_ORIGIN", "hosted"], ["NEXT_PUBLIC_APP_ORIGIN", "hosted"],
+    ["OWARINE_WEB_ORIGIN", "hosted"], ["NEXT_PUBLIC_APP_ORIGIN", "hosted"],
     ["ALPACA_ENDPOINT", "feature"], ["ALPACA_KEY_ID", "feature"], ["ALPACA_SECRET_KEY", "feature"], ["FINNHUB_API_KEY", "feature"],
     ["PYTH_API_KEY", "optional"], ["JUPITER_API_KEY", "optional"], ["REDSTONE_GATEWAY_URLS", "optional"],
     ["OPS_ADMIN_SECRET", "feature"], ["ROOM_TOKEN_SECRET", "feature"], ["GAME_DECK_KEY", "feature"], ["PUSH_DRAIN_URL", "feature"],

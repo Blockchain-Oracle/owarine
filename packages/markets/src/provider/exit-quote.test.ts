@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { SeriesFacts } from "../runtime/accounts";
 import { ladderState, type FixtureOrder } from "../runtime/ladder.fixture";
 import { exitQuoteFromBook } from "./exit-quote";

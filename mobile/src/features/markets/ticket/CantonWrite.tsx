@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import type { WritePhase } from "@agari/core/ports";
+import type { WritePhase } from "@owarine/core/ports";
 import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { QUOTE_TTL_SEC, TICKET_CANTON } from "@/features/canton-ux/ticket/copy";

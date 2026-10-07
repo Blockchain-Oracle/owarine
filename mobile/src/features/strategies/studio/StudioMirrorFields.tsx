@@ -1,4 +1,4 @@
-import { MIRROR_WITHIN_MAX_SEC, MIRROR_WITHIN_MIN_SEC } from "@agari/core/strategies";
+import { MIRROR_WITHIN_MAX_SEC, MIRROR_WITHIN_MIN_SEC } from "@owarine/core/strategies";
 import { StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
 import { FONT } from "~/theme";

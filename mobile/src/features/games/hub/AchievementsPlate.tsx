@@ -1,4 +1,4 @@
-import { achievementsEarned, type Achievement } from "@agari/core/games";
+import { achievementsEarned, type Achievement } from "@owarine/core/games";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { GAMES } from "@/features/games/copy";

@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { SectionHeader } from "@/components/chrome";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { usdLine } from "@/features/markets/hero/units";

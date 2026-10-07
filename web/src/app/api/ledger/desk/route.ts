@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { deskStateToWire } from "@agari/markets/desk";
-import { classifyRejection } from "@agari/markets/server";
+import { deskStateToWire } from "@owarine/markets/desk";
+import { classifyRejection } from "@owarine/markets/server";
 import { diagnosisReply, replyWith, seatFromRequest } from "@/lib/seat.server";
 import { indexModeOf } from "@/features/desk/chain.server";
 

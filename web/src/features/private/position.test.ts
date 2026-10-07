@@ -1,4 +1,4 @@
-import type { PrivatePositionRow } from "@agari/db";
+import type { PrivatePositionRow } from "@owarine/db";
 import { describe, expect, it } from "vitest";
 import { positionOf } from "./position";
 

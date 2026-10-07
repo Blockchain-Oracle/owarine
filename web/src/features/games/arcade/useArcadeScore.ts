@@ -1,7 +1,7 @@
 "use client";
 
-import type { ArcadeGame } from "@agari/core/games/arcade";
-import { seatAuthHeaders } from "@agari/markets";
+import type { ArcadeGame } from "@owarine/core/games/arcade";
+import { seatAuthHeaders } from "@owarine/markets";
 import { useCallback, useEffect, useState } from "react";
 import { deviceId } from "@/features/session/store";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -62,7 +62,7 @@ export function useArcadeScore(game: ArcadeGame, auth: RoomAuth) {
         const score = JSON.stringify({ game, token: auth.token, seed: end.seed, engineVersion: board.engineVersion, durationMs: end.durationMs, score: end.score, calm: end.calm, trace: end.trace });
         const response = await fetch(SCORE_ENDPOINT, {
           method: "POST",
-          headers: { "content-type": "application/json", "x-agari-device": deviceId(), ...(await seatAuthHeaders({ method: "POST", url: SCORE_ENDPOINT, body: score })) },
+          headers: { "content-type": "application/json", "x-owarine-device": deviceId(), ...(await seatAuthHeaders({ method: "POST", url: SCORE_ENDPOINT, body: score })) },
           body: score,
         });
         const body = (await response.json()) as ScoreAcceptedWire & { error?: string };

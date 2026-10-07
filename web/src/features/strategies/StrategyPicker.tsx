@@ -1,6 +1,6 @@
 "use client";
 
-import type { StrategySubscription } from "@agari/core/strategies";
+import type { StrategySubscription } from "@owarine/core/strategies";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useRef, useState, type RefObject } from "react";
 import { useFloatingMenus } from "@/components/shell/header/useFloatingMenus";

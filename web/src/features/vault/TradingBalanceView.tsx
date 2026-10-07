@@ -1,10 +1,10 @@
 "use client";
 
-import type { BlockerKind } from "@agari/core/copy";
-import type { Reading } from "@agari/core/schemas";
-import type { VenueCredit } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import type { VaultSnapshot } from "@agari/core/vault";
+import type { BlockerKind } from "@owarine/core/copy";
+import type { Reading } from "@owarine/core/schemas";
+import type { VenueCredit } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import type { VaultSnapshot } from "@owarine/core/vault";
 import { ErrorState, LoadingState, StaleTick } from "@/components/states";
 import { cn } from "@/lib/utils";
 import { VAULT } from "./copy";

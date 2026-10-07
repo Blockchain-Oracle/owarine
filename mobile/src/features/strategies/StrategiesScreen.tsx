@@ -1,5 +1,5 @@
-import { ADVICE_COPY } from "@agari/core/copy";
-import { isOk } from "@agari/core/schemas";
+import { ADVICE_COPY } from "@owarine/core/copy";
+import { isOk } from "@owarine/core/schemas";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

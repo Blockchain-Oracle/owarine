@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
 import { cn } from "@/lib/utils";
 import { VAULT } from "./copy";
 

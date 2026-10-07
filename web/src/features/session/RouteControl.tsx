@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import { SESSION } from "./copy";
 import type { FundingSource } from "./useTicketRoute";
 

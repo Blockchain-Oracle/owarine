@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { BRAND } from "@/lib/copy";
 import { OG_COPY } from "./copy";
 import { OG, OG_PAD } from "./theme";
-import { AGARI_MARK_FIGURE, AGARI_MARK_OUTCOME } from "@/components/shell/AgariMark";
+import { OWARINE_MARK_FIGURE, OWARINE_MARK_OUTCOME } from "@/components/shell/OwarineMark";
 
 const CROP = 28;
 const CROP_INSET = 32;
@@ -27,14 +27,14 @@ function Crop({ at }: { at: "tl" | "tr" | "bl" | "br" }) {
 }
 
 /**
- * The Agari mark at preview size uses the same paths as the app component.
+ * The Owarine mark at preview size uses the same paths as the app component.
  */
 function Wordmark() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
       <svg width={43} height={43} viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-        <path d={AGARI_MARK_FIGURE} fill={OG.ink} />
-        <path d={AGARI_MARK_OUTCOME} fill={OG.vermilion} />
+        <path d={OWARINE_MARK_FIGURE} fill={OG.ink} />
+        <path d={OWARINE_MARK_OUTCOME} fill={OG.vermilion} />
       </svg>
       <div style={{ display: "flex", fontSize: 30, letterSpacing: "0.22em", color: OG.ink }}>{BRAND.name.toUpperCase()}</div>
     </div>

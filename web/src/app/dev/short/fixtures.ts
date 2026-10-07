@@ -1,4 +1,4 @@
-import type { LeverageMark } from "@agari/core/leverage";
+import type { LeverageMark } from "@owarine/core/leverage";
 import { FIXTURE_NOW_MS } from "../leverage/fixtures";
 
 /**

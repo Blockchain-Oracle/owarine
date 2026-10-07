@@ -1,6 +1,6 @@
-import type { Reading } from "@agari/core/schemas";
-import type { VaultGrant } from "@agari/core/vault";
-import { xPermissionState, type XPermissionState } from "@agari/core/x";
+import type { Reading } from "@owarine/core/schemas";
+import type { VaultGrant } from "@owarine/core/vault";
+import { xPermissionState, type XPermissionState } from "@owarine/core/x";
 
 export interface PermissionInput {
   snapshot: Reading<unknown> | null;

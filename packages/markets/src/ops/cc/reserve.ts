@@ -1,7 +1,7 @@
 /**
  * The venue's reserve statement, planned the way the ledger computes it (C7b): the check before sending. Pure.
  */
-import { atomicPerCashUnit, type ContractId, type Party } from "@agari/ledger/pure";
+import { atomicPerCashUnit, type ContractId, type Party } from "@owarine/ledger/pure";
 import type { Row } from "./allowances";
 import type { AllowanceC, HoldingViewC, ListingC } from "./decode";
 

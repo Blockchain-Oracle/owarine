@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Button } from "~/components/kit";
-import { AgariMark } from "~/components/shell/AgariMark";
+import { OwarineMark } from "~/components/shell/OwarineMark";
 import { FONT, useTheme } from "~/theme";
 import { SEAT } from "~/wallet/seat-copy";
 
@@ -14,7 +14,7 @@ export function TakeSeat({ taking, error, onTake, onBrowse, onLink }: { taking: 
   return (
     <View style={styles.body}>
       <View style={[styles.mark, { backgroundColor: color.surface2 }]}>
-        <AgariMark width={27} height={27} />
+        <OwarineMark width={27} height={27} />
       </View>
       <View style={styles.lines}>
         {SEAT.sheet.lines.map((line) => (

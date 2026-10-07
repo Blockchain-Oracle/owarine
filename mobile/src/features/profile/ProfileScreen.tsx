@@ -1,5 +1,5 @@
-import type { Address } from "@agari/core/types";
-import { keys, usePublishedHistory, useWalletHistory } from "@agari/markets/react";
+import type { Address } from "@owarine/core/types";
+import { keys, usePublishedHistory, useWalletHistory } from "@owarine/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
@@ -24,7 +24,7 @@ const LEAD = 6;
 /** The verified X link web reads server-side (`x_links`), read here from the same store through `/api/x/status`. */
 function useVerifiedHandle(address: Address): string | null {
   const status = useQuery({
-    queryKey: ["agari", "x", "status", address],
+    queryKey: ["owarine", "x", "status", address],
     queryFn: async ({ signal }) => {
       const response = await fetch(`/api/x/status?wallet=${encodeURIComponent(address)}`, { signal });
       if (!response.ok) throw new Error(`x status ${response.status}`);

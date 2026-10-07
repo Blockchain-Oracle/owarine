@@ -1,5 +1,5 @@
-import { realizedYield, supplierPosition, type ReserveSheet } from "@agari/core/reserves";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { realizedYield, supplierPosition, type ReserveSheet } from "@owarine/core/reserves";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { EARN } from "@/features/earn/copy";

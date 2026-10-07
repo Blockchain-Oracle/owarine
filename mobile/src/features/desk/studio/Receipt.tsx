@@ -1,4 +1,4 @@
-import { nameOf, presetById, type DeskMandate } from "@agari/core/desk";
+import { nameOf, presetById, type DeskMandate } from "@owarine/core/desk";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";

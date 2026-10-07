@@ -1,7 +1,7 @@
 "use client";
 
-import { deskRecordSchema, type DeskMandate } from "@agari/core/desk";
-import type { Address } from "@agari/core/types";
+import { deskRecordSchema, type DeskMandate } from "@owarine/core/desk";
+import type { Address } from "@owarine/core/types";
 import { Check, CircleDashed, LoaderCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";

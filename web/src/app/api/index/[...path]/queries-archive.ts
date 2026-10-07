@@ -1,4 +1,4 @@
-import { TICKERS, tickerSymbolSchema, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, tickerSymbolSchema, type TickerSymbol } from "@owarine/core/market";
 import { z } from "zod";
 import { BadRequest, type IndexQuery } from "./queries";
 

@@ -1,6 +1,6 @@
-import { countdown, type MarketPhase } from "@agari/core/lifecycle";
-import type { EventMarket } from "@agari/core/types";
-import { formatClock } from "@agari/core/units";
+import { countdown, type MarketPhase } from "@owarine/core/lifecycle";
+import type { EventMarket } from "@owarine/core/types";
+import { formatClock } from "@owarine/core/units";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { laneAssetLabel, laneTabLabel } from "@/features/markets/lanes/lane-view";

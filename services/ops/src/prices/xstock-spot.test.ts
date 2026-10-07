@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { QUOTE_FAILURES_TO_HALT, TICKERS } from "@agari/core/market";
+import { QUOTE_FAILURES_TO_HALT, TICKERS } from "@owarine/core/market";
 import { quoteFailureStreak, resetQuoteStreaks } from "../actors/halt-watch/quote-failures";
 import { createXStockSpotFeed } from "./xstock-spot";
 

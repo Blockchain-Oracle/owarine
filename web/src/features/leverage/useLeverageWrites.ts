@@ -1,9 +1,9 @@
 "use client";
 
-import type { MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import type { LeverageOpenOutcome } from "@agari/markets/leverage";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import type { MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import type { LeverageOpenOutcome } from "@owarine/markets/leverage";
+import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { recordBet } from "@/features/room/record-bet";
 import { useCallback, useState } from "react";

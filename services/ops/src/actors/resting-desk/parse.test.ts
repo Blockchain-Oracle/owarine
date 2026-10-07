@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { marketIdFromDaml } from "@agari/core/market";
+import { marketIdFromDaml } from "@owarine/core/market";
 import { parseRestingRequest } from "./parse";
 
 const MARKET = marketIdFromDaml("TSLA-5m:7");

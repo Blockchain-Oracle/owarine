@@ -2,8 +2,8 @@
  * The Markets a relay still has work on (venue-ops.md §4): registry-ticker Series of every known basis (S6), and per Series the
  * index range `[lowIndex, nextIndex)`. Print deadlines are at most T + 900 s, so a fresh start looks back 8 Windows.
  */
-import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@agari/markets/ops";
-import { relayFinished } from "@agari/markets/ops/prints";
+import { chainNowSec, fetchMarkets, fetchSeries, listSeries, seriesBasis, windowAddresses, type MarketView, type OpsClient, type SeriesView } from "@owarine/markets/ops";
+import { relayFinished } from "@owarine/markets/ops/prints";
 
 const SERIES_REFRESH_MS = 5 * 60_000;
 const LOOK_BACK = 8n;

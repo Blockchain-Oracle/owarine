@@ -1,4 +1,4 @@
-import { MANDATE_NOTES_MAX_CHARS, thresholdBps, type DeskMandate } from "@agari/core/desk";
+import { MANDATE_NOTES_MAX_CHARS, thresholdBps, type DeskMandate } from "@owarine/core/desk";
 import { Gauge, ShieldCheck, Wind, type LucideIcon } from "lucide-react-native";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { DESK } from "@/features/desk/copy";

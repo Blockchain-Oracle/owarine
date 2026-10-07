@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Address, MarketId } from "@agari/core/types";
+import type { Address, MarketId } from "@owarine/core/types";
 import { ticketIdOf } from "./client";
 import { parlayTicketOf, rangeRoundOf, sharesOf } from "./views";
 

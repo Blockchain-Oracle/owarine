@@ -1,15 +1,15 @@
-import { encodeBase58, type Address, type EventMarket } from "@agari/core/types";
-import type { StrategySubscription } from "@agari/core/strategies";
-import type { SubmitterSession } from "@agari/markets";
+import { encodeBase58, type Address, type EventMarket } from "@owarine/core/types";
+import type { StrategySubscription } from "@owarine/core/strategies";
+import type { SubmitterSession } from "@owarine/markets";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({ getAttempt: vi.fn(), begin: vi.fn(), finish: vi.fn(), recordFill: vi.fn(), unresolved: vi.fn(), owners: vi.fn(), decisions: vi.fn(), fills: vi.fn(), snapshot: vi.fn(), onchain: vi.fn(), holdings: vi.fn(), quote: vi.fn(), recover: vi.fn(), tallies: vi.fn(), grant: vi.fn(), subscribers: vi.fn(), send: vi.fn(), settle: vi.fn(), market: vi.fn() }));
-vi.mock("@agari/db", () => ({ getStrategyAttempt: mocks.getAttempt, beginStrategyAttempt: mocks.begin, finishStrategyAttempt: mocks.finish, recordAttemptFill: mocks.recordFill, listUnresolvedStrategyAttempts: mocks.unresolved, listStrategyOwners: mocks.owners, listStrategyDecisions: mocks.decisions, listStrategyFills: mocks.fills }));
-vi.mock("@agari/markets", () => ({ readRecoveryCursor: async () => ({ ok: true, value: { fromSlot: 123n }, stale: false, asOfMs: 0 }), marketsProvider: { getVaultSnapshot: mocks.snapshot, getOnchain: mocks.onchain, getVaultHoldings: mocks.holdings, freshQuoteStake: mocks.quote, getMarket: mocks.market, nowMs: () => 2_000_000 } }));
-vi.mock("@agari/markets/vault", () => ({ getVaultGrant: mocks.grant, listVaultTallies: mocks.tallies, recoverVaultExecution: mocks.recover }));
-vi.mock("@agari/markets/strategies", () => ({ listStrategySubscribers: mocks.subscribers }));
+vi.mock("@owarine/db", () => ({ getStrategyAttempt: mocks.getAttempt, beginStrategyAttempt: mocks.begin, finishStrategyAttempt: mocks.finish, recordAttemptFill: mocks.recordFill, listUnresolvedStrategyAttempts: mocks.unresolved, listStrategyOwners: mocks.owners, listStrategyDecisions: mocks.decisions, listStrategyFills: mocks.fills }));
+vi.mock("@owarine/markets", () => ({ readRecoveryCursor: async () => ({ ok: true, value: { fromSlot: 123n }, stale: false, asOfMs: 0 }), marketsProvider: { getVaultSnapshot: mocks.snapshot, getOnchain: mocks.onchain, getVaultHoldings: mocks.holdings, freshQuoteStake: mocks.quote, getMarket: mocks.market, nowMs: () => 2_000_000 } }));
+vi.mock("@owarine/markets/vault", () => ({ getVaultGrant: mocks.grant, listVaultTallies: mocks.tallies, recoverVaultExecution: mocks.recover }));
+vi.mock("@owarine/markets/strategies", () => ({ listStrategySubscribers: mocks.subscribers }));
 
-import { utcDayOf, type VaultGrant } from "@agari/core/vault";
+import { utcDayOf, type VaultGrant } from "@owarine/core/vault";
 import golden from "../../../../../packages/core/src/vault/caps.vectors.json";
 import { capsOnQuote, executeForSubscriber } from "./execute";
 import { readAgentRecord, settlementReader } from "./agent-record";

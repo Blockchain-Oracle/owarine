@@ -3,9 +3,9 @@
  * the successor Window and a lane's next start. The chain facts a row lacks (collateral, decimals, a not-yet-printed
  * Window's primary source) are read alongside the index fetch, never after it, and are cached for the runtime's life.
  */
-import { groupIntoLanes, isCommitteeMarket } from "@agari/core/market";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, EventMarket, LaneSet, MarketId, Resolution } from "@agari/core/types";
+import { groupIntoLanes, isCommitteeMarket } from "@owarine/core/market";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, EventMarket, LaneSet, MarketId, Resolution } from "@owarine/core/types";
 import { readSeries, readVenueStatic, type SeriesFacts, type VenueFacts } from "../runtime/accounts";
 import { nowSec } from "./clock";
 import { indexRows, type MarketRow } from "./index-api";

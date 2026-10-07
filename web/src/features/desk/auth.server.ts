@@ -1,4 +1,4 @@
-import { isAddress, type Address } from "@agari/core/types";
+import { isAddress, type Address } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { seatCaller } from "@/lib/auth/seat-caller.server";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";

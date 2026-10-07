@@ -10,7 +10,7 @@ const market = (over: Partial<EventMarket> = {}) => ({ marketId: ID, asset: "TSL
   tradingStartSec: at(20) / 1000, lockAtSec: at(25) / 1000, expirySec: at(25) / 1000, openingPriceRaw: 1n,
   status: "Trading", voided: false, finalized: false, ...over }) as EventMarket;
 const KEY = shareKeyFrom("s".repeat(32));
-const ORIGIN = "https://useagari.xyz";
+const ORIGIN = "https://owarine.com";
 
 function linkOf(share: WindowShare, key = KEY): URL {
   return new URL(windowShareUrl(ORIGIN, share, signWindowShare(key, share)));

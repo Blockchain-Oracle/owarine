@@ -1,5 +1,5 @@
-import { X_MONETARY_CEILING, isBalanceOnlyXGrant, xGrantCaps } from "@agari/core/x";
-import { simulateCaps } from "@agari/core/vault";
+import { X_MONETARY_CEILING, isBalanceOnlyXGrant, xGrantCaps } from "@owarine/core/x";
+import { simulateCaps } from "@owarine/core/vault";
 import { describe, expect, it } from "vitest";
 import type { AgentGrantC, StrategyListingC, SubscriptionC } from "./decode";
 import { grantBuyCommandId } from "./executor";

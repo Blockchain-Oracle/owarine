@@ -4,10 +4,10 @@
  * its own calls (`Rest_Cancel`). They share the seat commands' kit (`seatCommandKit` in `writes.ts`): journal, landed
  * recovery, rejection classification.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type Command, type CreatedEvent, type JsTransaction, type Party } from "@agari/ledger";
-import type { RestedOrder } from "@agari/core/ports";
-import { diagnosis, type Diagnosis, type MarketId, type Signature } from "@agari/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type Command, type CreatedEvent, type JsTransaction, type Party } from "@owarine/ledger";
+import type { RestedOrder } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis, type MarketId, type Signature } from "@owarine/core/types";
 import { isEntity, restingCallView } from "./contracts";
 import { seatCommandId } from "./ids";
 import { contractsOf } from "./map";

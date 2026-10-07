@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { Address, Diagnosis } from "@agari/core/types";
-import { useClockFact, useCollateralFact, useMarketsBoot, useVenueFact, type MarketsBoot } from "@agari/markets/react";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { Address, Diagnosis } from "@owarine/core/types";
+import { useClockFact, useCollateralFact, useMarketsBoot, useVenueFact, type MarketsBoot } from "@owarine/markets/react";
 import { webEnv } from "@/lib/env";
 
 export interface VenueContext {

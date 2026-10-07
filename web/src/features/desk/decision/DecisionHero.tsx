@@ -1,7 +1,7 @@
 "use client";
 
-import { nameOf, type DeskRecordBody } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
+import { nameOf, type DeskRecordBody } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
 import { Ban, Check, CircleDashed, Hand, OctagonAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { LogoStack, RadialGauge, StatusDot, type NodeTone } from "@/components/ui/desk-kit";

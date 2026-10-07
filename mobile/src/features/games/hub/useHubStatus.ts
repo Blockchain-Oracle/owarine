@@ -1,6 +1,6 @@
-import { RANGE_NOT_DEPLOYED, type RangeReserveState } from "@agari/core/range";
-import { isOk, type Reading } from "@agari/core/schemas";
-import { useRangeReserve } from "@agari/markets/react";
+import { RANGE_NOT_DEPLOYED, type RangeReserveState } from "@owarine/core/range";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import { useRangeReserve } from "@owarine/markets/react";
 import { GAMES } from "@/features/games/copy";
 import { searchingNow, useRoomOccupancy } from "@/features/games/duel/useRoomOccupancy";
 import { seasonIntroKey, useSeasonRead } from "@/features/games/duel/useSeason";

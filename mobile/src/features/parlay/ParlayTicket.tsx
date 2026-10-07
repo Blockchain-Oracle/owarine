@@ -1,8 +1,8 @@
-import { diagnosisCopy } from "@agari/core/copy";
-import { formatCadence } from "@agari/core/market";
-import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
-import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { formatCadence } from "@owarine/core/market";
+import type { ParlayQuote, ParlayReserveState } from "@owarine/core/parlay";
+import type { Diagnosis, EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, oneUnit, parseDecimalToBaseUnits } from "@owarine/core/units";
 import { AlertCircle, Trophy } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PARLAY } from "@/features/parlay/copy";

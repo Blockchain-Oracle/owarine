@@ -1,5 +1,5 @@
-import { getDb, indexReader, type IndexReader } from "@agari/db";
-import { ensureMarkets } from "@agari/markets";
+import { getDb, indexReader, type IndexReader } from "@owarine/db";
+import { ensureMarkets } from "@owarine/markets";
 import { NextResponse, type NextRequest } from "next/server";
 import { seatCaller } from "@/lib/auth/seat-caller.server";
 import { webEnv } from "@/lib/env";
@@ -17,7 +17,7 @@ async function leaseOf(address: string): Promise<SeatLeaseScope | null> {
 /**
  * The projection's read API (first-call.md §5): lists, Window rows with prints, a seat's fills, positions and actions,
  * print history, candles and freshness, straight from Postgres. Never gates a write. Public answers ride a 2 s shared
- * cache; a seat's own rows need its signed read header (`x-agari-seat-read`) and are never cached.
+ * cache; a seat's own rows need its signed read header (`x-owarine-seat-read`) and are never cached.
  */
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

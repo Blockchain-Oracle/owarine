@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { classifyRejection, type SeatRead } from "@agari/markets/server";
+import { classifyRejection, type SeatRead } from "@owarine/markets/server";
 import { diagnosisReply, recordBusy, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

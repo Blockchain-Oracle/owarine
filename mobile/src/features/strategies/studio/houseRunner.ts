@@ -1,5 +1,5 @@
 /**
- * The house runner a creator picks with "Let Agari run it". On Canton it is a party (C8f, K-087): the parties file's
+ * The house runner a creator picks with "Let Owarine run it". On Canton it is a party (C8f, K-087): the parties file's
  * `agent-runner`, which web reads on its server (web/src/app/strategies/page.tsx). No API carries it to the app yet,
  * so the app is configured with the same party at build time (`EXPO_PUBLIC_STRATEGY_RUNNER_PARTY`); an unset or
  * malformed value leaves only "Run your own bot", exactly as web does without one.

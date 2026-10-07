@@ -1,6 +1,6 @@
-import { phase as phaseOf, type MarketPhase } from "@agari/core/lifecycle";
-import { formatCadence, isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import { phase as phaseOf, type MarketPhase } from "@owarine/core/lifecycle";
+import { formatCadence, isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { sidesInOrder, useBetAgainst } from "@/features/markets/bet-against";

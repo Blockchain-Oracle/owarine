@@ -1,8 +1,8 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import type { TickerSymbol } from "@agari/core/market";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import type { TickerSymbol } from "@owarine/core/market";
+import { useReadingQuery } from "@owarine/markets/react";
 import { z } from "zod";
 
 const POLL_MS = 30_000;
@@ -42,7 +42,7 @@ async function readPythIndex(): Promise<Reading<PythIndexView>> {
 
 /** Every name's entitlement and index in one read (one memo on the server); off until a pre-IPO surface asks. */
 export function usePythIndex(enabled: boolean): Reading<PythIndexView> | null {
-  return useReadingQuery(["agari", "pyth-index", "latest"] as const, readPythIndex, { pollMs: POLL_MS, enabled, needs: [] });
+  return useReadingQuery(["owarine", "pyth-index", "latest"] as const, readPythIndex, { pollMs: POLL_MS, enabled, needs: [] });
 }
 
 /** The index row for a name, or null: a feed the key may not read, a failed read, or a name Pyth publishes no index for. */

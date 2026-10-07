@@ -1,4 +1,4 @@
-import { networkLabel } from "@agari/markets/chain";
+import { networkLabel } from "@owarine/markets/chain";
 
 /**
  * The seat modals' words. The frame and every key are RainbowKit 2.2.11's `en_US` strings as Masayume showed them; on

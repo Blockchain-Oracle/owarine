@@ -1,4 +1,4 @@
-import { addressSchema } from "@agari/core/types";
+import { addressSchema } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { inboxFeed, ownInboxFeed } from "@/features/activity/feed.server";

@@ -7,19 +7,19 @@
  * one sender, one desk at a time. The runner reads the process's PreStocks feed and never fetches the catalogue
  * itself; a live desk trades the venue's own markets through its `DeskMandate` (K-090).
  */
-import { missingDeskCredentialHint, resolveDeskModel } from "@agari/brain";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { deskQueries, getDb, type DeskRow, type SnapshotRow, type WakeTrigger } from "@agari/db";
-import { createDeskLedgerRpc, createDeskOperatorClient } from "@agari/markets/desk/server";
-import { opsQuoteSource, routeQuoteSource, type QuoteSource } from "@agari/markets/ops/agents";
+import { missingDeskCredentialHint, resolveDeskModel } from "@owarine/brain";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
+import { deskQueries, getDb, type DeskRow, type SnapshotRow, type WakeTrigger } from "@owarine/db";
+import { createDeskLedgerRpc, createDeskOperatorClient } from "@owarine/markets/desk/server";
+import { opsQuoteSource, routeQuoteSource, type QuoteSource } from "@owarine/markets/ops/agents";
 import { ORACLE_ROLES } from "../../runtime/keys";
-import { parseLadder, type Ladder } from "@agari/markets/runtime";
-import { createOpsClient } from "@agari/markets/server";
+import { parseLadder, type Ladder } from "@owarine/markets/runtime";
+import { createOpsClient } from "@owarine/markets/server";
 import type { InternalRoutes } from "../../http/internal";
 import { ladderLatestBody } from "../../http/ladder-sse";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import type { VenueContext } from "../venue/context";
-import { CLUSTER_ID } from "@agari/core/constants";
+import { CLUSTER_ID } from "@owarine/core/constants";
 import type { PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import { runActor, type Log } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";

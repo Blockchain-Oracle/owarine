@@ -3,7 +3,7 @@ import { DEMO } from "./copy";
 import "./demo-film.css";
 
 /**
- * The demo film, from the one config point (`AGARI_DEMO_VIDEO_URL`, `web/src/lib/release.ts`). A YouTube link embeds
+ * The demo film, from the one config point (`OWARINE_DEMO_VIDEO_URL`, `web/src/lib/release.ts`). A YouTube link embeds
  * through `youtube-nocookie`, which sets no tracking cookie until the viewer presses play, with a caption link for
  * anyone whose browser blocks frames; a direct file plays in a `<video>`. With nothing configured the same 16:9 frame
  * says what it waits on (the D-015 honest state): the film is re-shot on the Canton build, and no footage recorded

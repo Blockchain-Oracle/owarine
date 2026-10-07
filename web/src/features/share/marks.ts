@@ -1,4 +1,4 @@
-import { assetTicker } from "@agari/core/market";
+import { assetTicker } from "@owarine/core/market";
 import { MARK_GLYPHS, MONOGRAM_UNITS, glyphBox } from "@/components/icons/asset-marks/paths";
 import { TOKEN_BADGE } from "@/features/markets/hero/asset-mark";
 import { font, type CardFonts } from "./canvas";

@@ -1,5 +1,5 @@
-import { isMarketId, type Diagnosis, type MarketId } from "@agari/core/types";
-import { formatOracleRaw } from "@agari/core/units";
+import { isMarketId, type Diagnosis, type MarketId } from "@owarine/core/types";
+import { formatOracleRaw } from "@owarine/core/units";
 import { assetPriceLine, isBasketAsset, ORACLE_SCALE } from "../markets/hero/units";
 
 const pad2 = (n: number): string => String(n).padStart(2, "0");

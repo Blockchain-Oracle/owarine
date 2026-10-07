@@ -1,4 +1,4 @@
-import type { BrandSlug } from "@agari/core/market";
+import type { BrandSlug } from "@owarine/core/market";
 import { MARK_GLYPHS, glyphTransform } from "./paths";
 
 interface AssetMarkSvgProps {

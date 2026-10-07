@@ -1,7 +1,7 @@
 import { createHmac } from "node:crypto";
-import { FaucetError, SOL_FAUCET_POLICY, unavailableTusdcStatus, type FaucetStatus } from "@agari/core/faucet";
-import { isDbConfigured } from "@agari/db";
-import { createFaucetChain, faucetRoleSecret, type FaucetChain } from "@agari/markets/faucet";
+import { FaucetError, SOL_FAUCET_POLICY, unavailableTusdcStatus, type FaucetStatus } from "@owarine/core/faucet";
+import { isDbConfigured } from "@owarine/db";
+import { createFaucetChain, faucetRoleSecret, type FaucetChain } from "@owarine/markets/faucet";
 import { createFaucetService } from "./faucet-service.server";
 import { clientIp, publicOrigin } from "@/lib/client-ip.server";
 
@@ -9,7 +9,7 @@ let loaded: { keys: { key: string; chain: FaucetChain } | null } | null = null;
 
 /**
  * The devnet faucet's two server keys (D-034): `SOL_FAUCET_PRIVATE_KEY` / `FAUCET_MINT_AUTHORITY_PRIVATE_KEY`, else the
- * role files in `~/.config/agari/devnet/` (`AGARI_KEYS_DIR`). Read once per process so the chain's signers and mint
+ * role files in `~/.config/owarine/devnet/` (`OWARINE_KEYS_DIR`). Read once per process so the chain's signers and mint
  * facts are reused. A missing mint authority leaves SOL top-ups working and tUSDC unavailable.
  */
 export function faucetConfig() {
@@ -28,13 +28,13 @@ export function unavailableFaucetStatus(address: string | null, message = "In-ap
 export function faucetForRequest(request: Request) {
   const origin = publicOrigin(request);
   const suppliedOrigin = request.headers.get("origin");
-  if (suppliedOrigin && suppliedOrigin !== origin) throw new FaucetError("origin-invalid", "Open the faucet from Agari.", 403);
+  if (suppliedOrigin && suppliedOrigin !== origin) throw new FaucetError("origin-invalid", "Open the faucet from Owarine.", 403);
   const config = faucetConfig();
   if (!config?.enabled) throw new FaucetError("unavailable", "In-app test funds are unavailable here. Please try again later.", 503);
   // The proxy named by TRUSTED_PROXY vouches for the IP (client-ip.server.ts); with none named, production refuses.
   const ip = clientIp(request);
   if (!ip) throw new FaucetError("connection-unverified", "The faucet could not verify this connection.", 503);
-  const ipHash = createHmac("sha256", config.key).update(`agari-faucet-ip:${ip}`).digest("hex");
+  const ipHash = createHmac("sha256", config.key).update(`owarine-faucet-ip:${ip}`).digest("hex");
   return { service: createFaucetService(config.chain), ipHash, origin };
 }
 export function faucetErrorResponse(error: unknown): Response {

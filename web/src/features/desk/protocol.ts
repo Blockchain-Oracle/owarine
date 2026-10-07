@@ -1,8 +1,8 @@
-import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
-import type { Cluster } from "@agari/core/constants";
-import { DESK_MODES, deskMandateWireSchema, OUTCOME_COLUMN, type OutcomeColumn } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS } from "@agari/core/market";
-import { addressSchema, hash32Schema } from "@agari/core/types";
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@owarine/core/auth";
+import type { Cluster } from "@owarine/core/constants";
+import { DESK_MODES, deskMandateWireSchema, OUTCOME_COLUMN, type OutcomeColumn } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS } from "@owarine/core/market";
+import { addressSchema, hash32Schema } from "@owarine/core/types";
 import { z } from "zod";
 import { webEnv } from "@/lib/env";
 

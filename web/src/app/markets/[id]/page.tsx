@@ -1,4 +1,4 @@
-import { isMarketId, toMarketId } from "@agari/core/types";
+import { isMarketId, toMarketId } from "@owarine/core/types";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";

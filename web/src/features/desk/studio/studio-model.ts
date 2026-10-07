@@ -1,5 +1,5 @@
-import { DESK_PRESETS, MANDATE_MAX_TOKENS, nameOf } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol } from "@agari/core/market";
+import { DESK_PRESETS, MANDATE_MAX_TOKENS, nameOf } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol } from "@owarine/core/market";
 import type { Slice } from "@/components/ui/desk-kit";
 import type { StudioDraft } from "../draft";
 

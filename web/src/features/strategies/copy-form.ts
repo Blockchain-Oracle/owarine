@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import { COPY_FORM } from "./copy-form-copy";
 import { parseAmount } from "./format";
 

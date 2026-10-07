@@ -1,6 +1,6 @@
 {
   "capturedAt": "2026-09-29/2026-09-30",
-  "application": "the Canton build of Agari on a local Canton sandbox (Canton 3.5.17, dpm 3.5.10) with the real venue operations; no hosted deployment",
+  "application": "the Canton build of Owarine on a local Canton sandbox (Canton 3.5.17, dpm 3.5.10) with the real venue operations; no hosted deployment",
   "method": "Cropped from the lanes' own browser screenshots in docs/evidence/ux (headless Chrome over CDP), converted to JPEG at quality 82 with sips. The top banner of each screen is cropped off; nothing inside the frame is edited.",
   "captures": [
     {

@@ -1,4 +1,4 @@
-import { attestedPrintSource, parsePrintSource } from "@agari/core/market";
+import { attestedPrintSource, parsePrintSource } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 import { alpacaTradeAt, createAttestedReader, jupiterBarAt } from "./attested-read";
 import { alpacaLatestQuotes } from "./spot-feed";

@@ -5,8 +5,8 @@
  * pins its Window until settled, claimed, refunded, knocked out or sold back. Any consuming choice on one of these ends
  * it. Settlement and quote retention count them in the projection, never on the ledger.
  */
-import type { IdxFact } from "@agari/db";
-import type { CreatedEvent, ExercisedEvent } from "@agari/ledger";
+import type { IdxFact } from "@owarine/db";
+import type { CreatedEvent, ExercisedEvent } from "@owarine/ledger";
 
 export const TICKETS_PACKAGE_NAME = "abu-pm-tickets";
 

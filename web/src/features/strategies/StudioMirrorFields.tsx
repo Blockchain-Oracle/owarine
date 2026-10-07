@@ -1,6 +1,6 @@
 "use client";
 
-import { MIRROR_WITHIN_MAX_SEC, MIRROR_WITHIN_MIN_SEC } from "@agari/core/strategies";
+import { MIRROR_WITHIN_MAX_SEC, MIRROR_WITHIN_MIN_SEC } from "@owarine/core/strategies";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";
 import type { StudioDraft } from "./studio-draft";

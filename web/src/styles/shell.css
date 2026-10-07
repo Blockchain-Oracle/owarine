@@ -42,12 +42,12 @@
   -webkit-background-clip: text;
   background-clip: text;
   filter: drop-shadow(0 0 9px color-mix(in srgb, var(--vermilion) 75%, transparent));
-  animation: agari-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
+  animation: owarine-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
 }
 [data-theme="light"] .logo-jp {
   color: color-mix(in srgb, var(--vermilion) 65%, transparent);
 }
-@keyframes agari-jp-neon-rise {
+@keyframes owarine-jp-neon-rise {
   0%, 8% { background-position: 0 0; }
   64%, 100% { background-position: 0 100%; }
 }

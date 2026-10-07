@@ -47,7 +47,7 @@ export const SPONSORS: readonly Sponsor[] = [
 
 /** The notice Canton's trademark guidelines ask for wherever a Canton mark is used. */
 export const CANTON_ATTRIBUTION =
-  "Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. The Noders mark belongs to its owner and is used as its brand kit allows.";
+  "Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Owarine. The Noders mark belongs to its owner and is used as its brand kit allows.";
 
 export const SPONSORS_COPY = {
   label: "Built on",

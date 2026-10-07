@@ -1,8 +1,8 @@
 "use client";
 
-import type { MarketPhase } from "@agari/core/lifecycle";
-import { eventLabelOf, isCommitteeMarket } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import type { MarketPhase } from "@owarine/core/lifecycle";
+import { eventLabelOf, isCommitteeMarket } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import { Countdown } from "@/components/data";
 import { HERO, TICKET } from "@/lib/copy";
 import { EVENT_BOARD } from "../events/copy";

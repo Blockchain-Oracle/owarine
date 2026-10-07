@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
@@ -36,7 +36,7 @@ export interface DeskStudioProps {
 }
 
 /**
- * The studio (plan §5.4): Agari's four-step frame (`CreatorStudio`) around the desk's meaning: 01 the basket, 02 how
+ * The studio (plan §5.4): Owarine's four-step frame (`CreatorStudio`) around the desk's meaning: 01 the basket, 02 how
  * strict and the limits, 03 the test read, 04 create. The side card follows every edit. Drafting is open to anyone;
  * the read and the creation need the wallet's one signature. The draft is kept in this browser per owner.
  */

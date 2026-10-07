@@ -3,9 +3,9 @@
  * with every Window ever opened (the pricer reads it the same way, and only when it meets a Window it has not seen): a
  * miss reloads it at most every few seconds, and a Window that expired long ago is dropped from the cache.
  */
-import { marketIdFromDaml } from "@agari/core/market";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { decodeTerms, pick, readActive, type Active, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { decodeTerms, pick, readActive, type Active, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
 
 const RELOAD_MS = 5_000;
 const KEEP_AFTER_EXPIRY_SEC = 3_600;

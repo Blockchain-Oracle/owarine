@@ -1,5 +1,5 @@
-import { basketOf, isBasketSymbol, TICKERS, type TickerSymbol } from "@agari/core/market";
-import { useAssetPrice } from "@agari/markets/react";
+import { basketOf, isBasketSymbol, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { useAssetPrice } from "@owarine/markets/react";
 import { StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";
 import { basketLine, lineNumbers, markLine, type DeskMarks } from "@/features/desk/useDeskMarks";
 import { basisRaw, feedRawToOracleRaw, pointsLine, usdLine } from "@/features/markets/hero/units";

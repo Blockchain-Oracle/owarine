@@ -1,8 +1,8 @@
-import { computeBadges, computeTraderEdge, reputationOf, type TraderEdge, type WalletHistory } from "@agari/core/projection";
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { useMakerShares, useMakerVault } from "@agari/markets/react";
+import { computeBadges, computeTraderEdge, reputationOf, type TraderEdge, type WalletHistory } from "@owarine/core/projection";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useMakerShares, useMakerVault } from "@owarine/markets/react";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";

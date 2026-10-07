@@ -3,10 +3,10 @@
  * `BoostPosition`s, through `/api/ledger/tickets/*`. A position's mark is its contracts at the venue ladder's fair
  * price; its knock-out line is the pinned proceeds, and only the venue's oracle-quorum barrier knocks it out (K-029).
  */
-import type { LeverageMark, LeveragePosition, LeverageReserveState } from "@agari/core/leverage";
-import type { ProviderShares } from "@agari/core/reserves";
-import { err, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, type Address } from "@agari/core/types";
+import type { LeverageMark, LeveragePosition, LeverageReserveState } from "@owarine/core/leverage";
+import type { ProviderShares } from "@owarine/core/reserves";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import { diagnosis, type Address } from "@owarine/core/types";
 import { registeredSeatAddress } from "../provider/ledger-api";
 import { readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";
 import { endedBoosts } from "../tickets/receipt-views";

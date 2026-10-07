@@ -1,5 +1,5 @@
-import { belowMinStake } from "@agari/core/sizing";
-import { formatBaseUnits } from "@agari/core/units";
+import { belowMinStake } from "@owarine/core/sizing";
+import { formatBaseUnits } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { plainCells } from "@/features/markets/ticket/readout-cells";

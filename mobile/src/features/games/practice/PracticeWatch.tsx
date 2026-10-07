@@ -1,5 +1,5 @@
-import { PRACTICE_WATCH_SEC, type PracticeRound } from "@agari/core/games";
-import type { AssetPrice } from "@agari/core/types";
+import { PRACTICE_WATCH_SEC, type PracticeRound } from "@owarine/core/games";
+import type { AssetPrice } from "@owarine/core/types";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";

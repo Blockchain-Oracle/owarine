@@ -1,6 +1,6 @@
 /**
  * Read queries over the projection for `/api/index/*`. The path table and the wire shapes (`MarketRow`, `PositionRow`,
- * `FillRow`, `ActionRow`, `RestingOrderRow` in `@agari/markets`) are the reference's; only the SQL behind them changed
+ * `FillRow`, `ActionRow`, `RestingOrderRow` in `@owarine/markets`) are the reference's; only the SQL behind them changed
  * (research 02 map item 29). Integers stay decimal strings.
  *
  * Canton mapping of the reference's columns: `book` is the Window's `terms_cid`, `ledger` and `seat` are null,

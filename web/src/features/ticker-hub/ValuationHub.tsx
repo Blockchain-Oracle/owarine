@@ -1,8 +1,8 @@
 "use client";
 
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";

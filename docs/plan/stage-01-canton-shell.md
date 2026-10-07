@@ -21,7 +21,7 @@
 
 ## Gate
 
-- Fast and web gates; `pnpm --filter @agari/mobile typecheck`.
+- Fast and web gates; `pnpm --filter @owarine/mobile typecheck`.
 - `no-solana` allowlist empty.
 - Every web route at 390/768/1440 in both themes; mobile side-by-side via `mobile/scripts/webdump.mjs`.
 - Settled-state sweep; `21st review` on changed paths; `expo export` for iOS and Android.

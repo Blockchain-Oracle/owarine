@@ -1,7 +1,7 @@
 "use client";
 
-import { belowMinStake } from "@agari/core/sizing";
-import { formatBaseUnits } from "@agari/core/units";
+import { belowMinStake } from "@owarine/core/sizing";
+import { formatBaseUnits } from "@owarine/core/units";
 import { X } from "lucide-react";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";

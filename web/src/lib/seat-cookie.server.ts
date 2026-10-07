@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { isAddress, type Address } from "@agari/core/types";
+import { isAddress, type Address } from "@owarine/core/types";
 
 /**
  * The seat cookie (research 05 §A): `leaseId.address.expiry.mac`, HttpOnly, SameSite=Lax, the MAC built the way the
@@ -7,7 +7,7 @@ import { isAddress, type Address } from "@agari/core/types";
  * took; the lease row it names is still checked on every call, so a released or recycled seat stops answering at once.
  * Base58 and UUIDs contain no dot, so the value splits unambiguously.
  */
-export const SEAT_COOKIE = "agari_seat";
+export const SEAT_COOKIE = "owarine_seat";
 /** The cookie outlives an idle lease on purpose: the row, not the cookie, says whether the seat is still this browser's. */
 export const SEAT_COOKIE_TTL_MS = 24 * 3_600_000;
 

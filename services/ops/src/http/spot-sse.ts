@@ -5,8 +5,8 @@
  * the newest `print_archive` row is served as `source: "archive"`, so a last close always exists.
  */
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
-import { latestArchivedPrints, type PrintArchiveSource } from "@agari/db";
+import { TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol, type XStockSymbol } from "@owarine/core/market";
+import { latestArchivedPrints, type PrintArchiveSource } from "@owarine/db";
 import type { SpotFeed, SpotQuote } from "../prices/spot";
 
 /** A quote this old or younger is `fresh` (D-086). */

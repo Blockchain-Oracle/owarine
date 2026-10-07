@@ -1,14 +1,14 @@
-import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, seatReadText } from "@agari/core/auth";
-import { encodeBase58, toSignature } from "@agari/core/types";
+import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, seatReadText } from "@owarine/core/auth";
+import { encodeBase58, toSignature } from "@owarine/core/types";
 import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
 /** C4d M4: a seat-store failure reached the client as the database's own text. Now: what failed and a reference only. */
-const SECRET_TEXT = "password authentication failed for user \"agari\" at db.internal:5432";
+const SECRET_TEXT = "password authentication failed for user \"owarine\" at db.internal:5432";
 vi.mock("./ledger.server", () => ({
   seatServer: () => ({
     ok: true,
-    server: { env: { AGARI_SEAT_COOKIE_SECRET: "x".repeat(40) }, store: { byAddress: async () => { throw new Error(SECRET_TEXT); }, byLease: async () => null } },
+    server: { env: { OWARINE_SEAT_COOKIE_SECRET: "x".repeat(40) }, store: { byAddress: async () => { throw new Error(SECRET_TEXT); }, byLease: async () => null } },
   }),
 }));
 vi.mock("./env", () => ({ webEnv: { markets: { cluster: "devnet" }, appOrigin: "https://site.test" } }));

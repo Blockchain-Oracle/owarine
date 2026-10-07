@@ -4,7 +4,7 @@
  * the `detail.result` vocabulary is "won" | "lost" | "void" (settle, claim, stale refund or void) plus "sold" and
  * "knocked-out" for a boost. Server-only, same rules as `./decode.ts`.
  */
-import { fromDamlInt, type Party } from "@agari/ledger";
+import { fromDamlInt, type Party } from "@owarine/ledger";
 import { DecodeError, type Side } from "../canton/decode";
 
 type Raw = Record<string, unknown>;

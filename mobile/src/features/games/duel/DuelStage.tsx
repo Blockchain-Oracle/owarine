@@ -1,8 +1,8 @@
-import { isTerminal, type MatchState, type StakeTierId } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Hash32 } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
-import { useArenaMatch } from "@agari/markets/react";
+import { isTerminal, type MatchState, type StakeTierId } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Hash32 } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
+import { useArenaMatch } from "@owarine/markets/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AppState, StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";

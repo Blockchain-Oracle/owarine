@@ -1,7 +1,7 @@
 /**
  * The seat's own commands (plan §8), each submitted with `actAs` = the leased seat party and nothing else, under the
  * `commandId` the client journaled before sending (`<intent>:<journal uuid>`), with a fresh `submissionId` per attempt
- * (`@agari/ledger`). Synchronous `submit-and-wait-for-transaction` with the ACS delta, so the created `Leg` comes back
+ * (`@owarine/ledger`). Synchronous `submit-and-wait-for-transaction` with the ACS delta, so the created `Leg` comes back
  * in the same round trip and `BookedOrder` is built from it, never from the request.
  *
  * Measured on 3.5.17 (`scripts/drive/probe-rejections.ts`): re-sending an accept that already landed is rejected at
@@ -9,13 +9,13 @@
  * `DUPLICATE_COMMAND`. So a missing quote is first checked against this command's own completion: a retry of a landed
  * accept is answered with its original transaction, never as "expired".
  */
-import { PRIVATE_LEG_REF } from "@agari/core/private";
+import { PRIVATE_LEG_REF } from "@owarine/core/private";
 import { withdrawCash } from "../ops/canton/commands";
 import { exactCash } from "./exact-cash";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type Command, type CreatedEvent, type DisclosedContract, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
-import type { BookedOrder } from "@agari/core/ports";
-import { diagnosis, type Diagnosis, type MarketId, type Signature } from "@agari/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type Command, type CreatedEvent, type DisclosedContract, type JsTransaction, type LedgerClient, type Party } from "@owarine/ledger";
+import type { BookedOrder } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis, type MarketId, type Signature } from "@owarine/core/types";
 import { cashView, isEntity, legView } from "./contracts";
 import { seatCommandId, type SeatIntent } from "./ids";
 import { claimPlans, contractsOf, type ClaimPlan } from "./map";

@@ -1,6 +1,6 @@
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import { encodeSpec, encodeStrategyMetadata, type StrategyIntent, type StrategyMetadata, type StrategySpec } from "@agari/core/strategies";
-import { diagnosis } from "@agari/core/types";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { encodeSpec, encodeStrategyMetadata, type StrategyIntent, type StrategyMetadata, type StrategySpec } from "@owarine/core/strategies";
+import { diagnosis } from "@owarine/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { refusedFor } from "../stub/product";
 import { agentsStrategyLane } from "../submitter/agents-lane";

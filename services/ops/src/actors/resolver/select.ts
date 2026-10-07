@@ -3,7 +3,7 @@
  * mirrored so the resolver only submits when the ledger will find a quorum, and offers exactly the quotes it will
  * count (one per oracle, the earliest fetch, then the lowest price). Pure.
  */
-import type { Active, PriceQuoteC, TermsC } from "@agari/markets/ops/canton";
+import type { Active, PriceQuoteC, TermsC } from "@owarine/markets/ops/canton";
 
 export type Slot = "open" | "close";
 

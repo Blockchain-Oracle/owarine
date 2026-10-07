@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@agari/core/market";
+import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@owarine/core/market";
 import { probeAll } from "../actors/source-probe";
 import { createSourceHealthStore } from "./source-health";
 

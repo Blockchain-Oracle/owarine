@@ -1,11 +1,11 @@
-import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, seatLeaseRowFor, type Db, type RecycleCheck, type RecycleOutcome } from "@agari/db";
-import type { Diagnosis } from "@agari/core/types";
-import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@agari/markets/server";
+import { recycleDrainingSeat, SEAT_RECYCLE_COLUMNS_SQL, seatLeaseRowFor, type Db, type RecycleCheck, type RecycleOutcome } from "@owarine/db";
+import type { Diagnosis } from "@owarine/core/types";
+import type { CommandJournal, CommandRow, CommandState, SeatIntent } from "@owarine/markets/server";
 import { createSeatLinkStore, SEAT_LINK_SCHEMA_SQL, type SeatLinkStore } from "./seat-link-store.server";
 
 /**
- * The seat pool and the server command journal (plan §4, §8), in the app's Postgres through `@agari/db`'s `getDb()`.
- * The schema is this file's own, applied idempotently once per process under its own advisory lock (the `@agari/db`
+ * The seat pool and the server command journal (plan §4, §8), in the app's Postgres through `@owarine/db`'s `getDb()`.
+ * The schema is this file's own, applied idempotently once per process under its own advisory lock (the `@owarine/db`
  * `ensureSchema` pattern), so the projector lane's migrations never interleave with it.
  *
  * States: `free → leased → draining → free`. A lease is taken with `FOR UPDATE SKIP LOCKED`, so concurrent visitors
@@ -69,7 +69,7 @@ export interface SeatStore {
   /** Draining seats, the one checked longest ago first, so a seat still holding a leg never blocks the others. */
   draining(limit: number): Promise<string[]>;
   markFree(party: string, nowMs: number): Promise<boolean>;
-  /** Frees one draining seat if `work` finds it empty (see `@agari/db` `recycleDrainingSeat`). */
+  /** Frees one draining seat if `work` finds it empty (see `@owarine/db` `recycleDrainingSeat`). */
   recycle(party: string, nowMs: number, work: () => Promise<RecycleCheck>): Promise<RecycleOutcome>;
   markFunded(leaseId: string, nowMs: number): Promise<void>;
   stats(nowMs: number, rules?: LeaseRules): Promise<SeatPoolStats>;
@@ -266,7 +266,7 @@ export function createSeatStore(db: Db, pool: readonly string[]): SeatStore {
     },
     async byAddress(address) {
       await ready();
-      // C4c: the one address → party resolution ops shares (`@agari/db` `seatLeaseRowFor`): own lease or a joined key.
+      // C4c: the one address → party resolution ops shares (`@owarine/db` `seatLeaseRowFor`): own lease or a joined key.
       const r = await seatLeaseRowFor(db, address);
       return r ? lease(r) : null;
     },

@@ -1,5 +1,5 @@
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
-import { useAssetPrice, useLanes } from "@agari/markets/react";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { useAssetPrice, useLanes } from "@owarine/markets/react";
 import { router } from "expo-router";
 import { assetPriceLine, basisRaw, feedRawToOracleRaw, usdLine } from "@/features/markets/hero/units";
 import { assetSourceLabel } from "@/features/markets/price-source/source-label";

@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@owarine/markets/react";
 import { useState } from "react";
 import { Money } from "@/components/data";
 import { ErrorState, LoadingState } from "@/components/states";

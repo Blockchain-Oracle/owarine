@@ -1,9 +1,9 @@
 "use client";
 
-import type { Cluster } from "@agari/core/constants";
-import { leaseSeat, registerSeatSigner, releaseSeat, type SeatLeaseView } from "@agari/markets";
-import { keys, useSeatLease } from "@agari/markets/react";
-import type { SeatSigner } from "@agari/markets/sessions";
+import type { Cluster } from "@owarine/core/constants";
+import { leaseSeat, registerSeatSigner, releaseSeat, type SeatLeaseView } from "@owarine/markets";
+import { keys, useSeatLease } from "@owarine/markets/react";
+import type { SeatSigner } from "@owarine/markets/sessions";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SeatLeaseState } from "./seat-lease-context";

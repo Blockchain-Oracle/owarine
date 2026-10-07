@@ -1,14 +1,14 @@
 "use client";
 
-import type { BlockerContext, BlockerKind } from "@agari/core/copy";
-import type { MarketPhase } from "@agari/core/lifecycle";
-import type { RangeReserveState } from "@agari/core/range";
-import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS, RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
-import { belowMinStake, minStakeBase } from "@agari/core/sizing";
-import type { EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
-import { isOk } from "@agari/core/schemas";
-import { useRangeBasis } from "@agari/markets/react";
+import type { BlockerContext, BlockerKind } from "@owarine/core/copy";
+import type { MarketPhase } from "@owarine/core/lifecycle";
+import type { RangeReserveState } from "@owarine/core/range";
+import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS, RANGE_STAKE_HEADROOM_BPS } from "@owarine/core/range";
+import { belowMinStake, minStakeBase } from "@owarine/core/sizing";
+import type { EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil } from "@owarine/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { useRangeBasis } from "@owarine/markets/react";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
 import { notify } from "@/lib/toast";

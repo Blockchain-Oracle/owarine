@@ -1,5 +1,5 @@
-import type { ParlayLegInput, ParlayMode, ParlayParams, ParlayQuote } from "@agari/core/parlay";
-import type { Reading } from "@agari/core/schemas";
+import type { ParlayLegInput, ParlayMode, ParlayParams, ParlayQuote } from "@owarine/core/parlay";
+import type { Reading } from "@owarine/core/schemas";
 import { asReading, parlayCall } from "../tickets/client";
 
 /** The ticket the reserve would sell (C8c): ops prices every leg off its Window's venue ladder with core's `quoteParlay`. */

@@ -1,7 +1,7 @@
-import { nameOf } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
-import { parseDecimalToBaseUnits } from "@agari/core/units";
-import { DESK_MINTS, USDC_MAINNET } from "@agari/markets/desk";
+import { nameOf } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { parseDecimalToBaseUnits } from "@owarine/core/units";
+import { DESK_MINTS, USDC_MAINNET } from "@owarine/markets/desk";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { MONEY } from "@/features/desk/copy-controls";

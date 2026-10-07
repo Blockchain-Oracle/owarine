@@ -1,6 +1,6 @@
 "use client";
 
-import type { Diagnosis } from "@agari/core/types";
+import type { Diagnosis } from "@owarine/core/types";
 import { useNowMs } from "@/components/data";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
 import { DUEL } from "./copy";

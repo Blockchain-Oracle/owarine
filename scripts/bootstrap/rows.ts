@@ -4,7 +4,7 @@
  *   | UTC | Stage | Scenario | Parity rows | Commit | Ledger evidence (update id / trace id / artifact) | Result |
  * Nothing here may carry a secret or a full party id: callers pass hints (`shortParty`) and trace ids only.
  */
-import { LedgerError } from "@agari/ledger";
+import { LedgerError } from "@owarine/ledger";
 
 export type Outcome = "pass" | "fail" | "warn" | "skip";
 

@@ -59,9 +59,9 @@ Not needed for judging: the Rules say projects on DevNet, TestNet or LocalNet ar
 ## Needs Abu
 
 1. **Every day until 9 Oct:** press "claim mana" on the HackCanton dashboard and write the evening journal entry.
-2. **DevNet, once (about 20 minutes):** onboard the Noders wallet, sign in to the Console with Authfactory, create the 19 parties, save the party list on this Mac, upload the 5 DARs in order, and put the platform login in `~/.config/agari/canton/devnet.env`. The clicks are in `docs/plan/runbooks/devnet-r1.md`. Then tell me "done".
+2. **DevNet, once (about 20 minutes):** onboard the Noders wallet, sign in to the Console with Authfactory, create the 19 parties, save the party list on this Mac, upload the 5 DARs in order, and put the platform login in `~/.config/owarine/canton/devnet.env`. The clicks are in `docs/plan/runbooks/devnet-r1.md`. Then tell me "done".
 3. **Website:** a domain, and its A records at Namecheap (`runbooks/coolify-deploy.md` §1). Then either a Coolify API token for this session or Abu clicks the deploy steps.
-4. **iPhone app:** confirm "Agari Canton" and `xyz.useagari.canton`, create the App Store Connect record (`docs/evidence/c11a-ios.md`). TestFlight review took about 2 days last time, so this only makes 9 Oct if it starts by 7 Oct.
+4. **iPhone app:** the name is Owarine and the bundle id `com.owarine.app` (K-401); create the App Store Connect record (`docs/evidence/c11a-ios.md`). TestFlight review took about 2 days last time, so this only makes 9 Oct if it starts by 7 Oct.
 5. **At the end:** make the GitHub repository public, record the video, send the submission form.
 
 Everything else has a default in `decisions.md` that Abu can overrule.

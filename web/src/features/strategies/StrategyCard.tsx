@@ -1,7 +1,7 @@
 "use client";
 
-import type { EquityPoint } from "@agari/core/projection";
-import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
+import type { EquityPoint } from "@owarine/core/projection";
+import { parseStrategyMetadata, type StrategySubscription } from "@owarine/core/strategies";
 import { EquitySparkline } from "@/features/markets/history";
 import { cn } from "@/lib/utils";
 import { AgentPortrait } from "./AgentPortrait";

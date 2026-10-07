@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { useClaimables, usePositions } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { useClaimables, usePositions } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import type { ReactNode } from "react";

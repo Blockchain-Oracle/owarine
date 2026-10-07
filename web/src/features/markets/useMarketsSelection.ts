@@ -1,8 +1,8 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket, Lane, LaneSet, MarketId, Side } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, Lane, LaneSet, MarketId, Side } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import { useCallback, useState } from "react";
 import { findMarket, useResolveDeepLink } from "@/lib/deep-link";
 import { defaultSide, useBetAgainst } from "./bet-against";

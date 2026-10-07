@@ -6,10 +6,10 @@
  * (the operator client posts the attestors' marks at the Window's fair price right before it), and trusts its own
  * record only once the mandate's `nextHead(prev, seq, hash)` equals the sealed head.
  */
-import { buildDecisionBody, deskCopy, GENESIS_SLOT, hashRecord, nameOf, netOfFee, paperFeeBpsFor, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@agari/core/desk";
-import { CLUSTER_ID } from "@agari/core/constants";
-import type { Hash32 } from "@agari/core/types";
-import { buy, cantonChainHead, DeskSendError, DeskSendUnknownError, sell } from "@agari/markets/desk/server";
+import { buildDecisionBody, deskCopy, GENESIS_SLOT, hashRecord, nameOf, netOfFee, paperFeeBpsFor, ZERO_HASH, type ApprovalOf, type PaperLedger } from "@owarine/core/desk";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import type { Hash32 } from "@owarine/core/types";
+import { buy, cantonChainHead, DeskSendError, DeskSendUnknownError, sell } from "@owarine/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import { APPROVAL_TTL_SEC, DEADLINE_SEC, type Considered } from "./consider";
 import { REFERENCE_REFRESH_SEC } from "./market";

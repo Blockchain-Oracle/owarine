@@ -1,5 +1,5 @@
-import type { RunnerHealth } from "@agari/core/strategies";
-import type { VaultGrant } from "@agari/core/vault";
+import type { RunnerHealth } from "@owarine/core/strategies";
+import type { VaultGrant } from "@owarine/core/vault";
 import { StyleSheet, Text, View } from "react-native";
 import { strategyActivityOf } from "@/features/strategies/activity";
 import type { CopyState } from "@/features/strategies/lifecycle";

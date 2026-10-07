@@ -1,4 +1,4 @@
-import { parsePythSchedule, type PythSchedule } from "@agari/core/market";
+import { parsePythSchedule, type PythSchedule } from "@owarine/core/market";
 
 const HERMES = "https://hermes.pyth.network";
 

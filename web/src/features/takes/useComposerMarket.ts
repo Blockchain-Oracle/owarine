@@ -1,7 +1,7 @@
 "use client";
 
-import { isEnterable, phase } from "@agari/core/lifecycle";
-import type { EventMarket, Lane, LaneSet } from "@agari/core/types";
+import { isEnterable, phase } from "@owarine/core/lifecycle";
+import type { EventMarket, Lane, LaneSet } from "@owarine/core/types";
 import { useEffect, useMemo, useState } from "react";
 
 export interface ComposerHorizon {

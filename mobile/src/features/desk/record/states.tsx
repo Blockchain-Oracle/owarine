@@ -1,5 +1,5 @@
-import { diagnosisCopy, ERROR_BOUNDARY } from "@agari/core/copy";
-import type { Diagnosis } from "@agari/core/types";
+import { diagnosisCopy, ERROR_BOUNDARY } from "@owarine/core/copy";
+import type { Diagnosis } from "@owarine/core/types";
 import { router, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

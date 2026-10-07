@@ -1,5 +1,5 @@
-import { deskRecordSchema, nameOf, type DeskRecordBody } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
+import { deskRecordSchema, nameOf, type DeskRecordBody } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
 import { ArrowUpRight, Eye, Fingerprint, Gavel, Hourglass, Radar, Receipt, Search, ShieldCheck, Split, TrendingDown, TrendingUp, Zap } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";

@@ -1,9 +1,9 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
-import type { MarketId } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useTick } from "@agari/markets/react";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { MarketId } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { useTick } from "@owarine/markets/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MARKETS, TICKET } from "@/lib/copy";

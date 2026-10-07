@@ -1,6 +1,6 @@
-import type { DeskMode } from "@agari/core/desk";
-import type { Address } from "@agari/core/types";
-import { readSealsOf, type DeskRpc, type DeskState, type SealedAction } from "@agari/markets/desk";
+import type { DeskMode } from "@owarine/core/desk";
+import type { Address } from "@owarine/core/types";
+import { readSealsOf, type DeskRpc, type DeskState, type SealedAction } from "@owarine/markets/desk";
 import { seatServer } from "@/lib/ledger.server";
 import { deskStore } from "./desk.server";
 import { DESK_CLUSTER, type ChainStateWire } from "./protocol";

@@ -1,7 +1,7 @@
 "use client";
 
-import type { DeckCard } from "@agari/core/games";
-import { formatClock } from "@agari/core/units";
+import type { DeckCard } from "@owarine/core/games";
+import { formatClock } from "@owarine/core/units";
 import { Clock } from "lucide-react";
 import type { ReactNode } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

@@ -159,7 +159,7 @@ export const RECORD = {
     practiceFoot: "Practice: nothing moved.",
   },
   og: {
-    alt: "A shared Agari desk: its mode, how many checks are on its record, and its last check.",
+    alt: "A shared Owarine desk: its mode, how many checks are on its record, and its last check.",
     eyebrow: "A shared desk",
     title: "Someone's desk",
     checks: (n: number) => `${n} ${n === 1 ? "check" : "checks"} on the record`,

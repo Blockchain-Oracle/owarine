@@ -2,8 +2,8 @@
  * Everything the seat routes do on the ledger, behind one object built once per server process: per-party reads mapped
  * onto the core types, the seat's own commands, and the ops client for the venue's side of a quote.
  */
-import type { LedgerClient, Party } from "@agari/ledger";
-import type { BalanceSheet, ClaimableRow, OpenPosition } from "@agari/core/types";
+import type { LedgerClient, Party } from "@owarine/ledger";
+import type { BalanceSheet, ClaimableRow, OpenPosition } from "@owarine/core/types";
 import type { TermsView } from "./contracts";
 import { balanceSheet, busyUntilMs, claimables, claimPlans, openPositions, openQuotes, type OpenQuoteRow } from "./map";
 import { createMarketReader, createSeatReader, type MarketReader, type SeatReader, type SeatSnapshot } from "./reads";

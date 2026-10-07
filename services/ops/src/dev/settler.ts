@@ -1,4 +1,4 @@
-// Dev runner: the settler alone. `pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/dev/settler.ts`
+// Dev runner: the settler alone. `pnpm --filter @owarine/ops exec tsx --env-file-if-exists=../../.env.local src/dev/settler.ts`
 // Env: SOLANA_CLUSTER=localnet SURFPOOL_PORT=… for a Surfpool fork; DRY_RUN=0 to send; SETTLER_ALL_SERIES=1 includes drive-only Series.
 import { createSessionService } from "../calendar/session-service";
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, readOpsEnv } from "../runtime";

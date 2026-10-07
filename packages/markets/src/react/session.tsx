@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";

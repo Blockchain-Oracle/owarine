@@ -1,4 +1,4 @@
-import { ADVICE_COPY } from "@agari/core/copy";
+import { ADVICE_COPY } from "@owarine/core/copy";
 
 /**
  * `/` — the landing's words. Session words and lane words come from core and
@@ -6,7 +6,7 @@ import { ADVICE_COPY } from "@agari/core/copy";
  */
 export const LANDING = {
   meta: {
-    title: "Agari · Private prediction markets on Canton",
+    title: "Owarine · Private prediction markets on Canton",
     description: "Up or down on a stock, a coin or an event, at a firm price from the venue. Only you and the venue can see your position, and three oracle parties sign the print that settles it. Canton test network, demo credits.",
   },
   hero: {
@@ -18,7 +18,7 @@ export const LANDING = {
     secondary: "How it works",
     docs: "Read the docs →",
     paths: "Predict  ·  Cover  ·  Hold",
-    folioLeft: "Agari / Prediction exchange",
+    folioLeft: "Owarine / Prediction exchange",
     folioRight: "Canton prediction markets",
   },
   /**
@@ -102,7 +102,7 @@ export const LANDING = {
     section: { index: "04", title: "Cover what you hold", desc: "Own a stock token? Protect it without selling it." },
     paragraphs: [
       "Tokenized stocks trade around the clock on other networks: Tesla and Nvidia as xStocks, and private companies like OpenAI, Anthropic and SpaceX as PreStocks. Until now, a holder who feared a drop had two choices: sell, or hope.",
-      "Agari adds a third: a Down bet on that name as cover. A seat holds no outside tokens until the Canton Coin rail lands, so today this shows how cover works. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
+      "Owarine adds a third: a Down bet on that name as cover. A seat holds no outside tokens until the Canton Coin rail lands, so today this shows how cover works. If the price falls, the bet pays and softens the loss. If it rises, the bet costs a little and the tokens are worth more.",
       "Hold two or more of the same basket, a small group of companies bet on together such as OpenAI and Anthropic, and one Down bet on the basket covers them at once.",
     ],
     story: "In May 2026 the OpenAI token fell 39% in a week after OpenAI and Anthropic disputed the tokens, and there was too little liquidity for everyone to sell. A holder with a Down bet would have been paid as it fell.",
@@ -150,10 +150,10 @@ export const LANDING = {
   install: {
     eyebrow: "On your phone",
     title: "Install it from the browser.",
-    line: "No store and no native build. Add Agari to your home screen and a call is one tap away.",
+    line: "No store and no native build. Add Owarine to your home screen and a call is one tap away.",
   },
   foot: {
-    nav: "Agari pages",
+    nav: "Owarine pages",
     markets: "Markets",
     howItWorks: "How it works",
     download: "Get the app",

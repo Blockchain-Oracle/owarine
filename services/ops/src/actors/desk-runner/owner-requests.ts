@@ -5,8 +5,8 @@
  * is recorded as a blocked action that rings, and the order stays open for the next wake. Recorded as
  * ACTED_BY_OVERRIDE with `override.by = "owner"`, so the desk's Timing sum leaves it out (core `grade.ts`).
  */
-import { deskCopy, formatTokens, formatUsdc, gate, minBigint, nameOf, rawFor, type DeskNeed } from "@agari/core/desk";
-import { DESK_MINTS } from "@agari/markets/desk/server";
+import { deskCopy, formatTokens, formatUsdc, gate, minBigint, nameOf, rawFor, type DeskNeed } from "@owarine/core/desk";
+import { DESK_MINTS } from "@owarine/markets/desk/server";
 import { appendPlainRecord, commit } from "./commit";
 import { blockersFor, DEADLINE_SEC, gateInputFor, SLIPPAGE_BPS, type Considered } from "./consider";
 import { readMarket } from "./market";

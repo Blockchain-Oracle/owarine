@@ -7,8 +7,8 @@
  * drive report. Kill it at any moment and start it again: every actor reconciles from the ledger, and every write
  * carries a stable command id.
  *
- *   LEDGER_JSON_API_URL=http://localhost:7575 AGARI_PARTIES_FILE=… DRY_RUN=0 OPS_INTERNAL_SECRET=… \
- *     pnpm --filter @agari/scripts exec tsx drive/ops-local.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7575 OWARINE_PARTIES_FILE=… DRY_RUN=0 OPS_INTERNAL_SECRET=… \
+ *     pnpm --filter @owarine/scripts exec tsx drive/ops-local.ts
  */
 // C6e: ops' env files (services/ops/.env.local, then the root .env.local) load first, never over an explicit variable.
 import { loadedEnvFiles } from "../../services/ops/src/runtime/load-env";

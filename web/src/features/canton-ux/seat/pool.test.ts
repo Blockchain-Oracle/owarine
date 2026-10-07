@@ -1,4 +1,4 @@
-import type { SeatLeaseView } from "@agari/markets";
+import type { SeatLeaseView } from "@owarine/markets";
 import { describe, expect, it } from "vitest";
 import { POOL_SPAN_SEC, poolFullOf, takeOutcomeOf } from "./pool";
 

@@ -23,7 +23,7 @@ describe("seatNumberOf (C11b: every network's seat hint names its number)", () =
     expect(seatNumberOf("seat-3::1220abcd")).toBe(3);
     expect(seatNumberOf("pm-seat-3::1220abcd")).toBe(3);
     expect(seatNumberOf("pm-seat-12::1220abcd")).toBe(12);
-    expect(seatNumberOf("agari-user-seat-1-k2x9::1220abcd")).toBe(1);
+    expect(seatNumberOf("owarine-user-seat-1-k2x9::1220abcd")).toBe(1);
   });
   it("is null where the hint carries no seat number", () => {
     expect(seatNumberOf("seat-a-lk2::1220abcd")).toBeNull();

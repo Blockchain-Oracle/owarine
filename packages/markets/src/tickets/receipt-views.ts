@@ -10,10 +10,10 @@
  * (`payout + toReserve`), the receipt's creation time is the settled time, and what it cannot say (the open time)
  * stays 0 as for live tickets. A receipt's id is its contract's, and is never registered as a claimable ticket.
  */
-import type { LeveragePosition } from "@agari/core/leverage";
-import type { ParlayLeg, ParlayTicket } from "@agari/core/parlay";
-import type { RangeRound } from "@agari/core/range";
-import type { Address } from "@agari/core/types";
+import type { LeveragePosition } from "@owarine/core/leverage";
+import type { ParlayLeg, ParlayTicket } from "@owarine/core/parlay";
+import type { RangeRound } from "@owarine/core/range";
+import type { Address } from "@owarine/core/types";
 import { parseBoostPick, parseRangePick } from "./receipt-pick";
 import type { TicketReceiptView } from "../provider/ticket-wire";
 import { ticketIdOf } from "./client";

@@ -1,5 +1,5 @@
-import type { BookedOrder } from "@agari/core/ports";
-import { bpsToOddsCents, formatBaseUnits } from "@agari/core/units";
+import type { BookedOrder } from "@owarine/core/ports";
+import { bpsToOddsCents, formatBaseUnits } from "@owarine/core/units";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";

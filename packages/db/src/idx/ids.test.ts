@@ -1,4 +1,4 @@
-import { marketIdFromDaml } from "@agari/core/market";
+import { marketIdFromDaml } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 import { marketIdOfKey, seriesIdOfKey } from "./ids";
 import { offsetOf } from "./write";

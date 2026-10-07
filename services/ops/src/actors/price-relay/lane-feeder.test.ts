@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@agari/core/market";
-import type { TermsC } from "@agari/markets/ops/canton";
+import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@owarine/core/market";
+import type { TermsC } from "@owarine/markets/ops/canton";
 import { createAttestedReader, surgeValueOf } from "../../prices/attested-read";
 import { laneSlots, lanePrintCommandId } from "./lane-feeder";
 

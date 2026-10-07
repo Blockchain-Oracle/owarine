@@ -1,4 +1,4 @@
-import { formatBaseUnits, formatClock, remainingSec } from "@agari/core/units";
+import { formatBaseUnits, formatClock, remainingSec } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { LEADERBOARD, type BoardSpan } from "@/features/leaderboard/copy";
 import type { BoardQuery } from "@/features/leaderboard/leaderboard-client";

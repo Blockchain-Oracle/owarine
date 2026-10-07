@@ -1,6 +1,6 @@
-import type { BookTarget } from "@agari/core/ports";
-import type { Reading } from "@agari/core/schemas";
-import type { BookDepth } from "@agari/core/types";
+import type { BookTarget } from "@owarine/core/ports";
+import type { Reading } from "@owarine/core/schemas";
+import type { BookDepth } from "@owarine/core/types";
 import { useCallback, useSyncExternalStore } from "react";
 import { bookSnapshot, subscribeBook } from "../runtime/coordinator";
 

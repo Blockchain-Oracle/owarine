@@ -9,18 +9,18 @@
  *   tsx drive/c5d-crowd.ts sentiment                       /api/sentiment as a visitor reads it
  *   tsx drive/c5d-crowd.ts reset --seats 1-5               let the seats go
  *
- *   env: C5D_WEB (http://localhost:3160), LEDGER_JSON_API_URL, AGARI_PARTIES_FILE, --dir <scratch>/crowd
+ *   env: C5D_WEB (http://localhost:3160), LEDGER_JSON_API_URL, OWARINE_PARTIES_FILE, --dir <scratch>/crowd
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { randomUUID, webcrypto } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58, type Address } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { createLedgerClient, noAuth } from "@agari/ledger";
-import { parseMarketsEnv } from "@agari/markets";
-import { decodeOpenPrint, decodeTerms, templateSuffix } from "@agari/markets/ops/canton";
-import { appMarketId } from "@agari/markets/server";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58, type Address } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { createLedgerClient, noAuth } from "@owarine/ledger";
+import { parseMarketsEnv } from "@owarine/markets";
+import { decodeOpenPrint, decodeTerms, templateSuffix } from "@owarine/markets/ops/canton";
+import { appMarketId } from "@owarine/markets/server";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 import { arg } from "./cli";
 import { webClient, type Seat } from "./first-call/seat";
@@ -31,7 +31,7 @@ const cluster = parseMarketsEnv({ cluster: process.env.NEXT_PUBLIC_CANTON_NETWOR
 const web = webClient(WEB, cluster);
 const client = createLedgerClient({ baseUrl: process.env.LEDGER_JSON_API_URL ?? "http://localhost:7604", auth: noAuth(), userId: "c5d-crowd" });
 const venue = readPartiesFile()?.parties.venue;
-if (!venue) throw new Error("no parties file (AGARI_PARTIES_FILE)");
+if (!venue) throw new Error("no parties file (OWARINE_PARTIES_FILE)");
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const log = (s: string) => console.log(`${new Date().toISOString().slice(11, 19)} ${s}`);
 

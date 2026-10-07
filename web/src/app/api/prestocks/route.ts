@@ -1,4 +1,4 @@
-import { BASKET_SYMBOLS, PRE_IPO_SYMBOLS, type BasketSymbol, type PreIpoSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, PRE_IPO_SYMBOLS, type BasketSymbol, type PreIpoSymbol } from "@owarine/core/market";
 import { webEnv } from "@/lib/env";
 
 /**

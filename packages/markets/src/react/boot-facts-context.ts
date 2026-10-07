@@ -1,6 +1,6 @@
 "use client";
 
-import type { Diagnosis } from "@agari/core/types";
+import type { Diagnosis } from "@owarine/core/types";
 import { createContext, useContext } from "react";
 import type { BootFact } from "./boot-fact";
 

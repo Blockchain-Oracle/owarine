@@ -1,4 +1,4 @@
-import type { Side } from "@agari/core/types";
+import type { Side } from "@owarine/core/types";
 import { ArrowDown, ArrowUp } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { sidesInOrder, useBetAgainst } from "@/features/markets/bet-against";

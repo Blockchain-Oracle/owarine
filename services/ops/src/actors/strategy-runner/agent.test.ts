@@ -1,5 +1,5 @@
-import type { StrategyRecord } from "@agari/core/strategies";
-import { encodeBase58, type Address } from "@agari/core/types";
+import type { StrategyRecord } from "@owarine/core/strategies";
+import { encodeBase58, type Address } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { agentBootLine, createAgentState, scanVenueWithAgent, takeCall, type AgentState } from "./agent";
 import { readRunnerEnv } from "./env";

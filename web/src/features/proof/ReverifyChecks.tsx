@@ -1,4 +1,4 @@
-import type { ProofCheck, ReverifyReport } from "@agari/core/proof";
+import type { ProofCheck, ReverifyReport } from "@owarine/core/proof";
 import { PROOF } from "./copy";
 import { oracleName, priceE8Text } from "./format";
 

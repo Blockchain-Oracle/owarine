@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKERS, type Basket } from "@agari/core/market";
+import { TICKERS, type Basket } from "@owarine/core/market";
 import Link from "next/link";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { usdLine } from "@/features/markets/hero/units";

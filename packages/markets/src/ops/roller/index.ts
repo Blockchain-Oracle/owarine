@@ -1,9 +1,9 @@
 /**
- * `@agari/markets/ops/roller`: window-roller calls. On Canton a window opens through a consuming `Series_OpenWindow`
+ * `@owarine/markets/ops/roller`: window-roller calls. On Canton a window opens through a consuming `Series_OpenWindow`
  * that checks `nextIndex` (C3), with no books to recycle; in C1 every ledger call refuses as not live and the pure
  * venue constants stay. Server-only.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { KeyPairSigner } from "../../deploy/client";
 import type { OpsClient } from "../client";
 import { opsNotLive } from "../shapes";

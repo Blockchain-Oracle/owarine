@@ -1,8 +1,8 @@
-import type { BlockerKind } from "@agari/core/copy";
-import { isRestable, type MarketPhase } from "@agari/core/lifecycle";
-import { isPriceCents, MAX_RESTING_PER_SEAT, type RestingQuote } from "@agari/core/orders";
-import type { Side } from "@agari/core/types";
-import type { FundingCheck } from "@agari/markets";
+import type { BlockerKind } from "@owarine/core/copy";
+import { isRestable, type MarketPhase } from "@owarine/core/lifecycle";
+import { isPriceCents, MAX_RESTING_PER_SEAT, type RestingQuote } from "@owarine/core/orders";
+import type { Side } from "@owarine/core/types";
+import type { FundingCheck } from "@owarine/markets";
 import type { WalletSession } from "@/lib/wallet-session";
 import type { Crossing } from "./crossing";
 import { fundingBlocker, laneBlocker, PHASE_BLOCKERS, type LaneGuardInput } from "./ticket-guards";

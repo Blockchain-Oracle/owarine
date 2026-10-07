@@ -1,6 +1,6 @@
 "use client";
 
-import AgariMark from "@/components/shell/AgariMark";
+import OwarineMark from "@/components/shell/OwarineMark";
 import { LogoX } from "./marks";
 import { PITCH } from "./copy";
 import { Rise, Tag } from "./primitives";
@@ -15,7 +15,7 @@ const tiltStyle = (tilt: number) => ({ "--tilt": `${tilt}deg` }) as CSSPropertie
  * Every one of these is a drawn illustration, not product state, and each carries a
  * tag saying so (MOCK · ILLUSTRATIVE, CONCEPT · NOT LIVE). The phone shows the product's
  * real UI grammar — the question against the opening print, the chart, UP/DOWN, the
- * stake-first ticket, the 上がり stamp on a win — so the picture is of the product that
+ * stake-first ticket, the 的中 stamp on a win — so the picture is of the product that
  * exists, with numbers that are plainly a mock's.
  *
  * Colours live in `pitch-slides.css`; the SVG takes its strokes and fills from classes
@@ -66,15 +66,15 @@ export function PhoneMock({ tilt = 0, won = false, i = 1 }: { tilt?: number; won
           </div>
           <div className="pitch-phone-app">
             <span className="pitch-phone-brand">
-              <AgariMark className="pitch-phone-mark" />
-              agari
+              <OwarineMark className="pitch-phone-mark" />
+              owarine
             </span>
             <span className="pitch-phone-balance">12.74 credits</span>
           </div>
           {won ? (
             <div className="pitch-phone-won">
-              <div className="pitch-phone-stamp">上がり</div>
-              <div className="pitch-phone-won-label">AGARI · IT CAME IN</div>
+              <div className="pitch-phone-stamp">的中</div>
+              <div className="pitch-phone-won-label">OWARINE · IT CAME IN</div>
               <div className="pitch-phone-won-figure">+14.60</div>
               <div className="pitch-phone-won-sub">paid to your seat · settlement receipt ↗</div>
               <div className="pitch-phone-cta">Collect</div>
@@ -114,10 +114,10 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
       <div className="pitch-xcard-body">
         <div className="pitch-xcard-author">
           <span className="pitch-xcard-avatar">
-            <AgariMark className="pitch-xcard-mark" />
+            <OwarineMark className="pitch-xcard-mark" />
           </span>
           <span>
-            <span className="pitch-xcard-name">Agari</span>
+            <span className="pitch-xcard-name">Owarine</span>
             <span className="pitch-xcard-handle">@ — not yet</span>
           </span>
           <span className="pitch-xcard-x">
@@ -127,7 +127,7 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
         <div className="pitch-xcard-text">Will TSLA close above $358.20 at 20:00 UTC?</div>
         <div className="pitch-xcard-embed">
           <div className="pitch-xcard-embed-head">
-            <span>AGARI · TSLA $358.20</span>
+            <span>OWARINE · TSLA $358.20</span>
             <span className="up">↑ 0.4%</span>
           </div>
           <MiniChart w={296} h={58} strikeY={34} />
@@ -137,7 +137,7 @@ export function XBetCard({ tilt = 0, i = 1 }: { tilt?: number; i?: number }) {
         <span className="pitch-xcard-reply-avatar" />
         <span>
           <div className="pitch-xcard-reply-text">
-            <span className="handle">@agari</span> TSLA up, 5
+            <span className="handle">@owarine</span> TSLA up, 5
           </div>
           <div className="pitch-xcard-receipt">
             <span className="dot" />

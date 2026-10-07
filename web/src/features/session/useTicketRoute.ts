@@ -1,10 +1,10 @@
 "use client";
 
-import type { OrderRoute } from "@agari/core/ports";
-import type { Address, EventMarket, OnchainSnapshot, Quote, Side } from "@agari/core/types";
-import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@agari/core/units";
-import { capQuoteToGrant, dailyHeadroomBase, simulateCaps } from "@agari/core/vault";
-import { useSubmitter, useVaultHoldings } from "@agari/markets/react";
+import type { OrderRoute } from "@owarine/core/ports";
+import type { Address, EventMarket, OnchainSnapshot, Quote, Side } from "@owarine/core/types";
+import { formatBaseUnits, oneUnit, ownTermsPriceRaw } from "@owarine/core/units";
+import { capQuoteToGrant, dailyHeadroomBase, simulateCaps } from "@owarine/core/vault";
+import { useSubmitter, useVaultHoldings } from "@owarine/markets/react";
 import { SESSION } from "./copy";
 import { refusalText } from "./refusal";
 import { useSessionKey } from "./SessionKeyProvider";

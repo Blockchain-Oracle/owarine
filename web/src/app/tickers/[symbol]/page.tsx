@@ -1,4 +1,4 @@
-import { isTickerSymbol, TICKERS } from "@agari/core/market";
+import { isTickerSymbol, TICKERS } from "@owarine/core/market";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { tickerHref } from "@/features/takes/cashtags";

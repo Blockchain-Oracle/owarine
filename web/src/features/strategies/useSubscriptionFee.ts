@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { getStrategy } from "@agari/markets/strategies";
+import { isOk } from "@owarine/core/schemas";
+import { getStrategy } from "@owarine/markets/strategies";
 import { useCallback, useEffect, useState } from "react";
 
 /** The fee is charged by every subscribe call, including a resume or replacement grant. */

@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { collateralOrNull } from "@agari/markets";
-import { useBalanceSheet } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { collateralOrNull } from "@owarine/markets";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { useEffect, useRef } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { leasedOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";

@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { BASKET_INDEX_BASE_E8, BASKETS, TICKERS } from "@agari/core/market";
-import type { PreStocksRead } from "@agari/markets/ops/prints";
+import { BASKET_INDEX_BASE_E8, BASKETS, TICKERS } from "@owarine/core/market";
+import type { PreStocksRead } from "@owarine/markets/ops/prints";
 
 // The feed only needs `fetchPreStocks` from the prints barrel, and every test injects its own `read`; the barrel's
 // Pyth/Switchboard re-exports are not loadable in this test environment, so the module is stubbed at the boundary.
-vi.mock("@agari/markets/ops/prints", () => ({ fetchPreStocks: vi.fn(async () => { throw new Error("not used in tests"); }) }));
+vi.mock("@owarine/markets/ops/prints", () => ({ fetchPreStocks: vi.fn(async () => { throw new Error("not used in tests"); }) }));
 import type { SpotFeed, SpotQuote } from "./spot";
 import { createPreStocksSpotFeed, joinPreStocksSpot, samplesOf, snapshotOf } from "./prestocks-spot";
 

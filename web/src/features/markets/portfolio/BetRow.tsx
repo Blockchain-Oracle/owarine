@@ -1,8 +1,8 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
-import type { OpenPosition, Side } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import { countdown } from "@owarine/core/lifecycle";
+import type { OpenPosition, Side } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Countdown, Money } from "@/components/data";

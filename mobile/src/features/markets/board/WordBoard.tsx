@@ -1,6 +1,6 @@
-import { diagnosisCopy } from "@agari/core/copy";
-import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@agari/core/market";
-import type { Diagnosis, EventMarket, LaneSet } from "@agari/core/types";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@owarine/core/market";
+import type { Diagnosis, EventMarket, LaneSet } from "@owarine/core/types";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";

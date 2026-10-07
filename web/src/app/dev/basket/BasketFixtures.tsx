@@ -1,7 +1,7 @@
 "use client";
 
-import type { MarketId, Side } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import type { MarketId, Side } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import { useRouter } from "next/navigation";
 import { SectionHeader } from "@/components/chrome";
 import { BASKETS_COPY, BasketCard } from "@/features/baskets";

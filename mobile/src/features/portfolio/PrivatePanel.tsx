@@ -1,7 +1,7 @@
-import { blockerLabel } from "@agari/core/copy";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@agari/markets/react";
+import { blockerLabel } from "@owarine/core/copy";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet, usePrivateBudget, usePrivateDesk } from "@owarine/markets/react";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";

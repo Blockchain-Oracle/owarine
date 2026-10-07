@@ -1,5 +1,5 @@
-import { quickChips } from "@agari/core/sizing";
-import { formatBaseUnits } from "@agari/core/units";
+import { quickChips } from "@owarine/core/sizing";
+import { formatBaseUnits } from "@owarine/core/units";
 import { useEffect, type ReactNode } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";

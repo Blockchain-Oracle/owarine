@@ -1,7 +1,7 @@
-import { winPayoutBase } from "@agari/core/claims";
-import { formatCadence } from "@agari/core/copy";
-import type { Side, Signature } from "@agari/core/types";
-import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
+import { winPayoutBase } from "@owarine/core/claims";
+import { formatCadence } from "@owarine/core/copy";
+import type { Side, Signature } from "@owarine/core/types";
+import { formatBaseUnits, formatUtc, secToMs } from "@owarine/core/units";
 import { assetPriceLine } from "@/features/markets/hero/units";
 import { CARD_MARGIN, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawSpark, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";
 import { SHARE } from "./copy";

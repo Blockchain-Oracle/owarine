@@ -1,5 +1,5 @@
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
-import { useLanes } from "@agari/markets/react";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { useLanes } from "@owarine/markets/react";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { tradingBasketWindow } from "@/features/baskets/basket-window";

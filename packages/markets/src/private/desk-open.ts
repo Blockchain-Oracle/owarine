@@ -1,5 +1,5 @@
-import type { PrivateOpenResult } from "@agari/core/private";
-import type { Address, MarketId, Side, Signature } from "@agari/core/types";
+import type { PrivateOpenResult } from "@owarine/core/private";
+import type { Address, MarketId, Side, Signature } from "@owarine/core/types";
 import type { DeskClient } from "./desk-client";
 import { PRIVATE_NOT_LIVE, PRIVATE_NOT_LIVE_WORDS } from "./reads";
 

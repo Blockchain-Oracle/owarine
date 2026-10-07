@@ -1,9 +1,9 @@
-import { TICKERS } from "@agari/core/market";
-import { addressSchema } from "@agari/core/types";
-import { proofRows } from "@agari/db";
+import { TICKERS } from "@owarine/core/market";
+import { addressSchema } from "@owarine/core/types";
+import { proofRows } from "@owarine/db";
 import { BadRequest, type IndexQuery } from "./queries";
 
-/** Ticker → Pyth feed hex (no `0x`), the `print_archive.feed` of a Pyth print: the trial feed, or a valuation lane's index (S20); `@agari/db` does not import core. */
+/** Ticker → Pyth feed hex (no `0x`), the `print_archive.feed` of a Pyth print: the trial feed, or a valuation lane's index (S20); `@owarine/db` does not import core. */
 const PYTH_FEEDS: Readonly<Record<string, string>> = Object.fromEntries(
   Object.values(TICKERS).flatMap((t) => {
     const feed = t.pythFeedId ?? (t.kind === "valuation" ? t.pythIndexFeedId : null);

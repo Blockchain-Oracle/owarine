@@ -1,6 +1,6 @@
 "use client";
 
-import { ledgerRequest } from "@agari/markets";
+import { ledgerRequest } from "@owarine/markets";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 
@@ -23,7 +23,7 @@ const publishWire = z.discriminatedUnion("kind", [
 export type PublicationRow = z.infer<typeof publicationWire>;
 export type PublishSource = "leg" | "receipt";
 
-export const publicationsKey = (address: string | null) => ["agari", "seat", "publications", address] as const;
+export const publicationsKey = (address: string | null) => ["owarine", "seat", "publications", address] as const;
 
 export function usePublications(address: string | null) {
   return useQuery({
@@ -42,7 +42,7 @@ export function usePublishCall(address: string | null) {
   const client = useQueryClient();
   const settle = () => {
     void client.invalidateQueries({ queryKey: publicationsKey(address) });
-    void client.invalidateQueries({ queryKey: ["agari", "leaderboard"] });
+    void client.invalidateQueries({ queryKey: ["owarine", "leaderboard"] });
   };
   const publish = useMutation({
     mutationFn: async (o: { marketId: string; source: PublishSource; receiptId?: string }) => {

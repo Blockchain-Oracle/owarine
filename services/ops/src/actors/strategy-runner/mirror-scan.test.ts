@@ -1,4 +1,4 @@
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const NOW_SEC = 1_791_250_000;
@@ -8,7 +8,7 @@ const lanes = { lanes: [{ markets: [window("BTC-1m:7"), window("ETH-1m:7")] }] }
 
 const listPublishedFills = vi.fn();
 const listWalletFills = vi.fn();
-vi.mock("@agari/markets", () => ({
+vi.mock("@owarine/markets", () => ({
   marketsProvider: { listLiveLanes: async () => ({ ok: true, value: lanes, stale: false }) },
   listPublishedFills: (...a: unknown[]) => listPublishedFills(...a),
   listWalletFills: (...a: unknown[]) => listWalletFills(...a),

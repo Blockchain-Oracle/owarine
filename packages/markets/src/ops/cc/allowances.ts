@@ -2,7 +2,7 @@
  * Which of an owner's allowances a listing may spend, and which duplicates fold together (C7b). An allowance is the
  * listing's only under the terms the listing states now: the same id, instrument and rate (the ledger refuses anything else).
  */
-import type { ContractId, Party } from "@agari/ledger/pure";
+import type { ContractId, Party } from "@owarine/ledger/pure";
 import type { AllowanceC, ListingC } from "./decode";
 
 export interface Row<T> {

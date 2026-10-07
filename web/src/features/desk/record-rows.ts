@@ -1,4 +1,4 @@
-import { OUTCOME_COLUMN, QUIET_OUTCOMES } from "@agari/core/desk";
+import { OUTCOME_COLUMN, QUIET_OUTCOMES } from "@owarine/core/desk";
 import type { RecordSummaryWire } from "./protocol";
 
 /**

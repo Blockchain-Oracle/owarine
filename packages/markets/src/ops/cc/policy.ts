@@ -17,7 +17,7 @@
  *
  * Nothing here talks to a ledger; `rail.ts` reads the snapshot and executes the plan.
  */
-import { atomicToCashUnitsExact, atomicPerCashUnit, cashUnitsToCc, ccRateOk, UnitsError, type ContractId, type Party } from "@agari/ledger/pure";
+import { atomicToCashUnitsExact, atomicPerCashUnit, cashUnitsToCc, ccRateOk, UnitsError, type ContractId, type Party } from "@owarine/ledger/pure";
 import { allowanceFor, sameTerms, type Row } from "./allowances";
 import type { AllowanceC, ListingC, ProposalC, TransferInstructionViewC, WithdrawalC } from "./decode";
 import type { HoldingRow } from "./reserve";

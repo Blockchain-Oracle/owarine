@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
-import type { SponsorStatus } from "@agari/markets";
+import type { Address } from "@owarine/core/types";
+import type { SponsorStatus } from "@owarine/markets";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -16,7 +16,7 @@ export interface SponsorWire {
   reason?: string;
 }
 
-const SPONSOR_KEY = ["agari", "session", "sponsor"] as const;
+const SPONSOR_KEY = ["owarine", "session", "sponsor"] as const;
 /** The breaker and the balance move slowly; an open sheet re-asks at most this often. */
 const SPONSOR_STALE_MS = 60_000;
 const UNREACHABLE: SponsorStatus = { configured: false, sponsor: null, balanceLamports: null, allowlist: [], reason: "the venue could not be reached" };

@@ -1,5 +1,5 @@
-import { etDateOf } from "@agari/core/market";
-import { formatBaseUnits } from "@agari/core/units";
+import { etDateOf } from "@owarine/core/market";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router, type Href } from "expo-router";
 import type { BoardSpan } from "@/features/leaderboard/copy";
 import type { BoardQuery } from "@/features/leaderboard/leaderboard-client";

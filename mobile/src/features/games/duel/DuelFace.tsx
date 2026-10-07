@@ -1,5 +1,5 @@
-import type { DeckCard } from "@agari/core/games";
-import { useOpeningPrice } from "@agari/markets/react";
+import type { DeckCard } from "@owarine/core/games";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { Text } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import { assetPriceLine } from "@/features/markets/hero/units";

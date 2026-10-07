@@ -9,7 +9,7 @@
  */
 import {
   createLedgerClient, decodeJwtPayload, ledgerEnvSchema, passwordGrant, type ConnectedSynchronizer, type LedgerClient, type TokenSource,
-} from "@agari/ledger";
+} from "@owarine/ledger";
 import type { PartiesFile } from "../../services/ops/src/runtime/keys";
 import { authenticatedUser, userRights } from "./devnet-checks";
 import { partySlots, shortParty } from "./devnet-parties";

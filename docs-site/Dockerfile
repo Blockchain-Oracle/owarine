@@ -1,4 +1,4 @@
-# The docs site — Next.js 16 + Fumadocs, served by `next start` on 3000 behind Coolify at docs.useagari.xyz.
+# The docs site — Next.js 16 + Fumadocs, served by `next start` on 3000 behind Coolify at docs.owarine.com.
 #
 #   docker build .
 #
@@ -15,13 +15,13 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 # pnpm's registry metadata cache (~/.cache/pnpm) is a cache mount too, not 130 MB of registry JSON in the layer (C4e).
-RUN --mount=type=cache,id=agari-docs-pnpm-store,target=/pnpm/store \
-    --mount=type=cache,id=agari-docs-pnpm-metadata,target=/root/.cache/pnpm \
+RUN --mount=type=cache,id=owarine-docs-pnpm-store,target=/pnpm/store \
+    --mount=type=cache,id=owarine-docs-pnpm-metadata,target=/root/.cache/pnpm \
     pnpm install --frozen-lockfile
 
 COPY . .
 # `NEXT_PUBLIC_*` values are inlined at build; Coolify passes build-time variables as ARGs ahead of this line.
-RUN --mount=type=cache,id=agari-docs-next-cache,target=/app/.next/cache \
+RUN --mount=type=cache,id=owarine-docs-next-cache,target=/app/.next/cache \
     pnpm build
 
 ENV NODE_ENV=production \

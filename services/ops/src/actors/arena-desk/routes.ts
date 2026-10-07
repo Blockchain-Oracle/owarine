@@ -11,10 +11,10 @@
  *   season/withdraw      the season admin's close: what is left after the payout back to the venue, one
  *                        `Season_WithdrawRemainder` (K-105). An admin act: no web route forwards it, so no seat reaches it
  */
-import { diagnosis, type Diagnosis } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { decodeVenueAccount, failureText, pick, readActive, submit } from "@agari/markets/ops/canton";
-import { gcmd, seasonCommandId } from "@agari/markets/ops/games";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { decodeVenueAccount, failureText, pick, readActive, submit } from "@owarine/markets/ops/canton";
+import { gcmd, seasonCommandId } from "@owarine/markets/ops/games";
 import type { ArenaDesk } from "./desk";
 import { venueModeRefusalNow } from "../../runtime/venue-mode";
 

@@ -2,10 +2,10 @@
  * What every ticket-desk handler shares: the reply shapes, the seat taken from the web's body (the lease's party, never
  * the browser's), the Window's live ladder, shard leases, and a write on one reserve's queue with its stale-id retry.
  */
-import { diagnosis, type DiagnosisKind } from "@agari/core/types";
-import type { Command } from "@agari/ledger";
-import { failureText, inactiveCids, isInactive, isIndefinite, refusalId } from "@agari/markets/ops/canton";
-import type { TicketReserveId } from "@agari/markets/ops/tickets";
+import { diagnosis, type DiagnosisKind } from "@owarine/core/types";
+import type { Command } from "@owarine/ledger";
+import { failureText, inactiveCids, isInactive, isIndefinite, refusalId } from "@owarine/markets/ops/canton";
+import type { TicketReserveId } from "@owarine/markets/ops/tickets";
 import type { LadderEntry } from "../market-maker/seat/ladder-board";
 import { PoolBusyError, type Lease, type ShardPool } from "../quote-issuer/pool";
 import { adoptCreated, submitWithPools, type Desk } from "./desk";

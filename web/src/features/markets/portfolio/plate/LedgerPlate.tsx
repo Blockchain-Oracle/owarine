@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { PLATE } from "./copy";

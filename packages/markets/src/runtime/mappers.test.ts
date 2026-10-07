@@ -1,5 +1,5 @@
-import type { QuoteTarget } from "@agari/core/ports";
-import type { Address, MarketId } from "@agari/core/types";
+import type { QuoteTarget } from "@owarine/core/ports";
+import type { Address, MarketId } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import type { SeriesFacts } from "./accounts";
 import { ladderState } from "./ladder.fixture";

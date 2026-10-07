@@ -2,8 +2,8 @@
  * Canned readings for `/dev/basket` (S19): the AI Labs basket's Window trading and paused, its feed row, and the two
  * holding states the hub shows (no member held; both held, so the basket can be covered).
  */
-import { BASKET_INDEX_BASE_E8, BASKETS, type PreIpoSymbol } from "@agari/core/market";
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import { BASKET_INDEX_BASE_E8, BASKETS, type PreIpoSymbol } from "@owarine/core/market";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import type { HoldingView } from "@/features/hedge/useHoldings";
 import type { MarketCardData } from "@/features/markets/lanes/MarketCardView";
 import type { PreIpoFactsView } from "@/features/ticker-hub/usePreIpoFacts";

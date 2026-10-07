@@ -3,8 +3,8 @@
  * so Check it passes on them and fails on the tampered copy; the record list with a folded quiet run; a decision wire
  * of each kind of proof. Nothing here is a real transaction.
  */
-import { deskRecordSchema, hashRecord, OUTCOME_COLUMN, PLANNED_OUTCOMES, ZERO_HASH, type DeskRecordBody, type PlannedOutcome } from "@agari/core/desk";
-import type { Hash32 } from "@agari/core/types";
+import { deskRecordSchema, hashRecord, OUTCOME_COLUMN, PLANNED_OUTCOMES, ZERO_HASH, type DeskRecordBody, type PlannedOutcome } from "@owarine/core/desk";
+import type { Hash32 } from "@owarine/core/types";
 import type { DecisionWire, ProofWire, RecordSummaryWire } from "@/features/desk/protocol";
 import { fixtureAddress, fixtureSignature } from "../fixture-ids";
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { errorFromResponse, type JsTransaction } from "@agari/ledger";
+import { errorFromResponse, type JsTransaction } from "@owarine/ledger";
 import type { LegView, TermsView } from "./contracts";
 import { appMarketId } from "./ids";
 import { ladderMid2, openPositions } from "./map";

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from "react-native-reanimated";
 import type { SenseiMessage } from "@/features/sensei/protocol";
-import { AgariMark } from "~/components/shell/AgariMark";
+import { OwarineMark } from "~/components/shell/OwarineMark";
 import { FONT, useTheme } from "~/theme";
 import { senseiTokens } from "~/theme/web/explore/sensei";
 
@@ -81,13 +81,13 @@ function Dot({ delay }: { delay: number }) {
   return <Animated.View style={[styles.dot, { backgroundColor: color.accent }, style]} />;
 }
 
-/** `.sd-ava`: the Agari mark in a soft vermilion seal. */
+/** `.sd-ava`: the Owarine mark in a soft vermilion seal. */
 function Avatar() {
   const { name, color } = useTheme();
   const t = senseiTokens(name);
   return (
     <View style={[styles.ava, { backgroundColor: t.avaFill, borderColor: t.avaBorder }]}>
-      <AgariMark width={11} height={11} figure={color.accent} />
+      <OwarineMark width={11} height={11} figure={color.accent} />
     </View>
   );
 }

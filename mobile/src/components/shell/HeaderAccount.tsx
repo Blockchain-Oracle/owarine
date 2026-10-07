@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";

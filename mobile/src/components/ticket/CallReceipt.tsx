@@ -1,7 +1,7 @@
-import type { BookedOrder } from "@agari/core/ports";
-import type { EventMarket } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { useOpeningPrice } from "@agari/markets/react";
+import type { BookedOrder } from "@owarine/core/ports";
+import type { EventMarket } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { router } from "expo-router";
 import { ArrowDown, ArrowUp, ArrowUpRight } from "lucide-react-native";
 import { useRef, useState } from "react";

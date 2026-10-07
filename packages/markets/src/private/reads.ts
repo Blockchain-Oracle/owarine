@@ -3,9 +3,9 @@
  * venue itself, as `/api/private/status` names it; the budget is the seat's private bucket, all of it spendable by the
  * seat alone (there is no desk allowance to grant on Canton); a size is the venue ladder's own stake-first quote.
  */
-import { privateBalanceReplyWire, type PrivateBudget, type PrivateDeskState, type PrivateQuote, type PrivateSlot } from "@agari/core/private";
-import { err, isOk, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type Hash32, type MarketId, type Side } from "@agari/core/types";
+import { privateBalanceReplyWire, type PrivateBudget, type PrivateDeskState, type PrivateQuote, type PrivateSlot } from "@owarine/core/private";
+import { err, isOk, ok, type Reading } from "@owarine/core/schemas";
+import { diagnosis, type Address, type Hash32, type MarketId, type Side } from "@owarine/core/types";
 import { z } from "zod";
 import { freshQuoteStake } from "../provider/books";
 import { ledgerRequest } from "../provider/ledger-api";

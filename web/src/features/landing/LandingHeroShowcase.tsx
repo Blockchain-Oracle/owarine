@@ -1,9 +1,9 @@
 "use client";
 
-import { BASKETS, BASKET_INDEX_BASE_E8 } from "@agari/core/market";
-import { useAssetPrice } from "@agari/markets/react";
+import { BASKETS, BASKET_INDEX_BASE_E8 } from "@owarine/core/market";
+import { useAssetPrice } from "@owarine/markets/react";
 import Link from "next/link";
-import { AgariMark } from "@/components/shell";
+import { OwarineMark } from "@/components/shell";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { oraclePriceText } from "@/features/markets/hero";
 import { basisRaw, feedRawToOracleRaw, pointsLine } from "@/features/markets/hero/units";
@@ -44,7 +44,7 @@ export function LandingHeroShowcase() {
     : recordedExamples;
 
   return (
-    <div className="lp-hero-art" role="group" aria-label="Agari basket and settlement proof previews" tabIndex={0}>
+    <div className="lp-hero-art" role="group" aria-label="Owarine basket and settlement proof previews" tabIndex={0}>
       <section className="lp-screen lp-screen-proof" aria-labelledby="lp-preview-proof-heading">
         <div className="lp-screen-chrome" aria-hidden="true"><i /><i /><i /></div>
         <div className="lp-preview-proof-body">
@@ -74,7 +74,7 @@ export function LandingHeroShowcase() {
         <div className="lp-screen-chrome" aria-hidden="true"><i /><i /><i /></div>
         <div className="lp-preview-basket-body">
           <div className="lp-preview-rail">
-            <span><AgariMark /> Agari / 01 · Baskets</span>
+            <span><OwarineMark /> Owarine / 01 · Baskets</span>
             <Link href="/baskets" aria-label="Open all PreStocks baskets" data-cursor="hover">Explore ↗</Link>
           </div>
           <div className="lp-preview-basket-head">

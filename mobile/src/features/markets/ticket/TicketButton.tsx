@@ -1,5 +1,5 @@
-import { blockerLabel, type BlockerContext, type BlockerKind } from "@agari/core/copy";
-import type { Side } from "@agari/core/types";
+import { blockerLabel, type BlockerContext, type BlockerKind } from "@owarine/core/copy";
+import type { Side } from "@owarine/core/types";
 import { Pressable, StyleSheet, Text } from "react-native";
 import { haptic } from "~/components/kit";
 import { FONT } from "~/theme";

@@ -1,7 +1,7 @@
 "use client";
 
-import { luckyDrawMessage, luckyPolicyAssets, mapLuckyDraw } from "@agari/core/games";
-import type { Hex } from "@agari/core/types";
+import { luckyDrawMessage, luckyPolicyAssets, mapLuckyDraw } from "@owarine/core/games";
+import type { Hex } from "@owarine/core/types";
 import { useEffect, useState } from "react";
 import { keccak256 } from "../keccak";
 import type { LuckyDealWire } from "./lucky-wire";

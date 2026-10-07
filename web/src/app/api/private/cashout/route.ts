@@ -1,4 +1,4 @@
-import { privateCantonCashoutRequestWire } from "@agari/core/private";
+import { privateCantonCashoutRequestWire } from "@owarine/core/private";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";

@@ -1,5 +1,5 @@
-import { basketOf, isTokenOnlyKind, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
-import { keys } from "@agari/markets/react";
+import { basketOf, isTokenOnlyKind, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@owarine/core/market";
+import { keys } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
@@ -61,8 +61,8 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
 
   const refresh = () =>
     Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["agari", "social", "ticker", symbol] }),
-      queryClient.invalidateQueries({ queryKey: ["agari", "prestocks"] }),
+      queryClient.invalidateQueries({ queryKey: ["owarine", "social", "ticker", symbol] }),
+      queryClient.invalidateQueries({ queryKey: ["owarine", "prestocks"] }),
       queryClient.invalidateQueries({ queryKey: keys.lanes(venue.venueId) }),
     ]);
 

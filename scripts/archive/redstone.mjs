@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Archives RedStone signed data packages for Agari's single-name tickers at every 5-minute NYSE session
+// Archives RedStone signed data packages for Owarine's single-name tickers at every 5-minute NYSE session
 // boundary, plus a 10-second grid around each 09:30 open (the S6 open-print spike). The public gateway
 // keeps only ≈ 24 h of history, so this must keep running until the S3 price-relay takes over.
 //

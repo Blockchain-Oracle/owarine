@@ -1,4 +1,4 @@
-import type { Signature } from "@agari/core/types";
+import type { Signature } from "@owarine/core/types";
 
 /** A refused or failed desk command; `deskCode` is the desk's own refusal id when it has one (`abu-pm/<id>`). */
 export class DeskSendError extends Error {

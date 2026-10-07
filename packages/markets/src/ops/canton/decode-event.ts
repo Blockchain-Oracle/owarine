@@ -2,7 +2,7 @@
  * abu-pm-main 0.4.0 `PM.Event` payloads (committee events, K-030) → the shapes the resolver, pricer and drives read.
  * Server-only, like `decode.ts`.
  */
-import type { ContractId, Party } from "@agari/ledger";
+import type { ContractId, Party } from "@owarine/ledger";
 import { DecodeError, decodeParts, type VoidReasonC } from "./decode";
 
 const { obj, optional, parties, sec, small, text, voidReason } = decodeParts;

@@ -1,6 +1,6 @@
 "use client";
 
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import Link from "next/link";
 import { memo, useMemo, type CSSProperties } from "react";
 import { useNowMs } from "@/components/data";

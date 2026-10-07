@@ -1,5 +1,5 @@
-import type { SettledRound } from "@agari/core/projection";
-import type { ClaimableRow, MarketId } from "@agari/core/types";
+import type { SettledRound } from "@owarine/core/projection";
+import type { ClaimableRow, MarketId } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { voidPaidBySide } from "./useVerdict";
 

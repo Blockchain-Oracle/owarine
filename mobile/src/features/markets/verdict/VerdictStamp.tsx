@@ -1,5 +1,5 @@
-import { verdictStrings } from "@agari/core/copy";
-import type { VerdictOutcome } from "@agari/core/types";
+import { verdictStrings } from "@owarine/core/copy";
+import type { VerdictOutcome } from "@owarine/core/types";
 import { StyleSheet, Text, View } from "react-native";
 import { FONT, useTheme } from "~/theme";
 

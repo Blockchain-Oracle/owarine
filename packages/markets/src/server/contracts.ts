@@ -1,11 +1,11 @@
 /**
- * The seat-facing contracts as the routes read them: Daml JSON decoded with the generated `@agari/daml` codecs, then
- * every `Int` converted through `@agari/ledger`'s units boundary (strings to bigint, never `Number`) and every `Time`
+ * The seat-facing contracts as the routes read them: Daml JSON decoded with the generated `@owarine/daml` codecs, then
+ * every `Int` converted through `@owarine/ledger`'s units boundary (strings to bigint, never `Number`) and every `Time`
  * to epoch ms. A payload that fails its codec throws: a contract we cannot read is never guessed at.
  */
-import { PM, TEMPLATE_IDS } from "@agari/daml";
-import type { MarketId, Side } from "@agari/core/types";
-import { fromDamlInt, type CreatedEvent } from "@agari/ledger";
+import { PM, TEMPLATE_IDS } from "@owarine/daml";
+import type { MarketId, Side } from "@owarine/core/types";
+import { fromDamlInt, type CreatedEvent } from "@owarine/ledger";
 import { appMarketId } from "./ids";
 
 export interface CashView {

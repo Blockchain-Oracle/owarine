@@ -1,5 +1,5 @@
-import { addressSchema, isAddress, marketIdSchema, signatureSchema } from "@agari/core/types";
-import { hasBet, hasBetOnSymbol, hasIndexedBet, hasIndexedBetOnSymbol, hasIndexedFill, isDbConfigured, recordBettor } from "@agari/db";
+import { addressSchema, isAddress, marketIdSchema, signatureSchema } from "@owarine/core/types";
+import { hasBet, hasBetOnSymbol, hasIndexedBet, hasIndexedBetOnSymbol, hasIndexedFill, isDbConfigured, recordBettor } from "@owarine/db";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ROOM_ERRORS } from "@/features/room/copy";

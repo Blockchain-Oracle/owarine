@@ -13,7 +13,7 @@ describe("verifySignedMessage", () => {
       seen.push([signature.length, message.length, key.length, signature[0]!, key[0]!]);
       return true;
     };
-    const text = `Agari — open the duel room\n${networkLine("devnet")}`;
+    const text = `Owarine — open the duel room\n${networkLine("devnet")}`;
     expect(await verifySignedMessage({ text, signature: SIG, signer: SIGNER }, verify)).toBe(true);
     // "—" is three UTF-8 bytes, so byte length ≠ string length: the signature covers bytes, not UTF-16 units.
     expect(seen).toEqual([[64, messageBytes(text).length, 32, 9, 7]]);

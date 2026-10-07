@@ -1,5 +1,5 @@
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import { laneBasisOf, type LaneBasis, type PrintSource, type VoidReason } from "@agari/core/types";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import { laneBasisOf, type LaneBasis, type PrintSource, type VoidReason } from "@owarine/core/types";
 import { printSourceName, windowSourceLabel } from "@/features/markets/price-source/source-label";
 
 /**

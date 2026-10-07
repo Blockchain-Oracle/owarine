@@ -1,4 +1,4 @@
-import { neededMove } from "@agari/core/market";
+import { neededMove } from "@owarine/core/market";
 import { StyleSheet, Text, View } from "react-native";
 import { assetPairUnit, assetPriceLine } from "@/features/markets/hero/units";
 import { HERO, HERO_HEAD } from "@/lib/copy";

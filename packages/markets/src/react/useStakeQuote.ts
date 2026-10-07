@@ -1,7 +1,7 @@
-import { REQUOTE_MS } from "@agari/core/constants";
-import type { QuoteTarget } from "@agari/core/ports";
-import { isOk, ok, stale, type Reading } from "@agari/core/schemas";
-import type { Quote, Side } from "@agari/core/types";
+import { REQUOTE_MS } from "@owarine/core/constants";
+import type { QuoteTarget } from "@owarine/core/ports";
+import { isOk, ok, stale, type Reading } from "@owarine/core/schemas";
+import type { Quote, Side } from "@owarine/core/types";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { nowMs, nowSec } from "../provider/clock";
 import { getBookParams } from "../provider/reads";

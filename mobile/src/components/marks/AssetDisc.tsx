@@ -1,4 +1,4 @@
-import { assetTicker, basketOf, type Basket } from "@agari/core/market";
+import { assetTicker, basketOf, type Basket } from "@owarine/core/market";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Path, Text as SvgText } from "react-native-svg";
 import { MARK_GLYPHS, glyphTransform } from "@/components/icons/asset-marks/paths";

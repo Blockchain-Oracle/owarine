@@ -10,8 +10,8 @@ import {
   ticksToMs,
   traceCanonical,
   type ArcadeGame,
-} from "@agari/core/games/arcade";
-import { arcadeRankOf, bestArcadeOf, gamesStoreConfigured, listArcadeBoard, recordArcadeScore } from "@agari/db";
+} from "@owarine/core/games/arcade";
+import { arcadeRankOf, bestArcadeOf, gamesStoreConfigured, listArcadeBoard, recordArcadeScore } from "@owarine/db";
 import { z } from "zod";
 import { gate } from "@/features/session/sponsor.server";
 import { walletFromRoomToken, type Vouch } from "../room-token.server";

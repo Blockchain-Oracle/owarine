@@ -5,10 +5,10 @@
  * (the listing's stated rate, the seat's allowance, the venue's reserve statement), formatted with `formatBaseUnits`, never
  * a float.
  */
-import { CC_RAIL_WAITING_ON, type CcRailCapability } from "@agari/core/cc";
-import { formatBaseUnits } from "@agari/core/units";
-import { atomicPerCashUnit, cashUnitsToCc, largestAcceptedCc, UnitsError } from "@agari/ledger/pure";
-import type { CcRailReply } from "@agari/markets";
+import { CC_RAIL_WAITING_ON, type CcRailCapability } from "@owarine/core/cc";
+import { formatBaseUnits } from "@owarine/core/units";
+import { atomicPerCashUnit, cashUnitsToCc, largestAcceptedCc, UnitsError } from "@owarine/ledger/pure";
+import type { CcRailReply } from "@owarine/markets";
 import { FUNDING } from "./copy";
 
 const C = FUNDING.cc;

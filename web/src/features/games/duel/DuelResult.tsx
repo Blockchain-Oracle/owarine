@@ -1,10 +1,10 @@
 "use client";
 
-import { STAKE_TIERS, cardPnl, everyCardSettled, picksComplete, type CardReceipt, type MatchState } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32, MarketId } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { useArenaCredit, useArenaState, useMarketsLite } from "@agari/markets/react";
+import { STAKE_TIERS, cardPnl, everyCardSettled, picksComplete, type CardReceipt, type MatchState } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32, MarketId } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useArenaCredit, useArenaState, useMarketsLite } from "@owarine/markets/react";
 import { useEffect, useRef, useState } from "react";
 import { useVenue } from "@/features/markets";
 import { LockedInMark } from "../art/PixelArt";

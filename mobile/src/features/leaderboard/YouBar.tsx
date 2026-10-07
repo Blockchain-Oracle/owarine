@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { glyphFromAddress } from "@/features/leaderboard/glyph";

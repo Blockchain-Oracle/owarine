@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence, formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import { formatCadence, formatSessionSpan, sessionCountdown } from "@owarine/core/copy";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import { HERO_HEAD, PREOPEN } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { cn } from "@/lib/utils";

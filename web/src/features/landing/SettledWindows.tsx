@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address, EventMarket } from "@agari/core/types";
-import { addressUrl } from "@agari/core/urls";
+import type { Address, EventMarket } from "@owarine/core/types";
+import { addressUrl } from "@owarine/core/urls";
 import Link from "next/link";
 import { ReadingBoundary } from "@/components/states";
 import { webEnv } from "@/lib/env";

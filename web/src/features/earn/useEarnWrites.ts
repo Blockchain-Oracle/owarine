@@ -1,8 +1,8 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
-import { getMakerUnsettledExpired } from "@agari/markets/maker";
-import { useSubmitter } from "@agari/markets/react";
+import type { MarketId } from "@owarine/core/types";
+import { getMakerUnsettledExpired } from "@owarine/markets/maker";
+import { useSubmitter } from "@owarine/markets/react";
 import { useCallback } from "react";
 import { EARN } from "./copy";
 import { outcomeMessage, useLaneRunner } from "./useReserveWrites";

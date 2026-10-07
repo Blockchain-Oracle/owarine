@@ -1,7 +1,7 @@
 "use client";
 
-import { realizedYield, supplierPosition, type ReserveSheet } from "@agari/core/reserves";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { realizedYield, supplierPosition, type ReserveSheet } from "@owarine/core/reserves";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
 import { useState } from "react";
 import { KeepCase } from "@/components/data";
 import { cn } from "@/lib/utils";

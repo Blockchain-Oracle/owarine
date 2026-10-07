@@ -1,10 +1,10 @@
-import { bodySha256, parseSeatWriteHeader, SEAT_WRITE_HEADER, SEAT_WRITE_TTL_MS, SEAT_WRITE_SKEW_MS, seatWriteFresh, seatWriteText } from "@agari/core/auth";
-import type { Cluster } from "@agari/core/constants";
-import type { Address } from "@agari/core/types";
+import { bodySha256, parseSeatWriteHeader, SEAT_WRITE_HEADER, SEAT_WRITE_TTL_MS, SEAT_WRITE_SKEW_MS, seatWriteFresh, seatWriteText } from "@owarine/core/auth";
+import type { Cluster } from "@owarine/core/constants";
+import type { Address } from "@owarine/core/types";
 import { verifyWalletMessage } from "./verify-signed-message.server";
 
 /**
- * The server half of the phone's per-write proof (C4d M2b; `@agari/core/auth` `seat-write.ts`): the seat that signed
+ * The server half of the phone's per-write proof (C4d M2b; `@owarine/core/auth` `seat-write.ts`): the seat that signed
  * THIS request (its method, path with query, body bytes), within 30 seconds, once. The body is read from a clone and
  * kept per request (`requestText`), so a route that reads it afterwards, or read it before, sees the same bytes.
  *

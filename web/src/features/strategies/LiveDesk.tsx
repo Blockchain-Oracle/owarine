@@ -1,7 +1,7 @@
 "use client";
 
-import { parseStrategyMetadata } from "@agari/core/strategies";
-import { txUrl } from "@agari/core/urls";
+import { parseStrategyMetadata } from "@owarine/core/strategies";
+import { txUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
 import { AgentPortrait } from "./AgentPortrait";
 import { STRATEGIES } from "./copy";

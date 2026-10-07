@@ -1,4 +1,4 @@
-import { isMarketId, type EventMarket, type Side } from "@agari/core/types";
+import { isMarketId, type EventMarket, type Side } from "@owarine/core/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -7,7 +7,7 @@ import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { SECTIONS } from "@/lib/copy";
-import { collateralOrNull } from "@agari/markets";
+import { collateralOrNull } from "@owarine/markets";
 import { leasedOf } from "@/providers/wallet/seat-lease-context";
 import { usePullRefresh } from "~/components/kit";
 import { SectionHeader } from "~/features/explore/SectionHeader";

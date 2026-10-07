@@ -1,11 +1,11 @@
 "use client";
 
-import { isRestable } from "@agari/core/lifecycle";
-import { isCommitteeMarket, LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { mark } from "@agari/markets/perf";
+import { isRestable } from "@owarine/core/lifecycle";
+import { isCommitteeMarket, LAUNCH_TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { mark } from "@owarine/markets/perf";
 import type { ReactNode } from "react";
 import { ErrorState, LoadingState } from "@/components/states";
 import { HeroAssetChart } from "./hero/HeroAssetChart";

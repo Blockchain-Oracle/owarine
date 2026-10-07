@@ -1,12 +1,12 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
-import { privateOpenMessage, type PrivateOpenRequest, type PrivateOpenResult } from "@agari/core/private";
-import type { Address, EventMarket, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { ledgerBase, seatAuthHeaders } from "@agari/markets";
-import { sizePrivateForStake } from "@agari/markets/private";
-import { invalidateAfterWrite } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import { privateOpenMessage, type PrivateOpenRequest, type PrivateOpenResult } from "@owarine/core/private";
+import type { Address, EventMarket, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { ledgerBase, seatAuthHeaders } from "@owarine/markets";
+import { sizePrivateForStake } from "@owarine/markets/private";
+import { invalidateAfterWrite } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
@@ -18,7 +18,7 @@ import { recordBet } from "@/features/room/record-bet";
  * is the seed of the bet's keys, so re-sending it resumes the same slot and can never charge twice; signing a
  * new one would. It stays until the desk says "opened" or "refused".
  */
-const PENDING_KEY = "agari.private.pending";
+const PENDING_KEY = "owarine.private.pending";
 
 export interface PendingOpen {
   request: PrivateOpenRequest;

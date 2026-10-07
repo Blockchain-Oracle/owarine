@@ -1,8 +1,8 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { Reading } from "@agari/core/schemas";
-import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
-import { getDb, isDbConfigured } from "@agari/db";
-import { marketsProvider, syncClock } from "@agari/markets";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Reading } from "@owarine/core/schemas";
+import { formatBaseUnits, formatUtc, secToMs } from "@owarine/core/units";
+import { getDb, isDbConfigured } from "@owarine/db";
+import { marketsProvider, syncClock } from "@owarine/markets";
 import { readLedgerEnd } from "@/app/api/venue/venue.server";
 import { createFaucetService } from "@/features/funding/faucet-service.server";
 import { faucetConfig } from "@/features/funding/faucet-config.server";
@@ -86,7 +86,7 @@ export async function probePrice(asset: TickerSymbol, nowMs: number, inSession: 
   }
 }
 
-/** Required on Agari: the index and the print archive live in the same database as the social store. */
+/** Required on Owarine: the index and the print archive live in the same database as the social store. */
 export async function probeStore(): Promise<StatusPipeline> {
   const label = STATUS.pipelines.store;
   if (!isDbConfigured()) return down("store", label, STATUS.detail.storeOff);

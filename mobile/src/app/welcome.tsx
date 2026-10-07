@@ -33,7 +33,7 @@ export default function WelcomeScreen() {
 
   const dismiss = useCallback(() => {
     storage.set(ONBOARDED_KEY, true);
-    globalThis.localStorage?.setItem("agari.tutorialSeen", "1");
+    globalThis.localStorage?.setItem("owarine.tutorialSeen", "1");
     haptic.tap();
     if (router.canGoBack()) router.back();
     else router.replace("/markets");
@@ -41,7 +41,7 @@ export default function WelcomeScreen() {
 
   return (
     <View style={styles.root}>
-      <Stack.Screen options={{ title: "Welcome to Agari", headerShown: false }} />
+      <Stack.Screen options={{ title: "Welcome to Owarine", headerShown: false }} />
       <Pressable style={StyleSheet.absoluteFill} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close">
         <BlurView intensity={12} tint={name === "dark" ? "dark" : "light"} style={StyleSheet.absoluteFill} />
         <View style={[StyleSheet.absoluteFill, { backgroundColor: t.tutScrim }]} />

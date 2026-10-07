@@ -5,10 +5,10 @@
  * still within half a percent of what the owner was shown. There is NO model call here. Requests nobody answered in
  * six hours lapse, and the owner is told.
  */
-import { deskCopy, gate, nameOf, type ApprovalOf, type DeskNeed, type PlannedOutcome } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
-import { DESK_MINTS } from "@agari/markets/desk/server";
-import type { ApprovalRow } from "@agari/db";
+import { deskCopy, gate, nameOf, type ApprovalOf, type DeskNeed, type PlannedOutcome } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { DESK_MINTS } from "@owarine/markets/desk/server";
+import type { ApprovalRow } from "@owarine/db";
 import { appendPlainRecord, commit } from "./commit";
 import { blockersFor, DEADLINE_SEC, gateInputFor, SLIPPAGE_BPS, summaryOf, type Considered } from "./consider";
 import { readMarket } from "./market";

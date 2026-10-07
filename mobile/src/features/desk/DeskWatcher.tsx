@@ -1,5 +1,5 @@
-import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@agari/core/desk";
-import { isOk } from "@agari/core/schemas";
+import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@owarine/core/desk";
+import { isOk } from "@owarine/core/schemas";
 import { useEffect, useRef, useState } from "react";
 import { RECORD } from "@/features/desk/copy-record";
 import { useDeskFeed, useDeskView } from "@/features/desk/useDesk";

@@ -1,5 +1,5 @@
-import { deskRecordSchema, type DeskMandate } from "@agari/core/desk";
-import type { Address } from "@agari/core/types";
+import { deskRecordSchema, type DeskMandate } from "@owarine/core/desk";
+import type { Address } from "@owarine/core/types";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";

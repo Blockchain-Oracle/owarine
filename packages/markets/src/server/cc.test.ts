@@ -1,5 +1,5 @@
-import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { Command, LedgerClient, Party } from "@agari/ledger";
+import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { Command, LedgerClient, Party } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { RegistryError, type RegistryClient } from "../ops/cc";
 import { createCcSeat } from "./cc";

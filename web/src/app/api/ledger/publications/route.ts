@@ -1,8 +1,8 @@
 import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
-import { marketIdSchema } from "@agari/core/types";
-import { classifyRejection, publishCall, readPublications, retractCall } from "@agari/markets/server";
-import { getDb, privatePositions } from "@agari/db";
+import { marketIdSchema } from "@owarine/core/types";
+import { classifyRejection, publishCall, readPublications, retractCall } from "@owarine/markets/server";
+import { getDb, privatePositions } from "@owarine/db";
 import { z } from "zod";
 import { BOARD_CACHE_TAG } from "@/features/leaderboard/board.server";
 import { diagnosisReply, jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";

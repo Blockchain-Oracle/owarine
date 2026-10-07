@@ -1,11 +1,11 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address, OnchainSnapshot } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { keys, useReadingQuery } from "@agari/markets/react";
-import { readSeat } from "@agari/markets/runtime";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address, OnchainSnapshot } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { keys, useReadingQuery } from "@owarine/markets/react";
+import { readSeat } from "@owarine/markets/runtime";
 
 /**
  * What the next order must also fund beyond its escrow: the Series seat bond while the wallet has no seat on this

@@ -1,4 +1,4 @@
-import type { EquityPoint } from "@agari/core/projection";
+import type { EquityPoint } from "@owarine/core/projection";
 import { KeepCase } from "@/components/data";
 import { EquitySparkline } from "@/features/markets/history";
 import { STRATEGIES } from "./copy";

@@ -1,6 +1,6 @@
-import type { Address } from "@agari/core/types";
-import { createDbCosignLedger } from "@agari/db";
-import { createSponsorService, gateVerdict, SPONSOR_ALLOWLIST, type SponsorService } from "@agari/markets/sponsor";
+import type { Address } from "@owarine/core/types";
+import { createDbCosignLedger } from "@owarine/db";
+import { createSponsorService, gateVerdict, SPONSOR_ALLOWLIST, type SponsorService } from "@owarine/markets/sponsor";
 import { NextResponse } from "next/server";
 import { clientIp } from "@/lib/client-ip.server";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
@@ -11,7 +11,7 @@ import type { SponsorWire } from "@/features/session/useSponsorStatus";
  * The sponsor rail's server half (tap-trading.md §3, D-065): a fee-payer co-signer, never a sender.
  *
  * GET says whether a sponsor exists, what it will pay for and why not. POST takes a v0 transaction the key (or owner)
- * already signed with the sponsor as fee payer; `@agari/markets/sponsor` runs the policy in order, signs the sponsor's
+ * already signed with the sponsor as fee payer; `@owarine/markets/sponsor` runs the policy in order, signs the sponsor's
  * slot and hands the bytes back. The client journals the signature and sends it on its own lane.
  */
 export const runtime = "nodejs";
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   const ip = clientIp(request) ?? "";
   const vault = await vaultProgram();
   if ("unreadable" in vault) return refuse(502, UNREADABLE);
-  const result = await sponsor().cosign(vault.program, body, request.headers.get("x-agari-device") ?? "", ip);
+  const result = await sponsor().cosign(vault.program, body, request.headers.get("x-owarine-device") ?? "", ip);
   if (!result.ok) return refuse(result.status, result.error);
   return NextResponse.json({ signature: result.signature, transaction: result.transaction, instruction: result.instruction }, { headers: noStore });
 }

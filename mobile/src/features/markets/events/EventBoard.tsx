@@ -1,5 +1,5 @@
-import { diagnosisCopy } from "@agari/core/copy";
-import type { Diagnosis, EventMarket } from "@agari/core/types";
+import { diagnosisCopy } from "@owarine/core/copy";
+import type { Diagnosis, EventMarket } from "@owarine/core/types";
 import { StyleSheet, View } from "react-native";
 import { EVENT_BOARD } from "@/features/markets/events/copy";
 import { WordsQuiet } from "../words/parts";

@@ -5,8 +5,8 @@
  * second consecutive check below the loss limit also pauses the desk ON THE CHAIN, so even a stolen operator key
  * could not trade it; only the owner's wallet lifts that.
  */
-import { deskCopy } from "@agari/core/desk";
-import { cantonChainHead, checkpoint, DeskSendError, DeskSendUnknownError, pauseIx } from "@agari/markets/desk/server";
+import { deskCopy } from "@owarine/core/desk";
+import { cantonChainHead, checkpoint, DeskSendError, DeskSendUnknownError, pauseIx } from "@owarine/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import { appendPlainRecord } from "./commit";
 import { DEADLINE_SEC } from "./consider";

@@ -9,20 +9,20 @@
  *   → the Windows resolve → the settler scores and finalizes → DuelResult; the pot moved exactly once
  *   → a season pool funded by the venue pays two winners once (ops' route), refuses a second payout, remainder withdrawn
  *
- *   LEDGER_JSON_API_URL=http://localhost:7575 AGARI_PARTIES_FILE=… DATABASE_URL=…/pm_c9b OPS=http://localhost:8777 \
- *   OPS_INTERNAL_SECRET=… OPS_ADMIN_SECRET=… ROOM=ws://127.0.0.1:8857 ROOM_TOKEN_SECRET=… pnpm --filter @agari/scripts exec tsx drive/games-duel-it.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7575 OWARINE_PARTIES_FILE=… DATABASE_URL=…/pm_c9b OPS=http://localhost:8777 \
+ *   OPS_INTERNAL_SECRET=… OPS_ADMIN_SECRET=… ROOM=ws://127.0.0.1:8857 ROOM_TOKEN_SECRET=… pnpm --filter @owarine/scripts exec tsx drive/games-duel-it.ts
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { createHmac, randomBytes, randomUUID, webcrypto } from "node:crypto";
-import { mintRoomToken, roomSessionClaims, type StakeTierId } from "@agari/core/games";
-import { encodeBase58, type Address, type Hash32 } from "@agari/core/types";
-import { getDb } from "@agari/db";
-import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
-import { distributeSeasonPrizes, duelDeckHash, keccak256, withdrawSeasonRemainder } from "@agari/markets/games";
-import { cmd, decodeVenueCash, pick } from "@agari/markets/ops/canton";
-import { decodeDuelMatch, decodeSeasonPool, gcmd } from "@agari/markets/ops/games";
-import { createGamesSeat, createOpsClient, createSeatLedger } from "@agari/markets/server";
+import { mintRoomToken, roomSessionClaims, type StakeTierId } from "@owarine/core/games";
+import { encodeBase58, type Address, type Hash32 } from "@owarine/core/types";
+import { getDb } from "@owarine/db";
+import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import { createLedgerClient, noAuth, parseLedgerEnv } from "@owarine/ledger";
+import { distributeSeasonPrizes, duelDeckHash, keccak256, withdrawSeasonRemainder } from "@owarine/markets/games";
+import { cmd, decodeVenueCash, pick } from "@owarine/markets/ops/canton";
+import { decodeDuelMatch, decodeSeasonPool, gcmd } from "@owarine/markets/ops/games";
+import { createGamesSeat, createOpsClient, createSeatLedger } from "@owarine/markets/server";
 import { createSeatStore } from "../../web/src/lib/seat-store.server";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 
@@ -64,7 +64,7 @@ async function cashOf(party: string, bucket?: string): Promise<bigint> {
 interface Conn { send: (m: unknown) => void; next: (type: string, timeoutMs: number) => Promise<Record<string, any>>; close: () => void }
 function connect(token: string): Promise<Conn> {
   return new Promise((resolve, reject) => {
-    const ws = new WebSocket(ROOM, ["agari.room.v1", token]);
+    const ws = new WebSocket(ROOM, ["owarine.room.v1", token]);
     const inbox: Record<string, any>[] = [];
     const waiters: { type: string; resolve: (m: Record<string, any>) => void }[] = [];
     ws.onmessage = (e) => {

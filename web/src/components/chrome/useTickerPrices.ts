@@ -1,11 +1,11 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { isTickerSymbol } from "@agari/core/market";
-import type { AssetPrice } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { PRICE_BASIS } from "@agari/markets/identity";
-import { useAssetPrice } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { isTickerSymbol } from "@owarine/core/market";
+import type { AssetPrice } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { PRICE_BASIS } from "@owarine/markets/identity";
+import { useAssetPrice } from "@owarine/markets/react";
 import { useRef } from "react";
 import { useDailyCloses } from "@/features/markets/asset-history";
 import { assetPriceLine, assetSpotLine, feedRawToOracleRaw } from "@/features/markets/hero/units";

@@ -1,6 +1,6 @@
 "use client";
 
-import { MANDATE_NOTES_MAX_CHARS, thresholdBps, type DeskMandate } from "@agari/core/desk";
+import { MANDATE_NOTES_MAX_CHARS, thresholdBps, type DeskMandate } from "@owarine/core/desk";
 import { Gauge, ShieldCheck, Wind } from "lucide-react";
 import { RadioCards, Slider, type RadioCardItem } from "@/components/ui/desk-kit";
 import { DESK } from "./copy";

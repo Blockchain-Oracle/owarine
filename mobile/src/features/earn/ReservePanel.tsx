@@ -1,5 +1,5 @@
-import type { ReserveSheet } from "@agari/core/reserves";
-import { oneUnit } from "@agari/core/units";
+import type { ReserveSheet } from "@owarine/core/reserves";
+import { oneUnit } from "@owarine/core/units";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";

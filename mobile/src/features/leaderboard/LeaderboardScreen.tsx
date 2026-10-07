@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { useLanes } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { useLanes } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";

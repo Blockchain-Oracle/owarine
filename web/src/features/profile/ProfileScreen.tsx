@@ -1,8 +1,8 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
-import { addressUrl } from "@agari/core/urls";
-import { keys, usePublishedHistory, useWalletHistory } from "@agari/markets/react";
+import type { Address } from "@owarine/core/types";
+import { addressUrl } from "@owarine/core/urls";
+import { keys, usePublishedHistory, useWalletHistory } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useCallback, useState, type CSSProperties } from "react";

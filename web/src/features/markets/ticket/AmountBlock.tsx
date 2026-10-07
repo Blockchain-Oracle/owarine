@@ -1,7 +1,7 @@
 "use client";
 
-import { minStakeBase } from "@agari/core/sizing";
-import { formatBaseUnits, oneUnit } from "@agari/core/units";
+import { minStakeBase } from "@owarine/core/sizing";
+import { formatBaseUnits, oneUnit } from "@owarine/core/units";
 import { useId } from "react";
 import { TICKET } from "@/lib/copy";
 import { LeverageChips, type LeverageChipsProps } from "./LeverageChips";

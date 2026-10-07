@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
-import { keys, usePositions, usePublishedCalls } from "@agari/markets/react";
+import type { Address } from "@owarine/core/types";
+import { keys, usePositions, usePublishedCalls } from "@owarine/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
@@ -36,7 +36,7 @@ export function ProfileCalls({ address, units, own }: { address: Address; units:
   const positions = own ? ownPositions : publishedCalls;
   const queryClient = useQueryClient();
   const takes = useQuery({
-    queryKey: ["agari", "takes", "authors", address],
+    queryKey: ["owarine", "takes", "authors", address],
     queryFn: ({ signal }) => readTakes(address, signal),
     staleTime: TAKES_STALE_MS,
   });

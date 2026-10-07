@@ -1,7 +1,7 @@
 "use client";
 
-import { encodeBase58, isAddress, toAddress, type Address } from "@agari/core/types";
-import { signerFromKeyPair, type SeatSigner } from "@agari/markets/sessions";
+import { encodeBase58, isAddress, toAddress, type Address } from "@owarine/core/types";
+import { signerFromKeyPair, type SeatSigner } from "@owarine/markets/sessions";
 import { del, get, set } from "idb-keyval";
 
 /**
@@ -19,12 +19,12 @@ export interface StoredSeat {
 }
 
 /** IndexedDB record of the seat key. */
-const SEAT_DB_KEY = "agari.seat.key";
+const SEAT_DB_KEY = "owarine.seat.key";
 /**
  * localStorage marker that a seat exists, read synchronously after hydration so a returning visitor shows "restoring"
- * for the moment IndexedDB takes, and a first-time visitor is ready at once (the wallet plugin's `agari.wallet` role).
+ * for the moment IndexedDB takes, and a first-time visitor is ready at once (the wallet plugin's `owarine.wallet` role).
  */
-export const SEAT_STORAGE_KEY = "agari.seat";
+export const SEAT_STORAGE_KEY = "owarine.seat";
 
 const ED25519 = { name: "Ed25519" } as const;
 

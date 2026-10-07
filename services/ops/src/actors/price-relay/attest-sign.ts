@@ -2,8 +2,8 @@
  * Opt-in attested prints (`RELAY_ATTESTED=1`, venue-ops.md §6.6): demo data only, signed by `price-attestor`, valued at
  * RedStone's median at T for the Series' ticker. Off by default; no listed Series uses an attested primary in S3.
  */
-import { recordAttestedSlot, type PrintSlot } from "@agari/markets/ops/prints";
-import { keypairSigner } from "@agari/markets/ops";
+import { recordAttestedSlot, type PrintSlot } from "@owarine/markets/ops/prints";
+import { keypairSigner } from "@owarine/markets/ops";
 import { feedAt } from "./redstone-fetch";
 import type { RelayContext } from "./relay-pass";
 

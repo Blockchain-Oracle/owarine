@@ -100,7 +100,7 @@
   -webkit-background-clip: text;
   background-clip: text;
   filter: drop-shadow(0 0 9px color-mix(in srgb, var(--vermilion) 75%, transparent));
-  animation: agari-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
+  animation: owarine-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
 }
 .lp-hero-vertical { position: absolute; top: 14%; right: 4.4%; width: 1px; height: 72%; background: var(--vermilion); opacity: 0.8; pointer-events: none; }
 .lp-hero-folio { display: flex; justify-content: space-between; gap: 18px; padding-top: 14px; border-top: 1px solid var(--lp-rule); font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.29em; text-transform: uppercase; }

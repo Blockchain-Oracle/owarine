@@ -1,4 +1,4 @@
-import { encodeBase58, type Address, type Signature } from "@agari/core/types";
+import { encodeBase58, type Address, type Signature } from "@owarine/core/types";
 import { describe, expect, it, vi } from "vitest";
 import { createXExecutionJournal } from "./execution-journal";
 

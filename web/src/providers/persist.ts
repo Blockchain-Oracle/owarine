@@ -1,6 +1,6 @@
 "use client";
 
-import { CLUSTER } from "@agari/markets/chain";
+import { CLUSTER } from "@owarine/markets/chain";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import { del, get, set } from "idb-keyval";
 import { useEffect } from "react";
@@ -24,7 +24,7 @@ import { useEffect } from "react";
  * the cache buster, and a namespace miss simply reads as "nothing stored".
  */
 const SCHEMA_VERSION = 1;
-const NAMESPACE = `agari.read-cache.v${SCHEMA_VERSION}.${CLUSTER}`;
+const NAMESPACE = `owarine.read-cache.v${SCHEMA_VERSION}.${CLUSTER}`;
 const MAX_AGE_MS = 24 * 60 * 60 * 1_000;
 /** An account entry older than this is not worth showing, even labelled. */
 const ACCOUNT_MAX_AGE_MS = 15 * 60 * 1_000;
@@ -60,7 +60,7 @@ export function isPersistable(key: QueryKey): boolean {
  */
 export function isAccountEntry(key: QueryKey): boolean {
   const k = key as readonly unknown[];
-  if (k[0] !== "agari" || k[1] !== "markets" || typeof k[3] !== "string") return false;
+  if (k[0] !== "owarine" || k[1] !== "markets" || typeof k[3] !== "string") return false;
   switch (k[2]) {
     case "positions":
       return k.length === 4 || (k.length === 5 && k[4] === "resting");

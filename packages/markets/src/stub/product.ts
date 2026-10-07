@@ -1,5 +1,5 @@
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Diagnosis } from "@agari/core/types";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Diagnosis } from "@owarine/core/types";
 import { nowMs } from "../provider/clock";
 import { notDeployed, notDeployedReading } from "./not-deployed";
 

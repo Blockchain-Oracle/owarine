@@ -1,6 +1,6 @@
-import { eventLabelOf } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { formatClock, formatWallClock } from "@agari/core/units";
+import { eventLabelOf } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { formatClock, formatWallClock } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { eventClockOf } from "@/features/markets/events/clock";
 import { EVENT_BOARD, EVENT_SIDE_WORD } from "@/features/markets/events/copy";

@@ -1,7 +1,7 @@
-import { arenaPickKey, stakeTier, stakeTierIdOf, type CardReceipt, type MatchFacts } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32 } from "@agari/core/types";
-import { getArenaMatch } from "@agari/markets/games";
+import { arenaPickKey, stakeTier, stakeTierIdOf, type CardReceipt, type MatchFacts } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { getArenaMatch } from "@owarine/markets/games";
 
 /**
  * What the projector has to know about a match beyond the event in front of it.

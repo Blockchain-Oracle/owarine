@@ -1,7 +1,7 @@
-import { formatUtc } from "@agari/core/units";
+import { formatUtc } from "@owarine/core/units";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { PROOF_CAPTION } from "@agari/core/copy";
+import { PROOF_CAPTION } from "@owarine/core/copy";
 import { haptic } from "~/components/kit";
 import { openLedgerLink } from "~/lib/external";
 import { FONT, useTheme } from "~/theme";

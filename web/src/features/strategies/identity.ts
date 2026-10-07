@@ -1,6 +1,6 @@
-import { parseStrategyMetadata } from "@agari/core/strategies";
-import { isAddress } from "@agari/core/types";
-import { addressUrl } from "@agari/core/urls";
+import { parseStrategyMetadata } from "@owarine/core/strategies";
+import { isAddress } from "@owarine/core/types";
+import { addressUrl } from "@owarine/core/urls";
 import { codenameFromAddress } from "./names";
 
 /** Public identity travels with the registry metadata, so a runner change cannot rename an agent. */

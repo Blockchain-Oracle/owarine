@@ -13,12 +13,12 @@
  *              and any of its legs past `refundAfter` refunded into the book (`Leg_RefundStale`, the venue's own)
  */
 import { randomUUID } from "node:crypto";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { marketIdFromDaml } from "@agari/core/market";
-import { cmd, failureText, isInactive, netLegsCommandId, residualCommandId, settleBatchCommandId, submit, type Active, type LegC } from "@agari/markets/ops/canton";
-import { bcmd } from "@agari/markets/ops/book";
-import { decodeSupplyQuote, decodeWithdrawQuote, tcmd } from "@agari/markets/ops/tickets";
-import type { EarnRequest } from "@agari/markets/server";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { cmd, failureText, isInactive, netLegsCommandId, residualCommandId, settleBatchCommandId, submit, type Active, type LegC } from "@owarine/markets/ops/canton";
+import { bcmd } from "@owarine/markets/ops/book";
+import { decodeSupplyQuote, decodeWithdrawQuote, tcmd } from "@owarine/markets/ops/tickets";
+import type { EarnRequest } from "@owarine/markets/server";
 import { createdOne } from "../ticket-desk/desk";
 import { failed, isAnswer, lease, refused, reply, type Answer } from "../ticket-desk/common";
 import { submitWithShards } from "../quote-issuer/pooled-submit";

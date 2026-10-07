@@ -1,8 +1,8 @@
 "use client";
 
-import type { BlockerContext } from "@agari/core/copy";
-import { haltLabel } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import type { BlockerContext } from "@owarine/core/copy";
+import { haltLabel } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import { earningsWarning, laneAssetLabel } from "../lanes/lane-view";
 import { laneState, useMarketSession, type MarketSession } from "../session";
 import type { LaneGuardInput } from "./ticket-guards";

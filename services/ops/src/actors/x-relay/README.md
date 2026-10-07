@@ -2,7 +2,7 @@
 
 Each new mention is claimed once in Postgres before execution. A completed receipt can produce one short reply with a branded 1200 × 600 PNG and a clickable proof link.
 
-On Canton (C8f, C13a) the relay places a bound seat's call through that seat's `AgentGrant` (`Grant_AcceptQuote`, acting as the agent-runner party only), and the binding is the seat address: it resolves to a party only while that address holds a lease, so a recycled seat never inherits another visitor's X link. The image uses the same validated receipt facts as the text. Rendering uses the bundled licensed fonts and exact Agari mark; it needs no image-generation service.
+On Canton (C8f, C13a) the relay places a bound seat's call through that seat's `AgentGrant` (`Grant_AcceptQuote`, acting as the agent-runner party only), and the binding is the seat address: it resolves to a party only while that address holds a lease, so a recycled seat never inherits another visitor's X link. The image uses the same validated receipt facts as the text. Rendering uses the bundled licensed fonts and exact Owarine mark; it needs no image-generation service.
 
 ## Receipt facts
 

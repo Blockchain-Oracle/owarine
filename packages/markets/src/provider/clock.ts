@@ -1,5 +1,5 @@
-import type { ClockSync } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
+import type { ClockSync } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
 
 let offsetMs = 0;
 let lastSync: ClockSync | null = null;

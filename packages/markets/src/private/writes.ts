@@ -4,10 +4,10 @@
  * desk allowance on Canton, so an allow is already true and a revoke has nothing to revoke; the venue settles every
  * leg itself, so there is no slot to settle.
  */
-import { diagnosis } from "@agari/core/types";
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import { privateRequestId, type PrivateIntent } from "@agari/core/private";
-import type { Signature } from "@agari/core/types";
+import { diagnosis } from "@owarine/core/types";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { privateRequestId, type PrivateIntent } from "@owarine/core/private";
+import type { Signature } from "@owarine/core/types";
 import { z } from "zod";
 import { ledgerRequest } from "../provider/ledger-api";
 

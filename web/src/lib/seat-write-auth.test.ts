@@ -1,6 +1,6 @@
-import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_WRITE_HEADER, seatReadText } from "@agari/core/auth";
-import { configureMarkets, parseMarketsEnv, registerSeatSigner, seatWriteHeaderValue } from "@agari/markets";
-import { encodeBase58, toSignature } from "@agari/core/types";
+import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_WRITE_HEADER, seatReadText } from "@owarine/core/auth";
+import { configureMarkets, parseMarketsEnv, registerSeatSigner, seatWriteHeaderValue } from "@owarine/markets";
+import { encodeBase58, toSignature } from "@owarine/core/types";
 import { NextRequest } from "next/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -14,7 +14,7 @@ vi.mock("./ledger.server", () => ({
   seatServer: () => ({
     ok: true,
     server: {
-      env: { AGARI_SEAT_COOKIE_SECRET: "x".repeat(40) },
+      env: { OWARINE_SEAT_COOKIE_SECRET: "x".repeat(40) },
       store: {
         byAddress: async (a: string) => leases.get(a) ?? null,
         byLease: async (id: string) => [...leases.values()].find((l) => l.leaseId === id) ?? null,
@@ -82,7 +82,7 @@ describe("seatFromRequest: the read header reads, only the write proof writes (C
 });
 
 /**
- * C11b, found on the iOS simulator: React Native keeps cookies by default, so the phone held the `agari_seat` cookie its
+ * C11b, found on the iOS simulator: React Native keeps cookies by default, so the phone held the `owarine_seat` cookie its
  * lease call set and sent it, with no page Origin, on every write. The cookie branch refused the write as cross-site
  * before the phone's write proof was read, and no call could be placed. A write proof now decides when the cookie may
  * not write; without one (or with a proof that fails) the cookie write is still refused as cross-site.

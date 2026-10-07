@@ -1,5 +1,5 @@
-import { messageBytes, networkLine } from "@agari/core/auth";
-import { encodeBase58, toAddress, toSignature } from "@agari/core/types";
+import { messageBytes, networkLine } from "@owarine/core/auth";
+import { encodeBase58, toAddress, toSignature } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { verifyWalletMessage } from "./verify-signed-message.server";
 
@@ -15,7 +15,7 @@ async function signer() {
 describe("verifyWalletMessage", () => {
   it("accepts a real ed25519 signature over the exact text, and refuses one flipped byte or another signer", async () => {
     const wallet = await signer();
-    const text = `Agari X account link\nWallet: ${wallet.address}\n${networkLine("devnet")}`;
+    const text = `Owarine X account link\nWallet: ${wallet.address}\n${networkLine("devnet")}`;
     const signature = await wallet.sign(text);
     expect(await verifyWalletMessage({ text, signature, signer: wallet.address })).toBe(true);
 

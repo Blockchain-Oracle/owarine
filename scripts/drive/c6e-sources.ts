@@ -10,11 +10,11 @@
  *      median of T − 40 / T − 20 / T from a live xStock feed. Each line gives the price and the payload's sha-256, as the
  *      `PriceQuote.payloadHash` would.
  *
- *   pnpm --filter @agari/scripts exec tsx drive/c6e-sources.ts
+ *   pnpm --filter @owarine/scripts exec tsx drive/c6e-sources.ts
  */
 import { loadedEnvFiles } from "../../services/ops/src/runtime/load-env";
 import { createHash } from "node:crypto";
-import { attestedPrintSource, parsePrintSource, sessionLabel, XSTOCK_SYMBOLS } from "@agari/core/market";
+import { attestedPrintSource, parsePrintSource, sessionLabel, XSTOCK_SYMBOLS } from "@owarine/core/market";
 import { createSessionService } from "../../services/ops/src/calendar/session-service";
 import { alpacaKeys } from "../../services/ops/src/actors/price-relay";
 import { loadRelaySources, loadSwitchboardFeeds } from "../../services/ops/src/actors/price-relay/sources";

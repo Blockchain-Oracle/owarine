@@ -1,8 +1,8 @@
-import type { Reading } from "@agari/core/schemas";
-import { isOk } from "@agari/core/schemas";
-import type { Address, EventMarket, LaneBasis, LaneSet, MarketId, Side } from "@agari/core/types";
-import { secToMs } from "@agari/core/units";
-import { marketsProvider } from "@agari/markets";
+import type { Reading } from "@owarine/core/schemas";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, EventMarket, LaneBasis, LaneSet, MarketId, Side } from "@owarine/core/types";
+import { secToMs } from "@owarine/core/units";
+import { marketsProvider } from "@owarine/markets";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { laneTabParts, type LaneTabKey } from "@/features/markets/lanes/lane-view";

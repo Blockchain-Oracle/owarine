@@ -1,4 +1,4 @@
-import type { BookDepth, Side } from "@agari/core/types";
+import type { BookDepth, Side } from "@owarine/core/types";
 
 /** The venue's price scale: 1,000 ticks a pair, 10 ticks a cent, 100 bps a cent on the book reading. */
 const BPS_PER_CENT = 100;

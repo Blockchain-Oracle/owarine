@@ -3,9 +3,9 @@
  * each oracle exchange over the last day and the last week, on the 24/7 calendar year, beside what the equity-hours
  * clock and the 60 % placeholder would have said. Prints one JSON object; `docs/evidence/c6-realised-vol-*.md` records it.
  *
- *   pnpm --filter @agari/scripts exec tsx probes/realised-vol.ts [--days 1,7]
+ *   pnpm --filter @owarine/scripts exec tsx probes/realised-vol.ts [--days 1,7]
  */
-import { CALENDAR_YEAR_SEC, CRYPTO_SYMBOLS, medianSigmaBps, realisedVol } from "@agari/core/market";
+import { CALENDAR_YEAR_SEC, CRYPTO_SYMBOLS, medianSigmaBps, realisedVol } from "@owarine/core/market";
 import { EXCHANGES } from "../../services/ops/src/prices/candles";
 import { fetchCloseHistory } from "../../services/ops/src/prices/candle-history";
 import { TRADING_YEAR_SEC } from "../../services/ops/src/actors/market-maker/seat/fair";

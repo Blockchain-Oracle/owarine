@@ -1,7 +1,7 @@
 "use client";
 
-import { DESK_PRESETS, nameOf } from "@agari/core/desk";
-import { BASKETS } from "@agari/core/market";
+import { DESK_PRESETS, nameOf } from "@owarine/core/desk";
+import { BASKETS } from "@owarine/core/market";
 import { Blocks } from "lucide-react";
 import { LogoStack, RadioCards, Sparkline, type RadioCardItem } from "@/components/ui/desk-kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

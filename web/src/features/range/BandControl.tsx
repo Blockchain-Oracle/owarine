@@ -1,6 +1,6 @@
 "use client";
 
-import type { RangeSide } from "@agari/core/range";
+import type { RangeSide } from "@owarine/core/range";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RANGE } from "./copy";

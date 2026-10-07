@@ -1,4 +1,4 @@
-import type { SessionStatus, TradingSession } from "@agari/core/market";
+import type { SessionStatus, TradingSession } from "@owarine/core/market";
 
 /** The chart's spans. Only 1D reads today; 5D/1M/3M arrive with the Alpaca bars route (S18a stretch). */
 export type HistoryRange = "1D" | "5D" | "1M" | "3M";

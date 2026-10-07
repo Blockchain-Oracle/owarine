@@ -1,7 +1,7 @@
 "use client";
 
-import type { EventMarket, Lane, MarketId, Side } from "@agari/core/types";
-import { useOpeningPrice } from "@agari/markets/react";
+import type { EventMarket, Lane, MarketId, Side } from "@owarine/core/types";
+import { useOpeningPrice } from "@owarine/markets/react";
 import type { LaneTabKey } from "../lanes/lane-view";
 import { ReadingBoundary } from "@/components/states";
 import { HeroChartFoot } from "./HeroChartFoot";

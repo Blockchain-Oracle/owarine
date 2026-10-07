@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { classifyRejection } from "@agari/markets/server";
+import { classifyRejection } from "@owarine/markets/server";
 import { diagnosisReply, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /** The seat's own consents (C8f), `?ids=1,2` to narrow; read AS the leased party only. */

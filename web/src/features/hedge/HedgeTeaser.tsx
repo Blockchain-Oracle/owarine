@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKERS } from "@agari/core/market";
+import { TICKERS } from "@owarine/core/market";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { HEDGE } from "./copy";
 import type { HedgeCardState } from "./hedge-state";

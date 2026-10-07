@@ -1,4 +1,4 @@
-import type { Reading } from "@agari/core/schemas";
+import type { Reading } from "@owarine/core/schemas";
 import { StyleSheet, View } from "react-native";
 import { LEADERBOARD } from "@/features/leaderboard/copy";
 import { ago } from "@/features/stats/copy";

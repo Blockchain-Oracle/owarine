@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { errorFromResponse, LedgerError } from "@agari/ledger";
+import { errorFromResponse, LedgerError } from "@owarine/ledger";
 import { classifyRejection, refuse } from "./rejection";
 import { ReadingError } from "../errors/reading-error";
-import { diagnosis } from "@agari/core/types";
+import { diagnosis } from "@owarine/core/types";
 
 /**
  * Fixtures: the real `JsCantonError` bodies a local Canton 3.5.17 sandbox returned to `scripts/drive/probe-rejections.ts`

@@ -14,7 +14,7 @@ import { chromeTokens } from "~/theme/chrome";
 /**
  * web's More drawer (MobileBottomNav's SheetContent side="right", navigation.css .mobile-nav-*) as web draws it above
  * 480 px — a side panel with its left border, not the full-width sheet — so the page stays in view beside it (the
- * owner's call, 09-25): PANEL_SHARE of the screen, slides in from the right over a 72 % scrim, a tap there closes it; "Navigate" kicker, "Everything in Agari", the line under it,
+ * owner's call, 09-25): PANEL_SHARE of the screen, slides in from the right over a 72 % scrim, a tap there closes it; "Navigate" kicker, "Everything in Owarine", the line under it,
  * then every section with its mono title and each destination as an icon tile, name and one line.
  */
 /** The panel's share of a phone's width, and web's own cap (28 rem). */
@@ -51,7 +51,7 @@ export function NavDrawer({ open, onClose, pathname }: { open: boolean; onClose:
       <Animated.View style={[styles.panel, { width: panelWidth, backgroundColor: color.ground, borderLeftColor: t.navPanelBorder }, panel]} accessibilityViewIsModal>
         <View style={[styles.header, { paddingTop: Math.max(20, insets.top), borderBottomColor: t.navDivider }]}>
           <Text style={[styles.kicker, { color: color.accent }]}>NAVIGATE</Text>
-          <Text style={[styles.title, { color: color.ink }]}>Everything in Agari</Text>
+          <Text style={[styles.title, { color: color.ink }]}>Everything in Owarine</Text>
           <Text style={[styles.desc, { color: color.inkMuted }]}>Build, trade, verify, or learn—every destination has one home.</Text>
           <Pressable onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close" style={[styles.close, { top: Math.max(20, insets.top) }]}>
             <X size={16} color={color.inkSecondary} strokeWidth={2} />

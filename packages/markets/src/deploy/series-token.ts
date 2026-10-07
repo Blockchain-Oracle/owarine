@@ -3,8 +3,8 @@
  * on `LAUNCH_GRID`, with the token versions of `tokenPolicyVersions`. Lane 6b owns this file; `deploy/index.ts`
  * re-exports all of it.
  */
-import { laneKey, TICKERS, TOKEN_LANE_TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
+import { laneKey, TICKERS, TOKEN_LANE_TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
 import type { DeployClient } from "./client";
 import type { PriceSources } from "./policies";
 import { tokenPolicyVersions } from "./policies-token";

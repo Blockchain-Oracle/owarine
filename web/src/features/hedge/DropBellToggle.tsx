@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { BellIcon, BellRingIcon } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { requestNotificationPermission } from "@/features/alerts";

@@ -7,9 +7,9 @@
  * the seat's position needs its Window's times and `Leg_Claim` needs the resolution as a disclosed contract. No command
  * is ever submitted as the venue from here.
  */
-import { PRIVATE_BUCKET, PRIVATE_LEG_REF } from "@agari/core/private";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type ActiveContract, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
+import { PRIVATE_BUCKET, PRIVATE_LEG_REF } from "@owarine/core/private";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type ActiveContract, type CreatedEvent, type LedgerClient, type Party } from "@owarine/ledger";
 import {
   buyQuoteView, cashView, isEntity, legView, quoteView, resolutionView, restingCallView, restingOfferView, termsView,
   type BuyQuoteView, type CashView, type LegView, type QuoteView, type ResolutionView, type RestingCallView, type RestingOfferView, type TermsView,

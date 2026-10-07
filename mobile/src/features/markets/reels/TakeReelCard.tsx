@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import { assetTicker } from "@agari/core/market";
-import { secToMs } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import { assetTicker } from "@owarine/core/market";
+import { secToMs } from "@owarine/core/units";
 import { router } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";

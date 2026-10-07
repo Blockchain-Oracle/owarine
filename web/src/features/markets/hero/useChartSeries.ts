@@ -1,9 +1,9 @@
 "use client";
 
-import { spotSymbolOf } from "@agari/core/market";
-import { mapReading, stale, type Reading } from "@agari/core/schemas";
-import type { AssetPrice, EventMarket, PricePoint } from "@agari/core/types";
-import { useAssetPrice, usePriceHistory } from "@agari/markets/react";
+import { spotSymbolOf } from "@owarine/core/market";
+import { mapReading, stale, type Reading } from "@owarine/core/schemas";
+import type { AssetPrice, EventMarket, PricePoint } from "@owarine/core/types";
+import { useAssetPrice, usePriceHistory } from "@owarine/markets/react";
 import { useEffect, useMemo, useState } from "react";
 import { basisRaw, FEED_DECIMALS_DEFAULT, feedRawToOracleRaw } from "./units";
 

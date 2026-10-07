@@ -82,7 +82,7 @@ export interface EvidenceSource {
 
 export const sha256Hex = (text: string): string => bytesToHex(sha256(utf8ToBytes(text)));
 
-/** The exchange an oracle party speaks for, from its party hint (`agari-oracle-coinbase-<run>::…`); null when unnamed. */
+/** The exchange an oracle party speaks for, from its party hint (`owarine-oracle-coinbase-<run>::…`); null when unnamed. */
 export function exchangeOfParty(party: string): Exchange | null {
   const hint = party.split("::")[0] ?? "";
   const m = /oracle-([a-z]+)/.exec(hint);

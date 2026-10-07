@@ -3,8 +3,8 @@
  * reserve's own (`tcmd.issueSupply`, `Nav_IssueWithdraw`); a pair quote from the book is the desk's `Desk_IssueQuote`
  * on a `reserve:maker` shard. What is new is the statement the book publishes and the desk that publishes it.
  */
-import { TEMPLATE_IDS, type PM } from "@agari/daml";
-import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
+import { TEMPLATE_IDS, type PM } from "@owarine/daml";
+import { toDamlInt, type Command, type ContractId, type Party } from "@owarine/ledger/pure";
 import { isoOfSec } from "../canton/decode";
 
 const exercise = (templateId: string, contractId: ContractId, choice: string, choiceArgument: unknown): Command => ({

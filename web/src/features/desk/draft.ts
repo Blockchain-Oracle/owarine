@@ -1,6 +1,6 @@
-import { checkMandate, DEFAULT_LIMITS, DEFAULT_MONEY, DEFAULT_PRACTICE_CASH_E6, DESK_PRESETS, describeTargets, nameOf, presetById, thresholdBps, type DeskMandate, type DeskTargets } from "@agari/core/desk";
-import { BASKETS, isBasketSymbol, PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { parseDecimalToBaseUnits } from "@agari/core/units";
+import { checkMandate, DEFAULT_LIMITS, DEFAULT_MONEY, DEFAULT_PRACTICE_CASH_E6, DESK_PRESETS, describeTargets, nameOf, presetById, thresholdBps, type DeskMandate, type DeskTargets } from "@owarine/core/desk";
+import { BASKETS, isBasketSymbol, PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
+import { parseDecimalToBaseUnits } from "@owarine/core/units";
 import { DESK } from "./copy";
 import { pct, usd } from "./format";
 
@@ -154,4 +154,4 @@ export function readBack(m: DeskMandate): string[] {
   return lines;
 }
 
-export const draftStorageKey = (owner: string | null): string => `agari.desk.draft:101:${owner ?? "anon"}`;
+export const draftStorageKey = (owner: string | null): string => `owarine.desk.draft:101:${owner ?? "anon"}`;

@@ -1,4 +1,4 @@
-import { formatCadence } from "@agari/core/copy";
+import { formatCadence } from "@owarine/core/copy";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";

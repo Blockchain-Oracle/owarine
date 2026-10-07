@@ -3,9 +3,9 @@
  * single-flight grant), and one role session per infrastructure party (`roleParty`). A role without a party has no
  * session: its actor scans and reports only. DRY_RUN (default on) makes every session prepare-only.
  */
-import { ledgerClientFromEnv, ledgerConfigSummary, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
+import { ledgerClientFromEnv, ledgerConfigSummary, parseLedgerEnv, type LedgerClient } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { pick, readActive, type RoleSession } from "@owarine/markets/ops/canton";
 import { readOpsEnv } from "../../runtime/env";
 import { CANTON_ROLES, readPartiesFile, roleParty, type CantonRole, type OracleRole } from "../../runtime/keys";
 

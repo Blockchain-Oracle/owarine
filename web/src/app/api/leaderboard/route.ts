@@ -1,4 +1,4 @@
-import { TICKER_SYMBOLS } from "@agari/core/market";
+import { TICKER_SYMBOLS } from "@owarine/core/market";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { boardView, readBoard } from "@/features/leaderboard/board.server";

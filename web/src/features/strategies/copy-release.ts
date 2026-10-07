@@ -1,5 +1,5 @@
-import type { Address, Signature } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
+import type { Address, Signature } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
 import { matchesProgressGrant, type CopyProgress } from "./copy-progress";
 import type { CopyWriteResult } from "./copy-setup";
 

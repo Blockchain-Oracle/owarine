@@ -3,12 +3,12 @@
  * tick_base`, `quantityRaw = lots × lot_base`, cash = `lots × ticks × cash_unit`. Nothing here reads a clock or the
  * network; callers pass the chain-corrected `nowSec`.
  */
-import type { QuoteTarget } from "@agari/core/ports";
-import { ONCHAIN_STATUS } from "@agari/core/lifecycle";
-import { bookLevels, exitWalk, outcomeLevels, quoteStake, vwapOverDepth, type BookLevel, type NodeFilter } from "@agari/core/market";
-import { bufferToSlippageBps, costCapBufferBps } from "@agari/core/sizing";
-import type { Address, BookDepth, BookLevelView, MarketId, OnchainSnapshot, OutcomeIdx, Quote, Side } from "@agari/core/types";
-import { bpsToOddsCents, oneCent } from "@agari/core/units";
+import type { QuoteTarget } from "@owarine/core/ports";
+import { ONCHAIN_STATUS } from "@owarine/core/lifecycle";
+import { bookLevels, exitWalk, outcomeLevels, quoteStake, vwapOverDepth, type BookLevel, type NodeFilter } from "@owarine/core/market";
+import { bufferToSlippageBps, costCapBufferBps } from "@owarine/core/sizing";
+import type { Address, BookDepth, BookLevelView, MarketId, OnchainSnapshot, OutcomeIdx, Quote, Side } from "@owarine/core/types";
+import { bpsToOddsCents, oneCent } from "@owarine/core/units";
 import type { BookState, MarketData, SeriesFacts, VenueFacts } from "./accounts";
 
 /** How many levels a side carries: the coordinated Book, the quote walk and `getBookDepth` all use it. */

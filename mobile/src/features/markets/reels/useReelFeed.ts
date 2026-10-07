@@ -1,5 +1,5 @@
-import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@agari/core/desk";
-import { marketsProvider } from "@agari/markets";
+import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@owarine/core/desk";
+import { marketsProvider } from "@owarine/markets";
 import { useMemo } from "react";
 import { useDeskView } from "@/features/desk/useDesk";
 import { calmSet, holdsPreIpo } from "@/features/hedge/calm";

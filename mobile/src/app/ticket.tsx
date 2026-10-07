@@ -1,7 +1,7 @@
-import { isRestable } from "@agari/core/lifecycle";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { useMarket } from "@agari/markets/react";
+import { isRestable } from "@owarine/core/lifecycle";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { useMarket } from "@owarine/markets/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { X } from "lucide-react-native";
 import { useRef, useState } from "react";

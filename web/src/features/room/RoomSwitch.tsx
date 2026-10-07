@@ -1,6 +1,6 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { ROOM } from "./copy";
 import "./room-switch.css";
 

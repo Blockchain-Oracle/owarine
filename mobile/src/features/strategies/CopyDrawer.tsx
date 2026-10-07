@@ -1,5 +1,5 @@
-import { parseStrategyMetadata, type StrategySubscription } from "@agari/core/strategies";
-import type { VaultGrant } from "@agari/core/vault";
+import { parseStrategyMetadata, type StrategySubscription } from "@owarine/core/strategies";
+import type { VaultGrant } from "@owarine/core/vault";
 import { BlurView } from "expo-blur";
 import { X } from "lucide-react-native";
 import { useState } from "react";

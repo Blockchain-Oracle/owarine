@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 
 /**
  * The seat's signing key, as markets holds it (plan §2): an ed25519 key whose base58 public key is the app's `Address`.

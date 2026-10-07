@@ -4,10 +4,10 @@
  */
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
-import { appMarketId } from "@agari/markets/server";
-import { decodeOpenPrint, decodeQuote, decodeTerms, type TermsC } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
+import { appMarketId } from "@owarine/markets/server";
+import { decodeOpenPrint, decodeQuote, decodeTerms, type TermsC } from "@owarine/markets/ops/canton";
 import type { CheckRow } from "../../bootstrap/rows";
 import { ledgerKit, type Roles, type Row } from "../first-call/ledger";
 import { newSeat, type Seat, type WebClient } from "../first-call/seat";

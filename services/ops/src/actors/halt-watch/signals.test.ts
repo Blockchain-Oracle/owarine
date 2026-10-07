@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { BASKETS, PRE_IPO_TICKERS, primarySourceAt, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
+import { BASKETS, PRE_IPO_TICKERS, primarySourceAt, type PreIpoSymbol, type TickerSymbol } from "@owarine/core/market";
 import type { PreStocksSample, PreStocksSnapshot } from "../../prices/prestocks-spot";
 import type { SpotFeed, SpotQuote } from "../../prices/spot";
 import { pythFeedsToRead } from "./decide";

@@ -1,5 +1,5 @@
-import type { EventMarket } from "@agari/core/types";
-import { useOpeningPrice } from "@agari/markets/react";
+import type { EventMarket } from "@owarine/core/types";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { StyleSheet, Text, View } from "react-native";
 import { useChartSeries } from "@/features/markets/hero/useChartSeries";
 import { laneAssetLabel } from "@/features/markets/lanes/lane-view";

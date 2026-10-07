@@ -1,9 +1,9 @@
 ---
-title: "How Agari fits together"
+title: "How Owarine fits together"
 description: "A prediction market on Canton Network: four Daml packages hold the money rules, parties hold the privacy, and demo credits are the only money."
 ---
 
-Agari is a prediction market on **Canton Network** for short price calls: will a price close its Window up or down. The money rules live in **Daml packages**, not in the web app. The venue quotes a firm price for each side; you accept from your seat; three oracle parties sign the prices; a resolver party resolves each Window exactly once; the venue's settler pays. It all runs end to end on a **local Canton sandbox** with **demo credits**; nothing is on DevNet or a hosted URL yet.
+Owarine is a prediction market on **Canton Network** for short price calls: will a price close its Window up or down. The money rules live in **Daml packages**, not in the web app. The venue quotes a firm price for each side; you accept from your seat; three oracle parties sign the prices; a resolver party resolves each Window exactly once; the venue's settler pays. It all runs end to end on a **local Canton sandbox** with **demo credits**; nothing is on DevNet or a hosted URL yet.
 
 <Architecture name="venue" />
 
@@ -27,7 +27,7 @@ There is no wallet app to install. **Take a seat** makes a signing key in your b
 
 ## The trust boundary
 
-Every party Agari uses (venue, resolver, oracles, seats) is hosted on one shared participant, where one ledger user can act as all of them. So **our code decides which party a seat acts as**:
+Every party Owarine uses (venue, resolver, oracles, seats) is hosted on one shared participant, where one ledger user can act as all of them. So **our code decides which party a seat acts as**:
 
 - A seat route takes the party from the seat's current lease, never from the request; the `no-party-from-request` invariant fails the build otherwise.
 - Everything a seat reads or acts on is bound to its current lease's start offset, so a recycled party never exposes a previous visitor's positions.

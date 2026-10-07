@@ -1,8 +1,8 @@
-import { isOk } from "@agari/core/schemas";
-import type { StrategySubscription } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
-import { useBalanceSheet } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { StrategySubscription } from "@owarine/core/strategies";
+import type { Address } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { useState } from "react";
 import { checkCopyForm } from "@/features/strategies/copy-form";
 import { progressCaps } from "@/features/strategies/copy-progress";

@@ -1,5 +1,5 @@
-import { laneKey, noSourceReason, parseLaneKey, regularWindows, TICKERS, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@agari/core/market";
-import type { EventMarket, Lane, LaneSet } from "@agari/core/types";
+import { laneKey, noSourceReason, parseLaneKey, regularWindows, TICKERS, TICKER_SYMBOLS, type TickerSymbol, type TradingSession } from "@owarine/core/market";
+import type { EventMarket, Lane, LaneSet } from "@owarine/core/types";
 import type { MarketSession } from "../session";
 import { compareLaneTabKeys, laneTabKey, laneTabParts, type LaneTabKey } from "./lane-view";
 

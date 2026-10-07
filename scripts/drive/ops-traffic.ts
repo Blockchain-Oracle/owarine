@@ -1,22 +1,22 @@
 /**
  * Drives two user parties against the local venue (C3 gate): every Window of one lane gets one quote per user through
- * ops' HMAC-signed `POST /internal/quotes`, called with the web's own client (`@agari/markets/server` `createOpsClient`,
+ * ops' HMAC-signed `POST /internal/quotes`, called with the web's own client (`@owarine/markets/server` `createOpsClient`,
  * so the replies are checked against the web's wire schema), alice buying Up and bob Down; each user accepts their own
- * quote with `Quote_Accept` submitted as that user through `@agari/ledger`. Seats are funded through
+ * quote with `Quote_Accept` submitted as that user through `@owarine/ledger`. Seats are funded through
  * `POST /internal/seats/fund`.
  * One JSON line per trade goes to `TRAFFIC_EVENTS_FILE`.
  *
- *   OPS_URL=http://127.0.0.1:8787 OPS_INTERNAL_SECRET=… LEDGER_JSON_API_URL=… AGARI_PARTIES_FILE=… \
- *     pnpm --filter @agari/scripts exec tsx drive/ops-traffic.ts --series BTC-1m --windows 12
+ *   OPS_URL=http://127.0.0.1:8787 OPS_INTERNAL_SECRET=… LEDGER_JSON_API_URL=… OWARINE_PARTIES_FILE=… \
+ *     pnpm --filter @owarine/scripts exec tsx drive/ops-traffic.ts --series BTC-1m --windows 12
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { randomUUID } from "node:crypto";
 import { appendFileSync } from "node:fs";
-import { createLedgerClient, noAuth, parseLedgerEnv, type Party } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, decodeVenueCash, pick, readActive } from "@agari/markets/ops/canton";
-import { createOpsClient } from "@agari/markets/server";
-import { isMarketId, type MarketId } from "@agari/core/types";
+import { createLedgerClient, noAuth, parseLedgerEnv, type Party } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { cmd, decodeVenueCash, pick, readActive } from "@owarine/markets/ops/canton";
+import { createOpsClient } from "@owarine/markets/server";
+import { isMarketId, type MarketId } from "@owarine/core/types";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 import { arg } from "./cli";
 

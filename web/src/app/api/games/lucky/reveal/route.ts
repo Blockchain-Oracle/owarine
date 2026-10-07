@@ -1,4 +1,4 @@
-import { hash32Schema } from "@agari/core/types";
+import { hash32Schema } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { revealDraw } from "@/features/games/lucky/lucky.server";

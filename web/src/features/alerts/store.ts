@@ -1,4 +1,4 @@
-import { oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
+import { oneUnit, parseDecimalToBaseUnits } from "@owarine/core/units";
 
 /**
  * Stored price-alert rules — ported from `reference/yosuku/lib/priceAlerts.ts`.
@@ -17,7 +17,7 @@ import { oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
  * for a component that reads it on mount, but the evaluator (`AlertsWatcher`) has to learn
  * about a rule the moment the button saves it, without a reload.
  */
-const STORAGE_KEY = "agari.priceAlerts";
+const STORAGE_KEY = "owarine.priceAlerts";
 const CENTS_DP = 2;
 
 export type AlertDirection = "above" | "below";

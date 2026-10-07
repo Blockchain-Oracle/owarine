@@ -2,7 +2,7 @@
  * The arena desk (C9b): the venue's side of `abu-pm-games` in one ops process.
  *
  *   reads      ArenaTerms, DuelOpen, DuelMatch, DuelResult, SeasonPool, Resolution, as the venue; registered as this
- *              process's `@agari/markets/games` source, so the room, the matchmaker and the duel projection read the
+ *              process's `@owarine/markets/games` source, so the room, the matchmaker and the duel projection read the
  *              same `ArenaMatchView` the screens do
  *   routes     POST /internal/games/{state, match, season, open, season/distribute, season/withdraw} (`routes.ts`)
  *   settler    reveal · lock · score · finalize · the three refunds (`duel-settler`), one pass every few seconds
@@ -10,9 +10,9 @@
  *
  * Every seat's own choice (open, join, pick, cancel, a player's crank) goes through the web, as that seat's party.
  */
-import { ok } from "@agari/core/schemas";
-import { getDb } from "@agari/db";
-import { registerArenaSource, type ArenaSource } from "@agari/markets/games";
+import { ok } from "@owarine/core/schemas";
+import { getDb } from "@owarine/db";
+import { registerArenaSource, type ArenaSource } from "@owarine/markets/games";
 import { runActor } from "../../runtime/actor";
 import { opsMarketsEnv } from "../../runtime/markets-env";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";

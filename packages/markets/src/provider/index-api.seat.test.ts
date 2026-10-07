@@ -1,5 +1,5 @@
-import { parseSeatReadHeader, SEAT_READ_HEADER } from "@agari/core/auth";
-import { encodeBase58 } from "@agari/core/types";
+import { parseSeatReadHeader, SEAT_READ_HEADER } from "@owarine/core/auth";
+import { encodeBase58 } from "@owarine/core/types";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseMarketsEnv } from "../env";
 import { configureMarkets } from "../runtime/read-runtime";

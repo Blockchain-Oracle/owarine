@@ -2,17 +2,17 @@ import { HERO } from "@/lib/copy";
 
 /**
  * `/surface` — the reference's page (`reference/yosuku/app/surface/page.tsx`) reads a parametric SVI
- * volatility surface back off Sui. Agari prices every Window off the venue's published price ladder (indicative, not a
+ * volatility surface back off Sui. Owarine prices every Window off the venue's published price ladder (indicative, not a
  * public order book) and exposes no such model, so doc 03 §Surface keeps the route and its analytical density and swaps
  * the content for the venue's real structures: the top of the ladder, its depth, slippage across stake sizes, and
  * the term structure across the asset's live expiries. The words below say what the figures are.
  */
 export const SURFACE = {
-  crumbRoot: "Agari",
+  crumbRoot: "Owarine",
   crumb: "Surface",
   title: "Market Surface",
   intro: {
-    lead: "Every Agari Window is priced by a ",
+    lead: "Every Owarine Window is priced by a ",
     em: "live venue price ladder",
     rest: " — the venue's own bids and asks, published as a ladder: indicative, not a public order book and not a volatility model. The ticket uses one number, the top of that ladder; here you can read the whole structure back: how deep each side is, what a bigger stake would really pay, and how every live expiry of the asset is priced right now. Every figure is read from the ladder itself; nothing is estimated.",
   },

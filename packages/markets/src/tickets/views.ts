@@ -8,11 +8,11 @@
  *   - a provider's lifetime supplied/withdrawn counters are not on the ledger: supplied reads as today's worth, so
  *     no yield is claimed that the ledger cannot show.
  */
-import type { LeverageParams, LeveragePosition, LeverageReserveState } from "@agari/core/leverage";
-import type { ParlayLeg, ParlayParams, ParlayReserveState, ParlayTicket } from "@agari/core/parlay";
-import type { ProviderShares } from "@agari/core/reserves";
-import type { RangeParams, RangeReserveState, RangeRound } from "@agari/core/range";
-import type { Address } from "@agari/core/types";
+import type { LeverageParams, LeveragePosition, LeverageReserveState } from "@owarine/core/leverage";
+import type { ParlayLeg, ParlayParams, ParlayReserveState, ParlayTicket } from "@owarine/core/parlay";
+import type { ProviderShares } from "@owarine/core/reserves";
+import type { RangeParams, RangeReserveState, RangeRound } from "@owarine/core/range";
+import type { Address } from "@owarine/core/types";
 import type { BoostPositionView, ParlayTicketView, RangeRoundView, TicketReserveState, TicketsMine } from "../provider/ticket-wire";
 import { rememberTicket, reserveAddressOf } from "./client";
 import { leverageParams, parlayParams, rangeParams, TICKET_DECIMALS, TICKET_ONE, type TicketReserveId } from "./params";

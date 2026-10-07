@@ -1,8 +1,8 @@
 "use client";
 
 import { seatWriteHeaders } from "@/lib/seat-fetch";
-import { isOk } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import { isOk } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ErrorState, LoadingState } from "@/components/states";

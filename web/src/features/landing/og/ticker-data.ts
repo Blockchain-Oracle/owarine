@@ -1,5 +1,5 @@
-import { formatEtClock, type TickerSymbol, type TradingSession } from "@agari/core/market";
-import { getDb, indexReader } from "@agari/db";
+import { formatEtClock, type TickerSymbol, type TradingSession } from "@owarine/core/market";
+import { getDb, indexReader } from "@owarine/db";
 import { z } from "zod";
 import { archiveKeys } from "@/app/api/index/[...path]/queries-archive";
 import { webEnv } from "@/lib/env";

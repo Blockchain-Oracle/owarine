@@ -4,8 +4,8 @@
  * `payloadHash` on the `PriceQuote` contract. Until then every replay is refused (`not-live`) before the store is
  * touched or anything is claimed. Pure feed lookups and the error redaction are kept. Server-only.
  */
-import { TICKERS, type Ticker, type TickerSymbol } from "@agari/core/market";
-import type { Hash32 } from "@agari/core/types";
+import { TICKERS, type Ticker, type TickerSymbol } from "@owarine/core/market";
+import type { Hash32 } from "@owarine/core/types";
 import { cantonNotLive } from "../stub/not-deployed";
 import type { ArchivedUpdate, PreflightRefusal } from "./hermes";
 import type { ProofStore, StoredPrint, VerifiedProofRow } from "./store";

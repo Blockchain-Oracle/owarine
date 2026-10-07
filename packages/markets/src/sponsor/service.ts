@@ -7,8 +7,8 @@
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { COMPUTE_UNIT_LIMIT_MAX } from "@agari/core/constants";
-import type { Address } from "@agari/core/types";
+import { COMPUTE_UNIT_LIMIT_MAX } from "@owarine/core/constants";
+import type { Address } from "@owarine/core/types";
 import { parseSecretKey } from "../sessions/keypair";
 import { cantonNotLive } from "../stub/not-deployed";
 import type { AttemptLimits, GateLimits, SponsorLedger } from "./gates";
@@ -62,7 +62,7 @@ export function sponsorRoleSecret(env: Env): Uint8Array | null {
   };
   const fromEnv = read(env.SPONSOR_PRIVATE_KEY);
   if (fromEnv) return fromEnv;
-  const file = join(env.AGARI_KEYS_DIR || join(homedir(), ".config", "agari", "devnet"), "sponsor.json");
+  const file = join(env.OWARINE_KEYS_DIR || join(homedir(), ".config", "owarine", "devnet"), "sponsor.json");
   if (!existsSync(file)) return null;
   try {
     return read(readFileSync(file, "utf8"));

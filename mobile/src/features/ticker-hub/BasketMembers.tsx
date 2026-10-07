@@ -1,4 +1,4 @@
-import { TICKERS, type Basket } from "@agari/core/market";
+import { TICKERS, type Basket } from "@owarine/core/market";
 import { router } from "expo-router";
 import { ScrollView, StyleSheet, Text, View, type TextStyle } from "react-native";
 import { usdLine } from "@/features/markets/hero/units";

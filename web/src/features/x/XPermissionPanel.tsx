@@ -1,7 +1,7 @@
 "use client";
 
-import { formatBaseUnits, formatUtc } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import { formatBaseUnits, formatUtc } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
 import type { XGrantState } from "./useXGrant";
 import { X_CARD } from "./copy";

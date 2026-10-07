@@ -1,13 +1,13 @@
 "use client";
 
-import { deriveVerdict, verdictPriceable, type PaidBySide } from "@agari/core/claims";
-import { ONCHAIN_POLL_MS, VERDICT_POLL_MS } from "@agari/core/constants";
-import { combineReadings, isOk, mapReading, type Reading } from "@agari/core/schemas";
-import type { SettledRound, WalletHistory } from "@agari/core/projection";
-import type { Address, ClaimableRow, EventMarket, MarketId, Resolution, Verdict } from "@agari/core/types";
-import { secToMs } from "@agari/core/units";
-import { marketsProvider } from "@agari/markets";
-import { keys, useClaimables, useHoldings, useMarket, useOnchain, usePositions, useReadingQuery, useTick, useWalletHistory } from "@agari/markets/react";
+import { deriveVerdict, verdictPriceable, type PaidBySide } from "@owarine/core/claims";
+import { ONCHAIN_POLL_MS, VERDICT_POLL_MS } from "@owarine/core/constants";
+import { combineReadings, isOk, mapReading, type Reading } from "@owarine/core/schemas";
+import type { SettledRound, WalletHistory } from "@owarine/core/projection";
+import type { Address, ClaimableRow, EventMarket, MarketId, Resolution, Verdict } from "@owarine/core/types";
+import { secToMs } from "@owarine/core/units";
+import { marketsProvider } from "@owarine/markets";
+import { keys, useClaimables, useHoldings, useMarket, useOnchain, usePositions, useReadingQuery, useTick, useWalletHistory } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef } from "react";
 import { useVenue } from "../useVenue";

@@ -1,6 +1,6 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { ArrowRightIcon, LoaderIcon, LockIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { ConnectButton } from "@/features/markets/wallet";

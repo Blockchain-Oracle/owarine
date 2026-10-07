@@ -1,6 +1,6 @@
-import { insideNoEntryBuffer, ONCHAIN_STATUS } from "@agari/core/lifecycle";
-import { diagnosis, type EventMarket, type OnchainSnapshot } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
+import { insideNoEntryBuffer, ONCHAIN_STATUS } from "@owarine/core/lifecycle";
+import { diagnosis, type EventMarket, type OnchainSnapshot } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
 import { readMarket, readSeries, readVenue, type SeriesFacts, type VenueFacts } from "../../runtime/accounts";
 import { toOnchainSnapshot } from "../../runtime/mappers";
 import { OrderRefusedError } from "../errors";

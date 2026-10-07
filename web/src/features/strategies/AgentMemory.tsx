@@ -1,6 +1,6 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
+import { formatCadence } from "@owarine/core/copy";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";

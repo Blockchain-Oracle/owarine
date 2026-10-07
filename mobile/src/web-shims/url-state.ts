@@ -1,4 +1,4 @@
-import { marketIdFromPath, parseMarketsSearch } from "@agari/core/urls";
+import { marketIdFromPath, parseMarketsSearch } from "@owarine/core/urls";
 import { router } from "expo-router";
 
 /** The app's current path, kept by RouteTracker (root layout): web's writes decide from it where they land. */

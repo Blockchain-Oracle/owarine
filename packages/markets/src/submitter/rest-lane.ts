@@ -15,8 +15,8 @@
  * The daily stop is asked before a call rests, but a call spends nothing until it fills, so its reservation is released at
  * once. No retries anywhere in the lane; idempotency is the commandId's.
  */
-import type { OrderOutcome, OrderRequest, PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Diagnosis, type MarketId, type Signature } from "@agari/core/types";
+import type { OrderOutcome, OrderRequest, PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis, type MarketId, type Signature } from "@owarine/core/types";
 import { ledgerRequest } from "../provider/ledger-api";
 import { restingCancelReplyWire, restingOfferReplyWire, restingPlaceReplyWire } from "../provider/ledger-wire";
 import { pollCommand, type SeatLaneDeps } from "./seat-lane";

@@ -1,5 +1,5 @@
-import { PRINT_DECIMALS } from "@agari/core/range";
-import { formatOracleRaw } from "@agari/core/units";
+import { PRINT_DECIMALS } from "@owarine/core/range";
+import { formatOracleRaw } from "@owarine/core/units";
 
 /** One dollar on the print scale. The reference worked in cents; a print here carries 10⁻⁸ (`PRINT_DECIMALS`). */
 const ONE_USD = 10n ** BigInt(PRINT_DECIMALS);

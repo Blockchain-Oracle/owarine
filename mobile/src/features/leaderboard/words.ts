@@ -2,7 +2,7 @@ import type { BoardSpan } from "@/features/leaderboard/copy";
 
 /** The phone board's own words (the owner's mobile-first pass); web's LEADERBOARD copy covers the rest. */
 export const BOARD_PHONE = {
-  eyebrow: "Everyone trading on Agari",
+  eyebrow: "Everyone trading on Owarine",
   stats: { traders: "Traders", staked: "Staked · top 50", close: "Next close" },
   periods: { session: "Session", "24h": "24h" },
   allTickers: "All",

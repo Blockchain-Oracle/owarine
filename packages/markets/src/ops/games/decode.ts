@@ -4,7 +4,7 @@
  * counters range-checked into a `number`, every `Time` epoch seconds. Variants with a record constructor arrive as
  * `{tag, value}`; an all-nullary variant (`RefundReason`) as its constructor's name.
  */
-import { fromDamlInt, type ContractId, type Party } from "@agari/ledger/pure";
+import { fromDamlInt, type ContractId, type Party } from "@owarine/ledger/pure";
 import { DecodeError, decodeLeg, timeSec, type LegC } from "../canton/decode";
 
 type Raw = Record<string, unknown>;

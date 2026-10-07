@@ -32,7 +32,7 @@ const COPY: Record<DiagnosisKind, DiagnosisCopy> = {
   "rpc-down": { headline: "The ledger isn't answering", body: "The venue's Canton node did not answer. Last-good values stay on screen." },
   "contract-revert": { headline: "The contract refused", body: "Nothing moved. The technical details name the reason." },
   "grant-refused": { headline: "Outside the grant", body: "This order sits outside what the grant allows — its caps, expiry or actor. Adjust the grant or the size." },
-  "not-deployed": { headline: "Not live on this network yet", body: "Agari's markets aren't deployed on this network yet, so there is nothing to read or trade here. Nothing was sent." },
+  "not-deployed": { headline: "Not live on this network yet", body: "Owarine's markets aren't deployed on this network yet, so there is nothing to read or trade here. Nothing was sent." },
   "send-unknown": { headline: "Waiting for the ledger to answer", body: "Your order is either in or it never left; we'll show you which." },
   unknown: { headline: "Something went sideways", body: "Nothing on the ledger changed without a signature. Details below." },
 };

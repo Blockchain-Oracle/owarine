@@ -1,5 +1,5 @@
-import { countdown } from "@agari/core/lifecycle";
-import type { LaneSet } from "@agari/core/types";
+import { countdown } from "@owarine/core/lifecycle";
+import type { LaneSet } from "@owarine/core/types";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -9,7 +9,7 @@ import Svg, { Circle } from "react-native-svg";
 import { SENSEI_TEASERS, SENSEI_UI } from "@/features/sensei/copy";
 import { useSenseiSnapshot } from "@/features/sensei/useSenseiSnapshot";
 import { haptic } from "~/components/kit";
-import { AgariMark } from "~/components/shell/AgariMark";
+import { OwarineMark } from "~/components/shell/OwarineMark";
 import { FONT } from "~/theme";
 import { useMk } from "../hero/mk";
 
@@ -60,7 +60,7 @@ function useTeaser(): number {
 }
 
 /**
- * web's SenseiDock over /markets: the Agari mark in a ring that drains to the nearest close (vermilion, pulsing faster
+ * web's SenseiDock over /markets: the Owarine mark in a ring that drains to the nearest close (vermilion, pulsing faster
  * when urgent), and the "Up or down?" teaser that pops above it three times, then rests. Either opens Sensei.
  */
 export function SenseiDock({ laneSet, nowMs }: { laneSet: LaneSet | null; nowMs: number }) {
@@ -96,7 +96,7 @@ export function SenseiDock({ laneSet, nowMs }: { laneSet: LaneSet | null; nowMs:
             <Circle cx={36} cy={36} r={R} fill="none" stroke={mk.dockTrack} strokeWidth={4} />
             <Circle cx={36} cy={36} r={R} fill="none" stroke={mk.vermilion} strokeWidth={4} strokeLinecap="round" strokeDasharray={`${TAU} ${TAU}`} strokeDashoffset={TAU * (1 - fraction)} />
           </Svg>
-          <AgariMark width={24} height={24} figure={mk.dockGlyph} />
+          <OwarineMark width={24} height={24} figure={mk.dockGlyph} />
           <Pulse urgent={urgent} color={mk.vermilion} />
         </View>
       </Pressable>

@@ -9,13 +9,13 @@ import {
   type QueueEntry,
   type ServerMessage,
   type StakeTierId,
-} from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
+} from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
 import { deckSupply } from "./deckmaster";
-import type { Address, Hash32 } from "@agari/core/types";
-import { readRatings } from "@agari/db";
-import { getArenaState } from "@agari/markets/games";
-import { toLedgerCommitment } from "@agari/core/games";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { readRatings } from "@owarine/db";
+import { getArenaState } from "@owarine/markets/games";
+import { toLedgerCommitment } from "@owarine/core/games";
 import { currentArenaDesk } from "../arena-desk";
 import { WebSocket } from "ws";
 import type { RoomConnection } from "../game-room/hub";

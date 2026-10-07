@@ -16,7 +16,7 @@ test-ledger/
 .env.*
 !.env.example
 
-# keypairs never live in the repo (role and program keys are in ~/.config/agari)
+# keypairs never live in the repo (role and program keys are in ~/.config/owarine)
 *-keypair.json
 *.keypair.json
 
@@ -69,7 +69,7 @@ DESIGN.md
 .review/
 
 # the deckmaster's reveal journal: the operator's own durable copy, never the repo's
-.agari/
+.owarine/
 
 # Next.js 16 generated agent pointer (AGENTS.md is ignored above)
 web/CLAUDE.md

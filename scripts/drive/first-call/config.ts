@@ -4,11 +4,11 @@
  * (`config.test.ts`).
  *
  *   local   an unauthenticated sandbox (`LEDGER_AUTH_MODE=none`), the web on :3120, ops on :8727, the parties file the
- *           bootstrap wrote (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json). `--ops-pid` lets the
+ *           bootstrap wrote (`OWARINE_PARTIES_FILE`, default ~/.config/owarine/canton/parties.json). `--ops-pid` lets the
  *           stale step freeze ops (SIGSTOP) for its whole life and thaw it after (SIGCONT).
  *   devnet  Noders: the platform user's token (`LEDGER_AUTH_MODE=password`, the `LEDGER_OIDC_*` names from
- *           ~/.config/agari/canton/devnet.env), an https web, the parties file `bootstrap-devnet.ts` wrote
- *           (~/.config/agari/canton/parties.devnet.json). Ops runs on Coolify, or on this Mac with the web on
+ *           ~/.config/owarine/canton/devnet.env), an https web, the parties file `bootstrap-devnet.ts` wrote
+ *           (~/.config/owarine/canton/parties.devnet.json). Ops runs on Coolify, or on this Mac with the web on
  *           http://localhost (C4g): the stale step runs only with `--ops-stopped` (ops stopped by hand first), never by
  *           signalling a process.
  */
@@ -59,19 +59,19 @@ export function firstCallConfig(argv: readonly string[], env: Env, o: { home: st
   const ledgerUrl = env.LEDGER_JSON_API_URL ?? "";
   if (network === "local" && mode !== "none") return { error: "--network local runs against an unauthenticated sandbox: LEDGER_AUTH_MODE=none" };
   if (network === "devnet") {
-    if (mode !== "password") return { error: "--network devnet needs the platform user's token: LEDGER_AUTH_MODE=password and the LEDGER_OIDC_* names (tsx --env-file=~/.config/agari/canton/devnet.env)" };
+    if (mode !== "password") return { error: "--network devnet needs the platform user's token: LEDGER_AUTH_MODE=password and the LEDGER_OIDC_* names (tsx --env-file=~/.config/owarine/canton/devnet.env)" };
     if (!/^https:\/\//.test(ledgerUrl)) return { error: "--network devnet needs an https LEDGER_JSON_API_URL" };
   }
 
-  const web = (valueOf(argv, "--web") ?? env.AGARI_WEB_ORIGIN ?? (network === "local" ? "http://localhost:3120" : env.NEXT_PUBLIC_APP_ORIGIN ?? "")).replace(/\/+$/, "");
+  const web = (valueOf(argv, "--web") ?? env.OWARINE_WEB_ORIGIN ?? (network === "local" ? "http://localhost:3120" : env.NEXT_PUBLIC_APP_ORIGIN ?? "")).replace(/\/+$/, "");
   if (!web) return { error: "--network devnet needs the web origin: --web https://<web domain> (or NEXT_PUBLIC_APP_ORIGIN)" };
   if (network === "devnet" && !web.startsWith("https://") && !LOOPBACK_HTTP.test(web)) return { error: "--network devnet calls the hosted web over https (or this machine's own web on http://localhost)" };
 
   const opsArg = valueOf(argv, "--ops") ?? (network === "local" ? "http://127.0.0.1:8727" : undefined);
   const ops = opsArg ? opsArg.replace(/\/+$/, "") : null;
 
-  const defaultParties = join(o.home, ".config", "agari", "canton", network === "local" ? "parties.json" : "parties.devnet.json");
-  const partiesPath = expandHome(valueOf(argv, "--parties") ?? (network === "local" ? env.AGARI_PARTIES_FILE : undefined) ?? defaultParties, o.home);
+  const defaultParties = join(o.home, ".config", "owarine", "canton", network === "local" ? "parties.json" : "parties.devnet.json");
+  const partiesPath = expandHome(valueOf(argv, "--parties") ?? (network === "local" ? env.OWARINE_PARTIES_FILE : undefined) ?? defaultParties, o.home);
   if (!relative(o.repo, partiesPath).startsWith("..")) return { error: "the parties file lives outside the repo (party ids never go into Git)" };
 
   const pidArg = valueOf(argv, "--ops-pid");

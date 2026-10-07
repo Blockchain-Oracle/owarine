@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import type { IntentRecord, OrderRequest } from "@agari/core/ports";
-import { restingQuote } from "@agari/core/orders";
-import type { EventMarket } from "@agari/core/types";
+import type { IntentRecord, OrderRequest } from "@owarine/core/ports";
+import { restingQuote } from "@owarine/core/orders";
+import type { EventMarket } from "@owarine/core/types";
 import { parseMarketsEnv } from "../env";
 import { registerSeatSigner } from "../provider/ledger-api";
 import { toWire } from "../provider/ledger-wire";

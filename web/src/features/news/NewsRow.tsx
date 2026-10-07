@@ -1,4 +1,4 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

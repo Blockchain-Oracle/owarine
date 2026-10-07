@@ -1,8 +1,8 @@
 "use client";
 
-import { toVerdict, type RoundReceipt, type SettledRound } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
-import { useMarket, useResolution } from "@agari/markets/react";
+import { toVerdict, type RoundReceipt, type SettledRound } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
+import { useMarket, useResolution } from "@owarine/markets/react";
 import type { ReactNode } from "react";
 import { Money } from "@/components/data";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";

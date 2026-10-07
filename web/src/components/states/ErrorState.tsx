@@ -1,6 +1,6 @@
 "use client";
 
-import type { Diagnosis } from "@agari/core";
+import type { Diagnosis } from "@owarine/core";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { openFunds } from "@/features/funding/credited";

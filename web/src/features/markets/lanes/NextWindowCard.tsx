@@ -1,8 +1,8 @@
 "use client";
 
-import { formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import { type TickerSymbol } from "@agari/core/market";
-import type { LaneBasis, MarketId } from "@agari/core/types";
+import { formatSessionSpan, sessionCountdown } from "@owarine/core/copy";
+import { type TickerSymbol } from "@owarine/core/market";
+import type { LaneBasis, MarketId } from "@owarine/core/types";
 import { HERO_HEAD } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { cn } from "@/lib/utils";

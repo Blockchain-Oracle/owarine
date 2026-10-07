@@ -1,4 +1,4 @@
-import { partyLead } from "@agari/core/units";
+import { partyLead } from "@owarine/core/units";
 import { Hash, TapHash } from "@/components/data";
 import { ID_LABEL } from "@/features/canton-ux/id-label";
 import type { CantonProofView, OraclePrintView, SlotView } from "./canton-proof";

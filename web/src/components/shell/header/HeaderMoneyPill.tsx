@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
 import { TUsdcMark } from "@/components/icons/AssetMarks";
 import { FUNDING } from "@/features/funding";
 import { useBalancePlate } from "@/features/markets/balance";

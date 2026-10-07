@@ -21,9 +21,9 @@ import { readFileSync } from "node:fs";
 import {
   copyOpenSlot, fetchTokenQuote, inBatches, quoteHasFeed, readSwitchboardVenue, recordSwitchboardSlot, SWITCHBOARD_ERROR,
   type PrintSlot, type SlotOutcome, type SwitchboardQuote, type SwitchboardVenue,
-} from "@agari/markets/ops/prints";
-import type { XStockSymbol } from "@agari/core/market";
-import { createOpsClient, type OpsClient } from "@agari/markets/ops";
+} from "@owarine/markets/ops/prints";
+import type { XStockSymbol } from "@owarine/core/market";
+import { createOpsClient, type OpsClient } from "@owarine/markets/ops";
 import { errorText, readOpsEnv } from "../../runtime/env";
 import { roleSecret } from "../../runtime/keys";
 import { recordQuoteResult, xstocksToProbe } from "../halt-watch/quote-failures";

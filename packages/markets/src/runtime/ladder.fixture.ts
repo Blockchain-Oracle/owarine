@@ -3,8 +3,8 @@
  * side's nodes are allocated in reverse list order and are FIFO within a price in list order; bids take node refs
  * first, then asks, in one node array. It replaces the reference's byte fixture, which encoded a Solana account.
  */
-import type { WalkNode } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
+import type { WalkNode } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
 import type { BookState } from "./accounts";
 
 export interface FixtureOrder {

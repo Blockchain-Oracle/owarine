@@ -2,8 +2,8 @@
  * Earn on the ticket reserves (C8c): a firm supply or withdraw quote from ops, priced from the reserve's live
  * statement, then the seat's own `Supply_Accept` / `Withdraw_Accept`. Shared by range, parlay and boost.
  */
-import type { IntentRecord, PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis } from "@agari/core/types";
+import type { IntentRecord, PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis } from "@owarine/core/types";
 import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { acceptTicketQuote, asTxOutcome } from "../submitter/ticket-lane";
 import { earnCall } from "./client";

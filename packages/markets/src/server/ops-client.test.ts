@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toMarketId } from "@agari/core/types";
+import { toMarketId } from "@owarine/core/types";
 import { appMarketId } from "./ids";
 import { createOpsClient, OPS_NONCE_HEADER, OPS_QUOTES_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, opsSignature, verifyOpsSignature } from "./ops-client";
 

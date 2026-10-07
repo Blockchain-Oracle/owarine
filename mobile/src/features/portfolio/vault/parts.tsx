@@ -1,4 +1,4 @@
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { VAULT } from "@/features/vault/copy";
 import { usePortfolioTokens } from "~/components/portfolio/web";

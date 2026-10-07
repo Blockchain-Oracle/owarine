@@ -6,10 +6,10 @@
  * `Signature`): a "slot" is a ledger offset, a "signature" is a ledger update id, a "mint" names a PreStocks company
  * (the reference's key), a "token" is one lot of that company's pre-IPO Window.
  */
-import type { DeskMode } from "@agari/core/desk";
-import type { LedgerClient, Party } from "@agari/ledger";
-import { PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol } from "@agari/core/market";
-import type { Address, Hash32, Signature } from "@agari/core/types";
+import type { DeskMode } from "@owarine/core/desk";
+import type { LedgerClient, Party } from "@owarine/ledger";
+import { PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol } from "@owarine/core/market";
+import type { Address, Hash32, Signature } from "@owarine/core/types";
 
 /** Reference-only Solana mainnet addresses the reference desk traded against; no Canton code sends to them. */
 export const USDC_MAINNET = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v" as Address;

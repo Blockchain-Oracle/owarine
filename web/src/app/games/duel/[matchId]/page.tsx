@@ -1,4 +1,4 @@
-import type { Hash32 } from "@agari/core/types";
+import type { Hash32 } from "@owarine/core/types";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { DuelStage } from "@/features/games";

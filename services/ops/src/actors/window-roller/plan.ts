@@ -13,8 +13,8 @@ import {
   type ScheduledWindow,
   type SessionCalendar,
   type TickerSymbol,
-} from "@agari/core/market";
-import type { CorporateSkip, HaltBoard, MultiplierChange } from "@agari/core/types";
+} from "@owarine/core/market";
+import type { CorporateSkip, HaltBoard, MultiplierChange } from "@owarine/core/types";
 import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, reasonBy, usableBy, type VersionWindow } from "./versions";
 
 /** `BoundaryKind` as `roller_open_window` takes it (events-accounts.md §2). */

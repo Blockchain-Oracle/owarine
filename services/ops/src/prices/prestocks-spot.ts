@@ -10,8 +10,8 @@
  * S19 (D-124): every read is also kept whole as a `PreStocksSnapshot`, so a basket index is always computed from ONE
  * fetch of every member (`basket-index.ts`). A basket symbol reads its index (points × 10⁸) from `joinPreStocksSpot`.
  */
-import { BASKET_SYMBOLS, BASKETS, isBasketSymbol, PRE_IPO_TICKERS, TICKERS, type TickerSymbol } from "@agari/core/market";
-import { fetchPreStocks, type PreStocksRead } from "@agari/markets/ops/prints";
+import { BASKET_SYMBOLS, BASKETS, isBasketSymbol, PRE_IPO_TICKERS, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { fetchPreStocks, type PreStocksRead } from "@owarine/markets/ops/prints";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
 import { basketIndexLatest, indexOfSnapshot } from "./basket-index";

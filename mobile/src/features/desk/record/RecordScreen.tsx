@@ -1,6 +1,6 @@
 import { seatWriteHeaders } from "@/lib/seat-fetch";
-import { isOk } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import { isOk } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK, DESK_ADVICE } from "@/features/desk/copy";

@@ -1,6 +1,6 @@
-# Agari Docs
+# Owarine Docs
 
-Step-by-step guides for Agari on **Canton Network**: taking a seat, demo-credit Up/Down calls, tickets, Earn, strategies, the desk and games, and the architecture behind each path. It explains the product with screens of the Canton build, the Daml packages, the price paths and dated evidence.
+Step-by-step guides for Owarine on **Canton Network**: taking a seat, demo-credit Up/Down calls, tickets, Earn, strategies, the desk and games, and the architecture behind each path. It explains the product with screens of the Canton build, the Daml packages, the price paths and dated evidence.
 
 **Source reviewed:** the Canton build at app commit `a4d2e2d` on 30 September 2026. The site lives in the app's own repository at `docs-site/`. Everything the guides describe runs on a **local Canton sandbox**; nothing is on Canton DevNet or a hosted URL yet, and the guides say so where it matters. The screens come from the local-sandbox evidence in `docs/evidence/ux/`.
 
@@ -17,12 +17,12 @@ Step-by-step guides for Agari on **Canton Network**: taking a seat, demo-credit 
 | Read the drawn architecture | [Venue](content/docs/architecture/overview.mdx), [Desk](content/docs/architecture/desk.mdx), [Price paths](content/docs/architecture/price-sources.mdx) |
 | Audit a settled print | [Proof](content/docs/trading/proof.mdx) |
 | Trace claims to code and proof | [Source map](content/docs/builders/source-map.mdx) |
-| See how attested prints are made | [PreStocks and Pyth in Agari](content/docs/architecture/prestocks-and-pyth.mdx) |
+| See how attested prints are made | [PreStocks and Pyth in Owarine](content/docs/architecture/prestocks-and-pyth.mdx) |
 | Check prerequisites and open limitations | [Availability](content/docs/help/availability.mdx) |
 
 The guides' screenshots are cropped from the lanes' own local-sandbox screenshots; the [Canton capture manifest](public/captures/provenance-canton-2026-09-30.json) names each file's source, route and crop.
 
-The three diagrams are rendered from [Agari architecture data](lib/architecture.json) with `node scripts/export-architecture.mjs`; the live diagrams also expose each stage's authority boundary.
+The three diagrams are rendered from [Owarine architecture data](lib/architecture.json) with `node scripts/export-architecture.mjs`; the live diagrams also expose each stage's authority boundary.
 
 ## Run locally
 
@@ -34,7 +34,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open [localhost:3153](http://localhost:3153). The docs render without a running app, seat, database or provider key. `NEXT_PUBLIC_APP_URL` sets where app links go; the default is the local web app at `http://localhost:3000` (run it from the repository root, see [Run Agari locally](content/docs/builders/local-setup.mdx)).
+Open [localhost:3153](http://localhost:3153). The docs render without a running app, seat, database or provider key. `NEXT_PUBLIC_APP_URL` sets where app links go; the default is the local web app at `http://localhost:3000` (run it from the repository root, see [Run Owarine locally](content/docs/builders/local-setup.mdx)).
 
 ```sh
 pnpm check

@@ -3,7 +3,7 @@
  * (proof-analytics.md §2.6 step 4). Borsh, little-endian: the verification level is an enum, so `Partial` carries one
  * extra byte and every later offset moves by one. The account is sized for `Partial` (134 B); `Full` leaves one spare.
  */
-import { encodeBase58 } from "@agari/core/types";
+import { encodeBase58 } from "@owarine/core/types";
 
 /** `sha256("account:PriceUpdateV2")[..8]` (also `ops/prints/leftovers.ts`). */
 export const PRICE_UPDATE_V2_DISCRIMINATOR = Uint8Array.from([34, 241, 35, 99, 157, 126, 244, 205]);

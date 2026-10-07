@@ -1,10 +1,10 @@
 "use client";
 
-import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
-import { makerSheet } from "@agari/core/reserves";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { useBalanceSheet, useMakerHistory, useMakerShares, useMakerVault, useMakerWindows, useMarketsLite } from "@agari/markets/react";
+import type { MakerVaultState, MakerWindowView } from "@owarine/core/maker";
+import { makerSheet } from "@owarine/core/reserves";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { useBalanceSheet, useMakerHistory, useMakerShares, useMakerVault, useMakerWindows, useMarketsLite } from "@owarine/markets/react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";

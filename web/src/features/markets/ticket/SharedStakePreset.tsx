@@ -1,6 +1,6 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
+import type { MarketId } from "@owarine/core/types";
 import { useRef } from "react";
 import { presetStake } from "./stake-preset";
 

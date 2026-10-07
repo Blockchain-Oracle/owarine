@@ -1,5 +1,5 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { Address, MarketId, Side } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Address, MarketId, Side } from "@owarine/core/types";
 import type { FeedTake } from "@/features/takes/protocol";
 
 /**
@@ -45,5 +45,5 @@ export interface ActivityFeed {
 /** Spec §4: the inbox and a ticker hub poll every 15 s while visible. */
 export const ACTIVITY_POLL_MS = 15_000;
 export const ACTIVITY_LIMIT = 50;
-export const activityKey = (wallet: string | null) => ["agari", "social", "activity", wallet] as const;
-export const tickerKey = (symbol: string | null) => ["agari", "social", "ticker", symbol] as const;
+export const activityKey = (wallet: string | null) => ["owarine", "social", "activity", wallet] as const;
+export const tickerKey = (symbol: string | null) => ["owarine", "social", "ticker", symbol] as const;

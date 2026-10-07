@@ -6,7 +6,7 @@
  * C6e (K-070): the tickers RedStone does not carry (QQQ, VOO, whose only reference source was the Pyth trial) poll
  * Alpaca's latest IEX trade every 5 s with the ops keys, the same source their Windows now settle on. Pyth still wins.
  */
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
 import { HERMES, parsePythEntries } from "../actors/price-relay/hermes-fetch";
 import { fetchRedstoneLatest, latestMedian } from "../actors/price-relay/redstone-fetch";
 import type { RelaySources } from "../actors/price-relay/sources";

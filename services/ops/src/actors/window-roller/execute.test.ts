@@ -1,6 +1,6 @@
-import { addDays, calendarFromAlpaca, datesBetween, etDateOf, weekdayOfDate, type SessionCalendar } from "@agari/core/market";
-import type { ActiveContract, Command, LedgerClient } from "@agari/ledger";
-import { LedgerError } from "@agari/ledger";
+import { addDays, calendarFromAlpaca, datesBetween, etDateOf, weekdayOfDate, type SessionCalendar } from "@owarine/core/market";
+import type { ActiveContract, Command, LedgerClient } from "@owarine/ledger";
+import { LedgerError } from "@owarine/ledger";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { VenueDeps } from "../../runtime/deps";
 import { planSeriesOf, refusalState, rollerPass, type RollerState } from "./execute";

@@ -1,10 +1,10 @@
-import { diagnosisCopy } from "@agari/core/copy";
-import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@agari/core/parlay";
-import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet } from "@agari/markets/react";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@owarine/core/parlay";
+import { RANGE_STAKE_HEADROOM_BPS } from "@owarine/core/range";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { PARLAY } from "@/features/parlay/copy";

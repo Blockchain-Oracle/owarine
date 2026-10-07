@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, Copy, Link2, RefreshCw, ShieldQuestion } from "lucide-react";
-import { formatClock, shortHex } from "@agari/core/units";
-import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
+import { formatClock, shortHex } from "@owarine/core/units";
+import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@owarine/markets";
 import { useEffect, useId, useRef, useState } from "react";
 import { useNowMs } from "@/components/data/useNowMs";
 import { Button } from "@/components/ui/button";

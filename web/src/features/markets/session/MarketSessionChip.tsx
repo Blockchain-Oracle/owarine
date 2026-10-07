@@ -1,9 +1,9 @@
 "use client";
 
-import { sessionStateWord } from "@agari/core/copy";
-import { haltLabel, isTickerSymbol } from "@agari/core/market";
-import { marketsProvider } from "@agari/markets";
-import { useTick } from "@agari/markets/react";
+import { sessionStateWord } from "@owarine/core/copy";
+import { haltLabel, isTickerSymbol } from "@owarine/core/market";
+import { marketsProvider } from "@owarine/markets";
+import { useTick } from "@owarine/markets/react";
 import { MARKETS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { useMarketSession, type MarketSession } from "./useMarketSession";

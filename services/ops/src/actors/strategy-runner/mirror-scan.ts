@@ -1,7 +1,7 @@
-import { isOk } from "@agari/core/schemas";
-import { decideMirror, type MirrorSpec } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
-import { listPublishedFills, marketsProvider } from "@agari/markets";
+import { isOk } from "@owarine/core/schemas";
+import { decideMirror, type MirrorSpec } from "@owarine/core/strategies";
+import type { Address } from "@owarine/core/types";
+import { listPublishedFills, marketsProvider } from "@owarine/markets";
 import type { Scan } from "./decide";
 import { tradingWindows } from "./trading-windows";
 

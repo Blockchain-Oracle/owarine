@@ -1,4 +1,4 @@
-import type { Pick } from "@agari/core/games";
+import type { Pick } from "@owarine/core/games";
 import { createContext, useContext } from "react";
 
 /**

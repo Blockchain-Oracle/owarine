@@ -1,4 +1,4 @@
-import type { OutcomeColumn } from "@agari/core/desk";
+import type { OutcomeColumn } from "@owarine/core/desk";
 import type { LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";

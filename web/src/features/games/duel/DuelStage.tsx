@@ -1,10 +1,10 @@
 "use client";
 
-import { isTerminal, type MatchState, type StakeTierId } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32 } from "@agari/core/types";
-import { useArenaMatch } from "@agari/markets/react";
-import { shortHex } from "@agari/core/units";
+import { isTerminal, type MatchState, type StakeTierId } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { useArenaMatch } from "@owarine/markets/react";
+import { shortHex } from "@owarine/core/units";
 import { useEffect, useState, type ReactNode } from "react";
 import { useNowMs } from "@/components/data";
 import { useWalletSession } from "@/lib/wallet-session";

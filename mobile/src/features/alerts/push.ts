@@ -13,7 +13,7 @@ import { PUSH_REGISTRATION_KEY } from "~/lib/keys";
 
 const KEY = PUSH_REGISTRATION_KEY;
 const OPTIONS: SecureStore.SecureStoreOptions = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY };
-/** Android's channel for everything Agari sends; its name is what Settings shows. */
+/** Android's channel for everything Owarine sends; its name is what Settings shows. */
 export const ANDROID_CHANNEL = "activity";
 
 export interface StoredRegistration {

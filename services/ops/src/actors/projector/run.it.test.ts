@@ -6,8 +6,8 @@
  *   PROJECTOR_IT=1 DATABASE_URL=postgres://localhost/pm_c3a_test pnpm vitest run services/ops/src/actors/projector/run.it.test.ts
  */
 import { readFileSync } from "node:fs";
-import { ensureSchema, getDb, indexWriter } from "@agari/db";
-import { noAuth, type CreatedEvent, type JsTransaction, type LedgerClient, type WebSocketLike } from "@agari/ledger";
+import { ensureSchema, getDb, indexWriter } from "@owarine/db";
+import { noAuth, type CreatedEvent, type JsTransaction, type LedgerClient, type WebSocketLike } from "@owarine/ledger";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { startProjectorLoop } from "./run";
 

@@ -1,8 +1,8 @@
-import { isRestable } from "@agari/core/lifecycle";
-import { isCommitteeMarket, LAUNCH_TICKERS, type TickerSymbol } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
+import { isRestable } from "@owarine/core/lifecycle";
+import { isCommitteeMarket, LAUNCH_TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
 import { StyleSheet, View } from "react-native";
 import type { LanesState } from "@/features/markets/lanes/useLanes";
 import { nextListedWindow } from "@/features/markets/lanes/next-window";

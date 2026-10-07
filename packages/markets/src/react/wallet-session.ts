@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core";
+import type { Address } from "@owarine/core";
 import type { SeatSigner } from "../sessions/seat-signer";
 
 /**

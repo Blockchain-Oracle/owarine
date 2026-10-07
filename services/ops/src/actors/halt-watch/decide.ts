@@ -18,8 +18,8 @@ import {
   type PythTick,
   type TickerSymbol,
   type XStockSymbol,
-} from "@agari/core/market";
-import type { HaltReason } from "@agari/core/types";
+} from "@owarine/core/market";
+import type { HaltReason } from "@owarine/core/types";
 
 export interface Observations {
   nowSec: number;

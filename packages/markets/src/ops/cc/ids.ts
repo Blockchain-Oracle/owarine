@@ -2,7 +2,7 @@
  * Command ids of the Canton Coin rail: stable per logical action, so a crash-retry is deduplicated by the participant
  * instead of settling or paying twice. A contract id enters an id as a short digest (the same rule as the other actors).
  */
-import { assertCommandId } from "@agari/ledger/pure";
+import { assertCommandId } from "@owarine/ledger/pure";
 import { digest } from "../canton/ids";
 
 /** `ccdep:<digest(instruction)>`: the settle of one deposit. An instruction is consumed once, so one id per instruction. */

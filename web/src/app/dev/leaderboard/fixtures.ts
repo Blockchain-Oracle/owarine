@@ -1,6 +1,6 @@
-import type { TickerSymbol } from "@agari/core/market";
-import { oneUnit } from "@agari/core/units";
-import { diagnosis, err, ok, stale, type Reading } from "@agari/core";
+import type { TickerSymbol } from "@owarine/core/market";
+import { oneUnit } from "@owarine/core/units";
+import { diagnosis, err, ok, stale, type Reading } from "@owarine/core";
 import type { BoardData, BoardQuery, BoardRanking } from "@/features/leaderboard";
 import { DECIMALS, FIXED_NOW_MS, FIXED_NOW_SEC, SYMBOL } from "../states/fixtures";
 import type { TractionData } from "@/features/stats";

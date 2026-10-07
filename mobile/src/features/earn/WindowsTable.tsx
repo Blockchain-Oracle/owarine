@@ -1,7 +1,7 @@
-import type { MakerWindowView } from "@agari/core/maker";
-import { formatCadence } from "@agari/core/market";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import type { MakerWindowView } from "@owarine/core/maker";
+import { formatCadence } from "@owarine/core/market";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { BoundRow } from "@/features/earn/bounds";
 import { EARN } from "@/features/earn/copy";

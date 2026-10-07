@@ -1,6 +1,6 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { useFaucet } from "@/features/markets/faucet/useFaucet";
 import { useFundingProgress } from "./useFundingProgress";
 

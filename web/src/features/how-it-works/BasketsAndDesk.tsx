@@ -4,7 +4,7 @@ import { HOW_IT_WORKS } from "./copy";
 import { riseDelay } from "./rise";
 
 /**
- * Two more sections of Agari's own (D-081), drawn only with classes the reference's stylesheet already defines:
+ * Two more sections of Owarine's own (D-081), drawn only with classes the reference's stylesheet already defines:
  * "Baskets" (S19) as the `hiw-params` definition list the pricing section uses, and "How the Desk Decides" (S21) as
  * the `hiw-steps` list the settlement section uses, each step tagged with which kind of work it is, then two
  * `hiw-arch` cards for what the program enforces and what the desk never does. They sit after "Halts, Voids & Your

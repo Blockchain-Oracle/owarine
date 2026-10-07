@@ -22,7 +22,7 @@ describe("privateOpenMessage", () => {
   it("names the actual bet, in a fixed order the desk rebuilds byte for byte", () => {
     expect(privateOpenMessage(INPUT)).toBe(
       [
-        "Agari — private bet",
+        "Owarine — private bet",
         "",
         "Side: UP",
         "Stake: 10.00 credits",
@@ -79,7 +79,7 @@ describe("privateClaimMessage", () => {
   it("binds the desk account, its cluster and every field of the claim", () => {
     const text = privateClaimMessage(claim, desk, 203);
     expect(text.split("\n")).toEqual([
-      "Agari private claim", `Desk: ${desk} on Canton DevNet`, "Owner: 6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ", `Slot: 0x${"ab".repeat(32)}`, `Credit key: 0x${"cd".repeat(32)}`,
+      "Owarine private claim", `Desk: ${desk} on Canton DevNet`, "Owner: 6h6qH3dDbU1oEeW9bSdDJDrkjUMQK4Yit4ppbN7TrmcQ", `Slot: 0x${"ab".repeat(32)}`, `Credit key: 0x${"cd".repeat(32)}`,
       "Market: BpKpucLRc9uApoXUyoARwacEHXHz1k44dDNpW5WqXTbA", "Outcome: 1", "Stake: 4000000", "Issued: 1789900000000",
     ]);
     for (const patch of [{ owner: desk }, { slotId: `0x${"00".repeat(32)}` }, { creditKey: `0x${"11".repeat(32)}` }, { outcomeIdx: 0 }, { stakeBase: "4000001" }, { issuedAtMs: 1 }]) {

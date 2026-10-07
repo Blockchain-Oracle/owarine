@@ -1,4 +1,4 @@
-import type { CcRailReply } from "@agari/markets";
+import type { CcRailReply } from "@owarine/markets";
 import { describe, expect, it } from "vitest";
 import { ccPanel, depositAmount, withdrawUnits } from "./cc-panel";
 

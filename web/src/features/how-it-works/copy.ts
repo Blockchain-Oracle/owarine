@@ -34,7 +34,7 @@ export const HOW_IT_WORKS = {
   deskEnforcesTitle: "What the rules enforce",
   deskNeverTitle: "What the desk never does",
   deskNetwork: "Practice moves no money. A live desk is planned: it will trade this venue's own markets once the Canton Coin rail lands.",
-  /** The lead of the Agari-only section: stocks have a clock, and the clock is the product. */
+  /** The lead of the Owarine-only section: stocks have a clock, and the clock is the product. */
   sessionsLead:
     "A stock exchange keeps hours, so the venue does too. Windows are listed in three lanes on the NYSE clock, and which lanes are on the board right now depends on the hour you are reading this.",
   sessionWordsTitle: "What the clock says",

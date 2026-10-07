@@ -1,8 +1,8 @@
-import { PRICE_POLL_MS, PRICE_STALE_AFTER_MS } from "@agari/core/constants";
-import type { SpotSymbol } from "@agari/core/market";
-import { ok, stale, type Reading } from "@agari/core/schemas";
-import type { AssetPrice } from "@agari/core/types";
-import { secToMs } from "@agari/core/units";
+import { PRICE_POLL_MS, PRICE_STALE_AFTER_MS } from "@owarine/core/constants";
+import type { SpotSymbol } from "@owarine/core/market";
+import { ok, stale, type Reading } from "@owarine/core/schemas";
+import type { AssetPrice } from "@owarine/core/types";
+import { secToMs } from "@owarine/core/units";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { nowMs } from "../provider/clock";
 import { getAssetPrice } from "../provider/reads";

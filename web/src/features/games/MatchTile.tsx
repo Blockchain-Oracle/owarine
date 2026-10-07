@@ -1,7 +1,7 @@
 "use client";
 
-import type { MatchState } from "@agari/core/games";
-import { shortHex } from "@agari/core/units";
+import type { MatchState } from "@owarine/core/games";
+import { shortHex } from "@owarine/core/units";
 import Link from "next/link";
 import { useWalletSession } from "@/lib/wallet-session";
 import { GAMES } from "./copy";

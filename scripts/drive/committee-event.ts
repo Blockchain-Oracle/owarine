@@ -10,15 +10,15 @@
  *           gives each of the three members its answer in order (a mix is a conflict: the resolver's `Event_Resolve`
  *           voids it as SourceDisagreement); `--source` names what the members read
  *
- *   LEDGER_JSON_API_URL=… LEDGER_AUTH_MODE=none AGARI_PARTIES_FILE=… \
- *     pnpm --filter @agari/scripts exec tsx drive/committee-event.ts create --id DEMO-1 --minutes 5 --question "…"
- *     pnpm --filter @agari/scripts exec tsx drive/committee-event.ts attest --id DEMO-1 --answers yes,yes,yes --source https://…
+ *   LEDGER_JSON_API_URL=… LEDGER_AUTH_MODE=none OWARINE_PARTIES_FILE=… \
+ *     pnpm --filter @owarine/scripts exec tsx drive/committee-event.ts create --id DEMO-1 --minutes 5 --question "…"
+ *     pnpm --filter @owarine/scripts exec tsx drive/committee-event.ts attest --id DEMO-1 --answers yes,yes,yes --source https://…
  */
 import { createHash } from "node:crypto";
-import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { attestedPrintSource, BAR_LEN_SEC, EVENT_KEY_PREFIX, eventStatementText, SOURCE_TIMING, type EventOutcome } from "@agari/core/market";
-import { attestCommandId, cmd, decodeEventTerms, decodeSeries, openEventCommandId, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
+import { createLedgerClient, noAuth, parseLedgerEnv } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { attestedPrintSource, BAR_LEN_SEC, EVENT_KEY_PREFIX, eventStatementText, SOURCE_TIMING, type EventOutcome } from "@owarine/core/market";
+import { attestCommandId, cmd, decodeEventTerms, decodeSeries, openEventCommandId, pick, readActive, type RoleSession } from "@owarine/markets/ops/canton";
 import { ORACLE_ROLES, readPartiesFile } from "../../services/ops/src/runtime/keys";
 import { arg } from "./cli";
 

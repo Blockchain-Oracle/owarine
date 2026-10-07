@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { decodeDeskDecision, decodeDeskMandate } from "../ops/agents/decode";
 import { deskAddressOf, legacyDeskAddressOf } from "../ops/agents/ids";

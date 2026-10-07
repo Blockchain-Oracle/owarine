@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { LedgerClient } from "@agari/ledger";
+import type { LedgerClient } from "@owarine/ledger";
 import { candleUrl, closeFromPayload, decimalToE8, type Fetch } from "../../prices/candles";
 import { boundaryFor, feederPass, GIVE_UP_SEC, payloadHash, WIDEST_ADMISSION_SEC } from "./oracle-feeder";
 

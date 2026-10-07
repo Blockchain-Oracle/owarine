@@ -1,4 +1,4 @@
-import { invalidateAfterWrite } from "@agari/markets/react";
+import { invalidateAfterWrite } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWalletSession } from "@/lib/wallet-session";
 import { TradeFromX } from "~/features/x/TradeFromX";
@@ -12,7 +12,7 @@ export default function TradeFromXScreen() {
   const { address } = useWalletSession();
   const refresh = () =>
     Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["agari"] }),
+      queryClient.invalidateQueries({ queryKey: ["owarine"] }),
       address ? invalidateAfterWrite(queryClient, { wallet: address }) : null,
     ]);
   return <TradeFromX onRefresh={refresh} />;

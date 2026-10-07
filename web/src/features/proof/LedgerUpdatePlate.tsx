@@ -1,4 +1,4 @@
-import { formatUtc } from "@agari/core/units";
+import { formatUtc } from "@owarine/core/units";
 import Link from "next/link";
 import { TapHash } from "@/components/data/TapHash";
 import { ID_LABEL } from "@/features/canton-ux/id-label";

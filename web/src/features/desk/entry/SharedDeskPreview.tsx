@@ -1,7 +1,7 @@
 "use client";
 
-import { presetById } from "@agari/core/desk";
-import { isOk } from "@agari/core/schemas";
+import { presetById } from "@owarine/core/desk";
+import { isOk } from "@owarine/core/schemas";
 import { ArrowUpRight, CircleDashed } from "lucide-react";
 import Link from "next/link";
 import { EmptyState, LogoStack, NumberTicker, Sparkline, StatusDot } from "@/components/ui/desk-kit";

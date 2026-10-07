@@ -1,4 +1,4 @@
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, ET_WEEKDAY_SHORT, isBasketCoverable, weekdayOfDate, type TickerSymbol } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, ET_WEEKDAY_SHORT, isBasketCoverable, weekdayOfDate, type TickerSymbol } from "@owarine/core/market";
 import type { EarningsEvent } from "@/lib/finnhub.server";
 import type { SenseiDesk, SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { centsText } from "./units";

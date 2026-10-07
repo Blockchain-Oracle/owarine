@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { attestedPrintSource, primarySourceAt, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
+import { attestedPrintSource, primarySourceAt, type TickerSymbol, type XStockSymbol } from "@owarine/core/market";
 import { equityVersions, laneVersionsOf, loadPriceSources, tokenLaneVersions, type PriceSourcesFile } from "./lane-versions";
 
 const at = (iso: string) => Date.parse(iso) / 1000;

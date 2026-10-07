@@ -10,8 +10,8 @@
 // Run: pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/corporate-check.ts [--days 60] [--no-finnhub]
 
 import { readFileSync } from "node:fs";
-import { addDays, etDateOf, TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import type { CorporateSkip, MultiplierChange } from "@agari/core/types";
+import { addDays, etDateOf, TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import type { CorporateSkip, MultiplierChange } from "@owarine/core/types";
 import { arg, flag } from "./cli";
 
 const FILE = new URL("../../services/ops/config/corporate-actions.json", import.meta.url);

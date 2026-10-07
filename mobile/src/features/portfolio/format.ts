@@ -1,6 +1,6 @@
-import type { Side } from "@agari/core/types";
-import { countdown } from "@agari/core/lifecycle";
-import { formatBaseUnits, formatClock } from "@agari/core/units";
+import type { Side } from "@owarine/core/types";
+import { countdown } from "@owarine/core/lifecycle";
+import { formatBaseUnits, formatClock } from "@owarine/core/units";
 import { PORTFOLIO } from "@/lib/copy";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 

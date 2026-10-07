@@ -1,8 +1,8 @@
 "use client";
 
-import { cumulativeDepth, depthBounds, type DepthStep } from "@agari/core/surface";
-import type { BookDepth } from "@agari/core/types";
-import { bpsToOddsCents } from "@agari/core/units";
+import { cumulativeDepth, depthBounds, type DepthStep } from "@owarine/core/surface";
+import type { BookDepth } from "@owarine/core/types";
+import { bpsToOddsCents } from "@owarine/core/units";
 import { SURFACE } from "./copy";
 import { contractsText } from "./format";
 

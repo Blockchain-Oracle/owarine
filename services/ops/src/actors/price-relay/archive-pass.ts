@@ -3,7 +3,7 @@
  * the last 23 hours, RedStone for every RedStone ticker and Pyth for every trial feed, whether or not a Window used it.
  * The live boundary goes first, then the backlog oldest-first, a few fetches per pass.
  */
-import { archivedKeys, archivePrints, isDbConfigured } from "@agari/db";
+import { archivedKeys, archivePrints, isDbConfigured } from "@owarine/db";
 import type { SessionService } from "../../calendar/session-service";
 import type { PassResult } from "../../runtime/actor";
 import type { PythEntitlementStore } from "../../runtime/pyth-entitlement";

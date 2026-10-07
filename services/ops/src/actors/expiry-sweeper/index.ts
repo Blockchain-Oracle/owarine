@@ -4,8 +4,8 @@
  * passed (the ledger's own slack, so accept and expire are exact complements and exactly one wins). The locked venue
  * stake comes back as a shard and joins the pool. An inactive quote was accepted first: that is done, not a failure.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, decodeBuyQuote, decodeQuote, expireBuyCommandId, expireCommandId, failureText, isInactive, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { cmd, decodeBuyQuote, decodeQuote, expireBuyCommandId, expireCommandId, failureText, isInactive, pick, readActive, submit, type RoleSession } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";
 import { venueCashCreated } from "../quote-issuer/pooled-submit";

@@ -1,8 +1,8 @@
 "use client";
 
-import { BPS_PER_X } from "@agari/core/leverage";
-import { belowMinStake } from "@agari/core/sizing";
-import { formatBaseUnits } from "@agari/core/units";
+import { BPS_PER_X } from "@owarine/core/leverage";
+import { belowMinStake } from "@owarine/core/sizing";
+import { formatBaseUnits } from "@owarine/core/units";
 import { X } from "lucide-react";
 import { WhoCanSee } from "@/features/canton-ux/privacy";
 import { HeldPriceRow, TICKET_CANTON, useHeldSeconds, WriteProgress } from "@/features/canton-ux/ticket";
@@ -14,7 +14,7 @@ import { BandControl, RANGE, RangePlaced, usdBand } from "@/features/range";
 import { RegionNote } from "@/features/region/RegionNote";
 import { TICKET } from "@/lib/copy";
 import { CLOSED } from "@/lib/copy-closed";
-import { isCommitteeMarket } from "@agari/core/market";
+import { isCommitteeMarket } from "@owarine/core/market";
 import { EVENT_SIDE_WORD } from "../events/copy";
 import { SIDE_WORD } from "../side-styles";
 import { AccountGate } from "./AccountGate";

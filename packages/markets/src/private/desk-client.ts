@@ -1,5 +1,5 @@
-import { CLUSTER_ID, DEFAULT_CLUSTER } from "@agari/core/constants";
-import { encodeBase58, toAddress, type Address, type Hash32 } from "@agari/core/types";
+import { CLUSTER_ID, DEFAULT_CLUSTER } from "@owarine/core/constants";
+import { encodeBase58, toAddress, type Address, type Hash32 } from "@owarine/core/types";
 
 /**
  * The desk's own key, server-side only. On Canton the desk's writes are the venue's (C8); until then the client keeps

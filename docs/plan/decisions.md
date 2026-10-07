@@ -272,7 +272,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - A stale parlay void is named by the first leg still undecided.
   - For a boost, `payout` is what the owner took; `fee` is the premium, or 0 on a void or refund; `toReserve` is the front reclaimed plus the fee.
   - `receiptDetailOk` (main) still names only the first three results. It is a helper, not a precondition, so main is unchanged.
-  - The seat's `/api/ledger/tickets/mine` returns the receipts. `@agari/markets` maps them to the reference's ended states:
+  - The seat's `/api/ledger/tickets/mine` returns the receipts. `@owarine/markets` maps them to the reference's ended states:
     - range, moonshot and parlay: `claimed`, `lost` or `void`;
     - boost and short: `settled`, `closed` (cashed out) or `knocked-out`.
 - **User-visible:** a settled, voided, refunded, knocked-out or cashed-out ticket stays in "Your rounds", the parlay list and the portfolio's History, with the amounts it paid.
@@ -349,7 +349,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Evidence:** `packages/core/src/x/share-link.ts`, `share-link.test.ts`; routes `/actions.json`, `/api/actions/w/[marketId]`, `/api/actions/t/[symbol]/[cadence]`, `/api/share/window`, `/.well-known/apple-app-site-association`.
 - **Rule:**
   - The URLs and the card stay (Up and Down, each with its amount field). The buttons are `external-link` actions; the `POST` runs the reference's pre-build checks (phase, stake floor, the 451 region answer) and answers `{ type: "external-link", externalLink, message }`. No chain id and no Actions version header.
-  - The link is `<origin>/markets/<id>?dir=&stake=&exp=&sig=`: HMAC-SHA256 over the Window, side, stake and expiry (the Window's close), under a key derived from `AGARI_SEAT_COOKIE_SECRET` with its own label (no new variable). A valid link pre-fills the ticket's stake once through the reference's own stake preset (the hedge card's path), so the ticket is unchanged; an edited, foreign or expired link opens as a plain deep link (side only).
+  - The link is `<origin>/markets/<id>?dir=&stake=&exp=&sig=`: HMAC-SHA256 over the Window, side, stake and expiry (the Window's close), under a key derived from `OWARINE_SEAT_COOKIE_SECRET` with its own label (no new variable). A valid link pre-fills the ticket's stake once through the reference's own stake preset (the hedge card's path), so the ticket is unchanged; an edited, foreign or expired link opens as a plain deep link (side only).
   - The app opens the same https path as a universal link and asks `/api/share/window` whether it verifies. The association file claims `/markets/*` for `IOS_APP_ID` (`<Team ID>.<bundle id>`) and answers 404 until it is set.
 - **User-visible:** a shared Window card opens that Window's ticket, on the web or in the app, with the chosen side and stake; nothing is placed until the viewer confirms.
 - **Needs (C11, not this lane):** `IOS_APP_ID` on the host and `ios.associatedDomains: ["applinks:<domain>"]` in the app config once the domain and app record exist.
@@ -443,7 +443,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 
 ### K-026 — One parties file for web and ops
 - **Date / owner:** 2026-09-29 · stage owner (C3 gate finding)
-- **Rule:** `AGARI_PARTIES_FILE` has one shape, the one ops and `scripts/bootstrap-local.ts` write: `{ network, parties: {venue, resolver, …}, users: {alice, bob, outsider, "seat-1", …} }`. The web takes the venue from `parties`, the personas from `users`, and the seat pool from every `seat-*` user, in numeric order. `bootstrap-local.ts --seats N` creates the seats. The web still accepts its older shape.
+- **Rule:** `OWARINE_PARTIES_FILE` has one shape, the one ops and `scripts/bootstrap-local.ts` write: `{ network, parties: {venue, resolver, …}, users: {alice, bob, outsider, "seat-1", …} }`. The web takes the venue from `parties`, the personas from `users`, and the seat pool from every `seat-*` user, in numeric order. `bootstrap-local.ts --seats N` creates the seats. The web still accepts its older shape.
 - **Evidence:** `web/src/lib/server-env.parties.test.ts`.
 - **Approval:** default; overrulable.
 
@@ -506,7 +506,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 ### K-204 — A seat key maps to a party only through its live lease, joined keys included (overflow block)
 - **Date / owner:** 2026-09-30 · C4c (lane C4c seat-link fixes)
 - **Evidence:** `docs/evidence/c4c-seat-link-fixes.md` §1. C11a left four paths reading `seat_pool.address` alone (ops agents session, duel seats, desk discovery, web `agents.server.ts`), so a key joined by a seat link mapped nowhere there, and the duel directory answered a remembered party for a key whose lease had ended.
-- **Rule:** every address → party resolution goes through `@agari/db` `seatPartyFor` / `seatLeaseRowFor` (and party → seat address through `seatHolders`). A key maps only while it holds the party's live lease or joined that same live lease; an ended, drained, freed or re-leased seat maps none of its old keys, and nothing remembered in a process stands in for the lease. The duel open checks the pairing's creator by party, so a joined phone queues and opens as its seat, and the room shows the key that queued. The Room gate admits a joined key for its lease's own bets.
+- **Rule:** every address → party resolution goes through `@owarine/db` `seatPartyFor` / `seatLeaseRowFor` (and party → seat address through `seatHolders`). A key maps only while it holds the party's live lease or joined that same live lease; an ended, drained, freed or re-leased seat maps none of its old keys, and nothing remembered in a process stands in for the lease. The duel open checks the pairing's creator by party, so a joined phone queues and opens as its seat, and the room shows the key that queued. The Room gate admits a joined key for its lease's own bets.
 - **User-visible:** a phone joined to a web seat can grant, duel and run a desk as that seat. A season payout to a player whose seat has since ended is refused (its party may belong to the next visitor) instead of crediting a recycled seat.
 - **Approval:** default; overrulable.
 
@@ -523,8 +523,8 @@ A default recorded early for a later stage sits in that stage's block; its owner
 
 ### K-211 — A phone write carries its own one-request proof; the read header reads only (overflow block)
 - **Date / owner:** 2026-09-30 · C4d security lane (review finding M2b)
-- **Evidence:** the signed read header (`x-agari-seat-read`) was reused for four minutes and also passed `seatFromRequest({ write: true })`, so one captured header could `POST /api/seat/link` and take the seat over. Tests: `web/src/lib/seat-write-auth.test.ts`, `mobile/src/wallet/seat-key.test.ts` (the phone's key against the server verifier), `packages/markets/src/submitter/seat-lane.test.ts`.
-- **Rule:** on the phone every write (any method but GET) carries `x-agari-seat-write: address.issuedAtMs.nonce.signature`, the seat key's signature over the method, the path with its query, the SHA-256 of the exact body bytes, a 16-byte nonce and the time (`@agari/core/auth` `seatWriteText`). The server takes it within 30 s (5 s skew), for that request only, once: it keeps each verified nonce until the proof goes stale. The read header is honoured for reads only. The web keeps its cookie with the same-origin and `x-agari-seat: 1` rule.
+- **Evidence:** the signed read header (`x-owarine-seat-read`) was reused for four minutes and also passed `seatFromRequest({ write: true })`, so one captured header could `POST /api/seat/link` and take the seat over. Tests: `web/src/lib/seat-write-auth.test.ts`, `mobile/src/wallet/seat-key.test.ts` (the phone's key against the server verifier), `packages/markets/src/submitter/seat-lane.test.ts`.
+- **Rule:** on the phone every write (any method but GET) carries `x-owarine-seat-write: address.issuedAtMs.nonce.signature`, the seat key's signature over the method, the path with its query, the SHA-256 of the exact body bytes, a 16-byte nonce and the time (`@owarine/core/auth` `seatWriteText`). The server takes it within 30 s (5 s skew), for that request only, once: it keeps each verified nonce until the proof goes stale. The read header is honoured for reads only. The web keeps its cookie with the same-origin and `x-owarine-seat: 1` rule.
 - **Trade-off:** the nonce cache is in the web process's memory (`globalThis`), which is every replica the single Coolify container has. A second web process would need a shared store (the database) before it scales out.
 - **User-visible:** none; each phone write costs one local signature.
 - **Approval:** default; overrulable.
@@ -540,7 +540,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 ### K-213 — Ops' internal calls are single-use; the season admin has its own secret (overflow block; amends K-105)
 - **Date / owner:** 2026-09-30 · C4d security lane (review finding L4)
 - **Evidence:** `/internal/*` accepted a captured call again within its 30 s window, a handler's crash answered with its own error text, the public `/health` served a failed pass's raw ledger error, and `season/distribute` was signed with the web's `OPS_INTERNAL_SECRET`. Tests: `services/ops/src/http/internal.test.ts`, `services/ops/src/runtime/actor-health.test.ts`, `packages/markets/src/server/ops-client.test.ts`.
-- **Rule:** the web → ops signature is `v2` over `<ts>.<nonce>.<METHOD>.<path>.<body>` with `x-agari-ops-nonce` (16 random bytes); ops takes each verified nonce once and keeps it for twice the skew (in memory: ops is one container, AD-4). `season/distribute` and `season/withdraw` verify under `OPS_ADMIN_SECRET` (ops only, never the web; unset = closed), which `scripts/season-admin.ts` signs with. A handler's crash answers "ops could not complete this call (ref …)"; a failed pass reads "pass failed (ref …)" on `/health`; both texts go to the log under the reference. The runbook takes `/internal/*` off the public router (`!PathPrefix(/internal)`).
+- **Rule:** the web → ops signature is `v2` over `<ts>.<nonce>.<METHOD>.<path>.<body>` with `x-owarine-ops-nonce` (16 random bytes); ops takes each verified nonce once and keeps it for twice the skew (in memory: ops is one container, AD-4). `season/distribute` and `season/withdraw` verify under `OPS_ADMIN_SECRET` (ops only, never the web; unset = closed), which `scripts/season-admin.ts` signs with. A handler's crash answers "ops could not complete this call (ref …)"; a failed pass reads "pass failed (ref …)" on `/health`; both texts go to the log under the reference. The runbook takes `/internal/*` off the public router (`!PathPrefix(/internal)`).
 - **User-visible:** none. The season admin needs `OPS_ADMIN_SECRET` instead of the web's secret.
 - **Approval:** default; overrulable.
 
@@ -626,7 +626,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
   - A `CcListing` states one rate, `unitsPerCoin`: cash base units (10^-6 credit) per one whole coin, fixed for the life of that listing. A different rate is a different listing (a new `listingId`), because cash credited at one rate is redeemed at that same rate. **The ledger enforces that**: the listing's terms (id, instrument admin and id, rate) are copied into every allowance and every owner-signed ask, and a listing the venue archives and re-creates under the same id with other terms cannot answer an old ask or fold into an old allowance (`terms-changed`, `foreign-allowance`; `Test.CC.Withdraw.testTermsChangedRefused`). There is no price feed and no oracle: the rate is a unit of account the venue states, not a market quote, so no one can move it.
   - The rate must divide 10^10 (a CIP-56 `Decimal` is `Numeric 10`), so one cash unit is a whole number of atomic units and every conversion is exact. **The default is 100,000 units per coin: 1 Canton Coin = 0.10 credit, one cash unit = 0.00001 coin.** It is a placeholder for Abu to set from the price of the day real value first moves (`CC_UNITS_PER_COIN`); on DevNet the coin has no value and the number is arbitrary.
   - **Rounding never favours the venue because there is none.** A deposit that is not a whole number of cash units is refused as dust (the ops actor rejects the transfer back to its sender), never rounded down (the venue would keep the fraction) or up (the venue would credit cash it holds no coin for). A withdrawal converts cash units to coin exactly, always. The only rounding in the package is `unitsFloor`, on the assets side of a reserve statement, which rounds down so a statement can understate what the venue holds and never overstate it. A form may round the user's own typed amount DOWN to the step and says it did.
-  - The one Decimal to Int conversion is `PM.CC.Units.toAtomic` (mirrored by `@agari/ledger` `units.ts`); every bound is checked by division before any product, so nothing overflows Int64: a whole-coin bound of 10^7 (an atomic amount stays below 10^17), `maxUnitsFor rate`, an `ensure` on each listing and receipt, and a 4 x 10^18 bound on every total.
+  - The one Decimal to Int conversion is `PM.CC.Units.toAtomic` (mirrored by `@owarine/ledger` `units.ts`); every bound is checked by division before any product, so nothing overflows Int64: a whole-coin bound of 10^7 (an atomic amount stays below 10^17), `maxUnitsFor rate`, an `ensure` on each listing and receipt, and a 4 x 10^18 bound on every total.
   - Deposit limits per listing: default 1 coin (100,000 units) to 10,000 coins (10^9 units).
 - **User-visible:** the funds screens state the rate and the step ("Amounts are exact, in steps of 0.00001 Canton Coin. Anything finer is sent back to you, never rounded"), and only once the path is live (K-248).
 - **Approval:** default; overrulable.
@@ -740,7 +740,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 ### K-251 — One runtime config point for the TestFlight link, the APK and the demo film (C10f)
 - **Date / owner:** 2026-10-06 · C10f lane
 - **Evidence:** `web/src/lib/release.ts`, `release.test.ts`; `/dev/release`.
-- **Rule:** `/download` and `/demo` read `AGARI_TESTFLIGHT_URL`, `AGARI_ANDROID_APK_URL`, `AGARI_ANDROID_APK_SHA256`, optional `AGARI_ANDROID_APK_VERSION` and `AGARI_DEMO_VIDEO_URL` on the server per request (`connection()`), so a value and a restart flip them with no rebuild. Not `NEXT_PUBLIC_*`, not secret. Only `testflight.apple.com/join/…` links count; an APK needs an https `.apk` URL and a 64-hex SHA-256 or it is not offered; the film is a YouTube link (embedded via youtube-nocookie) or an https `.mp4`/`.webm`. Anything malformed counts as unset.
+- **Rule:** `/download` and `/demo` read `OWARINE_TESTFLIGHT_URL`, `OWARINE_ANDROID_APK_URL`, `OWARINE_ANDROID_APK_SHA256`, optional `OWARINE_ANDROID_APK_VERSION` and `OWARINE_DEMO_VIDEO_URL` on the server per request (`connection()`), so a value and a restart flip them with no rebuild. Not `NEXT_PUBLIC_*`, not secret. Only `testflight.apple.com/join/…` links count; an APK needs an https `.apk` URL and a 64-hex SHA-256 or it is not offered; the film is a YouTube link (embedded via youtube-nocookie) or an https `.mp4`/`.webm`. Anything malformed counts as unset.
 - **User-visible:** each card names what it waits on until its value is set.
 - **Approval:** default; overrulable.
 
@@ -974,7 +974,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 ### K-308 — A seat's own index rows carry its read header (C11b) (C11b)
 - **Date / owner:** 2026-10-06 · Claude (C11b).
 - **Evidence:** C11b.4.
-- **Rule:** `indexRows` adds `x-agari-seat-read` to `wallet/…` paths when a seat key is registered, and never to public paths.
+- **Rule:** `indexRows` adds `x-owarine-seat-read` to `wallet/…` paths when a seat key is registered, and never to public paths.
 - **User-visible:** the phone's portfolio, history and verdicts load.
 - **Approval:** default; overrulable.
 
@@ -1084,7 +1084,7 @@ A default recorded early for a later stage sits in that stage's block; its owner
 ### K-329 — Every sentence that names the network reads the configured one (C4f) (C4f)
 - **Date / owner:** 2026-10-06 · Claude (C4f).
 - **Evidence:** C11b item 7; `chain.test.ts`, `network-copy.test.ts`; `welcome-*` reads "This is Canton LocalNet".
-- **Rule:** `networkLabel()` (`@agari/markets/chain`) is the read runtime's network, else the build's `NEXT_PUBLIC_CANTON_NETWORK`, else DevNet. The Call, the share stamps and posts, the tutorial and the seat picker read it. Sentences about the planned DevNet release (roadmap, "not yet on DevNet") are statements about DevNet and stay.
+- **Rule:** `networkLabel()` (`@owarine/markets/chain`) is the read runtime's network, else the build's `NEXT_PUBLIC_CANTON_NETWORK`, else DevNet. The Call, the share stamps and posts, the tutorial and the seat picker read it. Sentences about the planned DevNet release (roadmap, "not yet on DevNet") are statements about DevNet and stay.
 - **User-visible:** a LocalNet build says Canton LocalNet; a void card says the stake and fee came back.
 - **Approval:** default; overrulable.
 
@@ -1101,6 +1101,13 @@ A default recorded early for a later stage sits in that stage's block; its owner
 - **Date / owner:** 2026-10-07 · **Abu**
 - **Rule:** the two sponsor add-ons that depend on other companies are dropped: `abu-pm-governance` and the vendored BitSafe packages leave `daml/`, the BitSafe mark leaves "Built on" (web, phone, docs site), and the Grofty connector is no longer planned. Parity rows C-ADD-07 and C-ADD-12 are removed with this entry as their record. Canton and Noders stay credited: they are the network and the node the product runs on.
 - **Unchanged:** R1's released DARs. Two comments in `abu-pm-main` still describe the single-controller accept as wallet-compatible by naming Grofty; editing them would change the released DAR bytes, so they wait for the next DAR release.
+- **Approval:** Abu, 2026-10-07.
+
+### K-401 — The product is named Owarine 終値 (owner)
+- **Date / owner:** 2026-10-07 · **Abu**
+- **Rule:** the product is **Owarine** (終値, "closing price", the thing every call is about); the tagline is "call the close". Agari was the reference's name and Abu uses it on another project, so it leaves the product. Owarine is the name in the UI, the docs site, the phone app (`mobile/app.identity.json`: display name Owarine, bundle id and Android package `com.owarine.app`, scheme `owarine`, App Group `group.com.owarine.app`), the workspace packages (`@owarine/*`), env vars (`OWARINE_*`), headers, cookies and storage keys. The verdict stamps change with it: a win is 的中 (tekichū, "you called it"), a loss 外れ (hazure, "it missed"), a void stays 無効.
+- **Kept verbatim:** strings that seed hashes or ids already on DevNet (`agari/market-id/v1:`, `agari-event-v1`, and the `seriesIdFromDaml`/`id52` seeds for the maker, strategy registry and arena), the released Daml sources, the prior Solana program names (`agari-events`, `agari-range` …) where comments cite them, and every record of prior work (README "Prior work", `THIRD_PARTY_NOTICES.md`, `docs/evidence/`, `acceptance.md`, the old Solana-hackathon page `docs/submission/tracks.md`).
+- **Domain:** owarine.com, .xyz and .app were all unregistered on 6 Oct (registry RDAP). The code uses owarine.com; Abu registers it.
 - **Approval:** Abu, 2026-10-07.
 
 ## Open questions

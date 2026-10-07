@@ -1,6 +1,6 @@
 # Product brief
 
-**Agari on Canton** is a private event-risk desk. The name is a working one (K-007). It is entered in HackCanton Season 3, Track 2 (Financial Applications).
+**Owarine on Canton** is a private event-risk desk. The name is a working one (K-007). It is entered in HackCanton Season 3, Track 2 (Financial Applications).
 
 ## One sentence
 

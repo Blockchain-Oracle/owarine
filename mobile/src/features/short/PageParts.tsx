@@ -1,4 +1,4 @@
-import { formatBaseUnits } from "@agari/core/units";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";

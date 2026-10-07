@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import AgariMark from "@/components/shell/AgariMark";
+import OwarineMark from "@/components/shell/OwarineMark";
 import { PITCH } from "./copy";
 import { PhoneMock } from "./mocks";
 import { CountUp, Emph, Kicker, Mono, PhaseCard, Rise, SpecPanel, StatCard } from "./primitives";
@@ -10,7 +10,7 @@ import type { VenueUsage } from "./useVenueUsage";
 
 /**
  * Slides 09–15 — ported from `reference/yosuku/app/pitch/page.tsx` L471–634, layout for
- * layout; the facts are Agari's and each is sourced in `copy.ts`. The "real usage" slide
+ * layout; the facts are Owarine's and each is sourced in `copy.ts`. The "real usage" slide
  * reads this venue live through `/api/leaderboard` (`useVenueUsage`), the same route the
  * board serves; the deck threads the reading in so the slide never fetches on its own
  * each time it mounts.
@@ -164,7 +164,7 @@ export function slidesB(usage: VenueUsage): Slide[] {
           </Rise>
           <Rise i={2} className="pitch-team">
             <span className="pitch-team-avatar">
-              <AgariMark className="pitch-team-mark" />
+              <OwarineMark className="pitch-team-mark" />
             </span>
             <span>
               <div className="pitch-team-name">

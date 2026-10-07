@@ -1,5 +1,5 @@
-import { createSeatLink, decideSeatLink, normalizeSeatLinkCode, readSeatLink, seatLinkPath, type SeatLinkCode } from "@agari/markets";
-import { diagnosisCopy } from "@agari/core/copy";
+import { createSeatLink, decideSeatLink, normalizeSeatLinkCode, readSeatLink, seatLinkPath, type SeatLinkCode } from "@owarine/markets";
+import { diagnosisCopy } from "@owarine/core/copy";
 import { useLocalSearchParams } from "expo-router";
 import { RefreshCw } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";

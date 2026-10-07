@@ -1,12 +1,12 @@
 "use client";
 
-import { formatCadence, type BlockerContext } from "@agari/core/copy";
-import { leverageBpsOf } from "@agari/core/leverage";
-import type { BookedOrder } from "@agari/core/ports";
-import { minStakeBase } from "@agari/core/sizing";
-import { formatBaseUnits, priceRawToBps } from "@agari/core/units";
-import { collateralOrNull } from "@agari/markets";
-import { useBalanceSheet, useLeverageReserve, useOnchain, useRangeReserve, useSigner } from "@agari/markets/react";
+import { formatCadence, type BlockerContext } from "@owarine/core/copy";
+import { leverageBpsOf } from "@owarine/core/leverage";
+import type { BookedOrder } from "@owarine/core/ports";
+import { minStakeBase } from "@owarine/core/sizing";
+import { formatBaseUnits, priceRawToBps } from "@owarine/core/units";
+import { collateralOrNull } from "@owarine/markets";
+import { useBalanceSheet, useLeverageReserve, useOnchain, useRangeReserve, useSigner } from "@owarine/markets/react";
 import { useCallback, useEffect, useState } from "react";
 // By file, not the feature barrels: those also export components, and the app (D-129) reuses this hook alone.
 import { LEVERAGE } from "@/features/leverage/copy";

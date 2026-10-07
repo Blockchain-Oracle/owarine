@@ -1,5 +1,5 @@
-import { isPriceCents } from "@agari/core/orders";
-import type { Side } from "@agari/core/types";
+import { isPriceCents } from "@owarine/core/orders";
+import type { Side } from "@owarine/core/types";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { SIDE_WORD } from "@/features/markets/side-styles";

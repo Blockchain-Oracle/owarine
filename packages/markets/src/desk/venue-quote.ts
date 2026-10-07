@@ -3,9 +3,9 @@
  * published ladder of that name's current Window, in the reference's Jupiter quote shape (a "token" is one lot:
  * raw = lots × 10^9). Indicative only: the firm price comes from the issuer when the operator acts.
  */
-import type { Address } from "@agari/core/types";
-import type { PreIpoSymbol } from "@agari/core/market";
-import { PRE_IPO_SYMBOLS } from "@agari/core/market";
+import type { Address } from "@owarine/core/types";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { PRE_IPO_SYMBOLS } from "@owarine/core/market";
 import type { Ladder } from "../runtime/ladder";
 import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
 import { lotsToRaw, rawToLots, seriesOfSymbol } from "./canton";
@@ -55,7 +55,7 @@ export interface VenuePreview {
   expirySec: number;
 }
 
-export const VENUE_ROUTE_LABEL = "Agari venue";
+export const VENUE_ROUTE_LABEL = "Owarine venue";
 
 export const symbolOfMint = (mint: Address): PreIpoSymbol | null => PRE_IPO_SYMBOLS.find((s) => DESK_MINTS[s] === mint) ?? null;
 

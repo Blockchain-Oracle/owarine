@@ -1,7 +1,7 @@
 "use client";
 
-import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@agari/core/desk";
-import { isOk } from "@agari/core/schemas";
+import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@owarine/core/desk";
+import { isOk } from "@owarine/core/schemas";
 import { useEffect, useRef, useState } from "react";
 import { sendNotification } from "@/features/alerts";
 import { notify } from "@/lib/toast";
@@ -9,10 +9,10 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { RECORD } from "./copy-record";
 import { useDeskFeed, useDeskView } from "./useDesk";
 
-/** The feed is asked once a minute while Agari is open; the desk wakes hourly, so this only catches an event sooner. */
+/** The feed is asked once a minute while Owarine is open; the desk wakes hourly, so this only catches an event sooner. */
 const FEED_POLL_MS = 60_000;
 const NOTIFIED = new Set<string>([...NOTIFIED_OUTCOMES].map((o) => OUTCOME_COLUMN[o]));
-const seenKey = (owner: string) => `agari.desk.seen:101:${owner}`;
+const seenKey = (owner: string) => `owarine.desk.seen:101:${owner}`;
 
 function readSeen(owner: string): number | null {
   try {

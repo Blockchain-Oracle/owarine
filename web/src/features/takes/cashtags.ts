@@ -1,4 +1,4 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
 
 /** The most tickers one take is filed under; the Window's own asset is always one of them. */
 export const TAKE_TAGS_MAX = 4;

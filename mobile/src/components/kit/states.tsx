@@ -1,6 +1,6 @@
-import { diagnosisCopy, ERROR_BOUNDARY } from "@agari/core/copy";
-import type { Reading } from "@agari/core/schemas";
-import type { Diagnosis } from "@agari/core/types";
+import { diagnosisCopy, ERROR_BOUNDARY } from "@owarine/core/copy";
+import type { Reading } from "@owarine/core/schemas";
+import type { Diagnosis } from "@owarine/core/types";
 import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";

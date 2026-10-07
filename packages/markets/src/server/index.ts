@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/server`: the ledger half of the markets port (plan §1), over `@agari/ledger`. Server-only by
+ * `@owarine/markets/server`: the ledger half of the markets port (plan §1), over `@owarine/ledger`. Server-only by
  * contract: it holds no credential itself, but everything here runs with the process's ledger access. The web tier
  * imports it only from `web/src/lib/ledger.server.ts` (which carries `import "server-only"`); ops imports it for the
  * shared ops-call signature and the market-id derivation. Never re-exported from the package root.

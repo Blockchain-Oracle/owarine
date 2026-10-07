@@ -10,12 +10,12 @@
  * A way out is never refused by the venue mode: moving out and cashing out are not new risk.
  */
 import { createHash } from "node:crypto";
-import { PRIVATE_BUCKET } from "@agari/core/private";
-import { diagnosis } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { Command } from "@agari/ledger";
-import { cmd, decodeVenueAccount, decodeVenueCash, failureText, pick, readActive, templateSuffix, type RoleSession } from "@agari/markets/ops/canton";
-import { exactCash } from "@agari/markets/server";
+import { PRIVATE_BUCKET } from "@owarine/core/private";
+import { diagnosis } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { Command } from "@owarine/ledger";
+import { cmd, decodeVenueAccount, decodeVenueCash, failureText, pick, readActive, templateSuffix, type RoleSession } from "@owarine/markets/ops/canton";
+import { exactCash } from "@owarine/markets/server";
 import type { InternalHandler } from "../../http/internal";
 import { venueModeRefusalNow } from "../../runtime/venue-mode";
 import type { VenueContext } from "./context";

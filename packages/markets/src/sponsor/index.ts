@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/sponsor`: the fee sponsor's path, kept with its machinery removed. Canton charges the user no network
+ * `@owarine/markets/sponsor`: the fee sponsor's path, kept with its machinery removed. Canton charges the user no network
  * fee, so status reports that nothing needs sponsoring and co-signs are refused. Server-only; the root carries only
  * `SponsorStatus`.
  */

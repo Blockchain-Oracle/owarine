@@ -1,6 +1,6 @@
 "use client";
 
-import { neededMove } from "@agari/core/market";
+import { neededMove } from "@owarine/core/market";
 import { REELS } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { assetPriceLine, assetSpotLine } from "../hero/units";

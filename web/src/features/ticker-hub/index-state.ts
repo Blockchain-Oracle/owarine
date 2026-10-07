@@ -4,8 +4,8 @@
  * that leaves the index out says the same reason: the lane is listed only while the probe says the index is readable,
  * and its absence is explained, never silent.
  */
-import type { Reading } from "@agari/core";
-import type { PreIpoSymbol } from "@agari/core/market";
+import type { Reading } from "@owarine/core";
+import type { PreIpoSymbol } from "@owarine/core/market";
 import { TICKER_HUB } from "./copy";
 import type { PythIndexEntitlement, PythIndexRow, PythIndexView } from "./usePythIndex";
 

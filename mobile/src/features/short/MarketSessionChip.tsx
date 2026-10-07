@@ -1,7 +1,7 @@
-import { sessionStateWord } from "@agari/core/copy";
-import { haltLabel } from "@agari/core/market";
-import { marketsProvider } from "@agari/markets";
-import { useTick } from "@agari/markets/react";
+import { sessionStateWord } from "@owarine/core/copy";
+import { haltLabel } from "@owarine/core/market";
+import { marketsProvider } from "@owarine/markets";
+import { useTick } from "@owarine/markets/react";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming, Easing } from "react-native-reanimated";

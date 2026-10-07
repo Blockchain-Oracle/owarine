@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { useRangeReserve } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { useRangeReserve } from "@owarine/markets/react";
 import { MOONSHOT } from "@/features/games/moonshot/copy";
 import { useVenue } from "@/features/markets/useVenue";
 import { GamesPage } from "~/features/games/frame";

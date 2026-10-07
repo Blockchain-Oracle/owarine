@@ -1,6 +1,6 @@
 import "server-only";
-import { getDb } from "@agari/db";
-import { isVenueMode, VENUE_MODE_CODE } from "@agari/core/market";
+import { getDb } from "@owarine/db";
+import { isVenueMode, VENUE_MODE_CODE } from "@owarine/core/market";
 import { webEnv } from "@/lib/env";
 import { seatServer } from "@/lib/ledger.server";
 import { marketFacts, seriesFacts, venueFacts, type MarketRowForFacts, type SeriesRow } from "./venue-facts";

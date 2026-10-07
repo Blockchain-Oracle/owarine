@@ -17,7 +17,7 @@ import {
   type Offset,
   type Party,
   type TransactionFormat,
-} from "@agari/ledger";
+} from "@owarine/ledger";
 import { activeOf, templateSuffix, type Active } from "./decode";
 
 export interface RoleSession {
@@ -39,7 +39,7 @@ export interface SubmitInput {
   alsoActAs?: readonly Party[];
   /** Parties whose contracts the command may read without acting as them (C7b: a withdrawal checks the owner holds the coin it was sent). */
   readAs?: readonly Party[];
-  /** The ledger end read before this action's first submission: the in-flight wait's completion floor (`@agari/ledger`). */
+  /** The ledger end read before this action's first submission: the in-flight wait's completion floor (`@owarine/ledger`). */
   beginOffset?: Offset;
   /** The action's overall deadline, epoch ms: bounds a wait on a pending earlier submission of the same command id. */
   deadlineMs?: number;

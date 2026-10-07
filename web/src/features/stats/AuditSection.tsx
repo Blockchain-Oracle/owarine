@@ -1,7 +1,7 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
-import { formatBaseUnits, formatUtc } from "@agari/core/units";
+import type { Reading } from "@owarine/core/schemas";
+import { formatBaseUnits, formatUtc } from "@owarine/core/units";
 import type { AuditPayload, Recount } from "./audit";
 import { fmtCount, STATS } from "./copy";
 import { SectionHead, Stat } from "./StatsSections";

@@ -1,6 +1,6 @@
-import type { DeckCard, MatchState } from "@agari/core/games";
-import type { Hash32 } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import type { DeckCard, MatchState } from "@owarine/core/games";
+import type { Hash32 } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DUEL, withUnit } from "@/features/games/duel/copy";

@@ -1,4 +1,4 @@
-import type { MarketId, Side } from "@agari/core/types";
+import type { MarketId, Side } from "@owarine/core/types";
 import type { FeedTake, TakesFeed } from "@/features/takes/protocol";
 
 /** How far back a stored take may be stamped and still be this attempt (clock skew between phone and server). */

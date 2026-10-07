@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { isMarketId } from "@agari/core/types";
-import type { JsTransaction } from "@agari/ledger";
+import { isMarketId } from "@owarine/core/types";
+import type { JsTransaction } from "@owarine/ledger";
 import type { LegView, ResolutionView, TermsView } from "./contracts";
 import { appMarketId, seatCommandId } from "./ids";
 import { balanceSheet, busyUntilMs, claimables, claimPlans, contractsOf, legPayout, openPositions, openQuotes } from "./map";

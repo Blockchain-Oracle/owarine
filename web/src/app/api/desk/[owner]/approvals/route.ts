@@ -1,4 +1,4 @@
-import { deskApprovalText } from "@agari/core/desk";
+import { deskApprovalText } from "@owarine/core/desk";
 import { NextResponse } from "next/server";
 import { answer, DESK_ERRORS, loadDesk, readJson, refuse, verifyOwner } from "@/features/desk/auth.server";
 import { toApproval } from "@/features/desk/desk.server";

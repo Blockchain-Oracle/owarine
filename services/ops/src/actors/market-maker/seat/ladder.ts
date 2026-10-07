@@ -7,7 +7,7 @@
  * (the YES ask and above), `down` what buying Down costs (1000 − the YES bid, and above). A user buying Up at `p`
  * makes the venue lock `(1000 − p) × cashUnit` per lot, which is what the cap counts. Pure and integer.
  */
-import type { BookLevel } from "@agari/core/market";
+import type { BookLevel } from "@owarine/core/market";
 import { quotePair } from "./quote";
 
 export interface LadderInput {

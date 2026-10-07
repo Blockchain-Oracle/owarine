@@ -1,4 +1,4 @@
-import { basketOf, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { basketOf, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { z } from "zod";
 import { webEnv } from "@/lib/env";
 import { assetPriceLine, FEED_DECIMALS_DEFAULT, feedRawToOracleRaw } from "../../markets/hero/units";

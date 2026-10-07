@@ -1,5 +1,5 @@
 {
-  "_how": "Copy to ~/.config/agari/canton/parties.devnet.json (never into the repo). Paste each full party id from Console -> Parties (e.g. pm-venue::1220...). Leave a seat empty if the quota ran out. Ids only: no token, no password.",
+  "_how": "Copy to ~/.config/owarine/canton/parties.devnet.json (never into the repo). Paste each full party id from Console -> Parties (e.g. pm-venue::1220...). Leave a seat empty if the quota ran out. Ids only: no token, no password.",
   "network": "devnet",
   "parties": {
     "venue": "",

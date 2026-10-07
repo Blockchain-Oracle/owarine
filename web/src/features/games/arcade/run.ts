@@ -1,4 +1,4 @@
-import { seedFromBytes, type ArcadeGame } from "@agari/core/games/arcade";
+import { seedFromBytes, type ArcadeGame } from "@owarine/core/games/arcade";
 
 /**
  * What the stage hands a canvas, and what the canvas hands back.

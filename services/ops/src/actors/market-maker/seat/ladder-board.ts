@@ -2,7 +2,7 @@
  * The process's venue price ladders, one per quoting Window: the pricer writes, the quote issuer walks, and
  * `/ladders/stream` publishes. In memory only; the pricer rebuilds every entry within one pass after a restart.
  *
- * `marketId` is the app's id (`@agari/core` `marketIdFromDaml` of the terms' `damlMarketId`), the one the web keys
+ * `marketId` is the app's id (`@owarine/core` `marketIdFromDaml` of the terms' `damlMarketId`), the one the web keys
  * every Window on and sends back in `POST /internal/quotes`; `seriesId` is `seriesIdFromDaml(seriesKey)`.
  *
  * Wire shape (`/ladders/latest`, `event: ladder` on `/ladders/stream`), integers as decimal strings where they may
@@ -11,7 +11,7 @@
  * `up`/`down` are core `BookLevel[]` best first, in the bought outcome's own terms. `state: "closed"` is sent once when a
  * Window stops quoting, and the entry is dropped.
  */
-import type { BookLevel } from "@agari/core/market";
+import type { BookLevel } from "@owarine/core/market";
 
 export interface LadderEntry {
   /** The app's base58 market id. */

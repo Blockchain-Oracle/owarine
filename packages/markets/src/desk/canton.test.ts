@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { buyFloor, gate, rawFor, sellFloor, sellOracleValue, valueE6, type DeskGateInput } from "@agari/core/desk";
+import { buyFloor, gate, rawFor, sellFloor, sellOracleValue, valueE6, type DeskGateInput } from "@owarine/core/desk";
 import { describe, expect, it } from "vitest";
 import type { DeskMandateC } from "../ops/agents/decode";
 import { deskAddressOf } from "../ops/agents/ids";

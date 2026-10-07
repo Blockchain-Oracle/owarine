@@ -1,8 +1,8 @@
 "use client";
 
-import { termBand, type TermPoint } from "@agari/core/surface";
-import type { MarketId } from "@agari/core/types";
-import { bpsToOddsCents, formatClock } from "@agari/core/units";
+import { termBand, type TermPoint } from "@owarine/core/surface";
+import type { MarketId } from "@owarine/core/types";
+import { bpsToOddsCents, formatClock } from "@owarine/core/units";
 import { cn } from "@/lib/utils";
 import { SURFACE } from "./copy";
 

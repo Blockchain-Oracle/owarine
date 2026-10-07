@@ -1,5 +1,5 @@
-import { err, type Reading } from "@agari/core/schemas";
-import type { Diagnosis, DiagnosisKind } from "@agari/core/types";
+import { err, type Reading } from "@owarine/core/schemas";
+import type { Diagnosis, DiagnosisKind } from "@owarine/core/types";
 import { useQuery, type QueryKey } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { diagnose } from "../errors/error-map";

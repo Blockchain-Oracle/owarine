@@ -1,10 +1,10 @@
 "use client";
 
-import { isTickerSymbol, TICKERS } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { formatWallClock } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
-import { ORACLE_PRICE_SCALE } from "@agari/markets/identity";
+import { isTickerSymbol, TICKERS } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { formatWallClock } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
+import { ORACLE_PRICE_SCALE } from "@owarine/markets/identity";
 import Link from "next/link";
 import { Countdown } from "@/components/data";
 import { MARKETS, PLAIN_WORDS, WORD_BOARD, wordQuestion } from "@/lib/copy";

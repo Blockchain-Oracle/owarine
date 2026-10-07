@@ -1,4 +1,4 @@
-import type { VoidReason } from "@agari/core/types";
+import type { VoidReason } from "@owarine/core/types";
 
 /**
  * `/proof` (S25): the feed of settled Windows the per-Window proof pages hang from. Masayume's `/status` frame again, so

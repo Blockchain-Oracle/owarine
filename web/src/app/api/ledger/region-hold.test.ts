@@ -16,7 +16,7 @@ vi.mock("@/lib/seat.server", async (original) => ({
 
 const CID = `00${"ab".repeat(40)}`;
 const req = (path: string, region: "restricted" | null) =>
-  new NextRequest(`http://localhost${path}`, { method: "POST", headers: { "content-type": "application/json", ...(region ? { "x-agari-region": region } : {}) }, body: "{}" });
+  new NextRequest(`http://localhost${path}`, { method: "POST", headers: { "content-type": "application/json", ...(region ? { "x-owarine-region": region } : {}) }, body: "{}" });
 type Route = { POST: (r: NextRequest, c: { params: Promise<Record<string, string>> }) => Promise<Response> };
 const call = async (mod: Promise<unknown>, path: string, params: Record<string, string>, region: "restricted" | null) =>
   (await (mod as Promise<Route>)).POST(req(path, region), { params: Promise.resolve(params) });

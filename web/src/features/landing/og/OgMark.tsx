@@ -1,4 +1,4 @@
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { glyphTransform, MARK_GLYPHS } from "@/components/icons/asset-marks/paths";
 import { OG } from "./theme";
 

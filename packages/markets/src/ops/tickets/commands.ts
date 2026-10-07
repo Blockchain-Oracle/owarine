@@ -3,8 +3,8 @@
  * The venue's builders are what ops submits; the owner's (accept, claim, refund, supply, withdraw) are what the web's
  * server half submits as the leased seat's party only. Same Daml-LF JSON encoding as `../canton/commands.ts`.
  */
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { toDamlInt, type Command, type ContractId, type Party } from "@owarine/ledger/pure";
 import { isoOfSec, type Side } from "../canton/decode";
 import type { ProductC, RangeKindC, RangeSideC, RiskParamsC } from "./decode";
 

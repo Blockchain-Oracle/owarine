@@ -1,4 +1,4 @@
-import { DESK_MINTS, type DeskMainnetSession } from "@agari/markets/desk";
+import { DESK_MINTS, type DeskMainnetSession } from "@owarine/markets/desk";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { DESK } from "@/features/desk/copy";

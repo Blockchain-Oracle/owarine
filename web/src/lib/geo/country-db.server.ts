@@ -6,11 +6,11 @@ import { buildCountryTable, lookupCountry, type CountryTable } from "./country-t
 /**
  * The region hold's country source on a host with no CDN header (K-003): DB-IP's IP-to-Country Lite, read from disk
  * once per process. `scripts/geo/fetch-dbip.mjs` downloads it (the web Dockerfile runs it at build); the file is
- * never committed. `AGARI_GEOIP_DB` names another path; the default is `data/geo/dbip-country-lite.csv.gz` under the
+ * never committed. `OWARINE_GEOIP_DB` names another path; the default is `data/geo/dbip-country-lite.csv.gz` under the
  * web process's working directory (`web/` for `next start`).
  *
  * No file means no country: the lookup answers null, the proxy treats the visitor as open, and a single warning says
- * so. `AGARI_REGION_OVERRIDE` still forces the held state for testing either way.
+ * so. `OWARINE_REGION_OVERRIDE` still forces the held state for testing either way.
  */
 
 export const DEFAULT_GEOIP_DB = "data/geo/dbip-country-lite.csv.gz";
@@ -20,11 +20,11 @@ export const DEFAULT_GEOIP_DB = "data/geo/dbip-country-lite.csv.gz";
  * separately, and a module-level cache would load the 700k-line file once per bundle. Boot warms it
  * (`instrumentation-node.ts`) so no visitor's request pays the parse.
  */
-const KEY = Symbol.for("agari.geo.countryTable");
+const KEY = Symbol.for("owarine.geo.countryTable");
 const store = globalThis as { [KEY]?: CountryTable | null };
 
 export function geoDbPath(env: Record<string, string | undefined> = process.env): string {
-  const configured = env.AGARI_GEOIP_DB?.trim();
+  const configured = env.OWARINE_GEOIP_DB?.trim();
   const path = configured || DEFAULT_GEOIP_DB;
   return isAbsolute(path) ? path : join(process.cwd(), path);
 }

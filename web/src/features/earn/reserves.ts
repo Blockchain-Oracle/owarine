@@ -1,4 +1,4 @@
-import type { ReserveKind } from "@agari/core/reserves";
+import type { ReserveKind } from "@owarine/core/reserves";
 
 export interface ReserveWords {
   key: ReserveKind;
@@ -37,7 +37,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     key: "maker",
     label: "Maker vault",
     accent: "spread",
-    brand: "Agari MM",
+    brand: "Owarine MM",
     live: "Live · maker vault",
     paused: "Paused · maker vault",
     valueLabel: "Vault value",
@@ -57,7 +57,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     key: "range",
     label: "Range & Moonshot",
     accent: "margin",
-    brand: "Agari RANGE",
+    brand: "Owarine RANGE",
     live: "Live · range reserve",
     paused: "Paused · range reserve",
     valueLabel: "Reserve value",
@@ -76,7 +76,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     key: "parlay",
     label: "Parlay",
     accent: "edge",
-    brand: "Agari PARLAY",
+    brand: "Owarine PARLAY",
     live: "Live · parlay reserve",
     paused: "Paused · parlay reserve",
     valueLabel: "Reserve value",
@@ -95,7 +95,7 @@ const RESERVE_LIST: readonly ReserveWords[] = [
     key: "boost",
     label: "Boost",
     accent: "premium",
-    brand: "Agari BOOST",
+    brand: "Owarine BOOST",
     live: "Live · boost reserve",
     paused: "Paused · boost reserve",
     valueLabel: "Reserve value",

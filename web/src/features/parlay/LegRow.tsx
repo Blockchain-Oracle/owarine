@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { ChevronDown, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useState } from "react";
 import { Countdown } from "@/components/data";

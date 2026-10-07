@@ -1,4 +1,4 @@
-import type { PriceQuoteC } from "@agari/markets/ops/canton";
+import type { PriceQuoteC } from "@owarine/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import { describeBook, markBoost } from "./book";
 

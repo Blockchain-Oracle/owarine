@@ -30,7 +30,7 @@ if (typeof globalThis.localStorage === "undefined") {
  * a phone has none, so a path resolves against the production web app (EXPO_PUBLIC_SITE_URL in development).
  *
  * The phone proves its seat with the signed seat headers only, never a cookie (`web/src/lib/seat.server.ts`). React
- * Native's XHR defaults to `withCredentials = true`, so iOS kept the `agari_seat` cookie the lease call set and sent it
+ * Native's XHR defaults to `withCredentials = true`, so iOS kept the `owarine_seat` cookie the lease call set and sent it
  * on every write; a cookie write without a page Origin is refused as cross-site, before the write proof is read
  * ("signer-required: a seat write must come from this site with the seat header", C11b on the simulator).
  * `credentials: "omit"` turns cookie handling off per request (whatwg-fetch → `withCredentials = false` →

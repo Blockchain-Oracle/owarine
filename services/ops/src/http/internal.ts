@@ -1,6 +1,6 @@
 /**
  * `POST /internal/*`: the web → ops calls that exercise venue authority (plan §3). Each request carries the web's
- * `x-agari-ops-ts` / `x-agari-ops-nonce` / `x-agari-ops-sig` headers, checked with `@agari/markets/server`
+ * `x-owarine-ops-ts` / `x-owarine-ops-nonce` / `x-owarine-ops-sig` headers, checked with `@owarine/markets/server`
  * `verifyOpsSignature` under `OPS_INTERNAL_SECRET` (30 s skew), so both sides compute the MAC one way; a nonce is taken
  * once (C4d L4), so a captured call cannot be replayed even inside its 30 seconds. The season admin's routes
  * (`OPS_ADMIN_PATHS`) take `OPS_ADMIN_SECRET` instead and are closed without it. Without the secret every internal route
@@ -11,8 +11,8 @@
  */
 import { randomBytes } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { diagnosis } from "@agari/core/types";
-import { OPS_ADMIN_PATHS, OPS_NONCE_HEADER, OPS_SIG_HEADER, OPS_SKEW_MS, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
+import { diagnosis } from "@owarine/core/types";
+import { OPS_ADMIN_PATHS, OPS_NONCE_HEADER, OPS_SIG_HEADER, OPS_SKEW_MS, OPS_TS_HEADER, verifyOpsSignature } from "@owarine/markets/server";
 import { jsonText } from "./health";
 
 /** A secret shorter than this is treated as unset. */

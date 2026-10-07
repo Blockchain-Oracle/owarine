@@ -1,6 +1,6 @@
-import { SETTLING } from "@agari/core/copy";
-import type { MarketId } from "@agari/core/types";
-import { collateralOrNull } from "@agari/markets";
+import { SETTLING } from "@owarine/core/copy";
+import type { MarketId } from "@owarine/core/types";
+import { collateralOrNull } from "@owarine/markets";
 import { useQueryClient } from "@tanstack/react-query";
 import { StyleSheet, Text } from "react-native";
 import { useVerdict } from "@/features/markets/verdict/useVerdict";

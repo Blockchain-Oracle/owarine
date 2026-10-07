@@ -1,12 +1,12 @@
 {
-  "displayName": "Agari Canton",
-  "slug": "agari-canton",
-  "bundleId": "xyz.useagari.canton",
-  "androidPackage": "xyz.useagari.canton",
-  "scheme": "agaricanton",
-  "appGroup": "group.xyz.useagari.canton",
-  "widgetExtensionId": "xyz.useagari.canton.ExpoWidgetsTarget",
-  "storagePrefix": "canton.",
-  "mmkvId": "canton",
+  "displayName": "Owarine",
+  "slug": "owarine",
+  "bundleId": "com.owarine.app",
+  "androidPackage": "com.owarine.app",
+  "scheme": "owarine",
+  "appGroup": "group.com.owarine.app",
+  "widgetExtensionId": "com.owarine.app.ExpoWidgetsTarget",
+  "storagePrefix": "owarine.",
+  "mmkvId": "owarine",
   "easProjectId": null
 }

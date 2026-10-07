@@ -7,7 +7,7 @@
  */
 import { createHash } from "node:crypto";
 import type { PrintPolicyInput } from "./specs";
-import { TICKERS, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
+import { TICKERS, type TickerSymbol, type XStockSymbol } from "@owarine/core/market";
 import { hexBytes, I64_MAX, SOURCE, ZERO_POLICY, type PolicyVersionArgs, type PriceSources, type SourceName, type TickerSources } from "./policies";
 
 export type TokenLaneSources = {

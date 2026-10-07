@@ -1,5 +1,5 @@
-import { BPS_PER_X, type LeverageReserveState } from "@agari/core/leverage";
-import type { EventMarket } from "@agari/core/types";
+import { BPS_PER_X, type LeverageReserveState } from "@owarine/core/leverage";
+import type { EventMarket } from "@owarine/core/types";
 import { router } from "expo-router";
 import { CalendarClock } from "lucide-react-native";
 import { useEffect, useMemo, useState } from "react";

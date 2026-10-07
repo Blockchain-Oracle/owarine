@@ -4,8 +4,8 @@
  * and the earnings calendar, which only `calendar/earnings.ts` writes.
  */
 import { readFileSync, statSync } from "node:fs";
-import { isTickerSymbol, XSTOCK_SYMBOLS } from "@agari/core/market";
-import type { CorporateSkip, EarningsEvent, LaneBasis, MultiplierChange } from "@agari/core/types";
+import { isTickerSymbol, XSTOCK_SYMBOLS } from "@owarine/core/market";
+import type { CorporateSkip, EarningsEvent, LaneBasis, MultiplierChange } from "@owarine/core/types";
 
 const CORPORATE_ACTIONS = new URL("../../config/corporate-actions.json", import.meta.url);
 const LANES: readonly string[] = ["regular", "gap", "token"] satisfies LaneBasis[];

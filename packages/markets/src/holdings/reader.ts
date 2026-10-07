@@ -14,10 +14,10 @@
  * Until a deployment maps a tokenised-share instrument the answer is empty, and the cards show the reference's own "no
  * holdings" state. Server-only.
  */
-import type { Cluster } from "@agari/core/constants";
-import { SHARE_TOKENS, type ShareSymbol } from "@agari/core/market";
-import { CIP56_INTERFACE_IDS } from "@agari/daml";
-import type { LedgerClient, Party } from "@agari/ledger";
+import type { Cluster } from "@owarine/core/constants";
+import { SHARE_TOKENS, type ShareSymbol } from "@owarine/core/market";
+import { CIP56_INTERFACE_IDS } from "@owarine/daml";
+import type { LedgerClient, Party } from "@owarine/ledger";
 import { decodeHoldingView, interfaceViewOf } from "../ops/cc/decode";
 import { MULTIPLIER_SCALE } from "./scaled-amount";
 

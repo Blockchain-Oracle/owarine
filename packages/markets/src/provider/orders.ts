@@ -4,9 +4,9 @@
  * unfilled, cancelled) come together, newest placement first, so the portfolio can say how each ended. A row names its
  * Window, the Window row names its Series, and the Series facts are cached for the runtime's life.
  */
-import { restingOrderView, sortRestingViews, type RestingOrderRow, type RestingOrderView } from "@agari/core/projection";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, MarketId } from "@agari/core/types";
+import { restingOrderView, sortRestingViews, type RestingOrderRow, type RestingOrderView } from "@owarine/core/projection";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, MarketId } from "@owarine/core/types";
 import { readSeries, readVenueStatic } from "../runtime/accounts";
 import { nowMs } from "./clock";
 import { indexRows, sec, type MarketRow } from "./index-api";

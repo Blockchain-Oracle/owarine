@@ -4,17 +4,17 @@
  * Every figure the reads serve is the ledger's; the desk adds only what the ledger cannot know: which seat address a
  * party is, and which sealed deck the matchmaker is holding for which pairing until its creator opens it.
  */
-import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { Address } from "@agari/core/types";
-import { readDuelPicks, readSeasonClosure, recordSeasonClosure, type SeasonClosure } from "@agari/db";
-import { decodeResolution, decodeTerms, pick, readActive, type Active, type ResolutionC, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { Address } from "@owarine/core/types";
+import { readDuelPicks, readSeasonClosure, recordSeasonClosure, type SeasonClosure } from "@owarine/db";
+import { decodeResolution, decodeTerms, pick, readActive, type Active, type ResolutionC, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
 import {
   arenaAddressOf, arenaParamsOf, decodeArenaTerms, decodeDuelMatch, decodeDuelOpen, decodeDuelResult, decodeSeasonPool, isStakeTierId, tierIndexOf,
   viewOfMatch, viewOfOpen, viewOfResult, withProjectedPicks, type ArenaTermsC, type DuelMatchC, type DuelOpenC, type DuelResultC, type ProjectedPick,
   type SeasonPoolC,
-} from "@agari/markets/ops/games";
-import type { ArenaMatchViewWire, SeasonPoolWire } from "@agari/markets/games";
-import type { ArenaStateReply } from "@agari/markets/server";
+} from "@owarine/markets/ops/games";
+import type { ArenaMatchViewWire, SeasonPoolWire } from "@owarine/markets/games";
+import type { ArenaStateReply } from "@owarine/markets/server";
 import type { SeatDirectory } from "./seats";
 
 const G = GAMES_TEMPLATE_IDS;

@@ -12,11 +12,11 @@
  */
 import { createHash } from "node:crypto";
 import { appendFileSync } from "node:fs";
-import { assertCommandId } from "@agari/ledger";
-import { archivePrints } from "@agari/db";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { parsePrintSource, type PrintSourceParts } from "@agari/core/market";
-import { cmd, decodeOpenPrint, decodePriceQuote, decodeWindowState, failureText, learnTerms, pick, readActive, submit, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { assertCommandId } from "@owarine/ledger";
+import { archivePrints } from "@owarine/db";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { parsePrintSource, type PrintSourceParts } from "@owarine/core/market";
+import { cmd, decodeOpenPrint, decodePriceQuote, decodeWindowState, failureText, learnTerms, pick, readActive, submit, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
 import { ORACLE_ROLES, type OracleRole } from "../../runtime/keys";

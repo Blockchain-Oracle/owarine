@@ -1,9 +1,9 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
-import type { LaneSet } from "@agari/core/types";
+import { countdown } from "@owarine/core/lifecycle";
+import type { LaneSet } from "@owarine/core/types";
 import { useEffect, useState, type CSSProperties } from "react";
-import AgariMark from "@/components/shell/AgariMark";
+import OwarineMark from "@/components/shell/OwarineMark";
 import { usePrefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { SENSEI_TEASERS, SENSEI_UI } from "./copy";
@@ -160,7 +160,7 @@ export function SenseiDock({ laneSet, nowMs }: SenseiDockProps) {
               <circle cx="36" cy="36" r={R} className="sd-track" />
               <circle cx="36" cy="36" r={R} className="sd-fill" style={{ strokeDasharray: TAU, strokeDashoffset: TAU * (1 - fraction) } as CSSProperties} />
             </svg>
-            <AgariMark className="sd-avatar-glyph" />
+            <OwarineMark className="sd-avatar-glyph" />
             <span className="sensei-dock-pulse" aria-hidden />
           </span>
         </button>

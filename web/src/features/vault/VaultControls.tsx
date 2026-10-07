@@ -1,7 +1,7 @@
 "use client";
 
-import type { BlockerKind } from "@agari/core/copy";
-import { formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
+import type { BlockerKind } from "@owarine/core/copy";
+import { formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
 import { useState } from "react";
 import { blockerLabel } from "@/lib/copy";
 import { AmountField } from "./AmountField";

@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { TICKER_SYMBOLS, TICKERS } from "@agari/core/market";
+import { TICKER_SYMBOLS, TICKERS } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 
 /** `--brand-<slug>: #RRGGBB;` as icons.css declares them; the registry (`Ticker.brand`) is the source (D-085). */

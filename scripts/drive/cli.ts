@@ -10,12 +10,12 @@ export const flag = (name: string) => process.argv.includes(name);
 export const readJson = <T>(path: string): T => JSON.parse(readFileSync(path, "utf8")) as T;
 
 /**
- * An operator role's 64-byte ed25519 key (seed ‖ public key) from `AGARI_KEYS_DIR` (default `~/.config/agari/devnet`),
+ * An operator role's 64-byte ed25519 key (seed ‖ public key) from `OWARINE_KEYS_DIR` (default `~/.config/owarine/devnet`),
  * the file layout `services/ops/src/runtime/keys.ts` reads. Off-ledger signatures only: on Canton a role acts on the
- * ledger as a party through `@agari/ledger`, never with this key.
+ * ledger as a party through `@owarine/ledger`, never with this key.
  */
 export function roleSecret(role: string): Uint8Array {
-  const path = join(process.env.AGARI_KEYS_DIR || join(homedir(), ".config", "agari", "devnet"), `${role}.json`);
+  const path = join(process.env.OWARINE_KEYS_DIR || join(homedir(), ".config", "owarine", "devnet"), `${role}.json`);
   const bytes = readJson<number[]>(path);
   if (!Array.isArray(bytes) || bytes.length !== 64) throw new Error(`${path} is not a 64-byte ed25519 key`);
   return Uint8Array.from(bytes);

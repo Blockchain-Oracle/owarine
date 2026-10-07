@@ -48,7 +48,7 @@ export interface VaultAccount {
 /** Where `agari-vault` lives on one cluster (vault.md §1, D-069). There is no forwarder: the sponsor only pays fees. */
 export interface VaultDeployment {
   chainId: number;
-  /** The agari-vault program id (`NEXT_PUBLIC_AGARI_VAULT_PROGRAM_ID` = `addresses.devnet.json` `programs.agari_vault`). */
+  /** The agari-vault program id (`NEXT_PUBLIC_OWARINE_VAULT_PROGRAM_ID` = `addresses.devnet.json` `programs.owarine_vault`). */
   eventVault: Address;
   /** The `["seat"]` PDA: the vault's PROGRAM seat in every Ledger and the authority of each owner's custody. */
   seat: Address;

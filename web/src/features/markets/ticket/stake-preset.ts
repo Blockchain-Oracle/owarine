@@ -1,4 +1,4 @@
-import type { MarketId } from "@agari/core/types";
+import type { MarketId } from "@owarine/core/types";
 
 /**
  * A one-shot stake for the next ticket that opens on one Window — the context-carrying entry `useTicket` leaves room

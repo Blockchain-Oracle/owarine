@@ -7,8 +7,8 @@
 import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
-import { PRE_IPO_TICKERS, TICKERS } from "@agari/core/market";
-import { fetchPreStocks, PreStocksHttpError, retryAfterMsOf } from "@agari/markets/ops/prints";
+import { PRE_IPO_TICKERS, TICKERS } from "@owarine/core/market";
+import { fetchPreStocks, PreStocksHttpError, retryAfterMsOf } from "@owarine/markets/ops/prints";
 import { createPreStocksSpotFeed } from "./prestocks-spot";
 
 /** A catalogue row for every registry pre-IPO name, priced from its source text as PreStocks sends it. */

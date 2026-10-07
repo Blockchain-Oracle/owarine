@@ -1,4 +1,4 @@
-import { diagnosis, err, ok, type Reading } from "@agari/core";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
 import { NEWS } from "./copy";
 import { newsPayloadSchema, type Article } from "./protocol";
 

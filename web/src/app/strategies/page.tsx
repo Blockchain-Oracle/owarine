@@ -1,4 +1,4 @@
-import { ADVICE_COPY } from "@agari/core/copy";
+import { ADVICE_COPY } from "@owarine/core/copy";
 import type { Metadata } from "next";
 import { StrategiesScreen } from "@/features/strategies";
 import { seatServer } from "@/lib/ledger.server";
@@ -6,8 +6,8 @@ import { seatServer } from "@/lib/ledger.server";
 export const metadata: Metadata = { title: "Strategies" };
 
 /**
- * The house runner is a party on Canton (C8f): the parties file's `agent-runner` (or `AGARI_AGENT_RUNNER_PARTY`), the
- * same agent that places for X and runs desks (K-087). The studio names it when a creator picks "Let Agari run it"; a
+ * The house runner is a party on Canton (C8f): the parties file's `agent-runner` (or `OWARINE_AGENT_RUNNER_PARTY`), the
+ * same agent that places for X and runs desks (K-087). The studio names it when a creator picks "Let Owarine run it"; a
  * deployment without it says a house runner is not configured, and a creator runs its own bot instead.
  */
 export const dynamic = "force-dynamic";

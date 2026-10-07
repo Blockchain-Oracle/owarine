@@ -1,4 +1,4 @@
-import { COMPOSER_PERMANENCE } from "@agari/core/copy";
+import { COMPOSER_PERMANENCE } from "@owarine/core/copy";
 
 /**
  * The take's words — ported from `reference/yosuku/components/TakeReelCard.tsx` and
@@ -28,7 +28,7 @@ export const TAKES = {
     title: "Post a take",
     close: "Close",
     /** The reference: "Your words go on Walrus (free) · your call, on-chain." */
-    where: "Your words are stored by Agari · your call, signed by your seat.",
+    where: "Your words are stored by Owarine · your call, signed by your seat.",
     up: "▲ Up",
     down: "▼ Down",
     range: "◆ Range",

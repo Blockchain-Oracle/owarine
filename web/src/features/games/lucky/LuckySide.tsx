@@ -1,8 +1,8 @@
 "use client";
 
-import { LUCKY_VERIFIED } from "@agari/core/games";
-import type { Address } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
+import { LUCKY_VERIFIED } from "@owarine/core/games";
+import type { Address } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useGames } from "../GamesProvider";

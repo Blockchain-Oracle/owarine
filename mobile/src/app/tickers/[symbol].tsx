@@ -1,4 +1,4 @@
-import { isTickerSymbol } from "@agari/core/market";
+import { isTickerSymbol } from "@owarine/core/market";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { TickerHubScreen } from "~/features/ticker-hub/TickerHubScreen";
 

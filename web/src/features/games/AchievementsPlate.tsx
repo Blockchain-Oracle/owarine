@@ -1,6 +1,6 @@
 "use client";
 
-import { achievementsEarned, type Achievement } from "@agari/core/games";
+import { achievementsEarned, type Achievement } from "@owarine/core/games";
 import { useEffect, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { GAMES } from "./copy";

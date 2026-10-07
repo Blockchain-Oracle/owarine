@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import type { RestingOrderView } from "@agari/core/projection";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import type { RestingOrderView } from "@owarine/core/projection";
+import { formatBaseUnits } from "@owarine/core/units";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { useCancelResting } from "@/features/markets/ticket/useCancelResting";
 import { PREOPEN } from "@/lib/copy";

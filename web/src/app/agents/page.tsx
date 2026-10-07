@@ -1,4 +1,4 @@
-import { ADVICE_COPY } from "@agari/core/copy";
+import { ADVICE_COPY } from "@owarine/core/copy";
 import type { Metadata } from "next";
 import { AgentsScreen } from "@/features/strategies";
 

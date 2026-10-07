@@ -1,6 +1,6 @@
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, Holdings, OnchainSnapshot } from "@agari/core/types";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, Holdings, OnchainSnapshot } from "@owarine/core/types";
 import { getHoldings } from "../provider/reads";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";

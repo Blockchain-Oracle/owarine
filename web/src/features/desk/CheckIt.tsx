@@ -1,10 +1,10 @@
 "use client";
 
-import { canonicalJson, hashRecord } from "@agari/core/desk";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import { canonicalJson, hashRecord } from "@owarine/core/desk";
+import type { Signature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
-import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
+import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@owarine/markets/desk";
 import { Code, Download, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { MAINNET_RPC_PATH } from "@/providers/wallet/mainnet-signer";

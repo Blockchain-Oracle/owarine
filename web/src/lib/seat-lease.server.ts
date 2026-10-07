@@ -1,8 +1,8 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import { isAddress, isEd25519Signature, type Address } from "@agari/core/types";
-import { seatLeaseRequestWire, seatLeaseText, SEAT_LEASE_TTL_MS, type SeatLeaseView } from "@agari/markets";
-import { holdingsText, isSeatEmpty, readSeatHoldings } from "@agari/markets/server";
+import { isAddress, isEd25519Signature, type Address } from "@owarine/core/types";
+import { seatLeaseRequestWire, seatLeaseText, SEAT_LEASE_TTL_MS, type SeatLeaseView } from "@owarine/markets";
+import { holdingsText, isSeatEmpty, readSeatHoldings } from "@owarine/markets/server";
 import { verifyWalletMessage } from "./auth/verify-signed-message.server";
 import { webEnv } from "./env";
 import type { SeatServer } from "./ledger.server";
@@ -15,7 +15,7 @@ import { DEFAULT_RULES, freeAtMs, type LeaseRow, type LeaseRules } from "./seat-
  * itself, so the next visitor starts from an empty party.
  */
 export function leaseRules(server: SeatServer): LeaseRules {
-  return { ...DEFAULT_RULES, idleTtlMs: server.env.AGARI_SEAT_IDLE_TTL_SEC * 1000, hardCapMs: server.env.AGARI_SEAT_HARD_CAP_SEC * 1000 };
+  return { ...DEFAULT_RULES, idleTtlMs: server.env.OWARINE_SEAT_IDLE_TTL_SEC * 1000, hardCapMs: server.env.OWARINE_SEAT_HARD_CAP_SEC * 1000 };
 }
 
 export function leaseView(lease: LeaseRow, rules: LeaseRules): Extract<SeatLeaseView, { kind: "leased" }> {
@@ -49,7 +49,7 @@ export async function checkLeaseRequest(body: unknown, nowMs: number): Promise<L
 /**
  * The fallback recycler (ops' seat drain is the primary one, every pass): at most `limit` draining seats, the one checked
  * longest ago first, each claimed under its row lock. A seat holding nothing (legs, live quotes, tickets, Earn shares,
- * duels, agent grants; `@agari/markets/server` `readSeatHoldings`) has its cash withdrawn by the seat itself and is freed.
+ * duels, agent grants; `@owarine/markets/server` `readSeatHoldings`) has its cash withdrawn by the seat itself and is freed.
  */
 export async function recycleDrained(server: SeatServer, nowMs: number, limit = 6): Promise<number> {
   let freed = 0;

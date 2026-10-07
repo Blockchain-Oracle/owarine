@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router, type Href } from "expo-router";
 import { useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";

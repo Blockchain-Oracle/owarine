@@ -1,8 +1,8 @@
 "use client";
 
-import { ok, isOk } from "@agari/core/schemas";
-import { marketsProvider } from "@agari/markets";
-import { keys, usePositions } from "@agari/markets/react";
+import { ok, isOk } from "@owarine/core/schemas";
+import { marketsProvider } from "@owarine/markets";
+import { keys, usePositions } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { Fragment, useMemo, useState } from "react";

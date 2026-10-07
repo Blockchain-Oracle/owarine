@@ -3,11 +3,11 @@
  * Landed → consumed shards leave and the created venue change joins free; definite rejection → shards free (or dropped
  * when the ledger names them inactive); timeout / 503 → quarantined under the command id until its completion is known.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   activeOf, decodeVenueCash, inactiveCids, isInactive, isIndefinite, submit, templateSuffix,
   type Active, type RoleSession, type SubmitInput, type SubmitOutcome, type VenueCashC,
-} from "@agari/markets/ops/canton";
+} from "@owarine/markets/ops/canton";
 import type { Lease, ShardPool } from "./pool";
 
 const CASH = templateSuffix(TEMPLATE_IDS.VenueCash);

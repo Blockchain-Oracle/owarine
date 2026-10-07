@@ -1,4 +1,4 @@
-import { MarketsProvider } from "@agari/markets/react";
+import { MarketsProvider } from "@owarine/markets/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { router, Stack, useGlobalSearchParams, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";

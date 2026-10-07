@@ -1,4 +1,4 @@
-import { etDateOf, etMinutesOf, weekdayOfDate } from "@agari/core/market";
+import { etDateOf, etMinutesOf, weekdayOfDate } from "@owarine/core/market";
 
 /** "this weekend" · "this session" · "tonight": the span the hedge Window covers, in the card's own words. */
 export type HedgeHorizon = "weekend" | "session" | "overnight";

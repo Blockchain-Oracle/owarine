@@ -1,4 +1,4 @@
-import { sessionAt, type SessionCalendar } from "@agari/core/market";
+import { sessionAt, type SessionCalendar } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 import { planSeries, spanOf, type PlanClock, type PlanSeries } from "./plan";
 import type { VersionWindow } from "./versions";

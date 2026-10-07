@@ -1,8 +1,8 @@
 "use client";
 
-import { phase, type MarketPhase } from "@agari/core/lifecycle";
-import { isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import { phase, type MarketPhase } from "@owarine/core/lifecycle";
+import { isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD, LANE_CARD, LANE_STATE, MARKETS } from "@/lib/copy";
 import { CLOSED } from "@/lib/copy-closed";

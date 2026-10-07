@@ -1,4 +1,4 @@
-import type { Address, MarketId, Signature } from "@agari/core/types";
+import type { Address, MarketId, Signature } from "@owarine/core/types";
 import { z } from "zod";
 
 /** Wire shape of the traction slice — base units travel as decimal strings, never floats. */

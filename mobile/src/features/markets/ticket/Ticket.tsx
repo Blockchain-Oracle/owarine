@@ -1,9 +1,9 @@
-import { formatCadence } from "@agari/core/copy";
-import { BPS_PER_X } from "@agari/core/leverage";
-import { belowMinStake } from "@agari/core/sizing";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import { BPS_PER_X } from "@owarine/core/leverage";
+import { belowMinStake } from "@owarine/core/sizing";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { isCommitteeMarket } from "@agari/core/market";
+import { isCommitteeMarket } from "@owarine/core/market";
 import { EVENT_SIDE_WORD } from "@/features/markets/events/copy";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import type { TicketSelection } from "@/features/markets/ticket/types";

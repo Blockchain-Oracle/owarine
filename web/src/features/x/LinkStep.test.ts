@@ -1,12 +1,12 @@
 import { createElement } from "react";
-import { encodeBase58 } from "@agari/core/types";
+import { encodeBase58 } from "@owarine/core/types";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { LinkStep } from "./LinkStep";
 import type { XLink } from "./useXStatus";
 import type { XStatus } from "./protocol";
 
-const status: XStatus = { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: null, handle: "@agari_app" };
+const status: XStatus = { configured: true, missing: [], storeConfigured: true, signedIn: false, session: null, binding: null, executor: null, handle: "@owarine_app" };
 function render(over: Partial<XLink>) {
   const link: XLink = { status, loading: false, busy: "", error: "", ok: "", needsLink: false, walletMismatch: false,
     sessionMatchesBinding: false, refresh: vi.fn(), link: vi.fn(), unlink: vi.fn(), startUrl: () => "/api/x/start?return=%2Ftrade-from-x",

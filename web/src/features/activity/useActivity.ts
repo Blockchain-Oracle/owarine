@@ -1,9 +1,9 @@
 "use client";
 
-import { SEAT_READ_HEADER } from "@agari/core/auth";
-import { isOk } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { seatReadHeaderValue } from "@agari/markets";
+import { SEAT_READ_HEADER } from "@owarine/core/auth";
+import { isOk } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { seatReadHeaderValue } from "@owarine/markets";
 import { useQuery } from "@tanstack/react-query";
 import { useVenue } from "@/features/markets/useVenue";
 import type { MoneyUnits } from "./describe";

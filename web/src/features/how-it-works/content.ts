@@ -178,7 +178,7 @@ export interface Faq {
 
 export const FAQS: readonly Faq[] = [
   {
-    question: "What currency does Agari use?",
+    question: "What currency does Owarine use?",
     answer: "Credits, the demo collateral the venue issues on the Canton test network. Taking a seat credits it with demo cash; there is no fee token to find.",
   },
   {
@@ -199,14 +199,14 @@ export const FAQS: readonly Faq[] = [
   },
   {
     question: "Do I need a wallet?",
-    answer: "No. Take a seat: the key is made in your browser and cannot leave it, and the venue leases the seat a Canton party. Agari never holds your key.",
+    answer: "No. Take a seat: the key is made in your browser and cannot leave it, and the venue leases the seat a Canton party. Owarine never holds your key.",
   },
   {
     question: "Is this real money?",
-    answer: "No. Agari runs on the Canton test network with demo credits the venue issues. Nothing here is worth anything anywhere else, and there is no way to move it off.",
+    answer: "No. Owarine runs on the Canton test network with demo credits the venue issues. Nothing here is worth anything anywhere else, and there is no way to move it off.",
   },
   {
-    question: "How does Agari ensure fair pricing?",
+    question: "How does Owarine ensure fair pricing?",
     answer: "The venue quotes from a published price ladder, and your seat gets a firm quote for your exact size. The quote holds while you take it, so a fill can never cost more than the quote you confirmed.",
   },
   {

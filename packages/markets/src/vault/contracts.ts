@@ -1,5 +1,5 @@
-import type { Address, Signature } from "@agari/core/types";
-import type { VaultDeployment } from "@agari/core/vault";
+import type { Address, Signature } from "@owarine/core/types";
+import type { VaultDeployment } from "@owarine/core/vault";
 
 /**
  * The signing context a product write needs: who signs, and the deployment it targets. Masayume's version carried

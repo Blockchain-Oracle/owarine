@@ -1,4 +1,4 @@
-import { isMarketId } from "@agari/core/types";
+import { isMarketId } from "@owarine/core/types";
 
 /** What web sends ops for a resting call: the request as the seat confirmed it, plus WHO, taken from the lease only. */
 export interface RestingOfferRequest {

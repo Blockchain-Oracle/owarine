@@ -1,5 +1,5 @@
-import type { RunnerHealth, StrategySubscription } from "@agari/core/strategies";
-import type { VaultGrant } from "@agari/core/vault";
+import type { RunnerHealth, StrategySubscription } from "@owarine/core/strategies";
+import type { VaultGrant } from "@owarine/core/vault";
 import { router, type Href } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

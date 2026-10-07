@@ -1,4 +1,4 @@
-import { isAddress } from "@agari/core/types";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { answer, DESK_ERRORS, loadDesk, readJson, refuse } from "@/features/desk/auth.server";
 import { provenWriter } from "@/lib/auth/proven-seat.server";

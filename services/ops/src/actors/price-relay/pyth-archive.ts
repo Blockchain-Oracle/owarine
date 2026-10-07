@@ -1,5 +1,5 @@
 /** Hermes boundary → `print_archive` rows (venue-ops.md §6.4): the exact response text for each trial feed it carries. */
-import type { PrintArchiveRow } from "@agari/db";
+import type { PrintArchiveRow } from "@owarine/db";
 import type { PythBoundary } from "./hermes-fetch";
 
 export function pythRows(boundary: PythBoundary, skip: ReadonlySet<string>): PrintArchiveRow[] {

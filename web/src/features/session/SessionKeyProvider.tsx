@@ -1,10 +1,10 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import type { TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Address, type Signature } from "@agari/core/types";
-import { generateSessionKey, type SubmitterSession } from "@agari/markets";
-import { keys, useUserSession, useVaultSnapshot } from "@agari/markets/react";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import type { TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Address, type Signature } from "@owarine/core/types";
+import { generateSessionKey, type SubmitterSession } from "@owarine/markets";
+import { keys, useUserSession, useVaultSnapshot } from "@owarine/markets/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useNowMs } from "@/components/data";
@@ -32,7 +32,7 @@ function refusedTx(technical: string): TxOutcome {
   return { status: "refused", diagnosis: diagnosis("unknown", technical) };
 }
 
-const keyLamportsKey = (key: Address | null) => ["agari", "session", "keyLamports", key] as const;
+const keyLamportsKey = (key: Address | null) => ["owarine", "session", "keyLamports", key] as const;
 
 /** A fresh non-extractable key (D-066) as its v2 record. */
 async function freshKey(): Promise<StoredSessionKey> {

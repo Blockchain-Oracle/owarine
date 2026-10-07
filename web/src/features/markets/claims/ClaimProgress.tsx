@@ -1,5 +1,5 @@
-import { formatCadence } from "@agari/core/copy";
-import { txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import { txUrl } from "@owarine/core/urls";
 import { Hash, Money } from "@/components/data";
 import { ErrorState } from "@/components/states";
 import { CLAIM, diagnosisCopy } from "@/lib/copy";

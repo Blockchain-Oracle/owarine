@@ -1,7 +1,7 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
+import type { MarketId } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
 import { SectionHeader } from "@/components/chrome";
 import { ReceiptRow } from "@/components/receipt";
 import { ClaimPlate, ClaimSuccessReceipt, IDLE_RUN, LiveClaimPlate } from "@/features/markets/claims";

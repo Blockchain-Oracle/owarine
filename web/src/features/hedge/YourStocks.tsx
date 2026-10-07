@@ -1,9 +1,9 @@
 "use client";
 
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
-import type { LaneSet } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, PRE_IPO_SYMBOLS, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@owarine/core/market";
+import type { LaneSet } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
 import { basketHolding, heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
@@ -47,7 +47,7 @@ export function groupHoldings(holdings: readonly HoldingView[]): Group[] {
 const tokensText = (list: HoldingView[]) => list.map((h) => `${formatBaseUnits(h.sharesE8, SHARES_DP, { maxDp: SHARES_SHOWN_DP, minDp: 0 })} ${h.symbol}`).join(" + ");
 
 /**
- * "Your stocks" (plan Step 4): every stock token the wallet holds, read-only, each with both Agari bets offered — cover
+ * "Your stocks" (plan Step 4): every stock token the wallet holds, read-only, each with both Owarine bets offered — cover
  * it with Down, add to it with Up — on the Window the cover card would pick, or an honest "no open market" line.
  * Presentational, so `/dev/hedge` renders it from canned holdings; `YourStocks` below reads the hooks.
  */

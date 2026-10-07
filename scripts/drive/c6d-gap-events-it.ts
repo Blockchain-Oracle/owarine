@@ -15,21 +15,21 @@
  *      (product `range`) and both event legs with their question; the projection holds the event verdicts.
  *
  *   SITE=http://localhost:3140 OPS=http://localhost:8747 LEDGER_JSON_API_URL=http://localhost:7545 LEDGER_AUTH_MODE=none \
- *     AGARI_PARTIES_FILE=… DATABASE_URL=postgres://localhost/pm_c6d pnpm --filter @agari/scripts exec tsx drive/c6d-gap-events-it.ts
+ *     OWARINE_PARTIES_FILE=… DATABASE_URL=postgres://localhost/pm_c6d pnpm --filter @owarine/scripts exec tsx drive/c6d-gap-events-it.ts
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { createHash, randomUUID, webcrypto } from "node:crypto";
-import { messageBytes } from "@agari/core/auth";
+import { messageBytes } from "@owarine/core/auth";
 import {
   addDays, attestedPrintSource, BAR_LEN_SEC, calendarFromAlpaca, datesBetween, EVENT_KEY_PREFIX, etDateOf, eventStatementText, SOURCE_TIMING, weekdayOfDate,
-} from "@agari/core/market";
-import { encodeBase58, type Address } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@agari/ledger";
-import { parseMarketsEnv, seatLeaseText, toWire } from "@agari/markets";
+} from "@owarine/core/market";
+import { encodeBase58, type Address } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { createLedgerClient, noAuth, parseLedgerEnv, type Command } from "@owarine/ledger";
+import { parseMarketsEnv, seatLeaseText, toWire } from "@owarine/markets";
 import {
   attestCommandId, cmd, decodeSeries, decodeTerms, feeFor, openEventCommandId, openWindowCommandId, pick, readActive, type RoleSession,
-} from "@agari/markets/ops/canton";
+} from "@owarine/markets/ops/canton";
 import postgres from "postgres";
 import { planSeriesOf } from "../../services/ops/src/actors/window-roller/execute";
 import { gapSpanOf, planGapSeries } from "../../services/ops/src/actors/window-roller/plan-gap";
@@ -69,12 +69,12 @@ const address = encodeBase58(new Uint8Array(await crypto.subtle.exportKey("raw",
 const sign = async (text: string) => encodeBase58(new Uint8Array(await crypto.subtle.sign({ name: "Ed25519" }, pair.privateKey, messageBytes(text) as Uint8Array<ArrayBuffer>)));
 let cookie = "";
 async function call(method: string, path: string, body?: unknown) {
-  const headers: Record<string, string> = { accept: "application/json", origin: SITE, "x-agari-seat": "1" };
+  const headers: Record<string, string> = { accept: "application/json", origin: SITE, "x-owarine-seat": "1" };
   if (body !== undefined) headers["content-type"] = "application/json";
   if (cookie) headers.cookie = cookie;
   const res = await fetch(`${SITE}${path}`, { method, headers, ...(body === undefined ? {} : { body: JSON.stringify(toWire(body)) }) });
   const setCookie = res.headers.get("set-cookie");
-  if (setCookie?.startsWith("agari_seat=")) cookie = setCookie.split(";")[0]!;
+  if (setCookie?.startsWith("owarine_seat=")) cookie = setCookie.split(";")[0]!;
   return { status: res.status, json: ((await res.json().catch(() => null)) ?? {}) as Record<string, any> };
 }
 const credits = async () => BigInt((await call("GET", "/api/ledger/me/balance")).json.value?.spendableBase ?? "0");

@@ -1,5 +1,5 @@
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import type { Command, LedgerClient, Party } from "@agari/ledger";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import type { Command, LedgerClient, Party } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { strategyNumOf } from "../ops/agents/ids";
 import { creatorPayoutsView } from "../ops/agents/views";
@@ -11,7 +11,7 @@ import type { CommandJournal, CommandRow } from "./writes";
 const VENUE = "venue::1220aa" as Party;
 const A = "seat-1::1220bb" as Party;
 const B = "seat-2::1220cc" as Party;
-const HOUSE = "agari-agent-runner::1220dd" as Party;
+const HOUSE = "owarine-agent-runner::1220dd" as Party;
 const SEAT = { party: A, leaseId: "lease-a", address: "SeatA111", fromOffset: 0 };
 const J1 = "0b8f3f0e-6a55-4d7f-9a3b-1f7f3c3c0001";
 const J2 = "0b8f3f0e-6a55-4d7f-9a3b-1f7f3c3c0002";

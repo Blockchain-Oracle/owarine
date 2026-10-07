@@ -3,9 +3,9 @@
  * when the desk "would have acted", and a practice fill is written as a confirmed action too, so the owner's rolling
  * daily limit and the outside-money check work the same way on both kinds of desk.
  */
-import { applyPaperFill, paperFeeBpsFor, paperLedgerFromWire, paperLedgerToWire, type DeskSide, type PaperLedger } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
-import type { Db, DeskQueries } from "@agari/db";
+import { applyPaperFill, paperFeeBpsFor, paperLedgerFromWire, paperLedgerToWire, type DeskSide, type PaperLedger } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import type { Db, DeskQueries } from "@owarine/db";
 
 export async function loadPaper(q: DeskQueries, deskId: string): Promise<PaperLedger | null> {
   const row = await q.getPaper(deskId);

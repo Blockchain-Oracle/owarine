@@ -4,8 +4,8 @@
  */
 import type { PolicyVersion, PrintPolicy } from "../ops/shapes";
 import type { PrintPolicyInput } from "./specs";
-import { pythIndexFeedOf, TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { LaneBasis } from "@agari/core/types";
+import { pythIndexFeedOf, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { LaneBasis } from "@owarine/core/types";
 import { tokenPolicyFor, tokenPolicyVersions } from "./policies-token";
 
 /** The subset of price-sources.json the engine reads. */

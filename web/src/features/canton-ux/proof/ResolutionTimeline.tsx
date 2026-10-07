@@ -1,6 +1,6 @@
 "use client";
 
-import { formatUtc, partyLead } from "@agari/core/units";
+import { formatUtc, partyLead } from "@owarine/core/units";
 import { Ban, CircleDot, Flag, Radio, RadioTower, Sigma } from "lucide-react";
 import type { ReactNode } from "react";
 import { TapHash } from "@/components/data/TapHash";

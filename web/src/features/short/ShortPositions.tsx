@@ -1,9 +1,9 @@
 "use client";
 
-import { shortBookTotals, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { useLeverageMark, useMarket, useMyLeveragePositions } from "@agari/markets/react";
+import { shortBookTotals, type LeverageMark, type LeveragePosition } from "@owarine/core/leverage";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useLeverageMark, useMarket, useMyLeveragePositions } from "@owarine/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Money } from "@/components/data";
 import { useWalletSession } from "@/lib/wallet-session";

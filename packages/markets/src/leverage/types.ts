@@ -1,4 +1,4 @@
-import type { Diagnosis, Signature } from "@agari/core/types";
+import type { Diagnosis, Signature } from "@owarine/core/types";
 
 export type LeverageOpenOutcome =
   | { status: "confirmed"; txHash: Signature; positionId: bigint; stakeBase: bigint; quantityRaw: bigint; frontedBase: bigint }

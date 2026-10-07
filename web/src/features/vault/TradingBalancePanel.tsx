@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { VenueCredit } from "@agari/core/types";
+import { isOk } from "@owarine/core/schemas";
+import type { VenueCredit } from "@owarine/core/types";
 import { useWalletSession } from "@/lib/wallet-session";
 import { VAULT } from "./copy";
 import { TradingBalanceView } from "./TradingBalanceView";

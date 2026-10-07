@@ -11,9 +11,9 @@
  * into it or a withdrawal out of it moves nothing and is answered as such (never faked as a transaction); a grant
  * "deposit and grant" funds the grant straight from the seat's cash. No retries anywhere.
  */
-import type { IntentRecord, PhaseListener, TxOutcome, VaultIntent } from "@agari/core/ports";
-import { encodeStrategyMetadata, type StrategyIntent } from "@agari/core/strategies";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
+import type { IntentRecord, PhaseListener, TxOutcome, VaultIntent } from "@owarine/core/ports";
+import { encodeStrategyMetadata, type StrategyIntent } from "@owarine/core/strategies";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
 import { toWire } from "../provider/ledger-wire";
 import { agentsWriteReplyWire, type AgentsWriteReply } from "../provider/agents-wire";
 import { ledgerRequest } from "../provider/ledger-api";

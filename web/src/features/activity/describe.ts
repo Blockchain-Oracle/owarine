@@ -1,7 +1,7 @@
-import { formatCadence } from "@agari/core/copy";
-import type { Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketDeepLink, txUrl } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/copy";
+import type { Signature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketDeepLink, txUrl } from "@owarine/core/urls";
 import type { FeedTake } from "@/features/takes/protocol";
 import { ACTIVITY, LIFECYCLE } from "./copy";
 import type { ActivityItem } from "./protocol";

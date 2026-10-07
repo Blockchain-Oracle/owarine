@@ -1,4 +1,4 @@
-import { diagnosis, err, ok, stale, txUrl, type Diagnosis, type Reading } from "@agari/core";
+import { diagnosis, err, ok, stale, txUrl, type Diagnosis, type Reading } from "@owarine/core";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 
 export const DECIMALS = 6;

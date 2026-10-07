@@ -1,5 +1,5 @@
-import { formatBaseUnits } from "@agari/core/units";
-import type { CapRefusal } from "@agari/core/vault";
+import { formatBaseUnits } from "@owarine/core/units";
+import type { CapRefusal } from "@owarine/core/vault";
 
 /** The pre-check's refusal in the Ticket's own words — the same facts the vault would revert with. */
 export function refusalText(refusal: CapRefusal, decimals: number, symbol: string): string {

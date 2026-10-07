@@ -2,7 +2,7 @@
  * The reference desk's Solana-only operator helpers (refusal probes, Surfpool fork tools, route prewarming), kept for
  * their export names and shapes. The Canton desk has no counterpart for any of them: each refuses with the reason.
  */
-import type { Address, Signature } from "@agari/core/types";
+import type { Address, Signature } from "@owarine/core/types";
 import type { KeyPairSigner } from "../deploy/client";
 import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
 import type { DeskOperatorClient } from "./operator";

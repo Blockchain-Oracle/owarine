@@ -1,10 +1,10 @@
 "use client";
 
-import { cardsInMask } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Hash32 } from "@agari/core/types";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { useArenaMatch } from "@agari/markets/react";
+import { cardsInMask } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Hash32 } from "@owarine/core/types";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import { useArenaMatch } from "@owarine/markets/react";
 import { useState, type CSSProperties } from "react";
 import { LoadingState } from "@/components/states";
 import { useVenue } from "@/features/markets";

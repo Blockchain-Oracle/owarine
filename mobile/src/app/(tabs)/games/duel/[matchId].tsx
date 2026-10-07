@@ -1,4 +1,4 @@
-import type { Hash32 } from "@agari/core/types";
+import type { Hash32 } from "@owarine/core/types";
 import { useLocalSearchParams } from "expo-router";
 import { DUEL } from "@/features/games/duel/copy";
 import { GamesPage } from "~/features/games/frame";

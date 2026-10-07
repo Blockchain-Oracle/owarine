@@ -1,10 +1,10 @@
 {
-  "name": "@agari/mobile",
+  "name": "@owarine/mobile",
   "main": "./index.ts",
   "version": "1.0.0",
   "dependencies": {
-    "@agari/core": "workspace:*",
-    "@agari/markets": "workspace:*",
+    "@owarine/core": "workspace:*",
+    "@owarine/markets": "workspace:*",
     "@dicebear/core": "9.4.3",
     "@dicebear/notionists": "9.4.2",
     "@expo-google-fonts/inter": "^0.4.2",

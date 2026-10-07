@@ -9,14 +9,14 @@
  *   out     the private balance moves back to the seat's balance
  *   guard   ops refuses to cash out a receipt already paid into the private bucket (needs OPS_INTERNAL_SECRET)
  *
- *   LEDGER_JSON_API_URL=http://localhost:7904 AGARI_PARTIES_FILE=<parties.json> \
- *     pnpm --filter @agari/scripts exec tsx drive/c2e-private-payout.ts --web http://localhost:3190 --ops http://localhost:8790 [--only payout,void,out]
+ *   LEDGER_JSON_API_URL=http://localhost:7904 OWARINE_PARTIES_FILE=<parties.json> \
+ *     pnpm --filter @owarine/scripts exec tsx drive/c2e-private-payout.ts --web http://localhost:3190 --ops http://localhost:8790 [--only payout,void,out]
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
-import { parseMarketsEnv } from "@agari/markets";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
+import { parseMarketsEnv } from "@owarine/markets";
 import { acceptanceRow, errorEvidence, failed, table, type CheckRow } from "../bootstrap/rows";
 import { arg } from "./cli";
 import { webClient } from "./first-call/seat";
@@ -37,8 +37,8 @@ const rows: CheckRow[] = [];
 
 async function main(): Promise<number> {
   const client = ledgerClientFromEnv(parseLedgerEnv(process.env));
-  const partiesPath = process.env.AGARI_PARTIES_FILE;
-  if (!partiesPath) throw new Error("AGARI_PARTIES_FILE is not set");
+  const partiesPath = process.env.OWARINE_PARTIES_FILE;
+  if (!partiesPath) throw new Error("OWARINE_PARTIES_FILE is not set");
   const parties = readParties(partiesPath);
   const roles = rolesOf(parties);
   const run = `c2e-${Date.now().toString(36)}`;

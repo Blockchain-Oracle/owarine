@@ -1,9 +1,9 @@
 "use client";
 
-import { etDateOf, formatCadence, formatEtClock } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { MarketId } from "@agari/core/types";
-import { useMarket } from "@agari/markets/react";
+import { etDateOf, formatCadence, formatEtClock } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId } from "@owarine/core/types";
+import { useMarket } from "@owarine/markets/react";
 import { AlertTriangleIcon } from "lucide-react";
 import { SectionHeader } from "@/components/chrome";
 import { PROOF_CANTON, ResolutionTimeline, TrustBoundary, type ResolutionEvidence } from "@/features/canton-ux/proof";

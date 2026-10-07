@@ -1,14 +1,14 @@
-import { isOk } from "@agari/core/schemas";
-import { capsAtQuotePrice, dailyHeadroomBase, type CapRefusal, type VaultGrant } from "@agari/core/vault";
-import { sideForSubscriber, type Decision, type StrategyFill, type StrategySubscription } from "@agari/core/strategies";
-import { toMarketId, type EventMarket, type MarketId, type Quote } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
-import { marketsProvider, readRecoveryCursor } from "@agari/markets";
+import { isOk } from "@owarine/core/schemas";
+import { capsAtQuotePrice, dailyHeadroomBase, type CapRefusal, type VaultGrant } from "@owarine/core/vault";
+import { sideForSubscriber, type Decision, type StrategyFill, type StrategySubscription } from "@owarine/core/strategies";
+import { toMarketId, type EventMarket, type MarketId, type Quote } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
+import { marketsProvider, readRecoveryCursor } from "@owarine/markets";
 import type { AgentSession } from "../agents/session";
 
 /** What an actor needs of its agent session (tests pass a stand-in). */
 type AgentSessionLike = Pick<AgentSession, "address" | "submitter"> & Partial<Pick<AgentSession, "recoveryCursor">>;
-import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, recordAttemptFill } from "@agari/db";
+import { beginStrategyAttempt, finishStrategyAttempt, getStrategyAttempt, recordAttemptFill } from "@owarine/db";
 
 export type ExecutionResult =
   | { status: "filled"; fill: StrategyFill }

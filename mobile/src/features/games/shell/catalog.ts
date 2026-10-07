@@ -1,4 +1,4 @@
-import { gameDescriptor, gamesInGroup, type GameDescriptor, type GameGroup, type GameId } from "@agari/core/games";
+import { gameDescriptor, gamesInGroup, type GameDescriptor, type GameGroup, type GameId } from "@owarine/core/games";
 import { DRAWER_SECTIONS, type NavItem } from "~/nav/items";
 
 /**
@@ -6,7 +6,7 @@ import { DRAWER_SECTIONS, type NavItem } from "~/nav/items";
  *
  * The name, blurb, symbol and route come from the app's navigation registry (web takes them from its own
  * `NAV_ITEMS`), so a mode is never called one thing in the drawer and another on its card. The economic kind
- * and label come from `@agari/core/games`, the same fact the write lanes gate on. `readiness` is web's build
+ * and label come from `@owarine/core/games`, the same fact the write lanes gate on. `readiness` is web's build
  * fact, unchanged: every mode is built.
  */
 export type GameReadiness = { kind: "built" } | { kind: "pending"; dependency: string };

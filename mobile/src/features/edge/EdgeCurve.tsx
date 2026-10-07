@@ -1,5 +1,5 @@
-import type { EquityPoint } from "@agari/core/projection";
-import { oneUnit } from "@agari/core/units";
+import type { EquityPoint } from "@owarine/core/projection";
+import { oneUnit } from "@owarine/core/units";
 import type { Tone } from "@/features/edge/format";
 import { EDGE } from "@/features/edge/copy";
 import { useState } from "react";

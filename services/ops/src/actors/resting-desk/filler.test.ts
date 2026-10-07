@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { errorFromResponse, type LedgerClient } from "@agari/ledger";
+import { errorFromResponse, type LedgerClient } from "@owarine/ledger";
 import { createLadderBoard, type LadderBoard } from "../market-maker/seat/ladder-board";
 import { ShardPool } from "../quote-issuer/pool";
 import { restingPass, type FillerDeps } from "./filler";

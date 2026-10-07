@@ -1,6 +1,6 @@
-import { TICKERS } from "@agari/core/market";
-import type { MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { TICKERS } from "@owarine/core/market";
+import type { MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { LinearGradient } from "expo-linear-gradient";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

@@ -1,4 +1,4 @@
-import type { Side } from "@agari/core/types";
+import type { Side } from "@owarine/core/types";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Button, haptic } from "~/components/kit";

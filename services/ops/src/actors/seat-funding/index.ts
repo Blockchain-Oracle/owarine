@@ -4,16 +4,16 @@
  * to credit, never debit): the venue invites, the seat party accepts (ops acts as the seat only for this, on a party the
  * lease names), then the venue credits. Every step has a stable command id, so a retried lease credits once.
  *
- * `POST /internal/seats/fund` `{ party, leaseId, address }` (the web's `@agari/markets/server` contract) →
+ * `POST /internal/seats/fund` `{ party, leaseId, address }` (the web's `@owarine/markets/server` contract) →
  * `{ kind: "funded", amountBase }` · `{ kind: "already" }` (this lease was credited before) · `{ kind: "refused", diagnosis }`.
  * The amount is ops' own (`SEAT_FUND_CREDITS`, default 1,000 demo credits), never the caller's.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   acceptAccountCommandId, cmd, creditCommandId, decodeVenueAccount, failureText, inviteCommandId, pick, readActive, submit, templateSuffix,
   type RoleSession,
-} from "@agari/markets/ops/canton";
-import { diagnosis } from "@agari/core/types";
+} from "@owarine/markets/ops/canton";
+import { diagnosis } from "@owarine/core/types";
 import type { VenueContext } from "../venue/context";
 
 const PARTY_ID = /^[A-Za-z0-9_\-:]{1,255}::[0-9a-f]{8,}$/;

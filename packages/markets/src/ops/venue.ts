@@ -3,8 +3,8 @@
  * reads, which decoded agari-events accounts, throw the not-live error until the C3 adapter reads the venue's `Series`
  * and `MarketTerms` contracts.
  */
-import { laneKey, TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
-import { laneBasisOf, type Address, type LaneBasis } from "@agari/core/types";
+import { laneKey, TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { laneBasisOf, type Address, type LaneBasis } from "@owarine/core/types";
 import type { OpsClient } from "./client";
 import { opsNotLive, type Market, type Series } from "./shapes";
 

@@ -11,9 +11,9 @@
  *   cancel    Open_Cancel        the creator, before a join
  *   lock · settle · finalize · refund-*       the cranks any named player may run (settle = its own `Duel_Score`)
  */
-import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { ContractId, DisclosedContract, LedgerClient, Party } from "@agari/ledger";
-import { diagnosis, type Signature } from "@agari/core/types";
+import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { ContractId, DisclosedContract, LedgerClient, Party } from "@owarine/ledger";
+import { diagnosis, type Signature } from "@owarine/core/types";
 import { decodeLeg, decodeResolution, templateSuffix, type LegC } from "../ops/canton/decode";
 import { gcmd, pickQuantityOf } from "../ops/games";
 import { decodeDuelMatch, decodeDuelOpen, type DuelMatchC, type DuelOpenC } from "../ops/games/decode";

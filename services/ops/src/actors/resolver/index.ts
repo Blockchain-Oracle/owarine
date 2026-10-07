@@ -12,12 +12,12 @@
  * resolver counts the `EventAttestation`s as the ledger will (`event.ts`) and runs `Event_Resolve` (unanimous → Up/Down,
  * mixed → SourceDisagreement void) or, past the deadline, `Event_Void`, under the same `resolve:<termsCid>` id.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   cmd, decodeEventAttestation, decodeEventState, decodeEventTerms, decodeEventVerdict, decodeOpenPrint, decodePriceQuote, decodeResolution,
   decodeWindowState, failureText, isInactive, learnTerms, pick, readActive, recordOpenCommandId, refusalId, resolveCommandId, submit, templateSuffix, type Active,
   type PriceQuoteC, type RoleSession, type TermsC,
-} from "@agari/markets/ops/canton";
+} from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { decideSettle } from "../settler/decide";
 import { createVenueContext, type VenueContext } from "../venue/context";

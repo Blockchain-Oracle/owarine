@@ -1,6 +1,6 @@
-import { formatCadence, type BlockerContext } from "@agari/core/copy";
-import type { Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence, type BlockerContext } from "@owarine/core/copy";
+import type { Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SIDE_WORD } from "@/features/markets/side-styles";
 import { PRIVATE } from "@/features/private/copy";

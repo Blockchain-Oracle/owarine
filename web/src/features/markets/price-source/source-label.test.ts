@@ -1,5 +1,5 @@
-import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@agari/core/market";
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@owarine/core/market";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { assetSourceLabel, printSourceName, windowSourceLabel } from "./source-label";
 

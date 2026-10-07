@@ -1,5 +1,5 @@
-import { PRIVATE_BUCKET, type PrivatePosition } from "@agari/core/private";
-import type { PrivatePositionRow } from "@agari/db";
+import { PRIVATE_BUCKET, type PrivatePosition } from "@owarine/core/private";
+import type { PrivatePositionRow } from "@owarine/db";
 
 /**
  * A private call's row. 0.5.2 (K-315): a receipt naming the private bucket, or a stale refund (which leaves no receipt and

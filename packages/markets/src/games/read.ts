@@ -2,9 +2,9 @@
  * Duels and the season pool (`abu-pm-games`, C9b), read through `./source`: our routes in a browser or on the phone,
  * the arena desk in ops. Every shape is the reference's: the screens, the room and the projection keep their types.
  */
-import type { ArenaAgent, ArenaMatch, ArenaParams, ArenaPick, ArenaQuote, ArenaTier, Pick } from "@agari/core/games";
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address, Hash32, MarketId } from "@agari/core/types";
+import type { ArenaAgent, ArenaMatch, ArenaParams, ArenaPick, ArenaQuote, ArenaTier, Pick } from "@owarine/core/games";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address, Hash32, MarketId } from "@owarine/core/types";
 import { nowMs } from "../provider/clock";
 import { freshQuoteStake, getMarket } from "../provider/reads";
 import { absent } from "../stub/product";

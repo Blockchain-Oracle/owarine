@@ -1,8 +1,8 @@
 "use client";
 
 import { seatReadHeaders } from "@/lib/seat-fetch";
-import { isOk } from "@agari/core/schemas";
-import { usePositions } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { usePositions } from "@owarine/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 import { ROOM_ERRORS } from "./copy";

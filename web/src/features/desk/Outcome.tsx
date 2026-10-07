@@ -1,4 +1,4 @@
-import type { OutcomeColumn } from "@agari/core/desk";
+import type { OutcomeColumn } from "@owarine/core/desk";
 import { RECORD } from "./copy-record";
 
 const TONE: Record<OutcomeColumn, "acted" | "asked" | "quiet" | "stopped"> = {

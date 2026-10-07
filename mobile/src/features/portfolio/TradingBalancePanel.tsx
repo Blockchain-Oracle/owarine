@@ -1,6 +1,6 @@
-import { blockerLabel } from "@agari/core/copy";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits, shortHex } from "@agari/core/units";
+import { blockerLabel } from "@owarine/core/copy";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits, shortHex } from "@owarine/core/units";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { VAULT } from "@/features/vault/copy";

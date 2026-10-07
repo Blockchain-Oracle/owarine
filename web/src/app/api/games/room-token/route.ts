@@ -1,5 +1,5 @@
-import { messageSignatureSchema } from "@agari/core/auth";
-import { addressSchema } from "@agari/core/types";
+import { messageSignatureSchema } from "@owarine/core/auth";
+import { addressSchema } from "@owarine/core/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { mintFromSignature, renewFromToken, roomArena, seatVouch } from "@/features/games/room-token.server";

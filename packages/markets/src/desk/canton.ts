@@ -21,9 +21,9 @@
  * The record's hash chain is the mandate's own: head(n) = sha256(head(n−1) ":" n ":" decisionHash(n)) over lowercase
  * hex without `0x`, from 64 zeros (`PM.Agents.Desk.nextHead`); the app writes heads as `0x…` Hash32.
  */
-import type { DeskMode } from "@agari/core/desk";
-import { laneKey, PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import type { Address, Hash32 } from "@agari/core/types";
+import type { DeskMode } from "@owarine/core/desk";
+import { laneKey, PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
+import type { Address, Hash32 } from "@owarine/core/types";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import type { DeskActionC, DeskDecisionC, DeskMandateC, DeskMarkC, DeskModeC } from "../ops/agents/decode";

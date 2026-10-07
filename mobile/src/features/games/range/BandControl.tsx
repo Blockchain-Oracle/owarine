@@ -1,4 +1,4 @@
-import type { RangeSide } from "@agari/core/range";
+import type { RangeSide } from "@owarine/core/range";
 import { Minus, Plus, RotateCcw, type LucideIcon } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RANGE } from "@/features/range/copy";

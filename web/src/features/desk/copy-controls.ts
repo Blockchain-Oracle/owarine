@@ -46,7 +46,7 @@ export const CONTROLS = {
 export const MONEY = {
   sheetTitle: "Put money in",
   eyebrow: "LIVE DESK",
-  intro: "Money goes straight to the desk's own account, never through Agari. Only you can take it out.",
+  intro: "Money goes straight to the desk's own account, never through Owarine. Only you can take it out.",
   /** Follows `who.wallet` on the card (" · "), so it names only what the reference's Phantom line named: the network. */
   network: "No network fee on Canton.",
   /** The live desk trades the seat's demo credits (K-090), not USDC. */

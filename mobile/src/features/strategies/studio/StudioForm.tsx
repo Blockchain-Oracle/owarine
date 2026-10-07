@@ -1,4 +1,4 @@
-import { PRESETS } from "@agari/core/strategies";
+import { PRESETS } from "@owarine/core/strategies";
 import { StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
 import type { StudioDraft } from "@/features/strategies/studio-draft";
@@ -85,7 +85,7 @@ export function StudioForm({ form, setForm, symbol, asset, houseRunner, step }: 
           {(["house", "self"] as const).map((hosting) => (
             <Choice
               key={hosting}
-              title={hosting === "house" ? "Let Agari run it" : "Run your own bot"}
+              title={hosting === "house" ? "Let Owarine run it" : "Run your own bot"}
               body={
                 hosting === "house"
                   ? houseRunner

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { ownerBalancesToWire } from "@agari/markets/desk";
-import { classifyRejection } from "@agari/markets/server";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
+import { ownerBalancesToWire } from "@owarine/markets/desk";
+import { classifyRejection } from "@owarine/markets/server";
 import { diagnosisReply, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

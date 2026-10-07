@@ -1,4 +1,4 @@
-import type { OpenPosition } from "@agari/core/types";
+import type { OpenPosition } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { pickFollowed, VERDICT_WAIT_MS } from "./activity-model";
 

@@ -11,9 +11,9 @@
 //   With no model credential the wake still produces a FAILED_NO_DECISION record that says which variable is missing.
 
 import { randomBytes } from "node:crypto";
-import { DEFAULT_PRACTICE_CASH_E6, formatTokens, formatUsdc, mandateFingerprint, mandateSymbols, mandateToWire, presetMandate } from "@agari/core/desk";
-import { encodeBase58 } from "@agari/core/types";
-import { deskQueries, getDb, isDbConfigured } from "@agari/db";
+import { DEFAULT_PRACTICE_CASH_E6, formatTokens, formatUsdc, mandateFingerprint, mandateSymbols, mandateToWire, presetMandate } from "@owarine/core/desk";
+import { encodeBase58 } from "@owarine/core/types";
+import { deskQueries, getDb, isDbConfigured } from "@owarine/db";
 import { createRunnerContext } from "../../services/ops/src/actors/desk-runner";
 import { feedWarm } from "../../services/ops/src/actors/desk-runner/value";
 import { wakeDesk } from "../../services/ops/src/actors/desk-runner/wake";

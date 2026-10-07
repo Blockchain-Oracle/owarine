@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { parseShareInstruments, HoldingsReadError, readHoldings } from "@agari/markets/holdings";
+import { parseShareInstruments, HoldingsReadError, readHoldings } from "@owarine/markets/holdings";
 import { webEnv } from "@/lib/env";
 import { seatFromRequest } from "@/lib/seat.server";
 import { admitIp, cachedHoldings, clientIp } from "./gate";
@@ -8,7 +8,7 @@ import { admitIp, cachedHoldings, clientIp } from "./gate";
  * `GET /api/holdings` (C7b): the leased seat's verified tokenised share holdings on Canton, read-only, with integers as
  * strings. The party is the lease's (`seatFromRequest`), never a query parameter: the reference took a wallet address, and a
  * Canton party read for anyone who names it would be a privacy hole. The read is a CIP-56 `Holding` interface query as the
- * seat (`@agari/markets/holdings`); an instrument counts as a share only if the deployment maps it (`CIP56_SHARE_INSTRUMENTS`).
+ * seat (`@owarine/markets/holdings`); an instrument counts as a share only if the deployment maps it (`CIP56_SHARE_INSTRUMENTS`).
  * A failed read is a 502, never an empty list.
  */
 export const runtime = "nodejs";

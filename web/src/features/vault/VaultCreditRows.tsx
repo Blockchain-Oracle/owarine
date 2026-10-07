@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
-import { isOk } from "@agari/core/schemas";
-import { useVaultSnapshot, useWalletHistory } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import { isOk } from "@owarine/core/schemas";
+import { useVaultSnapshot, useWalletHistory } from "@owarine/markets/react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { VAULT } from "./copy";
 import { useVaultWrite } from "./useVaultWrite";

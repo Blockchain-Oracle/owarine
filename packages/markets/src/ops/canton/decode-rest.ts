@@ -2,7 +2,7 @@
  * abu-pm-main 0.5.1 (`PM.Resting`, K-235): the pre-open resting call as the venue's actors read it. The venue signs
  * every one of these, so its ACS holds them all.
  */
-import type { ContractId, Party } from "@agari/ledger/pure";
+import type { ContractId, Party } from "@owarine/ledger/pure";
 import { decodeParts, type Side } from "./decode";
 
 const { obj, text, big, small, sec, side } = decodeParts;

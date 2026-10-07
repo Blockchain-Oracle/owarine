@@ -60,6 +60,6 @@ const LIGHT: typeof DARK = {
 export type GamesTokens = typeof DARK;
 export const gamesTokens = (name: ThemeName): GamesTokens => (name === "dark" ? DARK : LIGHT);
 
-/** The games frame's display face (m6x11plus, web's "Agari Pixel"); crisp at multiples of its 11 px em. */
-export const PIXEL_FONT = "AgariPixel";
+/** The games frame's display face (m6x11plus, web's "Owarine Pixel"); crisp at multiples of its 11 px em. */
+export const PIXEL_FONT = "OwarinePixel";
 export const PIXEL_FONT_SOURCE = require("../../../assets/fonts/m6x11plus.ttf");

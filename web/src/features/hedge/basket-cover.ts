@@ -4,8 +4,8 @@
  * name's lane, never through a basket. Pure over the lane set and the holdings, so the live card, "Your baskets" and
  * the `/dev/hedge` fixtures pick the same way; the size is the ordinary `hedgeStakeBase` over the summed exposure.
  */
-import { BASKET_SYMBOLS, BASKETS, isBasketCoverable, type TickerSymbol } from "@agari/core/market";
-import type { LaneSet } from "@agari/core/types";
+import { BASKET_SYMBOLS, BASKETS, isBasketCoverable, type TickerSymbol } from "@owarine/core/market";
+import type { LaneSet } from "@owarine/core/types";
 import { basketHolding, heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
 import { tokenHorizon } from "./hedge-horizon";
 import type { HedgePick } from "./hedge-target";

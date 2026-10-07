@@ -1,5 +1,5 @@
-import { CLUSTER_LABEL } from "@agari/core/constants";
-import { ensureMarkets, getClient, NOT_DEPLOYED_TECHNICAL } from "@agari/markets";
+import { CLUSTER_LABEL } from "@owarine/core/constants";
+import { ensureMarkets, getClient, NOT_DEPLOYED_TECHNICAL } from "@owarine/markets";
 import { webEnv } from "@/lib/env";
 
 export const dynamic = "force-dynamic";

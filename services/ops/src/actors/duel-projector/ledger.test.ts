@@ -1,6 +1,6 @@
-import type { Address } from "@agari/core/types";
-import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { JsTransaction } from "@agari/ledger";
+import type { Address } from "@owarine/core/types";
+import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { JsTransaction } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { createDuelTranslator } from "./ledger";
 

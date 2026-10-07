@@ -3,10 +3,10 @@
  * through `/api/ledger/tickets/*`. The basis and every price come from ops pricing the Window's own ladder with core's
  * `quoteRange`, the same function that issues the firm quote, so the number a screen shows is the one it is offered.
  */
-import type { RangeMode, RangeParams, RangeQuote, RangeReserveState, RangeRound } from "@agari/core/range";
-import type { ProviderShares } from "@agari/core/reserves";
-import { err, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type MarketId } from "@agari/core/types";
+import type { RangeMode, RangeParams, RangeQuote, RangeReserveState, RangeRound } from "@owarine/core/range";
+import type { ProviderShares } from "@owarine/core/reserves";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import { diagnosis, type Address, type MarketId } from "@owarine/core/types";
 import { nowMs } from "../provider/clock";
 import { registeredSeatAddress } from "../provider/ledger-api";
 import { asReading, rangeCall, readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";

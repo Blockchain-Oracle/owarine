@@ -1,5 +1,5 @@
-import { formatUtc } from "@agari/core/units";
-import { cursorHead, oracleFreshness, pipelineBacklog, printArchiveStats, statusReader, type Db, type PrintArchiveStat } from "@agari/db";
+import { formatUtc } from "@owarine/core/units";
+import { cursorHead, oracleFreshness, pipelineBacklog, printArchiveStats, statusReader, type Db, type PrintArchiveStat } from "@owarine/db";
 import { STATUS } from "./copy";
 import { createDiagnosticRunner } from "./diagnostic-runner";
 import { gradeArchive, gradeSlotLag, worst, type Verdict } from "./grade";

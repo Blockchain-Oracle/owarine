@@ -1,9 +1,9 @@
 "use client";
 
-import { QUOTE_DEBOUNCE_MS, QUOTE_STALE_AFTER_MS } from "@agari/core/constants";
-import type { Reading } from "@agari/core/schemas";
-import type { EventMarket, Quote, Side } from "@agari/core/types";
-import { useStakeQuote } from "@agari/markets/react";
+import { QUOTE_DEBOUNCE_MS, QUOTE_STALE_AFTER_MS } from "@owarine/core/constants";
+import type { Reading } from "@owarine/core/schemas";
+import type { EventMarket, Quote, Side } from "@owarine/core/types";
+import { useStakeQuote } from "@owarine/markets/react";
 import { useDebounced } from "./useDebounced";
 
 export interface QuoteState {

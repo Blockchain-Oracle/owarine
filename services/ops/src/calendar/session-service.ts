@@ -3,7 +3,7 @@
  * date by date. A disputed date becomes unknown, so nothing is listed on it. Refreshed hourly; on a failed refresh
  * the last agreed calendar is kept while it still covers today, and nothing is listed once it doesn't.
  */
-import { addDays, agreeCalendars, etDateOf, sessionStatus, type SessionCalendar, type SessionDisagreement, type SessionStatus } from "@agari/core/market";
+import { addDays, agreeCalendars, etDateOf, sessionStatus, type SessionCalendar, type SessionDisagreement, type SessionStatus } from "@owarine/core/market";
 import { errorText } from "../runtime/env";
 import { fetchAlpacaCalendar } from "./alpaca";
 import { fetchPythSchedule } from "./pyth-schedule";

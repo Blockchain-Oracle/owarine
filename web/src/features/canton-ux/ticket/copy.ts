@@ -1,4 +1,4 @@
-import type { WritePhase } from "@agari/core/ports";
+import type { WritePhase } from "@owarine/core/ports";
 
 /** Words for the ticket's Canton additions: write progress and the firm-quote ring (C-ADD-08, L-32, D-081). */
 export const QUOTE_TTL_SEC = 20;

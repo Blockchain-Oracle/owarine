@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
-import { isUpdateId } from "@agari/core/types";
-import { classifyRejection, paidTo } from "@agari/markets/server";
+import { isUpdateId } from "@owarine/core/types";
+import { classifyRejection, paidTo } from "@owarine/markets/server";
 import { diagnosisReply, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

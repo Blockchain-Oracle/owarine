@@ -1,5 +1,5 @@
-import { formatCadence, isTickerSymbol, TICKERS } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import { formatCadence, isTickerSymbol, TICKERS } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CLOSED } from "@/lib/copy-closed";

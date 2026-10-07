@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { webEnv } from "../env";
 import { readSeatCookie, seatCookieFrom } from "../seat-cookie.server";
 import { seatCaller } from "./seat-caller.server";
@@ -27,7 +27,7 @@ export async function provesAddress(request: Request, address: string): Promise<
  * sent, must be ours), or the phone's one-request write proof. Never the reusable read header.
  */
 export async function provenWriter(request: Request): Promise<Address | null> {
-  const secret = process.env.AGARI_SEAT_COOKIE_SECRET;
+  const secret = process.env.OWARINE_SEAT_COOKIE_SECRET;
   const cookie = secret && secret.length >= 32 ? readSeatCookie(secret, seatCookieFrom(request.headers), Date.now()) : null;
   if (cookie) {
     const origin = request.headers.get("origin");

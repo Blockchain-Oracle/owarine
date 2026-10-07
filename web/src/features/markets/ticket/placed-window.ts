@@ -1,7 +1,7 @@
-import type { BookedOrder } from "@agari/core/ports";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { useMarket } from "@agari/markets/react";
+import type { BookedOrder } from "@owarine/core/ports";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { useMarket } from "@owarine/markets/react";
 import { useState } from "react";
 
 /**

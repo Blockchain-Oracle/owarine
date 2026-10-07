@@ -31,7 +31,7 @@ export function pickWindow(markets: readonly EventMarket[], nowMs: number): XWin
  * another trade. This is the same question a Blink asks, so it is the same answer: see `selectActionWindow`.
  *
  * Until 2026-09-22 this filtered on `lane === "regular"` directly. No pre-IPO name is ever listed there (D-103
- * lists them on the 24/7 token lane), so every `@agari OPENAI …` mention refused with `no-window` and the X rail
+ * lists them on the 24/7 token lane), so every `@owarine OPENAI …` mention refused with `no-window` and the X rail
  * could only trade while the NYSE was open. `actionLane` already drew the distinction the filter was reaching for.
  */
 export function selectXWindow(markets: readonly EventMarket[], instruction: Pick<XInstruction, "asset" | "intervalSec">, nowMs: number): XWindowSelection {

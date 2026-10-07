@@ -6,7 +6,7 @@
  *   2. What is stored is what was hashed: the row is read back and re-hashed before commit.
  * The body is hashed with core's RFC 8785 canonical bytes (`hashRecord`), the same function "Check it" runs.
  */
-import { hashRecord, verifyRecord, ZERO_HASH } from "@agari/core/desk";
+import { hashRecord, verifyRecord, ZERO_HASH } from "@owarine/core/desk";
 import type { Db } from "./client";
 import { storageKey } from "./keys";
 import { liveSinceSql } from "./desk-series";

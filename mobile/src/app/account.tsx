@@ -1,4 +1,4 @@
-import { partyLead } from "@agari/core/units";
+import { partyLead } from "@owarine/core/units";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -16,7 +16,7 @@ import { dismiss, WalletSheet } from "~/components/wallet/WalletSheet";
 import { AVATAR_COLORS, FONT, useTheme } from "~/theme";
 import { SEAT } from "~/wallet/seat-copy";
 import { useSeat } from "~/wallet/SeatProvider";
-import type { SeatLeaseView } from "@agari/markets";
+import type { SeatLeaseView } from "@owarine/markets";
 
 const COPIED_MS = 1_500;
 const T = SEAT.account;

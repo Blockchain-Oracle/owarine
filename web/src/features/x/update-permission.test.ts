@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { diagnosis, encodeBase58, type Address, type Signature } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
-import type { TxOutcome } from "@agari/core/ports";
-import { isBalanceOnlyXGrant } from "@agari/core/x";
+import { diagnosis, encodeBase58, type Address, type Signature } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
+import type { TxOutcome } from "@owarine/core/ports";
+import { isBalanceOnlyXGrant } from "@owarine/core/x";
 import { parseXUpdate, updateXPermission, type XUpdateDependencies, type XUpdateProgress } from "./update-permission";
 
 const bytes = (n: number, length: number) => encodeBase58(new Uint8Array(length).fill(n));

@@ -1,7 +1,7 @@
 /**
  * The "not investment advice" line (S15, plan §7.2 Compliance). One sentence in the reference's own
  * frame — its Sensei prompt says "Test funds, not real money … never as real-money financial advice" —
- * placed wherever Agari offers a read, a strategy or a shareable call.
+ * placed wherever Owarine offers a read, a strategy or a shareable call.
  */
 export const ADVICE_COPY = {
   notAdvice: "Calls, reads and strategies here are not investment advice. Demo credits on a test network only.",

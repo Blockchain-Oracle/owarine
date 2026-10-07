@@ -1,6 +1,6 @@
 "use client";
 
-import { collateralOrNull } from "@agari/markets";
+import { collateralOrNull } from "@owarine/markets";
 import { LiveViewSwitcher } from "@/features/canton-ux/privacy";
 import { Tutorial } from "@/features/onboarding";
 import { leasedOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";

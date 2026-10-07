@@ -2,7 +2,7 @@
  * Integration test against a real local sandbox. Skipped unless LEDGER_IT=1.
  *
  *   dpm sandbox --json-api-port 7575 --dar spikes/pmspike/main/.daml/dist/pmspike-main-0.0.1.dar
- *   LEDGER_IT=1 pnpm --filter @agari/ledger test:it
+ *   LEDGER_IT=1 pnpm --filter @owarine/ledger test:it
  *
  * Uses the spike's `Mechanism:PriceQuote` (signatory oracle, observer venue) as a throwaway template.
  */
@@ -34,7 +34,7 @@ describe.skipIf(!RUN)("ledger integration (local sandbox)", () => {
   let bob = "";
 
   beforeAll(async () => {
-    c = createLedgerClient({ baseUrl: URL_, auth: noAuth(), userId: "agari-it" });
+    c = createLedgerClient({ baseUrl: URL_, auth: noAuth(), userId: "owarine-it" });
     for (let i = 0; ; i++) {
       try {
         await c.version();

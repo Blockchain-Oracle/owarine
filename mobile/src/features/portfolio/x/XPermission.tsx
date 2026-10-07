@@ -1,4 +1,4 @@
-import { formatBaseUnits, formatUtc } from "@agari/core/units";
+import { formatBaseUnits, formatUtc } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { X_CARD } from "@/features/x/copy";
 import type { XGrantState } from "@/features/x/useXGrant";

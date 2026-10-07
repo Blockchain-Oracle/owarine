@@ -7,9 +7,9 @@
  * all three sit inside the bar `[T − 60, T]`. A missing sample leaves the slot unrecorded (it voids honestly rather
  * than attesting fewer points). Opens copy the previous close when adjacent, like the Switchboard lane.
  */
-import { keypairSigner } from "@agari/markets/ops";
-import { copyOpenSlot, JUPITER_SAMPLE_OFFSETS_SEC, medianE8, recordAttestedSlot, SWITCHBOARD_ERROR, type PrintSlot, type SlotOutcome } from "@agari/markets/ops/prints";
-import { XSTOCK_SYMBOLS, type XStockSymbol } from "@agari/core/market";
+import { keypairSigner } from "@owarine/markets/ops";
+import { copyOpenSlot, JUPITER_SAMPLE_OFFSETS_SEC, medianE8, recordAttestedSlot, SWITCHBOARD_ERROR, type PrintSlot, type SlotOutcome } from "@owarine/markets/ops/prints";
+import { XSTOCK_SYMBOLS, type XStockSymbol } from "@owarine/core/market";
 import { currentXStockSpot, type XStockSpotFeed } from "../../prices/xstock-spot";
 import type { LanePassResult } from "./lane-pass";
 import type { RelayContext } from "./relay-pass";

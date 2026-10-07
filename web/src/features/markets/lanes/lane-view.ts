@@ -2,8 +2,8 @@
  * How a lane reads on every surface (session-lanes.md §5): its tab key and label, the asset it prices, its ET clock
  * words and its source note. Pure, so the cards, the hero, the ticket and the `/dev` fixtures say the same thing.
  */
-import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, noSourceReason, TICKERS, venueModeOfState, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@agari/core/market";
-import { HALT_REASONS, type EarningsEvent, type EventMarket, type HaltReason, type LaneBasis } from "@agari/core/types";
+import { basketOf, earningsEventFor, ET_WEEKDAY_SHORT, etDateOf, formatEtClock, haltLabel, noSourceReason, TICKERS, venueModeOfState, weekdayOfDate, type TickerSymbol, tokenLaneAsset } from "@owarine/core/market";
+import { HALT_REASONS, type EarningsEvent, type EventMarket, type HaltReason, type LaneBasis } from "@owarine/core/types";
 import { formatCadence, HERO, LANE_STATE, MARKETS } from "@/lib/copy";
 
 /** One lane per (basis, cadence), keyed as core `groupIntoLanes` keys it, so a 5m stock lane and a 5m token lane stay apart. */

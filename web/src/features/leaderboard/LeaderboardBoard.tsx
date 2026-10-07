@@ -1,10 +1,10 @@
 "use client";
 
 import { PUBLISH } from "./publish/copy";
-import { isOk, type Reading } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { formatClock, remainingSec } from "@agari/core/units";
-import { etDateOf } from "@agari/core/market";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { formatClock, remainingSec } from "@owarine/core/units";
+import { etDateOf } from "@owarine/core/market";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { diagnosisCopy } from "@/lib/copy";

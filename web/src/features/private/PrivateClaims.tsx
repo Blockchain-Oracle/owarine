@@ -1,9 +1,9 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
-import { PRIVATE_BUCKET, type PrivatePosition } from "@agari/core/private";
-import { formatBaseUnits } from "@agari/core/units";
-import { useTick } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import { PRIVATE_BUCKET, type PrivatePosition } from "@owarine/core/private";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useTick } from "@owarine/markets/react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";

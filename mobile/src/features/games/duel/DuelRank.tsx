@@ -1,5 +1,5 @@
-import { formatSeasonCountdown, prizeForRank, seasonRemainingMs } from "@agari/core/games";
-import { shortHex } from "@agari/core/units";
+import { formatSeasonCountdown, prizeForRank, seasonRemainingMs } from "@owarine/core/games";
+import { shortHex } from "@owarine/core/units";
 import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";

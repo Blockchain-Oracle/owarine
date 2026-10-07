@@ -1,5 +1,5 @@
-import type { GrantKind } from "@agari/core/vault";
-import { VAULT_NOT_DEPLOYED } from "@agari/core/vault";
+import type { GrantKind } from "@owarine/core/vault";
+import { VAULT_NOT_DEPLOYED } from "@owarine/core/vault";
 
 /**
  * The Trading Balance — ported from the reference's `trading_vault` card
@@ -14,7 +14,7 @@ export const VAULT = {
   idleYield: {
     idle: "Demo credits sitting in your Trading Balance earn nothing. They are here to be staked, and until they are, they are just parked.",
     empty: "An empty Trading Balance earns nothing either — this is where demo credits wait to be staked, not where they grow.",
-    mainnetOnly: "Nothing on this Canton venue pays interest on idle demo credits, so Agari shows no lending rate rather than an invented one.",
+    mainnetOnly: "Nothing on this Canton venue pays interest on idle demo credits, so Owarine shows no lending rate rather than an invented one.",
     hereInstead: "What pays here is being the house. Each reserve's share price is what its suppliers have actually made or lost so far, in demo credits:",
     maker: "Maker vault",
     range: "Range & Moonshot",

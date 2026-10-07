@@ -22,7 +22,7 @@ describe("priceSourceLine (S19: the source is the asset's kind, not the lane)", 
     expect(priceSourceLine(window("BTC", "token"))).toContain("Coinbase, Kraken and Bitstamp");
     expect(priceSourceLine(window("BTC", "token"))).not.toContain("Switchboard");
     for (const a of ["TSLA", "OPENAI", "AILABS"] as const) expect(priceSourceLine(window(a, "token"))).toContain("attested by three oracle parties");
-    expect(priceSourceLine(window("OPENAI", "token"))).not.toContain("signed by Agari");
+    expect(priceSourceLine(window("OPENAI", "token"))).not.toContain("signed by Owarine");
   });
 });
 

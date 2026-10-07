@@ -8,7 +8,7 @@
  * Nothing is asked while no feed is entitled, and a 401/403 met here is recorded in the store as denied, never latched:
  * this poll can never stop the trial feeds. Display and quoting only: the Window settles on the receiver's post.
  */
-import { TICKERS, VALUATION_TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, VALUATION_TICKERS, type PreIpoSymbol, type TickerSymbol } from "@owarine/core/market";
 import { HERMES, parsePythEntries } from "../actors/price-relay/hermes-fetch";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";

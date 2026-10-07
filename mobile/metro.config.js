@@ -1,4 +1,4 @@
-// Workspace packages (@agari/markets) carry their own dev copies of React and React Query; Metro would load both
+// Workspace packages (@owarine/markets) carry their own dev copies of React and React Query; Metro would load both
 // copies beside the app's and React Native refuses two Reacts. Every import of these resolves to the app's copy.
 // Metro does not tree-shake, so operator-only modules the phone never calls (the deploy client's undici transport)
 // still get bundled: those resolve to an empty module.

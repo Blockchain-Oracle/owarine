@@ -10,8 +10,8 @@
  * Each level is one live node that expires at `quotingUntilSec`; a ladder that is not `quoting` has no live node, so
  * every walk over it finds nothing and the ticket says so instead of pricing a closed Window.
  */
-import type { WalkNode } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
+import type { WalkNode } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
 import { z } from "zod";
 import type { BookState } from "./accounts";
 

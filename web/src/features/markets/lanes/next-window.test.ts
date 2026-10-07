@@ -1,4 +1,4 @@
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { fixtureAddress, fixtureMarketId } from "@/app/dev/fixture-ids";
 import { fixtureWindow } from "@/app/dev/fixture-window";

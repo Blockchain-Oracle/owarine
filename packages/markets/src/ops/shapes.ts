@@ -4,7 +4,7 @@
  * adapter will read from the venue's active contracts. They are kept field-compatible with what the actors read, so
  * `services/ops` keeps its pure planning code; nothing in C1 produces a value of these types.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { cantonNotLive, notDeployedError } from "../stub/not-deployed";
 import type { ReadingError } from "../errors/reading-error";
 

@@ -1,4 +1,4 @@
-import { assetTicker, basketOf, isTickerSymbol, TICKERS, type Basket, type ShareToken } from "@agari/core/market";
+import { assetTicker, basketOf, isTickerSymbol, TICKERS, type Basket, type ShareToken } from "@owarine/core/market";
 import type { ComponentType } from "react";
 import { AssetMarkSvg } from "@/components/icons/asset-marks/AssetMarkSvg";
 import { cn } from "@/lib/utils";

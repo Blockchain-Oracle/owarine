@@ -1,6 +1,6 @@
 "use client";
 
-import { boostSheet, parlaySheet, rangeSheet } from "@agari/core/reserves";
+import { boostSheet, parlaySheet, rangeSheet } from "@owarine/core/reserves";
 import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";
 import { boostBounds, parlayBounds, PositionCard, rangeBounds, ReserveBounds, ReservePanel, RESERVES, SupplyCard } from "@/features/earn";

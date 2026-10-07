@@ -5,7 +5,7 @@ import { isAddress, isEd25519Signature, type Address, type Signature } from "../
 import { networkLine, SIGNED_MESSAGE_BRAND } from "./signed-message";
 
 /**
- * The phone's proof for ONE seat write (C4d M2b). The read header (`x-agari-seat-read`) is reused for minutes and says
+ * The phone's proof for ONE seat write (C4d M2b). The read header (`x-owarine-seat-read`) is reused for minutes and says
  * nothing about what it is sent with, so it only ever authorises reads. A write from the phone carries this header
  * instead: the seat key signs the method, the path with its query, the SHA-256 of the exact body bytes, a random nonce
  * and the time, and the server takes it once, within 30 seconds. A captured write proof replays nothing: it names one
@@ -13,7 +13,7 @@ import { networkLine, SIGNED_MESSAGE_BRAND } from "./signed-message";
  *
  * Header: `address.issuedAtMs.nonce.signature` (base58 and hex never contain a dot).
  */
-export const SEAT_WRITE_HEADER = "x-agari-seat-write";
+export const SEAT_WRITE_HEADER = "x-owarine-seat-write";
 /** How long a write proof is good for. */
 export const SEAT_WRITE_TTL_MS = 30_000;
 /** Clock skew allowed for a proof issued slightly in the future. */

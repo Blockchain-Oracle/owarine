@@ -4,9 +4,9 @@
  * subscriber) through that creator's licence (`License_Payout`). The creator claims it from the app (`Payout_Claim`).
  * The command id names the creator, the period and the exact fees, so a pass that dies half-way is repeated safely.
  */
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import { failureText, isInactive, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
-import { acmd, decodeCreatorLicense, decodeStrategyFee, sha256Hex } from "@agari/markets/ops/agents";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import { failureText, isInactive, pick, readActive, submit, type RoleSession } from "@owarine/markets/ops/canton";
+import { acmd, decodeCreatorLicense, decodeStrategyFee, sha256Hex } from "@owarine/markets/ops/agents";
 
 /** One payout per creator per this many seconds (the reference paid at subscribe; K-086 made it periodic). */
 export const PAYOUT_PERIOD_SEC = Number(process.env.AGENTS_PAYOUT_PERIOD_SEC ?? 3_600);

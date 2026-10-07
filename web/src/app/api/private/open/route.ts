@@ -1,4 +1,4 @@
-import { privateOpenRequestSchema } from "@agari/core/private";
+import { privateOpenRequestSchema } from "@owarine/core/private";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { openPrivate } from "@/features/private/canton.server";

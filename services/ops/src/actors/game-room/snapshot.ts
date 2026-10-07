@@ -12,11 +12,11 @@ import {
   type RefundReason,
   type RoomErrorCode,
   type Seat,
-} from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32, MarketId } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { getArenaMatch, type ArenaMatchView } from "@agari/markets/games";
+} from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32, MarketId } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { getArenaMatch, type ArenaMatchView } from "@owarine/markets/games";
 
 /**
  * A whole match, rebuilt from the chain — the reconnect path, and the reason the room may hold nothing

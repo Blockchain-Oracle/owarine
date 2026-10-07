@@ -1,5 +1,5 @@
-import { formatClock, shortHex } from "@agari/core/units";
-import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
+import { formatClock, shortHex } from "@owarine/core/units";
+import { formatSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@owarine/markets";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy, Link2, RefreshCw, ShieldQuestion } from "lucide-react-native";
 import { useEffect, useState } from "react";

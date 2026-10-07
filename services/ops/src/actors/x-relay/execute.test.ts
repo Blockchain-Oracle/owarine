@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { encodeBase58, toMarketId } from "@agari/core/types";
+import { encodeBase58, toMarketId } from "@owarine/core/types";
 import { executeMention, type ExecutorContext } from "./execute";
 import { replyText } from "./reply-format";
-import { xGrantCaps } from "@agari/core/x";
+import { xGrantCaps } from "@owarine/core/x";
 
 const dependencies = vi.hoisted(() => ({
   link: vi.fn(), snapshot: vi.fn(), lanes: vi.fn(), quote: vi.fn(), submit: vi.fn(),
 }));
-vi.mock("@agari/db", () => ({ xLinkByAuthor: dependencies.link, xReceiptUpsert: vi.fn() }));
-vi.mock("@agari/markets", () => ({
+vi.mock("@owarine/db", () => ({ xLinkByAuthor: dependencies.link, xReceiptUpsert: vi.fn() }));
+vi.mock("@owarine/markets", () => ({
   getCollateral: () => ({ decimals: 6 }), getVaultSnapshot: dependencies.snapshot,
   resolveVenueId: vi.fn(), readRecoveryCursor: async () => ({ ok: true, value: { fromSlot: 1234n }, stale: false, asOfMs: 0 }), marketsProvider: { listLiveLanes: dependencies.lanes, freshQuoteStake: dependencies.quote, nowMs: () => 100_000 },
 }));

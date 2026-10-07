@@ -1,6 +1,6 @@
 /**
  * Recent 1-minute candle closes from the three oracle exchanges, for the realised-vol re-measure (C6). The same public,
- * keyless endpoints the feeders print from (`@agari/core/proof` `candleUrl`), asked for a range instead of one bar:
+ * keyless endpoints the feeders print from (`@owarine/core/proof` `candleUrl`), asked for a range instead of one bar:
  *
  *   Coinbase Exchange  /products/<S>-USD/candles?granularity=60&start&end   ≤ 300 bars a request, newest first
  *   Kraken             /0/public/OHLC?pair=<P>&interval=1&since            the newest ≤ 720 bars, oldest first
@@ -8,12 +8,12 @@
  *
  * Parsers are pure over the response text; only committed bars are returned (Kraken's still-forming last row is not).
  */
-import type { Close } from "@agari/core/market";
+import type { Close } from "@owarine/core/market";
 import type { Exchange, Fetch } from "./candles";
 
 const BAR_SEC = 60;
 const iso = (sec: number) => new Date(sec * 1000).toISOString();
-const UA = { "user-agent": "agari-vol-meter" };
+const UA = { "user-agent": "owarine-vol-meter" };
 
 export function parseCoinbaseHistory(text: string): Close[] {
   const rows = JSON.parse(text) as unknown;

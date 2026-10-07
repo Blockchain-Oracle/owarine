@@ -1,10 +1,10 @@
 "use client";
 
-import type { BookedOrder } from "@agari/core/ports";
-import { isCommitteeMarket } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { useOpeningPrice } from "@agari/markets/react";
-import { txUrl } from "@agari/core/urls";
+import type { BookedOrder } from "@owarine/core/ports";
+import { isCommitteeMarket } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { useOpeningPrice } from "@owarine/markets/react";
+import { txUrl } from "@owarine/core/urls";
 import Link from "next/link";
 import { Hash } from "@/components/data";
 import { WhoCanSee } from "@/features/canton-ux/privacy";

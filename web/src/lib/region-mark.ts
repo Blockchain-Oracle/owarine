@@ -12,10 +12,10 @@
 export const COUNTRY_HEADER = "x-vercel-ip-country";
 
 /** Stamped on the forwarded request by the proxy, so a route handler never re-derives the verdict. */
-export const REGION_HEADER = "x-agari-region";
+export const REGION_HEADER = "x-owarine-region";
 
 /** Readable by the client on purpose: the funded CTAs paint their restricted state on the first frame. */
-export const REGION_COOKIE = "agari.region";
+export const REGION_COOKIE = "owarine.region";
 
 export const RESTRICTED = "restricted";
 

@@ -5,7 +5,7 @@
 // Run: pnpm exec tsx scripts/fixtures/redstone-tsla.ts <archive.jsonl> <T>
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { decimalToE8, packagesAt, parseGatewayJson, redstoneMedianE8, redstonePayload } from "@agari/markets/deploy";
+import { decimalToE8, packagesAt, parseGatewayJson, redstoneMedianE8, redstonePayload } from "@owarine/markets/deploy";
 
 const [archivePath, tArg] = process.argv.slice(2);
 if (!archivePath || !tArg) throw new Error("usage: redstone-tsla.ts <archive.jsonl> <T>");

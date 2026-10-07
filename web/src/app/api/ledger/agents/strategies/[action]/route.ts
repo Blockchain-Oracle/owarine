@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import {
   payoutClaimRequestWire, strategyDeactivateRequestWire, strategyPublishRequestWire, strategyRunnerRequestWire, strategySubscribeRequestWire,
   strategyUnsubscribeRequestWire, strategyUpdateRequestWire,
-} from "@agari/markets";
+} from "@owarine/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

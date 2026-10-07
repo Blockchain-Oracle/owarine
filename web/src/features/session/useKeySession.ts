@@ -1,9 +1,9 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
-import type { VaultDeployment } from "@agari/core/vault";
-import { createLocalStorageJournal, createSponsorTransport, createSubmitterSession, nowMs, type SubmitterSession } from "@agari/markets";
-import { signerFromKeyPair } from "@agari/markets/sessions";
+import type { Address } from "@owarine/core/types";
+import type { VaultDeployment } from "@owarine/core/vault";
+import { createLocalStorageJournal, createSponsorTransport, createSubmitterSession, nowMs, type SubmitterSession } from "@owarine/markets";
+import { signerFromKeyPair } from "@owarine/markets/sessions";
 import { useEffect, useState } from "react";
 import { webEnv } from "@/lib/env";
 import { deviceId, type StoredSessionKey } from "./store";
@@ -21,7 +21,7 @@ interface KeySessionInput {
 function withKeyLock<T>(key: Address, task: () => Promise<T>): Promise<T> {
   const locks = typeof navigator !== "undefined" ? navigator.locks : undefined;
   if (!locks) return task();
-  return locks.request(`agari.sessionKey.${key}`, task) as Promise<T>;
+  return locks.request(`owarine.sessionKey.${key}`, task) as Promise<T>;
 }
 
 function serialised(session: SubmitterSession): SubmitterSession {

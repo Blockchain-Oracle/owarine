@@ -9,9 +9,9 @@ CREATE TABLE IF NOT EXISTS sponsor_cosigns (
   signature               TEXT PRIMARY KEY,
   -- The other signer: a session key, an owner's wallet, or a cranker.
   signer                  TEXT NOT NULL,
-  -- The browser's device id from x-agari-device; never empty (the policy refuses without one).
+  -- The browser's device id from x-owarine-device; never empty (the policy refuses without one).
   device                  TEXT NOT NULL CHECK (length(device) > 0),
-  -- The allowlisted instruction, as "agari_vault:<name>".
+  -- The allowlisted instruction, as "owarine_vault:<name>".
   instruction             TEXT NOT NULL,
   fee_lamports            NUMERIC(20,0) NOT NULL CHECK (fee_lamports >= 0),
   last_valid_block_height BIGINT NOT NULL,

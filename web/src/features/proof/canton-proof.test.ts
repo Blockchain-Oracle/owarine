@@ -1,12 +1,12 @@
-import { reverify, sha256Hex } from "@agari/core/proof";
+import { reverify, sha256Hex } from "@owarine/core/proof";
 import { describe, expect, it } from "vitest";
 import { buildProofView, rawEvidence, toProofResolution, type WindowRowWire } from "./canton-proof";
 import { priceE8Text } from "./format";
 
 const T = 1_790_000_040 - (1_790_000_040 % 60);
-const CB = "agari-oracle-coinbase-r1::1220aa";
-const KR = "agari-oracle-kraken-r1::1220bb";
-const BS = "agari-oracle-bitstamp-r1::1220cc";
+const CB = "owarine-oracle-coinbase-r1::1220aa";
+const KR = "owarine-oracle-kraken-r1::1220bb";
+const BS = "owarine-oracle-bitstamp-r1::1220cc";
 const ev = (oracle: string, price: string, at: number) => ({ oracle, priceE8: price, fetchedAtSec: at, payloadHash: sha256Hex(`${oracle}${at}`), quoteCid: "00" });
 
 const row = (over: Partial<WindowRowWire> = {}): WindowRowWire => ({

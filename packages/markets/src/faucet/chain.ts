@@ -4,8 +4,8 @@
  * refuses with a 503 `FaucetError` naming the stub, so the faucet reports itself unavailable instead of pretending.
  * The shape is kept for `web/src/features/funding/faucet-service.server.ts`. Server-only.
  */
-import { FaucetError, SOL_FAUCET_POLICY, type AnyFaucetClaim, type FaucetClaimStatus } from "@agari/core/faucet";
-import type { Address } from "@agari/core/types";
+import { FaucetError, SOL_FAUCET_POLICY, type AnyFaucetClaim, type FaucetClaimStatus } from "@owarine/core/faucet";
+import type { Address } from "@owarine/core/types";
 import { keypairAddress } from "../sessions/keypair";
 import { cantonNotLive } from "../stub/not-deployed";
 

@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
-import { CLUSTER_ID } from "@agari/core/constants";
-import { formatCadence } from "@agari/core/copy";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import { formatCadence } from "@owarine/core/copy";
 import {
   PRIVATE_BUCKET,
   PRIVATE_LEG_REF,
@@ -15,11 +15,11 @@ import {
   type PrivateOpenResult,
   type PrivatePosition,
   type PrivateStatus,
-} from "@agari/core/private";
-import { toMarketId } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { getDb, privatePositions } from "@agari/db";
-import { seatReceiptFor } from "@agari/markets/server";
+} from "@owarine/core/private";
+import { toMarketId } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { getDb, privatePositions } from "@owarine/db";
+import { seatReceiptFor } from "@owarine/markets/server";
 import { venueIdFromParty } from "@/app/api/venue/venue-facts";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { webEnv } from "@/lib/env";

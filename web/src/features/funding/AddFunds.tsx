@@ -1,6 +1,6 @@
 "use client";
 
-import { partyLead } from "@agari/core/units";
+import { partyLead } from "@owarine/core/units";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";

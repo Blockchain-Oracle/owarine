@@ -1,4 +1,4 @@
-import { OUTCOME_COLUMN, type OutcomeColumn } from "@agari/core/desk";
+import { OUTCOME_COLUMN, type OutcomeColumn } from "@owarine/core/desk";
 import { outcomeColumnSchema } from "./protocol";
 
 /**

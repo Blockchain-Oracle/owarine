@@ -1,18 +1,18 @@
 "use client";
 
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { TickerSymbol } from "@agari/core/market";
-import type { Address, Lane, LaneSet } from "@agari/core/types";
-import { laneNextStart } from "@agari/markets";
-import { keys, useLanes, useReadingQuery } from "@agari/markets/react";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Address, Lane, LaneSet } from "@owarine/core/types";
+import { laneNextStart } from "@owarine/markets";
+import { keys, useLanes, useReadingQuery } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { usePersistedState } from "@/lib/persisted";
 import { laneTabKey, laneTabParts, parseLaneTabKey, type LaneTabKey } from "./lane-view";
 import { useTickerPin } from "./useTickerPin";
 
-const LANE_KEY = "agari.lane";
+const LANE_KEY = "owarine.lane";
 const NO_PIN = "";
 
 /** `regular:300`, `gap:604800`, `token:300`; a pre-S6 bare cadence reads as its Regular lane. */
@@ -32,7 +32,7 @@ export interface LanesState {
   /** The pinned lane has no live Window right now — it stays selected and shows "Between rounds" instead of jumping. */
   pinnedMissing: boolean;
   pin: (key: LaneTabKey) => void;
-  /** The pinned ticker (`agari.ticker`); null lists every ticker. */
+  /** The pinned ticker (`owarine.ticker`); null lists every ticker. */
   ticker: TickerSymbol | null;
   pinTicker: (ticker: TickerSymbol | null) => void;
   /** Refetches the lane list — the one action a failed lane read should offer. */

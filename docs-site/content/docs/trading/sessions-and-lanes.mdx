@@ -5,7 +5,7 @@ description: "Regular NYSE-hours Windows, the Monday Gap, and the lanes that tra
 
 > **Where this runs.** Every lane below has opened and resolved Windows on a local Canton sandbox; none is on a shared test network yet. The stock lanes list only when the venue can read the NYSE calendar (from Alpaca), and the pre-IPO and basket lanes pause while PreStocks refuses the venue's reads.
 
-Agari lists Windows in different lanes, because a stock doesn't trade the same way around the clock. Every lane settles on its three oracle parties' prints, and each receipt names the source.
+Owarine lists Windows in different lanes, because a stock doesn't trade the same way around the clock. Every lane settles on its three oracle parties' prints, and each receipt names the source.
 
 ## Regular (NYSE hours)
 
@@ -26,7 +26,7 @@ Four kinds of Window trade around the clock, including weekend evenings and mark
 | Pre-IPO | OpenAI, Anthropic, SpaceX, Neuralink, Anduril, Kalshi, Polymarket and Figure AI, one-hour Windows | The PreStocks token price, read by each oracle party |
 | Baskets | AI Labs, Frontier AI, Prediction Markets, Defense & Space, All PreStocks, one-hour Windows | An index in points from one PreStocks read |
 
-Cards on these lanes carry a **24/7** chip (for example "24/7 · pre-IPO" or "24/7 · basket"). A 4-hour or 1-day Window is listed a whole cadence ahead, so its card reads "Listed · opens …" while the current one trades. [Baskets](/trading/baskets) explains the index, and [PreStocks and Pyth in Agari](/architecture/prestocks-and-pyth) covers the pre-IPO lanes. Committee-attested **events** (a YES/NO question) sit in their own section of the board, not in a lane.
+Cards on these lanes carry a **24/7** chip (for example "24/7 · pre-IPO" or "24/7 · basket"). A 4-hour or 1-day Window is listed a whole cadence ahead, so its card reads "Listed · opens …" while the current one trades. [Baskets](/trading/baskets) explains the index, and [PreStocks and Pyth in Owarine](/architecture/prestocks-and-pyth) covers the pre-IPO lanes. Committee-attested **events** (a YES/NO question) sit in their own section of the board, not in a lane.
 
 ## When the stock market is closed
 
@@ -39,4 +39,4 @@ A Window whose opening print is more than two minutes late drops off the board a
 
 ## Windows exist before the bell
 
-Agari's roller opens Windows ahead of time rather than waiting for the exact boundary — the next session's first Regular Window is prelisted at the previous close, a 24/7 Window a couple of minutes ahead, and a Gap Window two days ahead. See [Pre-open calls](/trading/pre-open-calls) for what you can and cannot do with a Window before it opens.
+Owarine's roller opens Windows ahead of time rather than waiting for the exact boundary — the next session's first Regular Window is prelisted at the previous close, a 24/7 Window a couple of minutes ahead, and a Gap Window two days ahead. See [Pre-open calls](/trading/pre-open-calls) for what you can and cannot do with a Window before it opens.

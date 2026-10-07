@@ -10,12 +10,12 @@
  *
  * The party comes from the web's lease row; an infrastructure party is never enrolled.
  */
-import { diagnosis } from "@agari/core/types";
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import { readActive, submit, failureText, type RoleSession } from "@agari/markets/ops/canton";
-import { acmd, decodeCreatorLicense, decodeDeskOffer, decodeGrantDesk, decodeSubscriberBook, decodeSubscriberInvite } from "@agari/markets/ops/agents";
-import { sha256Hex } from "@agari/markets/ops/agents";
-import type { Command } from "@agari/ledger";
+import { diagnosis } from "@owarine/core/types";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import { readActive, submit, failureText, type RoleSession } from "@owarine/markets/ops/canton";
+import { acmd, decodeCreatorLicense, decodeDeskOffer, decodeGrantDesk, decodeSubscriberBook, decodeSubscriberInvite } from "@owarine/markets/ops/agents";
+import { sha256Hex } from "@owarine/markets/ops/agents";
+import type { Command } from "@owarine/ledger";
 
 const PARTY_ID = /^[A-Za-z0-9_\-:]{1,255}::[0-9a-f]{8,}$/;
 const LEASE_ID = /^[A-Za-z0-9_\-]{1,64}$/;

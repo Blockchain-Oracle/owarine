@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket } from "@agari/core/types";
+import type { EventMarket } from "@owarine/core/types";
 import { useState } from "react";
 import { Countdown } from "@/components/data";
 import { EmptyState } from "@/components/ui/desk-kit";

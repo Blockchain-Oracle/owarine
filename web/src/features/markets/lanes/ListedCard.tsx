@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket, MarketId } from "@agari/core/types";
+import type { EventMarket, MarketId } from "@owarine/core/types";
 import { LANE_STATE, PREOPEN } from "@/lib/copy";
 import { AssetDisc } from "../hero/asset-mark";
 import { laneAssetLabel, laneCadenceLabel } from "./lane-view";

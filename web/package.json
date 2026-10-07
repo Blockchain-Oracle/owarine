@@ -9,11 +9,11 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@agari/brain": "workspace:*",
-    "@agari/core": "workspace:*",
-    "@agari/db": "workspace:*",
-    "@agari/ledger": "workspace:*",
-    "@agari/markets": "workspace:*",
+    "@owarine/brain": "workspace:*",
+    "@owarine/core": "workspace:*",
+    "@owarine/db": "workspace:*",
+    "@owarine/ledger": "workspace:*",
+    "@owarine/markets": "workspace:*",
     "@ai-sdk/anthropic": "^4.0.46",
     "@ai-sdk/google": "^4.0.59",
     "@ai-sdk/openai": "^4.0.53",

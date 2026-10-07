@@ -1,4 +1,4 @@
-import type { MarketsProvider } from "@agari/core/ports";
+import type { MarketsProvider } from "@owarine/core/ports";
 import { nowMs } from "./clock";
 import { freshExitQuote } from "./exit-quote";
 import {

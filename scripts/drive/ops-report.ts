@@ -4,13 +4,13 @@
  * `MarketTerms` per (series, index), one `PriceQuote` per (oracle, symbol, boundary), and at most one `Resolution` per
  * Window, whatever the runner's restarts did.
  *
- *   pnpm --filter @agari/scripts exec tsx drive/ops-report.ts --series BTC-1m [--from-index 30]
+ *   pnpm --filter @owarine/scripts exec tsx drive/ops-report.ts --series BTC-1m [--from-index 30]
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { readFileSync } from "node:fs";
-import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { decodePriceQuote, decodeResolution, decodeTerms, pick, readActive } from "@agari/markets/ops/canton";
+import { createLedgerClient, noAuth, parseLedgerEnv } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { decodePriceQuote, decodeResolution, decodeTerms, pick, readActive } from "@owarine/markets/ops/canton";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 import { arg } from "./cli";
 

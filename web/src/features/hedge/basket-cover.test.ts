@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { BASKET_INDEX_BASE_E8 } from "@agari/core/market";
-import { toAddress, toMarketId, type EventMarket, type LaneSet } from "@agari/core/types";
+import { BASKET_INDEX_BASE_E8 } from "@owarine/core/market";
+import { toAddress, toMarketId, type EventMarket, type LaneSet } from "@owarine/core/types";
 import { pickBasketHedges } from "./basket-cover";
 import { hedgeStakeBase } from "./hedge-size";
 import { pickAllHedges } from "./hedge-target";

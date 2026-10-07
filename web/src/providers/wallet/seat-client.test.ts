@@ -1,5 +1,5 @@
-import { messageBytes } from "@agari/core/auth";
-import { decodeBase58, encodeBase58, toSignature } from "@agari/core/types";
+import { messageBytes } from "@owarine/core/auth";
+import { decodeBase58, encodeBase58, toSignature } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { seatSigner, takeSeat } from "./seat-client";
@@ -18,7 +18,7 @@ describe("seat key", () => {
     const seat = await takeSeat();
     const signer = seatSigner(seat);
     expect(signer.address).toBe(seat.address);
-    const text = "Agari seat check\nNetwork: Canton DevNet";
+    const text = "Owarine seat check\nNetwork: Canton DevNet";
     const signature = toSignature(encodeBase58(await signer.signMessage(messageBytes(text))));
     await expect(verifyWalletMessage({ text, signature, signer: seat.address })).resolves.toBe(true);
     await expect(verifyWalletMessage({ text: `${text}!`, signature, signer: seat.address })).resolves.toBe(false);

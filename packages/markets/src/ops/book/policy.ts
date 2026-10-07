@@ -15,7 +15,7 @@
  *
  * Anything outside them is the venue desk's, exactly as before 0.5.0. Pure.
  */
-import type { MakerParams } from "@agari/core/maker";
+import type { MakerParams } from "@owarine/core/maker";
 
 /** The reference's deployed defaults (`web/src/app/dev/earn/fixtures.ts` VAULT.params), in 6-decimal base units. */
 export const DEFAULT_MAKER_PARAMS: MakerParams = {

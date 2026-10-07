@@ -14,7 +14,7 @@ vi.mock("./seat-write.server", () => ({ seatWriter: async () => writer }));
 vi.mock("../env", () => ({ webEnv: { markets: { cluster: "devnet", chainId: 1 }, appOrigin: "https://site.test" } }));
 vi.mock("@/lib/env", () => ({ webEnv: { markets: { cluster: "devnet", chainId: 1 }, appOrigin: "https://site.test" } }));
 const reads = { matches: vi.fn(async () => [{ matchId: "m1" }]), receipts: vi.fn(async () => [{ tweetId: "t1" }]), lucky: vi.fn(async () => ({ configured: true, rows: [] })), bet: vi.fn(async () => true), commit: vi.fn(async () => ({ ok: true, wire: { drawId: "d" } })) };
-vi.mock("@agari/db", () => ({
+vi.mock("@owarine/db", () => ({
   gamesStoreConfigured: () => true, listMatchesFor: reads.matches, isDbConfigured: () => true, xReceiptsByWallet: reads.receipts,
   hasBet: reads.bet, hasBetOnSymbol: reads.bet, hasIndexedBet: reads.bet, hasIndexedBetOnSymbol: reads.bet, hasIndexedFill: vi.fn(), recordBettor: vi.fn(),
 }));

@@ -1,8 +1,8 @@
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { X_REFUSAL_TITLES, type XReceiptStatus } from "@agari/core/x";
-import { isSignature } from "@agari/core/types";
+import { X_REFUSAL_TITLES, type XReceiptStatus } from "@owarine/core/x";
+import { isSignature } from "@owarine/core/types";
 import { NETWORK_LABEL, SITE_HOST } from "./reply-format";
 
 /** Structural subset of ReplyPresentation. All facts come from the receipt formatter. */
@@ -91,7 +91,7 @@ function text(value: string, x: number, baseline: number, size: number, fill: st
   return `<g role="img" aria-label="${escapeXml(value)}"><path d="${font.getPath(value, x, baseline, size, { kerning: true }).toPathData(2)}" fill="${fill}"/></g>`;
 }
 
-/** The Window Cut mark, path for path with `brand/agari-mark.svg` (220×220). */
+/** The Window Cut mark, path for path with `brand/owarine-mark.svg` (220×220). */
 function mark(x: number, y: number, height: number, ink: string): string {
   return `<g transform="translate(${x} ${y}) scale(${height / 220})" aria-hidden="true"><path d="M0 0H151L183 32V61H139V44H44V176H176V82H220V220H0Z" fill="${ink}"/><path d="M173 0H220V47Z" fill="${ORANGE}"/></g>`;
 }
@@ -134,11 +134,11 @@ export function renderReplyCardSvg(input: ReplyCardInput, options: ReplyCardOpti
   const banner = options.demo ? "DEMO · NOT A REAL TRADE" : NETWORK_LABEL.toUpperCase();
   const description = `${banner}. ${sender ? `For ${sender}. ` : ""}${title}. ${contextLines.join(" ")}. ${detailLines.join(" ")}. ${footer}${hash ? ` Transaction ${hash}.` : ""}`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-labelledby="reply-title reply-description" data-status="${status}">
-<title id="reply-title">${escapeXml(title)} — Agari</title>
+<title id="reply-title">${escapeXml(title)} — Owarine</title>
 <desc id="reply-description">${escapeXml(description)}</desc>
 <rect width="1200" height="600" fill="#050505"/>
 ${mark(963, 32, 42, INK)}
-${text("Agari", 1008, 61, 20, INK, sora)}
+${text("Owarine", 1008, 61, 20, INK, sora)}
 ${sender ? text(`FOR ${sender}`, 64, 104, 19, INK) : ""}
 ${text("YOUR CALL HAS A RECEIPT", 64, 146, 16, ORANGE)}
 ${text(title, 60, 235, titleSize, INK, sora)}

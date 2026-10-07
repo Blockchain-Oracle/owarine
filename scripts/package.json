@@ -1,5 +1,5 @@
 {
-  "name": "@agari/scripts",
+  "name": "@owarine/scripts",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,11 +8,11 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@agari/core": "workspace:*",
-    "@agari/daml": "workspace:*",
-    "@agari/db": "workspace:*",
-    "@agari/ledger": "workspace:*",
-    "@agari/markets": "workspace:*",
+    "@owarine/core": "workspace:*",
+    "@owarine/daml": "workspace:*",
+    "@owarine/db": "workspace:*",
+    "@owarine/ledger": "workspace:*",
+    "@owarine/markets": "workspace:*",
     "postgres": "^3.4.9"
   },
   "devDependencies": {

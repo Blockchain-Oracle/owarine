@@ -1,11 +1,11 @@
 "use client";
 
-import { VOID_HEADLINE } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { MarketId, Verdict } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
-import { invalidateAfterWrite, useClaimables, useSubmitter } from "@agari/markets/react";
+import { VOID_HEADLINE } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId, Verdict } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
+import { invalidateAfterWrite, useClaimables, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Check, Loader2, Trophy } from "lucide-react";
 import { useState } from "react";
@@ -35,7 +35,7 @@ interface ClaimWinningsProps {
  * that collects it; a loser sees "Not this time" with no false cheer. Claiming was a page here (`/claims`);
  * the reference never had one, and the page is gone.
  *
- * Agari's venue works like the reference's keeper again: after a 300 s claim grace the settler's
+ * Owarine's venue works like the reference's keeper again: after a 300 s claim grace the settler's
  * `redeem_for` pays every seat (D-032), so this button hurries it. A Window paid that way says
  * "Paid automatically" with the payout transaction; one the wallet claimed says so with its own.
  *

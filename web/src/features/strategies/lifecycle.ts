@@ -1,5 +1,5 @@
-import type { StrategySubscription } from "@agari/core/strategies";
-import type { VaultGrant } from "@agari/core/vault";
+import type { StrategySubscription } from "@owarine/core/strategies";
+import type { VaultGrant } from "@owarine/core/vault";
 
 export type CopyState = "checking" | "not-copying" | "inactive" | "paused" | "expired" | "replaced" | "runner-changed" | "unfunded" | "copying";
 

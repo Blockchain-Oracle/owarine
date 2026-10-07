@@ -1,4 +1,4 @@
-import { checkMandate, deskMandateText, mandateFingerprint, mandateFromWire } from "@agari/core/desk";
+import { checkMandate, deskMandateText, mandateFingerprint, mandateFromWire } from "@owarine/core/desk";
 import { NextResponse } from "next/server";
 import { answer, DESK_ERRORS, loadDesk, readJson, refuse, verifyOwner } from "@/features/desk/auth.server";
 import { DESK_CLUSTER, mandateRequestSchema } from "@/features/desk/protocol";

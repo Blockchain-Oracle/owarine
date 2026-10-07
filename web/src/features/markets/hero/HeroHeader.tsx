@@ -1,5 +1,5 @@
-import type { MarketPhase } from "@agari/core/lifecycle";
-import type { EventMarket } from "@agari/core/types";
+import type { MarketPhase } from "@owarine/core/lifecycle";
+import type { EventMarket } from "@owarine/core/types";
 import { Badge } from "@/components/ui/badge";
 import { HERO } from "@/lib/copy";
 import { laneAssetLabel, laneCadenceLabel } from "../lanes/lane-view";

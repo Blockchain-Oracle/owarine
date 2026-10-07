@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseLedgerEnv } from "@agari/ledger";
+import { parseLedgerEnv } from "@owarine/ledger";
 import { checkWebServerEnv, seatParties } from "./server-env";
 
 /**
@@ -26,10 +26,10 @@ function devnetParties(): string {
 
 const devnetEnv = () => ({
   DATABASE_URL: "postgres://pm:pm@db:5432/pm",
-  AGARI_SEAT_COOKIE_SECRET: "c".repeat(32),
+  OWARINE_SEAT_COOKIE_SECRET: "c".repeat(32),
   OPS_INTERNAL_URL: "http://ops:8080",
   OPS_INTERNAL_SECRET: "s".repeat(32),
-  AGARI_PARTIES_FILE: devnetParties(),
+  OWARINE_PARTIES_FILE: devnetParties(),
   LEDGER_JSON_API_URL: "https://ledger-api-json.participant.example.test",
   LEDGER_AUTH_MODE: "password",
   LEDGER_OIDC_TOKEN_URL: "https://auth.example.test/realms/r/protocol/openid-connect/token",

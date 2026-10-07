@@ -6,9 +6,9 @@
  * live contract on a Window → it is requested and the settlement inputs still carry that Window's Resolution.
  */
 import { readFileSync } from "node:fs";
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type CreatedEvent, type JsTransaction, type LedgerClient } from "@agari/ledger";
-import { decodeTerms, learnTerms, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type CreatedEvent, type JsTransaction, type LedgerClient } from "@owarine/ledger";
+import { decodeTerms, learnTerms, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import { createArenaDesk } from "./arena-desk/desk";
 import { createSeatDirectory } from "./arena-desk/seats";

@@ -1,8 +1,8 @@
 "use client";
 
-import { isTickerSymbol } from "@agari/core/market";
-import { marketsProvider } from "@agari/markets";
-import { useAssetPrice } from "@agari/markets/react";
+import { isTickerSymbol } from "@owarine/core/market";
+import { marketsProvider } from "@owarine/markets";
+import { useAssetPrice } from "@owarine/markets/react";
 import { useEffect, useState } from "react";
 import { basisRaw, feedRawToOracleRaw, ORACLE_SCALE, assetPriceLine } from "@/features/markets/hero/units";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
@@ -21,7 +21,7 @@ const FRESH_TICK_SEC = 60;
  * is fresh and inside today's regular session, so a closed or stale print never fires a rule.
  */
 function AssetWatch({ asset, closesAtSec, basis = "regular" }: { asset: string; closesAtSec: number | null; basis?: AlertBasis }) {
-  // A stored rule for an asset Agari doesn't list reads nothing rather than a wrong price.
+  // A stored rule for an asset Owarine doesn't list reads nothing rather than a wrong price.
   const reading = useAssetPrice(isTickerSymbol(asset) ? asset : null);
   const price = reading?.ok && !reading.stale ? reading.value : null;
   const raw = price ? feedRawToOracleRaw(basisRaw(price), price.decimals) : null;

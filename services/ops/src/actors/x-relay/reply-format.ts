@@ -1,16 +1,16 @@
-import { CLUSTER_LABEL, DEFAULT_CLUSTER, PROOF_BASE_PATH, type Cluster } from "@agari/core/constants";
-import { assetTicker } from "@agari/core/market";
-import { isSignature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
-import { formatBaseUnits } from "@agari/core/units";
-import { X_RECEIPT_STATUSES, xRefusalCopy, xReceiptRecovery, type XReceipt, type XReceiptStatus } from "@agari/core/x";
+import { CLUSTER_LABEL, DEFAULT_CLUSTER, PROOF_BASE_PATH, type Cluster } from "@owarine/core/constants";
+import { assetTicker } from "@owarine/core/market";
+import { isSignature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
+import { formatBaseUnits } from "@owarine/core/units";
+import { X_RECEIPT_STATUSES, xRefusalCopy, xReceiptRecovery, type XReceipt, type XReceiptStatus } from "@owarine/core/x";
 
 export const REPLY_LIMIT = 280;
 /**
  * The public site a reply links to: the web's own `NEXT_PUBLIC_SITE_URL`, with the default the share cards already
  * print (`web/src/features/share/copy.ts`), so a reply and a share card never name two different homes.
  */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://useagari.xyz").replace(/\/+$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://owarine.com").replace(/\/+$/, "");
 export const SITE_HOST = SITE_URL.replace(/^https?:\/\//, "");
 export const TRADE_FROM_X_URL = `${SITE_URL}/trade-from-x`;
 /** The Canton network the venue runs on, from the same variable the markets env reads (C13a). */
@@ -24,7 +24,7 @@ export const NETWORK_LABEL = CLUSTER_LABEL[RELAY_CLUSTER];
  */
 export const receiptUrl = (hash: Parameters<typeof txUrl>[0]): string => txUrl(hash, RELAY_CLUSTER, `${SITE_URL}${PROOF_BASE_PATH}`);
 
-export { X_REFUSAL_DETAILS as REFUSAL_DETAILS } from "@agari/core/x";
+export { X_REFUSAL_DETAILS as REFUSAL_DETAILS } from "@owarine/core/x";
 
 export interface ReplyPresentation {
   status: XReceiptStatus;

@@ -11,7 +11,7 @@ export function ProductMap() {
   return (
     <div className={`product-map not-prose ${mapStyles.root}`}>
       <div className={`asset-brand ${mapStyles.brand}`}><Brand small/></div>
-      <nav className={`map-paths ${mapStyles.paths}`} aria-label="Explore Agari">
+      <nav className={`map-paths ${mapStyles.paths}`} aria-label="Explore Owarine">
         {journeys.map(({icon:Icon,...journey},index)=>(
           <Link href={journey.href} key={journey.href} className={mapStyles.journey}>
             <span className={`map-icon ${mapStyles.icon}`}><Icon size={28} aria-hidden="true"/></span>

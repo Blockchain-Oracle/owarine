@@ -1,4 +1,4 @@
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { GAMES } from "@/features/games/copy";
 import type { AccentChoice } from "@/features/games/settings";

@@ -1,6 +1,6 @@
-import { costBpsFor, MAX_COST_BPS } from "@agari/core/desk";
-import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, USDC_MAINNET } from "@agari/markets/desk/server";
-import type { Ladder } from "@agari/markets/runtime";
+import { costBpsFor, MAX_COST_BPS } from "@owarine/core/desk";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, lotPriceE8, quoteSwap, USDC_MAINNET } from "@owarine/markets/desk/server";
+import type { Ladder } from "@owarine/markets/runtime";
 import { describe, expect, it } from "vitest";
 import { liveCostBps } from "./market";
 

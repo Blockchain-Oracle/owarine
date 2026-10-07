@@ -1,5 +1,5 @@
-import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_READ_TTL_MS, seatReadText } from "@agari/core/auth";
-import { encodeBase58, toAddress, toSignature, type Address } from "@agari/core/types";
+import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_READ_TTL_MS, seatReadText } from "@owarine/core/auth";
+import { encodeBase58, toAddress, toSignature, type Address } from "@owarine/core/types";
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { webEnv } from "@/lib/env";

@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { ccDepositRequestWire } from "@agari/markets";
+import { ccDepositRequestWire } from "@owarine/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 import { regionHold } from "@/lib/region.server";
 

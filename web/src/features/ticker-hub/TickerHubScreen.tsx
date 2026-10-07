@@ -1,7 +1,7 @@
 "use client";
 
-import { basketOf, isTokenOnlyKind, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@agari/core/market";
-import { useAssetPrice, useLanes } from "@agari/markets/react";
+import { basketOf, isTokenOnlyKind, TICKERS, type PreIpoSymbol, type TickerSymbol } from "@owarine/core/market";
+import { useAssetPrice, useLanes } from "@owarine/markets/react";
 import Link from "next/link";
 import { SectionHeader } from "@/components/chrome";
 import { ActivityList } from "@/features/activity/ActivityList";

@@ -1,10 +1,10 @@
 "use client";
 
-import type { ParlayLegInput } from "@agari/core/parlay";
-import type { MarketId } from "@agari/core/types";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import type { ParlayOpenOutcome } from "@agari/markets/parlay";
-import { invalidateAfterWrite, useSubmitter } from "@agari/markets/react";
+import type { ParlayLegInput } from "@owarine/core/parlay";
+import type { MarketId } from "@owarine/core/types";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import type { ParlayOpenOutcome } from "@owarine/markets/parlay";
+import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

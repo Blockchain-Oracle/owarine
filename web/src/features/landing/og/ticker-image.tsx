@@ -1,4 +1,4 @@
-import { isTokenOnlyKind, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { isTokenOnlyKind, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { ImageResponse } from "next/og";
 import { OG_COPY } from "./copy";
 import { ogFonts } from "./fonts";

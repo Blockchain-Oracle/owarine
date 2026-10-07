@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { boostTicketRequestWire, earnRequestWire, parlayTicketRequestWire, rangeTicketRequestWire } from "@agari/markets";
+import { boostTicketRequestWire, earnRequestWire, parlayTicketRequestWire, rangeTicketRequestWire } from "@owarine/markets";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

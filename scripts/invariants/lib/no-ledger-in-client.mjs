@@ -1,9 +1,9 @@
 /**
- * `no-ledger-in-client` (C10a): no module a browser bundle can reach imports `@agari/ledger`'s root at runtime.
+ * `no-ledger-in-client` (C10a): no module a browser bundle can reach imports `@owarine/ledger`'s root at runtime.
  *
  * The root export pulls in the HTTP client, auth and the updates stream, which reach `node:crypto`. On 29 Sep a desk
  * barrel re-exported the operator and client-reachable decoders imported the root, and `next build --webpack` failed on
- * /dev/desk (fixed in 96caadf: code that can land in a browser imports `@agari/ledger/pure`). A `next build` is too
+ * /dev/desk (fixed in 96caadf: code that can land in a browser imports `@owarine/ledger/pure`). A `next build` is too
  * slow to be the only guard, so this walks the import graph statically:
  *
  *  - entries: every web/src module that starts with the `"use client"` directive;
@@ -19,7 +19,7 @@ import { dirname, join, relative, sep } from "node:path";
 import { finding } from "./report.mjs";
 import { walkFiles } from "./walk.mjs";
 
-const FORBIDDEN = "@agari/ledger";
+const FORBIDDEN = "@owarine/ledger";
 const TS = [".ts", ".tsx"];
 const RESOLVE_SUFFIXES = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
 

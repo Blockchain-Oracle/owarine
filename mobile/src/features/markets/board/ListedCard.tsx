@@ -1,5 +1,5 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket, LaneBasis, MarketId } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, LaneBasis, MarketId } from "@owarine/core/types";
 import { Pressable, View } from "react-native";
 import { laneAssetLabel, laneCadenceLabel, pausedCopy } from "@/features/markets/lanes/lane-view";
 import { LANE_STATE, MARKETS, PREOPEN } from "@/lib/copy";

@@ -1,6 +1,6 @@
-import { diagnosisCopy, ERROR_BOUNDARY } from "@agari/core/copy";
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { Diagnosis } from "@agari/core/types";
+import { diagnosisCopy, ERROR_BOUNDARY } from "@owarine/core/copy";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { Diagnosis } from "@owarine/core/types";
 import { router, type Href } from "expo-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

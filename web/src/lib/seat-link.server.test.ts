@@ -1,6 +1,6 @@
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58 } from "@agari/core/types";
-import { formatSeatLinkCode, normalizeSeatLinkCode, SEAT_LINK_ALPHABET, seatLinkText } from "@agari/markets";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58 } from "@owarine/core/types";
+import { formatSeatLinkCode, normalizeSeatLinkCode, SEAT_LINK_ALPHABET, seatLinkText } from "@owarine/markets";
 import { describe, expect, it } from "vitest";
 import { seatSigner, takeSeat } from "@/providers/wallet/seat-client";
 import { webEnv } from "./env";

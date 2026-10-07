@@ -1,7 +1,7 @@
 "use client";
 
-import type { ClaimableRow } from "@agari/core/types";
-import { keys, useClaimables } from "@agari/markets/react";
+import type { ClaimableRow } from "@owarine/core/types";
+import { keys, useClaimables } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { EmptyState, ReadingBoundary } from "@/components/states";
 import { VaultCreditRows } from "@/features/vault";

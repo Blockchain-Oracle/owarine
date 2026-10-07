@@ -1,4 +1,4 @@
-import type { Signature } from "@agari/core/types";
+import type { Signature } from "@owarine/core/types";
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { CONTROLS, MONEY } from "@/features/desk/copy-controls";

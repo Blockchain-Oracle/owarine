@@ -1,7 +1,7 @@
 /**
  * The Canton Coin path as the screens see it (C7b): one capability constant and the pure words for what the rail does.
  * No I/O, no bigint on the wire (amounts here are decimal strings the screens format), no Decimal maths: the exact
- * conversion lives in `@agari/ledger` `units.ts` and in `daml/abu-pm-cc`.
+ * conversion lives in `@owarine/ledger` `units.ts` and in `daml/abu-pm-cc`.
  */
 
 /**

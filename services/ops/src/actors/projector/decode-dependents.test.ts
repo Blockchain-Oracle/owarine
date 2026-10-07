@@ -1,4 +1,4 @@
-import type { CreatedEvent, ExercisedEvent } from "@agari/ledger";
+import type { CreatedEvent, ExercisedEvent } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { dependentCreated, dependentExercised } from "./decode-dependents";
 

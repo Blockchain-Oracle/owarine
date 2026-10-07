@@ -1,5 +1,5 @@
-import { encodeBase58, type Signature } from "@agari/core/types";
-import type { XReceipt } from "@agari/core/x";
+import { encodeBase58, type Signature } from "@owarine/core/types";
+import type { XReceipt } from "@owarine/core/x";
 import { describe, expect, it, vi } from "vitest";
 import { recoverExecutionReceipt, recoverXExecutions } from "./execution-recovery";
 

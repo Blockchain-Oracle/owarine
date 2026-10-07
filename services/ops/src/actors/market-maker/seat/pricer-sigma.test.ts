@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CALENDAR_YEAR_SEC } from "@agari/core/market";
+import { CALENDAR_YEAR_SEC } from "@owarine/core/market";
 import { readSeatMakerEnv } from "./env";
 import { fairYesTicks, TRADING_YEAR_SEC } from "./fair";
 import { sigmaFor } from "./pricer";

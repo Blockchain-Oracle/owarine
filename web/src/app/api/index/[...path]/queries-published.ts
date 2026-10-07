@@ -1,5 +1,5 @@
-import { addressSchema } from "@agari/core/types";
-import { publishedFills, publishedReceipts } from "@agari/db";
+import { addressSchema } from "@owarine/core/types";
+import { publishedFills, publishedReceipts } from "@owarine/db";
 import { z } from "zod";
 import { BadRequest, type IndexQuery } from "./queries";
 

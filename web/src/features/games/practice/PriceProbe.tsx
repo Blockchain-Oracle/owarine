@@ -1,9 +1,9 @@
 "use client";
 
-import { isTickerSymbol } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { AssetPrice } from "@agari/core/types";
-import { useAssetPrice } from "@agari/markets/react";
+import { isTickerSymbol } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { AssetPrice } from "@owarine/core/types";
+import { useAssetPrice } from "@owarine/markets/react";
 import { useEffect } from "react";
 
 /**

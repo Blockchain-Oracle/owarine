@@ -1,6 +1,6 @@
-import { boostSheet, parlaySheet, rangeSheet, type ProviderShares, type ReserveKind, type ReserveSheet } from "@agari/core/reserves";
-import { isOk, mapReading, type Reading } from "@agari/core/schemas";
-import { useBalanceSheet, useLeverageReserve, useLeverageShares, useParlayReserve, useParlayShares, useRangeReserve, useRangeShares } from "@agari/markets/react";
+import { boostSheet, parlaySheet, rangeSheet, type ProviderShares, type ReserveKind, type ReserveSheet } from "@owarine/core/reserves";
+import { isOk, mapReading, type Reading } from "@owarine/core/schemas";
+import { useBalanceSheet, useLeverageReserve, useLeverageShares, useParlayReserve, useParlayShares, useRangeReserve, useRangeShares } from "@owarine/markets/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { boostBounds, parlayBounds, rangeBounds, type BoundRow } from "@/features/earn/bounds";
 import { EARN } from "@/features/earn/copy";

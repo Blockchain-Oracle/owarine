@@ -1,8 +1,8 @@
-import { prizePoolTotalUnits, seasonConfigFrom, type SeasonConfig } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { ensureMarkets, loadCollateral } from "@agari/markets";
-import { getSeasonPool } from "@agari/markets/games";
+import { prizePoolTotalUnits, seasonConfigFrom, type SeasonConfig } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { ensureMarkets, loadCollateral } from "@owarine/markets";
+import { getSeasonPool } from "@owarine/markets/games";
 import { seatServer } from "@/lib/ledger.server";
 import { marketsEnvFromProcess } from "@/features/session/sponsor.server";
 

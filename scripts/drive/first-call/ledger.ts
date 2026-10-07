@@ -6,9 +6,9 @@
  * stands in for ops' quote issuer (`Desk_IssueQuote` from a fresh venue shard), and posts the oracles' prints itself.
  * That lets it make the three prints disagree.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { fee as feeOf, type Command, type CreatedEvent, type LedgerClient } from "@agari/ledger";
-import { cmd, decodeSeries, decodeTerms, submit, templateSuffix, type RoleSession, type SeriesC, type TermsC } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { fee as feeOf, type Command, type CreatedEvent, type LedgerClient } from "@owarine/ledger";
+import { cmd, decodeSeries, decodeTerms, submit, templateSuffix, type RoleSession, type SeriesC, type TermsC } from "@owarine/markets/ops/canton";
 
 export interface Roles {
   venue: string;

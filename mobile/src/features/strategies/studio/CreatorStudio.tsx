@@ -1,6 +1,6 @@
-import { describeSpec, isSpec } from "@agari/core/strategies";
-import { isAddress, type Address } from "@agari/core/types";
-import { parseDecimalToBaseUnits } from "@agari/core/units";
+import { describeSpec, isSpec } from "@owarine/core/strategies";
+import { isAddress, type Address } from "@owarine/core/types";
+import { parseDecimalToBaseUnits } from "@owarine/core/units";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { codenameFromAddress } from "@/features/strategies/names";

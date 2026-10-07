@@ -1,7 +1,7 @@
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, type BasketSymbol } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { LaneSet } from "@agari/core/types";
-import { useAssetPrice, useLanes } from "@agari/markets/react";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, type BasketSymbol } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { LaneSet } from "@owarine/core/types";
+import { useAssetPrice, useLanes } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { StyleSheet, Text, View } from "react-native";
 import { heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";

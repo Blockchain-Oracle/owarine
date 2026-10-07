@@ -4,9 +4,9 @@
  * subscription. A ladder bound to another Window reads empty for the Window that asked. Until the Canton adapter lands
  * (C4) `readBook` rejects with the not-deployed reading, which `withReading` returns as the honest answer.
  */
-import type { BookTarget, QuoteTarget } from "@agari/core/ports";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, BookDepth, BookParams, Quote, Side } from "@agari/core/types";
+import type { BookTarget, QuoteTarget } from "@owarine/core/ports";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, BookDepth, BookParams, Quote, Side } from "@owarine/core/types";
 import { readBook, readSeries } from "../runtime/accounts";
 import { EMPTY_BOOK_DEPTH, quoteFromBook, toBookDepth } from "../runtime/mappers";
 import { nowMs, nowSec } from "./clock";

@@ -1,12 +1,12 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { useReadingQuery } from "@owarine/markets/react";
 import { statusPayloadSchema, type StatusPayload } from "./protocol";
 
 /** The reference re-checks every 30 s (`app/status/page.tsx` L28). */
 const POLL_MS = 30_000;
-export const STATUS_KEY = ["agari", "status"] as const;
+export const STATUS_KEY = ["owarine", "status"] as const;
 
 async function readStatus(): Promise<Reading<StatusPayload>> {
   const response = await fetch("/api/status", { cache: "no-store" });

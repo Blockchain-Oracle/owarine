@@ -1,7 +1,7 @@
 /** `/who-sees-what` (C-ADD-11): the page's own sentences around the matrix in `matrix.ts`. */
 export const WHO_SEES_WHAT = {
   title: "Who Sees What",
-  meta: "Every contract in Agari's Daml packages and the parties whose nodes receive it, the limits said plainly, and the commands that prove it.",
+  meta: "Every contract in Owarine's Daml packages and the parties whose nodes receive it, the limits said plainly, and the commands that prove it.",
   lead: "On Canton a party receives a contract only if it is a stakeholder: a signatory or an observer. Nothing below is a screen filter. Each row is read from the contract's own signatory and observer lines, and the rows marked T are asserted by a Daml Script test.",
   back: "Back to How It Works",
   legendTitle: "Reading the table",

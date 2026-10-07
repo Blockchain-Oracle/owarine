@@ -1,4 +1,4 @@
-import { encodeStrategyMetadata, type StrategyMetadata, type StrategySpec } from "@agari/core/strategies";
+import { encodeStrategyMetadata, type StrategyMetadata, type StrategySpec } from "@owarine/core/strategies";
 import { describe, expect, it } from "vitest";
 import { planRevision, STRATEGY_METADATA_MAX_BYTES } from "./writes";
 

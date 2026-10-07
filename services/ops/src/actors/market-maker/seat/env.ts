@@ -1,4 +1,4 @@
-import { TICKERS, TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
+import { TICKERS, TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
 
 /** `MAKER_MODE=seat` knobs (venue-ops.md §8). Integers only; σ in annualized basis points. */
 export interface SeatMakerEnv {

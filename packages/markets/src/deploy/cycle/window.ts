@@ -3,7 +3,7 @@
  * On Canton these are `Series_OpenWindow`, demo-cash credits, `Quote_Accept`, `PriceQuote`, `Terms_Resolve` and
  * `SettleBatch` (C2x/C3). The order constants stay; every ledger step refuses as not live.
  */
-import { encodeBase58, toAddress, type Address } from "@agari/core/types";
+import { encodeBase58, toAddress, type Address } from "@owarine/core/types";
 import type { KeyPairSigner } from "../client";
 import { deployNotLive, type SendContext } from "../send";
 import type { WindowAddresses } from "./accounts";

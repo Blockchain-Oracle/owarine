@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ROOM } from "@/features/room/copy";
 import type { RoomScope } from "@/features/room/RoomSwitch";

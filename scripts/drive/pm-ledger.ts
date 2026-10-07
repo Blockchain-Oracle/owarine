@@ -1,7 +1,7 @@
 // Ledger helpers for the drive scripts on a LOCAL sandbox (auth none): party allocation and the PM engine's commands
 // in their Daml-LF JSON shapes. Server-only; nothing here runs against Noders (parties there come from the Console).
-import { TEMPLATE_IDS } from "@agari/daml";
-import { createLedgerClient, eventFormat, noAuth, type Command, type CreatedEvent, type JsTransaction, type LedgerClient } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { createLedgerClient, eventFormat, noAuth, type Command, type CreatedEvent, type JsTransaction, type LedgerClient } from "@owarine/ledger";
 
 export const T = TEMPLATE_IDS;
 export type Side = "SideUp" | "SideDown";

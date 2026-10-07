@@ -1,6 +1,6 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
+import { isOk } from "@owarine/core/schemas";
 import { ErrorState } from "@/components/states";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useWalletSession } from "@/lib/wallet-session";

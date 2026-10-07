@@ -1,7 +1,7 @@
 "use client";
 
-import { nameOf } from "@agari/core/desk";
-import { TICKERS, type PreIpoSymbol } from "@agari/core/market";
+import { nameOf } from "@owarine/core/desk";
+import { TICKERS, type PreIpoSymbol } from "@owarine/core/market";
 import { CircleDashed } from "lucide-react";
 import Link from "next/link";
 import { Donut, EmptyState, type Slice } from "@/components/ui/desk-kit";

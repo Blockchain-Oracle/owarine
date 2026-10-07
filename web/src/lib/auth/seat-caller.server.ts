@@ -1,6 +1,6 @@
-import { parseSeatReadHeader, SEAT_READ_HEADER, seatReadFresh, seatReadText } from "@agari/core/auth";
-import type { Cluster } from "@agari/core/constants";
-import type { Address } from "@agari/core/types";
+import { parseSeatReadHeader, SEAT_READ_HEADER, seatReadFresh, seatReadText } from "@owarine/core/auth";
+import type { Cluster } from "@owarine/core/constants";
+import type { Address } from "@owarine/core/types";
 import { readSeatCookie, seatCookieFrom } from "../seat-cookie.server";
 import { verifyWalletMessage } from "./verify-signed-message.server";
 
@@ -17,7 +17,7 @@ export async function seatCaller(headers: Headers, cluster: Cluster, nowMs: numb
     const text = seatReadText(proof.address, proof.issuedAtMs, cluster);
     if (await verifyWalletMessage({ text, signature: proof.signature, signer: proof.address })) return proof.address;
   }
-  const secret = process.env.AGARI_SEAT_COOKIE_SECRET;
+  const secret = process.env.OWARINE_SEAT_COOKIE_SECRET;
   if (!secret || secret.length < 32) return null;
   return readSeatCookie(secret, seatCookieFrom(headers), nowMs)?.address ?? null;
 }

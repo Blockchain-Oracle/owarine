@@ -1,4 +1,4 @@
-import { isTickerSymbol } from "@agari/core/market";
+import { isTickerSymbol } from "@owarine/core/market";
 import { NextResponse } from "next/server";
 import { tickerFeed } from "@/features/activity/feed.server";
 

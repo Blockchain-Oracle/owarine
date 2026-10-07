@@ -8,8 +8,8 @@
  * C8g: the grant top-up handed the seat's largest contract to `GrantDesk_Fund`, which moved all of it into the grant
  * (a 1-credit top-up moved 995.50). The desk's deposit already split first; both now share this.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient, Party } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient, Party } from "@owarine/ledger";
 import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import { mergeCash, splitCash } from "../ops/canton/commands";
 import { refuse } from "./rejection";

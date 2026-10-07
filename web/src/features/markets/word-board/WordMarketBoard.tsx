@@ -1,8 +1,8 @@
 "use client";
 
-import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@agari/core/market";
-import { diagnosisCopy } from "@agari/core/copy";
-import type { Diagnosis, EventMarket, LaneSet } from "@agari/core/types";
+import { groupByHorizon, LISTED_HORIZON, type TickerSymbol } from "@owarine/core/market";
+import { diagnosisCopy } from "@owarine/core/copy";
+import type { Diagnosis, EventMarket, LaneSet } from "@owarine/core/types";
 import { useMemo } from "react";
 import { EmptyState } from "@/components/states";
 import { WORD_BOARD } from "@/lib/copy";

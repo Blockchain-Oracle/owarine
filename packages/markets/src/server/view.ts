@@ -6,8 +6,8 @@
  * Honest wording on one shared participant: "queried as party X; the participant returns only contracts X is a
  * stakeholder of". It is the participant's filter, not a claim that the data never reached this node.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { eventFormat, type LedgerClient, type Party } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { eventFormat, type LedgerClient, type Party } from "@owarine/ledger";
 import { entityOf } from "./contracts";
 
 export const VIEW_TEMPLATES = [TEMPLATE_IDS.VenueCash, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Leg, TEMPLATE_IDS.Resolution, TEMPLATE_IDS.MarketTerms] as const;

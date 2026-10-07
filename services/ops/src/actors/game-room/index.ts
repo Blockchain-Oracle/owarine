@@ -1,7 +1,7 @@
-import { activeMatchFor } from "@agari/db";
-import type { Address, Hash32 } from "@agari/core/types";
-import { ensureMarkets } from "@agari/markets";
-import { resolveArenaDeployment } from "@agari/markets/games";
+import { activeMatchFor } from "@owarine/db";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { ensureMarkets } from "@owarine/markets";
+import { resolveArenaDeployment } from "@owarine/markets/games";
 import { readRoomEnv, ROOM_ENV } from "./env";
 import { createRoomHub } from "./hub";
 import type { RoomContext } from "./handlers";

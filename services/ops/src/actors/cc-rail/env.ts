@@ -4,7 +4,7 @@
  * The rate is a stated venue parameter (K-245), fixed per listing: changing `CC_UNITS_PER_COIN` under an existing
  * `CC_LISTING_ID` changes nothing on the ledger (the listing is immutable); a new rate is a new listing id.
  */
-import { ccRateOk } from "@agari/ledger/pure";
+import { ccRateOk } from "@owarine/ledger/pure";
 
 export interface CcRailEnv {
   listingId: string;

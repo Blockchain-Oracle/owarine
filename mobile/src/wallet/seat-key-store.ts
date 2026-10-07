@@ -1,4 +1,4 @@
-import { SEAT_KEY_BYTES, seatSession } from "@agari/markets/sessions/mobile";
+import { SEAT_KEY_BYTES, seatSession } from "@owarine/markets/sessions/mobile";
 import * as SecureStore from "expo-secure-store";
 import { SEAT_KEY } from "~/lib/keys";
 import { fromHex, newSeatKey, toHex } from "./seat-key";

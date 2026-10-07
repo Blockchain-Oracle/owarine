@@ -1,5 +1,5 @@
-import type { OutcomeColumn } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
+import type { OutcomeColumn } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
 import type { NodeTone } from "@/components/ui/desk-kit";
 import type { RecordSummaryWire } from "../protocol";
 import { namesIn } from "./activity-model";

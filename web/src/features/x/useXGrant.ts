@@ -1,21 +1,21 @@
 "use client";
 
-import type { GrantTerms, TxOutcome } from "@agari/core/ports";
-import { diagnosisCopy } from "@agari/core/copy";
-import { formatBaseUnits } from "@agari/core/units";
-import type { VaultGrant } from "@agari/core/vault";
-import { X_GRANT, xGrantCaps, xPermissionState, type XPermissionState } from "@agari/core/x";
-import { getVaultSnapshot } from "@agari/markets";
-import { readSeatReceipt } from "@agari/markets/vault";
-import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
+import type { GrantTerms, TxOutcome } from "@owarine/core/ports";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { formatBaseUnits } from "@owarine/core/units";
+import type { VaultGrant } from "@owarine/core/vault";
+import { X_GRANT, xGrantCaps, xPermissionState, type XPermissionState } from "@owarine/core/x";
+import { getVaultSnapshot } from "@owarine/markets";
+import { readSeatReceipt } from "@owarine/markets/vault";
+import { invalidateAfterWrite, useSigner, useSubmitter, useVaultSnapshot } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState, useSyncExternalStore } from "react";
 import { X_CARD, X_HANDLE } from "./copy";
 import { xPermissionOf } from "./permission-state";
 import { parseXUpdate, updateXPermission, type XUpdateProgress } from "./update-permission";
 
-export { X_GRANT } from "@agari/core/x";
-const PROGRESS_EVENT = "agari:x-permission-update";
+export { X_GRANT } from "@owarine/core/x";
+const PROGRESS_EVENT = "owarine:x-permission-update";
 const activeWrites = new Set<string>();
 function subscribeProgress(listener: () => void) {
   window.addEventListener("storage", listener);
@@ -73,7 +73,7 @@ export function useXGrant(): XGrantState {
   const grant = value?.grants.executor ?? null;
   const current = grant && !grant.revoked ? grant : null;
   // Addresses are base58 and case-sensitive: the key keeps them exactly as written (D-010).
-  const storageKey = address && value ? `agari:x-update:v1:${value.deployment.chainId}:${value.deployment.eventVault}:${address}` : null;
+  const storageKey = address && value ? `owarine:x-update:v1:${value.deployment.chainId}:${value.deployment.eventVault}:${address}` : null;
   const readProgress = useCallback(() => { try { return storageKey ? localStorage.getItem(storageKey) : null; } catch { return null; } }, [storageKey]);
   const saved = useSyncExternalStore(subscribeProgress, readProgress, () => null);
   const pendingUpdate = parseXUpdate(saved);

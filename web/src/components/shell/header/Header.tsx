@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AddFunds, CreditWelcome, OPEN_FUNDS_EVENT } from "@/features/funding";
-import AgariMark from "../AgariMark";
+import OwarineMark from "../OwarineMark";
 import ThemeToggle from "../ThemeToggle";
 import { DesktopNavMenu } from "./DesktopNavMenu";
 import { HeaderAccount } from "./HeaderAccount";
@@ -41,11 +41,11 @@ export default function Header() {
   return (
     <>
       <header className="header">
-        <Link className="logo" href="/" aria-label="Agari 上がり home" data-cursor="hover">
-          <span className="logo-mark"><AgariMark /></span>
+        <Link className="logo" href="/" aria-label="Owarine 終値 home" data-cursor="hover">
+          <span className="logo-mark"><OwarineMark /></span>
           <span className="logo-copy">
-            <span className="logo-name">AGARI</span>
-            <span className="logo-jp" lang="ja" data-text="上がり">上がり</span>
+            <span className="logo-name">OWARINE</span>
+            <span className="logo-jp" lang="ja" data-text="終値">終値</span>
           </span>
         </Link>
 

@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { keys, useRangeReserve } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { keys, useRangeReserve } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useVenue } from "@/features/markets/useVenue";

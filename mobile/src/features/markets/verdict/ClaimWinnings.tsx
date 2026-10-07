@@ -1,8 +1,8 @@
-import { VOID_HEADLINE } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import type { MarketId, Verdict } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { invalidateAfterWrite, useClaimables, useSubmitter } from "@agari/markets/react";
+import { VOID_HEADLINE } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId, Verdict } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { invalidateAfterWrite, useClaimables, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trophy } from "lucide-react-native";
 import { useState } from "react";

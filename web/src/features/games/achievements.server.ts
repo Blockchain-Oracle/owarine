@@ -1,7 +1,7 @@
-import { achievementsOf, NO_GAME_FACTS, type Achievement, type PlayerGameFacts } from "@agari/core/games";
-import { ARCADE_GAMES, type ArcadeGame } from "@agari/core/games/arcade";
-import type { Address } from "@agari/core/types";
-import { bestArcadeOf, gamesStoreConfigured, listLuckyDrawsFor, listMatchesFor, readRatings } from "@agari/db";
+import { achievementsOf, NO_GAME_FACTS, type Achievement, type PlayerGameFacts } from "@owarine/core/games";
+import { ARCADE_GAMES, type ArcadeGame } from "@owarine/core/games/arcade";
+import type { Address } from "@owarine/core/types";
+import { bestArcadeOf, gamesStoreConfigured, listLuckyDrawsFor, listMatchesFor, readRatings } from "@owarine/db";
 import { ENGINE_VERSION } from "./arcade/score.server";
 
 export interface AchievementsWire {

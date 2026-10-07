@@ -1,4 +1,4 @@
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { tradingWindows } from "./trading-windows";
 

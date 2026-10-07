@@ -1,4 +1,4 @@
-import { encodeBase58, toAddress, toMarketId } from "@agari/core/types";
+import { encodeBase58, toAddress, toMarketId } from "@owarine/core/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const db = vi.hoisted(() => ({
@@ -10,8 +10,8 @@ const db = vi.hoisted(() => ({
 }));
 const provider = vi.hoisted(() => ({ getOnchain: vi.fn(), getHoldings: vi.fn() }));
 
-vi.mock("@agari/db", () => db);
-vi.mock("@agari/markets", () => ({ ensureMarkets: () => undefined, marketsProvider: provider }));
+vi.mock("@owarine/db", () => db);
+vi.mock("@owarine/markets", () => ({ ensureMarkets: () => undefined, marketsProvider: provider }));
 vi.mock("@/lib/env", () => ({ webEnv: { markets: { chainId: 103 } } }));
 vi.mock("@/lib/auth/verify-signed-message.server", () => ({ verifyWalletMessage: async () => true }));
 

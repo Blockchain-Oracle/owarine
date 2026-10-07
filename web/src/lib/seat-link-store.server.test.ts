@@ -3,10 +3,10 @@
  *
  *   SEAT_PG_URL=postgres://… pnpm --filter web exec vitest run src/lib/seat-link-store.server.test.ts
  */
-import { getDb, seatPartyFor } from "@agari/db";
+import { getDb, seatPartyFor } from "@owarine/db";
 import { randomUUID } from "node:crypto";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { SEAT_LINK_CONFIRM_MS } from "@agari/markets";
+import { SEAT_LINK_CONFIRM_MS } from "@owarine/markets";
 import { leasedAddresses } from "./agents.server";
 import { LINK_CODE_MAX_FAILURES } from "./seat-link-store.server";
 import { createSeatStore, DEFAULT_RULES } from "./seat-store.server";

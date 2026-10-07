@@ -1,4 +1,4 @@
-import { calendarFromAlpaca, type SessionCalendar } from "@agari/core/market";
+import { calendarFromAlpaca, type SessionCalendar } from "@owarine/core/market";
 
 /** Alpaca `GET /v2/calendar` for `[fromDate, toDate]` (ET dates). Server-only keys; throws on HTTP or shape errors. */
 export async function fetchAlpacaCalendar(fromDate: string, toDate: string, env: NodeJS.ProcessEnv = process.env): Promise<SessionCalendar> {

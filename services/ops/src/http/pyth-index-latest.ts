@@ -4,7 +4,7 @@
  * points. Bigints travel as decimal strings. `fresh` shares `/prices/latest`'s budget (D-086). A denied feed has an
  * entitlement row and no price row: the hub omits its line rather than showing a dash.
  */
-import { referencePremiumBps, type PreIpoSymbol } from "@agari/core/market";
+import { referencePremiumBps, type PreIpoSymbol } from "@owarine/core/market";
 import type { PreStocksSpotFeed } from "../prices/prestocks-spot";
 import type { PythIndexSpotFeed } from "../prices/pyth-index-spot";
 import type { EntitlementState, PythEntitlementStore } from "../runtime/pyth-entitlement";

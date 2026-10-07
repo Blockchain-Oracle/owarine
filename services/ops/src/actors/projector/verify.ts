@@ -4,8 +4,8 @@
  * template, the contract ids the ledger says are live against the ones the projection's rows say are live. It also runs
  * the projection's own consistency checks (counters against the rows they count, duplicate keys).
  */
-import { indexWriter, projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type Db, type VerifiedTemplate } from "@agari/db";
-import type { LedgerClient } from "@agari/ledger";
+import { indexWriter, projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type Db, type VerifiedTemplate } from "@owarine/db";
+import type { LedgerClient } from "@owarine/ledger";
 import { PM_PACKAGE_NAME, templateName } from "./decode";
 
 export interface VerifyReport {

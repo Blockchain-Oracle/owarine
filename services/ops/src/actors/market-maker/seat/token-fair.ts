@@ -11,7 +11,7 @@
  * source and the chart spot are one number there, so there is no cross-source basis to hide. A basket's number is its
  * index in points × 10⁸, read from the feed's same-fetch snapshots, so the maker's fair and the venue's print agree.
  */
-import { BASKETS, haltOf, TICKERS, type TickerSymbol } from "@agari/core/market";
+import { BASKETS, haltOf, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { basketIndexAt, basketIndexLatest } from "../../../prices/basket-index";
 import { currentPreStocksSpot, type PreStocksSpotFeed } from "../../../prices/prestocks-spot";
 import { currentXStockSpot, type XStockSpotFeed } from "../../../prices/xstock-spot";

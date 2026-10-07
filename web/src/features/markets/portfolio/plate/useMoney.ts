@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
-import { useClaimables, usePositions, usePrivateBudget, usePrivateDesk, useVaultSnapshot } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
+import { useClaimables, usePositions, usePrivateBudget, usePrivateDesk, useVaultSnapshot } from "@owarine/markets/react";
 // Leaf imports, not the barrels: the phone bundles this hook, and a barrel drags its DOM components in (mobile-bundle-reach).
 import { useXGrant } from "@/features/x/useXGrant";
 import { useXStatus } from "@/features/x/useXStatus";

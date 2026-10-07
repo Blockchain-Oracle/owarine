@@ -1,4 +1,4 @@
-import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@agari/core/market";
+import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 import { sourceChips, toFeed, type SettledRowWire } from "./feed";
 

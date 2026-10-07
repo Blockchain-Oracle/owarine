@@ -1,4 +1,4 @@
-import type { GameId } from "@agari/core/games";
+import type { GameId } from "@owarine/core/games";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { gameEntry, gameIdFromPath } from "./catalog";

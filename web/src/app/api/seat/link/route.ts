@@ -1,6 +1,6 @@
 import { type NextRequest } from "next/server";
 import { issueSeatLink } from "@/lib/seat-link.server";
-import { normalizeSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@agari/markets";
+import { normalizeSeatLinkCode, SEAT_LINK_CODE_LENGTH } from "@owarine/markets";
 import { refusal, replyWith, seatFromRequest, serverFault } from "@/lib/seat.server";
 
 /**

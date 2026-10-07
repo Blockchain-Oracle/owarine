@@ -5,8 +5,8 @@
  * party back; a mandate whose seat is not leased is left for the web's Go live step) and no mandate; it is checked,
  * valued and recorded, and trades only once the owner's signed mandate arrives through the web.
  */
-import { getDb, seatHolders, type Db, type DeskRow } from "@agari/db";
-import { listDesksByOperator } from "@agari/markets/desk/server";
+import { getDb, seatHolders, type Db, type DeskRow } from "@owarine/db";
+import { listDesksByOperator } from "@owarine/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import type { RunnerContext } from "./types";
 
@@ -38,7 +38,7 @@ export async function discoverDesks(ctx: RunnerContext, nowSec: number): Promise
 
 /**
  * The seat address a party is leased to (the web's lease table in the same database), or null: the key that took the
- * live lease, through the shared resolution (`@agari/db` `seatHolders`, C4c). A key joined by a seat link reaches the
+ * live lease, through the shared resolution (`@owarine/db` `seatHolders`, C4c). A key joined by a seat link reaches the
  * same desk through the web's lease (`byAddress`); the row it registers there is its own, so discovery never adds one.
  */
 export async function seatAddressOf(party: string, db: Db | null = getDb()): Promise<string | null> {

@@ -7,7 +7,7 @@
  * With `dry` set it reads, values and asks the model exactly as a real check would, then commits NOTHING and sends
  * NOTHING. Every wake is a decision, even "nothing to do": a record is written either way.
  */
-import { deskCopy, drawdownBps, findNeeds, formatUsdc, MAX_CANDIDATES, mandateFromWire, nameOf, type DeskMandateWire, type DeskNeed } from "@agari/core/desk";
+import { deskCopy, drawdownBps, findNeeds, formatUsdc, MAX_CANDIDATES, mandateFromWire, nameOf, type DeskMandateWire, type DeskNeed } from "@owarine/core/desk";
 import { errorText } from "../../runtime/env";
 import { expireOpenApprovals, runApprovedRequests } from "./approvals";
 import { pauseOnChain, sealCheckpoint } from "./checkpoint";

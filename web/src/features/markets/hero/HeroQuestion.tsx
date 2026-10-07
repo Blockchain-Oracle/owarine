@@ -1,4 +1,4 @@
-import { neededMove } from "@agari/core/market";
+import { neededMove } from "@owarine/core/market";
 import { HERO, HERO_HEAD } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 import { assetPairUnit, assetPriceLine } from "./units";

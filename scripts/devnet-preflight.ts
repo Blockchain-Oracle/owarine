@@ -5,7 +5,7 @@
  * synchronizer. Prints a table, then each result as a `docs/plan/acceptance.md` row. Read-only: nothing is written,
  * nothing is enumerated, no secret is printed.
  *
- *   pnpm --filter @agari/scripts exec tsx devnet-preflight.ts <json-api-base-url> [--origin https://<web origin>] [--parties file]
+ *   pnpm --filter @owarine/scripts exec tsx devnet-preflight.ts <json-api-base-url> [--origin https://<web origin>] [--parties file]
  *
  * Exit code 1 when any check fails (a CORS note or a skipped check is not a failure).
  */

@@ -1,7 +1,7 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import type { MarketId } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { REELS } from "@/lib/copy";
 

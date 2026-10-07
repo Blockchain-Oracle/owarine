@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BookLevel } from "@agari/core/market";
+import type { BookLevel } from "@owarine/core/market";
 import { callExpired, DEFAULT_FILL_CAP_LOTS, fillableLots, offerLapsed } from "./rule";
 
 // The venue's ladder on one side, best first, in the bought outcome's own terms: fair 500 ± 30 gives an ask of 530.

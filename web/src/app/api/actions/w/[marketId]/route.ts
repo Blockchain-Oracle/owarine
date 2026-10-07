@@ -1,7 +1,7 @@
-import { marketIdSchema } from "@agari/core/types";
-import { actionHeaders, windowAction, X_REFUSAL_DETAILS } from "@agari/core/x";
-import { ensureMarkets, marketsProvider } from "@agari/markets";
-import { buildWindowShareAction } from "@agari/markets/x";
+import { marketIdSchema } from "@owarine/core/types";
+import { actionHeaders, windowAction, X_REFUSAL_DETAILS } from "@owarine/core/x";
+import { ensureMarkets, marketsProvider } from "@owarine/markets";
+import { buildWindowShareAction } from "@owarine/markets/x";
 import { webEnv } from "@/lib/env";
 import { regionRestricted } from "@/lib/region.server";
 import { publicOrigin } from "@/lib/client-ip.server";
@@ -12,7 +12,7 @@ import { windowShareKey } from "@/lib/share-link.server";
  *
  * A card client `GET`s the card (the reference's shape: Up and Down, each with an amount field), then `POST`s to the
  * button's href and follows the link it gets back. On Canton that link is a signed Window share link to this Window's
- * ticket (web, or the app through the same https path), built in `@agari/markets/x`; no transaction, no chain id.
+ * ticket (web, or the app through the same https path), built in `@owarine/markets/x`; no transaction, no chain id.
  * This file stays what every other route is: policy plus serialization.
  *
  * The POST keeps the reference's geofence answer (D-095): a held region reads the card but is not handed a link into a

@@ -28,8 +28,8 @@ export const ALERTS = {
   remove: "Remove alert",
   /** Where an alert actually fires — a browser-side evaluator, so only while a tab is open. */
   foot: {
-    on: "Fires while Agari is open in a tab",
-    off: "Browser notifications are off — alerts show here as a toast while Agari is open",
+    on: "Fires while Owarine is open in a tab",
+    off: "Browser notifications are off — alerts show here as a toast while Owarine is open",
     /** Outside the session a Regular rule is kept and not evaluated; `label` is the session chip's ("Opens Tue 09:30 ET"). */
     waiting: (label: string | null) => (label ? `Waiting for the open (${label})` : "Waiting for the open"),
   },

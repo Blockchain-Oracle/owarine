@@ -1,5 +1,5 @@
-import { messageBytes } from "@agari/core/auth";
-import { encodeBase58, toAddress, toSignature } from "@agari/core/types";
+import { messageBytes } from "@owarine/core/auth";
+import { encodeBase58, toAddress, toSignature } from "@owarine/core/types";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/auth/seat-caller.server", () => ({ seatCaller: async () => null }));

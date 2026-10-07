@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/copy";
-import { isOk } from "@agari/core/schemas";
-import { useVaultSnapshot, useWalletHistory } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import { isOk } from "@owarine/core/schemas";
+import { useVaultSnapshot, useWalletHistory } from "@owarine/markets/react";
 import { StyleSheet, Text, View } from "react-native";
 import { VAULT } from "@/features/vault/copy";
 import { useVaultWrite } from "@/features/vault/useVaultWrite";

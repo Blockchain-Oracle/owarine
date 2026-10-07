@@ -4,9 +4,9 @@
  * chose to publish (`/api/index/published/<address>/*`) through the same replay as the seat's own history. What it
  * never published is not here, and nothing says it is.
  */
-import type { LedgerFill, WalletHistory } from "@agari/core/projection";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, MarketId, OpenPosition } from "@agari/core/types";
+import type { LedgerFill, WalletHistory } from "@owarine/core/projection";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, MarketId, OpenPosition } from "@owarine/core/types";
 import { readVenueStatic } from "../runtime/accounts";
 import { marketRows, pageAll, PAGE, replayHistory, toLedgerFill, type ReplayedWindow } from "./history";
 import { big, indexRows, sec, type FillRow, type ReceiptRow } from "./index-api";

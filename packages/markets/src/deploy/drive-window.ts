@@ -2,7 +2,7 @@
  * The drive-only "owned" windows (never in the core registry): their Series specs are pure and kept; opening, quoting
  * and closing them are ledger steps (`products.ts`, not live in C1).
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { KeyPairSigner } from "./client";
 import { asciiFeedId, I64_MAX, policyVersions, SOURCE, ZERO_POLICY, type PriceSources } from "./policies";
 import { BASIS, LAUNCH_GRID, type SeriesSpec } from "./venue-spec";
@@ -10,7 +10,7 @@ import { BASIS, LAUNCH_GRID, type SeriesSpec } from "./venue-spec";
 export const DRIVE_OWNED_TICKERS = [903, 904, 905] as const;
 export type OwnedLane = 0 | 1 | 2;
 const LANE_KEYS = ["TEST-OWNED-15m", "TEST-OWNED-B", "TEST-OWNED-C"] as const;
-export const DRIVE_OWNED_FEED = asciiFeedId("agari-drive-attested:owned");
+export const DRIVE_OWNED_FEED = asciiFeedId("owarine-drive-attested:owned");
 const CADENCE_SEC = 900;
 const BAR_LEN_SEC = 60;
 const MIN_DELAY_SEC = 10;

@@ -1,6 +1,6 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
-import { addressSchema, type LaneBasis } from "@agari/core/types";
-import { getDb, indexReader } from "@agari/db";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
+import { addressSchema, type LaneBasis } from "@owarine/core/types";
+import { getDb, indexReader } from "@owarine/db";
 import { withinBudget } from "./read-budget";
 
 /** The index's `basis` byte → lane, as the markets port reads it (`packages/markets/src/provider/rows.ts`). */

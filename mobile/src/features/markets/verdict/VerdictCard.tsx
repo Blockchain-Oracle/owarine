@@ -1,6 +1,6 @@
-import { formatCadence, verdictStrings } from "@agari/core/copy";
-import { OUTCOME_TO_SIDE, type ClaimLeg, type EventMarket, type Resolution, type Verdict } from "@agari/core/types";
-import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
+import { formatCadence, verdictStrings } from "@owarine/core/copy";
+import { OUTCOME_TO_SIDE, type ClaimLeg, type EventMarket, type Resolution, type Verdict } from "@owarine/core/types";
+import { formatBaseUnits, secToMs, shortHex } from "@owarine/core/units";
 import { useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { printSourceText } from "@/features/markets/verdict/print-source";

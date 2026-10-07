@@ -1,11 +1,11 @@
 /**
- * `/proof/<market>` on Canton: the page's view of one Window, mapped from the projection's rows (`@agari/db`
+ * `/proof/<market>` on Canton: the page's view of one Window, mapped from the projection's rows (`@owarine/db`
  * `proofWindow`, `proofPrints`) with core's integer rule. Pure and browser-safe, so the screen, the `/dev` fixture and
  * the tests share it; the reads live in `canton-proof.server.ts`.
  */
-import { exchangeOfParty, lowerMedian, parseVoidDetail, spreadBps, disagrees, type EvidenceItem, type Exchange, type ProofResolution, type ProofSide, type ProofSlot, type ProofVoid } from "@agari/core/proof";
+import { exchangeOfParty, lowerMedian, parseVoidDetail, spreadBps, disagrees, type EvidenceItem, type Exchange, type ProofResolution, type ProofSide, type ProofSlot, type ProofVoid } from "@owarine/core/proof";
 
-/** The rows as `@agari/db` answers them (structural: the page never imports the database package into the browser). */
+/** The rows as `@owarine/db` answers them (structural: the page never imports the database package into the browser). */
 export interface WindowRowWire {
   market: string;
   symbol: string | null;

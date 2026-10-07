@@ -1,8 +1,8 @@
 "use client";
 
-import { slippageLadder, stakeLadder, type SlippageRow } from "@agari/core/surface";
-import type { BookDepth, Side } from "@agari/core/types";
-import { bpsToOddsCents, formatBaseUnits } from "@agari/core/units";
+import { slippageLadder, stakeLadder, type SlippageRow } from "@owarine/core/surface";
+import type { BookDepth, Side } from "@owarine/core/types";
+import { bpsToOddsCents, formatBaseUnits } from "@owarine/core/units";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SIDE_WORD, SIDES } from "../markets/side-styles";

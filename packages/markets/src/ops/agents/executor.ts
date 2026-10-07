@@ -12,12 +12,12 @@
  * The command id is deterministic over owner · agent · Window · grant · side · the ledger offset the attempt started
  * from (`grantBuyCommandId`), so a lost reply is recovered from the ledger's completion for that id, never re-sent.
  */
-import type { OrderOutcome } from "@agari/core/ports";
-import { marketIdFromDaml } from "@agari/core/market";
-import { diagnosis, type EventMarket, type MarketId, type Quote, type Side, type Signature } from "@agari/core/types";
-import { capsAtQuotePrice } from "@agari/core/vault";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { DisclosedContract, JsTransaction, LedgerClient, Party, TransactionFormat } from "@agari/ledger";
+import type { OrderOutcome } from "@owarine/core/ports";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { diagnosis, type EventMarket, type MarketId, type Quote, type Side, type Signature } from "@owarine/core/types";
+import { capsAtQuotePrice } from "@owarine/core/vault";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { DisclosedContract, JsTransaction, LedgerClient, Party, TransactionFormat } from "@owarine/ledger";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 import { classifyRejection } from "../../server/rejection";

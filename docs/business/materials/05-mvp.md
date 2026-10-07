@@ -1,10 +1,10 @@
-# MVP Materials: Agari on Canton
+# MVP Materials: Owarine on Canton
 
 *Platform material 5 of 6. The criterion reads: "Working prototype, code quality and depth of Canton integration."*
 
 ## What it is
 
-Agari, Abu's prediction market on Solana (web and a native iOS app), ported to **Canton and Daml**. The Solana programs were replaced by four Daml packages, and the app now reaches the ledger through its own JSON Ledger API v2 client. Prior work is disclosed in `docs/business/prior-work-disclosure.md`; judged work starts at the tag `hackcanton-s3-start`.
+Owarine is Agari, Abu's prediction market on Solana (web and a native iOS app), renamed and ported to **Canton and Daml**. The Solana programs were replaced by four Daml packages, and the app now reaches the ledger through its own JSON Ledger API v2 client. Prior work is disclosed in `docs/business/prior-work-disclosure.md`; judged work starts at the tag `hackcanton-s3-start`.
 
 ## The one workflow to try
 

@@ -9,15 +9,15 @@
  *   claim    Round_Claim · Ticket_ClaimLeg · Boost_Claim (the owner's own settle, same rule as the venue's)
  *   refund   Round_RefundStale · Ticket_VoidStale · Boost_RefundStale (from refundAfter / voidAfter, no resolution needed)
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type Command, type DisclosedContract, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
-import { diagnosis, type Diagnosis, type Signature } from "@agari/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type Command, type DisclosedContract, type JsTransaction, type LedgerClient, type Party } from "@owarine/ledger";
+import { diagnosis, type Diagnosis, type Signature } from "@owarine/core/types";
 import { decodeOpenPrint, decodeResolution, templateSuffix } from "../ops/canton/decode";
 import * as tcmd from "../ops/tickets/commands";
 import { decodeNavStatement, nextParlayLeg } from "../ops/tickets/decode";
 import { createMarketReader } from "./reads";
 import { boostMarkBase } from "../tickets/pricing";
-import type { BookLevel } from "@agari/core/market";
+import type { BookLevel } from "@owarine/core/market";
 import { receiptViews, type MarketFacts } from "./tickets-receipts";
 import { createdEvents, SEAT_TICKET_TEMPLATES, ticketOutcome, toTicketSnapshot, type TicketSeatSnapshot, type WindowFacts } from "./tickets-read";
 import { isEarnReserve, type EarnReserveId } from "../tickets/params";

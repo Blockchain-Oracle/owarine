@@ -1,7 +1,7 @@
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { LaneSet } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { useLanes } from "@agari/markets/react";
+import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { LaneSet } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useLanes } from "@owarine/markets/react";
 import { router } from "expo-router";
 import { Bell, BellRing } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";

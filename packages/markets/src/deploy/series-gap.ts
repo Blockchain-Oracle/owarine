@@ -6,9 +6,9 @@
  * the Surfpool time-travel drive, whose prints are labelled drive data; 902, TSLA's Pyth v1 Gap version for the overnight
  * devnet drive (Q-S6-3). And `openGapWindow`, the roller's Gap listing for drives (the cycle's `openWindow` is Regular-only).
  */
-import { LAUNCH_TICKERS, TICKERS, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
-import { GAP_CADENCE_SEC } from "@agari/core/types";
-import type { Address } from "@agari/core/types";
+import { LAUNCH_TICKERS, TICKERS, type ScheduledWindow, type TickerSymbol } from "@owarine/core/market";
+import { GAP_CADENCE_SEC } from "@owarine/core/types";
+import type { Address } from "@owarine/core/types";
 import type { KeyPairSigner } from "./client";
 import type { OpenedWindow } from "./cycle/window";
 import { ADMIT_UNTIL_LOCK, asciiFeedId, I64_MAX, policyVersions, SOURCE, ZERO_POLICY, type PriceSources } from "./policies";
@@ -36,7 +36,7 @@ export function gapSeriesSpecs(sources: PriceSources, symbols: readonly TickerSy
 
 export const DRIVE_GAP_ATTESTED_TICKER = 901;
 export const DRIVE_GAP_PYTH_TICKER = 902;
-export const DRIVE_GAP_ATTESTED_FEED = asciiFeedId("agari-drive-attested:TSLA-gap");
+export const DRIVE_GAP_ATTESTED_FEED = asciiFeedId("owarine-drive-attested:TSLA-gap");
 
 /** Series 901: attested primary (10 s correction delay, 60 s bars), open admission until the lock, no check; open-ended. */
 export function driveGapAttestedSeries(sources: PriceSources): SeriesSpec {

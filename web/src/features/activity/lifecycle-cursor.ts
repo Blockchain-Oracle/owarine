@@ -1,13 +1,13 @@
 "use client";
 
 /**
- * What the lifecycle watcher has already announced, per wallet, under `agari.activity.seenThrough` (spec §1.6).
+ * What the lifecycle watcher has already announced, per wallet, under `owarine.activity.seenThrough` (spec §1.6).
  *
  * `throughSec` is the newest event time announced. `ids` are the recently announced events themselves, shared through
  * storage so a second open tab does not announce them again. The cursor starts at the tab's mount, so nothing from
  * before it is ever announced — no backlog burst. Storage is best-effort: a blocked store falls back to this tab's memory.
  */
-const STORAGE_KEY = "agari.activity.seenThrough";
+const STORAGE_KEY = "owarine.activity.seenThrough";
 const IDS_MAX = 100;
 
 export interface SeenCursor {

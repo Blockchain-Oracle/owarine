@@ -1,5 +1,5 @@
-import type { OutcomeColumn } from "@agari/core/desk";
-import { TICKERS, type PreIpoSymbol } from "@agari/core/market";
+import type { OutcomeColumn } from "@owarine/core/desk";
+import { TICKERS, type PreIpoSymbol } from "@owarine/core/market";
 import { Ban, Check, CircleDashed, Hand, OctagonAlert, type LucideIcon } from "lucide-react-native";
 import type { Palette } from "~/theme";
 

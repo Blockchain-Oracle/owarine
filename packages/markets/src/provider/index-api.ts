@@ -3,8 +3,8 @@
  * answer for a second, so the several reads a surface mounts together (positions for holdings, claimables and the
  * balance sheet) cost one round trip. Every failure to reach it is `indexer-down`, the retryable outage kind.
  */
-import { SEAT_READ_HEADER } from "@agari/core/auth";
-import { diagnosis } from "@agari/core/types";
+import { SEAT_READ_HEADER } from "@owarine/core/auth";
+import { diagnosis } from "@owarine/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { peekClient } from "../runtime/read-runtime";
 import { indexerBase } from "./indexer-base";
@@ -213,7 +213,7 @@ async function request<T>(url: string, path: string): Promise<T[]> {
 /** GET `<indexer>/<path>?<query>` → rows. Undefined query values are dropped. */
 export function indexRows<T>(path: string, query: Record<string, string | number | undefined> = {}): Promise<T[]> {
   const base = peekClient()?.indexerUrl;
-  if (!base) return Promise.reject(indexerDown("no indexer configured (NEXT_PUBLIC_AGARI_INDEXER_URL)"));
+  if (!base) return Promise.reject(indexerDown("no indexer configured (NEXT_PUBLIC_OWARINE_INDEXER_URL)"));
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) if (value !== undefined) params.set(key, String(value));
   const search = params.toString() ? `?${params}` : "";

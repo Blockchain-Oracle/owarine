@@ -1,9 +1,9 @@
 // Dev runner for the projector alone.
-//   pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/dev/projector.ts [--rebuild] [--once]
+//   pnpm --filter @owarine/ops exec tsx --env-file-if-exists=../../.env.local src/dev/projector.ts [--rebuild] [--once]
 // --rebuild truncates every idx_ table first (a full replay from offset 0); --once catches up to the ledger end as it
 // is at start, prints the status row and exits. Env: DATABASE_URL, VENUE_PARTY, LEDGER_JSON_API_URL (+ LEDGER_AUTH_MODE…).
-import { getDb, indexReader, indexWriter } from "@agari/db";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
+import { getDb, indexReader, indexWriter } from "@owarine/db";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
 import { startProjector } from "../actors/projector";
 import { redact } from "../runtime";
 

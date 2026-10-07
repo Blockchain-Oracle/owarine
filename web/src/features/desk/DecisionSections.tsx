@@ -1,9 +1,9 @@
 "use client";
 
-import { deskRecordSchema, nameOf, type DeskRecordBody } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import { deskRecordSchema, nameOf, type DeskRecordBody } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import type { Signature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import { webEnv } from "@/lib/env";
 import { ArrowUpRight, Eye, Radar, Fingerprint, Gavel, Hourglass, Receipt, Search, ShieldCheck, Split, TrendingDown, TrendingUp, Zap } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";

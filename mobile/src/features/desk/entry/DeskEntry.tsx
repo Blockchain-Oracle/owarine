@@ -1,5 +1,5 @@
-import { DEFAULT_LIMITS, DEFAULT_MONEY } from "@agari/core/desk";
-import { BASKET_SYMBOLS } from "@agari/core/market";
+import { DEFAULT_LIMITS, DEFAULT_MONEY } from "@owarine/core/desk";
+import { BASKET_SYMBOLS } from "@owarine/core/market";
 import { router } from "expo-router";
 import { ArrowRight, Ban, Check, CircleDashed, ShieldCheck, type LucideIcon } from "lucide-react-native";
 import type { ReactNode } from "react";

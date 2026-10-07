@@ -1,5 +1,5 @@
-import { formatCadence } from "@agari/core/copy";
-import { countdown } from "@agari/core/lifecycle";
+import { formatCadence } from "@owarine/core/copy";
+import { countdown } from "@owarine/core/lifecycle";
 import { useQueryClient } from "@tanstack/react-query";
 import { VAULT } from "@/features/vault/copy";
 import { invalidateVaultOpenBets, type VaultOpenBet } from "@/features/vault/useVaultOpenBets";

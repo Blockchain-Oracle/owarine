@@ -1,4 +1,4 @@
-import { diagnosis } from "@agari/core/types";
+import { diagnosis } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { ReadingError } from "../errors/reading-error";
 import { isInfrastructureFailure } from "./useReadingQuery";

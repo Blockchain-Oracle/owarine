@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Address, MarketId } from "@agari/core/types";
+import type { Address, MarketId } from "@owarine/core/types";
 import type { TicketReceiptView } from "../provider/ticket-wire";
 import { ticketIdOf } from "./client";
 import { TICKET_ONE } from "./params";

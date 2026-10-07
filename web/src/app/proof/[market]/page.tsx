@@ -1,4 +1,4 @@
-import { isAddress, toMarketId } from "@agari/core/types";
+import { isAddress, toMarketId } from "@owarine/core/types";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PROOF, ProofScreen } from "@/features/proof";

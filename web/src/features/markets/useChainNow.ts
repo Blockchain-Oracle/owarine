@@ -1,6 +1,6 @@
 "use client";
 
-import { marketsProvider } from "@agari/markets";
+import { marketsProvider } from "@owarine/markets";
 import { useEffect, useState } from "react";
 import { useDocumentVisible } from "@/lib/visibility";
 

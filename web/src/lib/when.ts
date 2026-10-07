@@ -1,8 +1,8 @@
 "use client";
 
-import { sessionPhrase } from "@agari/core/copy";
-import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate, type SessionStatus } from "@agari/core/market";
-import { marketsProvider } from "@agari/markets";
+import { sessionPhrase } from "@owarine/core/copy";
+import { ET_WEEKDAY_SHORT, etDateOf, formatEtClock, weekdayOfDate, type SessionStatus } from "@owarine/core/market";
+import { marketsProvider } from "@owarine/markets";
 import { useSyncExternalStore } from "react";
 
 /**

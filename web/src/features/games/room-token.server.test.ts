@@ -4,7 +4,7 @@
  * that same live lease. Another seat's address, or a key whose lease ended, never gets a token or posts a score.
  */
 import { describe, expect, it } from "vitest";
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { seatVouch, type ProvenSeat } from "./room-token.server";
 
 const LEASE_A = "00000000-0000-4000-8000-00000000000a";

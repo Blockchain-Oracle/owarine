@@ -1,4 +1,4 @@
-import { describeTargets, nameOf } from "@agari/core/desk";
+import { describeTargets, nameOf } from "@owarine/core/desk";
 import { router, type Href } from "expo-router";
 import { CalendarClock, Coins, Cpu, Hand, NotebookPen, PencilLine, PieChart, ShieldAlert, ShieldCheck, TrendingUp, Waves, type LucideIcon } from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";

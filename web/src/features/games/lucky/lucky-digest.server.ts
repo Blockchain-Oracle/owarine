@@ -1,6 +1,6 @@
 import { createHmac, randomBytes } from "node:crypto";
-import { luckyDrawMessage, type LuckyDrawInput } from "@agari/core/games";
-import type { Hash32, Hex } from "@agari/core/types";
+import { luckyDrawMessage, type LuckyDrawInput } from "@owarine/core/games";
+import type { Hash32, Hex } from "@owarine/core/types";
 
 /**
  * The server's half of the provable draw — the only place `node:crypto` touches Lucky.

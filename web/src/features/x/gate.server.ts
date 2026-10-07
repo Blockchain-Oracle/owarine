@@ -1,6 +1,6 @@
-import { X_LINK_SIGNATURE_TTL_MS, xLinkMessage, xUnlinkMessage } from "@agari/core/x";
-import { xLinkByAuthor, xLinkByWallet, type XLinkRecord } from "@agari/db";
-import { isAddress, isSignature } from "@agari/core/types";
+import { X_LINK_SIGNATURE_TTL_MS, xLinkMessage, xUnlinkMessage } from "@owarine/core/x";
+import { xLinkByAuthor, xLinkByWallet, type XLinkRecord } from "@owarine/db";
+import { isAddress, isSignature } from "@owarine/core/types";
 import { cookies, headers } from "next/headers";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 import { readXConfig, type XConfig } from "./config.server";

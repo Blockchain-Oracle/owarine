@@ -1,11 +1,11 @@
 "use client";
 
-import { formatCadence } from "@agari/core/market";
-import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@agari/core/range";
-import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
-import type { MoonshotQuote, RangeCapacity } from "@agari/markets/range";
+import { formatCadence } from "@owarine/core/market";
+import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@owarine/core/range";
+import type { Diagnosis, EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
+import type { MoonshotQuote, RangeCapacity } from "@owarine/markets/range";
 import { Loader2 } from "lucide-react";
 import { Countdown } from "@/components/data";
 import { diagnosisCopy } from "@/lib/copy";

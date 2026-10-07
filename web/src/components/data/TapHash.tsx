@@ -1,6 +1,6 @@
 "use client";
 
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";

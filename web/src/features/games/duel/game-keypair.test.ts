@@ -1,7 +1,7 @@
-import { verifySignedMessage } from "@agari/core/auth";
+import { verifySignedMessage } from "@owarine/core/auth";
 import { describe, expect, it } from "vitest";
 import { webCryptoEd25519 } from "@/lib/auth/verify-signed-message.server";
-import { encodeBase58 } from "@agari/core/types";
+import { encodeBase58 } from "@owarine/core/types";
 import { generateGameKeypair, parseStoredSecret, signWithGameKey } from "./game-keypair";
 
 describe("the game key as a Solana keypair", () => {
@@ -11,7 +11,7 @@ describe("the game key as a Solana keypair", () => {
     const restored = parseStoredSecret(encodeBase58(pair.secretKey));
     expect(restored?.address).toBe(pair.address);
 
-    const text = "Agari — open the duel room\nNetwork: Solana devnet";
+    const text = "Owarine — open the duel room\nNetwork: Solana devnet";
     const signature = await signWithGameKey(pair.secretKey, text);
     expect(await verifySignedMessage({ text, signature, signer: pair.address }, webCryptoEd25519)).toBe(true);
     expect(await verifySignedMessage({ text: `${text}.`, signature, signer: pair.address }, webCryptoEd25519)).toBe(false);

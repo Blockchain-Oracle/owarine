@@ -1,6 +1,6 @@
-import { countdown, type MarketPhase } from "@agari/core/lifecycle";
-import type { EventMarket } from "@agari/core/types";
-import { formatClock } from "@agari/core/units";
+import { countdown, type MarketPhase } from "@owarine/core/lifecycle";
+import type { EventMarket } from "@owarine/core/types";
+import { formatClock } from "@owarine/core/units";
 import { Text } from "react-native";
 import { LANE_STATE, SETTLING } from "@/lib/copy";
 import { useWhen } from "@/lib/when";

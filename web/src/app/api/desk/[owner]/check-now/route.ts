@@ -1,4 +1,4 @@
-import { deskCheckNowText } from "@agari/core/desk";
+import { deskCheckNowText } from "@owarine/core/desk";
 import { NextResponse } from "next/server";
 import { answer, DESK_ERRORS, loadDesk, readJson, refuse, verifyOwner } from "@/features/desk/auth.server";
 import { checkNowRequestSchema, DESK_CLUSTER } from "@/features/desk/protocol";

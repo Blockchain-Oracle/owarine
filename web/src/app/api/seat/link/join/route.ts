@@ -1,4 +1,4 @@
-import { SEAT_LINK_CONFIRM_MS } from "@agari/markets";
+import { SEAT_LINK_CONFIRM_MS } from "@owarine/markets";
 import { type NextRequest } from "next/server";
 import { ipBucket, rateLimitKey } from "@/lib/client-ip.server";
 import { seatServer } from "@/lib/ledger.server";
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   const lease = await server.store.byLease(outcome.leaseId);
   if (!lease) return refusal("signer-required", "that seat's lease has just ended; take a seat on the other device again", 410);
   const response = replyWith(leaseView(lease, leaseRules(server)));
-  const cookie = mintSeatCookie(server.env.AGARI_SEAT_COOKIE_SECRET, lease.leaseId, check.address, now);
+  const cookie = mintSeatCookie(server.env.OWARINE_SEAT_COOKIE_SECRET, lease.leaseId, check.address, now);
   const secure = requestOrigin(request).startsWith("https://");
   response.cookies.set({ name: SEAT_COOKIE, value: cookie.value, httpOnly: true, sameSite: "lax", secure, path: "/", maxAge: SEAT_COOKIE_TTL_MS / 1000 });
   return response;

@@ -1,10 +1,10 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { MarketId } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
-import { useMarket, useResolution } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
+import { useMarket, useResolution } from "@owarine/markets/react";
 import { ReceiptRow } from "@/components/receipt";
 import { CLAIM } from "@/lib/copy";
 import { webEnv } from "@/lib/env";

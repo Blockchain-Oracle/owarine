@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { encodeBase58 } from "@agari/core/types";
-import type { XReceipt, XReceiptStatus } from "@agari/core/x";
+import { encodeBase58 } from "@owarine/core/types";
+import type { XReceipt, XReceiptStatus } from "@owarine/core/x";
 import { receiptDisplay } from "./receipt-display";
 
 const receipt: XReceipt = {

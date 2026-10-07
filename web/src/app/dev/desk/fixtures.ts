@@ -3,9 +3,9 @@
  * no index and no mainnet. The wire shapes are the routes' own (`protocol.ts`), so a fixture renders exactly as a
  * live read would.
  */
-import { DEFAULT_LIMITS, DEFAULT_MONEY, mandateToWire, presetMandate } from "@agari/core/desk";
-import { ok, type Reading } from "@agari/core/schemas";
-import { DESK_MINTS, type OwnerDeskBalances } from "@agari/markets/desk";
+import { DEFAULT_LIMITS, DEFAULT_MONEY, mandateToWire, presetMandate } from "@owarine/core/desk";
+import { ok, type Reading } from "@owarine/core/schemas";
+import { DESK_MINTS, type OwnerDeskBalances } from "@owarine/markets/desk";
 import type { ApprovalWire, DeskRowWire, DeskViewWire, SnapshotWire } from "@/features/desk/protocol";
 import type { DeskActions, StudioActions } from "@/features/desk/useDeskWrites";
 import { fixtureAddress } from "../fixture-ids";

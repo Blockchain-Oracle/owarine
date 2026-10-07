@@ -9,7 +9,7 @@
  * (`xstocksToProbe`), because once the lane is halted the roller opens no Window, so no print ever tries a quote
  * again and the halt could never clear on its own (529 minutes on 2026-09-16).
  */
-import { QUOTE_FAILURES_TO_HALT, type XStockSymbol } from "@agari/core/market";
+import { QUOTE_FAILURES_TO_HALT, type XStockSymbol } from "@owarine/core/market";
 
 /** How often a halted xStock's quote source is probed while its streak stays at the halt threshold. */
 export const PROBE_EVERY_SEC = 300;

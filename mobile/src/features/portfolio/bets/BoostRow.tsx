@@ -1,9 +1,9 @@
-import { formatCadence } from "@agari/core/copy";
-import { equityOf, type LeveragePosition } from "@agari/core/leverage";
-import { countdown } from "@agari/core/lifecycle";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { useLeverageMark, useMarket } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import { equityOf, type LeveragePosition } from "@owarine/core/leverage";
+import { countdown } from "@owarine/core/lifecycle";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useLeverageMark, useMarket } from "@owarine/markets/react";
 import { LEVERAGE } from "@/features/leverage/copy";
 import { useLeverageWrites } from "@/features/leverage/useLeverageWrites";
 import { SIDE_WORD } from "@/features/markets/side-styles";

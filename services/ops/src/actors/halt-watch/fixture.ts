@@ -5,7 +5,7 @@
  * Every pass that uses one says FIXTURE in its why-string. See `fixtures/halted-session.json`.
  */
 import { readFileSync } from "node:fs";
-import { isTickerSymbol, XSTOCK_SYMBOLS, type XStockSymbol } from "@agari/core/market";
+import { isTickerSymbol, XSTOCK_SYMBOLS, type XStockSymbol } from "@owarine/core/market";
 import type { Observations } from "./decide";
 
 export interface HaltFixture {

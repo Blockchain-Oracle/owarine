@@ -2,7 +2,7 @@
  * The process's halt board (session-lanes.md §3.1): `halt-watch` is its single writer, everything else reads a copy.
  * In memory only: a restart starts empty and `halt-watch` re-derives every halt within one pass.
  */
-import type { HaltBoard, HaltReason } from "@agari/core/types";
+import type { HaltBoard, HaltReason } from "@owarine/core/types";
 
 type HaltAsset = keyof HaltBoard;
 

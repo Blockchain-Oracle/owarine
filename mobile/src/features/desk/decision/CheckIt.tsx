@@ -1,5 +1,5 @@
-import { canonicalJson, hashRecord } from "@agari/core/desk";
-import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@agari/markets/desk";
+import { canonicalJson, hashRecord } from "@owarine/core/desk";
+import { createBrowserDeskRpc, readSealsOf, type DeskRpc } from "@owarine/markets/desk";
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Code, Download, ShieldCheck } from "lucide-react-native";

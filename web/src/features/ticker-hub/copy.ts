@@ -1,4 +1,4 @@
-import type { Ticker, TickerSymbol } from "@agari/core/market";
+import type { Ticker, TickerSymbol } from "@owarine/core/market";
 
 /**
  * `/tickers/[SYMBOL]` — one stock's square: its price and session, its next report, its Room, what traders called on
@@ -9,9 +9,9 @@ export const TICKER_HUB = {
   alwaysOpen: "Trading 24/7",
   eyebrow: (kind: Ticker["kind"]) => (kind === "etf" ? "ETF" : kind === "preIpo" ? "Pre-IPO" : kind === "basket" ? "Basket" : kind === "valuation" ? "Valuation" : kind === "crypto" ? "Crypto" : "Stock"),
   headingJp: "銘柄の広場。",
-  intro: (name: string) => `Everything Agari knows about ${name} in one place: the live print, the session, the next report, and every call on its Windows.`,
+  intro: (name: string) => `Everything Owarine knows about ${name} in one place: the live print, the session, the next report, and every call on its Windows.`,
   /** C9e: a coin trades around the clock and files no reports: no session and no report date are promised. */
-  introCrypto: (name: string) => `Everything Agari knows about ${name} in one place: the live print, around the clock, and every call on its Windows.`,
+  introCrypto: (name: string) => `Everything Owarine knows about ${name} in one place: the live print, around the clock, and every call on its Windows.`,
   spot: "Spot",
   spotStale: "last print",
   earnings: "Next report",
@@ -24,8 +24,8 @@ export const TICKER_HUB = {
 
   /** A pre-IPO name (D-100): no report date exists, so the bar shows what only PreStocks has, and Pyth's valuation index where the venue may read it (S20). */
   preIpo: {
-    intro: (name: string) => `Everything Agari knows about ${name} in one place: the PreStocks token price, the SPV's own valuation, how far apart the two sit, and every call on its Windows.`,
-    introBoth: (name: string) => `Everything Agari knows about ${name} in one place: the PreStocks token price, the SPV's own valuation, Pyth's valuation index, how far apart they sit, and every call on its Windows.`,
+    intro: (name: string) => `Everything Owarine knows about ${name} in one place: the PreStocks token price, the SPV's own valuation, how far apart the two sit, and every call on its Windows.`,
+    introBoth: (name: string) => `Everything Owarine knows about ${name} in one place: the PreStocks token price, the SPV's own valuation, Pyth's valuation index, how far apart they sit, and every call on its Windows.`,
     tokenPrice: "Token price",
     mark: "PreStocks mark",
     markHint: "PreStocks' valuation of the company per token",

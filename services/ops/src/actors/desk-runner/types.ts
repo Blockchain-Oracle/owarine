@@ -4,11 +4,11 @@
  * the agent-runner party can act, the venue's ladders (the live leg's prices), the brain, the sliding-hour call budget
  * and the mint cache (every name 9 dp, multiplier 1 on Canton). Built once in `index.ts`.
  */
-import type { ResolvedModel } from "@agari/brain";
-import type { DeskMandate, DeskValuation, PlannedOutcome } from "@agari/core/desk";
-import type { DeskQueries, DeskRow, MandateRow, WakeTrigger } from "@agari/db";
-import type { DeskMintState, DeskOperatorClient, DeskRpc, DeskState } from "@agari/markets/desk/server";
-import type { Ladder } from "@agari/markets/runtime";
+import type { ResolvedModel } from "@owarine/brain";
+import type { DeskMandate, DeskValuation, PlannedOutcome } from "@owarine/core/desk";
+import type { DeskQueries, DeskRow, MandateRow, WakeTrigger } from "@owarine/db";
+import type { DeskMintState, DeskOperatorClient, DeskRpc, DeskState } from "@owarine/markets/desk/server";
+import type { Ladder } from "@owarine/markets/runtime";
 import type { PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import type { Log } from "../../runtime/actor";
 import type { DeskRunnerEnv } from "./env";

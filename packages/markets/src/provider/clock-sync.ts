@@ -5,8 +5,8 @@
  * and carries the ledger offset. A route that cannot answer is the honest error reading, and `nowMs()` stays device
  * time until one does.
  */
-import { err, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, type ClockSync } from "@agari/core/types";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import { diagnosis, type ClockSync } from "@owarine/core/types";
 import { venueClockWire, venueRequest } from "./venue-api";
 
 export async function syncClock(): Promise<Reading<ClockSync>> {

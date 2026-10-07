@@ -3,8 +3,8 @@
  * fixture accounts. Fixtures override only what their screen is about, so a new field on the read model lands here once.
  * A `lane` and `lockAtSec` pass straight through; `fixtureGapWindow` builds a Gap from its three instants (S6 §5).
  */
-import type { TickerSymbol } from "@agari/core/market";
-import { GAP_CADENCE_SEC, type EventMarket, type LaneBasis, type MarketId } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import { GAP_CADENCE_SEC, type EventMarket, type LaneBasis, type MarketId } from "@owarine/core/types";
 import { fixtureAddress } from "./fixture-ids";
 
 export function fixtureWindow(input: { marketId: MarketId; asset?: TickerSymbol; intervalSec: number; expirySec: number; decimals: number } & Partial<EventMarket>): EventMarket {

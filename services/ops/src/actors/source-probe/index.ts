@@ -12,8 +12,8 @@
  *   alpaca       (C6e) Alpaca's latest IEX trade for QQQ answers with the ops keys
  *   jupiter      (C6e) the running xStock feed sampled every xStock in the last 30 s (else one direct Price v3 read)
  */
-import { ATTESTED_SOURCE_LABEL, PRE_IPO_TICKERS, type AttestedSource } from "@agari/core/market";
-import { fetchPreStocks } from "@agari/markets/ops/prints";
+import { ATTESTED_SOURCE_LABEL, PRE_IPO_TICKERS, type AttestedSource } from "@owarine/core/market";
+import { fetchPreStocks } from "@owarine/markets/ops/prints";
 import { runActor } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
 import { heartbeats } from "../../runtime/heartbeat";
@@ -21,7 +21,7 @@ import type { PythEntitlementStore } from "../../runtime/pyth-entitlement";
 import type { SourceHealthStore, SourceState } from "../../runtime/source-health";
 import { currentPreStocksSpot } from "../../prices/prestocks-spot";
 import { currentXStockSpot } from "../../prices/xstock-spot";
-import { XSTOCK_SYMBOLS } from "@agari/core/market";
+import { XSTOCK_SYMBOLS } from "@owarine/core/market";
 import { SWITCHBOARD_CROSSBAR, surgeValueOf } from "../../prices/attested-read";
 import { HERMES } from "../price-relay/hermes-fetch";
 const REDSTONE_LATEST_PATH = "/data-packages/latest/redstone-primary-prod";

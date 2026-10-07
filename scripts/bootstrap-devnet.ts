@@ -4,7 +4,7 @@
  * uploads nothing.
  *
  *   1. authenticates as the platform user (password grant per process, single-flight, re-granted at 80% of
- *      `expires_in`, no refresh token stored: `@agari/ledger`, K-035 option A),
+ *      `expires_in`, no refresh token stored: `@owarine/ledger`, K-035 option A),
  *   2. reads the parties Abu filled (`--parties`, JSON in the shape of `docs/plan/runbooks/devnet-parties.example.json`,
  *      or the Console's party list pasted as text) and checks each one by id: hosted here, and our user can act as it.
  *      Nothing on the shared node is enumerated (no unfiltered `/v2/parties`, no `/v2/users`),
@@ -17,12 +17,12 @@
  *
  *   LEDGER_AUTH_MODE=password LEDGER_JSON_API_URL=… LEDGER_OIDC_TOKEN_URL=… LEDGER_OIDC_CLIENT_ID=… \
  *   LEDGER_OIDC_USERNAME=… LEDGER_OIDC_PASSWORD=… \
- *   pnpm --filter @agari/scripts exec tsx bootstrap-devnet.ts [--parties file] [--out file] [--seats 8] [--dry-run]
+ *   pnpm --filter @owarine/scripts exec tsx bootstrap-devnet.ts [--parties file] [--out file] [--seats 8] [--dry-run]
  *     [--check-only] [--shards 16] [--lanes crypto,regular,gap,token,preipo,basket] [--reserve-seed 10000]
  *     [--no-tickets] [--no-games] [--allow-local] [--run <id>]
  *
  * Every write's commandId ends in the run id (`devnet-<base36 time>`, printed at the start). A write that meets
- * SUBMISSION_ALREADY_IN_FLIGHT waits for the pending submission (`@agari/ledger`, up to `LEDGER_INFLIGHT_WAIT_MS`). If
+ * SUBMISSION_ALREADY_IN_FLIGHT waits for the pending submission (`@owarine/ledger`, up to `LEDGER_INFLIGHT_WAIT_MS`). If
  * a write still ends "outcome unknown", re-run with `--run <that id>`: the pending write is then resolved under its own
  * commandId (deduplicated if it landed, waited on if it is still in flight), never re-sent under a new one.
  *
@@ -35,7 +35,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
-import { ledgerClientFromEnv, ledgerConfigSummary, parseLedgerEnv } from "@agari/ledger";
+import { ledgerClientFromEnv, ledgerConfigSummary, parseLedgerEnv } from "@owarine/ledger";
 import type { CantonRole } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
 import { repoDars } from "./bootstrap/dar";
@@ -46,7 +46,7 @@ import { valuationGate, valuationRefusal } from "./bootstrap/valuation-gate";
 import { bootstrapVenue, POLICY_VERSION, type SentWrite } from "./bootstrap/venue";
 
 const REPO = resolve(import.meta.dirname, "..");
-const DEFAULT_FILE = join(homedir(), ".config", "agari", "canton", "parties.devnet.json");
+const DEFAULT_FILE = join(homedir(), ".config", "owarine", "canton", "parties.devnet.json");
 const log = (s: string) => console.log(`[devnet] ${s}`);
 const insideRepo = (p: string) => !relative(REPO, resolve(p)).startsWith("..");
 
@@ -63,7 +63,7 @@ if (!/^[A-Za-z0-9-]{1,40}$/.test(run)) throw new Error("--run takes 1-40 letters
 const seats = Number(arg("--seats", String(DEFAULT_SEATS)));
 /** `~/…` expanded: an env file does not expand it, and a relative path would resolve inside the repo. */
 const home = (p: string) => resolve(p.replace(/^~(?=\/|$)/, homedir()));
-const input = home(arg("--parties", process.env.AGARI_PARTIES_FILE || DEFAULT_FILE));
+const input = home(arg("--parties", process.env.OWARINE_PARTIES_FILE || DEFAULT_FILE));
 const out = home(arg("--out", input.endsWith(".json") ? input : DEFAULT_FILE));
 const commit = (() => {
   try {
@@ -75,7 +75,7 @@ const commit = (() => {
 
 async function main(): Promise<number> {
   if (!Number.isInteger(seats) || seats < 1) throw new Error("--seats must be a positive integer");
-  if (insideRepo(input) || insideRepo(out)) throw new Error("the parties file lives outside the repo (party ids never go into Git): use ~/.config/agari/canton/");
+  if (insideRepo(input) || insideRepo(out)) throw new Error("the parties file lives outside the repo (party ids never go into Git): use ~/.config/owarine/canton/");
   // C2z: a rehearsal's sandbox ids must never land in the file ops and the web read on DevNet.
   if (local && out === DEFAULT_FILE) throw new Error(`a local rehearsal never writes ${DEFAULT_FILE}: pass --out <file outside the repo>`);
   if (!existsSync(input)) throw new Error(`${input} does not exist: copy docs/plan/runbooks/devnet-parties.example.json there and fill it`);
@@ -149,7 +149,7 @@ async function main(): Promise<number> {
     const file = { ...parsed.file, createdAtMs: Date.now(), policyVersion: POLICY_VERSION };
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, `${JSON.stringify(file, null, 2)}\n`, { mode: 0o600 });
-    log(`wrote ${out} (the file ops and the web read: AGARI_PARTIES_FILE)`);
+    log(`wrote ${out} (the file ops and the web read: OWARINE_PARTIES_FILE)`);
   }
   return finish(rows, writes, started);
 }

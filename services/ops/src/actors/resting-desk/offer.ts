@@ -11,16 +11,16 @@
  * lives at most until the bell. Before the bell the venue has no ladder for a Window (it prices from the opening print),
  * so nothing can cross yet; the call meets the venue's ladder at the bell (`rule.ts`).
  *
- * The contract is the web's (`@agari/markets/server` `OpsRestingRequest`, `restingOfferReplyWire`):
+ * The contract is the web's (`@owarine/markets/server` `OpsRestingRequest`, `restingOfferReplyWire`):
  *   request  `{ marketId, side, stakeBase, priceCents, restUntil, displayedEscrowBase, party, leaseId }`, bigints as strings
  *   reply    `{ kind: "offer", offerCid, rested, validUntilMs }` · `{ kind: "requote", quote }` · `{ kind: "refused", diagnosis }`
  */
 import { randomUUID } from "node:crypto";
-import { MAX_RESTING_PER_SEAT, restExpirySec, restingQuote } from "@agari/core/orders";
-import { diagnosis, type Diagnosis, type DiagnosisKind } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { cmd, createdOf, failureText, isIndefinite, refusalId, restOfferCommandId, submit, type Active, type RoleSession, type TermsC } from "@agari/markets/ops/canton";
-import { CASH_DECIMALS } from "@agari/markets/server";
+import { MAX_RESTING_PER_SEAT, restExpirySec, restingQuote } from "@owarine/core/orders";
+import { diagnosis, type Diagnosis, type DiagnosisKind } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { cmd, createdOf, failureText, isIndefinite, refusalId, restOfferCommandId, submit, type Active, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
+import { CASH_DECIMALS } from "@owarine/markets/server";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import { fillableLots, MIN_OFFER_LIFE_SEC, OFFER_LIFE_SEC } from "./rule";
 import { parseRestingRequest, type RestingOfferRequest } from "./parse";

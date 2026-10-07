@@ -1,8 +1,8 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
-import type { Address, EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, EventMarket, LaneSet, MarketId, Side } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
 import { useMemo } from "react";
 import { ReadingBoundary } from "@/components/states";
 import { MARKETS } from "@/lib/copy";

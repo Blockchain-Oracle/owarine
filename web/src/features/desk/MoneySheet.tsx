@@ -1,10 +1,10 @@
 "use client";
 
-import { nameOf } from "@agari/core/desk";
-import type { PreIpoSymbol } from "@agari/core/market";
-import type { Reading } from "@agari/core";
-import { parseDecimalToBaseUnits } from "@agari/core/units";
-import { DESK_MINTS, USDC_MAINNET, type OwnerDeskBalances } from "@agari/markets/desk";
+import { nameOf } from "@owarine/core/desk";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import type { Reading } from "@owarine/core";
+import { parseDecimalToBaseUnits } from "@owarine/core/units";
+import { DESK_MINTS, USDC_MAINNET, type OwnerDeskBalances } from "@owarine/markets/desk";
 import { useState } from "react";
 import { notify } from "@/lib/toast";
 import { ControlCard } from "./ControlCard";
@@ -35,7 +35,7 @@ interface MoneySheetProps {
  * Money in, money out (plan §5.5). Put money in has two ways side by side: USDC from this wallet, and PreStocks
  * tokens already held, with PreStocks' 1% transfer fee shown before confirming ("4.2 OPENAI leaves · 4.158 arrives").
  * Withdraw goes to the owner's own wallet only, some or all, as cash (the desk sells first) or as tokens. Money goes
- * straight to the desk's own account, never through Agari; the network is named on every card.
+ * straight to the desk's own account, never through Owarine; the network is named on every card.
  */
 export function MoneySheet({ view, actions, kind, zone, nowSec, onClose, balances: given }: MoneySheetProps) {
   const symbols = view.mandate?.targets.tokens.map((t) => t.symbol) ?? [];

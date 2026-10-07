@@ -1,8 +1,8 @@
 "use client";
 
-import { computeBadges, computeTraderEdge, reputationOf } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
-import { useMakerShares, useMakerVault } from "@agari/markets/react";
+import { computeBadges, computeTraderEdge, reputationOf } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
+import { useMakerShares, useMakerVault } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { ReadingBoundary } from "@/components/states";

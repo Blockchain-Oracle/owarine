@@ -1,12 +1,12 @@
-import { noEntryCutoffSec } from "@agari/core/lifecycle";
-import { describeRefusal, isBalanceOnlyXGrant, parseInstruction, selectXWindow, X_REFUSAL_DETAILS, type XInstruction } from "@agari/core/x";
-import { xLinkByAuthor, xReceiptUpsert, type XReceiptRecord } from "@agari/db";
-import { getCollateral, getVaultSnapshot, marketsProvider, readRecoveryCursor, resolveVenueId } from "@agari/markets";
+import { noEntryCutoffSec } from "@owarine/core/lifecycle";
+import { describeRefusal, isBalanceOnlyXGrant, parseInstruction, selectXWindow, X_REFUSAL_DETAILS, type XInstruction } from "@owarine/core/x";
+import { xLinkByAuthor, xReceiptUpsert, type XReceiptRecord } from "@owarine/db";
+import { getCollateral, getVaultSnapshot, marketsProvider, readRecoveryCursor, resolveVenueId } from "@owarine/markets";
 import type { AgentSession } from "../agents/session";
 
 /** What an actor needs of its agent session (tests pass a stand-in). */
 type AgentSessionLike = Pick<AgentSession, "address" | "submitter"> & Partial<Pick<AgentSession, "recoveryCursor">>;
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { Mention } from "./transport";
 import { outcomeToReceipt } from "./receipt-outcome";
 

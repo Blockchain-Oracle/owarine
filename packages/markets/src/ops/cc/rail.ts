@@ -13,9 +13,9 @@
  * Nothing here contacts a node in a test: the session's client and the registry client are injected. It is built from the
  * JSON Ledger API and registry API specifications and has not run against a participant (`docs/evidence/c7b-canton-coin.md`).
  */
-import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { ContractId, CreatedEvent, DisclosedContract, Party } from "@agari/ledger";
-import { atomicPerCashUnit } from "@agari/ledger/pure";
+import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { ContractId, CreatedEvent, DisclosedContract, Party } from "@owarine/ledger";
+import { atomicPerCashUnit } from "@owarine/ledger/pure";
 import { decodeVenueAccount, decodeVenueCash } from "../canton/decode";
 import { failureText, pick, submit, type RoleSession } from "../canton/session";
 import * as cmd from "./commands";

@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { TickerSymbol } from "@agari/core/market";
-import type { Address, EventMarket, Lane, LaneSet, MarketId } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Address, EventMarket, Lane, LaneSet, MarketId } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useCallback, useMemo, useState } from "react";
 
 export interface SurfaceSelection {

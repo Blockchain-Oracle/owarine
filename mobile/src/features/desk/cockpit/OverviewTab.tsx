@@ -1,4 +1,4 @@
-import { nameOf } from "@agari/core/desk";
+import { nameOf } from "@owarine/core/desk";
 import { CircleDashed } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { groupChecks } from "@/features/desk/activity/check-groups";

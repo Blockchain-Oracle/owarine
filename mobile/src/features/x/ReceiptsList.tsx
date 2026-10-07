@@ -1,5 +1,5 @@
-import { shortHex } from "@agari/core/units";
-import { xReceiptRecovery, xRefusalCopy, type XReceipt } from "@agari/core/x";
+import { shortHex } from "@owarine/core/units";
+import { xReceiptRecovery, xRefusalCopy, type XReceipt } from "@owarine/core/x";
 import { StyleSheet, Text, View } from "react-native";
 import { TRADE_FROM_X } from "@/features/x/copy";
 import { receiptDisplay } from "@/features/x/receipt-display";

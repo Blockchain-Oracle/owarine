@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { encodeBase58, toAddress, toMarketId } from "@agari/core/types";
+import { encodeBase58, toAddress, toMarketId } from "@owarine/core/types";
 import { ROOM_TOKEN_TTL_MS } from "./protocol";
 import { clearRoomToken, readRoomToken, writeRoomToken } from "./room-session";
 
-/** Valid, distinct base58 ids: every byte `n` (the `@agari/core` testing helpers' method). */
+/** Valid, distinct base58 ids: every byte `n` (the `@owarine/core` testing helpers' method). */
 const filled = (n: number) => encodeBase58(new Uint8Array(32).fill(n));
 const ADDRESS = toAddress(filled(0xd3));
 const MARKET = toMarketId(filled(0x45));
@@ -49,7 +49,7 @@ describe("room-session", () => {
   });
 
   it("survives the in-memory copy being lost, by reading storage back", () => {
-    storage.setItem(`agari:room:${ADDRESS}:${MARKET}`, JSON.stringify({ token: "tok-3", expiresAtMs: 5_000_000 }));
+    storage.setItem(`owarine:room:${ADDRESS}:${MARKET}`, JSON.stringify({ token: "tok-3", expiresAtMs: 5_000_000 }));
     expect(readRoomToken(ADDRESS, MARKET, 4_000_000)).toBe("tok-3");
   });
 

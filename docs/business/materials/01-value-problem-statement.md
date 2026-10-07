@@ -1,4 +1,4 @@
-# Value / Problem Statement: Agari on Canton
+# Value / Problem Statement: Owarine on Canton
 
 *Platform material 1 of 6. The criterion reads: "Clarity of the problem, why it matters and why now."*
 

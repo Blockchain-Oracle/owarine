@@ -1,9 +1,9 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
-import { formatCadence } from "@agari/core/copy";
-import type { LaneSet, Side } from "@agari/core/types";
-import { useOpeningPrice } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import type { LaneSet, Side } from "@owarine/core/types";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { UnplugIcon, XIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";

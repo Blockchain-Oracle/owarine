@@ -10,7 +10,7 @@
  *   resolve → claimables → claim → stale refund → release → a recycled seat starts empty
  *
  *   (a sandbox with the current abu-pm-main, Postgres, `pnpm build` done; C2z re-ran it on engine 0.5.0)
- *   LEDGER_JSON_API_URL=http://localhost:7525 SEAT_IT_DB=postgres://…/pm_c2z_it pnpm --filter @agari/scripts exec tsx drive/seat-routes-it.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7525 SEAT_IT_DB=postgres://…/pm_c2z_it pnpm --filter @owarine/scripts exec tsx drive/seat-routes-it.ts
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -19,11 +19,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { randomUUID, webcrypto } from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { messageBytes, formatSeatReadHeader, seatReadText, SEAT_READ_HEADER } from "@agari/core/auth";
-import { encodeBase58, type Address, type Signature } from "@agari/core/types";
-import { createLedgerClient, fee, noAuth } from "@agari/ledger";
-import { parseMarketsEnv, seatLeaseText, toWire } from "@agari/markets";
-import { appMarketId, OPS_NONCE_HEADER, OPS_QUOTES_PATH, OPS_SEAT_FUND_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@agari/markets/server";
+import { messageBytes, formatSeatReadHeader, seatReadText, SEAT_READ_HEADER } from "@owarine/core/auth";
+import { encodeBase58, type Address, type Signature } from "@owarine/core/types";
+import { createLedgerClient, fee, noAuth } from "@owarine/ledger";
+import { parseMarketsEnv, seatLeaseText, toWire } from "@owarine/markets";
+import { appMarketId, OPS_NONCE_HEADER, OPS_QUOTES_PATH, OPS_SEAT_FUND_PATH, OPS_SIG_HEADER, OPS_TS_HEADER, verifyOpsSignature } from "@owarine/markets/server";
 import { sandboxWorld, waitForLedger, type Window } from "./lib/sandbox-world";
 
 const LEDGER = process.env.LEDGER_JSON_API_URL ?? "http://localhost:7595";
@@ -64,7 +64,7 @@ async function call(seat: Seat | null, method: string, path: string, body?: unkn
   if (seat && o.cookie !== false && seat.cookie) headers.cookie = seat.cookie;
   if (o.origin !== false) {
     headers.origin = SITE;
-    headers["x-agari-seat"] = "1";
+    headers["x-owarine-seat"] = "1";
   }
   if (seat && o.header) {
     const now = Date.now();
@@ -72,7 +72,7 @@ async function call(seat: Seat | null, method: string, path: string, body?: unkn
   }
   const res = await fetch(`${SITE}${path}`, { method, headers, ...(body === undefined ? {} : { body: JSON.stringify(toWire(body)) }) });
   const setCookie = res.headers.get("set-cookie");
-  if (seat && setCookie?.startsWith("agari_seat=")) seat.cookie = setCookie.split(";")[0]!;
+  if (seat && setCookie?.startsWith("owarine_seat=")) seat.cookie = setCookie.split(";")[0]!;
   const json = (await res.json().catch(() => null)) as Record<string, any> | null;
   return { status: res.status, json: json ?? {} };
 }
@@ -142,10 +142,10 @@ function startWeb(partiesFile: string): ChildProcess {
       LEDGER_JSON_API_URL: LEDGER,
       LEDGER_USER_ID: "c4a-web",
       DATABASE_URL: DB,
-      AGARI_SEAT_COOKIE_SECRET: COOKIE_SECRET,
+      OWARINE_SEAT_COOKIE_SECRET: COOKIE_SECRET,
       OPS_INTERNAL_URL: `http://127.0.0.1:${OPS_PORT}`,
       OPS_INTERNAL_SECRET: OPS_SECRET,
-      AGARI_PARTIES_FILE: partiesFile,
+      OWARINE_PARTIES_FILE: partiesFile,
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -189,7 +189,7 @@ async function main() {
 
     const la = await lease(A);
     check("seat A leases a party and is funded on first lease", la.status === 200 && la.json.kind === "leased" && la.json.funded === true && [w.seatA, w.seatB].includes(la.json.party), { status: la.status, kind: la.json.kind, funded: la.json.funded });
-    check("the lease sets an HttpOnly seat cookie", A.cookie.startsWith("agari_seat="));
+    check("the lease sets an HttpOnly seat cookie", A.cookie.startsWith("owarine_seat="));
     const partyA = la.json.party as string;
 
     const bal0 = await call(A, "GET", "/api/ledger/me/balance");

@@ -5,11 +5,11 @@
  * the `Mandate_Checkpoint` exercise without waiting for midnight. It claims the wake for today's day slot exactly as
  * the actor does, so the actor never seals the same day twice. A local sandbox only.
  *
- *   LEDGER_JSON_API_URL=… LEDGER_AUTH_MODE=none AGARI_PARTIES_FILE=… DATABASE_URL=… DRY_RUN=0 \
+ *   LEDGER_JSON_API_URL=… LEDGER_AUTH_MODE=none OWARINE_PARTIES_FILE=… DATABASE_URL=… DRY_RUN=0 \
  *   OPS_INTERNAL_URL=http://localhost:8767 OPS_INTERNAL_SECRET=… \
- *     pnpm --filter @agari/scripts exec tsx drive/desk-checkpoint.ts --desk <uuid>
+ *     pnpm --filter @owarine/scripts exec tsx drive/desk-checkpoint.ts --desk <uuid>
  */
-import { deskQueries, getDb } from "@agari/db";
+import { deskQueries, getDb } from "@owarine/db";
 import { createRunnerContext } from "../../services/ops/src/actors/desk-runner";
 import { daySlotSec } from "../../services/ops/src/actors/desk-runner/checkpoint";
 import { wakeDesk } from "../../services/ops/src/actors/desk-runner/wake";

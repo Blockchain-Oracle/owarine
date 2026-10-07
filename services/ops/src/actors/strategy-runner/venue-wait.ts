@@ -1,4 +1,4 @@
-import { isOk, type Reading } from "@agari/core/schemas";
+import { isOk, type Reading } from "@owarine/core/schemas";
 
 /**
  * Waits for the venue the runner scans (C8g). On Canton the venue's facts come from the web's public routes

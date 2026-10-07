@@ -14,8 +14,8 @@
  * constructor name, Optional as the value or null. Templates are named by package name, so a compatible upgrade of
  * either package never changes a caller.
  */
-import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { toDamlInt, type Command, type ContractId, type Party } from "@agari/ledger/pure";
+import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import { toDamlInt, type Command, type ContractId, type Party } from "@owarine/ledger/pure";
 import { isoOfSec, type Side } from "../canton/decode";
 import type { DeskModeC, EnvelopeC, GrantCapsC, SubKindC } from "./decode";
 

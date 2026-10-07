@@ -1,5 +1,5 @@
-import { TICKERS, type Basket } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import { TICKERS, type Basket } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import { router, type Href } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BASKETS_COPY } from "@/features/baskets/copy";

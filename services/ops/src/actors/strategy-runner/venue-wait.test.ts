@@ -1,5 +1,5 @@
-import { err, ok } from "@agari/core/schemas";
-import { diagnosis } from "@agari/core/types";
+import { err, ok } from "@owarine/core/schemas";
+import { diagnosis } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { awaitVenue } from "./venue-wait";
 

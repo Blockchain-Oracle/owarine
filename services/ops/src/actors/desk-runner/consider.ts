@@ -11,10 +11,10 @@
 import {
   buildEvidence, deskCopy, describeCandidate, formatTokens, formatUsdc, gate, nameOf, ownerRules, planOutcome, plainHeadline, pregate, sizedAmount, whyDeferralEnds,
   type AskReason, type Blocker, type DeferralBaseline, type DeskEvidencePack, type DeskGateInput, type DeskGateResult, type DeskMarketRead, type DeskNeed, type DeskTimingAnswer, type Override, type PlannedOutcome,
-} from "@agari/core/desk";
-import type { DeferralRow } from "@agari/db";
-import { DESK_MODE_CODE } from "@agari/core/desk";
-import type { JupiterQuote } from "@agari/markets/desk/server";
+} from "@owarine/core/desk";
+import type { DeferralRow } from "@owarine/db";
+import { DESK_MODE_CODE } from "@owarine/core/desk";
+import type { JupiterQuote } from "@owarine/markets/desk/server";
 import { askTiming, MODEL_STUB_NAME } from "./decide";
 import { readMarket, SLIPPAGE_BPS, type MarketRead } from "./market";
 import type { RunnerContext, WakeFrame } from "./types";

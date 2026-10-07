@@ -1,9 +1,9 @@
 "use client";
 
-import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { useArenaState, useBalanceSheet } from "@agari/markets/react";
+import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useArenaState, useBalanceSheet } from "@owarine/markets/react";
 import { useVenue } from "@/features/markets";
 import { useWalletSession } from "@/lib/wallet-session";
 import { DUEL } from "./copy";

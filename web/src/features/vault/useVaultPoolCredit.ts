@@ -1,9 +1,9 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { VenueCredit } from "@agari/core/types";
-import type { VaultDeployment } from "@agari/core/vault";
-import { useBalanceSheet } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { VenueCredit } from "@owarine/core/types";
+import type { VaultDeployment } from "@owarine/core/vault";
+import { useBalanceSheet } from "@owarine/markets/react";
 
 /**
  * The vault's own venue credit, per pool — the balance sheet read for the vault's address. A

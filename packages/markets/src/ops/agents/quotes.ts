@@ -5,7 +5,7 @@
  * the request carries the OWNER's party (the quote is the owner's to accept, through the grant or the mandate) and a
  * lease id naming the agent, and the reply is parsed with the same wire the web's routes use.
  */
-import { diagnosis } from "@agari/core/types";
+import { diagnosis } from "@owarine/core/types";
 import { exitQuoteReplyWire, quoteReplyWire, toWire, type ExitQuoteReply, type QuoteReply } from "../../provider/ledger-wire";
 import type { OpsClient, OpsExitQuoteRequest, OpsQuoteRequest } from "../../server/ops-client";
 

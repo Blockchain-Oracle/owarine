@@ -1,6 +1,6 @@
-import { basketMembersHeld, isBasketCoverable, type Basket } from "@agari/core/market";
-import { formatBaseUnits } from "@agari/core/units";
-import { useAssetPrice, useLanes } from "@agari/markets/react";
+import { basketMembersHeld, isBasketCoverable, type Basket } from "@owarine/core/market";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useAssetPrice, useLanes } from "@owarine/markets/react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { basketHolding, heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
 import { bpsPct, windowText } from "@/features/hedge/calm";

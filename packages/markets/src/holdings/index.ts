@@ -1,5 +1,5 @@
 /**
- * `@agari/markets/holdings`: a seat's tokenised share holdings, read-only (C7b). Reads the party's CIP-56 `Holding`s from the
+ * `@owarine/markets/holdings`: a seat's tokenised share holdings, read-only (C7b). Reads the party's CIP-56 `Holding`s from the
  * ledger (any registry's template, through the interface) and answers the ones a deployment maps to verified share tokens.
  * A failed read is a `HoldingsReadError`, never an empty list. Server-only; not re-exported from the package root.
  */

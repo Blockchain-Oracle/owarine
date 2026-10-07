@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 
 /**
  * The games' sponsor — server only. Nothing here may be imported by a component.

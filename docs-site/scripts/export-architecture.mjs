@@ -45,7 +45,7 @@ for (const [name, graph] of Object.entries(graphs)) {
 <path d="M32 123H1368" stroke="#D9D0C2" stroke-width="2"/>
 ${shapes}
 <path d="M32 920H1368" stroke="#D9D0C2" stroke-width="2"/>
-<text x="32" y="951" class="footer">Agari architecture · Source reviewed 30 September 2026 · Proven on a local Canton sandbox with demo credits; not yet on DevNet</text>
+<text x="32" y="951" class="footer">Owarine architecture · Source reviewed 30 September 2026 · Proven on a local Canton sandbox with demo credits; not yet on DevNet</text>
 <text x="32" y="979" class="footer">Open the interactive diagram for authority and trust details.</text>
 </svg>`;
   writeFileSync(resolve(dir, `${name}.svg`), svg);

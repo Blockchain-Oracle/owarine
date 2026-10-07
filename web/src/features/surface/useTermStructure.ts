@@ -1,8 +1,8 @@
 "use client";
 
-import { termPoints, type TermPoint } from "@agari/core/surface";
-import type { EventMarket } from "@agari/core/types";
-import { useBooks } from "@agari/markets/react";
+import { termPoints, type TermPoint } from "@owarine/core/surface";
+import type { EventMarket } from "@owarine/core/types";
+import { useBooks } from "@owarine/markets/react";
 import { useMemo } from "react";
 
 /**

@@ -1,10 +1,10 @@
 "use client";
 
-import { diagnosisCopy, formatSessionSpan, sessionCountdown } from "@agari/core/copy";
-import { etDateOf, LAUNCH_TICKERS } from "@agari/core/market";
-import { isOk } from "@agari/core/schemas";
-import { remainingSec } from "@agari/core/units";
-import { useLanes } from "@agari/markets/react";
+import { diagnosisCopy, formatSessionSpan, sessionCountdown } from "@owarine/core/copy";
+import { etDateOf, LAUNCH_TICKERS } from "@owarine/core/market";
+import { isOk } from "@owarine/core/schemas";
+import { remainingSec } from "@owarine/core/units";
+import { useLanes } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { TICKER_SLOTS, useTickerPrices } from "@/components/chrome/useTickerPrices";
 import { useNowMs } from "@/components/data/useNowMs";
@@ -18,7 +18,7 @@ import { SESSION_COPY } from "@/lib/copy-session";
 import { useWhen } from "@/lib/when";
 
 // The ticker earns its motion by carrying live signal: asset prices, the countdown to the next close (or, off-hours,
-// the next open) and the crowd's lean. Every figure here is a real Agari reading — when there is nothing to show it
+// the next open) and the crowd's lean. Every figure here is a real Owarine reading — when there is nothing to show it
 // says so rather than scrolling invented numbers.
 export interface MarqueeItem {
   /** A price cell: the asset whose mark leads the label (D-085). */
@@ -110,7 +110,7 @@ export function useMarqueeItems(): MarqueeItem[] {
   if (items.length === 0) {
     const failure = lanes && !isOk(lanes) ? lanes.error : venueFailure;
     const failed = failure ? diagnosisCopy(failure.kind).headline.toUpperCase() : null;
-    items.push({ label: "AGARI", value: failed ?? (session ? SESSION_COPY.marquee.noFeed : SESSION_COPY.marquee.loading), direction: "" });
+    items.push({ label: "OWARINE", value: failed ?? (session ? SESSION_COPY.marquee.noFeed : SESSION_COPY.marquee.loading), direction: "" });
   }
 
   // In session (or while the session is unknown) the next close; outside it, when the market next opens.

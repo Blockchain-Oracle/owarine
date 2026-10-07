@@ -1,4 +1,4 @@
-import { diagnosis, type Address, type Diagnosis, type OnchainSnapshot, type Quote } from "@agari/core/types";
+import { diagnosis, type Address, type Diagnosis, type OnchainSnapshot, type Quote } from "@owarine/core/types";
 import { diagnose } from "../errors/error-map";
 import { readSeat, readTokenBalance } from "../runtime/accounts";
 

@@ -1,10 +1,10 @@
 "use client";
 
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { keys, useReadingQuery } from "@agari/markets/react";
-import { readSeries, type SeriesFacts } from "@agari/markets/runtime";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { keys, useReadingQuery } from "@owarine/markets/react";
+import { readSeries, type SeriesFacts } from "@owarine/markets/runtime";
 
 /** Series facts are fixed at registration; a read holds for the session. */
 const SERIES_STALE_MS = 6 * 3_600_000;

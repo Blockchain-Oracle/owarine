@@ -1,10 +1,10 @@
-import { encodeBase58, decodeBase58, toAddress, toSignature, type Address, type Signature } from "@agari/core/types";
-import { messageBytes } from "@agari/core/auth";
+import { encodeBase58, decodeBase58, toAddress, toSignature, type Address, type Signature } from "@owarine/core/types";
+import { messageBytes } from "@owarine/core/auth";
 
 /**
  * The browser game key as a Solana keypair, made with the runtime's own WebCrypto Ed25519 — no key library ships to the
  * page. The stored secret is the 64-byte Solana form: the 32-byte seed followed by the 32-byte public key, whose base58
- * is the key's address (the same shape `@agari/markets` sessions take as `{ secretKey }`, D-015).
+ * is the key's address (the same shape `@owarine/markets` sessions take as `{ secretKey }`, D-015).
  */
 
 /** PKCS#8 wrapper for a bare Ed25519 seed (RFC 8410): the fixed 16-byte prefix, then the 32 seed bytes. */

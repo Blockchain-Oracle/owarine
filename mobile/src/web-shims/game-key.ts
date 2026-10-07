@@ -1,4 +1,4 @@
-import type { Address, Signature } from "@agari/core/types";
+import type { Address, Signature } from "@owarine/core/types";
 import { useMemo } from "react";
 import { signText, useOwnerWallet, useWalletSession } from "@/lib/wallet-session";
 

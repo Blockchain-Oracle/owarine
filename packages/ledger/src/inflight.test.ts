@@ -17,7 +17,7 @@ const inFlightBody = (existing: string | undefined) => ({
   traceId: "31febb775b468fb6e47b7f5f5af0c0e5",
   context: {
     participant: "sandbox",
-    changeId: "ChangeId(agari-ops,bootstrap:desk:devnet-1,Set(venue::1220))",
+    changeId: "ChangeId(owarine-ops,bootstrap:desk:devnet-1,Set(venue::1220))",
     ...(existing === undefined ? {} : { existingSubmissionId: `Some(${existing})` }),
     existingSubmissionSynchronizerId: "sandbox::1220aa",
     category: "2",
@@ -35,7 +35,7 @@ const CID = "bootstrap:desk:devnet-1";
 const VENUE = "venue::1220";
 const TX = (updateId: string) => ({ updateId, commandId: CID, effectiveAt: "", events: [], offset: 30, synchronizerId: "s", recordTime: "" });
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
-const completion = (c: Partial<Completion> & { offset: number }): Completion => ({ commandId: CID, userId: "agari-ops", actAs: [VENUE], ...c });
+const completion = (c: Partial<Completion> & { offset: number }): Completion => ({ commandId: CID, userId: "owarine-ops", actAs: [VENUE], ...c });
 
 /**
  * A fake JSON Ledger API with a fake clock. `submit` scripts the n-th submit (1-based) from its body; completions are
@@ -80,7 +80,7 @@ function fakeLedger(o: { submit: (n: number, body: { commands: { commandId: stri
   const waits: InFlightWait[] = [];
   const client = (cfg: { inFlightWaitMs?: number } = {}) =>
     createLedgerClient(
-      { baseUrl: "http://ledger.test/", auth: noAuth(), userId: "agari-ops", maxAttempts: 4, ...cfg },
+      { baseUrl: "http://ledger.test/", auth: noAuth(), userId: "owarine-ops", maxAttempts: 4, ...cfg },
       {
         fetch: fetch as unknown as typeof globalThis.fetch,
         sleep: async (ms) => {

@@ -1,6 +1,6 @@
-import { formatCadence } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { ChevronDown, TrendingDown, TrendingUp, X } from "lucide-react-native";
 import { useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";

@@ -1,6 +1,6 @@
-import { shortBookTotals, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
-import { isOk } from "@agari/core/schemas";
-import { useLeverageMark, useMarket, useMyLeveragePositions } from "@agari/markets/react";
+import { shortBookTotals, type LeverageMark, type LeveragePosition } from "@owarine/core/leverage";
+import { isOk } from "@owarine/core/schemas";
+import { useLeverageMark, useMarket, useMyLeveragePositions } from "@owarine/markets/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useLeverageWrites } from "@/features/leverage/useLeverageWrites";

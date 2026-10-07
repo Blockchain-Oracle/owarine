@@ -4,7 +4,7 @@
  *  - ledger-import-boundary (was kit-import-boundary, renamed in C11 with the plan's rule list): only packages/markets
  *                         imports the chain SDKs, `@solana-mobile/*` included (the one Solana package the old rule missed;
  *                         the web wallet provider island is exempt), and the phone never imports the ledger client
- *                         (`@agari/ledger`): it reaches the ledger only through the web's routes;
+ *                         (`@owarine/ledger`): it reaches the ledger only through the web's routes;
  *  - idl-no-destination:  AD-5 checked against the IDLs — no instruction takes a caller-chosen payout destination;
  *  - program-id-drift:    declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json. A program whose crate doesn't
  *                         exist yet (its id reserved at a stage foundation) is still held to Anchor.toml devnet == the file.
@@ -60,7 +60,7 @@ export function noEvm(rule, ctx) {
 }
 
 const CHAIN_MODULES = /@solana\/|@solana-program\/|@solana-mobile\/|@agari\/clients|@pythnetwork\/|@switchboard-xyz\//;
-const LEDGER_CLIENT = /@agari\/ledger(?:\/|["'])/;
+const LEDGER_CLIENT = /@owarine\/ledger(?:\/|["'])/;
 const WEB3_V1_MODULES = /@solana\/web3\.js|@pythnetwork\/pyth-solana-receiver|@switchboard-xyz\/on-demand/;
 const OUTSIDE_MARKETS = ["web", "mobile", "packages/core", "packages/db", "packages/brain", "services", "scripts"];
 

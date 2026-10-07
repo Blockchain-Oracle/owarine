@@ -14,8 +14,8 @@
  * ("Settles on RedStone · NVDA/USD · signed on Canton"), and a PreStocks line no longer shows a token mint, which lives
  * on another network.
  */
-import { basketOf, parsePrintSource, TICKERS, type AttestedSource, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket, LaneSet, PrintSource } from "@agari/core/types";
+import { basketOf, parsePrintSource, TICKERS, type AttestedSource, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, LaneSet, PrintSource } from "@owarine/core/types";
 
 export type SourceProvider = "pyth" | "redstone" | "switchboard" | "prestocks" | "exchanges" | "alpaca" | "jupiter";
 

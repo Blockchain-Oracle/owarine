@@ -17,14 +17,14 @@ function readSecret(text: string | undefined): Uint8Array | null {
 }
 
 /**
- * A role's 64-byte keypair: its env var on a server, else `~/.config/agari/devnet/<role>.json` for local dev
- * (`AGARI_KEYS_DIR` overrides the directory), the same lookup as ops `roleSecret`. Keys are never copied into env
+ * A role's 64-byte keypair: its env var on a server, else `~/.config/owarine/devnet/<role>.json` for local dev
+ * (`OWARINE_KEYS_DIR` overrides the directory), the same lookup as ops `roleSecret`. Keys are never copied into env
  * files. Null means the faucet reports itself unavailable; the bytes are never logged.
  */
 export function faucetRoleSecret(role: FaucetRole, env: Record<string, string | undefined>): Uint8Array | null {
   const fromEnv = readSecret(env[FAUCET_ROLE_ENV[role]]);
   if (fromEnv) return fromEnv;
-  const file = join(env.AGARI_KEYS_DIR || join(homedir(), ".config", "agari", "devnet"), `${role}.json`);
+  const file = join(env.OWARINE_KEYS_DIR || join(homedir(), ".config", "owarine", "devnet"), `${role}.json`);
   if (!existsSync(file)) return null;
   try { return readSecret(readFileSync(file, "utf8")); } catch { return null; }
 }

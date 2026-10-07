@@ -1,4 +1,4 @@
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { FONT, useTheme } from "~/theme";
 import { leaderboardTokens } from "~/theme/web/explore/leaderboard";

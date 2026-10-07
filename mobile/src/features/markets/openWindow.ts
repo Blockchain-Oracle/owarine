@@ -1,4 +1,4 @@
-import type { Side } from "@agari/core/types";
+import type { Side } from "@owarine/core/types";
 import { router } from "expo-router";
 
 /**

@@ -1,5 +1,5 @@
-import type { EquityPoint } from "@agari/core/projection";
-import { formatBaseUnits } from "@agari/core/units";
+import type { EquityPoint } from "@owarine/core/projection";
+import { formatBaseUnits } from "@owarine/core/units";
 import { useId } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Defs, Line, LinearGradient, Path } from "react-native-svg";

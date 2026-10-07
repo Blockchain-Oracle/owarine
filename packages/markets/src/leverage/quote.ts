@@ -1,6 +1,6 @@
-import type { LeverageQuote, LeverageRefusal } from "@agari/core/leverage";
-import type { Reading } from "@agari/core/schemas";
-import { diagnosis, type Diagnosis, type MarketId, type Side } from "@agari/core/types";
+import type { LeverageQuote, LeverageRefusal } from "@owarine/core/leverage";
+import type { Reading } from "@owarine/core/schemas";
+import { diagnosis, type Diagnosis, type MarketId, type Side } from "@owarine/core/types";
 import { asReading, boostCall } from "../tickets/client";
 
 /** A refusal in the ticket's words. The reserve's own policy is one kind; the venue's ladder is another. */

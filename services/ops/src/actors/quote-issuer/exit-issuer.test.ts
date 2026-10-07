@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import type { LedgerClient } from "@agari/ledger";
-import { marketIdFromDaml } from "@agari/core/market";
-import { exitQuoteReplyWire } from "@agari/markets";
-import { allocateLegs, bidLevels, walkExit } from "@agari/markets/ops/canton";
+import type { LedgerClient } from "@owarine/ledger";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { exitQuoteReplyWire } from "@owarine/markets";
+import { allocateLegs, bidLevels, walkExit } from "@owarine/markets/ops/canton";
 import { createLadderBoard } from "../market-maker/seat/ladder-board";
 import { readPricerSettings } from "../market-maker/seat/pricer";
 import { jsonText } from "../../http/health";

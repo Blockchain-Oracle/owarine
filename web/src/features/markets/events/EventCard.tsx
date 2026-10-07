@@ -1,9 +1,9 @@
 "use client";
 
-import { eventLabelOf } from "@agari/core/market";
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
-import { formatWallClock } from "@agari/core/units";
-import { marketPath } from "@agari/core/urls";
+import { eventLabelOf } from "@owarine/core/market";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
+import { formatWallClock } from "@owarine/core/units";
+import { marketPath } from "@owarine/core/urls";
 import Link from "next/link";
 import { Countdown } from "@/components/data";
 import { MARKETS, WORD_BOARD } from "@/lib/copy";

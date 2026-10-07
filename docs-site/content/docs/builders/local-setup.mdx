@@ -1,5 +1,5 @@
 ---
-title: "Run Agari locally"
+title: "Run Owarine locally"
 description: "Build the Daml packages, start a local Canton sandbox, bootstrap the venue, then run ops and the web app."
 ---
 
@@ -18,7 +18,7 @@ dpm sandbox --json-api-port 7575
 # 3. Bootstrap it once: upload the DARs, allocate the venue parties, create the Series,
 #    cash shards, ticket reserves, arena and a guest-seat pool
 LEDGER_JSON_API_URL=http://127.0.0.1:7575 LEDGER_AUTH_MODE=none \
-  pnpm --filter @agari/scripts exec tsx bootstrap-local.ts --seats 6
+  pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts --seats 6
 
 # 4. Environment: copy the examples and fill them in
 cp .env.example .env.local
@@ -30,7 +30,7 @@ pnpm ops:start
 pnpm dev
 ```
 
-The bootstrap refuses anything but an unauthenticated local sandbox, and writes the parties file (`~/.config/agari/canton/parties.json`) that ops and the web read. The environment needs `DATABASE_URL`, `OPS_INTERNAL_SECRET`, `AGARI_SEAT_COOKIE_SECRET`, `AGARI_PARTIES_FILE`, `LEDGER_JSON_API_URL=http://127.0.0.1:7575` and `LEDGER_AUTH_MODE=none`; the `.env.example` files list the rest. Keep keys on the server.
+The bootstrap refuses anything but an unauthenticated local sandbox, and writes the parties file (`~/.config/owarine/canton/parties.json`) that ops and the web read. The environment needs `DATABASE_URL`, `OPS_INTERNAL_SECRET`, `OWARINE_SEAT_COOKIE_SECRET`, `OWARINE_PARTIES_FILE`, `LEDGER_JSON_API_URL=http://127.0.0.1:7575` and `LEDGER_AUTH_MODE=none`; the `.env.example` files list the rest. Keep keys on the server.
 
 Then open `/markets`, take a guest seat and make a call. The crypto lanes (Coinbase, Kraken and Bitstamp candles) run around the clock. Stock lanes quote only while US markets trade, and need the Alpaca keys in `services/ops/.env.local`. A local run uses its own parties and its own database, and touches no shared network.
 

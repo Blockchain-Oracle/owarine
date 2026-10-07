@@ -1,5 +1,5 @@
-import { gamesStoreConfigured, listMatchesFor } from "@agari/db";
-import { isAddress } from "@agari/core/types";
+import { gamesStoreConfigured, listMatchesFor } from "@owarine/db";
+import { isAddress } from "@owarine/core/types";
 import { NextResponse } from "next/server";
 import { provesAddress } from "@/lib/auth/proven-seat.server";
 

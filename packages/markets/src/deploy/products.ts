@@ -4,7 +4,7 @@
  * participant every step here refuses as not live. Names are kept for `scripts/`; the reference's devnet parameters
  * stay as plain data because the Daml packages take the same numbers.
  */
-import type { Address, Side } from "@agari/core/types";
+import type { Address, Side } from "@owarine/core/types";
 import { deployNotLive } from "./send";
 
 /** One refusal for every product step: nothing is read or sent. */

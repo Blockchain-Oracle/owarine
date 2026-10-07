@@ -1,4 +1,4 @@
-import { STEP_MS } from "@agari/core/games/arcade";
+import { STEP_MS } from "@owarine/core/games/arcade";
 import type { ArcadeView } from "@/features/games/arcade/useArcadeLoop";
 import { useIsFocused } from "expo-router";
 import { useEffect, useRef, type RefObject } from "react";

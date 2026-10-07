@@ -3,10 +3,10 @@
  * masks ("neither finished") and showed a decisive duel as "Level — the pot was split".
  */
 import { afterEach, describe, expect, it } from "vitest";
-import { ok } from "@agari/core/schemas";
-import type { Address, Hash32 } from "@agari/core/types";
-import { registerArenaSource } from "@agari/markets/games";
-import { viewOfResult, withProjectedPicks, type DuelResultC, type ProjectedPick } from "@agari/markets/ops/games";
+import { ok } from "@owarine/core/schemas";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { registerArenaSource } from "@owarine/markets/games";
+import { viewOfResult, withProjectedPicks, type DuelResultC, type ProjectedPick } from "@owarine/markets/ops/games";
 import { buildMatchSnapshot } from "./snapshot";
 
 const CREATOR = "3fVU8xir147UgUv7hgtbMDWLfZTmBZ6CwB5znhq1jALk" as Address;

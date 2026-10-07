@@ -11,13 +11,13 @@
  * Idempotent like the rest of the projection: a replayed transaction yields the same events, and `apply.ts` keys every
  * row by what the ledger decided (a match id, a pick's coordinates), so writing one twice changes nothing.
  */
-import type { ArenaEvent, ArenaEventLog } from "@agari/core/games";
-import { marketIdFromDaml } from "@agari/core/market";
-import type { Address, Hash32, Signature } from "@agari/core/types";
-import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent, ExercisedEvent, JsTransaction } from "@agari/ledger";
-import { decodeVenueCash, templateSuffix } from "@agari/markets/ops/canton";
-import { decodeDuelMatch, decodeDuelOpen, decodeDuelResult, tierIndexOf, type DuelMatchC, type DuelResultC } from "@agari/markets/ops/games";
+import type { ArenaEvent, ArenaEventLog } from "@owarine/core/games";
+import { marketIdFromDaml } from "@owarine/core/market";
+import type { Address, Hash32, Signature } from "@owarine/core/types";
+import { GAMES_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { CreatedEvent, ExercisedEvent, JsTransaction } from "@owarine/ledger";
+import { decodeVenueCash, templateSuffix } from "@owarine/markets/ops/canton";
+import { decodeDuelMatch, decodeDuelOpen, decodeDuelResult, tierIndexOf, type DuelMatchC, type DuelResultC } from "@owarine/markets/ops/games";
 
 const G = GAMES_TEMPLATE_IDS;
 const is = (templateId: string, want: string) => templateSuffix(templateId) === templateSuffix(want);

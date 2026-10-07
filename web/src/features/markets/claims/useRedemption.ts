@@ -1,11 +1,11 @@
 "use client";
 
-import { ONCHAIN_POLL_MS } from "@agari/core/constants";
-import type { Address, MarketId } from "@agari/core/types";
-import { getRedemption, type Redemption } from "@agari/markets";
-import { keys, useReadingQuery } from "@agari/markets/react";
+import { ONCHAIN_POLL_MS } from "@owarine/core/constants";
+import type { Address, MarketId } from "@owarine/core/types";
+import { getRedemption, type Redemption } from "@owarine/markets";
+import { keys, useReadingQuery } from "@owarine/markets/react";
 
-export type { Redemption } from "@agari/markets";
+export type { Redemption } from "@owarine/markets";
 
 /**
  * How a won Window's payout reached the wallet once nothing is left to claim: the wallet's own redeem, or the

@@ -1,11 +1,11 @@
-import * as dbModule from "@agari/db";
-import { getDb, type Db } from "@agari/db";
-import { OUTCOME_COLUMN, type DeskMandateWire, type DeskMode } from "@agari/core/desk";
-import type { Hash32 } from "@agari/core/types";
+import * as dbModule from "@owarine/db";
+import { getDb, type Db } from "@owarine/db";
+import { OUTCOME_COLUMN, type DeskMandateWire, type DeskMode } from "@owarine/core/desk";
+import type { Hash32 } from "@owarine/core/types";
 import { DESK_CLUSTER, type ApprovalWire, type ChainStateWire, type DeskRowWire, type DeskViewWire, type GradeWire, type MandateVersionWire, type RecordSummaryWire, type SnapshotWire } from "./protocol";
 
 /**
- * THE ONE FILE that talks to the desk's database (S21 C5 ↔ C4). C4 ships `deskQueries(db)` in `@agari/db`; this
+ * THE ONE FILE that talks to the desk's database (S21 C5 ↔ C4). C4 ships `deskQueries(db)` in `@owarine/db`; this
  * file declares the contract it was written against, resolves the factory at runtime (so the web builds and answers
  * an honest 503 until C4 merges), and maps every row to the wire shape in `protocol.ts` with tolerant coercion. A
  * mismatch at the merge is fixed here and nowhere else.
@@ -66,7 +66,7 @@ const OUTCOMES = new Set<string>(Object.values(OUTCOME_COLUMN));
 const outcomeOf = (v: string): RecordSummaryWire["outcome"] => (OUTCOMES.has(v) ? (v as RecordSummaryWire["outcome"]) : OUTCOME_COLUMN[v as keyof typeof OUTCOME_COLUMN] ?? "failed");
 const modeOf = (v: string): DeskMode => (v === "ask_first" || v === "on_its_own" ? v : "practice");
 
-/** The row's state in the page's words: the runner writes `paused` and `stopped_by_loss` (`@agari/db` DeskStateName). */
+/** The row's state in the page's words: the runner writes `paused` and `stopped_by_loss` (`@owarine/db` DeskStateName). */
 const DB_STATE: Record<string, DeskRowWire["state"]> = { paused: "paused_by_owner", stopped_by_loss: "stopped_by_loss_limit" };
 const rowStateOf = (v: string): DeskRowWire["state"] =>
   DB_STATE[v] ?? ((["active", "paused_by_owner", "stopped_by_loss_limit", "needs_attention", "practice", "closed"].includes(v) ? v : "needs_attention") as DeskRowWire["state"]);

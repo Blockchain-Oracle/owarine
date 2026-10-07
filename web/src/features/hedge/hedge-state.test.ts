@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { err, ok, diagnosis } from "@agari/core";
+import { err, ok, diagnosis } from "@owarine/core";
 import { hedgeCardState } from "./hedge-state";
 import type { HedgePick } from "./hedge-target";
 import type { HoldingView } from "./useHoldings";

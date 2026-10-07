@@ -1,8 +1,8 @@
-import { err, isOk, ok, type Reading } from "@agari/core/schemas";
-import type { AgentContext, AgentSample } from "@agari/core/strategies";
-import { spotSymbolOf } from "@agari/core/market";
-import { diagnosis, type EventMarket, type PricePoint, type Side } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
+import { err, isOk, ok, type Reading } from "@owarine/core/schemas";
+import type { AgentContext, AgentSample } from "@owarine/core/strategies";
+import { spotSymbolOf } from "@owarine/core/market";
+import { diagnosis, type EventMarket, type PricePoint, type Side } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
 import { marketsProvider } from "../provider";
 import { openingOnFeedScale } from "./price-basis";
 

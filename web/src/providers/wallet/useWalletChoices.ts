@@ -14,7 +14,7 @@ export type DiscoveredWallet = SeatConnector;
 export type ConnectOutcome = "connected" | "failed" | "aborted";
 
 /** RainbowKit's `rk-recent` for this app: the connector last used, kept after a reset so it can say "Recent". */
-const RECENT_KEY = "agari.seat.recent";
+const RECENT_KEY = "owarine.seat.recent";
 
 function readRecent(): string | null {
   try {

@@ -1,4 +1,4 @@
-import { PRESETS, type PresetKey } from "@agari/core/strategies";
+import { PRESETS, type PresetKey } from "@owarine/core/strategies";
 import { StyleSheet, Text, View } from "react-native";
 import { FONT } from "~/theme";
 import { AgentPortrait } from "../AgentPortrait";

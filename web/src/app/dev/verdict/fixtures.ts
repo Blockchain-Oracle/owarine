@@ -1,6 +1,6 @@
-import { deriveVerdict, type VerdictInput } from "@agari/core/claims";
-import type { Resolution, Verdict } from "@agari/core/types";
-import { oneUnit } from "@agari/core/units";
+import { deriveVerdict, type VerdictInput } from "@owarine/core/claims";
+import type { Resolution, Verdict } from "@owarine/core/types";
+import { oneUnit } from "@owarine/core/units";
 import type { VerdictMarket } from "@/features/markets/verdict";
 import { DECIMALS, FIXED_NOW_MS, FIXED_NOW_SEC, TX_HASH } from "../states/fixtures";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";

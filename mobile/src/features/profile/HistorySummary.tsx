@@ -1,5 +1,5 @@
-import { roundsToCsv, type EquityPoint, type TraderEdge, type WalletHistory } from "@agari/core/projection";
-import { formatBaseUnits } from "@agari/core/units";
+import { roundsToCsv, type EquityPoint, type TraderEdge, type WalletHistory } from "@owarine/core/projection";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Download } from "lucide-react-native";
 import { useId } from "react";
 import { Pressable, Share, StyleSheet, Text, View } from "react-native";

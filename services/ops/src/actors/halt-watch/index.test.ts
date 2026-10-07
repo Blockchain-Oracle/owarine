@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PRE_IPO_TICKERS, TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { PreStocksRead } from "@agari/markets/ops/prints";
+import { PRE_IPO_TICKERS, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { PreStocksRead } from "@owarine/markets/ops/prints";
 import { createPreStocksSpotFeed, type PreStocksSpotHandle } from "../../prices/prestocks-spot";
 import type { SpotFeed, SpotQuote } from "../../prices/spot";
 import type { VenueDeps } from "../../runtime";

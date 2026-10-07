@@ -1,6 +1,6 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
+import { countdown } from "@owarine/core/lifecycle";
 import { Armchair, Hourglass } from "lucide-react";
 import type { ReactNode } from "react";
 import { Countdown } from "@/components/data/Countdown";

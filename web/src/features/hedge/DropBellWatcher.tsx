@@ -1,8 +1,8 @@
 "use client";
 
-import { TICKERS, type TickerSymbol } from "@agari/core/market";
-import { marketsProvider } from "@agari/markets";
-import { useAssetPrice } from "@agari/markets/react";
+import { TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { marketsProvider } from "@owarine/markets";
+import { useAssetPrice } from "@owarine/markets/react";
 import { useEffect, useRef, useState } from "react";
 import { sendNotification } from "@/features/alerts";
 import { basisRaw, feedRawToOracleRaw, assetPriceLine } from "@/features/markets/hero/units";

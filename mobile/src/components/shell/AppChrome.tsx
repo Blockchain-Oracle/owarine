@@ -2,14 +2,14 @@ import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FONT, useTheme } from "~/theme";
-import { AgariMark } from "./AgariMark";
+import { OwarineMark } from "./OwarineMark";
 import { CHROME, chromeTokens } from "~/theme/chrome";
 import { HeaderAccount } from "./HeaderAccount";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 
 /**
- * web's fixed top on a phone: the Marquee (20) and the Header (46) — the Window Cut mark, AGARI and 上がり on the left;
+ * web's fixed top on a phone: the Marquee (20) and the Header (46) — the Window Cut mark, OWARINE and 終値 on the left;
  * the theme ring and the account on the right. web's AppStrip above them ("install the app") is left out: this is the
  * app. The status bar area takes the marquee's ground so the chrome reads as one piece.
  */
@@ -21,10 +21,10 @@ export function AppChrome() {
     <View style={{ paddingTop: insets.top, backgroundColor: t.marqueeBg }}>
       <Marquee />
       <View style={[styles.header, { backgroundColor: t.headerBg, borderBottomColor: t.headerBorder }]}>
-        <Pressable style={styles.logo} onPress={() => router.navigate("/markets")} accessibilityRole="link" accessibilityLabel="Agari 上がり home">
-          <AgariMark />
-          <Text style={[styles.name, { color: t.logoInk }]}>AGARI</Text>
-          <Text style={[styles.jp, { color: t.logoJp }]}>上がり</Text>
+        <Pressable style={styles.logo} onPress={() => router.navigate("/markets")} accessibilityRole="link" accessibilityLabel="Owarine 終値 home">
+          <OwarineMark />
+          <Text style={[styles.name, { color: t.logoInk }]}>OWARINE</Text>
+          <Text style={[styles.jp, { color: t.logoJp }]}>終値</Text>
         </Pressable>
         <View style={styles.right}>
           <ThemeToggle />

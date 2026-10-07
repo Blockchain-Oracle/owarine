@@ -11,7 +11,7 @@
  *
  * Venue-only authority: every accept, claim, stale refund and liquidity accept is the seat's own, through the web.
  */
-import { diagnosis } from "@agari/core/types";
+import { diagnosis } from "@owarine/core/types";
 import { runActor } from "../../runtime/actor";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import type { ShardPool } from "../quote-issuer/pool";
@@ -22,7 +22,7 @@ import { handleEarn } from "./earn";
 import { handleBoost, handleParlay, handleRange } from "./issue";
 import { keeperPass } from "./keeper";
 import { navInputsOf } from "./state";
-import { TICKET_RESERVES } from "@agari/markets/ops/tickets";
+import { TICKET_RESERVES } from "@owarine/markets/ops/tickets";
 
 type Handler = (body: unknown) => Promise<{ status: number; body: unknown }>;
 

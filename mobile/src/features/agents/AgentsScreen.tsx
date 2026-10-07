@@ -1,4 +1,4 @@
-import { ADVICE_COPY } from "@agari/core/copy";
+import { ADVICE_COPY } from "@owarine/core/copy";
 import { router, type Href } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { RECORD } from "@/features/desk/copy-record";
@@ -13,7 +13,7 @@ import { AgentsBoard } from "./AgentsBoard";
 const go = (href: string) => router.push(href as Href);
 
 /**
- * `/agents` — web's features/strategies/AgentsScreen.tsx and app/agents/page.tsx: the Agari / Agents crumb, the
+ * `/agents` — web's features/strategies/AgentsScreen.tsx and app/agents/page.tsx: the Owarine / Agents crumb, the
  * leaderboard headline and intro, the two-purses card that opens the desk, the three entry pills, then the board (or
  * web's CapabilityPending when the registry is not deployed) and ADVICE_COPY.notAdvice under the container.
  */

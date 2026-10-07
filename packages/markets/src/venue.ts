@@ -1,5 +1,5 @@
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import { withReading } from "./provider/reading";
 import { configAddress } from "./runtime/accounts";
 import { nowMs } from "./provider/clock";
@@ -29,7 +29,7 @@ export async function resolveVenueId(configured: Address | null | undefined): Pr
   return withReading(`venue:${configured ?? "derived"}`, async () => {
     const derived = (await configAddress()) as string as Address;
     if (configured && configured !== derived) {
-      throw new Error(`NEXT_PUBLIC_AGARI_VENUE_ID ${configured} is not this program's config PDA ${derived}`);
+      throw new Error(`NEXT_PUBLIC_OWARINE_VENUE_ID ${configured} is not this program's config PDA ${derived}`);
     }
     active = { venueId: derived, source: configured ? "env" : "inferred", liveCount: 0 };
     return active;

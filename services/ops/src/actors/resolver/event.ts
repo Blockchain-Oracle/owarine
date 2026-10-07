@@ -9,7 +9,7 @@
  *               voids as `SourceDisagreement`, which resolving on the first two answers would hide).
  *   void        after closeDeadline (+ the void margin), with whatever was counted: the ledger names the reason.
  */
-import type { Active, EventAttestationC, EventTermsC } from "@agari/markets/ops/canton";
+import type { Active, EventAttestationC, EventTermsC } from "@owarine/markets/ops/canton";
 
 /** How long after the close the resolver waits for every member before resolving on the quorum alone. */
 export const EVENT_ALL_MEMBERS_WAIT_SEC = 300;

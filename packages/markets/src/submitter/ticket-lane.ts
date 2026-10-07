@@ -10,8 +10,8 @@
  *
  * Claims and stale refunds are one journaled call each (`/claim`, `/refund-stale`). No retries anywhere.
  */
-import type { IntentRecord, PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Diagnosis, type Signature } from "@agari/core/types";
+import type { IntentRecord, PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis, type Signature } from "@owarine/core/types";
 import { ledgerRequest } from "../provider/ledger-api";
 import { ticketWriteReplyWire, type TicketProduct, type TicketWriteReply } from "../provider/ticket-wire";
 import { forgetTicketReads } from "../tickets/client";

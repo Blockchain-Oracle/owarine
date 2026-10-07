@@ -1,9 +1,9 @@
 "use client";
 
-import { isAddress } from "@agari/core/types";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { useVaultSnapshot } from "@agari/markets/react";
+import { isAddress } from "@owarine/core/types";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import { useVaultSnapshot } from "@owarine/markets/react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ConnectButton } from "@/features/markets/wallet";

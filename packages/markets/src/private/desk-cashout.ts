@@ -1,5 +1,5 @@
-import type { PrivateCashoutResult, PrivateClaim } from "@agari/core/private";
-import type { Signature } from "@agari/core/types";
+import type { PrivateCashoutResult, PrivateClaim } from "@owarine/core/private";
+import type { Signature } from "@owarine/core/types";
 import type { DeskClient } from "./desk-client";
 import { PRIVATE_NOT_LIVE_WORDS } from "./reads";
 

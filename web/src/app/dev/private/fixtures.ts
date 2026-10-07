@@ -4,7 +4,7 @@
  * one already home; then, from abu-pm-main 0.5.2 (C2e, K-315), a win, a loss and a void the settle paid straight into the
  * private bucket (their receipt names it).
  */
-import type { PrivatePosition } from "@agari/core/private";
+import type { PrivatePosition } from "@owarine/core/private";
 
 export const FIXTURE_SYMBOL = "credits";
 const NOW_SEC = 1_791_270_000;

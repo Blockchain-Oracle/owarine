@@ -1,7 +1,7 @@
 "use client";
 
-import type { EventMarket } from "@agari/core/types";
-import { formatCadence, isCommitteeMarket } from "@agari/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { formatCadence, isCommitteeMarket } from "@owarine/core/market";
 import { useCallback, useState, type ReactNode } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { LiveHedgeCard } from "@/features/hedge";

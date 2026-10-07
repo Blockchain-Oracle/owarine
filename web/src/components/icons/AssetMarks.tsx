@@ -1,6 +1,6 @@
 /**
  * The collateral's mark. The reference also drew a Bitcoin disc and an Ethereum diamond here for the two assets its
- * venue listed; Agari lists stocks, whose marks live in `./asset-marks/`, so those two are gone (2026-09-19).
+ * venue listed; Owarine lists stocks, whose marks live in `./asset-marks/`, so those two are gone (2026-09-19).
  * Fills live in `styles/icons.css` — design-literals keeps hex out of TSX.
  */
 interface MarkProps {

@@ -21,7 +21,7 @@
 
 ## Gate
 
-- `pnpm --filter @agari/mobile typecheck`, `pnpm invariants`, `expo export` for iOS and Android.
+- `pnpm --filter @owarine/mobile typecheck`, `pnpm invariants`, `expo export` for iOS and Android.
 - Internal build leases a seat, places a call, receives the settle push.
 - Real-phone pass: seed persists, signed header accepted, push on settle, same seat on web and phone, outsider view empty.
 - Public link approved; the link and APK handed to C10's `/download`.

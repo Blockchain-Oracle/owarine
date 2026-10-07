@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { normalizeSeatLinkCode } from "@agari/markets";
+import { normalizeSeatLinkCode } from "@owarine/markets";
 import { SEAT, SeatLinkPanel } from "@/features/canton-ux/seat";
 
 export const metadata: Metadata = { title: SEAT.link.title };

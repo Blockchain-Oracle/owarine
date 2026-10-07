@@ -1,7 +1,7 @@
 "use client";
 
-import type { Address } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import type { Address } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Hash, UtcTime } from "@/components/data";
 import { SESSION } from "./copy";
 import { SOL_DECIMALS } from "./fees";

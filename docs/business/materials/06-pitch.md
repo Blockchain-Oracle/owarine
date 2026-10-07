@@ -1,4 +1,4 @@
-# Pitch Materials: Agari on Canton
+# Pitch Materials: Owarine on Canton
 
 *Platform material 6 of 6. The criterion reads: "Quality and conciseness of the overall presentation." The Rules ask the deck to cover "the problem and why it matters; the solution and how Canton Network is used; target users and go-to-market thinking; key metrics or validation evidence".*
 

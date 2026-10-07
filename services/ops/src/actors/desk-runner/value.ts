@@ -5,9 +5,9 @@
  * the names' hourly Windows (K-090), valued at each Window's fair price on the venue's ladder (`reconcile` reads them);
  * a Window the venue no longer quotes is unpriced until it settles into the owner's seat.
  */
-import { valueDesk, type DeskHoldingInput, type DeskMandate, type DeskValuation } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
-import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, readDeskMints } from "@agari/markets/desk/server";
+import { valueDesk, type DeskHoldingInput, type DeskMandate, type DeskValuation } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
+import { DESK_LOT_MULTIPLIER_E12, DESK_MINTS, readDeskMints } from "@owarine/markets/desk/server";
 import { errorText } from "../../runtime/env";
 import type { PreStocksSample, PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import type { DeskStanding, MintCache, RunnerContext } from "./types";

@@ -9,7 +9,7 @@ import { tradeXTokens } from "~/theme/web/products/trade-x";
 
 /**
  * web's TradeFromXScreen `.xt-strip`: the island's own sticky top bar (the app chrome is hidden on this route) —
- * AGARI / X-trade on the left, "open the app →" on the right; the primary nav is `hidden md:flex`, so a phone shows
+ * OWARINE / X-trade on the left, "open the app →" on the right; the primary nav is `hidden md:flex`, so a phone shows
  * none. It starts under the status bar, which takes the strip's ground.
  */
 export function IslandStrip() {
@@ -24,7 +24,7 @@ export function IslandStrip() {
         <Pressable onPress={home} accessibilityRole="link" hitSlop={8}>
           {({ pressed }) => (
             <Text style={[styles.brand, { color: pressed ? t.v : t.ink }]}>
-              AGARI <Text style={[styles.crumb, { color: t.gray500 }]}>{TRADE_FROM_X.crumb}</Text>
+              OWARINE <Text style={[styles.crumb, { color: t.gray500 }]}>{TRADE_FROM_X.crumb}</Text>
             </Text>
           )}
         </Pressable>

@@ -22,7 +22,7 @@ export const liveProgressSchema = z.object({
 export type LiveProgress = z.infer<typeof liveProgressSchema>;
 
 /** Base58 is case-sensitive: the key keeps the owner exactly as written (D-010). Cluster 101 = mainnet. */
-export const liveProgressKey = (owner: string): string => `agari.desk.go-live:101:${owner}`;
+export const liveProgressKey = (owner: string): string => `owarine.desk.go-live:101:${owner}`;
 
 export function parseLiveProgress(raw: string | null): LiveProgress | null {
   try {

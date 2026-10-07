@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 import Svg, { Defs, Pattern, Rect } from "react-native-svg";
 import { openLedgerLink } from "~/lib/external";
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import { FONT, useTheme } from "~/theme";
 import { luckyTokens, type LuckyTokens } from "~/theme/web/games-lucky";
 import { PIXEL_FONT } from "~/theme/web/games";

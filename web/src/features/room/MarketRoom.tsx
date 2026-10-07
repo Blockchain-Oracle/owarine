@@ -1,8 +1,8 @@
 "use client";
 
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
-import type { MarketId } from "@agari/core/types";
-import { useMarket } from "@agari/markets/react";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
+import type { MarketId } from "@owarine/core/types";
+import { useMarket } from "@owarine/markets/react";
 import React, { useState, type ReactNode } from "react";
 import { CommentRoom } from "./CommentRoom";
 import { ROOM } from "./copy";

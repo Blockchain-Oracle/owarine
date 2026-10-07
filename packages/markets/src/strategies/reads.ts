@@ -5,9 +5,9 @@
  * server half, ops' runner) installs its reader instead (`installStrategyReader`). A creator never learns who
  * subscribes: outside the runner and the venue, a strategy's subscribers are a count.
  */
-import { err, ok, type Reading } from "@agari/core/schemas";
-import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
-import type { Address } from "@agari/core/types";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import type { StrategyRecord, StrategySubscription } from "@owarine/core/strategies";
+import type { Address } from "@owarine/core/types";
 import { creatorPayoutsReplyWire, strategiesReplyWire, subscriptionsReplyWire } from "../provider/agents-wire";
 import { nowMs } from "../provider/clock";
 import { ledgerRequest } from "../provider/ledger-api";

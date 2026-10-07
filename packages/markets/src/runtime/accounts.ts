@@ -7,9 +7,9 @@
  * any other owner reads as holding nothing here, never someone else's numbers. A read that cannot be answered throws
  * the route's diagnosis, so callers wrapped in `withReading` say what went wrong instead of inventing a value.
  */
-import type { BookSideView } from "@agari/core/market";
-import type { TickerSymbol } from "@agari/core/market";
-import { diagnosis, type Address } from "@agari/core/types";
+import type { BookSideView } from "@owarine/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
+import { diagnosis, type Address } from "@owarine/core/types";
 import { z } from "zod";
 import { ReadingError } from "../errors/reading-error";
 import { ledgerRequest, registeredSeatAddress } from "../provider/ledger-api";

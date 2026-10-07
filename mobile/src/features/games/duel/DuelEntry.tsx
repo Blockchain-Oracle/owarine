@@ -1,7 +1,7 @@
-import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { useArenaState, useBalanceSheet } from "@agari/markets/react";
+import { STAKE_TIERS, stakeTier, type DuelMode, type StakeTierId } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useArenaState, useBalanceSheet } from "@owarine/markets/react";
 import { StyleSheet, Text, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import { waitingIn, type RoomOccupancy } from "@/features/games/duel/useRoomOccupancy";

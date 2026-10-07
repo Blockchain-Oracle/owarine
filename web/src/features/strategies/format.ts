@@ -1,5 +1,5 @@
-import { bpsToPriceRaw, formatBaseUnits, parseDecimalToBaseUnits } from "@agari/core/units";
-import type { VaultCaps } from "@agari/core/vault";
+import { bpsToPriceRaw, formatBaseUnits, parseDecimalToBaseUnits } from "@owarine/core/units";
+import type { VaultCaps } from "@owarine/core/vault";
 import { STRATEGIES } from "./copy";
 
 export type RiskMode = "guarded" | "balanced" | "active";

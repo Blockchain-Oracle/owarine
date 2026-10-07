@@ -1,7 +1,7 @@
 "use client";
 
-import { formatCadence } from "@agari/core/copy";
-import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, AGENT_POSTURES, describeSpec, POSTURES, type AgentPosture } from "@agari/core/strategies";
+import { formatCadence } from "@owarine/core/copy";
+import { AGENT_CADENCES_SEC, AGENT_PERSONA_MAX_CHARS, AGENT_POSTURES, describeSpec, POSTURES, type AgentPosture } from "@owarine/core/strategies";
 import { cn } from "@/lib/utils";
 import { STRATEGIES } from "./copy";
 import { draftSpec, type StudioDraft } from "./studio-draft";

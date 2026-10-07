@@ -1,5 +1,5 @@
-import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import type { ActiveContract, Command, CreatedEvent, LedgerClient } from "@agari/ledger";
+import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import type { ActiveContract, Command, CreatedEvent, LedgerClient } from "@owarine/ledger";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RoleSession } from "../canton/session";
 import { railPass, readRail, resetRailClock, type RailDeps } from "./rail";

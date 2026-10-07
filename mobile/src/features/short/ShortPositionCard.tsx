@@ -1,7 +1,7 @@
-import { formatCadence, SETTLING } from "@agari/core/copy";
-import { shortHealth, shortMarkPriceRaw, shortPnl, shortPriced, shortResult, type LeverageMark, type LeveragePosition } from "@agari/core/leverage";
-import { countdown } from "@agari/core/lifecycle";
-import { bpsToOddsCents, formatBaseUnits, priceRawToBps, shortHex } from "@agari/core/units";
+import { formatCadence, SETTLING } from "@owarine/core/copy";
+import { shortHealth, shortMarkPriceRaw, shortPnl, shortPriced, shortResult, type LeverageMark, type LeveragePosition } from "@owarine/core/leverage";
+import { countdown } from "@owarine/core/lifecycle";
+import { bpsToOddsCents, formatBaseUnits, priceRawToBps, shortHex } from "@owarine/core/units";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

@@ -1,10 +1,10 @@
 "use client";
 
-import type { TickerSymbol } from "@agari/core/market";
-import type { Reading } from "@agari/core/schemas";
-import type { PricePoint } from "@agari/core/types";
-import { getArchiveSeries, marketsProvider } from "@agari/markets";
-import { keys, useReadingQuery } from "@agari/markets/react";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Reading } from "@owarine/core/schemas";
+import type { PricePoint } from "@owarine/core/types";
+import { getArchiveSeries, marketsProvider } from "@owarine/markets";
+import { keys, useReadingQuery } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { basisRaw, FEED_DECIMALS_DEFAULT, feedRawToOracleRaw } from "../hero/units";
 import type { MarketSession } from "../session";

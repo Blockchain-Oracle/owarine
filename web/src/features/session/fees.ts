@@ -1,4 +1,4 @@
-import { LAMPORTS_PER_SIGNATURE } from "@agari/core/constants";
+import { LAMPORTS_PER_SIGNATURE } from "@owarine/core/constants";
 
 /** SOL has 9 decimals: 1 SOL = 10⁹ lamports. */
 export const SOL_DECIMALS = 9;

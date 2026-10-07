@@ -1,9 +1,9 @@
 "use client";
 
-import { phase } from "@agari/core/lifecycle";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { phase } from "@owarine/core/lifecycle";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { useVenue } from "../markets/useVenue";
 

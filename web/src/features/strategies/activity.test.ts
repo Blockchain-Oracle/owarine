@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import type { RunnerHealth } from "@agari/core/strategies";
-import { encodeBase58, toAddress } from "@agari/core/types";
-import type { VaultGrant } from "@agari/core/vault";
+import type { RunnerHealth } from "@owarine/core/strategies";
+import { encodeBase58, toAddress } from "@owarine/core/types";
+import type { VaultGrant } from "@owarine/core/vault";
 import { strategyActivityOf } from "./activity";
 import { copyStateOf, type CopyState } from "./lifecycle";
 

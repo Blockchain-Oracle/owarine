@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { keypairAddress, SECRET_KEY_BYTES } from "./keypair";
 import type { SeatSigner } from "./seat-signer";
 

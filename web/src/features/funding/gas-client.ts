@@ -1,4 +1,4 @@
-import type { AnyFaucetClaimView, FaucetAsset, FaucetClaimView, FaucetStatus, TusdcFaucetClaimView } from "@agari/core/faucet";
+import type { AnyFaucetClaimView, FaucetAsset, FaucetClaimView, FaucetStatus, TusdcFaucetClaimView } from "@owarine/core/faucet";
 
 export type FundingStage = "idle" | "checking" | "verifying" | "adding-gas" | "minting" | "ready";
 export const FUNDING_STAGE_LABEL: Record<FundingStage, string> = { idle: "Get test funds", checking: "Checking balances…", verifying: "Verify seat — no fee", "adding-gas": "Checking the seat…", minting: "Adding demo credits…", ready: "Ready" };
@@ -15,7 +15,7 @@ export const readGasStatus = (wallet: string) => faucetJson<FaucetStatus>(`/api/
 
 interface SignedRequest { id: string; signature: string }
 // Base58 is case-sensitive: the key is the address exactly as written (D-010).
-const storageKey = (wallet: string) => `agari.faucet.gas-request.${wallet}`;
+const storageKey = (wallet: string) => `owarine.faucet.gas-request.${wallet}`;
 function savedRequest(wallet: string): SignedRequest | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(storageKey(wallet)) ?? "null");

@@ -14,11 +14,11 @@
  *           would take the seat's public cash): every such receipt of the seat parties is tried once, straight at ops
  *           over HMAC (`OPS_INTERNAL_SECRET`), and nothing may move.
  */
-import { formatCadence } from "@agari/core/copy";
-import { CLUSTER_ID } from "@agari/core/constants";
-import { privateOpenMessage } from "@agari/core/private";
-import { formatBaseUnits } from "@agari/core/units";
-import { appMarketId, createOpsClient } from "@agari/markets/server";
+import { formatCadence } from "@owarine/core/copy";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import { privateOpenMessage } from "@owarine/core/private";
+import { formatBaseUnits } from "@owarine/core/units";
+import { appMarketId, createOpsClient } from "@owarine/markets/server";
 import { credits, quotingWindow, randomUUID, seat, sleep, TEMPLATE_IDS, type Ctx } from "../c8d/common";
 
 interface Placed {

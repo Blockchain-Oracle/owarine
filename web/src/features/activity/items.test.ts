@@ -1,4 +1,4 @@
-import type { SocialFillRow, SocialSettlementRow } from "@agari/db";
+import type { SocialFillRow, SocialSettlementRow } from "@owarine/db";
 import { expect, it } from "vitest";
 import { fillItem, settlementFacts, settlementItems } from "./items";
 

@@ -9,11 +9,11 @@ export const metadata: Metadata = { title: "Fixtures · Release config point" };
 
 /** Sample values only: a TestFlight join link, an APK with its checksum and a film, run through the real parser. */
 const READY = readPublicRelease({
-  AGARI_TESTFLIGHT_URL: "https://testflight.apple.com/join/SAMPLE01",
-  AGARI_ANDROID_APK_URL: "https://example.com/releases/agari-canton-0.1.0.apk",
-  AGARI_ANDROID_APK_SHA256: "0".repeat(64),
-  AGARI_ANDROID_APK_VERSION: "0.1.0",
-  AGARI_DEMO_VIDEO_URL: "https://example.com/agari-canton-demo.mp4",
+  OWARINE_TESTFLIGHT_URL: "https://testflight.apple.com/join/SAMPLE01",
+  OWARINE_ANDROID_APK_URL: "https://example.com/releases/owarine-canton-0.1.0.apk",
+  OWARINE_ANDROID_APK_SHA256: "0".repeat(64),
+  OWARINE_ANDROID_APK_VERSION: "0.1.0",
+  OWARINE_DEMO_VIDEO_URL: "https://example.com/owarine-canton-demo.mp4",
 });
 const PENDING = readPublicRelease({});
 

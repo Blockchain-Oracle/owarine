@@ -1,6 +1,6 @@
 /**
  * `print_proofs` reads and writes (schema-proofs.ts; proof-analytics.md §1, §2.6; lane 5d). The replay's store
- * (`@agari/markets/proof` `ProofStore`, matched structurally: integers stay decimal strings) and the proof page's
+ * (`@owarine/markets/proof` `ProofStore`, matched structurally: integers stay decimal strings) and the proof page's
  * `proofs/:market` rows. Only the replay writes here; `idx_*` and `print_archive` are read, never written.
  */
 import type postgres from "postgres";
@@ -115,7 +115,7 @@ export type ProofStoreDb = ReturnType<typeof proofStore>;
 
 /**
  * `proofs/:market`: one row per recorded print of the Window, with its archived evidence and any stored replay.
- * `pythFeeds` maps a ticker to its Pyth feed hex (core's registry, passed in because `@agari/db` does not import core).
+ * `pythFeeds` maps a ticker to its Pyth feed hex (core's registry, passed in because `@owarine/db` does not import core).
  * Archive and proof columns are prefixed (`archive_*`, `proof_*`) where they would shadow a print column.
  */
 export async function proofRows(sql: Sql, market: string, pythFeeds: Readonly<Record<string, string>>): Promise<Row[]> {

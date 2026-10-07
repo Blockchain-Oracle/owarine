@@ -1,7 +1,7 @@
 /** The share cards' words — ported from the reference's two card renderers and `BetPlacedCard.tsx`. */
-import { VOID_SHARE_WORD } from "@agari/core/market";
-import { networkLabel } from "@agari/markets/chain";
-import type { VoidReason } from "@agari/core/types";
+import { VOID_SHARE_WORD } from "@owarine/core/market";
+import { networkLabel } from "@owarine/markets/chain";
+import type { VoidReason } from "@owarine/core/types";
 
 /** The signed source and void reason as the settled card prints them (proof-analytics.md §2.8): core's one stamp per reason. */
 const VOID_WORD: Readonly<Record<VoidReason, string>> = VOID_SHARE_WORD;
@@ -15,7 +15,7 @@ const VOID_WORD: Readonly<Record<VoidReason, string>> = VOID_SHARE_WORD;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.NEXT_PUBLIC_APP_ORIGIN?.trim() || "http://localhost:3000";
 
 const BRAND = {
-  brand: "AGARI",
+  brand: "OWARINE",
   site: SITE_URL.replace(/^https?:\/\//, ""),
   siteUrl: SITE_URL,
   /** The venue's X account, only when the deployment names one: the reference's account is not this product's. */
@@ -66,7 +66,7 @@ export const SHARE = {
     another: "Place another",
     stakeLine: "STAKE  →  RETURN IF IT LANDS",
     settlesLine: (utc: string) => `SETTLES ${utc} · ORACLE-SETTLED AT THE CLOSE`,
-    footerKind: "AGARI · LIVE CALL",
+    footerKind: "OWARINE · LIVE CALL",
     tx: (short: string) => `TX ${short}`,
     /** The pre-filled post: real staked numbers only, framed as a live call. */
     /** The reference's text carries the multiple — `My call: ${band} (2×)` (`openBetShareCard.ts` L97–99). */

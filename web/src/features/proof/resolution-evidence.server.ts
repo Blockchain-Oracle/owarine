@@ -1,6 +1,6 @@
 import "server-only";
-import { getDb, resolutionsByMarket } from "@agari/db";
-import type { MarketId } from "@agari/core/types";
+import { getDb, resolutionsByMarket } from "@owarine/db";
+import type { MarketId } from "@owarine/core/types";
 import { PROOF_CANTON } from "@/features/canton-ux/proof/copy";
 import type { OracleQuote, ResolutionEvidence } from "@/features/canton-ux/proof/ResolutionTimeline";
 

@@ -1,4 +1,4 @@
-import { PRIVATE_HONESTY, PRIVATE_NOT_DEPLOYED } from "@agari/core/private";
+import { PRIVATE_HONESTY, PRIVATE_NOT_DEPLOYED } from "@owarine/core/private";
 
 /**
  * The private route — the reference's own words where it has them (`Ticket624Drawer.tsx` L1175–1247: the

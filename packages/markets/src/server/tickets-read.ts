@@ -2,9 +2,9 @@
  * The seat's ticket contracts, read AS its party (C8c): the snapshot the seat routes act on, and what a landed write
  * did for the seat (the ticket or share it now holds, the cash it was paid).
  */
-import { PRIVATE_BUCKET } from "@agari/core/private";
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent, DisclosedContract, JsTransaction, Party } from "@agari/ledger";
+import { PRIVATE_BUCKET } from "@owarine/core/private";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import type { CreatedEvent, DisclosedContract, JsTransaction, Party } from "@owarine/ledger";
 import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import {
   decodeBoostExitQuote, decodeBoostPosition, decodeBoostQuote, decodeLpShare, decodeParlayQuote, decodeParlayTicket, decodeRangeQuote,

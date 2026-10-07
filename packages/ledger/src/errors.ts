@@ -40,7 +40,7 @@ export type LedgerErrorKind =
   | "unknown";
 
 /**
- * The subset of `@agari/core` `DiagnosisKind` names a transport failure can map to on its own. Domain
+ * The subset of `@owarine/core` `DiagnosisKind` names a transport failure can map to on its own. Domain
  * kinds (expired quote, no liquidity, ...) come from `failWithStatus` ids, which the markets layer maps.
  */
 export type TransportDiagnosis = "rpc-down" | "send-unknown" | "contract-revert" | "unknown";

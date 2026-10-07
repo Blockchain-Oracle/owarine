@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { BASKET_INDEX_BASE_E8, BASKETS } from "@agari/core/market";
+import { BASKET_INDEX_BASE_E8, BASKETS } from "@owarine/core/market";
 
 const asciiHex = (ascii: string) => {
   const bytes = new Uint8Array(32);
@@ -8,7 +8,7 @@ const asciiHex = (ascii: string) => {
 };
 
 // The prints barrel re-exports Pyth modules that do not load in this environment; only these three names are needed.
-vi.mock("@agari/markets/ops/prints", () => ({
+vi.mock("@owarine/markets/ops/prints", () => ({
   PRESTOCKS_MAX_LATE_SEC: 45,
   preStocksFeedHex: (symbol: string) => asciiHex(`prestocks-v1:${symbol}`),
   preStocksBasketFeedHex: (symbol: string) => asciiHex(`prestocks-basket-v1:${symbol}`),
@@ -16,11 +16,11 @@ vi.mock("@agari/markets/ops/prints", () => ({
   recordAttestedSlot: vi.fn(),
   SWITCHBOARD_ERROR: { printNotAdjacent: "printNotAdjacent", printsMissing: "printsMissing" },
 }));
-vi.mock("@agari/markets/ops", () => ({ keypairSigner: vi.fn() }));
+vi.mock("@owarine/markets/ops", () => ({ keypairSigner: vi.fn() }));
 
 const { choosePrint, chooseSample, isPreStocksSlot, TARGET_BY_FEED } = await import("./prestocks-pass");
 import type { PreStocksSample, PreStocksSnapshot } from "../../prices/prestocks-spot";
-import type { PrintSlot } from "@agari/markets/ops/prints";
+import type { PrintSlot } from "@owarine/markets/ops/prints";
 
 const T = 1_789_800_000;
 const sample = (fetchedAtSec: number): PreStocksSample => ({ symbol: "OPENAI", mint: "m", tokenPriceE8: 112_738_000_000n, markPriceE8: 98_000_000_000n, fetchedAtSec });
@@ -50,7 +50,7 @@ describe("isPreStocksSlot", () => {
   it("keys on the feed id, not the lane, so a PreStocks slot on any basis is routed here", () => {
     expect(isPreStocksSlot({ source: "attested", feedIdHex: hex("prestocks-v1:OPENAI"), basis: "regular" } as PrintSlot)).toBe(true);
     expect(isPreStocksSlot({ source: "attested", feedIdHex: hex("prestocks-v1:SPACEX"), basis: "token" } as PrintSlot)).toBe(true);
-    expect(isPreStocksSlot({ source: "attested", feedIdHex: hex("agari-drive-attested:TSLA"), basis: "regular" } as PrintSlot)).toBe(false);
+    expect(isPreStocksSlot({ source: "attested", feedIdHex: hex("owarine-drive-attested:TSLA"), basis: "regular" } as PrintSlot)).toBe(false);
     expect(isPreStocksSlot({ source: "switchboard", feedIdHex: hex("prestocks-v1:OPENAI"), basis: "token" } as PrintSlot)).toBe(false);
   });
 });

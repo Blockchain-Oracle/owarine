@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { classifyRejection, relabelView, viewAs } from "@agari/markets/server";
+import { classifyRejection, relabelView, viewAs } from "@owarine/markets/server";
 import { seatServer } from "@/lib/ledger.server";
 import { diagnosisReply, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 

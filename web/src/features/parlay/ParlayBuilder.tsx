@@ -1,11 +1,11 @@
 "use client";
 
-import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@agari/core/parlay";
-import { RANGE_STAKE_HEADROOM_BPS } from "@agari/core/range";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet } from "@agari/markets/react";
+import { PARLAY_MAX_LEGS, type ParlayLegInput, type ParlayMode, type ParlayReserveState } from "@owarine/core/parlay";
+import { RANGE_STAKE_HEADROOM_BPS } from "@owarine/core/range";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { Layers, Plus, Wallet, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";

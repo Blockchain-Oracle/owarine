@@ -10,9 +10,9 @@
  * snapshots — the first read inside the window that priced every member, as the basket's index in points × 10⁸
  * (`basket-sample.ts`) — and signed with that read's time. One record/retry/copy-open loop serves both.
  */
-import { BASKET_SYMBOLS, BASKETS, PRE_IPO_TICKERS, type Basket, type TickerSymbol } from "@agari/core/market";
-import { keypairSigner } from "@agari/markets/ops";
-import { copyOpenSlot, PRESTOCKS_MAX_LATE_SEC, preStocksBasketFeedHex, preStocksFeedHex, recordAttestedSlot, SWITCHBOARD_ERROR, type PrintSlot, type SlotOutcome } from "@agari/markets/ops/prints";
+import { BASKET_SYMBOLS, BASKETS, PRE_IPO_TICKERS, type Basket, type TickerSymbol } from "@owarine/core/market";
+import { keypairSigner } from "@owarine/markets/ops";
+import { copyOpenSlot, PRESTOCKS_MAX_LATE_SEC, preStocksBasketFeedHex, preStocksFeedHex, recordAttestedSlot, SWITCHBOARD_ERROR, type PrintSlot, type SlotOutcome } from "@owarine/markets/ops/prints";
 import { currentPreStocksSpot, type PreStocksSample, type PreStocksSpotFeed } from "../../prices/prestocks-spot";
 import { chooseBasketSample } from "./basket-sample";
 import type { LanePassResult } from "./lane-pass";

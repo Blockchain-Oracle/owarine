@@ -4,9 +4,9 @@
  * step every few seconds (new change and expiry refunds join, consumed shards leave, quarantined ones resolve), and
  * returns the `POST /internal/quotes` and `POST /internal/exit-quotes` handlers. The expiry sweeper, rebalancer and netting take the same `pool`.
  */
-import { diagnosis } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { decodeVenueCash, pick, readActive } from "@agari/markets/ops/canton";
+import { diagnosis } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { decodeVenueCash, pick, readActive } from "@owarine/markets/ops/canton";
 import { runActor } from "../../runtime/actor";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import { readPricerSettings, type PricerSettings } from "../market-maker/seat/pricer";

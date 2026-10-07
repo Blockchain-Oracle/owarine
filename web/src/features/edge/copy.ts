@@ -1,14 +1,14 @@
-import type { EdgeWindow } from "@agari/core/projection";
+import type { EdgeWindow } from "@owarine/core/projection";
 
-/** `/portfolio/edge` — ported from the reference's Trader Edge page; facts adapted to Agari's Windows on Solana. */
+/** `/portfolio/edge` — ported from the reference's Trader Edge page; facts adapted to Owarine's Windows on Canton. */
 export const EDGE = {
   title: "Trader Edge",
   back: "Portfolio",
   intro: {
     title: "Know your edge.",
-    lede: "Your settled Agari Windows, turned into a clear record of what pays, what costs, and when you trade best.",
+    lede: "Your settled Owarine Windows, turned into a clear record of what pays, what costs, and when you trade best.",
     folio: "01",
-    source: { label: "Source", value: "Agari on Canton" },
+    source: { label: "Source", value: "Owarine on Canton" },
     method: { label: "Method", value: "Your ledger view / in your browser" },
     detailsLabel: "Report details",
   },
@@ -42,7 +42,7 @@ export const EDGE = {
     chartLabel: (net: string, settled: number) => `Cumulative result ${net} across ${settled} settled rounds`,
     firstClose: "FIRST CLOSE",
     latestClose: "LATEST CLOSE",
-    readoutLabel: "Agari readout",
+    readoutLabel: "Owarine readout",
     readoutFoot: "Patterns become more useful with a larger sample. This is a description of your record, not a promise about the next round.",
     readout: {
       moreRounds: (needed: number) => `${needed} more settled ${needed === 1 ? "round" : "rounds"} will reveal your first useful pattern.`,
@@ -83,7 +83,7 @@ export const EDGE = {
       noLosses: "No losses yet",
       provenanceLabel: "How this is verified",
       provenance:
-        "The report is calculated in your browser from your fills and complete-set actions on Agari's indexer, settled by the chain's own rule and checked against your redemptions. Redeeming a position does not erase it from this ledger.",
+        "The report is calculated in your browser from your fills and complete-set actions on Owarine's indexer, settled by the chain's own rule and checked against your redemptions. Redeeming a position does not erase it from this ledger.",
     },
     footer: "This report measures settled Windows because a Window is what settles. Every figure is a fill, or the settlement rule applied to one — never an estimate.",
   },

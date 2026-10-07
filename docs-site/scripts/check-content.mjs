@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/** Verify the docs' local contract and the Agari source revision they were reviewed against. */
+/** Verify the docs' local contract and the Owarine source revision they were reviewed against. */
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,7 +8,7 @@ import { legacyRedirects } from '../lib/legacy-redirects.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // The docs live in the app's own repository at docs-site/, so the app source is the parent directory.
-const source = resolve(process.env.AGARI_SOURCE_DIR || resolve(root, '..'));
+const source = resolve(process.env.OWARINE_SOURCE_DIR || resolve(root, '..'));
 const content = resolve(root, 'content/docs');
 // One pin: `site.revision` in lib/site.ts is the app commit every page was last checked against.
 const pinned = readFileSync(resolve(root, 'lib/site.ts'), 'utf8').match(/revision:\s*'([0-9a-f]{7,40})'/)?.[1] ?? null;
@@ -46,7 +46,7 @@ function appRouteExists(path) {
 }
 
 if (!pinned) fail('lib/site.ts has no revision to check against');
-else if (!existsSync(resolve(source, 'web/src/app'))) fail(`Agari source missing: ${source}`);
+else if (!existsSync(resolve(source, 'web/src/app'))) fail(`Owarine source missing: ${source}`);
 else if (git('cat-file', '-e', `${pinned}^{commit}`) === null) fail(`Pinned revision ${pinned} is not in ${source}'s history`);
 else if (git('merge-base', '--is-ancestor', pinned, 'HEAD') === null) fail(`Pinned revision ${pinned} is not an ancestor of HEAD: the docs were reviewed against a different line of history`);
 else {

@@ -6,7 +6,7 @@
  * with the choice that ended it.
  */
 import postgres from "postgres";
-import { appMarketId } from "@agari/markets/server";
+import { appMarketId } from "@owarine/markets/server";
 import { quotingWindow, randomUUID, seat, sleep, type Ctx } from "./common";
 
 type Sql = postgres.Sql;

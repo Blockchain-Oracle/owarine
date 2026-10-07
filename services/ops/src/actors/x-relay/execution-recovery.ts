@@ -1,7 +1,7 @@
-import type { XReceipt } from "@agari/core/x";
-import { priceRawToBps, oneUnit } from "@agari/core/units";
-import { isAddress, isMarketId, isSignature, toMarketId } from "@agari/core/types";
-import { recoverVaultExecution, type RecoveredVaultExecution } from "@agari/markets/vault";
+import type { XReceipt } from "@owarine/core/x";
+import { priceRawToBps, oneUnit } from "@owarine/core/units";
+import { isAddress, isMarketId, isSignature, toMarketId } from "@owarine/core/types";
+import { recoverVaultExecution, type RecoveredVaultExecution } from "@owarine/markets/vault";
 
 /** Only complete durable execution context can be reconciled against the shared vault verifier. */
 export async function resolveXExecution(receipt: XReceipt): Promise<RecoveredVaultExecution> {

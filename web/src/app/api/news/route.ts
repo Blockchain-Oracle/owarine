@@ -1,4 +1,4 @@
-import { isTickerSymbol, isTokenOnlyKind, TICKER_SYMBOLS, TICKERS, tickerSymbolSchema, type TickerSymbol } from "@agari/core/market";
+import { isTickerSymbol, isTokenOnlyKind, TICKER_SYMBOLS, TICKERS, tickerSymbolSchema, type TickerSymbol } from "@owarine/core/market";
 
 /** A pre-IPO name has no exchange listing, so no company wire and no earnings date exist for it (D-100). */
 const LISTED = TICKER_SYMBOLS.filter((symbol) => !isTokenOnlyKind(TICKERS[symbol].kind));

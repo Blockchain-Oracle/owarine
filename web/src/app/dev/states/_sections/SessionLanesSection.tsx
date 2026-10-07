@@ -1,7 +1,7 @@
 "use client";
 
-import { phase } from "@agari/core/lifecycle";
-import type { EventMarket, Lane, LaneBasis } from "@agari/core/types";
+import { phase } from "@owarine/core/lifecycle";
+import type { EventMarket, Lane, LaneBasis } from "@owarine/core/types";
 import { useState } from "react";
 import { SectionHeader } from "@/components/chrome";
 import { BlockedButton } from "@/components/states";

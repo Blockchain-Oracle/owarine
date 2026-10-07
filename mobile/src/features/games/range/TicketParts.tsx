@@ -1,7 +1,7 @@
-import { SETTLING } from "@agari/core/copy";
-import { countdown } from "@agari/core/lifecycle";
-import type { Signature } from "@agari/core/types";
-import { formatClock } from "@agari/core/units";
+import { SETTLING } from "@owarine/core/copy";
+import { countdown } from "@owarine/core/lifecycle";
+import type { Signature } from "@owarine/core/types";
+import { formatClock } from "@owarine/core/units";
 import { AlertCircle, Check, Loader2 } from "lucide-react-native";
 import { useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View, type StyleProp, type TextStyle } from "react-native";

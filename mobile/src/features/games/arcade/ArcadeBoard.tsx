@@ -1,4 +1,4 @@
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import type { PostState } from "@/features/games/arcade/ArcadeOverlays";
 import { ARCADE } from "@/features/games/arcade/copy";
 import type { PostAbility } from "@/features/games/arcade/useArcadeScore";

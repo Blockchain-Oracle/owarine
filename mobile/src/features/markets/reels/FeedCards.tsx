@@ -1,6 +1,6 @@
-import type { OutcomeColumn } from "@agari/core/desk";
-import { TICKERS } from "@agari/core/market";
-import { formatBaseUnits } from "@agari/core/units";
+import type { OutcomeColumn } from "@owarine/core/desk";
+import { TICKERS } from "@owarine/core/market";
+import { formatBaseUnits } from "@owarine/core/units";
 import { router } from "expo-router";
 import { memo } from "react";
 import { StyleSheet, Text, View } from "react-native";

@@ -1,6 +1,6 @@
-import { admissibilityBlocker, belowMinStake } from "@agari/core/sizing";
-import { diagnosis, type EventMarket, type Quote, type Side } from "@agari/core/types";
-import { msToSec } from "@agari/core/units";
+import { admissibilityBlocker, belowMinStake } from "@owarine/core/sizing";
+import { diagnosis, type EventMarket, type Quote, type Side } from "@owarine/core/types";
+import { msToSec } from "@owarine/core/units";
 import { readBook, type SeriesFacts } from "../../runtime/accounts";
 import { quoteFromBook } from "../../runtime/mappers";
 import { OrderRefusedError, RequoteError } from "../errors";

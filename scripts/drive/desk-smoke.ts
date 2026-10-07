@@ -3,14 +3,14 @@
 // the same POST the studio sends with `trigger: "test_read"`, so the runner on that site wakes the desk within its
 // tick and the first decision lands. Then the desk view is polled until a record appears.
 //
-//   pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/desk-smoke.ts [--site https://useagari.xyz] [--as drive-owner] [--preset ailabs] [--cash 1000] [--wait 600]
+//   pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/desk-smoke.ts [--site https://owarine.com] [--as drive-owner] [--preset ailabs] [--cash 1000] [--wait 600]
 //   pnpm exec tsx --env-file-if-exists=.env.local scripts/drive/desk-smoke.ts --share on|off [--site …] [--as …]   share the desk read-only (the studio's own signed request)
 //
 // Nothing here touches a chain: a practice desk is a paper ledger. Secrets are never printed.
 import { createPrivateKey, sign as edSign } from "node:crypto";
-import { deskMandateText, mandateFingerprint, mandateToWire, presetMandate } from "@agari/core/desk";
-import { networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
-import { encodeBase58 } from "@agari/core/types";
+import { deskMandateText, mandateFingerprint, mandateToWire, presetMandate } from "@owarine/core/desk";
+import { networkLine, SIGNED_MESSAGE_BRAND } from "@owarine/core/auth";
+import { encodeBase58 } from "@owarine/core/types";
 import { roleSecret } from "./cli";
 
 const arg = (name: string): string | undefined => {
@@ -24,7 +24,7 @@ function signText(secret: Uint8Array, text: string): string {
   return encodeBase58(new Uint8Array(edSign(null, Buffer.from(text, "utf8"), createPrivateKey({ key: pkcs8, format: "der", type: "pkcs8" }))));
 }
 
-const site = (arg("--site") ?? "https://useagari.xyz").replace(/\/$/, "");
+const site = (arg("--site") ?? "https://owarine.com").replace(/\/$/, "");
 const role = arg("--as") ?? "drive-owner";
 const presetId = arg("--preset") ?? "ailabs";
 const cashE6 = BigInt(Math.round(Number(arg("--cash") ?? "1000") * 1_000_000));

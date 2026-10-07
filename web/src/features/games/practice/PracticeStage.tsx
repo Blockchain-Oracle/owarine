@@ -1,8 +1,8 @@
 "use client";
 
-import { PRICE_STALE_AFTER_MS } from "@agari/core/constants";
-import type { DeckCard } from "@agari/core/games";
-import { secToMs } from "@agari/core/units";
+import { PRICE_STALE_AFTER_MS } from "@owarine/core/constants";
+import type { DeckCard } from "@owarine/core/games";
+import { secToMs } from "@owarine/core/units";
 import { useCallback } from "react";
 import { StaleTick } from "@/components/states";
 import { feedRawToOracleRaw, assetPriceLine } from "@/features/markets/hero/units";
@@ -30,7 +30,7 @@ import "./practice.css";
  * `none` and there is no submitter in this file to disagree with it.
  */
 
-const TUTORIAL_KEY = "agari.games.practiceSeen";
+const TUTORIAL_KEY = "owarine.games.practiceSeen";
 
 export function PracticeStage() {
   const session = usePracticeRound();

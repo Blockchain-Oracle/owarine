@@ -9,17 +9,17 @@ describe("readRegionRestricted", () => {
   it("is open with no document at all", () => expect(readRegionRestricted()).toBe(false));
 
   it("finds the mark beside other cookies", () => {
-    setCookie("agari_theme=light; agari.region=restricted; x_session=abc");
+    setCookie("owarine_theme=light; owarine.region=restricted; x_session=abc");
     expect(readRegionRestricted()).toBe(true);
   });
 
   it("does not match a cookie whose name merely ends the same way", () => {
-    setCookie("not-agari.region=restricted");
+    setCookie("not-owarine.region=restricted");
     expect(readRegionRestricted()).toBe(false);
   });
 
   it("is open for any other value", () => {
-    setCookie("agari.region=open");
+    setCookie("owarine.region=open");
     expect(readRegionRestricted()).toBe(false);
   });
 });

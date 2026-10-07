@@ -1,7 +1,7 @@
-import { winPayoutBase } from "@agari/core/claims";
-import { isTickerSymbol } from "@agari/core/market";
-import type { Address, MarketId, Side } from "@agari/core/types";
-import type { SocialFillRow, SocialSettlementRow } from "@agari/db";
+import { winPayoutBase } from "@owarine/core/claims";
+import { isTickerSymbol } from "@owarine/core/market";
+import type { Address, MarketId, Side } from "@owarine/core/types";
+import type { SocialFillRow, SocialSettlementRow } from "@owarine/db";
 import type { FeedTake } from "@/features/takes/protocol";
 import type { ActivityItem } from "./protocol";
 

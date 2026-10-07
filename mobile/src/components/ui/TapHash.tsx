@@ -1,4 +1,4 @@
-import { shortHex } from "@agari/core/units";
+import { shortHex } from "@owarine/core/units";
 import * as Clipboard from "expo-clipboard";
 import { Check, Copy } from "lucide-react-native";
 import { useEffect, useState } from "react";

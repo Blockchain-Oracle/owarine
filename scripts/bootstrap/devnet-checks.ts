@@ -5,7 +5,7 @@
  * (`/v2/packages`: packages, not parties).
  */
 import { readFileSync } from "node:fs";
-import { LedgerError, type LedgerClient } from "@agari/ledger";
+import { LedgerError, type LedgerClient } from "@owarine/ledger";
 import type { PartiesFile } from "../../services/ops/src/runtime/keys";
 import { darMain, type RepoDar } from "./dar";
 import { partySlots, shortParty } from "./devnet-parties";

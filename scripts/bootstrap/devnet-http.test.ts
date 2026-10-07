@@ -1,6 +1,6 @@
 /**
  * The DevNet checks and the preflight against a fake Keycloak and a fake participant over real HTTP (C2y): the whole
- * auth path of `@agari/ledger` (password grant, bearer header, 401 handling) runs as it will against Noders.
+ * auth path of `@owarine/ledger` (password grant, bearer header, 401 handling) runs as it will against Noders.
  */
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
@@ -8,7 +8,7 @@ import type { AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { createLedgerClient, passwordGrant } from "@agari/ledger";
+import { createLedgerClient, passwordGrant } from "@owarine/ledger";
 import { CANTON_ROLES } from "../../services/ops/src/runtime/keys";
 import { verifyPackages, verifyParties } from "./devnet-checks";
 import { hintFor, parseDevnetParties } from "./devnet-parties";
@@ -130,7 +130,7 @@ const viaFake: typeof fetch = (input, init) => {
 
 describe("devnet preflight over HTTP", () => {
   it("passes every check on a well-behaved node and prints no secret", async () => {
-    const rows = await runPreflight({ baseUrl: base, origin: "https://agari.example", env, parties: file, fetch: viaFake });
+    const rows = await runPreflight({ baseUrl: base, origin: "https://owarine.example", env, parties: file, fetch: viaFake });
     const byCheck = Object.fromEntries(rows.map((r) => [r.check, r]));
     expect(rows.map((r) => r.outcome)).toEqual(Array(rows.length).fill("pass"));
     expect(byCheck["GET /v2/version (no token)"]!.detail).toBe("Canton 3.5.18");
@@ -146,21 +146,21 @@ describe("devnet preflight over HTTP", () => {
 
   it("names K-035 option B when the realm keeps one session per login", async () => {
     node.singleSession = true;
-    const rows = await runPreflight({ baseUrl: base, origin: "https://agari.example", env, fetch: viaFake });
+    const rows = await runPreflight({ baseUrl: base, origin: "https://owarine.example", env, fetch: viaFake });
     const row = rows.find((r) => r.check === "concurrent sessions")!;
     expect(row.outcome).toBe("fail");
     expect(row.detail).toMatch(/option B .* is forced/);
   });
 
   it("without credentials checks only the public endpoints", async () => {
-    const rows = await runPreflight({ baseUrl: base, origin: "https://agari.example", env: {}, fetch: viaFake });
+    const rows = await runPreflight({ baseUrl: base, origin: "https://owarine.example", env: {}, fetch: viaFake });
     expect(rows.slice(0, 2).map((r) => r.outcome)).toEqual(["pass", "pass"]);
     expect(rows.slice(2).every((r) => r.outcome === "skip")).toBe(true);
     expect(node.grants).toBe(0);
   });
 
   it("reports a refused grant without echoing the credential", async () => {
-    const rows = await runPreflight({ baseUrl: base, origin: "https://agari.example", env: { ...env, LEDGER_OIDC_PASSWORD: "wrong-password" }, fetch: viaFake });
+    const rows = await runPreflight({ baseUrl: base, origin: "https://owarine.example", env: { ...env, LEDGER_OIDC_PASSWORD: "wrong-password" }, fetch: viaFake });
     const row = rows.find((r) => r.check === "token grant")!;
     expect(row.outcome).toBe("fail");
     expect(row.detail).toMatch(/401 invalid_grant/);

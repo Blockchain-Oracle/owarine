@@ -1,6 +1,6 @@
 "use client";
 
-import type { SeatLeaseView } from "@agari/markets";
+import type { SeatLeaseView } from "@owarine/markets";
 import { createContext, useContext } from "react";
 
 /**
@@ -59,7 +59,7 @@ export function leasedAddressOf<A extends string>(view: SeatLeaseView | null, ad
 
 /**
  * The seat's number from its party hint, or null when the hint carries none: `seat-3` (a bare user name),
- * `pm-seat-3` (the DevNet Console hint) and `agari-user-seat-1-<run>` (the local bootstrap) all name a number. The
+ * `pm-seat-3` (the DevNet Console hint) and `owarine-user-seat-1-<run>` (the local bootstrap) all name a number. The
  * number is a label for the menu; the party id beside it is the fact.
  */
 export function seatNumberOf(party: string): number | null {

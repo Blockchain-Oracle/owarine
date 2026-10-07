@@ -1,23 +1,23 @@
 /**
  * `POST /internal/tickets/{range,parlay,boost}` (C8c): the web's HMAC-signed calls, the party taken by the web from the
- * lease only. Each prices with core's kernels (`@agari/markets/ops/tickets` pricing) off the Window's venue ladder,
+ * lease only. Each prices with core's kernels (`@owarine/markets/ops/tickets` pricing) off the Window's venue ladder,
  * answers a preview, a requote above the cap the seat confirmed, or a refusal without writing; otherwise it issues on
  * the reserve's `RiskBook` (one queue per reserve) with a leased reserve shard. The accept is always the seat's own;
  * ops never submits it. Earn's liquidity quotes are `earn.ts`.
  */
 import { randomUUID } from "node:crypto";
-import { TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { diagnosis } from "@agari/core/types";
-import type { LeverageRefusal } from "@agari/core/leverage";
-import type { ParlayRefusal } from "@agari/core/parlay";
-import type { RangeRefusal } from "@agari/core/range";
-import { refusalDiagnosis } from "@agari/markets/leverage";
-import { bidLevels, walkExit, type Side } from "@agari/markets/ops/canton";
+import { TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { diagnosis } from "@owarine/core/types";
+import type { LeverageRefusal } from "@owarine/core/leverage";
+import type { ParlayRefusal } from "@owarine/core/parlay";
+import type { RangeRefusal } from "@owarine/core/range";
+import { refusalDiagnosis } from "@owarine/markets/leverage";
+import { bidLevels, walkExit, type Side } from "@owarine/markets/ops/canton";
 import {
   decodeBoostExitQuote, decodeBoostQuote, decodeParlayQuote, decodeRangeQuote, leverageParams, parlayParams, priceBoost, priceParlay,
   priceRange, rangeBasisOf, rangeParams, tcmd, validUntilFor, TICKET_QUOTE_LIFE_SEC,
-} from "@agari/markets/ops/tickets";
-import { boostTicketRequestWire, parlayTicketRequestWire, rangeTicketRequestWire } from "@agari/markets/server";
+} from "@owarine/markets/ops/tickets";
+import { boostTicketRequestWire, parlayTicketRequestWire, rangeTicketRequestWire } from "@owarine/markets/server";
 import { consume } from "../quote-issuer/issuer";
 import type { Lease, ShardPool } from "../quote-issuer/pool";
 import type { LadderEntry } from "../market-maker/seat/ladder-board";

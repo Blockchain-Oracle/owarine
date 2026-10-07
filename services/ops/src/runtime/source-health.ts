@@ -8,7 +8,7 @@
  * roller, the lane feeders and `/session`. A source that has not been probed yet is not usable: nothing lists on a
  * guess. Crypto's exchanges and the committee need no probe (the feeders themselves are the reading).
  */
-import { parsePrintSource, type AttestedSource } from "@agari/core/market";
+import { parsePrintSource, type AttestedSource } from "@owarine/core/market";
 
 export interface SourceState {
   ok: boolean;

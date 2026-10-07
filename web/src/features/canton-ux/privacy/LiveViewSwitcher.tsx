@@ -1,7 +1,7 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
-import { useLedgerViews, type LedgerViewAs } from "@agari/markets/react";
+import type { MarketId } from "@owarine/core/types";
+import { useLedgerViews, type LedgerViewAs } from "@owarine/markets/react";
 import { RefreshCw } from "lucide-react";
 import { SectionHeader } from "@/components/chrome";
 import { Button } from "@/components/ui/button";

@@ -1,6 +1,6 @@
 "use client";
 
-import { diagnosis } from "@agari/core";
+import { diagnosis } from "@owarine/core";
 import { Component, type ReactNode } from "react";
 import { ErrorState } from "./ErrorState";
 

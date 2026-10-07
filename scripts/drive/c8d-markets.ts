@@ -11,14 +11,14 @@
  *   earn                A-2b (`drive/c8d/earn.ts`)
  *   rest                C-S24b (`drive/c8d/rest.ts`; pauses the venue until the last Window closes, then opens it)
  *
- *   LEDGER_JSON_API_URL=http://localhost:7604 AGARI_PARTIES_FILE=<parties.json> \
- *     pnpm --filter @agari/scripts exec tsx drive/c8d-markets.ts --web http://localhost:3160 --ops http://localhost:8760 [--only basket,valuation]
+ *   LEDGER_JSON_API_URL=http://localhost:7604 OWARINE_PARTIES_FILE=<parties.json> \
+ *     pnpm --filter @owarine/scripts exec tsx drive/c8d-markets.ts --web http://localhost:3160 --ops http://localhost:8760 [--only basket,valuation]
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
-import { parseMarketsEnv } from "@agari/markets";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
+import { parseMarketsEnv } from "@owarine/markets";
 import { acceptanceRow, errorEvidence, failed, table, type CheckRow } from "../bootstrap/rows";
 import { arg } from "./cli";
 import { webClient } from "./first-call/seat";
@@ -45,8 +45,8 @@ const rows: CheckRow[] = [];
 
 async function main(): Promise<number> {
   const client = ledgerClientFromEnv(parseLedgerEnv(process.env));
-  const partiesPath = process.env.AGARI_PARTIES_FILE;
-  if (!partiesPath) throw new Error("AGARI_PARTIES_FILE is not set");
+  const partiesPath = process.env.OWARINE_PARTIES_FILE;
+  if (!partiesPath) throw new Error("OWARINE_PARTIES_FILE is not set");
   const parties = readParties(partiesPath);
   const roles = rolesOf(parties);
   const run = `c8d-${Date.now().toString(36)}`;

@@ -1,8 +1,8 @@
-import { STAKE_TIERS, type MatchState } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Hash32 } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { useArenaMatch, useArenaState } from "@agari/markets/react";
+import { STAKE_TIERS, type MatchState } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Hash32 } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useArenaMatch, useArenaState } from "@owarine/markets/react";
 import { DUEL } from "@/features/games/duel/copy";
 import { useArenaWrites } from "@/features/games/duel/useArenaWrites";
 import { useVenue } from "@/features/markets/useVenue";

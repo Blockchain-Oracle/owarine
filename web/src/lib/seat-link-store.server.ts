@@ -1,5 +1,5 @@
-import type { Db } from "@agari/db";
-import { SEAT_LINK_CONFIRM_MS } from "@agari/markets";
+import type { Db } from "@owarine/db";
+import { SEAT_LINK_CONFIRM_MS } from "@owarine/markets";
 
 /**
  * The seat link's two tables (plan, iOS step 2b), created with the seat pool's schema (`SEAT_SCHEMA_SQL`):

@@ -44,6 +44,6 @@ The prediction market ported from Agari (Solana, `661a24ee`) to Canton and Daml,
 - **Web:** `pnpm build` (only in the owner's and the `live` worktree)
 - **Daml:** `cd daml && dpm build --all && (cd pm-tests && dpm test)`
 - **Release:** `dpm upgrade-check` against the last DAR in `daml/released/`
-- **Mobile:** `pnpm --filter @agari/mobile typecheck`; `expo export` for iOS and Android at stage gates
+- **Mobile:** `pnpm --filter @owarine/mobile typecheck`; `expo export` for iOS and Android at stage gates
 
 `main` is the trunk from day one. Checks that need Abu are separate "owner check" boxes that never block a merge.

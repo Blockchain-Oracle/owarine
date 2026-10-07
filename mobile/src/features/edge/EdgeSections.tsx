@@ -1,5 +1,5 @@
-import type { EdgeWindow, TraderEdge } from "@agari/core/projection";
-import { formatBaseUnits } from "@agari/core/units";
+import type { EdgeWindow, TraderEdge } from "@owarine/core/projection";
+import { formatBaseUnits } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { EDGE } from "@/features/edge/copy";
 import { signedMoney, toneOf, type Tone } from "@/features/edge/format";

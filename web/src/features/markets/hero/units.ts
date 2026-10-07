@@ -1,7 +1,7 @@
-import { isBasketSymbol } from "@agari/core/market";
-import type { AssetPrice, PricePoint } from "@agari/core/types";
-import { formatOracleRaw, oneUnit } from "@agari/core/units";
-import { ORACLE_PRICE_SCALE, PRICE_BASIS } from "@agari/markets/identity";
+import { isBasketSymbol } from "@owarine/core/market";
+import type { AssetPrice, PricePoint } from "@owarine/core/types";
+import { formatOracleRaw, oneUnit } from "@owarine/core/units";
+import { ORACLE_PRICE_SCALE, PRICE_BASIS } from "@owarine/markets/identity";
 
 /** Spot ticks carry their own `decimals`; this default is the print scale (prints are normalized to 10⁻⁸ on-chain). */
 export const FEED_DECIMALS_DEFAULT = 8;

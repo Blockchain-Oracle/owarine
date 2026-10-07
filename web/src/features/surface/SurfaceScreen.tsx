@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk, type Reading } from "@agari/core/schemas";
-import type { LaneSet } from "@agari/core/types";
-import { formatCadence } from "@agari/core/market";
+import { isOk, type Reading } from "@owarine/core/schemas";
+import type { LaneSet } from "@owarine/core/types";
+import { formatCadence } from "@owarine/core/market";
 import Link from "next/link";
 import { SectionHead } from "@/components/shell";
 import { ErrorState, ReadingBoundary, StaleTick } from "@/components/states";

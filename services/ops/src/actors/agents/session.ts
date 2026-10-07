@@ -4,7 +4,7 @@
  * call for an owner only by exercising `Grant_AcceptQuote` on the grant that owner opened to it (`GrantExecutor`).
  *
  * The session keeps the shape the ported actors already call (`address`, `contracts`, `submitter.submitOrder` with
- * `route: vault-grant`), and installs this process's ledger readers behind `@agari/markets`' vault and strategy reads:
+ * `route: vault-grant`), and installs this process's ledger readers behind `@owarine/markets`' vault and strategy reads:
  *
  *   getVaultSnapshot(owner)      the owner's grants naming this agent, by kind (an owner is a party, or a seat address
  *                                resolved through the lease table)
@@ -15,20 +15,20 @@
  *                                the registry as the venue reads it (or, self-hosted, as the agent: its own strategies
  *                                and the consents naming it, K-089)
  */
-import type { IntentJournal, OrderOutcome, OrderRequest, TxIntent, TxOutcome } from "@agari/core/ports";
-import { err, ok, type Reading } from "@agari/core/schemas";
-import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
-import { diagnosis, type Address, type OnchainSnapshot } from "@agari/core/types";
-import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@agari/core/vault";
-import { getDb, seatPartyFor, type Db } from "@agari/db";
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { LedgerClient, Party } from "@agari/ledger";
-import { cantonVaultDeployment, installVaultExecutionResolver, installVaultReader } from "@agari/markets/vault";
-import { installStrategyReader } from "@agari/markets/strategies";
-import { createGrantExecutor, grantFor, grantIdOfC, grantsByKind, grantView, strategyView, subscriptionView, type AgentGrantC, type QuoteSource } from "@agari/markets/ops/agents";
-import { decodeLeg } from "@agari/markets/ops/canton";
-import { appMarketId, readRegistry } from "@agari/markets/server";
-import { CLUSTER_ID, type Cluster } from "@agari/core/constants";
+import type { IntentJournal, OrderOutcome, OrderRequest, TxIntent, TxOutcome } from "@owarine/core/ports";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import type { StrategyRecord, StrategySubscription } from "@owarine/core/strategies";
+import { diagnosis, type Address, type OnchainSnapshot } from "@owarine/core/types";
+import type { VaultDeployment, VaultGrant, VaultSnapshot } from "@owarine/core/vault";
+import { getDb, seatPartyFor, type Db } from "@owarine/db";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { LedgerClient, Party } from "@owarine/ledger";
+import { cantonVaultDeployment, installVaultExecutionResolver, installVaultReader } from "@owarine/markets/vault";
+import { installStrategyReader } from "@owarine/markets/strategies";
+import { createGrantExecutor, grantFor, grantIdOfC, grantsByKind, grantView, strategyView, subscriptionView, type AgentGrantC, type QuoteSource } from "@owarine/markets/ops/agents";
+import { decodeLeg } from "@owarine/markets/ops/canton";
+import { appMarketId, readRegistry } from "@owarine/markets/server";
+import { CLUSTER_ID, type Cluster } from "@owarine/core/constants";
 
 const PARTY_ID = /^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/;
 const REGISTRY_CACHE_MS = 5_000;
@@ -64,7 +64,7 @@ export interface AgentSessionConfig {
 
 /**
  * The owner's party behind an owner label (the X link binds an address; a strategy names its subscriber's): a party id
- * is itself; a seat key maps through the shared resolution (`@agari/db` `seatPartyFor`, C4c), so the key that took the
+ * is itself; a seat key maps through the shared resolution (`@owarine/db` `seatPartyFor`, C4c), so the key that took the
  * lease and a key joined to that live lease by a seat link both answer the seat's party, and a key whose lease ended
  * answers nothing.
  */

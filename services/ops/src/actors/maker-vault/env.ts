@@ -6,8 +6,8 @@
  * `MAKER_MAX_QUANTITY_RAW`, `MAKER_MAX_WINDOW_DEPLOYED_BASE`, `MAKER_MAX_OPEN_WINDOWS`, `MAKER_MIN_TIME_LEFT_SEC`).
  * Off, the vault still reads, publishes its statement and pays providers; it only takes no new quotes.
  */
-import type { MakerParams } from "@agari/core/maker";
-import { DEFAULT_MAKER_PARAMS } from "@agari/markets/ops/book";
+import type { MakerParams } from "@owarine/core/maker";
+import { DEFAULT_MAKER_PARAMS } from "@owarine/markets/ops/book";
 
 export interface MakerVaultEnv {
   enabled: boolean;

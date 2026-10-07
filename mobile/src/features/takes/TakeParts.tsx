@@ -1,5 +1,5 @@
-import { formatCadence } from "@agari/core/copy";
-import type { EventMarket, Side } from "@agari/core/types";
+import { formatCadence } from "@owarine/core/copy";
+import type { EventMarket, Side } from "@owarine/core/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { assetPriceLine } from "@/features/markets/hero/units";
 import { TAKES } from "@/features/takes/copy";

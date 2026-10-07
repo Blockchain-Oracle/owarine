@@ -45,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className={cn("antialiased cursor-custom", fontVariables)} suppressHydrationWarning>
         {/* Paint the resolved theme on the FIRST frame (no flash of dark). Runs
             synchronously before the app renders; mirrors lib/theme resolveTheme. */}
-        <Script id="agari-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <Script id="owarine-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <AppStrip />
         <AppProviders>
           <TooltipProvider>

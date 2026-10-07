@@ -1,12 +1,12 @@
 "use client";
 
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import { useReadingQuery } from "@agari/markets/react";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import { useReadingQuery } from "@owarine/markets/react";
 import { toTractionData, tractionPayloadSchema, type TractionData } from "./protocol";
 
 /** The reference polls every 30 s; the route serves from the board's three-minute cache, so this is cheap. */
 const POLL_MS = 30_000;
-export const TRACTION_KEY = ["agari", "traction"] as const;
+export const TRACTION_KEY = ["owarine", "traction"] as const;
 
 async function readTraction(): Promise<Reading<TractionData>> {
   const response = await fetch("/api/traction", { cache: "no-store" });

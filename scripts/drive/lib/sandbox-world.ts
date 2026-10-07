@@ -2,10 +2,10 @@
  * A throwaway venue on a LOCAL sandbox, built with direct ledger calls: the parties, the desk, one short series and
  * its window, demo cash, a quote issued as the venue (standing in for ops' `/internal/quotes`), oracle prints and a
  * manual resolution. Used by the C4a seat-route integration run and its rejection probe; never against Noders (party
- * allocation and DAR upload are local-only in `@agari/ledger`).
+ * allocation and DAR upload are local-only in `@owarine/ledger`).
  */
-import { TEMPLATE_IDS } from "@agari/daml";
-import type { CreatedEvent, JsTransaction, LedgerClient } from "@agari/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import type { CreatedEvent, JsTransaction, LedgerClient } from "@owarine/ledger";
 
 export interface World {
   venue: string;

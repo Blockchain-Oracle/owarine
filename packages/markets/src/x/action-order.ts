@@ -1,11 +1,11 @@
-import type { DiagnosisKind, MarketId, Side } from "@agari/core/types";
-import { parseStakeBase, windowShareAction, X_REFUSAL_DETAILS, type ActionPostResponse, type XRefusalCode } from "@agari/core/x";
+import type { DiagnosisKind, MarketId, Side } from "@owarine/core/types";
+import { parseStakeBase, windowShareAction, X_REFUSAL_DETAILS, type ActionPostResponse, type XRefusalCode } from "@owarine/core/x";
 import { marketsProvider } from "../provider";
 
 /**
  * A Window as a share action, for the Blinks endpoint (C13a). The reference built an unsigned Solana transaction for a
  * stranger's wallet here; Solana Actions have no Canton counterpart, so the same `POST` now answers with a signed
- * Window share link (`@agari/core/x` `share-link.ts`) that opens the ticket on the web or in the app. Nothing is
+ * Window share link (`@owarine/core/x` `share-link.ts`) that opens the ticket on the web or in the app. Nothing is
  * placed, signed by a seat, sent to the ledger or journaled: the viewer confirms the call in the ticket, under their
  * own seat. A refusal carries the same public words an X reply would.
  */

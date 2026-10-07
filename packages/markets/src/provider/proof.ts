@@ -1,10 +1,10 @@
 /**
  * The proof page's read (proof-analytics.md §1 `proofs/:market`, §2.6): every recorded print of a Window with its
  * archived evidence and the stored Pyth replay, mapped to integers. Browser-safe: the replay itself lives in the
- * server-only `@agari/markets/proof`.
+ * server-only `@owarine/markets/proof`.
  */
-import type { Reading } from "@agari/core/schemas";
-import type { MarketId, PrintSource } from "@agari/core/types";
+import type { Reading } from "@owarine/core/schemas";
+import type { MarketId, PrintSource } from "@owarine/core/types";
 import { big, bigOrNull, indexRows, sec, type Dec } from "./index-api";
 import { withReading } from "./reading";
 import { sourceName } from "./rows";

@@ -1,4 +1,4 @@
-import { practiceMove, type DeckCard, type Pick, type PracticeCardResult, type PracticeMove } from "@agari/core/games";
+import { practiceMove, type DeckCard, type Pick, type PracticeCardResult, type PracticeMove } from "@owarine/core/games";
 import { StyleSheet, Text, View } from "react-native";
 import { PRACTICE } from "@/features/games/practice/copy";
 import { useGamesTokens } from "~/features/games/frame";

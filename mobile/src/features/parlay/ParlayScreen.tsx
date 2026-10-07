@@ -1,6 +1,6 @@
-import type { ParlayReserveState } from "@agari/core/parlay";
-import { isOk } from "@agari/core/schemas";
-import { useParlayReserve } from "@agari/markets/react";
+import type { ParlayReserveState } from "@owarine/core/parlay";
+import { isOk } from "@owarine/core/schemas";
+import { useParlayReserve } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";

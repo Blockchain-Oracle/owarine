@@ -1,6 +1,6 @@
 "use client";
 
-import { partyLead } from "@agari/core/units";
+import { partyLead } from "@owarine/core/units";
 import { UserX } from "lucide-react";
 import { useState } from "react";
 import { Hash } from "@/components/data/Hash";

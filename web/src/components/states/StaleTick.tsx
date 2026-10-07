@@ -1,6 +1,6 @@
-import type { StaleReason } from "@agari/core";
+import type { StaleReason } from "@owarine/core";
 import { TriangleAlertIcon } from "lucide-react";
-import { formatUtc } from "@agari/core/units";
+import { formatUtc } from "@owarine/core/units";
 import { STALE_REASON_LABEL, staleLine } from "@/lib/copy";
 import { cn } from "@/lib/utils";
 

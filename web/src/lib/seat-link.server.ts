@@ -1,7 +1,7 @@
 import "server-only";
 import { randomInt } from "node:crypto";
-import { isAddress, isEd25519Signature, type Address } from "@agari/core/types";
-import { normalizeSeatLinkCode, SEAT_LINK_ALPHABET, SEAT_LINK_CODE_LENGTH, SEAT_LINK_JOIN_TTL_MS, SEAT_LINK_TTL_MS, seatLinkJoinWire, seatLinkText } from "@agari/markets";
+import { isAddress, isEd25519Signature, type Address } from "@owarine/core/types";
+import { normalizeSeatLinkCode, SEAT_LINK_ALPHABET, SEAT_LINK_CODE_LENGTH, SEAT_LINK_JOIN_TTL_MS, SEAT_LINK_TTL_MS, seatLinkJoinWire, seatLinkText } from "@owarine/markets";
 import { verifyWalletMessage } from "./auth/verify-signed-message.server";
 import { webEnv } from "./env";
 import type { SeatServer } from "./ledger.server";

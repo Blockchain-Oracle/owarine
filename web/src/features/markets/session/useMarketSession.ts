@@ -1,10 +1,10 @@
 "use client";
 
-import { haltLabel, laneKey, sessionLabel, sessionStatus, type SessionCalendar, type SessionStatus, type TickerSymbol, type TradingSession } from "@agari/core/market";
-import { err, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, HALT_REASONS, type CorporateSkip, type EarningsEvent, type HaltBoard, type HaltEntry, type LaneBasis } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useReadingQuery } from "@agari/markets/react";
+import { haltLabel, laneKey, sessionLabel, sessionStatus, type SessionCalendar, type SessionStatus, type TickerSymbol, type TradingSession } from "@owarine/core/market";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import { diagnosis, HALT_REASONS, type CorporateSkip, type EarningsEvent, type HaltBoard, type HaltEntry, type LaneBasis } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { useReadingQuery } from "@owarine/markets/react";
 import { useRef } from "react";
 import { z } from "zod";
 import { webEnv } from "@/lib/env";
@@ -14,7 +14,7 @@ const SESSION_POLL_MS = 60_000;
 /** Closed and more than ten minutes from the next open, the body cannot change: poll every five minutes (S18a). */
 const CLOSED_POLL_MS = 5 * 60_000;
 const NEAR_BOUNDARY_SEC = 10 * 60;
-const SESSION_KEY = ["agari", "ops", "session"] as const;
+const SESSION_KEY = ["owarine", "ops", "session"] as const;
 
 const sessionSchema = z.object({ date: z.string(), openSec: z.number(), closeSec: z.number(), earlyClose: z.boolean() });
 

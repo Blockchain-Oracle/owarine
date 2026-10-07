@@ -1,7 +1,7 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useState } from "react";
@@ -58,7 +58,7 @@ export function TradeFromXScreen() {
       <div className="xt-strip">
         <div className="xt-strip-inner">
           <Link href={MARKETS_PATH} className="xt-brand">
-            AGARI <span className="xt-brand-crumb">{TRADE_FROM_X.crumb}</span>
+            OWARINE <span className="xt-brand-crumb">{TRADE_FROM_X.crumb}</span>
           </Link>
           <nav className="xt-nav" aria-label="Primary">
             {ISLAND_NAV.map((item) => (

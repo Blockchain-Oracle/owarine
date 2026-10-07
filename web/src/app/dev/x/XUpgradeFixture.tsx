@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { diagnosis } from "@agari/core/types";
-import { simulateCaps, type VaultGrant } from "@agari/core/vault";
-import { xPermissionState } from "@agari/core/x";
+import { diagnosis } from "@owarine/core/types";
+import { simulateCaps, type VaultGrant } from "@owarine/core/vault";
+import { xPermissionState } from "@owarine/core/x";
 import { XWalletCardView, type XGrantState, type XLink } from "@/features/x";
 import { updateXPermission, type XUpdateProgress } from "@/features/x/update-permission";
-import type { TxOutcome } from "@agari/core/ports";
+import type { TxOutcome } from "@owarine/core/ports";
 import { PLATE, PoolRows } from "@/features/markets/portfolio/plate";
 import { fixtureAddress, fixtureSignature } from "../fixture-ids";
 
@@ -23,7 +23,7 @@ const noop = async () => undefined;
 const LINK: XLink = { loading: false, busy: "", error: "", ok: "", needsLink: false, walletMismatch: false, sessionMatchesBinding: true,
   refresh: noop, link: noop, unlink: noop, startUrl: () => "#", setOk: () => undefined, setError: () => undefined,
   status: { configured: true, missing: [], storeConfigured: true, signedIn: true, session: { authorId: "1", handle: "demo_trader" },
-    binding: { authorId: "1", handle: "demo_trader", wallet: OWNER, since: 0 }, executor: EXECUTOR, handle: "@useagari" } };
+    binding: { authorId: "1", handle: "demo_trader", wallet: OWNER, since: 0 }, executor: EXECUTOR, handle: "@owarine" } };
 
 /** Interactive rehearsal of the production update state machine, with only its wallet/chain boundaries replaced. */
 export function XUpgradeFixture() {

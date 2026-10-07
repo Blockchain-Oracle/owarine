@@ -4,7 +4,7 @@
  * the 2026-09-22 catalogue read (OPENAI token $1,127.38, mark 15.1 % under it) and the 11 % token-to-index gap the
  * plan measured; none is a live read.
  */
-import type { EventMarket } from "@agari/core/types";
+import type { EventMarket } from "@owarine/core/types";
 import type { MarketCardData } from "@/features/markets/lanes/MarketCardView";
 import { absentWhy, type IndexState } from "@/features/ticker-hub/index-state";
 import { TICKER_HUB } from "@/features/ticker-hub/copy";

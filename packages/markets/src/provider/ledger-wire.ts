@@ -14,9 +14,9 @@ import {
   type Quote,
   type Side,
   type Signature,
-} from "@agari/core/types";
-import { isSignature } from "@agari/core/types";
-import type { BookedOrder } from "@agari/core/ports";
+} from "@owarine/core/types";
+import { isSignature } from "@owarine/core/types";
+import type { BookedOrder } from "@owarine/core/ports";
 import { z } from "zod";
 
 const baseUnits = z.string().regex(/^-?\d+$/, "an integer string").transform((s) => BigInt(s));
@@ -65,7 +65,7 @@ export type QuoteReply = z.output<typeof quoteReplyWire>;
 
 // ---- /api/ledger/resting (and ops /internal/resting-offers): a pre-open resting call (C7c, K-235) -----------
 
-/** How long a call rests: to the bell plus 90 s (default) or, opted in, to the Window's lock (`@agari/core/orders`). */
+/** How long a call rests: to the bell plus 90 s (default) or, opted in, to the Window's lock (`@owarine/core/orders`). */
 export const restUntilWire = z.enum(["bell", "lock"]);
 
 /**

@@ -1,4 +1,4 @@
-import type { DuelMatchC, DuelOpenC, PickC } from "@agari/markets/ops/games";
+import type { DuelMatchC, DuelOpenC, PickC } from "@owarine/markets/ops/games";
 import { describe, expect, it } from "vitest";
 import { decideMatch, decideOpen, potRefundAfterSec } from "./decide";
 

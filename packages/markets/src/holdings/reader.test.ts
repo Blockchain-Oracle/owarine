@@ -1,6 +1,6 @@
-import { SHARE_TOKENS } from "@agari/core/market";
-import { CIP56_INTERFACE_IDS } from "@agari/daml";
-import type { LedgerClient } from "@agari/ledger";
+import { SHARE_TOKENS } from "@owarine/core/market";
+import { CIP56_INTERFACE_IDS } from "@owarine/daml";
+import type { LedgerClient } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { HoldingsReadError, parseShareInstruments, readCip56Holdings, readHoldings } from "./reader";
 

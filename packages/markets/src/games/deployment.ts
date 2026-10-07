@@ -1,6 +1,6 @@
-import type { ArenaDeployment } from "@agari/core/games";
-import { seriesIdFromDaml } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
+import type { ArenaDeployment } from "@owarine/core/games";
+import { seriesIdFromDaml } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
 import type { MarketsEnv } from "../env";
 import { cantonNotLive } from "../stub/not-deployed";
 import { arenaSource } from "./source";

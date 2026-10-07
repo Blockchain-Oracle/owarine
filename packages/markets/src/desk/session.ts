@@ -6,8 +6,8 @@
  * A name is not a token the owner holds apart from the desk (K-090): depositing or withdrawing a company is refused
  * with the reason, and the desk's holdings reach the owner's seat when their Window settles.
  */
-import type { Address, Signature } from "@agari/core/types";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import type { Address, Signature } from "@owarine/core/types";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
 import { ledgerRequest } from "../provider/ledger-api";
 import { deskStateFromWire, deskStateReplyWire, deskWriteReplyWire, type DeskOwnerAction } from "./wire";
 import { DeskSendError, DeskSendUnknownError } from "./errors";

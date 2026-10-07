@@ -4,10 +4,10 @@
  * seat alone accepts. Both run on the reserve's queue, since each reads its one live statement.
  */
 import { randomUUID } from "node:crypto";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { diagnosis } from "@agari/core/types";
-import { decodeSupplyQuote, decodeWithdrawQuote, tcmd } from "@agari/markets/ops/tickets";
-import { earnRequestWire } from "@agari/markets/server";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { diagnosis } from "@owarine/core/types";
+import { decodeSupplyQuote, decodeWithdrawQuote, tcmd } from "@owarine/markets/ops/tickets";
+import { earnRequestWire } from "@owarine/markets/server";
 import { createdOne, type Desk } from "./desk";
 import { handleMakerEarn } from "../maker-vault/earn";
 import { DeskRefusal, failed, isAnswer, lease, nowSec, onReserve, refused, reply, seatOf, split, type Answer } from "./common";

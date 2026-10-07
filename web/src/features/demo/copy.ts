@@ -1,28 +1,28 @@
 /**
  * `/demo` — ported from `reference/yosuku/app/demo/page.tsx`.
  *
- * The reference's structure is kept line for line; every claim is rewritten to what Agari does on the Canton test
+ * The reference's structure is kept line for line; every claim is rewritten to what Owarine does on the Canton test
  * network (C4c). C10f: no footage or screenshot recorded before the Canton port is shown. The film comes from one config
- * point (`AGARI_DEMO_VIDEO_URL`, `web/src/lib/release.ts`) and the frame names what it waits on until it is set; the
+ * point (`OWARINE_DEMO_VIDEO_URL`, `web/src/lib/release.ts`) and the frame names what it waits on until it is set; the
  * screenshots are dated captures of the Canton build on a local sandbox; the receipts list is empty until the Canton
  * DevNet drive records its own. Nothing here names an X handle.
  */
 export const DEMO = {
   title: "Demo",
   video: {
-    title: "Agari — demo",
+    title: "Owarine — demo",
     description: "A private call on Canton: a firm quote from the venue, a position only you and the venue can see, three oracle parties at the close, and a settlement you can audit.",
     caption: "Recorded on the Canton build: a seat, a call at the venue's firm quote, who can see it, a sell-back, and the settlement.",
     watch: "Watch on YouTube ↗",
   },
   bar: {
-    brand: "AGARI",
+    brand: "OWARINE",
     sub: "/ demo",
     pitch: "pitch",
     stats: "stats",
     open: "open the app",
   },
-  /** The film's frame while `AGARI_DEMO_VIDEO_URL` is unset (the D-015 honest state). */
+  /** The film's frame while `OWARINE_DEMO_VIDEO_URL` is unset (the D-015 honest state). */
   film: {
     pendingLabel: "The demo film is not published yet",
     pendingEyebrow: "The Canton film",
@@ -31,7 +31,7 @@ export const DEMO = {
   },
   hero: {
     eyebrow: "live demo",
-    headline: "See Agari ",
+    headline: "See Owarine ",
     headlineSerif: "work.",
     videoLabel: "▶ demo · the Canton build",
     lead: "Up or down on a stock, a coin or an event at the venue's firm quote, in a position only you and the venue can see, settled on a price three oracle parties sign — one tap, no wallet app, on the web and as an installable app. Full feature breakdown and the proof page below.",
@@ -96,7 +96,7 @@ export const DEMO = {
       headline: "Real actions. ",
       headlineSerif: "Open receipts.",
       body: "One Window's whole life — listed, funded, called, filled, printed, settled and paid — and a void beside it. Every receipt opens on the proof page.",
-      readOn: (wallet: string, date: string) => `Agari on the Canton test network · placed by the drive seat ${wallet} and the venue's own roller, oracle, resolver and settler parties · checked on ${date}. These record completed actions, not current balances.`,
+      readOn: (wallet: string, date: string) => `Owarine on the Canton test network · placed by the drive seat ${wallet} and the venue's own roller, oracle, resolver and settler parties · checked on ${date}. These record completed actions, not current balances.`,
       fork: "local sandbox",
       pending: "Not recorded yet: these receipts land once the Canton DevNet drive runs. Until then every settlement on this venue opens on the proof page.",
       contracts: "The parties every Window runs on",
@@ -105,11 +105,11 @@ export const DEMO = {
   close: {
     headline: "The front door is ",
     headlineSerif: "open.",
-    footer: "Agari · stock prediction Windows on Canton, open after the bell.",
+    footer: "Owarine · stock prediction Windows on Canton, open after the bell.",
   },
   frame: {
     caption: (date: string) => `captured from the Canton build on a local sandbox · ${date}`,
-    markets: "Agari's market board on Canton: an ETH one-minute Window, its opening print, the time left and the Up and Down prices",
+    markets: "Owarine's market board on Canton: an ETH one-minute Window, its opening print, the time left and the Up and Down prices",
     reel: "The same board at phone width, where the reel and the bottom dock live",
     sensei: "Who can see this, as an outsider: the ledger query names the outsider party and returns no contracts",
   },

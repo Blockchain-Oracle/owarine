@@ -1,5 +1,5 @@
-import { CLUSTER_ID, DEFAULT_CLUSTER, type Cluster } from "@agari/core/constants";
-import { addressSchema } from "@agari/core/types";
+import { CLUSTER_ID, DEFAULT_CLUSTER, type Cluster } from "@owarine/core/constants";
+import { addressSchema } from "@owarine/core/types";
 import { z } from "zod";
 
 /**
@@ -61,8 +61,8 @@ export function marketsEnvInputFrom(source: Record<string, string | undefined>):
   return {
     cluster: source.NEXT_PUBLIC_CANTON_NETWORK,
     ledgerApiPath: source.NEXT_PUBLIC_LEDGER_API_PATH,
-    indexerUrl: source.NEXT_PUBLIC_AGARI_INDEXER_URL,
-    venueId: source.NEXT_PUBLIC_AGARI_VENUE_ID,
+    indexerUrl: source.NEXT_PUBLIC_OWARINE_INDEXER_URL,
+    venueId: source.NEXT_PUBLIC_OWARINE_VENUE_ID,
     priceFeedUrl: source.NEXT_PUBLIC_PRICE_FEED_URL,
     ladderUrl: source.NEXT_PUBLIC_LADDER_URL,
     packageName: source.NEXT_PUBLIC_DAML_PACKAGE_NAME,

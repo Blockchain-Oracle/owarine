@@ -1,4 +1,4 @@
-import type { Address, ClaimKind, ClaimLeg, Diagnosis, MarketId, OutcomeIdx, Signature } from "@agari/core/types";
+import type { Address, ClaimKind, ClaimLeg, Diagnosis, MarketId, OutcomeIdx, Signature } from "@owarine/core/types";
 
 /**
  * One redemption = one Window = one wallet signature. `user_redeem` pays a seat in full (partial redeem is

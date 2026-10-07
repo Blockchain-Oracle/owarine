@@ -1,6 +1,6 @@
 "use client";
 
-import { useSubmitter } from "@agari/markets/react";
+import { useSubmitter } from "@owarine/markets/react";
 import { useEffect } from "react";
 
 const RECHECK_MS = 12_000;

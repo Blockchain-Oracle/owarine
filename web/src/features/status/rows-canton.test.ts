@@ -7,9 +7,9 @@ describe("Canton status rows", () => {
   it("grades each oracle by its newest close: fresh, late, silent", () => {
     const rows = oracleRows(
       [
-        { oracle: "agari-oracle-coinbase-r1::1220aa", last_boundary_sec: String(NOW - 40), last_recorded_sec: String(NOW - 29), recent_boundaries: 10 },
-        { oracle: "agari-oracle-kraken-r1::1220bb", last_boundary_sec: String(NOW - 150), last_recorded_sec: String(NOW - 139), recent_boundaries: 8 },
-        { oracle: "agari-oracle-bitstamp-r1::1220cc", last_boundary_sec: null, last_recorded_sec: null, recent_boundaries: 0 },
+        { oracle: "owarine-oracle-coinbase-r1::1220aa", last_boundary_sec: String(NOW - 40), last_recorded_sec: String(NOW - 29), recent_boundaries: 10 },
+        { oracle: "owarine-oracle-kraken-r1::1220bb", last_boundary_sec: String(NOW - 150), last_recorded_sec: String(NOW - 139), recent_boundaries: 8 },
+        { oracle: "owarine-oracle-bitstamp-r1::1220cc", last_boundary_sec: null, last_recorded_sec: null, recent_boundaries: 0 },
       ],
       NOW,
     );

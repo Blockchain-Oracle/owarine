@@ -1,6 +1,6 @@
-import { LEVERAGE_MULTIPLES } from "@agari/core/leverage";
-import { minStakeBase } from "@agari/core/sizing";
-import { formatBaseUnits, oneUnit } from "@agari/core/units";
+import { LEVERAGE_MULTIPLES } from "@owarine/core/leverage";
+import { minStakeBase } from "@owarine/core/sizing";
+import { formatBaseUnits, oneUnit } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { LEVERAGE } from "@/features/leverage/copy";
 import { TICKET, TICKET_PENDING } from "@/lib/copy";

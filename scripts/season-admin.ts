@@ -5,12 +5,12 @@
  *               (`Season_WithdrawRemainder`; ops refuses it before the distribution)
  *   distribute  pays the ranked winners once (`Season_Distribute`): `--winners <addr,addr> --amounts <base,base>`
  *
- *   OPS_INTERNAL_URL=http://localhost:8777 OPS_ADMIN_SECRET=… pnpm --filter @agari/scripts exec tsx season-admin.ts withdraw --season s1
+ *   OPS_INTERNAL_URL=http://localhost:8777 OPS_ADMIN_SECRET=… pnpm --filter @owarine/scripts exec tsx season-admin.ts withdraw --season s1
  *
  * Signed with the admin's own `OPS_ADMIN_SECRET` (C4d L4), which ops holds and the web never does.
  */
-import type { Address } from "@agari/core/types";
-import { distributeSeasonPrizes, withdrawSeasonRemainder } from "@agari/markets/games";
+import type { Address } from "@owarine/core/types";
+import { distributeSeasonPrizes, withdrawSeasonRemainder } from "@owarine/markets/games";
 import { arg } from "./drive/cli";
 
 const act = process.argv[2];

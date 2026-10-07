@@ -1,4 +1,4 @@
-# Metrics / Validation: Agari on Canton
+# Metrics / Validation: Owarine on Canton
 
 *Platform material 3 of 6. The criterion reads: "Evidence from user research, interviews, tests and key metrics."*
 

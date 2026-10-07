@@ -3,13 +3,13 @@
  * shares and quotes, the book's open quotes, buy-backs, legs and residuals, its receipts, and the Resolution and
  * expiry of every Window it is on. Rebuilt from the venue's active contracts each pass.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   decodeBookReceipt, decodeBuyQuote, decodeLeg, decodeNettedResidual, decodeQuote, decodeResolution, decodeTerms, decodeVenueCash, pick, readActive,
   type Active, type ResolutionC, type RoleSession,
-} from "@agari/markets/ops/canton";
-import { isBookCash, isBookLeg, isBookQuote, MAKER_BOOK, MAKER_RESERVE, type MakerSnapshot, type MarketInfo } from "@agari/markets/ops/book";
-import { decodeLpShare, decodeNavStatement, decodeSupplyQuote, decodeWithdrawQuote, type NavStatementC } from "@agari/markets/ops/tickets";
+} from "@owarine/markets/ops/canton";
+import { isBookCash, isBookLeg, isBookQuote, MAKER_BOOK, MAKER_RESERVE, type MakerSnapshot, type MarketInfo } from "@owarine/markets/ops/book";
+import { decodeLpShare, decodeNavStatement, decodeSupplyQuote, decodeWithdrawQuote, type NavStatementC } from "@owarine/markets/ops/tickets";
 
 /**
  * What every pass reads. `Resolution` and `MarketTerms` are not here: both exist for every Window the venue ever ran and

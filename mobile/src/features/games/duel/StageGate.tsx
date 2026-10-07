@@ -1,5 +1,5 @@
-import type { Address, Hash32 } from "@agari/core/types";
-import { shortHex } from "@agari/core/units";
+import type { Address, Hash32 } from "@owarine/core/types";
+import { shortHex } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import { useArenaWrites } from "@/features/games/duel/useArenaWrites";

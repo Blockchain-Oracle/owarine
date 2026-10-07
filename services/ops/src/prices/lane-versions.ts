@@ -18,7 +18,7 @@
  * own rule, inclusive of `validUntil`).
  */
 import { readFileSync } from "node:fs";
-import { BASKET_TICKERS, PRE_IPO_TICKERS, TICKERS, type AttestedSource, type SourceVersion, type TickerSymbol, type XStockSymbol } from "@agari/core/market";
+import { BASKET_TICKERS, PRE_IPO_TICKERS, TICKERS, type AttestedSource, type SourceVersion, type TickerSymbol, type XStockSymbol } from "@owarine/core/market";
 
 export type LaneSource = Exclude<AttestedSource, "exchanges">;
 

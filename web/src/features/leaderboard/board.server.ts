@@ -1,8 +1,8 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { TraderRanking } from "@agari/core/projection";
-import { ensureMarkets, notDeployedReading, readVenueBoard, readVenueStatic, unwrap, type VenueBoard } from "@agari/markets";
-import type { Address } from "@agari/core/types";
-import { getDb } from "@agari/db";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { TraderRanking } from "@owarine/core/projection";
+import { ensureMarkets, notDeployedReading, readVenueBoard, readVenueStatic, unwrap, type VenueBoard } from "@owarine/markets";
+import type { Address } from "@owarine/core/types";
+import { getDb } from "@owarine/db";
 import { unstable_cache } from "next/cache";
 import { readVenueFacts } from "@/app/api/venue/venue.server";
 import { webEnv } from "@/lib/env";
@@ -41,7 +41,7 @@ const inFlight = new Map<BoardPeriod, Promise<BoardCache>>();
  * was how that happened.
  */
 async function operatorWallets(): Promise<string[]> {
-  const listed = (process.env.AGARI_OPERATOR_WALLETS ?? "").split(",").map((w) => w.trim()).filter(Boolean);
+  const listed = (process.env.OWARINE_OPERATOR_WALLETS ?? "").split(",").map((w) => w.trim()).filter(Boolean);
   const seats = await readVenueStatic().then((venue) => venue.programSeats as string[]).catch(() => []);
   return [...new Set([...listed, ...seats, ...(await venueParties())])];
 }
@@ -97,7 +97,7 @@ async function compute(period: BoardPeriod, nowMs: number): Promise<BoardCache> 
   // On Canton the venue id is derived from the projection's venue party (`/api/venue` facts); an env override still wins.
   // No venue at all: the board says so instead of ranking nothing.
   const venueId = (env.venueId ?? (await readVenueFacts().catch(() => null))?.venue.config ?? null) as Address | null;
-  if (!venueId) return unwrap(notDeployedReading("no Agari venue configured yet"));
+  if (!venueId) return unwrap(notDeployedReading("no Owarine venue configured yet"));
   const operators = await operatorWallets();
   if (period === "24h") {
     const board = unwrap(
@@ -124,12 +124,12 @@ function computeBoard(period: BoardPeriod): Promise<BoardCache> {
 }
 
 /** Tag on every cached board: a publish or a retraction expires it, so the change is on the next read. */
-export const BOARD_CACHE_TAG = "agari-venue-board";
+export const BOARD_CACHE_TAG = "owarine-venue-board";
 
 /** Key by the deployment's data source and the period, never by a per-request timestamp. */
 export function readBoard(period: BoardPeriod): Promise<BoardCache> {
   const { cluster, venueId, indexerUrl } = webEnv.markets;
-  return unstable_cache(() => computeBoard(period), ["agari-venue-board-v5", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
+  return unstable_cache(() => computeBoard(period), ["owarine-venue-board-v5", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
 }
 
 /** The venue's board, or one ticker's slice of it; a ticker with no closed rounds is an empty board, not an error. */

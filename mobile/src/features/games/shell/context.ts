@@ -1,4 +1,4 @@
-import type { GameId, MatchState } from "@agari/core/games";
+import type { GameId, MatchState } from "@owarine/core/games";
 import { createContext, useContext } from "react";
 import type { FeedbackCue } from "@/features/games/feedback";
 import type { AccentChoice, GameSettings, MotionChoice } from "@/features/games/settings";

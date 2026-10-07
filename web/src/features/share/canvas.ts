@@ -1,4 +1,4 @@
-import { ADVICE_COPY } from "@agari/core/copy";
+import { ADVICE_COPY } from "@owarine/core/copy";
 
 /**
  * The share cards' drawing kit — the helpers `lib/shareCard.ts` and
@@ -208,7 +208,7 @@ export function openCard(ground: string, vignetteInner: number, vignetteAlpha: n
   return { canvas, ctx };
 }
 
-/** AGARI (left) · N° folio (right), the hairline under them, and the record-type line on the record's edge. */
+/** OWARINE (left) · N° folio (right), the hairline under them, and the record-type line on the record's edge. */
 export function drawMasthead(ctx: CanvasRenderingContext2D, fonts: CardFonts, brand: string, folio: string, recordType: string): void {
   ctx.textAlign = "left";
   ctx.font = font(800, 26, fonts.display);

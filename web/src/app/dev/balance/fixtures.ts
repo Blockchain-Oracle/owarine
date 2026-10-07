@@ -1,6 +1,6 @@
-import { err, ok, stale, type Reading } from "@agari/core/schemas";
-import { LAMPORTS_PER_SOL } from "@agari/core/constants";
-import { diagnosis, encodeBase58, toMarketId, type BalanceSheet } from "@agari/core/types";
+import { err, ok, stale, type Reading } from "@owarine/core/schemas";
+import { LAMPORTS_PER_SOL } from "@owarine/core/constants";
+import { diagnosis, encodeBase58, toMarketId, type BalanceSheet } from "@owarine/core/types";
 import type { BALANCE } from "@/lib/copy";
 
 // Canned sheets carry their own decimals the way a chain read would; nothing here is a real balance.

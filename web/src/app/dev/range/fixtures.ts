@@ -1,7 +1,7 @@
 import { fixtureWindow } from "../fixture-window";
-import { CLUSTER_ID } from "@agari/core/constants";
-import { classifyRangeBand, type RangeQuote, type RangeReserveState } from "@agari/core/range";
-import { diagnosis, toMarketId, type Address, type Diagnosis, type EventMarket, type MarketId } from "@agari/core/types";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import { classifyRangeBand, type RangeQuote, type RangeReserveState } from "@owarine/core/range";
+import { diagnosis, toMarketId, type Address, type Diagnosis, type EventMarket, type MarketId } from "@owarine/core/types";
 import type { RangeRoundView } from "@/features/range";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 

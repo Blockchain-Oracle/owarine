@@ -13,18 +13,18 @@
  *
  * Every row prints its update id (from the ledger's own answers and the projection). Exits 0 only when every check passes.
  *
- *   source <env>; pnpm --filter @agari/scripts exec tsx drive/resting-it.ts [--web http://localhost:3130] [--db postgres://localhost:5432/pm_c7c]
+ *   source <env>; pnpm --filter @owarine/scripts exec tsx drive/resting-it.ts [--web http://localhost:3130] [--db postgres://localhost:5432/pm_c7c]
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
-import { restingQuote } from "@agari/core/orders";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
-import { parseMarketsEnv } from "@agari/markets";
-import { decodeLeg, decodeRestingCall, decodeTerms, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
-import { appMarketId } from "@agari/markets/server";
+import { restingQuote } from "@owarine/core/orders";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
+import { parseMarketsEnv } from "@owarine/markets";
+import { decodeLeg, decodeRestingCall, decodeTerms, decodeVenueCash, pick, readActive, type RoleSession } from "@owarine/markets/ops/canton";
+import { appMarketId } from "@owarine/markets/server";
 import { newSeat, webClient, type Seat } from "./first-call/seat";
 import { waitFor } from "./first-call/ledger";
 
@@ -53,7 +53,7 @@ function sql(query: string): string[][] {
 }
 
 async function main(): Promise<number> {
-  const parties = JSON.parse(readFileSync(process.env.AGARI_PARTIES_FILE ?? "", "utf8")) as { parties: Record<string, string> };
+  const parties = JSON.parse(readFileSync(process.env.OWARINE_PARTIES_FILE ?? "", "utf8")) as { parties: Record<string, string> };
   const client = ledgerClientFromEnv(parseLedgerEnv(process.env));
   const venue: RoleSession = { role: "venue", party: parties.parties.venue!, client, dryRun: false };
   const cluster = parseMarketsEnv({ cluster: process.env.NEXT_PUBLIC_CANTON_NETWORK }).cluster;

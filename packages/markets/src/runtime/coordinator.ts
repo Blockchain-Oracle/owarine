@@ -8,9 +8,9 @@
  * once the first snapshot has arrived ("no quotes"), never a skeleton that never resolves; a stream that dropped keeps
  * the last ladder, flagged stale. Readings are stable objects, because `useSyncExternalStore` requires them.
  */
-import type { BookTarget } from "@agari/core/ports";
-import type { Reading, ReadingOk } from "@agari/core/schemas";
-import type { Address, BookDepth } from "@agari/core/types";
+import type { BookTarget } from "@owarine/core/ports";
+import type { Reading, ReadingOk } from "@owarine/core/schemas";
+import type { Address, BookDepth } from "@owarine/core/types";
 import { peekSeries, readSeries, readVenueStatic, type BookState, type SeriesFacts } from "./accounts";
 import { decideBookEmit, reuseBookValue } from "./book-reading";
 import { openStream, type StreamSource } from "./event-source";

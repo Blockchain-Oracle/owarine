@@ -1,4 +1,4 @@
-import type { Address, MarketId, Signature } from "@agari/core/types";
+import type { Address, MarketId, Signature } from "@owarine/core/types";
 import { indexRows, type ActionRow, type FillRow } from "../provider/index-api";
 import type { WriteRpc } from "./write-rpc";
 

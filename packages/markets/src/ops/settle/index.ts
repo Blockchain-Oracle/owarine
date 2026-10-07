@@ -1,9 +1,9 @@
 /**
- * `@agari/markets/ops/settle`: the settler's reads and commands. On Canton settlement is one venue-only `SettleBatch`
+ * `@owarine/markets/ops/settle`: the settler's reads and commands. On Canton settlement is one venue-only `SettleBatch`
  * over leg contracts after `Terms_Resolve`/`Terms_Void` (C3); in C1 the pure seat predicates are live and every ledger
  * read or command refuses as not live. Server-only.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { OpsClient } from "../client";
 import { opsNotLive, type Instruction } from "../shapes";
 import type { MarketView } from "../venue";

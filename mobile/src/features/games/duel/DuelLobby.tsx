@@ -1,5 +1,5 @@
-import type { MatchState } from "@agari/core/games";
-import { shortHex } from "@agari/core/units";
+import type { MatchState } from "@owarine/core/games";
+import { shortHex } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";
 import type { DealingView } from "@/features/games/duel/useDuelRoom";

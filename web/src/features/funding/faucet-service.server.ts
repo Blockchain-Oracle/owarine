@@ -2,10 +2,10 @@ import { randomUUID } from "node:crypto";
 import {
   FaucetError, SOL_FAUCET_POLICY as POLICY, TUSDC_FAUCET_POLICY as TUSDC, anyClaimView, faucetChallengeMessage, faucetClaimView, faucetTopUpLamports,
   tusdcBaseUnits, tusdcClaimView, unavailableTusdcStatus, type AnyFaucetClaim, type AnyFaucetClaimView, type FaucetAsset, type FaucetStatus, type TusdcFaucetStatus,
-} from "@agari/core/faucet";
-import { isAddress, isSignature } from "@agari/core/types";
-import { readFaucetStore, withFaucetLock, type ClaimJournal, type FaucetStore } from "@agari/db";
-import type { FaucetChain } from "@agari/markets/faucet";
+} from "@owarine/core/faucet";
+import { isAddress, isSignature } from "@owarine/core/types";
+import { readFaucetStore, withFaucetLock, type ClaimJournal, type FaucetStore } from "@owarine/db";
+import type { FaucetChain } from "@owarine/markets/faucet";
 import { verifyWalletMessage } from "@/lib/auth/verify-signed-message.server";
 
 export interface FaucetServiceDeps {

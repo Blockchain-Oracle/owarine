@@ -2,8 +2,8 @@
  * What the cover card shows (plan Step 2, 2026-09-19). The old card rendered nothing in every case but the offer, which
  * made the feature indistinguishable from one that was never built. Pure, so the live card and `/dev/hedge` agree.
  */
-import type { Reading } from "@agari/core";
-import type { TickerSymbol } from "@agari/core/market";
+import type { Reading } from "@owarine/core";
+import type { TickerSymbol } from "@owarine/core/market";
 import type { HedgePick } from "./hedge-target";
 import type { HoldingView } from "./useHoldings";
 

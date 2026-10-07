@@ -38,7 +38,7 @@ The product is his prediction market moved onto Canton and Daml, ported from his
 | Web | Next.js 16, Base UI, `motion` 12, lucide. 70+ page routes. The design system in `web/src/styles/**` is 60 files, ≈14k lines, of which 5,871 are the verbatim `styles/yosuku/` port. The Window Cut brand touched `yosuku/part-02.css` and `part-15.css` (logo sizes only; colour tokens unchanged) |
 | New since 22 Sep | Baskets, measured in points (D-124). Pyth valuation lanes behind an entitlement probe (D-125). `agari-desk`, a mainnet agent desk with paper-ledger practice desks (D-126), built from 21st components (D-127). A `/proof` feed. A docs site at docs.useagari.xyz. Push notifications. An `/api/rpc` proxy (D-121). A trusted-proxy rule (D-122). Removed: friends/follows, sealed strategy memory |
 | **Mobile** | `mobile/`: Expo SDK 57, React Native 0.86, expo-router, **619 files and ≈54k lines in `mobile/src` (698 in all of `mobile/`), native screens**. Web's 402 px layout ported literally (owner, 25 Sep) with web's header, a floating pill dock and a shared `BottomDrawer`. **`@/` points at `web/src`** (D-129), and 269 web modules are imported directly. Uses Reanimated 4, FlashList 2, MMKV, `react-native-quick-crypto`, push, a widget, a Live Activity and onboarding with sound. No tests inside `mobile/` |
-| One seam, plus web's hooks | Both apps reach the chain through `@agari/markets` (≈22,700 lines, 27 subpaths) **and** through web's own Solana-bound hooks, which mobile imports via `@/`. So web and mobile change in step |
+| One seam, plus web's hooks | Both apps reach the chain through `@owarine/markets` (≈22,700 lines, 27 subpaths) **and** through web's own Solana-bound hooks, which mobile imports via `@/`. So web and mobile change in step |
 | The seat key already exists | The app's "practice wallet" is a 32-byte ed25519 seed in the Keychain (`mobile/src/wallet/practice-store.ts`, `WHEN_UNLOCKED_THIS_DEVICE_ONLY`). Its address is base58 of the public key, and it signs raw UTF-8 text (`packages/markets/src/sessions/mobile/practice.ts`). That is exactly the seat identity. The tap-trading session key is the wrong base: it is keyed per owner and exists to hold a vault grant |
 | Push | Built on web's inbox feed: `api/push/register`, then `api/push/drain` driven by the ops `push-clock`, then Expo. Fills, results and payouts trigger it. On Canton only `inboxFeed`'s data source changes |
 | Apple | App Store Connect app "Agari – Call the Close" (bundle `xyz.useagari.app`) on team `86C6ZFJ6V6`; EAS project with an App Store Connect key and an APNs key. **Public TestFlight beta submitted 25 Sep and open by 27 Sep**, so a devnet prediction market from this account passed beta review in about 2 days |
@@ -47,7 +47,7 @@ The product is his prediction market moved onto Canton and Daml, ported from his
 | Previous port's pace | 759 commits in 9 days; 327 on the peak day; up to four lanes at once |
 
 **The work**:
-- Rewrite `@agari/markets` and web's chain-bound hooks as a Canton adapter behind the same exports.
+- Rewrite `@owarine/markets` and web's chain-bound hooks as a Canton adapter behind the same exports.
 - Replace the wallet islands with the seat on both platforms.
 - Replace the Anchor programs with Daml packages.
 - Re-point `services/ops`.
@@ -218,7 +218,7 @@ Either way the password is unique to this login, server-only, never in a `NEXT_P
 - **Apps.** Web, ops and Postgres run from the reference's Dockerfiles (`web/Dockerfile`, `services/ops/Dockerfile`) as new Coolify apps beside Agari's, which stays up. Docs is a fourth app. The worker is a single machine, as the reference requires. The first hosted deploy is a lane inside M1, not a late stage.
 - **Client IP (D-122).** With Traefik as the only proxy, set `TRUSTED_PROXY=forwarded`. The reference's `web/src/lib/client-ip.server.ts` already supports exactly this ("a proxy that owns that header (Traefik …)"). `publicOrigin()` then reads Traefik's `x-forwarded-proto` and `x-forwarded-host`, so the faucet's same-origin check and the X OAuth callback work over TLS.
   - Traefik's docs do not state plainly what it does with a forged `X-Forwarded-For` from an untrusted client (UNVERIFIED in its docs; **measured in C4e, 6 Oct: Coolify's Traefik drops it**, `docs/evidence/c4e-deploy.md`). So C0 probes it: send a request carrying a fake header and confirm the app records the real address. If the header passes through, Coolify's Traefik gets explicit `forwardedHeaders` settings, and the seven routes that read `x-forwarded-for` directly (`strategies/preview`, `holdings/gate`, `private/open`, `sponsor`, `room/limits`, `sensei/rate`, the faucet) are moved onto `clientIp()`.
-- **Region hold (D-095).** Detection reads `x-vercel-ip-country` (`web/src/lib/region-mark.ts:12`), a header only Vercel sets, so without Vercel or Cloudflare nothing marks a visitor's country. The port gives `proxy.ts` its own country source: a local IP-to-country database read at the edge of the request (default: DB-IP's free "IP to Country Lite", which needs no account, under CC BY 4.0 with attribution on `/legal`). `AGARI_REGION_OVERRIDE` still forces the state for testing. Abu chooses the source (see his decisions).
+- **Region hold (D-095).** Detection reads `x-vercel-ip-country` (`web/src/lib/region-mark.ts:12`), a header only Vercel sets, so without Vercel or Cloudflare nothing marks a visitor's country. The port gives `proxy.ts` its own country source: a local IP-to-country database read at the edge of the request (default: DB-IP's free "IP to Country Lite", which needs no account, under CC BY 4.0 with attribution on `/legal`). `OWARINE_REGION_OVERRIDE` still forces the state for testing. Abu chooses the source (see his decisions).
 - **No CDN edge, so the app carries what the edge did.**
   - Static assets rely on Next's immutable `_next/static` caching.
   - Public read caching stays in the app (the reference's 2 s shared cache on `/api/index/*`).
@@ -386,7 +386,7 @@ The completeness map (29 Sep) checked every parity row, web route, route handler
 
 ## iOS: port the reference's native app, ship on TestFlight
 
-**Shape.** The reference's `mobile/` comes across as it is: web's phone layout ported literally. It follows the Canton adapter through `@agari/markets` and through web's hooks (`@/` points at `web/src`), so every web hook change reaches the phone in the same commit. Only its wallet island and Solana copy change. From the native-app map, in order:
+**Shape.** The reference's `mobile/` comes across as it is: web's phone layout ported literally. It follows the Canton adapter through `@owarine/markets` and through web's hooks (`@/` points at `web/src`), so every web hook change reaches the phone in the same commit. Only its wallet island and Solana copy change. From the native-app map, in order:
 1. **Seat signer.** `packages/markets/src/sessions/mobile/practice.ts` becomes `seat.ts`: `{address: base58(pubkey), signMessage}` via WebCrypto `crypto.subtle` Ed25519 (the `react-native-quick-crypto` polyfill already installed in `polyfills.ts`), with no `@solana/kit` and no devnet check. A unit test proves the signature verifies with the server's `verifyWalletMessage`.
 2. **Seat store and provider.** `mobile/src/wallet/practice-store.ts` becomes `seat-key-store.ts`, with the same seed and the same Keychain options. `WalletProvider.tsx` becomes the SeatProvider: load or create the seed, lease the seat with a signed canonical text, and fill web's `WalletShellContext`. `WalletSession.signer` becomes optional in web and markets.
 2b. **Seat link between devices.** The web seat key and the phone's Keychain seed are different keys, so one seat on both needs signed pairing. The leased device shows a one-time QR or code (`POST /api/seat/link`, 60 s, single use), and the other device's key joins the same lease. It is a new surface, built with the 21st workflow. It is required before the C4 gate and the demo's step 1.
@@ -410,7 +410,7 @@ The completeness map (29 Sep) checked every parity row, web route, route handler
 11. **New surfaces.** The chip, the switcher, StepProgress, the quote ring, the seat link and Code Block use the native desk kit where it already exists (`mobile/src/features/desk/kit/`, `components/ui/CountdownRing.tsx`) and are otherwise ported literally from their web versions under the `mobile-design-literals` invariant, and verified side by side with `mobile/scripts/webdump.mjs`.
 
 **Checks** (the reference's own, now joined by a seat test):
-- `pnpm --filter @agari/mobile typecheck`
+- `pnpm --filter @owarine/mobile typecheck`
 - `pnpm invariants`
 - `expo export` for iOS and Android
 - a simulator side-by-side pass

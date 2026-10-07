@@ -4,8 +4,8 @@
  * desk's keeper posts `Boost_KnockOut` from the same rule (`countedAt`, `quorumPrint`, `beyondBarrier`), so what this
  * reports is exactly what the ledger would accept.
  */
-import type { PriceQuoteC, TermsC } from "@agari/markets/ops/canton";
-import type { BoostPositionC } from "@agari/markets/ops/tickets";
+import type { PriceQuoteC, TermsC } from "@owarine/markets/ops/canton";
+import type { BoostPositionC } from "@owarine/markets/ops/tickets";
 import { beyondBarrier, countedAt, quorumPrint } from "../ticket-desk/keeper";
 
 interface Row<T> {

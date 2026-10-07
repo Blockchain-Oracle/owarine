@@ -7,9 +7,9 @@
  *   maker-quote / maker-pull        the maker actor's own; on Canton the venue's issuer quotes for the vault, so a seat
  *                                   refuses them before anything is journaled
  */
-import type { MakerIntent } from "@agari/core/maker";
-import type { PhaseListener, TxOutcome } from "@agari/core/ports";
-import { diagnosis } from "@agari/core/types";
+import type { MakerIntent } from "@owarine/core/maker";
+import type { PhaseListener, TxOutcome } from "@owarine/core/ports";
+import { diagnosis } from "@owarine/core/types";
 import type { SeatLaneDeps } from "../submitter/seat-lane";
 import { earnCall, forgetTicketReads } from "../tickets/client";
 import { earnWrite } from "../tickets/earn-lane";

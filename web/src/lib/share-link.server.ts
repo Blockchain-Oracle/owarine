@@ -1,6 +1,6 @@
 import "server-only";
-import { readWindowShare, shareKeyFrom, type WindowShare } from "@agari/core/x";
-import type { MarketId } from "@agari/core/types";
+import { readWindowShare, shareKeyFrom, type WindowShare } from "@owarine/core/x";
+import type { MarketId } from "@owarine/core/types";
 
 /**
  * The key a Window share link is signed with (C13a, Blinks on Canton), derived from the seat cookie's secret under a
@@ -10,7 +10,7 @@ import type { MarketId } from "@agari/core/types";
 let cached: { secret: string; key: Uint8Array } | null = null;
 
 export function windowShareKey(): Uint8Array | null {
-  const secret = process.env.AGARI_SEAT_COOKIE_SECRET;
+  const secret = process.env.OWARINE_SEAT_COOKIE_SECRET;
   if (!secret || secret.length < 32) return null;
   if (cached?.secret !== secret) cached = { secret, key: shareKeyFrom(secret) };
   return cached.key;

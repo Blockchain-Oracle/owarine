@@ -1,9 +1,9 @@
 /**
- * `@agari/markets/ops/maker`: the seat-mode seed maker's reads and commands. On Canton the seed maker becomes the pricer
+ * `@owarine/markets/ops/maker`: the seat-mode seed maker's reads and commands. On Canton the seed maker becomes the pricer
  * and quote issuer over the venue's cash shards (C3/C4); in C1 the order constants stay and every ledger call refuses
  * as not live. Server-only.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { OpsClient } from "../client";
 import { opsNotLive, type Instruction } from "../shapes";
 import type { VenueConfig } from "../settle";

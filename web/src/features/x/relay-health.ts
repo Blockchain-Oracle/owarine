@@ -1,4 +1,4 @@
-import type { XStageHealth } from "@agari/db";
+import type { XStageHealth } from "@owarine/db";
 
 /** An old success cannot keep a stopped worker looking available. */
 export function relayStageLabel(stage: XStageHealth | null | undefined, nowMs: number): string {

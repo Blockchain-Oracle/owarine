@@ -5,7 +5,7 @@
  * new leg on that Window is the fill. A process with ledger access installs the resolver; without one the answer is
  * `unknown`, and absence never authorizes a replay (AD-3).
  */
-import type { Address, MarketId, Side, Signature } from "@agari/core/types";
+import type { Address, MarketId, Side, Signature } from "@owarine/core/types";
 
 export type RecoveredVaultExecution =
   | { status: "unknown" }

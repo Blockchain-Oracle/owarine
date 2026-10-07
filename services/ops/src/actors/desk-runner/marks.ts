@@ -2,7 +2,7 @@
  * Hourly PreStocks marks for all eight names (plan §8 C4): the durable history grading reads a day later and the hub
  * sparkline reads. One row per (name, hour), from the feed's newest read; a restart mid-hour keeps the earlier row.
  */
-import { PRE_IPO_SYMBOLS } from "@agari/core/market";
+import { PRE_IPO_SYMBOLS } from "@owarine/core/market";
 import type { RunnerContext } from "./types";
 
 export const hourSlotSec = (nowSec: number): number => Math.floor(nowSec / 3600) * 3600;

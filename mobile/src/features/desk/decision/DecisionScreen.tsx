@@ -1,4 +1,4 @@
-import { isOk } from "@agari/core/schemas";
+import { isOk } from "@owarine/core/schemas";
 import { StyleSheet, View } from "react-native";
 import { RECORD } from "@/features/desk/copy-record";
 import { useDecision, useDeskView, useInvalidateDesk } from "@/features/desk/useDesk";

@@ -14,7 +14,7 @@ import { CONTRACT_PROOFS, contractProofHref, PROOF_WALLET, PROOFS_READ_ON, TX_PR
  *
  * The reference is "the walkthrough, in place of a video": the real product, with
  * every claim a transaction anyone can open. That is kept exactly. What changes is
- * every fact: the film comes from the one config point (`AGARI_DEMO_VIDEO_URL`) and its frame names what it waits on
+ * every fact: the film comes from the one config point (`OWARINE_DEMO_VIDEO_URL`) and its frame names what it waits on
  * until it is set (C10f: nothing recorded before the Canton port is shown); the traction line is read live from the
  * venue; the screenshots are dated captures of the Canton build; and the receipts list waits for the DevNet drive.
  *

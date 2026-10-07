@@ -1,6 +1,6 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
-import type { Address } from "@agari/core/types";
-import { getDb, listTakes, seatActivityReader, socialActivityReader, type IdxSeatLease, type SeatActivityReader, type SocialActivityReader, type TakeRecord } from "@agari/db";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
+import type { Address } from "@owarine/core/types";
+import { getDb, listTakes, seatActivityReader, socialActivityReader, type IdxSeatLease, type SeatActivityReader, type SocialActivityReader, type TakeRecord } from "@owarine/db";
 import type { FeedTake } from "@/features/takes/protocol";
 import { fillItem, mergeItems, settlementItems, takeItem } from "./items";
 import { ACTIVITY_LIMIT, type ActivityFeed, type ActivityItem } from "./protocol";

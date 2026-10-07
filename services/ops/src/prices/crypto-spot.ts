@@ -3,7 +3,7 @@
  * `SpotFeed`. The pricer's fair value reads it (spot against the Window's recorded open print) and `/prices/stream`
  * serves it. It never settles anything: Windows settle on the oracle parties' attested candle closes.
  */
-import { CRYPTO_SYMBOLS, type CryptoSymbol } from "@agari/core/market";
+import { CRYPTO_SYMBOLS, type CryptoSymbol } from "@owarine/core/market";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
 import { decimalToE8, type Fetch } from "./candles";
@@ -27,7 +27,7 @@ export function createCryptoSpotFeed(input: { log: (why: string) => void; symbol
   let lastError = "";
 
   const poll = async (symbol: CryptoSymbol) => {
-    const r = await fetchImpl(`https://api.exchange.coinbase.com/products/${symbol}-USD/ticker`, { headers: { "user-agent": "agari-crypto-spot" }, signal: AbortSignal.timeout(4_000) });
+    const r = await fetchImpl(`https://api.exchange.coinbase.com/products/${symbol}-USD/ticker`, { headers: { "user-agent": "owarine-crypto-spot" }, signal: AbortSignal.timeout(4_000) });
     if (!r.ok) throw new Error(`coinbase ticker ${symbol} HTTP ${r.status}`);
     const body = JSON.parse(await r.text()) as { price?: string; time?: string };
     if (typeof body.price !== "string") throw new Error(`coinbase ticker ${symbol}: no price`);

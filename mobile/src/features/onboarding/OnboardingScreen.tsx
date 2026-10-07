@@ -122,7 +122,7 @@ export function OnboardingScreen() {
     if (ended.current) return;
     ended.current = true;
     storage.set(ONBOARDED_KEY, true);
-    globalThis.localStorage?.setItem("agari.tutorialSeen", "1");
+    globalThis.localStorage?.setItem("owarine.tutorialSeen", "1");
     if (then === "seat") {
       seat.acceptTerms();
       seat.takeSeat().catch((error: unknown) => {

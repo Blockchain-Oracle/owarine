@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { attestedPrintSource, parsePrintSource, primarySourceAt } from "@agari/core/market";
-import type { TickerSymbol, XStockSymbol } from "@agari/core/market";
+import { attestedPrintSource, parsePrintSource, primarySourceAt } from "@owarine/core/market";
+import type { TickerSymbol, XStockSymbol } from "@owarine/core/market";
 import { laneVersionsOf } from "../../services/ops/src/prices/lane-versions";
 import { lanesFor } from "./venue";
 

@@ -1,4 +1,4 @@
-import type { Db, IndexReader } from "@agari/db";
+import type { Db, IndexReader } from "@owarine/db";
 import { describe, expect, it } from "vitest";
 import { resolveIndexQuery, type SeatLeaseScope } from "./queries";
 
@@ -7,7 +7,7 @@ import { resolveIndexQuery, type SeatLeaseScope } from "./queries";
  * read runs under the caller's lease (the SQL side is `packages/db/src/idx/read-lease.test.ts`).
  */
 const ADDRESS = "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin";
-const LEASE: SeatLeaseScope = { party: "agari-user-seat-1::1220aa", fromOffset: 100 };
+const LEASE: SeatLeaseScope = { party: "owarine-user-seat-1::1220aa", fromOffset: 100 };
 
 /** A reader that records the options each seat read was called with. */
 function recordingReader() {

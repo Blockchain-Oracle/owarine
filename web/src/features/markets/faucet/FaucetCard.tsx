@@ -1,7 +1,7 @@
 "use client";
 
-import { FAUCET_UNITS } from "@agari/core/constants";
-import { txUrl } from "@agari/core/urls";
+import { FAUCET_UNITS } from "@owarine/core/constants";
+import { txUrl } from "@owarine/core/urls";
 import { Hash } from "@/components/data";
 import { BlockedButton, ErrorState } from "@/components/states";
 import { FAUCET } from "@/lib/copy";

@@ -1,6 +1,6 @@
-import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
-import { DEFAULT_CLUSTER } from "@agari/core/constants";
-import { addressSchema } from "@agari/core/types";
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@owarine/core/auth";
+import { DEFAULT_CLUSTER } from "@owarine/core/constants";
+import { addressSchema } from "@owarine/core/types";
 import { z } from "zod";
 import type { ActivityKind } from "@/features/activity/protocol";
 
@@ -39,7 +39,7 @@ export function pushRegisterMessage(address: string, expoToken: string, issuedAt
     `Device: ${expoToken}`,
     `Issued: ${new Date(issuedAtMs).toISOString()}`,
     "",
-    "Signing lets Agari notify this phone when your calls fill, settle or pay out. It is not a transaction, it moves no funds, and it costs nothing.",
+    "Signing lets Owarine notify this phone when your calls fill, settle or pay out. It is not a transaction, it moves no funds, and it costs nothing.",
   ].join("\n");
 }
 

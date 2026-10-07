@@ -12,10 +12,10 @@
  * No retries anywhere in the lane; idempotency is the commandId's. A quote gone at accept time (expired, withdrawn) is
  * re-quoted once and surfaced as `requote`, never silently re-accepted at a new price.
  */
-import { formatCadence } from "@agari/core/copy";
-import type { IntentJournal, OrderOutcome, OrderRequest, PhaseListener, StopGate, TxOutcome } from "@agari/core/ports";
-import { diagnosis, type Address, type Diagnosis, type MarketId, type Quote, type Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import type { IntentJournal, OrderOutcome, OrderRequest, PhaseListener, StopGate, TxOutcome } from "@owarine/core/ports";
+import { diagnosis, type Address, type Diagnosis, type MarketId, type Quote, type Signature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { ledgerRequest } from "../provider/ledger-api";
 import { acceptReplyWire, commandStatusWire, legsReplyWire, quoteReplyWire, type CommandStatus } from "../provider/ledger-wire";
 import { OrderRefusedError, RequoteError } from "./errors";

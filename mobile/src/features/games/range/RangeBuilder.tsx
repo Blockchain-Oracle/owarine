@@ -1,9 +1,9 @@
-import { blockerLabel } from "@agari/core/copy";
-import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS, RANGE_STAKE_HEADROOM_BPS, type RangeMode, type RangeReserveState, type RangeSide } from "@agari/core/range";
-import { isOk } from "@agari/core/schemas";
-import type { MarketId, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet, useRangeBasis } from "@agari/markets/react";
+import { blockerLabel } from "@owarine/core/copy";
+import { basisDriftSigmas, centrePrintOf, MAX_BASIS_DRIFT_SIGMAS, RANGE_STAKE_HEADROOM_BPS, type RangeMode, type RangeReserveState, type RangeSide } from "@owarine/core/range";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet, useRangeBasis } from "@owarine/markets/react";
 import { useCallback, useEffect, useState } from "react";
 import { Target } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";

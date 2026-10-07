@@ -1,5 +1,5 @@
-import { parseMarketsEnv } from "@agari/markets/env";
-import { configureMarkets } from "@agari/markets/runtime";
+import { parseMarketsEnv } from "@owarine/markets/env";
+import { configureMarkets } from "@owarine/markets/runtime";
 import { describe, expect, it } from "vitest";
 import { TUTORIAL_STEPS, TUTORIAL_UI } from "../onboarding/steps";
 import { SHARE } from "./copy";

@@ -9,9 +9,9 @@ import {
   type ArenaEvent,
   type ArenaEventLog,
   type ProjectionContext,
-} from "@agari/core/games";
-import type { Address } from "@agari/core/types";
-import { applyRatingsOnce, readRatings, recordMatchCreated, recordMatchProgress, recordPick, recordSettlement } from "@agari/db";
+} from "@owarine/core/games";
+import type { Address } from "@owarine/core/types";
+import { applyRatingsOnce, readRatings, recordMatchCreated, recordMatchProgress, recordPick, recordSettlement } from "@owarine/db";
 import { resnapshotRoom, type RoomContext } from "../game-room/handlers";
 import { entryFor, forget, seedFromCreation, type MatchCache, type MatchEntry } from "./facts";
 

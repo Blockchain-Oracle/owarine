@@ -1,7 +1,7 @@
-import { marketIdFromDaml } from "@agari/core/market";
-import type { MarketId, Side } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import type { LedgerView, LedgerViewAs, LedgerViewResult } from "@agari/markets/react";
+import { marketIdFromDaml } from "@owarine/core/market";
+import type { MarketId, Side } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import type { LedgerView, LedgerViewAs, LedgerViewResult } from "@owarine/markets/react";
 
 /**
  * The per-party view switcher's data (C-ADD-02), apart from any DOM so web's switcher and the phone's native one read
@@ -37,7 +37,7 @@ export interface PartyView {
 }
 
 const REQUEST = "POST /v2/state/active-contracts-page";
-/** A leg pays 1000 × cashUnit base units per lot if it wins (`@agari/markets/server` contractsOf). */
+/** A leg pays 1000 × cashUnit base units per lot if it wins (`@owarine/markets/server` contractsOf). */
 const PAIR_TICKS = 1000n;
 const CASH_DECIMALS = 6;
 const LABELS: Record<LedgerViewAs, string> = { alice: "Alice", bob: "Bob", outsider: "Outsider", me: "You" };

@@ -1,7 +1,7 @@
-import { MARKETS_POLL_MS } from "@agari/core/constants";
-import type { RestingOrderView } from "@agari/core/projection";
-import type { Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import { MARKETS_POLL_MS } from "@owarine/core/constants";
+import type { RestingOrderView } from "@owarine/core/projection";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import { listRestingOrders } from "../provider/orders";
 import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";

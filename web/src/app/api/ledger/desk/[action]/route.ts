@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { DESK_OWNER_ACTIONS, deskWriteRequestWire, type DeskOwnerAction } from "@agari/markets/desk";
+import { DESK_OWNER_ACTIONS, deskWriteRequestWire, type DeskOwnerAction } from "@owarine/markets/desk";
 import { jsonBody, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

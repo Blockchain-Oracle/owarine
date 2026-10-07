@@ -2,17 +2,17 @@
  * The Canton Coin rail actor (C7b, opt-in: `OPS_ACTORS=cc-rail`, never on `all`, because the rail's capability is
  * `not-live` until DevNet proves it). One pass every few seconds acting as the venue only: settle the deposits owners
  * instructed, answer the withdrawals they asked for, close what is in flight, and publish the auditor-visible reserve
- * statement. Every decision is `@agari/markets/ops/cc`'s `railPass`; this file is the wiring: env, the listing, the
+ * statement. Every decision is `@owarine/markets/ops/cc`'s `railPass`; this file is the wiring: env, the listing, the
  * registry client, the seat leases (K-224) and the history reader.
  *
  * It contacts nothing until it is started with a registry URL and a ledger. DRY_RUN (the default) prepares only.
  */
-import { CC_TEMPLATE_IDS } from "@agari/daml";
-import { getDb, isDbConfigured, seatHolderLeases } from "@agari/db";
-import { failureText, pick, readActive, submit } from "@agari/markets/ops/canton";
+import { CC_TEMPLATE_IDS } from "@owarine/daml";
+import { getDb, isDbConfigured, seatHolderLeases } from "@owarine/db";
+import { failureText, pick, readActive, submit } from "@owarine/markets/ops/canton";
 import {
   archivedByExercise, ccCmd, createRegistryClient, decodeListing, railPass, type RailPassResult, type RegistryClient,
-} from "@agari/markets/ops/cc";
+} from "@owarine/markets/ops/cc";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { VenueContext } from "../venue/context";
 import { readCcRailEnv, type CcRailEnv } from "./env";

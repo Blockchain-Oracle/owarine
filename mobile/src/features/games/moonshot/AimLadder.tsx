@@ -1,4 +1,4 @@
-import { aimToCall, callToAim, MOONSHOT_AIM_LADDER, type MoonshotAim, type MoonshotCall } from "@agari/core/range";
+import { aimToCall, callToAim, MOONSHOT_AIM_LADDER, type MoonshotAim, type MoonshotCall } from "@owarine/core/range";
 import { ChevronDown, ChevronUp } from "lucide-react-native";
 import { useCallback } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";

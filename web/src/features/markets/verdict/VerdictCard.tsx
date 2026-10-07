@@ -1,8 +1,8 @@
 "use client";
 
-import { OUTCOME_TO_SIDE, type EventMarket, type Resolution, type Signature, type Verdict } from "@agari/core/types";
-import { formatBaseUnits, secToMs, shortHex } from "@agari/core/units";
-import { txUrl } from "@agari/core/urls";
+import { OUTCOME_TO_SIDE, type EventMarket, type Resolution, type Signature, type Verdict } from "@owarine/core/types";
+import { formatBaseUnits, secToMs, shortHex } from "@owarine/core/units";
+import { txUrl } from "@owarine/core/urls";
 import { Money } from "@/components/data";
 import { Receipt, ReceiptRow } from "@/components/receipt";
 import { oraclePriceText } from "@/features/markets/hero";
@@ -62,7 +62,7 @@ function toTradeCard(verdict: Verdict, market: VerdictMarket, resolution: Resolu
   };
 }
 
-/** Settlement as an unambiguous stamped verdict: 上がり in vermilion, 放銃 as a fact, 無効 with its reason — and the receipt to audit it (FR-10). */
+/** Settlement as an unambiguous stamped verdict: 的中 in the accent, 外れ as a fact, 無効 with its reason — and the receipt to audit it (FR-10). */
 export function VerdictCard({ verdict, market, resolution, symbol, provenance }: VerdictCardProps) {
   const strings = verdictStrings(verdict.outcome);
   // A void announces what came back (the legs' backing plus fee), not its zero P&L (C9e).

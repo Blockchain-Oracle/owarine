@@ -1,6 +1,6 @@
 # Runbook: the hosted deploy on Coolify
 
-Abu's Coolify server, beside Agari's apps (which stay up). **No Cloudflare** (K-003): the domain is registered at Namecheap, its A records point straight at the server, and Coolify's Traefik is the only proxy. It ends TLS with Let's Encrypt.
+Abu's Coolify server, beside Owarine's apps (which stay up). **No Cloudflare** (K-003): the domain is registered at Namecheap, its A records point straight at the server, and Coolify's Traefik is the only proxy. It ends TLS with Let's Encrypt.
 
 **What has been run.** Nothing on the server yet. On 6 Oct the C4e lane rehearsed it on a Mac (`docs/evidence/c4e-deploy.md`):
 - the three images built exactly as Coolify builds them (its `ARG` injection reproduced), natively on arm64 and as linux/amd64 on a 2-CPU, 4 GB, no-swap builder;
@@ -12,7 +12,7 @@ Every number below marked "measured" comes from that note. Every probe in §6 be
 
 ## 0. Before the first deploy: capacity (the 22 Sep lesson)
 
-The server is a 2-vCPU VPS with a 38 GB disk. That disk filled on 22 Sep, and the full disk crash-looped Agari's database.
+The server is a 2-vCPU VPS with a 38 GB disk. That disk filled on 22 Sep, and the full disk crash-looped Owarine's database.
 
 1. **Free disk.** Run `df -h /` and `docker system df` on the server. Record both.
 2. **Budget (measured).**
@@ -27,7 +27,7 @@ The server is a 2-vCPU VPS with a 38 GB disk. That disk filled on 22 Sep, and th
    - Each later deploy adds one image per app until the old one is pruned.
    - Postgres starts small. The apps create their own tables on first use, so there is no migration step.
    - Keep at least **10 GB free** before any build.
-   - If the budget does not fit beside Agari's apps, stop and ask Abu. He can add a volume or a second small server. That is his call, recorded as a decision.
+   - If the budget does not fit beside Owarine's apps, stop and ask Abu. He can add a volume or a second small server. That is his call, recorded as a decision.
 3. **Prune.** Run `docker image prune -a --filter "until=72h"` and `docker builder prune --filter "until=72h"`.
    - This removes only unused images, never a running app's.
    - Coolify's own Docker cleanup (Server → Settings) can do this on a schedule.
@@ -35,7 +35,7 @@ The server is a 2-vCPU VPS with a 38 GB disk. That disk filled on 22 Sep, and th
 5. **Memory.**
    - Running, measured: web about 490 MB, ops 440 MB, docs 125 MB, Postgres 80 MB.
    - The web build needs 2.8 GiB on top of whatever is running. It finished without swap in a 4 GiB cgroup with nothing else in it.
-   - With Agari's apps running on a server of 4 GB or less, add 4 GB of swap once: `fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile`, plus the fstab line.
+   - With Owarine's apps running on a server of 4 GB or less, add 4 GB of swap once: `fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile`, plus the fstab line.
 6. **Build times (measured, cold).** These are not a forecast for the server: amd64 ran under emulation on the Mac.
    - Native arm64 on 10 cores: web 3 min 20 s, docs 1 min 31 s, ops 55 s.
    - linux/amd64 on 2 CPUs: web 6 min 19 s, docs 2 min 44 s, ops 1 min 2 s.
@@ -101,7 +101,7 @@ Settings that matter (the labels are Coolify v4's current ones; an older build s
   - Ops starts only when the ledger and Postgres answer. Otherwise an actor fails to start and ops exits 78 (D-098); the container restarts, and the deploy reports unhealthy. Measured with no ledger.
   - So pm-ops deploys after the ledger it points at is reachable: on DevNet, after R1.
   - The web refuses to boot in production without ops' URL and secret (`instrumentation-node.ts`).
-- **Private network.** Coolify puts a project's apps on its Docker network. Use the internal hostnames it shows under each app for `OPS_INTERNAL_URL`, `AGARI_WEB_ORIGIN` and `DATABASE_URL`, so these hops never leave the server.
+- **Private network.** Coolify puts a project's apps on its Docker network. Use the internal hostnames it shows under each app for `OPS_INTERNAL_URL`, `OWARINE_WEB_ORIGIN` and `DATABASE_URL`, so these hops never leave the server.
 - **The web also reads ops through the public URL.**
   - `/status` and five server routes (prestocks, pyth-index, the OG ticker, leaderboard sessions, the reserve audit) fetch `NEXT_PUBLIC_PRICE_FEED_URL`, i.e. `https://ops.<domain>`, from inside the container.
   - So the server must reach its own public hostname (§6.1b). Measured: when that hop broke, 14 ops rows on `/status` went red while ops was healthy.
@@ -140,8 +140,8 @@ Full lists with defaults: `web/.env.example`, `services/ops/.env.example`, `docs
 
 | Group | Names |
 |---|---|
-| Required | `DATABASE_URL`, `DRY_RUN=0`, `OPS_INTERNAL_SECRET`, `AGARI_PARTIES_FILE=/data/parties.json`, `LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE` (+ `LEDGER_OIDC_*`) |
-| Reaching the web | `AGARI_WEB_ORIGIN` (the web's internal URL, `http://<pm-web internal host>:3000`), `NEXT_PUBLIC_APP_ORIGIN=https://<domain>` (read at runtime here) |
+| Required | `DATABASE_URL`, `DRY_RUN=0`, `OPS_INTERNAL_SECRET`, `OWARINE_PARTIES_FILE=/data/parties.json`, `LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE` (+ `LEDGER_OIDC_*`) |
+| Reaching the web | `OWARINE_WEB_ORIGIN` (the web's internal URL, `http://<pm-web internal host>:3000`), `NEXT_PUBLIC_APP_ORIGIN=https://<domain>` (read at runtime here) |
 | Network | optional `NEXT_PUBLIC_CANTON_NETWORK` (default `devnet`; `localnet` for a hosted sandbox) |
 | Sources | `ALPACA_ENDPOINT`, `ALPACA_KEY_ID`, `ALPACA_SECRET_KEY`, `FINNHUB_API_KEY`, optional `PYTH_API_KEY`, `JUPITER_API_KEY`, `REDSTONE_GATEWAY_URLS` |
 | Season admin | `OPS_ADMIN_SECRET` (ops only; unset = the admin routes are closed) |
@@ -149,7 +149,7 @@ Full lists with defaults: `web/.env.example`, `services/ops/.env.example`, `docs
 | Canton Coin rail | the `CC_*` names in `runbooks/cc-rail.md`, only when that runbook runs (`OPS_ACTORS=…,cc-rail`) |
 | Set by the image | `OPS_HTTP_PORT=8080`, `GAME_ROOM_HOST=0.0.0.0`, `GAME_ROOM_PORT=8787`, `GAME_DECK_JOURNAL=/data/deck-journal.jsonl` |
 
-About the indexer URL in ops: `NEXT_PUBLIC_AGARI_INDEXER_URL` may be left unset. Ops resolves a relative or absent value against `AGARI_WEB_ORIGIN`, then `NEXT_PUBLIC_APP_ORIGIN` (C10a). An absolute value still wins. C9c and C9d each lost a duel re-snapshot to a relative value.
+About the indexer URL in ops: `NEXT_PUBLIC_OWARINE_INDEXER_URL` may be left unset. Ops resolves a relative or absent value against `OWARINE_WEB_ORIGIN`, then `NEXT_PUBLIC_APP_ORIGIN` (C10a). An absolute value still wins. C9c and C9d each lost a duel re-snapshot to a relative value.
 
 Without the Alpaca keys there is no stock-session calendar. Measured: five `/status` rows stay red (the three "Print sources" rows, "RedStone gateway", "Cross-check"), each with "ops /session lists no session that has opened", and the overall reads "degraded".
 
@@ -157,18 +157,18 @@ Without the Alpaca keys there is no stock-session calendar. Measured: five `/sta
 
 | Group | Names |
 |---|---|
-| Required at boot | `DATABASE_URL`, `AGARI_SEAT_COOKIE_SECRET`, `OPS_INTERNAL_URL` (ops' internal URL on `:8080`), `OPS_INTERNAL_SECRET`, `AGARI_PARTIES_FILE=/data/parties.json` (a file mount on pm-web too, or `AGARI_VENUE_PARTY` + `AGARI_SEAT_PARTIES`), `LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE` (+ `LEDGER_OIDC_*`) |
+| Required at boot | `DATABASE_URL`, `OWARINE_SEAT_COOKIE_SECRET`, `OPS_INTERNAL_URL` (ops' internal URL on `:8080`), `OPS_INTERNAL_SECRET`, `OWARINE_PARTIES_FILE=/data/parties.json` (a file mount on pm-web too, or `OWARINE_VENUE_PARTY` + `OWARINE_SEAT_PARTIES`), `LEDGER_JSON_API_URL`, `LEDGER_AUTH_MODE` (+ `LEDGER_OIDC_*`) |
 | Proxy | `TRUSTED_PROXY=forwarded` (the image's default; set it anyway so it is visible) |
-| Build variables (build time only) | `NEXT_PUBLIC_APP_ORIGIN=https://<domain>`, `NEXT_PUBLIC_SITE_URL=https://<domain>`, `NEXT_PUBLIC_DOCS_URL=https://docs.<domain>`, `NEXT_PUBLIC_PRICE_FEED_URL=https://ops.<domain>`, `NEXT_PUBLIC_LADDER_URL=https://ops.<domain>`, optional `NEXT_PUBLIC_CANTON_NETWORK`, `NEXT_PUBLIC_AGARI_VENUE_ID`, `NEXT_PUBLIC_SHARED_DESK_ID`, `NEXT_PUBLIC_X_HANDLE`, `NEXT_PUBLIC_X_EXECUTOR_PARTY`, `NEXT_PUBLIC_CIP56_HOLDINGS` |
-| Features | `ROOM_TOKEN_SECRET`, `GAME_ROOM_PUBLIC_URL=wss://room.<domain>`, `PUSH_DRAIN_SECRET`, `EXPO_ACCESS_TOKEN`, `FINNHUB_API_KEY`, `AI_MODEL` + one of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `AI_GATEWAY_API_KEY` (or `AI_BASE_URL` + `AI_API_KEY`), `X_API_KEY`, `X_API_KEY_SECRET`, `X_REDIRECT_URI=https://<domain>/api/x/callback`, `X_SESSION_SECRET`, `IOS_APP_ID` (the `apple-app-site-association` answer), `CIP56_SHARE_INSTRUMENTS` (holdings), `CC_LISTING_ID` + `CC_REGISTRY_URL` (the Canton Coin rail), `SEASON_*`, `AGARI_OPERATOR_WALLETS` |
-| Optional | `AGARI_GEOIP_DB` (the image's table is the default), `AGARI_REGION_OVERRIDE`, `AGARI_INDEXER_INTERNAL_URL`, `AGARI_SEAT_IDLE_TTL_SEC`, `AGARI_SEAT_HARD_CAP_SEC`, `PROJECTOR_STREAM` |
+| Build variables (build time only) | `NEXT_PUBLIC_APP_ORIGIN=https://<domain>`, `NEXT_PUBLIC_SITE_URL=https://<domain>`, `NEXT_PUBLIC_DOCS_URL=https://docs.<domain>`, `NEXT_PUBLIC_PRICE_FEED_URL=https://ops.<domain>`, `NEXT_PUBLIC_LADDER_URL=https://ops.<domain>`, optional `NEXT_PUBLIC_CANTON_NETWORK`, `NEXT_PUBLIC_OWARINE_VENUE_ID`, `NEXT_PUBLIC_SHARED_DESK_ID`, `NEXT_PUBLIC_X_HANDLE`, `NEXT_PUBLIC_X_EXECUTOR_PARTY`, `NEXT_PUBLIC_CIP56_HOLDINGS` |
+| Features | `ROOM_TOKEN_SECRET`, `GAME_ROOM_PUBLIC_URL=wss://room.<domain>`, `PUSH_DRAIN_SECRET`, `EXPO_ACCESS_TOKEN`, `FINNHUB_API_KEY`, `AI_MODEL` + one of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `AI_GATEWAY_API_KEY` (or `AI_BASE_URL` + `AI_API_KEY`), `X_API_KEY`, `X_API_KEY_SECRET`, `X_REDIRECT_URI=https://<domain>/api/x/callback`, `X_SESSION_SECRET`, `IOS_APP_ID` (the `apple-app-site-association` answer), `CIP56_SHARE_INSTRUMENTS` (holdings), `CC_LISTING_ID` + `CC_REGISTRY_URL` (the Canton Coin rail), `SEASON_*`, `OWARINE_OPERATOR_WALLETS` |
+| Optional | `OWARINE_GEOIP_DB` (the image's table is the default), `OWARINE_REGION_OVERRIDE`, `OWARINE_INDEXER_INTERNAL_URL`, `OWARINE_SEAT_IDLE_TTL_SEC`, `OWARINE_SEAT_HARD_CAP_SEC`, `PROJECTOR_STREAM` |
 
 **pm-docs:** `NEXT_PUBLIC_DOCS_URL=https://docs.<domain>` and `NEXT_PUBLIC_APP_URL=https://<domain>`, both build time only.
 
 **Region hold.** The web build downloads DB-IP's IP-to-Country Lite table (about 4.5 MB, CC BY 4.0, credited on `/legal`) with `scripts/geo/fetch-dbip.mjs`.
 - Measured: the image holds `/app/web/data/geo/dbip-country-lite.csv.gz`, and the boot log reads `[region] IP-to-country: 362122 IPv4 and 348712 IPv6 ranges`.
 - If that download fails, the build still succeeds and the boot log says `[region] no IP-to-country database`. Every visitor then reads as open until a rebuild.
-- `AGARI_REGION_OVERRIDE=US` forces the held state for a test, and a redeploy without it clears it.
+- `OWARINE_REGION_OVERRIDE=US` forces the held state for a test, and a redeploy without it clears it.
 
 ## 5. First deploy, in order
 
@@ -217,7 +217,7 @@ Without the Alpaca keys there is no stock-session calendar. Measured: five `/sta
    - The room listens only once the games bootstrap has created the arena. Before that, ops logs "GameArena is not deployed on this network".
 6. **Region hold.**
    - The web log shows `[region] IP-to-country: … ranges`.
-   - From a US address (a VPN, or the `AGARI_REGION_OVERRIDE=US` redeploy), a funded route answers 451 and the ticket paints its held state.
+   - From a US address (a VPN, or the `OWARINE_REGION_OVERRIDE=US` redeploy), a funded route answers 451 and the ticket paints its held state.
    - Browsing still works.
 7. **Certificates.** Every host answers over TLS with a Let's Encrypt issuer (step 2).
 8. **Disk after the builds.** Run `df -h /` again. If free space dropped under 10 GB, prune before the next build.

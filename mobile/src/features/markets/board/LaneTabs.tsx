@@ -1,5 +1,5 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { Lane, LaneBasis } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Lane, LaneBasis } from "@owarine/core/types";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { compareLaneTabKeys, laneAssetLabel, laneTabKey, laneTabLabel, laneTabParts, pausedCopy, type LaneTabKey } from "@/features/markets/lanes/lane-view";
 import { MARKETS } from "@/lib/copy";

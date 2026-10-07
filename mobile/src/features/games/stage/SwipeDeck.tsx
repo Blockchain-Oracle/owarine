@@ -21,7 +21,7 @@
  * Sound + haptic: swipe-up / swipe-down on a commit, deny on a refusal — through `~/games/feedback`.
  * Inside a scrolling page, put it in `StageScroll`: the pan then holds that page still while a card is dragged.
  */
-import type { DeckCard, Pick } from "@agari/core/games";
+import type { DeckCard, Pick } from "@owarine/core/games";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AccessibilityInfo, StyleSheet, Text, View, type AccessibilityActionEvent } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";

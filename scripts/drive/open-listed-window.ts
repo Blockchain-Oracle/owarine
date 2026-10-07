@@ -4,13 +4,13 @@
  * them lists none, so the drive opens one with `Series_OpenWindowSpan` as the venue: it starts `--start-in` seconds from
  * now (default 3 h), locks 60 s before it expires and lasts `--length` seconds (default 300).
  *
- *   source <env>; pnpm --filter @agari/scripts exec tsx drive/open-listed-window.ts [--series TSLA-5m] [--start-in 10800]
+ *   source <env>; pnpm --filter @owarine/scripts exec tsx drive/open-listed-window.ts [--series TSLA-5m] [--start-in 10800]
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
 import { readFileSync } from "node:fs";
-import { TEMPLATE_IDS } from "@agari/daml";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
-import { cmd, decodeSeries, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS } from "@owarine/daml";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
+import { cmd, decodeSeries, pick, readActive, submit, type RoleSession } from "@owarine/markets/ops/canton";
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(name);
@@ -20,7 +20,7 @@ const seriesKey = arg("--series", "TSLA-5m");
 const startIn = Number(arg("--start-in", "10800"));
 const length = Number(arg("--length", "300"));
 
-const parties = JSON.parse(readFileSync(process.env.AGARI_PARTIES_FILE ?? "", "utf8")) as { parties: Record<string, string> };
+const parties = JSON.parse(readFileSync(process.env.OWARINE_PARTIES_FILE ?? "", "utf8")) as { parties: Record<string, string> };
 const venue: RoleSession = { role: "venue", party: parties.parties.venue!, client: ledgerClientFromEnv(parseLedgerEnv(process.env)), dryRun: false };
 const series = pick(await readActive(venue, [TEMPLATE_IDS.Series]), TEMPLATE_IDS.Series, decodeSeries).find((s) => s.data.seriesKey === seriesKey);
 if (!series) throw new Error(`no Series ${seriesKey}`);

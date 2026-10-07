@@ -1,8 +1,8 @@
-import { STAKE_TIERS, everyCardSettled, picksComplete, type MatchState } from "@agari/core/games";
-import { isOk } from "@agari/core/schemas";
-import type { Address, Hash32, MarketId } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { useArenaCredit, useArenaState, useMarketsLite } from "@agari/markets/react";
+import { STAKE_TIERS, everyCardSettled, picksComplete, type MatchState } from "@owarine/core/games";
+import { isOk } from "@owarine/core/schemas";
+import type { Address, Hash32, MarketId } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { useArenaCredit, useArenaState, useMarketsLite } from "@owarine/markets/react";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { DUEL } from "@/features/games/duel/copy";

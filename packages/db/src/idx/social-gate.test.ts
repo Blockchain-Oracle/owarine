@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { socialGateReader } from "./social-gate";
 
 const URL_ = process.env.SEAT_PG_URL;
-const PARTY = "agari-user-seat-1::1220aa";
+const PARTY = "owarine-user-seat-1::1220aa";
 const ALICE = "AliceSeatAddress1111111111111111111111111111";
 const BOB = "BobSeatAddress22222222222222222222222222222222";
 /** Alice's phone, joined to her lease by a seat link (C4c). */

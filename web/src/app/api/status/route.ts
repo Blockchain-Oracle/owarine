@@ -1,4 +1,4 @@
-import { ensureMarkets } from "@agari/markets";
+import { ensureMarkets } from "@owarine/markets";
 import { NextResponse } from "next/server";
 import { statusRun } from "@/features/status/run.server";
 import { webEnv } from "@/lib/env";

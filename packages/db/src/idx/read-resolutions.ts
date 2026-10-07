@@ -1,5 +1,5 @@
 /**
- * Windows' Resolutions from the projection, for the seat routes (`@agari/markets/server` MarketReader.resolutions()
+ * Windows' Resolutions from the projection, for the seat routes (`@owarine/markets/server` MarketReader.resolutions()
  * scans the venue's ACS with a 3 s cache today). Rows are shaped like its `ResolutionView`, keyed by what it keys on:
  * `termsCid`. `disclosure` is what `Leg_Claim` needs to receive the Resolution as a disclosed contract; it is null only
  * for a Resolution projected without its blob. A Resolution is never archived by the model, so a projected one stays

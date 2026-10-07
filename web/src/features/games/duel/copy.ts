@@ -219,7 +219,7 @@ export const DUEL = {
 
   /** The read-only view of a match this wallet is not seated in. */
   public: {
-    title: "A duel on Agari",
+    title: "A duel on Owarine",
     reading: "Reading the match from the arena…",
     unreadable: "The arena could not be read just now.",
     unknown: "The arena has no match by that id.",
@@ -236,7 +236,7 @@ export const DUEL = {
     /** Flicky's result modal, in our words. */
     modal: {
       close: "Close",
-      eyebrow: "A duel on Agari",
+      eyebrow: "A duel on Owarine",
       recordType: "DUEL RESULT",
       verdict: { won: "Victory", lost: "Defeat", tied: "Draw" } as const,
       hits: "Cards won",
@@ -251,7 +251,7 @@ export const DUEL = {
       footerKind: "DUEL",
       reopen: "See the result",
       shareText: (verdict: "won" | "lost" | "tied", ret: string | null, url: string) =>
-        `${verdict === "won" ? "Won" : verdict === "lost" ? "Lost" : "Drew"} a duel on Agari${ret ? ` — ${ret} on the cards` : ""}. ${url}`,
+        `${verdict === "won" ? "Won" : verdict === "lost" ? "Lost" : "Drew"} a duel on Owarine${ret ? ` — ${ret} on the cards` : ""}. ${url}`,
     },
     title: "Result",
     won: "You took the match",

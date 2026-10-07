@@ -1,11 +1,11 @@
-import { actionHeaders, type ActionsJson } from "@agari/core/x";
+import { actionHeaders, type ActionsJson } from "@owarine/core/x";
 
 /**
- * `GET /actions.json` — the file that makes Agari's links unfurl as cards (S11, `00-plan.md` §S11; adapted in C13a).
+ * `GET /actions.json` — the file that makes Owarine's links unfurl as cards (S11, `00-plan.md` §S11; adapted in C13a).
  *
- * A card client that meets `useagari.xyz/markets/<id>` looks here to learn which of our URLs it may `GET` as a card.
+ * A card client that meets `owarine.com/markets/<id>` looks here to learn which of our URLs it may `GET` as a card.
  * The rules are the reference's: a Window's page maps to its card, whose buttons now answer with a signed Window share
- * link rather than a transaction (`@agari/core/x` `actions.ts`). It is a route handler rather than a file in `public/`
+ * link rather than a transaction (`@owarine/core/x` `actions.ts`). It is a route handler rather than a file in `public/`
  * because the CORS headers are part of the contract, not a deployment setting someone has to remember.
  */
 export const runtime = "nodejs";

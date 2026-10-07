@@ -1,4 +1,4 @@
-import { formatSeasonCountdown, seasonRemainingMs } from "@agari/core/games";
+import { formatSeasonCountdown, seasonRemainingMs } from "@owarine/core/games";
 import { router, type Href } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect } from "react-native-svg";

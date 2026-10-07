@@ -1,7 +1,7 @@
-import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_WRITE_HEADER, seatReadText } from "@agari/core/auth";
-import { encodeBase58, toSignature } from "@agari/core/types";
-import { configureMarkets, parseMarketsEnv, registerSeatSigner, seatLeaseText, seatWriteHeaderValue } from "@agari/markets";
-import { SEAT_KEY_BYTES, seatSession } from "@agari/markets/sessions/mobile";
+import { formatSeatReadHeader, messageBytes, SEAT_READ_HEADER, SEAT_WRITE_HEADER, seatReadText } from "@owarine/core/auth";
+import { encodeBase58, toSignature } from "@owarine/core/types";
+import { configureMarkets, parseMarketsEnv, registerSeatSigner, seatLeaseText, seatWriteHeaderValue } from "@owarine/markets";
+import { SEAT_KEY_BYTES, seatSession } from "@owarine/markets/sessions/mobile";
 import { describe, expect, it } from "vitest";
 import { seatCaller } from "@/lib/auth/seat-caller.server";
 import { seatWriter } from "@/lib/auth/seat-write.server";

@@ -1,4 +1,4 @@
-import { countdown } from "@agari/core/lifecycle";
+import { countdown } from "@owarine/core/lifecycle";
 import { Armchair } from "lucide-react-native";
 import { useEffect } from "react";
 import { AccessibilityInfo, StyleSheet, Text, View } from "react-native";

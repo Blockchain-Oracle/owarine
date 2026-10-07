@@ -1,4 +1,4 @@
-import { nameOf, type DeskRecordBody, type RecordEvidenceItem } from "@agari/core/desk";
+import { nameOf, type DeskRecordBody, type RecordEvidenceItem } from "@owarine/core/desk";
 import { ArrowRight, Check, CircleCheck, CircleX, OctagonAlert, X } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
 import { RECORD } from "@/features/desk/copy-record";

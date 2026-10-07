@@ -1,4 +1,4 @@
-import type { Active, PriceQuoteC, TermsC } from "@agari/markets/ops/canton";
+import type { Active, PriceQuoteC, TermsC } from "@owarine/markets/ops/canton";
 import { describe, expect, it } from "vitest";
 import { beyondBarrier, countedAt, quorumPrint } from "./keeper";
 

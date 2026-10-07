@@ -18,8 +18,8 @@
  * missing print. The payload is the exact response text where the source has one (RedStone's feed array, Hermes and
  * the crossbar bodies); a PreStocks read keeps no body, so its payload is the sample the process holds, as JSON.
  */
-import { BASKETS, isTickerSymbol, XSTOCK_SYMBOLS, type AttestedSource, type BasketSymbol, type PrintSourceParts, type XStockSymbol } from "@agari/core/market";
-import { decimalToE8, JUPITER_SAMPLE_OFFSETS_SEC, medianE8 } from "@agari/markets/ops/prints";
+import { BASKETS, isTickerSymbol, XSTOCK_SYMBOLS, type AttestedSource, type BasketSymbol, type PrintSourceParts, type XStockSymbol } from "@owarine/core/market";
+import { decimalToE8, JUPITER_SAMPLE_OFFSETS_SEC, medianE8 } from "@owarine/markets/ops/prints";
 import { fetchPythAt } from "../actors/price-relay/hermes-fetch";
 import { choosePrint } from "../actors/price-relay/prestocks-pass";
 import { feedAt, fetchRedstoneAt } from "../actors/price-relay/redstone-fetch";

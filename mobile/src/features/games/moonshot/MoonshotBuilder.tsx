@@ -1,8 +1,8 @@
-import { moonshotPayoutCapBase, RANGE_STAKE_HEADROOM_BPS, type RangeMode, type RangeReserveState } from "@agari/core/range";
-import { isOk } from "@agari/core/schemas";
-import type { MarketId, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil, oneUnit, parseDecimalToBaseUnits } from "@agari/core/units";
-import { useBalanceSheet } from "@agari/markets/react";
+import { moonshotPayoutCapBase, RANGE_STAKE_HEADROOM_BPS, type RangeMode, type RangeReserveState } from "@owarine/core/range";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil, oneUnit, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { useBalanceSheet } from "@owarine/markets/react";
 import { useCallback, useEffect, useState } from "react";
 import { Rocket } from "lucide-react-native";
 import { Text, View } from "react-native";

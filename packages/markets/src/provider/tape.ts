@@ -2,10 +2,10 @@
  * The venue board and traction (S5, from the indexer's venue-wide tape); a wallet's own fills live in `history.ts`.
  * The shapes are Masayume's, so the surfaces that render them don't change; `byTicker` is additive (proof-analytics.md §2.3).
  */
-import { buildLedgers, ledgerHasActivity, rankTraders, settleRound, withReceipts, type LedgerFill, type MarketLedger, type RoundMarket, type SettledRound, type TraderRanking } from "@agari/core/projection";
-import type { Reading } from "@agari/core/schemas";
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import type { Address, EventMarket, MarketId } from "@agari/core/types";
+import { buildLedgers, ledgerHasActivity, rankTraders, settleRound, withReceipts, type LedgerFill, type MarketLedger, type RoundMarket, type SettledRound, type TraderRanking } from "@owarine/core/projection";
+import type { Reading } from "@owarine/core/schemas";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import type { Address, EventMarket, MarketId } from "@owarine/core/types";
 import { loadCollateral } from "../collateral";
 import { sec, type MarketRow } from "./index-api";
 import { forgetReading, withReading } from "./reading";

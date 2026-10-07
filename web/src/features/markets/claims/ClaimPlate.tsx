@@ -1,8 +1,8 @@
 "use client";
 
-import type { BlockerKind } from "@agari/core/copy";
-import { netClaimableSum } from "@agari/core/claims";
-import type { ClaimableRow } from "@agari/core/types";
+import type { BlockerKind } from "@owarine/core/copy";
+import { netClaimableSum } from "@owarine/core/claims";
+import type { ClaimableRow } from "@owarine/core/types";
 import { Money } from "@/components/data";
 import { BlockedButton } from "@/components/states";
 import { CLAIM } from "@/lib/copy";

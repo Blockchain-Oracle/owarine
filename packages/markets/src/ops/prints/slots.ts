@@ -3,7 +3,7 @@
  * schedules on. Pure over the ledger shapes (`../shapes`); on Canton each slot is an oracle party's `PriceQuote` (C3).
  */
 import type { Print, PrintPolicy } from "../shapes";
-import type { LaneBasis } from "@agari/core/types";
+import type { LaneBasis } from "@owarine/core/types";
 import type { MarketView, SeriesView } from "../venue";
 import { MARKET_STATE, seriesBasis, seriesLaneKey } from "../venue";
 

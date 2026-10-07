@@ -1,5 +1,5 @@
-import type { IntentJournal } from "@agari/core/ports";
-import type { Address, Diagnosis, Signature } from "@agari/core/types";
+import type { IntentJournal } from "@owarine/core/ports";
+import type { Address, Diagnosis, Signature } from "@owarine/core/types";
 import type { VaultContracts } from "../vault/contracts";
 
 export interface ParlayTxContext {

@@ -1,4 +1,4 @@
-import { formatUtc } from "@agari/core/units";
+import { formatUtc } from "@owarine/core/units";
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Line } from "react-native-svg";

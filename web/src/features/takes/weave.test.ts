@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { EventMarket } from "@agari/core/types";
+import type { EventMarket } from "@owarine/core/types";
 import type { HedgePick } from "@/features/hedge";
 import { HOLDING_EVERY, weaveReel } from "./weave";
 import type { FeedTake } from "./protocol";

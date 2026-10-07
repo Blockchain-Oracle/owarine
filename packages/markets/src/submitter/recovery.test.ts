@@ -1,5 +1,5 @@
-import type { IntentRecord } from "@agari/core/ports";
-import { encodeBase58, type Address } from "@agari/core/types";
+import type { IntentRecord } from "@owarine/core/ports";
+import { encodeBase58, type Address } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { createJournal } from "./journal";
 import { createMemoryStore } from "./journal-memory";

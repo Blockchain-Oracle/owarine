@@ -1,6 +1,6 @@
 "use client";
 
-import type { WritePhase } from "@agari/core/ports";
+import type { WritePhase } from "@owarine/core/ports";
 import { TapHash } from "@/components/data/TapHash";
 import { ID_LABEL } from "../id-label";
 import { StepProgress } from "@/components/ui/desk-kit";

@@ -5,8 +5,8 @@
  * attested fallback can read its T − 40 / T − 20 / T samples. `joinXStockSpot` publishes it under the xStock symbols of
  * the process `SpotFeed` (source `"jupiter"`), which the Gap maker reads as its weekend reference. Lane 6b owns this file.
  */
-import { TICKERS, TOKEN_LANE_TICKERS, XSTOCK_SYMBOLS, type XStockSymbol } from "@agari/core/market";
-import { fetchJupiterPrices } from "@agari/markets/ops/prints";
+import { TICKERS, TOKEN_LANE_TICKERS, XSTOCK_SYMBOLS, type XStockSymbol } from "@owarine/core/market";
+import { fetchJupiterPrices } from "@owarine/markets/ops/prints";
 import { recordQuoteResult } from "../actors/halt-watch/quote-failures";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";

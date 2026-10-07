@@ -13,7 +13,7 @@ describe("the visitor's country without a CDN header (K-003)", () => {
     const dir = mkdtempSync(join(tmpdir(), "geo-"));
     const path = join(dir, "db.csv.gz");
     writeFileSync(path, gzipSync("3.0.0.0,3.255.255.255,US\n81.2.69.0,81.2.69.255,GB\n"));
-    vi.stubEnv("AGARI_GEOIP_DB", path);
+    vi.stubEnv("OWARINE_GEOIP_DB", path);
     resetCountryDbForTests();
     vi.spyOn(console, "info").mockImplementation(() => {});
   });
@@ -36,7 +36,7 @@ describe("the visitor's country without a CDN header (K-003)", () => {
   });
 
   it("with no database, answers null and warns once", () => {
-    vi.stubEnv("AGARI_GEOIP_DB", "/nonexistent/db.csv.gz");
+    vi.stubEnv("OWARINE_GEOIP_DB", "/nonexistent/db.csv.gz");
     resetCountryDbForTests();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     expect(countryForIp("3.1.2.3")).toBeNull();

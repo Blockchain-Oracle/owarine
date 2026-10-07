@@ -1,9 +1,9 @@
 "use client";
 
-import { SETTLING } from "@agari/core/copy";
-import { formatCadence } from "@agari/core/market";
-import type { RangeRoundStatus } from "@agari/core/range";
-import { formatBaseUnits, formatClock, remainingSec } from "@agari/core/units";
+import { SETTLING } from "@owarine/core/copy";
+import { formatCadence } from "@owarine/core/market";
+import type { RangeRoundStatus } from "@owarine/core/range";
+import { formatBaseUnits, formatClock, remainingSec } from "@owarine/core/units";
 import { Loader2, Target, Trophy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RANGE } from "./copy";

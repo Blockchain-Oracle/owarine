@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AgariMark, SectionHead } from "@/components/shell";
+import { OwarineMark, SectionHead } from "@/components/shell";
 import { LandingCover } from "./LandingCover";
 import { LandingDesk } from "./LandingDesk";
 import { BRAND } from "@/lib/copy";
@@ -33,7 +33,7 @@ export function LandingPage() {
   return (
     <div className="lp">
       <section className="page-hero lp-hero">
-        <span className="lp-hero-jp" lang="ja" aria-hidden="true" data-text="上がり">上がり</span>
+        <span className="lp-hero-jp" lang="ja" aria-hidden="true" data-text="終値">終値</span>
         <span className="lp-hero-vertical" aria-hidden="true" />
         <div className="container lp-hero-container">
           <div className="lp-hero-grid">
@@ -42,7 +42,7 @@ export function LandingPage() {
                 {hero.eyebrow}
               </p>
               <div className="lp-wordmark">
-                <span className="lp-wordmark-mark"><AgariMark /></span>
+                <span className="lp-wordmark-mark"><OwarineMark /></span>
                 <span className="lp-wordmark-name">{BRAND.name}</span>
               </div>
             </div>

@@ -1,8 +1,8 @@
 "use client";
 
-import type { WritePhase } from "@agari/core/ports";
-import { formatBaseUnits } from "@agari/core/units";
-import type { HeldExit } from "@agari/markets";
+import type { WritePhase } from "@owarine/core/ports";
+import { formatBaseUnits } from "@owarine/core/units";
+import type { HeldExit } from "@owarine/markets";
 import { HeldPriceRow, TICKET_CANTON, useHeldSeconds, WriteProgress } from "@/features/canton-ux/ticket";
 import { CASH_OUT, useCashOut, type CashOutTarget } from "./useCashOut";
 import "./cash-out.css";

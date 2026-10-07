@@ -1,4 +1,4 @@
-import { etDateOf, formatEtClock } from "@agari/core/market";
+import { etDateOf, formatEtClock } from "@owarine/core/market";
 import { STATUS } from "./copy";
 import { gradeHeartbeat, gradeIndexer, gradeLanes, gradeTrial, laneKind, trialSessionsLeft } from "./grade";
 import { detailNumber, detailString, heartbeatOf, type OpsHealth, type OpsPythIndexEntitlement, type OpsRead, type OpsSession } from "./ops.server";

@@ -18,5 +18,5 @@ function SidebarFooter() {
 }
 
 export default function DocumentationLayout({ children }: { children: React.ReactNode }) {
-  return <DocsLayout tree={source.getPageTree()} tabs={false} nav={{title:'Agari Docs'}} slots={{header:Header,navTitle:EmptySlot}} themeSwitch={{enabled:false}} searchToggle={{enabled:false}} sidebar={{collapsible:false,defaultOpenLevel:0,footer:<SidebarFooter key="docs-footer" />}} containerProps={{style:{gridTemplate:'"header header header" "sidebar toc-popover toc" "sidebar main toc" 1fr / var(--fd-sidebar-col) minmax(0, 1fr) var(--fd-toc-width)','--fd-docs-row-1':'72px','--fd-docs-row-2':'72px','--fd-docs-row-3':'calc(72px + var(--fd-toc-popover-height))'} as React.CSSProperties}}>{children}</DocsLayout>;
+  return <DocsLayout tree={source.getPageTree()} tabs={false} nav={{title:'Owarine Docs'}} slots={{header:Header,navTitle:EmptySlot}} themeSwitch={{enabled:false}} searchToggle={{enabled:false}} sidebar={{collapsible:false,defaultOpenLevel:0,footer:<SidebarFooter key="docs-footer" />}} containerProps={{style:{gridTemplate:'"header header header" "sidebar toc-popover toc" "sidebar main toc" 1fr / var(--fd-sidebar-col) minmax(0, 1fr) var(--fd-toc-width)','--fd-docs-row-1':'72px','--fd-docs-row-2':'72px','--fd-docs-row-3':'calc(72px + var(--fd-toc-popover-height))'} as React.CSSProperties}}>{children}</DocsLayout>;
 }

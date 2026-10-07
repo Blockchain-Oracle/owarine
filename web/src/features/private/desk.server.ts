@@ -1,6 +1,6 @@
-import { ensureMarkets, loadCollateral, unwrap } from "@agari/markets";
-import { createDeskClient, type DeskClient } from "@agari/markets/private";
-import { parseSecretKey } from "@agari/markets/sessions";
+import { ensureMarkets, loadCollateral, unwrap } from "@owarine/markets";
+import { createDeskClient, type DeskClient } from "@owarine/markets/private";
+import { parseSecretKey } from "@owarine/markets/sessions";
 import { webEnv } from "@/lib/env";
 
 /**

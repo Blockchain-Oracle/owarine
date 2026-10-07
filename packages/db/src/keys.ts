@@ -19,6 +19,6 @@ export function storageKeyOrNull(value: string | null | undefined): string | nul
   return value === null || value === undefined ? null : storageKey(value);
 }
 
-/** Shape checks for base58 values arriving in JSON (exact byte-length checks live in `@agari/core`). */
+/** Shape checks for base58 values arriving in JSON (exact byte-length checks live in `@owarine/core`). */
 export const BASE58_ADDRESS_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
 export const BASE58_SIGNATURE_RE = /^[1-9A-HJ-NP-Za-km-z]{64,88}$/;

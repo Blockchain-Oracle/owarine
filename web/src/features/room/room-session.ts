@@ -22,7 +22,7 @@ interface StoredRoomToken {
 
 /** A little under the server's TTL, so a token is dropped here before it can age out mid-poll. */
 const EXPIRY_MARGIN_MS = 30_000;
-const PREFIX = "agari:room:";
+const PREFIX = "owarine:room:";
 
 const memory = new Map<string, StoredRoomToken>();
 

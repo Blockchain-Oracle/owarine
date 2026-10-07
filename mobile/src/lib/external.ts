@@ -1,6 +1,6 @@
-import { PROOF_BASE_PATH } from "@agari/core/constants";
-import type { Signature } from "@agari/core/types";
-import { txUrl } from "@agari/core/urls";
+import { PROOF_BASE_PATH } from "@owarine/core/constants";
+import type { Signature } from "@owarine/core/types";
+import { txUrl } from "@owarine/core/urls";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { marketsEnv, SITE_URL } from "./env";

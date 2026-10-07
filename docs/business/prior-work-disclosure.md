@@ -25,7 +25,7 @@
 |---|---|---|
 | Daml | `abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents`, `abu-pm-games`, and the `pm-tests` suite (175 scripts). **None existed before the tag** | `daml/`: 57 files, +11,679 |
 | Ledger client | JSON Ledger API v2 client: paging, deduplication, the updates stream | `packages/ledger`: 20 files, +2,422 |
-| Markets adapter | `@agari/markets` rewritten from Solana to Canton behind the same exports | `packages/markets`: 353 files, +15,224 / −16,694 |
+| Markets adapter | `@owarine/markets` rewritten from Solana to Canton behind the same exports | `packages/markets`: 353 files, +15,224 / −16,694 |
 | Venue operations | roller, 3 oracle feeders, pricer, quote issuer, resolver, settler, projector, seat drain | `services/ops`: 163 files, +9,698 / −2,211 |
 | Web | seat routes, the view switcher, proof, receipts, Canton copy | `web`: 444 files, +15,995 / −3,215 |
 | Mobile | seat identity and Canton copy (not yet run on a device against Canton) | `mobile`: 133 files, +1,265 / −2,383 |
@@ -64,7 +64,7 @@ The Rules: "Work submitted for judging must be done during the delivery phase, S
 **Built in the window.** Everything after the tag:
 - the four Daml packages and 175 Daml Script tests (`daml/`, all new);
 - the JSON Ledger API v2 client (`packages/ledger`);
-- the Canton adapter behind `@agari/markets`;
+- the Canton adapter behind `@owarine/markets`;
 - the venue operations (`services/ops`);
 - the seat, privacy-view, proof and receipt surfaces on the web.
 

@@ -1,4 +1,4 @@
-import { diagnosis, err, ok } from "@agari/core";
+import { diagnosis, err, ok } from "@owarine/core";
 import { describe, expect, it } from "vitest";
 import { indexStateOf } from "./index-state";
 import type { PythIndexView } from "./usePythIndex";

@@ -3,9 +3,9 @@
  * withdraw quote on one reserve goes through one queue, because each consumes or fetches that reserve's live book or
  * statement), one shard pool per reserve bucket beside the venue's own pool, and the live book / statement ids.
  */
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { activeOf, inactiveCids, isInactive, isIndefinite, submit, templateSuffix, type RoleSession, type SubmitInput, type SubmitOutcome } from "@agari/markets/ops/canton";
-import { TICKET_RESERVES, type TicketReserveId } from "@agari/markets/ops/tickets";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { activeOf, inactiveCids, isInactive, isIndefinite, submit, templateSuffix, type RoleSession, type SubmitInput, type SubmitOutcome } from "@owarine/markets/ops/canton";
+import { TICKET_RESERVES, type TicketReserveId } from "@owarine/markets/ops/tickets";
 import type { LadderBoard } from "../market-maker/seat/ladder-board";
 import type { MakerVault } from "../maker-vault/vault";
 import { ShardPool, type Lease } from "../quote-issuer/pool";

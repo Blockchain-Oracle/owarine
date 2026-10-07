@@ -1,5 +1,5 @@
-import { combineReadings, isOk, mapReading, type Reading } from "@agari/core/schemas";
-import type { ClockSync } from "@agari/core/types";
+import { combineReadings, isOk, mapReading, type Reading } from "@owarine/core/schemas";
+import type { ClockSync } from "@owarine/core/types";
 import { loadCollateral, type CollateralInfo } from "../collateral";
 import type { MarketsEnv } from "../env";
 import { mark, type Milestone } from "../perf/milestones";

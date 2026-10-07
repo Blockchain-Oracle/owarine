@@ -1,7 +1,7 @@
-import { messageSignatureSchema } from "@agari/core/auth";
-import { addressSchema } from "@agari/core/types";
-import type { XReceipt } from "@agari/core/x";
-import type { XRelayHealth } from "@agari/db";
+import { messageSignatureSchema } from "@owarine/core/auth";
+import { addressSchema } from "@owarine/core/types";
+import type { XReceipt } from "@owarine/core/x";
+import type { XRelayHealth } from "@owarine/db";
 import { z } from "zod";
 
 export const X_RECEIPTS_LIMIT = 30;

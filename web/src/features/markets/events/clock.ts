@@ -1,5 +1,5 @@
-import { countdown, type Countdown } from "@agari/core/lifecycle";
-import type { EventMarket } from "@agari/core/types";
+import { countdown, type Countdown } from "@owarine/core/lifecycle";
+import type { EventMarket } from "@owarine/core/types";
 
 export interface EventClock {
   /** Trading has ended: the committee answers after the close. */

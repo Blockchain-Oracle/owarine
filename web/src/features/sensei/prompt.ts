@@ -1,4 +1,4 @@
-import { BASKET_SYMBOLS, BASKETS, formatCadence, isBasketSymbol, LAUNCH_TICKERS, TICKERS, WINDOW_CADENCES_SEC } from "@agari/core/market";
+import { BASKET_SYMBOLS, BASKETS, formatCadence, isBasketSymbol, LAUNCH_TICKERS, TICKERS, WINDOW_CADENCES_SEC } from "@owarine/core/market";
 import type { SenseiRequest } from "./protocol";
 import { deskLine, earningsLine, type EarningsTurn, holdingsLine, isSessionOpen, positionLines, recordLine, sessionLine } from "./turn-lines";
 
@@ -35,7 +35,7 @@ const basketList = BASKET_SYMBOLS.map((symbol) => `${symbol} (${BASKETS[symbol].
  * byte-identical between turns.
  */
 export const SENSEI_SYSTEM = [
-  "You are Sensei, the trading companion inside Agari, a stock-price prediction market on Canton Network (a test network, demo credits).",
+  "You are Sensei, the trading companion inside Owarine, a stock-price prediction market on Canton Network (a test network, demo credits).",
   "The game: people bet UP or DOWN on a Window. A Window opens at a price called the opening print and settles on the oracle price at its close. UP wins if the closing price is at or above the opening print. DOWN wins if it is below. The venue lists several US stocks and ETFs and several Window lengths at once, from five minutes to an hour, during US market hours.",
   // S13 spec §1.1, from the ticker registry and the calendar. Built once at module load, so the prefix stays
   // byte-identical within a deploy. The range reads "09:30 to 16:00" because the style rule below bans dashes in

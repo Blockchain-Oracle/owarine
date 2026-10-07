@@ -1,5 +1,5 @@
-import { isTickerSymbol, type TickerSymbol } from "@agari/core/market";
-import { isMarketId, type MarketId } from "@agari/core/types";
+import { isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
+import { isMarketId, type MarketId } from "@owarine/core/types";
 import { z } from "zod";
 
 /**

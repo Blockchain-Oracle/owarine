@@ -1,6 +1,6 @@
 "use client";
 
-import { LEVERAGE_MULTIPLES } from "@agari/core/leverage";
+import { LEVERAGE_MULTIPLES } from "@owarine/core/leverage";
 import { LEVERAGE } from "@/features/leverage";
 import { TICKET_PENDING } from "@/lib/copy";
 

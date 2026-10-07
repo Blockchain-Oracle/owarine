@@ -1,5 +1,5 @@
-import type { PrizeTier } from "@agari/core/games";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import type { PrizeTier } from "@owarine/core/games";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { GAMES } from "@/features/games/copy";
 import type { SeasonView } from "@/features/games/duel/useSeason";

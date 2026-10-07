@@ -1,5 +1,5 @@
-import { SOL_FAUCETS } from "@agari/core/constants";
-import type { Address } from "@agari/core/types";
+import { SOL_FAUCETS } from "@owarine/core/constants";
+import type { Address } from "@owarine/core/types";
 import { Hash } from "@/components/data";
 import { Button } from "@/components/ui/button";
 import { FAUCET, OUT_OF_GAS } from "@/lib/copy";

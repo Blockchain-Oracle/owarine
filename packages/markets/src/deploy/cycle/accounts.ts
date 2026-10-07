@@ -2,7 +2,7 @@
  * Window addresses, the ledger clock and seat reads for the drives (C1 stub). The reference derived Solana PDAs and read
  * the clock sysvar; on Canton a window is a `MarketTerms` contract (C3). `coveringVersion` is pure and kept.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { Series } from "../../ops/shapes";
 import type { DeployClient } from "../client";
 import { deployNotLive } from "../send";

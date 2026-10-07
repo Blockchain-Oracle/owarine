@@ -9,7 +9,7 @@
  * `open_deadline`; after downtime the next aligned Window is the candidate. A valuation lane (S20) lists only while its
  * Pyth index is entitled (`clock.pythUsable`); otherwise it reads `paused: no signed source (Pyth feed not entitled)`.
  */
-import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, LONG_CADENCES_SEC, tokenLaneAsset, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@agari/core/market";
+import { corporateActionFor, corporatePausedState, haltOf, haltPausedState, LONG_CADENCES_SEC, tokenLaneAsset, tokenWindows, type ScheduledWindow, type TickerSymbol } from "@owarine/core/market";
 import { BOUNDARY_KIND_U8, PRINT_MARGIN_SEC, spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
 import { describeVersion, highestCoveringVersion, noSourceState, openPrintsAdmissible, reasonBy, usableBy } from "./versions";
 

@@ -1,8 +1,8 @@
 // Dev runner: the seat-mode seed maker alone, with a dev-only RedStone "latest" poller as its spot feed (price-relay's
-// real SpotFeed replaces it in main.ts). `pnpm --filter @agari/ops exec tsx --env-file-if-exists=../../.env.local src/dev/seed-maker.ts`
+// real SpotFeed replaces it in main.ts). `pnpm --filter @owarine/ops exec tsx --env-file-if-exists=../../.env.local src/dev/seed-maker.ts`
 // Env: SOLANA_CLUSTER=localnet SURFPOOL_PORT=… ; DRY_RUN=0 to send; MM_* knobs (venue-ops.md §8).
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@agari/core/market";
-import { decimalToE8, parseGatewayJson, redstoneMedianE8 } from "@agari/markets/deploy";
+import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { decimalToE8, parseGatewayJson, redstoneMedianE8 } from "@owarine/markets/deploy";
 import { createSessionService } from "../calendar/session-service";
 import { createHaltBoard, createPythEntitlementStore, createSessionEvents, readOpsEnv } from "../runtime";
 import type { SpotFeed, SpotQuote } from "../prices/spot";

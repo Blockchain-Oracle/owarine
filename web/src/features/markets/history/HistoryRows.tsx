@@ -1,7 +1,7 @@
 "use client";
 
 import { PublishCall } from "@/features/leaderboard/publish";
-import type { SettledRound, WalletHistory } from "@agari/core/projection";
+import type { SettledRound, WalletHistory } from "@owarine/core/projection";
 import { useState } from "react";
 import { Pager } from "@/components/chrome";
 import { ReadingBoundary } from "@/components/states";

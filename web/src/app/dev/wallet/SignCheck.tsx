@@ -1,8 +1,8 @@
 "use client";
 
-import { CLUSTER_LABEL, type Cluster } from "@agari/core/constants";
-import { SIGNED_MESSAGE_BRAND, networkLine } from "@agari/core/auth";
-import type { Address } from "@agari/core/types";
+import { CLUSTER_LABEL, type Cluster } from "@owarine/core/constants";
+import { SIGNED_MESSAGE_BRAND, networkLine } from "@owarine/core/auth";
+import type { Address } from "@owarine/core/types";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { WALLET_DEV } from "@/lib/copy";

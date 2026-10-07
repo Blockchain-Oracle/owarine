@@ -2,10 +2,10 @@
  * Index rows → port shapes (first-call.md §2.3). The chain facts an index row lacks come from the caller: collateral
  * and decimals from `readVenue`, and a not-yet-printed Window's primary source from its Series policy.
  */
-import type { SettledMarket } from "@agari/core/claims";
-import type { ReceiptFacts, RoundMarket } from "@agari/core/projection";
-import { isEventKey, isTickerSymbol, type TickerSymbol } from "@agari/core/market";
-import type { Address, EventMarket, IndexedStatus, LaneBasis, MarketId, OutcomeIdx, PrintSource, Resolution, Signature, VoidReason } from "@agari/core/types";
+import type { SettledMarket } from "@owarine/core/claims";
+import type { ReceiptFacts, RoundMarket } from "@owarine/core/projection";
+import { isEventKey, isTickerSymbol, type TickerSymbol } from "@owarine/core/market";
+import type { Address, EventMarket, IndexedStatus, LaneBasis, MarketId, OutcomeIdx, PrintSource, Resolution, Signature, VoidReason } from "@owarine/core/types";
 import type { SeriesFacts, VenueFacts } from "../runtime/accounts";
 import { big, bigOrNull, sec, type MarketRow, type PositionRow, type ReceiptRow } from "./index-api";
 

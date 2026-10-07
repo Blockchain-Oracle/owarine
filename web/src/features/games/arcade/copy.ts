@@ -1,4 +1,4 @@
-import type { ArcadeGame } from "@agari/core/games/arcade";
+import type { ArcadeGame } from "@owarine/core/games/arcade";
 
 /**
  * Everything the arcade says.

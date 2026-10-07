@@ -1,9 +1,9 @@
-import { isOk } from "@agari/core/schemas";
-import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFollowSpec } from "@agari/core/strategies";
-import { spotSymbolOf } from "@agari/core/market";
-import type { Address, EventMarket } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { openingOnFeedScale } from "@agari/markets/strategies";
+import { isOk } from "@owarine/core/schemas";
+import { decideOracleFollow, distanceToTriggerBps, type Decision, type OracleFollowSpec } from "@owarine/core/strategies";
+import { spotSymbolOf } from "@owarine/core/market";
+import type { Address, EventMarket } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { openingOnFeedScale } from "@owarine/markets/strategies";
 import { tradingWindows } from "./trading-windows";
 
 export interface Scan {

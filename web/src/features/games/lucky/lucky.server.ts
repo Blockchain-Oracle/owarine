@@ -9,13 +9,13 @@ import {
   luckyCandidatePreimage,
   mapLuckyDraw,
   type LuckyCandidate,
-} from "@agari/core/games";
-import { phase } from "@agari/core/lifecycle";
-import { isOk } from "@agari/core/schemas";
-import { minStakeBase } from "@agari/core/sizing";
-import { toMarketId, type Address, type Hash32, type EventMarket, type Quote, type Side } from "@agari/core/types";
-import { createLuckyDraw, gamesStoreConfigured, getLuckyDraw, revealLuckyDraw, type LuckyDrawRow } from "@agari/db";
-import { ensureMarkets, loadCollateral, marketsProvider, resolveVenueId } from "@agari/markets";
+} from "@owarine/core/games";
+import { phase } from "@owarine/core/lifecycle";
+import { isOk } from "@owarine/core/schemas";
+import { minStakeBase } from "@owarine/core/sizing";
+import { toMarketId, type Address, type Hash32, type EventMarket, type Quote, type Side } from "@owarine/core/types";
+import { createLuckyDraw, gamesStoreConfigured, getLuckyDraw, revealLuckyDraw, type LuckyDrawRow } from "@owarine/db";
+import { ensureMarkets, loadCollateral, marketsProvider, resolveVenueId } from "@owarine/markets";
 import { keccak256 } from "../keccak";
 import { gate, marketsEnvFromProcess } from "@/features/session/sponsor.server";
 import { freshSeed, luckyDigest } from "./lucky-digest.server";

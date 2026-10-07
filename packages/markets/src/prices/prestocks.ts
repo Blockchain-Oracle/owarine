@@ -1,6 +1,6 @@
 /**
  * PreStocks pre-IPO tokens (Stocklana bounty track, D-100): one keyless read of the public catalogue, the price source
- * behind Agari's Pre-IPO lane. A PreStocks token is an SPV claim on a private company, so a row carries two prices —
+ * behind Owarine's Pre-IPO lane. A PreStocks token is an SPV claim on a private company, so a row carries two prices —
  * `markPrice`, the SPV's valuation of the company, and `tokenPrice`, what the token itself trades at on Solana. The lane
  * prints `tokenPrice`, the only one a holder can realise; `markPrice` rides along for the UI and for the divergence the
  * two show (OPENAI traded ~11% over its mark on 2026-09-18).
@@ -11,7 +11,7 @@
  * (prints.md §4.3) and why the README says the venue, not PreStocks, is what a Pre-IPO settlement trusts.
  * `ops/prints/index.ts` re-exports all of it.
  */
-import { BASKET_FEED_PREFIX } from "@agari/core/market";
+import { BASKET_FEED_PREFIX } from "@owarine/core/market";
 import { floorDecimalE8 } from "./jupiter";
 
 export const PRESTOCKS_CATALOGUE_URL = "https://prestocks.com/api/prestocks";
@@ -71,7 +71,7 @@ export interface PreStocksRead {
 
 const PRICE_KEYS = new Set(["markPrice", "tokenPrice"]);
 
-/** Parses the catalogue keeping both prices as their source text; a row Agari cannot price is simply absent. */
+/** Parses the catalogue keeping both prices as their source text; a row Owarine cannot price is simply absent. */
 export function parsePreStocks(text: string): Map<string, PreStocksToken> {
   const rows = JSON.parse(text, function reviver(key, value, context?: { source?: string }) {
     return PRICE_KEYS.has(key) && typeof value === "number" && context?.source ? context.source : value;

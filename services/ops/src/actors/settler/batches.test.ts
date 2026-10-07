@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Active, LegC, ResolutionC } from "@agari/markets/ops/canton";
+import type { Active, LegC, ResolutionC } from "@owarine/markets/ops/canton";
 import { planNetting } from "../netting";
 import { payoutOf, planBatches } from "./batches";
 

@@ -1,9 +1,9 @@
 /**
  * abu-pm-cc contract payloads and CIP-56 interface views (Daml-LF JSON) → the typed shapes the Canton Coin rail reads
  * (C7b). Server-only. Int arrives as a string → `bigint`; Time → epoch seconds; a `Decimal` is converted to atomic
- * integer units through `@agari/ledger`'s `fromDamlNumeric` and never becomes a `number` (plan §7).
+ * integer units through `@owarine/ledger`'s `fromDamlNumeric` and never becomes a `number` (plan §7).
  */
-import { fromDamlNumeric, type ContractId, type Party } from "@agari/ledger/pure";
+import { fromDamlNumeric, type ContractId, type Party } from "@owarine/ledger/pure";
 import { decodeParts, DecodeError } from "../canton/decode";
 
 const { obj, text, big, sec, optional } = decodeParts;

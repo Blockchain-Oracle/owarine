@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { ImageResponse } from "next/og";
 import { LANDING } from "../copy";
 import { OG_COPY } from "./copy";

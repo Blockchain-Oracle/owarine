@@ -1,4 +1,4 @@
-import { PRE_IPO_SYMBOLS } from "@agari/core/market";
+import { PRE_IPO_SYMBOLS } from "@owarine/core/market";
 import { NextResponse } from "next/server";
 import { deskStore } from "@/features/desk/desk.server";
 

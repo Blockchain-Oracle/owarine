@@ -1,5 +1,5 @@
-import { rankAgents, type AgentRow, type StrategyRecord } from "@agari/core/strategies";
-import type { Address, Hex } from "@agari/core/types";
+import { rankAgents, type AgentRow, type StrategyRecord } from "@owarine/core/strategies";
+import type { Address, Hex } from "@owarine/core/types";
 import type { StrategiesPayload } from "@/features/strategies/protocol";
 
 type Wire = StrategiesPayload["strategies"][number];

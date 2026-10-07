@@ -3,9 +3,9 @@
  * live, else one `/prices/latest` snapshot shared by every symbol asking in the same second. Print history is what
  * the chain recorded, from the index.
  */
-import type { SpotSymbol, TickerSymbol } from "@agari/core/market";
-import type { Reading } from "@agari/core/schemas";
-import { diagnosis, LANE_BASES, type AssetPrice, type LaneBasis, type PricePoint } from "@agari/core/types";
+import type { SpotSymbol, TickerSymbol } from "@owarine/core/market";
+import type { Reading } from "@owarine/core/schemas";
+import { diagnosis, LANE_BASES, type AssetPrice, type LaneBasis, type PricePoint } from "@owarine/core/types";
 import { ReadingError } from "../errors/reading-error";
 import { peekClient } from "../runtime/read-runtime";
 import { liveSpot } from "../runtime/spot-stream";

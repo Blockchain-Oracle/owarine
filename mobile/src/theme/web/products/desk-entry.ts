@@ -1,4 +1,4 @@
-import { TICKERS, type PreIpoSymbol } from "@agari/core/market";
+import { TICKERS, type PreIpoSymbol } from "@owarine/core/market";
 import type { ThemeName } from "../../index";
 
 /**

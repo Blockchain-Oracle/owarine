@@ -1,5 +1,5 @@
 {
-  "name": "@agari/markets",
+  "name": "@owarine/markets",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -38,12 +38,12 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@agari/core": "workspace:*",
+    "@owarine/core": "workspace:*",
     "@noble/hashes": "1.8.0",
     "@tanstack/react-query": "catalog:",
     "zod": "catalog:",
-    "@agari/ledger": "workspace:*",
-    "@agari/daml": "workspace:*"
+    "@owarine/ledger": "workspace:*",
+    "@owarine/daml": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18"

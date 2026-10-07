@@ -1,4 +1,4 @@
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { signerFromSecretKey } from "../ed25519";
 import { SECRET_KEY_BYTES } from "../keypair";
 

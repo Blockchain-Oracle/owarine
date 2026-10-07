@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { messageSignatureSchema } from "@agari/core/auth";
-import { FAUCET_ASSETS, FaucetError } from "@agari/core/faucet";
-import { addressSchema } from "@agari/core/types";
+import { messageSignatureSchema } from "@owarine/core/auth";
+import { FAUCET_ASSETS, FaucetError } from "@owarine/core/faucet";
+import { addressSchema } from "@owarine/core/types";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { createFaucetService } from "@/features/funding/faucet-service.server";
 import { faucetBody, faucetConfig, faucetErrorResponse, faucetForRequest, unavailableFaucetStatus } from "@/features/funding/faucet-config.server";

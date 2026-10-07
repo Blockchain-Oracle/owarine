@@ -1,7 +1,7 @@
-import { sharePriceRawOf } from "@agari/core/reserves";
-import { isOk } from "@agari/core/schemas";
-import { oneUnit } from "@agari/core/units";
-import { useLeverageReserve, useMakerVault, useParlayReserve, useRangeReserve } from "@agari/markets/react";
+import { sharePriceRawOf } from "@owarine/core/reserves";
+import { isOk } from "@owarine/core/schemas";
+import { oneUnit } from "@owarine/core/units";
+import { useLeverageReserve, useMakerVault, useParlayReserve, useRangeReserve } from "@owarine/markets/react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { formatSharePrice } from "@/features/earn/format";
 import { VAULT } from "@/features/vault/copy";

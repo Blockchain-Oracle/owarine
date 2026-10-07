@@ -7,7 +7,7 @@
 //
 // About 4.5 MB (2026-09). DB-IP publishes a new file each month; re-run to refresh. The file is gitignored and never
 // committed. Exits 0 with a warning when the download fails, so a build never breaks on it: the region hold then
-// reads every visitor as open (AGARI_REGION_OVERRIDE still forces the held state) until the file is present.
+// reads every visitor as open (OWARINE_REGION_OVERRIDE still forces the held state) until the file is present.
 import { mkdirSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";

@@ -1,5 +1,5 @@
-import type { TickerSymbol } from "@agari/core/market";
-import type { LaneBasis } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { LaneBasis } from "@owarine/core/types";
 import { MARKETS } from "@/lib/copy";
 import { AssetDisc } from "../hero/asset-mark";
 import { laneAssetLabel, laneCadenceLabel, pausedCopy } from "./lane-view";

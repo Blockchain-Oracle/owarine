@@ -11,9 +11,9 @@
  * print missing) is still checked and the record names what could not be priced. Practice desks price at the feed's
  * token print (K-091) and a check the owner asks for runs when asked, so neither waits.
  */
-import type { PreIpoSymbol } from "@agari/core/market";
-import { quotingWindow } from "@agari/markets/desk/server";
-import type { Ladder } from "@agari/markets/runtime";
+import type { PreIpoSymbol } from "@owarine/core/market";
+import { quotingWindow } from "@owarine/markets/desk/server";
+import type { Ladder } from "@owarine/markets/runtime";
 
 /** The longest a live desk's hour check waits for the hour's Windows before it runs and records what it could not price. */
 export const HOUR_WINDOWS_GRACE_SEC = 10 * 60;

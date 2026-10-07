@@ -1,7 +1,7 @@
 "use client";
 
-import type { MarketId } from "@agari/core/types";
-import { invalidateAfterWrite, useSigner, useSubmitter } from "@agari/markets/react";
+import type { MarketId } from "@owarine/core/types";
+import { invalidateAfterWrite, useSigner, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import { diagnosisCopy, PREOPEN, SUBMITTED_UNKNOWN } from "@/lib/copy";

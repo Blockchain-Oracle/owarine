@@ -1,4 +1,4 @@
-import { marketsProvider } from "@agari/markets";
+import { marketsProvider } from "@owarine/markets";
 import { useEffect, useRef } from "react";
 import { selectAnnouncements, type WatchState } from "@/features/activity/announce";
 import { LIFECYCLE } from "@/features/activity/copy";

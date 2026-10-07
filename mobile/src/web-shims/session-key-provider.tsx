@@ -1,6 +1,6 @@
-import type { TxOutcome } from "@agari/core/ports";
-import { diagnosis } from "@agari/core/types";
-import type { SubmitterSession } from "@agari/markets";
+import type { TxOutcome } from "@owarine/core/ports";
+import { diagnosis } from "@owarine/core/types";
+import type { SubmitterSession } from "@owarine/markets";
 import type { ReactNode } from "react";
 import { SEAT } from "~/wallet/seat-copy";
 import type { EnableOutcome, SessionBusy, SessionKeyActions, SessionKeyView } from "@/features/session/view";

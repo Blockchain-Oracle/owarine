@@ -1,4 +1,4 @@
-import type { PracticeRound, PracticeScore } from "@agari/core/games";
+import type { PracticeRound, PracticeScore } from "@owarine/core/games";
 import { router, type Href } from "expo-router";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";

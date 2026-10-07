@@ -1,8 +1,8 @@
 "use client";
 
-import { spotSymbolOf } from "@agari/core/market";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { useAssetPrice, useMarket } from "@agari/markets/react";
+import { spotSymbolOf } from "@owarine/core/market";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { useAssetPrice, useMarket } from "@owarine/markets/react";
 import { basisRaw, feedRawToOracleRaw } from "./units";
 
 /** The part of a Window that names its spot: the ticker and the lane (a 24/7 Window follows its xStock, not the stock). */

@@ -1,5 +1,5 @@
-import type { Address, Signature } from "@agari/core/types";
-import { diagnosis } from "@agari/core/types";
+import type { Address, Signature } from "@owarine/core/types";
+import { diagnosis } from "@owarine/core/types";
 import { hmac } from "@noble/hashes/hmac";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
@@ -30,7 +30,7 @@ export interface DistributeSeasonInput {
 const DISTRIBUTE_PATH = "/internal/games/season/distribute";
 const WITHDRAW_PATH = "/internal/games/season/withdraw";
 
-/** The same signature `@agari/markets/server` `opsSignature` computes (v2, with its nonce), with a browser-safe HMAC. */
+/** The same signature `@owarine/markets/server` `opsSignature` computes (v2, with its nonce), with a browser-safe HMAC. */
 export function adminSignature(secret: string, ts: number, nonce: string, path: string, body: string): string {
   return `v2=${bytesToHex(hmac(sha256, utf8ToBytes(secret), utf8ToBytes(`${ts}.${nonce}.POST.${path}.${body}`)))}`;
 }
@@ -45,7 +45,7 @@ async function adminPost(rpcUrl: string, path: string, body: string, opsSecret: 
   try {
     res = await fetch(`${rpcUrl.replace(/\/$/, "")}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-agari-ops-ts": String(ts), "x-agari-ops-nonce": nonce, "x-agari-ops-sig": adminSignature(secret, ts, nonce, path, body) },
+      headers: { "content-type": "application/json", "x-owarine-ops-ts": String(ts), "x-owarine-ops-nonce": nonce, "x-owarine-ops-sig": adminSignature(secret, ts, nonce, path, body) },
       body,
     });
   } catch (error) {

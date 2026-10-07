@@ -1,12 +1,12 @@
 /**
  * The venue actors' command ids. Each is stable per logical action, so a crash-retry is deduplicated by the
- * participant instead of executing twice (plan §8). `open:`, `print:` and `resolve:` come from `@agari/ledger`; the
+ * participant instead of executing twice (plan §8). `open:`, `print:` and `resolve:` come from `@owarine/ledger`; the
  * rest are built here with the same rules (ledger strings, no `.`, `:` only as the separator).
  *
  * Party ids contain `::`, and a batch is a set of contract ids, so both enter an id as a short sha-256 digest.
  */
 import { createHash } from "node:crypto";
-import { assertCommandId, openWindowCommandId, printCommandId, resolveCommandId } from "@agari/ledger/pure";
+import { assertCommandId, openWindowCommandId, printCommandId, resolveCommandId } from "@owarine/ledger/pure";
 
 export { openWindowCommandId, printCommandId, resolveCommandId };
 

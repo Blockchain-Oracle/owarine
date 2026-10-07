@@ -1,7 +1,7 @@
 "use client";
 
-import { rankAgents, type StrategyRecord } from "@agari/core/strategies";
-import type { Address, Hex } from "@agari/core/types";
+import { rankAgents, type StrategyRecord } from "@owarine/core/strategies";
+import type { Address, Hex } from "@owarine/core/types";
 import Link from "next/link";
 import { useMemo } from "react";
 import { CapabilityPending } from "@/components/shell";

@@ -1,5 +1,5 @@
 /** Prints, settlement and redemption for the drives (C1 stub); every step refuses as not live. */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import type { KeyPairSigner } from "../client";
 import { deployNotLive, type SendContext } from "../send";
 import type { OpenedWindow } from "./window";

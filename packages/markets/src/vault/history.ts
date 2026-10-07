@@ -1,6 +1,6 @@
-import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@agari/core/projection";
-import { encodeBase58, type Address, type MarketId, type Signature } from "@agari/core/types";
-import { secToMs } from "@agari/core/units";
+import { ledgerHasActivity, settleRound, type MarketLedger, type RoundMarket, type SettledRound } from "@owarine/core/projection";
+import { encodeBase58, type Address, type MarketId, type Signature } from "@owarine/core/types";
+import { secToMs } from "@owarine/core/units";
 
 /** A vault round has no single transaction to link: the fills are the vault seat's, attributed by tally. */
 export const VAULT_TX_SENTINEL = encodeBase58(new Uint8Array(64)) as Signature;

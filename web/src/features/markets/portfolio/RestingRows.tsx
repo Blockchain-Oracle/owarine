@@ -1,11 +1,11 @@
 "use client";
 
-import type { RestingOrderView } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
-import { marketsProvider } from "@agari/markets";
-import { useRestingOrders } from "@agari/markets/react";
+import type { RestingOrderView } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
+import { marketsProvider } from "@owarine/markets";
+import { useRestingOrders } from "@owarine/markets/react";
 import { leasedAddressOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import Link from "next/link";
 import { Money } from "@/components/data";

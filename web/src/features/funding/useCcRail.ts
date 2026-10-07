@@ -1,11 +1,11 @@
 "use client";
 
-import { CC_RAIL_CAPABILITY } from "@agari/core/cc";
-import { diagnosisCopy } from "@agari/core/copy";
-import { err, ok, type Reading } from "@agari/core";
-import type { Diagnosis } from "@agari/core/types";
-import { postCcDeposit, postCcWithdraw, readCcRail, type CcRailReply, type CcWriteReply } from "@agari/markets";
-import { useReadingQuery } from "@agari/markets/react";
+import { CC_RAIL_CAPABILITY } from "@owarine/core/cc";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { err, ok, type Reading } from "@owarine/core";
+import type { Diagnosis } from "@owarine/core/types";
+import { postCcDeposit, postCcWithdraw, readCcRail, type CcRailReply, type CcWriteReply } from "@owarine/markets";
+import { useReadingQuery } from "@owarine/markets/react";
 import { useCallback, useState } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { leasedOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
@@ -13,7 +13,7 @@ import { ccPanel, type CcPanel } from "./cc-panel";
 
 /** The server answers from the ledger; a minute-old figure is fine, and nothing polls while the path is not live. */
 const POLL_MS = 15_000;
-const ccKey = (party: string | null) => ["agari", "funding", "cc", party] as const;
+const ccKey = (party: string | null) => ["owarine", "funding", "cc", party] as const;
 
 export interface CcRailState {
   panel: CcPanel;

@@ -3,9 +3,9 @@
  * seat and every complete-set action, replayed into one ledger per Window and settled by the chain's rule. Whether a
  * payout reached the wallet is the index's `redeemed` flag (a user redeem or the settler's `redeem_for`).
  */
-import { buildLedgers, ledgerHasActivity, roundSettledAtMs, settleRound, withReceipts, type LedgerFill, type LedgerSetAction, type LedgerSide, type MarketLedger, type SettledRound, type WalletHistory } from "@agari/core/projection";
-import type { Reading } from "@agari/core/schemas";
-import type { Address, Holdings, MarketId, Signature } from "@agari/core/types";
+import { buildLedgers, ledgerHasActivity, roundSettledAtMs, settleRound, withReceipts, type LedgerFill, type LedgerSetAction, type LedgerSide, type MarketLedger, type SettledRound, type WalletHistory } from "@owarine/core/projection";
+import type { Reading } from "@owarine/core/schemas";
+import type { Address, Holdings, MarketId, Signature } from "@owarine/core/types";
 import { readVenueStatic } from "../runtime/accounts";
 import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow, type PositionRow, type ReceiptRow } from "./index-api";
 import { withReading } from "./reading";

@@ -1,4 +1,4 @@
-import { isAddress } from "@agari/core/types";
+import { isAddress } from "@owarine/core/types";
 import { deskStore, findDesk } from "@/features/desk/desk.server";
 import { deskImage } from "@/features/desk/og-image";
 import { RECORD } from "@/features/desk/copy-record";

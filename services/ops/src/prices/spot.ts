@@ -2,7 +2,7 @@
  * The spot-price seam between price-relay (which produces it, lane 3b) and its consumers: the seed maker (3c) in
  * process, and web through `/prices/stream` (venue-ops.md §6.4). Integers only: `priceE8` is price × 10⁸.
  */
-import type { TickerSymbol, XStockSymbol } from "@agari/core/market";
+import type { TickerSymbol, XStockSymbol } from "@owarine/core/market";
 
 export interface SpotQuote {
   symbol: TickerSymbol | XStockSymbol;

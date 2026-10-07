@@ -1,15 +1,15 @@
 import { createHash } from "node:crypto";
-import { encodeBase58 } from "@agari/core/types";
+import { encodeBase58 } from "@owarine/core/types";
 
 /**
- * The venue's public facts as `/api/venue/*` answers them (`@agari/markets` `venueFactsWire`, `marketFactsWire`), pure
+ * The venue's public facts as `/api/venue/*` answers them (`@owarine/markets` `venueFactsWire`, `marketFactsWire`), pure
  * over projection rows so the mapping is testable without a database. Ids follow core's ledger-id rule
- * (base58(sha256(domain ‖ text)), `@agari/core/market` ledger-ids): deterministic from the venue party, the same on
+ * (base58(sha256(domain ‖ text)), `@owarine/core/market` ledger-ids): deterministic from the venue party, the same on
  * every host, with no lookup table.
  */
 export const VENUE_ID_DOMAIN = "agari/venue-id/v1:";
 export const VENUE_CASH_DOMAIN = "agari/venue-cash/v1:";
-/** Demo credits carry six decimals (`@agari/markets/server` CASH_DECIMALS). */
+/** Demo credits carry six decimals (`@owarine/markets/server` CASH_DECIMALS). */
 export const CASH_DECIMALS = 6;
 /** A winning side pays 10⁷ / 10⁷ (`PAYOUT_DENOMINATOR`). */
 const PAYOUT_FULL = 10_000_000;

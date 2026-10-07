@@ -1,12 +1,12 @@
 "use client";
 
-import type { TxOutcome } from "@agari/core/ports";
-import type { StrategyIntent } from "@agari/core/strategies";
-import type { Signature } from "@agari/core/types";
-import { isOk } from "@agari/core/schemas";
-import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@agari/markets/react";
-import { getStrategy, listSubscriptionsOf } from "@agari/markets/strategies";
-import { getVaultGrant, getVaultSnapshot, readSeatReceipt, resolveVaultDeployment } from "@agari/markets/vault";
+import type { TxOutcome } from "@owarine/core/ports";
+import type { StrategyIntent } from "@owarine/core/strategies";
+import type { Signature } from "@owarine/core/types";
+import { isOk } from "@owarine/core/schemas";
+import { invalidateAfterWrite, useSubmitter, useVaultSnapshot } from "@owarine/markets/react";
+import { getStrategy, listSubscriptionsOf } from "@owarine/markets/strategies";
+import { getVaultGrant, getVaultSnapshot, readSeatReceipt, resolveVaultDeployment } from "@owarine/markets/vault";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { webEnv } from "@/lib/env";

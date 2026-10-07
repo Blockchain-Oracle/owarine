@@ -1,4 +1,4 @@
-import { encodeBase58 } from "@agari/core/types";
+import { encodeBase58 } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { signerFromSecretKey } from "./ed25519";
 import { seatSession } from "./mobile/seat";

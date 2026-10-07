@@ -4,7 +4,7 @@
  * S5 adds `calendar.recent` and `sources`; S6 adds `halts`, `earnings` and `skips` (session-lanes.md §3, §6).
  */
 import { readFileSync } from "node:fs";
-import { addDays, etDateOf, sessionLabel } from "@agari/core/market";
+import { addDays, etDateOf, sessionLabel } from "@owarine/core/market";
 import type { SessionService } from "../calendar/session-service";
 import type { HaltBoardStore } from "../runtime/halt-board";
 import { heartbeats } from "../runtime/heartbeat";

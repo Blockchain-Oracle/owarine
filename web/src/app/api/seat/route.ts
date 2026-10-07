@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
   }
   if (view.kind !== "leased") return replyWith(view, view.kind === "pool-full" ? 409 : 200);
   const response = replyWith(view);
-  const cookie = mintSeatCookie(state.server.env.AGARI_SEAT_COOKIE_SECRET, view.leaseId, check.address, now);
+  const cookie = mintSeatCookie(state.server.env.OWARINE_SEAT_COOKIE_SECRET, view.leaseId, check.address, now);
   response.cookies.set({ name: SEAT_COOKIE, value: cookie.value, httpOnly: true, sameSite: "lax", secure: secure(request), path: "/", maxAge: SEAT_COOKIE_TTL_MS / 1000 });
   return response;
 }

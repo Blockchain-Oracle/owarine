@@ -9,16 +9,16 @@
  *   the Window resolves and the venue settles the leg → GrantDesk_Fund top-up keeps the counters → Grant_Revoke
  *   returns the whole remaining budget, and seat-1's cash reconciles to the cent.
  *
- *   LEDGER_JSON_API_URL=http://localhost:7565 AGARI_PARTIES_FILE=… OPS=http://localhost:8767 OPS_INTERNAL_SECRET=… \
- *     pnpm --filter @agari/scripts exec tsx drive/agents-grant-it.ts
+ *   LEDGER_JSON_API_URL=http://localhost:7565 OWARINE_PARTIES_FILE=… OPS=http://localhost:8767 OPS_INTERNAL_SECRET=… \
+ *     pnpm --filter @owarine/scripts exec tsx drive/agents-grant-it.ts
  */
 import "../../services/ops/src/actors/venue/quiet-codegen";
-import { createLedgerClient, noAuth, parseLedgerEnv, type Command, type CreatedEvent } from "@agari/ledger";
-import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { decodeLeg, decodeVenueCash, pick } from "@agari/markets/ops/canton";
-import { acmd, createGrantExecutor, decodeAgentGrant, decodeGrantDesk, decodeCreatorLicense, decodeStrategyListing, decodeSubscriberBook, decodeSubscriberInvite, decodeSubscription, grantIdOf, opsQuoteSource, sha256Hex, utcDayStartSec } from "@agari/markets/ops/agents";
-import { createOpsClient } from "@agari/markets/server";
-import type { EventMarket, MarketId } from "@agari/core/types";
+import { createLedgerClient, noAuth, parseLedgerEnv, type Command, type CreatedEvent } from "@owarine/ledger";
+import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import { decodeLeg, decodeVenueCash, pick } from "@owarine/markets/ops/canton";
+import { acmd, createGrantExecutor, decodeAgentGrant, decodeGrantDesk, decodeCreatorLicense, decodeStrategyListing, decodeSubscriberBook, decodeSubscriberInvite, decodeSubscription, grantIdOf, opsQuoteSource, sha256Hex, utcDayStartSec } from "@owarine/markets/ops/agents";
+import { createOpsClient } from "@owarine/markets/server";
+import type { EventMarket, MarketId } from "@owarine/core/types";
 import { readPartiesFile } from "../../services/ops/src/runtime/keys";
 
 const OPS = process.env.OPS ?? "http://localhost:8767";

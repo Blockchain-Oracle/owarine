@@ -11,11 +11,11 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { STAKE_TIERS } from "@agari/core/games";
-import { GAMES_TEMPLATE_IDS } from "@agari/daml";
-import type { Command, CreatedEvent, LedgerClient } from "@agari/ledger";
-import { cmd, decodeVenueCash, pick, readActive, type RoleSession } from "@agari/markets/ops/canton";
-import { decodeArenaTerms, decodeSeasonPool, gcmd } from "@agari/markets/ops/games";
+import { STAKE_TIERS } from "@owarine/core/games";
+import { GAMES_TEMPLATE_IDS } from "@owarine/daml";
+import type { Command, CreatedEvent, LedgerClient } from "@owarine/ledger";
+import { cmd, decodeVenueCash, pick, readActive, type RoleSession } from "@owarine/markets/ops/canton";
+import { decodeArenaTerms, decodeSeasonPool, gcmd } from "@owarine/markets/ops/games";
 import { DECK_POLICY_VERSION } from "../services/ops/src/actors/matchmaker/deckmaster";
 import { arg } from "./drive/cli";
 

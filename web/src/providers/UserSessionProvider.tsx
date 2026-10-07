@@ -1,7 +1,7 @@
 "use client";
 
-import { mark } from "@agari/markets/perf";
-import { SubmitterSessionProvider } from "@agari/markets/react";
+import { mark } from "@owarine/markets/perf";
+import { SubmitterSessionProvider } from "@owarine/markets/react";
 import type { ReactNode } from "react";
 import { webEnv } from "@/lib/env";
 import { useOwnerWallet, useWalletSession } from "@/lib/wallet-session";

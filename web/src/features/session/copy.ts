@@ -1,4 +1,4 @@
-import { VAULT_NOT_DEPLOYED } from "@agari/core/vault";
+import { VAULT_NOT_DEPLOYED } from "@owarine/core/vault";
 
 /** Session-key tap-trading, the sponsor rail and the Ticket's funding source. */
 export const SESSION = {

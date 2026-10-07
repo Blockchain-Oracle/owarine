@@ -74,7 +74,7 @@ function mobileTightLeading(rule, ctx) {
  */
 const EXTRACTABLE_KEY =
   /\bexportKey\s*\((?!\s*["']raw["']\s*,\s*[\w.]*\bpublicKey\s*\))|\bextractable\s*:\s*true\b|\bgenerateKeyPair(?:Signer)?\s*\(\s*true\b|\bgenerateKey\s*\(\s*(?:\{[^}]*\}|[\w.]+)\s*,\s*true\b/;
-/** The S1 port's PKCS#8 export, which lane 7c replaces with `generateSessionKey` from `@agari/markets` and the v2 store. */
+/** The S1 port's PKCS#8 export, which lane 7c replaces with `generateSessionKey` from `@owarine/markets` and the v2 store. */
 const S1_KEYGEN = "web/src/features/session/keygen.ts";
 
 function sessionKeyNonExtractable(rule, ctx) {
@@ -96,7 +96,7 @@ function sessionKeyNonExtractable(rule, ctx) {
 
 export const rules = [
   { id: "no-evm", description: "no EVM library in any workspace source or manifest (shrinking allowlist, empty at the S1 gate)", check: noEvm },
-  { id: "ledger-import-boundary", description: "only packages/markets imports the Solana/oracle SDKs (@solana-mobile/ included), web3.js 1 only under prices/legacy, and the phone never imports @agari/ledger (plan §6, iOS step 9)", check: ledgerImportBoundary },
+  { id: "ledger-import-boundary", description: "only packages/markets imports the Solana/oracle SDKs (@solana-mobile/ included), web3.js 1 only under prices/legacy, and the phone never imports @owarine/ledger (plan §6, iOS step 9)", check: ledgerImportBoundary },
   { id: "no-solana", description: "no Solana, Solana-oracle or Anchor library in any workspace source or manifest (shrinking allowlist, empty at the C1 gate)", check: noSolana },
   { id: "idl-no-destination", description: "no program instruction takes a caller-chosen payout destination (AD-5)", optional: true, check: whileAnchor(idlNoDestination, "choice-no-destination") },
   { id: "program-id-drift", description: "declare_id! == Anchor.toml == scripts/deploy/addresses.devnet.json", optional: true, check: whileAnchor(programIdDrift, "package-drift") },
@@ -213,7 +213,7 @@ export const rules = [
   },
   { id: "venue-identity", description: "no reference asset, brand or chain (BTC, ETH, Masayume, Somnia…) in live code or copy; comments and tests may name them", check: venueIdentity },
   { id: "no-solana-copy", description: "the product never claims Solana: no Solana, SOL, lamport, Phantom, Solflare, Backpack, Helius, Solscan, Jupiter (except as the named price source), tUSDC, on chain, block explorer or gas in user-visible strings (apps, packages core and markets, manifest, and the whole docs site: pages, site strings, diagrams, captions); lineage and protocol lines allowlisted with a reason", check: noSolanaCopy },
-  { id: "no-ledger-in-client", description: "no module reachable from a web \"use client\" entry imports @agari/ledger's root at runtime: it pulls the HTTP client and node:crypto into the browser bundle (96caadf); use @agari/ledger/pure", check: noLedgerInClient },
+  { id: "no-ledger-in-client", description: "no module reachable from a web \"use client\" entry imports @owarine/ledger's root at runtime: it pulls the HTTP client and node:crypto into the browser bundle (96caadf); use @owarine/ledger/pure", check: noLedgerInClient },
   { id: "capabilities-evidence", description: "docs/plan/capabilities.json never claims more than its evidence: `local` and `live` need existing evidence paths, `live` also an acceptance row (honest state)", check: capabilitiesEvidence },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];

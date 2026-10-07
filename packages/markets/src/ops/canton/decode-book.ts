@@ -1,7 +1,7 @@
 /**
  * abu-pm-main 0.5.0 (`PM.Book`, K-092, K-200): the maker vault's receipts, and which venue legs are a book's.
  */
-import type { Party } from "@agari/ledger/pure";
+import type { Party } from "@owarine/ledger/pure";
 import { decodeParts, DecodeError, type LegC, type Side } from "./decode";
 
 const { obj, text, big, optional, side } = decodeParts;

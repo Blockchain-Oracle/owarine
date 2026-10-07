@@ -4,7 +4,7 @@
  * and the user pays no network fee. This client is a descriptor naming the role key's address; every ledger call made
  * with it refuses as not live. Server-only.
  */
-import type { Address } from "@agari/core/types";
+import type { Address } from "@owarine/core/types";
 import { keypairAddress } from "../sessions/keypair";
 
 export type DeployClientConfig = {

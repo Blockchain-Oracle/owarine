@@ -1,12 +1,12 @@
 "use client";
 
-import { diagnosis, err, ok, stale, type Reading } from "@agari/core";
+import { diagnosis, err, ok, stale, type Reading } from "@owarine/core";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { BOARD_REFRESH_MS, readLeaderboard, type BoardQuery } from "./leaderboard-client";
 import type { BoardData } from "./protocol";
 
 const POLL_MS = 120_000;
-export const LEADERBOARD_KEY = ["agari", "leaderboard"] as const;
+export const LEADERBOARD_KEY = ["owarine", "leaderboard"] as const;
 
 /**
  * Keep the last snapshot during refresh failures; an empty board retries without a page reload. A tab switch keeps

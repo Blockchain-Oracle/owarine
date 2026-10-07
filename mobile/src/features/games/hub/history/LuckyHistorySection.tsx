@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useNowMs } from "@/components/data/useNowMs";

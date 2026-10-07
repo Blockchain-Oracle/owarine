@@ -1,5 +1,5 @@
-import { phase } from "@agari/core/lifecycle";
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import { phase } from "@owarine/core/lifecycle";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 
 /**
  * Strategies trade every live Window: the stock lanes in session and the 24/7 lanes (xStocks, pre-IPO tokens,

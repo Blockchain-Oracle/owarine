@@ -1,13 +1,13 @@
 "use client";
 
-import { noEntryCutoffSec } from "@agari/core/lifecycle";
-import { TICKERS } from "@agari/core/market";
-import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
-import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
-import type { EventMarket } from "@agari/core/types";
-import { selectXWindow, X_BUILDER_ASSETS, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
-import { marketsProvider } from "@agari/markets";
-import { useLanes, useTick } from "@agari/markets/react";
+import { noEntryCutoffSec } from "@owarine/core/lifecycle";
+import { TICKERS } from "@owarine/core/market";
+import { ENTRY_BUFFER_SEC } from "@owarine/core/constants";
+import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@owarine/core/units";
+import type { EventMarket } from "@owarine/core/types";
+import { selectXWindow, X_BUILDER_ASSETS, X_CADENCES, xRefusalCopy, type XAsset } from "@owarine/core/x";
+import { marketsProvider } from "@owarine/markets";
+import { useLanes, useTick } from "@owarine/markets/react";
 import { ArrowDownRight, ArrowUpRight, Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useVenue } from "@/features/markets/useVenue";

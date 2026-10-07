@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import { isDbConfigured, registerPushDevice, updatePushDevice } from "@agari/db";
+import { isDbConfigured, registerPushDevice, updatePushDevice } from "@owarine/db";
 import { NextResponse } from "next/server";
 import { PUSH_ERRORS, PUSH_SIGNATURE_TTL_MS, pushRegisterMessage, pushRegisterSchema, pushUpdateSchema, type PushRegistration } from "@/features/push/protocol";
 import { clientIp, createLimiter } from "@/features/room/limits.server";

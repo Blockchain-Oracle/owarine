@@ -16,17 +16,17 @@
  *      season prize pool (`bootstrap-games.ts`; `--no-games` skips it),
  *   6. (C8f) uploads abu-pm-agents (grants' desk, the strategy registry, the agent desk); the venue's per-seat offers
  *      are created on demand by ops (`/internal/agents/enrol`), so nothing else is bootstrapped for it,
- *   7. writes the parties file ops reads (`AGARI_PARTIES_FILE`, default ~/.config/agari/canton/parties.json).
+ *   7. writes the parties file ops reads (`OWARINE_PARTIES_FILE`, default ~/.config/owarine/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing. The contracts
  * (steps 3–5) are made by `bootstrap/venue.ts`, the same code the DevNet bootstrap runs (`bootstrap-devnet.ts`, C2y).
  *
- *   pnpm --filter @agari/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
+ *   pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
  *     [--reserve-seed 10000] [--no-tickets] [--maker-seed 10000] [--no-maker] [--no-games] [--agents-dar path] [--no-agents] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { createLedgerClient, noAuth, parseLedgerEnv } from "@agari/ledger";
+import { createLedgerClient, noAuth, parseLedgerEnv } from "@owarine/ledger";
 import { CANTON_ROLES, partiesFilePath, readPartiesFile, type CantonRole, type PartiesFile } from "../services/ops/src/runtime/keys";
 import { arg, flag } from "./drive/cli";
 import { GAMES_DAR } from "./bootstrap-games";
@@ -101,7 +101,7 @@ async function main(): Promise<void> {
   const parties: Partial<Record<CantonRole, string>> = {};
   for (const role of CANTON_ROLES) {
     const had = previous?.parties[role];
-    parties[role] = had && known.has(had) ? had : await allocate(`agari-${role}-${run}`);
+    parties[role] = had && known.has(had) ? had : await allocate(`owarine-${role}-${run}`);
   }
   const users: Record<string, string> = {};
   // K-026: the web reads personas from users.alice|bob|outsider and its seat pool from users named seat-*.
@@ -112,7 +112,7 @@ async function main(): Promise<void> {
   ];
   for (const name of wantUsers) {
     const had = previous?.users?.[name];
-    users[name] = had && known.has(had) ? had : await allocate(`agari-user-${name}-${run}`);
+    users[name] = had && known.has(had) ? had : await allocate(`owarine-user-${name}-${run}`);
   }
   log(`parties: ${Object.entries(parties).map(([r, p]) => `${r}=${p!.split("::")[0]}`).join(" ")}`);
 

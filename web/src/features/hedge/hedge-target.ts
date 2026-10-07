@@ -2,9 +2,9 @@
  * Which holding the card speaks for and which Window it hedges into (session-lanes.md §4). Pure over the lane set, so
  * the live card and the `/dev/hedge` fixtures pick the same way.
  */
-import { phase } from "@agari/core/lifecycle";
-import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket, LaneSet } from "@agari/core/types";
+import { phase } from "@owarine/core/lifecycle";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { pickBasketHedges } from "./basket-cover";
 import { tokenHorizon, type HedgeHorizon } from "./hedge-horizon";
 import type { HoldingView } from "./useHoldings";

@@ -1,5 +1,5 @@
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useBalancePlate } from "@/features/markets/balance/useBalancePlate";
 import { FONT, useTheme } from "~/theme";

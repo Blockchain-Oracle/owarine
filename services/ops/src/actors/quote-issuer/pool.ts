@@ -11,7 +11,7 @@
  * The sweeper, the rebalancer and netting lease from this same pool, which is what makes the single writer real. The
  * pool holds no persistent state: at boot it is rebuilt from the venue's active contracts.
  */
-import type { Active, VenueCashC } from "@agari/markets/ops/canton";
+import type { Active, VenueCashC } from "@owarine/markets/ops/canton";
 
 export type ShardState = "free" | "inflight" | "quarantined";
 

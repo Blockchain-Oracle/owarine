@@ -1,5 +1,5 @@
-import { nameOf } from "@agari/core/desk";
-import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@agari/core/market";
+import { nameOf } from "@owarine/core/desk";
+import { PRE_IPO_SYMBOLS, type PreIpoSymbol } from "@owarine/core/market";
 import { ACTIVITY } from "./copy-activity";
 
 /**

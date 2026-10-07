@@ -1,10 +1,10 @@
 "use client";
 
-import { type TickerSymbol } from "@agari/core/market";
-import type { Reading } from "@agari/core/schemas";
-import type { EventMarket, MarketId } from "@agari/core/types";
-import { marketsProvider } from "@agari/markets";
-import { useTick } from "@agari/markets/react";
+import { type TickerSymbol } from "@owarine/core/market";
+import type { Reading } from "@owarine/core/schemas";
+import type { EventMarket, MarketId } from "@owarine/core/types";
+import { marketsProvider } from "@owarine/markets";
+import { useTick } from "@owarine/markets/react";
 import { useState } from "react";
 import { ReadingBoundary } from "@/components/states";
 import { SESSION_COPY } from "@/lib/copy-session";

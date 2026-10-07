@@ -6,7 +6,7 @@ import {
   type ArcadeRunConfig,
   type FlapState,
   type Rng,
-} from "@agari/core/games/arcade";
+} from "@owarine/core/games/arcade";
 import type { FlapCue, FlapHud } from "@/features/games/arcade/FlapCanvas";
 import { createFlapFx, drawFlap, flapFxPress } from "@/features/games/arcade/flap-draw";
 import { IDLE_SEED, type ArcadeRun, type RunEnd } from "@/features/games/arcade/run";

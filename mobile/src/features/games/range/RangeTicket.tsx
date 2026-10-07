@@ -1,7 +1,7 @@
-import { formatCadence } from "@agari/core/market";
-import type { RangeQuote, RangeReserveState, RangeSide } from "@agari/core/range";
-import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/market";
+import type { RangeQuote, RangeReserveState, RangeSide } from "@owarine/core/range";
+import type { Diagnosis, EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { RANGE } from "@/features/range/copy";
 import { formatMultiplierTenths, formatProbE6, usdBand, usdOnGrid, utilizationPct } from "@/features/range/format";

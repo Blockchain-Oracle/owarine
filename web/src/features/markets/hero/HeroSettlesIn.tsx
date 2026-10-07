@@ -1,6 +1,6 @@
 "use client";
 
-import { countdown } from "@agari/core/lifecycle";
+import { countdown } from "@owarine/core/lifecycle";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD } from "@/lib/copy";
 import { cn } from "@/lib/utils";

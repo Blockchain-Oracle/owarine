@@ -3,8 +3,8 @@
  * request per wallet, Book or Window. Masayume paged fills per pool and router actions per wallet (`scan.ts:57-80`); the
  * indexer serves the whole tape by time instead. A page cap is reported as `complete: false`, never papered over.
  */
-import type { LedgerFill, LedgerSetAction } from "@agari/core/projection";
-import type { Address, MarketId, Signature } from "@agari/core/types";
+import type { LedgerFill, LedgerSetAction } from "@owarine/core/projection";
+import type { Address, MarketId, Signature } from "@owarine/core/types";
 import { toLedgerFill } from "./history";
 import { big, indexRows, sec, type ActionRow, type FillRow, type MarketRow, type ReceiptRow } from "./index-api";
 

@@ -1,5 +1,5 @@
-import type { IdxFact } from "@agari/db";
-import type { JsTransaction } from "@agari/ledger";
+import type { IdxFact } from "@owarine/db";
+import type { JsTransaction } from "@owarine/ledger";
 import { describe, expect, it } from "vitest";
 import { decodeTransaction } from "./decode";
 

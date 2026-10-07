@@ -4,7 +4,7 @@
  * encode and decode the same bytes. Money travels as decimal strings and is parsed back to bigint strictly; a party is
  * shown as text (it is the grant's agent, a strategy's creator or runner), never sent by a browser as "who I am".
  */
-import { diagnosisSchema, isSignature, type Signature } from "@agari/core/types";
+import { diagnosisSchema, isSignature, type Signature } from "@owarine/core/types";
 import { z } from "zod";
 
 const uint = z.string().regex(/^\d{1,20}$/, "a non-negative integer string").transform((s) => BigInt(s));

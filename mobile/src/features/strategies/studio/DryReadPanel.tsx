@@ -1,5 +1,5 @@
-import { formatCadence } from "@agari/core/copy";
-import { formatClock } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import { formatClock } from "@owarine/core/units";
 import { StyleSheet, Text, View } from "react-native";
 import { STRATEGIES } from "@/features/strategies/copy";
 import type { AgentPreviewResponse } from "@/features/strategies/protocol";

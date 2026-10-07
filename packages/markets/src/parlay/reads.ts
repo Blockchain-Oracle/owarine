@@ -2,10 +2,10 @@
  * The parlay reserve on Canton (C8c): the `parlay` ticket reserve and the seat's own `ParlayTicket`s, through
  * `/api/ledger/tickets/*`. A ticket's legs are decided one at a time in the order their Windows close.
  */
-import type { ParlayReserveState, ParlayTicket } from "@agari/core/parlay";
-import type { ProviderShares } from "@agari/core/reserves";
-import { ok, type Reading } from "@agari/core/schemas";
-import type { Address } from "@agari/core/types";
+import type { ParlayReserveState, ParlayTicket } from "@owarine/core/parlay";
+import type { ProviderShares } from "@owarine/core/reserves";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { Address } from "@owarine/core/types";
 import { registeredSeatAddress } from "../provider/ledger-api";
 import { cantonNotLive } from "../stub/not-deployed";
 import { readReserve, readTicketsMine, ticketIdOf } from "../tickets/client";

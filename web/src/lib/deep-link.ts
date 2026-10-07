@@ -1,10 +1,10 @@
 "use client";
 
-import { isSettled, phase } from "@agari/core/lifecycle";
-import { isOk } from "@agari/core/schemas";
-import type { EventMarket, LaneSet, MarketId, Side } from "@agari/core/types";
-import { marketDeepLink, marketIdFromPath, parseMarketsSearch } from "@agari/core/urls";
-import { useMarket, useNextWindow } from "@agari/markets/react";
+import { isSettled, phase } from "@owarine/core/lifecycle";
+import { isOk } from "@owarine/core/schemas";
+import type { EventMarket, LaneSet, MarketId, Side } from "@owarine/core/types";
+import { marketDeepLink, marketIdFromPath, parseMarketsSearch } from "@owarine/core/urls";
+import { useMarket, useNextWindow } from "@owarine/markets/react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { formatCadence, MARKETS } from "@/lib/copy";

@@ -1,8 +1,8 @@
 "use client";
 
-import { formatCadence } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
-import { marketDeepLink } from "@agari/core/urls";
+import { formatCadence } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
+import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { useState } from "react";
 import { Countdown } from "@/components/data";

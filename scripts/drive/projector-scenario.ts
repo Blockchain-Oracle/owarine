@@ -10,9 +10,9 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { fileURLToPath } from "node:url";
 import postgres from "postgres";
-import { marketIdFromDaml } from "@agari/core/market";
-import { crowdFlow, ensureSchema, getDb, indexReader, indexWriter, marketIdOfKey, resolutionsByMarket, tapeFills, type Db } from "@agari/db";
-import { noAuth } from "@agari/ledger";
+import { marketIdFromDaml } from "@owarine/core/market";
+import { crowdFlow, ensureSchema, getDb, indexReader, indexWriter, marketIdOfKey, resolutionsByMarket, tapeFills, type Db } from "@owarine/db";
+import { noAuth } from "@owarine/ledger";
 import { startProjectorLoop } from "../../services/ops/src/actors/projector/run";
 import { verifyProjection } from "../../services/ops/src/actors/projector/verify";
 import { localSession, sleep } from "./pm-ledger";
@@ -20,7 +20,7 @@ import { CASH_UNIT, cast, recordOpens, resolve, settle, setup, staleRefund, trad
 
 const URL_ = process.env.LEDGER_JSON_API_URL ?? "http://localhost:7585";
 const REBUILD_URL = process.env.REBUILD_DATABASE_URL;
-const USER = "agari-c3a";
+const USER = "owarine-c3a";
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const log = (line: string) => console.log(`[scenario] ${line}`);
 const failures: string[] = [];
@@ -197,7 +197,7 @@ async function main(): Promise<void> {
   if (REBUILD_URL) {
     console.log("\nrebuild (replay from offset 0 into a second database):");
     const rdb = postgres(REBUILD_URL, { max: 2, onnotice: () => undefined });
-    const { SCHEMA_SQL } = await import("@agari/db");
+    const { SCHEMA_SQL } = await import("@owarine/db");
     await rdb.unsafe(SCHEMA_SQL);
     await indexWriter(rdb).truncate();
     const t0 = Date.now();

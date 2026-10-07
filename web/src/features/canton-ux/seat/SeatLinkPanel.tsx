@@ -1,7 +1,7 @@
 "use client";
 
-import { diagnosisCopy } from "@agari/core/copy";
-import { createSeatLink, decideSeatLink, readSeatLink, type SeatLinkCode } from "@agari/markets";
+import { diagnosisCopy } from "@owarine/core/copy";
+import { createSeatLink, decideSeatLink, readSeatLink, type SeatLinkCode } from "@owarine/markets";
 import { RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";

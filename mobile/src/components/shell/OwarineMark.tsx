@@ -1,8 +1,8 @@
 import Svg, { Path } from "react-native-svg";
 import { useTheme } from "~/theme";
 
-/** Window Cut uses the exact paths in brand/agari-mark.svg, with theme-aware window ink. */
-export function AgariMark({ width = 18, height = 18, figure }: { width?: number; height?: number; figure?: string }) {
+/** Window Cut uses the exact paths in brand/owarine-mark.svg, with theme-aware window ink. */
+export function OwarineMark({ width = 18, height = 18, figure }: { width?: number; height?: number; figure?: string }) {
   const { color } = useTheme();
   return (
     <Svg width={width} height={height} viewBox="0 0 220 220" accessible={false}>

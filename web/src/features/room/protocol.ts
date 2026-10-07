@@ -1,6 +1,6 @@
-import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
-import { DEFAULT_CLUSTER } from "@agari/core/constants";
-import { addressSchema } from "@agari/core/types";
+import { messageSignatureSchema, networkLine, SIGNED_MESSAGE_BRAND } from "@owarine/core/auth";
+import { DEFAULT_CLUSTER } from "@owarine/core/constants";
+import { addressSchema } from "@owarine/core/types";
 import { z } from "zod";
 
 export const ROOM_BODY_MAX = 280;

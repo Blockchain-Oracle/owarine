@@ -1,7 +1,7 @@
-import { formatCadence } from "@agari/core/copy";
-import { isOk } from "@agari/core/schemas";
-import type { LaneSet } from "@agari/core/types";
-import { useLanes } from "@agari/markets/react";
+import { formatCadence } from "@owarine/core/copy";
+import { isOk } from "@owarine/core/schemas";
+import type { LaneSet } from "@owarine/core/types";
+import { useLanes } from "@owarine/markets/react";
 import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";

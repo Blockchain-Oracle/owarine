@@ -1,6 +1,6 @@
 "use client";
 
-import type { Reading } from "@agari/core/schemas";
+import type { Reading } from "@owarine/core/schemas";
 import { SectionHeader } from "@/components/chrome";
 import { ActivityList } from "@/features/stats/StatsSections";
 import { ago } from "@/features/stats/copy";

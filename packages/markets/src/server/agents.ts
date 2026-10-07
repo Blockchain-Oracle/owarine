@@ -9,11 +9,11 @@
  *   registry   License_Publish · Strategy_Update · Strategy_SetRunner · Strategy_Deactivate · Payout_Claim
  *   consents   Invite_OpenBook · Subscriber_Subscribe (the listing disclosed by the venue) · Subscriber_Unsubscribe
  */
-import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
-import { diagnosis, type Diagnosis, type Signature } from "@agari/core/types";
-import type { GrantKind, VaultCaps, VaultGrant } from "@agari/core/vault";
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import type { Command, DisclosedContract, JsTransaction, LedgerClient, Party } from "@agari/ledger";
+import type { StrategyRecord, StrategySubscription } from "@owarine/core/strategies";
+import { diagnosis, type Diagnosis, type Signature } from "@owarine/core/types";
+import type { GrantKind, VaultCaps, VaultGrant } from "@owarine/core/vault";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import type { Command, DisclosedContract, JsTransaction, LedgerClient, Party } from "@owarine/ledger";
 import { acmd } from "../ops/agents";
 import { grantIdOf, sha256Hex, strategyNumOf, utcDayStartSec } from "../ops/agents/ids";
 import { AGENT_DECIMALS, capsToDaml, creatorPayoutsView, envelopeToDaml, goneGrantView, grantFor, grantIdOfC, grantKindOf, grantsByKind, grantView, strategyView, subscriptionView, type CreatorPayoutsView } from "../ops/agents/views";

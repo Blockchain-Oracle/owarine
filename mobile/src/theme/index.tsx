@@ -10,7 +10,7 @@ export { AVATAR_COLORS } from "./palette";
 
 export type ThemeName = "dark" | "light";
 /** Web's key (lib/theme.ts): a stored choice wins over the system setting. */
-const THEME_KEY = "agari_theme";
+const THEME_KEY = "owarine_theme";
 
 interface ThemeValue {
   name: ThemeName;

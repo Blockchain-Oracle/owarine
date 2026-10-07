@@ -4,16 +4,16 @@
  * seat only, journaled by the client's commandId like every other seat write. Nothing is ever submitted as the venue
  * from here: the venue answers a request through its own ops actor (`services/ops` `cc-rail`).
  *
- * The path is gated on `CC_RAIL_CAPABILITY` (`@agari/core/cc`), `not-live` in code until DevNet proves it. While it is,
+ * The path is gated on `CC_RAIL_CAPABILITY` (`@owarine/core/cc`), `not-live` in code until DevNet proves it. While it is,
  * `status` says so and why, and every write refuses before anything is journaled or signed. A seat's reads count only
  * what was created at or after its lease's start offset (K-224): an allowance, receipt or request on the same party
  * from an earlier visitor is not this seat's.
  */
-import { PRIVATE_BUCKET } from "@agari/core/private";
-import { CC_RAIL_WAITING_ON, type CcRailCapability, type CcRailView } from "@agari/core/cc";
-import { diagnosis, type Diagnosis } from "@agari/core/types";
-import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { UnitsError, atomicToCashUnitsExact, cashUnitsToCc, ccToAtomic, type ContractId, type JsTransaction, type LedgerClient, type Party } from "@agari/ledger";
+import { PRIVATE_BUCKET } from "@owarine/core/private";
+import { CC_RAIL_WAITING_ON, type CcRailCapability, type CcRailView } from "@owarine/core/cc";
+import { diagnosis, type Diagnosis } from "@owarine/core/types";
+import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import { UnitsError, atomicToCashUnitsExact, cashUnitsToCc, ccToAtomic, type ContractId, type JsTransaction, type LedgerClient, type Party } from "@owarine/ledger";
 import { readCip56Holdings } from "../holdings/reader";
 import { ccCmd, coverHoldings, decodeAllowance, decodeDeposit, decodeHoldingView, decodeListing, decodeProposal, decodeStatement, decodeWithdrawal, interfaceViewOf, RegistryError, type RegistryClient } from "../ops/cc";
 import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";

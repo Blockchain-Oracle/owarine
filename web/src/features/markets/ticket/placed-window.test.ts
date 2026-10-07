@@ -1,4 +1,4 @@
-import type { EventMarket, MarketId } from "@agari/core/types";
+import type { EventMarket, MarketId } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { placedWindowOf } from "./placed-window";
 

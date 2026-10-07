@@ -1,12 +1,12 @@
 "use client";
 
-import { formatCadence, type BlockerContext, type BlockerKind } from "@agari/core/copy";
-import { isPriceCents, restingQuote, type RestingQuote, type RestUntil } from "@agari/core/orders";
-import { isOk } from "@agari/core/schemas";
-import type { Quote } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { collateralOrNull, marketsProvider } from "@agari/markets";
-import { useBalanceSheet, useBook, useOnchain, useRestingOrders, useSigner } from "@agari/markets/react";
+import { formatCadence, type BlockerContext, type BlockerKind } from "@owarine/core/copy";
+import { isPriceCents, restingQuote, type RestingQuote, type RestUntil } from "@owarine/core/orders";
+import { isOk } from "@owarine/core/schemas";
+import type { Quote } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { collateralOrNull, marketsProvider } from "@owarine/markets";
+import { useBalanceSheet, useBook, useOnchain, useRestingOrders, useSigner } from "@owarine/markets/react";
 import { useEffect, useMemo, useState } from "react";
 import { PREOPEN } from "@/lib/copy";
 import { useWalletSession, type WalletSession } from "@/lib/wallet-session";

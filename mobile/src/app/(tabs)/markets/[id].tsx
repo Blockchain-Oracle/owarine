@@ -1,5 +1,5 @@
-import { isMarketId, toMarketId } from "@agari/core/types";
-import { SHARE_EXPIRES_PARAM, SHARE_SIG_PARAM, SHARE_STAKE_PARAM } from "@agari/core/x";
+import { isMarketId, toMarketId } from "@owarine/core/types";
+import { SHARE_EXPIRES_PARAM, SHARE_SIG_PARAM, SHARE_STAKE_PARAM } from "@owarine/core/x";
 import { Redirect, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { presetStake } from "@/features/markets/ticket/stake-preset";

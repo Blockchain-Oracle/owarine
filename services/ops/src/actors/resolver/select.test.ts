@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Active, PriceQuoteC, TermsC } from "@agari/markets/ops/canton";
+import type { Active, PriceQuoteC, TermsC } from "@owarine/markets/ops/canton";
 import { evidenceFor, lowerMedian, slotRule } from "./select";
 
 const T = 1_790_000_000 - (1_790_000_000 % 60);

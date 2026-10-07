@@ -12,10 +12,10 @@
  * held price that lapsed before the accept landed is quoted again once and surfaced as a requote. A partial size
  * (`contractsRaw` below the holding, "sell half") sells exactly that many lots.
  */
-import { formatCadence } from "@agari/core/copy";
-import type { CashOutOutcome, CashOutRequest, PhaseListener } from "@agari/core/ports";
-import { diagnosis, type Diagnosis, type ExitQuote, type Signature } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import type { CashOutOutcome, CashOutRequest, PhaseListener } from "@owarine/core/ports";
+import { diagnosis, type Diagnosis, type ExitQuote, type Signature } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
 import { ledgerRequest } from "../provider/ledger-api";
 import { exitAcceptReplyWire, exitQuoteReplyWire } from "../provider/ledger-wire";
 import { pollCommand, type SeatLaneDeps } from "./seat-lane";

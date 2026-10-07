@@ -1,9 +1,9 @@
 // Window Cut: a market window interrupted by the outcome that breaks its edge.
-// Keep this geometry aligned with brand/agari-mark.svg and the docs/X renderers.
-export const AGARI_MARK_FIGURE = "M0 0H151L183 32V61H139V44H44V176H176V82H220V220H0Z";
-export const AGARI_MARK_OUTCOME = "M173 0H220V47Z";
+// Keep this geometry aligned with brand/owarine-mark.svg and the docs/X renderers.
+export const OWARINE_MARK_FIGURE = "M0 0H151L183 32V61H139V44H44V176H176V82H220V220H0Z";
+export const OWARINE_MARK_OUTCOME = "M173 0H220V47Z";
 
-export default function AgariMark({
+export default function OwarineMark({
   className,
   figure = "currentColor",
   accent = "var(--vermilion)",
@@ -27,8 +27,8 @@ export default function AgariMark({
       xmlns="http://www.w3.org/2000/svg"
     >
       {title ? <title>{title}</title> : null}
-      <path d={AGARI_MARK_FIGURE} fill={figure} />
-      <path d={AGARI_MARK_OUTCOME} fill={accent} />
+      <path d={OWARINE_MARK_FIGURE} fill={figure} />
+      <path d={OWARINE_MARK_OUTCOME} fill={accent} />
     </svg>
   );
 }

@@ -1,4 +1,4 @@
-import { isOk } from "@agari/core/schemas";
+import { isOk } from "@owarine/core/schemas";
 import { useLocalSearchParams } from "expo-router";
 import { Lock, ServerOff, type LucideIcon } from "lucide-react-native";
 import { StyleSheet, View } from "react-native";

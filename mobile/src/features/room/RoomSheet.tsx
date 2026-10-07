@@ -1,4 +1,4 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { Lock, X } from "lucide-react-native";

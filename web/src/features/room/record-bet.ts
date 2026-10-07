@@ -1,4 +1,4 @@
-import type { BetRoute } from "@agari/db";
+import type { BetRoute } from "@owarine/db";
 
 /** Enough for any tab's session; the oldest drop first. */
 const LOCAL_FILLS_MAX = 500;

@@ -2,13 +2,13 @@
 
 import { ChevronUpIcon, FeatherIcon } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
-import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@agari/core/desk";
+import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@owarine/core/desk";
 import { DeskReelCard, type DeskReelDecision } from "@/features/desk/DeskReelCard";
 import { useDeskView } from "@/features/desk/useDesk";
 import { calmSet, holdsPreIpo, HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
 import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
-import { marketsProvider } from "@agari/markets";
+import { marketsProvider } from "@owarine/markets";
 import { REELS } from "@/lib/copy";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { useWalletSession } from "@/lib/wallet-session";

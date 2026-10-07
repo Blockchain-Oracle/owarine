@@ -1,4 +1,4 @@
-import { addressSchema, toMarketId } from "@agari/core/types";
+import { addressSchema, toMarketId } from "@owarine/core/types";
 import { z } from "zod";
 import { reverifyMarket } from "@/features/proof/canton-proof.server";
 

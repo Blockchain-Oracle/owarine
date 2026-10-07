@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { LedgerError } from "@agari/ledger";
+import { LedgerError } from "@owarine/ledger";
 import { decodeQuote, decodeResolution, decodeTerms, isoOfSec, timeSec } from "./decode";
 import { creditCommandId, expireCommandId, settleBatchCommandId, skipToCommandId } from "./ids";
 import { costOf, feeFor, walkStake } from "./quote-walk";

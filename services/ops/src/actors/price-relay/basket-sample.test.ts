@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { BASKET_INDEX_BASE_E8, BASKETS, type PreIpoSymbol } from "@agari/core/market";
+import { BASKET_INDEX_BASE_E8, BASKETS, type PreIpoSymbol } from "@owarine/core/market";
 
 // The prints barrel re-exports Pyth modules that do not load in this environment; only the window constant is needed.
-vi.mock("@agari/markets/ops/prints", () => ({ PRESTOCKS_MAX_LATE_SEC: 45 }));
+vi.mock("@owarine/markets/ops/prints", () => ({ PRESTOCKS_MAX_LATE_SEC: 45 }));
 
 const { chooseBasketSample } = await import("./basket-sample");
 import type { PreStocksSnapshot } from "../../prices/prestocks-spot";

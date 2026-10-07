@@ -1,16 +1,16 @@
 "use client";
 
-import { SHARE_ISSUERS, SHARE_TOKENS, type ShareSymbol, type ShareToken, type TickerSymbol } from "@agari/core/market";
-import { diagnosis, err, ok, type Reading } from "@agari/core";
-import type { Address } from "@agari/core/types";
-import { ledgerBase } from "@agari/markets";
-import { useReadingQuery } from "@agari/markets/react";
+import { SHARE_ISSUERS, SHARE_TOKENS, type ShareSymbol, type ShareToken, type TickerSymbol } from "@owarine/core/market";
+import { diagnosis, err, ok, type Reading } from "@owarine/core";
+import type { Address } from "@owarine/core/types";
+import { ledgerBase } from "@owarine/markets";
+import { useReadingQuery } from "@owarine/markets/react";
 import { z } from "zod";
 import { seatReadHeaders } from "@/lib/seat-fetch";
 
 /** The route caches 60 s per owner; polling faster would only read its cache. */
 const POLL_MS = 60_000;
-const holdingsKey = (owner: Address | null) => ["agari", "hedge", "holdings", owner] as const;
+const holdingsKey = (owner: Address | null) => ["owarine", "hedge", "holdings", owner] as const;
 
 /** One verified holding with its integers back as bigints. */
 export interface HoldingView {

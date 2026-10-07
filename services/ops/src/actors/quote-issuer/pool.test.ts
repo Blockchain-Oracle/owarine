@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Active, VenueCashC } from "@agari/markets/ops/canton";
+import type { Active, VenueCashC } from "@owarine/markets/ops/canton";
 import { PoolBusyError, ShardPool } from "./pool";
 
 const V = "venue::1220ab";

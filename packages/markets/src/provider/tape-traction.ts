@@ -3,8 +3,8 @@
  * taker's buy on a Window's Book; a taker's sell is a cash-out, listed but never counted as a call. The taker and its
  * side come straight from the chain's fill record, so a fill is unattributed only when its Window's grid is unknown.
  */
-import type { TickerSymbol } from "@agari/core/market";
-import type { Address, MarketId, Signature } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { Address, MarketId, Signature } from "@owarine/core/types";
 import { big, sec, type FillRow, type MarketRow } from "./index-api";
 import type { TractionCall, TractionPoint, VenueTraction } from "./tape";
 

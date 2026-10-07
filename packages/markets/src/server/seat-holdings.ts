@@ -20,8 +20,8 @@
  *
  * Its `VenueCash` is not a blocker: the recycler withdraws it as the seat's own choice before the seat is freed.
  */
-import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type CreatedEvent, type LedgerClient, type Party } from "@agari/ledger";
+import { AGENT_TEMPLATE_IDS, CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, GAMES_TEMPLATE_IDS, TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type CreatedEvent, type LedgerClient, type Party } from "@owarine/ledger";
 import { templateSuffix } from "../ops/canton/decode";
 import { decodeTransferInstructionView, interfaceViewOf } from "../ops/cc/decode";
 

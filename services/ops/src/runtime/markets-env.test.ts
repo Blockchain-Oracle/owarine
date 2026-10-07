@@ -20,7 +20,7 @@ describe("the indexer URL ops uses (C10a)", () => {
   });
 
   it("resolves a relative or absent one against the web's origin, internal first", () => {
-    expect(opsIndexerUrl("/api/index", { AGARI_WEB_ORIGIN: "http://web:3000", NEXT_PUBLIC_APP_ORIGIN: "https://pm.example" })).toBe(
+    expect(opsIndexerUrl("/api/index", { OWARINE_WEB_ORIGIN: "http://web:3000", NEXT_PUBLIC_APP_ORIGIN: "https://pm.example" })).toBe(
       "http://web:3000/api/index",
     );
     expect(opsIndexerUrl(undefined, { NEXT_PUBLIC_APP_ORIGIN: "https://pm.example/" })).toBe("https://pm.example/api/index");

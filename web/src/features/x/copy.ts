@@ -60,7 +60,7 @@ export const TRADE_FROM_X = {
   payoff: "Un⁠-⁠drainably.",
   lede: (handle: string) => [`Tweet your calls at `, handle, `. A bounded agent trades `, `your own`, ` funds, and can’t take them.`] as const,
   yourKeys: "your keys, your funds",
-  venue: "Canton test network · Agari venue quotes",
+  venue: "Canton test network · Owarine venue quotes",
   setup: "set it up · three steps",
   steps: { connect: "Take a seat", fund: "Fund + authorize the agent", link: "Link your X account" },
   connected: "connected",
@@ -169,7 +169,7 @@ export const CLAIM = {
   openPortfolio: "Open Portfolio",
   setUp: "Trade from X",
   card: {
-    brand: "agari",
+    brand: "owarine",
     claimed: "CLAIMED",
     settled: "TRADING BALANCE",
     waiting: "WAITING",
@@ -189,10 +189,10 @@ export const CLAIM = {
 /** `/native-auth` (C13a, K-145): the X sign-in handoff into the app, when it is opened without the app's nonce. */
 export const NATIVE_AUTH = {
   title: "Sign in with X · app",
-  why: "This page signs you in with X for the Agari app. Open the app, go to Trade from X and tap Sign in with X; it brings you here and straight back.",
+  why: "This page signs you in with X for the Owarine app. Open the app, go to Trade from X and tap Sign in with X; it brings you here and straight back.",
   web: "Sign in on the web instead",
-  consentTitle: "Continue in the Agari app?",
+  consentTitle: "Continue in the Owarine app?",
   consentWhy: (handle: string | null) =>
-    `The Agari app asked to sign in with your X account${handle ? ` @${handle}` : ""}. Continue only if you started this from the Agari app on this phone.`,
+    `The Owarine app asked to sign in with your X account${handle ? ` @${handle}` : ""}. Continue only if you started this from the Owarine app on this phone.`,
   consentCta: (handle: string | null) => (handle ? `Continue in the app as @${handle}` : "Continue in the app"),
 } as const;

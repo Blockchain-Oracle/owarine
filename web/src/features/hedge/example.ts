@@ -4,7 +4,7 @@
  * never presets a stake. The addresses are the real devnet Pre-IPO Series and one of its settled Windows, so nothing
  * here pretends to be a live market; a tap on the example only leaves example mode.
  */
-import { toAddress, type EventMarket, type LaneSet, toMarketId } from "@agari/core/types";
+import { toAddress, type EventMarket, type LaneSet, toMarketId } from "@owarine/core/types";
 import { pickHedge, type HedgePick } from "./hedge-target";
 import type { HoldingView } from "./useHoldings";
 

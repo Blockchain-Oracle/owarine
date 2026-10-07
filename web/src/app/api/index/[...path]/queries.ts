@@ -1,6 +1,6 @@
-import { TICKER_SYMBOLS } from "@agari/core/market";
-import { addressSchema, type Address } from "@agari/core/types";
-import type { Db, IdxRow, IndexReader } from "@agari/db";
+import { TICKER_SYMBOLS } from "@owarine/core/market";
+import { addressSchema, type Address } from "@owarine/core/types";
+import type { Db, IdxRow, IndexReader } from "@owarine/db";
 import { z } from "zod";
 import { resolveArchiveQuery } from "./queries-archive";
 import { resolveProofQuery } from "./queries-proof";

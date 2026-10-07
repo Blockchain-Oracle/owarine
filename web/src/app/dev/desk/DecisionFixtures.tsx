@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_LIMITS, hashRecord, PLANNED_OUTCOMES } from "@agari/core/desk";
+import { DEFAULT_LIMITS, hashRecord, PLANNED_OUTCOMES } from "@owarine/core/desk";
 import { SectionHeader } from "@/components/chrome";
 import { CheckIt, type CheckItResult } from "@/features/desk/CheckIt";
 import { RECORD } from "@/features/desk/copy-record";

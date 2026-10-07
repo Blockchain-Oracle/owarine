@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { partyLead } from "@agari/core/units";
+import { partyLead } from "@owarine/core/units";
 import { ID_LABEL } from "@/features/canton-ux/id-label";
 import { TapHash } from "./TapHash";
 

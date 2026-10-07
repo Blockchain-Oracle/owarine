@@ -1,4 +1,4 @@
-import { isTickerSymbol, isTokenOnlyKind, TICKERS } from "@agari/core/market";
+import { isTickerSymbol, isTokenOnlyKind, TICKERS } from "@owarine/core/market";
 import { ALERTS } from "./copy";
 import type { AlertBasis } from "./store";
 

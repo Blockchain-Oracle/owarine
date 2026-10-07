@@ -19,7 +19,7 @@
  *   - (C9d) redeems its Earn shares through the Earn desk (a withdraw quote the seat accepts), and
  *   - (C9d) recycles it: once the ledger, read as the seat, shows it holds nothing (`readSeatHoldings`: no leg, live
  *     quote, ticket, Earn share, duel or agent grant), it withdraws the seat's leftover cash as the seat's own choice
- *     and sets its `seat_pool` row back to `free`, under that row's lock (`@agari/db` `recycleDrainingSeat`). Before
+ *     and sets its `seat_pool` row back to `free`, under that row's lock (`@owarine/db` `recycleDrainingSeat`). Before
  *     C9d only the web's lease route recycled, and only when the pool was already full, so empty seats sat `draining`.
  *
  * Legs on resolved markets are the settler's, open tickets the ticket keeper's, duels the duel settler's: the seat waits
@@ -27,14 +27,14 @@
  * have no row, so they are drained but never recycled).
  */
 import { createHash } from "node:crypto";
-import { closeLeaseDesks, getDb, recycleDrainingSeat, type Db, type RecycleOutcome } from "@agari/db";
-import { TEMPLATE_IDS } from "@agari/daml";
+import { closeLeaseDesks, getDb, recycleDrainingSeat, type Db, type RecycleOutcome } from "@owarine/db";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   closeOutCommandId, cmd, decodeLeg, decodeQuote, failureText, isInactive, pick, readActive, submit, withdrawCommandId, type RoleSession,
-} from "@agari/markets/ops/canton";
-import { AGENT_TEMPLATE_IDS } from "@agari/daml";
-import { acmd, decodeDeskMandate, legacyDeskAddressOf } from "@agari/markets/ops/agents";
-import { holdingsText, isSeatEmpty, readAgentsAs, readSeatHoldings, type SeatHoldings } from "@agari/markets/server";
+} from "@owarine/markets/ops/canton";
+import { AGENT_TEMPLATE_IDS } from "@owarine/daml";
+import { acmd, decodeDeskMandate, legacyDeskAddressOf } from "@owarine/markets/ops/agents";
+import { holdingsText, isSeatEmpty, readAgentsAs, readSeatHoldings, type SeatHoldings } from "@owarine/markets/server";
 import { payCreators } from "../agents/fees";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { ShardPool } from "../quote-issuer/pool";

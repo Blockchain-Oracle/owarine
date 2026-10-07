@@ -1,4 +1,4 @@
-import { invalidateAfterWrite } from "@agari/markets/react";
+import { invalidateAfterWrite } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { ScrollView, StyleSheet, View } from "react-native";
@@ -42,7 +42,7 @@ export default function ClaimScreen() {
   const queryClient = useQueryClient();
   const { address } = useWalletSession();
   const refreshControl = usePullRefresh(() =>
-    Promise.all([queryClient.invalidateQueries({ queryKey: ["agari", "x-status"] }), address ? invalidateAfterWrite(queryClient, { wallet: address }) : null]),
+    Promise.all([queryClient.invalidateQueries({ queryKey: ["owarine", "x-status"] }), address ? invalidateAfterWrite(queryClient, { wallet: address }) : null]),
   );
   return (
     <View style={[styles.xc, { backgroundColor: color.ground }]}>

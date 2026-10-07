@@ -8,7 +8,7 @@
  * ask of 53¢ fills at 55¢, exactly what its owner named. What the ladder shows at those levels, up to the call's price, is
  * how deep the venue will go; a call bigger than that fills in part and the rest keeps resting.
  */
-import type { BookLevel } from "@agari/core/market";
+import type { BookLevel } from "@owarine/core/market";
 
 /** The most a resting call may be filled for in one command (the issuer's own per-quote cap). */
 export const DEFAULT_FILL_CAP_LOTS = 500n;

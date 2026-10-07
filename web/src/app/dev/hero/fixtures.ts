@@ -3,8 +3,8 @@
  * `/dev/session` clocks, over a signed-archive-shaped 5-minute series, so the asset hero, the ticket placeholder, the
  * next-Window card and the chip are provable while NYSE is open. Prints are × 10⁻⁸ (the print scale); no floats.
  */
-import type { TickerSymbol } from "@agari/core/market";
-import type { EventMarket } from "@agari/core/types";
+import type { TickerSymbol } from "@owarine/core/market";
+import type { EventMarket } from "@owarine/core/types";
 import { archiveWindow, type AssetHistory } from "@/features/markets/asset-history";
 import type { ChartPoint } from "@/features/markets/hero";
 import type { MarketSession } from "@/features/markets/session";

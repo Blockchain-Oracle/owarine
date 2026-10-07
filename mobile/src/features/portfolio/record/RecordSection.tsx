@@ -1,6 +1,6 @@
-import { computeBadges, computeTraderEdge, reputationOf, roundsToCsv, type TraderEdge, type WalletHistory } from "@agari/core/projection";
-import { isOk } from "@agari/core/schemas";
-import { useMakerShares, useMakerVault } from "@agari/markets/react";
+import { computeBadges, computeTraderEdge, reputationOf, roundsToCsv, type TraderEdge, type WalletHistory } from "@owarine/core/projection";
+import { isOk } from "@owarine/core/schemas";
+import { useMakerShares, useMakerVault } from "@owarine/markets/react";
 import { Download } from "lucide-react-native";
 import { useMemo } from "react";
 import { Share, StyleSheet, Text, View } from "react-native";

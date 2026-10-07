@@ -1,4 +1,4 @@
-import type { BalanceSheet, MarketId } from "@agari/core/types";
+import type { BalanceSheet, MarketId } from "@owarine/core/types";
 
 export interface FundingSplit {
   creditUsedBase: bigint;

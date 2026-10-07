@@ -14,9 +14,9 @@
  * Every seal's command id is deterministic (`deskCommandId`), so a lost answer is found by it and never re-sent under a
  * new one. What belonged to Solana alone (routes, lookup tables, forks, token accounts) refuses with the reason.
  */
-import type { Address, Hash32, Signature } from "@agari/core/types";
-import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@agari/daml";
-import { LedgerError, type ContractId, type DisclosedContract, type Party } from "@agari/ledger/pure";
+import type { Address, Hash32, Signature } from "@owarine/core/types";
+import { AGENT_TEMPLATE_IDS, TEMPLATE_IDS } from "@owarine/daml";
+import { LedgerError, type ContractId, type DisclosedContract, type Party } from "@owarine/ledger/pure";
 import type { KeyPairSigner } from "../deploy/client";
 import { decodeLeg, templateSuffix, type Side } from "../ops/canton/decode";
 import { failureText, isIndefinite, refusalId, submit, type RoleSession } from "../ops/canton/session";

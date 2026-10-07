@@ -1,5 +1,5 @@
-import { countdown } from "@agari/core/lifecycle";
-import { formatClock } from "@agari/core/units";
+import { countdown } from "@owarine/core/lifecycle";
+import { formatClock } from "@owarine/core/units";
 import { Text, type StyleProp, type TextStyle } from "react-native";
 import { TYPE, useTheme } from "~/theme";
 

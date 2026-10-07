@@ -1,14 +1,14 @@
 import "server-only";
-import { getDb } from "@agari/db";
-import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@agari/ledger";
-import { err, ok } from "@agari/core/schemas";
-import { CC_RAIL_CAPABILITY } from "@agari/core/cc";
-import { registerArenaSource } from "@agari/markets/games";
-import { createRegistryClient } from "@agari/markets/ops/cc";
+import { getDb } from "@owarine/db";
+import { ledgerClientFromEnv, parseLedgerEnv, type LedgerClient } from "@owarine/ledger";
+import { err, ok } from "@owarine/core/schemas";
+import { CC_RAIL_CAPABILITY } from "@owarine/core/cc";
+import { registerArenaSource } from "@owarine/markets/games";
+import { createRegistryClient } from "@owarine/markets/ops/cc";
 import {
   createAgentsSeat, createCcSeat, createDeskSeat, createGamesSeat, createOpsClient, createSeatLedger, createTicketSeat,
   type AgentsSeat, type CcSeat, type DeskSeat, type GamesSeat, type OpsClient, type SeatLedger, type TicketSeat,
-} from "@agari/markets/server";
+} from "@owarine/markets/server";
 import { checkWebServerEnv, seatParties, type SeatParties, type WebServerEnv } from "./server-env";
 import { createSeatStore, type SeatStore } from "./seat-store.server";
 
@@ -34,7 +34,7 @@ export interface SeatServer {
   ops: OpsClient;
   store: SeatStore;
   parties: SeatParties;
-  env: WebServerEnv & { AGARI_SEAT_COOKIE_SECRET: string };
+  env: WebServerEnv & { OWARINE_SEAT_COOKIE_SECRET: string };
 }
 
 export type SeatServerState = { ok: true; server: SeatServer } | { ok: false; reason: string };
@@ -60,7 +60,7 @@ export function seatServer(): SeatServerState {
   const cc = createCcSeat({ client, venueParty: parties.venue!, journal: store.commands, listingId: process.env.CC_LISTING_ID || "cc-1", capability: CC_RAIL_CAPABILITY, registry: process.env.CC_REGISTRY_URL ? createRegistryClient({ baseUrl: process.env.CC_REGISTRY_URL }) : null });
   const desk = createDeskSeat({ client, venueParty: parties.venue!, operator: parties.agentRunner, attestors: parties.oracles, journal: store.commands, ops });
   const games = createGamesSeat({ client, venueParty: parties.venue!, journal: store.commands, ledger, ops });
-  // The web server's own `@agari/markets/games` reads (the season page, the room token, the sponsor) go to ops' arena
+  // The web server's own `@owarine/markets/games` reads (the season page, the room token, the sponsor) go to ops' arena
   // desk over the signed internal call, never to our own routes over loopback.
   registerArenaSource({
     state: async () => {
@@ -76,7 +76,7 @@ export function seatServer(): SeatServerState {
       return r.ok ? ok(r.value.pool, Date.now()) : err(r.diagnosis);
     },
   });
-  state = { ok: true, server: { client, ledger, tickets, games, agents, cc, desk, ops, store, parties, env: { ...env, AGARI_SEAT_COOKIE_SECRET: env.AGARI_SEAT_COOKIE_SECRET! } } };
+  state = { ok: true, server: { client, ledger, tickets, games, agents, cc, desk, ops, store, parties, env: { ...env, OWARINE_SEAT_COOKIE_SECRET: env.OWARINE_SEAT_COOKIE_SECRET! } } };
   return state;
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import type { MarketId } from "@agari/core/types";
-import { useArenaQuote } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId } from "@owarine/core/types";
+import { useArenaQuote } from "@owarine/markets/react";
 import { useMemo } from "react";
 import type { DeckOdds, SideOdds } from "../stage/SwipeDeck";
 

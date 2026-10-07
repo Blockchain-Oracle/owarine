@@ -10,11 +10,11 @@
  * A call the owner cancelled, or another pass filled, is gone by the time a command names it: that is done, not a failure.
  * Command ids are stable per action (`restfill:<call>:<lots>`, `restexp:<call>`), so a retry after a crash lands once.
  */
-import { TEMPLATE_IDS } from "@agari/daml";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   cmd, decodeRestingCall, decodeRestingOffer, failureText, isIndefinite, isInactive, pick, readActive, refusalId, restExpireCommandId, restFillCommandId, restOfferExpireCommandId, submit,
   type Active, type RestingCallC, type RoleSession,
-} from "@agari/markets/ops/canton";
+} from "@owarine/markets/ops/canton";
 import type { PassResult } from "../../runtime/actor";
 import { consume, leaseFrom, submitWithShards, type ShardPool } from "../quote-issuer";
 import { PoolBusyError } from "../quote-issuer/pool";

@@ -1,8 +1,8 @@
 "use client";
 
-import { isOk } from "@agari/core/schemas";
-import { formatBaseUnits } from "@agari/core/units";
-import { diagnosisCopy } from "@agari/core/copy";
+import { isOk } from "@owarine/core/schemas";
+import { formatBaseUnits } from "@owarine/core/units";
+import { diagnosisCopy } from "@owarine/core/copy";
 import { useRouter } from "next/navigation";
 import { SeatAccountMenu } from "@/features/canton-ux/seat";
 import { useBalancePlate } from "@/features/markets/balance";
@@ -12,7 +12,7 @@ import { WALLET_MODAL } from "@/providers/wallet/copy";
 import { leasedOf, seatNumberOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 
 const AMOUNT_DP = 2;
-/** The idle lease the countdown is drawn against (`AGARI_SEAT_IDLE_TTL_SEC`'s default). */
+/** The idle lease the countdown is drawn against (`OWARINE_SEAT_IDLE_TTL_SEC`'s default). */
 const LEASE_SPAN_SEC = 900;
 
 /**

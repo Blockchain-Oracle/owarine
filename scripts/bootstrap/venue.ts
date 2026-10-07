@@ -9,15 +9,15 @@
  * executed; a write that needs an earlier write's contract (the LP's accept, the reserve's supplies, the first NAV
  * statement, the season funding) is named in the log and not prepared.
  */
-import type { Command, CreatedEvent, LedgerClient } from "@agari/ledger";
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
+import type { Command, CreatedEvent, LedgerClient } from "@owarine/ledger";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
 import {
   attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
   SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS,
-} from "@agari/core/market";
-import { GAP_CADENCE_SEC } from "@agari/core/types";
-import { cmd, decodeSeries, decodeVenueCash, pick, readActive, submit, type RoleSession } from "@agari/markets/ops/canton";
-import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@agari/markets/ops/tickets";
+} from "@owarine/core/market";
+import { GAP_CADENCE_SEC } from "@owarine/core/types";
+import { cmd, decodeSeries, decodeVenueCash, pick, readActive, submit, type RoleSession } from "@owarine/markets/ops/canton";
+import { decodeLpShare, decodeNavStatement, decodeRiskBook, productOf, riskParamsFor, tcmd, TICKET_RESERVES } from "@owarine/markets/ops/tickets";
 import { ORACLE_ROLES, type CantonRole } from "../../services/ops/src/runtime/keys";
 import { basketVersions, equityVersions, loadPriceSources, preIpoVersions, tokenLaneVersions, valuationVersions, type LaneVersion } from "../../services/ops/src/prices/lane-versions";
 import { bootstrapGames } from "../bootstrap-games";

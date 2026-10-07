@@ -1,8 +1,8 @@
-import type { LeverageReserveState } from "@agari/core/leverage";
-import { BPS_PER_X } from "@agari/core/leverage";
-import type { ParlayReserveState } from "@agari/core/parlay";
-import type { RangeReserveState } from "@agari/core/range";
-import type { ReserveSheet } from "@agari/core/reserves";
+import type { LeverageReserveState } from "@owarine/core/leverage";
+import { BPS_PER_X } from "@owarine/core/leverage";
+import type { ParlayReserveState } from "@owarine/core/parlay";
+import type { RangeReserveState } from "@owarine/core/range";
+import type { ReserveSheet } from "@owarine/core/reserves";
 import { bpsPct, money2 } from "./format";
 import type { ReserveWords } from "./reserves";
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ALPACA_STALE_SEC, HALT_ASSETS, PRESTOCKS_STALE_SEC, primarySourceAt, type HaltAsset } from "@agari/core/market";
+import { ALPACA_STALE_SEC, HALT_ASSETS, PRESTOCKS_STALE_SEC, primarySourceAt, type HaltAsset } from "@owarine/core/market";
 import { emptyHaltState, observeHalts, stepHalts, type Observations } from "./decide";
 import { applyFixture, loadHaltFixture } from "./fixture";
 import { loadSourceVersions } from "./signals";

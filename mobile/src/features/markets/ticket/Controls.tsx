@@ -1,4 +1,4 @@
-import type { Side } from "@agari/core/types";
+import type { Side } from "@owarine/core/types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { setBetAgainst, sidesInOrder, useBetAgainst } from "@/features/markets/bet-against";
 import { SIDE_WORD } from "@/features/markets/side-styles";

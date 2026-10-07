@@ -1,4 +1,4 @@
-import { restingQuote } from "@agari/core/orders";
+import { restingQuote } from "@owarine/core/orders";
 import { describe, expect, it } from "vitest";
 import { deriveScheduleBlocker, type ScheduleBlockerInput } from "./schedule-guards";
 

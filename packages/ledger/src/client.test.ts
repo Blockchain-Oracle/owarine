@@ -11,7 +11,7 @@ const DUPLICATE = {
   traceId: "9e8dd71fcd18d2ef4ad96baafa834534",
   context: {
     participant: "sandbox",
-    changeId: "ChangeId(agari-ops,probe-1,Set(probeA::1220))",
+    changeId: "ChangeId(owarine-ops,probe-1,Set(probeA::1220))",
     completion_offset: "12",
     accepted: "true",
     category: "10",
@@ -44,7 +44,7 @@ const TX = { updateId: "u1", commandId: "c1", effectiveAt: "", events: [], offse
 
 function client(fetch: (url: string, init: RequestInit) => Promise<Response>, auth = noAuth()) {
   return createLedgerClient(
-    { baseUrl: "http://ledger.test/", auth, userId: "agari-ops", maxAttempts: 4 },
+    { baseUrl: "http://ledger.test/", auth, userId: "owarine-ops", maxAttempts: 4 },
     { fetch: fetch as unknown as typeof globalThis.fetch, sleep: async () => {}, random: () => 0 },
   );
 }
@@ -94,7 +94,7 @@ describe("submitAndWaitForTransaction", () => {
     expect(r).toMatchObject({ attempts: 3, recovered: false });
     expect(new Set(bodies.map((b) => b.commands.commandId))).toEqual(new Set(["open:btc-5m:1"]));
     expect(new Set(bodies.map((b) => b.commands.submissionId)).size).toBe(3);
-    expect(bodies[0]!.commands.userId).toBe("agari-ops"); // no token: userId is sent
+    expect(bodies[0]!.commands.userId).toBe("owarine-ops"); // no token: userId is sent
     expect(paths.filter((p) => p.endsWith("ledger-end"))).toHaveLength(1); // pinned once, then kept
   });
 
@@ -113,8 +113,8 @@ describe("submitAndWaitForTransaction", () => {
       if (path.endsWith("ledger-end")) return json(200, { offset: 15 });
       if (path.endsWith("completions")) {
         return json(200, [
-          { completionResponse: { Completion: { value: { commandId: "c1", status: { code: 0, message: "" }, updateId: "u1", userId: "agari-ops", actAs: ["a"], submissionId: "s1", offset: 12 } } } },
-          { completionResponse: { Completion: { value: { commandId: "c1", status: { code: 6, message: "DUPLICATE_COMMAND(10,9e8d)" }, userId: "agari-ops", actAs: ["a"], submissionId: "s2", offset: 12 } } } },
+          { completionResponse: { Completion: { value: { commandId: "c1", status: { code: 0, message: "" }, updateId: "u1", userId: "owarine-ops", actAs: ["a"], submissionId: "s1", offset: 12 } } } },
+          { completionResponse: { Completion: { value: { commandId: "c1", status: { code: 6, message: "DUPLICATE_COMMAND(10,9e8d)" }, userId: "owarine-ops", actAs: ["a"], submissionId: "s2", offset: 12 } } } },
         ]);
       }
       if (path.endsWith("update-by-id")) return json(200, { update: { Transaction: { value: TX } } });

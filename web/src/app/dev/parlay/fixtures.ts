@@ -1,9 +1,9 @@
-import type { TickerSymbol } from "@agari/core/market";
+import type { TickerSymbol } from "@owarine/core/market";
 import { fixtureWindow } from "../fixture-window";
-import { CLUSTER_ID } from "@agari/core/constants";
-import type { ParlayQuote, ParlayReserveState } from "@agari/core/parlay";
-import { err, ok, type Reading } from "@agari/core/schemas";
-import { diagnosis, toMarketId, type Address, type EventMarket, type MarketId } from "@agari/core/types";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import type { ParlayQuote, ParlayReserveState } from "@owarine/core/parlay";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import { diagnosis, toMarketId, type Address, type EventMarket, type MarketId } from "@owarine/core/types";
 import type { DraftLeg } from "@/features/parlay/LegRow";
 import type { ParlayTicketView } from "@/features/parlay";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";

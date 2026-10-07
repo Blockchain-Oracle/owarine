@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /** C13a: the inbox is the seat's own lease-scoped rows only for the seat itself; anyone else reads what it published. */
 const ALICE = "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin";
-const LEASE = { party: "agari-user-seat-1::1220aa", startOffset: 100 };
+const LEASE = { party: "owarine-user-seat-1::1220aa", startOffset: 100 };
 const caller = vi.fn<() => Promise<string | null>>();
 const byAddress = vi.fn(async (_a: string) => LEASE as typeof LEASE | null);
 const own = vi.fn(async () => ({ configured: true, items: [{ kind: "own" }], takes: [] }));

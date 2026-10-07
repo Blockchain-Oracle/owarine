@@ -1,5 +1,5 @@
-import { MARKET_PARAM } from "@agari/core/urls";
-import { isMarketId, toMarketId } from "@agari/core/types";
+import { MARKET_PARAM } from "@owarine/core/urls";
+import { isMarketId, toMarketId } from "@owarine/core/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { verifiedWindowShare } from "@/lib/share-link.server";
 

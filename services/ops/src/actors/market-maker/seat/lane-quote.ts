@@ -2,9 +2,9 @@
  * The seed maker's lane hook (session-lanes.md §1.5, §2.4): a Gap or token Window gets its phase, fair and cash cap from
  * its lane (`gap-fair.ts` 6a, `token-fair.ts` 6b) instead of the in-session spot-vs-open model; `tendWindow` does the rest.
  */
-import type { SessionStatus, TickerSymbol } from "@agari/core/market";
-import type { HaltBoard, LaneBasis } from "@agari/core/types";
-import type { MarketView, SeriesView } from "@agari/markets/ops";
+import type { SessionStatus, TickerSymbol } from "@owarine/core/market";
+import type { HaltBoard, LaneBasis } from "@owarine/core/types";
+import type { MarketView, SeriesView } from "@owarine/markets/ops";
 import type { SpotFeed } from "../../../prices/spot";
 import type { SeatMakerEnv } from "./env";
 import { gapQuote } from "./gap-fair";

@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { DUEL_ACTIONS, duelWriteRequestWire, type DuelAction } from "@agari/markets/server";
+import { DUEL_ACTIONS, duelWriteRequestWire, type DuelAction } from "@owarine/markets/server";
 import { jsonBody, recordBusy, refusal, replyWith, seatFromRequest } from "@/lib/seat.server";
 
 /**

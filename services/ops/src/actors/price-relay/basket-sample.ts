@@ -5,8 +5,8 @@
  * complete read inside its window lets the Window void on a missing print rather than sign a late index as that bar.
  * Pure over the feed's snapshots (oldest first); the same shape as `chooseSample` for a single name.
  */
-import type { Basket } from "@agari/core/market";
-import { PRESTOCKS_MAX_LATE_SEC, type PrintSlot } from "@agari/markets/ops/prints";
+import type { Basket } from "@owarine/core/market";
+import { PRESTOCKS_MAX_LATE_SEC, type PrintSlot } from "@owarine/markets/ops/prints";
 import { indexOfSnapshot, type BasketIndexSample } from "../../prices/basket-index";
 import type { PreStocksSnapshot } from "../../prices/prestocks-spot";
 

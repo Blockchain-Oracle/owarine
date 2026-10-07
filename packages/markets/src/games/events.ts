@@ -1,5 +1,5 @@
-import type { ArenaEventLog } from "@agari/core/games";
-import type { Reading } from "@agari/core/schemas";
+import type { ArenaEventLog } from "@owarine/core/games";
+import type { Reading } from "@owarine/core/schemas";
 import { unavailableFor } from "../stub/product";
 
 /**

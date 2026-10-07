@@ -1,5 +1,5 @@
-import type { RoundMarket } from "@agari/core/projection";
-import { encodeBase58, toMarketId } from "@agari/core/types";
+import type { RoundMarket } from "@owarine/core/projection";
+import { encodeBase58, toMarketId } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { tallyToLedger, vaultRound, VAULT_TX_SENTINEL, type VaultTally } from "./history";
 

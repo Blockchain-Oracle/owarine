@@ -1,4 +1,4 @@
-import type { StrategySubscription } from "@agari/core/strategies";
+import type { StrategySubscription } from "@owarine/core/strategies";
 import { ChevronDown } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";

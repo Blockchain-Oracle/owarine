@@ -5,8 +5,8 @@
  * through the admin route `/internal/admin/venue-mode` (`OPS_ADMIN_SECRET`). Nothing a user does to leave a position
  * ever reads it: exits, claims, stale refunds and the venue's own settlement are not callers.
  */
-import { isVenueMode, venueModeRefusal, type VenueModeAction, type VenueModeName } from "@agari/core/market";
-import { ensureSchema, getDb, latestVenueMode, recordVenueMode } from "@agari/db";
+import { isVenueMode, venueModeRefusal, type VenueModeAction, type VenueModeName } from "@owarine/core/market";
+import { ensureSchema, getDb, latestVenueMode, recordVenueMode } from "@owarine/db";
 
 export interface VenueModeState {
   mode: VenueModeName;

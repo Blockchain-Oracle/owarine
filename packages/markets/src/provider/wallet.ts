@@ -5,8 +5,8 @@
  * its cookie or signed header names; an answer for any other address than the one asked about is refused here as
  * `signer-required`, never shown.
  */
-import type { Reading } from "@agari/core/schemas";
-import { diagnosis, type Address, type BalanceSheet, type ClaimableRow, type OpenPosition } from "@agari/core/types";
+import type { Reading } from "@owarine/core/schemas";
+import { diagnosis, type Address, type BalanceSheet, type ClaimableRow, type OpenPosition } from "@owarine/core/types";
 import { z } from "zod";
 import { COLLATERAL_SYMBOL } from "../collateral";
 import { ReadingError } from "../errors/reading-error";

@@ -1,4 +1,4 @@
-import { tapeActions, tapeFills, tapeMarkets, tapeTickets } from "@agari/db";
+import { tapeActions, tapeFills, tapeMarkets, tapeTickets } from "@owarine/db";
 import { z } from "zod";
 import { BadRequest, type IndexQuery } from "./queries";
 

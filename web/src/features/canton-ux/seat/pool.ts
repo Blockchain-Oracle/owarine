@@ -1,6 +1,6 @@
-import type { SeatLeaseView } from "@agari/markets";
+import type { SeatLeaseView } from "@owarine/markets";
 
-/** The span the pool ring is drawn against: the idle lease a seat frees on (`AGARI_SEAT_IDLE_TTL_SEC`'s default). */
+/** The span the pool ring is drawn against: the idle lease a seat frees on (`OWARINE_SEAT_IDLE_TTL_SEC`'s default). */
 export const POOL_SPAN_SEC = 900;
 
 /**

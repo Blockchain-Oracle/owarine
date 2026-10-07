@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTick } from "@agari/markets/react";
+import { useTick } from "@owarine/markets/react";
 import { examplePick, HEDGE, HedgeCard } from "@/features/hedge";
 import { MARKETS_PATH } from "@/lib/routes";
 import { LANDING } from "./copy";

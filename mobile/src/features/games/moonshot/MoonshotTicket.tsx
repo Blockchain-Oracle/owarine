@@ -1,8 +1,8 @@
-import { formatCadence } from "@agari/core/market";
-import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@agari/core/range";
-import type { Diagnosis, EventMarket, Signature } from "@agari/core/types";
-import { formatBaseUnits, mulBpsCeil } from "@agari/core/units";
-import type { MoonshotQuote, RangeCapacity } from "@agari/markets/range";
+import { formatCadence } from "@owarine/core/market";
+import { RANGE_STAKE_HEADROOM_BPS, type MoonshotCall, type RangeReserveState } from "@owarine/core/range";
+import type { Diagnosis, EventMarket, Signature } from "@owarine/core/types";
+import { formatBaseUnits, mulBpsCeil } from "@owarine/core/units";
+import type { MoonshotQuote, RangeCapacity } from "@owarine/markets/range";
 import { StyleSheet, Text, View } from "react-native";
 import { MOONSHOT } from "@/features/games/moonshot/copy";
 import { formatMultiplierTenths, formatProbE6, usdBand, utilizationPct } from "@/features/range/format";

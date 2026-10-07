@@ -1,6 +1,6 @@
 /** The parlay reserve on Canton (C8c): reads, prices and writes through `/api/ledger/tickets/*`. */
-import type { ParlayDeployment, ParlayIntent } from "@agari/core/parlay";
-import type { PhaseListener } from "@agari/core/ports";
+import type { ParlayDeployment, ParlayIntent } from "@owarine/core/parlay";
+import type { PhaseListener } from "@owarine/core/ports";
 import type { MarketsEnv } from "../env";
 import { nowMs } from "../provider/clock";
 import { allowAllStopGate } from "../submitter/stop-gate";

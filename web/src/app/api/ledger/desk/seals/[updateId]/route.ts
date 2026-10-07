@@ -1,6 +1,6 @@
-import { isUpdateId } from "@agari/core/types";
-import { sealsToWire } from "@agari/markets/desk";
-import { classifyRejection } from "@agari/markets/server";
+import { isUpdateId } from "@owarine/core/types";
+import { sealsToWire } from "@owarine/markets/desk";
+import { classifyRejection } from "@owarine/markets/server";
 import { seatServer } from "@/lib/ledger.server";
 import { diagnosisReply, refusal, replyWith } from "@/lib/seat.server";
 

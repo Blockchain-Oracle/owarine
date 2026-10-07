@@ -1,4 +1,4 @@
-import { QUOTE_FAILURES_TO_HALT } from "@agari/core/market";
+import { QUOTE_FAILURES_TO_HALT } from "@owarine/core/market";
 import { beforeEach, describe, expect, it } from "vitest";
 import { PROBE_EVERY_SEC, quoteFailureStreak, recordQuoteResult, resetQuoteStreaks, xstocksToProbe } from "./quote-failures";
 

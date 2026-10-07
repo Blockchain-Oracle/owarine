@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { encodeBase58 } from "@agari/core/types";
-import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@agari/core/x";
+import { encodeBase58 } from "@owarine/core/types";
+import { X_RECEIPT_STATUSES, type XReceipt, type XRefusalCode } from "@owarine/core/x";
 import { createReplyPresentation, NETWORK_LABEL, receiptUrl, REFUSAL_DETAILS, REPLY_LIMIT, replyText, SITE_URL, TRADE_FROM_X_URL } from "./reply-format";
 
 const HASH = encodeBase58(new Uint8Array(64).fill(0xab));

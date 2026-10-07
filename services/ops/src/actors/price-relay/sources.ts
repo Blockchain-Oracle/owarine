@@ -1,7 +1,7 @@
 /** What the relay reads from `services/ops/config/price-sources.json` (D-003): feeds, signers, gateways, trial end. */
 import { readFileSync } from "node:fs";
-import { TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import { REDSTONE_GATEWAY } from "@agari/markets/ops/prints";
+import { TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import { REDSTONE_GATEWAY } from "@owarine/markets/ops/prints";
 
 export interface RelaySources {
   redstoneFeeds: Array<{ symbol: TickerSymbol; feed: string }>;

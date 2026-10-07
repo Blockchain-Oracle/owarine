@@ -5,9 +5,9 @@
  * review L1) before the server adds that key to the same lease. Either device ends the link by resetting its seat (the
  * joined key leaves; the holder's reset drains the seat).
  */
-import { messageBytes, networkLine, SIGNED_MESSAGE_BRAND } from "@agari/core/auth";
-import type { Cluster } from "@agari/core/constants";
-import { encodeBase58, type Address } from "@agari/core/types";
+import { messageBytes, networkLine, SIGNED_MESSAGE_BRAND } from "@owarine/core/auth";
+import type { Cluster } from "@owarine/core/constants";
+import { encodeBase58, type Address } from "@owarine/core/types";
 import { z } from "zod";
 import type { SeatSigner } from "../sessions/seat-signer";
 import { ledgerRequest, type LedgerCallResult } from "./ledger-api";

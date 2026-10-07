@@ -3,15 +3,15 @@
  * Quote issuance (`POST /internal/quotes`), buy-back (exit) quotes (`POST /internal/exit-quotes`) and seat funding (`POST /internal/seats/fund`) run in ops as the venue; the
  * route handlers never act as the venue. Both sides import this module, so the signature is computed one way.
  *
- * Signature (C4d L4): `x-agari-ops-sig: v2=<hex HMAC-SHA256(secret, "<ts>.<nonce>.<METHOD>.<path>.<body>")>` with
- * `x-agari-ops-ts: <ms>` and `x-agari-ops-nonce: <16 random bytes, hex>`. Ops rejects a timestamp more than 30 s away
+ * Signature (C4d L4): `x-owarine-ops-sig: v2=<hex HMAC-SHA256(secret, "<ts>.<nonce>.<METHOD>.<path>.<body>")>` with
+ * `x-owarine-ops-ts: <ms>` and `x-owarine-ops-nonce: <16 random bytes, hex>`. Ops rejects a timestamp more than 30 s away
  * from its clock, and a nonce it has already taken inside that window, so a captured call cannot be replayed at all.
  * The season admin's two routes (`OPS_ADMIN_PATHS`) are signed with their own secret, `OPS_ADMIN_SECRET`, never the
  * web's: a web host that leaks `OPS_INTERNAL_SECRET` still cannot pay a season out.
  */
-import { opsPrivateMoveReplyWire, type OpsPrivateMoveReply, type OpsPrivateMoveRequest } from "@agari/core/private";
+import { opsPrivateMoveReplyWire, type OpsPrivateMoveReply, type OpsPrivateMoveRequest } from "@owarine/core/private";
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { diagnosis, diagnosisSchema, type Diagnosis } from "@agari/core/types";
+import { diagnosis, diagnosisSchema, type Diagnosis } from "@owarine/core/types";
 import { z } from "zod";
 import { ladderLatestWire, parseLadder, type Ladder } from "../runtime/ladder";
 import { ladderMid2 } from "./map";
@@ -25,9 +25,9 @@ import {
 } from "../provider/ticket-wire";
 import { arenaMatchViewWire, arenaStateWire, duelOpenArgsWire, seasonPoolWire, type ArenaMatchViewReply, type ArenaStateReply, type DuelOpenArgs, type SeasonPoolReply } from "../provider/games-wire";
 
-export const OPS_TS_HEADER = "x-agari-ops-ts";
-export const OPS_SIG_HEADER = "x-agari-ops-sig";
-export const OPS_NONCE_HEADER = "x-agari-ops-nonce";
+export const OPS_TS_HEADER = "x-owarine-ops-ts";
+export const OPS_SIG_HEADER = "x-owarine-ops-sig";
+export const OPS_NONCE_HEADER = "x-owarine-ops-nonce";
 export const OPS_SKEW_MS = 30_000;
 export const OPS_QUOTES_PATH = "/internal/quotes";
 export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";

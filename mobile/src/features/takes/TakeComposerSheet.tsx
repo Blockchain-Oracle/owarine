@@ -1,6 +1,6 @@
-import { ERROR_BOUNDARY } from "@agari/core/copy";
-import type { LaneSet, Side } from "@agari/core/types";
-import { useOpeningPrice } from "@agari/markets/react";
+import { ERROR_BOUNDARY } from "@owarine/core/copy";
+import type { LaneSet, Side } from "@owarine/core/types";
+import { useOpeningPrice } from "@owarine/markets/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { Unplug, X } from "lucide-react-native";
 import { useQueryClient } from "@tanstack/react-query";

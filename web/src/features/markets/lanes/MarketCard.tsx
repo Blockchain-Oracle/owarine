@@ -1,6 +1,6 @@
 "use client";
 
-import type { EventMarket, MarketId, Side } from "@agari/core/types";
+import type { EventMarket, MarketId, Side } from "@owarine/core/types";
 import { useChartSeries } from "../hero/useChartSeries";
 import { useTopOfBook } from "../hero/useTopOfBook";
 import { MarketCardView } from "./MarketCardView";

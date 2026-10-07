@@ -1,10 +1,10 @@
-import { ENTRY_BUFFER_SEC } from "@agari/core/constants";
-import { noEntryCutoffSec } from "@agari/core/lifecycle";
-import { TICKERS } from "@agari/core/market";
-import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@agari/core/units";
-import { selectXWindow, X_BUILDER_ASSETS, X_CADENCES, xRefusalCopy, type XAsset } from "@agari/core/x";
-import { marketsProvider } from "@agari/markets";
-import { useLanes, useTick } from "@agari/markets/react";
+import { ENTRY_BUFFER_SEC } from "@owarine/core/constants";
+import { noEntryCutoffSec } from "@owarine/core/lifecycle";
+import { TICKERS } from "@owarine/core/market";
+import { formatBaseUnits, formatUtc, parseDecimalToBaseUnits } from "@owarine/core/units";
+import { selectXWindow, X_BUILDER_ASSETS, X_CADENCES, xRefusalCopy, type XAsset } from "@owarine/core/x";
+import { marketsProvider } from "@owarine/markets";
+import { useLanes, useTick } from "@owarine/markets/react";
 import * as Clipboard from "expo-clipboard";
 import { ArrowDownRight, ArrowUpRight, Check } from "lucide-react-native";
 import { useState } from "react";

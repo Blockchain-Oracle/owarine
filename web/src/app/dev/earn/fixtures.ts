@@ -1,6 +1,6 @@
-import { CLUSTER_ID } from "@agari/core/constants";
-import type { MakerVaultState, MakerWindowView } from "@agari/core/maker";
-import { toMarketId, type Address, type EventMarket, type MarketId } from "@agari/core/types";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import type { MakerVaultState, MakerWindowView } from "@owarine/core/maker";
+import { toMarketId, type Address, type EventMarket, type MarketId } from "@owarine/core/types";
 import { WINDOW } from "@/app/dev/range/fixtures";
 import { fixtureAddress, fixtureMarketId, fixtureSignature } from "../fixture-ids";
 

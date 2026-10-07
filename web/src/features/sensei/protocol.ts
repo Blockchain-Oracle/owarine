@@ -1,4 +1,4 @@
-import type { SessionState } from "@agari/core/market";
+import type { SessionState } from "@owarine/core/market";
 import { z } from "zod";
 
 /**

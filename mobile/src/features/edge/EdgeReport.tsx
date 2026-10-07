@@ -1,4 +1,4 @@
-import type { TraderEdge, WalletHistory } from "@agari/core/projection";
+import type { TraderEdge, WalletHistory } from "@owarine/core/projection";
 import { StyleSheet, Text, View } from "react-native";
 import { EDGE } from "@/features/edge/copy";
 import { signedMoney, signedPct, toneOf } from "@/features/edge/format";

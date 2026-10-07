@@ -1,7 +1,7 @@
 "use client";
 
-import type { OrderOutcome, OrderRequest, PhaseListener, TxOutcome } from "@agari/core/ports";
-import type { Address, MarketId } from "@agari/core/types";
+import type { OrderOutcome, OrderRequest, PhaseListener, TxOutcome } from "@owarine/core/ports";
+import type { Address, MarketId } from "@owarine/core/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateAfterWrite } from "./invalidate";
 import { useUserSession } from "./session";
@@ -23,7 +23,7 @@ export function usePlaceOrder() {
   const queryClient = useQueryClient();
   const address = session?.address ?? null;
   return useMutation<OrderOutcome, Error, PlaceOrderVariables>({
-    mutationKey: ["agari", "markets", "place-order", address],
+    mutationKey: ["owarine", "markets", "place-order", address],
     scope: seatScope(address),
     retry: 0,
     mutationFn: async ({ request, onPhase }) => {
@@ -50,7 +50,7 @@ export function useExitLegs() {
   const queryClient = useQueryClient();
   const address = session?.address ?? null;
   return useMutation<TxOutcome, Error, ExitLegsVariables>({
-    mutationKey: ["agari", "markets", "exit-legs", address],
+    mutationKey: ["owarine", "markets", "exit-legs", address],
     scope: seatScope(address),
     retry: 0,
     mutationFn: async ({ marketId, mode, onPhase }) => {

@@ -1,10 +1,10 @@
 "use client";
 
-import { privateRequestId, type PrivateCashoutResult, type PrivatePosition } from "@agari/core/private";
-import type { Address } from "@agari/core/types";
-import { formatBaseUnits } from "@agari/core/units";
-import { ledgerBase, seatAuthHeaders } from "@agari/markets";
-import { invalidateAfterWrite } from "@agari/markets/react";
+import { privateRequestId, type PrivateCashoutResult, type PrivatePosition } from "@owarine/core/private";
+import type { Address } from "@owarine/core/types";
+import { formatBaseUnits } from "@owarine/core/units";
+import { ledgerBase, seatAuthHeaders } from "@owarine/markets";
+import { invalidateAfterWrite } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { notify } from "@/lib/toast";

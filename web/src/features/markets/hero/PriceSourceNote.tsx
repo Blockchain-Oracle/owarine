@@ -1,4 +1,4 @@
-import type { EventMarket } from "@agari/core/types";
+import type { EventMarket } from "@owarine/core/types";
 import { priceSourceLine } from "../lanes/lane-view";
 
 /**

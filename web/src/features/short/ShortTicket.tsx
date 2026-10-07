@@ -1,9 +1,9 @@
 "use client";
 
-import { BPS_PER_X, leverageBpsOf, type LeverageReserveState } from "@agari/core/leverage";
-import type { EventMarket } from "@agari/core/types";
-import { bpsToOddsCents, formatBaseUnits, parseDecimalToBaseUnits, priceRawToBps } from "@agari/core/units";
-import { marketDeepLink } from "@agari/core/urls";
+import { BPS_PER_X, leverageBpsOf, type LeverageReserveState } from "@owarine/core/leverage";
+import type { EventMarket } from "@owarine/core/types";
+import { bpsToOddsCents, formatBaseUnits, parseDecimalToBaseUnits, priceRawToBps } from "@owarine/core/units";
+import { marketDeepLink } from "@owarine/core/urls";
 import { CalendarClock } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";

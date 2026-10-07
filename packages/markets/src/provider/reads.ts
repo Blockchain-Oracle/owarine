@@ -4,8 +4,8 @@
  * spot. The Trading Balance reads are agari-vault's (`vault/read.ts`, S7): no deployment → `null` and zeros. There is no
  * settlement fee.
  */
-import { ok, type Reading } from "@agari/core/schemas";
-import type { MarketId } from "@agari/core/types";
+import { ok, type Reading } from "@owarine/core/schemas";
+import type { MarketId } from "@owarine/core/types";
 import { nowMs } from "./clock";
 
 export { freshQuoteStake, getBookDepth, getBookParams } from "./books";

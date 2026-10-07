@@ -5,11 +5,11 @@
  * the venue settles the call its payout lands in the private bucket (abu-pm-main 0.5.2, K-315) and Cash out has nothing
  * to move; then the rest moves back out.
  */
-import { formatCadence } from "@agari/core/copy";
-import { CLUSTER_ID } from "@agari/core/constants";
-import { privateOpenMessage } from "@agari/core/private";
-import { formatBaseUnits } from "@agari/core/units";
-import { appMarketId } from "@agari/markets/server";
+import { formatCadence } from "@owarine/core/copy";
+import { CLUSTER_ID } from "@owarine/core/constants";
+import { privateOpenMessage } from "@owarine/core/private";
+import { formatBaseUnits } from "@owarine/core/units";
+import { appMarketId } from "@owarine/markets/server";
 import { quotingWindow, randomUUID, seat, sleep, type Ctx } from "./common";
 
 const credits = (base: string | bigint) => (Number(BigInt(base)) / 1e6).toFixed(2);

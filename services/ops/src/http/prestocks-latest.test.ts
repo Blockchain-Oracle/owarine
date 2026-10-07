@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BASKET_INDEX_BASE_E8, BASKETS } from "@agari/core/market";
+import { BASKET_INDEX_BASE_E8, BASKETS } from "@owarine/core/market";
 import type { PreStocksSample, PreStocksSnapshot, PreStocksSpotFeed } from "../prices/prestocks-spot";
 import { movementOf, preStocksLatestBody, type BasketWire, type PreStocksWire } from "./prestocks-latest";
 

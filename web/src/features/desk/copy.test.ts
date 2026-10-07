@@ -1,4 +1,4 @@
-import { findHardBannedWords } from "@agari/core/desk";
+import { findHardBannedWords } from "@owarine/core/desk";
 import { describe, expect, it } from "vitest";
 import { BASKETS, DESK_NEVER, DESK_PROGRAM_ENFORCES, DESK_STEPS } from "../how-it-works/content";
 import { HOW_IT_WORKS } from "../how-it-works/copy";

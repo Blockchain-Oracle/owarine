@@ -1,4 +1,4 @@
-import { SEAT_KEY_BYTES } from "@agari/markets/sessions/mobile";
+import { SEAT_KEY_BYTES } from "@owarine/markets/sessions/mobile";
 
 /**
  * Making the phone's seat key, apart from where it is kept (`seat-key-store.ts`, the Keychain), so the same code runs

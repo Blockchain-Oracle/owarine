@@ -1,5 +1,5 @@
-import type { Address, Signature } from "@agari/core/types";
-import type { VaultCaps, VaultGrant } from "@agari/core/vault";
+import type { Address, Signature } from "@owarine/core/types";
+import type { VaultCaps, VaultGrant } from "@owarine/core/vault";
 import { matchesProgressGrant, type CopyProgress } from "./copy-progress";
 
 export interface CopyWriteResult { ok: boolean; txHash?: Signature; reason?: string; stage?: "grant" | "subscribe"; unknown?: boolean }

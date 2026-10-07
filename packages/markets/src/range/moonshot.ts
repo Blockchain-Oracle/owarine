@@ -12,11 +12,11 @@ import {
   type RangeMode,
   type RangeParams,
   type RangeQuote,
-} from "@agari/core/range";
-import { err, ok, type Reading } from "@agari/core/schemas";
-import type { TickerSymbol } from "@agari/core/market";
-import { diagnosis, type Diagnosis, type MarketId } from "@agari/core/types";
-import { oneUnit } from "@agari/core/units";
+} from "@owarine/core/range";
+import { err, ok, type Reading } from "@owarine/core/schemas";
+import type { TickerSymbol } from "@owarine/core/market";
+import { diagnosis, type Diagnosis, type MarketId } from "@owarine/core/types";
+import { oneUnit } from "@owarine/core/units";
 import { toRangeQuote, type RangeBand, type RangePreview, type RangeWindowBasis } from "./read";
 
 export interface MoonshotWindow {

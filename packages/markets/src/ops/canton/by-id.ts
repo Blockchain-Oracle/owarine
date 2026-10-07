@@ -4,8 +4,8 @@
  * a new Window appeared (every minute on the 1-minute lanes). Terms are immutable, so an actor learns each new one once,
  * by id (`/v2/events/events-by-contract-id`, about 2 KB), and keeps it.
  */
-import { LedgerError, type ContractId } from "@agari/ledger";
-import { TEMPLATE_IDS } from "@agari/daml";
+import { LedgerError, type ContractId } from "@owarine/ledger";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import { activeOf, decodeTerms, type Active, type TermsC } from "./decode";
 import type { RoleSession } from "./session";
 

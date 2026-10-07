@@ -1,7 +1,7 @@
-import { isOk } from "@agari/core/schemas";
-import { isAddress } from "@agari/core/types";
-import { formatBaseUnits, shortHex } from "@agari/core/units";
-import { useVaultSnapshot } from "@agari/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import { isAddress } from "@owarine/core/types";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
+import { useVaultSnapshot } from "@owarine/markets/react";
 import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useVenue } from "@/features/markets/useVenue";

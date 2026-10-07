@@ -1,6 +1,6 @@
 "use client";
 
-import { formatBaseUnits, shortHex } from "@agari/core/units";
+import { formatBaseUnits, shortHex } from "@owarine/core/units";
 import { useEffect, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { useShareCard } from "@/features/share/useShareCard";
@@ -98,7 +98,7 @@ export function DuelResultModal({ open, onClose, card }: { open: boolean; onClos
             type="button"
             className="du-cta"
             disabled={busy}
-            onClick={() => void share({ render: () => renderDuelShareCard(card), fileName: `agari-duel-${duelCardId(card)}.png`, text: words.shareText(card.verdict, returnText, url) })}
+            onClick={() => void share({ render: () => renderDuelShareCard(card), fileName: `owarine-duel-${duelCardId(card)}.png`, text: words.shareText(card.verdict, returnText, url) })}
           >
             {busy ? words.sharing : words.share}
           </button>

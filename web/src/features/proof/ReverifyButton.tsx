@@ -1,7 +1,7 @@
 "use client";
 
-import type { ReverifyReport } from "@agari/core/proof";
-import { formatUtc } from "@agari/core/units";
+import type { ReverifyReport } from "@owarine/core/proof";
+import { formatUtc } from "@owarine/core/units";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { PROOF } from "./copy";

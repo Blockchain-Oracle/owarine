@@ -1,7 +1,7 @@
-import { formatCadence } from "@agari/core/copy";
-import { formatEtClock } from "@agari/core/market";
-import type { PrintSource, Side, Signature, VoidReason } from "@agari/core/types";
-import { formatBaseUnits, formatUtc, secToMs } from "@agari/core/units";
+import { formatCadence } from "@owarine/core/copy";
+import { formatEtClock } from "@owarine/core/market";
+import type { PrintSource, Side, Signature, VoidReason } from "@owarine/core/types";
+import { formatBaseUnits, formatUtc, secToMs } from "@owarine/core/units";
 import { assetPriceLine, assetSpotLine } from "@/features/markets/hero/units";
 import { printSourceName } from "@/features/markets/price-source/source-label";
 import { CARD_H, CARD_MARGIN, CARD_W, RECORD_RIGHT, RECORD_W, closeCard, drawFooter, drawMasthead, drawPerforation, drawTracked, ensureFont, fitFontPx, font, openCard, resolveFonts, resolvePalette } from "./canvas";

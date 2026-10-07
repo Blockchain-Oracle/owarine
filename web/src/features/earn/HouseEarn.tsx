@@ -1,11 +1,11 @@
 "use client";
 
-import type { LeverageReserveState } from "@agari/core/leverage";
-import type { ParlayReserveState } from "@agari/core/parlay";
-import type { RangeReserveState } from "@agari/core/range";
-import { boostSheet, parlaySheet, rangeSheet, type ProviderShares, type ReserveKind, type ReserveSheet } from "@agari/core/reserves";
-import { isOk, mapReading, type Reading } from "@agari/core/schemas";
-import { useBalanceSheet, useLeverageReserve, useLeverageShares, useParlayReserve, useParlayShares, useRangeReserve, useRangeShares } from "@agari/markets/react";
+import type { LeverageReserveState } from "@owarine/core/leverage";
+import type { ParlayReserveState } from "@owarine/core/parlay";
+import type { RangeReserveState } from "@owarine/core/range";
+import { boostSheet, parlaySheet, rangeSheet, type ProviderShares, type ReserveKind, type ReserveSheet } from "@owarine/core/reserves";
+import { isOk, mapReading, type Reading } from "@owarine/core/schemas";
+import { useBalanceSheet, useLeverageReserve, useLeverageShares, useParlayReserve, useParlayShares, useRangeReserve, useRangeShares } from "@owarine/markets/react";
 import { useEffect, useState, type ReactNode } from "react";
 import { SectionHead } from "@/components/shell";
 import { ReadingBoundary } from "@/components/states";

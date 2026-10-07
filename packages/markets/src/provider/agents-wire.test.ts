@@ -1,5 +1,5 @@
-import type { StrategyRecord, StrategySubscription } from "@agari/core/strategies";
-import type { Address, Hex } from "@agari/core/types";
+import type { StrategyRecord, StrategySubscription } from "@owarine/core/strategies";
+import type { Address, Hex } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { strategiesReplyWire, subscriptionsReplyWire } from "./agents-wire";
 import { toWire } from "./ledger-wire";
@@ -8,7 +8,7 @@ import { toWire } from "./ledger-wire";
 const record: StrategyRecord = {
   strategyId: 2408802789779914n,
   creator: "HzXB6xLpFR1MZjumubVpnzgBibX8EdDn9apqDYsqP5eA" as Address,
-  runner: "agari-agent-runner-x::1220ebefb9f0b35a544f9616a09b7203e91b08d99c5b321ad74f38df937403f70bff" as Address,
+  runner: "owarine-agent-runner-x::1220ebefb9f0b35a544f9616a09b7203e91b08d99c5b321ad74f38df937403f70bff" as Address,
   specHash: "0xc25e3a492f5d2835c531a602c79ad5d8b93dcd59cf3174b50b223596f283ade0" as Hex,
   metadata: "{\"name\":\"Open Drift\"}",
   envelope: { maxStakePerTradeBase: 1_000_000n, maxDailySpendBase: 5_000_000n, maxOpenPositions: 2, maxPriceRaw: 0n },

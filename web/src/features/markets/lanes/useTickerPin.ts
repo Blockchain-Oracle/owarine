@@ -1,11 +1,11 @@
 "use client";
 
-import { isTickerSymbol, TICKER_SYMBOLS, type TickerSymbol } from "@agari/core/market";
-import type { EventMarket, Lane } from "@agari/core/types";
+import { isTickerSymbol, TICKER_SYMBOLS, type TickerSymbol } from "@owarine/core/market";
+import type { EventMarket, Lane } from "@owarine/core/types";
 import { useCallback } from "react";
 import { usePersistedState } from "@/lib/persisted";
 
-const TICKER_KEY = "agari.ticker";
+const TICKER_KEY = "owarine.ticker";
 const ALL = "";
 
 const tickerCodec = {

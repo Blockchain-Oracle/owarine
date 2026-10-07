@@ -12,13 +12,13 @@
  * book" can never block a lane. Idempotence is the ledger's: `open:<series>:<index>` and `skip:<series>:<index>` are
  * deduplicated, and a retry against the new Series fails `abu-pm/bad-window-index`, which reads as "already opened".
  */
-import { isTokenOnlyKind, parseLaneKey, TICKERS, type TickerSymbol } from "@agari/core/market";
-import type { LaneBasis } from "@agari/core/types";
-import { TEMPLATE_IDS } from "@agari/daml";
+import { isTokenOnlyKind, parseLaneKey, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import type { LaneBasis } from "@owarine/core/types";
+import { TEMPLATE_IDS } from "@owarine/daml";
 import {
   cmd, decodeSeries, failureText, isInactive, openWindowCommandId, pick, readActive, refusalId, seriesOpenFloorSec, skipToCommandId, submit, type Active, type RoleSession,
   type SeriesC,
-} from "@agari/markets/ops/canton";
+} from "@owarine/markets/ops/canton";
 import type { PassResult } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
 import { spanOf, type PlanClock, type PlanSeries, type SeriesPlan } from "./plan";
@@ -26,7 +26,7 @@ import { gapSpanOf } from "./plan-gap";
 import { planByBasis } from "./plan-basis";
 import { describeVersion, type VersionWindow } from "./versions";
 import { emitVenueEvent } from "../venue/events";
-import { venueModePausedState } from "@agari/core/market";
+import { venueModePausedState } from "@owarine/core/market";
 import { venueMode, venueModeRefusalNow } from "../../runtime/venue-mode";
 
 export interface RollerSettings {

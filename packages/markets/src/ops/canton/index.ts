@@ -1,7 +1,7 @@
 /**
- * `@agari/markets/ops/canton`: the venue actors' Canton surface (C3). Server-only; never re-exported from the package
- * root. Role sessions over `@agari/ledger`, the abu-pm-main contract decoders, the choice builders, the stable command
- * ids and the issuer's ladder walk. The web → ops call signature is `@agari/markets/server` `verifyOpsSignature`.
+ * `@owarine/markets/ops/canton`: the venue actors' Canton surface (C3). Server-only; never re-exported from the package
+ * root. Role sessions over `@owarine/ledger`, the abu-pm-main contract decoders, the choice builders, the stable command
+ * ids and the issuer's ladder walk. The web → ops call signature is `@owarine/markets/server` `verifyOpsSignature`.
  */
 export * as cmd from "./commands";
 export type { EventAttestationInput, IssueBuyQuoteInput, IssueQuoteInput, OfferRestInput, PriceQuoteInput, SeriesInput, VoidStageInput } from "./commands";

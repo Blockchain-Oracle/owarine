@@ -1,6 +1,6 @@
 "use client";
 
-import { nameOf, type DeskRecordBody, type RecordEvidenceItem } from "@agari/core/desk";
+import { nameOf, type DeskRecordBody, type RecordEvidenceItem } from "@owarine/core/desk";
 import { ArrowRight, Check, CircleCheck, CircleX, OctagonAlert, X } from "lucide-react";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { RECORD } from "./copy-record";

@@ -15,8 +15,8 @@
  *          nobody resolves. After `refundAfter`, A takes backing plus fee back through `/api/ledger/legs/refund-stale`.
  *
  *   local   LEDGER_AUTH_MODE=none LEDGER_JSON_API_URL=http://localhost:7525 \
- *             pnpm --filter @agari/scripts exec tsx drive/first-call.ts --network local --parties <file> --ops-pid <pid>
- *   devnet  pnpm --filter @agari/scripts exec tsx --env-file=$HOME/.config/agari/canton/devnet.env drive/first-call.ts \
+ *             pnpm --filter @owarine/scripts exec tsx drive/first-call.ts --network local --parties <file> --ops-pid <pid>
+ *   devnet  pnpm --filter @owarine/scripts exec tsx --env-file=$HOME/.config/owarine/canton/devnet.env drive/first-call.ts \
  *             --network devnet --web https://<web domain> [--only main,void] [--only stale --ops-stopped]
  *
  * Options: --lane BTC-1m · --stake 62 (credits) · --ops <url> · --only main,void,stale · --stage C2z.
@@ -26,8 +26,8 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
-import { ledgerClientFromEnv, parseLedgerEnv } from "@agari/ledger";
-import { parseMarketsEnv } from "@agari/markets";
+import { ledgerClientFromEnv, parseLedgerEnv } from "@owarine/ledger";
+import { parseMarketsEnv } from "@owarine/markets";
 import { parseDevnetParties, shortParty } from "../bootstrap/devnet-parties";
 import { acceptanceRow, errorEvidence, failed, table, type CheckRow } from "../bootstrap/rows";
 import { firstCallConfig, rowPrefix, type FirstCallConfig } from "./first-call/config";

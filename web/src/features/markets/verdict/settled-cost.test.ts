@@ -1,6 +1,6 @@
-import { computeTraderEdge, type SettledRound, type WalletHistory } from "@agari/core/projection";
-import { deriveVerdict } from "@agari/core/claims";
-import type { MarketId } from "@agari/core/types";
+import { computeTraderEdge, type SettledRound, type WalletHistory } from "@owarine/core/projection";
+import { deriveVerdict } from "@owarine/core/claims";
+import type { MarketId } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { awaitingSettledCost, settledCostBasis } from "./useVerdict";
 

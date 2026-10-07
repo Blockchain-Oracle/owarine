@@ -3,14 +3,14 @@
  * `EarnDesk`, and every contract the NAV counts. Rebuilt from the venue's active contracts; the desk swaps in the new
  * book and statement ids from each write's created events between reads, so a reserve's issuer never waits a pass.
  */
-import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@agari/daml";
-import { decodeResolution, decodeVenueCash, pick, readActive, type Active, type ResolutionC, type RoleSession, type VenueCashC } from "@agari/markets/ops/canton";
+import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
+import { decodeResolution, decodeVenueCash, pick, readActive, type Active, type ResolutionC, type RoleSession, type VenueCashC } from "@owarine/markets/ops/canton";
 import {
   decodeBoostExitQuote, decodeBoostPosition, decodeBoostQuote, decodeLpShare, decodeNavStatement, decodeParlayQuote, decodeParlayTicket,
   decodeRangeQuote, decodeRangeRound, decodeRiskBook, decodeSupplyQuote, decodeWithdrawQuote, isTicketReserve,
   type BoostExitQuoteC, type BoostPositionC, type BoostQuoteC, type LpShareC, type NavStatementC, type ParlayQuoteC, type ParlayTicketC,
   type RangeQuoteC, type RangeRoundC, type RiskBookC, type SupplyQuoteC, type TicketReserveId, type WithdrawQuoteC,
-} from "@agari/markets/ops/tickets";
+} from "@owarine/markets/ops/tickets";
 
 const T = TICKET_TEMPLATE_IDS;
 

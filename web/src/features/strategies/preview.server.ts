@@ -1,11 +1,11 @@
-import { decideAgentWindow, missingCredentialHint, resolveModel } from "@agari/brain";
-import { phase } from "@agari/core/lifecycle";
-import { isOk } from "@agari/core/schemas";
-import { decisionSlot, EMPTY_AGENT_RECORD, isSpec, moveBps, type AgentSpec } from "@agari/core/strategies";
-import type { EventMarket } from "@agari/core/types";
-import { formatBaseUnits, msToSec } from "@agari/core/units";
-import { ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId } from "@agari/markets";
-import { readAgentContext } from "@agari/markets/strategies";
+import { decideAgentWindow, missingCredentialHint, resolveModel } from "@owarine/brain";
+import { phase } from "@owarine/core/lifecycle";
+import { isOk } from "@owarine/core/schemas";
+import { decisionSlot, EMPTY_AGENT_RECORD, isSpec, moveBps, type AgentSpec } from "@owarine/core/strategies";
+import type { EventMarket } from "@owarine/core/types";
+import { formatBaseUnits, msToSec } from "@owarine/core/units";
+import { ensureMarkets, marketsProvider, parseMarketsEnv, resolveVenueId } from "@owarine/markets";
+import { readAgentContext } from "@owarine/markets/strategies";
 import { STRATEGIES } from "./copy";
 import type { AgentPreviewRequest, AgentPreviewResponse } from "./protocol";
 
@@ -53,7 +53,7 @@ export async function dryReadAgent(request: AgentPreviewRequest, nowMs: number):
   const spec: AgentSpec = { preset: "agent", persona: request.persona.trim(), posture: request.posture, cadences: [...new Set(request.cadences)].sort((a, b) => a - b) };
   if (!isSpec(spec)) return { ok: false, status: 400, error: DRY.badRequest };
 
-  const marketsEnv = parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_AGARI_VENUE_ID });
+  const marketsEnv = parseMarketsEnv({ venueId: process.env.NEXT_PUBLIC_OWARINE_VENUE_ID });
   ensureMarkets(marketsEnv);
   const venue = await resolveVenueId(marketsEnv.venueId);
   if (!isOk(venue) || !venue.value.venueId) return { ok: false, status: 502, error: DRY.unreadable };

@@ -1,5 +1,5 @@
-import type { Reading } from "@agari/core/schemas";
-import { formatUtc } from "@agari/core/units";
+import type { Reading } from "@owarine/core/schemas";
+import { formatUtc } from "@owarine/core/units";
 import { router, type Href } from "expo-router";
 import { TriangleAlert, Wallet } from "lucide-react-native";
 import { useMemo, type ReactNode } from "react";
