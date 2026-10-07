@@ -45,7 +45,7 @@ export function RangePlaced({ placed, onAnother }: { placed: { txHash: string; b
       </Text>
       <View style={styles.row}>
         <Text
-          style={[styles.link, { color: tk.vermilion }]}
+          style={[styles.link, { color: tk.signal }]}
           accessibilityRole="link"
           onPress={() => {
             close(() => router.navigate("/games/range"));

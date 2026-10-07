@@ -5,7 +5,7 @@ import { DUEL } from "./copy";
 
 /**
  * The duel's share card — Flicky's `DuelShareCard` (the verdict, the return, the two seats, the three
- * figures) drawn on the app's own 16:9 canvas card, in the Earned Heat grammar: a win is vermilion
+ * figures) drawn on the app's own 16:9 canvas card, in the Earned Heat grammar: a win is signal
  * heat, a loss is drained ash, never green, never red. Nothing on it is a number the chain did not
  * settle: the PnL is payout minus measured cost, the pot is what `finalize` awarded.
  */
@@ -44,7 +44,7 @@ export function duelShareUrl(matchId: string): string {
 
 export async function renderDuelShareCard(card: DuelCard): Promise<Blob> {
   const fonts = resolveFonts();
-  const { vermilion, verm, groundTrade, ash, ashDim } = resolvePalette();
+  const { signal, verm, groundTrade, ash, ashDim } = resolvePalette();
   const words = DUEL.result.modal;
   const verdictText = words.verdict[card.verdict].toUpperCase();
   const returnText = card.returnPct === null ? null : `${card.returnPct > 0 ? "+" : ""}${card.returnPct}%`;
@@ -57,11 +57,11 @@ export async function renderDuelShareCard(card: DuelCard): Promise<Blob> {
 
   const { canvas, ctx } = openCard(groundTrade, 0.3, 0.42);
   const won = card.verdict === "won";
-  const tone = won ? vermilion : card.verdict === "tied" ? "rgba(255,255,255,0.7)" : ash;
+  const tone = won ? signal : card.verdict === "tied" ? "rgba(255,255,255,0.7)" : ash;
   const width = CARD_W - CARD_MARGIN * 2;
   const centre = CARD_W / 2;
 
-  // The heat behind a win, as Earned Heat draws it: one vermilion glow, nowhere else on the card.
+  // The heat behind a win, as Earned Heat draws it: one signal glow, nowhere else on the card.
   if (won) {
     const glow = ctx.createRadialGradient(centre, VERDICT_Y - 40, 0, centre, VERDICT_Y - 40, 520);
     glow.addColorStop(0, verm(0.28));

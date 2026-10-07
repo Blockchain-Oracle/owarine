@@ -10,7 +10,7 @@ export interface ReadoutCells {
 
 interface ReadoutStripProps {
   cells: ReadoutCells;
-  /** A live quote is on screen: the strip's rule turns vermilion (`border-vermilion/30`). */
+  /** A live quote is on screen: the strip's rule turns signal (`border-signal/30`). */
   live: boolean;
   /** The one caption line under the strip — where the number comes from, or why there is none. */
   caption: string;

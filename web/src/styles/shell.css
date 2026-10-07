@@ -1,15 +1,15 @@
 /* Shell pieces that are Masayume's own rather than ported presentation.
  * They borrow the reference's material — hairline on the ground, mono at 11px,
- * vermilion reserved for action — so they read as part of the same furniture. */
+ * signal reserved for action — so they read as part of the same furniture. */
 
 /* ── the money pill (reference Header.tsx L296–316) ──
    flex items-center gap-1.5 font-mono text-[12px] px-2.5 sm:px-3 py-1.5 rounded-full border border-white/10
    hover:border-white/25 hover:bg-white/[0.03] text-gray-300 hover:text-white */
 /* Scrolled headings must not compete with the fixed navigation labels. */
-.header { background: rgba(5, 5, 5, 0.96); }
-[data-theme="light"] .header { background: rgba(244, 238, 227, 0.96); }
-[data-theme="light"] .wallet-pill { border-color: rgba(20, 18, 16, 0.14); }
-[data-theme="light"] .wallet-pill:hover { border-color: rgba(20, 18, 16, 0.3); }
+.header { background: rgba(16, 15, 15, 0.96); }
+[data-theme="light"] .header { background: rgba(245, 244, 239, 0.96); }
+[data-theme="light"] .wallet-pill { border-color: rgba(16, 15, 15, 0.14); }
+[data-theme="light"] .wallet-pill:hover { border-color: rgba(16, 15, 15, 0.3); }
 
 .header .logo { flex-shrink: 0; }
 .logo-copy { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
@@ -17,7 +17,7 @@
 .logo-jp {
   position: relative;
   flex-shrink: 0;
-  color: color-mix(in srgb, var(--vermilion) 55%, transparent);
+  color: color-mix(in srgb, var(--signal-ink) 55%, transparent);
   font-family: var(--font-jp);
   font-size: 16px;
   font-weight: 700;
@@ -32,20 +32,20 @@
   background: linear-gradient(to top,
     transparent 0%,
     transparent 41%,
-    color-mix(in srgb, var(--vermilion) 74%, transparent) 47%,
-    #fff1d6 50%,
-    color-mix(in srgb, var(--vermilion) 88%, transparent) 53%,
+    color-mix(in srgb, var(--signal) 74%, transparent) 47%,
+    #f1efe4 50%,
+    color-mix(in srgb, var(--signal) 88%, transparent) 53%,
     transparent 59%,
     transparent 100%);
   background-size: 100% 300%;
   background-position: 0 0;
   -webkit-background-clip: text;
   background-clip: text;
-  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--vermilion) 75%, transparent));
+  filter: drop-shadow(0 0 9px color-mix(in srgb, var(--signal) 75%, transparent));
   animation: owarine-jp-neon-rise 5.2s cubic-bezier(0.36, 0.04, 0.24, 1) infinite;
 }
 [data-theme="light"] .logo-jp {
-  color: color-mix(in srgb, var(--vermilion) 65%, transparent);
+  color: color-mix(in srgb, var(--signal-ink) 65%, transparent);
 }
 @keyframes owarine-jp-neon-rise {
   0%, 8% { background-position: 0 0; }
@@ -69,8 +69,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--gray-300);
-  transition: border-color 220ms var(--ease), background 220ms var(--ease), color 220ms var(--ease);
-}
+  transition: border-color 220ms var(--ease), background 220ms var(--ease), color 220ms var(--ease); font-variant-numeric: tabular-nums; }
 .dusdc-pill:hover {
   border-color: rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.03);
@@ -83,12 +82,12 @@
 .dusdc-pill .dusdc-total--dim { color: rgba(255, 255, 255, 0.55); }
 /* hidden sm:inline text-gray-500 */
 .dusdc-pill .dusdc-unit { color: var(--gray-500); }
-/* text-vermilion font-bold ml-0.5 text-[15px] leading-none */
-.dusdc-pill .dusdc-plus { color: var(--vermilion); font-weight: 700; margin-left: 2px; font-size: 15px; line-height: 1; }
-[data-theme="light"] .dusdc-pill { border-color: rgba(20, 18, 16, 0.14); color: rgba(20, 18, 16, 0.75); }
-[data-theme="light"] .dusdc-pill:hover { border-color: rgba(20, 18, 16, 0.3); background: rgba(20, 18, 16, 0.03); color: #141210; }
-[data-theme="light"] .dusdc-pill .dusdc-total { color: #141210; }
-[data-theme="light"] .dusdc-pill .dusdc-total--dim { color: rgba(20, 18, 16, 0.55); }
+/* text-signal font-bold ml-0.5 text-[15px] leading-none */
+.dusdc-pill .dusdc-plus { color: var(--signal-ink); font-weight: 700; margin-left: 2px; font-size: 15px; line-height: 1; }
+[data-theme="light"] .dusdc-pill { border-color: rgba(16, 15, 15, 0.14); color: rgba(16, 15, 15, 0.75); }
+[data-theme="light"] .dusdc-pill:hover { border-color: rgba(16, 15, 15, 0.3); background: rgba(16, 15, 15, 0.03); color: #100F0F; }
+[data-theme="light"] .dusdc-pill .dusdc-total { color: #100F0F; }
+[data-theme="light"] .dusdc-pill .dusdc-total--dim { color: rgba(16, 15, 15, 0.55); }
 
 .header-account-menu {
   position: absolute;
@@ -105,7 +104,7 @@
 }
 
 [data-theme="light"] .header-account-menu {
-  border-color: rgba(20, 18, 16, 0.12);
+  border-color: rgba(16, 15, 15, 0.12);
 }
 
 .header-account-pools {
@@ -114,7 +113,7 @@
 }
 
 [data-theme="light"] .header-account-pools {
-  border-bottom-color: rgba(20, 18, 16, 0.08);
+  border-bottom-color: rgba(16, 15, 15, 0.08);
 }
 
 /* Each pool is named. Economically different money is never summed into one number. */
@@ -125,8 +124,7 @@
   gap: 16px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 .header-account-row + .header-account-row {
   margin-top: 4px;
@@ -141,7 +139,7 @@
   color: rgba(255, 255, 255, 0.8);
 }
 [data-theme="light"] .header-account-row .val--soft {
-  color: rgba(20, 18, 16, 0.8);
+  color: rgba(16, 15, 15, 0.8);
 }
 
 .header-account-link {
@@ -150,8 +148,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--gray-300);
-  transition: background-color 180ms var(--ease), color 180ms var(--ease);
-}
+  transition: background-color 180ms var(--ease), color 180ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .header-account-link:hover {
   background: rgba(255, 255, 255, 0.05);
@@ -159,16 +156,16 @@
 }
 
 [data-theme="light"] .header-account-link:hover {
-  background: rgba(20, 18, 16, 0.05);
+  background: rgba(16, 15, 15, 0.05);
 }
-/* Disconnect: block w-full text-left · text-vermilion/70 hover:text-vermilion (Header.tsx L356–362) */
+/* Disconnect: block w-full text-left · text-signal/70 hover:text-signal (Header.tsx L356–362) */
 .header-account-link--danger {
   width: 100%;
   text-align: left;
-  color: color-mix(in srgb, var(--vermilion) 70%, transparent);
+  color: color-mix(in srgb, var(--signal-ink) 70%, transparent);
 }
 .header-account-link--danger:hover {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* Clears the fixed chrome: app strip + marquee (28) + header (64) = 92, and on phones
@@ -216,10 +213,9 @@ body:has(.reel-page) .page-shell {
 .capability-pending .cp-eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .capability-pending .cp-title {
   margin-top: 12px;
@@ -228,8 +224,7 @@ body:has(.reel-page) .page-shell {
   font-size: 28px;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--white);
-}
+  color: var(--white); font-stretch: 125%; }
 
 .capability-pending .cp-body {
   margin-top: 12px;
@@ -244,11 +239,10 @@ body:has(.reel-page) .page-shell {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 [data-theme="light"] .capability-pending .cp-meta {
-  border-top-color: rgba(20, 18, 16, 0.12);
+  border-top-color: rgba(16, 15, 15, 0.12);
 }
 
 /* The way out of a pending surface (D-083): the meta's mono voice, in the accent, with a visible focus ring. */
@@ -257,10 +251,9 @@ body:has(.reel-page) .page-shell {
   margin-top: 16px;
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .capability-pending .cp-action:hover {
   text-decoration: underline;
@@ -268,7 +261,7 @@ body:has(.reel-page) .page-shell {
 }
 
 .capability-pending .cp-action:focus-visible {
-  outline: 2px solid var(--vermilion);
+  outline: 2px solid var(--signal-ink);
   outline-offset: 3px;
 }
 
@@ -285,4 +278,4 @@ body:has(.reel-page) .page-shell {
 }
 
 /* K-250: the trademark attribution under the footer credit — Canton's guidelines ask for it wherever its mark is used. */
-.footer-attribution { margin: 18px 0 0; max-width: 96ch; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--gray-600); }
+.footer-attribution { margin: 18px 0 0; max-width: 96ch; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--gray-600); font-variant-numeric: tabular-nums; }

@@ -16,7 +16,7 @@ const ICONS: Record<Badge["id"], LucideIcon> = {
 
 /**
  * web `BadgeGrid` (history.css `.badge-*`, one column on a phone): the season-rank cell over the ground, then one
- * numbered card per badge — earned on the vermilion wash, locked faded — each saying Unlocked or Locked in words.
+ * numbered card per badge — earned on the signal wash, locked faded — each saying Unlocked or Locked in words.
  */
 export function BadgeGrid({ badges }: { badges: readonly Badge[] }) {
   const { color } = useTheme();
@@ -39,7 +39,7 @@ export function BadgeGrid({ badges }: { badges: readonly Badge[] }) {
           <Text style={[WEB_TYPE.caption, { color: color.inkSecondary }]}>{next ? HISTORY.reputation.next(HISTORY.badges.names[next.id].name) : HISTORY.reputation.unlocked(earned, total)}</Text>
         </View>
         <View style={[styles.bar, { backgroundColor: t.repBar }]} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: progress }}>
-          <View style={[styles.fill, { width: `${progress}%`, backgroundColor: t.vermilion }]} />
+          <View style={[styles.fill, { width: `${progress}%`, backgroundColor: t.signal }]} />
         </View>
       </View>
       <View style={styles.grid}>
@@ -57,13 +57,13 @@ export function BadgeGrid({ badges }: { badges: readonly Badge[] }) {
               accessibilityLabel={`${words.name}. ${words.description}`}
             >
               <View style={styles.head}>
-                <Text style={[WEB_TYPE.labelMicro, { color: on ? t.vermilion : color.inkMuted }]}>{String(index + 1).padStart(2, "0")}</Text>
-                <Text style={[WEB_TYPE.labelMicro, { color: on ? t.vermilion : color.inkMuted }]}>
+                <Text style={[WEB_TYPE.labelMicro, { color: on ? t.signal : color.inkMuted }]}>{String(index + 1).padStart(2, "0")}</Text>
+                <Text style={[WEB_TYPE.labelMicro, { color: on ? t.signal : color.inkMuted }]}>
                   {on ? HISTORY.badges.unlocked : badge.pending === "earn" ? HISTORY.badges.pendingEarn : HISTORY.badges.locked}
                 </Text>
               </View>
               <View style={[styles.icon, on ? { borderColor: t.earnedIconBorder, backgroundColor: t.earnedIconWash } : { borderColor: color.hairline }]}>
-                <Icon size={16} strokeWidth={1.9} color={on ? t.vermilion : color.inkMuted} />
+                <Icon size={16} strokeWidth={1.9} color={on ? t.signal : color.inkMuted} />
               </View>
               <Text style={[WEB_TYPE.bodyStrong, { color: color.ink }]}>{words.name}</Text>
               <Text style={[WEB_TYPE.caption, { color: color.inkSecondary }]}>{words.description}</Text>

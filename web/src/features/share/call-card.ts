@@ -98,7 +98,7 @@ export function buildCallTweetText(card: CallCard): string {
 export async function renderCallShareCard(card: CallCard): Promise<Blob> {
   const fonts = resolveFonts();
   const palette = resolvePalette();
-  const { vermilion, verm, groundCall } = palette;
+  const { signal, verm, groundCall } = palette;
   const band = callBandLabel(card);
   const stakeText = fmt(card.stakeBase, card.decimals);
   const winText = fmt(callWinBase(card), card.decimals);
@@ -123,7 +123,7 @@ export async function renderCallShareCard(card: CallCard): Promise<Blob> {
   // the asset's mark, the direction eyebrow beside it (centred on the eyebrow's caps)
   drawAssetMark(ctx, card.asset, CARD_MARGIN, EYEBROW_Y - 9 - CARD_MARK / 2, CARD_MARK, fonts);
   ctx.font = font(600, 24, fonts.mono);
-  ctx.fillStyle = vermilion;
+  ctx.fillStyle = signal;
   drawTracked(ctx, callDirLabel(card), CARD_MARGIN + CARD_MARK + CARD_MARK_GAP, EYEBROW_Y, 4, "left");
 
   // hero: the call
@@ -137,7 +137,7 @@ export async function renderCallShareCard(card: CallCard): Promise<Blob> {
   ctx.fillStyle = "rgba(255,255,255,0.55)";
   ctx.fillText(callWinsIf(card), CARD_MARGIN, WINS_IF_Y);
 
-  // wager: stake → return (the return carries the vermilion)
+  // wager: stake → return (the return carries the signal)
   ctx.font = font(600, 15, fonts.mono);
   ctx.fillStyle = "rgba(255,255,255,0.45)";
   drawTracked(ctx, SHARE.call.stakeLine, CARD_MARGIN, STAKE_LABEL_Y, 4, "left");
@@ -154,10 +154,10 @@ export async function renderCallShareCard(card: CallCard): Promise<Blob> {
   ctx.save();
   ctx.shadowColor = verm(0.5);
   ctx.shadowBlur = 60;
-  ctx.fillStyle = vermilion;
+  ctx.fillStyle = signal;
   ctx.fillText(winText, wx, WAGER_Y);
   ctx.restore();
-  ctx.fillStyle = vermilion;
+  ctx.fillStyle = signal;
   ctx.fillText(winText, wx, WAGER_Y);
 
   ctx.font = font(500, 17, fonts.mono);

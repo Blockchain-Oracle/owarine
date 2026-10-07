@@ -10,7 +10,7 @@ const snap = (v: number) => Math.min(1, Math.max(0, Math.round(v / STEP) * STEP)
 
 /**
  * games.css `.gm-range`: the native 0–1 range in 0.05 steps, full width, in the brand accent — a 16 px tall
- * control with the filled track vermilion and a round vermilion thumb. `onRelease` fires where web's
+ * control with the filled track signal and a round signal thumb. `onRelease` fires where web's
  * pointerup does.
  */
 export function Range({ value, onChange, onRelease, label }: { value: number; onChange: (v: number) => void; onRelease?: (v: number) => void; label: string }) {
@@ -71,9 +71,9 @@ export function Range({ value, onChange, onRelease, label }: { value: number; on
         }}
       >
         <View style={[styles.track, { backgroundColor: t.rangeTrack }]}>
-          <Animated.View style={[styles.fill, { backgroundColor: color.accent }, fill]} />
+          <Animated.View style={[styles.fill, { backgroundColor: color.accentFill }, fill]} />
         </View>
-        <Animated.View style={[styles.thumb, { backgroundColor: color.accent }, thumb]} />
+        <Animated.View style={[styles.thumb, { backgroundColor: color.accentFill }, thumb]} />
       </View>
     </GestureDetector>
   );

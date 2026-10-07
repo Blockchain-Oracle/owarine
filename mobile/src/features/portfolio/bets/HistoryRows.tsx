@@ -81,7 +81,7 @@ function HistoryRow({ round, symbol, nowMs, first, onReceipt, onCrank, cranking,
       </Pressable>
       {!vault ? (
         <Pressable onPress={() => void openLedgerLink("tx", round.entryTxHash)} accessibilityRole="link" accessibilityLabel={HISTORY.entryTx} hitSlop={8}>
-          <Text style={[styles.proof, { color: t.vermilion }]}>↗</Text>
+          <Text style={[styles.proof, { color: t.signal }]}>↗</Text>
         </Pressable>
       ) : null}
       {/* web's HistoryRows: a settled call is published from its receipt (C5); the vault's rounds are not the seat's own. */}

@@ -111,7 +111,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, in
           const current = step === index + 1;
           const back = index + 1 < step;
           return (
-            <View key={label} style={[styles.stepItem, { borderBottomColor: current ? t.vermilion : "transparent" }]}>
+            <View key={label} style={[styles.stepItem, { borderBottomColor: current ? t.signal : "transparent" }]}>
               <Pressable
                 disabled={!back}
                 accessibilityRole="button"
@@ -122,7 +122,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, in
                 }}
                 style={styles.stepButton}
               >
-                <Text style={[styles.stepNum, { color: current ? t.vermilion : color.inkMuted }]}>{String(index + 1).padStart(2, "0")}</Text>
+                <Text style={[styles.stepNum, { color: current ? t.signal : color.inkMuted }]}>{String(index + 1).padStart(2, "0")}</Text>
                 <Text style={[styles.stepLabel, { color: color.ink }]}>{label}</Text>
               </Pressable>
             </View>
@@ -160,7 +160,7 @@ export function CreatorStudio({ writes, decimals, symbol, asset, houseRunner, in
             <StudioForm step={step} form={form} setForm={setForm} symbol={symbol} asset={asset} houseRunner={houseRunner} />
           )}
           {problem ? (
-            <Text accessibilityRole="alert" style={[styles.problem, { color: t.vermilion }]}>
+            <Text accessibilityRole="alert" style={[styles.problem, { color: t.signal }]}>
               {problem}
             </Text>
           ) : null}

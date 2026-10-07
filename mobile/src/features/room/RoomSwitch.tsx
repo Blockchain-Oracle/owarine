@@ -4,7 +4,7 @@ import { ROOM } from "@/features/room/copy";
 import type { RoomScope } from "@/features/room/RoomSwitch";
 import { haptic } from "~/components/kit";
 import { FONT, useTheme } from "~/theme";
-import { ROOM_VERMILION as V, roomTokens } from "~/theme/web/explore/room";
+import { ROOM_SIGNAL as V, roomTokens } from "~/theme/web/explore/room";
 
 /**
  * web's `RoomSwitch` (room-switch.css): the head's two Rooms — this Window's thread, or the ticker's standing one

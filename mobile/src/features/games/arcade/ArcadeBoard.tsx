@@ -12,7 +12,7 @@ import { useArcadeTokens } from "./palette";
 
 /**
  * web's `ArcadeBoard.tsx` (`.ar-note.ar-board`): Pips's flat scoreboard — a place, a name, a score, your own row
- * in vermilion. Names are addresses, shortened, because the games' identity is the wallet. The head carries where
+ * in signal. Names are addresses, shortened, because the games' identity is the wallet. The head carries where
  * the last run landed; the foot carries the one line that never falls off: what a score here is.
  */
 export function ArcadeBoard({ board, you, post, ability }: { board: BoardWire | null | undefined; you: string | null; post: PostState; ability: PostAbility }) {

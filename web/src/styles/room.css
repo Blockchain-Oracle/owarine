@@ -14,9 +14,9 @@
  * rather than a dozen literals. */
 
 :root {
-  /* radial-gradient(130% 90% at 50% -10%, #1a130d, #0d0a08 46%, #080605) — the
+  /* radial-gradient(130% 90% at 50% -10%, #141313, #0b0a0a 46%, #070606) — the
      reference's own sheet ground, kept for dark. */
-  --room-sheet: radial-gradient(130% 90% at 50% -10%, #1a130d 0%, #0d0a08 46%, #080605 100%);
+  --room-sheet: radial-gradient(130% 90% at 50% -10%, #141313 0%, #0b0a0a 46%, #070606 100%);
   --room-ink-rgb: 255 255 255;
   --room-hairline: rgba(255, 255, 255, 0.1);
   --room-rule: rgba(255, 255, 255, 0.08);
@@ -30,11 +30,11 @@
 [data-theme="light"] {
   /* Yosuku's own light-card values (.creator-studio, part-01.css:131) — the same
      source the reel's light treatment came from, so the two agree. */
-  --room-sheet: #fffaf2;
+  --room-sheet: #fafaf7;
   --room-ink-rgb: 33 28 24;
-  --room-hairline: rgba(20, 18, 16, 0.11);
-  --room-rule: rgba(20, 18, 16, 0.08);
-  --room-inset: rgba(20, 18, 16, 0.025);
+  --room-hairline: rgba(16, 15, 15, 0.11);
+  --room-rule: rgba(16, 15, 15, 0.08);
+  --room-inset: rgba(16, 15, 15, 0.025);
 }
 
 /* fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm */
@@ -47,7 +47,7 @@
 }
 
 /* max-h-[88dvh] w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl
-   + shadow-[0_-20px_80px_-20px_rgba(224,77,38,0.25)] */
+   + shadow-[0_-20px_80px_-20px_rgba(228,226,78,0.25)] */
 .room-sheet {
   position: fixed;
   z-index: 1000;
@@ -64,7 +64,7 @@
   border-radius: 24px 24px 0 0;
   background: var(--room-sheet);
   color: rgb(var(--room-ink-rgb));
-  box-shadow: 0 -20px 80px -20px rgba(224, 77, 38, 0.25);
+  box-shadow: 0 -20px 80px -20px rgba(228, 226, 78, 0.25);
 }
 
 .room-sheet:focus,
@@ -83,14 +83,14 @@
   }
 }
 
-/* bg-gradient-to-r from-transparent via-vermilion/70 to-transparent */
+/* bg-gradient-to-r from-transparent via-signal/70 to-transparent */
 .room-hairline {
   position: absolute;
   inset-inline: 0;
   top: 0;
   z-index: 20;
   height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--vermilion) 70%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--signal) 70%, transparent), transparent);
   pointer-events: none;
 }
 
@@ -105,7 +105,7 @@
   padding: 20px;
 }
 
-/* h-10 w-10 rounded-xl border border-vermilion/30 + tint + glow */
+/* h-10 w-10 rounded-xl border border-signal/30 + tint + glow */
 .room-mark {
   display: flex;
   height: 40px;
@@ -114,11 +114,11 @@
   align-items: center;
   justify-content: center;
   margin-top: 2px;
-  border: 1px solid color-mix(in srgb, var(--vermilion) 30%, transparent);
+  border: 1px solid color-mix(in srgb, var(--signal-ink) 30%, transparent);
   border-radius: 12px;
-  background: rgba(224, 77, 38, 0.08);
-  box-shadow: 0 0 24px -6px rgba(224, 77, 38, 0.5);
-  color: var(--vermilion);
+  background: rgba(228, 226, 78, 0.08);
+  box-shadow: 0 0 24px -6px rgba(228, 226, 78, 0.5);
+  color: var(--signal-ink);
 }
 
 /* truncate font-display text-[15px] font-bold */
@@ -128,8 +128,7 @@
   font-size: 15px;
   font-weight: 700;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
+  white-space: nowrap; font-stretch: 125%; }
 
 /* rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-0.5
    font-mono text-[9px] uppercase tracking-[0.12em] text-white/45 */
@@ -144,10 +143,9 @@
   padding: 2px 8px;
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgb(var(--room-ink-rgb) / 0.62);
-}
+  color: rgb(var(--room-ink-rgb) / 0.62); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .room-close {
   flex-shrink: 0;
@@ -180,16 +178,14 @@
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 600;
-  text-wrap: balance;
-}
+  text-wrap: balance; font-stretch: 125%; }
 
 .room-state-body {
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.6;
   color: rgb(var(--room-ink-rgb) / 0.5);
-  text-wrap: balance;
-}
+  text-wrap: balance; font-variant-numeric: tabular-nums; }
 
 /* The haloed state icon: h-16 w-16 halo over an h-14 w-14 rounded-2xl tile. */
 .room-state-icon {
@@ -209,8 +205,8 @@
   background: radial-gradient(circle, rgb(var(--room-ink-rgb) / 0.1), transparent 70%);
 }
 
-.room-state-icon[data-tone="vermilion"]::before {
-  background: radial-gradient(circle, rgba(224, 77, 38, 0.28), transparent 70%);
+.room-state-icon[data-tone="signal"]::before {
+  background: radial-gradient(circle, rgba(228, 226, 78, 0.28), transparent 70%);
 }
 
 .room-state-icon > span {
@@ -225,29 +221,29 @@
   color: rgb(var(--room-ink-rgb) / 0.5);
 }
 
-.room-state-icon[data-tone="vermilion"] > span {
-  border-color: color-mix(in srgb, var(--vermilion) 35%, transparent);
-  color: var(--vermilion);
+.room-state-icon[data-tone="signal"] > span {
+  border-color: color-mix(in srgb, var(--signal-ink) 35%, transparent);
+  color: var(--signal-ink);
 }
 
-/* rounded-full bg-vermilion px-6 py-3 text-sm font-semibold */
+/* rounded-full bg-signal px-6 py-3 text-sm font-semibold */
 .room-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-top: 4px;
   border-radius: 9999px;
-  background: var(--vermilion);
+  background: var(--signal);
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-signal);
   outline: none;
   transition: background-color 200ms var(--ease-out), gap 200ms var(--ease-out);
 }
 
 .room-cta:hover:not(:disabled) {
-  background: var(--vermilion-d, var(--vermilion));
+  background: var(--signal-d, var(--signal));
   gap: 10px;
 }
 

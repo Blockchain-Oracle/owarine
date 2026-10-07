@@ -35,7 +35,7 @@ export function StudioAgentFields({ form, setForm, asset }: StudioAgentFieldsPro
       <div>
         <div className="mb-2 flex items-baseline justify-between">
           <span className="desk-field-label mb-0">{A.persona}</span>
-          <span className={cn("strat-mono-10 tabular-nums", persona.length >= AGENT_PERSONA_MAX_CHARS ? "text-vermilion" : "text-ink/40")}>{A.personaCount(persona.length, AGENT_PERSONA_MAX_CHARS)}</span>
+          <span className={cn("strat-mono-10 tabular-nums", persona.length >= AGENT_PERSONA_MAX_CHARS ? "text-signal" : "text-ink/40")}>{A.personaCount(persona.length, AGENT_PERSONA_MAX_CHARS)}</span>
         </div>
         <textarea
           value={persona}
@@ -86,7 +86,7 @@ export function StudioAgentFields({ form, setForm, asset }: StudioAgentFieldsPro
       </div>
 
       <div className="rounded-lg border border-hairline bg-ink/[0.02] px-4 py-3">
-        <div className="strat-micro mb-1.5 text-vermilion">{S.plain}</div>
+        <div className="strat-micro mb-1.5 text-signal">{S.plain}</div>
         <p className="text-sm leading-snug text-ink-secondary">{describeSpec(draftSpec(form), asset)}</p>
         <ul className="strat-mono-10 mt-2 space-y-0.5 text-ink/40">
           {A.honesty.map((line) => (

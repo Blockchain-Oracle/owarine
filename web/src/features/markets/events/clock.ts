@@ -8,7 +8,7 @@ export interface EventClock {
   spanSec: number;
   /** The clock to the lock; null before the first client tick and once locked. */
   state: Countdown | null;
-  /** The last stretch before the lock: the hero's clock block flips vermilion. */
+  /** The last stretch before the lock: the hero's clock block flips signal. */
   urgent: boolean;
 }
 

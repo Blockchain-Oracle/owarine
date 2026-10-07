@@ -32,12 +32,12 @@ export function TakeAuthor({ lead, name, onName, meta, badge, backed }: { lead?:
           </Text>
         </View>
       </View>
-      <Text style={[styles.badge, backed ? { borderColor: t.v40, backgroundColor: t.v08, color: t.vermilion } : { borderColor: t.ink12, color: t.ink45 }]}>{badge.toUpperCase()}</Text>
+      <Text style={[styles.badge, backed ? { borderColor: t.v40, backgroundColor: t.v08, color: t.signal } : { borderColor: t.ink12, color: t.ink45 }]}>{badge.toUpperCase()}</Text>
     </View>
   );
 }
 
-/** `.take-chip-row` + `.take-chip`: the vermilion-edged mono pill that states the call. */
+/** `.take-chip-row` + `.take-chip`: the signal-edged mono pill that states the call. */
 export function TakeChip({ children }: { children: ReactNode }) {
   const t = useReelTokens();
   return (
@@ -57,8 +57,8 @@ export function TakeVoice({ children, quiet }: { children: ReactNode; quiet?: bo
   );
 }
 
-/** `.take-cta`: the card's one way out, a hairline slab that warms to vermilion while pressed. */
-export function TakeCta({ label, onPress, edge, style }: { label: string; onPress: () => void; edge?: "vermilion"; style?: object }) {
+/** `.take-cta`: the card's one way out, a hairline slab that warms to signal while pressed. */
+export function TakeCta({ label, onPress, edge, style }: { label: string; onPress: () => void; edge?: "signal"; style?: object }) {
   const t = useReelTokens();
   return (
     <Pressable

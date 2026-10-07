@@ -3,7 +3,7 @@ import { Pressable, StyleSheet } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useGamesTokens } from "./tokens";
 
-/** web's shadcn `Switch` (default size): a 32 × 18 pill, the 16 px thumb sliding 14 px, vermilion when on. */
+/** web's shadcn `Switch` (default size): a 32 × 18 pill, the 16 px thumb sliding 14 px, signal when on. */
 export function Switch({ value, onChange, disabled, label }: { value: boolean; onChange: (on: boolean) => void; disabled?: boolean; label: string }) {
   const { t, color } = useGamesTokens();
   const x = useSharedValue(value ? 14 : 0);

@@ -6,7 +6,7 @@ import { lanesTokens } from "~/theme/web/markets-lanes";
 
 /**
  * web's components/chrome Pager under a lane (`nav.pager`): "← Prev", "1–8 of 9" in mono caps, "Next →" — the two
- * buttons in vermilion and their own case, a spent one at 35 %; nothing while the lane fits on one page.
+ * buttons in signal and their own case, a spent one at 35 %; nothing while the lane fits on one page.
  */
 export function LanePager<T>({ pager }: { pager: PagerState<T> }) {
   const { name } = useTheme();
@@ -14,7 +14,7 @@ export function LanePager<T>({ pager }: { pager: PagerState<T> }) {
   if (pager.total <= pager.pageSize) return null;
   const button = (label: string, on: boolean, press: () => void) => (
     <Pressable onPress={press} disabled={!on} accessibilityRole="button" accessibilityState={{ disabled: !on }} hitSlop={10}>
-      <Text style={[styles.text, { color: t.vermilion, opacity: on ? 1 : 0.35 }]}>{label}</Text>
+      <Text style={[styles.text, { color: t.signal, opacity: on ? 1 : 0.35 }]}>{label}</Text>
     </Pressable>
   );
   return (

@@ -16,7 +16,7 @@ interface Props {
 }
 
 /**
- * duel.css `.du-cta`: the games' commit button — vermilion, 48 tall, radius 8, Sora 700 14 in cream ink, with the
+ * duel.css `.du-cta`: the games' commit button — signal, 48 tall, radius 8, Sora 700 14 in cream ink, with the
  * games.css lip (a light top edge, a dark bottom edge and a 2 px step beneath) that flattens while pressed.
  * `quiet` is `.du-cta--quiet` (hairline, ink); `leave` is `.du-cta--leave` (the loss wash).
  */
@@ -25,7 +25,7 @@ export function Cta({ label, onPress, variant = "primary", disabled, busy, style
   const off = disabled || busy;
   const ground: ViewStyle =
     variant === "primary"
-      ? { backgroundColor: color.accent, borderColor: "transparent" }
+      ? { backgroundColor: color.accentFill, borderColor: "transparent" }
       : variant === "leave"
         ? { backgroundColor: t.ctaLeaveBg, borderColor: t.ctaLeaveBorder }
         : { backgroundColor: "transparent", borderColor: color.hairline };

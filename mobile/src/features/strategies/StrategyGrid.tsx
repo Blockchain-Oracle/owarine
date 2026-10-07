@@ -62,7 +62,7 @@ export function StrategyGrid({ strategies, subscriptionOf, decimals, symbol, ass
                 onPress={() => setTab(k)}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: tab === k }}
-                style={[styles.tab, { borderBottomColor: tab === k ? t.vermilion : "transparent" }]}
+                style={[styles.tab, { borderBottomColor: tab === k ? t.signal : "transparent" }]}
               >
                 <Text style={[styles.tabText, { color: tab === k ? color.ink : t.ink(0.4) }]}>
                   {STRATEGIES.tabs[k]}

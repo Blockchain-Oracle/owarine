@@ -9,7 +9,7 @@ import { useReelTokens } from "./tokens";
 
 /**
  * reel-chrome.css `.reel-take`: the social entry point, fixed on the right rail at the viewport's mid-height so it
- * never covers a card's action row — a vermilion slab with the feather and "Take". `centerY` is where the viewport's
+ * never covers a card's action row — a signal slab with the feather and "Take". `centerY` is where the viewport's
  * middle falls inside the reel.
  */
 export function TakeButton({ centerY, onPress }: { centerY: number; onPress: () => void }) {
@@ -22,16 +22,16 @@ export function TakeButton({ centerY, onPress }: { centerY: number; onPress: () 
       }}
       accessibilityRole="button"
       accessibilityLabel={REELS.postTake}
-      style={({ pressed }) => [styles.take, { top: centerY - 37.5, backgroundColor: t.vermilion, boxShadow: t.takeShadow }, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.take, { top: centerY - 37.5, backgroundColor: t.signal, boxShadow: t.takeShadow }, pressed && styles.pressed]}
     >
-      <Feather size={24} color={t.onVermilion} strokeWidth={2} />
-      <Text style={[styles.takeText, { color: t.onVermilion }]}>{REELS.take}</Text>
+      <Feather size={24} color={t.onSignal} strokeWidth={2} />
+      <Text style={[styles.takeText, { color: t.onSignal }]}>{REELS.take}</Text>
     </Pressable>
   );
 }
 
 /**
- * reel-chrome.css `.reel-hint`: the bouncing chevron (the page's ink) over the vermilion pill, 86 px above the
+ * reel-chrome.css `.reel-hint`: the bouncing chevron (the page's ink) over the signal pill, 86 px above the
  * viewport's foot, fading out once the reel has moved 60 px — nothing else says this is a snap scroll.
  */
 export function SwipeHint({ label, bottom, hidden }: { label: string; bottom: number; hidden: boolean }) {
@@ -61,8 +61,8 @@ export function SwipeHint({ label, bottom, hidden }: { label: string; bottom: nu
       <Animated.View style={arrow}>
         <ChevronUp size={20} strokeWidth={3} color={color.ink} />
       </Animated.View>
-      <Animated.View style={[styles.pill, { backgroundColor: t.vermilion, boxShadow: t.hintShadow }]}>
-        <Text style={[styles.pillText, { color: t.onVermilion }]}>{label}</Text>
+      <Animated.View style={[styles.pill, { backgroundColor: t.signal, boxShadow: t.hintShadow }]}>
+        <Text style={[styles.pillText, { color: t.onSignal }]}>{label}</Text>
       </Animated.View>
     </Animated.View>
   );

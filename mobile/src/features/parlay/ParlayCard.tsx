@@ -36,7 +36,7 @@ function LegLine({ leg, idx, first, nowMs, busyHere, isNext, onSettle }: { leg: 
   const left = nowMs > 0 ? remainingSec(nowMs, leg.expirySec) : null;
   const won = leg.status === "won";
   const dot = won
-    ? { borderColor: t.clear, backgroundColor: color.accent }
+    ? { borderColor: t.clear, backgroundColor: color.accentFill }
     : leg.status === "lost"
       ? { borderColor: t.clear, backgroundColor: t.dotLostBg }
       : { borderColor: t.dotBorder, borderStyle: leg.status === "void" ? ("dashed" as const) : ("solid" as const) };
@@ -76,7 +76,7 @@ function StatusPill({ status, wonCount, total }: { status: ParlayStatus; wonCoun
   const dead = status === "lost" || status === "void";
   const text = won ? (status === "won" ? slip.won : slip.paid) : dead ? (status === "lost" ? slip.dead : slip.voided) : slip.inPlay(wonCount, total);
   return (
-    <View style={[styles.pill, { backgroundColor: won ? t.vermilion15 : t.pillBg }]}>
+    <View style={[styles.pill, { backgroundColor: won ? t.signal15 : t.pillBg }]}>
       <Text style={[styles.pillText, { color: won ? color.accent : dead ? color.inkMuted : t.gray300 }]}>{text}</Text>
     </View>
   );
@@ -94,7 +94,7 @@ export function ParlayCard({ ticket, nowMs, symbol, decimals, busy, onClaim, onS
   const nextLeg = status === "live" ? nextParlayLegIdx(ticket.legs) : null;
   const surface =
     status === "won"
-      ? { borderColor: t.vermilion40, backgroundColor: t.vermilion4 }
+      ? { borderColor: t.signal40, backgroundColor: t.signal4 }
       : lost || status === "void"
         ? { borderColor: t.lostBorder, backgroundColor: t.lostBg, opacity: 0.6 }
         : { borderColor: t.tableBorder, backgroundColor: t.tableBg };

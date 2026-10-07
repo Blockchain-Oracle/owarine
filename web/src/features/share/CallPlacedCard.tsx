@@ -19,7 +19,7 @@ interface CallPlacedCardProps {
 /**
  * The Call — the shareable card shown the instant a bet lands, ported from
  * `reference/yosuku/components/BetPlacedCard.tsx`. The live-position sibling of the
- * settlement receipt: same ground, grain and registration ticks, but the vermilion
+ * settlement receipt: same ground, grain and registration ticks, but the signal
  * heat reads as conviction, not a win. The clock is alive — a ticking countdown over
  * a draining bar — because the call is still open.
  *

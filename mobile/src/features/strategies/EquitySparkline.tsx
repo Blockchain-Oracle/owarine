@@ -19,7 +19,7 @@ export function curvePoints(curve: readonly { atSec: number; cumBase: string }[]
 
 /**
  * web's features/markets/history/EquitySparkline.tsx at `w-full` (the 300×72 viewBox stretched across its slot, so its
- * height follows the width) with history.css's colours: vermilion at or above zero, muted ink below, the dashed zero.
+ * height follows the width) with history.css's colours: signal at or above zero, muted ink below, the dashed zero.
  */
 export function EquitySparkline({ points, decimals }: { points: readonly EquityPoint[]; decimals: number }) {
   const { t } = useStrat();
@@ -48,16 +48,16 @@ export function EquitySparkline({ points, decimals }: { points: readonly EquityP
   const area = `${line} L ${x(count - 1).toFixed(2)},${zeroY.toFixed(2)} L ${x(0).toFixed(2)},${zeroY.toFixed(2)} Z`;
   const last = series[count - 1] as EquityPoint;
   const up = last.cumulativeBase >= 0n;
-  const stroke = up ? t.vermilion : t.equityDown;
-  const dot = up ? t.vermilion : t.equityDownDot;
+  const stroke = up ? t.signal : t.equityDown;
+  const dot = up ? t.signal : t.equityDownDot;
   const amount = formatBaseUnits(last.cumulativeBase < 0n ? -last.cumulativeBase : last.cumulativeBase, decimals);
   return (
     <View style={styles.frame} accessible accessibilityRole="image" accessibilityLabel={HISTORY.summary.curveLabel(up ? "up" : "down", amount)}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
         <Defs>
           <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" {...stopPaint(t.vermilion, 0.22)} />
-            <Stop offset="1" {...stopPaint(t.vermilion, 0)} />
+            <Stop offset="0" {...stopPaint(t.signal, 0.22)} />
+            <Stop offset="1" {...stopPaint(t.signal, 0)} />
           </LinearGradient>
         </Defs>
         <Line x1={PAD} x2={WIDTH - PAD} y1={zeroY} y2={zeroY} stroke={t.equityZero} strokeWidth={1} strokeDasharray="2 3" />

@@ -24,7 +24,7 @@
 /* ── the mobile drawer (L768–777) ──
    backdrop: fixed inset-0 z-[9998] bg-black/70 backdrop-blur-sm
    panel:    fixed top-0 right-0 z-[9999] h-full w-full max-w-[440px] p-6 shadow-2xl border-l border-white/10
-             bg-[#0b0b0e] overflow-y-auto transition-transform duration-300 translate-x-full → translate-x-0 */
+             bg-[#0d0c0c] overflow-y-auto transition-transform duration-300 translate-x-full → translate-x-0 */
 .tk-drawer-backdrop {
   position: fixed;
   inset: 0;
@@ -44,7 +44,7 @@
   padding: 24px;
   overflow-y: auto;
   border-left: 1px solid rgba(255, 255, 255, 0.1);
-  background: #0b0b0e;
+  background: #0d0c0c;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   transform: translateX(100%);
   transition: transform 300ms var(--ease);
@@ -53,7 +53,7 @@
   transform: translateX(0);
 }
 [data-theme="light"] .tk-drawer {
-  border-left-color: rgba(20, 18, 16, 0.1);
+  border-left-color: rgba(16, 15, 15, 0.1);
   background: var(--bg);
 }
 /* lg:hidden absolute right-4 top-4 rounded-full p-2 text-gray-600 hover:bg-white/[0.05] hover:text-white */
@@ -96,21 +96,19 @@
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: rgba(255, 255, 255, 0.45);
-}
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.45); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* font-mono text-[9px] text-white/35 */
 .tk-amount-balance {
   font-family: var(--font-mono);
   font-size: 9px;
-  color: rgba(255, 255, 255, 0.35);
-}
+  color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 .tk-amount-field {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-/* min-w-0 flex-1 bg-transparent font-display text-[1.75rem] leading-none font-bold text-white tabular-nums outline-none caret-vermilion — here focus-visible:outline-none with a vermilion hairline (inset box-shadow) as the ring, beside the reference's vermilion caret */
+/* min-w-0 flex-1 bg-transparent font-display text-[1.75rem] leading-none font-bold text-white tabular-nums outline-none caret-signal — here focus-visible:outline-none with a signal hairline (inset box-shadow) as the ring, beside the reference's signal caret */
 .tk-amount-input {
   min-width: 0;
   flex: 1;
@@ -121,9 +119,8 @@
   font-weight: 700;
   color: var(--white);
   font-variant-numeric: tabular-nums;
-  caret-color: var(--vermilion);
-}
-.tk-amount-input:focus-visible { outline: none; box-shadow: inset 0 -1px 0 var(--vermilion); }
+  caret-color: var(--signal-ink); font-stretch: 125%; }
+.tk-amount-input:focus-visible { outline: none; box-shadow: inset 0 -1px 0 var(--signal); }
 /* placeholder:text-white/18 */
 .tk-amount-input::placeholder {
   color: rgba(255, 255, 255, 0.18);
@@ -136,8 +133,7 @@
   /* The reference uppercases its unit; "tUSDC" keeps its casing, since "TUSDC" reads as another token. */
   text-transform: none;
   letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.35);
-}
+  color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 /* mt-2.5 flex items-center justify-between gap-3 */
 .tk-amount-row {
   margin-top: 10px;
@@ -160,8 +156,7 @@
   font-family: var(--font-mono);
   font-size: 9px;
   color: rgba(255, 255, 255, 0.55);
-  transition: color 200ms var(--ease), border-color 200ms var(--ease), transform 150ms var(--ease);
-}
+  transition: color 200ms var(--ease), border-color 200ms var(--ease), transform 150ms var(--ease); font-variant-numeric: tabular-nums; }
 .tk-add:hover {
   border-color: rgba(255, 255, 255, 0.25);
   color: var(--white);
@@ -169,23 +164,22 @@
 .tk-add:active {
   transform: scale(0.95);
 }
-/* font-mono text-[9px] text-vermilion mt-2 */
+/* font-mono text-[9px] text-signal mt-2 */
 .tk-amount-min {
   margin-top: 8px;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; }
 
 /* ── one quote strip, no example table (L1098–1121) ──
-   grid grid-cols-3 divide-x divide-white/[0.07] border-b mb-2 (border-vermilion/30 when live) */
+   grid grid-cols-3 divide-x divide-white/[0.07] border-b mb-2 (border-signal/30 when live) */
 .tk-readout {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .tk-readout--live {
-  border-bottom-color: color-mix(in srgb, var(--vermilion) 30%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--signal-ink) 30%, transparent);
 }
 /* min-w-0 px-2.5 py-2.5 first:pl-0 last:pr-0 */
 .tk-readout-cell {
@@ -207,10 +201,9 @@
   font-family: var(--font-mono);
   font-size: 7.5px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: rgba(255, 255, 255, 0.3);
-}
-/* block truncate font-mono text-[13px] tabular-nums text-white/75 (text-vermilion when accented) */
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.3); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+/* block truncate font-mono text-[13px] tabular-nums text-white/75 (text-signal when accented) */
 .tk-readout-value {
   display: block;
   overflow: hidden;
@@ -222,7 +215,7 @@
   color: rgba(255, 255, 255, 0.75);
 }
 .tk-readout-value--accent {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 /* flex items-start justify-between gap-3 min-h-7 font-mono text-[8.5px] leading-relaxed text-white/35 */
 .tk-caption {
@@ -235,8 +228,7 @@
   font-family: var(--font-mono);
   font-size: 8.5px;
   line-height: 1.625;
-  color: rgba(255, 255, 255, 0.35);
-}
+  color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 /* shrink-0 text-white/55 */
 .tk-caption-chance {
   flex-shrink: 0;
@@ -248,29 +240,27 @@
   font-family: var(--font-mono);
   font-size: 8.5px;
   line-height: 1.625;
-  color: rgba(255, 255, 255, 0.35);
-}
+  color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 
 /* ── account gates, inline (L1124–1173) ──
-   border border-white/[0.08] bg-white/[0.02] p-4 · warn: border-vermilion/25 bg-vermilion/[0.04] */
+   border border-white/[0.08] bg-white/[0.02] p-4 · warn: border-signal/25 bg-signal/[0.04] */
 .tk-gate {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
   padding: 16px;
 }
 .tk-gate--warn {
-  border-color: color-mix(in srgb, var(--vermilion) 25%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 4%, transparent);
+  border-color: color-mix(in srgb, var(--signal-ink) 25%, transparent);
+  background: color-mix(in srgb, var(--signal) 4%, transparent);
 }
-/* font-mono text-[10px] uppercase tracking-[0.2em] text-vermilion mb-1.5 */
+/* font-mono text-[10px] uppercase tracking-[0.2em] text-signal mb-1.5 */
 .tk-gate-eyebrow {
   margin-bottom: 6px;
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--vermilion);
-}
+  letter-spacing: 0.1em;
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* text-[12.5px] text-gray-400 leading-snug mb-3 */
 .tk-gate-body {
   margin-bottom: 12px;
@@ -284,26 +274,25 @@
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.5;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 .tk-gate-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
 }
-/* rounded-full bg-vermilion hover:bg-vermilion-d text-white text-[13px] font-semibold px-5 py-2 */
+/* rounded-full bg-signal hover:bg-signal-d text-white text-[13px] font-semibold px-5 py-2 */
 .tk-gate-cta {
   border-radius: 999px;
-  background: var(--vermilion);
-  color: #fff;
+  background: var(--signal);
+  color: var(--on-signal);
   font-size: 13px;
   font-weight: 600;
   padding: 8px 20px;
   transition: background 200ms var(--ease);
 }
 .tk-gate-cta:hover {
-  background: var(--vermilion-d);
+  background: var(--signal-d);
 }
 .tk-gate-cta:disabled {
   opacity: 0.6;
@@ -314,10 +303,9 @@
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.3);
-  transition: color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .tk-gate-quiet:hover:not(:disabled) {
   color: rgba(255, 255, 255, 0.6);
 }
@@ -355,21 +343,20 @@
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.4);
-  transition: color 200ms var(--ease), background 200ms var(--ease);
-}
+  transition: color 200ms var(--ease), background 200ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .tk-pp-btn:hover:not(:disabled):not([aria-pressed="true"]) {
   color: rgba(255, 255, 255, 0.7);
 }
-/* on: bg-white/[0.08] text-white · private on: bg-vermilion/[0.12] text-vermilion · off: text-white/20 */
+/* on: bg-white/[0.08] text-white · private on: bg-signal/[0.12] text-signal · off: text-white/20 */
 .tk-pp-btn[aria-pressed="true"] {
   background: rgba(255, 255, 255, 0.08);
   color: var(--white);
 }
 .tk-pp-btn--private[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--vermilion) 12%, transparent);
-  color: var(--vermilion);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+  color: var(--signal-ink);
 }
 .tk-pp-btn:disabled {
   color: rgba(255, 255, 255, 0.2);
@@ -381,5 +368,4 @@
   font-family: var(--font-mono);
   font-size: 8.5px;
   line-height: 1.625;
-  color: rgba(255, 255, 255, 0.25);
-}
+  color: rgba(255, 255, 255, 0.25); font-variant-numeric: tabular-nums; }

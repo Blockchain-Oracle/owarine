@@ -1,7 +1,7 @@
 /* /portfolio/edge — part 2: the report (reference page.module.css from `.report` down). */
 
 .edge-report { margin-top: 34px; }
-.edge-partial { margin-bottom: 14px; color: var(--edge-muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; }
+.edge-partial { margin-bottom: 14px; color: var(--edge-muted); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
 
 .edge-hero-grid {
   display: grid;
@@ -19,10 +19,9 @@
   color: var(--edge-muted);
   font-family: var(--font-mono);
   font-size: 8px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.edge-sample { color: var(--edge-faint); font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.08em; text-align: right; }
+  letter-spacing: 0.1em;
+  text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+.edge-sample { color: var(--edge-faint); font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.08em; text-align: right; font-variant-numeric: tabular-nums; }
 .edge-net {
   margin-top: 12px;
   font-family: var(--font-display);
@@ -31,12 +30,11 @@
   letter-spacing: -0.065em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--edge-text);
-}
+  color: var(--edge-text); font-stretch: 125%; }
 .edge-net.is-gain, .edge-metric-value.is-gain, .edge-window-net.is-gain { color: var(--profit); }
 .edge-net.is-loss, .edge-metric-value.is-loss, .edge-window-net.is-loss { color: var(--loss); }
 .edge-window-net.is-faint { color: var(--edge-faint); }
-.edge-unit { margin-left: 8px; color: var(--edge-muted); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0; }
+.edge-unit { margin-left: 8px; color: var(--edge-muted); font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .edge-roi { margin-top: 8px; color: var(--edge-muted); font-size: 12px; }
 
 /* The chart takes the net figure's tone: line, fill and marker ring all read `currentColor`. */
@@ -47,7 +45,7 @@
 .edge-chart-area { fill: currentColor; fill-opacity: 0.075; }
 .edge-chart-line { stroke: currentColor; stroke-width: 3; }
 .edge-chart-marker { fill: var(--edge-surface); stroke: currentColor; stroke-width: 3; }
-.edge-chart-caption { display: flex; justify-content: space-between; margin-top: 5px; color: var(--edge-faint); font-family: var(--font-mono); font-size: 7px; letter-spacing: 0.12em; }
+.edge-chart-caption { display: flex; justify-content: space-between; margin-top: 5px; color: var(--edge-faint); font-family: var(--font-mono); font-size: 7px; letter-spacing: 0.12em; font-variant-numeric: tabular-nums; }
 
 .edge-readout-panel {
   display: flex;
@@ -66,8 +64,7 @@
   font-weight: 700;
   letter-spacing: -0.055em;
   line-height: 1.16;
-  text-wrap: pretty;
-}
+  text-wrap: pretty; font-stretch: 125%; }
 .edge-readout-foot { margin-top: 36px; color: var(--edge-faint); font-size: 10px; line-height: 1.55; }
 
 .edge-metrics {
@@ -90,12 +87,12 @@
   gap: 56px;
   margin-top: 66px;
 }
-.edge-section-title { color: var(--edge-text); font-family: var(--font-display); font-size: clamp(25px, 3vw, 40px); font-weight: 750; letter-spacing: -0.055em; line-height: 1.06; }
+.edge-section-title { color: var(--edge-text); font-family: var(--font-display); font-size: clamp(25px, 3vw, 40px); font-weight: 750; letter-spacing: -0.055em; line-height: 1.06; font-stretch: 125%; }
 .edge-section-copy { max-width: 46ch; margin-top: 9px; color: var(--edge-muted); font-size: 12px; line-height: 1.65; }
 .edge-window-list { margin-top: 26px; border-top: 1px solid var(--edge-rule-strong); }
 .edge-window-row { display: grid; grid-template-columns: 130px minmax(120px, 1fr) 110px; align-items: center; gap: 20px; min-height: 74px; border-bottom: 1px solid var(--edge-rule); }
 .edge-window-name { color: var(--edge-text); font-size: 12px; font-weight: 600; }
-.edge-window-range { margin-top: 3px; color: var(--edge-faint); font-family: var(--font-mono); font-size: 8px; }
+.edge-window-range { margin-top: 3px; color: var(--edge-faint); font-family: var(--font-mono); font-size: 8px; font-variant-numeric: tabular-nums; }
 .edge-split-bar { display: grid; grid-template-columns: 1fr 1px 1fr; height: 8px; align-items: stretch; }
 .edge-bar-half { display: flex; align-items: center; }
 .edge-bar-half:first-child { justify-content: flex-end; }
@@ -105,9 +102,9 @@
 .edge-loss-bar { background: var(--loss); border-radius: 4px 0 0 4px; }
 .edge-window-result { text-align: right; }
 .edge-window-net { font-family: var(--font-mono); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.edge-window-count { margin-top: 3px; color: var(--edge-faint); font-family: var(--font-mono); font-size: 7px; }
+.edge-window-count { margin-top: 3px; color: var(--edge-faint); font-family: var(--font-mono); font-size: 7px; font-variant-numeric: tabular-nums; }
 
-.edge-payoff-panel { align-self: start; border-top: 2px solid var(--vermilion); padding-top: 22px; }
+.edge-payoff-panel { align-self: start; border-top: 2px solid var(--signal-ink); padding-top: 22px; }
 .edge-payoff-rows { margin-top: 24px; }
 .edge-payoff-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--edge-rule); }
 .edge-payoff-name { color: var(--edge-muted); font-size: 11px; }
@@ -115,7 +112,7 @@
 .edge-provenance { margin-top: 32px; padding: 20px 0 0 24px; border-left: 1px solid var(--edge-rule-strong); }
 .edge-provenance p { margin-top: 9px; color: var(--edge-faint); font-size: 10px; line-height: 1.65; }
 
-.edge-footer-note { max-width: 620px; margin: 70px auto 0; color: var(--edge-faint); font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.04em; line-height: 1.7; text-align: center; }
+.edge-footer-note { max-width: 620px; margin: 70px auto 0; color: var(--edge-faint); font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.04em; line-height: 1.7; text-align: center; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 900px) {
   .edge-hero-grid, .edge-lower-grid { grid-template-columns: 1fr; }

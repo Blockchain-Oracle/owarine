@@ -71,7 +71,7 @@ function ReelHead({ market }: { market: EventMarket }) {
       </View>
       <View style={styles.clock}>
         <Text style={[styles.clockLabel, { color: t.ink40 }]}>{REELS.closesIn.toUpperCase()}</Text>
-        <Text style={[styles.clockValue, { color: state?.urgent ? t.vermilion : t.ink }]}>{state ? formatClock(state.remainingSec) : REELS.noClock}</Text>
+        <Text style={[styles.clockValue, { color: state?.urgent ? t.signal : t.ink }]}>{state ? formatClock(state.remainingSec) : REELS.noClock}</Text>
       </View>
     </View>
   );
@@ -86,13 +86,13 @@ function ReelQuestion({ asset, openingRaw, currentRaw }: { asset: string; openin
     <View style={styles.ask}>
       <Text style={[styles.question, { color: t.ink }]} accessibilityRole="header">
         {REELS.holdsAbove(asset)}{" "}
-        {openingRaw === null ? <Text style={{ color: t.ink40 }}>{REELS.noLine}</Text> : <Text style={{ color: t.vermilion }}>{assetPriceLine(asset, openingRaw)}</Text>}
+        {openingRaw === null ? <Text style={{ color: t.ink40 }}>{REELS.noLine}</Text> : <Text style={{ color: t.signal }}>{assetPriceLine(asset, openingRaw)}</Text>}
         <Text style={{ color: t.ink85 }}>?</Text>
       </Text>
       <View style={styles.spot}>
         <Text style={[styles.spotText, { color: t.ink }]}>{currentRaw === null ? REELS.noLine : assetSpotLine(asset, currentRaw)}</Text>
         {move && openingRaw !== null && currentRaw !== null ? (
-          <Text style={[styles.spotText, { color: above ? t.vermilion : t.ink45 }]}>
+          <Text style={[styles.spotText, { color: above ? t.signal : t.ink45 }]}>
             {above ? "+" : "−"}
             {assetPriceLine(asset, above ? currentRaw - openingRaw : move.upNeedsRaw, openingRaw)} {REELS.versusLine}
           </Text>
@@ -142,7 +142,7 @@ function ReelCall({ marketId, closing }: { marketId: MarketId; closing: boolean 
         accessibilityLabel={`${REELS.up}: open the ticket`}
         style={({ pressed }) => [styles.side, { borderColor: t.v60, backgroundColor: pressed ? t.v25 : t.v10 }]}
       >
-        <Text style={[styles.sideText, { color: t.vermilion }]}>{REELS.up}</Text>
+        <Text style={[styles.sideText, { color: t.signal }]}>{REELS.up}</Text>
       </Pressable>
       <Pressable
         onPress={() => pick("down")}

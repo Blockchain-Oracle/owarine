@@ -79,7 +79,7 @@ export function TutorialCard({ step, onStep, onDismiss, onConnect }: Props) {
       <View style={styles.foot}>
         <View style={styles.dots} accessibilityLabel={TUTORIAL_UI.progress(step + 1, TUTORIAL_STEPS.length)}>
           {TUTORIAL_STEPS.map((s, i) => (
-            <View key={s.title} style={[styles.dot, i === step ? { width: 24, backgroundColor: color.accent } : { backgroundColor: i < step ? t.tutDotPast : t.tutDotAhead }]} />
+            <View key={s.title} style={[styles.dot, i === step ? { width: 24, backgroundColor: color.accentFill } : { backgroundColor: i < step ? t.tutDotPast : t.tutDotAhead }]} />
           ))}
         </View>
         <View style={styles.actions}>
@@ -90,7 +90,7 @@ export function TutorialCard({ step, onStep, onDismiss, onConnect }: Props) {
             <Pressable
               onPress={() => (isLast ? onDismiss() : onStep(step + 1))}
               accessibilityRole="button"
-              style={({ pressed }) => [styles.next, { backgroundColor: color.accent }, pressed ? styles.down : null]}
+              style={({ pressed }) => [styles.next, { backgroundColor: color.accentFill }, pressed ? styles.down : null]}
             >
               <Text style={[styles.nextText, { color: color.onAccent }]}>{isLast ? TUTORIAL_UI.done : TUTORIAL_UI.next}</Text>
             </Pressable>

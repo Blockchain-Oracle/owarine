@@ -18,7 +18,7 @@ export async function siteImage(): Promise<ImageResponse> {
       <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "space-between", gap: 48 }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ ...HEADLINE, color: OG.ink }}>{LANDING.hero.titleLead}</div>
-          <div style={{ ...HEADLINE, color: OG.vermilion }}>{LANDING.hero.titleEm}</div>
+          <div style={{ ...HEADLINE, color: OG.signal }}>{LANDING.hero.titleEm}</div>
           <div style={{ display: "flex", marginTop: 32, fontSize: 32, color: OG.soft }}>{OG_COPY.site.line}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>

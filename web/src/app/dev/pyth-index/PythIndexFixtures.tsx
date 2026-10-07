@@ -30,7 +30,7 @@ function HubBar(props: PreIpoStatsProps) {
         <h1 className="news-title tkh-title">
           <AssetDisc asset={SYMBOL} className="tkh-mark" />
           <span>
-            {ticker.name} <span className="vermilion">${SYMBOL}</span>
+            {ticker.name} <span className="signal">${SYMBOL}</span>
           </span>
         </h1>
         <p className="news-intro">{props.index ? TICKER_HUB.preIpo.introBoth(ticker.name) : TICKER_HUB.preIpo.intro(ticker.name)}</p>
@@ -59,7 +59,7 @@ function ValuationBar({ state }: { state: IndexState }) {
         <h1 className="news-title tkh-title">
           <AssetDisc asset={VALUATION} className="tkh-mark" />
           <span>
-            {ticker.name} <span className="vermilion">${VALUATION}</span>
+            {ticker.name} <span className="signal">${VALUATION}</span>
           </span>
         </h1>
         <p className="news-intro">{listed ? V.intro(ticker.name, TICKERS[SYMBOL].name) : V.introAbsent(ticker.name, TICKERS[SYMBOL].name)}</p>

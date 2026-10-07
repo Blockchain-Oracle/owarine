@@ -55,7 +55,7 @@ export function DuelQueue({ queue, waitedSec, onLeave }: { queue: QueueView | nu
 }
 
 /**
- * Flicky's searching banner (`.du-searching.du-breathe`): a vermilion-washed plate that breathes in its border and
+ * Flicky's searching banner (`.du-searching.du-breathe`): a signal-washed plate that breathes in its border and
  * glow over 2.4 s rather than pinging, the banner art at up to 320 wide, the word in the pixel face and three dots
  * that bounce 150 ms apart. Still when motion is reduced.
  */

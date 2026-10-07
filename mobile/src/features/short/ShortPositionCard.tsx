@@ -87,7 +87,7 @@ export function ShortPositionCard(props: ShortPositionCardProps) {
   );
 }
 
-/** `.sh-act`: a mono uppercase word; the primary one in vermilion. */
+/** `.sh-act`: a mono uppercase word; the primary one in signal. */
 function Act({ label, onPress, disabled, primary }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean }) {
   const { color } = useTheme();
   return (

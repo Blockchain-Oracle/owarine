@@ -40,7 +40,7 @@ interface Tab {
 }
 
 /**
- * `.mh-cadence-tabs`: type alone carries the state — idle at 35 %, a dead slot at 15 %, the one on screen vermilion and
+ * `.mh-cadence-tabs`: type alone carries the state — idle at 35 %, a dead slot at 15 %, the one on screen signal and
  * underlined. Labels never break; the lane set takes its own line under the asset (as it wraps on web at 402 px) and
  * scrolls sideways when it outruns the head.
  */
@@ -58,10 +58,10 @@ export function CadenceRow({ tabs, accessibilityLabel, block = false }: { tabs: 
       accessibilityState={{ selected: tab.on, disabled: !tab.live }}
       style={styles.tab}
     >
-      <Text numberOfLines={1} style={[mkType.cadence, { color: tab.on ? mk.vermilion : tab.live ? mk.cadence : mk.cadenceOff }]}>
+      <Text numberOfLines={1} style={[mkType.cadence, { color: tab.on ? mk.signal : tab.live ? mk.cadence : mk.cadenceOff }]}>
         {tab.label}
       </Text>
-      {tab.on ? <View style={[styles.underline, { backgroundColor: mk.vermilion }]} /> : null}
+      {tab.on ? <View style={[styles.underline, { backgroundColor: mk.signal }]} /> : null}
     </Pressable>
   ));
   if (!block) {
@@ -89,7 +89,7 @@ export function HeroCadenceTabs({ lanes, activeKey, pinnedMissingKey, onPin }: {
   return <CadenceRow block accessibilityLabel={HERO_HEAD.cadenceGroup} tabs={slots.map((slot) => ({ ...slot, on: slot.key === activeKey, onPress: () => onPin(slot.key) }))} />;
 }
 
-/** web's HeroQuestion: the headline against the opening print (vermilion), then how far the live price sits from it, about UP. */
+/** web's HeroQuestion: the headline against the opening print (signal), then how far the live price sits from it, about UP. */
 export function HeroQuestion({ asset, ask, openingRaw, currentRaw }: { asset: string; ask?: string; openingRaw: bigint | null; currentRaw: bigint | null }) {
   const mk = useMk();
   return (
@@ -99,7 +99,7 @@ export function HeroQuestion({ asset, ask, openingRaw, currentRaw }: { asset: st
           HERO_HEAD.pair(asset, assetPairUnit(asset))
         ) : (
           <>
-            {ask ?? HERO_HEAD.holdsAbove(asset)} <Text style={{ color: mk.vermilion }}>{assetPriceLine(asset, openingRaw)}</Text>?
+            {ask ?? HERO_HEAD.holdsAbove(asset)} <Text style={{ color: mk.signal }}>{assetPriceLine(asset, openingRaw)}</Text>?
           </>
         )}
       </Text>
@@ -126,13 +126,13 @@ function Distance({ asset, openingRaw, currentRaw }: { asset: string; openingRaw
   );
 }
 
-/** `.mh-settles`: the clock's label over the clock; the whole block flips vermilion as it runs out. */
+/** `.mh-settles`: the clock's label over the clock; the whole block flips signal as it runs out. */
 export function Settles({ label, value, urgent = false }: { label: string; value: string; urgent?: boolean }) {
   const mk = useMk();
   return (
     <View style={styles.settles} accessibilityRole="timer">
       <Text style={[mkType.settlesLabel, { color: urgent ? mk.urgentLabel : mk.gray600 }]}>{label}</Text>
-      <Text style={[mkType.settlesValue, { color: urgent ? mk.vermilion : mk.ink }]}>{value}</Text>
+      <Text style={[mkType.settlesValue, { color: urgent ? mk.signal : mk.ink }]}>{value}</Text>
     </View>
   );
 }

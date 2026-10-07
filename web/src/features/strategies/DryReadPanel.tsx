@@ -50,7 +50,7 @@ function Result({ result }: { result: AgentPreviewResponse }) {
       </div>
       <div className="mt-3 border-t border-hairline pt-3">
         <div className="strat-micro mb-1 text-ink/40">{DRY.gate}</div>
-        <div className={cn("strat-mono-12", gate.side ? "text-vermilion" : "text-ink/70")}>{gate.side ? DRY.gateTrade(gate.side) : DRY.gateHold}</div>
+        <div className={cn("strat-mono-12", gate.side ? "text-signal" : "text-ink/70")}>{gate.side ? DRY.gateTrade(gate.side) : DRY.gateHold}</div>
         <p className="mt-1 text-xs leading-snug text-ink-secondary">{gate.reason}</p>
       </div>
       <div className="strat-mono-10 mt-3 truncate text-ink/40">{DRY.model(model)}</div>
@@ -63,7 +63,7 @@ export function DryReadPanel({ state }: { state: DryRead }) {
   return (
     <div className="strat-dry" aria-live="polite">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="strat-micro text-vermilion">{DRY.eyebrow}</span>
+        <span className="strat-micro text-signal">{DRY.eyebrow}</span>
         {state.status === "reading" && <span className="strat-mono-10 text-ink/40">{DRY.reading}</span>}
       </div>
       {state.status === "error" && <p className="strat-mono-11 mt-2 leading-relaxed text-ink/70">{state.error}</p>}

@@ -7,7 +7,7 @@ export function LegalScreen() {
     <div className="container news-page">
       <div className="news-inner">
         <h1 className="news-title">
-          {LEGAL.heading} <span className="vermilion">{LEGAL.headingAccent}</span>
+          {LEGAL.heading} <span className="signal">{LEGAL.headingAccent}</span>
         </h1>
         <p className="news-intro">{LEGAL.intro}</p>
         {LEGAL.sections.map((section) => (

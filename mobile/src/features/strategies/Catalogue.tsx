@@ -49,7 +49,7 @@ export function Catalogue({ payload, writes, view, onCreate, requested }: {
     // web reads the query once, on mount; a new deep link remounts with a new `requested`.
   }, [requested]);
   const empty = [styles.empty, { borderColor: t.ink(0.08), backgroundColor: t.ink(0.02) }];
-  const warn = [styles.progress, { borderColor: t.vermilion }];
+  const warn = [styles.progress, { borderColor: t.signal }];
 
   return (
     <>

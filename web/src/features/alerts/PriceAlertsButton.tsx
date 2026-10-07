@@ -26,7 +26,7 @@ function defaultTarget(asset: string, raw: bigint): string {
 /**
  * The bell and its popover — ported from `reference/yosuku/components/PriceAlerts.tsx`.
  *
- * Element for element the reference's: the bell tints vermilion and shows a count once
+ * Element for element the reference's: the bell tints signal and shows a count once
  * this asset has rules; the popover holds Above/Below, a target that defaults to the live
  * price, the + button, and the active list. Two things differ. The popover opens upward:
  * it sits in the hero foot, and the panel clips its overflow, so downward would be cut

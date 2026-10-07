@@ -18,7 +18,7 @@ interface Props {
 
 /**
  * range-band.css `.rg-track` (32 tall, 12 in from the card's edges): the axis hairline, the band as one draggable
- * thumb — its 8 px vermilion-washed fill edged in vermilion, the three-line grip — and the live price as a tick and
+ * thumb — its 8 px signal-washed fill edged in signal, the three-line grip — and the live price as a tick and
  * dot. Dragging moves the centre on the asset's grid (web's pointer drag, for a finger); each grid step is a detent.
  * VoiceOver gets web's slider semantics: increment and decrement step the centre.
  */

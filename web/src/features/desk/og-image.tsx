@@ -23,7 +23,7 @@ export async function deskImage(facts: DeskOgFacts): Promise<ImageResponse> {
     <OgFrame eyebrow={O.eyebrow}>
       <div style={{ display: "flex", flex: 1, flexDirection: "column", justifyContent: "center", gap: 28 }}>
         <div style={{ ...HEADLINE, color: OG.ink }}>{O.title}</div>
-        <div style={{ display: "flex", gap: 24, fontSize: 36, color: OG.vermilion }}>
+        <div style={{ display: "flex", gap: 24, fontSize: 36, color: OG.signal }}>
           <span>{DESK.modes[facts.mode]}</span>
           <span style={{ color: OG.dim }}>·</span>
           <span style={{ color: OG.soft }}>{facts.live ? O.live : O.practice}</span>

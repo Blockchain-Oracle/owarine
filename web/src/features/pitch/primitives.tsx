@@ -65,7 +65,7 @@ export function Pill({ children, tone = "ink", icon }: { children: ReactNode; to
 
 export type SpecRow = readonly [string, ReactNode, boolean?];
 
-/** The receipt/ledger stub — a titled rule with a vermilion eyelet, then dotted-leader rows (reference L201–222). */
+/** The receipt/ledger stub — a titled rule with a signal eyelet, then dotted-leader rows (reference L201–222). */
 export function SpecPanel({ title, badge, badgeTone = "live", rows, wide = false, i = 1 }: { title: string; badge?: string; badgeTone?: "live" | "verm"; rows: readonly SpecRow[]; wide?: boolean; i?: number }) {
   return (
     <Rise i={i} className={cn("pitch-spec", wide && "wide")}>

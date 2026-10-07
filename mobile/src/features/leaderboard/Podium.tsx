@@ -25,7 +25,7 @@ function Step({ spot, decimals, symbol }: { spot: Spot; decimals: number; symbol
       style={({ pressed }) => [styles.step, pressed && styles.pressed]}
     >
       {first ? (
-        <View style={[styles.crown, { backgroundColor: color.accent }]}>
+        <View style={[styles.crown, { backgroundColor: color.accentFill }]}>
           <Text style={[styles.crownText, { color: t.firstOrdInk }]}>{words.ordinals[1]}</Text>
         </View>
       ) : null}

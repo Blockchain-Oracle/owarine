@@ -75,7 +75,7 @@ function Hero({ data, nextExpirySec, nowMs, board, onBoard, span }: HeroProps) {
             <h1 className="lb-hero-title">
               {words.title[0]}
               <br />
-              <span className="vermilion">{words.title[1]}</span>
+              <span className="signal">{words.title[1]}</span>
               <br />
               {words.title[2]}
             </h1>

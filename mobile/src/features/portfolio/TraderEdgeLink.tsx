@@ -6,7 +6,7 @@ import { go } from "./go";
 
 /**
  * web `TraderEdgeLink` (trader-edge-link.css, the ≤640 px rules): its own dark or cream slab, radius 18, padding 23/21,
- * the vermilion edge bar at 45 % height, the 8 px mono eyebrow, the Sora title, and a full-width vermilion pill.
+ * the signal edge bar at 45 % height, the 8 px mono eyebrow, the Sora title, and a full-width signal pill.
  */
 export function TraderEdgeLink() {
   const t = usePortfolioTokens();
@@ -19,14 +19,14 @@ export function TraderEdgeLink() {
       style={({ pressed }) => [styles.link, { backgroundColor: t.teBg, borderColor: t.teRule }, pressed && styles.pressed]}
     >
       <View style={styles.edge} pointerEvents="none">
-        <View style={[styles.bar, { backgroundColor: t.vermilion }]} />
+        <View style={[styles.bar, { backgroundColor: t.signal }]} />
       </View>
       <View>
-        <Text style={[styles.eyebrow, { color: t.vermilion }]}>{words.eyebrow}</Text>
+        <Text style={[styles.eyebrow, { color: t.signal }]}>{words.eyebrow}</Text>
         <Text style={[styles.title, { color: t.teText }]}>{words.title}</Text>
         <Text style={[styles.copy, { color: t.teMute }]}>{words.copy}</Text>
       </View>
-      <View style={[styles.action, { backgroundColor: t.vermilion }]}>
+      <View style={[styles.action, { backgroundColor: t.signal }]}>
         <Text style={[styles.actionText, { color: t.teActionInk }]}>{words.action}</Text>
         <Text style={[styles.arrow, { color: t.teActionInk }]}>→</Text>
       </View>

@@ -68,10 +68,10 @@ export function CardSpark({ points, openingRaw }: { points: readonly ChartPoint[
             <Path d={shape.path} fill="none" stroke={shape.winning ? t.profit : t.loss} strokeWidth={1.25} strokeLinejoin="round" strokeLinecap="round" />
           </G>
         ) : null}
-        {strikeY !== null ? <Line x1={0} x2={width} y1={strikeY + 0.5} y2={strikeY + 0.5} stroke={t.vermilion} strokeWidth={1} strokeDasharray="3,3" /> : null}
+        {strikeY !== null ? <Line x1={0} x2={width} y1={strikeY + 0.5} y2={strikeY + 0.5} stroke={t.signal} strokeWidth={1} strokeDasharray="3,3" /> : null}
       </Svg>
       {strikeY !== null ? (
-        <Text style={[styles.tick, { top: strikeY - 7.4, color: t.vermilion, backgroundColor: t.strikeTickBg }]}>{LANE_CARD.line}</Text>
+        <Text style={[styles.tick, { top: strikeY - 7.4, color: t.signal, backgroundColor: t.strikeTickBg }]}>{LANE_CARD.line}</Text>
       ) : null}
     </View>
   );

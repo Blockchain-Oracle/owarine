@@ -6,7 +6,7 @@ import { useGamesTokens } from "./tokens";
 
 interface PlateProps {
   children: ReactNode;
-  /** `.gm-resume`: the vermilion-edged plate that offers a way back in. */
+  /** `.gm-resume`: the signal-edged plate that offers a way back in. */
   resume?: boolean;
   onPress?: () => void;
   accessibilityLabel?: string;
@@ -45,7 +45,7 @@ export function PlateMeta({ children, style }: TextProps) {
   return <Text style={[styles.meta, { color: color.inkMuted }, style]}>{children}</Text>;
 }
 
-/** `.gm-resume-cta`: mono 11, 0.06em, uppercase, vermilion, 4 px above. */
+/** `.gm-resume-cta`: mono 11, 0.06em, uppercase, signal, 4 px above. */
 export function ResumeCta({ children, style }: { children: string; style?: StyleProp<TextStyle> }) {
   const { color } = useGamesTokens();
   return <Text style={[styles.cta, { color: color.accent }, style]}>{children.toUpperCase()}</Text>;

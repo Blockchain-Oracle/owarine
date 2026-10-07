@@ -17,7 +17,7 @@ interface ReceiptProps {
 }
 
 /**
- * web's components/receipt `Receipt`: the cream stub (the only inverted surface and the only shadow) — the vermilion
+ * web's components/receipt `Receipt`: the cream stub (the only inverted surface and the only shadow) — the signal
  * bar, the micro title, the figure with its label and UTC time, the ledger rows, the perforated tear line with its two
  * notches in the ground, and the footer.
  */
@@ -27,7 +27,7 @@ export function Receipt({ title, figure, figureLabel, settledAtMs, footer, child
   return (
     <View style={[styles.shadow, { shadowColor: t.receiptShadow }]}>
       <View style={[styles.paper, { backgroundColor: color.cream }]}>
-        <View style={[styles.bar, { backgroundColor: color.accent }]} />
+        <View style={[styles.bar, { backgroundColor: color.accentFill }]} />
         <View style={styles.body}>
           <Text style={[styles.micro, { color: t.creamInk70 }]}>{title}</Text>
           <View style={styles.figureBlock}>

@@ -61,7 +61,7 @@ export function ParlayTicket(props: ParlayTicketProps) {
   const mode = (value: SolveMode, label: string) => {
     const on = solveMode === value;
     return (
-      <Pressable onPress={() => onSolveMode(value)} accessibilityRole="button" accessibilityState={{ selected: on }} style={[styles.mode, on ? { backgroundColor: t.vermilion15 } : null]}>
+      <Pressable onPress={() => onSolveMode(value)} accessibilityRole="button" accessibilityState={{ selected: on }} style={[styles.mode, on ? { backgroundColor: t.signal15 } : null]}>
         <Text style={[styles.modeText, { color: on ? color.accent : color.inkMuted }]}>{label}</Text>
       </Pressable>
     );
@@ -83,7 +83,7 @@ export function ParlayTicket(props: ParlayTicketProps) {
               <View style={styles.pays}>
                 <Text style={[styles.paysLabel, { color: color.inkDisabled }]}>{ticket.pays}</Text>
                 <View style={styles.paysX}>
-                  {quoteLoading ? <Spinner size={36} color={t.vermilion60} /> : <Text style={[styles.paysXText, { color: color.accent }]}>{quote ? formatMultiplier(quote.multiplierMilli) : "···"}</Text>}
+                  {quoteLoading ? <Spinner size={36} color={t.signal60} /> : <Text style={[styles.paysXText, { color: color.accent }]}>{quote ? formatMultiplier(quote.multiplierMilli) : "···"}</Text>}
                 </View>
                 {quote && !quoteLoading ? <Text style={[styles.paysSub, { color: color.inkMuted }]}>{ticket.combined(legs.length, formatProbPct(quote.combinedProbRaw, one))}</Text> : null}
               </View>

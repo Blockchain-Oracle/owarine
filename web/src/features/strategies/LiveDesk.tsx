@@ -37,7 +37,7 @@ export function LiveDesk({ payload, desk, nowMs, onManage, fees = null }: { payl
         </div>
         <div className="mt-6"><RecordCard record={card.record} decimals={decimals} symbol={symbol} /></div>
         <div className="desk-pulse mt-5">
-          <p className="desk-status text-vermilion">{COPY_STATE_LABEL[desk.state]}</p>
+          <p className="desk-status text-signal">{COPY_STATE_LABEL[desk.state]}</p>
           <StrategyActivity state={desk.state} grant={desk.grant} health={health} nowMs={nowMs} />
         </div>
         {desk.grant && <div className="desk-numbers mt-5">
@@ -71,10 +71,10 @@ function CreatorFees({ fees, decimals, symbol }: { fees: CreatorFeesModel; decim
         {last && (last.ok ? (
           <p className="desk-fine mt-2" role="status">
             {F.claimed(money(last.amountBase, decimals, symbol))}{" "}
-            {last.txHash && <a className="text-vermilion" href={txUrl(last.txHash, webEnv.markets.cluster)} target="_blank" rel="noopener noreferrer">{F.receipt}</a>}
+            {last.txHash && <a className="text-signal" href={txUrl(last.txHash, webEnv.markets.cluster)} target="_blank" rel="noopener noreferrer">{F.receipt}</a>}
           </p>
         ) : (
-          <p className="desk-fine mt-2 text-vermilion" role="alert">{F.failed(last.reason)}</p>
+          <p className="desk-fine mt-2 text-signal" role="alert">{F.failed(last.reason)}</p>
         ))}
       </div>
     </div>

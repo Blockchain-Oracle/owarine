@@ -24,7 +24,7 @@ export function ReadinessPlate({ readiness, closedLabel }: { readiness: "dealing
   );
 }
 
-/** `.pr-link` (and `--quiet`): a mono 10 uppercase text button, vermilion or gray-500. */
+/** `.pr-link` (and `--quiet`): a mono 10 uppercase text button, signal or gray-500. */
 export function PrLink({ label, onPress, quiet, disabled }: { label: string; onPress: () => void; quiet?: boolean; disabled?: boolean }) {
   const { color } = useStageTokens();
   return (

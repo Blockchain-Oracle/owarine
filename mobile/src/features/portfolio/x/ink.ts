@@ -3,7 +3,7 @@ import { usePortfolioTokens } from "~/components/portfolio/web";
 import { FONT } from "~/theme";
 import { usePlateInk } from "../usePlateInk";
 
-/** x-card.css `.xw` tokens: the plate's ink, muted ink, line and raised paper; vermilion, loss and mint fixed. */
+/** x-card.css `.xw` tokens: the plate's ink, muted ink, line and raised paper; signal, loss and mint fixed. */
 export function useXInk(standalone = false) {
   const ink = usePlateInk();
   const t = usePortfolioTokens();
@@ -13,7 +13,7 @@ export function useXInk(standalone = false) {
     line: standalone ? t.xFootLine : ink.line,
     paper: ink.raised,
     plate: ink.paper,
-    v: t.vermilion,
+    v: t.signal,
     vBorder: t.actionBorder,
     loss: t.xLoss,
     mint: t.xMint,

@@ -23,10 +23,10 @@
 }
 
 [data-theme="light"] .news-page {
-  --news-hairline: rgba(20, 18, 16, 0.12);
-  --news-rule: rgba(20, 18, 16, 0.08);
-  --news-hover: rgba(20, 18, 16, 0.03);
-  --news-bone: rgba(20, 18, 16, 0.06);
+  --news-hairline: rgba(16, 15, 15, 0.12);
+  --news-rule: rgba(16, 15, 15, 0.08);
+  --news-hover: rgba(16, 15, 15, 0.03);
+  --news-bone: rgba(16, 15, 15, 0.06);
 }
 
 /* max-w-5xl mx-auto */
@@ -43,15 +43,14 @@
   margin-bottom: 12px;
 }
 
-/* w-1.5 h-1.5 rounded-full bg-vermilion animate-pulse + boxShadow: 0 0 12px var(--vermilion) */
+/* w-1.5 h-1.5 rounded-full bg-signal animate-pulse + boxShadow: 0 0 12px var(--signal) */
 .news-live-dot {
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background: var(--vermilion);
-  box-shadow: 0 0 12px var(--vermilion);
-  animation: newsPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
+  background: var(--signal);
+  box-shadow: 0 0 12px var(--signal);
+  animation: newsPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; color: var(--on-signal); }
 
 @keyframes newsPulse {
   50% {
@@ -63,10 +62,9 @@
 .news-live-label {
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* font-display text-4xl md:text-5xl font-extrabold tracking-tight mb-2 */
 .news-title {
@@ -76,11 +74,10 @@
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.025em;
-  color: var(--white);
-}
+  color: var(--white); font-stretch: 125%; }
 
-.news-title .vermilion {
-  color: var(--vermilion);
+.news-title .signal {
+  color: var(--signal-ink);
 }
 
 @media (min-width: 768px) {
@@ -118,8 +115,7 @@
   margin-top: 64px;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--gray-600);
-}
+  color: var(--gray-600); font-variant-numeric: tabular-nums; }
 
 /* The tone: a dot in the sentiment's ink and its word (D-082 replaces the reference's bordered pill;
    the mono face, size and tracking are the pill's own: font-mono text-[9px] uppercase tracking-[0.14em]
@@ -131,11 +127,10 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .news-tone-dot {
   width: 6px;
@@ -157,21 +152,19 @@
 .news-meta {
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--gray-600);
-}
+  color: var(--gray-600); font-variant-numeric: tabular-nums; }
 
-/* font-mono text-[10px] text-gray-600 w-6 flex-shrink-0 · lead: text-vermilion */
+/* font-mono text-[10px] text-gray-600 w-6 flex-shrink-0 · lead: text-signal */
 .news-index {
   width: 24px;
   flex-shrink: 0;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--gray-600);
-}
+  color: var(--gray-600); font-variant-numeric: tabular-nums; }
 
 .news-index.accent {
   width: auto;
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* group block — plus the D-082 edge: 2 px in the tone's ink, hairline when neutral */
@@ -211,8 +204,7 @@
   line-height: 1.08;
   letter-spacing: -0.02em;
   color: var(--white);
-  transition: color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease); font-stretch: 125%; }
 
 @media (min-width: 640px) {
   .news-lead-title {
@@ -225,7 +217,7 @@
 }
 
 /* inline-block ml-3 text-gray-600 text-2xl sm:text-3xl align-middle
-   group-hover:text-vermilion group-hover:translate-x-1 transition-all */
+   group-hover:text-signal group-hover:translate-x-1 transition-all */
 .news-lead-arrow {
   display: inline-block;
   margin-left: 12px;
@@ -242,7 +234,7 @@
 }
 
 .news-lead-link:hover .news-lead-arrow {
-  color: var(--vermilion);
+  color: var(--signal-ink);
   transform: translateX(4px);
 }
 
@@ -266,12 +258,11 @@
   margin: 56px 0 8px;
 }
 
-/* w-2.5 h-2.5 bg-vermilion */
+/* w-2.5 h-2.5 bg-signal */
 .news-rule-end {
   width: 10px;
   height: 10px;
-  background: var(--vermilion);
-}
+  background: var(--signal); color: var(--on-signal); }
 
 /* flex-1 h-px bg-white/[0.12] */
 .news-rule-line {

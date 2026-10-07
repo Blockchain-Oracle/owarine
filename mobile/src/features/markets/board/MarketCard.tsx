@@ -104,7 +104,7 @@ export function MarketCard({ market, nowMs, selected = false, onSelect = openTic
         <Text style={[card.question, { color: t.ink }]}>
           {ask}{" "}
           {openingRaw === null ? <Text style={[card.strikeLoading, { color: t.gray600 }]}>···</Text> : `${assetPriceLine(asset, openingRaw)}?`}
-          {openingRaw !== null ? <View style={[card.strikeDot, { backgroundColor: t.vermilion }]} /> : null}
+          {openingRaw !== null ? <View style={[card.strikeDot, { backgroundColor: t.signal }]} /> : null}
         </Text>
 
         <View style={card.pricebar}>

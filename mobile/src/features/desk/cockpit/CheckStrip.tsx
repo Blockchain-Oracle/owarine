@@ -27,7 +27,7 @@ function CountdownRing({ fraction, children }: { fraction: number; children: str
 /** `.cp-tick`: an empty ring, filled with a tick once done (21st Onboarding Checklist #30552). */
 function Tick({ on }: { on: boolean }) {
   const { color } = useDeskTheme();
-  return <View style={[styles.tick, on ? { borderColor: color.accent, backgroundColor: color.accent } : { borderColor: color.hairline }]}>{on ? <Check size={12} strokeWidth={3} color={color.onAccent} /> : null}</View>;
+  return <View style={[styles.tick, on ? { borderColor: color.accent, backgroundColor: color.accentFill } : { borderColor: color.hairline }]}>{on ? <Check size={12} strokeWidth={3} color={color.onAccent} /> : null}</View>;
 }
 
 const upperFirst = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -70,7 +70,7 @@ export function CheckStrip({ view, zone, nowSec, onGoLive }: { view: DeskView; z
                 <Text style={[styles.itemLabel, { color: checksDone ? color.inkSecondary : color.ink }]}>{C.checksDone(practice.done, practice.needed)}</Text>
                 <View style={styles.segments}>
                   {Array.from({ length: practice.needed }, (_, i) => (
-                    <View key={i} style={[styles.segment, i < practice.done ? { backgroundColor: color.accent, boxShadow: `0 0 10px ${color.accentDim}` } : { backgroundColor: color.surface2 }]} />
+                    <View key={i} style={[styles.segment, i < practice.done ? { backgroundColor: color.accentFill, boxShadow: `0 0 10px ${color.accentDim}` } : { backgroundColor: color.surface2 }]} />
                   ))}
                 </View>
               </View>
@@ -94,7 +94,7 @@ export function CheckStrip({ view, zone, nowSec, onGoLive }: { view: DeskView; z
               disabled={!ready}
               accessibilityRole="button"
               accessibilityState={{ disabled: !ready }}
-              style={[styles.goLive, practice.ready ? { borderColor: color.accent, backgroundColor: color.accent } : { borderColor: color.hairline, borderStyle: "dashed" }]}
+              style={[styles.goLive, practice.ready ? { borderColor: color.accent, backgroundColor: color.accentFill } : { borderColor: color.hairline, borderStyle: "dashed" }]}
             >
               {practice.ready ? <LockOpen size={15} color={color.onAccent} /> : <Lock size={15} color={color.inkMuted} />}
               <Text style={[styles.goLiveText, { color: practice.ready ? color.onAccent : color.inkMuted }]}>{C.goLive}</Text>

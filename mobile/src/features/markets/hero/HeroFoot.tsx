@@ -51,7 +51,7 @@ export function LiveFoot({ book, asset, currentRaw, onOpenRoom }: { book: TopOfB
         <View style={[styles.bar, { backgroundColor: mk.rampBar }]}>
           {cents !== null ? <LinearGradient colors={[mk.rampFrom, mk.rampTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.fill, { width: `${cents}%` }]} /> : null}
         </View>
-        <Text style={[mkType.foot, { color: mk.vermilion }]}>{cents === null ? HERO_HEAD.noPrice : `${cents}¢`}</Text>
+        <Text style={[mkType.foot, { color: mk.signal }]}>{cents === null ? HERO_HEAD.noPrice : `${cents}¢`}</Text>
       </View>
     </FootBand>
   );

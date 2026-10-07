@@ -16,7 +16,7 @@
 }
 
 [data-theme="light"] .alerts-dir-btn.alerts-basis.on {
-  background: rgba(20, 18, 16, 0.05);
-  border-color: rgba(20, 18, 16, 0.3);
-  color: #141210;
+  background: rgba(16, 15, 15, 0.05);
+  border-color: rgba(16, 15, 15, 0.3);
+  color: #100F0F;
 }

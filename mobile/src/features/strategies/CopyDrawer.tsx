@@ -86,7 +86,7 @@ export function CopyDrawer({ card, sub, grant, readable, writes, availableBase, 
                       accessibilityRole="tab"
                       accessibilityState={{ selected: on }}
                       onPress={() => setTab(key)}
-                      style={[styles.tab, on ? { borderColor: t.vermilion, backgroundColor: t.vermilionA(0.07) } : { borderColor: color.hairline }]}
+                      style={[styles.tab, on ? { borderColor: t.signal, backgroundColor: t.signalA(0.07) } : { borderColor: color.hairline }]}
                     >
                       <Text style={[styles.tabText, { color: on ? color.ink : color.inkSecondary }]}>
                         {key === "decisions" ? `${T.decisions} · ${card.agent?.decisions.length ?? 0}` : key === "playbook" ? T.playbook : sub ? T.manage : T.copy}

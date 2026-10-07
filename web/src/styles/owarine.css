@@ -1,0 +1,31 @@
+/* Owarine brand layer (K-402), loaded last.
+ *
+ * Reference lock: Empower's night canvas, one electric signal used as a FILL (primary action, the live state, the
+ * call that came in), pill buttons, 24px cards; Turf's call pills and scoreboard numerals; Fey's slate secondary
+ * text and tabular figures. One family, Mona Sans, carries every role through its width axis (expanded headings and
+ * labels, normal body and figures, condensed scoreboard numerals). The palette itself lives in yosuku/part-01.css
+ * (dark) and part-13.css (light); this file only adds what the old system had no slot for. */
+
+:root {
+  --radius-card: 24px;
+  --radius-module: 16px;
+  --radius-pill: 999px;
+}
+
+/* Faces by role. `font-stretch` drives Mona Sans's width axis. */
+body { font-optical-sizing: auto; }
+.font-display, .type-display, .type-headline { font-stretch: 125%; }
+.font-mono, .numbers, .tabular { font-variant-numeric: tabular-nums; }
+code, kbd, pre, samp, .font-code { font-family: var(--font-code), ui-monospace, monospace; font-stretch: normal; }
+
+/* The signal is a fill. On paper, text that asks for it reads in ink with a highlighter stroke behind it: the
+ * closing number marked, which is what the name means. */
+[data-theme="light"] [class*="text-signal"] { color: var(--signal-ink); }
+[data-theme="light"] :is(span, strong, b, em, a, mark, small)[class*="text-signal"] {
+  background-image: linear-gradient(transparent 56%, color-mix(in srgb, var(--signal) 88%, transparent) 56%, color-mix(in srgb, var(--signal) 88%, transparent) 94%, transparent 94%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+::selection { background: var(--signal); color: var(--on-signal); }
+:where(a, button, input, textarea, select, [tabindex]):focus-visible { outline-color: var(--signal-ink); }

@@ -65,7 +65,7 @@ export function AccountGate({ session, availableBase, stakeBase, depositBase, de
       ) : null}
       {short ? (
         <View style={[styles.gate, { borderColor: tk.warnBorder, backgroundColor: tk.warnBg }]} accessibilityRole="alert">
-          <Text style={[styles.eyebrow, { color: tk.vermilion }]}>{TICKET.gate.topUp}</Text>
+          <Text style={[styles.eyebrow, { color: tk.signal }]}>{TICKET.gate.topUp}</Text>
           <Text style={[styles.line, { color: tk.gateLine }]}>
             {TICKET.gate.holds(formatBaseUnits(availableBase ?? 0n, decimals), symbol, balanceLabel)}
             {tail}

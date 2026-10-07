@@ -20,7 +20,7 @@ const FLICKER = [0.03, 0.08, 0.02, 0.1, 0.04, 0.07, 0.03, 0.09, 0.04, 0.06];
 
 /**
  * stage.css `.st-art.crt-screen`: a 132 px window with a screw in each corner, a glass gleam at 28 % / 22 %, an edge
- * vignette, 2 px scanlines and a flicker (still when motion is reduced). The coin rests there with a vermilion glow;
+ * vignette, 2 px scanlines and a flicker (still when motion is reduced). The coin rests there with a signal glow;
  * the bull takes its place on an upward lean and the bear on a downward one, grown and tilted in the side's colour.
  */
 export function ArtWindow() {

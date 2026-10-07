@@ -48,7 +48,7 @@ export function PriceControl({ priceCents, onChange, side, symbol }: { priceCent
           onBlur={() => setText(String(priceCents))}
           keyboardType="number-pad"
           autoComplete="off"
-          selectionColor={tk.vermilion}
+          selectionColor={tk.signal}
           accessibilityLabel={PREOPEN.ticket.priceAria(side ? SIDE_WORD[side] : "")}
           style={[styles.input, { color: tk.ink }]}
         />

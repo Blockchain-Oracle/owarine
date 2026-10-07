@@ -3,7 +3,7 @@
 /* /demo — ported from reference/yosuku/app/demo/page.tsx.
  *
  * The reference writes the page as inline Tailwind arbitrary values on a page that
- * draws its own near-black ground (`bg-[#08080b]`) outside the app shell. Two things
+ * draws its own near-black ground (`bg-[#0a0909]`) outside the app shell. Two things
  * change here: the values live in this file with the source utility named above each
  * rule (`design-literals` bans hex and px in TSX), and the page sits inside the shell
  * with a ground that follows the theme — the user's 2026-09-01 ruling that a surface
@@ -22,30 +22,30 @@
   --demo-hair-30: rgba(255, 255, 255, 0.3);
   --demo-wash: rgba(255, 255, 255, 0.04);
   --demo-frame-shadow: 0 40px 120px -40px rgba(0, 0, 0, 0.9);
-  /* bg-[#08080b] text-white — the page ground, following the theme here. */
+  /* bg-[#0a0909] text-white — the page ground, following the theme here. */
   background: var(--bg);
   color: var(--white);
 }
 
 [data-theme="light"] .demo-page {
-  --demo-hair-06: rgba(20, 18, 16, 0.07);
-  --demo-hair-08: rgba(20, 18, 16, 0.11);
-  --demo-hair-10: rgba(20, 18, 16, 0.11);
-  --demo-hair-15: rgba(20, 18, 16, 0.16);
-  --demo-hair-30: rgba(20, 18, 16, 0.22);
-  --demo-wash: rgba(20, 18, 16, 0.03);
-  --demo-frame-shadow: 0 40px 120px -50px rgba(80, 45, 24, 0.5);
+  --demo-hair-06: rgba(16, 15, 15, 0.07);
+  --demo-hair-08: rgba(16, 15, 15, 0.11);
+  --demo-hair-10: rgba(16, 15, 15, 0.11);
+  --demo-hair-15: rgba(16, 15, 15, 0.16);
+  --demo-hair-30: rgba(16, 15, 15, 0.22);
+  --demo-wash: rgba(16, 15, 15, 0.03);
+  --demo-frame-shadow: 0 40px 120px -50px rgba(114, 113, 34, 0.5);
 }
 
-/* selection:bg-vermilion selection:text-white */
+/* selection:bg-signal selection:text-white */
 .demo-page ::selection {
-  background: var(--vermilion);
-  color: #fff;
+  background: var(--signal);
+  color: var(--on-signal);
 }
 
 /* ── the sticky bar ── */
 
-/* sticky top-0 z-50 backdrop-blur bg-[#08080b]/70 border-b border-white/[0.06]
+/* sticky top-0 z-50 backdrop-blur bg-[#0a0909]/70 border-b border-white/[0.06]
    Sticks under the fixed chrome (app strip + marquee + header), the same offsets
    styles/shell.css reserves for the page. */
 .demo-bar {
@@ -81,16 +81,14 @@
   font-size: 14px;
   font-weight: 800;
   letter-spacing: 0.18em;
-  white-space: nowrap;
-}
+  white-space: nowrap; font-stretch: 125%; }
 
 /* text-gray-500 font-mono font-normal tracking-normal */
 .demo-brand-sub {
   font-family: var(--font-mono);
   font-weight: 400;
   letter-spacing: normal;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 /* flex items-center gap-4 font-mono text-[12px] */
 .demo-bar-links {
@@ -98,8 +96,7 @@
   align-items: center;
   gap: 16px;
   font-family: var(--font-mono);
-  font-size: 12px;
-}
+  font-size: 12px; font-variant-numeric: tabular-nums; }
 
 /* text-gray-400 hover:text-white transition-colors (+ inline-flex gap-1.5 for the stats link) */
 .demo-bar-link {
@@ -114,12 +111,12 @@
   color: var(--white);
 }
 
-/* inline-flex items-center gap-1.5 text-vermilion hover:gap-2.5 transition-all */
+/* inline-flex items-center gap-1.5 text-signal hover:gap-2.5 transition-all */
 .demo-bar-open {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--vermilion);
+  color: var(--signal-ink);
   transition: gap 200ms var(--ease);
 }
 
@@ -155,14 +152,13 @@
   padding: 48px 24px 64px;
 }
 
-/* font-mono text-[11px] tracking-[0.34em] text-vermilion/80 uppercase */
+/* font-mono text-[11px] tracking-[0.34em] text-signal/80 uppercase */
 .demo-eyebrow {
   font-family: var(--font-mono);
   font-size: 11px;
-  letter-spacing: 0.34em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--vermilion) 80%, transparent);
-}
+  color: color-mix(in srgb, var(--signal-ink) 80%, transparent); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* mt-5 mb-2 font-display font-[800] tracking-tight text-[clamp(2.2rem,5vw,4rem)] leading-[0.95] */
 .demo-h1 {
@@ -171,25 +167,23 @@
   font-size: clamp(2.2rem, 5vw, 4rem);
   font-weight: 800;
   line-height: 0.95;
-  letter-spacing: -0.025em;
-}
+  letter-spacing: -0.025em; font-stretch: 125%; }
 
-/* font-jp italic text-vermilion */
+/* font-jp italic text-signal */
 .demo-serif {
   font-family: var(--font-jp);
   font-style: italic;
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
-/* mb-3 font-mono text-[12px] tracking-widest uppercase text-vermilion */
+/* mb-3 font-mono text-[12px] tracking-widest uppercase text-signal */
 .demo-video-label {
   margin-bottom: 12px;
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* relative rounded-2xl overflow-hidden border border-white/10
    shadow-[0_40px_120px_-40px_rgba(0,0,0,0.9)] + style={{ aspectRatio: '16 / 9' }} */
@@ -207,8 +201,8 @@
 
 /* Keep YouTube's controls usable even when a narrow viewport is shorter than 16:9. */
 .demo-video-figure { margin: 0; min-width: 0; }
-.demo-video-figure .demo-video { display: block; width: 100%; max-width: 100%; height: auto; min-height: 200px; background: #050505; }
-.demo-video-figure .demo-video:focus-visible { outline: 3px solid var(--vermilion); outline-offset: 4px; }
+.demo-video-figure .demo-video { display: block; width: 100%; max-width: 100%; height: auto; min-height: 200px; background: #100F0F; }
+.demo-video-figure .demo-video:focus-visible { outline: 3px solid var(--signal-ink); outline-offset: 4px; }
 .demo-video-caption { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; color: var(--gray-400); font-size: 13px; line-height: 1.5; }
 .demo-video-caption a { min-height: 44px; display: inline-flex; align-items: center; color: var(--white); text-decoration: underline; text-underline-offset: 3px; }
 .demo-video-caption span { align-self: center; }
@@ -230,7 +224,7 @@
   margin-top: 36px;
 }
 
-/* inline-flex items-center gap-2 bg-vermilion hover:bg-vermilion-d transition-colors
+/* inline-flex items-center gap-2 bg-signal hover:bg-signal-d transition-colors
    rounded-full px-5 py-3 font-display font-bold text-sm */
 .demo-cta {
   display: inline-flex;
@@ -239,17 +233,16 @@
   border: 1px solid transparent;
   border-radius: 9999px;
   padding: 12px 20px;
-  background: var(--vermilion);
+  background: var(--signal);
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 700;
-  /* On vermilion in both themes. */
-  color: #fff;
-  transition: background-color 200ms var(--ease), border-color 200ms var(--ease);
-}
+  /* On signal in both themes. */
+  color: var(--on-signal);
+  transition: background-color 200ms var(--ease), border-color 200ms var(--ease); font-stretch: 125%; }
 
 .demo-cta:hover {
-  background: var(--vermilion-d);
+  background: var(--signal-d);
 }
 
 /* border border-white/15 hover:border-white/30 (the secondary buttons) */
@@ -283,12 +276,11 @@
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.025em;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
-/* text-vermilion/50 */
+/* text-signal/50 */
 .demo-traction-dot {
-  color: color-mix(in srgb, var(--vermilion) 50%, transparent);
+  color: color-mix(in srgb, var(--signal-ink) 50%, transparent);
 }
 
 /* ── motion ── */

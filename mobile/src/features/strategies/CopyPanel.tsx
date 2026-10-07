@@ -51,15 +51,15 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
   const withdrawable = availableBase + (ownGrant?.budgetBase ?? 0n);
   const cash = (base: bigint) => money(base, decimals, symbol);
   const body = [ST.drawerBody, { color: t.ink(0.7) }];
-  const box = [styles.progress, { borderColor: t.vermilion }];
-  const errorBox = [styles.errorBox, { borderLeftColor: t.vermilion }];
+  const box = [styles.progress, { borderColor: t.signal }];
+  const errorBox = [styles.errorBox, { borderLeftColor: t.signal }];
   const summary = [ST.meta, { color: color.ink }];
   const confirmLabel = writes.busy === "join" ? "Checking seat steps…" : pending ? "Check and finish subscription" : state === "copying" ? "Update budget and limits" : sub ? "Resume with these limits" : s.fade ? "Fund permission and fade" : "Fund permission and copy";
   const caps = s.caps;
 
   return (
     <View>
-      <View style={[styles.rule, { borderLeftColor: t.vermilion }]}>
+      <View style={[styles.rule, { borderLeftColor: t.signal }]}>
         {state === "copying" ? (
           <View style={[styles.you, { borderColor: t.profitBorder, backgroundColor: color.profitWash }]}>
             <View style={[styles.youDot, { backgroundColor: color.profit }]} />
@@ -105,10 +105,10 @@ export function CopyPanel({ card, sub, grant, setup, writes, availableBase, deci
                   {[false, true].map((option) => {
                     const on = s.fade === option;
                     const off = disabled || s.directionLocked;
-                    const tone = on ? (option ? { borderColor: color.loss, backgroundColor: color.lossWash } : { borderColor: t.vermilionA(0.6), backgroundColor: t.vermilionA(0.1) }) : { borderColor: t.directionBorder };
+                    const tone = on ? (option ? { borderColor: color.loss, backgroundColor: color.lossWash } : { borderColor: t.signalA(0.6), backgroundColor: t.signalA(0.1) }) : { borderColor: t.directionBorder };
                     return (
                       <Pressable key={option ? "fade" : "copy"} accessibilityRole="radio" accessibilityState={{ checked: on, disabled: off }} disabled={off} onPress={() => s.setFade(option)} style={[styles.pill, tone, off && styles.faded]}>
-                        <Text style={[ST.mono11, styles.pillText, { color: on ? (option ? color.loss : t.vermilion) : t.directionInk }]}>{option ? STRATEGY_DIRECTION.fade : STRATEGY_DIRECTION.copy}</Text>
+                        <Text style={[ST.mono11, styles.pillText, { color: on ? (option ? color.loss : t.signal) : t.directionInk }]}>{option ? STRATEGY_DIRECTION.fade : STRATEGY_DIRECTION.copy}</Text>
                       </Pressable>
                     );
                   })}

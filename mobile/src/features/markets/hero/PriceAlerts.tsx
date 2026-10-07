@@ -15,7 +15,7 @@ import { mkType, useMk } from "./mk";
 const defaultTarget = (asset: string, raw: bigint): string => assetPriceLine(asset, raw).replace(/[$,]/g, "").replace(/ pts$/, "");
 
 /**
- * web's PriceAlertsButton in the hero foot: the bell in the foot's own grammar (mono 9 px caps; vermilion with the
+ * web's PriceAlertsButton in the hero foot: the bell in the foot's own grammar (mono 9 px caps; signal with the
  * count once this asset has rules) and its popover opening upward over the chart — the basis row, Above / Below, the
  * target defaulting to the live price with its +, the active list and where a rule fires.
  */
@@ -70,8 +70,8 @@ export function PriceAlerts({ asset, currentRaw }: { asset: string; currentRaw: 
         hitSlop={10}
         style={styles.button}
       >
-        <Bell size={12} color={armed ? mk.vermilion : mk.footAction} strokeWidth={2} />
-        <Text style={[mkType.action, { color: armed ? mk.vermilion : mk.footAction }]}>{armed ? mine.length : ALERTS.button}</Text>
+        <Bell size={12} color={armed ? mk.signal : mk.footAction} strokeWidth={2} />
+        <Text style={[mkType.action, { color: armed ? mk.signal : mk.footAction }]}>{armed ? mine.length : ALERTS.button}</Text>
       </Pressable>
 
       {open ? (
@@ -119,7 +119,7 @@ export function PriceAlerts({ asset, currentRaw }: { asset: string; currentRaw: 
                 style={[styles.input, { backgroundColor: mk.inputBg, borderColor: mk.inputBorder, color: mk.ink }]}
               />
               <Pressable onPress={() => void add()} accessibilityRole="button" accessibilityLabel={ALERTS.add} style={[styles.plus, { backgroundColor: mk.plusBg }]}>
-                <Plus size={14} color={mk.vermilion} />
+                <Plus size={14} color={mk.signal} />
               </Pressable>
             </View>
           </View>

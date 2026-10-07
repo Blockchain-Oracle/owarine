@@ -11,7 +11,7 @@ interface Props {
 /**
  * web's VerdictStamp: the kanji (Noto Serif JP, 64 hero / 28 compact) pressed at web's -4° `stamp-press`, with romaji
  * and translation always beneath, so the verdict never depends on reading Japanese or on colour. Colour law
- * (tokens.css --verdict-stamp-*): vermilion for the win alone, a loss in secondary ink, a void muted.
+ * (tokens.css --verdict-stamp-*): signal for the win alone, a loss in secondary ink, a void muted.
  */
 export function VerdictStamp({ outcome, size = "hero" }: Props) {
   const { color } = useTheme();

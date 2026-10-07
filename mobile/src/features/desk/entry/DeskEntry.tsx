@@ -28,7 +28,7 @@ function Cta({ label, primary, onPress }: { label: string; primary?: boolean; on
     <Pressable
       onPress={onPress}
       accessibilityRole="link"
-      style={({ pressed }) => [styles.cta, primary ? { backgroundColor: color.accent, borderColor: color.accent } : { borderColor: pressed ? color.ink : color.hairline }]}
+      style={({ pressed }) => [styles.cta, primary ? { backgroundColor: color.accentFill, borderColor: color.accent } : { borderColor: pressed ? color.ink : color.hairline }]}
     >
       <Text style={[styles.ctaText, { color: ink }]}>{label}</Text>
       {primary ? <ArrowRight size={16} color={ink} /> : null}

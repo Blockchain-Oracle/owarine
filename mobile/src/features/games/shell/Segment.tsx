@@ -7,12 +7,12 @@ import { Press } from "../frame/Press";
 import { useGamesTokens } from "../frame/tokens";
 
 /**
- * games.css `.gm-seg-btn`: a pill radio (Inter 12, 7 × 12 padding), vermilion-washed when on. An accent choice
+ * games.css `.gm-seg-btn`: a pill radio (Inter 12, 7 × 12 padding), signal-washed when on. An accent choice
  * carries its 12 px `.gm-seg-swatch`; `default` (the address's own hue) is the three-way 135° split.
  */
 export function Segment({ label, on, onPress, accent }: { label: string; on: boolean; onPress: () => void; accent?: AccentChoice }) {
   const { t, color } = useGamesTokens();
-  const swatch = accent === "vermilion" ? color.accent : accent === "up" ? color.profit : accent === "down" ? color.loss : color.inkMuted;
+  const swatch = accent === "signal" ? color.accent : accent === "up" ? color.profit : accent === "down" ? color.loss : color.inkMuted;
   return (
     <Press
       onPress={onPress}

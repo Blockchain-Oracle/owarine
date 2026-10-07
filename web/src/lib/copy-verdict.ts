@@ -45,7 +45,7 @@ export const VERDICT_UI = {
   devTitle: "Verdict moment",
   devEyebrow: "?m=<marketId> stamps a live window for your seat",
   fixtures: {
-    win: "Win — 正夢 in vermilion; the P&L figure is the only green",
+    win: "Win — 正夢 in signal; the P&L figure is the only green",
     loss: "Loss — 逆夢 in neutral ink; a fact, not a scare",
     void: "Void — 無効; no reliable print, both sides get their stake and fee back",
     both: "Both sides held — one card, net P&L, both legs listed",

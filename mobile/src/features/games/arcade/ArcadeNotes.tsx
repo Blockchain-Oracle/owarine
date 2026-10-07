@@ -49,7 +49,7 @@ export function CalmSwitch({ calm, disabled, onChange }: { calm: boolean; disabl
       accessibilityState={{ checked: calm, disabled }}
       style={[NOTE.note, styles.calm, { backgroundColor: t.cardBg, borderColor: t.cardBorder }]}
     >
-      <View style={[styles.box, calm ? { backgroundColor: color.accent, borderColor: color.accent } : { backgroundColor: a.boxFill, borderColor: a.boxBorder }, disabled && styles.off]}>
+      <View style={[styles.box, calm ? { backgroundColor: color.accentFill, borderColor: color.accent } : { backgroundColor: a.boxFill, borderColor: a.boxBorder }, disabled && styles.off]}>
         {calm ? <Check size={10} color={a.boxTick} strokeWidth={4} /> : null}
       </View>
       <View style={styles.calmText}>

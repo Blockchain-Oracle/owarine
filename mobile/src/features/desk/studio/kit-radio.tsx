@@ -30,7 +30,7 @@ export function RadioCards<T extends string>({ value, onChange, items, label }: 
             style={[styles.card, { backgroundColor: color.surface1, borderColor: on ? color.accent : color.hairline }, on && styles.checked]}
           >
             {on ? <Wash id={`rc-${item.value}`} kind="top" color={color.accentWash} fade={0.7} /> : null}
-            <View style={[styles.dot, { borderColor: on ? color.accent : color.inkMuted }]}>{on ? <View style={[styles.dotOn, { backgroundColor: color.accent }]} /> : null}</View>
+            <View style={[styles.dot, { borderColor: on ? color.accent : color.inkMuted }]}>{on ? <View style={[styles.dotOn, { backgroundColor: color.accentFill }]} /> : null}</View>
             {item.media ? <View style={styles.media}>{item.media}</View> : null}
             {typeof item.title === "string" ? <Text style={[styles.title, { color: color.ink }]}>{item.title}</Text> : item.title}
             {item.body ? typeof item.body === "string" ? <Text style={[styles.body, { color: color.inkSecondary }]}>{item.body}</Text> : item.body : null}

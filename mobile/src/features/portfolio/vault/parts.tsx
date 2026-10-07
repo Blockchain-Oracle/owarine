@@ -13,7 +13,7 @@ export function VaultButton({ label, kind, disabled, onPress, grow }: { label: s
   const ink = usePlateInk();
   const t = usePortfolioTokens();
   const look = {
-    primary: disabled ? { bg: ink.raised, border: t.vInk18, fg: ink.mute, dashed: false } : { bg: color.accent, border: color.accent, fg: color.onAccent, dashed: false },
+    primary: disabled ? { bg: ink.raised, border: t.vInk18, fg: ink.mute, dashed: false } : { bg: color.accentFill, border: color.accent, fg: color.onAccent, dashed: false },
     outline: disabled ? { bg: "transparent", border: t.vInk22, fg: ink.mute, dashed: true } : { bg: "transparent", border: t.vInk45, fg: ink.ink, dashed: false },
     private: disabled ? { bg: "transparent", border: t.vProfit30, fg: t.vProfit55, dashed: true } : { bg: color.profitWash, border: t.vProfit60, fg: color.profit, dashed: false },
   }[kind];
@@ -77,14 +77,14 @@ export function AmountField({ value, onChange, decimals, symbol, maxBase, label 
   );
 }
 
-/** web `VaultCells` Cell: an 8 px mono caption over a 14 px mono figure, vermilion while in play. */
+/** web `VaultCells` Cell: an 8 px mono caption over a 14 px mono figure, signal while in play. */
 export function Cell({ label, value, note, live }: { label: string; value: string; note?: string; live?: boolean }) {
   const ink = usePlateInk();
   const t = usePortfolioTokens();
   return (
     <View style={styles.cell} accessible accessibilityLabel={`${label}: ${value}`}>
       <Text style={[styles.eyebrow, { color: ink.mute }]}>{label}</Text>
-      <Text style={[styles.cellValue, { color: live ? t.vermilion : ink.ink }]}>{value}</Text>
+      <Text style={[styles.cellValue, { color: live ? t.signal : ink.ink }]}>{value}</Text>
       {note ? <Text style={[styles.caption, { color: ink.mute }]}>{note}</Text> : null}
     </View>
   );

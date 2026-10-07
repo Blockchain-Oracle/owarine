@@ -117,7 +117,7 @@
   margin-top: 6px;
 }
 
-/* `$TSLA $NVDA` after the source: mono, quiet, vermilion on hover */
+/* `$TSLA $NVDA` after the source: mono, quiet, signal on hover */
 .news-cashtags {
   display: inline-flex;
   flex-wrap: wrap;
@@ -129,12 +129,11 @@
   font-size: 10px;
   letter-spacing: 0.08em;
   color: var(--gray-500);
-  transition: color 150ms var(--ease);
-}
+  transition: color 150ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .news-cashtag:hover,
 .news-cashtag:focus-visible {
-  color: var(--vermilion);
+  color: var(--signal-ink);
   outline: none;
 }
 
@@ -143,18 +142,17 @@
   padding-top: 6px;
 }
 
-/* font-mono text-xs text-gray-700 group-hover:text-vermilion flex-shrink-0 */
+/* font-mono text-xs text-gray-700 group-hover:text-signal flex-shrink-0 */
 .news-row-arrow {
   grid-area: arrow;
   padding-top: 5px;
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--gray-700);
-  transition: color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .news-row:hover .news-row-arrow {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* A phone: the title spans every column to the row's edge, and the tone and the arrow drop to the meta row,

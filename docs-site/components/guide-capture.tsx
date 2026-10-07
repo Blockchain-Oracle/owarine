@@ -16,14 +16,14 @@ export function GuideCapture({ name, caption }: { name: CaptureName; caption?: s
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={src} alt={capture.alt} loading="lazy" />
     {annotations.length > 0 && <svg className="guide-annotations" viewBox="0 0 1130 798" aria-hidden="true">
-      <defs><marker id={arrowId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#c23f1c" /></marker></defs>
+      <defs><marker id={arrowId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#dfdc2b" /></marker></defs>
       {annotations.map((item, index) => {
         const x = item.x * 11.3, y = item.y * 7.98, toX = item.toX * 11.3, toY = item.toY * 7.98;
         const path = `M${x} ${y} Q${(x + toX) / 2} ${y} ${toX} ${toY}`;
         return <g key={`${index}-${item.label}`}>
-          <path d={path} fill="none" stroke="#fffaf2" strokeWidth="8" />
-          <path d={path} fill="none" stroke="#c23f1c" strokeWidth="3.5" markerEnd={`url(#${arrowId})`} />
-          <circle cx={x} cy={y} r="19" fill="#c23f1c" stroke="#fffaf2" strokeWidth="3" />
+          <path d={path} fill="none" stroke="#fafaf7" strokeWidth="8" />
+          <path d={path} fill="none" stroke="#dfdc2b" strokeWidth="3.5" markerEnd={`url(#${arrowId})`} />
+          <circle cx={x} cy={y} r="19" fill="#dfdc2b" stroke="#fafaf7" strokeWidth="3" />
           <text x={x} y={y + 7} textAnchor="middle" fill="white" fontSize="21" fontFamily="sans-serif" fontWeight="700">{index + 1}</text>
         </g>;
       })}

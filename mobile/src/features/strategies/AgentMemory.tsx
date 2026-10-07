@@ -30,7 +30,7 @@ function MemoryRow({ d, nowMs, onOpen }: { d: DecisionWire; nowMs: number; onOpe
         </Text>
         <View style={styles.rowRight}>
           {d.outcome ? <Text style={[ST.mono10, styles.outcome, { color: outcomeInk }]}>{M.outcome[d.outcome]}</Text> : null}
-          <Text style={[ST.mono10, { color: t.vermilion }]}>→</Text>
+          <Text style={[ST.mono10, { color: t.signal }]}>→</Text>
         </View>
       </View>
       <View style={styles.callLine}>
@@ -56,7 +56,7 @@ export function AgentMemory({ agent, agentName, storeConnected, decimals, symbol
   const [openId, setOpenId] = useState<string | null>(null);
   const open = agent.decisions.find((d) => d.marketId === openId) ?? null;
   return (
-    <View style={[styles.box, { borderColor: t.vermilionA(0.3) }]}>
+    <View style={[styles.box, { borderColor: t.signalA(0.3) }]}>
       <Text style={[ST.meta, styles.eyebrow, { color: color.accent }]}>{M.eyebrow}</Text>
       <Text style={[ST.drawerBody, { color: t.ink(0.7) }]}>{M.body}</Text>
       <Text numberOfLines={1} style={[ST.mono10, styles.mt6, { color: t.ink(0.4) }]}>

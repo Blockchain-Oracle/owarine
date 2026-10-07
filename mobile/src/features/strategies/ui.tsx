@@ -59,14 +59,14 @@ export function DeskPill({ label, onPress, disabled, on, style }: PressProps & {
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      style={[styles.pill, { borderColor: on ? t.vermilionA(0.6) : t.ink(0.15), opacity: disabled ? 0.45 : 1 }, style]}
+      style={[styles.pill, { borderColor: on ? t.signalA(0.6) : t.ink(0.15), opacity: disabled ? 0.45 : 1 }, style]}
     >
-      <Text style={[ST.mono11, styles.pillText, { color: on ? t.vermilion : t.gray300 }]}>{label}</Text>
+      <Text style={[ST.mono11, styles.pillText, { color: on ? t.signal : t.gray300 }]}>{label}</Text>
     </Pressable>
   );
 }
 
-/** `.desk-btn-primary`: the vermilion pill; `blocked` is copy-form.css's aria-disabled look that still takes the press. */
+/** `.desk-btn-primary`: the signal pill; `blocked` is copy-form.css's aria-disabled look that still takes the press. */
 export function PrimaryButton({ label, onPress, disabled, blocked, block, style }: PressProps & { blocked?: boolean; block?: boolean }) {
   const { t } = useStrat();
   return (
@@ -78,7 +78,7 @@ export function PrimaryButton({ label, onPress, disabled, blocked, block, style 
       style={({ pressed }) => [
         styles.primary,
         block ? styles.block : styles.shrink,
-        { backgroundColor: pressed ? t.vermilionD : t.vermilion, opacity: disabled ? 0.45 : blocked ? 0.55 : 1 },
+        { backgroundColor: pressed ? t.signalD : t.signal, opacity: disabled ? 0.45 : blocked ? 0.55 : 1 },
         style,
       ]}
     >
@@ -96,14 +96,14 @@ export function Confirm({ label, onPress, disabled, live, style }: PressProps & 
       disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ disabled: Boolean(disabled) }}
-      style={[styles.confirm, live ? { backgroundColor: t.vermilion, boxShadow: t.confirmShadow } : { backgroundColor: t.ink(0.07) }, style]}
+      style={[styles.confirm, live ? { backgroundColor: t.signal, boxShadow: t.confirmShadow } : { backgroundColor: t.ink(0.07) }, style]}
     >
       <Text style={[styles.confirmText, { color: live ? t.onAccent : color.inkSecondary }]}>{label}</Text>
     </Pressable>
   );
 }
 
-/** `.strat-sensei`: the vermilion-wash rounded link button. */
+/** `.strat-sensei`: the signal-wash rounded link button. */
 export function Sensei({ label, onPress, disabled, style }: PressProps) {
   const { t } = useStrat();
   return (
@@ -111,9 +111,9 @@ export function Sensei({ label, onPress, disabled, style }: PressProps) {
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
-      style={[styles.sensei, { borderColor: t.vermilionA(0.4), backgroundColor: t.vermilionA(0.07), opacity: disabled ? 0.5 : 1 }, style]}
+      style={[styles.sensei, { borderColor: t.signalA(0.4), backgroundColor: t.signalA(0.07), opacity: disabled ? 0.5 : 1 }, style]}
     >
-      <Text style={[styles.senseiText, { color: t.vermilion }]}>{label}</Text>
+      <Text style={[styles.senseiText, { color: t.signal }]}>{label}</Text>
     </Pressable>
   );
 }

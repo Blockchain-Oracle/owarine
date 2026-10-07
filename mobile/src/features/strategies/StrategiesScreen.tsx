@@ -58,7 +58,7 @@ export function StrategiesScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
                 onPress={() => setView(key)}
-                style={[styles.entryButton, on ? { borderColor: t.vermilion, backgroundColor: t.vermilionA(0.07) } : { borderColor: color.hairline }]}
+                style={[styles.entryButton, on ? { borderColor: t.signal, backgroundColor: t.signalA(0.07) } : { borderColor: color.hairline }]}
               >
                 <Text style={[styles.entryText, { color: color.ink }]}>{label}</Text>
               </Pressable>
@@ -66,7 +66,7 @@ export function StrategiesScreen() {
           })}
         </View>
         {writes.pending && !writes.busy ? (
-          <View accessibilityRole="alert" style={[styles.progress, { borderColor: t.vermilion }]}>
+          <View accessibilityRole="alert" style={[styles.progress, { borderColor: t.signal }]}>
             <Text style={[styles.progressStrong, { color: color.ink }]}>Copy setup needs attention.</Text>
             <Text style={[styles.progressP, { color: color.ink }]}>
               Strategy #{writes.pending.strategyId} has an unfinished permission or subscription. Your progress is saved on this phone.

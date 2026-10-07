@@ -12,7 +12,7 @@ import { PIXEL_FONT } from "~/theme/web/games";
 
 /**
  * web's `SeasonBanner` (`.gm-season`, Flicky's 3:1 strip) at phone width: the glowing pixel trophy, the season's
- * name, pool and countdown in the pixel face over a vermilion wash that fades into surface-1 by 70 %. The
+ * name, pool and countdown in the pixel face over a signal wash that fades into surface-1 by 70 %. The
  * whole strip opens the ladder (`.gm-season-link`); the "see the ladder" cue is hidden below 480 px, as on web.
  */
 export function SeasonBanner({ season }: { season: SeasonView }) {

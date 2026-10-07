@@ -17,7 +17,7 @@ const INK = "rgb(255 255 255)";
 const RING = "rgba(255,255,255,0.22)";
 const NEUTRAL_DISC = "rgba(255,255,255,0.1)";
 /** The cards' near-black, under the badge. */
-const BADGE_GROUND = "rgb(10 9 8)";
+const BADGE_GROUND = "rgb(9 9 9)";
 
 export function drawAssetMark(ctx: CanvasRenderingContext2D, symbol: string, x: number, y: number, size: number, fonts: CardFonts): void {
   const found = assetTicker(symbol);

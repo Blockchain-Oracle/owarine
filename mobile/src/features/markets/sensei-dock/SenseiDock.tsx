@@ -60,7 +60,7 @@ function useTeaser(): number {
 }
 
 /**
- * web's SenseiDock over /markets: the Owarine mark in a ring that drains to the nearest close (vermilion, pulsing faster
+ * web's SenseiDock over /markets: the Owarine mark in a ring that drains to the nearest close (signal, pulsing faster
  * when urgent), and the "Up or down?" teaser that pops above it three times, then rests. Either opens Sensei.
  */
 export function SenseiDock({ laneSet, nowMs }: { laneSet: LaneSet | null; nowMs: number }) {
@@ -83,9 +83,9 @@ export function SenseiDock({ laneSet, nowMs }: { laneSet: LaneSet | null; nowMs:
     <View pointerEvents="box-none" style={[styles.wrap, { bottom }]}>
       {teaser >= 0 ? (
         <Animated.View key={teaser} entering={ZoomIn.springify().damping(11).stiffness(220)} exiting={FadeOut.duration(160)} style={styles.teaserWrap}>
-          <Pressable onPress={open} accessibilityRole="button" accessibilityLabel={SENSEI_UI.ask(SENSEI_TEASERS[teaser]!)} style={[styles.teaser, { backgroundColor: mk.vermilion, shadowColor: mk.teaserShadow }]}>
+          <Pressable onPress={open} accessibilityRole="button" accessibilityLabel={SENSEI_UI.ask(SENSEI_TEASERS[teaser]!)} style={[styles.teaser, { backgroundColor: mk.signal, shadowColor: mk.teaserShadow }]}>
             <Text style={[styles.teaserText, { color: mk.teaserInk }]}>{SENSEI_TEASERS[teaser]}</Text>
-            <View style={[styles.tail, { backgroundColor: mk.vermilion }]} />
+            <View style={[styles.tail, { backgroundColor: mk.signal }]} />
           </Pressable>
         </Animated.View>
       ) : null}
@@ -94,10 +94,10 @@ export function SenseiDock({ laneSet, nowMs }: { laneSet: LaneSet | null; nowMs:
         <View style={styles.avatar}>
           <Svg width={AVATAR} height={AVATAR} viewBox="0 0 72 72" style={styles.svg}>
             <Circle cx={36} cy={36} r={R} fill="none" stroke={mk.dockTrack} strokeWidth={4} />
-            <Circle cx={36} cy={36} r={R} fill="none" stroke={mk.vermilion} strokeWidth={4} strokeLinecap="round" strokeDasharray={`${TAU} ${TAU}`} strokeDashoffset={TAU * (1 - fraction)} />
+            <Circle cx={36} cy={36} r={R} fill="none" stroke={mk.signal} strokeWidth={4} strokeLinecap="round" strokeDasharray={`${TAU} ${TAU}`} strokeDashoffset={TAU * (1 - fraction)} />
           </Svg>
           <OwarineMark width={24} height={24} figure={mk.dockGlyph} />
-          <Pulse urgent={urgent} color={mk.vermilion} />
+          <Pulse urgent={urgent} color={mk.signal} />
         </View>
       </Pressable>
     </View>

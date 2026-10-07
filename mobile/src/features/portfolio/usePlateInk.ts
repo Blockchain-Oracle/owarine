@@ -15,10 +15,10 @@ export interface PlateInk {
 
 /**
  * web `ledger-plate.css` --lp-*: the plate owns four tokens — paper, ink, muted ink, line — the theme's surface-1 and
- * inks in dark, the reference's cream (#FAF8F5, #1A1612, #6B6353) in light. Everything on the plate (pool rows, the
+ * inks in dark, the reference's cream (#FAF9F5, #171515, #656359) in light. Everything on the plate (pool rows, the
  * X card, the Trading Balance panel) reads these, so one card never shows two backgrounds.
  */
 export function usePlateInk(): PlateInk {
   const t = usePortfolioTokens();
-  return { paper: t.lpPaper, raised: t.lpPaperRaised, ink: t.lpInk, mute: t.lpMute, line: t.lpLine, figure: t.vermilion, wallet: t.vermilion, positions: t.barPositions, account: t.barAccount };
+  return { paper: t.lpPaper, raised: t.lpPaperRaised, ink: t.lpInk, mute: t.lpMute, line: t.lpLine, figure: t.signal, wallet: t.signal, positions: t.barPositions, account: t.barAccount };
 }

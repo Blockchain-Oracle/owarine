@@ -15,7 +15,7 @@ const HEIGHT = 72;
 const PAD = 3;
 
 /**
- * web's EquitySparkline (history.css `.equity-*`): cumulative net, one step per settled round, vermilion at or above
+ * web's EquitySparkline (history.css `.equity-*`): cumulative net, one step per settled round, signal at or above
  * zero and muted ink below, the dashed zero line, the end dot and its halo; stretched to the strip as web's
  * `preserveAspectRatio="none"` does.
  */

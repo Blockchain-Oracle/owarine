@@ -1,7 +1,7 @@
 /* The /reels card — ported from reference/yosuku/app/reels/page.tsx.
  *
  * Yosuku writes this card as inline Tailwind arbitrary values on the JSX
- * (`text-[26px]`, `rounded-[26px]`, `bg-[#0a0807]`, an inline radial-gradient).
+ * (`text-[26px]`, `rounded-[26px]`, `bg-[#090808]`, an inline radial-gradient).
  * The `design-literals` invariant bans hex and px literals in TS/TSX, so the
  * values live here instead — copied exactly, one class per reference element,
  * with the source utility named above each rule so fidelity stays checkable.
@@ -66,7 +66,7 @@ body:has(.reel-page) .footer {
 }
 
 /* pointer-events-none absolute inset-x-0 top-0 z-20 h-px
-   bg-gradient-to-r from-transparent via-vermilion/50 to-transparent */
+   bg-gradient-to-r from-transparent via-signal/50 to-transparent */
 .reel-heat {
   pointer-events: none;
   position: absolute;
@@ -75,7 +75,7 @@ body:has(.reel-page) .footer {
   top: 0;
   z-index: 20;
   height: 1px;
-  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--vermilion) 50%, transparent), transparent);
+  background: linear-gradient(to right, transparent, color-mix(in srgb, var(--signal) 50%, transparent), transparent);
 }
 
 /* relative z-10 flex items-start justify-between px-5 pt-5 */
@@ -96,8 +96,8 @@ body:has(.reel-page) .footer {
   gap: 10px;
 }
 
-/* grid h-8 w-8 place-items-center rounded-full border border-vermilion/40
-   font-mono text-[15px] text-vermilion
+/* grid h-8 w-8 place-items-center rounded-full border border-signal/40
+   font-mono text-[15px] text-signal
    Yosuku's venue is BTC-only and hardcodes ₿; the mark is keyed to the asset here
    (see hero/asset-mark.ts) so an asset without one gets its initial, never Bitcoin's. */
 .reel-badge {
@@ -107,11 +107,10 @@ body:has(.reel-page) .footer {
   width: 32px;
   flex-shrink: 0;
   border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--vermilion) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--signal-ink) 40%, transparent);
   font-family: var(--font-mono);
   font-size: 15px;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; }
 
 /* font-mono text-[10px] uppercase tracking-[0.16em] text-white/70 */
 .reel-meta {
@@ -119,9 +118,8 @@ body:has(.reel-page) .footer {
   font-size: 10px;
   line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: rgb(var(--reel-ink-rgb) / 0.7);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--reel-ink-rgb) / 0.7); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* mt-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-white/35 */
 .reel-submeta {
@@ -130,9 +128,8 @@ body:has(.reel-page) .footer {
   font-size: 9px;
   line-height: 1.2;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgb(var(--reel-ink-rgb) / 0.35);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--reel-ink-rgb) / 0.35); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* text-right */
 .reel-clock {
@@ -146,12 +143,11 @@ body:has(.reel-page) .footer {
   font-family: var(--font-mono);
   font-size: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgb(var(--reel-ink-rgb) / 0.4);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--reel-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* font-display text-2xl font-extrabold tabular-nums leading-none text-white,
-   flipping to text-vermilion inside the no-entry buffer */
+   flipping to text-signal inside the no-entry buffer */
 .reel-clock-value {
   display: block;
   font-family: var(--font-display);
@@ -159,11 +155,10 @@ body:has(.reel-page) .footer {
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--reel-ink);
-}
+  color: var(--reel-ink); font-stretch: 125%; }
 
 .reel-clock.urgent .reel-clock-value {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* relative z-10 px-5 pt-4 */
@@ -180,12 +175,11 @@ body:has(.reel-page) .footer {
   font-weight: 800;
   line-height: 1.06;
   letter-spacing: -0.02em;
-  color: var(--reel-ink);
-}
+  color: var(--reel-ink); font-stretch: 125%; }
 
-/* the line itself — text-vermilion */
+/* the line itself — text-signal */
 .reel-question-line {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* the trailing "?" — text-white/85 */
@@ -211,9 +205,9 @@ body:has(.reel-page) .footer {
   color: var(--reel-ink);
 }
 
-/* the distance — text-vermilion above the line, text-white/45 below it */
+/* the distance — text-signal above the line, text-white/45 below it */
 .reel-distance.above {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 .reel-distance.below {
@@ -250,10 +244,9 @@ body:has(.reel-page) .footer {
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   line-height: 1.6;
-  color: rgb(var(--reel-ink-rgb) / 0.3);
-}
+  color: rgb(var(--reel-ink-rgb) / 0.3); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* relative z-10 px-5 pb-6 pt-2 */
 .reel-call {
@@ -279,18 +272,17 @@ body:has(.reel-page) .footer {
   font-size: 16px;
   font-weight: 700;
   border: 1px solid transparent;
-  transition: background-color 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease);
-}
+  transition: background-color 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease); font-stretch: 125%; }
 
-/* border-vermilion/60 bg-vermilion/10 text-vermilion hover:bg-vermilion/20 */
+/* border-signal/60 bg-signal/10 text-signal hover:bg-signal/20 */
 .reel-side.up {
-  border-color: color-mix(in srgb, var(--vermilion) 60%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 10%, transparent);
-  color: var(--vermilion);
+  border-color: color-mix(in srgb, var(--signal-ink) 60%, transparent);
+  background: color-mix(in srgb, var(--signal) 10%, transparent);
+  color: var(--signal-ink);
 }
 
 .reel-side.up:hover {
-  background: color-mix(in srgb, var(--vermilion) 20%, transparent);
+  background: color-mix(in srgb, var(--signal) 20%, transparent);
 }
 
 /* border-white/15 bg-white/[0.02] text-white/80 hover:border-white/30 hover:text-white */
@@ -317,7 +309,6 @@ body:has(.reel-page) .footer {
   font-size: 10px;
   line-height: 1.7;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: rgb(var(--reel-ink-rgb) / 0.45);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--reel-ink-rgb) / 0.45); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 

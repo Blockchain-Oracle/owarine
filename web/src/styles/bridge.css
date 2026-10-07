@@ -1,7 +1,7 @@
 /* Semantic token bridge.
  *
  * The Yosuku design system in ./yosuku/ is the source of truth: it owns the palette
- * (bg, vermilion, profit, loss, the gray ramp), the faces, and the easings.
+ * (bg, signal, profit, loss, the gray ramp), the faces, and the easings.
  *
  * This file adds ONLY the semantic names that Masayume's existing components already
  * address (ground/ink/surface/hairline/accent/...). It never redefines a Yosuku token,
@@ -15,19 +15,19 @@
  * 950 = lightest paper), so "one step more raised" is gray-800 in dark but gray-950 in
  * light. These resolve per theme using the reference ramp's own values. */
 :root {
-  --ms-surface-1: #171717; /* gray-900 — card */
-  --ms-surface-2: #262626; /* gray-800 — raised */
-  --ms-surface-3: #404040; /* gray-700 — overlay/popover */
+  --ms-surface-1: #171616; /* gray-900 — card */
+  --ms-surface-2: #262525; /* gray-800 — raised */
+  --ms-surface-3: #3B3A37; /* gray-700 — overlay/popover */
   --ms-hairline: rgb(255 255 255 / 0.1);
   --ms-border-strong: rgb(255 255 255 / 0.22);
 }
 
 [data-theme="light"] {
-  --ms-surface-1: #F6F0E4; /* gray-900 (light) — card surface */
-  --ms-surface-2: #ECE3D2; /* gray-800 (light) — recessed/border surface */
-  --ms-surface-3: #FBF7EE; /* gray-950 (light) — raised, just above paper */
-  --ms-hairline: rgb(20 18 16 / 0.12);
-  --ms-border-strong: rgb(20 18 16 / 0.22);
+  --ms-surface-1: #FFFFFF; /* gray-900 (light) — card surface */
+  --ms-surface-2: #ECEBE5; /* gray-800 (light) — recessed/border surface */
+  --ms-surface-3: #FFFFFF; /* gray-950 (light) — raised, just above paper */
+  --ms-hairline: rgb(16 15 15 / 0.12);
+  --ms-border-strong: rgb(16 15 15 / 0.22);
 }
 
 /* `inline` so utilities emit var() references and follow [data-theme] at runtime
@@ -45,30 +45,34 @@
   --color-ink-muted: var(--gray-500);
   --color-ink-disabled: var(--gray-600);
 
-  /* Vermilion is the sole brand accent. Named `accent` so no component pretends
+  /* Signal is the sole brand accent. Named `accent` so no component pretends
    * a colour role the reference does not have. */
-  --color-accent: var(--vermilion);
-  --color-accent-hover: color-mix(in srgb, var(--vermilion) 84%, #FFFFFF);
-  --color-accent-pressed: var(--vermilion-d);
-  --color-accent-dim: color-mix(in srgb, var(--vermilion) 45%, transparent);
-  --color-accent-wash: color-mix(in srgb, var(--vermilion) 12%, transparent);
+  --color-accent: var(--signal);
+  --color-on-signal: var(--on-signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-accent-hover: color-mix(in srgb, var(--signal) 84%, #FFFFFF);
+  --color-accent-pressed: var(--signal-d);
+  --color-accent-dim: color-mix(in srgb, var(--signal) 45%, transparent);
+  --color-accent-wash: color-mix(in srgb, var(--signal) 12%, transparent);
 
   --color-profit-wash: color-mix(in srgb, var(--profit) 14%, transparent);
   --color-loss-wash: color-mix(in srgb, var(--loss) 14%, transparent);
 
-  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
-  --font-data: var(--font-jetbrains), "JetBrains Mono", ui-monospace, monospace;
-  --font-stamp: var(--font-noto-serif-jp), "Noto Serif JP", serif;
-  --font-heading: var(--font-sora), "Sora", system-ui, sans-serif;
+  --font-body: var(--font-mona), "Mona Sans", system-ui, sans-serif;
+  --font-data: var(--font-mona), "Mona Sans", ui-monospace, monospace;
+  --font-stamp: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
+  --font-heading: var(--font-mona), "Mona Sans", system-ui, sans-serif;
 }
 
 @theme {
   /* The receipt is a deliberate paper island in BOTH themes — Yosuku's brand-film
    * paper/ink pair, so it stays literal rather than following the ground. */
-  --color-cream: #F4EEE3;
-  --color-cream-ink: #141210;
-  --color-cream-hairline: #D9CBB0;
-  --color-scrim: #040302b8;
+  /* The receipt is a ticket stub in Empower's muted yellow (its role: an accent surface for one specific card),
+   * the same in both themes. */
+  --color-cream: #FAF9B6;
+  --color-cream-ink: #100F0F;
+  --color-cream-hairline: #E2E09A;
+  --color-scrim: #030303b8;
 
   --color-warning: #F2994A;
   --color-info: #60A5FA; /* Yosuku off-blue */
@@ -114,9 +118,10 @@
   --text-stamp-hero--line-height: 1;
   --text-stamp-hero--font-weight: 900;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* Empower's shapes (K-402): modules 16, cards 24, buttons are pills (tokens.css). */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
   --radius-xl: 24px;
   --radius-full: 9999px;
 
@@ -137,7 +142,7 @@
   --color-card-foreground: var(--white);
   --color-popover: var(--ms-surface-3);
   --color-popover-foreground: var(--white);
-  --color-primary: var(--vermilion);
+  --color-primary: var(--signal);
   --color-primary-foreground: #FFFFFF;
   --color-secondary: var(--ms-surface-2);
   --color-secondary-foreground: var(--white);
@@ -147,7 +152,7 @@
   --color-destructive: var(--loss);
   --color-border: var(--ms-hairline);
   --color-input: var(--ms-hairline);
-  --color-ring: var(--vermilion);
+  --color-ring: var(--signal);
 }
 
 /* Raw aliases shadcn's generated primitives reference inside color-mix(). */

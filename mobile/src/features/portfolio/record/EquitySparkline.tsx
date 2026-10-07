@@ -14,7 +14,7 @@ const PAD = 3;
 
 /**
  * web `EquitySparkline` in react-native-svg: cumulative net, oldest to newest, one step per settled round. It rises on
- * wins and DROPS on losses — the drawdown is drawn, never hidden. Vermilion while at or above zero; muted ink below,
+ * wins and DROPS on losses — the drawdown is drawn, never hidden. Signal while at or above zero; muted ink below,
  * so a loss reads as a fact, not a scare.
  */
 export function EquitySparkline({ points, decimals }: { points: readonly EquityPoint[]; decimals: number }) {
@@ -45,8 +45,8 @@ export function EquitySparkline({ points, decimals }: { points: readonly EquityP
   const area = `${line} L ${x(count - 1).toFixed(2)},${zeroY.toFixed(2)} L ${x(0).toFixed(2)},${zeroY.toFixed(2)} Z`;
   const last = series[count - 1] as EquityPoint;
   const up = last.cumulativeBase >= 0n;
-  const ink = up ? t.vermilion : t.equityDown;
-  const dot = up ? t.vermilion : t.equityDot;
+  const ink = up ? t.signal : t.equityDown;
+  const dot = up ? t.signal : t.equityDot;
   const amount = formatBaseUnits(last.cumulativeBase < 0n ? -last.cumulativeBase : last.cumulativeBase, decimals);
 
   return (
@@ -54,8 +54,8 @@ export function EquitySparkline({ points, decimals }: { points: readonly EquityP
       <Svg width="100%" height={HEIGHT} viewBox={`0 0 ${WIDTH} ${HEIGHT}`} preserveAspectRatio="none">
         <Defs>
           <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" {...stopPaint(t.vermilion, 0.22)} />
-            <Stop offset="1" {...stopPaint(t.vermilion, 0)} />
+            <Stop offset="0" {...stopPaint(t.signal, 0.22)} />
+            <Stop offset="1" {...stopPaint(t.signal, 0)} />
           </LinearGradient>
         </Defs>
         <Line x1={PAD} x2={WIDTH - PAD} y1={zeroY} y2={zeroY} stroke={t.equityZero} strokeWidth={1} strokeDasharray="2 3" />

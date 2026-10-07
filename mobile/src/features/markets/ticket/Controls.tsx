@@ -10,10 +10,10 @@ import { tkType, useTk } from "./tk";
 
 export type BetMode = "dir" | "range";
 
-/** One `.tk-mode` tile in a `.tk-modes` tray: pressed, the white wash; a private route pressed, the vermilion one. */
+/** One `.tk-mode` tile in a `.tk-modes` tray: pressed, the white wash; a private route pressed, the signal one. */
 export function ModeTile({ label, on, disabled = false, privateTone = false, onPress }: { label: string; on: boolean; disabled?: boolean; privateTone?: boolean; onPress: () => void }) {
   const tk = useTk();
-  const ink = on ? (privateTone ? tk.vermilion : tk.modeOnInk) : tk.mode;
+  const ink = on ? (privateTone ? tk.signal : tk.modeOnInk) : tk.mode;
   return (
     <Pressable
       onPress={onPress}
@@ -102,7 +102,7 @@ export function PublicPrivate({ priv, onChange, privateEnabled, retry }: { priv:
       accessibilityState={{ selected: on, disabled }}
       style={[styles.pp, on && { backgroundColor: privateTone ? tk.modePrivateOnBg : tk.ppOnBg }]}
     >
-      <Text style={[tkType.tile, { color: disabled ? tk.ppOff : on ? (privateTone ? tk.vermilion : tk.ppOnInk) : tk.pp }]}>{label}</Text>
+      <Text style={[tkType.tile, { color: disabled ? tk.ppOff : on ? (privateTone ? tk.signal : tk.ppOnInk) : tk.pp }]}>{label}</Text>
     </Pressable>
   );
   return (
@@ -120,13 +120,13 @@ export function PublicPrivate({ priv, onChange, privateEnabled, retry }: { priv:
   );
 }
 
-/** web's components/ui Switch at size sm: a 24 × 14 track, a 12 px thumb, vermilion when on. */
+/** web's components/ui Switch at size sm: a 24 × 14 track, a 12 px thumb, signal when on. */
 export function TkSwitch({ on, onChange, label }: { on: boolean; onChange: (on: boolean) => void; label: string }) {
   const tk = useTk();
   return (
     <Pressable onPress={() => onChange(!on)} accessibilityRole="switch" accessibilityLabel={label} accessibilityState={{ checked: on }} hitSlop={10}>
-      <View style={[styles.switch, { backgroundColor: on ? tk.vermilion : tk.switchOff }]}>
-        <View style={[styles.switchThumb, { backgroundColor: on ? tk.onVermilion : tk.switchThumb }, on && styles.switchThumbOn]} />
+      <View style={[styles.switch, { backgroundColor: on ? tk.signal : tk.switchOff }]}>
+        <View style={[styles.switchThumb, { backgroundColor: on ? tk.onSignal : tk.switchThumb }, on && styles.switchThumbOn]} />
       </View>
     </Pressable>
   );

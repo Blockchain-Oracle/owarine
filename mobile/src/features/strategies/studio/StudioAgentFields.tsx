@@ -27,7 +27,7 @@ export function StudioAgentFields({ form, setForm, asset }: { form: StudioDraft;
       <View>
         <View style={styles.personaHead}>
           <FieldLabel style={styles.mb0}>{A.persona}</FieldLabel>
-          <Text style={[ST.mono10, { color: persona.length >= AGENT_PERSONA_MAX_CHARS ? t.vermilion : t.ink(0.4) }]}>{A.personaCount(persona.length, AGENT_PERSONA_MAX_CHARS)}</Text>
+          <Text style={[ST.mono10, { color: persona.length >= AGENT_PERSONA_MAX_CHARS ? t.signal : t.ink(0.4) }]}>{A.personaCount(persona.length, AGENT_PERSONA_MAX_CHARS)}</Text>
         </View>
         <StratInput
           multiline
@@ -54,7 +54,7 @@ export function StudioAgentFields({ form, setForm, asset }: { form: StudioDraft;
                 accessibilityRole="radio"
                 accessibilityState={{ checked: on }}
                 onPress={() => setForm((f) => ({ ...f, posture: p }))}
-                style={[styles.mode, on ? { borderColor: t.vermilionA(0.6), backgroundColor: t.vermilionA(0.08) } : { borderColor: t.ink(0.09), backgroundColor: t.ink(0.015) }]}
+                style={[styles.mode, on ? { borderColor: t.signalA(0.6), backgroundColor: t.signalA(0.08) } : { borderColor: t.ink(0.09), backgroundColor: t.ink(0.015) }]}
               >
                 <Text style={[styles.modeLabel, { color: on ? color.ink : t.ink(0.6) }]}>{RISK[p][0]}</Text>
                 <Text style={[styles.modeDetail, { color: t.ink(0.3) }]}>{A.postureDetail(Math.round(rules.minConfidence * 100), rules.maxPriceCents, rules.breakerLosses)}</Text>

@@ -18,7 +18,7 @@ export function WindowCountdown({ expirySec, intervalSec, nowMs }: { expirySec: 
   const { name } = useTheme();
   const state = nowMs > 0 ? countdown(nowMs, expirySec, intervalSec) : null;
   return (
-    <Text style={[card.countdownText, { color: lanesTokens(name).vermilion }]} accessibilityRole="timer">
+    <Text style={[card.countdownText, { color: lanesTokens(name).signal }]} accessibilityRole="timer">
       {state ? (state.settling ? SETTLING : formatClock(state.remainingSec)) : PLACEHOLDER}
     </Text>
   );
@@ -31,7 +31,7 @@ export function WindowCountdown({ expirySec, intervalSec, nowMs }: { expirySec: 
 export function CardClock({ market, nowMs, current }: { market: EventMarket; nowMs: number; current: MarketPhase | null }) {
   const { name } = useTheme();
   const when = useWhen();
-  const ink = { color: lanesTokens(name).vermilion };
+  const ink = { color: lanesTokens(name).signal };
   if (market.lane !== "gap") return <WindowCountdown expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />;
   if (current === "settledUnclaimed" || current === "finalized" || current === "voided") return <Text style={[card.countdownText, ink]}>{LANE_STATE.gap.settledClock}</Text>;
   const nowSec = Math.floor(nowMs / 1000);

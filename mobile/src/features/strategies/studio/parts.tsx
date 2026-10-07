@@ -27,7 +27,7 @@ export function Choice({ title, body, on, disabled, onPress }: { title: string; 
       disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ selected: on, disabled }}
-      style={[styles.choice, on ? { borderColor: t.vermilion, backgroundColor: t.vermilionA(0.06) } : { borderColor: t.ink(0.08) }, disabled && styles.off]}
+      style={[styles.choice, on ? { borderColor: t.signal, backgroundColor: t.signalA(0.06) } : { borderColor: t.ink(0.08) }, disabled && styles.off]}
     >
       <Text style={[ST.choiceTitle, { color: color.ink }]}>{title}</Text>
       <Text style={[ST.choiceBody, styles.mt8, { color: color.inkSecondary }]}>{body}</Text>
@@ -43,9 +43,9 @@ export function Chip({ label, on, onPress }: { label: string; on: boolean; onPre
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected: on }}
-      style={[styles.chip, on ? { borderColor: t.vermilion, backgroundColor: t.vermilionA(0.06) } : { borderColor: t.ink(0.08) }]}
+      style={[styles.chip, on ? { borderColor: t.signal, backgroundColor: t.signalA(0.06) } : { borderColor: t.ink(0.08) }]}
     >
-      <Text style={[styles.chipText, { color: on ? t.vermilion : t.ink(0.5) }]}>{label}</Text>
+      <Text style={[styles.chipText, { color: on ? t.signal : t.ink(0.5) }]}>{label}</Text>
     </Pressable>
   );
 }

@@ -4,7 +4,7 @@ import { chipsFor, SENSEI_STARTERS } from "@/features/sensei/copy";
 import { FONT, useTheme } from "~/theme";
 import { senseiTokens } from "~/theme/web/explore/sensei";
 
-/** web's `.sd-chips`: the follow-ups under Sensei's latest answer, vermilion pills indented past the seal. */
+/** web's `.sd-chips`: the follow-ups under Sensei's latest answer, signal pills indented past the seal. */
 export function SenseiChips({ reply, onPick }: { reply: string; onPick: (chip: string) => void }) {
   const { name, color } = useTheme();
   const t = senseiTokens(name);

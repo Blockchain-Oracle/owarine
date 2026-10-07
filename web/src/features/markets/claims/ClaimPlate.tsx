@@ -24,7 +24,7 @@ function highestFeeBps(rows: readonly ClaimableRow[]): number {
   return rows.reduce((max, row) => Math.max(max, row.feeBps), 0);
 }
 
-/** The accent-wash plate: one net figure (ink on the wash — vermilion never colors a number), the rows, one honest CTA. */
+/** The accent-wash plate: one net figure (ink on the wash — signal never colors a number), the rows, one honest CTA. */
 export function ClaimPlate({ rows, decimals, run, blocker, onClaimAll, className }: ClaimPlateProps) {
   const sum = netClaimableSum(rows);
   const items = run.status === "idle" ? undefined : run.items;

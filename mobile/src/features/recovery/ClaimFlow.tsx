@@ -116,7 +116,7 @@ export function ClaimFlow() {
               <View style={[styles.dot, { backgroundColor: color.profit }]} />
               <Text style={[styles.slabText, { color: color.profit }]}>{CLAIM.thisWallet}</Text>
             </View>
-            <Pressable onPress={() => router.push("/portfolio")} accessibilityRole="link" style={({ pressed }) => [styles.cta, { backgroundColor: color.accent }, pressed ? styles.pressed : null]}>
+            <Pressable onPress={() => router.push("/portfolio")} accessibilityRole="link" style={({ pressed }) => [styles.cta, { backgroundColor: color.accentFill }, pressed ? styles.pressed : null]}>
               <Text style={[styles.ctaText, { color: t.ctaInk }]}>{CLAIM.openPortfolio}</Text>
             </Pressable>
           </View>

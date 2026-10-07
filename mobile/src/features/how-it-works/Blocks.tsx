@@ -6,15 +6,14 @@ import { FONT, useTheme } from "~/theme";
 import { hiwTokens } from "~/theme/web/explore/how-it-works";
 
 /**
- * The faces how-it-works.css asks for beyond the app's set: Inter 700 and 900 (the title, labels, numbers) and
- * JetBrains Mono 700 / 800 (the chips, the figures; web's 900 draws the heaviest cut the face has). Loaded by the
- * screen through `useFonts`.
+ * The faces how-it-works.css asks for, from the app's own set (theme/fonts.ts, K-402): Mona Sans 700 and Expanded 800
+ * for the title, labels and numbers, and Mona Sans 700 / Condensed 800 for the chips and the figures.
  */
 export const HIW_FONT = {
-  bold: "Inter_700Bold",
-  black: "Inter_900Black",
-  monoBold: "JetBrainsMono_700Bold",
-  monoHeavy: "JetBrainsMono_800ExtraBold",
+  bold: "MonaSans_700",
+  black: "MonaSans_Expanded800",
+  monoBold: "MonaSans_700",
+  monoHeavy: "MonaSans_Condensed800",
 } as const;
 
 export type HiwTone = "plain" | "mint" | "blue";
@@ -118,7 +117,7 @@ export function Params({ rows }: { rows: readonly (readonly [string, string])[] 
   );
 }
 
-/** web `.hiw-steps`: the vermilion 32 px number tile beside a label and body (or any content). */
+/** web `.hiw-steps`: the signal 32 px number tile beside a label and body (or any content). */
 export function Steps({ items }: { items: readonly { key: string; num: string; body: ReactNode }[] }) {
   const { name, color } = useTheme();
   const t = hiwTokens(name);
@@ -126,7 +125,7 @@ export function Steps({ items }: { items: readonly { key: string; num: string; b
     <View style={styles.steps}>
       {items.map((item) => (
         <View key={item.key} style={styles.stepRow}>
-          <View style={[styles.stepNum, { backgroundColor: t.vermilionWash }]}>
+          <View style={[styles.stepNum, { backgroundColor: t.signalWash }]}>
             <Text style={[styles.stepNumText, { color: color.accent }]}>{item.num}</Text>
           </View>
           <View style={styles.flex}>{item.body}</View>

@@ -10,11 +10,10 @@
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .mks-chip-dot {
   width: 5px;
@@ -31,13 +30,12 @@
 /* Open: the live pulse. */
 .mks-chip[data-state="regular"] .mks-chip-dot,
 .mks-chip[data-state="early-close"] .mks-chip-dot {
-  background: var(--vermilion);
-  animation: pulseDot 1.6s var(--ease) infinite;
-}
+  background: var(--signal);
+  animation: pulseDot 1.6s var(--ease) infinite; color: var(--on-signal); }
 
 .mks-chip[data-state="regular"] .mks-chip-state,
 .mks-chip[data-state="early-close"] .mks-chip-state {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* Pre-market and after hours: lit, not live — the dot brightens without the pulse. */
@@ -48,16 +46,15 @@
 
 /* A holiday reads as a named day, not a fault: half the brand ink, still. */
 .mks-chip[data-state="holiday"] .mks-chip-dot {
-  background: color-mix(in srgb, var(--vermilion) 55%, transparent);
+  background: color-mix(in srgb, var(--signal) 55%, transparent);
 }
 
 /* A halt: the open dot stops pulsing and the reason is the whole label, so it stays on a phone too. */
 .mks-chip[data-state="halted"] .mks-chip-dot {
-  background: var(--vermilion);
-}
+  background: var(--signal); color: var(--on-signal); }
 
 .mks-chip[data-state="halted"] .mks-chip-state {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* In the hero head the chip trails the cadence tabs at their own 9px scale, so the row stays one voice. */

@@ -38,7 +38,7 @@ interface TakeComposerSheetProps {
 
 /**
  * "Post a take" — web's `TakeComposer` (features/takes/TakeComposer.tsx, take-composer.css): a bottom sheet (max 440,
- * 92 % of the screen, radius 24 at the top, the Room's ground and the vermilion hairline) over a 70 % black scrim,
+ * 92 % of the screen, radius 24 at the top, the Room's ground and the signal hairline) over a 70 % black scrim,
  * appearing in place as web's Dialog does. Up / Down (Range present and disabled), the Window's opening print as the
  * read-only line with spot beside it, the horizon row, the optional words, the call preview, then web's
  * `usePostTake` — the wallet signs web's exact take text and the server's own row lands in the feed.

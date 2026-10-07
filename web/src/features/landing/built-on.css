@@ -13,17 +13,15 @@
 .lp-built-name {
   margin: 0; display: flex; align-items: center; min-height: 28px;
   font-family: var(--font-display); font-weight: 700; font-size: 1.35rem; letter-spacing: -0.02em; line-height: 1.15;
-  color: var(--white);
-}
+  color: var(--white); font-stretch: 125%; }
 .lp-built-figure { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0; }
 .lp-built-num {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(2rem, 3.4vw, 2.8rem); line-height: 1; letter-spacing: -0.035em;
-  color: var(--white);
-}
+  color: var(--white); font-stretch: 125%; }
 .lp-built-unit { font-size: 14px; line-height: 1.4; color: var(--gray-400); }
 .lp-built-what { margin: 0; max-width: 48ch; font-size: 14px; line-height: 1.6; color: var(--gray-500); }
-.lp-built-proof { align-self: flex-start; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
+.lp-built-proof { align-self: flex-start; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
 
 @media (max-width: 900px) {
   .lp-built { grid-template-columns: minmax(0, 1fr); row-gap: 20px; }
@@ -48,9 +46,8 @@
 .lp-sponsor[data-sponsor="noders"] .lp-sponsor-mark { --mark-height: 36px; }
 .lp-sponsor-role {
   margin: 0;
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--vermilion);
-}
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .lp-sponsor .lp-built-what { color: var(--gray-400); }
 @media (max-width: 600px) {
   .lp-sponsors { padding-bottom: 0; margin-bottom: 24px; }

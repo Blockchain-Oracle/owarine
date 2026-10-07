@@ -9,7 +9,7 @@ import { BearMark, BullMark, CoinMark } from "../art/PixelArt";
 import { STAGE } from "./copy";
 import { cadenceLabel } from "./SwipeDeck";
 
-/** Flicky's ramp on every clock: calm, then vermilion inside ten minutes, then the loss colour inside two — and a pulse in the last thirty seconds. */
+/** Flicky's ramp on every clock: calm, then signal inside ten minutes, then the loss colour inside two — and a pulse in the last thirty seconds. */
 export function clockUrgency(remainingSec: number): { level: "calm" | "near" | "last"; pulse: boolean } {
   return { level: remainingSec <= 120 ? "last" : remainingSec <= 600 ? "near" : "calm", pulse: remainingSec > 0 && remainingSec <= 30 };
 }

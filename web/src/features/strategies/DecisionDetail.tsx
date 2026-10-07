@@ -56,7 +56,7 @@ function DecisionBody({ d, agentName, decimals, symbol, nowMs }: { d: DecisionWi
   const trades = d.trades ?? [];
   return (
     <>
-      <p className="strat-meta mb-1.5 tracking-[0.18em] text-vermilion">{DECISION.eyebrow} · {agentName}</p>
+      <p className="strat-meta mb-1.5 tracking-[0.18em] text-signal">{DECISION.eyebrow} · {agentName}</p>
       <Dialog.Title className="decision-title">{title}</Dialog.Title>
       {d.outcome && <p className={cn("decision-outcome", `decision-outcome--${d.outcome}`)}>{M.outcome[d.outcome]}</p>}
 
@@ -122,7 +122,7 @@ function Row({ label, value, accent }: { label: string; value: string; accent?: 
   return (
     <div className="decision-row">
       <span className="decision-row-label">{label}</span>
-      <span className={cn("decision-row-value", accent && "text-vermilion")}>{value}</span>
+      <span className={cn("decision-row-value", accent && "text-signal")}>{value}</span>
     </div>
   );
 }

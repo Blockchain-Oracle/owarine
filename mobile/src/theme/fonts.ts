@@ -1,27 +1,26 @@
-import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold } from "@expo-google-fonts/inter";
-import { JetBrainsMono_400Regular, JetBrainsMono_500Medium, JetBrainsMono_600SemiBold } from "@expo-google-fonts/jetbrains-mono";
-import { Sora_400Regular, Sora_600SemiBold, Sora_700Bold, Sora_800ExtraBold } from "@expo-google-fonts/sora";
+import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from "@expo-google-fonts/jetbrains-mono";
 import { useFonts } from "expo-font";
 
 /**
- * The faces web loads in lib/fonts.ts, keyed by the names theme/type.ts uses. Noto Serif JP ships as a subset
- * (Latin, kana and the 36 kanji web renders) as web's `subsets: ["latin"]` does; the full face is 7.6 MB a weight.
+ * Owarine's faces (K-402), keyed by the names theme/type.ts uses. One family, Mona Sans (OFL, github/mona-sans via
+ * google/fonts), at three widths, cut from its variable font into static files because React Native cannot set a
+ * variable axis: Expanded (wdth 125) for headings and labels, Normal for body text and figures, Condensed (wdth 75)
+ * for the scoreboard numerals. Noto Sans JP 900 ships as a subset of the 40 kana and kanji the app draws. JetBrains
+ * Mono stays for code only: party ids, update ids, the literal ledger query.
  */
 const FACES = {
-  Sora_400Regular,
-  Sora_600SemiBold,
-  Sora_700Bold,
-  Sora_800ExtraBold,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  Inter_800ExtraBold,
+  MonaSans_Expanded600: require("../../assets/fonts/MonaSans-Expanded-600.ttf"),
+  MonaSans_Expanded700: require("../../assets/fonts/MonaSans-Expanded-700.ttf"),
+  MonaSans_Expanded800: require("../../assets/fonts/MonaSans-Expanded-800.ttf"),
+  MonaSans_400: require("../../assets/fonts/MonaSans-Normal-400.ttf"),
+  MonaSans_500: require("../../assets/fonts/MonaSans-Normal-500.ttf"),
+  MonaSans_600: require("../../assets/fonts/MonaSans-Normal-600.ttf"),
+  MonaSans_700: require("../../assets/fonts/MonaSans-Normal-700.ttf"),
+  MonaSans_800: require("../../assets/fonts/MonaSans-Normal-800.ttf"),
+  MonaSans_Condensed800: require("../../assets/fonts/MonaSans-Condensed-800.ttf"),
+  NotoSansJP_900: require("../../assets/fonts/NotoSansJP-900-subset.ttf"),
   JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,
-  JetBrainsMono_600SemiBold,
-  NotoSerifJP_500Medium: require("../../assets/fonts/NotoSerifJP-500Medium-subset.ttf"),
-  NotoSerifJP_700Bold: require("../../assets/fonts/NotoSerifJP-700Bold-subset.ttf"),
 };
 
 /** True once every face is ready (or failed: the system face stands in rather than holding the splash forever). */

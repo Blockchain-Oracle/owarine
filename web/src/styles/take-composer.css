@@ -48,7 +48,7 @@
 }
 
 /* pointer-events-none absolute inset-x-0 top-0 z-20 h-px
-   bg-gradient-to-r from-transparent via-vermilion/60 to-transparent */
+   bg-gradient-to-r from-transparent via-signal/60 to-transparent */
 .take-sheet-hairline {
   pointer-events: none;
   position: absolute;
@@ -56,7 +56,7 @@
   top: 0;
   z-index: 20;
   height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--vermilion) 60%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--signal) 60%, transparent), transparent);
 }
 
 /* relative z-10 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] */
@@ -77,8 +77,7 @@
 .take-sheet-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 800;
-}
+  font-weight: 800; font-stretch: 125%; }
 
 /* rounded-full p-1.5 text-white/40 hover:bg-white/[0.06] hover:text-white */
 .take-sheet-close {
@@ -99,8 +98,7 @@
   margin-top: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: rgb(var(--room-ink-rgb) / 0.4);
-}
+  color: rgb(var(--room-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; }
 
 /* mt-4 grid grid-cols-3 gap-2 */
 .take-sides {
@@ -120,22 +118,21 @@
   font-family: var(--font-mono);
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: rgb(var(--room-ink-rgb) / 0.5);
   outline: none;
-  transition: color 150ms var(--ease), border-color 150ms var(--ease), background-color 150ms var(--ease);
-}
+  transition: color 150ms var(--ease), border-color 150ms var(--ease), background-color 150ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .take-sides button:hover:not(:disabled),
 .take-horizon-grid button:hover:not(:disabled) {
   color: rgb(var(--room-ink-rgb));
 }
 
-/* on: border-vermilion/70 bg-vermilion/[0.08] text-vermilion */
+/* on: border-signal/70 bg-signal/[0.08] text-signal */
 .take-sides button[data-on="true"] {
-  border-color: color-mix(in srgb, var(--vermilion) 70%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 8%, transparent);
-  color: var(--vermilion);
+  border-color: color-mix(in srgb, var(--signal-ink) 70%, transparent);
+  background: color-mix(in srgb, var(--signal) 8%, transparent);
+  color: var(--signal-ink);
 }
 
 /* disabled:opacity-30 — Range names what it waits on */
@@ -168,16 +165,14 @@
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: rgb(var(--room-ink-rgb) / 0.4);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--room-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* font-mono text-[9px] text-white/35 */
 .take-line-spot {
   font-family: var(--font-mono);
   font-size: 9px;
-  color: rgb(var(--room-ink-rgb) / 0.35);
-}
+  color: rgb(var(--room-ink-rgb) / 0.35); font-variant-numeric: tabular-nums; }
 
 /* mt-1 flex items-baseline gap-1.5 */
 .take-line-value {
@@ -192,8 +187,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  color: rgb(var(--room-ink-rgb) / 0.4);
-}
+  color: rgb(var(--room-ink-rgb) / 0.4); font-stretch: 125%; }
 
 /* font-display text-xl font-bold text-white tabular-nums — the reference's strike
    input; here the line is the opening print and is read, not typed */
@@ -201,8 +195,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
+  font-variant-numeric: tabular-nums; font-stretch: 125%; }
 
 /* placeholder:text-white/25 — while the print is pending */
 .take-line-figure[data-pending="true"] {
@@ -216,8 +209,7 @@
   margin-top: 4px;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: rgb(var(--room-ink-rgb) / 0.3);
-}
+  color: rgb(var(--room-ink-rgb) / 0.3); font-variant-numeric: tabular-nums; }
 
 /* mt-3 · mb-1.5 label · grid grid-cols-3 gap-2 */
 .take-horizon {
@@ -267,8 +259,7 @@
   font-size: 15px;
   line-height: 1.375;
   color: rgb(var(--room-ink-rgb));
-  outline: none;
-}
+  outline: none; font-stretch: 125%; }
 
 .take-words textarea::placeholder {
   color: rgb(var(--room-ink-rgb) / 0.25);
@@ -284,8 +275,7 @@
   text-align: right;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: rgb(var(--room-ink-rgb) / 0.3);
-}
+  color: rgb(var(--room-ink-rgb) / 0.3); font-variant-numeric: tabular-nums; }
 
 /* mt-2 rounded-xl border border-white/[0.06] bg-white/[0.015] px-3.5 py-2.5 */
 .take-preview {
@@ -300,13 +290,12 @@
   color: rgb(var(--room-ink-rgb) / 0.35);
 }
 
-/* mt-0.5 font-mono text-[12px] text-vermilion — the line carries the card's chip now (D-082, take.css) */
+/* mt-0.5 font-mono text-[12px] text-signal — the line carries the card's chip now (D-082, take.css) */
 .take-preview-call {
   margin-top: 2px;
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; }
 
 /* text-white/40 */
 .take-preview-window {
@@ -318,26 +307,25 @@
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.5;
-  color: var(--loss);
-}
+  color: var(--loss); font-variant-numeric: tabular-nums; }
 
-/* mt-3 w-full rounded-full bg-vermilion px-6 py-3 text-sm font-semibold text-white
-   hover:bg-vermilion-d disabled:cursor-not-allowed disabled:opacity-50 */
+/* mt-3 w-full rounded-full bg-signal px-6 py-3 text-sm font-semibold text-white
+   hover:bg-signal-d disabled:cursor-not-allowed disabled:opacity-50 */
 .take-post {
   margin-top: 12px;
   width: 100%;
   border-radius: 9999px;
-  background: var(--vermilion);
+  background: var(--signal);
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-signal);
   outline: none;
   transition: background-color 200ms var(--ease);
 }
 
 .take-post:hover:not(:disabled) {
-  background: var(--vermilion-d, var(--vermilion));
+  background: var(--signal-d, var(--signal));
 }
 
 .take-post:disabled {
@@ -357,8 +345,7 @@
   text-align: center;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: rgb(var(--room-ink-rgb) / 0.35);
-}
+  color: rgb(var(--room-ink-rgb) / 0.35); font-variant-numeric: tabular-nums; }
 
 /* the unconfigured state, in the Room's own state grammar */
 .take-state {
@@ -385,13 +372,11 @@
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 600;
-  text-wrap: balance;
-}
+  text-wrap: balance; font-stretch: 125%; }
 
 .take-state-body {
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.6;
   color: rgb(var(--room-ink-rgb) / 0.5);
-  text-wrap: balance;
-}
+  text-wrap: balance; font-variant-numeric: tabular-nums; }

@@ -40,7 +40,7 @@ function stepArea(steps: readonly DepthStep[], edgeBps: number, { x, y }: Scale)
  * §02 — the reference's smile box (`SurfacePage` L279–292: `drawIvLine` in a 220px box), drawn on the
  * venue's real structure. There is no volatility model to read back; what a book has is depth —
  * cumulative size at each price, both sides on the UP axis. The grammar is `drawIvLine`'s exactly:
- * a 44px column of y labels, three bands of grid, the dashed vermilion marker, x labels under the
+ * a 44px column of y labels, three bands of grid, the dashed signal marker, x labels under the
  * plot, and the figures in a 10px line beneath the box — with contracts up the side and prices along
  * the bottom. `TermChart` draws §04 the same way. SVG rather than canvas so the paths scale with the
  * box and every stroke stays one device pixel (`vector-effect`); the labels are HTML so they never

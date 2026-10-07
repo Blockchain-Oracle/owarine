@@ -33,7 +33,7 @@ function Tile({ label, value, unit }: { label: string; value: string; unit?: str
 
 /**
  * The phone board's header (web's `.lb-hero` language at a phone size): the mono eyebrow with the tilted date stamp
- * at its right, "The house of names." on one line at 32 pt with the vermilion middle word, then traders, total staked
+ * at its right, "The house of names." on one line at 32 pt with the signal middle word, then traders, total staked
  * and the next close as one row of compact tiles.
  */
 export function BoardHero({ data, board, span, nextExpirySec, nowMs }: Props) {
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   hero: { paddingTop: 20, paddingBottom: 14, gap: 10 },
   eyebrowRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   eyebrow: { flexShrink: 1, fontFamily: FONT.dataRegular, fontSize: 11, lineHeight: 17.6, letterSpacing: 1.1, textTransform: "uppercase" },
-  // web's `.stamp`: a 1 px vermilion frame, 3° off square, mono 9 at 0.22em.
+  // web's `.stamp`: a 1 px signal frame, 3° off square, mono 9 at 0.22em.
   stamp: { borderWidth: 1, borderRadius: 3, paddingVertical: 3, paddingHorizontal: 7, transform: [{ rotate: "-3deg" }] },
   stampText: { fontFamily: FONT.dataRegular, fontSize: 8, lineHeight: 11.2, letterSpacing: 1.6 },
   title: { fontFamily: FONT.headingHeavy, fontSize: 32, lineHeight: 36, letterSpacing: -1.28 },

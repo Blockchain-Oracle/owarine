@@ -52,7 +52,7 @@ export function ProfileScreen({ address, xHandle }: { address: Address; xHandle:
         <div className="prf-ident">
           <span aria-hidden className="prf-avatar" style={{ "--prf-hue": addressHue(address) } as CSSProperties} />
           <h1 className="news-title prf-title" title={address}>
-            {address.slice(0, LEAD)}…<span className="vermilion">{address.slice(-TAIL)}</span>
+            {address.slice(0, LEAD)}…<span className="signal">{address.slice(-TAIL)}</span>
           </h1>
         </div>
         <div className="page-title-jp" lang="ja">

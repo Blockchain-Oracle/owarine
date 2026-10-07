@@ -77,7 +77,7 @@ interface TickerPickerProps {
 
 /**
  * web's TickerPicker (`.asset-tabs.tkp`, the leaderboard's `.asset-tab`): "All" and one mono-caps tab per ticker with
- * its 16 px disc, a vermilion underline under the pinned one, a paused ticker a step quieter; it scrolls sideways.
+ * its 16 px disc, a signal underline under the pinned one, a paused ticker a step quieter; it scrolls sideways.
  */
 export function TickerPicker({ tickers, basis, paused, ticker, onPick }: TickerPickerProps) {
   const { name } = useTheme();
@@ -92,7 +92,7 @@ export function TickerPicker({ tickers, basis, paused, ticker, onPick }: TickerP
       accessibilityRole="button"
       accessibilityState={{ selected: on }}
       accessibilityHint={hint}
-      style={[styles.assetTab, { borderBottomColor: on ? t.vermilion : "transparent" }]}
+      style={[styles.assetTab, { borderBottomColor: on ? t.signal : "transparent" }]}
     >
       {glyph ? (
         <View style={styles.glyph}>

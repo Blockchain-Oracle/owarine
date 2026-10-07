@@ -8,7 +8,7 @@ import { ROOM_BODY_MAX, type RoomComment } from "@/features/room/protocol";
 import { addressHue } from "@/lib/address-hue";
 import { haptic } from "~/components/kit";
 import { FONT, useTheme } from "~/theme";
-import { ROOM_VERMILION as V, roomAvatar, roomTokens } from "~/theme/web/explore/room";
+import { ROOM_SIGNAL as V, roomAvatar, roomTokens } from "~/theme/web/explore/room";
 import { ErrorLine } from "./RoomStates";
 
 const shortAddress = (address: string): string => (address.length > 10 ? `${address.slice(0, 6)}…${address.slice(-4)}` : address);
@@ -35,7 +35,7 @@ interface RoomThreadProps {
 /**
  * The joined Room — web's `CommentRoom` thread and composer (room-thread.css): each line is the author's hue disc
  * (the address's first two characters, exactly), their short address (or "you") linking to their profile, the time,
- * and the words, a member's own lines on the right in the vermilion tint; the pill composer counts down from 280.
+ * and the words, a member's own lines on the right in the signal tint; the pill composer counts down from 280.
  */
 export function RoomThread({ comments, busy, error, onPost, onLeave }: RoomThreadProps) {
   const { name, color } = useTheme();
@@ -121,7 +121,7 @@ export function RoomThread({ comments, busy, error, onPost, onLeave }: RoomThrea
           accessibilityRole="button"
           accessibilityLabel={busy ? ROOM.sending : ROOM.send}
           accessibilityState={{ disabled: !canSend, busy }}
-          style={[styles.send, { backgroundColor: color.accent, opacity: canSend ? 1 : 0.4 }]}
+          style={[styles.send, { backgroundColor: color.accentFill, opacity: canSend ? 1 : 0.4 }]}
         >
           <Send size={15} color={color.onAccent} />
         </Pressable>

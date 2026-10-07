@@ -8,25 +8,25 @@ export const OG_CONTENT_TYPE = "image/png";
 
 export const OG = {
   /** `--bg` */
-  ground: "rgb(5, 5, 5)",
+  ground: "rgb(16, 15, 15)",
   /** `--white` */
   ink: "rgb(255, 255, 255)",
   /** `--gray-400` */
-  soft: "rgb(163, 163, 163)",
+  soft: "rgb(161, 159, 150)",
   /** `--gray-500` */
-  dim: "rgb(115, 115, 115)",
+  dim: "rgb(118, 116, 108)",
   /** `--gray-800` */
-  hairline: "rgb(38, 38, 38)",
+  hairline: "rgb(38, 37, 37)",
   /** `.crop` corner marks (part-04). */
   crop: "rgba(255, 255, 255, 0.18)",
   /** `.mark-ring` (icons.css): Apple's near-black disc on the dark ground. */
   ring: "rgba(255, 255, 255, 0.22)",
-  /** `--vermilion` */
-  vermilion: "rgb(224, 77, 38)",
+  /** `--signal` */
+  signal: "rgb(228, 226, 78)",
   /** `--color-profit` (dark) */
-  up: "rgb(52, 211, 153)",
+  up: "rgb(61, 214, 140)",
   /** `--color-loss` (dark) */
-  down: "rgb(251, 113, 133)",
+  down: "rgb(255, 92, 97)",
 } as const;
 
 /** The canvas inset every image shares. */

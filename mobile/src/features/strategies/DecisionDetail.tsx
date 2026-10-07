@@ -124,7 +124,7 @@ function Body({ d, agentName, decimals, symbol, nowMs }: { d: DecisionWire; agen
         {title}
       </Text>
       {d.outcome ? (
-        <Text style={[styles.outcome, won ? { borderColor: t.vermilionA(0.5), color: t.vermilion } : { borderColor: t.directionBorder, color: color.inkSecondary }]}>{M.outcome[d.outcome]}</Text>
+        <Text style={[styles.outcome, won ? { borderColor: t.signalA(0.5), color: t.signal } : { borderColor: t.directionBorder, color: color.inkSecondary }]}>{M.outcome[d.outcome]}</Text>
       ) : null}
       <Section title={DECISION.sections.window}>
         {d.window ? <Row label={DECISION.rows.trading} value={windowSpan(d.window.startSec, d.window.expirySec, nowMs)} /> : null}

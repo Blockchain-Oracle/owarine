@@ -14,17 +14,17 @@ import { booleanCodec, usePersistedState } from "@/lib/persisted";
 export type MotionChoice = "system" | "full" | "reduced";
 
 /**
- * Every accent is a colour the design system already has — vermilion (the sole brand accent) and
+ * Every accent is a colour the design system already has — signal (the sole brand accent) and
  * the venue's own two sides. `default` is no colour at all: it is the deterministic hue this app
  * already derives from an address, so a player who never opens settings still has an identity.
  */
-export type AccentChoice = "default" | "vermilion" | "up" | "down";
+export type AccentChoice = "default" | "signal" | "up" | "down";
 
-export const ACCENT_CHOICES: readonly AccentChoice[] = ["default", "vermilion", "up", "down"];
+export const ACCENT_CHOICES: readonly AccentChoice[] = ["default", "signal", "up", "down"];
 
 export const ACCENT_LABELS: Readonly<Record<AccentChoice, string>> = {
   default: "Address",
-  vermilion: "Vermilion",
+  signal: "Signal",
   up: "Up",
   down: "Down",
 };

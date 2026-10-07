@@ -204,7 +204,7 @@ export const TICKERS: Readonly<Record<TickerSymbol, Ticker>> = {
     symbol: "ANTHROPIC", seriesId: 911, name: "Anthropic", kind: "preIpo", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
     xstock: null, ondo: null, preIpo: preIpo("ANTHROPIC", "Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw"), basket: null, pythIndexFeedId: indexFeed("ANTHROPIC"), valuationOf: null,
-    monogram: "A", brand: brand("anthropic", "#D97757"),
+    monogram: "A", brand: brand("anthropic", "#E1E07B"),
   },
   SPACEX: {
     symbol: "SPACEX", seriesId: 912, name: "SpaceX", kind: "preIpo", alpacaSymbol: null,

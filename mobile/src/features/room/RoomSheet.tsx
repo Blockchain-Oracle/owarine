@@ -11,7 +11,7 @@ import type { RoomId } from "@/features/room/room-id";
 import { useRoom } from "@/features/room/useRoom";
 import { haptic } from "~/components/kit";
 import { FONT, useTheme } from "~/theme";
-import { ROOM_VERMILION as V, roomTokens } from "~/theme/web/explore/room";
+import { ROOM_SIGNAL as V, roomTokens } from "~/theme/web/explore/room";
 import { ErrorLine, RoomMark, RoomStates } from "./RoomStates";
 import { RoomThread } from "./RoomThread";
 
@@ -108,7 +108,7 @@ function RoomBody({ roomId, ticker, onClose, onBet }: Omit<RoomSheetProps, "visi
 
 /**
  * One Room — web's `RoomSheet` + `CommentRoom` on a phone: a bottom sheet (rounded 24 at the top, up to 88 % of the
- * screen) over a 70 % black scrim, the vermilion hairline across its top edge, the head (the locked-bubble mark, the
+ * screen) over a 70 % black scrim, the signal hairline across its top edge, the head (the locked-bubble mark, the
  * call, the "bettors only" badge, the Window/ticker switch, ✕), then the gate states or the thread. web's gate
  * machine (`useRoom`) drives it; it follows the theme and claims no encryption, as web's does. web's Dialog has no enter
  * transition on `.room-sheet` or `.room-scrim` (room.css), so the sheet appears in place, as it does there.

@@ -2,24 +2,24 @@ import type { ThemeName } from "../index";
 
 /**
  * web's `/portfolio/edge` palette (styles/edge.css `.edge-page` --edge-*, per theme) and the fills the CSS computes
- * from it: the page's vermilion glow, the state panel's paper wash and its 80 px rules, the skeleton shimmer.
+ * from it: the page's signal glow, the state panel's paper wash and its 80 px rules, the skeleton shimmer.
  */
 const DARK = {
-  bg: "#090909", surface: "#0E0E0F", surface2: "#141311",
-  text: "#F3F0EA", muted: "#A29C92", faint: "#6F6B64",
+  bg: "#090909", surface: "#0F0E0E", surface2: "#131212",
+  text: "#F3F2EA", muted: "#A09E94", faint: "#6F6D64",
   rule: "rgba(255, 255, 255, 0.09)", ruleStrong: "rgba(255, 255, 255, 0.16)", paper: "rgba(255, 255, 255, 0.025)", paperClear: "rgba(255, 255, 255, 0)",
-  glow: "rgba(214, 75, 38, 0.055)", glowClear: "rgba(214, 75, 38, 0)",
+  glow: "rgba(228, 226, 78, 0.055)", glowClear: "rgba(228, 226, 78, 0)",
   shimmer: "rgba(255, 255, 255, 0.045)", shimmerClear: "rgba(255, 255, 255, 0)",
-  vermilion: "#E04D26", vermilionD: "#B83A1B", actionInk: "#FFFAF4",
+  signal: "#E4E24E", signalD: "#CFCD3F", actionInk: "#100F0F",
 };
 
 const LIGHT: typeof DARK = {
-  bg: "#F4EEE3", surface: "#FBF7EF", surface2: "#EFE7DA",
-  text: "#1A1612", muted: "#6B6359", faint: "#91887A",
-  rule: "rgba(38, 30, 24, 0.12)", ruleStrong: "rgba(38, 30, 24, 0.2)", paper: "rgba(255, 255, 255, 0.34)", paperClear: "rgba(255, 255, 255, 0)",
-  glow: "rgba(214, 75, 38, 0.055)", glowClear: "rgba(214, 75, 38, 0)",
+  bg: "#F5F4EF", surface: "#F8F7F2", surface2: "#E6E6E3",
+  text: "#171515", muted: "#68665C", faint: "#8D8A7E",
+  rule: "rgba(33, 32, 29, 0.12)", ruleStrong: "rgba(33, 32, 29, 0.2)", paper: "rgba(255, 255, 255, 0.34)", paperClear: "rgba(255, 255, 255, 0)",
+  glow: "rgba(228, 226, 78, 0.055)", glowClear: "rgba(228, 226, 78, 0)",
   shimmer: "rgba(255, 255, 255, 0.045)", shimmerClear: "rgba(255, 255, 255, 0)",
-  vermilion: "#D93E1F", vermilionD: "#B83214", actionInk: "#FFFAF4",
+  signal: "#E4E24E", signalD: "#CFCD3F", actionInk: "#100F0F",
 };
 
 export type EdgeTokens = typeof DARK;

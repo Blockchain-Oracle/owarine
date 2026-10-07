@@ -62,7 +62,7 @@ export function UnderlineTabs<T extends string>({ value, onChange, items, label 
           </Pressable>
         );
       })}
-      {box ? <Animated.View style={[styles.indicator, { backgroundColor: color.accent }, bar]} /> : null}
+      {box ? <Animated.View style={[styles.indicator, { backgroundColor: color.accentFill }, bar]} /> : null}
     </View>
   );
 }
@@ -96,7 +96,7 @@ export function RadioCards<T extends string>({ value, onChange, items, label }: 
           >
             {on ? <LinearWash from={color.accentWash} until={0.7} radius={13} /> : null}
             {on ? <View pointerEvents="none" style={[styles.ring, { borderColor: color.accent }]} /> : null}
-            <View style={[styles.radioDot, { borderColor: on ? color.accent : color.inkMuted }]}>{on ? <View style={[styles.radioDotOn, { backgroundColor: color.accent }]} /> : null}</View>
+            <View style={[styles.radioDot, { borderColor: on ? color.accent : color.inkMuted }]}>{on ? <View style={[styles.radioDotOn, { backgroundColor: color.accentFill }]} /> : null}</View>
             {item.media ? <View style={styles.radioMedia}>{item.media}</View> : null}
             {typeof item.title === "string" ? <Text style={[styles.radioTitle, { color: color.ink }]}>{item.title}</Text> : item.title}
             {typeof item.body === "string" ? <Text style={[styles.radioBody, { color: color.inkSecondary }]}>{item.body}</Text> : item.body}
@@ -110,7 +110,7 @@ export function RadioCards<T extends string>({ value, onChange, items, label }: 
 
 type ControlTone = "primary" | "danger" | undefined;
 
-/** `.dk-control`: the desk's 40 px pill button; primary is vermilion with the cream ink, danger is the loss ink. */
+/** `.dk-control`: the desk's 40 px pill button; primary is signal with the cream ink, danger is the loss ink. */
 export function DkControl({ label, onPress, tone, disabled, icon: Icon, locked, style }: { label: string; onPress?: () => void; tone?: ControlTone; disabled?: boolean; icon?: LucideIcon; locked?: boolean; style?: StyleProp<ViewStyle> }) {
   const { color, t } = useDeskTheme();
   const ink = tone === "primary" ? t.controlPrimaryInk : tone === "danger" ? color.loss : locked ? color.inkMuted : color.ink;

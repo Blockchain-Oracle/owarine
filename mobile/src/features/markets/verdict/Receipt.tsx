@@ -16,7 +16,7 @@ interface ReceiptProps {
 
 /**
  * web's components/receipt `Receipt`: the cream stub — the app's only inverted surface and its only shadow. A 6 pt
- * vermilion band, the title with the stamp, the monument figure over the settled UTC time, the ledger rows, the
+ * signal band, the title with the stamp, the monument figure over the settled UTC time, the ledger rows, the
  * perforated tear with its two notches, and the footer.
  */
 export function Receipt({ figure, figureLabel, settledAtMs, stamp, children }: ReceiptProps) {
@@ -25,7 +25,7 @@ export function Receipt({ figure, figureLabel, settledAtMs, stamp, children }: R
   return (
     <View style={[styles.shadow, { shadowColor: color.shadow }]}>
       <View style={[styles.paper, { backgroundColor: color.cream }]}>
-        <View style={[styles.band, { backgroundColor: color.accent }]} />
+        <View style={[styles.band, { backgroundColor: color.accentFill }]} />
         <View style={styles.body}>
           <View style={styles.header}>
             <Text style={[styles.micro, { color: t.creamInk70 }]}>{RECEIPT_TITLE}</Text>

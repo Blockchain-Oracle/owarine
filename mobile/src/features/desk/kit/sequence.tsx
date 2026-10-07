@@ -36,7 +36,7 @@ export function StepProgress({ steps, current, onPick, label }: { steps: readonl
   return (
     <View accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 1, max: steps.length, now: current }}>
       <View style={[styles.rail, { backgroundColor: color.hairline }]}>
-        <Animated.View style={[styles.railFill, { backgroundColor: color.accent }, railFill]} />
+        <Animated.View style={[styles.railFill, { backgroundColor: color.accentFill }, railFill]} />
       </View>
       <View style={styles.stepRow}>
         {steps.map((s, i) => {
@@ -60,7 +60,7 @@ export function StepProgress({ steps, current, onPick, label }: { steps: readonl
                 <View
                   style={[
                     styles.badge,
-                    state === "done" && { borderColor: color.accent, backgroundColor: color.accent },
+                    state === "done" && { borderColor: color.accent, backgroundColor: color.accentFill },
                     state === "current" && { borderColor: color.accent, backgroundColor: color.surface1, boxShadow: `0 0 0 4px ${color.accentWash}` },
                     state === "next" && { borderColor: color.hairline, backgroundColor: color.surface1 },
                   ]}

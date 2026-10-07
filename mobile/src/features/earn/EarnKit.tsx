@@ -13,7 +13,7 @@ export function useEarnParlay() {
 
 /**
  * web's `components/shell/SectionHead.tsx` at 402 px (yosuku part-05 `.section-head`, phone rules in part-15): the mono
- * index bottom-left, the Sora 22 title and its 12 px description, the 1 px rule with the 46 px vermilion tick at its
+ * index bottom-left, the Sora 22 title and its 12 px description, the 1 px rule with the 46 px signal tick at its
  * left end. The right-hand meta is `display: none` on a phone, so it is not drawn. `/earn` tightens the bottom margin
  * to 16 (part-17); `/parlay` keeps part-15's 24.
  */
@@ -30,7 +30,7 @@ export function SectionHead({ number, title, desc, marginBottom = 24 }: { number
         </Text>
         {desc ? <Text style={[styles.desc, { color: color.inkMuted }]}>{desc}</Text> : null}
       </View>
-      <View style={[styles.tick, { backgroundColor: color.accent }]} />
+      <View style={[styles.tick, { backgroundColor: color.accentFill }]} />
     </View>
   );
 }

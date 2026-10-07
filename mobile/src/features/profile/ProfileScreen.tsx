@@ -36,7 +36,7 @@ function useVerifiedHandle(address: Address): string | null {
   return binding && binding.wallet === address ? binding.handle : null;
 }
 
-/** news.css `.news-live`: the pulsing vermilion dot and the mono eyebrow. */
+/** news.css `.news-live`: the pulsing signal dot and the mono eyebrow. */
 function Eyebrow({ label }: { label: string }) {
   const { color } = useTheme();
   const reduce = useReducedMotion();
@@ -47,7 +47,7 @@ function Eyebrow({ label }: { label: string }) {
   const fade = useAnimatedStyle(() => ({ opacity: pulse.value }));
   return (
     <View style={styles.live}>
-      <Animated.View style={[styles.liveDot, { backgroundColor: color.accent, shadowColor: color.accent }, fade]} />
+      <Animated.View style={[styles.liveDot, { backgroundColor: color.accentFill, shadowColor: color.accent }, fade]} />
       <Text style={[styles.liveLabel, { color: color.inkMuted }]}>{label}</Text>
     </View>
   );

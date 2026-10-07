@@ -29,12 +29,12 @@
   }
 }
 
-/* flex items-center gap-2 text-vermilion */
+/* flex items-center gap-2 text-signal */
 .demo-kicker {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* w-5 h-5 */
@@ -49,8 +49,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+  text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* mt-4 font-display font-[800] text-[clamp(1.8rem,4vw,3rem)] leading-[1.05] */
 .demo-h2 {
@@ -58,8 +57,7 @@
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 800;
-  line-height: 1.05;
-}
+  line-height: 1.05; font-stretch: 125%; }
 
 /* mt-4 text-gray-400 leading-relaxed max-w-[46ch] (max-w-[52ch] on the proof section) */
 .demo-body {
@@ -81,7 +79,7 @@
   margin-top: 24px;
 }
 
-/* mt-6 inline-flex items-center gap-2 font-mono text-[13px] text-vermilion hover:gap-3 transition-all */
+/* mt-6 inline-flex items-center gap-2 font-mono text-[13px] text-signal hover:gap-3 transition-all */
 .demo-inline-link {
   display: inline-flex;
   align-items: center;
@@ -89,9 +87,8 @@
   margin-top: 24px;
   font-family: var(--font-mono);
   font-size: 13px;
-  color: var(--vermilion);
-  transition: gap 200ms var(--ease);
-}
+  color: var(--signal-ink);
+  transition: gap 200ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .demo-links .demo-inline-link {
   margin-top: 0;
@@ -101,7 +98,7 @@
   gap: 12px;
 }
 
-/* group inline-flex items-center gap-2 font-mono text-[12px] text-gray-400 hover:text-vermilion */
+/* group inline-flex items-center gap-2 font-mono text-[12px] text-gray-400 hover:text-signal */
 .demo-proof-link {
   display: inline-flex;
   align-items: center;
@@ -109,11 +106,10 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--gray-400);
-  transition: color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .demo-proof-link:hover {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* w-3.5 h-3.5 */
@@ -123,14 +119,14 @@
   flex-shrink: 0;
 }
 
-/* text-gray-600 group-hover:text-vermilion/70 */
+/* text-gray-600 group-hover:text-signal/70 */
 .demo-proof-hash {
   color: var(--gray-600);
   transition: color 200ms var(--ease);
 }
 
 .demo-proof-link:hover .demo-proof-hash {
-  color: color-mix(in srgb, var(--vermilion) 70%, transparent);
+  color: color-mix(in srgb, var(--signal-ink) 70%, transparent);
 }
 
 /* Ours: which wallet the fills belong to and when they were read. */
@@ -139,8 +135,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   line-height: 1.6;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 /* relative rounded-2xl overflow-hidden border border-white/10 shadow-[…] + `img.w-full.block` */
 .demo-frame {
@@ -169,8 +164,7 @@
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--gray-600);
-}
+  color: var(--gray-600); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* mt-10 grid md:grid-cols-3 gap-4 */
 .demo-cards {
@@ -198,11 +192,11 @@
   background: linear-gradient(to bottom, var(--demo-wash), transparent);
 }
 
-/* w-6 h-6 text-vermilion */
+/* w-6 h-6 text-signal */
 .demo-card-icon {
   width: 24px;
   height: 24px;
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* mt-4 font-display font-bold text-lg */
@@ -210,8 +204,7 @@
   margin-top: 16px;
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700;
-}
+  font-weight: 700; font-stretch: 125%; }
 
 /* mt-2 text-[13.5px] text-gray-400 leading-relaxed */
 .demo-card-body {
@@ -259,8 +252,7 @@
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
-  line-height: 1.02;
-}
+  line-height: 1.02; font-stretch: 125%; }
 
 /* mt-8 flex flex-wrap gap-3 justify-center; the buttons here are px-6 py-3.5 without text-sm */
 .demo-close-ctas {
@@ -282,5 +274,4 @@
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.025em;
-  color: var(--gray-600);
-}
+  color: var(--gray-600); font-variant-numeric: tabular-nums; }

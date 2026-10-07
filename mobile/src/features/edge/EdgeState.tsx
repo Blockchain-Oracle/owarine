@@ -40,14 +40,14 @@ function PanelPaper() {
   );
 }
 
-/** web `.edge-state-action`: the vermilion 44 pt slab in Sora 12 bold, 4 pt corners. */
+/** web `.edge-state-action`: the signal 44 pt slab in Sora 12 bold, 4 pt corners. */
 export function EdgeStateAction({ label, onPress }: { label: string; onPress: () => void }) {
   const { edge } = useEdgeInk();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [styles.action, { backgroundColor: pressed ? edge.vermilionD : edge.vermilion }, pressed ? styles.pressed : null]}
+      style={({ pressed }) => [styles.action, { backgroundColor: pressed ? edge.signalD : edge.signal }, pressed ? styles.pressed : null]}
     >
       <Text style={[styles.actionText, { color: edge.actionInk }]}>{label}</Text>
     </Pressable>
@@ -61,7 +61,7 @@ export function EdgeState({ eyebrow, title, copy, action }: { eyebrow: string; t
     <View style={[styles.panel, { borderColor: edge.rule }]}>
       <PanelPaper />
       <View style={styles.inner}>
-        <Text style={[styles.eyebrow, { color: edge.vermilion }]}>{eyebrow}</Text>
+        <Text style={[styles.eyebrow, { color: edge.signal }]}>{eyebrow}</Text>
         <Text style={[styles.title, { color: edge.text }]} accessibilityRole="header">
           {title}
         </Text>

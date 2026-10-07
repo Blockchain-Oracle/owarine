@@ -11,27 +11,27 @@
 
 :root {
   /* lib/openBetShareCard.ts L262 · lib/shareCard.ts L319, L28–29 */
-  --share-ground-call: #0a0908;
-  --share-ground-trade: #070505;
-  --share-ash: #8f8a82;
-  --share-ash-dim: rgba(143, 138, 130, 0.55);
+  --share-ground-call: #090909;
+  --share-ground-trade: #060606;
+  --share-ash: #8f8d82;
+  --share-ash-dim: rgba(143, 141, 130, 0.55);
   /* the QR tile on the stub: Yosuku's light-card paper (part-01.css .creator-studio) and its remapped --white ink */
-  --share-paper: #fdf8ef;
-  --share-qr-ink: #141210;
+  --share-paper: #f9f8f3;
+  --share-qr-ink: #100F0F;
 }
 
 .call-card {
   --call-ink-rgb: 255 255 255;
   --call-ink: rgb(var(--call-ink-rgb));
-  /* radial-gradient(130% 90% at 50% -10%, #16110c 0%, #0d0a08 46%, #080605 100%) */
-  --call-surface: radial-gradient(130% 90% at 50% -10%, #16110c 0%, #0d0a08 46%, #080605 100%);
+  /* radial-gradient(130% 90% at 50% -10%, #121010 0%, #0b0a0a 46%, #070606 100%) */
+  --call-surface: radial-gradient(130% 90% at 50% -10%, #121010 0%, #0b0a0a 46%, #070606 100%);
   --call-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
 }
 
 [data-theme="light"] .call-card {
   --call-ink-rgb: 33 28 24;
-  --call-surface: radial-gradient(130% 90% at 50% -10%, #fffaf2 0%, #fdf8ef 46%, #f9f3e9 100%);
-  --call-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 30px 90px -50px rgba(80, 45, 24, 0.45);
+  --call-surface: radial-gradient(130% 90% at 50% -10%, #fafaf7 0%, #f9f8f3 46%, #f5f4ed 100%);
+  --call-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 30px 90px -50px rgba(114, 113, 34, 0.45);
 }
 
 /* relative overflow-hidden rounded-2xl border border-white/[0.08]
@@ -62,7 +62,7 @@
 }
 
 /* pointer-events-none absolute inset-x-0 top-0 z-20 h-px
-   bg-gradient-to-r from-transparent via-vermilion/60 to-transparent */
+   bg-gradient-to-r from-transparent via-signal/60 to-transparent */
 .call-spark {
   pointer-events: none;
   position: absolute;
@@ -70,7 +70,7 @@
   top: 0;
   z-index: 20;
   height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--vermilion) 60%, transparent), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--signal) 60%, transparent), transparent);
 }
 
 /* absolute h-2.5 w-2.5 border-white/20 — one L-shaped tick per corner */
@@ -108,16 +108,14 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.2em;
-  color: rgb(var(--call-ink-rgb) / 0.9);
-}
+  color: rgb(var(--call-ink-rgb) / 0.9); font-stretch: 125%; }
 
 /* font-mono text-[9px] tracking-[0.18em] text-white/40 */
 .call-folio {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.18em;
-  color: rgb(var(--call-ink-rgb) / 0.4);
-}
+  color: rgb(var(--call-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; }
 
 /* mt-3 h-px bg-white/[0.08] */
 .call-rule {
@@ -126,7 +124,7 @@
   background: rgb(var(--call-ink-rgb) / 0.08);
 }
 
-/* mt-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-vermilion */
+/* mt-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.22em] text-signal */
 .call-eyebrow {
   margin-top: 16px;
   display: flex;
@@ -136,9 +134,8 @@
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.22em;
-  color: var(--vermilion);
-}
+  letter-spacing: 0.1em;
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .call-eyebrow-dot { color: rgb(var(--call-ink-rgb) / 0.25); }
 .call-eyebrow-note { color: rgb(var(--call-ink-rgb) / 0.45); }
@@ -150,8 +147,7 @@
   font-size: 1.9rem;
   font-weight: 850;
   line-height: 1.06;
-  text-wrap: balance;
-}
+  text-wrap: balance; font-stretch: 125%; }
 
 /* mt-1.5 font-mono text-[10px] leading-relaxed text-white/40 */
 .call-wins-if,
@@ -160,8 +156,7 @@
   font-family: var(--font-mono);
   font-size: 10px;
   line-height: 1.625;
-  color: rgb(var(--call-ink-rgb) / 0.4);
-}
+  color: rgb(var(--call-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; }
 
 /* mt-4 flex items-stretch justify-between gap-3 border-y border-white/[0.08] py-3.5 */
 .call-wager {
@@ -179,9 +174,8 @@
   font-family: var(--font-mono);
   font-size: 8.5px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: rgb(var(--call-ink-rgb) / 0.4);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--call-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* mt-1 font-display text-[1.35rem] font-bold leading-none tabular-nums text-white */
 .call-figure {
@@ -190,11 +184,10 @@
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
+  font-variant-numeric: tabular-nums; font-stretch: 125%; }
 
-/* the return carries the vermilion — text-vermilion */
-.call-figure.heat { color: var(--vermilion); }
+/* the return carries the signal — text-signal */
+.call-figure.heat { color: var(--signal-ink); }
 
 /* flex items-center text-white/25 */
 .call-arrow {
@@ -230,7 +223,7 @@
   gap: 8px;
 }
 
-/* relative flex h-1.5 w-1.5 — animate-ping halo over a solid vermilion dot */
+/* relative flex h-1.5 w-1.5 — animate-ping halo over a solid signal dot */
 .call-ping {
   position: relative;
   display: flex;
@@ -243,7 +236,7 @@
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--vermilion) 70%, transparent);
+  background: color-mix(in srgb, var(--signal) 70%, transparent);
   animation: callPing 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
@@ -253,8 +246,7 @@
   height: 6px;
   width: 6px;
   border-radius: 9999px;
-  background: var(--vermilion);
-}
+  background: var(--signal); color: var(--on-signal); }
 
 @keyframes callPing {
   75%, 100% { transform: scale(2); opacity: 0; }
@@ -266,8 +258,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
+  font-variant-numeric: tabular-nums; font-stretch: 125%; }
 
 /* mt-2.5 h-1 overflow-hidden rounded-full bg-white/[0.08] */
 .call-drain {
@@ -278,13 +269,12 @@
   background: rgb(var(--call-ink-rgb) / 0.08);
 }
 
-/* h-full rounded-full bg-vermilion transition-[width] duration-1000 ease-linear */
+/* h-full rounded-full bg-signal transition-[width] duration-1000 ease-linear */
 .call-drain-fill {
   height: 100%;
   border-radius: 9999px;
-  background: var(--vermilion);
-  transition: width 1000ms linear;
-}
+  background: var(--signal);
+  transition: width 1000ms linear; color: var(--on-signal); }
 
 /* mt-4 inline-flex items-center gap-1 font-mono text-[10px] text-white/40 hover:text-white */
 .call-verify {
@@ -295,13 +285,12 @@
   font-family: var(--font-mono);
   font-size: 10px;
   color: rgb(var(--call-ink-rgb) / 0.4);
-  transition: color 150ms var(--ease);
-}
+  transition: color 150ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .call-verify:hover { color: var(--call-ink); }
 
-/* mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-vermilion px-6 py-3
-   text-sm font-semibold text-white hover:bg-vermilion-d disabled:cursor-wait disabled:opacity-60 */
+/* mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-signal px-6 py-3
+   text-sm font-semibold text-white hover:bg-signal-d disabled:cursor-wait disabled:opacity-60 */
 .call-share {
   margin-top: 16px;
   display: flex;
@@ -310,16 +299,16 @@
   justify-content: center;
   gap: 8px;
   border-radius: 9999px;
-  background: var(--vermilion);
+  background: var(--signal);
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-signal);
   outline: none;
   transition: background-color 200ms var(--ease);
 }
 
-.call-share:hover:not(:disabled) { background: var(--vermilion-d, var(--vermilion)); }
+.call-share:hover:not(:disabled) { background: var(--signal-d, var(--signal)); }
 .call-share:disabled { cursor: wait; opacity: 0.6; }
 
 /* mt-2.5 grid grid-cols-2 gap-2.5 — Portfolio / Place another */
@@ -350,7 +339,7 @@
 }
 
 /* inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em]
-   text-white/50 hover:text-vermilion disabled:opacity-50 disabled:cursor-wait */
+   text-white/50 hover:text-signal disabled:opacity-50 disabled:cursor-wait */
 .share-link {
   display: inline-flex;
   align-items: center;
@@ -358,13 +347,12 @@
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: var(--color-ink-secondary);
   outline: none;
-  transition: color 150ms var(--ease);
-}
+  transition: color 150ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
-.share-link:hover:not(:disabled) { color: var(--vermilion); }
+.share-link:hover:not(:disabled) { color: var(--signal-ink); }
 .share-link:disabled { opacity: 0.5; cursor: wait; }
 
 /* /dev/share — the 1600×900 exports at a quarter of their width */
@@ -382,16 +370,15 @@
 }
 
 /* ── the boosted call's caveat (BetPlacedCard L118, L123–127) ──
-   align-super text-[0.6em] text-vermilion/70 · mt-2 font-mono text-[8.5px] leading-relaxed text-white/40 */
+   align-super text-[0.6em] text-signal/70 · mt-2 font-mono text-[8.5px] leading-relaxed text-white/40 */
 .call-lev-mark {
   vertical-align: super;
   font-size: 0.6em;
-  color: color-mix(in srgb, var(--vermilion) 70%, transparent);
+  color: color-mix(in srgb, var(--signal-ink) 70%, transparent);
 }
 .call-lev-note {
   margin-top: 8px;
   font-family: var(--font-mono);
   font-size: 8.5px;
   line-height: 1.625;
-  color: rgb(var(--call-ink-rgb) / 0.4);
-}
+  color: rgb(var(--call-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; }

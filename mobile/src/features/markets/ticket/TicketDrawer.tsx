@@ -26,7 +26,7 @@ export function TicketDrawer({ market, phase, nowMs, children }: { market: Event
   );
 }
 
-/** web's TicketHeader: "TSLAx · 5m · 24/7", the phase in words, and the clock to the bell (vermilion once urgent). */
+/** web's TicketHeader: "TSLAx · 5m · 24/7", the phase in words, and the clock to the bell (signal once urgent). */
 function TicketHeader({ market, phase, nowMs }: { market: EventMarket; phase: MarketPhase | null; nowMs: number }) {
   const tk = useTk();
   const state = nowMs > 0 ? countdown(nowMs, market.expirySec, market.intervalSec) : null;
@@ -38,7 +38,7 @@ function TicketHeader({ market, phase, nowMs }: { market: EventMarket; phase: Ma
         </Text>
         <Text style={[styles.caption, { color: tk.inkSecondary }]}>{phase ? HERO.phase[phase] : TICKET.syncing}</Text>
       </View>
-      <Text style={[styles.clock, { color: state?.urgent ? tk.vermilion : tk.ink }]} accessibilityRole="timer">
+      <Text style={[styles.clock, { color: state?.urgent ? tk.signal : tk.ink }]} accessibilityRole="timer">
         {state ? (state.settling ? SETTLING : formatClock(state.remainingSec)) : "–:––"}
       </Text>
     </View>

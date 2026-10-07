@@ -35,7 +35,7 @@ function Row({ row, decimals, mine }: { row: FieldRow; decimals: number; mine: b
           {pnl}
         </Text>
         <View style={[styles.track, { backgroundColor: t.barTrack }]} accessible={false}>
-          <View style={[styles.fill, { width: `${Math.min(100, Math.max(0, trader.winRatePct))}%`, backgroundColor: color.accent }]} />
+          <View style={[styles.fill, { width: `${Math.min(100, Math.max(0, trader.winRatePct))}%`, backgroundColor: color.accentFill }]} />
         </View>
       </View>
     </Pressable>
@@ -44,7 +44,7 @@ function Row({ row, decimals, mine }: { row: FieldRow; decimals: number; mine: b
 
 /**
  * The phone field: ranks four to fifty as dense 62 pt rows — rank, hue portrait, name over the win–loss record, profit in
- * green or red over a win-rate bar. Your own row takes the vermilion wash; a row opens that trader's record.
+ * green or red over a win-rate bar. Your own row takes the signal wash; a row opens that trader's record.
  */
 export function RankList({ rows, decimals, address }: { rows: readonly FieldRow[]; decimals: number; address: string | null }) {
   return (

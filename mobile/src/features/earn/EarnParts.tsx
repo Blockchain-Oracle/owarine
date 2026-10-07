@@ -75,7 +75,7 @@ export function NotDeployed() {
   );
 }
 
-/** web's `.ea-paused`: the vermilion-edged note above the cards while new supply is paused. */
+/** web's `.ea-paused`: the signal-edged note above the cards while new supply is paused. */
 export function PausedNote({ body }: { body: string }) {
   const { color, t } = useEarnParlay();
   return (
@@ -86,7 +86,7 @@ export function PausedNote({ body }: { body: string }) {
   );
 }
 
-/** web's `.ea-msg`: the last write's result, gray-300 with "✓", vermilion otherwise. */
+/** web's `.ea-msg`: the last write's result, gray-300 with "✓", signal otherwise. */
 export function Message({ text }: { text: string }) {
   const { color, t } = useEarnParlay();
   if (!text) return null;

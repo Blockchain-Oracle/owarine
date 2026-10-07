@@ -31,7 +31,7 @@ interface Props {
 
 /**
  * web's `.lk-cabinet` (LuckyStage): Pips' slot band as one opaque card — the three reels, the stake in the pixel
- * face with the Ticket's own quick amounts beneath, the vermilion SPIN with its raised lip, and the line that says
+ * face with the Ticket's own quick amounts beneath, the signal SPIN with its raised lip, and the line that says
  * why it is shut (and, out of hours, that spins draw only from the 24/7 names).
  */
 export function LuckyCabinet(p: Props) {
@@ -102,7 +102,7 @@ export function LuckyCabinet(p: Props) {
           accessibilityState={{ disabled: !p.canSpin, busy: p.busy }}
           style={(pressed) => [
             styles.cta,
-            { backgroundColor: color.accent, borderColor: lk.ctaBorder, boxShadow: pressed ? lk.ctaShadowPressed : lk.ctaShadow },
+            { backgroundColor: color.accentFill, borderColor: lk.ctaBorder, boxShadow: pressed ? lk.ctaShadowPressed : lk.ctaShadow },
             !p.canSpin && styles.ctaOff,
           ]}
         >

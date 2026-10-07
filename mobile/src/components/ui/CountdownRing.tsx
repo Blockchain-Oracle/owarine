@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { FONT, useTheme } from "~/theme";
 
-/** The last stretch the ring turns vermilion for (the plan's Window screen). */
+/** The last stretch the ring turns signal for (the plan's Window screen). */
 const HOT_SEC = 30;
 
 function mmss(totalSec: number): string {
@@ -10,7 +10,7 @@ function mmss(totalSec: number): string {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-/** Time left in a Window as a ring that empties toward the close, vermilion in the last 30 s. */
+/** Time left in a Window as a ring that empties toward the close, signal in the last 30 s. */
 export function CountdownRing({ remainingSec, totalSec, size = 64 }: { remainingSec: number; totalSec: number; size?: number }) {
   const { color } = useTheme();
   const stroke = 4;

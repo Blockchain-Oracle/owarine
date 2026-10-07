@@ -23,7 +23,7 @@ function haltShown(session: MarketSession, asset: string | undefined): boolean {
 }
 
 function dotColor(state: string, mk: MarketsTokens): string {
-  if (state === "regular" || state === "early-close" || state === "halted") return mk.vermilion;
+  if (state === "regular" || state === "early-close" || state === "halted") return mk.signal;
   if (state === "pre" || state === "post") return mk.gray300;
   if (state === "holiday") return mk.chipHoliday;
   return mk.gray600;
@@ -32,7 +32,7 @@ function dotColor(state: string, mk: MarketsTokens): string {
 /**
  * web's MarketSessionChip as a phone draws it (market-session.css ≤ 639 px): the 5 px dot carries the state and the
  * phrase's tail follows it ("● opens 14:30 (09:30 ET), in 6h 56m"), mono 10 px caps in gray-500; open, the dot is
- * vermilion and pulses. A halt is its reason alone, in vermilion. Renders nothing while the session is unknown.
+ * signal and pulses. A halt is its reason alone, in signal. Renders nothing while the session is unknown.
  */
 export function SessionChip({ asset }: { asset?: string }) {
   const session = useMarketSession(asset);
@@ -50,7 +50,7 @@ export function SessionChip({ asset }: { asset?: string }) {
   return (
     <View style={styles.chip} accessibilityRole="text" accessibilityLabel={MARKETS.session.aria(halted ? MARKETS.session.halted : word, halted ? word : tail)}>
       <Dot color={dotColor(state, mk)} pulse={state === "regular" || state === "early-close"} />
-      <Text style={[styles.text, { color: halted ? mk.vermilion : mk.gray500 }]} numberOfLines={1} ellipsizeMode="clip">
+      <Text style={[styles.text, { color: halted ? mk.signal : mk.gray500 }]} numberOfLines={1} ellipsizeMode="clip">
         {halted ? word : tail}
       </Text>
     </View>

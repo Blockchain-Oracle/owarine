@@ -70,14 +70,14 @@ export function CapabilityPending({ eyebrow, title, body, dependency }: { eyebro
   const { t, color, name } = useStrat();
   return (
     <View style={styles.pending}>
-      <Text style={[styles.cpMono, { color: t.vermilion }]}>{eyebrow}</Text>
+      <Text style={[styles.cpMono, { color: t.signal }]}>{eyebrow}</Text>
       <Text style={[styles.cpTitle, { color: color.ink }]} accessibilityRole="header">
         {title}
       </Text>
       <Text style={[styles.cpBody, { color: color.inkSecondary }]}>{body}</Text>
       <Text style={[styles.cpMeta, { color: color.inkMuted, borderTopColor: t.ink(name === "dark" ? 0.08 : 0.12) }]}>Not connected yet · waiting on {dependency}</Text>
       <Pressable onPress={() => router.push("/markets" as Href)} accessibilityRole="link">
-        <Text style={[styles.cpMono, styles.cpAction, { color: t.vermilion }]}>Make a call on the markets →</Text>
+        <Text style={[styles.cpMono, styles.cpAction, { color: t.signal }]}>Make a call on the markets →</Text>
       </Pressable>
     </View>
   );

@@ -13,8 +13,8 @@
  * not flip rendered ink on ink.
  *
  * The light values are Yosuku's own light-card treatment, lifted from `.creator-studio`
- * (`part-01.css:131`) so the cream card belongs to the design system: surface `#fffaf2`,
- * text `#211c18` → `33 28 24`, hairline `rgba(33,28,24,0.11)`, and its raised shadow. */
+ * (`part-01.css:131`) so the cream card belongs to the design system: surface `#fafaf7`,
+ * text `#1e1b1b` → `33 28 24`, hairline `rgba(30,27,27,0.11)`, and its raised shadow. */
 
 .reel-card,
 .reel-take,
@@ -25,10 +25,10 @@
 .reel-card {
   --reel-ink: rgb(var(--reel-ink-rgb));
 
-  /* The card sits slightly ABOVE the page in both themes — lighter than #050505 on
-     dark, lighter than the cream #F4EEE3 on light — so it reads as raised either way. */
-  --reel-surface: radial-gradient(130% 80% at 50% -8%, #16110d 0%, #0c0a08 44%, #080605 100%);
-  --reel-surface-flat: #0a0807;
+  /* The card sits slightly ABOVE the page in both themes — lighter than #100F0F on
+     dark, lighter than the cream #F5F4EF on light — so it reads as raised either way. */
+  --reel-surface: radial-gradient(130% 80% at 50% -8%, #121111 0%, #0a0a0a 44%, #070606 100%);
+  --reel-surface-flat: #090808;
   --reel-shadow: 0 30px 120px -30px rgba(0, 0, 0, 0.9);
 
   /* PriceChart reads its colours off its own container, so the chart follows the card. */
@@ -45,10 +45,10 @@
 }
 
 [data-theme="light"] .reel-card {
-  --reel-surface: radial-gradient(130% 80% at 50% -8%, #fffaf2 0%, #fdf8ef 44%, #f9f3e9 100%);
-  --reel-surface-flat: #fffaf2;
+  --reel-surface: radial-gradient(130% 80% at 50% -8%, #fafaf7 0%, #f9f8f3 44%, #f5f4ed 100%);
+  --reel-surface-flat: #fafaf7;
   /* `.creator-studio`'s raised-panel shadow: an inset top highlight plus a long warm cast. */
-  --reel-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 30px 90px -50px rgba(80, 45, 24, 0.45);
+  --reel-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 30px 90px -50px rgba(114, 113, 34, 0.45);
 }
 
 /* The noise is white with 50% alpha, so `overlay` lightens on cream instead of reading

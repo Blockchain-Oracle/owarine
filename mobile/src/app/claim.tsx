@@ -33,7 +33,7 @@ function Washes({ v, g }: { v: string; g: string }) {
 }
 
 /**
- * `/claim` — web app/claim/page.tsx (`.xc`): the fixed 5 px vermilion rail down the left edge, the two washes, and the
+ * `/claim` — web app/claim/page.tsx (`.xc`): the fixed 5 px signal rail down the left edge, the two washes, and the
  * container (104 px top, 18 px gutter) holding the ticket and the flow. Pull to refresh re-reads the X route and the vault.
  */
 export default function ClaimScreen() {
@@ -55,7 +55,7 @@ export default function ClaimScreen() {
       >
         <ClaimFlow />
       </ScrollView>
-      <View style={[styles.rail, { backgroundColor: color.accent }]} pointerEvents="none" />
+      <View style={[styles.rail, { backgroundColor: color.accentFill }]} pointerEvents="none" />
     </View>
   );
 }

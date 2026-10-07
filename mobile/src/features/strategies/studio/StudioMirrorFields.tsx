@@ -22,7 +22,7 @@ export function StudioMirrorFields({ form, setForm }: { form: StudioDraft; setFo
         <FieldLabel>{words.traderLabel}</FieldLabel>
         <StratInput value={form.trader} autoCapitalize="none" autoCorrect={false} spellCheck={false} onChangeText={(v) => setForm((f) => ({ ...f, trader: v.trim() }))} placeholder={words.traderPlaceholder} style={styles.mt2} />
         {bad ? (
-          <Text style={[styles.error, { borderLeftColor: t.vermilion, color: color.ink }]}>{words.traderInvalid}</Text>
+          <Text style={[styles.error, { borderLeftColor: t.signal, color: color.ink }]}>{words.traderInvalid}</Text>
         ) : (
           <Body style={styles.mt8}>{words.traderHelp}</Body>
         )}

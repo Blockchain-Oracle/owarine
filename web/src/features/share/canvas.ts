@@ -36,12 +36,12 @@ const FOOTER_Y = 846;
 const ADVICE_Y = 882;
 
 /** Every colour the cards draw comes from share-card.css; these are the no-stylesheet fallbacks, as rgb() so no hex lives in code. */
-const FALLBACK_VERMILION = "rgb(224 77 38)";
-const DISPLAY_FALLBACK = "'Sora', system-ui, sans-serif";
-const MONO_FALLBACK = "'JetBrains Mono', ui-monospace, monospace";
+const FALLBACK_SIGNAL = "rgb(228 226 78)";
+const DISPLAY_FALLBACK = "'Mona Sans', system-ui, sans-serif";
+const MONO_FALLBACK = "'Mona Sans', ui-monospace, monospace";
 
 export interface CardPalette {
-  vermilion: string;
+  signal: string;
   verm: (alpha: number) => string;
   /** The Call's flat near-black. */
   groundCall: string;
@@ -103,7 +103,7 @@ export async function ensureFont(spec: string, sample?: string): Promise<void> {
   }
 }
 
-/** Reads a hex or rgb() colour into channels; anything else falls back to the vermilion channels. */
+/** Reads a hex or rgb() colour into channels; anything else falls back to the signal channels. */
 function toRgb(color: string): [number, number, number] {
   const hex = /^#?([0-9a-f]{6})$/i.exec(color.trim());
   if (hex) {
@@ -114,19 +114,19 @@ function toRgb(color: string): [number, number, number] {
   return rgb ? [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])] : [224, 77, 38];
 }
 
-/** The live `--vermilion` and the cards' own tokens (share-card.css), so the heat is the page's, not a second red. */
+/** The live `--signal` and the cards' own tokens (share-card.css), so the heat is the page's, not a second red. */
 export function resolvePalette(): CardPalette {
-  const vermilion = cssVar("--vermilion", FALLBACK_VERMILION);
-  const [r, g, b] = toRgb(vermilion);
+  const signal = cssVar("--signal", FALLBACK_SIGNAL);
+  const [r, g, b] = toRgb(signal);
   return {
-    vermilion,
+    signal,
     verm: (alpha) => `rgba(${r},${g},${b},${alpha})`,
-    groundCall: cssVar("--share-ground-call", "rgb(10 9 8)"),
-    groundTrade: cssVar("--share-ground-trade", "rgb(7 5 5)"),
-    ash: cssVar("--share-ash", "rgb(143 138 130)"),
-    ashDim: cssVar("--share-ash-dim", "rgba(143,138,130,0.55)"),
-    paper: cssVar("--share-paper", "rgb(253 248 239)"),
-    qrInk: cssVar("--share-qr-ink", "rgb(20 18 16)"),
+    groundCall: cssVar("--share-ground-call", "rgb(9 9 9)"),
+    groundTrade: cssVar("--share-ground-trade", "rgb(6 6 6)"),
+    ash: cssVar("--share-ash", "rgb(143 141 130)"),
+    ashDim: cssVar("--share-ash-dim", "rgba(143,141,130,0.55)"),
+    paper: cssVar("--share-paper", "rgb(249 248 243)"),
+    qrInk: cssVar("--share-qr-ink", "rgb(16 15 15)"),
   };
 }
 
@@ -230,7 +230,7 @@ export function drawMasthead(ctx: CanvasRenderingContext2D, fonts: CardFonts, br
   drawTracked(ctx, recordType, CARD_MARGIN, RECORD_TYPE_Y, 6, "left");
 }
 
-/** A short vermilion segment laid over the masthead hairline at the record's edge — The Call's single spark. */
+/** A short signal segment laid over the masthead hairline at the record's edge — The Call's single spark. */
 export function drawSpark(ctx: CanvasRenderingContext2D, color: string): void {
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;

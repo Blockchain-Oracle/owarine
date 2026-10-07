@@ -9,7 +9,7 @@ import { basketsShortTokens } from "~/theme/web/products/baskets-short";
 
 /**
  * web's `components/shell/SectionHead.tsx` (`.section-head`, part-05 + part-15 at ≤ 720 px): the mono index at the
- * foot of its column, the 22 px Sora title, the 12 px caption, the rule with its 46 px vermilion tick.
+ * foot of its column, the 22 px Sora title, the 12 px caption, the rule with its 46 px signal tick.
  */
 export function SectionHead({ number, title, desc }: { number: string; title: string; desc?: string }) {
   const { color, name } = useTheme();
@@ -25,12 +25,12 @@ export function SectionHead({ number, title, desc }: { number: string; title: st
         </Text>
         {desc ? <Text style={[styles.desc, { color: color.inkMuted }]}>{desc}</Text> : null}
       </View>
-      <View style={[styles.tick, { backgroundColor: color.accent }]} />
+      <View style={[styles.tick, { backgroundColor: color.accentFill }]} />
     </View>
   );
 }
 
-/** `.sh-how-card`: the circled numeral in Sora 24 vermilion, a 14 px title, a 12 px paragraph. */
+/** `.sh-how-card`: the circled numeral in Sora 24 signal, a 14 px title, a 12 px paragraph. */
 export function HowCards({ cards }: { cards: readonly { n: string; t: string; d: string }[] }) {
   const { color, name } = useTheme();
   const t = basketsShortTokens(name);

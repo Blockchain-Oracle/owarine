@@ -77,7 +77,7 @@ export function WordBoard({ laneSet: allLanes, failure, ticker, nowMs }: WordBoa
   );
 }
 
-/** `.words-sechead`: the Sora 22 label and its count over a hairline, with the 40 × 2 vermilion tick under the label. */
+/** `.words-sechead`: the Sora 22 label and its count over a hairline, with the 40 × 2 signal tick under the label. */
 function SectionHead({ label, count }: { label: string; count: number }) {
   const { color, t } = useWords();
   return (
@@ -86,7 +86,7 @@ function SectionHead({ label, count }: { label: string; count: number }) {
         {label}
       </Text>
       <Text style={[styles.count, { color: color.inkMuted }]}>{count}</Text>
-      <View style={[styles.tick, { backgroundColor: color.accent }]} />
+      <View style={[styles.tick, { backgroundColor: color.accentFill }]} />
     </View>
   );
 }

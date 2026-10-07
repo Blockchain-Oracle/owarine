@@ -17,7 +17,7 @@ export interface LeverageChipsProps {
 
 /**
  * The reference's 1×/2×/3× chips, verbatim (`Ticket624Drawer.tsx` L1074–1090): three small mono buttons on
- * the amount block's right, the chosen one in vermilion, the others disabled with a title where a boost
+ * the amount block's right, the chosen one in signal, the others disabled with a title where a boost
  * cannot be placed — exactly as the reference disables them for a private bet. 1× is a plain order; a
  * higher multiple is a boost the reserve buys. The 2026-09-02 sliding highlight was reverted with the rest
  * of the leverage redesign on 2026-09-04.

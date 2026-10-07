@@ -176,7 +176,7 @@ export function LockedInMark({ size, title }: MarkProps) {
   ]} />;
 }
 
-/** The season's trophy: a cup in vermilion with a white gleam, on the same grid as the coin. */
+/** The season's trophy: a cup in signal with a white gleam, on the same grid as the coin. */
 export function TrophyMark({ size, title }: MarkProps) {
   return <Pixels size={size} title={title} palette={{ v: "accent", w: "markGlyph", i: "ground", s: "borderStrong" }} rows={[
     "..iiiiiiiiii..",

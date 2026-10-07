@@ -50,7 +50,7 @@ export function mix(a: Rgb, b: Rgb, t: number): Rgb {
 
 /**
  * Pips's heat: the line's colour climbs with the combo — cool at ×1, warm around ×4, hot from ×8.
- * The venue's mint, vermilion and rose stand in for the reference's cyan, amber and red.
+ * The venue's mint, signal and rose stand in for the reference's cyan, amber and red.
  */
 export function heatOf(palette: ArcadePalette, mult: number): Rgb {
   const t = Math.min(1, Math.max(0, (mult - 1) / 7));

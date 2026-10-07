@@ -72,7 +72,7 @@ export function GamesRail() {
             accessibilityHint={GAMES.rail.resumeHint}
             style={({ pressed }) => [styles.resume, { borderColor: t.segOnBorder }, pressed && styles.pressed]}
           >
-            <View style={[styles.resumeDot, { backgroundColor: color.accent }]} />
+            <View style={[styles.resumeDot, { backgroundColor: color.accentFill }]} />
             <Text style={[styles.resumeText, { color: color.accent }]}>{GAMES.rail.resume.toUpperCase()}</Text>
           </Pressable>
         ) : null}

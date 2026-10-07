@@ -39,7 +39,7 @@ export interface Valuation {
 
 export const VALUATIONS: Readonly<Record<ValuationSymbol, Valuation>> = {
   OPENAIV: { symbol: "OPENAIV", seriesId: 930, name: "OpenAI valuation (Pyth)", of: "OPENAI", brand: { slug: "openaiv", hex: "#10A37F" } },
-  ANTHROPICV: { symbol: "ANTHROPICV", seriesId: 931, name: "Anthropic valuation (Pyth)", of: "ANTHROPIC", brand: { slug: "anthropicv", hex: "#8C4A2F" } },
+  ANTHROPICV: { symbol: "ANTHROPICV", seriesId: 931, name: "Anthropic valuation (Pyth)", of: "ANTHROPIC", brand: { slug: "anthropicv", hex: "#636158" } },
 };
 
 /** Typed on the disc for every valuation lane: the company's own mark belongs to the token lane. */

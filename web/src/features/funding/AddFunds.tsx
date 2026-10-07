@@ -108,7 +108,7 @@ export function AddFunds({ open, onClose }: { open: boolean; onClose: () => void
             </dl>
 
             {funded ? (
-              <Link href="/markets" onClick={onClose} className="fund-cta-vermilion" data-cursor="hover">
+              <Link href="/markets" onClick={onClose} className="fund-cta-signal" data-cursor="hover">
                 {F.trade}
               </Link>
             ) : (

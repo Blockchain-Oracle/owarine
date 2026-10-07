@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
 import { useTheme } from "~/theme";
 
-/** news.css `.news-live-dot`: a 6 px vermilion dot with a 12 px glow, breathing between full and half opacity; still under Reduce Motion. */
+/** news.css `.news-live-dot`: a 6 px signal dot with a 12 px glow, breathing between full and half opacity; still under Reduce Motion. */
 export function LiveDot() {
   const { color } = useTheme();
   const reduce = useReducedMotion();
@@ -12,7 +12,7 @@ export function LiveDot() {
     if (!reduce) pulse.value = withRepeat(withTiming(0.5, { duration: 1000 }), -1, true);
   }, [reduce, pulse]);
   const fade = useAnimatedStyle(() => ({ opacity: pulse.value }));
-  return <Animated.View style={[styles.dot, { backgroundColor: color.accent, shadowColor: color.accent }, fade]} accessible={false} />;
+  return <Animated.View style={[styles.dot, { backgroundColor: color.accentFill, shadowColor: color.accent }, fade]} accessible={false} />;
 }
 
 const styles = StyleSheet.create({

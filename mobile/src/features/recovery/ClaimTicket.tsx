@@ -9,7 +9,7 @@ const C = CLAIM.card;
 
 /**
  * web features/x/ClaimReceiptCard.tsx in x-card.css's `.xr`: the Trading Balance as a cream ticket fixed in both themes —
- * a 6 px vermilion top, the brand and the state pill, the masked or known figure, the barcode and the footer.
+ * a 6 px signal top, the brand and the state pill, the masked or known figure, the barcode and the footer.
  */
 export function ClaimTicket({ amount, handle, done, symbol }: { amount: string | null; handle: string | null; done: boolean; symbol: string }) {
   const t = activityTokens(useTheme().name);

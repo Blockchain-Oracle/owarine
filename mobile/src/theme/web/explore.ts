@@ -7,17 +7,17 @@ import type { ThemeName } from "../index";
  */
 const DARK = {
   /** --gray-300: the light row ink of mono tables (stats rows, the proof feed). */
-  gray300: "#D4D4D4",
+  gray300: "#CDCBC3",
   /** --gray-200 */
-  gray200: "#E5E5E5",
+  gray200: "#E2E1DA",
   /** web's page ground behind the container. */
-  ground: "#050505",
+  ground: "#100F0F",
 };
 
 const LIGHT: typeof DARK = {
-  gray300: "#453E33",
-  gray200: "#2E2821",
-  ground: "#F4EEE3",
+  gray300: "#42413C",
+  gray200: "#2B2A27",
+  ground: "#F5F4EF",
 };
 
 export type ExploreTokens = typeof DARK;

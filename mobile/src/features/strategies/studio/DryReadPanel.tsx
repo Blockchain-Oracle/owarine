@@ -67,9 +67,9 @@ export function DryReadPanel({ state }: { state: DryRead }) {
   const { t } = useStrat();
   if (state.status === "idle") return null;
   return (
-    <View accessibilityLiveRegion="polite" style={[styles.box, { borderColor: t.vermilionA(0.3), backgroundColor: t.vermilionA(0.04) }]}>
+    <View accessibilityLiveRegion="polite" style={[styles.box, { borderColor: t.signalA(0.3), backgroundColor: t.signalA(0.04) }]}>
       <View style={styles.head}>
-        <Text style={[ST.micro, { color: t.vermilion }]}>{DRY.eyebrow}</Text>
+        <Text style={[ST.micro, { color: t.signal }]}>{DRY.eyebrow}</Text>
         {state.status === "reading" ? <Text style={[ST.mono10, { color: t.ink(0.4) }]}>{DRY.reading}</Text> : null}
       </View>
       {state.status === "error" ? <Text style={[ST.mono11, styles.mt8, { color: t.ink(0.7), lineHeight: 17.875 }]}>{state.error}</Text> : null}

@@ -16,7 +16,7 @@ import { EdgeEnter, EdgeSkeleton, EdgeState, EdgeStateAction } from "./EdgeState
 import { useEdgeInk } from "./useEdgeInk";
 import { usePullRefresh } from "~/components/kit/PullRefresh";
 
-/** `.edge-page`'s backdrop: #090909 under a vermilion glow at 82% / 8%, fading out over 27rem (405 px). */
+/** `.edge-page`'s backdrop: #090909 under a signal glow at 82% / 8%, fading out over 27rem (405 px). */
 function Backdrop({ width, height }: { width: number; height: number }) {
   const { edge } = useEdgeInk();
   if (width === 0 || height === 0) return null;

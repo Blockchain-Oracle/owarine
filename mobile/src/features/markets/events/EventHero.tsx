@@ -18,7 +18,7 @@ const cents = (value: number | null, hydrating: boolean): string => (value === n
 
 /**
  * web's events/EventHero on a phone (C6e, K-070), in the price hero's own frame: the head (asset row with the Committee
- * chip, the question, when the committee answers, and "Trading ends in" over the clock, which flips vermilion as it runs
+ * chip, the question, when the committee answers, and "Trading ends in" over the clock, which flips signal as it runs
  * out), the canvas holding the book's lean (the odds bar, when trading ends, the implied share) or the note that trading
  * has ended, "How it settles" with its three steps, and Yes/No into the ticket drawer. An event has no chart and no
  * opening print.

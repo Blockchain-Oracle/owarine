@@ -70,7 +70,7 @@ export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBa
           keyboardType="decimal-pad"
           autoComplete="off"
           autoCorrect={false}
-          selectionColor={tk.vermilion}
+          selectionColor={tk.signal}
           accessibilityLabel={TICKET.amountAria(symbol)}
           style={[styles.input, { color: tk.ink }]}
         />
@@ -84,12 +84,12 @@ export function AmountBlock({ value, onChange, stakeBase, onStakeBase, balanceBa
         </View>
         {leverage ? <LeverageChips {...leverage} /> : null}
       </View>
-      {belowMin ? <Text style={[tkType.chip, styles.min, { color: tk.vermilion }]}>{TICKET.minimum(`${formatBaseUnits(minBase ?? minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`)}</Text> : null}
+      {belowMin ? <Text style={[tkType.chip, styles.min, { color: tk.signal }]}>{TICKET.minimum(`${formatBaseUnits(minBase ?? minStakeBase(decimals), decimals, { minDp: 0 })} ${symbol}`)}</Text> : null}
     </View>
   );
 }
 
-/** web's `.tk-add`: a small mono chip; pressed (a price chip) it takes the vermilion border and ink. */
+/** web's `.tk-add`: a small mono chip; pressed (a price chip) it takes the signal border and ink. */
 export function Chip({ label, onPress, on = false, disabled = false, wide = false, accessibilityLabel }: { label: string; onPress: () => void; on?: boolean; disabled?: boolean; wide?: boolean; accessibilityLabel?: string }) {
   const tk = useTk();
   return (
@@ -100,9 +100,9 @@ export function Chip({ label, onPress, on = false, disabled = false, wide = fals
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: on, disabled }}
       hitSlop={6}
-      style={({ pressed }) => [styles.chip, { borderColor: on ? tk.vermilion : tk.addBorder }, wide && styles.step, pressed && styles.shrink, disabled && styles.dim]}
+      style={({ pressed }) => [styles.chip, { borderColor: on ? tk.signal : tk.addBorder }, wide && styles.step, pressed && styles.shrink, disabled && styles.dim]}
     >
-      <Text style={[tkType.chip, wide && styles.stepText, { color: on ? tk.vermilion : tk.add }]}>{label}</Text>
+      <Text style={[tkType.chip, wide && styles.stepText, { color: on ? tk.signal : tk.add }]}>{label}</Text>
     </Pressable>
   );
 }

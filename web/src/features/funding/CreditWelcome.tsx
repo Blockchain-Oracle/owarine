@@ -67,7 +67,7 @@ export function CreditWelcome() {
               {FUNDING.welcome.title(credit.amountText, credit.symbol)}
             </h2>
             <p className="credit-body">{FUNDING.welcome.body}</p>
-            <button type="button" onClick={close} className="fund-cta-vermilion" data-cursor="hover">
+            <button type="button" onClick={close} className="fund-cta-signal" data-cursor="hover">
               {FUNDING.welcome.cta}
             </button>
           </motion.div>

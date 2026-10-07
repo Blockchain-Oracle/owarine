@@ -13,8 +13,8 @@ import { drawStub, encodeQr } from "./stub";
  * "Earned Heat" — the shareable card for one settled Window, ported from
  * `reference/yosuku/lib/shareCard.ts` and laid out as the 16:9 banner.
  *
- * The realised P&L is the giant focal number: a win is living vermilion heat, a loss
- * is drained ash — never green, never red. ONE-SPARK rule: vermilion appears only
+ * The realised P&L is the giant focal number: a win is living signal heat, a loss
+ * is drained ash — never green, never red. ONE-SPARK rule: signal appears only
  * on a win, and only in the P&L — the stub stays neutral for that reason.
  *
  * HONESTY (hard rules — do not relax):
@@ -110,7 +110,7 @@ export function buildTradeTweetText(card: TradeCard): string {
 export async function renderTradeShareCard(card: TradeCard): Promise<Blob> {
   const fonts = resolveFonts();
   const palette = resolvePalette();
-  const { vermilion, verm, groundTrade, ash, ashDim } = palette;
+  const { signal, verm, groundTrade, ash, ashDim } = palette;
   const look = tradeLook(card);
   const heroText = card.stakeBase === null ? fmt(card.payoutBase, card.decimals) : formatBaseUnits(card.pnlBase, card.decimals, { signed: true }).replace(/^-/, "−");
   const heroLabel = card.stakeBase === null ? SHARE.trade.paidOut(card.symbol) : SHARE.trade.realized(card.symbol);
@@ -134,7 +134,7 @@ export async function renderTradeShareCard(card: TradeCard): Promise<Blob> {
     heat.addColorStop(0.55, verm(0.05));
     heat.addColorStop(1, "rgba(0,0,0,0)");
   } else {
-    heat.addColorStop(0, "rgba(255,250,240,0.045)");
+    heat.addColorStop(0, "rgba(250,249,245,0.045)");
     heat.addColorStop(1, "rgba(0,0,0,0)");
   }
   ctx.fillStyle = heat;
@@ -160,7 +160,7 @@ export async function renderTradeShareCard(card: TradeCard): Promise<Blob> {
     ctx.shadowBlur = 48;
     ctx.fillText(heroText, CARD_MARGIN, HERO_Y);
     ctx.restore();
-    ctx.fillStyle = vermilion;
+    ctx.fillStyle = signal;
     ctx.fillText(heroText, CARD_MARGIN, HERO_Y);
   } else {
     ctx.fillStyle = card.outcome === "void" ? ashDim : ash;

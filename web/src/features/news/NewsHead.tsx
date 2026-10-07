@@ -6,7 +6,7 @@ export function NewsHead({ symbol }: { symbol: TickerSymbol | null }) {
   return (
     <>
       <h1 className="news-title">
-        {symbol ?? NEWS.heading} <span className="vermilion">{NEWS.headingAccent}</span>
+        {symbol ?? NEWS.heading} <span className="signal">{NEWS.headingAccent}</span>
       </h1>
       <div className="page-title-jp" lang="ja">
         {NEWS.headingJp}

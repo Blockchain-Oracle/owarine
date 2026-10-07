@@ -1,35 +1,35 @@
 @theme {
   --color-black: #000000;
-  --color-bg: #050505;
-  --color-vermilion: #E04D26;
-  --color-vermilion-d: #B83A1B;
+  --color-bg: #100F0F;
+  --color-signal: #E4E24E;
+  --color-signal-d: #CFCD3F;
   /* Direction pair (founder call 2026-06-11): light green/red — the trader
      convention, soft enough for the black canvas. Used ONLY for direction:
-     candles, P&L, UP/DOWN. Vermilion stays the sole brand accent. */
-  --color-profit: #34D399;
-  --color-loss: #FB7185;
+     candles, P&L, UP/DOWN. Signal stays the sole brand accent. */
+  --color-profit: #3DD68C;
+  --color-loss: #FF5C61;
   /* Aliases used throughout components (new-mint/off-green/off-red) —
      previously undefined, so these utilities silently rendered unstyled. */
-  --color-new-mint: #34D399;
-  --color-off-green: #34D399;
-  --color-off-red: #FB7185;
+  --color-new-mint: #3DD68C;
+  --color-off-green: #3DD68C;
+  --color-off-red: #FF5C61;
   --color-off-blue: #60A5FA;
-  --color-gray-50: #FAFAFA;
-  --color-gray-100: #F5F5F5;
-  --color-gray-200: #E5E5E5;
-  --color-gray-300: #D4D4D4;
-  --color-gray-400: #A3A3A3;
-  --color-gray-500: #737373;
-  --color-gray-600: #525252;
-  --color-gray-700: #404040;
-  --color-gray-800: #262626;
-  --color-gray-900: #171717;
-  --color-gray-950: #0A0A0A;
+  --color-gray-50: #FAF9F4;
+  --color-gray-100: #F2F1EB;
+  --color-gray-200: #E2E1DA;
+  --color-gray-300: #CDCBC3;
+  --color-gray-400: #A19F96;
+  --color-gray-500: #76746C;
+  --color-gray-600: #55544E;
+  --color-gray-700: #3B3A37;
+  --color-gray-800: #262525;
+  --color-gray-900: #171616;
+  --color-gray-950: #0C0B0B;
 
-  --font-sans: var(--font-inter);
-  --font-display: var(--font-sora);
-  --font-mono: var(--font-jetbrains);
-  --font-jp: var(--font-noto-serif-jp);
+  --font-sans: var(--font-mona);
+  --font-display: var(--font-mona);
+  --font-mono: var(--font-mona);
+  --font-jp: var(--font-noto-sans-jp);
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -38,29 +38,34 @@
 
 :root {
   --black: #000000;
-  --bg:    #050505;
-  --white: #FFFFFF;
-  --gray-50:  #FAFAFA;
-  --gray-100: #F5F5F5;
-  --gray-200: #E5E5E5;
-  --gray-300: #D4D4D4;
-  --gray-400: #A3A3A3;
-  --gray-500: #737373;
-  --gray-600: #525252;
-  --gray-700: #404040;
-  --gray-800: #262626;
-  --gray-900: #171717;
-  --gray-950: #0A0A0A;
+  --bg:    #100F0F;
+  --white: #FFFDF6; /* Owarine ink on the dark canvas: Empower's Cloud Whisper */
+  --gray-50:  #FAF9F4;
+  --gray-100: #F2F1EB;
+  --gray-200: #E2E1DA;
+  --gray-300: #CDCBC3;
+  --gray-400: #A19F96;
+  --gray-500: #76746C;
+  --gray-600: #55544E;
+  --gray-700: #3B3A37;
+  --gray-800: #262525;
+  --gray-900: #171616;
+  --gray-950: #0C0B0B;
 
-  --vermilion:    #E04D26;
-  --vermilion-d:  #B83A1B;
-  --profit: #34D399;
-  --loss:   #FB7185;
+  /* Owarine (K-402): one electric signal, a FILL for the primary action, the live state and the call that
+     came in. Text on it is --on-signal; text and lines in it are --signal-ink, which is the signal itself on
+     this dark canvas and ink on paper. */
+  --signal:    #E4E24E;
+  --signal-d:  #CFCD3F;
+  --on-signal: #100F0F;
+  --signal-ink: #E4E24E;
+  --profit: #3DD68C;
+  --loss:   #FF5C61;
 
-  --font-display: 'Sora', system-ui, sans-serif;
-  --font-body:    'Inter', system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
-  --font-jp:      'Noto Serif JP', serif;
+  --font-display: 'Mona Sans', system-ui, sans-serif;
+  --font-body:    'Mona Sans', system-ui, sans-serif;
+  --font-mono:    'Mona Sans', ui-monospace, monospace;
+  --font-jp:      'Noto Sans JP', sans-serif;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --easeOut: cubic-bezier(0.22, 1, 0.36, 1);
@@ -73,10 +78,10 @@
 body { padding-top: var(--appstrip); }
 
 body {
-  --font-display: var(--font-sora), 'Sora', system-ui, sans-serif;
-  --font-body:    var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-mono:    var(--font-jetbrains), 'JetBrains Mono', ui-monospace, monospace;
-  --font-jp:      var(--font-noto-serif-jp), 'Noto Serif JP', serif;
+  --font-display: var(--font-mona), 'Mona Sans', system-ui, sans-serif;
+  --font-body:    var(--font-mona), 'Mona Sans', system-ui, sans-serif;
+  --font-mono:    var(--font-mona), 'Mona Sans', ui-monospace, monospace;
+  --font-jp:      var(--font-noto-sans-jp), 'Noto Sans JP', sans-serif;
 }
 html, body {
   background: var(--bg);
@@ -93,10 +98,10 @@ html, body {
      every `position: sticky` descendant (e.g. the docs sidebar). */
   overflow-x: clip;
 }
-::selection { background: var(--vermilion); color: var(--white); }
+::selection { background: var(--signal); color: var(--on-signal); }
 a { color: inherit; text-decoration: none; }
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid rgba(224,77,38,0.72);
+  outline: 2px solid rgba(228,226,78,0.72);
   outline-offset: 3px;
   border-radius: 6px;
 }
@@ -106,17 +111,17 @@ a { color: inherit; text-decoration: none; }
    14-16px, and action buttons use the established pill language. The tokens swap as one page so
    the tool follows Yosuku's theme without creating a light section inside a dark page. */
 .creator-studio {
-  /* Inherit the site background rather than declaring a near-miss. This was #080807 against the
-     site's #050505: close enough to look like a rendering fault rather than a choice, and the seam
+  /* Inherit the site background rather than declaring a near-miss. This was #080707 against the
+     site's #100F0F: close enough to look like a rendering fault rather than a choice, and the seam
      landed right under the header. The studio keeps its own SURFACE tokens, which are genuinely
      its own, and only stops inventing the page behind them. */
-  --cs-bg: var(--bg, #050505);
-  --cs-surface: #11100f;
-  --cs-preview: #0b0a09;
+  --cs-bg: var(--bg, #100F0F);
+  --cs-surface: #110f0f;
+  --cs-preview: #0a0a0a;
   --cs-soft: rgba(255,255,255,0.045);
-  --cs-text: #f4f0e9;
-  --cs-muted: rgba(244,240,233,0.56);
-  --cs-faint: rgba(244,240,233,0.34);
+  --cs-text: #f3f2ea;
+  --cs-muted: rgba(243,242,234,0.56);
+  --cs-faint: rgba(243,242,234,0.34);
   --cs-line: rgba(255,255,255,0.075);
   --cs-line-strong: rgba(255,255,255,0.16);
   position: relative;
@@ -125,43 +130,42 @@ a { color: inherit; text-decoration: none; }
   /* The glow is softer and higher than it was. At 0.095 it read as a different page rather than a
      highlight, which is the other half of why this section looked foreign. */
   background:
-    radial-gradient(circle at 82% 0%, rgba(224,77,38,0.05), transparent 22rem),
+    radial-gradient(circle at 82% 0%, rgba(228,226,78,0.05), transparent 22rem),
     var(--cs-bg);
 }
 [data-theme="light"] .creator-studio {
-  --cs-bg: var(--bg, #F4EEE3);
-  --cs-surface: #fffaf2;
-  --cs-preview: #e9e1d5;
-  --cs-soft: rgba(35,28,22,0.055);
-  --cs-text: #211c18;
-  --cs-muted: rgba(33,28,24,0.62);
-  --cs-faint: rgba(33,28,24,0.42);
-  --cs-line: rgba(33,28,24,0.11);
-  --cs-line-strong: rgba(33,28,24,0.2);
+  --cs-bg: var(--bg, #F5F4EF);
+  --cs-surface: #fafaf7;
+  --cs-preview: #e1e0dd;
+  --cs-soft: rgba(30,27,27,0.055);
+  --cs-text: #1e1b1b;
+  --cs-muted: rgba(30,27,27,0.62);
+  --cs-faint: rgba(30,27,27,0.42);
+  --cs-line: rgba(30,27,27,0.11);
+  --cs-line-strong: rgba(30,27,27,0.2);
   background:
-    radial-gradient(circle at 82% 4%, rgba(224,77,38,0.10), transparent 26rem),
+    radial-gradient(circle at 82% 4%, rgba(228,226,78,0.10), transparent 26rem),
     var(--cs-bg);
 }
 .cs-eyebrow {
   font-family: var(--font-mono);
   font-size: 9px;
   line-height: 1;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--vermilion);
-}
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .cs-panel,
 .cs-preview-panel,
 .cs-gate {
   border: 1px solid var(--cs-line);
   border-radius: 22px;
   background: color-mix(in srgb, var(--cs-surface) 94%, transparent);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 28px 70px -56px rgba(224,77,38,0.7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.035), 0 28px 70px -56px rgba(228,226,78,0.7);
 }
 [data-theme="light"] .cs-panel,
 [data-theme="light"] .cs-preview-panel,
 [data-theme="light"] .cs-gate {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 28px 70px -56px rgba(80,45,24,0.45);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 28px 70px -56px rgba(114,113,34,0.45);
 }
 .cs-preview-panel { overflow: hidden; }
 .cs-gate {
@@ -178,22 +182,20 @@ a { color: inherit; text-decoration: none; }
   width: 52px;
   height: 52px;
   place-items: center;
-  border: 1px solid rgba(224,77,38,0.28);
+  border: 1px solid rgba(228,226,78,0.28);
   border-radius: 50%;
-  background: rgba(224,77,38,0.08);
-  color: var(--vermilion);
+  background: rgba(228,226,78,0.08);
+  color: var(--signal-ink);
   font-family: var(--font-display);
   font-size: 12px;
-  font-weight: 700;
-}
+  font-weight: 700; font-stretch: 125%; }
 .cs-gate h2 {
   margin-top: 22px;
   color: var(--cs-text);
   font-family: var(--font-display);
   font-size: clamp(1.4rem, 4vw, 2rem);
   font-weight: 700;
-  letter-spacing: -0.04em;
-}
+  letter-spacing: -0.04em; font-stretch: 125%; }
 .cs-gate p {
   max-width: 46ch;
   margin-top: 8px;
@@ -216,15 +218,14 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--vermilion);
+  background: var(--signal);
   padding: 11px 22px;
-  color: #fff;
+  color: var(--on-signal);
   font-family: var(--font-display);
   font-size: 12px;
-  font-weight: 700;
-}
+  font-weight: 700; font-stretch: 125%; }
 .cs-primary-button:hover,
-.cs-share-button:hover { background: var(--vermilion-d); }
+.cs-share-button:hover { background: var(--signal-d); }
 .cs-primary-button:active,
 .cs-share-button:active,
 .cs-secondary-button:active,
@@ -234,9 +235,8 @@ a { color: inherit; text-decoration: none; }
   color: var(--cs-muted);
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
+  letter-spacing: 0.1em;
+  text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .cs-icon-button {
   display: grid;
   width: 38px;
@@ -260,10 +260,10 @@ a { color: inherit; text-decoration: none; }
 }
 .cs-market-button:hover { border-color: var(--cs-line-strong); color: var(--cs-text); }
 .cs-market-button.is-active {
-  border-color: rgba(224,77,38,0.64);
-  background: rgba(224,77,38,0.085);
+  border-color: rgba(228,226,78,0.64);
+  background: rgba(228,226,78,0.085);
   color: var(--cs-text);
-  box-shadow: inset 0 0 0 1px rgba(224,77,38,0.10);
+  box-shadow: inset 0 0 0 1px rgba(228,226,78,0.10);
 }
 .cs-strike-button {
   display: inline-flex;
@@ -279,9 +279,9 @@ a { color: inherit; text-decoration: none; }
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
 }
-.cs-strike-button span { margin-top: 3px; color: var(--vermilion); font-size: 7px; text-transform: uppercase; }
+.cs-strike-button span { margin-top: 3px; color: var(--signal-ink); font-size: 7px; text-transform: uppercase; }
 .cs-strike-button:hover { border-color: var(--cs-line-strong); color: var(--cs-text); }
-.cs-strike-button.is-active { border-color: var(--vermilion); background: rgba(224,77,38,0.075); color: var(--cs-text); }
+.cs-strike-button.is-active { border-color: var(--signal-ink); background: rgba(228,226,78,0.075); color: var(--cs-text); }
 .cs-custom-input {
   display: grid;
   width: min(100%, 230px);
@@ -294,9 +294,8 @@ a { color: inherit; text-decoration: none; }
   padding: 11px 13px;
   color: var(--cs-muted);
   font-family: var(--font-mono);
-  font-size: 10px;
-}
-.cs-custom-input:focus-within { border-color: rgba(224,77,38,0.62); }
+  font-size: 10px; font-variant-numeric: tabular-nums; }
+.cs-custom-input:focus-within { border-color: rgba(228,226,78,0.62); }
 .cs-custom-input input {
   min-width: 0;
   border: 0;
@@ -320,9 +319,8 @@ a { color: inherit; text-decoration: none; }
   padding: 11px 18px;
   font-family: var(--font-display);
   font-size: 11px;
-  font-weight: 700;
-}
-.cs-share-button { border: 1px solid var(--vermilion); background: var(--vermilion); color: #fff; }
+  font-weight: 700; font-stretch: 125%; }
+.cs-share-button { border: 1px solid var(--signal); background: var(--signal); color: var(--on-signal); }
 .cs-secondary-button { border: 1px solid var(--cs-line-strong); color: var(--cs-text); }
 .cs-secondary-button:hover { border-color: var(--cs-text); background: var(--cs-soft); }
 .cs-share-button:disabled,

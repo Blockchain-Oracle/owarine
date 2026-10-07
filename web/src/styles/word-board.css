@@ -20,7 +20,7 @@
 }
 
 [data-theme="light"] .wq-btc.generic {
-  background: rgba(20, 18, 16, 0.1);
+  background: rgba(16, 15, 15, 0.1);
 }
 
 /* The countdown here is the shared `Countdown`, which flags urgency with
@@ -28,7 +28,7 @@
    the reel already use — instead of the reference's flat 60 s `.wq-clock.urgent`.
    Two classes, so this beats `.wq-clock`'s own colour. */
 .wq-clock.text-accent {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* The reference always has a number for the bar, because it makes one up. A real
@@ -40,7 +40,7 @@
 }
 
 [data-theme="light"] .wq-oddsbar-unknown {
-  background: rgba(20, 18, 16, 0.08);
+  background: rgba(16, 15, 15, 0.08);
 }
 
 /* A Window whose opening print has not landed has no level in its question yet.
@@ -55,16 +55,16 @@
 .words-closed { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-bottom: 18px; padding: 10px 14px; border: 1px solid var(--color-hairline); border-radius: 12px; background: var(--color-surface-1); font-size: 13px; color: var(--color-ink-secondary); }
 .words-closed strong { font-weight: 700; color: var(--color-ink); }
 .words-closed-dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--color-warning); }
-.wq-kind { margin-left: 6px; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--color-accent-dim); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); white-space: nowrap; }
+.wq-kind { margin-left: 6px; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--color-accent-dim); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-accent); white-space: nowrap; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .wq-unquoted { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: auto; padding: 0 12px; border: 1px dashed var(--color-hairline); border-radius: 10px; font-size: 13px; color: var(--color-ink-muted); }
 .wq-unquoted-dot { width: 7px; height: 7px; border-radius: 9999px; background: var(--color-ink-muted); }
 .wq-unquoted-text { flex: 1; }
 .wq-unquoted-open { font-weight: 600; color: var(--color-ink-secondary); }
 .wq-unquoted-open:hover { color: var(--color-ink); }
-.wq-listed-chip { margin-left: auto; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--color-hairline); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-muted); }
+.wq-listed-chip { margin-left: auto; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--color-hairline); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .wq-listed-when { margin: -4px 0 0; font-size: 12.5px; color: var(--color-ink-secondary); }
 .wq-cadences { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-.wq-cadence { min-width: 44px; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--color-hairline); background: transparent; font-family: var(--font-data); font-size: 12px; color: var(--color-ink-secondary); cursor: pointer; }
+.wq-cadence { min-width: 44px; padding: 4px 10px; border-radius: 9999px; border: 1px solid var(--color-hairline); background: transparent; font-family: var(--font-data); font-size: 12px; color: var(--color-ink-secondary); cursor: pointer; font-variant-numeric: tabular-nums; }
 .wq-cadence[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent-wash); color: var(--color-ink); }
 .wq-cadence:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 

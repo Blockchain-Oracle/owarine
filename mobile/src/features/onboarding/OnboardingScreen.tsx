@@ -149,7 +149,7 @@ export function OnboardingScreen() {
         )}
       </View>
       <View style={[styles.track, { backgroundColor: color.hairline }]}>
-        <Animated.View style={[styles.bar, { backgroundColor: color.accent }, progress]} />
+        <Animated.View style={[styles.bar, { backgroundColor: color.accentFill }, progress]} />
       </View>
 
       <Animated.FlatList

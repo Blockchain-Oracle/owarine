@@ -14,7 +14,7 @@ export function RangePlaced({ placed, onAnother }: { placed: { txHash: Signature
         {RANGE.ticket.viewTx}
       </a>
       <div className="flex items-center justify-between gap-3">
-        <Link href="/games/range" className="type-caption text-vermilion underline">
+        <Link href="/games/range" className="type-caption text-signal underline">
           {RANGE.cta.rounds}
         </Link>
         <button type="button" onClick={onAnother} className="type-caption text-ink-secondary underline" data-cursor="hover">

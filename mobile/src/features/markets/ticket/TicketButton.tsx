@@ -8,7 +8,7 @@ import { useTk } from "./tk";
 export type ButtonTone = "primary" | Side;
 
 /**
- * web's BlockedButton at size lg (the 52 px Ticket CTA): armed, the side's own fill with cream ink (vermilion with
+ * web's BlockedButton at size lg (the 52 px Ticket CTA): armed, the side's own fill with cream ink (signal with
  * white for no side); blocked, the surface-2 face in the disabled ink, and the blocker IS the label.
  */
 export function BlockedButton({ blocker, ctx, tone, label, onPress }: { blocker: BlockerKind | null; ctx?: BlockerContext; tone: ButtonTone; label: string; onPress: () => void }) {
@@ -23,8 +23,8 @@ export function BlockedButton({ blocker, ctx, tone, label, onPress }: { blocker:
       </Pressable>
     );
   }
-  const fill = tone === "up" ? tk.up : tone === "down" ? tk.down : tk.vermilion;
-  const ink = tone === "primary" ? tk.onVermilion : tk.ctaSideInk;
+  const fill = tone === "up" ? tk.up : tone === "down" ? tk.down : tk.signal;
+  const ink = tone === "primary" ? tk.onSignal : tk.ctaSideInk;
   return (
     <Pressable
       onPress={() => {
@@ -41,22 +41,22 @@ export function BlockedButton({ blocker, ctx, tone, label, onPress }: { blocker:
   );
 }
 
-/** web's ConnectButton inside the gate: the 48 px vermilion button, sized to its word. */
+/** web's ConnectButton inside the gate: the 48 px signal button, sized to its word. */
 export function ConnectButton({ label, onPress, busy = false }: { label: string; onPress: () => void; busy?: boolean }) {
   const tk = useTk();
   return (
-    <Pressable onPress={onPress} disabled={busy} accessibilityRole="button" style={({ pressed }) => [styles.connect, { backgroundColor: tk.vermilion }, (pressed || busy) && styles.pressed]}>
-      <Text style={[styles.label, { color: tk.onVermilion }]}>{label}</Text>
+    <Pressable onPress={onPress} disabled={busy} accessibilityRole="button" style={({ pressed }) => [styles.connect, { backgroundColor: tk.signal }, (pressed || busy) && styles.pressed]}>
+      <Text style={[styles.label, { color: tk.onSignal }]}>{label}</Text>
     </Pressable>
   );
 }
 
-/** web's `.tk-gate-cta`: the rounded vermilion action inside a gate. */
+/** web's `.tk-gate-cta`: the rounded signal action inside a gate. */
 export function GateCta({ label, onPress, disabled = false }: { label: string; onPress: () => void; disabled?: boolean }) {
   const tk = useTk();
   return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={({ pressed }) => [styles.gateCta, { backgroundColor: tk.vermilion }, (pressed || disabled) && styles.pressed]}>
-      <Text style={[styles.gateLabel, { color: tk.onVermilion }]}>{label}</Text>
+    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={({ pressed }) => [styles.gateCta, { backgroundColor: tk.signal }, (pressed || disabled) && styles.pressed]}>
+      <Text style={[styles.gateLabel, { color: tk.onSignal }]}>{label}</Text>
     </Pressable>
   );
 }

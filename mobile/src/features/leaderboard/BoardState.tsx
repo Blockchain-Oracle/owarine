@@ -27,7 +27,7 @@ export function BoardSkeleton({ label }: { label: string }) {
   );
 }
 
-/** web's vermilion `.btn-primary` pill. */
+/** web's signal `.btn-primary` pill. */
 function Cta({ label, onPress }: { label: string; onPress: () => void }) {
   const { color } = useTheme();
   return (

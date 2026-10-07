@@ -1,15 +1,15 @@
 /* `/games/moonshot` — Pips' AIM knob (`moonshot.tsx`, the console's scroll wheel: up is LONG, down is SHORT,
  * further out a bigger reach) as a ladder on the Range page's frame, in Yosuku's tokens. `design-literals`
  * keeps hex and px out of TSX, so the values live here. The band control's rules (`range-band.css`) set the
- * grammar: mono labels, white-alpha steps, the vermilion accent; the two sides take the venue's own colours. */
+ * grammar: mono labels, white-alpha steps, the signal accent; the two sides take the venue's own colours. */
 
 /* The control sits where the band control sits: the plate body's own gap above it */
 .ms-aim { display: flex; flex-direction: column; }
 
 /* The band head's grammar: label left, the rule of the control right */
 .ms-aim-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.ms-aim-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: rgba(255, 255, 255, 0.45); }
-.ms-aim-must { font-family: var(--font-mono); font-size: 8.5px; color: rgba(255, 255, 255, 0.35); text-align: right; }
+.ms-aim-label { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255, 255, 255, 0.45); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+.ms-aim-must { font-family: var(--font-mono); font-size: 8.5px; color: rgba(255, 255, 255, 0.35); text-align: right; font-variant-numeric: tabular-nums; }
 
 /* The ladder on the left, the readout beside it; the same card as the band's */
 .ms-aim-body {
@@ -37,7 +37,7 @@
 .ms-rung:hover:not(:disabled) { border-color: rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.75); }
 .ms-rung:active:not(:disabled) { transform: scale(0.98); }
 .ms-rung:disabled { cursor: default; opacity: 0.5; }
-.ms-rung:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--vermilion) 70%, transparent); }
+.ms-rung:focus-visible { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--signal) 70%, transparent); }
 .ms-rung-side { font-size: 8px; letter-spacing: 0.14em; opacity: 0.7; }
 .ms-rung--long .ms-rung-side { color: var(--profit); }
 .ms-rung--short .ms-rung-side { color: var(--loss); }
@@ -47,22 +47,22 @@
 
 /* Pips' footer readout: the reach large, the side beside it, the one-line hint under */
 .ms-readout { display: flex; flex-direction: column; min-width: 0; }
-.ms-readout-x { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--vermilion); }
-.ms-readout-side { margin-top: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; }
+.ms-readout-x { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--signal-ink); font-stretch: 125%; }
+.ms-readout-side { margin-top: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .ms-readout-side--long { color: var(--profit); }
 .ms-readout-side--short { color: var(--loss); }
-.ms-readout-hint { margin-top: 10px; font-family: var(--font-mono); font-size: 9px; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.4); }
+.ms-readout-hint { margin-top: 10px; font-family: var(--font-mono); font-size: 9px; line-height: 1.5; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255, 255, 255, 0.4); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .ms-readout-btns { margin-top: auto; padding-top: 12px; display: flex; gap: 4px; }
 
 /* The ticket's extra lines: the level's distance, and the liability line under the breakdown */
 .ms-bd-distance { color: var(--gray-500); }
-.ms-liability { font-family: var(--font-mono); font-size: 10px; line-height: 1.6; color: var(--gray-500); }
+.ms-liability { font-family: var(--font-mono); font-size: 10px; line-height: 1.6; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 /* ── light theme: part-14's ladder for text-white/NN, ink borders ── */
-[data-theme="light"] .ms-aim-label { color: rgba(20, 18, 16, 0.62); }
-[data-theme="light"] .ms-aim-must, [data-theme="light"] .ms-readout-hint { color: rgba(20, 18, 16, 0.55); }
-[data-theme="light"] .ms-aim-body { border-color: rgba(20, 18, 16, 0.12); background: rgba(20, 18, 16, 0.02); }
-[data-theme="light"] .ms-ladder-mid { background: rgba(20, 18, 16, 0.16); }
-[data-theme="light"] .ms-rung { border-color: rgba(20, 18, 16, 0.12); color: rgba(20, 18, 16, 0.62); }
-[data-theme="light"] .ms-rung:hover:not(:disabled) { border-color: rgba(20, 18, 16, 0.3); color: rgba(20, 18, 16, 0.85); }
-[data-theme="light"] .ms-rung[aria-checked="true"] { color: var(--ink, rgba(20, 18, 16, 0.95)); }
+[data-theme="light"] .ms-aim-label { color: rgba(16, 15, 15, 0.62); }
+[data-theme="light"] .ms-aim-must, [data-theme="light"] .ms-readout-hint { color: rgba(16, 15, 15, 0.55); }
+[data-theme="light"] .ms-aim-body { border-color: rgba(16, 15, 15, 0.12); background: rgba(16, 15, 15, 0.02); }
+[data-theme="light"] .ms-ladder-mid { background: rgba(16, 15, 15, 0.16); }
+[data-theme="light"] .ms-rung { border-color: rgba(16, 15, 15, 0.12); color: rgba(16, 15, 15, 0.62); }
+[data-theme="light"] .ms-rung:hover:not(:disabled) { border-color: rgba(16, 15, 15, 0.3); color: rgba(16, 15, 15, 0.85); }
+[data-theme="light"] .ms-rung[aria-checked="true"] { color: var(--ink, rgba(16, 15, 15, 0.95)); }

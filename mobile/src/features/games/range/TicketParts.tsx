@@ -140,7 +140,7 @@ export function AmountField({ label, value, onChange, hint, symbol }: { label: s
   );
 }
 
-/** The ticket's `Row`: a gray label and a mono figure — white and larger when emphasised, vermilion as the accent. */
+/** The ticket's `Row`: a gray label and a mono figure — white and larger when emphasised, signal as the accent. */
 export function Row({ label, children, emphasize, accent }: { label: string; children: string; emphasize?: boolean; accent?: boolean }) {
   const { r, color } = useRangeTokens();
   return (
@@ -196,7 +196,7 @@ export function PlaceButton({ step, quoted, quoteLoading, quoteError, hasEnough,
       accessibilityState={{ disabled, busy: step === "placing" }}
       style={[
         styles.place,
-        muted ? { backgroundColor: r.placeMutedBg, borderColor: r.placeMutedBorder } : [styles.placeGlow, { backgroundColor: color.accent, shadowColor: r.placeGlow }],
+        muted ? { backgroundColor: r.placeMutedBg, borderColor: r.placeMutedBorder } : [styles.placeGlow, { backgroundColor: color.accentFill, shadowColor: r.placeGlow }],
         disabled && !muted && styles.placeOff,
       ]}
     >

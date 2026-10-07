@@ -7,7 +7,7 @@ import { haptic } from "./haptics";
 export function Card({ children, onPress, tone = "plain", style, accessibilityLabel }: {
   children: ReactNode;
   onPress?: () => void;
-  /** "cream" is the receipt paper island (both themes); "accent" a vermilion-washed callout. */
+  /** "cream" is the receipt paper island (both themes); "accent" a signal-washed callout. */
   tone?: "plain" | "cream" | "accent";
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;

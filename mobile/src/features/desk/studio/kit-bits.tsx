@@ -75,7 +75,7 @@ export function StBtn({ label, onPress, primary, lg, disabled, before, after, st
       style={({ pressed }) => [
         styles.btn,
         lg && styles.btnLg,
-        primary ? [styles.glow, { backgroundColor: color.accent, borderColor: color.accent, shadowColor: color.accent }] : { borderColor: color.hairline },
+        primary ? [styles.glow, { backgroundColor: color.accentFill, borderColor: color.accent, shadowColor: color.accent }] : { borderColor: color.hairline },
         disabled && styles.disabled,
         pressed && !disabled && styles.pressed,
         style,

@@ -12,9 +12,9 @@ const D = STRATEGIES.desk;
 /** The heartbeat line: the reference reads the keeper's own pulse and never says "copying" on a dead desk. */
 export function DeskPulse({ live, label }: { live: boolean; label: string }) {
   return (
-    <div className={cn("desk-pulse", live ? "border-vermilion" : "border-ink/25")}>
-      <span className={cn("desk-status", live ? "text-vermilion" : "text-ink/50")}>
-        <span className={cn("desk-dot", live ? "desk-live-dot bg-vermilion" : "bg-ink/40")} />
+    <div className={cn("desk-pulse", live ? "border-signal" : "border-ink/25")}>
+      <span className={cn("desk-status", live ? "text-signal" : "text-ink/50")}>
+        <span className={cn("desk-dot", live ? "desk-live-dot bg-signal" : "bg-ink/40")} />
         {label}
       </span>
     </div>
@@ -24,7 +24,7 @@ export function DeskPulse({ live, label }: { live: boolean; label: string }) {
 export function DeskNotice({ eyebrow, body, cta, onCta, busy, quiet }: { eyebrow: string; body: string; cta: string; onCta: () => void; busy?: boolean; quiet?: boolean }) {
   return (
     <div className={cn("desk-notice", quiet && "desk-notice--quiet")}>
-      <p className={cn("desk-status mb-1", quiet ? "text-ink/60" : "text-vermilion")}>{eyebrow}</p>
+      <p className={cn("desk-status mb-1", quiet ? "text-ink/60" : "text-signal")}>{eyebrow}</p>
       <p className={cn("desk-copy", quiet ? "text-ink/60" : "text-ink/70")}>{body}</p>
       <button type="button" onClick={onCta} disabled={busy} className={cn("desk-link-btn", quiet && "desk-link-btn--quiet")}>
         {cta}

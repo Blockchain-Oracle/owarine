@@ -55,7 +55,7 @@ export function IdleYieldNote({ idleBase, decimals }: { idleBase: bigint; decima
         </>
       ) : null}
       <Pressable onPress={() => go("/earn")} accessibilityRole="link" style={styles.linkWrap} hitSlop={8}>
-        <Text style={[styles.link, { color: t.vermilion }]}>{words.cta}</Text>
+        <Text style={[styles.link, { color: t.signal }]}>{words.cta}</Text>
       </Pressable>
     </View>
   );

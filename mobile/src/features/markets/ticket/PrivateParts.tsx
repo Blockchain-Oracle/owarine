@@ -10,7 +10,7 @@ import { tkType, useTk } from "./tk";
 
 /**
  * web's PrivateNote: the one case worth interrupting for is Private chosen with nothing behind it — said before a
- * signature, in the vermilion box with its fix (add funds, or re-allow when only the allowance ran short). Otherwise one
+ * signature, in the signal box with its fix (add funds, or re-allow when only the allowance ran short). Otherwise one
  * quiet line, and the honest one-liner under it.
  */
 export function PrivateNote({ priv, stakeBase, decimals, symbol }: { priv: PrivateTicketState; stakeBase: bigint; decimals: number; symbol: string }) {
@@ -33,7 +33,7 @@ export function PrivateNote({ priv, stakeBase, decimals, symbol }: { priv: Priva
     <View style={[styles.box, { borderColor: tk.privBorder, backgroundColor: tk.privBg }]}>
       <Text style={[tkType.chip, styles.boxText, { color: tk.privText }]}>{text}</Text>
       <Pressable onPress={() => void priv.fund()} disabled={disabled} accessibilityRole="button" hitSlop={8} style={disabled && styles.half}>
-        <Text style={[tkType.label, styles.action, { color: tk.vermilion }]}>{priv.busy === "fund" ? PRIVATE.note.adding : action}</Text>
+        <Text style={[tkType.label, styles.action, { color: tk.signal }]}>{priv.busy === "fund" ? PRIVATE.note.adding : action}</Text>
       </Pressable>
     </View>
   );

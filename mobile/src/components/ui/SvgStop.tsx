@@ -6,7 +6,7 @@ const HEX8 = /^#([0-9a-f]{6})([0-9a-f]{2})$/i;
 /**
  * A gradient stop's paint, as `<Stop offset="0" {...stopPaint(t.wash)} />`. react-native-svg reads a stop's props
  * straight off the element and replaces the colour's alpha with `stopOpacity` (1 by default), so an `rgba()` colour
- * painted solid: the Trader Edge page went vermilion and the Markets cards' 2 % wash went white to black. This moves
+ * painted solid: the Trader Edge page went signal and the Markets cards' 2 % wash went white to black. This moves
  * the alpha into `stopOpacity`, times any `opacity` given.
  */
 export function stopPaint(color: string, opacity = 1): { stopColor: string; stopOpacity: number } {

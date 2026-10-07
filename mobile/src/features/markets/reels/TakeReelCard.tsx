@@ -56,12 +56,12 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: { take: 
       />
       <TakeChip>
         <AssetDisc asset={take.asset} size={16} />
-        <Text style={[takeStyles.chipText, { color: t.vermilion }]}>
+        <Text style={[takeStyles.chipText, { color: t.signal }]}>
           {glyph} {dir}
         </Text>
         <Text style={[takeStyles.chipText, { color: t.ink25 }]}>·</Text>
         <Text style={[chip, { color: t.ink65 }]} numberOfLines={1}>
-          <Text style={{ color: t.vermilion }} onPress={hub ? () => toTicker(hub.ticker.symbol) : undefined} accessibilityRole={hub ? "link" : undefined}>
+          <Text style={{ color: t.signal }} onPress={hub ? () => toTicker(hub.ticker.symbol) : undefined} accessibilityRole={hub ? "link" : undefined}>
             ${take.asset}
           </Text>
           {tail.toUpperCase()}
@@ -71,7 +71,7 @@ export const TakeReelCard = memo(function TakeReelCard({ take, nowMs }: { take: 
         <TakeVoice>
           {captionParts(take.caption).map((part, index) =>
             "symbol" in part ? (
-              <Text key={index} style={{ color: t.vermilion }} onPress={() => toTicker(part.symbol)} accessibilityRole="link">
+              <Text key={index} style={{ color: t.signal }} onPress={() => toTicker(part.symbol)} accessibilityRole="link">
                 {part.text}
               </Text>
             ) : (

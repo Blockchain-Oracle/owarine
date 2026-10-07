@@ -3,14 +3,14 @@
   /* ticket */
   --ticket-surface: var(--color-surface-1);
   --ticket-border: var(--color-hairline);
-  --ticket-radius: var(--radius-lg);
+  --ticket-radius: var(--radius-xl);
   --ticket-stake-font: var(--text-data-lg);
   --ticket-cta-height: 52px;
 
   /* market-card */
   --market-card-surface: var(--color-surface-1);
   --market-card-border: var(--color-hairline);
-  --market-card-radius: var(--radius-lg);
+  --market-card-radius: var(--radius-xl);
   --market-card-odds-font: var(--text-data);
 
   /* reel-card */
@@ -56,7 +56,7 @@
   --button-primary-ink: var(--color-cream-ink);
   --button-primary-hover: var(--color-accent-hover);
   --button-primary-pressed: var(--color-accent-pressed);
-  --button-primary-radius: var(--radius-md);
+  --button-primary-radius: var(--radius-full);
   --button-primary-height: 48px;
 
   /* button-up / button-down */
@@ -71,7 +71,7 @@
   --input-surface: var(--color-ground);
   --input-border: var(--color-hairline);
   --input-focus-ring: var(--color-accent);
-  --input-radius: var(--radius-md);
+  --input-radius: var(--radius-lg);
   --input-height: 48px;
 
   /* badge-backed-resting / badge-backed-filled / badge-house */
@@ -110,26 +110,26 @@
   --content-wide: 1200px;
 
   /* navigation menus and mobile drawer */
-  --nav-panel-background: rgb(8 8 9 / 0.98);
+  --nav-panel-background: rgb(9 8 8 / 0.98);
   --nav-panel-border: rgb(255 255 255 / 0.1);
   --nav-divider: rgb(255 255 255 / 0.08);
   --nav-section-divider: rgb(255 255 255 / 0.07);
   --nav-item-border: rgb(255 255 255 / 0.08);
   --nav-item-fill: rgb(255 255 255 / 0.045);
   --nav-icon-border: rgb(255 255 255 / 0.09);
-  --nav-active-border: rgb(224 77 38 / 0.35);
+  --nav-active-border: rgb(228 226 78 / 0.35);
   --nav-overlay-background: rgb(0 0 0 / 0.72);
 }
 
 [data-theme="light"] {
   --color-warning-ink: color-mix(in srgb, var(--color-warning) 50%, var(--color-cream-ink));
-  --nav-panel-background: rgb(251 247 238 / 0.99);
-  --nav-panel-border: rgb(20 18 16 / 0.12);
-  --nav-divider: rgb(20 18 16 / 0.09);
-  --nav-section-divider: rgb(20 18 16 / 0.09);
-  --nav-item-border: rgb(20 18 16 / 0.1);
-  --nav-item-fill: rgb(20 18 16 / 0.04);
-  --nav-icon-border: rgb(20 18 16 / 0.12);
+  --nav-panel-background: rgb(255 255 255 / 0.99);
+  --nav-panel-border: rgb(16 15 15 / 0.12);
+  --nav-divider: rgb(16 15 15 / 0.09);
+  --nav-section-divider: rgb(16 15 15 / 0.09);
+  --nav-item-border: rgb(16 15 15 / 0.1);
+  --nav-item-fill: rgb(16 15 15 / 0.04);
+  --nav-icon-border: rgb(16 15 15 / 0.12);
 }
 
 /* A token symbol keeps its own casing under an uppercasing label: "tUSDC" must never read "TUSDC", which is

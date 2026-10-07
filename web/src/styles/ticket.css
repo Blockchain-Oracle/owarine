@@ -25,10 +25,9 @@
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.4);
-  transition: color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* hover:text-white/75 */
 .tk-mode:hover:not(:disabled) {
@@ -41,10 +40,10 @@
   color: var(--white);
 }
 
-/* The reference's pressed Private tile: bg-vermilion/[0.12] text-vermilion (Ticket624Drawer L1196) */
+/* The reference's pressed Private tile: bg-signal/[0.12] text-signal (Ticket624Drawer L1196) */
 .tk-mode--private[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--vermilion) 12%, transparent);
-  color: var(--vermilion);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+  color: var(--signal-ink);
 }
 
 /* Not a state the reference has — the mode exists, the contract behind it does
@@ -55,22 +54,22 @@
 }
 
 [data-theme="light"] .tk-modes {
-  border-color: rgba(20, 18, 16, 0.1);
-  background: rgba(20, 18, 16, 0.02);
+  border-color: rgba(16, 15, 15, 0.1);
+  background: rgba(16, 15, 15, 0.02);
 }
 [data-theme="light"] .tk-mode {
-  color: rgba(20, 18, 16, 0.62);
+  color: rgba(16, 15, 15, 0.62);
 }
 [data-theme="light"] .tk-mode:hover:not(:disabled) {
-  color: rgba(20, 18, 16, 0.8);
+  color: rgba(16, 15, 15, 0.8);
 }
 [data-theme="light"] .tk-mode[aria-pressed="true"] {
-  background: rgba(20, 18, 16, 0.06);
+  background: rgba(16, 15, 15, 0.06);
 }
-/* the reference keeps text-vermilion and bg-vermilion/[0.12] on cream (part-14 does not remap them) */
+/* the reference keeps text-signal and bg-signal/[0.12] on cream (part-14 does not remap them) */
 [data-theme="light"] .tk-mode--private[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--vermilion) 12%, transparent);
-  color: var(--vermilion);
+  background: color-mix(in srgb, var(--signal) 12%, transparent);
+  color: var(--signal-ink);
 }
 
 /* ── leverage ──
@@ -95,17 +94,16 @@
   font-family: var(--font-mono);
   font-size: 9px;
   color: rgba(255, 255, 255, 0.45);
-  transition: color 200ms var(--ease), border-color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease), border-color 200ms var(--ease); font-variant-numeric: tabular-nums; }
 .tk-lev:hover:not(:disabled) {
   color: var(--white);
 }
 
-/* border-vermilion/70 bg-vermilion/[0.08] text-vermilion */
+/* border-signal/70 bg-signal/[0.08] text-signal */
 .tk-lev[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--vermilion) 70%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 8%, transparent);
-  color: var(--vermilion);
+  border-color: color-mix(in srgb, var(--signal-ink) 70%, transparent);
+  background: color-mix(in srgb, var(--signal) 8%, transparent);
+  color: var(--signal-ink);
 }
 
 /* cursor-not-allowed opacity-35 — the reference's own treatment for a multiple
@@ -116,11 +114,11 @@
 }
 
 [data-theme="light"] .tk-lev {
-  border-color: rgba(20, 18, 16, 0.12);
-  color: rgba(20, 18, 16, 0.62);
+  border-color: rgba(16, 15, 15, 0.12);
+  color: rgba(16, 15, 15, 0.62);
 }
 [data-theme="light"] .tk-lev:hover:not(:disabled) {
-  color: #141210;
+  color: #100F0F;
 }
 
 /* font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 */
@@ -128,11 +126,10 @@
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: rgba(255, 255, 255, 0.45);
-}
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.45); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 [data-theme="light"] .tk-control-label {
-  color: rgba(20, 18, 16, 0.62);
+  color: rgba(16, 15, 15, 0.62);
 }
 
 /* The row that carries the leverage chips beside their label. */
@@ -149,10 +146,9 @@
   font-family: var(--font-mono);
   font-size: 8.5px;
   line-height: 1.625;
-  color: rgba(255, 255, 255, 0.35);
-}
+  color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 [data-theme="light"] .tk-lev-note {
-  color: rgba(20, 18, 16, 0.55);
+  color: rgba(16, 15, 15, 0.55);
 }
 
 
@@ -172,8 +168,8 @@
   height: 128px;
 }
 [data-theme="light"] .tk-mini-chart {
-  border-color: rgba(20, 18, 16, 0.11);
-  background: rgba(20, 18, 16, 0.02);
+  border-color: rgba(16, 15, 15, 0.11);
+  background: rgba(16, 15, 15, 0.02);
 }
 
 /* ── A-1a: "Betting against" ──
@@ -226,10 +222,9 @@
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.45);
-  transition: color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .tk-against-switch:hover .tk-against-word { color: rgba(255, 255, 255, 0.78); }
 .tk-against-switch[aria-checked="true"] .tk-against-word { color: var(--button-down-ink); }
 .tk-against-note {
@@ -237,8 +232,8 @@
   line-height: 1.45;
   color: rgba(255, 255, 255, 0.42);
 }
-[data-theme="light"] .tk-against-track { border-color: rgba(20, 18, 16, 0.16); background: rgba(20, 18, 16, 0.03); }
-[data-theme="light"] .tk-against-track::after { background: rgba(20, 18, 16, 0.5); }
-[data-theme="light"] .tk-against-word { color: rgba(20, 18, 16, 0.6); }
-[data-theme="light"] .tk-against-switch:hover .tk-against-word { color: rgba(20, 18, 16, 0.85); }
-[data-theme="light"] .tk-against-note { color: rgba(20, 18, 16, 0.6); }
+[data-theme="light"] .tk-against-track { border-color: rgba(16, 15, 15, 0.16); background: rgba(16, 15, 15, 0.03); }
+[data-theme="light"] .tk-against-track::after { background: rgba(16, 15, 15, 0.5); }
+[data-theme="light"] .tk-against-word { color: rgba(16, 15, 15, 0.6); }
+[data-theme="light"] .tk-against-switch:hover .tk-against-word { color: rgba(16, 15, 15, 0.85); }
+[data-theme="light"] .tk-against-note { color: rgba(16, 15, 15, 0.6); }

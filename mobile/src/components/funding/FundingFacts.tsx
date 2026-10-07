@@ -40,7 +40,7 @@ export function FootLine({ text }: { text: string | null | undefined }) {
   return text ? <Text style={[fundStyles.foot, { color: color.inkMuted }]}>{text}</Text> : null;
 }
 
-/** `.fund-foot-link`: mono 11, gray-500, vermilion while pressed. */
+/** `.fund-foot-link`: mono 11, gray-500, signal while pressed. */
 export function FootText({ label, onPress }: { label: string; onPress: () => void }) {
   const { color } = useTheme();
   return (

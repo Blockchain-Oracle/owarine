@@ -80,7 +80,7 @@ function Row({ view, market, first, decimals, symbol, nowMs, busy, canSign, onMe
 export function Crank({ label, disabled, onPress, flush = false }: { label: string; disabled: boolean; onPress: () => void; flush?: boolean }) {
   const { color, t } = useEarnParlay();
   return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={({ pressed }) => [styles.crank, flush && styles.flush, { borderColor: t.vermilion50, backgroundColor: pressed ? t.vermilion10 : t.clear, opacity: disabled ? 0.6 : 1 }]}>
+    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={({ pressed }) => [styles.crank, flush && styles.flush, { borderColor: t.signal50, backgroundColor: pressed ? t.signal10 : t.clear, opacity: disabled ? 0.6 : 1 }]}>
       <Text style={[styles.crankText, { color: color.accent }]}>{label}</Text>
     </Pressable>
   );

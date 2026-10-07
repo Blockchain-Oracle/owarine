@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-na
 import { FONT } from "~/theme";
 import { useGamesTokens } from "./tokens";
 
-/** games.css `.gm-eyebrow`: mono 11, 0.14em, uppercase, vermilion, 12 below. */
+/** games.css `.gm-eyebrow`: mono 11, 0.14em, uppercase, signal, 12 below. */
 export function Eyebrow({ children, style }: { children: string; style?: StyleProp<ViewStyle> }) {
   const { color } = useGamesTokens();
   return (
@@ -13,7 +13,7 @@ export function Eyebrow({ children, style }: { children: string; style?: StylePr
   );
 }
 
-/** yosuku `.page-title` at 402 px (Sora 800, 45/42.3, −0.05em) with its vermilion full stop. */
+/** yosuku `.page-title` at 402 px (Sora 800, 45/42.3, −0.05em) with its signal full stop. */
 export function PageTitle({ children }: { children: string }) {
   const { color } = useGamesTokens();
   return (

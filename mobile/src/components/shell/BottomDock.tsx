@@ -25,7 +25,7 @@ const DRAWER_PATHS = DRAWER_SECTIONS.flatMap((s) => s.items.filter((i) => !i.ext
 /**
  * web's floating pill (navigation.css .mobile-bottom-nav at phone width): 0.8rem off the bottom, lifted just clear of the home indicator,
  * min(26rem, 100vw − 20px) wide, blur 24 over a 72 % ink ground, five equal cells of an 18 px lucide icon over a
- * 9 px label; the active cell fills and its icon turns vermilion. More opens web's right-hand drawer.
+ * 9 px label; the active cell fills and its icon turns signal. More opens web's right-hand drawer.
  */
 export function BottomDock() {
   const pathname = usePathname();

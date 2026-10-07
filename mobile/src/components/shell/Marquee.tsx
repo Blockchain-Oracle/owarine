@@ -43,7 +43,7 @@ export function Marquee() {
 function Cell({ item }: { item: MarqueeItem }) {
   const { name, color } = useTheme();
   const t = chromeTokens(name);
-  // web: .up in vermilion, .down in gray-500.
+  // web: .up in signal, .down in gray-500.
   const dirColor = item.direction === "up" ? color.accent : color.inkMuted;
   return (
     <View style={styles.cell}>

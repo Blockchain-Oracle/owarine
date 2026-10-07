@@ -25,7 +25,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
-/** The numbered section head AgentsScreen draws itself: vermilion index, Sora title, optional meta, a hairline. */
+/** The numbered section head AgentsScreen draws itself: signal index, Sora title, optional meta, a hairline. */
 function Head({ index, title, meta }: { index: string; title: string; meta?: string }) {
   const { color } = useStrat();
   return (
@@ -83,7 +83,7 @@ export function AgentsBoard({ payload }: { payload: StrategiesPayload }) {
               const editions = strategies.filter((card) => card.runner === row.runner);
               const identity = editions.length === 1 ? strategyIdentity(editions[0]!) : { name: `Runner ${shortAddress(row.runner)}`, seed: `runner:${row.runner}` };
               return (
-                <View key={row.runner} style={[styles.row, panel, top && { borderLeftWidth: 2, borderLeftColor: t.vermilion }]}>
+                <View key={row.runner} style={[styles.row, panel, top && { borderLeftWidth: 2, borderLeftColor: t.signal }]}>
                   <Text style={[styles.rank, { color: t.gray700 }]}>{String(rank).padStart(2, "0")}</Text>
                   <View style={styles.who}>
                     <AgentPortrait seed={identity.seed} name={identity.name} size="row" />
@@ -107,7 +107,7 @@ export function AgentsBoard({ payload }: { payload: StrategiesPayload }) {
                           );
                         })()}
                         {top ? (
-                          <Text style={[styles.badge, { color: t.vermilion, borderColor: t.vermilionD }]}>{AGENTS.desk.top}</Text>
+                          <Text style={[styles.badge, { color: t.signal, borderColor: t.signalD }]}>{AGENTS.desk.top}</Text>
                         ) : null}
                       </View>
                       <Text numberOfLines={1} style={[ST.mono11, styles.mt4, { color: color.inkDisabled }]}>
@@ -128,7 +128,7 @@ export function AgentsBoard({ payload }: { payload: StrategiesPayload }) {
                   </View>
                   <View style={styles.figures}>
                     <Figure label={AGENTS.desk.entrusted}>
-                      <Text style={[styles.figure, { color: t.vermilion }]}>
+                      <Text style={[styles.figure, { color: t.signal }]}>
                         {money(row.capitalEntrustedBase, decimals)}
                         <Text style={[ST.mono11, { color: color.inkMuted, fontWeight: "normal" }]}> {symbol}</Text>
                       </Text>

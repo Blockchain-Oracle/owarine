@@ -12,7 +12,7 @@ export const card = StyleSheet.create({
   head: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 11, paddingHorizontal: 14, borderBottomWidth: 1 },
   asset: { flexDirection: "row", alignItems: "center", gap: 9, flexShrink: 1 },
   ticker: { fontFamily: FONT.bodyHeavy, fontSize: 14, lineHeight: 22.4, letterSpacing: 0.28 },
-  cadence: { fontFamily: SERIF_MEDIUM, fontSize: 15, lineHeight: 15, letterSpacing: 0.075, fontStyle: "italic" },
+  cadence: { fontFamily: SERIF_MEDIUM, fontSize: 13, lineHeight: 15, letterSpacing: 0.4 },
   kind: { marginLeft: 6, paddingVertical: 1, paddingHorizontal: 7, borderWidth: 1, borderRadius: 9999, fontFamily: FONT.data, fontSize: 9.5, lineHeight: 15.2, letterSpacing: 0.57, textTransform: "uppercase" },
   countdown: { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
   countdownText: { fontFamily: FONT.dataRegular, fontSize: 12, lineHeight: 19.2, letterSpacing: -0.24, fontVariant: ["tabular-nums"] },

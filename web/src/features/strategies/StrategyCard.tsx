@@ -100,7 +100,7 @@ export function StrategyCard({ card, sub, decimals, symbol, asset, onOpen }: Str
 
       <div className="mt-auto flex items-center justify-between gap-3 pt-6">
         <span className="strat-mono-10 truncate text-ink/40">{STRATEGIES.archive.foot(money(BigInt(card.envelope.maxStakePerTradeBase), decimals), fee === 0n ? STRATEGIES.archive.free : `${money(fee, decimals)} fee`, copiers)}</span>
-        <span className={cn("strat-mono-11 inline-flex shrink-0 items-center gap-1.5 uppercase tracking-[0.12em] transition-colors", sub ? "text-vermilion" : "text-ink/55 group-hover:text-ink")}>
+        <span className={cn("strat-mono-11 inline-flex shrink-0 items-center gap-1.5 uppercase tracking-[0.12em] transition-colors", sub ? "text-signal" : "text-ink/55 group-hover:text-ink")}>
           {sub ? (
             <>
               {sub.live && <span className="strat-live-dot" />} Manage copy

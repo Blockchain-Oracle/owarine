@@ -20,7 +20,7 @@
 .cx-write[data-error] .cx-write-status { color: var(--color-loss); }
 .cx-write[data-phase="unknown"] .cx-write-status { color: var(--color-warning-ink); }
 .cx-write[data-phase="unknown"] .dkit-steps li[data-state="current"] .dkit-step-badge { border-color: var(--color-warning); color: var(--color-warning-ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-warning) 16%, transparent); }
-.cx-write-id { font-family: var(--font-mono); color: var(--color-ink); }
+.cx-write-id { font-family: var(--font-mono); color: var(--color-ink); font-variant-numeric: tabular-nums; }
 .cx-write[data-variant="inline"] { padding-top: 4px; }
 .cx-write[data-variant="inline"] .dkit-step-hint { display: none; }
 .cx-write[data-variant="block"] { min-height: var(--ticket-cta-height); padding: 14px; border: 1px solid var(--color-hairline); border-radius: var(--button-primary-radius); background: var(--color-surface-2); }
@@ -37,16 +37,16 @@
 .cx-b-held { display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 8px; border: 1px solid var(--color-hairline); border-radius: var(--radius-md); background: var(--color-surface-2); }
 .cx-b-held[data-expired] { border-color: color-mix(in srgb, var(--color-warning) 40%, transparent); padding-left: 12px; }
 .cx-b-price { font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: var(--color-ink); font-variant-numeric: tabular-nums; }
-.cx-b-note { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-align: right; }
+.cx-b-note { margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ── C: the receipt drawer ── */
 .cx-c-drawer { position: absolute; right: 0; bottom: 0; left: 0; z-index: 2; display: flex; flex-direction: column; gap: 12px; padding: 18px 18px 16px; border-radius: var(--receipt-radius) var(--receipt-radius) var(--ticket-radius) var(--ticket-radius); background: var(--receipt-surface); color: var(--receipt-ink); box-shadow: var(--receipt-shadow); animation: cx-rise 280ms var(--ease) both; }
 .cx-c-drawer::before { content: ""; position: absolute; top: 0; right: 0; left: 0; height: 4px; border-radius: var(--receipt-radius) var(--receipt-radius) 0 0; background: var(--receipt-strip); }
 .cx-c-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.cx-c-title { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+.cx-c-title { font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .cx-c-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; margin: 0; }
 .cx-c-rows div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.cx-c-rows dt { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; }
+.cx-c-rows dt { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .cx-c-rows dd { margin: 0; font-family: var(--font-mono); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cx-c-perf { height: 0; border-top: 1px dashed var(--receipt-hairline); }
 .cx-c-expired { font-size: 12.5px; line-height: 1.5; }
@@ -70,5 +70,5 @@
 @media (prefers-reduced-motion: reduce) { .cx-c-drawer { animation: none; } }
 
 /* ── the real ticket's receipt: the ledger update and who can see it ── */
-.cx-receipt-update { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--color-ink-secondary); }
+.cx-receipt-update { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; font-family: var(--font-mono); font-size: 12px; color: var(--color-ink-secondary); font-variant-numeric: tabular-nums; }
 .cx-b-held .cx-seen { flex: none; }

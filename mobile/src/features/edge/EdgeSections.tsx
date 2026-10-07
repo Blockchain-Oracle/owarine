@@ -104,7 +104,7 @@ export function EdgeWindows({ windows, decimals, symbol }: { windows: readonly E
   );
 }
 
-/** web `EdgePayoff`: the vermilion-topped aside — the payoff's shape, and where every number came from. */
+/** web `EdgePayoff`: the signal-topped aside — the payoff's shape, and where every number came from. */
 export function EdgePayoff({ report, decimals, symbol }: { report: TraderEdge; decimals: number; symbol: string }) {
   const { edge } = useEdgeInk();
   const words = EDGE.report.payoff;
@@ -118,7 +118,7 @@ export function EdgePayoff({ report, decimals, symbol }: { report: TraderEdge; d
   ];
   return (
     <EdgeEnter>
-      <View style={[styles.payoff, { borderTopColor: edge.vermilion }]}>
+      <View style={[styles.payoff, { borderTopColor: edge.signal }]}>
         <Text style={[styles.sectionTitle, { color: edge.text }]} accessibilityRole="header">
           {words.title}
         </Text>

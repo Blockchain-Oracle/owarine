@@ -39,7 +39,7 @@ export function ActivityScreen() {
           <span className="news-live-label">{ACTIVITY.live}</span>
         </div>
         <h1 className="news-title">
-          {ACTIVITY.heading} <span className="vermilion">{ACTIVITY.headingAccent}</span>
+          {ACTIVITY.heading} <span className="signal">{ACTIVITY.headingAccent}</span>
         </h1>
         <div className="page-title-jp" lang="ja">
           {ACTIVITY.headingJp}

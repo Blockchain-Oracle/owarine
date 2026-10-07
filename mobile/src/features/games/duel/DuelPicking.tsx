@@ -96,7 +96,7 @@ export function DuelPicking({ state, wallet, room }: { state: Extract<MatchState
   );
 }
 
-/** `.du-pending`: a pulsing vermilion dot and a mono 10 line, for the opponent's presence cues. */
+/** `.du-pending`: a pulsing signal dot and a mono 10 line, for the opponent's presence cues. */
 function Pending({ children }: { children: string }) {
   const { color } = useStageTokens();
   return (

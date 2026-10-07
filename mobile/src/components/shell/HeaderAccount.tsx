@@ -18,7 +18,7 @@ const AMOUNT_DP = 2;
 
 /**
  * web's header-right on a phone (HeaderMoneyPill + HeaderAccount): "Take a seat" until this phone has a seat; then the
- * balance pill (total, unit, vermilion +, opens Add money) and the address button — under 420 px web shows only
+ * balance pill (total, unit, signal +, opens Add money) and the address button — under 420 px web shows only
  * its avatar dot — whose menu is exactly two balance rows, Portfolio and the seat (its sheet holds Reset seat, behind a
  * confirm: a seat has nothing to disconnect from).
  */

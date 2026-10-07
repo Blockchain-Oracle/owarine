@@ -11,7 +11,7 @@ import { LinkWord, LUCKY_TEXT, TxLine, useLuckyTokens } from "./parts";
 /**
  * web's `LuckyPlates.tsx` (`.lk-plate`): what the machine says after the tap, or instead of a card — placed
  * (pending its Window, a profit edge), sent with no receipt, refused for a named reason, or a request that failed
- * before anything was drawn (a vermilion edge). Every plate carries a way to spin again; a placed one links the
+ * before anything was drawn (a signal edge). Every plate carries a way to spin again; a placed one links the
  * transaction and the portfolio, where the position lives.
  */
 

@@ -46,8 +46,7 @@
   font-family: var(--font-mono);
   font-size: 12px;
   color: rgb(var(--reel-ink-rgb) / 0.85);
-  transition: color 150ms var(--ease);
-}
+  transition: color 150ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .take-name:hover {
   color: var(--reel-ink);
@@ -58,9 +57,8 @@
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgb(var(--reel-ink-rgb) / 0.35);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--reel-ink-rgb) / 0.35); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* open call: shrink-0 rounded-full border border-white/12 px-3 py-1 font-mono
    text-[9px] uppercase tracking-[0.14em] text-white/45 */
@@ -72,15 +70,14 @@
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgb(var(--reel-ink-rgb) / 0.45);
-}
+  letter-spacing: 0.1em;
+  color: rgb(var(--reel-ink-rgb) / 0.45); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
-/* backed: border-vermilion/40 bg-vermilion/[0.08] text-vermilion */
+/* backed: border-signal/40 bg-signal/[0.08] text-signal */
 .take-badge[data-backed="true"] {
-  border-color: color-mix(in srgb, var(--vermilion) 40%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 8%, transparent);
-  color: var(--vermilion);
+  border-color: color-mix(in srgb, var(--signal-ink) 40%, transparent);
+  background: color-mix(in srgb, var(--signal) 8%, transparent);
+  color: var(--signal-ink);
 }
 
 /* relative z-10 mt-5 px-5 */
@@ -91,21 +88,20 @@
   padding: 0 20px;
 }
 
-/* inline-flex items-center gap-2 rounded-full border border-vermilion/25
-   bg-vermilion/[0.05] px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] */
+/* inline-flex items-center gap-2 rounded-full border border-signal/25
+   bg-signal/[0.05] px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] */
 .take-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--vermilion) 25%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--signal-ink) 25%, transparent);
+  background: color-mix(in srgb, var(--signal) 5%, transparent);
   padding: 6px 14px;
   font-family: var(--font-mono);
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
+  letter-spacing: 0.1em; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* D-082: the asset's mark leads the chip (18c's disc at 16 px; `.asset-mark` fills it) */
 .take-chip-mark {
@@ -116,9 +112,9 @@
   border-radius: 9999px;
 }
 
-/* text-vermilion */
+/* text-signal */
 .take-chip-dir {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 /* text-white/25 */
@@ -132,7 +128,7 @@
 }
 
 /* The band's `$TSLA` (D-082): the ink a shade up from the band, the chip's own tracking; as a link it keeps
-   `.take-cashtag`'s underline on hover and the vermilion for the line, not the word — the direction already has it. */
+   `.take-cashtag`'s underline on hover and the signal for the line, not the word — the direction already has it. */
 .take-chip-tag {
   color: rgb(var(--reel-ink-rgb) / 0.85);
   letter-spacing: inherit;
@@ -171,8 +167,7 @@
   letter-spacing: -0.02em;
   color: var(--reel-ink);
   text-wrap: balance;
-  overflow-wrap: anywhere;
-}
+  overflow-wrap: anywhere; font-stretch: 125%; }
 
 /* font-display text-[24px] font-medium italic leading-snug text-white/45 */
 .take-caption.quiet {
@@ -199,8 +194,7 @@
   gap: 12px;
   font-family: var(--font-mono);
   font-size: 9px;
-  color: rgb(var(--reel-ink-rgb) / 0.4);
-}
+  color: rgb(var(--reel-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; }
 
 .take-prov a {
   transition: color 150ms var(--ease);
@@ -217,7 +211,7 @@
 }
 
 /* block rounded-2xl border border-white/15 bg-white/[0.02] py-3.5 text-center
-   font-display text-[15px] font-bold text-white/85 hover:border-vermilion/50 hover:text-white */
+   font-display text-[15px] font-bold text-white/85 hover:border-signal/50 hover:text-white */
 .take-cta {
   display: block;
   border-radius: 16px;
@@ -229,11 +223,10 @@
   font-size: 15px;
   font-weight: 700;
   color: rgb(var(--reel-ink-rgb) / 0.85);
-  transition: border-color 200ms var(--ease), color 200ms var(--ease);
-}
+  transition: border-color 200ms var(--ease), color 200ms var(--ease); font-stretch: 125%; }
 
 .take-cta:hover {
-  border-color: color-mix(in srgb, var(--vermilion) 50%, transparent);
+  border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent);
   color: var(--reel-ink);
 }
 

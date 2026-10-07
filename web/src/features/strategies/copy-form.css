@@ -1,7 +1,7 @@
 /* The copy drawer's form (S23): fields that say why, a money strip, the runner kept apart from "you are copying". */
 .copy-field-row { position: relative; display: flex; align-items: center; }
 .copy-field-row .strat-input { padding-right: 60px; font-size: 14px; height: 42px; }
-.copy-field-max { position: absolute; right: 6px; height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--color-ink) 30%, transparent); background: var(--color-surface-2); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink); cursor: pointer; }
+.copy-field-max { position: absolute; right: 6px; height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--color-ink) 30%, transparent); background: var(--color-surface-2); font-family: var(--font-mono); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink); cursor: pointer; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .copy-field-max:hover:not(:disabled) { border-color: var(--color-ink); }
 .copy-field-max:disabled { opacity: 0.4; cursor: not-allowed; }
 .strat-input.copy-field-bad, .strat-input.copy-field-bad:focus { border-color: var(--color-loss); box-shadow: 0 0 0 3px var(--color-loss-wash); }
@@ -9,7 +9,7 @@
 
 .copy-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--color-hairline); border-radius: 12px; background: var(--color-hairline); }
 .copy-strip > div { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; background: var(--market-card-surface, var(--color-surface-1)); min-width: 0; }
-.copy-strip span { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-muted); }
+.copy-strip span { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .copy-strip b { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--color-ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .copy-strip small { font-size: 10.5px; color: var(--color-ink-muted); }
 .copy-strip > div[data-tone="bad"] b { color: var(--color-loss); }
@@ -28,6 +28,6 @@
 .copy-you > span { width: 8px; height: 8px; border-radius: 9999px; background: var(--color-profit); }
 
 .copy-runner { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--color-hairline); border-radius: 12px; background: var(--color-surface-2); color: var(--color-ink); }
-.copy-runner-eyebrow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-ink-muted); }
+.copy-runner-eyebrow { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .copy-runner strong { font-size: 14px; }
 .copy-runner p { font-size: 0.8rem; line-height: 1.6; color: var(--color-ink-secondary); }

@@ -36,8 +36,7 @@
   display: flex; justify-content: space-between;
   font-family: var(--font-mono); font-size: 10px;
   color: var(--gray-600); letter-spacing: 0.3em;
-  pointer-events: none;
-}
+  pointer-events: none; font-variant-numeric: tabular-nums; }
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -50,23 +49,21 @@
   position: relative;
 }
 .stat:first-child { border-left: 0; padding-left: 0; }
-.stat-idx { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.22em; }
+.stat-idx { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.22em; font-variant-numeric: tabular-nums; }
 .stat-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.22em; color: var(--gray-400); margin-top: 2px; }
 .stat-value {
   font-family: var(--font-display);
   font-size: clamp(2.4rem, 5vw, 4.4rem);
   font-weight: 700; letter-spacing: -0.045em;
   color: var(--white); line-height: 0.95;
-  margin-top: 8px; font-variant-numeric: tabular-nums;
-}
+  margin-top: 8px; font-variant-numeric: tabular-nums; font-stretch: 125%; }
 .stat-value .unit { color: var(--gray-500); font-weight: 500; margin-left: 2px; }
 .stat-spark { margin-top: 14px; width: 100%; height: 28px; display: block; }
 .stat-spark path { fill: none; stroke: var(--white); stroke-width: 1; opacity: 0.5; }
 .stat-meta {
   font-family: var(--font-mono); font-size: 11px;
   color: var(--gray-500);
-  display: flex; align-items: center; gap: 8px;
-}
+  display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
 .stat-meta .delta { color: #22C55E; }
 .stat-meta .delta.dn { color: #EF4444; }
 
@@ -87,8 +84,7 @@
   font-size: clamp(2rem, 5vw, 3.5rem);
   line-height: 1.05; letter-spacing: -0.035em;
   color: var(--white); max-width: 18ch;
-  margin-bottom: 80px;
-}
+  margin-bottom: 80px; font-stretch: 125%; }
 
 .how-steps {
   display: grid;
@@ -124,26 +120,22 @@
 .step .num-col .num {
   font-family: var(--font-display); font-weight: 800;
   font-size: 64px; line-height: 0.9;
-  letter-spacing: -0.045em; color: var(--white);
-}
+  letter-spacing: -0.045em; color: var(--white); font-stretch: 125%; }
 .step .text-col { padding-left: 36px; padding-right: 36px; }
 .step .text-col .kicker {
   font-family: var(--font-mono); font-size: 11px;
-  color: var(--gray-500); letter-spacing: 0.22em;
-  text-transform: uppercase; margin-bottom: 18px;
-}
+  color: var(--gray-500); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 18px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .step-title {
   font-family: var(--font-display); font-weight: 700;
   font-size: clamp(1.6rem, 2.4vw, 2.2rem);
   letter-spacing: -0.03em; color: var(--white);
-  margin-bottom: 16px; line-height: 1.05;
-}
+  margin-bottom: 16px; line-height: 1.05; font-stretch: 125%; }
 .step-body { color: var(--gray-400); font-size: 15px; line-height: 1.6; max-width: 38ch; margin-bottom: 24px; }
 .step-meta {
   display: flex; gap: 24px;
   font-family: var(--font-mono); font-size: 11px;
-  color: var(--gray-500); letter-spacing: 0.04em;
-}
+  color: var(--gray-500); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; }
 .step-meta b { color: var(--white); font-weight: 500; }
 .step .art-col { padding-left: 36px; padding-right: 0; }
 .step .art-frame {
@@ -164,10 +156,9 @@
 .step .art-cap {
   margin-top: 12px;
   font-family: var(--font-mono); font-size: 10px;
-  color: var(--gray-600); letter-spacing: 0.22em;
+  color: var(--gray-600); letter-spacing: 0.1em;
   text-transform: uppercase;
-  display: flex; justify-content: space-between;
-}
+  display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* ───────── Landing: Sticky features ───────── */
 .features {
@@ -197,8 +188,7 @@
   display: flex; justify-content: space-between;
   font-family: var(--font-mono); font-size: 10px;
   color: var(--gray-600); letter-spacing: 0.3em;
-  z-index: 3; pointer-events: none;
-}
+  z-index: 3; pointer-events: none; font-variant-numeric: tabular-nums; }
 /* The pin STICKS to the viewport and stays in view while the runway spacers below
    scroll past — that scroll drives the act crossfade. (Previously it was position:
    relative with overflow:hidden, so it never pinned: the content scrolled away and
@@ -230,15 +220,13 @@
   line-height: 0.85;
   color: rgba(255,255,255,0.04);
   letter-spacing: -0.06em;
-  pointer-events: none; z-index: 0;
-}
+  pointer-events: none; z-index: 0; font-stretch: 125%; }
 .feature-text .feature-index {
   position: relative; z-index: 1;
   font-family: var(--font-mono); font-size: 11px;
   color: var(--gray-400); margin-bottom: 32px;
   letter-spacing: 0.22em;
-  display: flex; align-items: center; gap: 12px;
-}
+  display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
 .feature-text .feature-index .rule { width: 32px; height: 1px; background: var(--white); opacity: 0.4; }
 .feature-text h3 {
   position: relative; z-index: 1;
@@ -246,10 +234,9 @@
   font-size: clamp(2.2rem, 5vw, 4rem);
   line-height: 1.0; letter-spacing: -0.04em;
   color: var(--white); margin-bottom: 24px;
-  max-width: 14ch;
-}
+  max-width: 14ch; font-stretch: 125%; }
 .feature-text h3 em {
-  font-family: 'Noto Serif JP', Georgia, serif;
+  font-family: 'Noto Sans JP', Georgia, serif;
   font-style: italic; font-weight: 400; color: var(--gray-300);
 }
 .feature-text p {
@@ -263,8 +250,7 @@
   font-family: var(--font-mono); font-size: 11px;
   color: var(--gray-500); letter-spacing: 0.04em;
   border-top: 1px solid rgba(255,255,255,0.06);
-  padding-top: 18px;
-}
+  padding-top: 18px; font-variant-numeric: tabular-nums; }
 .feature-text .feature-keys b { color: var(--white); font-weight: 500; }
 .feature-art {
   position: relative; aspect-ratio: 1 / 1;
@@ -287,8 +273,7 @@
   position: absolute; bottom: -28px; left: 0; right: 0;
   display: flex; justify-content: space-between;
   font-family: var(--font-mono); font-size: 10px;
-  color: var(--gray-600); letter-spacing: 0.22em;
-}
+  color: var(--gray-600); letter-spacing: 0.22em; font-variant-numeric: tabular-nums; }
 .feature-art svg { position: relative; z-index: 1; width: 100%; height: 100%; display: block; padding: 8%; box-sizing: border-box; }
 
 .feature-progress {
@@ -315,8 +300,7 @@
 .manifesto-runline {
   position: absolute;
   font-family: var(--font-mono); font-size: 10px;
-  color: var(--gray-600); letter-spacing: 0.3em; z-index: 2;
-}
+  color: var(--gray-600); letter-spacing: 0.3em; z-index: 2; font-variant-numeric: tabular-nums; }
 .manifesto-runline.tl { top: 32px; left: 48px; }
 .manifesto-runline.tr { top: 32px; right: 48px; text-align: right; }
 .manifesto-runline.bl { bottom: 32px; left: 48px; }
@@ -330,7 +314,7 @@
 .manifesto-quote {
   position: relative; z-index: 1;
   max-width: 18ch; margin: 0 auto; text-align: center;
-  font-family: 'Noto Serif JP', Georgia, serif;
+  font-family: 'Noto Sans JP', Georgia, serif;
   font-weight: 400; font-style: italic;
   font-size: clamp(2.4rem, 6vw, 5rem);
   line-height: 1.05; letter-spacing: -0.025em;

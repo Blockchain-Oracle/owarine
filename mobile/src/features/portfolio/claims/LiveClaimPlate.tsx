@@ -47,7 +47,7 @@ function ProofRows({ marketId }: { marketId: MarketId }) {
 
 /**
  * web `LiveClaimPlate` + `ClaimPlate`: the wallet's claimables on the accent wash — one net figure (ink, never
- * vermilion), a row per settled Window, per-item progress, the blocked-or-live Claim all, the cream receipt for what
+ * signal), a row per settled Window, per-item progress, the blocked-or-live Claim all, the cream receipt for what
  * landed; then the Trading Balance's credits beside it, never inside its sum (AD-1).
  */
 export function LiveClaimPlate() {

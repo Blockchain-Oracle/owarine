@@ -19,7 +19,7 @@ export function useRangeTokens() {
   return { ...games, r };
 }
 
-/** parlay-page.css `.pl-hero`: the vermilion-80 mono eyebrow (10 px, 0.22em), the page title, 48 below. */
+/** parlay-page.css `.pl-hero`: the signal-80 mono eyebrow (10 px, 0.22em), the page title, 48 below. */
 export function PlHero({ eyebrow, title }: { eyebrow: string; title: string }) {
   const { r } = useRangeTokens();
   return (
@@ -69,7 +69,7 @@ export function ConnectPlate({ title, sub }: { title: string; sub: string }) {
         onPress={() => router.push("/connect" as Href)}
         disabled={session.isConnecting}
         accessibilityRole="button"
-        style={[styles.connectBtn, { backgroundColor: color.accent }]}
+        style={[styles.connectBtn, { backgroundColor: color.accentFill }]}
       >
         <Text style={[styles.connectLabel, { color: color.onAccent }]}>{session.isConnecting ? "Reconnecting…" : "Connect"}</Text>
       </Press>

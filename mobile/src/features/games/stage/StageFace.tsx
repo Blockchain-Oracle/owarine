@@ -21,7 +21,7 @@ import { useStageFeel } from "./useStageFeel";
  * `question` may be a string or a node; pass a `<Text>` in `usePendingQuestionStyle()` for web's pending line.
  */
 
-/** Flicky's ramp on every clock: calm, then vermilion inside ten minutes, then the loss colour inside two. */
+/** Flicky's ramp on every clock: calm, then signal inside ten minutes, then the loss colour inside two. */
 export function clockUrgency(remainingSec: number): { level: "calm" | "near" | "last"; pulse: boolean } {
   return { level: remainingSec <= 120 ? "last" : remainingSec <= 600 ? "near" : "calm", pulse: remainingSec > 0 && remainingSec <= 30 };
 }

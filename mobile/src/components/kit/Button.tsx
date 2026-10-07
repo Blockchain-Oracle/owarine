@@ -30,7 +30,7 @@ interface Props {
 function tones(variant: ButtonVariant, color: Palette) {
   switch (variant) {
     case "primary":
-      return { bg: color.accent, pressed: color.accentPressed, ink: color.onAccent, border: "transparent" };
+      return { bg: color.accentFill, pressed: color.accentPressed, ink: color.onAccent, border: "transparent" };
     case "secondary":
       return { bg: color.surface2, pressed: color.surface3, ink: color.ink, border: "transparent" };
     case "outline":

@@ -68,7 +68,7 @@ export function ShortAssetPicker({ stocks, value, onChange }: { stocks: ShortSto
   );
 }
 
-/** `.sh-chip`: the chosen one ringed twice in vermilion over its wash. */
+/** `.sh-chip`: the chosen one ringed twice in signal over its wash. */
 function Chip({ stock, on, onPress }: { stock: ShortStock; on: boolean; onPress: () => void }) {
   const { color, name } = useTheme();
   const t = basketsShortTokens(name);

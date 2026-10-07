@@ -114,7 +114,7 @@ export function LuckySide({ wallet, feed, watchDrawId, decimals, symbol }: Props
   );
 }
 
-/** The ladder's own row edge is the games accent (`--gm-accent`): the player's chosen ring, vermilion by default. */
+/** The ladder's own row edge is the games accent (`--gm-accent`): the player's chosen ring, signal by default. */
 function useSideTokens() {
   const { color } = useLuckyTokens();
   const { settings } = useGames();

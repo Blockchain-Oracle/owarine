@@ -4,7 +4,7 @@
  * convention (the reference's utility string named above each rule). See reel.css
  * for the card itself and for why /reels stays a dark island in light mode. */
 
-/* the empty/loading reel — same frame, flat bg-[#0a0807], centred */
+/* the empty/loading reel — same frame, flat bg-[#090808], centred */
 .reel-card.holding {
   align-items: center;
   justify-content: center;
@@ -20,8 +20,7 @@
   font-size: 20px;
   font-weight: 700;
   line-height: 1.3;
-  color: var(--reel-ink);
-}
+  color: var(--reel-ink); font-stretch: 125%; }
 
 /* Owarine: the closed line is longer than the reference's holding copy, and the take pill
    (below) is fixed to the viewport's right rail at mid-height, where this centred title
@@ -41,14 +40,13 @@
   gap: 6px;
 }
 
-/* h-1.5 w-1.5 rounded-full bg-vermilion, pulseDot 1.2s with 0.2s steps */
+/* h-1.5 w-1.5 rounded-full bg-signal, pulseDot 1.2s with 0.2s steps */
 .reel-dots span {
   height: 6px;
   width: 6px;
   border-radius: 9999px;
-  background: var(--vermilion);
-  animation: pulseDot 1.2s var(--ease) infinite;
-}
+  background: var(--signal);
+  animation: pulseDot 1.2s var(--ease) infinite; color: var(--on-signal); }
 
 .reel-dots span:nth-child(2) {
   animation-delay: 0.2s;
@@ -59,8 +57,8 @@
 }
 
 /* fixed right-4 top-1/2 z-40 inline-flex -translate-y-1/2 flex-col items-center
-   gap-1.5 rounded-2xl bg-vermilion px-5 py-4 text-white
-   shadow-[0_12px_32px_-10px_rgba(224,77,38,0.55)]
+   gap-1.5 rounded-2xl bg-signal px-5 py-4 text-white
+   shadow-[0_12px_32px_-10px_rgba(228,226,78,0.55)]
    Anchored mid-card on the right rail so it never covers a card's action row. */
 .reel-take {
   position: fixed;
@@ -73,19 +71,18 @@
   align-items: center;
   gap: 6px;
   border-radius: 16px;
-  background: var(--vermilion);
+  background: var(--signal);
   padding: 16px 20px;
-  /* On vermilion in both themes, so its ink does not flip with the card's. */
-  color: #fff;
-  box-shadow: 0 12px 32px -10px rgba(224, 77, 38, 0.55);
+  /* On signal in both themes, so its ink does not flip with the card's. */
+  color: var(--on-signal);
+  box-shadow: 0 12px 32px -10px rgba(228, 226, 78, 0.55);
 }
 
 .reel-take span {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
-  line-height: 1;
-}
+  line-height: 1; font-stretch: 125%; }
 
 /* Stage 3 stands the take board up; the control is honest about that until then. */
 .reel-take:disabled {
@@ -134,20 +131,19 @@
   opacity: 0;
 }
 
-/* rounded-full bg-vermilion px-3.5 py-1.5 font-display text-[12px] font-bold
-   leading-none text-white shadow-[0_8px_24px_-8px_rgba(224,77,38,0.7)] */
+/* rounded-full bg-signal px-3.5 py-1.5 font-display text-[12px] font-bold
+   leading-none text-white shadow-[0_8px_24px_-8px_rgba(228,226,78,0.7)] */
 .reel-hint-pill {
   border-radius: 9999px;
-  background: var(--vermilion);
+  background: var(--signal);
   padding: 6px 14px;
   font-family: var(--font-display);
   font-size: 12px;
   font-weight: 700;
   line-height: 1;
-  /* On vermilion in both themes. */
-  color: #fff;
-  box-shadow: 0 8px 24px -8px rgba(224, 77, 38, 0.7);
-}
+  /* On signal in both themes. */
+  color: var(--on-signal);
+  box-shadow: 0 8px 24px -8px rgba(228, 226, 78, 0.7); font-stretch: 125%; }
 
 @media (prefers-reduced-motion: reduce) {
   .reel-dots span,

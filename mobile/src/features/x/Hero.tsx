@@ -50,7 +50,7 @@ export function Hero() {
   );
 }
 
-/** part-17.css `.xt-payoff` (fade-up + white → vermilion, 0.72 s at 0.3 s) and its `.xt-ul` underline drawn at 0.95 s. */
+/** part-17.css `.xt-payoff` (fade-up + white → signal, 0.72 s at 0.3 s) and its `.xt-ul` underline drawn at 0.95 s. */
 function Payoff() {
   const t = tradeXTokens(useTheme().name);
   const p = useOnce(720, 300, E_OUT, false);

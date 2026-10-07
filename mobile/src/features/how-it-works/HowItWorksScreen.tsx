@@ -1,6 +1,3 @@
-import { Inter_700Bold, Inter_900Black } from "@expo-google-fonts/inter";
-import { JetBrainsMono_700Bold, JetBrainsMono_800ExtraBold } from "@expo-google-fonts/jetbrains-mono";
-import { useFonts } from "expo-font";
 import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { Pressable, StyleSheet, Text } from "react-native";
@@ -23,9 +20,7 @@ import { BuiltOnSection, LegSection } from "./SectionsC";
 export function HowItWorksScreen() {
   const { name, color } = useTheme();
   const t = hiwTokens(name);
-  const [loaded, error] = useFonts({ Inter_700Bold, Inter_900Black, JetBrainsMono_700Bold, JetBrainsMono_800ExtraBold });
   const toMarkets = () => router.navigate("/markets");
-  if (!loaded && !error) return <ExplorePage title={HOW_IT_WORKS.title}>{null}</ExplorePage>;
 
   return (
     <ExplorePage title={HOW_IT_WORKS.title} style={styles.wrap}>

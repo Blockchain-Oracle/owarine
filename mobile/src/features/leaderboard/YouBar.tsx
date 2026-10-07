@@ -11,7 +11,7 @@ import { BOARD_PHONE } from "./words";
 export const YOU_BAR_H = 52;
 
 /**
- * web's vermilion `.you-bar` slimmed for a phone: your glyph, rank (or Unranked) of the ranked field, your net and
+ * web's signal `.you-bar` slimmed for a phone: your glyph, rank (or Unranked) of the ranked field, your net and
  * the cream "Your ledger →" pill, docked just above the floating dock.
  */
 export function YouBar({ address, data }: { address: string; data: BoardData }) {
@@ -24,7 +24,7 @@ export function YouBar({ address, data }: { address: string; data: BoardData }) 
   const ranked = data.meta.rankedTraders;
   const net = trader ? `${trader.pnlBase >= 0n ? "+" : ""}${formatBaseUnits(trader.pnlBase, data.meta.decimals)}` : "—";
   return (
-    <View style={[styles.bar, { backgroundColor: color.accent, shadowColor: t.youShadow }]}>
+    <View style={[styles.bar, { backgroundColor: color.accentFill, shadowColor: t.youShadow }]}>
       <View style={[styles.portrait, { backgroundColor: t.youPortraitFill, borderColor: t.youPortraitBorder }]}>
         <Text style={[styles.glyph, { color: t.youPortraitInk }]}>{glyphFromAddress(address)}</Text>
       </View>

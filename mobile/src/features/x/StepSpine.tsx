@@ -45,7 +45,7 @@ export function Step({ n, title, state, spine, isLast, children }: {
   );
 }
 
-/** part-17.css `.xt-node-active` (xt-pulse 1.9s): a vermilion ring that spreads 9 px and fades. */
+/** part-17.css `.xt-node-active` (xt-pulse 1.9s): a signal ring that spreads 9 px and fades. */
 function Pulse() {
   const t = tradeXTokens(useTheme().name);
   const p = useLoop(1900, E_OUT);
@@ -54,7 +54,7 @@ function Pulse() {
   return <Animated.View pointerEvents="none" style={[styles.pulse, { backgroundColor: t.pulse, opacity, transform: [{ scale }] }]} />;
 }
 
-/** web's `.xt-dot`: a 6 px mint (or vermilion) dot. */
+/** web's `.xt-dot`: a 6 px mint (or signal) dot. */
 export function Dot({ v }: { v?: boolean }) {
   const t = tradeXTokens(useTheme().name);
   return <View style={[styles.dot, { backgroundColor: v ? t.v : t.m }]} />;

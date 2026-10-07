@@ -16,9 +16,8 @@
 .dl-shot { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .dl-shot .dl-phone-screen img { aspect-ratio: 390 / 592; object-fit: cover; }
 .dl-shot figcaption {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--gray-500); text-align: center;
-}
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); text-align: center; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* The iPhone card is the narrower column: its QR sits above the TestFlight button instead of beside it. */
 .dl-card-ios .dl-card-body { flex-direction: column; align-items: flex-start; }

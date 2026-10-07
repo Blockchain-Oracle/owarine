@@ -10,7 +10,7 @@ interface YouBarProps {
   span: BoardSpan;
 }
 
-/** The sticky vermilion bar: your rank whenever a wallet is connected, with its own Unranked state. */
+/** The sticky signal bar: your rank whenever a wallet is connected, with its own Unranked state. */
 export function YouBar({ address, data, span }: YouBarProps) {
   const words = LEADERBOARD.you;
   // Exact match: base58 is case-sensitive (D-010).

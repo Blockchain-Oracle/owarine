@@ -68,7 +68,7 @@ export function StrategyGrid({ strategies, subscriptionOf, decimals, symbol, ass
         (visible.length === 0 ? (
           <div className="strat-empty">
             <div className="strat-rail-title mb-4 text-ink/40">
-              <span className="text-vermilion">⊙</span> {STRATEGIES.archive.ledger}
+              <span className="text-signal">⊙</span> {STRATEGIES.archive.ledger}
             </div>
             <h2 className="strat-h2 mb-2">{strategies.length === 0 ? STRATEGIES.archive.noneTitle : STRATEGIES.archive.noTab(STRATEGIES.tabs[tab])}</h2>
             <p className="mx-auto max-w-md text-sm leading-relaxed text-ink/40">{loadError ? STRATEGIES.archive.unreachable : strategies.length === 0 ? STRATEGIES.archive.noneBody : STRATEGIES.archive.noMatch}</p>

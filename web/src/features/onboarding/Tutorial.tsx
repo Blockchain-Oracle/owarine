@@ -90,7 +90,7 @@ export function Tutorial() {
                   aria-current={i === step ? "step" : undefined}
                   className={cn(
                     "h-1 rounded-full transition-all",
-                    i === step ? "w-6 bg-vermilion" : i < step ? "w-2 bg-white/20" : "w-2 bg-white/10",
+                    i === step ? "w-6 bg-signal" : i < step ? "w-2 bg-white/20" : "w-2 bg-white/10",
                   )}
                 />
               ))}

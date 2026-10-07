@@ -25,13 +25,13 @@ function MemoryRow({ d, nowMs, onOpen }: { d: DecisionWire; nowMs: number; onOpe
           {d.intervalSec !== null && ` · ${d.asset ?? "Window"} ${formatCadence(d.intervalSec)}`}
         </span>
         <span className="flex shrink-0 items-baseline gap-2">
-          {d.outcome && <span className={cn("uppercase tracking-[0.12em]", d.outcome === "won" ? "text-vermilion" : d.outcome === "lost" ? "text-ink/60" : "text-ink/30")}>{M.outcome[d.outcome]}</span>}
+          {d.outcome && <span className={cn("uppercase tracking-[0.12em]", d.outcome === "won" ? "text-signal" : d.outcome === "lost" ? "text-ink/60" : "text-ink/30")}>{M.outcome[d.outcome]}</span>}
           <span className="strat-memory-more" aria-hidden>→</span>
         </span>
       </span>
       <span className="strat-mono-11 mt-1 flex flex-wrap items-baseline gap-x-2">
         <span className={cn(d.gate === "failed" ? "text-ink/50" : "text-ink")}>{call}</span>
-        <span className={cn(d.gate === "trade" ? "text-vermilion" : "text-ink/50")}>→ {ruling}</span>
+        <span className={cn(d.gate === "trade" ? "text-signal" : "text-ink/50")}>→ {ruling}</span>
       </span>
       <span className="mt-1 line-clamp-2 block text-xs leading-snug text-ink-secondary">“{d.why}”</span>
       {d.gate !== "trade" && <span className="strat-mono-10 mt-0.5 block text-ink/35">{d.gateReason}</span>}
@@ -56,8 +56,8 @@ export function AgentMemory({ agent, agentName, storeConnected, decimals, symbol
   const [openId, setOpenId] = useState<string | null>(null);
   const open = agent.decisions.find((d) => d.marketId === openId) ?? null;
   return (
-    <div className="mb-4 border border-vermilion/30 px-4 py-3">
-      <p className="strat-meta mb-1.5 tracking-[0.18em] text-vermilion">{M.eyebrow}</p>
+    <div className="mb-4 border border-signal/30 px-4 py-3">
+      <p className="strat-meta mb-1.5 tracking-[0.18em] text-signal">{M.eyebrow}</p>
       <p className="strat-drawer-body">{M.body}</p>
       <p className="strat-mono-10 mt-1.5 truncate text-ink/40">{agent.model ? H.model(agent.model) : H.noModel}</p>
       {agent.decisions.length === 0 ? (

@@ -5,7 +5,7 @@ import { applyFieldTransform, type ArcadeView } from "./useArcadeLoop";
 
 /**
  * Line Rider's picture: Pips's field in the venue's colours, drawn in field units over a state the
- * engine owns. The line glows in the combo's heat (mint, then vermilion, then rose) with three layered
+ * engine owns. The line glows in the combo's heat (mint, then signal, then rose) with three layered
  * strokes standing in for a blur; the tolerance band is visible so "on" can be seen; a trail inks the
  * pip's path onto the scrolling tape; sparks fly on a dead-centre hug; a grip bar on the left reds out
  * and the field vignettes as it empties. Reduced motion keeps every state change and drops the sparks,

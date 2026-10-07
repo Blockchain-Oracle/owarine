@@ -11,14 +11,14 @@ import { card } from "./card-styles";
 export function CardHead({ asset, ticker, cadence, kind, clock, clockTone }: { asset: string; ticker: string; cadence: string; kind?: string | null; clock: ReactNode; clockTone: "live" | "quiet" }) {
   const { name } = useTheme();
   const t = lanesTokens(name);
-  const tone = clockTone === "live" ? t.vermilion : t.inkMuted;
+  const tone = clockTone === "live" ? t.signal : t.inkMuted;
   return (
     <View style={[card.head, { borderBottomColor: t.cardRule }]}>
       <View style={card.asset}>
         <AssetDisc asset={asset} size={26} />
         <Text style={[card.ticker, { color: t.ink }]}>{ticker}</Text>
-        <Text style={[card.cadence, { color: t.vermilion }]}>{cadence}</Text>
-        {kind ? <Text style={[card.kind, { color: t.vermilion, borderColor: t.kindBorder }]}>{kind}</Text> : null}
+        <Text style={[card.cadence, { color: t.signal }]}>{cadence}</Text>
+        {kind ? <Text style={[card.kind, { color: t.signal, borderColor: t.kindBorder }]}>{kind}</Text> : null}
       </View>
       <View style={card.countdown}>
         <View style={[card.clockDot, { backgroundColor: tone }]} />
@@ -28,7 +28,7 @@ export function CardHead({ asset, ticker, cadence, kind, clock, clockTone }: { a
   );
 }
 
-/** `.mc-pending-dot`: the vermilion dot with part-06's `pendingPulse` — dimming while a ring spreads 9 px and fades. */
+/** `.mc-pending-dot`: the signal dot with part-06's `pendingPulse` — dimming while a ring spreads 9 px and fades. */
 export function PendingDot() {
   const { name } = useTheme();
   const t = lanesTokens(name);
@@ -45,7 +45,7 @@ export function PendingDot() {
   return (
     <View style={styles.dotBox}>
       <Animated.View style={[styles.ring, { backgroundColor: t.pendingRing }, ring]} />
-      <Animated.View style={[styles.dot, { backgroundColor: t.vermilion }, dot]} />
+      <Animated.View style={[styles.dot, { backgroundColor: t.signal }, dot]} />
     </View>
   );
 }
@@ -82,7 +82,7 @@ export function RoomStrip({ label, hint, onPress, accessibilityLabel }: { label:
   );
 }
 
-/** `.mc-strip .ramp`: "UP", the 72 px bar filled to the UP price (vermilion into white, into sand on cream), the figure. */
+/** `.mc-strip .ramp`: "UP", the 72 px bar filled to the UP price (signal into white, into sand on cream), the figure. */
 export function Ramp({ word, cents, figure }: { word: string; cents: number | null; figure: string }) {
   const { name } = useTheme();
   const t = lanesTokens(name);
@@ -92,7 +92,7 @@ export function Ramp({ word, cents, figure }: { word: string; cents: number | nu
       <View style={[card.bar, { backgroundColor: t.rampBar }]}>
         {cents !== null ? <LinearGradient colors={[t.rampFrom, t.rampTo]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.fill, { width: `${cents}%` }]} /> : null}
       </View>
-      <Text style={[card.pct, { color: t.vermilion }]}>{figure}</Text>
+      <Text style={[card.pct, { color: t.signal }]}>{figure}</Text>
     </View>
   );
 }

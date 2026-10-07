@@ -64,7 +64,7 @@ export function ProfileCard() {
 
 /** `.gm-avatar`: an explicit accent replaces the address hue; `default` is the address's own hsl(hue 58% 52%). */
 function avatarColor(accent: AccentChoice, address: string, tones: { accent: string; profit: string; loss: string }): string {
-  if (accent === "vermilion") return tones.accent;
+  if (accent === "signal") return tones.accent;
   if (accent === "up") return tones.profit;
   if (accent === "down") return tones.loss;
   return `hsl(${addressHue(address)}, 58%, 52%)`;

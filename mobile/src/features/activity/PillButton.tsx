@@ -4,7 +4,7 @@ import { FONT, useTheme } from "~/theme";
 import { activityTokens } from "~/theme/web/portfolio-activity";
 
 /**
- * yosuku part-03 `.btn.btn-primary`: the vermilion pill (radius 999, 11 × 22 padding, Inter 600 13 px, tracking
+ * yosuku part-03 `.btn.btn-primary`: the signal pill (radius 999, 11 × 22 padding, Inter 600 13 px, tracking
  * 0.02em, line-height 1), cream label in light (part-14). Pressed scales as web's hover does.
  */
 export function PillButton({ label, onPress, disabled }: { label: string; onPress: () => void; disabled?: boolean }) {

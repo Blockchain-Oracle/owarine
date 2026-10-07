@@ -4,7 +4,7 @@ import { SENSEI_UI } from "@/features/sensei/copy";
 import { FONT, useTheme } from "~/theme";
 import { senseiTokens } from "~/theme/web/explore/sensei";
 
-/** web's `.sensei-drawer-input`: the pill field and the vermilion "Ask" pill, dimmed while there is nothing to send. */
+/** web's `.sensei-drawer-input`: the pill field and the signal "Ask" pill, dimmed while there is nothing to send. */
 export function SenseiComposer({ value, onChange, onSend, busy }: { value: string; onChange: (text: string) => void; onSend: () => void; busy: boolean }) {
   const { name, color } = useTheme();
   const t = senseiTokens(name);
@@ -29,7 +29,7 @@ export function SenseiComposer({ value, onChange, onSend, busy }: { value: strin
         disabled={!ready}
         accessibilityRole="button"
         accessibilityState={{ disabled: !ready }}
-        style={[styles.send, { backgroundColor: color.accent, opacity: ready ? 1 : 0.4 }]}
+        style={[styles.send, { backgroundColor: color.accentFill, opacity: ready ? 1 : 0.4 }]}
       >
         <Text style={[styles.sendText, { color: t.sendInk }]}>{SENSEI_UI.send}</Text>
       </Pressable>

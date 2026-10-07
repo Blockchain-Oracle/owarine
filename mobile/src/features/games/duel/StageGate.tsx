@@ -98,7 +98,7 @@ export function Rekey({ matchId, room, wallet }: { matchId: Hash32; room: DuelRo
   );
 }
 
-/** web's `.du-conn`: the socket's state as a 6 px dot (profit open, pulsing vermilion reconnecting, loss closed) and a mono line. */
+/** web's `.du-conn`: the socket's state as a 6 px dot (profit open, pulsing signal reconnecting, loss closed) and a mono line. */
 export function Connection({ status }: { status: RoomStatus }) {
   const { color } = useDuelTokens();
   const label =

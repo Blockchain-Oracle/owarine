@@ -19,7 +19,7 @@ export function UiSection() {
     <section className="flex flex-col gap-4">
       <SectionHeader index="06" title="Primitives" eyebrow="shadcn on Base UI, skinned by the tokens" />
       <FixtureGrid>
-        <Fixture label="Buttons — primary vermilion, secondary, outline, ghost, destructive = warning ink">
+        <Fixture label="Buttons — primary signal, secondary, outline, ghost, destructive = warning ink">
           <div className="flex flex-wrap gap-2">
             <Button>Place bet</Button>
             <Button variant="secondary">Secondary</Button>
@@ -33,7 +33,7 @@ export function UiSection() {
             </Button>
           </div>
         </Fixture>
-        <Fixture label="Input — ground well, hairline, vermilion focus ring">
+        <Fixture label="Input — ground well, hairline, signal focus ring">
           <Input type="text" inputMode="decimal" placeholder="0.00" className="type-data-lg" aria-label="Stake" />
         </Fixture>
         <Fixture label="Badges + switch">

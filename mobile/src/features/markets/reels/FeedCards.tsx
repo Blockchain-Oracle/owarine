@@ -48,7 +48,7 @@ export const HoldingReelCard = memo(function HoldingReelCard({ pick }: { pick: H
         <TakeVoice>{HEDGE.reel.voice}</TakeVoice>
         <View style={takeStyles.foot}>
           <View style={styles.actions}>
-            <TakeCta label={HEDGE.stocks.cover} onPress={bet("down")} edge="vermilion" style={styles.grow} />
+            <TakeCta label={HEDGE.stocks.cover} onPress={bet("down")} edge="signal" style={styles.grow} />
             <TakeCta label={HEDGE.stocks.add} onPress={bet("up")} style={styles.grow} />
           </View>
           <TakeFootNote>{HEDGE.reel.foot}</TakeFootNote>

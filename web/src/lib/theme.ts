@@ -1,5 +1,5 @@
 // Theme: dark (default) + the cream light mode drawn from the brand films
-// (#F4EEE3 paper / #141210 ink / #D93E1F vermilion / #2E6B4F matcha).
+// (#F5F4EF paper / #100F0F ink / #E4E24E signal / #0E8A57 matcha).
 // Persisted per-browser; first visit with no stored choice follows the OS.
 // Ported from reference/yosuku/lib/theme.ts @ 3c56ef5 — only the storage key is Owarine's.
 const STORAGE_KEY = "owarine_theme";

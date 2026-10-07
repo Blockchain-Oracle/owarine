@@ -4,7 +4,7 @@ import { useGamesTokens } from "./tokens";
 
 /**
  * web's `SectionHead` (yosuku part-05 `.section-head`, phone rules in part-15): the mono index bottom-left, the
- * Sora 22 title and its 12 px description, the 1 px rule with a 46 px vermilion tick at its left end.
+ * Sora 22 title and its 12 px description, the 1 px rule with a 46 px signal tick at its left end.
  */
 export function SectionHead({ number, title, desc }: { number: string; title: string; desc?: string }) {
   const { t, color } = useGamesTokens();
@@ -17,7 +17,7 @@ export function SectionHead({ number, title, desc }: { number: string; title: st
         <Text style={[styles.title, { color: color.ink }]}>{title}</Text>
         {desc ? <Text style={[styles.desc, { color: color.inkMuted }]}>{desc}</Text> : null}
       </View>
-      <View style={[styles.tick, { backgroundColor: color.accent }]} />
+      <View style={[styles.tick, { backgroundColor: color.accentFill }]} />
     </View>
   );
 }

@@ -7,7 +7,7 @@ import { OgFrame } from "./OgFrame";
 import { OgMark } from "./OgMark";
 import { OG, OG_SIZE } from "./theme";
 
-const QUESTION = { display: "flex", fontSize: 104, lineHeight: 1, letterSpacing: "-0.035em", color: OG.vermilion } as const;
+const QUESTION = { display: "flex", fontSize: 104, lineHeight: 1, letterSpacing: "-0.035em", color: OG.signal } as const;
 
 function Known({ card }: { card: MarketCard }) {
   const when = etWhen(card.expirySec);

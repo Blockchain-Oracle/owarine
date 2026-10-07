@@ -23,7 +23,7 @@ import { openWindow } from "~/features/markets/openWindow";
 const USD_DP = 6;
 const signedPct = (bps: number): string => `${bps > 0 ? "+" : bps < 0 ? "−" : ""}${(Math.abs(bps) / 100).toFixed(1)}%`;
 
-/** hedge.css `.ys-action`: Cover (Down, vermilion) and Add (Up) as mono caps links into the ticket. */
+/** hedge.css `.ys-action`: Cover (Down, signal) and Add (Up) as mono caps links into the ticket. */
 function HoldAction({ label, down, onPress }: { label: string; down: boolean; onPress: () => void }) {
   const { color } = useTheme();
   return (

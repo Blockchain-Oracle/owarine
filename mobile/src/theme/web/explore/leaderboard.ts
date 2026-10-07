@@ -9,7 +9,7 @@ const DARK = {
   // .podium-spot
   spotBorder: "rgba(255, 255, 255, 0.08)",
   spotFill: "rgba(255, 255, 255, 0.012)",
-  firstBorder: "rgba(224, 77, 38, 0.3)",
+  firstBorder: "rgba(228, 226, 78, 0.3)",
   firstOrdInk: "#FFFFFF",
   // .podium-portrait's ring
   portraitBorder: "rgba(255, 255, 255, 0.12)",
@@ -19,7 +19,7 @@ const DARK = {
   // .you-bar
   youInk: "#FFFFFF",
   youSoft: "rgba(255, 255, 255, 0.7)",
-  youShadow: "rgba(224, 77, 38, 0.4)",
+  youShadow: "rgba(228, 226, 78, 0.4)",
   youPortraitFill: "rgba(0, 0, 0, 0.3)",
   youPortraitBorder: "rgba(255, 255, 255, 0.6)",
   youPortraitInk: "rgba(255, 255, 255, 0.68)",
@@ -35,27 +35,27 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
-  spotBorder: "rgba(20, 18, 16, 0.11)",
-  spotFill: "rgba(20, 18, 16, 0.02)",
-  firstBorder: "rgba(224, 77, 38, 0.3)",
-  firstOrdInk: "#141210",
-  portraitBorder: "rgba(20, 18, 16, 0.16)",
-  rowBorder: "rgba(20, 18, 16, 0.07)",
-  rowPressed: "rgba(20, 18, 16, 0.03)",
-  youInk: "#FBF7EE",
+  spotBorder: "rgba(16, 15, 15, 0.11)",
+  spotFill: "rgba(16, 15, 15, 0.02)",
+  firstBorder: "rgba(228, 226, 78, 0.3)",
+  firstOrdInk: "#100F0F",
+  portraitBorder: "rgba(16, 15, 15, 0.16)",
+  rowBorder: "rgba(16, 15, 15, 0.07)",
+  rowPressed: "rgba(16, 15, 15, 0.03)",
+  youInk: "#FFFFFF",
   youSoft: "rgba(255, 255, 255, 0.7)",
-  youShadow: "rgba(224, 77, 38, 0.4)",
+  youShadow: "rgba(228, 226, 78, 0.4)",
   youPortraitFill: "rgba(0, 0, 0, 0.3)",
   youPortraitBorder: "rgba(255, 255, 255, 0.6)",
   youPortraitInk: "rgba(255, 255, 255, 0.68)",
-  youCtaFill: "#FBF7EE",
-  segFill: "rgba(20, 18, 16, 0.03)",
-  segBorder: "rgba(20, 18, 16, 0.07)",
-  segActiveFill: "#141210",
-  segActiveInk: "#F4EEE3",
-  chipBorder: "rgba(20, 18, 16, 0.12)",
-  barTrack: "rgba(20, 18, 16, 0.08)",
-  stickyRule: "rgba(20, 18, 16, 0.07)",
+  youCtaFill: "#FFFFFF",
+  segFill: "rgba(16, 15, 15, 0.03)",
+  segBorder: "rgba(16, 15, 15, 0.07)",
+  segActiveFill: "#100F0F",
+  segActiveInk: "#F5F4EF",
+  chipBorder: "rgba(16, 15, 15, 0.12)",
+  barTrack: "rgba(16, 15, 15, 0.08)",
+  stickyRule: "rgba(16, 15, 15, 0.07)",
 };
 
 export type LeaderboardTokens = typeof DARK;

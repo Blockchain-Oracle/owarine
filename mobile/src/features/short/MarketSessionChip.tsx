@@ -15,8 +15,8 @@ const PHRASE_TICK_MS = 30_000;
 
 /**
  * web's `features/markets/session/MarketSessionChip.tsx` (`.mks-chip`) on a phone, where the state word and its dot
- * separator are hidden and the dot carries the state: vermilion and pulsing while open, gray-300 lit before and after
- * hours, half-vermilion on a holiday, gray-600 shut. A halt names only its reason. Nothing while the session is unknown.
+ * separator are hidden and the dot carries the state: signal and pulsing while open, gray-300 lit before and after
+ * hours, half-signal on a holiday, gray-600 shut. A halt names only its reason. Nothing while the session is unknown.
  */
 export function MarketSessionChip() {
   const session = useMarketSession();
@@ -48,7 +48,7 @@ export function MarketSessionChip() {
   );
 }
 
-/** `.mks-chip-dot`, with part-06's `pulseDot` (opacity 1 → 0.55 → 1 and a 6 px vermilion ring fading) while open. */
+/** `.mks-chip-dot`, with part-06's `pulseDot` (opacity 1 → 0.55 → 1 and a 6 px signal ring fading) while open. */
 function Dot({ ink, pulse }: { ink: string; pulse: boolean }) {
   const { color } = useTheme();
   const reduce = useReducedMotion();
@@ -63,7 +63,7 @@ function Dot({ ink, pulse }: { ink: string; pulse: boolean }) {
   }));
   return (
     <View style={styles.dotBox}>
-      {pulse ? <Animated.View style={[styles.dot, styles.ring, { backgroundColor: color.accent }, ringStyle]} /> : null}
+      {pulse ? <Animated.View style={[styles.dot, styles.ring, { backgroundColor: color.accentFill }, ringStyle]} /> : null}
       <Animated.View style={[styles.dot, { backgroundColor: ink }, dotStyle]} />
     </View>
   );

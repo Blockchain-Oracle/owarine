@@ -4,7 +4,7 @@ import { FONT, useTheme } from "~/theme";
 import { portfolioTokens } from "~/theme/web/portfolio";
 
 /**
- * yosuku `.btn .btn-primary` (part-03): the vermilion pill — Inter 600 13 px, 0.02em, padding 11/22, light ink in both
+ * yosuku `.btn .btn-primary` (part-03): the signal pill — Inter 600 13 px, 0.02em, padding 11/22, light ink in both
  * themes; scale 0.98 while pressed. `block` is `max-sm:w-full`.
  */
 export function PillButton({ label, onPress, block, disabled, style }: { label: string; onPress: () => void; block?: boolean; disabled?: boolean; style?: StyleProp<ViewStyle> }) {
@@ -18,7 +18,7 @@ export function PillButton({ label, onPress, block, disabled, style }: { label: 
       disabled={disabled}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled }}
-      style={({ pressed }) => [styles.pill, { backgroundColor: color.accent }, block ? styles.block : styles.inline, disabled ? styles.off : null, pressed ? styles.pressed : null, style]}
+      style={({ pressed }) => [styles.pill, { backgroundColor: color.accentFill }, block ? styles.block : styles.inline, disabled ? styles.off : null, pressed ? styles.pressed : null, style]}
     >
       <Text style={[styles.label, { color: portfolioTokens(name).btnPrimaryInk }]}>{label}</Text>
     </Pressable>

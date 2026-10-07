@@ -101,7 +101,7 @@ function Board({ payload, nowMs }: { payload: StrategiesPayload; nowMs: number }
 
       <section>
         <div className="mb-4 flex items-center gap-3 border-b border-hairline pb-2">
-          <span className="strat-mono-11 text-vermilion">{AGENTS.desk.index}</span>
+          <span className="strat-mono-11 text-signal">{AGENTS.desk.index}</span>
           <h2 className="strat-h2">{AGENTS.desk.title}</h2>
           <span className="strat-meta ml-auto text-ink-muted">{AGENTS.desk.meta(rows.length)}</span>
         </div>
@@ -128,7 +128,7 @@ function Board({ payload, nowMs }: { payload: StrategiesPayload; nowMs: number }
                           {(() => {
                             const href = runnerHref(row.runner, editions.length === 1 ? editions[0]!.strategyId : null);
                             return href ? (
-                              <a href={href} target={href.startsWith("/u/") ? "_blank" : undefined} rel="noreferrer" className="strat-mono-12 truncate text-ink transition-colors hover:text-vermilion">
+                              <a href={href} target={href.startsWith("/u/") ? "_blank" : undefined} rel="noreferrer" className="strat-mono-12 truncate text-ink transition-colors hover:text-signal">
                                 {identity.name}
                               </a>
                             ) : (
@@ -140,7 +140,7 @@ function Board({ payload, nowMs }: { payload: StrategiesPayload; nowMs: number }
                         <div className="strat-mono-11 mt-1 truncate text-ink-disabled">
                           {AGENTS.desk.strategies(row.strategies)} · {AGENTS.desk.subscribers(row.subscribers)}
                         </div>
-                        <div className="mt-2 flex flex-wrap gap-3">{editions.map((card) => <Link key={card.strategyId} href={`/strategies?view=copy&strategy=${card.strategyId}`} className="strat-mono-11 text-vermilion">{strategyIdentity(card).name} →</Link>)}</div>
+                        <div className="mt-2 flex flex-wrap gap-3">{editions.map((card) => <Link key={card.strategyId} href={`/strategies?view=copy&strategy=${card.strategyId}`} className="strat-mono-11 text-signal">{strategyIdentity(card).name} →</Link>)}</div>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 md:flex md:shrink-0 md:items-center md:gap-8">
@@ -174,14 +174,14 @@ function Board({ payload, nowMs }: { payload: StrategiesPayload; nowMs: number }
 
       <section>
         <div className="mb-4 flex items-center gap-3 border-b border-hairline pb-2">
-          <span className="strat-mono-11 text-vermilion">{AGENTS.how.index}</span>
+          <span className="strat-mono-11 text-signal">{AGENTS.how.index}</span>
           <h2 className="strat-h2">{AGENTS.how.title}</h2>
         </div>
         <div className="agents-panel">
           <ul className="space-y-3 text-sm leading-relaxed text-ink-secondary">
             {AGENTS.how.rules.map((rule, i) => (
               <li key={rule.join("")} className="flex gap-3">
-                <span className="strat-mono-11 mt-0.5 shrink-0 text-vermilion">{String(i + 1).padStart(2, "0")}</span>
+                <span className="strat-mono-11 mt-0.5 shrink-0 text-signal">{String(i + 1).padStart(2, "0")}</span>
                 <span>
                   {rule.map((part, j) => (j % 2 === 1 ? <span key={part} className="text-ink">{part}</span> : <span key={`${part}${j}`}>{part}</span>))}
                 </span>

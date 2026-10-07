@@ -9,7 +9,7 @@ import { senseiTokens } from "~/theme/web/explore/sensei";
 const WORD_MS = 24;
 const EASE = Easing.bezier(0.22, 1, 0.36, 1);
 
-/** `.sd-caret`: the vermilion brush tip blinking at the end of the typing reply. */
+/** `.sd-caret`: the signal brush tip blinking at the end of the typing reply. */
 function Caret() {
   const { color } = useTheme();
   const opacity = useSharedValue(1);
@@ -17,7 +17,7 @@ function Caret() {
     opacity.value = withRepeat(withSequence(withTiming(1, { duration: 0 }), withDelay(360, withTiming(0, { duration: 0 })), withDelay(360, withTiming(1, { duration: 0 }))), -1);
   }, [opacity]);
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  return <Animated.View style={[styles.caret, { backgroundColor: color.accent }, style]} />;
+  return <Animated.View style={[styles.caret, { backgroundColor: color.accentFill }, style]} />;
 }
 
 /** web's `Typewriter`: word by word, whitespace its own token so lines never jump; Reduce Motion shows it whole. */
@@ -59,7 +59,7 @@ function Typewriter({ text, onDone, onType }: { text: string; onDone: () => void
   );
 }
 
-/** `.sensei-dots`: three vermilion dots breathing in turn while the reply is on its way. */
+/** `.sensei-dots`: three signal dots breathing in turn while the reply is on its way. */
 function Dots() {
   return (
     <View style={styles.dots} accessibilityRole="progressbar" accessibilityLabel="Sensei is reading">
@@ -78,10 +78,10 @@ function Dot({ delay }: { delay: number }) {
     if (!reduce) opacity.value = withDelay(delay, withRepeat(withSequence(withTiming(1, { duration: 500 }), withTiming(0.5, { duration: 500 })), -1));
   }, [reduce, delay, opacity]);
   const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
-  return <Animated.View style={[styles.dot, { backgroundColor: color.accent }, style]} />;
+  return <Animated.View style={[styles.dot, { backgroundColor: color.accentFill }, style]} />;
 }
 
-/** `.sd-ava`: the Owarine mark in a soft vermilion seal. */
+/** `.sd-ava`: the Owarine mark in a soft signal seal. */
 function Avatar() {
   const { name, color } = useTheme();
   const t = senseiTokens(name);
@@ -122,7 +122,7 @@ interface SenseiThreadProps {
 
 /**
  * web's `SenseiDrawer` thread (`.sensei-drawer-msgs`): Sensei's bubbles on the left behind the seal, squared at the
- * bottom-left corner; the reader's in vermilion on the right, squared at the bottom-right; the newest reply typing in.
+ * bottom-left corner; the reader's in signal on the right, squared at the bottom-right; the newest reply typing in.
  */
 export function SenseiThread({ messages, loading, typingIndex, doneTyping, onType }: SenseiThreadProps) {
   const { name, color } = useTheme();
@@ -135,7 +135,7 @@ export function SenseiThread({ messages, loading, typingIndex, doneTyping, onTyp
         return (
           <Pop key={index} mine={mine}>
             {!mine ? <Avatar /> : null}
-            <View style={mine ? [styles.msg, styles.user, { backgroundColor: color.accent, boxShadow: `0px 3px 12px -6px ${t.userShadow}` }] : bot}>
+            <View style={mine ? [styles.msg, styles.user, { backgroundColor: color.accentFill, boxShadow: `0px 3px 12px -6px ${t.userShadow}` }] : bot}>
               <Text style={[styles.text, { color: mine ? color.onAccent : t.botInk }]} selectable={index !== typingIndex}>
                 {!mine && index === typingIndex ? <Typewriter text={message.content} onDone={doneTyping} onType={onType} /> : message.content}
               </Text>

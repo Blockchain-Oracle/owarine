@@ -67,7 +67,7 @@ export function RecentCopyTrades({ fills, strategies, storeConnected, decimals, 
                 <span className="flex-1" />
                 <span className="strat-mono-12 shrink-0 whitespace-nowrap tabular-nums text-ink/70">{money(t.totalBase, decimals, symbol)}</span>
                 <span className="strat-mono-11 w-14 shrink-0 text-right text-ink/30">{ago(t.atSec * 1000, nowMs)}</span>
-                <span className="strat-mono-11 w-4 shrink-0 text-right text-vermilion">↗</span>
+                <span className="strat-mono-11 w-4 shrink-0 text-right text-signal">↗</span>
               </a>
             );
           })

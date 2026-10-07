@@ -1,44 +1,43 @@
 /* /who-sees-what (C-ADD-11): the matrix in How It Works' grammar. The page frame, cards, labels and body type are the
    `.hiw-*` rules (how-it-works.css); these add the table, the legend rows and the command list, in the same tokens. */
 
-.wsw-package { margin-left: 4px; font-family: var(--font-mono); font-weight: 400; letter-spacing: 0.04em; text-transform: none; color: var(--gray-600); }
+.wsw-package { margin-left: 4px; font-family: var(--font-mono); font-weight: 400; letter-spacing: 0.04em; text-transform: none; color: var(--gray-600); font-variant-numeric: tabular-nums; }
 
 /* The legend and the other packages: label · meaning rows, the hiw-params voice. */
 .wsw-legend, .wsw-others { display: grid; gap: 14px; margin: 0; }
 .wsw-legend > div, .wsw-others > div { display: grid; grid-template-columns: minmax(64px, max-content) minmax(0, 1fr); gap: 4px 16px; align-items: baseline; }
 .wsw-others > div { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
-.wsw-legend dt, .wsw-others dt { font-family: var(--font-mono); font-size: 13px; color: var(--white); }
+.wsw-legend dt, .wsw-others dt { font-family: var(--font-mono); font-size: 13px; color: var(--white); font-variant-numeric: tabular-nums; }
 .wsw-legend dd, .wsw-others dd { margin: 0; font-size: 14px; line-height: 1.6; color: var(--gray-400); }
 
 /* The table scrolls inside its card at phone width; the page itself never scrolls sideways. */
 .wsw-card { padding: 0; overflow: hidden; }
 .wsw-scroll { overflow-x: auto; }
-.wsw-scroll:focus-visible { outline: 2px solid var(--vermilion); outline-offset: -2px; }
+.wsw-scroll:focus-visible { outline: 2px solid var(--signal-ink); outline-offset: -2px; }
 .wsw-table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 13px; }
 .wsw-table th, .wsw-table td { padding: 14px 12px; border-bottom: 1px solid var(--hiw-line); text-align: left; vertical-align: top; }
 .wsw-table tbody tr:last-child > * { border-bottom: 0; }
 .wsw-table thead th {
-  font-family: var(--font-mono); font-size: 10px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase;
-  color: var(--gray-500);
-}
+  font-family: var(--font-mono); font-size: 10px; font-weight: 400; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .wsw-party { width: 9%; text-align: center !important; }
 .wsw-contract { width: 37%; padding-left: 24px !important; }
-.wsw-name { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-weight: 700; font-size: 13px; color: var(--white); }
+.wsw-name { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-weight: 700; font-size: 13px; color: var(--white); font-variant-numeric: tabular-nums; }
 .wsw-what { display: block; margin-top: 4px; font-weight: 400; color: var(--gray-400); line-height: 1.5; }
-.wsw-sig { display: block; margin-top: 4px; font-family: var(--font-mono); font-weight: 400; font-size: 11px; color: var(--gray-600); line-height: 1.5; }
+.wsw-sig { display: block; margin-top: 4px; font-family: var(--font-mono); font-weight: 400; font-size: 11px; color: var(--gray-600); line-height: 1.5; font-variant-numeric: tabular-nums; }
 .wsw-t {
   display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 4px;
   border: 1px solid var(--hiw-mint); color: var(--hiw-mint);
   font-size: 10px; text-decoration: none; cursor: help;
 }
-.wsw-cell { text-align: center !important; font-family: var(--font-mono); font-size: 14px; color: var(--gray-600); }
+.wsw-cell { text-align: center !important; font-family: var(--font-mono); font-size: 14px; color: var(--gray-600); font-variant-numeric: tabular-nums; }
 .wsw-cell[data-seen="yes"] { color: var(--hiw-mint); font-weight: 700; }
 .wsw-cell[data-seen="witness"], .wsw-cell[data-seen="own"] { color: var(--hiw-blue); font-size: 12px; }
 
 /* What it does not hide. */
 .wsw-limits { margin: 16px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; line-height: 1.6; color: var(--gray-300); }
 .wsw-link { color: var(--white); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gray-700); }
-.wsw-link:hover { text-decoration-color: var(--vermilion); }
+.wsw-link:hover { text-decoration-color: var(--signal-ink); }
 
 /* Run it yourself. */
 .wsw-run-lead { margin: -16px 0 20px; }

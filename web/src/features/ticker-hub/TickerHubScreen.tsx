@@ -171,7 +171,7 @@ export function TickerHubScreen({ symbol }: { symbol: TickerSymbol }) {
         <h1 className="news-title tkh-title">
           <AssetDisc asset={symbol} className="tkh-mark" />
           <span>
-            {ticker.name} <span className="vermilion">${symbol}</span>
+            {ticker.name} <span className="signal">${symbol}</span>
           </span>
         </h1>
         <div className="page-title-jp" lang="ja">

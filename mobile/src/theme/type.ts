@@ -1,20 +1,24 @@
 import type { TextStyle } from "react-native";
 
-/** Loaded font family names (expo-font keys); faces as web's lib/fonts.ts: Sora display, Inter body, JetBrains Mono data, Noto Serif JP stamp. */
+/** Loaded font family names (expo-font keys, theme/fonts.ts): Mona Sans Expanded for headings and labels, Mona Sans for body
+ * and figures, Mona Sans Condensed for scoreboard numerals, Noto Sans JP for the stamp, JetBrains Mono for code only. */
 export const FONT = {
-  headingRegular: "Sora_400Regular",
-  headingSemi: "Sora_600SemiBold",
-  heading: "Sora_700Bold",
-  headingHeavy: "Sora_800ExtraBold",
-  body: "Inter_400Regular",
-  bodyMedium: "Inter_500Medium",
-  bodyStrong: "Inter_600SemiBold",
-  bodyBold: "Inter_700Bold",
-  bodyHeavy: "Inter_800ExtraBold",
-  dataRegular: "JetBrainsMono_400Regular",
-  data: "JetBrainsMono_500Medium",
-  dataStrong: "JetBrainsMono_600SemiBold",
-  stamp: "NotoSerifJP_700Bold",
+  headingRegular: "MonaSans_Expanded600",
+  headingSemi: "MonaSans_Expanded600",
+  heading: "MonaSans_Expanded700",
+  headingHeavy: "MonaSans_Expanded800",
+  body: "MonaSans_400",
+  bodyMedium: "MonaSans_500",
+  bodyStrong: "MonaSans_600",
+  bodyBold: "MonaSans_700",
+  bodyHeavy: "MonaSans_800",
+  dataRegular: "MonaSans_400",
+  data: "MonaSans_500",
+  dataStrong: "MonaSans_600",
+  scoreboard: "MonaSans_Condensed800",
+  label: "MonaSans_Expanded600",
+  code: "JetBrainsMono_500Medium",
+  stamp: "NotoSansJP_900",
 } as const;
 
 /** bridge.css's type scale; letter-spacing em → points at each size. */
@@ -25,14 +29,15 @@ export const TYPE = {
   body: { fontFamily: FONT.body, fontSize: 15, lineHeight: 23 },
   bodyStrong: { fontFamily: FONT.bodyStrong, fontSize: 15, lineHeight: 23 },
   caption: { fontFamily: FONT.body, fontSize: 13, lineHeight: 19 },
-  labelMicro: { fontFamily: FONT.bodyStrong, fontSize: 11, lineHeight: 13, letterSpacing: 1.76, textTransform: "uppercase" },
+  labelMicro: { fontFamily: FONT.label, fontSize: 11, lineHeight: 13, letterSpacing: 1.76, textTransform: "uppercase" },
   data: { fontFamily: FONT.data, fontSize: 14, lineHeight: 18, fontVariant: ["tabular-nums"] },
   dataLg: { fontFamily: FONT.dataStrong, fontSize: 20, lineHeight: 24, fontVariant: ["tabular-nums"] },
-  dataHero: { fontFamily: FONT.dataStrong, fontSize: 40, lineHeight: 42, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
+  dataHero: { fontFamily: FONT.scoreboard, fontSize: 44, lineHeight: 44, letterSpacing: -0.4, fontVariant: ["tabular-nums"] },
   stamp: { fontFamily: FONT.stamp, fontSize: 28, lineHeight: 31 },
   stampHero: { fontFamily: FONT.stamp, fontSize: 64, lineHeight: 64 },
 } satisfies Record<string, TextStyle>;
 
-export const RADIUS = { sm: 4, md: 8, lg: 12, xl: 24, full: 9999 } as const;
+/** Empower's shapes (K-402): modules 16, cards 24, every button a pill. */
+export const RADIUS = { sm: 6, md: 10, lg: 16, xl: 24, full: 9999 } as const;
 /** 4-pt grid; gutter 16, touch target 44 (bridge.css --spacing*). */
 export const SPACE = { unit: 4, gutter: 16, section: 64, touch: 44 } as const;

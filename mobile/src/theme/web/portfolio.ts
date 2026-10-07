@@ -9,50 +9,50 @@ import { FONT } from "../type";
  */
 const DARK = {
   // ledger-plate.css: the plate follows the theme in dark (surface-1 and the theme's inks)
-  lpPaper: "#171717", lpPaperRaised: "#262626", lpInk: "#FFFFFF", lpMute: "#A3A3A3", lpLine: "rgba(255, 255, 255, 0.1)",
-  // fixed vermilion in both themes (.lp-figure, .lp-bar-*, .pool-action)
-  vermilion: "#E04D26", barAccount: "rgba(224, 77, 38, 0.35)", barPositions: "rgba(224, 77, 38, 0.65)", actionBorder: "rgba(224, 77, 38, 0.45)", actionWash: "rgba(224, 77, 38, 0.07)",
-  slabBorder: "rgba(224, 77, 38, 0.3)", earnedWash: "rgba(224, 77, 38, 0.06)", earnedIconWash: "rgba(224, 77, 38, 0.08)", earnedIconBorder: "rgba(224, 77, 38, 0.35)",
+  lpPaper: "#171616", lpPaperRaised: "#262525", lpInk: "#FFFFFF", lpMute: "#A19F96", lpLine: "rgba(255, 255, 255, 0.1)",
+  // fixed signal in both themes (.lp-figure, .lp-bar-*, .pool-action)
+  signal: "#E4E24E", barAccount: "rgba(228, 226, 78, 0.35)", barPositions: "rgba(228, 226, 78, 0.65)", actionBorder: "rgba(228, 226, 78, 0.45)", actionWash: "rgba(228, 226, 78, 0.07)",
+  slabBorder: "rgba(228, 226, 78, 0.3)", earnedWash: "rgba(228, 226, 78, 0.06)", earnedIconWash: "rgba(228, 226, 78, 0.08)", earnedIconBorder: "rgba(228, 226, 78, 0.35)",
   // .connect-card: gray-500 ring glyph, gray-600 link
-  ringInk: "#737373", linkInk: "#525252",
+  ringInk: "#76746C", linkInk: "#55544E",
   // history.css
   rowHover: "rgba(255, 255, 255, 0.02)", markGeneric: "rgba(255, 255, 255, 0.1)", receiptInk: "rgba(255, 255, 255, 0.4)",
   equityZero: "rgba(255, 255, 255, 0.16)", equityDown: "rgba(255, 255, 255, 0.55)", equityDot: "#FFFFFF",
   equityEmptyBorder: "rgba(255, 255, 255, 0.06)", equityEmptyFill: "rgba(255, 255, 255, 0.015)", equityEmptyInk: "rgba(255, 255, 255, 0.25)",
   repBar: "rgba(255, 255, 255, 0.06)", badgeRankFill: "rgba(255, 255, 255, 0.02)", badgeLocked: "rgba(255, 255, 255, 0.018)", badgeLockedOpacity: 0.45,
   // x-card.css: its foot hairline, the slab and the verified button ink
-  xFootLine: "rgba(201, 191, 166, 0.6)", xLoss: "#B53D30", xMint: "#34D399", xInkWash: "rgba(255, 255, 255, 0.03)", xSourceOn: "rgba(224, 77, 38, 0.08)", xSlabHard: "rgba(224, 77, 38, 0.4)", xSlabHardFill: "rgba(224, 77, 38, 0.09)", xPermissionWash: "rgba(224, 77, 38, 0.06)",
+  xFootLine: "rgba(188, 186, 179, 0.6)", xLoss: "#B53D30", xMint: "#3DD68C", xInkWash: "rgba(255, 255, 255, 0.03)", xSourceOn: "rgba(228, 226, 78, 0.08)", xSlabHard: "rgba(228, 226, 78, 0.4)", xSlabHardFill: "rgba(228, 226, 78, 0.09)", xPermissionWash: "rgba(228, 226, 78, 0.06)",
   // skeleton (bg-muted)
-  skeleton: "#262626",
+  skeleton: "#262525",
   // vault.css inside the plate: color-mix(ink N%) borders, the private route's profit border, the idle-yield block
-  vInk18: "rgba(255, 255, 255, 0.18)", vInk22: "rgba(255, 255, 255, 0.22)", vInk45: "rgba(255, 255, 255, 0.45)", vProfit60: "rgba(52, 211, 153, 0.6)", vProfit30: "rgba(52, 211, 153, 0.3)", vProfit55: "rgba(52, 211, 153, 0.55)",
-  idleLine: "rgba(255, 255, 255, 0.07)", idleHead: "#D4D4D4", idleBody: "#737373", idleValue: "#D4D4D4",
+  vInk18: "rgba(255, 255, 255, 0.18)", vInk22: "rgba(255, 255, 255, 0.22)", vInk45: "rgba(255, 255, 255, 0.45)", vProfit60: "rgba(61, 214, 140, 0.6)", vProfit30: "rgba(61, 214, 140, 0.3)", vProfit55: "rgba(61, 214, 140, 0.55)",
+  idleLine: "rgba(255, 255, 255, 0.07)", idleHead: "#CDCBC3", idleBody: "#76746C", idleValue: "#CDCBC3",
   // private-claims.css `.plate-rows .pc*`: the fixed side pills and checks, the plate-ink mixes
-  pcUp: "#34D399", pcUpWash: "rgba(52, 211, 153, 0.12)", pcDown: "#FB7185", pcDownWash: "rgba(251, 113, 133, 0.12)",
-  ink78: "rgba(255, 255, 255, 0.78)", ink50: "rgba(255, 255, 255, 0.5)", ink40: "rgba(255, 255, 255, 0.4)", loss30: "rgba(251, 113, 133, 0.3)",
-  // yosuku .btn-primary keeps light text on vermilion in both themes (part-14)
-  btnPrimaryInk: "#FFFFFF",
+  pcUp: "#3DD68C", pcUpWash: "rgba(61, 214, 140, 0.12)", pcDown: "#FF5C61", pcDownWash: "rgba(255, 92, 97, 0.12)",
+  ink78: "rgba(255, 255, 255, 0.78)", ink50: "rgba(255, 255, 255, 0.5)", ink40: "rgba(255, 255, 255, 0.4)", loss30: "rgba(255, 92, 97, 0.3)",
+  // yosuku .btn-primary keeps light text on signal in both themes (part-14)
+  btnPrimaryInk: "#100F0F",
   // trader-edge-link.css --te-*
-  teBg: "#0D0D0E", teText: "#F5F4F1", teMute: "#8F8C86", teRule: "rgba(255, 255, 255, 0.1)", teActionInk: "#FFFAF4",
+  teBg: "#0E0D0D", teText: "#F5F4F1", teMute: "#8F8E86", teRule: "rgba(255, 255, 255, 0.1)", teActionInk: "#100F0F",
 };
 
 const LIGHT: typeof DARK = {
-  lpPaper: "#FAF8F5", lpPaperRaised: "#FFFDF8", lpInk: "#1A1612", lpMute: "#6B6353", lpLine: "rgba(201, 191, 166, 0.4)",
-  vermilion: "#E04D26", barAccount: "rgba(224, 77, 38, 0.35)", barPositions: "rgba(224, 77, 38, 0.65)", actionBorder: "rgba(224, 77, 38, 0.45)", actionWash: "rgba(224, 77, 38, 0.07)",
-  slabBorder: "rgba(224, 77, 38, 0.3)", earnedWash: "rgba(224, 77, 38, 0.06)", earnedIconWash: "rgba(224, 77, 38, 0.08)", earnedIconBorder: "rgba(224, 77, 38, 0.35)",
-  ringInk: "#7C7466", linkInk: "#9A9080",
-  rowHover: "rgba(20, 18, 16, 0.03)", markGeneric: "rgba(20, 18, 16, 0.1)", receiptInk: "rgba(20, 18, 16, 0.62)",
-  equityZero: "rgba(20, 18, 16, 0.22)", equityDown: "rgba(20, 18, 16, 0.62)", equityDot: "#141210",
-  equityEmptyBorder: "rgba(20, 18, 16, 0.07)", equityEmptyFill: "rgba(20, 18, 16, 0.02)", equityEmptyInk: "rgba(20, 18, 16, 0.5)",
-  repBar: "rgba(20, 18, 16, 0.08)", badgeRankFill: "rgba(20, 18, 16, 0.03)", badgeLocked: "rgba(20, 18, 16, 0.02)", badgeLockedOpacity: 0.55,
-  xFootLine: "rgba(201, 191, 166, 0.6)", xLoss: "#B53D30", xMint: "#34D399", xInkWash: "rgba(26, 22, 18, 0.03)", xSourceOn: "rgba(224, 77, 38, 0.08)", xSlabHard: "rgba(224, 77, 38, 0.4)", xSlabHardFill: "rgba(224, 77, 38, 0.09)", xPermissionWash: "rgba(224, 77, 38, 0.06)",
-  skeleton: "#ECE3D2",
-  vInk18: "rgba(26, 22, 18, 0.18)", vInk22: "rgba(26, 22, 18, 0.22)", vInk45: "rgba(26, 22, 18, 0.45)", vProfit60: "rgba(46, 107, 79, 0.6)", vProfit30: "rgba(46, 107, 79, 0.3)", vProfit55: "rgba(46, 107, 79, 0.55)",
-  idleLine: "rgba(20, 18, 16, 0.08)", idleHead: "rgba(20, 18, 16, 0.78)", idleBody: "rgba(20, 18, 16, 0.6)", idleValue: "rgba(20, 18, 16, 0.8)",
-  pcUp: "#34D399", pcUpWash: "rgba(52, 211, 153, 0.12)", pcDown: "#FB7185", pcDownWash: "rgba(251, 113, 133, 0.12)",
-  ink78: "rgba(26, 22, 18, 0.78)", ink50: "rgba(26, 22, 18, 0.5)", ink40: "rgba(26, 22, 18, 0.4)", loss30: "rgba(194, 56, 31, 0.3)",
-  btnPrimaryInk: "#FBF7EE",
-  teBg: "#FBF7EF", teText: "#1A1612", teMute: "#6B6359", teRule: "rgba(38, 30, 24, 0.14)", teActionInk: "#FFFAF4",
+  lpPaper: "#FAF9F5", lpPaperRaised: "#FDFCFA", lpInk: "#171515", lpMute: "#656359", lpLine: "rgba(188, 186, 179, 0.4)",
+  signal: "#E4E24E", barAccount: "rgba(228, 226, 78, 0.35)", barPositions: "rgba(228, 226, 78, 0.65)", actionBorder: "rgba(228, 226, 78, 0.45)", actionWash: "rgba(228, 226, 78, 0.07)",
+  slabBorder: "rgba(228, 226, 78, 0.3)", earnedWash: "rgba(228, 226, 78, 0.06)", earnedIconWash: "rgba(228, 226, 78, 0.08)", earnedIconBorder: "rgba(228, 226, 78, 0.35)",
+  ringInk: "#76746C", linkInk: "#9C9A91",
+  rowHover: "rgba(16, 15, 15, 0.03)", markGeneric: "rgba(16, 15, 15, 0.1)", receiptInk: "rgba(16, 15, 15, 0.62)",
+  equityZero: "rgba(16, 15, 15, 0.22)", equityDown: "rgba(16, 15, 15, 0.62)", equityDot: "#100F0F",
+  equityEmptyBorder: "rgba(16, 15, 15, 0.07)", equityEmptyFill: "rgba(16, 15, 15, 0.02)", equityEmptyInk: "rgba(16, 15, 15, 0.5)",
+  repBar: "rgba(16, 15, 15, 0.08)", badgeRankFill: "rgba(16, 15, 15, 0.03)", badgeLocked: "rgba(16, 15, 15, 0.02)", badgeLockedOpacity: 0.55,
+  xFootLine: "rgba(188, 186, 179, 0.6)", xLoss: "#B53D30", xMint: "#3DD68C", xInkWash: "rgba(23, 21, 21, 0.03)", xSourceOn: "rgba(228, 226, 78, 0.08)", xSlabHard: "rgba(228, 226, 78, 0.4)", xSlabHardFill: "rgba(228, 226, 78, 0.09)", xPermissionWash: "rgba(228, 226, 78, 0.06)",
+  skeleton: "#ECEBE5",
+  vInk18: "rgba(23, 21, 21, 0.18)", vInk22: "rgba(23, 21, 21, 0.22)", vInk45: "rgba(23, 21, 21, 0.45)", vProfit60: "rgba(14, 138, 87, 0.6)", vProfit30: "rgba(14, 138, 87, 0.3)", vProfit55: "rgba(14, 138, 87, 0.55)",
+  idleLine: "rgba(16, 15, 15, 0.08)", idleHead: "rgba(16, 15, 15, 0.78)", idleBody: "rgba(16, 15, 15, 0.6)", idleValue: "rgba(16, 15, 15, 0.8)",
+  pcUp: "#3DD68C", pcUpWash: "rgba(61, 214, 140, 0.12)", pcDown: "#FF5C61", pcDownWash: "rgba(255, 92, 97, 0.12)",
+  ink78: "rgba(23, 21, 21, 0.78)", ink50: "rgba(23, 21, 21, 0.5)", ink40: "rgba(23, 21, 21, 0.4)", loss30: "rgba(210, 52, 60, 0.3)",
+  btnPrimaryInk: "#100F0F",
+  teBg: "#F8F7F2", teText: "#171515", teMute: "#68665C", teRule: "rgba(33, 32, 29, 0.14)", teActionInk: "#100F0F",
 };
 
 export type PortfolioTokens = typeof DARK;

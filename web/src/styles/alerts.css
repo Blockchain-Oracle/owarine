@@ -44,36 +44,35 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   color: var(--gray-400);
-  transition: color 200ms var(--ease), border-color 200ms var(--ease), background-color 200ms var(--ease);
-}
+  transition: color 200ms var(--ease), border-color 200ms var(--ease), background-color 200ms var(--ease); font-variant-numeric: tabular-nums; }
 
 .alerts-button:hover {
   color: var(--white);
   border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* border-vermilion/30 bg-vermilion/[0.06] text-vermilion — once this asset has rules */
+/* border-signal/30 bg-signal/[0.06] text-signal — once this asset has rules */
 .alerts-button.armed {
-  border-color: color-mix(in srgb, var(--vermilion) 30%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 6%, transparent);
-  color: var(--vermilion);
+  border-color: color-mix(in srgb, var(--signal-ink) 30%, transparent);
+  background: color-mix(in srgb, var(--signal) 6%, transparent);
+  color: var(--signal-ink);
 }
 
 [data-theme="light"] .alerts-button {
-  border-color: rgba(20, 18, 16, 0.1);
-  background: rgba(20, 18, 16, 0.03);
-  color: rgba(20, 18, 16, 0.62);
+  border-color: rgba(16, 15, 15, 0.1);
+  background: rgba(16, 15, 15, 0.03);
+  color: rgba(16, 15, 15, 0.62);
 }
 
 [data-theme="light"] .alerts-button:hover {
-  color: #141210;
-  border-color: rgba(20, 18, 16, 0.2);
+  color: #100F0F;
+  border-color: rgba(16, 15, 15, 0.2);
 }
 
 [data-theme="light"] .alerts-button.armed {
-  border-color: color-mix(in srgb, var(--vermilion) 30%, transparent);
-  background: color-mix(in srgb, var(--vermilion) 6%, transparent);
-  color: var(--vermilion);
+  border-color: color-mix(in srgb, var(--signal-ink) 30%, transparent);
+  background: color-mix(in srgb, var(--signal) 6%, transparent);
+  color: var(--signal-ink);
 }
 
 /* style={{ width: 12, height: 12 }} */
@@ -104,8 +103,8 @@
 
 /* bg-neutral-900/96 — one step past part-14's ladder, so its cream value is repeated. */
 [data-theme="light"] .alerts-pop {
-  border-color: rgba(20, 18, 16, 0.12);
-  background-color: rgba(251, 247, 238, 0.94);
+  border-color: rgba(16, 15, 15, 0.12);
+  background-color: rgba(255, 255, 255, 0.94);
 }
 
 /* flex items-center justify-between */
@@ -178,7 +177,7 @@
 }
 
 [data-theme="light"] .alerts-dir-btn {
-  border-color: rgba(20, 18, 16, 0.1);
+  border-color: rgba(16, 15, 15, 0.1);
 }
 
 /* flex gap-2 */
@@ -200,8 +199,7 @@
   font-size: 12px;
   color: var(--white);
   -moz-appearance: textfield;
-  appearance: textfield;
-}
+  appearance: textfield; font-variant-numeric: tabular-nums; }
 
 .alerts-input::-webkit-outer-spin-button,
 .alerts-input::-webkit-inner-spin-button {
@@ -215,27 +213,27 @@
 }
 
 [data-theme="light"] .alerts-input {
-  border-color: rgba(20, 18, 16, 0.12);
-  background: rgba(20, 18, 16, 0.05);
+  border-color: rgba(16, 15, 15, 0.12);
+  background: rgba(16, 15, 15, 0.05);
 }
 
 [data-theme="light"] .alerts-input:focus {
-  border-color: rgba(20, 18, 16, 0.3);
+  border-color: rgba(16, 15, 15, 0.3);
 }
 
-/* px-3 py-2 bg-vermilion/20 text-vermilion rounded-lg hover:bg-vermilion/30 */
+/* px-3 py-2 bg-signal/20 text-signal rounded-lg hover:bg-signal/30 */
 .alerts-plus {
   display: inline-flex;
   align-items: center;
   padding: 8px 12px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--vermilion) 20%, transparent);
-  color: var(--vermilion);
+  background: color-mix(in srgb, var(--signal) 20%, transparent);
+  color: var(--signal-ink);
   transition: background-color 150ms var(--ease);
 }
 
 .alerts-plus:hover {
-  background: color-mix(in srgb, var(--vermilion) 30%, transparent);
+  background: color-mix(in srgb, var(--signal) 30%, transparent);
 }
 
 /* style={{ width: 14, height: 14 }} · 12 · 10 */
@@ -264,7 +262,7 @@
 }
 
 [data-theme="light"] .alerts-list {
-  border-top-color: rgba(20, 18, 16, 0.08);
+  border-top-color: rgba(16, 15, 15, 0.08);
 }
 
 /* flex items-center justify-between py-1.5 */
@@ -308,11 +306,10 @@
   font-size: 9px;
   line-height: 1.5;
   letter-spacing: 0.04em;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 [data-theme="light"] .alerts-foot {
-  border-top-color: rgba(20, 18, 16, 0.08);
+  border-top-color: rgba(16, 15, 15, 0.08);
 }
 
 /* `text-gray-*` does not follow the light theme (the recorded Tailwind-4 finding),
@@ -320,15 +317,15 @@
 [data-theme="light"] .alerts-pop-close,
 [data-theme="light"] .alerts-dir-btn,
 [data-theme="light"] .alerts-foot {
-  color: rgba(20, 18, 16, 0.62);
+  color: rgba(16, 15, 15, 0.62);
 }
 
 [data-theme="light"] .alerts-row-label {
-  color: rgba(20, 18, 16, 0.8);
+  color: rgba(16, 15, 15, 0.8);
 }
 
 [data-theme="light"] .alerts-remove {
-  color: rgba(20, 18, 16, 0.4);
+  color: rgba(16, 15, 15, 0.4);
 }
 
 [data-theme="light"] .alerts-remove:hover {
@@ -336,7 +333,7 @@
 }
 
 [data-theme="light"] .alerts-pop-close:hover {
-  color: #141210;
+  color: #100F0F;
 }
 
 /* Below 480px the reference hides the foot's helper label; the Room's qualifier is
@@ -351,7 +348,7 @@
 /* In the hero foot the trigger takes the foot's own grammar — the Room's (`inline-flex items-center gap-1.5
    font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 hover:text-white`). The bordered pill above
    is the reference's Share/Copy/Alert row, which the foot never had; a pill inside a 10px mono strip reads
-   as a second control bar and wraps the ramp at phone widths. Armed stays vermilion, as text. */
+   as a second control bar and wraps the ramp at phone widths. Armed stays signal, as text. */
 .mh-foot-actions .alerts-button {
   padding: 0;
   border: 0;
@@ -369,12 +366,12 @@
 }
 .mh-foot-actions .alerts-button.armed {
   background: transparent;
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 [data-theme="light"] .mh-foot-actions .alerts-button {
   background: transparent;
-  color: rgba(20, 18, 16, 0.62);
+  color: rgba(16, 15, 15, 0.62);
 }
 [data-theme="light"] .mh-foot-actions .alerts-button:hover {
-  color: #141210;
+  color: #100F0F;
 }

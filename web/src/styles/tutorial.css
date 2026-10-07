@@ -48,7 +48,7 @@
 
 /* The container is focused programmatically to put the reader at the top of the
    dialog, not because it is a control — so it must not wear the global 2px
-   vermilion focus ring, which reads as a border around the whole card. Every
+   signal focus ring, which reads as a border around the whole card. Every
    interactive element inside keeps its own. */
 .tutorial-card:focus,
 .tutorial-card:focus-visible {
@@ -68,15 +68,15 @@
  * Scoped to this card because nothing else in web/src uses any of the three. The
  * gap itself is general: check for it before porting the next dark component. */
 [data-theme="light"] .tutorial-card .bg-white\/20 {
-  background-color: rgba(20, 18, 16, 0.16);
+  background-color: rgba(16, 15, 15, 0.16);
 }
 
 [data-theme="light"] .tutorial-card .border-white\/\[0\.12\] {
-  border-color: rgba(20, 18, 16, 0.11);
+  border-color: rgba(16, 15, 15, 0.11);
 }
 
 [data-theme="light"] .tutorial-card .hover\:bg-white\/\[0\.06\]:hover {
-  background-color: rgba(20, 18, 16, 0.05);
+  background-color: rgba(16, 15, 15, 0.05);
 }
 
 /* motion.div key={step} initial={{opacity:0,y:20,scale:0.95}} animate={{opacity:1,y:0,scale:1}}
@@ -110,7 +110,7 @@
  * CSS vars but never loads it under Tailwind 4, so they compile to the static dark
  * ramp (recorded in the parity ledger, 2026-09-01). Everywhere else that stays
  * legible; here it does not. Measured on the card: `text-gray-400` is
- * rgb(163,163,163) on cream at **2.36:1**, well under AA, and it is the body copy
+ * rgb(161,159,150) on cream at **2.36:1**, well under AA, and it is the body copy
  * of the one screen whose whole job is to be read. That is the "evidence of
  * unreadable text" the ledger reserved as the trigger to diverge.
  *
@@ -118,19 +118,19 @@
  * 811 utilities across every route in one unreviewed step. The values are not
  * invented — each gray step is converted to its white-opacity equivalent on the
  * dark ground, then takes part-14.css's own replacement for that step:
- *   gray-400 (#a3a3a3 ≈ white/60, body)      → part-14's 0.80 step
- *   gray-500 (#737373 ≈ white/40, notes)     → part-14's 0.62 step
- *   gray-600 (#525252 ≈ white/25, fineprint) → part-14's 0.50 step */
+ *   gray-400 (#a19f96 ≈ white/60, body)      → part-14's 0.80 step
+ *   gray-500 (#76746C ≈ white/40, notes)     → part-14's 0.62 step
+ *   gray-600 (#55544E ≈ white/25, fineprint) → part-14's 0.50 step */
 [data-theme="light"] .tutorial-card .text-gray-400 {
-  color: rgba(20, 18, 16, 0.8);
+  color: rgba(16, 15, 15, 0.8);
 }
 
 [data-theme="light"] .tutorial-card .text-gray-500 {
-  color: rgba(20, 18, 16, 0.62);
+  color: rgba(16, 15, 15, 0.62);
 }
 
 [data-theme="light"] .tutorial-card .text-gray-600 {
-  color: rgba(20, 18, 16, 0.5);
+  color: rgba(16, 15, 15, 0.5);
 }
 
 /* Skip and Close are `text-gray-NNN hover:text-white`. The three rules above tie
@@ -138,7 +138,7 @@
    later, so without this they would win on hover too and the control would go
    *fainter* when pointed at. Same value part-14 uses. */
 [data-theme="light"] .tutorial-card .hover\:text-white:hover {
-  color: #141210;
+  color: #100F0F;
 }
 
 /* font-mono text-[10px] uppercase tracking-[0.16em] */

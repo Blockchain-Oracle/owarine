@@ -44,7 +44,7 @@ export function Plate({ children, style, tone = "plain" }: { children: ReactNode
   return <View style={[styles.plate, { backgroundColor: color.surface1, borderColor: tone === "error" ? d.errorBorder : color.hairline }, style]}>{children}</View>;
 }
 
-/** `.du-spinner`: a 12 px ring, vermilion at the top, turning every 900 ms (still when motion is reduced). */
+/** `.du-spinner`: a 12 px ring, signal at the top, turning every 900 ms (still when motion is reduced). */
 export function Spinner() {
   const { d, color } = useDuelTokens();
   const { reducedMotion } = useGames();
@@ -100,7 +100,7 @@ export function DeckLine({ children }: { children: ReactNode }) {
   );
 }
 
-/** `.du-refusal`: vermilion at 34 % around a 7 % wash, Inter 12, its children 6 apart. */
+/** `.du-refusal`: signal at 34 % around a 7 % wash, Inter 12, its children 6 apart. */
 export function Refusal({ children }: { children: ReactNode }) {
   const { d, color } = useDuelTokens();
   return (

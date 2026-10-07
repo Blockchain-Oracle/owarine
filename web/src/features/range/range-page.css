@@ -5,7 +5,7 @@
 .rg-windows { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
 .rg-windows .pl-menu-item { display: flex; justify-content: space-between; gap: 12px; width: 100%; text-align: left; }
 
-/* The band on a card: the ticket's vermilion side word, uppercase (the parlay's `pl-bd-side--up`) */
-.rg-card-side { color: var(--vermilion); text-transform: uppercase; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; }
+/* The band on a card: the ticket's signal side word, uppercase (the parlay's `pl-bd-side--up`) */
+.rg-card-side { color: var(--signal-ink); text-transform: uppercase; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* mt-1 font-mono text-[10px] text-gray-500 */
-.rg-card-close { margin-top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); }
+.rg-card-close { margin-top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--gray-500); font-variant-numeric: tabular-nums; }

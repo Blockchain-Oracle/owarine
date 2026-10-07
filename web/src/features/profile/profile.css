@@ -43,8 +43,7 @@
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gray-500);
-}
+  color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .prf-stat dd {
   margin: 8px 0 0;
@@ -57,11 +56,10 @@
   line-height: 1;
   letter-spacing: -0.02em;
   text-transform: none;
-  color: var(--white);
-}
+  color: var(--white); font-stretch: 125%; }
 
 .prf-stat .big a:hover {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 .prf-actions {
@@ -83,24 +81,23 @@
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: var(--vermilion);
-  white-space: nowrap;
-}
+  color: var(--signal-ink);
+  white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 .prf-edge {
-  --edge-text: #f3f0ea;
-  --edge-muted: #a29c92;
-  --edge-faint: #6f6b64;
+  --edge-text: #f3f2ea;
+  --edge-muted: #a09e94;
+  --edge-faint: #6f6d64;
   --edge-rule: rgba(255, 255, 255, 0.09);
   --edge-paper: rgba(255, 255, 255, 0.025);
   color: var(--edge-text);
 }
 
 [data-theme="light"] .prf-edge {
-  --edge-text: #1a1612;
-  --edge-muted: #6b6359;
-  --edge-faint: #91887a;
-  --edge-rule: rgba(38, 30, 24, 0.12);
+  --edge-text: #171515;
+  --edge-muted: #68665c;
+  --edge-faint: #8d8a7e;
+  --edge-rule: rgba(33, 32, 29, 0.12);
   --edge-paper: rgba(255, 255, 255, 0.34);
 }
 

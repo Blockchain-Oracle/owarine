@@ -5,22 +5,22 @@
 .act-filter:hover { color: var(--color-ink); border-color: var(--color-ink-muted); }
 .act-filter[aria-pressed="true"] { color: var(--color-ink); border-color: var(--color-accent); background: var(--color-accent-wash); }
 .act-filter:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.act-filter-count { font-family: var(--font-data); font-size: 11px; color: var(--color-ink-muted); }
+.act-filter-count { font-family: var(--font-data); font-size: 11px; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; }
 
-.act-verdict { font-family: var(--font-data); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-secondary); }
+.act-verdict { font-family: var(--font-data); font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-secondary); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .act-verdict[data-tone="acted"] { color: var(--color-profit); }
 .act-verdict[data-tone="declined"] { color: var(--color-accent); }
 .act-verdict[data-tone="asked"] { color: var(--color-warning); }
 .act-verdict[data-tone="error"], .act-verdict[data-tone="stopped"] { color: var(--color-loss); }
 .act-verdict[data-tone="quiet"] { color: var(--color-ink-muted); }
-.act-tag { padding: 1px 7px; border-radius: 9999px; border: 1px solid var(--color-hairline); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted); }
-.act-meta { margin-left: auto; font-family: var(--font-data); font-size: 11px; color: var(--color-ink-muted); white-space: nowrap; }
+.act-tag { padding: 1px 7px; border-radius: 9999px; border: 1px solid var(--color-hairline); font-family: var(--font-data); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+.act-meta { margin-left: auto; font-family: var(--font-data); font-size: 11px; color: var(--color-ink-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 /* One check: time on top, a line per company (badge, the fact, figures in the data face), reasons behind "Why". */
 .act-check { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px 12px; border: 1px solid var(--color-hairline); border-radius: 12px; background: var(--market-card-surface, var(--color-surface-1)); }
 .act-check[data-tone="acted"] { border-color: color-mix(in srgb, var(--color-profit) 35%, var(--color-hairline)); }
 .act-check[data-tone="asked"] { border-color: color-mix(in srgb, var(--color-warning) 45%, var(--color-hairline)); }
 .act-check-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 2px; }
-.act-time { font-family: var(--font-data); font-size: 13px; font-weight: 600; color: var(--color-ink); }
+.act-time { font-family: var(--font-data); font-size: 13px; font-weight: 600; color: var(--color-ink); font-variant-numeric: tabular-nums; }
 .act-lines { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .act-line { display: grid; grid-template-columns: 24px minmax(0, 1fr) 16px; align-items: start; gap: 10px; padding: 8px; border-radius: 9px; color: inherit; transition: background 140ms ease; }
 .act-line:hover { background: var(--color-surface-2); }
@@ -34,7 +34,7 @@
 .act-line-go { width: 16px; height: 16px; margin-top: 3px; color: var(--color-ink-muted); opacity: 0; transition: opacity 140ms ease; }
 .act-line:hover .act-line-go, .act-line:focus-visible .act-line-go { opacity: 1; }
 .act-figure { font-family: var(--font-data); font-weight: 600; font-variant-numeric: tabular-nums; }
-.act-badge { padding: 2px 8px; border-radius: 9999px; font-family: var(--font-data); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-secondary); background: var(--color-surface-2); }
+.act-badge { padding: 2px 8px; border-radius: 9999px; font-family: var(--font-data); font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-secondary); background: var(--color-surface-2); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .act-badge[data-tone="acted"] { color: var(--color-profit); background: color-mix(in srgb, var(--color-profit) 12%, transparent); }
 .act-badge[data-tone="declined"] { color: var(--color-accent); background: var(--color-accent-wash); }
 .act-badge[data-tone="asked"] { color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 14%, transparent); }

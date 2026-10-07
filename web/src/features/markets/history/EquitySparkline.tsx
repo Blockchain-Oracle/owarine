@@ -16,7 +16,7 @@ const PAD = 3;
 
 /**
  * The reference's `EquitySparkline`, ported: cumulative net, oldest→newest, one step per settled
- * round. It rises on wins and DROPS on losses — the drawdown is drawn, never hidden. Vermilion is
+ * round. It rises on wins and DROPS on losses — the drawdown is drawn, never hidden. Signal is
  * the only accent; below zero the line is muted, so a loss reads as a fact, not a scare.
  * Colours live in `history.css` (the design-literals rule), sized by viewBox so it fills its slot.
  */

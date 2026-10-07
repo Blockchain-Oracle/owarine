@@ -33,7 +33,7 @@ export function ScheduledCall({ rested, market, decimals, onAnother }: { rested:
   const line = [styles.line, { color: tk.gateLine }];
   return (
     <View style={[styles.gate, { borderColor: tk.gateBorder, backgroundColor: tk.gateBg }]} accessibilityLiveRegion="polite">
-      <Text style={[styles.eyebrow, { color: tk.vermilion }]}>{PREOPEN.receipt.eyebrow}</Text>
+      <Text style={[styles.eyebrow, { color: tk.signal }]}>{PREOPEN.receipt.eyebrow}</Text>
       <ReadoutRow live>
         <ReadoutCell index={0} label={PREOPEN.receipt.held}>
           {formatBaseUnits(rested.escrowBase, decimals)}

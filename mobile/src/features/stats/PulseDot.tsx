@@ -5,7 +5,7 @@ import { useTheme } from "~/theme";
 import { statsTokens } from "~/theme/web/explore/stats";
 
 /**
- * part-04's `.hero-left .eyebrow .live-dot`: a 6 px vermilion dot on web's `pulseDot` (1.6 s) — it dims to 55 % while a
+ * part-04's `.hero-left .eyebrow .live-dot`: a 6 px signal dot on web's `pulseDot` (1.6 s) — it dims to 55 % while a
  * ring spreads 6 px out and fades. Still under Reduce Motion.
  */
 export function PulseDot() {
@@ -21,7 +21,7 @@ export function PulseDot() {
   return (
     <View style={styles.box} accessible={false}>
       <Animated.View style={[styles.fill, { backgroundColor: t.dotRing }, ring]} />
-      <Animated.View style={[styles.fill, { backgroundColor: color.accent }, dot]} />
+      <Animated.View style={[styles.fill, { backgroundColor: color.accentFill }, dot]} />
     </View>
   );
 }

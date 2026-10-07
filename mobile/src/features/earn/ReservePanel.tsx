@@ -27,7 +27,7 @@ export function ReservePanel({ sheet, symbol, words, status }: ReservePanelProps
   const frame = (children: React.ReactNode) => (
     <View style={[styles.panel, { borderColor: t.panelBorder, boxShadow: t.panelShadow }]}>
       <LinearGradient colors={[t.panelFrom, t.panelTo]} start={{ x: 0.31, y: 0 }} end={{ x: 0.69, y: 1 }} style={[StyleSheet.absoluteFill, styles.wash]} />
-      <View style={[styles.accent, { backgroundColor: t.brandVermilion }]} />
+      <View style={[styles.accent, { backgroundColor: t.brandSignal }]} />
       {children}
     </View>
   );
@@ -74,7 +74,7 @@ export function ReservePanel({ sheet, symbol, words, status }: ReservePanelProps
           <Text style={[styles.v, styles.vAccent, { color: color.accent }]}>{utilizationPct(sheet.utilizationBps)}</Text>
           <View style={[styles.meter, { backgroundColor: t.meterTrack }]}>
             <LinearGradient
-              colors={[t.brandVermilion, t.meterTo]}
+              colors={[t.brandSignal, t.meterTo]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[styles.meterFill, { width: fill > 0 ? `${fill}%` : 4, minWidth: 4, boxShadow: t.meterGlow }]}

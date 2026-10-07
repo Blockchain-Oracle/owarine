@@ -99,7 +99,7 @@ function HoldRow({ asset, name, lines, move, bell, calmLine, windowId, cover, ad
         ) : windowId ? (
           <View style={styles.actions}>
             <Pressable onPress={() => openWindow(windowId, "down")} accessibilityRole="link" hitSlop={8}>
-              <Text style={[styles.action, { color: t.vermilion }]}>{cover}</Text>
+              <Text style={[styles.action, { color: t.signal }]}>{cover}</Text>
             </Pressable>
             <Pressable onPress={() => openWindow(windowId, "up")} accessibilityRole="link" hitSlop={8}>
               <Text style={[styles.action, { color: color.inkSecondary }]}>{add}</Text>

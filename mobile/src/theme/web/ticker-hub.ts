@@ -8,21 +8,21 @@ const DARK = {
   /** `--news-hairline`: the figure bar's rule. */
   barRule: "rgba(255, 255, 255, 0.12)",
   /** `.dkit-status[data-tone=live]`: the profit ink at 40 %. */
-  liveBorder: "rgba(52, 211, 153, 0.4)",
+  liveBorder: "rgba(61, 214, 140, 0.4)",
   /** `.mks-chip` pre-market / after-hours dot: --gray-300. */
-  chipDotLit: "#D4D4D4",
-  /** `.mks-chip` holiday dot: vermilion at 55 %. */
-  chipDotHoliday: "rgba(224, 77, 38, 0.55)",
+  chipDotLit: "#CDCBC3",
+  /** `.mks-chip` holiday dot: signal at 55 %. */
+  chipDotHoliday: "rgba(228, 226, 78, 0.55)",
   /** `.src-line-link` underline: --gray-700. */
-  underline: "#404040",
+  underline: "#3B3A37",
 };
 
 const LIGHT: typeof DARK = {
-  barRule: "rgba(20, 18, 16, 0.12)",
-  liveBorder: "rgba(46, 107, 79, 0.4)",
-  chipDotLit: "#453E33",
-  chipDotHoliday: "rgba(217, 62, 31, 0.55)",
-  underline: "#C4BAA6",
+  barRule: "rgba(16, 15, 15, 0.12)",
+  liveBorder: "rgba(14, 138, 87, 0.4)",
+  chipDotLit: "#42413C",
+  chipDotHoliday: "rgba(228, 226, 78, 0.55)",
+  underline: "#D6D4CB",
 };
 
 export type TickerHubTokens = typeof DARK;

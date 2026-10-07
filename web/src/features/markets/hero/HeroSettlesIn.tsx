@@ -13,7 +13,7 @@ interface HeroSettlesInProps {
 }
 
 /**
- * The clock, and the whole block flipping vermilion as it runs out.
+ * The clock, and the whole block flipping signal as it runs out.
  *
  * Yosuku hardcodes a 60-second threshold. `countdown` scales urgency with the
  * cadence instead (`urgentAtSec`), which is the same intent held to a lane length

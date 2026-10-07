@@ -41,7 +41,7 @@ export function Verdict({ outcome, you, yourPnl, theirPnl, money, symbol, free, 
 }
 
 /**
- * web's result card list (`.du-picked-list` of `.du-picked-row`): each receipt's side dot (a pulsing vermilion dot
+ * web's result card list (`.du-picked-list` of `.du-picked-row`): each receipt's side dot (a pulsing signal dot
  * while it waits), the asset, cadence and seat, the cost and payout, and its PnL; a settled row takes its side's wash.
  */
 export function ReceiptRows({ receipts, cards, you, money, symbol }: {

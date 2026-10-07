@@ -128,7 +128,7 @@ export function LegRow({ index, leg, market, windows, legProbBps, thin, decimals
                 {builder.thin(formatBaseUnits(thin.filledRaw, decimals, { minDp: 0, maxDp: 2 }), formatBaseUnits(thin.depthRaw, decimals, { minDp: 0, maxDp: 2 }))}
               </Text>
             ) : (
-              <Text style={[styles.prob, { color: t.vermilion80 }]}>{legProbBps !== null ? formatBpsPct(legProbBps) : "·"}</Text>
+              <Text style={[styles.prob, { color: t.signal80 }]}>{legProbBps !== null ? formatBpsPct(legProbBps) : "·"}</Text>
             )}
           </View>
         </View>

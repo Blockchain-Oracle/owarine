@@ -23,7 +23,7 @@ export function ReceiptSection() {
   return (
     <section className="flex flex-col gap-4">
       <SectionHeader index="05" title="Receipt" eyebrow="the one physical object" />
-      <Fixture label="Claim receipt — cream, vermilion strip, dotted leaders, perforated stub, the single shadow">
+      <Fixture label="Claim receipt — cream, signal strip, dotted leaders, perforated stub, the single shadow">
         <div className="flex justify-center py-4">
           <Receipt
             figure={<Money value={12_400_000n} decimals={DECIMALS} symbol={SYMBOL} tone="pnl" className="text-cream-ink" />}

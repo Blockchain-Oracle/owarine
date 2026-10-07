@@ -50,7 +50,7 @@ function Page({ reserve }: { reserve: ParlayReserveState }) {
   return (
     <>
       <View style={styles.hero}>
-        <Text style={[styles.eyebrow, { color: t.vermilion80 }]}>{PARLAY.eyebrow}</Text>
+        <Text style={[styles.eyebrow, { color: t.signal80 }]}>{PARLAY.eyebrow}</Text>
         <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">
           {PARLAY.title}
           <Text style={{ color: color.accent }}>.</Text>

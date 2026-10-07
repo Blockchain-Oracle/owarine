@@ -71,8 +71,8 @@ export function CreditWelcome({ local = false }: { local?: boolean }) {
           {FUNDING.welcome.title(credit.amountText, credit.symbol)}
         </Text>
         <Text style={[styles.body, { color: color.inkSecondary }]}>{FUNDING.welcome.body}</Text>
-        <Pressable onPress={close} accessibilityRole="button" style={({ pressed }) => [styles.cta, { backgroundColor: pressed ? color.accentPressed : t.vermilion }]}>
-          <Text style={[styles.ctaText, { color: t.vermilionInk }]}>{FUNDING.welcome.cta}</Text>
+        <Pressable onPress={close} accessibilityRole="button" style={({ pressed }) => [styles.cta, { backgroundColor: pressed ? color.accentPressed : t.signal }]}>
+          <Text style={[styles.ctaText, { color: t.signalInk }]}>{FUNDING.welcome.cta}</Text>
         </Pressable>
       </BottomDrawer>
     </View>

@@ -40,7 +40,7 @@ export function LegPlate({ count, maxLegs, presetAsset, presetDisabled, onPreset
           onPress={onPreset}
           disabled={presetDisabled}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.preset, { borderColor: t.vermilion30, backgroundColor: pressed ? t.vermilion10 : t.vermilion6, opacity: presetDisabled ? 0.4 : 1 }]}
+          style={({ pressed }) => [styles.preset, { borderColor: t.signal30, backgroundColor: pressed ? t.signal10 : t.signal6, opacity: presetDisabled ? 0.4 : 1 }]}
         >
           <Zap size={12} color={color.accent} />
           <Text style={[styles.presetText, { color: color.accent }]}>{builder.preset(presetAsset)}</Text>

@@ -150,7 +150,7 @@ function WindowRow({ window, book, nowMs }: { window: EventMarket | null; book: 
   );
 }
 
-/** `.bk-action`: a 42 px pill in Sora 13 — Predict filled vermilion, Cover ringed in the loss ink (45% while off), Hold ringed muted. */
+/** `.bk-action`: a 42 px pill in Sora 13 — Predict filled signal, Cover ringed in the loss ink (45% while off), Hold ringed muted. */
 function Action({ label, kind, onPress, off, hint }: { label: string; kind: "predict" | "cover" | "hold"; onPress: () => void; off?: boolean; hint?: string }) {
   const { color, name } = useTheme();
   const t = basketsShortTokens(name);

@@ -29,7 +29,7 @@ export function StepProgress({ steps, current, onPick, label }: { steps: readonl
   return (
     <View accessibilityRole="tablist" accessibilityLabel={label}>
       <View style={[styles.rail, { backgroundColor: color.hairline }]} pointerEvents="none">
-        <Animated.View style={[styles.railFill, { backgroundColor: color.accent }, fillStyle]} />
+        <Animated.View style={[styles.railFill, { backgroundColor: color.accentFill }, fillStyle]} />
       </View>
       <View style={styles.row}>
         {steps.map((s, i) => {
@@ -54,7 +54,7 @@ export function StepProgress({ steps, current, onPick, label }: { steps: readonl
                     style={[
                       styles.badge,
                       state === "done"
-                        ? { backgroundColor: color.accent, borderColor: color.accent }
+                        ? { backgroundColor: color.accentFill, borderColor: color.accent }
                         : { backgroundColor: color.surface1, borderColor: state === "current" ? color.accent : color.hairline },
                     ]}
                   >

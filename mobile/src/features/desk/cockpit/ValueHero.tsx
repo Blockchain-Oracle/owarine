@@ -85,7 +85,7 @@ export function ValueHero({ view, nowSec }: { view: DeskView; nowSec: number }) 
                 }}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}
-                style={[styles.range, on && { backgroundColor: color.accent }]}
+                style={[styles.range, on && { backgroundColor: color.accentFill }]}
               >
                 <Text style={[styles.rangeText, { color: on ? color.onAccent : color.inkMuted }]}>{H.ranges[r]}</Text>
               </Pressable>

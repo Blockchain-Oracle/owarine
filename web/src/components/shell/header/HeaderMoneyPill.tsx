@@ -10,7 +10,7 @@ const AMOUNT_DP = 2;
 
 /**
  * The reference's balance pill (`Header.tsx` L296–316): one compact total of the user's money, and a
- * vermilion `+` that opens Add money. It sits LEFT of the address pill and never hides once connected —
+ * signal `+` that opens Add money. It sits LEFT of the address pill and never hides once connected —
  * funding is one tap away at every balance, which is the whole point of it being in the bar.
  *
  * "Never show a half-loaded sum": until the balance sheet has answered, the figure is an em dash, not a

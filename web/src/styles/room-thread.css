@@ -21,8 +21,7 @@
   font-family: var(--font-mono);
   font-size: 11px;
   color: rgb(var(--room-ink-rgb) / 0.4);
-  text-align: center;
-}
+  text-align: center; font-variant-numeric: tabular-nums; }
 
 .room-line {
   display: flex;
@@ -47,8 +46,7 @@
   color: hsl(var(--room-hue, 0) 55% 72%);
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 700;
-}
+  font-weight: 700; font-variant-numeric: tabular-nums; }
 
 [data-theme="light"] .room-avatar {
   color: hsl(var(--room-hue, 0) 60% 32%);
@@ -64,8 +62,8 @@
 }
 
 .room-line[data-mine="true"] .room-bubble {
-  border-color: color-mix(in srgb, var(--vermilion) 28%, transparent);
-  background: rgba(224, 77, 38, 0.07);
+  border-color: color-mix(in srgb, var(--signal-ink) 28%, transparent);
+  background: rgba(228, 226, 78, 0.07);
 }
 
 .room-meta {
@@ -77,8 +75,7 @@
   font-size: 9px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgb(var(--room-ink-rgb) / 0.4);
-}
+  color: rgb(var(--room-ink-rgb) / 0.4); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .room-body {
   font-size: 13px;
@@ -116,7 +113,7 @@
 }
 
 .room-compose input:focus {
-  border-color: color-mix(in srgb, var(--vermilion) 45%, transparent);
+  border-color: color-mix(in srgb, var(--signal-ink) 45%, transparent);
 }
 
 .room-count {
@@ -128,7 +125,7 @@
 }
 
 .room-count[data-low="true"] {
-  color: var(--vermilion);
+  color: var(--signal-ink);
 }
 
 .room-send {
@@ -139,8 +136,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  background: var(--vermilion);
-  color: #fff;
+  background: var(--signal);
+  color: var(--on-signal);
   outline: none;
   transition: opacity 150ms var(--ease-out);
 }
@@ -159,5 +156,4 @@
   font-family: var(--font-mono);
   font-size: 10.5px;
   line-height: 1.5;
-  color: var(--loss);
-}
+  color: var(--loss); font-variant-numeric: tabular-nums; }

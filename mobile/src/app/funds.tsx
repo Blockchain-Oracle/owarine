@@ -53,7 +53,7 @@ export default function FundsModal() {
         }
       >
         <View style={styles.eyebrowRow}>
-          <View style={[styles.dot, { backgroundColor: t.vermilion, shadowColor: t.vermilion }]} />
+          <View style={[styles.dot, { backgroundColor: t.signal, shadowColor: t.signal }]} />
           <Text style={[styles.eyebrow, { color: color.inkMuted }]}>{F.eyebrow}</Text>
         </View>
         <Text style={[styles.title, { color: color.ink }]} accessibilityRole="header">

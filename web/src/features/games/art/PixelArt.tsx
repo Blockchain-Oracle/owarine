@@ -30,7 +30,7 @@ const INK = "var(--bg)";
 const WHITE = "var(--white)";
 const UP = "var(--profit)";
 const DOWN = "var(--loss)";
-const VERM = "var(--vermilion)";
+const VERM = "var(--signal)";
 const SOFT = "rgba(255, 255, 255, 0.35)";
 
 /** The bull: horns up, the UP colour. Reacts to an upward lean. */
@@ -186,7 +186,7 @@ export function LockedInMark({ className }: { className?: string }) {
   );
 }
 
-/** The season's trophy: a cup in vermilion with a white gleam, on the same grid as the coin. */
+/** The season's trophy: a cup in signal with a white gleam, on the same grid as the coin. */
 export function TrophyMark({ className }: { className?: string }) {
   return (
     <Pixels

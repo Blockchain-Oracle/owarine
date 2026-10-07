@@ -7,7 +7,7 @@ const TONE: Record<OutcomeColumn, "acted" | "asked" | "quiet" | "stopped"> = {
   not_executed: "stopped", blocked_by_limit: "stopped", failed: "stopped",
 };
 
-/** One outcome as a mono chip: acted in vermilion, asked in the warning tone, quiet muted, stopped in the loss tone. */
+/** One outcome as a mono chip: acted in signal, asked in the warning tone, quiet muted, stopped in the loss tone. */
 export function Outcome({ outcome, practice }: { outcome: OutcomeColumn; practice?: boolean }) {
   return (
     <span className="dk-outcome" data-tone={TONE[outcome]}>

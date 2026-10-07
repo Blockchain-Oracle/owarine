@@ -1,4 +1,4 @@
-.lb-hero-title .vermilion { color: var(--vermilion); }
+.lb-hero-title .signal { color: var(--signal-ink); }
 .lb-hero-sub {
   color: var(--gray-400); font-size: 16px; line-height: 1.55;
   max-width: 44ch; margin-top: 22px;
@@ -7,25 +7,22 @@
   display: flex; flex-direction: column; gap: 16px;
   text-align: right;
   font-family: var(--font-mono); font-size: 11px;
-  color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase;
-}
+  color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .lb-meta-col .big {
   font-family: var(--font-display); font-weight: 700;
   font-size: 28px; letter-spacing: -0.02em; color: var(--white);
-  line-height: 1;
-}
+  line-height: 1; font-stretch: 125%; }
 .lb-meta-col .stamp {
   align-self: flex-end;
-  border: 1.5px solid var(--vermilion);
-  color: var(--vermilion);
+  border: 1.5px solid var(--signal-ink);
+  color: var(--signal-ink);
   padding: 10px 14px;
   transform: rotate(-3deg);
   border-radius: 3px;
   font-size: 9px; letter-spacing: 0.22em;
   font-family: var(--font-mono);
   text-align: center;
-  line-height: 1.4;
-}
+  line-height: 1.4; font-variant-numeric: tabular-nums; }
 
 /* Filter / period bar */
 .lb-filter-bar {
@@ -60,18 +57,16 @@
   background: transparent; border: 0; cursor: pointer;
   padding: 4px 0;
   border-bottom: 1px solid transparent;
-  transition: color 220ms var(--ease), border-color 220ms var(--ease);
-}
+  transition: color 220ms var(--ease), border-color 220ms var(--ease); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .asset-tab:hover { color: var(--white); }
-.asset-tab.active { color: var(--white); border-bottom-color: var(--vermilion); }
+.asset-tab.active { color: var(--white); border-bottom-color: var(--signal-ink); }
 .asset-tab .glyph {
   width: 16px; height: 16px;
   border: 1px solid rgba(255,255,255,0.2);
   border-radius: 50%;
   display: inline-flex; align-items: center; justify-content: center;
-  font-family: var(--font-mono); font-size: 9px;
-}
-.lb-filter-meta { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.1em; text-transform: uppercase; }
+  font-family: var(--font-mono); font-size: 9px; font-variant-numeric: tabular-nums; }
+.lb-filter-meta { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* ───────── PODIUM ───────── */
 .podium {
@@ -92,9 +87,9 @@
 .podium-spot:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.18); }
 .podium-spot.s1 {
   background:
-    radial-gradient(ellipse at top right, rgba(224,77,38,0.08), transparent 60%),
+    radial-gradient(ellipse at top right, rgba(228,226,78,0.08), transparent 60%),
     rgba(255,255,255,0.02);
-  border-color: rgba(224,77,38,0.3);
+  border-color: rgba(228,226,78,0.3);
   min-height: 380px;
 }
 .podium-spot.s2 { min-height: 320px; }
@@ -108,28 +103,26 @@
   letter-spacing: -0.06em;
   color: rgba(255,255,255,0.04);
   pointer-events: none;
-  user-select: none;
-}
-.podium-spot.s1 .podium-rank { color: rgba(224,77,38,0.18); font-size: 240px; }
+  user-select: none; font-stretch: 125%; }
+.podium-spot.s1 .podium-rank { color: rgba(228,226,78,0.18); font-size: 240px; }
 
 .podium-eyebrow {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
   color: var(--gray-500); text-transform: uppercase;
   display: flex; align-items: center; gap: 10px;
-  position: relative; z-index: 2;
-}
+  position: relative; z-index: 2; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .podium-eyebrow .ord {
   background: var(--white); color: var(--black);
   padding: 3px 8px; border-radius: 2px;
   font-weight: 700;
 }
-.podium-spot.s1 .podium-eyebrow .ord { background: var(--vermilion); color: var(--white); }
+.podium-spot.s1 .podium-eyebrow .ord { background: var(--signal); color: var(--on-signal); }
 
 .podium-portrait {
   margin-top: 22px;
   width: 88px; height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2a2418 0%, #5a4730 50%, #c9b78a 100%);
+  background: linear-gradient(135deg, #23221f 0%, #494841 50%, #afada4 100%);
   border: 2px solid rgba(255,255,255,0.12);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-display); font-weight: 700; letter-spacing: 0.02em;
@@ -137,8 +130,7 @@
   color: rgba(255,255,255,0.62);
   position: relative; z-index: 2;
   overflow: hidden;
-  isolation: isolate;
-}
+  isolation: isolate; font-stretch: 125%; }
 .podium-portrait::after {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.3), transparent 50%);
@@ -146,8 +138,8 @@
 }
 .podium-spot.s1 .podium-portrait {
   width: 112px; height: 112px;
-  background: linear-gradient(135deg, #1a1612 0%, #6b3520 50%, #E04D26 100%);
-  border-color: rgba(224,77,38,0.4);
+  background: linear-gradient(135deg, #171515 0%, #8d8c2a 50%, #E4E24E 100%);
+  border-color: rgba(228,226,78,0.4);
   font-size: 44px;
 }
 
@@ -155,39 +147,35 @@
   position: absolute;
   top: 22px; left: -36px;
   width: 160px;
-  background: var(--vermilion);
-  color: var(--white);
+  background: var(--signal);
+  color: var(--on-signal);
   font-family: var(--font-mono); font-size: 9px; font-weight: 700;
   letter-spacing: 0.24em; text-align: center;
   padding: 4px 0;
   transform: rotate(-32deg);
-  box-shadow: 0 4px 12px rgba(224,77,38,0.3);
-  z-index: 3;
-}
+  box-shadow: 0 4px 12px rgba(228,226,78,0.3);
+  z-index: 3; font-variant-numeric: tabular-nums; }
 
 .podium-name {
   margin-top: 18px; position: relative; z-index: 2;
   font-family: var(--font-display); font-weight: 700;
   font-size: 22px; letter-spacing: -0.02em;
-  color: var(--white);
-}
+  color: var(--white); font-stretch: 125%; }
 .podium-spot.s1 .podium-name { font-size: 30px; }
 .podium-handle {
   font-family: var(--font-mono); font-size: 11px;
   color: var(--gray-500); letter-spacing: 0.04em;
   margin-top: 4px;
-  position: relative; z-index: 2;
-}
+  position: relative; z-index: 2; font-variant-numeric: tabular-nums; }
 .podium-pnl {
   margin-top: 24px; position: relative; z-index: 2;
   font-family: var(--font-display); font-weight: 800;
   font-size: 36px; line-height: 1;
   letter-spacing: -0.04em;
-  color: var(--vermilion);
-  font-variant-numeric: tabular-nums;
-}
+  color: var(--signal-ink);
+  font-variant-numeric: tabular-nums; font-stretch: 125%; }
 .podium-pnl .sign { font-size: 0.55em; vertical-align: 0.16em; margin-right: 0.05em; }
-.podium-pnl .cur { font-family: var(--font-mono); font-size: 0.32em; color: var(--gray-500); margin-left: 0.4em; vertical-align: 0.6em; letter-spacing: 0.06em; }
+.podium-pnl .cur { font-family: var(--font-mono); font-size: 0.32em; color: var(--gray-500); margin-left: 0.4em; vertical-align: 0.6em; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
 .podium-spot.s1 .podium-pnl { font-size: 56px; }
 
 .podium-stats {
@@ -203,9 +191,8 @@
 .podium-stats .item:last-child { border-right: 0; padding-left: 8px; padding-right: 0; }
 .podium-stats .item:nth-child(2) { padding-left: 8px; }
 .podium-stats .lbl {
-  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em;
-  color: var(--gray-600); text-transform: uppercase;
-}
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em;
+  color: var(--gray-600); text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .podium-stats .val {
   font-family: var(--font-mono); font-size: 14px;
   color: var(--white); margin-top: 4px; font-variant-numeric: tabular-nums;
@@ -217,11 +204,11 @@
 /* ───────── Yokozuna champion strip ───────── */
 .yokozuna {
   margin-top: 64px;
-  border: 1px solid rgba(224,77,38,0.2);
+  border: 1px solid rgba(228,226,78,0.2);
   border-radius: 4px;
   overflow: hidden;
   background:
-    linear-gradient(120deg, rgba(224,77,38,0.04) 0%, rgba(0,0,0,0) 60%),
+    linear-gradient(120deg, rgba(228,226,78,0.04) 0%, rgba(0,0,0,0) 60%),
     rgba(255,255,255,0.012);
   display: grid;
   grid-template-columns: 5fr 7fr;
@@ -233,25 +220,22 @@
   position: relative; z-index: 2;
 }
 .yoko-eyebrow {
-  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em;
-  color: var(--vermilion); text-transform: uppercase;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--signal-ink); text-transform: uppercase;
   display: flex; align-items: center; gap: 10px;
-  margin-bottom: 16px;
-}
-.yoko-eyebrow .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--vermilion); animation: pulseDot 1.4s var(--ease) infinite; }
+  margin-bottom: 16px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+.yoko-eyebrow .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--signal); animation: pulseDot 1.4s var(--ease) infinite; color: var(--on-signal); }
 @keyframes pulseDot { 0%,100%{opacity:0.3} 50%{opacity:1} }
 
 .yoko-name {
   font-family: var(--font-display); font-weight: 800;
   font-size: 44px; line-height: 0.95;
-  letter-spacing: -0.04em; color: var(--white);
-}
-.yoko-name .accent { color: var(--vermilion); }
+  letter-spacing: -0.04em; color: var(--white); font-stretch: 125%; }
+.yoko-name .accent { color: var(--signal-ink); }
 .yoko-meta {
   font-family: var(--font-mono); font-size: 11px;
   color: var(--gray-500); letter-spacing: 0.1em;
-  margin-top: 18px;
-}
+  margin-top: 18px; font-variant-numeric: tabular-nums; }
 .yoko-meta .v { color: var(--white); }
 .yoko-quote {
   margin-top: 28px;
@@ -259,9 +243,8 @@
   font-size: 16px; line-height: 1.5;
   color: var(--gray-300);
   text-wrap: balance;
-  border-left: 2px solid var(--vermilion);
-  padding-left: 16px;
-}
+  border-left: 2px solid var(--signal-ink);
+  padding-left: 16px; font-stretch: 125%; }
 
 .yoko-stats {
   margin-top: 28px;
@@ -272,9 +255,9 @@
 .yoko-stats .item { padding: 16px 12px 0 0; border-right: 1px solid rgba(255,255,255,0.04); }
 .yoko-stats .item:last-child { border-right: 0; }
 .yoko-stats .item:not(:first-child) { padding-left: 12px; }
-.yoko-stats .lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; color: var(--gray-600); text-transform: uppercase; }
-.yoko-stats .val { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin-top: 4px; color: var(--white); }
-.yoko-stats .val.up { color: var(--vermilion); }
+.yoko-stats .lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--gray-600); text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+.yoko-stats .val { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin-top: 4px; color: var(--white); font-stretch: 125%; }
+.yoko-stats .val.up { color: var(--signal-ink); }
 
 .yoko-right {
   padding: 36px 36px 28px;
@@ -286,9 +269,8 @@
 }
 .yoko-right .head h4 {
   font-family: var(--font-display); font-weight: 600;
-  font-size: 14px; letter-spacing: -0.01em;
-}
-.yoko-right .head .meta { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.1em; text-transform: uppercase; }
+  font-size: 14px; letter-spacing: -0.01em; font-stretch: 125%; }
+.yoko-right .head .meta { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .yoko-chart {
   flex: 1;
   border: 1px solid rgba(255,255,255,0.06);
@@ -312,8 +294,7 @@
 .yoko-replay-foot {
   display: flex; justify-content: space-between; align-items: center;
   font-family: var(--font-mono); font-size: 10px;
-  color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase;
-}
+  color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .yoko-replay-foot .stake { color: var(--white); }
 
 /* ───────── BANZUKE ───────── */
@@ -332,5 +313,4 @@
   background: rgba(255,255,255,0.02);
   border-bottom: 1px solid rgba(255,255,255,0.06);
   font-family: var(--font-mono); font-size: 10px;
-  color: var(--gray-500); letter-spacing: 0.18em; text-transform: uppercase;
-}
+  color: var(--gray-500); letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }

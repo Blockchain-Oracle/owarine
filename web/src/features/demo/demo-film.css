@@ -8,8 +8,7 @@
 }
 .demo-film-eyebrow {
   margin: 0;
-  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-  color: var(--vermilion);
-}
+  font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .demo-film-line { margin: 0; max-width: 52ch; font-size: clamp(14px, 1.6vw, 17px); line-height: 1.6; color: var(--gray-300); }
-.demo-film-meta { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--gray-500); }
+.demo-film-meta { margin: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--gray-500); font-variant-numeric: tabular-nums; }

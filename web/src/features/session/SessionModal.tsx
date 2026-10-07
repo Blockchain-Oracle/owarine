@@ -29,7 +29,7 @@ interface ShellProps {
 /**
  * The reference's one dialog shape (`AddFunds.tsx` L58–67): a centred panel over a blurred scrim, Escape and
  * the scrim close it, the body scrolls and the footer stays. The bottom sheet this replaces was painted on
- * `bg-popover` — a `#404040` the reference's palette never uses for a panel — with its inner cards darker than
+ * `bg-popover` — a `#3B3A37` the reference's palette never uses for a panel — with its inner cards darker than
  * the panel and a submit button that scrolled off a phone. Yosuku has no bottom sheets at all.
  */
 export function SessionModalShell({ open, onClose, title, description, children, footer, labelId }: ShellProps) {

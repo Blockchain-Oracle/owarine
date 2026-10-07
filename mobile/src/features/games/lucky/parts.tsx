@@ -13,7 +13,7 @@ export function useLuckyTokens(): { lk: LuckyTokens; color: ReturnType<typeof us
   return { lk: luckyTokens(name), color };
 }
 
-/** web's clock ramp (stage/StageFace `clockUrgency`): calm, vermilion inside ten minutes, loss inside two. */
+/** web's clock ramp (stage/StageFace `clockUrgency`): calm, signal inside ten minutes, loss inside two. */
 export function clockInk(remainingSec: number, color: ReturnType<typeof useTheme>["color"]): string {
   return remainingSec <= 120 ? color.loss : remainingSec <= 600 ? color.accent : color.profit;
 }
@@ -24,7 +24,7 @@ export function Band({ children, style }: { children: ReactNode; style?: StylePr
   return <View style={[styles.band, { borderColor: color.hairline, backgroundColor: lk.well, boxShadow: lk.bandShadow }, style]}>{children}</View>;
 }
 
-/** `.lk-section-k`: the band's label, pixel 12, 0.2em, vermilion at 80 %. */
+/** `.lk-section-k`: the band's label, pixel 12, 0.2em, signal at 80 %. */
 export function SectionK({ children }: { children: string }) {
   const { lk } = useLuckyTokens();
   return <Text style={[styles.sectionK, { color: lk.sectionK }]}>{children.toUpperCase()}</Text>;
@@ -40,7 +40,7 @@ export function Cadence({ label }: { label: string }) {
   );
 }
 
-/** `.lk-link`: mono 10, 0.06em, uppercase, vermilion — a text button. */
+/** `.lk-link`: mono 10, 0.06em, uppercase, signal — a text button. */
 export function LinkWord({ label, onPress, disabled, style }: { label: string; onPress: () => void; disabled?: boolean; style?: StyleProp<TextStyle> }) {
   const { color } = useLuckyTokens();
   return (

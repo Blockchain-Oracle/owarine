@@ -4,14 +4,14 @@ import { STRATEGIES } from "./copy";
 import { RISK_MODES, type RiskMode } from "./format";
 import "./desk.css";
 
-const chipCls = "desk-chip desk-chip-sized rounded-md border px-2 py-0.5 font-mono hover:border-vermilion/50 transition-colors";
+const chipCls = "desk-chip desk-chip-sized rounded-md border px-2 py-0.5 font-mono hover:border-signal/50 transition-colors";
 
 /** One amount input in the house style: big figure, unit tag, hint line, additive chips (`AmountRow`). */
 export function AmountRow(props: { value: string; onChange: (s: string) => void; hint: ReactNode; chips: number[]; onChip: (n: number) => void; extra?: ReactNode; action?: ReactNode; symbol: string }) {
   const { value, onChange, hint, chips, onChip, extra, action, symbol } = props;
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-      <div className="desk-amount min-w-0 flex-1 rounded-xl border px-4 py-2 transition-colors focus-within:border-vermilion/50 sm:max-w-xs">
+      <div className="desk-amount min-w-0 flex-1 rounded-xl border px-4 py-2 transition-colors focus-within:border-signal/50 sm:max-w-xs">
         <div className="flex items-center justify-between">
           <input inputMode="decimal" placeholder="0.00" value={value} onChange={(e) => onChange(e.target.value.replace(/[^0-9.]/g, ""))} className="desk-amount-input desk-amount-figure" aria-label="Amount" />
           <span className="desk-amount-unit desk-note shrink-0 font-semibold">{symbol}</span>
@@ -75,7 +75,7 @@ export function CapsEditor({ capStr, setCapStr, suggested, symbol }: { capStr: s
 
 /** One cell of the record trio under the sparkline. A loss reads in muted white — a fact, not a scare. */
 export function RecordStat({ label, value, accent }: { label: ReactNode; value: string; accent?: "up" | "down" }) {
-  const tone = accent === "up" ? "text-vermilion" : accent === "down" ? "text-ink/80" : "text-ink";
+  const tone = accent === "up" ? "text-signal" : accent === "down" ? "text-ink/80" : "text-ink";
   return (
     <div>
       <div className="desk-eyebrow mb-1.5 whitespace-normal text-ink/40">{label}</div>

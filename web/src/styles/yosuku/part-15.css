@@ -46,7 +46,7 @@
 }
 .mobile-bottom-nav a.active svg,
 .mobile-bottom-nav button.active svg {
-  stroke: var(--vermilion);
+  stroke: var(--signal-ink);
 }
 .mobile-more-menu {
   display: none;
@@ -60,7 +60,7 @@
   padding: 10px;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 14px;
-  background: rgba(8,8,9,0.94);
+  background: rgba(9,8,8,0.94);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   box-shadow: 0 22px 70px rgba(0,0,0,0.48);
@@ -87,10 +87,10 @@
 }
 .mobile-more-menu a.active {
   color: var(--white);
-  border-color: rgba(224,77,38,0.28);
-  background: rgba(224,77,38,0.08);
+  border-color: rgba(228,226,78,0.28);
+  background: rgba(228,226,78,0.08);
 }
-.mobile-more-menu a.active svg { color: var(--vermilion); }
+.mobile-more-menu a.active svg { color: var(--signal-ink); }
 
 @media (max-width: 720px) {
   .nav-links { display: none; }

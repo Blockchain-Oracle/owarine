@@ -90,7 +90,7 @@ export function SessionChip() {
     const label = haltLabel(session.halt.reason);
     return (
       <View style={styles.chip} accessibilityRole="text" accessibilityLabel={label}>
-        <View style={[styles.chipDot, { backgroundColor: color.accent }]} />
+        <View style={[styles.chipDot, { backgroundColor: color.accentFill }]} />
         <Text style={[styles.chipText, { color: color.accent }]}>{label}</Text>
       </View>
     );

@@ -15,7 +15,7 @@ export function ReelSlot({ height, bottomClear, children }: { height: number; bo
 
 /**
  * reel.css `.reel-card` with its `.reel-grain` and `.reel-heat`: a 26 px-radius portrait card (max 460 wide) on the
- * theme's radial surface, a hairline border, the long drop shadow, the noise at 5 % and the vermilion heat line.
+ * theme's radial surface, a hairline border, the long drop shadow, the noise at 5 % and the signal heat line.
  */
 export function ReelFrame({ children, flat, style }: { children: ReactNode; flat?: boolean; style?: StyleProp<ViewStyle> }) {
   const t = useReelTokens();
@@ -51,7 +51,7 @@ export function ReelHolding({ children }: { children: string }) {
       <Text style={[styles.holdingTitle, { color: t.ink }]}>{children}</Text>
       <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {[0, 200, 400].map((delay) => (
-          <Dot key={delay} delay={delay} color={t.vermilion} />
+          <Dot key={delay} delay={delay} color={t.signal} />
         ))}
       </View>
     </ReelFrame>

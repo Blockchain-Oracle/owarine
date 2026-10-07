@@ -95,7 +95,7 @@ function AssetHead({ asset, session, history, nowSec, range, onRange, window, so
         <CadenceRow accessibilityLabel={SESSION_COPY.hero.rangeGroup} tabs={HISTORY_RANGES.map((r) => ({ key: r, label: r, on: r === range, live: true, onPress: () => onRange(r) }))} />
       </AssetRow>
       <Text style={[mkType.question, { color: mk.ink }]} accessibilityRole="header">
-        {latest ? <Text style={{ color: mk.vermilion }}>{assetPriceLine(asset, latest.valueRaw)}</Text> : HERO_HEAD.pair(asset, assetPairUnit(asset))}
+        {latest ? <Text style={{ color: mk.signal }}>{assetPriceLine(asset, latest.valueRaw)}</Text> : HERO_HEAD.pair(asset, assetPairUnit(asset))}
       </Text>
       {/* `.meta-soft` ("· as of 16:00 ET") is hidden at phone width (yosuku part-16). */}
       {latest ? <Text style={meta}>{priceWord(session, live)}</Text> : null}

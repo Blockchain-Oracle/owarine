@@ -6,7 +6,7 @@ import { useShareCard } from "./useShareCard";
 
 interface ShareCallButtonProps {
   card: CallCard;
-  /** The full-width vermilion CTA under The Call; the quiet link otherwise. */
+  /** The full-width signal CTA under The Call; the quiet link otherwise. */
   variant?: "primary" | "link";
 }
 

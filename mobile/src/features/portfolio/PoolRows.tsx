@@ -9,10 +9,10 @@ import { fmt2 } from "./format";
 import { go } from "./go";
 import { usePlateInk } from "./usePlateInk";
 
-/** `.pool-action`: rounded-md, a 45 % vermilion hairline, 11 px bold vermilion. */
+/** `.pool-action`: rounded-md, a 45 % signal hairline, 11 px bold signal. */
 function PoolAction({ label }: { label: string }) {
   const t = usePortfolioTokens();
-  return <Text style={[styles.action, { color: t.vermilion, borderColor: t.actionBorder }]}>{label}</Text>;
+  return <Text style={[styles.action, { color: t.signal, borderColor: t.actionBorder }]}>{label}</Text>;
 }
 
 /** web `PoolRows` Body: label (and why it is blocked), the note, then the amount — the amount IS the row. */

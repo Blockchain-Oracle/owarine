@@ -82,7 +82,7 @@ export function AmountField({ amount, setAmount, symbol, decimals, balanceBase, 
   );
 }
 
-/** `.xi-post`: the cream "Your X post" preview, the vermilion Copy instruction button and the setup line. */
+/** `.xi-post`: the cream "Your X post" preview, the signal Copy instruction button and the setup line. */
 export function PostPreview({ side, asset, amount, cadence, canCopy, copied, enabled, failed, onCopy }: {
   side: "up" | "down"; asset: string; amount: string; cadence: string; canCopy: boolean; copied: boolean; enabled: boolean; failed: string; onCopy: () => void;
 }) {

@@ -13,13 +13,13 @@ const ICONS: Record<Badge["id"], LucideIcon> = {
   oracle: Crown,
 };
 
-/** `.reputation-bar` / `.badge-rank-bar`: the 6 px track and its vermilion fill (never narrower than 6 px). */
+/** `.reputation-bar` / `.badge-rank-bar`: the 6 px track and its signal fill (never narrower than 6 px). */
 function Bar({ pct, label }: { pct: number; label: string }) {
   const { name, color } = useTheme();
   const t = profileTokens(name);
   return (
     <View style={[styles.bar, { backgroundColor: t.track }]} accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 0, max: 100, now: pct }}>
-      <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: color.accent }]} />
+      <View style={[styles.barFill, { width: `${pct}%`, backgroundColor: color.accentFill }]} />
     </View>
   );
 }

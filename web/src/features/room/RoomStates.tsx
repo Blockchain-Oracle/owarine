@@ -8,7 +8,7 @@ import { ROOM } from "./copy";
 import type { RoomGate } from "./protocol";
 
 /** The haloed mark that carries each onboarding state (reference `StateIcon`, L58–70). */
-function StateIcon({ children, tone = "muted" }: { children: ReactNode; tone?: "vermilion" | "muted" }) {
+function StateIcon({ children, tone = "muted" }: { children: ReactNode; tone?: "signal" | "muted" }) {
   return (
     <div className="room-state-icon" data-tone={tone} aria-hidden>
       <span>{children}</span>
@@ -93,7 +93,7 @@ export function RoomStates({ gate, onJoin, onBet, ticker = null }: RoomStatesPro
 
   return (
     <div className="room-state">
-      <StateIcon tone="vermilion">
+      <StateIcon tone="signal">
         <ShieldCheckIcon size={26} strokeWidth={1.8} />
       </StateIcon>
       <p className="room-state-title">{ticker ? ROOM.ticker.joinable.title(ticker) : ROOM.states.joinable.title}</p>

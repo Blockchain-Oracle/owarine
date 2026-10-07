@@ -113,7 +113,7 @@ export function RoundCard({ round, nowMs, symbol, decimals, staleAfterSec, busy,
       </View>
 
       {status === "won" ? (
-        <Press onPress={() => onClaim(round)} disabled={claiming} accessibilityRole="button" style={[styles.claim, { backgroundColor: color.accent }, claiming && styles.off]}>
+        <Press onPress={() => onClaim(round)} disabled={claiming} accessibilityRole="button" style={[styles.claim, { backgroundColor: color.accentFill }, claiming && styles.off]}>
           {claiming ? <Spinner size={15} color={r.placeInk} /> : <Trophy size={15} color={r.placeInk} />}
           <Text style={[styles.claimText, { color: r.placeInk }]}>{claiming ? slip.claiming : slip.claim(payout, symbol)}</Text>
         </Press>

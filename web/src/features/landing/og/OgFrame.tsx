@@ -34,7 +34,7 @@ function Wordmark() {
     <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
       <svg width={43} height={43} viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
         <path d={OWARINE_MARK_FIGURE} fill={OG.ink} />
-        <path d={OWARINE_MARK_OUTCOME} fill={OG.vermilion} />
+        <path d={OWARINE_MARK_OUTCOME} fill={OG.signal} />
       </svg>
       <div style={{ display: "flex", fontSize: 30, letterSpacing: "0.22em", color: OG.ink }}>{BRAND.name.toUpperCase()}</div>
     </div>

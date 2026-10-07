@@ -41,7 +41,7 @@ export function StrategyCard({ card, sub, decimals, symbol, asset, onOpen }: {
   const instinct = spec?.preset === "agent" ? STRATEGIES.archive.agentInstinct(asset, spec.posture) : STRATEGIES.archive.instinct(asset, spec?.preset === "reversion" ? "reversion" : "momentum");
   const memory = Boolean(card.agent && card.agent.decisions.length > 0);
   const max = money(BigInt(card.envelope.maxStakePerTradeBase), decimals);
-  const tag = [styles.tag, { backgroundColor: t.vermilionA(0.12) }];
+  const tag = [styles.tag, { backgroundColor: t.signalA(0.12) }];
   return (
     <Pressable
       onPress={onOpen}
@@ -95,12 +95,12 @@ export function StrategyCard({ card, sub, decimals, symbol, asset, onOpen }: {
         </View>
         {memory ? (
           <View style={tag}>
-            <Text style={[styles.tagText, { color: t.vermilion }]}>{STRATEGIES.archive.memory}</Text>
+            <Text style={[styles.tagText, { color: t.signal }]}>{STRATEGIES.archive.memory}</Text>
           </View>
         ) : null}
         {card.playbook ? (
           <View style={tag}>
-            <Text style={[styles.tagText, { color: t.vermilion }]}>{STRATEGIES.archive.playbook}</Text>
+            <Text style={[styles.tagText, { color: t.signal }]}>{STRATEGIES.archive.playbook}</Text>
           </View>
         ) : null}
       </View>
@@ -110,7 +110,7 @@ export function StrategyCard({ card, sub, decimals, symbol, asset, onOpen }: {
           {STRATEGIES.archive.foot(max, fee === 0n ? STRATEGIES.archive.free : `${money(fee, decimals)} fee`, copiers)}
         </Text>
         <View style={styles.cta}>
-          {sub?.live ? <View style={[styles.live, { backgroundColor: t.vermilion }]} /> : null}
+          {sub?.live ? <View style={[styles.live, { backgroundColor: t.signal }]} /> : null}
           <Text style={[ST.mono11, styles.ctaText, { color: sub ? color.accent : t.ink(0.55) }]}>
             {sub ? "Manage copy" : STRATEGIES.archive.copy} →
           </Text>

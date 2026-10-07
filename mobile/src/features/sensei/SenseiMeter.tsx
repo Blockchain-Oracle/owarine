@@ -70,7 +70,7 @@ function Spark({ points, openingRaw }: { points: readonly ChartPoint[]; openingR
 
 /**
  * web's `SenseiMeter` (SenseiDrawer.tsx): the pinned strip every reply sits under — the nearest Window's price, the
- * drift triangle and move over the span actually held, the time left (vermilion under the wire) and the tape.
+ * drift triangle and move over the span actually held, the time left (signal under the wire) and the tape.
  */
 export function SenseiMeter({ reading, secsLeft, urgent }: { reading: SenseiReading; secsLeft: number; urgent: boolean }) {
   const { name, color } = useTheme();

@@ -33,7 +33,7 @@ export function PracticeWatch({ round, leftSec, priceOf }: { round: PracticeRoun
         </Text>
       </View>
       <View style={[styles.bar, { backgroundColor: s.watchBar }]}>
-        <Animated.View style={[styles.fill, { backgroundColor: color.accent }, fill]} />
+        <Animated.View style={[styles.fill, { backgroundColor: color.accentFill }, fill]} />
       </View>
       <Text style={[practiceStyles.foot, { color: color.inkMuted }]}>{PRACTICE.watch.body}</Text>
       <View style={styles.rows}>

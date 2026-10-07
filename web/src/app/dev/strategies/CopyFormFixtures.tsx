@@ -26,7 +26,7 @@ function Case({ title, over }: { title: string; over: Partial<CopyFormInput> }) 
   const check = checkCopyForm(input);
   return (
     <div className="strat-drawer" style={{ position: "static", maxWidth: 440, height: "auto", transform: "none" }} data-fixture-copy={title}>
-      <p className="strat-meta mb-4 text-vermilion">{title}</p>
+      <p className="strat-meta mb-4 text-signal">{title}</p>
       <CopyFormFields check={check} budget={budget} perTrade={perTrade} setBudget={setBudget} setPerTrade={setPerTrade} fixed={null} fieldsDisabled={false} decimals={6} symbol="credits" walletBase={input.walletBase} vaultAvailableBase={input.reusableBase} feeBase={input.feeBase} confirmBusy={false} onConfirm={() => undefined} confirmLabel="Fund permission and copy">
         <p className="strat-drawer-body">Strategy maximum: 5.00 credits per trade. Your limit must fit within your budget. This permission lasts 30 days.</p>
       </CopyFormFields>

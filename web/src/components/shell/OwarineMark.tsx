@@ -6,7 +6,7 @@ export const OWARINE_MARK_OUTCOME = "M173 0H220V47Z";
 export default function OwarineMark({
   className,
   figure = "currentColor",
-  accent = "var(--vermilion)",
+  accent = "var(--signal)",
   title,
 }: {
   className?: string;

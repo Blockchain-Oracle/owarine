@@ -7,7 +7,7 @@ import { Stop, stopPaint } from "~/components/ui/SvgStop";
 import { ROOM } from "@/features/room/copy";
 import type { RoomGate } from "@/features/room/protocol";
 import { FONT, useTheme } from "~/theme";
-import { ROOM_VERMILION as V, roomTokens } from "~/theme/web/explore/room";
+import { ROOM_SIGNAL as V, roomTokens } from "~/theme/web/explore/room";
 
 /** web's `RoomMark`: a locked speech bubble — "a private conversation" in one glyph. */
 export function RoomMark({ size = 22, tint }: { size?: number; tint?: string }) {
@@ -28,31 +28,31 @@ export function RoomMark({ size = 22, tint }: { size?: number; tint?: string }) 
 }
 
 /** web's `StateIcon` (`.room-state-icon`): a 56 px rounded tile on a 64 px radial halo. */
-function StateIcon({ children, tone = "muted" }: { children: ReactNode; tone?: "vermilion" | "muted" }) {
+function StateIcon({ children, tone = "muted" }: { children: ReactNode; tone?: "signal" | "muted" }) {
   const { name } = useTheme();
   const t = roomTokens(name);
-  const vermilion = tone === "vermilion";
+  const signal = tone === "signal";
   return (
     <View style={styles.icon}>
       <Svg style={StyleSheet.absoluteFill} accessible={false}>
         <Defs>
           <RadialGradient id={`halo-${tone}`} cx="50%" cy="50%" r="50%">
-            <Stop offset="0" {...stopPaint(vermilion ? V.halo : t.ink10)} />
-            <Stop offset="0.7" {...stopPaint(vermilion ? V.clear : t.inset, 0)} />
+            <Stop offset="0" {...stopPaint(signal ? V.halo : t.ink10)} />
+            <Stop offset="0.7" {...stopPaint(signal ? V.clear : t.inset, 0)} />
           </RadialGradient>
         </Defs>
         <Rect width="100%" height="100%" rx={16} fill={`url(#halo-${tone})`} />
       </Svg>
-      <View style={[styles.tile, { borderColor: vermilion ? V.iconBorder : t.hairline }]}>{children}</View>
+      <View style={[styles.tile, { borderColor: signal ? V.iconBorder : t.hairline }]}>{children}</View>
     </View>
   );
 }
 
-/** web's `.room-cta`: the vermilion pill. */
+/** web's `.room-cta`: the signal pill. */
 function Cta({ label, onPress, disabled, busy, arrow }: { label: string; onPress: () => void; disabled?: boolean; busy?: boolean; arrow?: boolean }) {
   const { color } = useTheme();
   return (
-    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={[styles.cta, { backgroundColor: color.accent, opacity: disabled ? 0.6 : 1 }]}>
+    <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button" style={[styles.cta, { backgroundColor: color.accentFill, opacity: disabled ? 0.6 : 1 }]}>
       {busy ? <ActivityIndicator size="small" color={color.onAccent} /> : null}
       <Text style={[styles.ctaText, { color: color.onAccent }]}>{label}</Text>
       {arrow ? <ArrowRight size={15} color={color.onAccent} /> : null}
@@ -130,7 +130,7 @@ export function RoomStates({ gate, onJoin, onConnect, onBet, ticker = null }: Ro
 
   return (
     <View style={styles.state}>
-      <StateIcon tone="vermilion">
+      <StateIcon tone="signal">
         <ShieldCheck size={26} strokeWidth={1.8} color={color.accent} />
       </StateIcon>
       {words(ticker ? ROOM.ticker.joinable.title(ticker) : ROOM.states.joinable.title, ticker ? ROOM.ticker.joinable.body : ROOM.states.joinable.body)}

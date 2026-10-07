@@ -13,14 +13,14 @@ export function ReadoutCell({ label, children, index, accent = false }: { label:
       <Text style={[styles.label, { color: tk.readLabel }]} numberOfLines={1}>
         {label}
       </Text>
-      <Text style={[styles.value, { color: accent ? tk.vermilion : tk.readValue }]} numberOfLines={1}>
+      <Text style={[styles.value, { color: accent ? tk.signal : tk.readValue }]} numberOfLines={1}>
         {children}
       </Text>
     </View>
   );
 }
 
-/** The three divided columns; the rule under them turns vermilion while a live quote is on screen. */
+/** The three divided columns; the rule under them turns signal while a live quote is on screen. */
 export function ReadoutRow({ live, children }: { live: boolean; children: ReactNode }) {
   const tk = useTk();
   return <View style={[styles.row, { borderBottomColor: live ? tk.liveRule : tk.rule }]}>{children}</View>;

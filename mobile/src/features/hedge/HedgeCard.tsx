@@ -31,7 +31,7 @@ type Kind = "offer" | "teaser";
 /**
  * web's `.hg-banner` at phone width, compacted for a phone (the owner, 09-25: it was too big): mark | stamp · eyebrow ·
  * name · line, the CTA under the text, the foot across both; the example stamp sits in the flow, never over the eyebrow. The
- * offer wears the vermilion wash and rim; the teaser is the plain surface. Web's inset bevel is drawn as two 2 pt bands.
+ * offer wears the signal wash and rim; the teaser is the plain surface. Web's inset bevel is drawn as two 2 pt bands.
  */
 function Banner({ kind, mark, eyebrow, name, line, cta, foot, stamp, onPress, label }: {
   kind: Kind;
@@ -56,7 +56,7 @@ function Banner({ kind, mark, eyebrow, name, line, cta, foot, stamp, onPress, la
       <View style={styles.row}>
         {mark}
         <View style={styles.text}>
-          {stamp ? <Text style={[styles.stamp, { color: t.hgStampInk, backgroundColor: color.accent }]}>{stamp}</Text> : null}
+          {stamp ? <Text style={[styles.stamp, { color: t.hgStampInk, backgroundColor: color.accentFill }]}>{stamp}</Text> : null}
           <Text style={[styles.eyebrow, { color: color.inkMuted }]} numberOfLines={1}>{eyebrow}</Text>
           <Text style={[styles.name, { color: color.ink }]}>{name}</Text>
           <Text style={[styles.line, { color: offer ? color.accent : color.inkSecondary }]}>{line}</Text>

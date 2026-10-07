@@ -2,8 +2,8 @@
    stepper beside the figure, and the rest-until-lock row. Everything else reuses `ticket-composer.css` as is. */
 
 .tk-add[aria-pressed="true"] {
-  border-color: var(--vermilion);
-  color: var(--vermilion);
+  border-color: var(--signal-ink);
+  color: var(--signal-ink);
 }
 
 .tk-price .tk-amount-field {

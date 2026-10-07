@@ -72,7 +72,7 @@ function ReputationPanel({ reputation, badges }: { reputation: ReturnType<typeof
             accessibilityLabel={words.progress(reputation.progressToNext)}
             accessibilityValue={{ min: 0, max: 100, now: reputation.progressToNext }}
           >
-            <View style={[styles.fill, { width: `${reputation.progressToNext}%`, backgroundColor: t.vermilion }]} />
+            <View style={[styles.fill, { width: `${reputation.progressToNext}%`, backgroundColor: t.signal }]} />
           </View>
           <Text style={[WEB_TYPE.caption, { color: color.inkMuted }]}>{words.rule}</Text>
         </View>
