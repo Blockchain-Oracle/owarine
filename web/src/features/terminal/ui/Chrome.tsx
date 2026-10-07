@@ -18,7 +18,7 @@ const tap = () => (playTrade("tap"), haptic("tap"));
 /** Tradash's asset chip `a2`: logo, the live price in rolling digits ("—" before the first tick), "BTC · Bitcoin", chevron. */
 export function AssetChip({ asset, name, price, onOpen }: { asset: string; name: string; price: number | null; onOpen: () => void }) {
   return (
-    <button type="button" onClick={() => (tap(), onOpen())} className="ow-glass flex items-center gap-3 rounded-full py-1.5 pr-4 pl-1.5 text-left">
+    <button type="button" onClick={() => (tap(), onOpen())} className="ow-glass flex min-w-0 items-center gap-2.5 rounded-full py-1.5 pr-3 pl-1.5 text-left lg:gap-3 lg:pr-4">
       <AssetDisc asset={asset} className="asset-disc-36" />
       <span className="flex flex-col leading-tight">
         <span className="flex items-center gap-1 text-ow-lead font-bold">
@@ -66,8 +66,8 @@ export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowS
 /** Tradash's equity pill `a5`: equity in rolling digits and the avatar; "Take a seat" with no account in live mode. */
 export function EquityPill({ equity, demo, onOpen }: { equity: number | null; demo: boolean; onOpen: () => void }) {
   return (
-    <button type="button" onClick={() => (tap(), onOpen())} className="ow-glass flex h-11 items-center gap-2 rounded-full pr-1 pl-4">
-      {demo ? <span className="rounded-full bg-ow-recessed px-1.5 text-ow-micro font-bold text-ow-muted">DEMO</span> : null}
+    <button type="button" onClick={() => (tap(), onOpen())} className="ow-glass flex h-11 shrink-0 items-center gap-2 rounded-full pr-1 pl-3 lg:pl-4">
+      {demo ? <span className="hidden rounded-full bg-ow-recessed px-1.5 text-ow-micro font-bold text-ow-muted lg:inline">DEMO</span> : null}
       <span className="text-ow-lead font-bold">{equity === null ? "Take a seat" : <Odometer kind="plain" value={equity} decimals={2} />}</span>
       <span className="grid size-9 place-items-center rounded-full bg-ow-pink">
         <Seal size={22} tone="white" />

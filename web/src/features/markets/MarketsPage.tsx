@@ -2,7 +2,6 @@
 
 import { collateralOrNull } from "@owarine/markets";
 import { LiveViewSwitcher } from "@/features/canton-ux/privacy";
-import { Tutorial } from "@/features/onboarding";
 import { leasedOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import { MarketsScreen } from "./MarketsScreen";
 import { TicketDock } from "./ticket";
@@ -45,7 +44,6 @@ export function MarketsPage({ ledgerView = false }: { ledgerView?: boolean }) {
   return (
     <>
       <MarketsScreen renderTicket={renderTicket} renderVerdict={renderVerdict} renderLedgerView={ledgerView ? renderLedgerView : undefined} />
-      <Tutorial />
     </>
   );
 }

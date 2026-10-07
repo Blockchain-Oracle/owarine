@@ -6,14 +6,10 @@ import { useState } from "react";
 import { haptic } from "@/lib/haptics";
 import { playTrade } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
+import { TOUR_STEPS, tourNetworkNote } from "./tour-copy";
 
-const STEPS = [
-  { icon: LineChart, title: "Watch the market", body: "A live, buttery-smooth price chart is always front and center. That's your whole workspace — no forms, no clutter." },
-  { icon: ArrowUp, title: "Tap UP or DOWN", body: "Think the price closes higher? Tap UP. Think it drops? Tap DOWN. One tap opens your call instantly — and only you and the venue can see it." },
-  { icon: Waves, title: "Watch your PnL move", body: "Your profit or loss updates live on the price line as the market moves — green when you're up, red when you're down." },
-  { icon: ArrowUpRight, title: "Trail to lock profit", body: "Once you're in profit, tap Trail. It follows the price your way and auto-closes if it reverses — locking in your gains for you." },
-  { icon: X, title: "Close to bank it", body: "Tap Close anytime to take your profit (or cut a loss). That's the whole loop — watch, tap, manage, close." },
-] as const;
+const ICONS = [LineChart, ArrowUp, Waves, ArrowUpRight, X] as const;
+const STEPS = TOUR_STEPS.map((step, i) => ({ ...step, icon: ICONS[i]! }));
 
 /** The step illustrations: a line, the two buttons, a line with its PnL pill, a trailing stop, Close. Drawn here, no art. */
 function Illustration({ step }: { step: number }) {
@@ -94,6 +90,7 @@ export function Tutorial({ open, onDone }: { open: boolean; onDone: (choice: "de
             </span>
             <h2 className="ow-display text-ow-display">{s.title}</h2>
             <p className="max-w-sm text-ow-body text-ow-muted">{s.body}</p>
+            <p className="max-w-sm text-ow-caption text-ow-helper">{tourNetworkNote()}</p>
           </motion.div>
         </AnimatePresence>
       </div>

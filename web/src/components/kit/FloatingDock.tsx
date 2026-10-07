@@ -17,7 +17,7 @@ export interface DockItem {
   active?: boolean;
 }
 
-export function FloatingDock({ left, right, centreHref = "/", onSearch, className }: { left: DockItem; right: DockItem; centreHref?: string; onSearch?: () => void; className?: string }) {
+export function FloatingDock({ left, right, centreHref = "/", onSearch, searchLabel, className }: { left: DockItem; right: DockItem; centreHref?: string; onSearch?: () => void; searchLabel?: string; className?: string }) {
   return (
     <nav aria-label="Main" className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2 px-4 pb-[calc(env(safe-area-inset-bottom,0rem)+0.875rem)]", className)}>
       <div className="pointer-events-auto flex h-16 items-center gap-1 rounded-full bg-ow-black px-2 text-ow-white">
@@ -27,7 +27,7 @@ export function FloatingDock({ left, right, centreHref = "/", onSearch, classNam
         </Link>
         <DockLink item={right} />
       </div>
-      {onSearch ? <SearchPill onClick={onSearch} className="pointer-events-auto h-16" /> : null}
+      {onSearch ? <SearchPill onClick={onSearch} {...(searchLabel ? { label: searchLabel } : {})} className="pointer-events-auto h-16" /> : null}
     </nav>
   );
 }

@@ -279,3 +279,21 @@ body:has(.reel-page) .page-shell {
 
 /* K-250: the trademark attribution under the footer credit — Canton's guidelines ask for it wherever its mark is used. */
 .footer-attribution { margin: 18px 0 0; max-width: 96ch; font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--gray-600); font-variant-numeric: tabular-nums; }
+
+/* The revamp shell (components/shell/app, K-405): a left rail on desktop, a top bar and the floating dock on phones.
+ * The old marquee + header offsets give way to these; a hero route still clears its own top. */
+html[data-shell="app"] .page-shell { padding-top: calc(var(--appstrip) + 5rem); padding-bottom: 7.5rem; }
+html[data-shell="app"] .ow-app-rail { top: var(--appstrip); }
+@media (min-width: 64em) {
+  html[data-shell="app"] .page-shell,
+  html[data-shell="app"] .footer { margin-left: 13.75rem; }
+  html[data-shell="app"] .page-shell { padding-top: calc(var(--appstrip) + 1.5rem); padding-bottom: 0; }
+}
+html[data-shell="app"] .page-shell:has(> .page-hero),
+html[data-shell="app"] .page-shell:has(> * > .page-hero:first-child) { padding-top: 0; }
+/* A hero's 168 px (116 px on phones) cleared the old fixed header; under the rail it clears only the strip, and on
+ * phones the top bar. */
+html[data-shell="app"] .page-hero { padding-top: calc(var(--appstrip) + 5.5rem); }
+@media (min-width: 64em) {
+  html[data-shell="app"] .page-hero { padding-top: calc(var(--appstrip) + 2.5rem); }
+}

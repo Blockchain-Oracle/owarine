@@ -1,13 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { BootNotice } from "@/providers/MarketsBoot";
 import CustomCursor from "./CustomCursor";
 import Footer from "./Footer";
-import GrainOverlay from "./GrainOverlay";
-import Header from "./header/Header";
-import Marquee from "./Marquee";
+import { AppRail } from "./app/AppRail";
+import { PhoneChrome } from "./app/PhoneChrome";
+import { ShellOverlays } from "./app/ShellOverlays";
 import { MobileBottomNav } from "./header/MobileBottomNav";
 
 /**
@@ -41,9 +41,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   }
   return (
     <>
-      <Marquee />
-      <Header />
-      <GrainOverlay />
+      <ShellMark />
+      <AppRail />
+      <PhoneChrome />
+      <ShellOverlays />
       <CustomCursor />
       <main className="page-shell">
         <BootNotice />
@@ -52,4 +53,16 @@ export function ShellChrome({ children }: { children: ReactNode }) {
       <Footer />
     </>
   );
+}
+
+/** Marks the document while the revamp shell is mounted (shell.css swaps the old header offsets for the rail's). */
+function ShellMark() {
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.shell = "app";
+    return () => {
+      delete root.dataset.shell;
+    };
+  }, []);
+  return null;
 }
