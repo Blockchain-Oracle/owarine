@@ -1,7 +1,22 @@
+import { execSync } from "node:child_process";
 import type { NextConfig } from "next";
 import { DOCS_URL, docsUrl } from "./src/lib/docs-url";
 
+/** This build's id: the deploy's commit, else the checkout's, else the time — the updater compares it with the server's. */
+function buildId(): string {
+  const fromEnv = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.SOURCE_COMMIT ?? process.env.GIT_SHA;
+  if (fromEnv) return fromEnv.slice(0, 12);
+  try {
+    return execSync("git rev-parse --short=12 HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return `t${Date.now()}`;
+  }
+}
+const BUILD_ID = buildId();
+
 const nextConfig: NextConfig = {
+  env: { NEXT_PUBLIC_BUILD_ID: BUILD_ID },
+  generateBuildId: () => BUILD_ID,
   redirects: () => [
     { source: "/docs", destination: DOCS_URL, permanent: false },
     { source: "/docs/:path*", destination: docsUrl(":path*"), permanent: false },

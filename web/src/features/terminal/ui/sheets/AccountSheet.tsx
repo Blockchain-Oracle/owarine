@@ -104,7 +104,7 @@ function Toggle({ label, sub, on, onChange }: { label: string; sub?: string; on:
  * Tradash's Account sheet `ae`, for a seat: profile, the balance with today's P&L, the money actions, Trading and App
  * groups, and the demo reset; its Settings (mode, feedback, music, Close tolerance) and Trade history (stats + list).
  */
-export function AccountSheet({ open, onClose, initialView, mode, equity, todayPnl, onTour, onTakeSeat, onReplay, onLeaderboard }: {
+export function AccountSheet({ open, onClose, initialView, mode, equity, todayPnl, onTour, onTakeSeat, onReplay, onLeaderboard, onInstall }: {
   open: boolean;
   onClose: () => void;
   initialView: AccountView;
@@ -115,6 +115,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
   onTakeSeat: () => void;
   onReplay: (row: HistoryRow, episode: Episode) => void;
   onLeaderboard: () => void;
+  onInstall: () => void;
 }) {
   const [view, setView] = useState<AccountView>(initialView);
   const [viewFor, setViewFor] = useState(initialView);
@@ -184,7 +185,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
             </Group>
             <Group title="APP">
               <Item icon={CircleHelp} label="How it works" onClick={onTour} />
-              <Item icon={Download} label="Install app" href="/download" />
+              <Item icon={Download} label="Install app" onClick={onInstall} />
             </Group>
             {mode === "demo" ? (
               <button type="button" onClick={() => (tap(), resetDemo(), toast({ kind: "info", title: "Demo balance reset", description: "10,000 credits, no open positions." }))} className="h-12 rounded-ow-card bg-ow-recessed/60 text-ow-body">

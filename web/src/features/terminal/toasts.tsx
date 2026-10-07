@@ -18,6 +18,10 @@ export interface TradeToast {
   title: string;
   description?: string;
   confetti?: boolean;
+  /** A button on the toast (the updater's Refresh). */
+  action?: { label: string; run: () => void };
+  /** Stays until dismissed, like a loading toast but closable. */
+  persistent?: boolean;
 }
 
 const LIFETIME: Record<Exclude<ToastKind, "loading">, number> = { success: 3_500, error: 5_000, info: 3_500 };
@@ -48,7 +52,7 @@ export function toast(t: Omit<TradeToast, "id"> & { id?: string }): string {
   const entry = { ...t, id, at: Date.now() };
   const exists = toasts.some((x) => x.id === id);
   toasts = exists ? toasts.map((x) => (x.id === id ? entry : x)) : [entry, ...toasts].slice(0, MAX);
-  if (t.kind !== "loading") timers.set(id, setTimeout(() => dismissToast(id), LIFETIME[t.kind]));
+  if (t.kind !== "loading" && !t.persistent) timers.set(id, setTimeout(() => dismissToast(id), LIFETIME[t.kind]));
   emit();
   return id;
 }
@@ -85,6 +89,11 @@ export function TradeToasts() {
                   <p className="text-ow-body font-semibold">{t.title}</p>
                   {t.description ? <p className="text-ow-caption text-ow-muted">{t.description}</p> : null}
                 </div>
+                {t.action ? (
+                  <button type="button" onClick={t.action.run} className="h-8 shrink-0 self-center rounded-full bg-ow-ink px-3 text-ow-caption font-bold text-ow-inverse">
+                    {t.action.label}
+                  </button>
+                ) : null}
                 {t.kind !== "loading" ? (
                   <button type="button" aria-label="Dismiss" onClick={() => dismissToast(t.id)} className="grid size-6 place-items-center rounded-full text-ow-muted hover:text-ow-ink">
                     <X className="size-4" />
