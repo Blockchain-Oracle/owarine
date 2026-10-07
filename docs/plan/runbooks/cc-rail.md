@@ -1,6 +1,6 @@
 # Runbook: the Canton Coin rail on DevNet (C7b)
 
-**Status on 30 Sep:** built and proved in Daml Script and unit tests; never run against a node, a wallet or a registry. The path is `not-live` in code (`CC_RAIL_CAPABILITY`, `packages/core/src/cc/index.ts`), so every seat write refuses and every screen says "Not live" until the steps below have run and been recorded. The decisions are K-245 to K-248; what is proven and what waits is `docs/evidence/c7b-canton-coin.md`.
+**Status on 7 Oct:** run end to end on Noders DevNet (listing, faucet tap, deposit, withdrawal, receive, reserve; `docs/evidence/c7b-canton-coin.md` "DevNet run, 2026-10-07"), and `CC_RAIL_CAPABILITY` is `live`. The decisions are K-245 to K-248 and K-406. A wallet on another participant (the V2 allocation route) is still not built.
 
 Nothing in this runbook is done by the build. Abu (or the agent with Abu's go-ahead) does it on the Noders participant, after R1 (`devnet-r1.md`).
 
@@ -14,15 +14,16 @@ Nothing in this runbook is done by the build. Abu (or the agent with Abu's go-ah
 
 ## 2. Find the registry
 
-- The instrument's admin party for Canton Coin is the DSO party (read it from Scan). `CC_INSTRUMENT_ADMIN` is that party id, `CC_INSTRUMENT_ID=Amulet`.
-- The registry's off-ledger API is at the Scan/validator registry base (`/registry/transfer-instruction/v1/...`). `CC_REGISTRY_URL` is that base. It is unauthenticated by design; nothing here sends a credential.
+- The instrument's admin party for Canton Coin is the DSO party. `CC_INSTRUMENT_ADMIN` is that party id, `CC_INSTRUMENT_ID=Amulet`. On Noders DevNet: `DSO::1220be58c29e65de40bf273be1dc2b266d43a9a002ea5b18955aeef7aac881bb471a` (`GET <scan proxy>/dso-party-id`).
+- A DevNet participant cannot reach the SVs' Scan (it answers 403 outside their allowlist). The validator's scan proxy serves the token standard registry: `CC_REGISTRY_URL=https://validator-api-http.validator.hackcanton-01.devnet.naas.noders.services/api/validator/v0/scan-proxy` (the client appends `/registry/…`). The proxy asks for the participant's own user token: `CC_REGISTRY_AUTH=ledger` sends this process's ledger token to that base only. A public registry needs neither.
 
 ## 3. Create the listing and start the actor, dry
 
 In the ops environment (Coolify `pm-ops`, or the scripts' `devnet.env` for a one-off):
 
 ```
-OPS_ACTORS=venue,cc-rail        # cc-rail is opt-in; it is never in "all"
+OPS_ACTORS=default,cc-rail      # the usual venue actors plus the opt-in rail; never in "all"
+CC_REGISTRY_AUTH=ledger         # behind a validator's scan proxy
 CC_LISTING_ID=cc-1
 CC_INSTRUMENT_ADMIN=<the DSO party>
 CC_INSTRUMENT_ID=Amulet
@@ -36,14 +37,14 @@ Read the `cc-rail` lines in the ops log: `created listing cc-1: Amulet of … at
 
 ## 4. A real deposit
 
-1. Give a seat's party some Canton Coin (DevNet tap, or a wallet transfer to the party).
-2. Set `CC_RAIL_CAPABILITY` to `live` **locally and not committed**, run web against DevNet, and `POST /api/ledger/cc/deposit {"commandId":"<uuid>","amount":"12.5"}` as the seat. The registry is asked for the factory and the choice context; the seat instructs `TransferFactory_Transfer` to the venue.
+1. Give a seat's party some Canton Coin. On DevNet set `CC_FAUCET_COIN=200` for the web: the funds card offers "Get 200 test Canton Coin" (`POST /api/ledger/cc/tap`), the seat's own `AmuletRules_DevNet_Tap`, no wallet needed. `scripts/drive/cc-devnet.ts --party alice --tap 100` does the same for a named party.
+2. `POST /api/ledger/cc/deposit {"commandId":"<uuid>","amount":"12.5"}` as the seat (the funds card's deposit form). The registry is asked for the factory and the choice context; the seat instructs `TransferFactory_Transfer` to the venue.
 3. Set `DRY_RUN=0`. The actor accepts the instruction with the registry's accept context and credits the seat's cash in one transaction. Check: the seat's `VenueCash` (bucket `cc:cc-1`) is exactly `amount x 100000 / coin`; a `CcAllowance` of the same units and a `CcDeposit` receipt exist; the venue's holdings on Scan grew by `amount`.
 4. Try a dust amount (`1.000001` at the default rate): `depositAmount` and the route refuse it before signing; a transfer of it made outside the app, from a seat that has a venue account, is rejected back by the actor. Check the holdings the actor counts: their signatories must include the DSO party, or every one is ignored.
 
 ## 5. A real withdrawal
 
-`POST /api/ledger/cc/withdraw {"commandId":"<uuid>","units":"400000"}` as the seat. The actor answers the proposal: the cash is debited, the allowance lowered, the transfer instructed. Two cases to see: the seat has a `TransferPreapproval` (the transfer completes at once, receipt `WdCompleted`), and it does not (the transfer is `Pending`; the seat accepts it, and the actor's history read records it completed; a transfer nobody accepts is taken back after `CC_REFUND_AFTER_SEC` and refunded; a pending transfer the owner does not want is rejected through the receipt, `Withdrawal_OwnerReject`, which returns cash and allowance in the same transaction. A transfer rejected in a wallet stays `Sent` and the actor logs an ALERT).
+`POST /api/ledger/cc/withdraw {"commandId":"<uuid>","units":"400000"}` as the seat. The actor answers the proposal: the cash is debited, the allowance lowered, the transfer instructed. Two cases to see: the seat has a `TransferPreapproval` (the transfer completes at once, receipt `WdCompleted`), and it does not (the transfer is `Pending`; the seat accepts it with "Receive … Canton Coin", `POST /api/ledger/cc/receive`, and the actor's history read records it completed; a transfer nobody accepts is taken back after `CC_REFUND_AFTER_SEC` and refunded; a pending transfer the owner does not want is rejected through the receipt, `Withdrawal_OwnerReject`, which returns cash and allowance in the same transaction. A transfer rejected in a wallet stays `Sent` and the actor logs an ALERT).
 
 ## 6. The reserve
 
@@ -63,6 +64,8 @@ Add the run's evidence to `docs/evidence/c7b-canton-coin.md` (update ids, screen
 | `CC_UNITS_PER_COIN` | `100000` | the fixed rate; must divide 10^10 |
 | `CC_MIN_DEPOSIT_UNITS`, `CC_MAX_DEPOSIT_UNITS` | `100000`, `1000000000` | the listing's deposit bounds, in cash units |
 | `CC_REGISTRY_URL` | none | the token registry base (https only); without it the actor reads and reports only |
+| `CC_REGISTRY_AUTH` | none | `ledger`: send this process's ledger token to the registry (a validator's scan proxy asks for it) |
+| `CC_FAUCET_COIN` | none | DevNet only (web): the test coin one tap gives a seat; a seat holding that much cannot tap again |
 | `CC_ALLOWED_PACKAGE_IDS` | any | package ids the registry's instruction templates may come from |
 | `CC_CREATE_LISTING` | off | create the listing when absent |
 | `CC_REQUIRE_LEASE` | on | credit and pay only seats with a live lease (K-224); off only for a LocalNet with no seat pool |

@@ -298,3 +298,36 @@ describe("the rail's venue pass (C7b, against a fake ledger and a fake registry)
     expect(log).toHaveBeenCalledWith(expect.stringContaining("no listing"));
   });
 });
+
+describe("the reserve statement's clock (revamp 2b)", () => {
+  const statement = (heldAtomic: string) =>
+    created(CC_TEMPLATE_IDS.CcReserveStatement, `stmt-${heldAtomic}`, {
+      venue: VENUE, auditor: "aud::1", listingId: "cc-1", instrumentAdmin: ADMIN, instrumentId: "Amulet", unitsPerCoin: RATE, seq: "0", "asOf": "2026-10-01T11:59:00Z",
+      heldAtomic, heldUnits: "0", liabilityAtomic: "0", liabilityUnits: "0", allowanceCount: "0", covered: true, previous: null,
+    });
+  const deposit = () => withViews("pkg:Splice.Amulet:AmuletTransferInstruction", "instr1", [{ interfaceId: CIP56_INTERFACE_IDS.TransferInstruction, viewValue: instrView(ALICE, VENUE, "12.5000000000") }], { signatories: [ALICE, ADMIN] });
+  const venueCoin = () => withViews("pkg:Splice.Amulet:Amulet", "hold1", [{ interfaceId: CIP56_INTERFACE_IDS.Holding, viewValue: holdingView(VENUE, "12.5000000000") }], { signatories: [VENUE, ADMIN] });
+  const at = (sec: number) => () => Date.parse("2026-10-01T12:00:00Z") / 1000 + sec;
+  const pass = (h: ReturnType<typeof harness>, sec: number) => railPass(deps(h, registry(), { attestEverySec: 300, nowSec: at(sec) }));
+
+  it("states a move made before the statement was due at the next due pass, even when that pass moves nothing", async () => {
+    const templates: ActiveContract[] = [LISTING, ACCOUNT, statement("0")];
+    const views: ActiveContract[] = [deposit()];
+    const h = harness({ templates, views });
+    expect(await pass(h, 0)).toMatchObject({ settled: 1, attested: true });
+    // a minute later the coin has moved, but the statement is not due
+    views.splice(0, views.length, venueCoin());
+    expect(await pass(h, 60)).toMatchObject({ attested: false });
+    // nothing moves after that; once due, the statement no longer says what is held, so it is stated again
+    expect(await pass(h, 301)).toMatchObject({ settled: 0, attested: true });
+    // once the ledger's statement says what is held, a quiet due pass states nothing more
+    templates.splice(2, 1, statement("125000000000"));
+    expect(await pass(h, 700)).toMatchObject({ attested: false });
+  });
+
+  it("after a restart, re-states a statement the ledger has moved past", async () => {
+    const h = harness({ templates: [LISTING, ACCOUNT, statement("0")], views: [venueCoin()] });
+    resetRailClock();
+    expect(await pass(h, 0)).toMatchObject({ settled: 0, attested: true });
+  });
+});

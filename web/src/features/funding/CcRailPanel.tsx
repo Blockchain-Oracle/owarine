@@ -34,6 +34,21 @@ export function CcRailPanel() {
         </p>
       ))}
       {cc.readError && <p className="fund-msg fund-msg--err" role="alert">{cc.readError}</p>}
+      {panel.receiveCoin && (
+        <div className="fund-cc-form">
+          <button type="button" className="fund-row" disabled={cc.busy} onClick={() => void cc.receive()} data-cursor="hover">
+            {cc.busy ? C.sending : C.receiveCta(panel.receiveCoin)}
+          </button>
+        </div>
+      )}
+      {panel.tapCoin && (
+        <div className="fund-cc-form">
+          <button type="button" className="fund-row" disabled={cc.busy} onClick={() => void cc.tap()} data-cursor="hover">
+            {cc.busy ? C.sending : C.tapCta(panel.tapCoin)}
+          </button>
+          <p className="fund-cc-line">{C.tapNote}</p>
+        </div>
+      )}
       {panel.canDeposit && (
         <form
           className="fund-cc-form"

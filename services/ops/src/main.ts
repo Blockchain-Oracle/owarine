@@ -64,6 +64,8 @@ function selectedActors(raw: string | undefined): Set<string> {
   if (names.length === 0) return new Set(VENUE_ACTORS);
   // "all" is the venue and the legacy actors; an opt-in actor named beside it ("all,desk-runner") joins rather than being dropped.
   if (names.includes("all")) return new Set([...VENUE_ACTORS, ...LEGACY_ACTORS, ...names.filter((n) => n !== "all" && (OPT_IN_ACTORS as readonly string[]).includes(n))]);
+  // "default" is the set an empty OPS_ACTORS runs, with any opt-in actor named beside it ("default,cc-rail").
+  if (names.includes("default")) return new Set([...VENUE_ACTORS, ...names.filter((n) => n !== "default" && (OPT_IN_ACTORS as readonly string[]).includes(n))]);
   return new Set(names);
 }
 

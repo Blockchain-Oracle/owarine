@@ -4,7 +4,7 @@ import { ccPanel, depositAmount, withdrawUnits } from "./cc-panel";
 
 const listing = { listingId: "cc-1", instrumentAdmin: "dso::1", instrumentId: "Amulet", unitsPerCoin: "100000", minDepositUnits: "100000", maxDepositUnits: "1000000000", depositsOpen: true };
 const view = (o: Partial<CcRailReply> = {}): CcRailReply => ({
-  capability: "live", reason: null, listing, allowanceUnits: "0", cashUnits: "0", holdings: [], deposits: [], withdrawals: [], proposals: [], reserve: null, ...o,
+  capability: "live", reason: null, listing, allowanceUnits: "0", cashUnits: "0", holdings: [], deposits: [], withdrawals: [], proposals: [], reserve: null, faucetCoin: null, ...o,
 });
 
 describe("the Canton Coin panel (C7b)", () => {

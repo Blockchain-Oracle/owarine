@@ -15,6 +15,7 @@ import { diagnosis, type Diagnosis } from "@owarine/core/types";
 import { CC_TEMPLATE_IDS, CIP56_INTERFACE_IDS, TEMPLATE_IDS } from "@owarine/daml";
 import { UnitsError, atomicToCashUnitsExact, cashUnitsToCc, ccToAtomic, type ContractId, type JsTransaction, type LedgerClient, type Party } from "@owarine/ledger";
 import { readCip56Holdings } from "../holdings/reader";
+import { createCcMoves, type CcFaucet } from "./cc-moves";
 import { ccCmd, coverHoldings, decodeAllowance, decodeDeposit, decodeHoldingView, decodeListing, decodeProposal, decodeStatement, decodeWithdrawal, interfaceViewOf, RegistryError, type RegistryClient } from "../ops/cc";
 import { decodeVenueCash, templateSuffix } from "../ops/canton/decode";
 import type { CcWriteReply } from "../provider/cc-wire";
@@ -34,8 +35,11 @@ export interface CcSeatConfig {
   registry?: RegistryClient | null;
   /** How long a deposit the seat instructs stays open for the venue to accept. */
   transferWindowSec?: number;
+  /** DevNet's test-coin faucet (revamp 2b); null or absent everywhere else. */
+  faucet?: CcFaucet | null;
   now?: () => number;
 }
+
 
 const RAIL = [CC_TEMPLATE_IDS.CcAllowance, CC_TEMPLATE_IDS.CcDeposit, CC_TEMPLATE_IDS.CcWithdrawal, CC_TEMPLATE_IDS.CcWithdrawProposal, TEMPLATE_IDS.VenueCash] as const;
 const is = (templateId: string, want: string) => templateSuffix(templateId) === templateSuffix(want);
@@ -93,6 +97,7 @@ export function createCcSeat(cfg: CcSeatConfig) {
       withdrawals: [],
       proposals: [],
       reserve: venue.statement && { covered: venue.statement.covered, asOfSec: venue.statement.asOfSec, heldUnits: venue.statement.heldUnits.toString(), liabilityUnits: venue.statement.liabilityUnits.toString() },
+      faucetCoin: null,
     };
     let allowance = 0n;
     let cash = 0n;
@@ -148,6 +153,10 @@ export function createCcSeat(cfg: CcSeatConfig) {
       }
     }
     view.holdings = [...totals.values()].map((t) => ({ instrumentAdmin: t.instrumentAdmin, instrumentId: t.instrumentId, unlockedAtomic: t.unlocked.toString(), lockedAtomic: t.locked.toString() }));
+    if (cfg.faucet && view.listing) {
+      const listed = totals.get(`${view.listing.instrumentAdmin}\n${view.listing.instrumentId}`);
+      if ((listed ? listed.unlocked + listed.locked : 0n) < cfg.faucet.capAtomic) view.faucetCoin = cfg.faucet.amount;
+    }
     view.reason = cfg.capability === "not-live" ? NOT_LIVE : !view.listing ? "The venue has not listed Canton Coin yet." : !view.listing.depositsOpen ? "The venue is not taking new Canton Coin deposits." : null;
     return view;
   }
@@ -300,8 +309,14 @@ export function createCcSeat(cfg: CcSeatConfig) {
     }
   }
 
-  return { status, requestWithdraw, requestDeposit };
+  const moves = createCcMoves({
+    client, journal, venueParty: cfg.venueParty, registry: cfg.registry ?? null, faucet: cfg.faucet ?? null,
+    live: () => cfg.capability === "live", notLive, status, now,
+  });
+
+  return { status, requestWithdraw, requestDeposit, requestTap: moves.requestTap, requestReceive: moves.requestReceive };
 }
 
 export type CcSeat = ReturnType<typeof createCcSeat>;
+export type { CcFaucet };
 export type { ContractId };

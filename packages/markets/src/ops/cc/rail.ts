@@ -369,16 +369,22 @@ export async function railPass(deps: RailDeps): Promise<RailPassResult> {
     }
   }
 
-  // 3. the reserve statement, when something moved (or none exists yet) and it is due
+  // 3. the reserve statement, when it is due and something moved this pass or the last statement no longer says what is
+  //    held and owed. Comparing with the ledger, not remembering moves, also states a move made before the statement was
+  //    due and one from before a restart (7 Oct 2026, DevNet: a withdrawal a minute after a deposit's statement was never
+  //    stated, so the statement kept saying 12.5 held against 12.5 owed after 5 had gone back).
   const moved = out.settled + out.accepted + out.completed + out.refunded + out.merged > 0;
   const clock = `${me}\n${deps.listingId}`;
   const due = deps.attestEverySec === 0 || now - (lastAttest.get(clock) ?? 0) >= deps.attestEverySec;
-  if ((moved || snap.statement === null) && due) {
+  if (due) {
     if (changed && !(await reread())) return out;
     await attempt("attest", async () => {
       const fresh = snap;
       if (!fresh.listing) return;
       const plan = planAttest({ venue: me, listing: fresh.listing.data, holdings: fresh.holdings, allowances: fresh.allowances, ...(deps.allowedPackageIds ? { allowedPackageIds: deps.allowedPackageIds } : {}) });
+      const last = fresh.statement?.data ?? null;
+      const stale = !last || last.heldAtomic !== plan.heldAtomic || last.liabilityAtomic !== plan.liabilityAtomic;
+      if (!moved && !stale) return;
       const seq = fresh.statement ? fresh.statement.data.seq + 1 : 0;
       await send(ids.attestCommandId(deps.listingId, seq), cmd.attestReserve(fresh.listing.cid, { holdingCids: plan.holdingCids, allowanceCids: plan.allowanceCids, previous: fresh.statement?.cid ?? null }), null);
       out.attested = true;

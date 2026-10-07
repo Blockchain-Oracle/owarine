@@ -33,6 +33,10 @@ export interface CcPanel {
   maxWithdrawUnits: bigint;
   /** The deposit step, as a coin amount string ("0.00001"); null without a listing. */
   step: string | null;
+  /** DevNet: the test coin one tap gives (offered only when live and the server says the seat may tap); null otherwise. */
+  tapCoin: string | null;
+  /** The coin the venue has sent the seat and it has not yet accepted (offered only when live); null when none. */
+  receiveCoin: string | null;
 }
 
 const trimCc = (atomic: bigint): string => formatBaseUnits(atomic, CC_DECIMALS, { maxDp: CC_DECIMALS, minDp: 0, group: false });
@@ -40,11 +44,11 @@ const trimCc = (atomic: bigint): string => formatBaseUnits(atomic, CC_DECIMALS, 
 export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply | null }): CcPanel {
   const { capability, view } = input;
   if (capability !== "live") {
-    return { tone: "not-live", badge: C.notLive, headline: C.notLiveHeadline, lines: [C.notLiveBody, C.waitingOn(CC_RAIL_WAITING_ON)], canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null };
+    return { tone: "not-live", badge: C.notLive, headline: C.notLiveHeadline, lines: [C.notLiveBody, C.waitingOn(CC_RAIL_WAITING_ON)], canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
   }
   const listing = view?.listing ?? null;
   if (!view || !listing) {
-    return { tone: "unlisted", badge: C.ready, headline: C.unlisted, lines: [], canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null };
+    return { tone: "unlisted", badge: C.ready, headline: C.unlisted, lines: [], canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
   }
   const rate = BigInt(listing.unitsPerCoin);
   const step = trimCc(atomicPerCashUnit(rate));
@@ -62,7 +66,8 @@ export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply
   const held = view.holdings.find((h) => h.instrumentAdmin === listing.instrumentAdmin && h.instrumentId === listing.instrumentId);
   if (held) lines.push(C.holds(trimCc(BigInt(held.unlockedAtomic))));
   if (waiting) lines.push(C.waitingForVenue);
-  if (view.withdrawals.some((w) => w.state === "sent")) lines.push(C.inFlight);
+  const sentAtomic = view.withdrawals.filter((w) => w.state === "sent").reduce((sum, w) => sum + BigInt(w.sentAtomic), 0n);
+  if (sentAtomic > 0n) lines.push(C.inFlight);
   lines.push(
     view.reserve
       ? (view.reserve.covered ? C.reserveCovered : C.reserveShort)(formatBaseUnits(BigInt(view.reserve.heldUnits), CASH_DECIMALS), formatBaseUnits(BigInt(view.reserve.liabilityUnits), CASH_DECIMALS), UNIT)
@@ -77,6 +82,8 @@ export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply
     canWithdraw: maxWithdrawUnits > 0n,
     maxWithdrawUnits,
     step,
+    tapCoin: view.faucetCoin,
+    receiveCoin: sentAtomic > 0n ? trimCc(sentAtomic) : null,
   };
 }
 

@@ -11,7 +11,7 @@ import { CC_TEMPLATE_IDS } from "@owarine/daml";
 import { getDb, isDbConfigured, seatHolderLeases } from "@owarine/db";
 import { failureText, pick, readActive, submit } from "@owarine/markets/ops/canton";
 import {
-  archivedByExercise, ccCmd, createRegistryClient, decodeListing, railPass, type RailPassResult, type RegistryClient,
+  archivedByExercise, ccCmd, decodeListing, registryFromEnv, railPass, type RailPassResult, type RegistryClient,
 } from "@owarine/markets/ops/cc";
 import { runActor, type PassResult } from "../../runtime/actor";
 import type { VenueContext } from "../venue/context";
@@ -34,7 +34,7 @@ export function startCcRail(input: { venue: VenueContext; log: (why: string) => 
     input.log(`the Canton Coin rail's configuration is invalid: ${error instanceof Error ? error.message : String(error)}`);
     return null;
   }
-  const registry = input.registry === undefined ? (cfg.registryUrl ? createRegistryClient({ baseUrl: cfg.registryUrl }) : null) : input.registry;
+  const registry = input.registry === undefined ? registryFromEnv(input.env ?? process.env) : input.registry;
   if (!registry) input.log("no CC_REGISTRY_URL: the rail reads and reports, and attempts no deposit or withdrawal");
   if (!isDbConfigured() && cfg.requireLease) input.log("no database: with CC_REQUIRE_LEASE on, no seat has a live lease, so every deposit and every withdrawal is held, and none is settled or paid (K-224)");
 

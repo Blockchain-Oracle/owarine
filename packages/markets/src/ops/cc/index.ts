@@ -13,4 +13,6 @@ export * from "./allowances";
 export * from "./policy";
 export * from "./reserve";
 export { railPass, readRail, resetRailClock, type RailDeps, type RailPassResult, type RailSnapshot } from "./rail";
+export { faucetFromEnv, registryFromEnv } from "./registry-env";
+export { pickOpenRound, readTapContext, scanContract, tapCommand, type ScanContract, type TapContext } from "./devnet-tap";
 export { createRegistryClient, RegistryError, type FactoryAnswer, type InstructionChoice, type RegistryClient, type RegistryClientConfig } from "./registry";

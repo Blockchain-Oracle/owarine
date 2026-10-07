@@ -11,5 +11,11 @@ export const readCcRail = (): Promise<LedgerCallResult<CcRailReply>> => ledgerRe
 export const postCcDeposit = (amount: string, commandId: string = crypto.randomUUID()): Promise<LedgerCallResult<CcWriteReply>> =>
   ledgerRequest("/cc/deposit", { method: "POST", body: { commandId, amount }, wire: ccWriteReplyWire });
 
+export const postCcTap = (commandId: string = crypto.randomUUID()): Promise<LedgerCallResult<CcWriteReply>> =>
+  ledgerRequest("/cc/tap", { method: "POST", body: { commandId }, wire: ccWriteReplyWire });
+
+export const postCcReceive = (commandId: string = crypto.randomUUID()): Promise<LedgerCallResult<CcWriteReply>> =>
+  ledgerRequest("/cc/receive", { method: "POST", body: { commandId }, wire: ccWriteReplyWire });
+
 export const postCcWithdraw = (units: bigint, commandId: string = crypto.randomUUID()): Promise<LedgerCallResult<CcWriteReply>> =>
   ledgerRequest("/cc/withdraw", { method: "POST", body: { commandId, units: units.toString() }, wire: ccWriteReplyWire });

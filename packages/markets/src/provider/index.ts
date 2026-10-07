@@ -74,7 +74,7 @@ export * from "./ledger-wire";
 export * from "./ticket-wire";
 export * from "./agents-wire";
 export * from "./cc-wire";
-export { postCcDeposit, postCcWithdraw, readCcRail } from "./cc-client";
+export { postCcDeposit, postCcReceive, postCcTap, postCcWithdraw, readCcRail } from "./cc-client";
 export { leaseSeat, readSeatLease, releaseSeat, SEAT_LEASE_TTL_MS, seatLeaseRequestWire, seatLeaseText, seatLeaseWire, type SeatLeaseView } from "./seat";
 export {
   createSeatLink,

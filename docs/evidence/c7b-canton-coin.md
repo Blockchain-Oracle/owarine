@@ -135,3 +135,29 @@ Run 30 Sep 2026 on the tree with main `b392711` merged (`abu-pm-main` 0.5.1), Ap
 The Daml suite ran once before the two independent reviews and once after their fixes; both were green. `abu-pm-cc` is **not** in `RELEASE_PACKAGES` (`scripts/bootstrap/dar.ts`) and not in `daml/released/`: it is not ready for DevNet until items 1 to 3 below have a decision behind them.
 
 No sandbox was started: disk had 7.4 GB free (the lane's limit was 8 GB), and nothing here needs one. No node, wallet, registry or remote URL was contacted at any point; every credential-shaped variable in this lane is a name in a runbook, never a value.
+
+## DevNet run, 2026-10-07
+
+The rail's DevNet list (items 2 to 7 above) ran on Noders DevNet (participant `hackcanton-01`, validator 0.9.0, Canton 3.5.19) on 7 Oct 2026, ~20:22 to 20:40 UTC, with this Mac's ops (`OPS_ACTORS=default,cc-rail`) and web as the venue, and a guest seat taken in the browser (seat 3). Every amount below was read back from the ledger and matched exactly.
+
+| Step | Who | Update id | What the ledger then said |
+|---|---|---|---|
+| Listing `cc-1` created | venue (ops, `CC_CREATE_LISTING=1` once) | — (ops log 20:22:30Z) | Amulet of `DSO::1220be58…471a`, 125,000 cash units per coin (1 CC = 0.125 credit), bounds 0.8 to 8,000 CC |
+| Faucet tap, 200 CC | seat 3 (`POST /api/ledger/cc/tap`, the browser's "Get 200 test Canton Coin") | `12204839e455192db513ff5d711eb511274e9eecce040d0875c4d9533cfc1e8f22de` | seat holds 200 CC, the holding signed by the DSO |
+| Deposit 100 CC | seat 3 (`POST /api/ledger/cc/deposit`, the registry's factory and context) | `12202355724e7b5eca5a8880626f26084d2de529e63a89c13f2dd850379b8a611ea4` | instruction pending for the venue |
+| Settle | venue (`cc-rail`: `settled 1 … attested`, 20:28:57Z) | — | seat cash 1,000 → 1,012.5 credits; allowance 12.5; `CcDeposit` received exactly 100 CC (`1000000000000` atomic, **no transfer fee**); seat holds 100 CC; statement 12.5 held / 12.5 owed, covered |
+| Withdraw 5 credits | seat 3 (`POST /api/ledger/cc/withdraw`) | `1220dce2de9d89ed025a6bf9f541ecd670ec3a7e58bf670ad6933c80b8bc5b70f9aa` | ask created |
+| Answer | venue (`cc-rail`: `accepted 1`, 20:29:52Z) | — | cash 1,007.5; allowance 7.5; 40 CC instructed to the seat, receipt `WdSent` (two-step: a seat has no preapproval) |
+| Receive 40 CC | seat 3 (`POST /api/ledger/cc/receive`, the registry's accept context) | `1220133204c4a2e2045847c8482dc028d027bfcce7fd9a16339d8a79cb92fcb267c4` | seat holds 140 CC |
+| Complete | venue (`cc-rail`: `completed 1`, from the update stream, 20:33:27Z) | — | receipt `WdCompleted` |
+| Reserve re-stated | venue (`cc-rail`, first pass after the fix below, 20:40:18Z) | — | 7.5 held (the venue's 60 CC) / 7.5 owed, covered |
+
+What the run found and changed (K-406):
+
+- **The registry is the validator's scan proxy, and it wants a token.** A DevNet participant outside the SV allowlist cannot reach any SV's Scan (HTTP 403); the Noders validator proxies it, token standard registry included, at `<validator>/api/validator/v0/scan-proxy/registry/…`, behind the participant's own user token. `CC_REGISTRY_AUTH=ledger` sends this process's ledger token, to the one configured https base only (`ops/cc/registry-env.ts`); unset, nothing is sent, as before.
+- **DevNet coin without a wallet.** `AmuletRules_DevNet_Tap` with the DSO's `AmuletRules` and an `OpenMiningRound` read from the same scan proxy and disclosed on the submission (`ops/cc/devnet-tap.ts`): the seat (or any party we host) taps for itself, so the Noders wallet's "Onboard yourself" (which fails for our ledger user) is not on the path. Offered to a seat only where `CC_FAUCET_COIN` is set, and only while it holds less than that.
+- **The withdrawal's second step was missing on the seat side.** A seat has no wallet and no preapproval, so every venue → seat transfer is an offer; nothing in the app accepted it. `requestReceive` (`server/cc-moves.ts`) accepts only the registry-signed offers from the venue that name one of the seat's own `sent` receipts.
+- **A move made before the statement was due was never stated.** The rail attested only in a pass that both moved something and was due; the withdrawal came a minute after the deposit's statement, so the statement kept saying 12.5 / 12.5. A due pass now compares the ledger's held and owed with the last statement and re-states when they differ, which also covers a restart.
+- **Amulet charges no transfer fee** on these transfers (the deposit receipt's `received` equals the amount, and the venue's 60 CC after sending 40 equals 100 − 40). The Splice docs' note is now measured.
+
+Still not built (unchanged from above): a wallet on another participant (item 8, the V2 allocation route), and a durable, user-owned depositor party; the rail stays a DevNet rail on pooled seats (K-248).

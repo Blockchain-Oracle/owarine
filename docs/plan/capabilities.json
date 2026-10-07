@@ -1863,14 +1863,17 @@
     },
     {
       "id": "C-DAML-06",
-      "capability": "Canton Coin rail (CIP-56 allocation)",
-      "state": "not-live",
+      "capability": "Canton Coin rail (CIP-56 transfer instructions, seats on our participant)",
+      "state": "live",
       "dependsOn": [
         "gate:C7b"
       ],
       "parityRow": "C-DAML-06",
-      "acceptanceRow": null,
-      "evidence": []
+      "acceptanceRow": "C7b DevNet: Canton Coin round trip",
+      "evidence": [
+        "docs/evidence/c7b-canton-coin.md#devnet-run-2026-10-07",
+        "docs/plan/runbooks/cc-rail.md"
+      ]
     },
     {
       "id": "C-OPS-01",

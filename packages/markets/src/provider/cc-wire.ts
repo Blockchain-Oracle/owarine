@@ -31,6 +31,7 @@ export const ccRailWire = z.object({
   withdrawals: z.array(z.object({ units: digits, sentAtomic: digits, state: z.enum(["sent", "completed", "refunded"]), openedAtSec: z.number().int(), ref: z.string() })),
   proposals: z.array(z.object({ units: digits, ref: z.string() })),
   reserve: z.object({ covered: z.boolean(), asOfSec: z.number().int(), heldUnits: digits, liabilityUnits: digits }).nullable(),
+  faucetCoin: z.string().regex(/^\d{1,8}(\.\d{1,10})?$/).nullable(),
 });
 export type CcRailReply = z.output<typeof ccRailWire>;
 
@@ -39,6 +40,11 @@ export const ccWithdrawRequestWire = z.strictObject({ commandId, units: digits }
 
 /** `POST /api/ledger/cc/deposit`: `amount` is a `Decimal` string (`"12.5"`), exact or refused; the seat is the lease's. */
 export const ccDepositRequestWire = z.strictObject({ commandId, amount: z.string().regex(/^\d{1,8}(\.\d{1,10})?$/, "a decimal amount with at most 10 places") });
+
+/** `POST /api/ledger/cc/tap` (DevNet): the seat taps the faucet's fixed amount for itself; nothing but a journal id is sent. */
+export const ccTapRequestWire = z.strictObject({ commandId });
+/** `POST /api/ledger/cc/receive`: the seat accepts the venue's pending transfers for its withdrawals; only a journal id is sent. */
+export const ccReceiveRequestWire = ccTapRequestWire;
 
 export const ccWriteReplyWire = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("requested"), updateId: z.string(), recovered: z.boolean() }),

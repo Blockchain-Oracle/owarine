@@ -5,8 +5,10 @@
  * API" 1.1.0), NOT run against a registry: nothing in this lane contacts a node. `fetch` is injected, so the tests
  * answer from fixtures and a deployment passes the real one.
  *
- * The registry API is unauthenticated by design (the standard relies on unguessable contract ids), so nothing here
- * sends a credential. A choice context is fetched fresh for each choice and never cached: contexts can be
+ * The registry API is unauthenticated by design (the standard relies on unguessable contract ids), so by default nothing
+ * here sends a credential. A validator's scan proxy (`/api/validator/v0/scan-proxy/registry/…`, the only Canton Coin
+ * registry a DevNet participant outside the SV allowlist can reach) asks for the participant's own user token: `token`
+ * supplies it, and it goes only to the one configured https base. A choice context is fetched fresh for each choice and never cached: contexts can be
  * choice-specific and their disclosed contracts expire.
  */
 import { z } from "zod";
@@ -52,6 +54,8 @@ export interface RegistryClientConfig {
   baseUrl: string;
   fetch?: typeof fetch;
   timeoutMs?: number;
+  /** A bearer token for a registry behind a validator's scan proxy (`CC_REGISTRY_AUTH=ledger`); absent = none sent. */
+  token?: () => Promise<string | undefined>;
 }
 
 /** The most of an answer read: a registry's choice context is kilobytes, and a hostile endpoint must not fill memory. */
@@ -70,10 +74,17 @@ export function createRegistryClient(cfg: RegistryClientConfig): RegistryClient 
 
   async function post(path: string, body: unknown): Promise<unknown> {
     let response: Response;
+    const headers: Record<string, string> = { "content-type": "application/json", accept: "application/json" };
+    try {
+      const token = cfg.token ? await cfg.token() : undefined;
+      if (token) headers.authorization = `Bearer ${token}`;
+    } catch {
+      throw new RegistryError("the registry's token could not be had");
+    }
     try {
       response = await doFetch(`${base}${path}`, {
         method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json" },
+        headers,
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(timeoutMs),
       });

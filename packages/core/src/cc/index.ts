@@ -5,14 +5,13 @@
  */
 
 /**
- * Whether the Canton Coin path may be offered as working. It is `not-live` in code, not in an environment variable, so a
- * deployment cannot flip it by accident: the day DevNet proves a real deposit and a real withdrawal with a real wallet
- * (`docs/evidence/c7b-canton-coin.md`, "What waits for DevNet"), a commit changes this line together with the capability
- * registry (`docs/plan/capabilities.json` C-DAML-06) and the acceptance row. Until then every screen shows the path as
- * not live and every write refuses.
+ * Whether the Canton Coin path may be offered as working. It lives in code, not in an environment variable, so a
+ * deployment cannot flip it by accident. `live` since 7 Oct 2026: a real deposit, withdrawal and receive ran on Noders
+ * DevNet with real DevNet coin (`docs/evidence/c7b-canton-coin.md`, "DevNet run, 2026-10-07"; C-DAML-06 and its
+ * acceptance rows). A deployment without a listing or a registry still offers nothing: the panel says what is missing.
  */
 export type CcRailCapability = "not-live" | "live";
-export const CC_RAIL_CAPABILITY: CcRailCapability = "not-live";
+export const CC_RAIL_CAPABILITY: CcRailCapability = "live";
 
 /** What the path is waiting on, in the words the screens use. */
 export const CC_RAIL_WAITING_ON = "a DevNet run of the token-standard transfer with a real wallet";
@@ -38,6 +37,11 @@ export interface CcRailView {
   proposals: { units: string; ref: string }[];
   /** The venue's latest reserve statement, when it has published one. */
   reserve: { covered: boolean; asOfSec: number; heldUnits: string; liabilityUnits: string } | null;
+  /**
+   * DevNet only (revamp 2b): the test coin one tap gives this seat (a Decimal string), or null when this deployment has no
+   * faucet or the seat already holds the faucet's cap. DevNet coin has no value; the tap is how a visitor gets coin to deposit.
+   */
+  faucetCoin: string | null;
 }
 
 export interface CcListingView {
