@@ -21,12 +21,17 @@ import { emitVenueEvent } from "../venue/events";
 import { emitFreshQuotes } from "./quote-bus";
 
 /**
- * Feeders fetch and post at T + 5 s: the active crypto policy's `minDelaySec` (v1, on every live MarketTerms), the
- * earliest `fetchedAt` the ledger admits as evidence (`Oracle.daml`). Measured 7 Oct 2026: Coinbase served the closed
- * candle by T + 1.1 s, Kraken by T + 2.3 s, Bitstamp by T + 3.5 s, never changing after (K-025 had 59 of 60 by T + 5 s).
- * A candle not final yet is retried every second and the batch waits to T + 20 s (`WAIT_ALL_SEC`), as before.
+ * When each oracle fetches and posts, per exchange. T + 5 s is the active crypto policy's `minDelaySec` (v1, on every
+ * live MarketTerms), the earliest `fetchedAt` the ledger admits (`Oracle.daml`). Checked 7 Oct 2026 against every
+ * archived print re-fetched later: Kraken and Bitstamp served their final candle at T + 5 s every time (0 of ~240
+ * differed), so they post then. Coinbase revises its 1-minute candle after first serving it — 18 of 122 prints taken at
+ * T + 5 s differed from its final candle, 8 of 142 at T + 10 s — so it keeps T + 10 s (its finalisation delay is an open
+ * measurement). A candle not served yet is retried every second; the batch waits to T + 20 s (`WAIT_ALL_SEC`).
  */
+export const POST_DELAY_SEC_BY_EXCHANGE: Readonly<Record<Exchange, number>> = { coinbase: 10, kraken: 5, bitstamp: 5 };
+/** The earliest any feeder posts (the policy minimum). */
 export const POST_DELAY_SEC = 5;
+const postDelayOf = (exchange: Exchange) => POST_DELAY_SEC_BY_EXCHANGE[exchange] ?? 10;
 /** A symbol whose candle is not final yet is waited for until T + this, then the rest is posted without it. */
 export const WAIT_ALL_SEC = 20;
 /**
@@ -59,7 +64,7 @@ export function readFeederSettings(env: NodeJS.ProcessEnv = process.env): Feeder
 }
 
 /** The boundary a pass at `nowSec` works on: the latest T with T + POST_DELAY ≤ now. */
-export const boundaryFor = (nowSec: number) => Math.floor((nowSec - POST_DELAY_SEC) / BAR_SEC) * BAR_SEC;
+export const boundaryFor = (nowSec: number, delaySec = POST_DELAY_SEC) => Math.floor((nowSec - delaySec) / BAR_SEC) * BAR_SEC;
 
 export const payloadHash = (payload: string) => createHash("sha256").update(payload, "utf8").digest("hex");
 
@@ -161,8 +166,9 @@ async function retire(state: FeederState, nowSec: number): Promise<string | null
 
 export async function feederPass(state: FeederState): Promise<PassResult> {
   const nowSec = (state.settings.nowSec ?? (() => Math.floor(Date.now() / 1000)))();
-  const boundarySec = boundaryFor(nowSec);
-  const nextSec = boundarySec + BAR_SEC + POST_DELAY_SEC;
+  const delaySec = postDelayOf(state.exchange);
+  const boundarySec = boundaryFor(nowSec, delaySec);
+  const nextSec = boundarySec + BAR_SEC + delaySec;
   const idle = (why: string): PassResult => ({ why, detail: { counters: { ...state.counters } }, nextDelayMs: Math.max(250, nextSec * 1000 - Date.now()) });
   for (const t of state.pending.keys()) if (t < boundarySec) state.pending.delete(t);
   if (state.done.has(boundarySec)) {
@@ -215,7 +221,7 @@ export function startOracleFeeders(venue: VenueContext, log: (actor: string) => 
       done: new Set(), pending: new Map(), lastRetireMs: 0,
       counters: { posted: 0, recovered: 0, partial: 0, missed: 0, failed: 0, retired: 0 }, log: log(name),
     };
-    log(name)(`feeding ${settings.symbols.join(",")} 1-minute closes as ${session.party.split("::")[0]}, policy v${venue.policyVersion}, at T+${POST_DELAY_SEC}s`);
+    log(name)(`feeding ${settings.symbols.join(",")} 1-minute closes as ${session.party.split("::")[0]}, policy v${venue.policyVersion}, at T+${postDelayOf(oracleName(role) as Exchange)}s`);
     stops.push(runActor({ name, log: log(name), dryRun: session.dryRun, everyMs: 2_000, pass: () => feederPass(state) }).stop);
   }
   return { stop: () => stops.forEach((s) => s()) };

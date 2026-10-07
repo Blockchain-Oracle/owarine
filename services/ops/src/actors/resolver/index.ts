@@ -32,10 +32,11 @@ const VOID_MARGIN_SEC = 2;
  * A quorum is enough, but every oracle is better evidence: with fewer than all of them counted, the resolver waits
  * until the boundary plus this before it records or resolves on the quorum alone. The feeders post at T + 5 s and a
  * post lands ~3.5 s later; the third oracle's print lands within ~0.5 s of the second at p50, so T + 12 s only bites
- * when one oracle is genuinely late. Posts at T + 5 s land at ~T + 15 s on DevNet (its boundary traffic), so the cap sits
- * just past that: three prints landing together record at once, a straggler doesn't hold the Window past T + 18 s.
+ * when one oracle is genuinely late. Kraken and Bitstamp post at T + 5 s, Coinbase at T + 10 s (it revises its candle
+ * later), and a post takes 4–9 s on DevNet at a boundary, so Coinbase lands ~T + 14–19 s: the cap sits just past that.
+ * Three prints record the moment the third lands; a straggler doesn't hold the Window past T + 21 s.
  */
-const ALL_ORACLES_WAIT_SEC = 18;
+const ALL_ORACLES_WAIT_SEC = 21;
 const ready = (t: TermsC, boundarySec: number, counted: number, nowSec: number) => counted >= t.quorum && (counted >= t.oracles.length || nowSec >= boundarySec + ALL_ORACLES_WAIT_SEC);
 
 interface ResolverState {

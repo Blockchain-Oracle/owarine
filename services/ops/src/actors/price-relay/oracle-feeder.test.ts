@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { LedgerClient } from "@owarine/ledger";
 import { candleUrl, closeFromPayload, decimalToE8, type Fetch } from "../../prices/candles";
-import { boundaryFor, feederPass, GIVE_UP_SEC, payloadHash, WIDEST_ADMISSION_SEC } from "./oracle-feeder";
+import { boundaryFor, feederPass, GIVE_UP_SEC, payloadHash, POST_DELAY_SEC_BY_EXCHANGE, WIDEST_ADMISSION_SEC } from "./oracle-feeder";
 
 const T = 1_790_000_040 - (1_790_000_040 % 60);
 
@@ -31,6 +31,10 @@ describe("exchange candles", () => {
     expect(boundaryFor(T + 5)).toBe(T);
     expect(boundaryFor(T + 64)).toBe(T);
     expect(boundaryFor(T + 65)).toBe(T + 60);
+    // Coinbase revises its candle after first serving it: its oracle works a boundary from T + 10 s.
+    expect(boundaryFor(T + 9, POST_DELAY_SEC_BY_EXCHANGE.coinbase)).toBe(T - 60);
+    expect(boundaryFor(T + 10, POST_DELAY_SEC_BY_EXCHANGE.coinbase)).toBe(T);
+    expect(POST_DELAY_SEC_BY_EXCHANGE.kraken).toBe(5);
   });
 });
 

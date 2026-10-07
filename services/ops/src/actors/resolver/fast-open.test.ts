@@ -70,7 +70,7 @@ describe("the resolver's fast path", () => {
     vi.useFakeTimers({ now: (terms.tradingStartSec + 9) * 1000 });
     const early = world(openQuotes(2));
     expect(await fastOpens(early.state)).toEqual([]);
-    vi.setSystemTime((terms.tradingStartSec + 19) * 1000);
+    vi.setSystemTime((terms.tradingStartSec + 22) * 1000);
     const late = world(openQuotes(2));
     await fastOpens(late.state);
     expect(late.submitted).toHaveLength(1);
