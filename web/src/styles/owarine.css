@@ -68,6 +68,14 @@ body {
   --ow-font-body: var(--font-inter), "Inter", system-ui, sans-serif;
   --ow-font-axis: var(--font-code), ui-monospace, monospace;
   --ow-font-jp: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
+
+  /* The live chart's canvas metrics (features/terminal/chart): read once per resize/theme, in CSS pixels. */
+  --ow-chart-axis-font: 500 11px var(--ow-font-axis);
+  --ow-chart-tag-font: 600 11px var(--ow-font-body);
+  --ow-chart-pill-font: 700 13px var(--ow-font-body);
+  --ow-chart-line: 2;
+  --ow-chart-pad-right: 84;
+  --ow-chart-pad-y: 28;
 }
 
 [data-theme="dark"] {

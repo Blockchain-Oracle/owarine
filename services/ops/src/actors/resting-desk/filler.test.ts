@@ -34,7 +34,7 @@ function setup(contracts: unknown[], o: { fillEnabled?: boolean; ladder?: { up: 
   if (o.ladder !== null) {
     board.put({
       marketId: "m", damlMarketId: "TSLA-5m:7", seriesId: "s", termsCid: "00terms", seriesKey: "TSLA-5m", symbol: "TSLA", index: 7, tradingStartSec: NOW - 10, lockAtSec: NOW + 230, expirySec: NOW + 290,
-      quotingUntilSec: NOW + 230, cashUnit: 1000n, feeRateBps: 100, fairTicks: 500, openPriceE8: 1n, spotE8: 1n, up: o.ladder?.up ?? [[530, 100n]], down: o.ladder?.down ?? [[530, 100n]], asOfMs: NOW * 1000, state: "quoting",
+      quotingUntilSec: NOW + 230, cashUnit: 1000n, feeRateBps: 100, fairTicks: 500, sigmaBps: null, yearSec: null, minTick: 1, halfSpreadTicks: 30, openPriceE8: 1n, spotE8: 1n, up: o.ladder?.up ?? [[530, 100n]], down: o.ladder?.down ?? [[530, 100n]], asOfMs: NOW * 1000, state: "quoting",
     });
   }
   const pool = new ShardPool({ venue: V, maxWaitMs: 20 });

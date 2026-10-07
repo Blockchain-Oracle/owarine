@@ -16,15 +16,15 @@ import { CALENDAR_YEAR_SEC, EVENT_FAIR_TICKS, EVENT_HALF_SPREAD_TICKS, parseLane
 import type { HaltBoard } from "@owarine/core/types";
 import { TEMPLATE_IDS } from "@owarine/daml";
 import {
-  decodeEventState, decodeEventTerms, decodeLeg, decodeOpenPrint, decodeQuote, learnTerms, pick, readActive, type Active, type LegC, type QuoteC, type RoleSession,
-  type TermsC,
+  decodeEventState, decodeEventTerms, decodeLeg, decodeOpenPrint, decodeQuote, learnTerms, pick, readActive, type Active, type EventTermsC, type LegC, type OpenPrintC,
+  type QuoteC, type RoleSession, type TermsC,
 } from "@owarine/markets/ops/canton";
 import { marketIdFromDaml, seriesIdFromDaml } from "@owarine/core/market";
 import type { SpotFeed } from "../../../prices/spot";
 import type { VolBoard } from "../../../prices/vol-meter";
 import { runActor, type PassResult } from "../../../runtime/actor";
 import { readSeatMakerEnv, type SeatMakerEnv } from "./env";
-import { fairYesTicks } from "./fair";
+import { fairYesTicks, TRADING_YEAR_SEC } from "./fair";
 import { GAP_BLIND_HALF_SPREAD_TICKS, GAP_STOP_BEFORE_LOCK_SEC, gapFairTicks, gapPhase } from "./gap-fair";
 import { buildLadder, quotingUntilSec } from "./ladder";
 import type { LadderBoard } from "./ladder-board";
@@ -73,6 +73,8 @@ interface PricerState {
   terms: Map<string, TermsC>;
   /** The halt board (Gap: the ticker and its xStock); absent reads as nothing halted. */
   halts: () => HaltBoard;
+  /** The last ledger read, for re-pricing on a spot tick; null until the first pass. */
+  inputs?: PricerInputs | null;
 }
 
 /** One Window's price for this pass, or why it is not quoted. */
@@ -144,7 +146,15 @@ export function sigmaFor(maker: SeatMakerEnv, vol: VolBoard | null, ticker: Tick
   return sigmaBps === null ? { missing: `${ticker} realised vol not measured yet` } : { sigmaBps, yearSec: CALENDAR_YEAR_SEC };
 }
 
-export async function pricerPass(state: PricerState): Promise<PassResult> {
+/** What one ledger read gives the pricer; re-pricing on a spot tick reuses it until the next read. */
+export interface PricerInputs {
+  opens: Active<OpenPrintC>[];
+  events: Active<EventTermsC>[];
+  quotes: Active<QuoteC>[];
+  venueLegs: Active<LegC>[];
+}
+
+async function readInputs(state: PricerState): Promise<PricerInputs> {
   const acs = await readActive(state.venue, [TEMPLATE_IDS.OpenPrint, TEMPLATE_IDS.Quote, TEMPLATE_IDS.Leg, TEMPLATE_IDS.EventTerms, TEMPLATE_IDS.EventState]);
   const opens = pick(acs, TEMPLATE_IDS.OpenPrint, decodeOpenPrint);
   // An event is live while its single-use EventState is: once resolved or voided it stops quoting.
@@ -154,13 +164,21 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
   await learnTerms(state.venue, state.terms, [...opens.map((o) => o.data.termsCid), ...events.map((e) => e.data.termsCid)]);
   const quotes = pick(acs, TEMPLATE_IDS.Quote, decodeQuote);
   const venueLegs = pick(acs, TEMPLATE_IDS.Leg, decodeLeg).filter((l) => l.data.owner === state.venue.party);
-  const nowSec = Math.floor(Date.now() / 1000);
+  return { opens, events, quotes, venueLegs };
+}
+
+/**
+ * Prices every Window from one ledger read and the spot feed as it is now, and puts each ladder on the board (which
+ * publishes only real changes). Pure apart from the board and the clock, so a spot tick can run it between reads.
+ */
+export function priceWindows(state: PricerState, inputs: PricerInputs, nowSec = Math.floor(Date.now() / 1000)): PassResult {
+  const { opens, events, quotes, venueLegs } = inputs;
   const s = state.settings;
   const live = new Set<string>();
   const notes: string[] = [];
   const halts = state.halts();
 
-  const post = (termsCid: string, t: TermsC, price: Priced, openPriceE8: bigint) => {
+  const post = (termsCid: string, t: TermsC, price: Priced, openPriceE8: bigint, model: { sigmaBps: number; yearSec: number } | null) => {
     if (nowSec < t.tradingStartSec || nowSec > price.untilSec - s.minQuoteLifeSec) return;
     const cap = price.capBase < s.marketCapBase ? price.capBase : s.marketCapBase;
     const ladder = buildLadder({
@@ -172,8 +190,9 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
     state.board.put({
       marketId, damlMarketId: t.marketId, seriesId: seriesIdFromDaml(t.seriesKey), termsCid, seriesKey: t.seriesKey, symbol: t.symbol, index: t.index,
       tradingStartSec: t.tradingStartSec, lockAtSec: t.lockAtSec, expirySec: t.expirySec, quotingUntilSec: price.untilSec,
-      cashUnit: t.cashUnit, feeRateBps: s.feeRateBps, fairTicks: price.fairTicks, openPriceE8, spotE8: price.spotE8,
-      up: ladder.up, down: ladder.down, asOfMs: Date.now(), state: "quoting",
+      cashUnit: t.cashUnit, feeRateBps: s.feeRateBps, fairTicks: price.fairTicks,
+      sigmaBps: model?.sigmaBps ?? null, yearSec: model?.yearSec ?? null, minTick: s.maker.minTick, halfSpreadTicks: price.halfSpreadTicks,
+      openPriceE8, spotE8: price.spotE8, up: ladder.up, down: ladder.down, asOfMs: Date.now(), state: "quoting",
     });
     notes.push(`${t.marketId} ${price.basis === "price" ? "" : `${price.basis} `}fair ${price.fairTicks} up ${ladder.up[0]?.[0] ?? "-"} down ${ladder.down[0]?.[0] ?? "-"}`);
   };
@@ -186,7 +205,7 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
     if (lane?.basis === "gap") {
       const price = gapPrice({ t, ticker, openE8: op.data.openPriceE8, nowSec, spot: state.spot, halts, maker: s.maker });
       if ("skip" in price) notes.push(`${t.marketId} ${price.skip}`);
-      else post(op.data.termsCid, t, price, op.data.openPriceE8);
+      else post(op.data.termsCid, t, price, op.data.openPriceE8, null);
       continue;
     }
     const untilSec = quotingUntilSec(t);
@@ -203,17 +222,27 @@ export async function pricerPass(state: PricerState): Promise<PassResult> {
       continue;
     }
     const fair = fairYesTicks({ spotE8: spot.priceE8, openE8: op.data.openPriceE8, secondsLeft: t.expirySec - nowSec, ...sigma, minTick: s.maker.minTick });
-    post(op.data.termsCid, t, { fairTicks: fair, halfSpreadTicks: s.maker.halfSpreadTicks, untilSec, capBase: s.marketCapBase, spotE8: spot.priceE8, basis: "price", why: "spot" }, op.data.openPriceE8);
+    post(op.data.termsCid, t, { fairTicks: fair, halfSpreadTicks: s.maker.halfSpreadTicks, untilSec, capBase: s.marketCapBase, spotE8: spot.priceE8, basis: "price", why: "spot" }, op.data.openPriceE8, {
+      sigmaBps: sigma.sigmaBps, yearSec: sigma.yearSec ?? TRADING_YEAR_SEC,
+    });
   }
 
   for (const ev of events) {
     const t = state.terms.get(ev.data.termsCid);
-    if (t) post(ev.data.termsCid, t, eventPrice(t, s.marketCapBase), 0n);
+    if (t) post(ev.data.termsCid, t, eventPrice(t, s.marketCapBase), 0n, null);
   }
 
   for (const e of state.board.all()) if (!live.has(e.marketId)) state.board.close(e.marketId);
   return { why: notes.length ? notes.join("; ") : "no Window quoting", detail: { quoting: live.size } };
 }
+
+export async function pricerPass(state: PricerState): Promise<PassResult> {
+  state.inputs = await readInputs(state);
+  return priceWindows(state, state.inputs);
+}
+
+/** A spot tick re-prices from the last ledger read at most this often (revamp step 2: the ladder follows spot, not a 1 s loop). */
+export const SPOT_REPRICE_MIN_MS = 250;
 
 export function startPricer(input: {
   venue: RoleSession;
@@ -225,7 +254,33 @@ export function startPricer(input: {
   halts?: () => HaltBoard;
 }): { stop: () => void } {
   const settings = input.settings ?? readPricerSettings();
-  const state: PricerState = { venue: input.venue, spot: input.spot, vol: input.vol ?? null, board: input.board, settings, terms: new Map(), halts: input.halts ?? (() => ({})) };
+  const state: PricerState = { venue: input.venue, spot: input.spot, vol: input.vol ?? null, board: input.board, settings, terms: new Map(), halts: input.halts ?? (() => ({})), inputs: null };
   input.log(`pricer: ${settings.levels} levels × ${settings.lotsPerLevel} lots every ${settings.stepTicks} ticks, half-spread ${settings.maker.halfSpreadTicks}, cap ${settings.marketCapBase} base/side, fee ${settings.feeRateBps} bps${input.spot ? "" : " · NO SPOT FEED"}`);
-  return runActor({ name: "pricer", log: input.log, dryRun: false, everyMs: settings.everyMs, pass: () => pricerPass(state) });
+  const actor = runActor({ name: "pricer", log: input.log, dryRun: false, everyMs: settings.everyMs, pass: () => pricerPass(state) });
+  // Between ledger reads, a spot tick re-prices the Windows from the cached read, throttled to SPOT_REPRICE_MIN_MS.
+  let lastRepriceMs = 0;
+  let pendingReprice: ReturnType<typeof setTimeout> | null = null;
+  const reprice = () => {
+    pendingReprice = null;
+    if (!state.inputs) return;
+    lastRepriceMs = Date.now();
+    try {
+      priceWindows(state, state.inputs);
+    } catch (error) {
+      input.log(`pricer: spot re-price failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+  const offSpot = input.spot?.subscribe(() => {
+    if (pendingReprice) return;
+    const waitMs = lastRepriceMs + SPOT_REPRICE_MIN_MS - Date.now();
+    if (waitMs <= 0) reprice();
+    else pendingReprice = setTimeout(reprice, waitMs);
+  });
+  return {
+    stop: () => {
+      offSpot?.();
+      if (pendingReprice) clearTimeout(pendingReprice);
+      actor.stop();
+    },
+  };
 }

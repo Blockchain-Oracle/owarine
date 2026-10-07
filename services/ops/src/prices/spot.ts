@@ -9,6 +9,8 @@ export interface SpotQuote {
   priceE8: bigint;
   /** The source's own publish time. */
   publishTimeSec: number;
+  /** The same instant to the millisecond, where the source has it (a Coinbase trade), so a live chart can place sub-second ticks. */
+  publishTimeMs?: number;
   /** `"prestocks"`: the catalogue's `tokenPrice` for a pre-IPO name (plan Step 1); display and quoting only. */
   /** `"switchboard"`: a token-lane xStock's Surge value, read unsigned for display beside its 24/7 Windows. */
   /** `"exchange"`: a crypto asset's last trade on the oracle feeders' exchanges (Coinbase ticker), for the pricer and display. */

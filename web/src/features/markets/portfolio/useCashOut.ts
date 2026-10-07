@@ -1,11 +1,11 @@
 "use client";
 
-import { isOk } from "@owarine/core/schemas";
+import { isOk, ok } from "@owarine/core/schemas";
 import type { OrderRoute, WritePhase } from "@owarine/core/ports";
-import type { Diagnosis, ExitQuote, MarketId, Side } from "@owarine/core/types";
+import type { Diagnosis, EventMarket, ExitQuote, MarketId, Side } from "@owarine/core/types";
 import { formatBaseUnits } from "@owarine/core/units";
 import { marketsProvider, type HeldExit } from "@owarine/markets";
-import { invalidateAfterWrite, useSubmitter } from "@owarine/markets/react";
+import { invalidateAfterWrite, liveExitQuote, useSubmitter } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { diagnosisCopy } from "@/lib/copy";
@@ -40,6 +40,16 @@ export interface CashOutTarget {
   route?: OrderRoute;
   /** Reads outside the shared write families that this sell changes (the vault's open bets). */
   onConfirmed?: () => Promise<void>;
+  /** The Window, already read (the terminal holds it): the tap skips the market read. */
+  market?: EventMarket | null;
+  /**
+   * Revamp step 2, one-tap Close: take the exit from the live ladder in memory (`liveExitQuote`) instead of a fresh
+   * read, with its floor this many bps under the live price, so any firm price inside the tolerance lands in one tap.
+   * Absent: the plain cash-out's fresh exit quote, as before.
+   */
+  slippageBps?: number;
+  /** After a confirmed sale: what it paid (for the win/loss cue). */
+  onSold?: (proceedsBase: bigint) => void;
 }
 
 function refusalNote(d: Diagnosis): string {
@@ -79,11 +89,13 @@ export function useCashOut(target: CashOutTarget) {
     setHeld(null);
     setUpdateId(null);
     try {
-      const market = await marketsProvider.getMarket(target.marketId);
+      const market = target.market ? ok(target.market, Date.now()) : await marketsProvider.getMarket(target.marketId);
       if (!isOk(market)) return setNote(refusalNote(market.error));
       if (!market.value) return setNote(CASH_OUT.noLiquidity);
       const want = size === "half" ? target.heldRaw / 2n : target.heldRaw;
       let exit = requoted?.size === size ? requoted.exit : null;
+      // One-tap Close: the exit is already in memory; the floor carries the user's tolerance.
+      if (!exit && target.slippageBps !== undefined) exit = liveExitQuote(target.marketId, target.side, want, target.decimals, target.slippageBps);
       if (!exit) {
         const { marketId, poolAddress, decimals, intervalSec } = market.value;
         const quote = await marketsProvider.freshExitQuote({ marketId, poolAddress, decimals, intervalSec }, target.side, want);
@@ -102,6 +114,7 @@ export function useCashOut(target: CashOutTarget) {
       );
       switch (outcome.status) {
         case "confirmed":
+          target.onSold?.(outcome.booked.proceedsBase ?? exit.expectedProceedsBase);
           notify.neutral(CASH_OUT.done, CASH_OUT.doneBody(money(outcome.booked.proceedsBase ?? exit.expectedProceedsBase), target.route?.kind === "vault"));
           await Promise.all([invalidateAfterWrite(queryClient, { wallet: address, marketId: target.marketId }), target.onConfirmed?.()]);
           return;

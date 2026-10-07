@@ -8,18 +8,23 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { TICKER_SYMBOLS, TICKERS, XSTOCK_SYMBOLS, type TickerSymbol, type XStockSymbol } from "@owarine/core/market";
 import { latestArchivedPrints, type PrintArchiveSource } from "@owarine/db";
 import type { SpotFeed, SpotQuote } from "../prices/spot";
+import { createCoalescer } from "./coalesce";
 
 /** A quote this old or younger is `fresh` (D-086). */
 export const FRESH_MAX_AGE_SEC = 60;
 /** One archive read serves every request in a minute: the archive only moves at 5-minute boundaries. */
 const ARCHIVE_MEMO_MS = 60_000;
 const KEEPALIVE_MS = 15_000;
+/** One frame per symbol per this many ms on `/prices/stream` (≤8 Hz), always ending on the newest price. */
+export const SPOT_FRAME_GAP_MS = 125;
 
 export interface WireQuote {
   /** A ticker, or an xStock the token lane's spot ticks for (S6); the archive fallback covers tickers only. */
   symbol: TickerSymbol | XStockSymbol;
   priceE8: string;
   publishTimeSec: number;
+  /** Present where the source stamps milliseconds (a Coinbase trade). */
+  publishTimeMs?: number;
   source: SpotQuote["source"] | "archive";
   ageSec: number;
   fresh: boolean;
@@ -45,7 +50,10 @@ function toWire(symbol: WireQuote["symbol"], priceE8: string, publishTimeSec: nu
   return { symbol, priceE8, publishTimeSec, source, ageSec, fresh: ageSec <= FRESH_MAX_AGE_SEC };
 }
 
-const wire = (q: SpotQuote, nowSec: number) => toWire(q.symbol, q.priceE8.toString(), q.publishTimeSec, q.source, nowSec);
+const wire = (q: SpotQuote, nowSec: number): WireQuote => ({
+  ...toWire(q.symbol, q.priceE8.toString(), q.publishTimeSec, q.source, nowSec),
+  ...(q.publishTimeMs !== undefined ? { publishTimeMs: q.publishTimeMs } : {}),
+});
 
 /**
  * The archive keys a ticker's prints are stored under: RedStone by ticker, Pyth by lower-case feed id without `0x`.
@@ -123,10 +131,13 @@ export async function streamSpot(req: IncomingMessage, res: ServerResponse, spot
   const send = (q: WireQuote) => res.write(`event: spot\ndata: ${JSON.stringify(q)}\n\n`);
   // The snapshot is the same set `/prices/latest` serves, so a tab opening overnight is never empty.
   for (const q of await latestQuotes(spot)) send(q);
-  const unsubscribe = spot.subscribe((q) => send(wire(q, wallSec())));
+  // A trade burst reaches the tab as ≤8 frames a second per symbol, the last one the true last price.
+  const frames = createCoalescer<SpotQuote>((_, q) => send(wire(q, wallSec())), SPOT_FRAME_GAP_MS);
+  const unsubscribe = spot.subscribe((q) => frames.push(q.symbol, q));
   const keepalive = setInterval(() => res.write(": keepalive\n\n"), KEEPALIVE_MS);
   req.on("close", () => {
     clearInterval(keepalive);
     unsubscribe();
+    frames.stop();
   });
 }

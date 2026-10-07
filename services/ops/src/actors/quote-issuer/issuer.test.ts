@@ -17,7 +17,7 @@ function setup() {
   const board = createLadderBoard();
   board.put({
     marketId: MARKET, damlMarketId: "BTC-1m:9", seriesId: "s", termsCid: "00aa", seriesKey: "BTC-1m", symbol: "BTC", index: 9, tradingStartSec: nowSec - 10, lockAtSec: nowSec + 40, expirySec: nowSec + 50,
-    quotingUntilSec: nowSec + 35, cashUnit: 1000n, feeRateBps: 100, fairTicks: 500, openPriceE8: 1n, spotE8: 1n,
+    quotingUntilSec: nowSec + 35, cashUnit: 1000n, feeRateBps: 100, fairTicks: 500, sigmaBps: null, yearSec: null, minTick: 1, halfSpreadTicks: 30, openPriceE8: 1n, spotE8: 1n,
     up: [[530, 100n]], down: [[530, 100n]], asOfMs: Date.now(), state: "quoting",
   });
   const pool = new ShardPool({ venue: V, maxWaitMs: 50 });

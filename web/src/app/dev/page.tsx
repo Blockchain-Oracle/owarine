@@ -3,6 +3,8 @@ import { SectionHeader } from "@/components/chrome";
 import { DEV } from "@/lib/copy";
 
 const FIXTURES = [
+  { href: "/dev/kit", label: "Kit", note: "every revamp kit component at phone and desktop widths, light and dark" },
+  { href: "/dev/live", label: "Live engine", note: "Coinbase spot on the canvas chart, live PnL on the venue's ladder (pretend or real positions), one-tap Close" },
   { href: "/dev/states", label: "States", note: "honest-state primitives, data, chrome, receipt, ui" },
   { href: "/dev/wallet", label: "Wallet", note: "connect ladder, network banner, balance plate, faucet" },
   { href: "/dev/status", label: "Status", note: "off-hours expected, in session, a stopped actor" },

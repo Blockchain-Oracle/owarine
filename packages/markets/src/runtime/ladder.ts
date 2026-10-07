@@ -36,6 +36,13 @@ export const wireLadder = z.object({
   cashUnit: z.union([z.string(), z.number()]).transform((v) => BigInt(v)),
   feeRateBps: z.number(),
   fairTicks: z.number().nullable().optional(),
+  /** Revamp step 2: the fair model's inputs, so the client re-prices between events. Optional: an older ops omits them. */
+  sigmaBps: z.number().nullable().optional(),
+  yearSec: z.number().nullable().optional(),
+  minTick: z.number().int().optional(),
+  halfSpreadTicks: z.number().int().optional(),
+  openPriceE8: z.union([z.string(), z.number()]).transform((v) => BigInt(v)).optional(),
+  spotE8: z.union([z.string(), z.number()]).transform((v) => BigInt(v)).optional(),
   up: z.array(level),
   down: z.array(level),
   asOfMs: z.number(),

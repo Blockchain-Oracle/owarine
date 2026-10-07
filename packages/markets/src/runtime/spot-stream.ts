@@ -5,12 +5,14 @@
  */
 import { openStream, type StreamSource } from "./event-source";
 import { pageDocument, pageHidden } from "./page";
-import { peekClient } from "./read-runtime";
+import { peekClient, subscribeExchange } from "./read-runtime";
 
 export interface SpotTick {
   symbol: string;
   priceE8: bigint;
   publishTimeSec: number;
+  /** The trade's own millisecond, where the feed stamps one (Coinbase); else the second's start. */
+  publishTimeMs: number;
   source: string;
 }
 
@@ -54,10 +56,11 @@ function setLive(next: boolean): void {
 
 function onSpot(event: { data: string }): void {
   try {
-    const raw = JSON.parse(event.data) as { symbol: string; priceE8: string; publishTimeSec: number; source: string };
+    const raw = JSON.parse(event.data) as { symbol: string; priceE8: string; publishTimeSec: number; publishTimeMs?: number; source: string };
     const previous = ticks.get(raw.symbol);
-    if (previous && previous.publishTimeSec === raw.publishTimeSec && previous.priceE8 === BigInt(raw.priceE8)) return;
-    ticks.set(raw.symbol, { symbol: raw.symbol, priceE8: BigInt(raw.priceE8), publishTimeSec: raw.publishTimeSec, source: raw.source });
+    const publishTimeMs = typeof raw.publishTimeMs === "number" ? raw.publishTimeMs : raw.publishTimeSec * 1000;
+    if (previous && previous.publishTimeMs === publishTimeMs && previous.priceE8 === BigInt(raw.priceE8)) return;
+    ticks.set(raw.symbol, { symbol: raw.symbol, priceE8: BigInt(raw.priceE8), publishTimeSec: raw.publishTimeSec, publishTimeMs, source: raw.source });
     retryMs = RETRY_MIN_MS;
     if (!live) setLive(true);
     else notify(raw.symbol);
@@ -72,9 +75,20 @@ function close(): void {
   setLive(false);
 }
 
+/** A subscriber that arrived before the runtime was configured opens the stream once it is. */
+let runtimeWait: (() => void) | null = null;
+
 function open(): void {
   const base = peekClient()?.priceFeedUrl;
-  if (source || !base || listeners.size === 0) return;
+  if (source || listeners.size === 0) return;
+  if (!base) {
+    runtimeWait ??= subscribeExchange(() => {
+      runtimeWait?.();
+      runtimeWait = null;
+      open();
+    });
+    return;
+  }
   if (pageHidden()) return;
   const stream = openStream(`${base.replace(/\/$/, "")}/prices/stream`);
   if (!stream) return;

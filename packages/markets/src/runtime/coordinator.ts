@@ -16,7 +16,7 @@ import { decideBookEmit, reuseBookValue } from "./book-reading";
 import { openStream, type StreamSource } from "./event-source";
 import { ladderBase, ladderBookState, ladderLatestWire, parseLadder, type Ladder } from "./ladder";
 import { BOOK_LEVELS, EMPTY_BOOK_DEPTH, toBookDepth } from "./mappers";
-import { peekClient } from "./read-runtime";
+import { peekClient, subscribeExchange } from "./read-runtime";
 
 /** How many levels each side a coordinated ladder carries; callers slice what they display. */
 export const CANONICAL_BOOK_DEPTH = BOOK_LEVELS;
@@ -114,9 +114,20 @@ function setLive(next: boolean): void {
   deriveAll();
 }
 
+/** A subscriber that arrived before the runtime was configured opens the stream once it is. */
+let runtimeWait: (() => void) | null = null;
+
 function open(): void {
   const base = ladderBase(peekClient());
-  if (source || !base || entries.size === 0) return;
+  if (source || entries.size === 0) return;
+  if (!base) {
+    runtimeWait ??= subscribeExchange(() => {
+      runtimeWait?.();
+      runtimeWait = null;
+      open();
+    });
+    return;
+  }
   if (decimals === null) void readVenueStatic().then((v) => ((decimals = v.decimals), deriveAll()), () => undefined);
   if (!snapshotSeen) void fillFromLatest(base);
   const stream = openStream(`${base}/ladders/stream`);
@@ -196,6 +207,15 @@ export function bookSnapshot(marketId: string | null): Reading<BookDepth> | null
 /** The walkable ladder and its Series, for the ticket's quote; null while there is none to walk. */
 export function bookStateSnapshot(marketId: string | null): BookStateView | null {
   return marketId === null ? null : (entries.get(marketId)?.view ?? null);
+}
+
+/**
+ * The Window's raw published ladder (with its fair model), for the live PnL's re-pricing walk; null before the first
+ * ladder for it, or once it stopped quoting and was dropped. `live` is false while the stream is down (stale ladder).
+ */
+export function ladderSnapshot(marketId: string | null): { ladder: Ladder; live: boolean } | null {
+  const ladder = marketId === null ? undefined : ladders.get(marketId);
+  return ladder ? { ladder, live } : null;
 }
 
 export function resetCoordinator(): void {

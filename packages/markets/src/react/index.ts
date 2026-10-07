@@ -10,6 +10,7 @@ export {
   type SubmitterSessionProviderProps,
 } from "./session";
 export { useAssetPrice } from "./useAssetPrice";
+export { computeLivePnl, DEFAULT_SLIPPAGE_BPS, ladderSpotSymbol, liveExitQuote, useLivePnl, type LivePnlView } from "./useLivePnl";
 export { useBook } from "./useBook";
 export { useBooks } from "./useBooks";
 export { useHoldings } from "./useHoldings";

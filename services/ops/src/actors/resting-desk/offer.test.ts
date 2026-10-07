@@ -109,7 +109,7 @@ describe("the venue's offer to hold a resting call", () => {
     // A ladder whose best UP is 53c: a call at 55c reaches it and would fill immediately, one at 50c would only rest.
     board.put({
       marketId: MARKET, damlMarketId: DAML_ID, seriesId: "s", termsCid: "00terms", seriesKey: "TSLA-5m", symbol: "TSLA", index: 7, tradingStartSec: START, lockAtSec: START + 240, expirySec: START + 300,
-      quotingUntilSec: START + 240, cashUnit: 1000n, feeRateBps: 100, fairTicks: 500, openPriceE8: 1n, spotE8: 1n, up: [[530, 100n]], down: [[530, 100n]], asOfMs: NOW_MS, state: "quoting",
+      quotingUntilSec: START + 240, cashUnit: 1000n, feeRateBps: 100, fairTicks: 500, sigmaBps: null, yearSec: null, minTick: 1, halfSpreadTicks: 30, openPriceE8: 1n, spotE8: 1n, up: [[530, 100n]], down: [[530, 100n]], asOfMs: NOW_MS, state: "quoting",
     });
     expect(refusedKind(await offer(deps, nowMs, req({ priceCents: 55 })))).toBe("post-only-would-cross");
     expect(refusedKind(await offer(deps, nowMs, req({ priceCents: 50, stakeBase: "5000000", displayedEscrowBase: "5000000" })))).toBe("market-not-trading");

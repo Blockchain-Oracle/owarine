@@ -11,6 +11,7 @@ export * from "./windows";
 export * from "./tickers";
 export * from "./baskets";
 export * from "./crypto";
+export * from "./fair";
 export * from "./print-source";
 export * from "./realised-vol";
 export * from "./committee-event";

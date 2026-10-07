@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildLadder, quotingUntilSec } from "./ladder";
+import { createLadderBoard, ladderChanged, type LadderEntry } from "./ladder-board";
 
 const base = { halfSpreadTicks: 30, minTick: 20, levels: 3, stepTicks: 5, lotsPerLevel: 100n, cashUnit: 1000n, capBase: 10n ** 12n, usedUpBase: 0n, usedDownBase: 0n };
 
@@ -28,5 +29,32 @@ describe("venue price ladder", () => {
     expect(quotingUntilSec({ tradingStartSec: 0, lockAtSec: 270, expirySec: 300 })).toBe(240);
     expect(quotingUntilSec({ tradingStartSec: 0, lockAtSec: 50, expirySec: 60 })).toBe(45);
     expect(quotingUntilSec({ tradingStartSec: 0, lockAtSec: 30, expirySec: 60 })).toBe(30);
+  });
+});
+
+describe("ladderChanged (revamp step 2)", () => {
+  const base: LadderEntry = {
+    marketId: "m", damlMarketId: "BTC-1m:1", seriesId: "s", termsCid: "t", seriesKey: "k", symbol: "BTC", index: 1, tradingStartSec: 0, lockAtSec: 60, expirySec: 60,
+    quotingUntilSec: 45, cashUnit: 1000n, feeRateBps: 100, fairTicks: 520, sigmaBps: 4000, yearSec: 31_536_000, minTick: 10, halfSpreadTicks: 30,
+    openPriceE8: 1n, spotE8: 2n, up: [[550, 200n]], down: [[510, 200n]], asOfMs: 1, state: "quoting",
+  };
+  it("is silent when only spot and the clock moved", () => {
+    expect(ladderChanged(base, { ...base, spotE8: 3n, asOfMs: 2, up: [[550, 200n]] })).toBe(false);
+  });
+  it("speaks when a level, the fair or the state changed", () => {
+    expect(ladderChanged(undefined, base)).toBe(true);
+    expect(ladderChanged(base, { ...base, up: [[555, 200n]] })).toBe(true);
+    expect(ladderChanged(base, { ...base, down: [[510, 150n]] })).toBe(true);
+    expect(ladderChanged(base, { ...base, fairTicks: 521 })).toBe(true);
+    expect(ladderChanged(base, { ...base, state: "closed" })).toBe(true);
+  });
+  it("a board put of an unchanged ladder emits nothing", () => {
+    const board = createLadderBoard();
+    const seen: number[] = [];
+    board.subscribe((e) => seen.push(e.asOfMs));
+    board.put(base);
+    board.put({ ...base, asOfMs: 2, spotE8: 9n });
+    board.put({ ...base, asOfMs: 3, fairTicks: 530 });
+    expect(seen).toEqual([1, 3]);
   });
 });
