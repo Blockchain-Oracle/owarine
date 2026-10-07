@@ -19,6 +19,7 @@ import type { PythEntitlementStore } from "../runtime/pyth-entitlement";
 import { pythIndexLatestBody } from "./pyth-index-latest";
 import { latestBody, streamSpot } from "./spot-sse";
 import { createRecentRing, type RecentRing } from "../prices/recent-ring";
+import { createDayStats } from "../prices/day-stats";
 import type { LadderBoard } from "../actors/market-maker/seat/ladder-board";
 import { handleInternal, type InternalRoutes } from "./internal";
 import { ladderLatestBody, streamLadders } from "./ladder-sse";
@@ -54,6 +55,7 @@ export function startOpsHttp(input: {
   recent?: RecentRing | null;
 }): Promise<OpsHttp> {
   const recent = input.recent ?? (input.spot ? createRecentRing(input.spot) : null);
+  const dayStats = createDayStats();
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://ops").pathname;
     const json = (status: number, body: unknown) => {
@@ -78,6 +80,7 @@ export function startOpsHttp(input: {
       if (!/^[A-Za-z0-9.]{1,16}$/.test(symbol)) return json(400, { error: "symbol must be a ticker" });
       return json(200, { symbol, points: recent.points(symbol) });
     }
+    if (path === "/prices/day") return void dayStats().then((body) => json(200, body), () => json(503, { error: "day stats unavailable" }));
     if (path === "/prices/stream") return input.spot ? void streamSpot(req, res, input.spot, CORS) : json(503, { error: "no spot feed in this process" });
     if (path === "/prestocks/latest") return input.prestocks ? json(200, preStocksLatestBody(input.prestocks)) : json(503, { error: "no PreStocks feed in this process" });
     if (path === "/pyth-index/latest") return input.pythIndex ? json(200, pythIndexLatestBody(input.pythIndex.store, input.pythIndex.spot, input.prestocks ?? null)) : json(503, { error: "no Pyth index store in this process" });

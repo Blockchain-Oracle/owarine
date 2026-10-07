@@ -1,0 +1,160 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+
+/**
+ * Demo and live (Tradash's `tradingMode` + demo state; TRADASH-FIDELITY.md §Demo mode). Live is the seat: real legs on
+ * Canton. Demo is paper: 10,000 credits, fills at the venue's live ladder price with no fee, exits at what Close would
+ * pay, and a position still open at its Window's close settles on the real resolution. Unlike the reference, open paper
+ * positions survive a reload (theirs vanish silently). Amounts are base units (6 decimals), as on the ledger.
+ */
+export type TradeMode = "demo" | "live";
+
+export interface PaperPosition {
+  id: string;
+  marketId: string;
+  /** The registry ticker (BTC) and the symbol whose spot prices the Window (a token lane's xStock). */
+  asset: string;
+  spotSymbol: string;
+  intervalSec: number;
+  side: "up" | "down";
+  contractsRaw: string;
+  costBase: string;
+  entrySpot: number;
+  openedAtMs: number;
+  quotingUntilSec: number;
+  expirySec: number;
+  /** The Window's open print (the line), as a price. */
+  linePrice: number | null;
+  trail: { stop: number } | null;
+}
+
+export interface PaperTrade {
+  id: string;
+  kind: "close" | "trail" | "settle" | "reduce" | "add";
+  asset: string;
+  side: "up" | "down";
+  intervalSec: number;
+  costBase: string;
+  pnlBase: string;
+  entrySpot: number;
+  exitSpot: number | null;
+  openedAtMs: number;
+  closedAtMs: number;
+}
+
+interface ModeState {
+  /** Null until the visitor picks (the tutorial's last step, or the account sheet). */
+  mode: TradeMode | null;
+  demoBalanceBase: string;
+  positions: PaperPosition[];
+  history: PaperTrade[];
+}
+
+export const DEMO_START_BASE = 10_000_000_000n;
+const KEY = "owarine.trade.mode.v1";
+const HISTORY_CAP = 500;
+const INITIAL: ModeState = { mode: null, demoBalanceBase: DEMO_START_BASE.toString(), positions: [], history: [] };
+
+const listeners = new Set<() => void>();
+let state: ModeState = INITIAL;
+let hydrated = false;
+
+function hydrate(): void {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  try {
+    const raw = globalThis.localStorage?.getItem(KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw) as Partial<ModeState>;
+    state = {
+      mode: p.mode === "demo" || p.mode === "live" ? p.mode : null,
+      demoBalanceBase: typeof p.demoBalanceBase === "string" && /^-?\d+$/.test(p.demoBalanceBase) ? p.demoBalanceBase : INITIAL.demoBalanceBase,
+      positions: Array.isArray(p.positions) ? p.positions.filter(isPaperPosition) : [],
+      history: Array.isArray(p.history) ? p.history.filter((t): t is PaperTrade => typeof t?.id === "string").slice(0, HISTORY_CAP) : [],
+    };
+  } catch {
+    state = INITIAL;
+  }
+}
+
+function isPaperPosition(p: unknown): p is PaperPosition {
+  const x = p as PaperPosition;
+  return typeof x?.id === "string" && typeof x.marketId === "string" && (x.side === "up" || x.side === "down") && /^\d+$/.test(x.contractsRaw ?? "") && /^\d+$/.test(x.costBase ?? "");
+}
+
+function commit(next: ModeState): void {
+  state = next;
+  try {
+    globalThis.localStorage?.setItem(KEY, JSON.stringify(state));
+  } catch {
+    // Storage blocked: demo lasts for this tab.
+  }
+  listeners.forEach((l) => l());
+}
+
+export function modeState(): ModeState {
+  hydrate();
+  return state;
+}
+
+export function useModeState(): ModeState {
+  return useSyncExternalStore(
+    (l) => {
+      listeners.add(l);
+      return () => listeners.delete(l);
+    },
+    () => (hydrate(), state),
+    () => INITIAL,
+  );
+}
+
+export function setMode(mode: TradeMode): void {
+  hydrate();
+  commit({ ...state, mode });
+}
+
+/** "Reset demo balance": 10,000 again, every paper position gone. */
+export function resetDemo(): void {
+  hydrate();
+  commit({ ...state, demoBalanceBase: DEMO_START_BASE.toString(), positions: [] });
+}
+
+/** Opens a paper position, or adds to the one already open on that Window side (entry spot weighted by stake). */
+export function openPaper(p: PaperPosition): void {
+  hydrate();
+  const existing = state.positions.find((x) => x.marketId === p.marketId && x.side === p.side);
+  if (!existing) return commit({ ...state, positions: [...state.positions, p] });
+  const costA = Number(existing.costBase);
+  const costB = Number(p.costBase);
+  const merged: PaperPosition = {
+    ...existing,
+    contractsRaw: (BigInt(existing.contractsRaw) + BigInt(p.contractsRaw)).toString(),
+    costBase: (BigInt(existing.costBase) + BigInt(p.costBase)).toString(),
+    entrySpot: costA + costB > 0 ? (existing.entrySpot * costA + p.entrySpot * costB) / (costA + costB) : p.entrySpot,
+  };
+  commit({ ...state, positions: state.positions.map((x) => (x.id === existing.id ? merged : x)) });
+}
+
+export function updatePaper(id: string, patch: Partial<PaperPosition>): void {
+  hydrate();
+  commit({ ...state, positions: state.positions.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+}
+
+/**
+ * Settles a paper position (or part of it): the balance moves by realized PnL only — margin is never taken at open,
+ * exactly as the reference's demo — and the trade is recorded. `keep` leaves the remainder open (Reduce).
+ */
+export function settlePaper(id: string, trade: Omit<PaperTrade, "id">, keep?: { contractsRaw: bigint; costBase: bigint }): void {
+  hydrate();
+  const balance = BigInt(state.demoBalanceBase) + BigInt(trade.pnlBase);
+  const positions = keep && keep.contractsRaw > 0n
+    ? state.positions.map((p) => (p.id === id ? { ...p, contractsRaw: keep.contractsRaw.toString(), costBase: keep.costBase.toString() } : p))
+    : state.positions.filter((p) => p.id !== id);
+  commit({ ...state, demoBalanceBase: balance.toString(), positions, history: [{ ...trade, id: `${id}:${trade.closedAtMs}` }, ...state.history].slice(0, HISTORY_CAP) });
+}
+
+export function recordPaper(trade: Omit<PaperTrade, "id">): void {
+  hydrate();
+  commit({ ...state, history: [{ ...trade, id: `t:${trade.closedAtMs}:${state.history.length}` }, ...state.history].slice(0, HISTORY_CAP) });
+}

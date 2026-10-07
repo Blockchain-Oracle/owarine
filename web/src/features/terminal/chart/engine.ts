@@ -1,131 +1,165 @@
 /**
- * The live chart's maths (revamp step 2, Tradash's chart): pure functions the animation frame calls. No DOM, no React.
+ * The live chart's maths, to Tradash's model (context/13-revamp/TRADASH-FIDELITY.md §Chart; reconstructed from their
+ * shipped bundle). Pure: no DOM, no React. `chart-engine.ts` draws with it every animation frame.
  *
- * Time runs left to right in a rolling window whose right edge sits `leadFrac` of the span ahead of now, so the head
- * of the line breathes at ~80% of the width. The y-range eases toward the visible extent (padded, never thinner than
- * `minSpanFrac` of the price) so a quiet market still shows its cents and a jump is followed, not snapped to.
+ * The line is not time-based: every frame the eased price is pushed into a 600-sample ring, so the plot is the last
+ * ~10 s of motion at the right edge, and the y-axis is re-centred on the eased price every frame at a fixed ±7.5 steps
+ * (one step ≈ 0.01 % of price, frozen when the chart resets). Two deliberate fixes over the reference: easing and
+ * sampling run on a 60 Hz clock whatever the display's refresh rate (theirs halve the window on a 120 Hz screen).
  */
 
-export interface View {
-  /** Visible time range, ms. */
-  t0: number;
-  t1: number;
-  /** Visible price range. */
-  lo: number;
-  hi: number;
+/** Samples kept on screen; ~10 s at the 60 Hz sample clock. */
+export const SAMPLE_CAPACITY = 600;
+export const SAMPLE_MS = 1000 / 60;
+/** Per-sample approach of the eased price to the latest tick (Tradash's 0.18 a frame at 60 Hz: τ ≈ 84 ms). */
+export const PRICE_EASE = 0.18;
+/** Per-sample approach of a rolling digit (0.22) and its snap threshold. */
+export const DIGIT_EASE = 0.22;
+export const DIGIT_SNAP = 0.002;
+/** The plot spans this many grid steps top to bottom, centred on the price. */
+export const SPAN_STEPS = 15;
+/** One step ≈ this fraction of price before rounding to a nice number. */
+export const STEP_FRACTION = 1e-4;
+/** The left fraction of the plot that fades out (alpha 1 → .55 at 45 % of it → 0). */
+export const FADE_FRACTION = 0.32;
+
+/** `k` per frame of `dtMs`, equivalent to `perSample` applied once per 60 Hz sample. */
+export const easeFor = (perSample: number, dtMs: number): number => 1 - (1 - perSample) ** (Math.max(0, dtMs) / SAMPLE_MS);
+
+/** Tradash's nice step: 1, 2, 5 or 10 × 10ⁿ with cut-offs 1.5 / 3.5 / 7.5. */
+export function niceStep(x: number): number {
+  if (!(x > 0) || !Number.isFinite(x)) return 1;
+  const pow = 10 ** Math.floor(Math.log10(x));
+  const m = x / pow;
+  return (m < 1.5 ? 1 : m < 3.5 ? 2 : m < 7.5 ? 5 : 10) * pow;
 }
 
-export interface Plot {
-  /** Drawable box inside the canvas, CSS pixels. */
-  x0: number;
-  x1: number;
-  y0: number;
-  y1: number;
-}
+/** The frozen grid step for a price (0.01 % of it, made nice). */
+export const stepFor = (price: number): number => niceStep(STEP_FRACTION * Math.abs(price));
 
-/** Exponential approach factor for a frame of `dtMs` toward a target with time constant `tauMs`. */
-export const approach = (dtMs: number, tauMs: number): number => (tauMs <= 0 ? 1 : 1 - Math.exp(-Math.max(0, dtMs) / tauMs));
-
-export const xOf = (t: number, v: View, p: Plot): number => p.x0 + ((t - v.t0) / (v.t1 - v.t0)) * (p.x1 - p.x0);
-export const yOf = (price: number, v: View, p: Plot): number => p.y1 - ((price - v.lo) / (v.hi - v.lo)) * (p.y1 - p.y0);
-
-/** First index with `t[i] >= at` (binary search over ascending times). */
-export function lowerBound(t: readonly number[], at: number): number {
-  let lo = 0;
-  let hi = t.length;
-  while (lo < hi) {
-    const mid = (lo + hi) >>> 1;
-    if (t[mid]! < at) lo = mid + 1;
-    else hi = mid;
-  }
-  return lo;
-}
-
-/** The rolling time window: `spanMs` wide, now at `1 − leadFrac` of the width. */
-export function timeWindow(nowMs: number, spanMs: number, leadFrac = 0.2): { t0: number; t1: number } {
-  const t1 = nowMs + spanMs * leadFrac;
-  return { t0: t1 - spanMs, t1 };
-}
-
-/**
- * The price range the view should settle on: min/max of the visible points, the head and any pinned prices (the open
- * print, the entry), padded by `padFrac` of the extent each side, at least `minSpanFrac × price` tall.
- */
-export function targetRange(input: { t: readonly number[]; p: readonly number[]; t0: number; head: number; pinned?: readonly (number | null | undefined)[]; padFrac?: number; minSpanFrac?: number }): { lo: number; hi: number } {
-  let lo = input.head;
-  let hi = input.head;
-  // One point before the window keeps the line's left edge in range.
-  for (let i = Math.max(0, lowerBound(input.t, input.t0) - 1); i < input.p.length; i++) {
-    const v = input.p[i]!;
-    if (v < lo) lo = v;
-    if (v > hi) hi = v;
-  }
-  for (const v of input.pinned ?? []) {
-    if (typeof v !== "number" || !Number.isFinite(v)) continue;
-    if (v < lo) lo = v;
-    if (v > hi) hi = v;
-  }
-  const mid = (lo + hi) / 2;
-  const minSpan = Math.abs(mid) * (input.minSpanFrac ?? 0.0002);
-  let span = hi - lo;
-  if (span < minSpan) {
-    lo = mid - minSpan / 2;
-    hi = mid + minSpan / 2;
-    span = minSpan;
-  }
-  const pad = span * (input.padFrac ?? 0.18);
-  return { lo: lo - pad, hi: hi + pad };
-}
-
-/** Eases the current range toward the target; returns the target on the first frame. */
-export function easeRange(current: { lo: number; hi: number } | null, target: { lo: number; hi: number }, k: number): { lo: number; hi: number } {
-  if (!current || !Number.isFinite(current.lo) || !Number.isFinite(current.hi)) return target;
-  return { lo: current.lo + (target.lo - current.lo) * k, hi: current.hi + (target.hi - current.hi) * k };
-}
-
-/** "Nice" grid steps (1, 2, 2.5, 5 × 10ⁿ) giving about `count` lines across the range. */
-export function niceTicks(lo: number, hi: number, count = 5): number[] {
-  const span = hi - lo;
-  if (!(span > 0) || !Number.isFinite(span)) return [];
-  const raw = span / Math.max(1, count);
-  const mag = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((s) => s >= raw) ?? 10 * mag;
-  const out: number[] = [];
-  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-9; v += step) out.push(Number(v.toFixed(10)));
-  return out;
-}
-
-/** Decimals a price is shown with: cents for anything ≥ $1, more below. */
+/** Display decimals by magnitude: ≥1e5 → 1, ≥1e3 → 2, ≥10 → 3, ≥0.01 → 4, smaller → enough to show 3 significant. */
 export function priceDecimals(price: number): number {
   const a = Math.abs(price);
-  if (a >= 1) return 2;
+  if (a >= 1e5) return 1;
+  if (a >= 1e3) return 2;
+  if (a >= 10) return 3;
   if (a >= 0.01) return 4;
-  return 6;
+  if (a === 0) return 2;
+  return Math.min(10, 3 - Math.floor(Math.log10(a)));
 }
 
-/** Decimals a grid label needs so neighbouring lines read differently (a $0.50 step on BTC shows cents). */
-export function stepDecimals(step: number, price: number): number {
-  if (!(step > 0)) return priceDecimals(price);
-  for (let d = 0; d <= 8; d++) {
-    const scaled = step * 10 ** d;
-    if (Math.abs(scaled - Math.round(scaled)) < 1e-6) return d;
-  }
-  return 8;
+/** A grid label's decimals: the price's, or more when the step is finer. */
+export function labelDecimals(price: number, step: number): number {
+  return Math.max(priceDecimals(price), Math.max(0, -Math.floor(Math.log10(step) + 1e-9)));
 }
 
 export function formatPrice(price: number, decimals = priceDecimals(price)): string {
   return price.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
-/** Parses a CSS number token (`"84"`, `" 2 "`); falls back when absent or not a number. */
-export function cssNumber(raw: string | null | undefined, fallback: number): number {
-  const n = Number.parseFloat(String(raw ?? "").trim());
-  return Number.isFinite(n) ? n : fallback;
+export const formatUsd = (price: number, decimals?: number): string => `$${formatPrice(price, decimals)}`;
+
+/** Signed money with a true minus: "+$1,234.56" / "−$3.20". */
+export function formatSigned(value: number, decimals = 2): string {
+  const sign = value < 0 ? "−" : "+";
+  return `${sign}$${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
 }
 
-/** Which side of the open print the head is on, for a position's band: null with no position or no open print. */
-export function winning(side: "up" | "down" | null, head: number, open: number | null): boolean | null {
-  if (!side || open === null) return null;
-  // Ties settle Up (PD-3).
-  return side === "up" ? head >= open : head < open;
+/** A ring of the last `capacity` samples, oldest first when read. */
+export class SampleRing {
+  readonly capacity: number;
+  private buf: Float64Array;
+  private start = 0;
+  private size = 0;
+
+  constructor(capacity = SAMPLE_CAPACITY) {
+    this.capacity = capacity;
+    this.buf = new Float64Array(capacity);
+  }
+
+  get length(): number {
+    return this.size;
+  }
+
+  push(v: number): void {
+    if (this.size < this.capacity) {
+      this.buf[(this.start + this.size) % this.capacity] = v;
+      this.size += 1;
+    } else {
+      this.buf[this.start] = v;
+      this.start = (this.start + 1) % this.capacity;
+    }
+  }
+
+  /** Fills the ring with one value (the first price: the chart starts flat and grows movement from the right). */
+  fill(v: number): void {
+    this.buf.fill(v);
+    this.start = 0;
+    this.size = this.capacity;
+  }
+
+  at(i: number): number {
+    return this.buf[(this.start + i) % this.capacity]!;
+  }
+
+  clear(): void {
+    this.start = 0;
+    this.size = 0;
+  }
 }
+
+/** The plot's vertical window: centred on `center`, `SPAN_STEPS` steps tall, inside `[top, bottom]` CSS px. */
+export interface YWindow {
+  center: number;
+  half: number;
+  top: number;
+  bottom: number;
+}
+
+export const yOf = (price: number, w: YWindow): number => {
+  const mid = (w.top + w.bottom) / 2;
+  return mid - ((price - w.center) / w.half) * ((w.bottom - w.top) / 2);
+};
+
+/**
+ * Uniform Catmull-Rom → cubic Bézier control points (tension 1/6, endpoints duplicated) for segment i→i+1 of
+ * points `(x(i), y(i))`. Returned as `[c1x, c1y, c2x, c2y]`.
+ */
+export function catmullRom(xs: ArrayLike<number>, ys: ArrayLike<number>, i: number): [number, number, number, number] {
+  const n = xs.length;
+  const a = Math.max(0, i - 1);
+  const d = Math.min(n - 1, i + 2);
+  const b = i;
+  const c = i + 1;
+  return [xs[b]! + (xs[c]! - xs[a]!) / 6, ys[b]! + (ys[c]! - ys[a]!) / 6, xs[c]! - (xs[d]! - xs[b]!) / 6, ys[c]! - (ys[d]! - ys[b]!) / 6];
+}
+
+/** Grid ticks: a minor every step/5, a major every step, across `[lo, hi]`; empty past 400 ticks. */
+export function gridTicks(lo: number, hi: number, step: number): Array<{ value: number; major: boolean }> {
+  const minor = step / 5;
+  if (!(minor > 0) || (hi - lo) / minor > 400) return [];
+  const out: Array<{ value: number; major: boolean }> = [];
+  const first = Math.ceil(lo / minor);
+  for (let k = first; k * minor <= hi + 1e-9 * Math.abs(hi); k++) out.push({ value: Number((k * minor).toFixed(10)), major: k % 5 === 0 });
+  return out;
+}
+
+/**
+ * One rolling digit slot of the canvas odometer. A change moves `target` by the mod-10 distance, forward on a rise and
+ * backward on a fall (9 → 0 on a rise rolls up through 0), and `cur` eases to it.
+ */
+export function rollTarget(cur: number, digitNow: number, digitNext: number, direction: 1 | -1 | 0): number {
+  const fwd = (digitNext - digitNow + 10) % 10;
+  const back = fwd === 0 ? 0 : fwd - 10;
+  const delta = direction > 0 ? fwd : direction < 0 ? back : Math.abs(back) < fwd ? back : fwd;
+  return cur + delta;
+}
+
+/** The digit shown at a fractional roll position, and the next one, with how far between them (0..1). */
+export function rollFrame(cur: number): { digit: number; next: number; frac: number } {
+  const base = Math.floor(cur);
+  return { digit: ((base % 10) + 10) % 10, next: (((base + 1) % 10) + 10) % 10, frac: cur - base };
+}
+
+/** Alpha for a label near a plot edge or the pill: fades over 14 px. */
+export const edgeAlpha = (distancePx: number): number => Math.min(1, Math.max(0, distancePx / 14));

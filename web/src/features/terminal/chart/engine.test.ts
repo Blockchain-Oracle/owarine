@@ -1,57 +1,75 @@
 import { describe, expect, it } from "vitest";
-import { approach, cssNumber, easeRange, formatPrice, lowerBound, niceTicks, stepDecimals, targetRange, timeWindow, winning, xOf, yOf } from "./engine";
+import { catmullRom, easeFor, formatSigned, gridTicks, labelDecimals, niceStep, priceDecimals, rollFrame, rollTarget, SampleRing, stepFor, yOf } from "./engine";
 
-describe("chart engine", () => {
-  it("places now at 80% of the width", () => {
-    const w = timeWindow(100_000, 60_000);
-    const plot = { x0: 0, x1: 1000, y0: 0, y1: 100 };
-    expect(xOf(100_000, { ...w, lo: 0, hi: 1 }, plot)).toBeCloseTo(800);
+describe("chart engine maths (Tradash model)", () => {
+  it("nice steps cut at 1.5 / 3.5 / 7.5", () => {
+    expect(niceStep(1.4)).toBe(1);
+    expect(niceStep(1.6)).toBe(2);
+    expect(niceStep(3.6)).toBe(5);
+    expect(niceStep(7.6)).toBe(10);
+    expect(stepFor(83_700)).toBe(10);
+    expect(stepFor(2_580)).toBe(0.2);
   });
-  it("maps price to y with high at the top", () => {
-    const v = { t0: 0, t1: 1, lo: 100, hi: 200 };
-    const plot = { x0: 0, x1: 10, y0: 0, y1: 100 };
-    expect(yOf(200, v, plot)).toBe(0);
-    expect(yOf(100, v, plot)).toBe(100);
+
+  it("price decimals by magnitude", () => {
+    expect(priceDecimals(120_000)).toBe(1);
+    expect(priceDecimals(83_700)).toBe(2);
+    expect(priceDecimals(45.1)).toBe(3);
+    expect(priceDecimals(3.45)).toBe(4);
+    expect(priceDecimals(0)).toBe(2);
+    expect(priceDecimals(0.000123)).toBe(7);
+    expect(labelDecimals(2_580, 0.2)).toBe(2);
+    expect(labelDecimals(0.5, 0.0001)).toBe(4);
   });
-  it("binary-searches ascending times", () => {
-    expect(lowerBound([1, 3, 5, 7], 4)).toBe(2);
-    expect(lowerBound([1, 3, 5, 7], 0)).toBe(0);
-    expect(lowerBound([1, 3, 5, 7], 9)).toBe(4);
+
+  it("signed money uses a true minus", () => {
+    expect(formatSigned(3.7)).toBe("+$3.70");
+    expect(formatSigned(-5.744)).toBe("−$5.74");
+    expect(formatSigned(3.4521, 4)).toBe("+$3.4521");
   });
-  it("targets the visible extent, padded, never thinner than the floor", () => {
-    const r = targetRange({ t: [0, 10, 20], p: [100, 110, 105], t0: 5, head: 106, padFrac: 0.1 });
-    expect(r.lo).toBeCloseTo(99);
-    expect(r.hi).toBeCloseTo(111);
-    const flat = targetRange({ t: [0], p: [83_000], t0: 0, head: 83_000, minSpanFrac: 0.0002, padFrac: 0 });
-    expect(flat.hi - flat.lo).toBeCloseTo(16.6);
+
+  it("the ring keeps the newest samples, oldest first", () => {
+    const r = new SampleRing(3);
+    r.push(1);
+    r.push(2);
+    r.push(3);
+    r.push(4);
+    expect([r.at(0), r.at(1), r.at(2)]).toEqual([2, 3, 4]);
+    r.fill(9);
+    expect(r.length).toBe(3);
+    expect(r.at(2)).toBe(9);
   });
-  it("keeps pinned prices (the open print) in range", () => {
-    const r = targetRange({ t: [0], p: [100], t0: 0, head: 100, pinned: [90, null], padFrac: 0 });
-    expect(r.lo).toBe(90);
+
+  it("the y-window centres the price", () => {
+    const w = { center: 100, half: 10, top: 0, bottom: 200 };
+    expect(yOf(100, w)).toBe(100);
+    expect(yOf(110, w)).toBe(0);
+    expect(yOf(90, w)).toBe(200);
   });
-  it("eases toward the target and snaps on the first frame", () => {
-    expect(easeRange(null, { lo: 1, hi: 2 }, 0.1)).toEqual({ lo: 1, hi: 2 });
-    expect(easeRange({ lo: 0, hi: 10 }, { lo: 10, hi: 20 }, 0.5)).toEqual({ lo: 5, hi: 15 });
-    expect(approach(0, 100)).toBe(0);
-    expect(approach(1e9, 100)).toBeCloseTo(1);
+
+  it("easing is per 60 Hz sample whatever the frame length", () => {
+    expect(easeFor(0.18, 1000 / 60)).toBeCloseTo(0.18);
+    expect(1 - (1 - easeFor(0.18, 1000 / 120)) ** 2).toBeCloseTo(0.18);
   });
-  it("picks nice ticks and enough label decimals", () => {
-    expect(niceTicks(0, 10, 5)).toEqual([0, 2, 4, 6, 8, 10]);
-    expect(niceTicks(83_001.3, 83_004.1, 5)).toEqual([83_002, 83_003, 83_004]);
-    expect(niceTicks(83_001.3, 83_004.1, 10)).toEqual([83_001.5, 83_002, 83_002.5, 83_003, 83_003.5, 83_004]);
-    expect(stepDecimals(0.5, 83_000)).toBe(1);
-    expect(stepDecimals(0.25, 83_000)).toBe(2);
-    expect(stepDecimals(5, 83_000)).toBe(0);
-    expect(formatPrice(83_761.5)).toBe("83,761.50");
+
+  it("Catmull-Rom control points sit a sixth of the neighbour span away", () => {
+    const xs = [0, 1, 2, 3];
+    const ys = [0, 0, 6, 6];
+    expect(catmullRom(xs, ys, 1)).toEqual([1 + 2 / 6, 1, 2 - 2 / 6, 5]);
   });
-  it("reads CSS number tokens", () => {
-    expect(cssNumber(" 84 ", 0)).toBe(84);
-    expect(cssNumber("", 7)).toBe(7);
+
+  it("grid ticks mark every fifth as major", () => {
+    const t = gridTicks(0, 10, 10);
+    expect(t.filter((x) => x.major).map((x) => x.value)).toEqual([0, 10]);
+    expect(t).toHaveLength(6);
+    expect(gridTicks(0, 1e6, 1)).toEqual([]);
   });
-  it("says which side is winning, ties to Up", () => {
-    expect(winning("up", 100, 100)).toBe(true);
-    expect(winning("down", 100, 100)).toBe(false);
-    expect(winning("down", 99, 100)).toBe(true);
-    expect(winning(null, 1, 1)).toBeNull();
+
+  it("digits roll up on a rise and down on a fall", () => {
+    expect(rollTarget(9, 9, 0, 1)).toBe(10);
+    expect(rollTarget(0, 0, 9, -1)).toBe(-1);
+    expect(rollTarget(3, 3, 5, 0)).toBe(5);
+    expect(rollFrame(9.25)).toEqual({ digit: 9, next: 0, frac: 0.25 });
+    expect(rollFrame(-0.5)).toEqual({ digit: 9, next: 0, frac: 0.5 });
   });
 });

@@ -25,16 +25,19 @@ export interface OdometerProps {
   signed?: boolean;
   /** Colour by sign (pnl and pct do by default). */
   tone?: boolean;
+  /** Tradash's rule: zero reads as up (`+0.0000`, green), never unsigned grey. */
+  zeroIsUp?: boolean;
   className?: string;
 }
 
-const TIMING = { duration: 320, easing: "cubic-bezier(0.22, 1, 0.36, 1)" } as const;
+// Tradash's digit roll: 260 ms on cubic-bezier(0.22, 1, 0.36, 1).
+const TIMING = { duration: 260, easing: "cubic-bezier(0.22, 1, 0.36, 1)" } as const;
 
 export function directionOf(value: number): "up" | "down" | "flat" {
   return value > 0 ? "up" : value < 0 ? "down" : "flat";
 }
 
-export function Odometer({ value, kind = "usd", decimals, signed, tone, className }: OdometerProps) {
+export function Odometer({ value, kind = "usd", decimals, signed, tone, zeroIsUp, className }: OdometerProps) {
   const dp = decimals ?? (kind === "pnl" ? 4 : kind === "plain" ? 0 : 2);
   const isSigned = kind === "pnl" || kind === "pct" || signed === true;
   const colour = tone ?? (kind === "pnl" || kind === "pct");
@@ -43,9 +46,9 @@ export function Odometer({ value, kind = "usd", decimals, signed, tone, classNam
     ...(kind === "usd" || kind === "pnl" ? { style: "currency", currency: "USD" } : kind === "pct" ? { style: "percent" } : {}),
     minimumFractionDigits: dp,
     maximumFractionDigits: dp,
-    signDisplay: isSigned ? "exceptZero" : "auto",
+    signDisplay: isSigned ? (zeroIsUp ? "always" : "exceptZero") : "auto",
   };
-  const dir = directionOf(safe);
+  const dir = zeroIsUp && safe === 0 ? "up" : directionOf(safe);
   return (
     <span
       data-slot="odometer"

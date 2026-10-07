@@ -43,6 +43,7 @@
   --ow-lose: #D21F1F;
   --ow-up-on-black: #3DDC5A;    /* PnL on a black pill, both themes */
   --ow-down-on-black: #FF6B63;
+  --ow-breakeven: #D99A00;      /* the chart's break-even line (Tradash's amber) */
   --ow-sky-gradient: linear-gradient(180deg, #02A6F0 0%, #02BBFF 38%, #7FD9FF 78%, #D9F3FF 100%);
 
   --ow-sheet-w: 420px;
@@ -69,13 +70,14 @@ body {
   --ow-font-axis: var(--font-code), ui-monospace, monospace;
   --ow-font-jp: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
 
-  /* The live chart's canvas metrics (features/terminal/chart): read once per resize/theme, in CSS pixels. */
+  /* The live chart's canvas fonts (features/terminal/chart, Tradash's metrics): read per resize/theme. */
   --ow-chart-axis-font: 500 11px var(--ow-font-axis);
-  --ow-chart-tag-font: 600 11px var(--ow-font-body);
-  --ow-chart-pill-font: 700 13px var(--ow-font-body);
-  --ow-chart-line: 2;
-  --ow-chart-pad-right: 84;
-  --ow-chart-pad-y: 28;
+  --ow-chart-pill-font: 700 15px var(--ow-font-axis);
+  --ow-chart-pill-price-font: 700 14px var(--ow-font-axis);
+  --ow-chart-pill-pnl-font: 700 11px var(--ow-font-axis);
+  --ow-chart-tag-font: 600 10px var(--ow-font-axis);
+  --ow-chart-tag-strong-font: 700 10px var(--ow-font-axis);
+  --ow-chart-mark-font: 900 160px var(--ow-font-jp);
 }
 
 [data-theme="dark"] {

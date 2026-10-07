@@ -1,0 +1,28 @@
+/* The trading screen's surfaces (TRADASH-FIDELITY.md): soft direction fills, the glass settings stack, the reaction flash. */
+.ow-up-soft { background: color-mix(in oklab, var(--ow-up-line) 16%, var(--ow-card)); color: var(--ow-up); }
+.ow-down-soft { background: color-mix(in oklab, var(--ow-down-line) 14%, var(--ow-card)); color: var(--ow-down); }
+.ow-up-solid { background: var(--ow-up-line); color: var(--ow-black); }
+.ow-glass {
+  background: color-mix(in oklab, var(--ow-card) 78%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid var(--ow-hairline);
+}
+.ow-flash-up { box-shadow: inset 0 0 3.125rem color-mix(in oklab, var(--ow-up-line) 22%, transparent); }
+.ow-flash-up.is-mega { box-shadow: inset 0 0 4.375rem color-mix(in oklab, var(--ow-up-line) 26%, transparent); }
+.ow-flash-down { box-shadow: inset 0 0 3.125rem color-mix(in oklab, var(--ow-down-line) 18%, transparent); }
+.ow-callout { font-style: italic; font-weight: 800; text-shadow: 0 0.0625rem 0.5rem color-mix(in oklab, var(--ow-canvas) 80%, transparent); }
+.ow-callout[data-tone="good"], .ow-callout[data-tone="great"] { color: var(--ow-up); font-size: 0.875rem; }
+.ow-callout[data-tone="epic"] { color: var(--ow-pink-ink); font-size: 0.9375rem; }
+.ow-callout[data-tone="bad"] { color: var(--ow-down); font-size: 0.875rem; }
+.ow-callout[data-tone="warn"] { color: var(--ow-breakeven); font-size: 0.875rem; }
+
+/* Asset discs at the trading screen's sizes (the shared AssetDisc; its mark fills the box). */
+.asset-disc-32, .asset-disc-36 { display: inline-grid; place-items: center; flex: none; border-radius: 9999px; overflow: hidden; }
+.asset-disc-32 { width: 2rem; height: 2rem; }
+.asset-disc-36 { width: 2.25rem; height: 2.25rem; }
+.asset-disc-32 .asset-mark, .asset-disc-36 .asset-mark { width: 100%; height: 100%; }
+.asset-disc-32.generic, .asset-disc-36.generic { background: var(--ow-recessed); color: var(--ow-ink); font-size: 0.75rem; font-weight: 800; }
+
+/* The trading screen is the whole viewport: no legacy bottom-nav padding, no page scroll behind the sheets. */
+html[data-surface="terminal"], html[data-surface="terminal"] body { padding: 0 !important; overflow: hidden; overscroll-behavior: none; }

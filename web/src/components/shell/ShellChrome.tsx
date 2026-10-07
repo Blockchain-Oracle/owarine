@@ -15,7 +15,7 @@ import { MobileBottomNav } from "./header/MobileBottomNav";
  * mounts its own chrome (`app/trade-from-x/page.tsx` imports no `Header`/`Marquee`; its sticky
  * strip carries the primary nav instead). Every other route gets the shared shell.
  */
-export const ISLAND_ROUTES: readonly string[] = ["/trade-from-x"];
+export const ISLAND_ROUTES: readonly string[] = ["/trade-from-x", "/trade"];
 
 export function isIslandRoute(pathname: string | null): boolean {
   if (!pathname) return false;
@@ -25,6 +25,8 @@ export function isIslandRoute(pathname: string | null): boolean {
 /** The shell, or none of it: islands paint their own edges, so the shell must not paint over them. */
 export function ShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  // The trading screen draws its own nav, rail and dock (TRADASH-FIDELITY.md): no shell at all.
+  if (pathname === "/trade" || pathname?.startsWith("/trade/")) return <>{children}</>;
   if (isIslandRoute(pathname)) {
     return (
       <>

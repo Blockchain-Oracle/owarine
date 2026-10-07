@@ -49,7 +49,8 @@ export default function AppStrip() {
   }, [gone]);
 
   // A strip inviting you to the page you are already reading is noise.
-  const hidden = gone || !!pathname?.startsWith("/download");
+  // The trading screen is one full-screen surface (Tradash); nothing sits above it.
+  const hidden = gone || !!pathname?.startsWith("/download") || pathname === "/trade" || !!pathname?.startsWith("/trade/");
 
   // Tell the stylesheet whether the strip is actually there. Every fixed offset on the site is
   // computed off --appstrip, so when the strip is absent that height has to collapse or the
