@@ -155,7 +155,7 @@ body:has(.reel-page) .footer {
   font-weight: 800;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: var(--reel-ink); font-stretch: 125%; }
+  color: var(--reel-ink); font-stretch: 100%; }
 
 .reel-clock.urgent .reel-clock-value {
   color: var(--signal-ink);
@@ -175,7 +175,7 @@ body:has(.reel-page) .footer {
   font-weight: 800;
   line-height: 1.06;
   letter-spacing: -0.02em;
-  color: var(--reel-ink); font-stretch: 125%; }
+  color: var(--reel-ink); font-stretch: 100%; }
 
 /* the line itself — text-signal */
 .reel-question-line {
@@ -272,7 +272,7 @@ body:has(.reel-page) .footer {
   font-size: 16px;
   font-weight: 700;
   border: 1px solid transparent;
-  transition: background-color 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease); font-stretch: 125%; }
+  transition: background-color 200ms var(--ease), border-color 200ms var(--ease), color 200ms var(--ease); font-stretch: 100%; }
 
 /* border-signal/60 bg-signal/10 text-signal hover:bg-signal/20 */
 .reel-side.up {

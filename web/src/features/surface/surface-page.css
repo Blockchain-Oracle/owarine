@@ -18,7 +18,7 @@
 .sf-crumbs-here { color: var(--white); }
 
 /* font-display font-[800] text-4xl text-white tracking-tight mb-6 */
-.sf-title { font-family: var(--font-display); font-weight: 800; font-size: 36px; line-height: 40px; letter-spacing: -0.025em; color: var(--white); margin-bottom: 24px; font-stretch: 125%; }
+.sf-title { font-family: var(--font-display); font-weight: 800; font-size: 36px; line-height: 40px; letter-spacing: -0.025em; color: var(--white); margin-bottom: 24px; font-stretch: 100%; }
 /* text-gray-400 text-sm leading-relaxed max-w-2xl mb-8 */
 .sf-intro { color: var(--gray-400); font-size: 14px; line-height: 1.625; max-width: 42rem; margin-bottom: 32px; }
 /* span.text-white */
@@ -32,11 +32,11 @@
 /* font-mono border transition-colors · off: border-white/10 text-gray-500 hover:text-gray-300 */
 .sf-chip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: var(--gray-500); cursor: pointer; transition: color 200ms var(--ease), border-color 200ms var(--ease), background 200ms var(--ease); font-variant-numeric: tabular-nums; }
 .sf-chip:hover { color: var(--gray-300); }
-[data-theme="light"] .sf-chip { border-color: rgba(16, 15, 15, 0.11); }
+[data-theme="light"] .sf-chip { border-color: rgba(10, 10, 10, 0.11); }
 /* text-[12px] px-3 py-1.5 rounded-full · on: border-white/25 bg-white/10 text-white */
 .sf-chip--asset { font-size: 12px; padding: 6px 12px; border-radius: 9999px; }
 .sf-chip--asset.sf-chip--on { border-color: rgba(255, 255, 255, 0.25); background: rgba(255, 255, 255, 0.1); color: var(--white); }
-[data-theme="light"] .sf-chip--asset.sf-chip--on { border-color: rgba(16, 15, 15, 0.22); background: rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .sf-chip--asset.sf-chip--on { border-color: rgba(10, 10, 10, 0.22); background: rgba(10, 10, 10, 0.08); }
 /* text-[11px] px-2.5 py-1.5 rounded · on: border-signal/40 text-signal */
 .sf-chip--window { font-size: 11px; padding: 6px 10px; border-radius: 4px; }
 .sf-chip--window.sf-chip--on { border-color: color-mix(in srgb, var(--signal-ink) 40%, transparent); color: var(--signal-ink); }
@@ -49,7 +49,7 @@
 
 /* border border-white/[0.08] rounded bg-bg */
 .sf-box { border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 4px; background: var(--bg); }
-[data-theme="light"] .sf-box { border-color: rgba(16, 15, 15, 0.11); background: #FFFFFF; }
+[data-theme="light"] .sf-box { border-color: rgba(10, 10, 10, 0.11); background: #FFFFFF; }
 /* p-3, style={{ height: 220 }} */
 .sf-box--chart { position: relative; padding: 12px; height: 220px; }
 /* style={{ height: 180 }} — the x labels need a row of their own here */
@@ -66,11 +66,11 @@
 @media (min-width: 768px) { .sf-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 /* border border-white/[0.08] rounded bg-bg p-5 */
 .sf-tile { min-width: 0; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 4px; background: var(--bg); padding: 20px; }
-[data-theme="light"] .sf-tile { border-color: rgba(16, 15, 15, 0.11); background: #FFFFFF; }
+[data-theme="light"] .sf-tile { border-color: rgba(10, 10, 10, 0.11); background: #FFFFFF; }
 /* font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-2 */
 .sf-tile-k { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-bottom: 8px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* font-display text-2xl font-extrabold tracking-tight tabular-nums text-white — one face for all four tiles, the countdown included */
-.sf-tile-v { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--white); white-space: nowrap; font-stretch: 125%; }
+.sf-tile-v { font-family: var(--font-display); font-size: 24px; line-height: 32px; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--white); white-space: nowrap; font-stretch: 100%; }
 .sf-tile-v > * { font-family: inherit; font-size: inherit; font-weight: inherit; letter-spacing: inherit; }
 /* four across from 768 leaves ~131px for a $77,842.39 print at the 24px face; step down until the tile widens */
 @media (min-width: 768px) and (max-width: 899px) { .sf-tile-v { font-size: 20px; line-height: 28px; } }
@@ -91,7 +91,7 @@
 /* the bids in ink, the asks in signal — the curve's colour in drawIvLine is VERM */
 .sf-depth-area--bids { fill: color-mix(in srgb, var(--white) 14%, transparent); stroke: color-mix(in srgb, var(--white) 55%, transparent); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .sf-depth-area--asks { fill: color-mix(in srgb, var(--signal-ink) 18%, transparent); stroke: var(--signal-ink); stroke-width: 1; vector-effect: non-scaling-stroke; }
-/* the forward marker: rgba(228,226,78,0.5), dashed [3,3] */
+/* the forward marker: rgba(250,0,255,0.5), dashed [3,3] */
 .sf-depth-mid { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed color-mix(in srgb, var(--signal-ink) 50%, transparent); }
 .sf-depth-mid-label { position: absolute; top: 0; left: 6px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); white-space: nowrap; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* a crossed book has no mid to mark; the word sits where the marker would */
@@ -110,11 +110,11 @@
 .sf-row { display: grid; grid-template-columns: 1.1fr 0.9fr 0.8fr 1fr 1fr 1.3fr; gap: 8px; align-items: baseline; min-width: 560px; padding: 8px 20px; font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--gray-300); transition: background 200ms var(--ease); }
 /* hover:bg-white/[0.02] */
 .sf-row:hover { background: rgba(255, 255, 255, 0.02); }
-[data-theme="light"] .sf-row:hover { background: rgba(16, 15, 15, 0.03); }
+[data-theme="light"] .sf-row:hover { background: rgba(10, 10, 10, 0.03); }
 /* py-2.5 border-b border-white/[0.06] text-[9px] uppercase tracking-[0.16em] text-gray-500 */
 .sf-row--head { padding: 10px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-size: 9px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--gray-500); }
 .sf-row--head:hover { background: transparent; }
-[data-theme="light"] .sf-row--head { border-bottom-color: rgba(16, 15, 15, 0.07); }
+[data-theme="light"] .sf-row--head { border-bottom-color: rgba(10, 10, 10, 0.07); }
 .sf-row-num { text-align: right; }
 /* the strike column: text-gray-300, ATM in text-signal */
 .sf-row-stake { color: var(--gray-300); }
@@ -136,7 +136,7 @@
 .sf-term-plot { position: relative; min-height: 0; }
 /* grid: rgba(255,255,255,0.06) */
 .sf-term-grid { stroke: rgba(255, 255, 255, 0.06); stroke-width: 1; vector-effect: non-scaling-stroke; }
-[data-theme="light"] .sf-term-grid { stroke: rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .sf-term-grid { stroke: rgba(10, 10, 10, 0.08); }
 /* the curve: VERM, lineWidth 1.8 */
 .sf-term-line { fill: none; stroke: var(--signal-ink); stroke-width: 1.8; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 /* the endpoint dots (r 2.2), here on every point and pressable */
@@ -160,8 +160,8 @@
 /* the ATM rung: bg-signal/[0.06], its label text-signal */
 .sf-trow--focal { background: color-mix(in srgb, var(--signal) 6%, transparent); }
 .sf-trow--focal .sf-trow-window b { color: var(--signal-ink); }
-[data-theme="light"] .sf-trow:hover { background: rgba(16, 15, 15, 0.03); }
-[data-theme="light"] .sf-trow--head { border-bottom-color: rgba(16, 15, 15, 0.07); }
+[data-theme="light"] .sf-trow:hover { background: rgba(10, 10, 10, 0.03); }
+[data-theme="light"] .sf-trow--head { border-bottom-color: rgba(10, 10, 10, 0.07); }
 .sf-trow-window b { font-weight: 600; color: var(--white); }
 .sf-trow-crossed { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal-ink); }
 .sf-trow-state { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); text-align: right; }

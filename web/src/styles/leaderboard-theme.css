@@ -5,28 +5,28 @@
 
 /* Hairlines on cream (part-14: /5–/[0.06] → 0.07, /10–/[0.08] → 0.11, /15–/20 → 0.16, /25–/30 → 0.22). */
 [data-theme="light"] .lb-hero-grid,
-[data-theme="light"] .banzuke-cols-head { border-bottom-color: rgba(16, 15, 15, 0.11); }
+[data-theme="light"] .banzuke-cols-head { border-bottom-color: rgba(10, 10, 10, 0.11); }
 [data-theme="light"] .lb-filter-bar,
-[data-theme="light"] .banzuke-row { border-bottom-color: rgba(16, 15, 15, 0.07); }
-[data-theme="light"] .podium-spot { border-color: rgba(16, 15, 15, 0.11); background: rgba(16, 15, 15, 0.02); }
-[data-theme="light"] .podium-spot:hover { border-color: rgba(16, 15, 15, 0.22); }
-[data-theme="light"] .podium-spot.s1 { border-color: rgba(228, 226, 78, 0.3); }
-[data-theme="light"] .podium-rank { color: rgba(16, 15, 15, 0.05); }
-[data-theme="light"] .podium-portrait { border-color: rgba(16, 15, 15, 0.16); }
-[data-theme="light"] .podium-stats { border-top-color: rgba(16, 15, 15, 0.07); }
-[data-theme="light"] .podium-stats .item { border-right-color: rgba(16, 15, 15, 0.07); }
+[data-theme="light"] .banzuke-row { border-bottom-color: rgba(10, 10, 10, 0.07); }
+[data-theme="light"] .podium-spot { border-color: rgba(10, 10, 10, 0.11); background: rgba(10, 10, 10, 0.02); }
+[data-theme="light"] .podium-spot:hover { border-color: rgba(10, 10, 10, 0.22); }
+[data-theme="light"] .podium-spot.s1 { border-color: rgba(250, 0, 255, 0.3); }
+[data-theme="light"] .podium-rank { color: rgba(10, 10, 10, 0.05); }
+[data-theme="light"] .podium-portrait { border-color: rgba(10, 10, 10, 0.16); }
+[data-theme="light"] .podium-stats { border-top-color: rgba(10, 10, 10, 0.07); }
+[data-theme="light"] .podium-stats .item { border-right-color: rgba(10, 10, 10, 0.07); }
 [data-theme="light"] .banzuke-wrap {
-  border-color: rgba(16, 15, 15, 0.07);
-  background: repeating-linear-gradient(0deg, transparent 0 39px, rgba(16, 15, 15, 0.02) 39px 40px), var(--bg);
+  border-color: rgba(10, 10, 10, 0.07);
+  background: repeating-linear-gradient(0deg, transparent 0 39px, rgba(10, 10, 10, 0.02) 39px 40px), var(--bg);
 }
-[data-theme="light"] .banzuke-strip { background: rgba(16, 15, 15, 0.03); border-bottom-color: rgba(16, 15, 15, 0.07); }
+[data-theme="light"] .banzuke-strip { background: rgba(10, 10, 10, 0.03); border-bottom-color: rgba(10, 10, 10, 0.07); }
 [data-theme="light"] .banzuke-cols-head .center,
-[data-theme="light"] .banzuke-row .center { border-left-color: rgba(16, 15, 15, 0.07); border-right-color: rgba(16, 15, 15, 0.07); }
-[data-theme="light"] .banzuke-row .center { background: rgba(16, 15, 15, 0.04); }
-[data-theme="light"] .banzuke-row:hover { background: rgba(16, 15, 15, 0.03); }
-[data-theme="light"] .bz-portrait { border-color: rgba(16, 15, 15, 0.16); color: rgba(255, 255, 255, 0.8); }
-[data-theme="light"] .bz-divider { background: rgba(16, 15, 15, 0.04); border-top-color: rgba(16, 15, 15, 0.07); border-bottom-color: rgba(16, 15, 15, 0.07); }
-[data-theme="light"] .asset-tab .glyph { border-color: rgba(16, 15, 15, 0.22); }
+[data-theme="light"] .banzuke-row .center { border-left-color: rgba(10, 10, 10, 0.07); border-right-color: rgba(10, 10, 10, 0.07); }
+[data-theme="light"] .banzuke-row .center { background: rgba(10, 10, 10, 0.04); }
+[data-theme="light"] .banzuke-row:hover { background: rgba(10, 10, 10, 0.03); }
+[data-theme="light"] .bz-portrait { border-color: rgba(10, 10, 10, 0.16); color: rgba(255, 255, 255, 0.8); }
+[data-theme="light"] .bz-divider { background: rgba(10, 10, 10, 0.04); border-top-color: rgba(10, 10, 10, 0.07); border-bottom-color: rgba(10, 10, 10, 0.07); }
+[data-theme="light"] .asset-tab .glyph { border-color: rgba(10, 10, 10, 0.22); }
 
 /* The "you" bar sits on solid signal in both themes — its ink must stay light (part-14's own
  * rule for labels on a saturated fill), and its pill stays cream, not ink. */

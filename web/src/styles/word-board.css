@@ -20,7 +20,7 @@
 }
 
 [data-theme="light"] .wq-btc.generic {
-  background: rgba(16, 15, 15, 0.1);
+  background: rgba(10, 10, 10, 0.1);
 }
 
 /* The countdown here is the shared `Countdown`, which flags urgency with
@@ -40,7 +40,7 @@
 }
 
 [data-theme="light"] .wq-oddsbar-unknown {
-  background: rgba(16, 15, 15, 0.08);
+  background: rgba(10, 10, 10, 0.08);
 }
 
 /* A Window whose opening print has not landed has no level in its question yet.

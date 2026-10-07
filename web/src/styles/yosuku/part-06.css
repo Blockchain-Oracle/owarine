@@ -22,8 +22,8 @@
   display: inline-flex; align-items: center; gap: 7px;
   padding: 4px 11px 4px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(228,226,78,0.5);
-  background: rgba(228,226,78,0.08);
+  border: 1px solid rgba(250,0,255,0.5);
+  background: rgba(250,0,255,0.08);
   font-family: var(--font-mono);
   font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
   color: var(--signal-ink);
@@ -32,9 +32,9 @@
   width: 5px; height: 5px; border-radius: 50%; background: var(--signal);
   animation: pulseDot 1.6s var(--ease) infinite; color: var(--on-signal); }
 @keyframes pulseDot {
-  0%   { opacity: 1;   box-shadow: 0 0 0 0 rgba(228,226,78,0.45); }
-  70%  { opacity: 0.55; box-shadow: 0 0 0 6px rgba(228,226,78,0); }
-  100% { opacity: 1;   box-shadow: 0 0 0 0 rgba(228,226,78,0); }
+  0%   { opacity: 1;   box-shadow: 0 0 0 0 rgba(250,0,255,0.45); }
+  70%  { opacity: 0.55; box-shadow: 0 0 0 6px rgba(250,0,255,0); }
+  100% { opacity: 1;   box-shadow: 0 0 0 0 rgba(250,0,255,0); }
 }
 
 /* ───────── Market grid ───────── */
@@ -66,12 +66,12 @@
 .mc-pending-dot {
   width: 9px; height: 9px; border-radius: 50%;
   background: var(--signal);
-  box-shadow: 0 0 0 0 rgba(228,226,78,0.5);
+  box-shadow: 0 0 0 0 rgba(250,0,255,0.5);
   animation: pendingPulse 1.8s var(--ease) infinite; color: var(--on-signal); }
 @keyframes pendingPulse {
-  0%   { opacity: 1;   box-shadow: 0 0 0 0 rgba(228,226,78,0.45); }
-  70%  { opacity: 0.5; box-shadow: 0 0 0 9px rgba(228,226,78,0); }
-  100% { opacity: 1;   box-shadow: 0 0 0 0 rgba(228,226,78,0); }
+  0%   { opacity: 1;   box-shadow: 0 0 0 0 rgba(250,0,255,0.45); }
+  70%  { opacity: 0.5; box-shadow: 0 0 0 9px rgba(250,0,255,0); }
+  100% { opacity: 1;   box-shadow: 0 0 0 0 rgba(250,0,255,0); }
 }
 .mc-pending-copy {
   font-family: var(--font-body); font-size: 13px; line-height: 1.6;
@@ -100,9 +100,9 @@
   animation: cardFlash 1.6s var(--ease);
 }
 @keyframes cardFlash {
-  0%   { box-shadow: 0 0 0 0 rgba(228,226,78, 0); }
-  25%  { box-shadow: 0 0 0 4px rgba(228,226,78, 0.18); border-color: rgba(228,226,78,0.6); }
-  100% { box-shadow: 0 0 0 0 rgba(228,226,78, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(250,0,255, 0); }
+  25%  { box-shadow: 0 0 0 4px rgba(250,0,255, 0.18); border-color: rgba(250,0,255,0.6); }
+  100% { box-shadow: 0 0 0 0 rgba(250,0,255, 0); }
 }
 
 .mc-head {
@@ -159,7 +159,7 @@
   letter-spacing: -0.02em;
   color: var(--white);
   text-wrap: balance;
-  min-height: 58px; font-stretch: 125%; }
+  min-height: 58px; font-stretch: 100%; }
 .mc-question .strike-dot {
   display: inline-block;
   width: 5px; height: 5px;
@@ -189,14 +189,14 @@
 .mc-spark canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
 .mc-spark .strike-line {
   position: absolute; left: 0; right: 0; height: 1px;
-  background: rgba(228,226,78,0.4);
+  background: rgba(250,0,255,0.4);
   border-top: 1px dashed var(--signal-ink);
 }
 .mc-spark .strike-tick {
   position: absolute; right: 6px;
   font-family: var(--font-mono); font-size: 8px;
   color: var(--signal-ink);
-  background: rgba(16,15,15,0.7);
+  background: rgba(10,10,10,0.7);
   padding: 1px 4px; border-radius: 2px;
   letter-spacing: 0.06em;
   transform: translateY(-50%); font-variant-numeric: tabular-nums; }
@@ -218,7 +218,7 @@
   cursor: pointer; font-variant-numeric: tabular-nums; }
 .mc-weight .up-w {
   flex: var(--up-w, 50);
-  background: rgba(228,226,78,0.1);
+  background: rgba(250,0,255,0.1);
   color: var(--signal-ink);
   justify-content: flex-start;
 }
@@ -257,10 +257,10 @@
   transition: transform 150ms var(--ease), background 200ms var(--ease), border-color 200ms var(--ease);
   cursor: pointer; background: transparent; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .mc-side .price { font-family: var(--font-mono); font-weight: 800; opacity: 0.82; letter-spacing: -0.02em; text-transform: none; font-size: 12px; font-variant-numeric: tabular-nums; }
-.mc-side.up { color: var(--profit); background: rgba(61,214,140,0.08); border-color: rgba(61,214,140,0.32); }
-.mc-side.up:hover { background: rgba(61,214,140,0.15); border-color: var(--profit); transform: translateY(-1px); }
-.mc-side.down { color: var(--loss); background: rgba(255,92,97,0.08); border-color: rgba(255,92,97,0.32); }
-.mc-side.down:hover { background: rgba(255,92,97,0.15); border-color: var(--loss); transform: translateY(-1px); }
+.mc-side.up { color: var(--profit); background: rgba(61,220,90,0.08); border-color: rgba(61,220,90,0.32); }
+.mc-side.up:hover { background: rgba(61,220,90,0.15); border-color: var(--profit); transform: translateY(-1px); }
+.mc-side.down { color: var(--loss); background: rgba(255,90,82,0.08); border-color: rgba(255,90,82,0.32); }
+.mc-side.down:hover { background: rgba(255,90,82,0.15); border-color: var(--loss); transform: translateY(-1px); }
 
 /* The Room — bettors-only chat trigger, a quiet full-width strip under the foot. */
 .mc-room {

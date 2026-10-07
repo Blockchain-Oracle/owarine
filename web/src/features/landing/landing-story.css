@@ -34,7 +34,7 @@
 .lp-next-row dt {
   margin: 0 0 6px;
   font-family: var(--font-display); font-weight: 600; font-size: 15px; letter-spacing: -0.01em;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 .lp-next-row dd { margin: 0; font-size: 14px; line-height: 1.6; color: var(--gray-400); }
 .lp-next-targets {
   list-style: none; margin: 0; padding: 0;

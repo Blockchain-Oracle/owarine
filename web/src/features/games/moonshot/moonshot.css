@@ -47,7 +47,7 @@
 
 /* Pips' footer readout: the reach large, the side beside it, the one-line hint under */
 .ms-readout { display: flex; flex-direction: column; min-width: 0; }
-.ms-readout-x { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--signal-ink); font-stretch: 125%; }
+.ms-readout-x { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--signal-ink); font-stretch: 100%; }
 .ms-readout-side { margin-top: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .ms-readout-side--long { color: var(--profit); }
 .ms-readout-side--short { color: var(--loss); }
@@ -59,10 +59,10 @@
 .ms-liability { font-family: var(--font-mono); font-size: 10px; line-height: 1.6; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 /* ── light theme: part-14's ladder for text-white/NN, ink borders ── */
-[data-theme="light"] .ms-aim-label { color: rgba(16, 15, 15, 0.62); }
-[data-theme="light"] .ms-aim-must, [data-theme="light"] .ms-readout-hint { color: rgba(16, 15, 15, 0.55); }
-[data-theme="light"] .ms-aim-body { border-color: rgba(16, 15, 15, 0.12); background: rgba(16, 15, 15, 0.02); }
-[data-theme="light"] .ms-ladder-mid { background: rgba(16, 15, 15, 0.16); }
-[data-theme="light"] .ms-rung { border-color: rgba(16, 15, 15, 0.12); color: rgba(16, 15, 15, 0.62); }
-[data-theme="light"] .ms-rung:hover:not(:disabled) { border-color: rgba(16, 15, 15, 0.3); color: rgba(16, 15, 15, 0.85); }
-[data-theme="light"] .ms-rung[aria-checked="true"] { color: var(--ink, rgba(16, 15, 15, 0.95)); }
+[data-theme="light"] .ms-aim-label { color: rgba(10, 10, 10, 0.62); }
+[data-theme="light"] .ms-aim-must, [data-theme="light"] .ms-readout-hint { color: rgba(10, 10, 10, 0.55); }
+[data-theme="light"] .ms-aim-body { border-color: rgba(10, 10, 10, 0.12); background: rgba(10, 10, 10, 0.02); }
+[data-theme="light"] .ms-ladder-mid { background: rgba(10, 10, 10, 0.16); }
+[data-theme="light"] .ms-rung { border-color: rgba(10, 10, 10, 0.12); color: rgba(10, 10, 10, 0.62); }
+[data-theme="light"] .ms-rung:hover:not(:disabled) { border-color: rgba(10, 10, 10, 0.3); color: rgba(10, 10, 10, 0.85); }
+[data-theme="light"] .ms-rung[aria-checked="true"] { color: var(--ink, rgba(10, 10, 10, 0.95)); }

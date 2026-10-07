@@ -19,7 +19,7 @@ const make = (i: (a: number) => string, hairline: string, inset: string, signal:
 });
 
 const DARK = make(d, "rgba(255, 255, 255, 0.1)", "rgba(255, 255, 255, 0.02)", "224, 77, 38");
-const LIGHT: typeof DARK = make(l, "rgba(16, 15, 15, 0.11)", "rgba(16, 15, 15, 0.025)", "217, 62, 31");
+const LIGHT: typeof DARK = make(l, "rgba(10, 10, 10, 0.11)", "rgba(10, 10, 10, 0.025)", "217, 62, 31");
 
 export type TakesTokens = typeof DARK;
 export const takesTokens = (name: ThemeName): TakesTokens => (name === "dark" ? DARK : LIGHT);

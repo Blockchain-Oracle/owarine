@@ -16,7 +16,7 @@
   background: rgba(255, 255, 255, 0.14);
   transition: background 200ms var(--ease);
 }
-[data-theme="light"] .st-pip { background: rgba(16, 15, 15, 0.14); }
+[data-theme="light"] .st-pip { background: rgba(10, 10, 10, 0.14); }
 .st-pip--active { background: var(--gm-accent, var(--signal)); }
 .st-pip--up { background: var(--profit); }
 .st-pip--down { background: var(--loss); }
@@ -68,7 +68,7 @@
   background: color-mix(in srgb, var(--bg) 55%, var(--color-surface-1));
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.06), inset 0 -2px 0 rgba(0, 0, 0, 0.45);
 }
-[data-theme="light"] .st-band { box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .st-band { box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), inset 0 -2px 0 rgba(10, 10, 10, 0.08); }
 
 /* Band 1 — the title banner: the pair on the left in the reference's amber (signal here), N/M on the right. */
 .st-band--title { display: flex; align-items: center; gap: 8px; padding: 7px 10px; }
@@ -80,14 +80,14 @@
 .st-asset-disc { width: 16px; height: 16px; display: inline-grid; place-items: center; border-radius: 9999px; }
 .st-asset-disc .asset-mark { width: 16px; height: 16px; }
 .st-asset-disc.generic { background: rgba(255, 255, 255, 0.14); font-family: var(--font-mono); font-size: 9px; color: var(--white); font-variant-numeric: tabular-nums; }
-[data-theme="light"] .st-asset-disc.generic { background: rgba(16, 15, 15, 0.12); }
+[data-theme="light"] .st-asset-disc.generic { background: rgba(10, 10, 10, 0.12); }
 .st-cadence {
   padding: 2px 8px; border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   font-family: var(--font-pixel); font-size: 11px; letter-spacing: 0.06em;
   color: var(--gray-400);
 }
-[data-theme="light"] .st-cadence { border-color: rgba(16, 15, 15, 0.14); }
+[data-theme="light"] .st-cadence { border-color: rgba(10, 10, 10, 0.14); }
 .st-title-place { margin-left: auto; font-family: var(--font-pixel); font-size: 16px; letter-spacing: 0.18em; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 /* Band 2 — the art window and its CRT face (Flicky globals.css L360–425, swipe-screen.tsx L318–338). */
@@ -109,7 +109,7 @@
 .st-art-screw--tr { top: 4px; right: 4px; }
 .st-art-screw--bl { bottom: 4px; left: 4px; }
 .st-art-screw--br { bottom: 4px; right: 4px; }
-[data-theme="light"] .st-art-screw { background: rgba(16, 15, 15, 0.35); }
+[data-theme="light"] .st-art-screw { background: rgba(10, 10, 10, 0.35); }
 
 /* The CRT: pillow corners, a glass gleam, an edge vignette, scanlines, and a flicker that reduced motion stills. */
 .crt-screen {
@@ -124,14 +124,14 @@
 }
 .crt-screen::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; background: rgba(18, 16, 16, 0.12); opacity: 0; animation: crt-flicker 0.18s infinite; }
 @keyframes crt-flicker { 0% { opacity: 0.03; } 10% { opacity: 0.08; } 20% { opacity: 0.02; } 30% { opacity: 0.1; } 40% { opacity: 0.04; } 50% { opacity: 0.07; } 60% { opacity: 0.03; } 70% { opacity: 0.09; } 80% { opacity: 0.04; } 90% { opacity: 0.06; } 100% { opacity: 0.03; } }
-[data-theme="light"] .crt-screen { box-shadow: inset 0 0 18px rgba(16, 15, 15, 0.25), inset 0 0 60px rgba(16, 15, 15, 0.12); }
+[data-theme="light"] .crt-screen { box-shadow: inset 0 0 18px rgba(10, 10, 10, 0.25), inset 0 0 60px rgba(10, 10, 10, 0.12); }
 
 /* Band 3 — the quote box (L338–369): a hairline inset one step inside the tile, the eyebrow, the question, the clock. */
 .st-band--quote { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; }
 .st-quote-inset { position: absolute; inset: 4px; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 7px; pointer-events: none; }
-[data-theme="light"] .st-quote-inset { border-color: rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .st-quote-inset { border-color: rgba(10, 10, 10, 0.08); }
 .st-eyebrow { font-family: var(--font-pixel); font-size: 14px; letter-spacing: 0.22em; text-transform: uppercase; color: color-mix(in srgb, var(--signal-ink) 80%, transparent); }
-.st-question { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.05; letter-spacing: -0.02em; color: var(--white); font-stretch: 125%; }
+.st-question { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.05; letter-spacing: -0.02em; color: var(--white); font-stretch: 100%; }
 .st-question-pending { color: var(--gray-500); }
 .st-clock {
   display: flex; align-items: center; gap: 6px; margin-top: 2px;
@@ -179,7 +179,7 @@
 .st-clock[data-pulse], .st-deplete-fill[data-pulse] { animation: st-urgent 0.8s ease-in-out infinite; }
 @keyframes st-urgent { 50% { filter: brightness(1.35); text-shadow: 0 0 12px currentColor; } }
 .st-deplete { width: 100%; height: 4px; border-radius: 9999px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
-[data-theme="light"] .st-deplete { background: rgba(16, 15, 15, 0.12); }
+[data-theme="light"] .st-deplete { background: rgba(10, 10, 10, 0.12); }
 .st-deplete-fill { display: block; height: 100%; border-radius: inherit; background: var(--profit); transition: width 1s linear, background 300ms var(--ease); }
 .st-deplete-fill[data-urgency="near"] { background: var(--signal); color: var(--on-signal); }
 .st-deplete-fill[data-urgency="last"] { background: var(--loss); }
@@ -193,8 +193,8 @@
   border-radius: 20px; border: 1px dashed rgba(255, 255, 255, 0.12);
   text-align: center; padding: 24px;
 }
-[data-theme="light"] .st-empty { border-color: rgba(16, 15, 15, 0.14); }
-.st-empty-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); font-stretch: 125%; }
+[data-theme="light"] .st-empty { border-color: rgba(10, 10, 10, 0.14); }
+.st-empty-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); font-stretch: 100%; }
 .st-empty-body { font-size: 13px; line-height: 1.6; color: var(--gray-400); max-width: 44ch; }
 
 /* ── Band 5 — the two calls, as the reference's YES/NO chips (L407–451): an arrow, the word, the side's odds ── */
@@ -205,7 +205,7 @@
   font-family: var(--font-display); font-weight: 700; font-size: 14px;
   letter-spacing: 0.04em; text-transform: uppercase;
   box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.06), inset 0 -2px 0 rgba(0, 0, 0, 0.35);
-  transition: transform 140ms var(--ease), filter 140ms var(--ease), opacity 140ms var(--ease); font-stretch: 125%; }
+  transition: transform 140ms var(--ease), filter 140ms var(--ease), opacity 140ms var(--ease); font-stretch: 100%; }
 .st-call svg { width: 16px; height: 16px; }
 .st-call-odds { font-family: var(--font-pixel); font-size: 16px; letter-spacing: 0.06em; opacity: 0.75; font-variant-numeric: tabular-nums; }
 .st-call:disabled { opacity: 0.42; cursor: not-allowed; }

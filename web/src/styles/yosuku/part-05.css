@@ -65,7 +65,7 @@
   overflow: hidden;
   position: relative;
   background:
-    radial-gradient(ellipse at top right, rgba(228,226,78,0.04), transparent 50%),
+    radial-gradient(ellipse at top right, rgba(250,0,255,0.04), transparent 50%),
     var(--bg);
 }
 .featured-strip {
@@ -104,7 +104,7 @@
   letter-spacing: -0.035em;
   color: var(--white);
   text-wrap: balance;
-  max-width: 22ch; font-stretch: 125%; }
+  max-width: 22ch; font-stretch: 100%; }
 .featured-question .strike {
   color: var(--signal-ink);
   position: relative;
@@ -165,7 +165,7 @@
   overflow: hidden;
 }
 .featured-weight .up-side {
-  background: rgba(228,226,78,0.08);
+  background: rgba(250,0,255,0.08);
   color: var(--signal-ink);
   flex-grow: var(--up-weight, 1);
 }
@@ -178,7 +178,7 @@
 .featured-weight .up-side:hover { background: var(--signal); color: var(--on-signal); }
 .featured-weight .down-side:hover { background: var(--white); color: var(--black); }
 .featured-weight .label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.featured-weight .price { font-family: var(--font-display); font-weight: 700; font-size: 28px; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; font-stretch: 125%; }
+.featured-weight .price { font-family: var(--font-display); font-weight: 700; font-size: 28px; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; font-stretch: 100%; }
 .featured-weight .pct   { font-family: var(--font-mono); font-size: 11px; opacity: 0.7; margin-top: 2px; font-variant-numeric: tabular-nums; }
 
 .recent-trades {
@@ -210,7 +210,7 @@
   animation: rowFlash 1.2s var(--ease) forwards;
 }
 @keyframes rowFlash {
-  0% { background: rgba(228,226,78,0.16); }
+  0% { background: rgba(250,0,255,0.16); }
   100% { background: transparent; }
 }
 .recent-trades .addr { color: var(--gray-500); font-size: 10px; }
@@ -311,7 +311,7 @@
   font-size: 30px;
   letter-spacing: -0.025em;
   line-height: 1;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 .section-meta {
   font-family: var(--font-mono);
   font-size: 11px; color: var(--gray-500); letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }

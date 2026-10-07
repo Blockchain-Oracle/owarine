@@ -32,9 +32,9 @@
      source the reel's light treatment came from, so the two agree. */
   --room-sheet: #fafaf7;
   --room-ink-rgb: 33 28 24;
-  --room-hairline: rgba(16, 15, 15, 0.11);
-  --room-rule: rgba(16, 15, 15, 0.08);
-  --room-inset: rgba(16, 15, 15, 0.025);
+  --room-hairline: rgba(10, 10, 10, 0.11);
+  --room-rule: rgba(10, 10, 10, 0.08);
+  --room-inset: rgba(10, 10, 10, 0.025);
 }
 
 /* fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm */
@@ -47,7 +47,7 @@
 }
 
 /* max-h-[88dvh] w-full max-w-[440px] rounded-t-3xl sm:rounded-3xl
-   + shadow-[0_-20px_80px_-20px_rgba(228,226,78,0.25)] */
+   + shadow-[0_-20px_80px_-20px_rgba(250,0,255,0.25)] */
 .room-sheet {
   position: fixed;
   z-index: 1000;
@@ -64,7 +64,7 @@
   border-radius: 24px 24px 0 0;
   background: var(--room-sheet);
   color: rgb(var(--room-ink-rgb));
-  box-shadow: 0 -20px 80px -20px rgba(228, 226, 78, 0.25);
+  box-shadow: 0 -20px 80px -20px rgba(250, 0, 255, 0.25);
 }
 
 .room-sheet:focus,
@@ -116,8 +116,8 @@
   margin-top: 2px;
   border: 1px solid color-mix(in srgb, var(--signal-ink) 30%, transparent);
   border-radius: 12px;
-  background: rgba(228, 226, 78, 0.08);
-  box-shadow: 0 0 24px -6px rgba(228, 226, 78, 0.5);
+  background: rgba(250, 0, 255, 0.08);
+  box-shadow: 0 0 24px -6px rgba(250, 0, 255, 0.5);
   color: var(--signal-ink);
 }
 
@@ -128,7 +128,7 @@
   font-size: 15px;
   font-weight: 700;
   text-overflow: ellipsis;
-  white-space: nowrap; font-stretch: 125%; }
+  white-space: nowrap; font-stretch: 100%; }
 
 /* rounded-full border border-white/[0.08] bg-white/[0.02] px-2 py-0.5
    font-mono text-[9px] uppercase tracking-[0.12em] text-white/45 */
@@ -178,7 +178,7 @@
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 600;
-  text-wrap: balance; font-stretch: 125%; }
+  text-wrap: balance; font-stretch: 100%; }
 
 .room-state-body {
   font-family: var(--font-mono);
@@ -206,7 +206,7 @@
 }
 
 .room-state-icon[data-tone="signal"]::before {
-  background: radial-gradient(circle, rgba(228, 226, 78, 0.28), transparent 70%);
+  background: radial-gradient(circle, rgba(250, 0, 255, 0.28), transparent 70%);
 }
 
 .room-state-icon > span {

@@ -26,9 +26,9 @@
 }
 @media (prefers-reduced-motion: reduce) { .decision-popup, .decision-backdrop { transition: none; } }
 
-.decision-title { font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1.15; padding-right: 32px; color: var(--white); font-stretch: 125%; }
+.decision-title { font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1.15; padding-right: 32px; color: var(--white); font-stretch: 100%; }
 .decision-outcome { display: inline-block; margin-top: 8px; border-radius: 9999px; padding: 2px 10px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; border: 1px solid color-mix(in srgb, var(--white) 15%, transparent); color: var(--gray-400); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.decision-outcome--won { border-color: rgba(228, 226, 78, 0.5); color: var(--signal-ink); }
+.decision-outcome--won { border-color: rgba(250, 0, 255, 0.5); color: var(--signal-ink); }
 .decision-section { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--color-hairline); }
 .decision-section-title { margin-bottom: 8px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .decision-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-size: 13px; }
@@ -53,10 +53,10 @@
 .strat-memory-open:focus-visible { outline: 2px solid var(--signal-ink); outline-offset: 2px; }
 .strat-memory-open .strat-memory-more { color: var(--signal-ink); }
 
-[data-theme="light"] .decision-popup { border-color: rgba(16, 15, 15, 0.12); box-shadow: 0 -20px 40px -12px rgb(16 15 15 / 0.18); }
-[data-theme="light"] .decision-bar { background: rgba(16, 15, 15, 0.18); }
-[data-theme="light"] .decision-outcome { border-color: rgba(16, 15, 15, 0.16); }
-[data-theme="light"] .strat-memory-open:hover { background: rgba(16, 15, 15, 0.04); }
+[data-theme="light"] .decision-popup { border-color: rgba(10, 10, 10, 0.12); box-shadow: 0 -20px 40px -12px rgb(10 10 10 / 0.18); }
+[data-theme="light"] .decision-bar { background: rgba(10, 10, 10, 0.18); }
+[data-theme="light"] .decision-outcome { border-color: rgba(10, 10, 10, 0.16); }
+[data-theme="light"] .strat-memory-open:hover { background: rgba(10, 10, 10, 0.04); }
 
 /* The drawer's tabs: the page's own workspace pills (`.agent-entry`), one row. */
 .strat-drawer-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }

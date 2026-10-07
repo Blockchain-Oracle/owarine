@@ -62,7 +62,7 @@
 /* border-signal/70 bg-signal/[0.08] text-white */
 .rg-preset[aria-pressed="true"] { border-color: color-mix(in srgb, var(--signal-ink) 70%, transparent); background: color-mix(in srgb, var(--signal) 8%, transparent); color: var(--white); }
 /* block font-display text-[11px] font-semibold leading-none */
-.rg-preset-name { display: block; font-family: var(--font-display); font-size: 11px; font-weight: 600; line-height: 1; font-stretch: 125%; }
+.rg-preset-name { display: block; font-family: var(--font-display); font-size: 11px; font-weight: 600; line-height: 1; font-stretch: 100%; }
 /* mt-1 block font-mono text-[7.5px] tabular-nums text-white/30 (on: text-signal) */
 .rg-preset-span { display: block; margin-top: 4px; font-family: var(--font-mono); font-size: 7.5px; font-variant-numeric: tabular-nums; color: rgba(255, 255, 255, 0.3); }
 .rg-preset-span--on { color: var(--signal-ink); }
@@ -88,24 +88,24 @@
 .rg-side[aria-checked="true"] { background: color-mix(in srgb, var(--signal) 12%, transparent); color: var(--signal-ink); }
 
 /* ── light theme: part-14's ladder for text-white/NN, ink borders ── */
-[data-theme="light"] .rg-band-label { color: rgba(16, 15, 15, 0.62); }
-[data-theme="light"] .rg-band-must, [data-theme="light"] .rg-band-foot { color: rgba(16, 15, 15, 0.55); }
-[data-theme="light"] .rg-band-card { border-color: rgba(16, 15, 15, 0.12); background: rgba(16, 15, 15, 0.02); }
-[data-theme="light"] .rg-k, [data-theme="light"] .rg-preset-span, [data-theme="light"] .rg-band-wait { color: rgba(16, 15, 15, 0.5); }
-[data-theme="light"] .rg-band-arrow { color: rgba(16, 15, 15, 0.3); }
-[data-theme="light"] .rg-track-line { background: rgba(16, 15, 15, 0.14); }
-[data-theme="light"] .rg-spot-tick { background: rgba(16, 15, 15, 0.8); }
-[data-theme="light"] .rg-spot-dot { background: rgba(16, 15, 15, 0.9); }
-[data-theme="light"] .rg-band-foot { border-top-color: rgba(16, 15, 15, 0.1); }
-[data-theme="light"] .rg-band-foot-v, [data-theme="light"] .rg-center-v { color: rgba(16, 15, 15, 0.75); }
-[data-theme="light"] .rg-preset { border-color: rgba(16, 15, 15, 0.12); color: rgba(16, 15, 15, 0.62); }
-[data-theme="light"] .rg-preset:hover { border-color: rgba(16, 15, 15, 0.3); color: rgba(16, 15, 15, 0.85); }
-[data-theme="light"] .rg-center { border-top-color: rgba(16, 15, 15, 0.1); }
-[data-theme="light"] .rg-icon-btn { border-color: rgba(16, 15, 15, 0.14); color: rgba(16, 15, 15, 0.65); }
-[data-theme="light"] .rg-icon-btn:hover:not(:disabled) { border-color: rgba(16, 15, 15, 0.35); }
-[data-theme="light"] .rg-sides { border-color: rgba(16, 15, 15, 0.1); background: rgba(16, 15, 15, 0.02); }
-[data-theme="light"] .rg-side { color: rgba(16, 15, 15, 0.62); }
-[data-theme="light"] .rg-side:hover { color: rgba(16, 15, 15, 0.8); }
+[data-theme="light"] .rg-band-label { color: rgba(10, 10, 10, 0.62); }
+[data-theme="light"] .rg-band-must, [data-theme="light"] .rg-band-foot { color: rgba(10, 10, 10, 0.55); }
+[data-theme="light"] .rg-band-card { border-color: rgba(10, 10, 10, 0.12); background: rgba(10, 10, 10, 0.02); }
+[data-theme="light"] .rg-k, [data-theme="light"] .rg-preset-span, [data-theme="light"] .rg-band-wait { color: rgba(10, 10, 10, 0.5); }
+[data-theme="light"] .rg-band-arrow { color: rgba(10, 10, 10, 0.3); }
+[data-theme="light"] .rg-track-line { background: rgba(10, 10, 10, 0.14); }
+[data-theme="light"] .rg-spot-tick { background: rgba(10, 10, 10, 0.8); }
+[data-theme="light"] .rg-spot-dot { background: rgba(10, 10, 10, 0.9); }
+[data-theme="light"] .rg-band-foot { border-top-color: rgba(10, 10, 10, 0.1); }
+[data-theme="light"] .rg-band-foot-v, [data-theme="light"] .rg-center-v { color: rgba(10, 10, 10, 0.75); }
+[data-theme="light"] .rg-preset { border-color: rgba(10, 10, 10, 0.12); color: rgba(10, 10, 10, 0.62); }
+[data-theme="light"] .rg-preset:hover { border-color: rgba(10, 10, 10, 0.3); color: rgba(10, 10, 10, 0.85); }
+[data-theme="light"] .rg-center { border-top-color: rgba(10, 10, 10, 0.1); }
+[data-theme="light"] .rg-icon-btn { border-color: rgba(10, 10, 10, 0.14); color: rgba(10, 10, 10, 0.65); }
+[data-theme="light"] .rg-icon-btn:hover:not(:disabled) { border-color: rgba(10, 10, 10, 0.35); }
+[data-theme="light"] .rg-sides { border-color: rgba(10, 10, 10, 0.1); background: rgba(10, 10, 10, 0.02); }
+[data-theme="light"] .rg-side { color: rgba(10, 10, 10, 0.62); }
+[data-theme="light"] .rg-side:hover { color: rgba(10, 10, 10, 0.8); }
 
 /* D-119: the band is centred where the reserve prices; when that has parted from the live spot far enough that the
  * band no longer covers it, the page says so rather than quoting in silence. */

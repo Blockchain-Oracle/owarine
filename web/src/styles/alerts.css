@@ -59,14 +59,14 @@
 }
 
 [data-theme="light"] .alerts-button {
-  border-color: rgba(16, 15, 15, 0.1);
-  background: rgba(16, 15, 15, 0.03);
-  color: rgba(16, 15, 15, 0.62);
+  border-color: rgba(10, 10, 10, 0.1);
+  background: rgba(10, 10, 10, 0.03);
+  color: rgba(10, 10, 10, 0.62);
 }
 
 [data-theme="light"] .alerts-button:hover {
-  color: #100F0F;
-  border-color: rgba(16, 15, 15, 0.2);
+  color: #0A0A0A;
+  border-color: rgba(10, 10, 10, 0.2);
 }
 
 [data-theme="light"] .alerts-button.armed {
@@ -103,7 +103,7 @@
 
 /* bg-neutral-900/96 — one step past part-14's ladder, so its cream value is repeated. */
 [data-theme="light"] .alerts-pop {
-  border-color: rgba(16, 15, 15, 0.12);
+  border-color: rgba(10, 10, 10, 0.12);
   background-color: rgba(255, 255, 255, 0.94);
 }
 
@@ -177,7 +177,7 @@
 }
 
 [data-theme="light"] .alerts-dir-btn {
-  border-color: rgba(16, 15, 15, 0.1);
+  border-color: rgba(10, 10, 10, 0.1);
 }
 
 /* flex gap-2 */
@@ -213,12 +213,12 @@
 }
 
 [data-theme="light"] .alerts-input {
-  border-color: rgba(16, 15, 15, 0.12);
-  background: rgba(16, 15, 15, 0.05);
+  border-color: rgba(10, 10, 10, 0.12);
+  background: rgba(10, 10, 10, 0.05);
 }
 
 [data-theme="light"] .alerts-input:focus {
-  border-color: rgba(16, 15, 15, 0.3);
+  border-color: rgba(10, 10, 10, 0.3);
 }
 
 /* px-3 py-2 bg-signal/20 text-signal rounded-lg hover:bg-signal/30 */
@@ -262,7 +262,7 @@
 }
 
 [data-theme="light"] .alerts-list {
-  border-top-color: rgba(16, 15, 15, 0.08);
+  border-top-color: rgba(10, 10, 10, 0.08);
 }
 
 /* flex items-center justify-between py-1.5 */
@@ -309,7 +309,7 @@
   color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 [data-theme="light"] .alerts-foot {
-  border-top-color: rgba(16, 15, 15, 0.08);
+  border-top-color: rgba(10, 10, 10, 0.08);
 }
 
 /* `text-gray-*` does not follow the light theme (the recorded Tailwind-4 finding),
@@ -317,15 +317,15 @@
 [data-theme="light"] .alerts-pop-close,
 [data-theme="light"] .alerts-dir-btn,
 [data-theme="light"] .alerts-foot {
-  color: rgba(16, 15, 15, 0.62);
+  color: rgba(10, 10, 10, 0.62);
 }
 
 [data-theme="light"] .alerts-row-label {
-  color: rgba(16, 15, 15, 0.8);
+  color: rgba(10, 10, 10, 0.8);
 }
 
 [data-theme="light"] .alerts-remove {
-  color: rgba(16, 15, 15, 0.4);
+  color: rgba(10, 10, 10, 0.4);
 }
 
 [data-theme="light"] .alerts-remove:hover {
@@ -333,7 +333,7 @@
 }
 
 [data-theme="light"] .alerts-pop-close:hover {
-  color: #100F0F;
+  color: #0A0A0A;
 }
 
 /* Below 480px the reference hides the foot's helper label; the Room's qualifier is
@@ -370,8 +370,8 @@
 }
 [data-theme="light"] .mh-foot-actions .alerts-button {
   background: transparent;
-  color: rgba(16, 15, 15, 0.62);
+  color: rgba(10, 10, 10, 0.62);
 }
 [data-theme="light"] .mh-foot-actions .alerts-button:hover {
-  color: #100F0F;
+  color: #0A0A0A;
 }

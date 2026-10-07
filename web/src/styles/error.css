@@ -26,7 +26,7 @@
   font-size: clamp(1.5rem, 4vw, 2.2rem);
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin: 0; font-stretch: 125%; }
+  margin: 0; font-stretch: 100%; }
 
 /* fontFamily var(--font-body) · 15px · maxWidth 440px · margin 0 · color var(--gray-400) · lineHeight 1.6 */
 .boundary-body {

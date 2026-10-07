@@ -28,7 +28,7 @@
 }
 
 [data-theme="light"] .tkh-mark.generic {
-  background: rgba(16, 15, 15, 0.1);
+  background: rgba(10, 10, 10, 0.1);
 }
 
 @media (max-width: 767px) {

@@ -54,17 +54,17 @@
 }
 
 [data-theme="light"] .tk-modes {
-  border-color: rgba(16, 15, 15, 0.1);
-  background: rgba(16, 15, 15, 0.02);
+  border-color: rgba(10, 10, 10, 0.1);
+  background: rgba(10, 10, 10, 0.02);
 }
 [data-theme="light"] .tk-mode {
-  color: rgba(16, 15, 15, 0.62);
+  color: rgba(10, 10, 10, 0.62);
 }
 [data-theme="light"] .tk-mode:hover:not(:disabled) {
-  color: rgba(16, 15, 15, 0.8);
+  color: rgba(10, 10, 10, 0.8);
 }
 [data-theme="light"] .tk-mode[aria-pressed="true"] {
-  background: rgba(16, 15, 15, 0.06);
+  background: rgba(10, 10, 10, 0.06);
 }
 /* the reference keeps text-signal and bg-signal/[0.12] on cream (part-14 does not remap them) */
 [data-theme="light"] .tk-mode--private[aria-pressed="true"] {
@@ -114,11 +114,11 @@
 }
 
 [data-theme="light"] .tk-lev {
-  border-color: rgba(16, 15, 15, 0.12);
-  color: rgba(16, 15, 15, 0.62);
+  border-color: rgba(10, 10, 10, 0.12);
+  color: rgba(10, 10, 10, 0.62);
 }
 [data-theme="light"] .tk-lev:hover:not(:disabled) {
-  color: #100F0F;
+  color: #0A0A0A;
 }
 
 /* font-mono text-[9px] uppercase tracking-[0.16em] text-white/45 */
@@ -129,7 +129,7 @@
   letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.45); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 [data-theme="light"] .tk-control-label {
-  color: rgba(16, 15, 15, 0.62);
+  color: rgba(10, 10, 10, 0.62);
 }
 
 /* The row that carries the leverage chips beside their label. */
@@ -148,7 +148,7 @@
   line-height: 1.625;
   color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 [data-theme="light"] .tk-lev-note {
-  color: rgba(16, 15, 15, 0.55);
+  color: rgba(10, 10, 10, 0.55);
 }
 
 
@@ -168,8 +168,8 @@
   height: 128px;
 }
 [data-theme="light"] .tk-mini-chart {
-  border-color: rgba(16, 15, 15, 0.11);
-  background: rgba(16, 15, 15, 0.02);
+  border-color: rgba(10, 10, 10, 0.11);
+  background: rgba(10, 10, 10, 0.02);
 }
 
 /* ── A-1a: "Betting against" ──
@@ -232,8 +232,8 @@
   line-height: 1.45;
   color: rgba(255, 255, 255, 0.42);
 }
-[data-theme="light"] .tk-against-track { border-color: rgba(16, 15, 15, 0.16); background: rgba(16, 15, 15, 0.03); }
-[data-theme="light"] .tk-against-track::after { background: rgba(16, 15, 15, 0.5); }
-[data-theme="light"] .tk-against-word { color: rgba(16, 15, 15, 0.6); }
-[data-theme="light"] .tk-against-switch:hover .tk-against-word { color: rgba(16, 15, 15, 0.85); }
-[data-theme="light"] .tk-against-note { color: rgba(16, 15, 15, 0.6); }
+[data-theme="light"] .tk-against-track { border-color: rgba(10, 10, 10, 0.16); background: rgba(10, 10, 10, 0.03); }
+[data-theme="light"] .tk-against-track::after { background: rgba(10, 10, 10, 0.5); }
+[data-theme="light"] .tk-against-word { color: rgba(10, 10, 10, 0.6); }
+[data-theme="light"] .tk-against-switch:hover .tk-against-word { color: rgba(10, 10, 10, 0.85); }
+[data-theme="light"] .tk-against-note { color: rgba(10, 10, 10, 0.6); }

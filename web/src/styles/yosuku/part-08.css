@@ -11,7 +11,7 @@
 .lb-meta-col .big {
   font-family: var(--font-display); font-weight: 700;
   font-size: 28px; letter-spacing: -0.02em; color: var(--white);
-  line-height: 1; font-stretch: 125%; }
+  line-height: 1; font-stretch: 100%; }
 .lb-meta-col .stamp {
   align-self: flex-end;
   border: 1.5px solid var(--signal-ink);
@@ -87,9 +87,9 @@
 .podium-spot:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.18); }
 .podium-spot.s1 {
   background:
-    radial-gradient(ellipse at top right, rgba(228,226,78,0.08), transparent 60%),
+    radial-gradient(ellipse at top right, rgba(250,0,255,0.08), transparent 60%),
     rgba(255,255,255,0.02);
-  border-color: rgba(228,226,78,0.3);
+  border-color: rgba(250,0,255,0.3);
   min-height: 380px;
 }
 .podium-spot.s2 { min-height: 320px; }
@@ -103,8 +103,8 @@
   letter-spacing: -0.06em;
   color: rgba(255,255,255,0.04);
   pointer-events: none;
-  user-select: none; font-stretch: 125%; }
-.podium-spot.s1 .podium-rank { color: rgba(228,226,78,0.18); font-size: 240px; }
+  user-select: none; font-stretch: 100%; }
+.podium-spot.s1 .podium-rank { color: rgba(250,0,255,0.18); font-size: 240px; }
 
 .podium-eyebrow {
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
@@ -130,7 +130,7 @@
   color: rgba(255,255,255,0.62);
   position: relative; z-index: 2;
   overflow: hidden;
-  isolation: isolate; font-stretch: 125%; }
+  isolation: isolate; font-stretch: 100%; }
 .podium-portrait::after {
   content: ''; position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.3), transparent 50%);
@@ -138,8 +138,8 @@
 }
 .podium-spot.s1 .podium-portrait {
   width: 112px; height: 112px;
-  background: linear-gradient(135deg, #171515 0%, #8d8c2a 50%, #E4E24E 100%);
-  border-color: rgba(228,226,78,0.4);
+  background: linear-gradient(135deg, #171515 0%, #8d8c2a 50%, #FA00FF 100%);
+  border-color: rgba(250,0,255,0.4);
   font-size: 44px;
 }
 
@@ -153,14 +153,14 @@
   letter-spacing: 0.24em; text-align: center;
   padding: 4px 0;
   transform: rotate(-32deg);
-  box-shadow: 0 4px 12px rgba(228,226,78,0.3);
+  box-shadow: 0 4px 12px rgba(250,0,255,0.3);
   z-index: 3; font-variant-numeric: tabular-nums; }
 
 .podium-name {
   margin-top: 18px; position: relative; z-index: 2;
   font-family: var(--font-display); font-weight: 700;
   font-size: 22px; letter-spacing: -0.02em;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 .podium-spot.s1 .podium-name { font-size: 30px; }
 .podium-handle {
   font-family: var(--font-mono); font-size: 11px;
@@ -173,7 +173,7 @@
   font-size: 36px; line-height: 1;
   letter-spacing: -0.04em;
   color: var(--signal-ink);
-  font-variant-numeric: tabular-nums; font-stretch: 125%; }
+  font-variant-numeric: tabular-nums; font-stretch: 100%; }
 .podium-pnl .sign { font-size: 0.55em; vertical-align: 0.16em; margin-right: 0.05em; }
 .podium-pnl .cur { font-family: var(--font-mono); font-size: 0.32em; color: var(--gray-500); margin-left: 0.4em; vertical-align: 0.6em; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
 .podium-spot.s1 .podium-pnl { font-size: 56px; }
@@ -204,11 +204,11 @@
 /* ───────── Yokozuna champion strip ───────── */
 .yokozuna {
   margin-top: 64px;
-  border: 1px solid rgba(228,226,78,0.2);
+  border: 1px solid rgba(250,0,255,0.2);
   border-radius: 4px;
   overflow: hidden;
   background:
-    linear-gradient(120deg, rgba(228,226,78,0.04) 0%, rgba(0,0,0,0) 60%),
+    linear-gradient(120deg, rgba(250,0,255,0.04) 0%, rgba(0,0,0,0) 60%),
     rgba(255,255,255,0.012);
   display: grid;
   grid-template-columns: 5fr 7fr;
@@ -230,7 +230,7 @@
 .yoko-name {
   font-family: var(--font-display); font-weight: 800;
   font-size: 44px; line-height: 0.95;
-  letter-spacing: -0.04em; color: var(--white); font-stretch: 125%; }
+  letter-spacing: -0.04em; color: var(--white); font-stretch: 100%; }
 .yoko-name .accent { color: var(--signal-ink); }
 .yoko-meta {
   font-family: var(--font-mono); font-size: 11px;
@@ -244,7 +244,7 @@
   color: var(--gray-300);
   text-wrap: balance;
   border-left: 2px solid var(--signal-ink);
-  padding-left: 16px; font-stretch: 125%; }
+  padding-left: 16px; font-stretch: 100%; }
 
 .yoko-stats {
   margin-top: 28px;
@@ -256,7 +256,7 @@
 .yoko-stats .item:last-child { border-right: 0; }
 .yoko-stats .item:not(:first-child) { padding-left: 12px; }
 .yoko-stats .lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; color: var(--gray-600); text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.yoko-stats .val { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin-top: 4px; color: var(--white); font-stretch: 125%; }
+.yoko-stats .val { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin-top: 4px; color: var(--white); font-stretch: 100%; }
 .yoko-stats .val.up { color: var(--signal-ink); }
 
 .yoko-right {
@@ -269,7 +269,7 @@
 }
 .yoko-right .head h4 {
   font-family: var(--font-display); font-weight: 600;
-  font-size: 14px; letter-spacing: -0.01em; font-stretch: 125%; }
+  font-size: 14px; letter-spacing: -0.01em; font-stretch: 100%; }
 .yoko-right .head .meta { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .yoko-chart {
   flex: 1;

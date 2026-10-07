@@ -43,13 +43,13 @@
 .stats-headline-eyebrow {
   display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-/* w-1.5 h-1.5 rounded-full bg-emerald-400 · boxShadow 0 0 10px #3dd68c */
+/* w-1.5 h-1.5 rounded-full bg-emerald-400 · boxShadow 0 0 10px # */
 .stats-headline-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--profit); box-shadow: 0 0 10px var(--profit); flex-shrink: 0; }
-/* font-display text-[88px] leading-none font-extrabold tracking-tighter text-emerald-300 tabular-nums · textShadow 0 0 40px rgba(61,214,140,0.35) */
+/* font-display text-[88px] leading-none font-extrabold tracking-tighter text-emerald-300 tabular-nums · textShadow 0 0 40px rgba(61,220,90,0.35) */
 .stats-headline-value {
   font-family: var(--font-display); font-size: 88px; line-height: 1; font-weight: 800; letter-spacing: -0.05em;
   color: var(--profit); font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 40px color-mix(in srgb, var(--profit) 35%, transparent); font-stretch: 125%; }
+  text-shadow: 0 0 40px color-mix(in srgb, var(--profit) 35%, transparent); font-stretch: 100%; }
 /* font-mono text-[11px] text-emerald-400/80 mt-2 mb-5 */
 .stats-headline-caption { font-family: var(--font-mono); font-size: 11px; color: color-mix(in srgb, var(--profit) 80%, transparent); margin: 8px 0 20px; font-variant-numeric: tabular-nums; }
 /* border-t border-white/[0.07] pt-4 */
@@ -74,7 +74,7 @@
 /* font-mono text-[11px] text-signal font-bold */
 .stats-section-index { font-family: var(--font-mono); font-size: 11px; color: var(--signal-ink); font-weight: 700; font-variant-numeric: tabular-nums; }
 /* font-display text-lg font-bold */
-.stats-section-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--white); margin: 0; white-space: nowrap; font-stretch: 125%; }
+.stats-section-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--white); margin: 0; white-space: nowrap; font-stretch: 100%; }
 /* font-mono text-[10px] uppercase tracking-[0.18em] text-gray-600 */
 .stats-section-tag { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-600); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* font-mono text-[10px] text-gray-600 */
@@ -92,10 +92,10 @@
 .stats-curve-fill-bottom { stop-color: var(--profit); stop-opacity: 0; }
 /* stroke rgba(255,255,255,0.04) */
 .stats-curve-grid { stroke: var(--stats-grid); }
-/* stroke #3dd68c · drop-shadow(0 0 6px rgba(61,214,140,0.55)) */
+/* stroke # · drop-shadow(0 0 6px rgba(61,220,90,0.55)) */
 .stats-curve-line { stroke: var(--profit); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--profit) 55%, transparent)); }
 .stats-curve-dot { fill: var(--profit); }
-/* drop-shadow(0 0 8px #3dd68c) on the last point */
+/* drop-shadow(0 0 8px #) on the last point */
 .stats-curve-dot.last { filter: drop-shadow(0 0 8px var(--profit)); }
 /* fill-gray-600 · fontFamily mono · fontSize 9 · letterSpacing 2 */
 .stats-curve-axis { fill: var(--gray-600); font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
@@ -113,7 +113,7 @@
 /* font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 mb-2 */
 .stat-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-bottom: 8px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* font-display text-3xl font-extrabold tracking-tight tabular-nums · accent: text-emerald-300 */
-.stat-value { font-family: var(--font-display); font-size: 30px; line-height: 1.2; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--white); font-stretch: 125%; }
+.stat-value { font-family: var(--font-display); font-size: 30px; line-height: 1.2; font-weight: 800; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; color: var(--white); font-stretch: 100%; }
 .stat-card.accent .stat-value { color: var(--profit); }
 /* font-mono text-[11px] text-gray-600 mt-1 */
 .stat-sub { font-family: var(--font-mono); font-size: 11px; color: var(--gray-600); margin-top: 4px; font-variant-numeric: tabular-nums; }

@@ -4,7 +4,7 @@
 .cw-loss { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.07); background: rgba(255, 255, 255, 0.015); padding: 20px; }
 .cw-loss-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); margin-bottom: 6px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .cw-loss-body { font-size: 14px; color: var(--gray-400); }
-[data-theme="light"] .cw-loss { border-color: rgba(16, 15, 15, 0.08); background: rgba(16, 15, 15, 0.02); }
+[data-theme="light"] .cw-loss { border-color: rgba(10, 10, 10, 0.08); background: rgba(10, 10, 10, 0.02); }
 
 /* winner: relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-gradient-to-b from-emerald-500/[0.10] via-emerald-500/[0.03] to-transparent p-5 */
 .cw-win {
@@ -20,7 +20,7 @@
 .cw-win-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
 .cw-win-figure { display: flex; align-items: baseline; gap: 6px; }
 /* font-display text-[2.75rem] leading-[0.9] font-[800] text-emerald-400 tracking-tight tabular-nums */
-.cw-win-profit { font-family: var(--font-display); font-size: 2.75rem; line-height: 0.9; font-weight: 800; letter-spacing: -0.025em; color: var(--profit); font-variant-numeric: tabular-nums; font-stretch: 125%; }
+.cw-win-profit { font-family: var(--font-display); font-size: 2.75rem; line-height: 0.9; font-weight: 800; letter-spacing: -0.025em; color: var(--profit); font-variant-numeric: tabular-nums; font-stretch: 100%; }
 .cw-win-unit { font-family: var(--font-mono); font-size: 14px; color: color-mix(in srgb, var(--profit) 60%, transparent); padding-bottom: 4px; font-variant-numeric: tabular-nums; }
 .cw-win-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: color-mix(in srgb, var(--profit) 70%, transparent); margin-top: 4px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 /* rounded-lg border border-emerald-500/30 bg-emerald-500/[0.08] px-3 py-1.5 text-center shrink-0 */
@@ -34,7 +34,7 @@
 .cw-error { color: var(--loss); font-size: 12px; font-weight: 500; margin-top: 12px; overflow-wrap: anywhere; }
 /* mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 py-3 text-emerald-400 text-xs font-bold uppercase tracking-widest */
 .cw-paid { margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; background: color-mix(in srgb, var(--profit) 10%, transparent); border: 1px solid color-mix(in srgb, var(--profit) 20%, transparent); padding-block: 12px; color: var(--profit); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
-/* mt-4 w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(61,214,140,0.18)] */
+/* mt-4 w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(61,220,90,0.18)] */
 .cw-collect {
   margin-top: 16px; width: 100%; padding-block: 14px; border-radius: 12px; background: var(--profit); color: #000;
   font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -48,11 +48,11 @@
 /* A void (Q-S6-7): the loser's quiet box, with the void stamp and what came back — no trophy, no profit green. */
 .cw-void-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .cw-void-figure { text-align: right; }
-.cw-void-amount { font-family: var(--font-display); font-size: 1.75rem; line-height: 0.9; font-weight: 800; letter-spacing: -0.025em; color: var(--gray-200); font-variant-numeric: tabular-nums; font-stretch: 125%; }
+.cw-void-amount { font-family: var(--font-display); font-size: 1.75rem; line-height: 0.9; font-weight: 800; letter-spacing: -0.025em; color: var(--gray-200); font-variant-numeric: tabular-nums; font-stretch: 100%; }
 .cw-void-unit { font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); padding-left: 6px; font-variant-numeric: tabular-nums; }
 .cw-void-figure .cw-loss-eyebrow { margin: 4px 0 0; }
 .cw-void-reason { margin-top: 6px; font-size: 13px; line-height: 1.5; color: var(--gray-500); }
 .cw-void-paid { color: var(--gray-300); background: rgba(255, 255, 255, 0.04); border-color: rgba(255, 255, 255, 0.1); }
 /* gray and black flip with the theme (yosuku/part-13), so one rule reads light-on-dark and dark-on-cream. */
 .cw-void-collect { background: var(--gray-200); color: var(--black); box-shadow: none; }
-[data-theme="light"] .cw-void-paid { background: rgba(16, 15, 15, 0.03); border-color: rgba(16, 15, 15, 0.1); }
+[data-theme="light"] .cw-void-paid { background: rgba(10, 10, 10, 0.03); border-color: rgba(10, 10, 10, 0.1); }

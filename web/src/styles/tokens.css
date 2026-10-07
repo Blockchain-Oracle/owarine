@@ -53,7 +53,7 @@
 
   /* button-primary */
   --button-primary-fill: var(--color-accent);
-  --button-primary-ink: var(--color-cream-ink);
+  --button-primary-ink: var(--on-signal);
   --button-primary-hover: var(--color-accent-hover);
   --button-primary-pressed: var(--color-accent-pressed);
   --button-primary-radius: var(--radius-full);
@@ -117,19 +117,19 @@
   --nav-item-border: rgb(255 255 255 / 0.08);
   --nav-item-fill: rgb(255 255 255 / 0.045);
   --nav-icon-border: rgb(255 255 255 / 0.09);
-  --nav-active-border: rgb(228 226 78 / 0.35);
+  --nav-active-border: rgb(250 0 255 / 0.35);
   --nav-overlay-background: rgb(0 0 0 / 0.72);
 }
 
 [data-theme="light"] {
   --color-warning-ink: color-mix(in srgb, var(--color-warning) 50%, var(--color-cream-ink));
   --nav-panel-background: rgb(255 255 255 / 0.99);
-  --nav-panel-border: rgb(16 15 15 / 0.12);
-  --nav-divider: rgb(16 15 15 / 0.09);
-  --nav-section-divider: rgb(16 15 15 / 0.09);
-  --nav-item-border: rgb(16 15 15 / 0.1);
-  --nav-item-fill: rgb(16 15 15 / 0.04);
-  --nav-icon-border: rgb(16 15 15 / 0.12);
+  --nav-panel-border: rgb(10 10 10 / 0.12);
+  --nav-divider: rgb(10 10 10 / 0.09);
+  --nav-section-divider: rgb(10 10 10 / 0.09);
+  --nav-item-border: rgb(10 10 10 / 0.1);
+  --nav-item-fill: rgb(10 10 10 / 0.04);
+  --nav-icon-border: rgb(10 10 10 / 0.12);
 }
 
 /* A token symbol keeps its own casing under an uppercasing label: "tUSDC" must never read "TUSDC", which is

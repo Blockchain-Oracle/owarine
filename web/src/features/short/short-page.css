@@ -34,12 +34,12 @@
 @media (min-width: 1024px) { .sh-open { grid-template-columns: minmax(0, 1fr) minmax(0, 360px); } }
 
 .sh-picker, .sh-ticket { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); border-radius: 16px; padding: 24px; }
-[data-theme="light"] .sh-picker, [data-theme="light"] .sh-ticket { border-color: rgba(16, 15, 15, 0.10); background: rgba(16, 15, 15, 0.015); box-shadow: 0 20px 44px -32px rgba(16, 15, 15, 0.16); }
+[data-theme="light"] .sh-picker, [data-theme="light"] .sh-ticket { border-color: rgba(10, 10, 10, 0.10); background: rgba(10, 10, 10, 0.015); box-shadow: 0 20px 44px -32px rgba(10, 10, 10, 0.16); }
 @media (max-width: 420px) { .sh-picker, .sh-ticket { padding: 16px; } }
 
 .sh-picker-note { font-family: var(--font-mono); font-size: 12px; color: var(--gray-600); font-variant-numeric: tabular-nums; }
 .sh-picker-empty { padding: 28px 0; text-align: center; }
-.sh-picker-empty-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; font-stretch: 125%; }
+.sh-picker-empty-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; font-stretch: 100%; }
 .sh-picker-empty-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }
 
 /* The stocks: a wrapping row of chips, each naming how many windows it has live. */
@@ -49,12 +49,12 @@
   border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 12px; padding: 10px 14px;
   background: transparent; cursor: pointer; transition: border-color 150ms var(--ease), background 150ms var(--ease), color 150ms var(--ease);
 }
-[data-theme="light"] .sh-stock { border-color: rgba(16, 15, 15, 0.14); }
+[data-theme="light"] .sh-stock { border-color: rgba(10, 10, 10, 0.14); }
 .sh-stock:hover { border-color: rgba(255, 255, 255, 0.24); }
-[data-theme="light"] .sh-stock:hover { border-color: rgba(16, 15, 15, 0.26); }
+[data-theme="light"] .sh-stock:hover { border-color: rgba(10, 10, 10, 0.26); }
 /* The selected state is a class, not a descendant rule, so a light override can never outrank it. */
 .sh-stock--on { border-color: color-mix(in srgb, var(--signal-ink) 55%, transparent); background: color-mix(in srgb, var(--signal) 13%, transparent); }
-.sh-stock-a { font-family: var(--font-display); font-weight: 700; font-size: 14px; line-height: 1.1; color: var(--white); font-stretch: 125%; }
+.sh-stock-a { font-family: var(--font-display); font-weight: 700; font-size: 14px; line-height: 1.1; color: var(--white); font-stretch: 100%; }
 .sh-stock-n { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; color: var(--gray-600); font-variant-numeric: tabular-nums; }
 
 /* The windows of the chosen stock, each priced from the top of its own book. */
@@ -65,11 +65,11 @@
   border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 12px; padding: 12px 14px;
   background: transparent; cursor: pointer; transition: border-color 150ms var(--ease), background 150ms var(--ease);
 }
-[data-theme="light"] .sh-window { border-color: rgba(16, 15, 15, 0.14); }
+[data-theme="light"] .sh-window { border-color: rgba(10, 10, 10, 0.14); }
 .sh-window:hover { border-color: rgba(255, 255, 255, 0.24); }
-[data-theme="light"] .sh-window:hover { border-color: rgba(16, 15, 15, 0.26); }
+[data-theme="light"] .sh-window:hover { border-color: rgba(10, 10, 10, 0.26); }
 .sh-window--on { border-color: color-mix(in srgb, var(--signal-ink) 55%, transparent); background: color-mix(in srgb, var(--signal) 13%, transparent); }
-.sh-window-c { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--white); font-stretch: 125%; }
+.sh-window-c { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--white); font-stretch: 100%; }
 .sh-window-t { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); font-variant-numeric: tabular-nums; }
 .sh-window-p { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; margin-left: auto; }
 .sh-window-pk { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
@@ -85,7 +85,7 @@
 .sh-field-head .sh-k { margin-bottom: 0; font-size: 10px; color: var(--gray-600); }
 .sh-wallet { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 1; font-variant-numeric: tabular-nums; }
 .sh-field { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 12px; padding: 14px 16px; transition: border-color 200ms var(--ease); }
-[data-theme="light"] .sh-field { border-color: rgba(16, 15, 15, 0.16); background: rgba(255, 255, 255, 0.45); }
+[data-theme="light"] .sh-field { border-color: rgba(10, 10, 10, 0.16); background: rgba(255, 255, 255, 0.45); }
 .sh-field:focus-within { border-color: rgba(255, 255, 255, 0.25); }
 [data-theme="light"] .sh-field:focus-within { border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent); }
 .sh-input { background: transparent; flex: 1; font-size: 24px; line-height: 32px; min-width: 0; color: inherit; }
@@ -100,13 +100,13 @@
   flex: 1; border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 10px; padding: 10px 0;
   font-family: var(--font-mono); font-size: 13px; color: var(--gray-500);
   background: transparent; cursor: pointer; transition: border-color 150ms var(--ease), background 150ms var(--ease), color 150ms var(--ease); font-variant-numeric: tabular-nums; }
-[data-theme="light"] .sh-multiple { border-color: rgba(16, 15, 15, 0.14); }
+[data-theme="light"] .sh-multiple { border-color: rgba(10, 10, 10, 0.14); }
 .sh-multiple:hover { color: var(--gray-300); }
 .sh-multiple--on { border-color: color-mix(in srgb, var(--signal-ink) 55%, transparent); background: color-mix(in srgb, var(--signal) 13%, transparent); color: var(--white); }
 .sh-hint { margin-top: 10px; font-size: 11px; line-height: 1.6; color: var(--gray-600); }
 
 .sh-readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
-[data-theme="light"] .sh-readout { border-top-color: rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .sh-readout { border-top-color: rgba(10, 10, 10, 0.08); }
 .sh-cell dt { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600); margin-bottom: 4px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .sh-cell dd { font-size: 14px; line-height: 1.2; color: var(--white); }
 
@@ -126,8 +126,8 @@
 
 /* ── §02 the wallet's shorts ── */
 .sh-empty { border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 32px 20px; text-align: center; }
-[data-theme="light"] .sh-empty { border-color: rgba(16, 15, 15, 0.10); background: rgba(255, 255, 255, 0.94); }
-.sh-empty-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 8px; font-stretch: 125%; }
+[data-theme="light"] .sh-empty { border-color: rgba(10, 10, 10, 0.10); background: rgba(255, 255, 255, 0.94); }
+.sh-empty-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 8px; font-stretch: 100%; }
 .sh-empty-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }
 
 .sh-totals { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; margin-bottom: 14px; font-size: 12px; color: var(--white); }
@@ -140,10 +140,10 @@
 .sh-done-head { margin: 28px 0 12px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 .sh-pos { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); border-radius: 14px; padding: 16px 18px; }
-[data-theme="light"] .sh-pos { border-color: rgba(16, 15, 15, 0.10); background: rgba(255, 255, 255, 0.94); }
+[data-theme="light"] .sh-pos { border-color: rgba(10, 10, 10, 0.10); background: rgba(255, 255, 255, 0.94); }
 .sh-pos--done { opacity: 0.72; }
 .sh-pos-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
-.sh-pos-asset { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--white); font-stretch: 125%; }
+.sh-pos-asset { font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--white); font-stretch: 100%; }
 .sh-pos-asset:hover { color: var(--signal-ink); }
 .sh-pos-x { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--signal-ink); font-variant-numeric: tabular-nums; }
 .sh-pos-c, .sh-pos-left, .sh-pos-state { font-family: var(--font-mono); font-size: 10px; color: var(--gray-600); font-variant-numeric: tabular-nums; }
@@ -182,7 +182,7 @@
 .sh-how { display: grid; gap: 16px; }
 @media (min-width: 640px) { .sh-how { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .sh-how-card { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(23, 22, 22, 0.4); padding: 20px; }
-[data-theme="light"] .sh-how-card { border-color: rgba(16, 15, 15, 0.11); background: rgba(255, 255, 255, 0.94); }
-.sh-how-n { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; color: var(--signal-ink); margin-bottom: 8px; font-stretch: 125%; }
-.sh-how-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; font-stretch: 125%; }
+[data-theme="light"] .sh-how-card { border-color: rgba(10, 10, 10, 0.11); background: rgba(255, 255, 255, 0.94); }
+.sh-how-n { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1; color: var(--signal-ink); margin-bottom: 8px; font-stretch: 100%; }
+.sh-how-t { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--white); margin-bottom: 6px; font-stretch: 100%; }
 .sh-how-d { font-size: 12px; line-height: 1.625; color: var(--gray-500); }

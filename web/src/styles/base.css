@@ -47,20 +47,20 @@
   font-size: var(--text-display);
   line-height: var(--text-display--line-height);
   letter-spacing: var(--text-display--letter-spacing);
-  font-weight: var(--text-display--font-weight); font-stretch: 125%; }
+  font-weight: var(--text-display--font-weight); font-stretch: 100%; }
 
 @utility type-headline {
   font-family: var(--font-display);
   font-size: var(--text-headline);
   line-height: var(--text-headline--line-height);
   letter-spacing: var(--text-headline--letter-spacing);
-  font-weight: var(--text-headline--font-weight); font-stretch: 125%; }
+  font-weight: var(--text-headline--font-weight); font-stretch: 100%; }
 
 @utility type-title {
   font-family: var(--font-display);
   font-size: var(--text-title);
   line-height: var(--text-title--line-height);
-  font-weight: var(--text-title--font-weight); font-stretch: 125%; }
+  font-weight: var(--text-title--font-weight); font-stretch: 100%; }
 
 @utility type-body {
   font-family: var(--font-body);

@@ -46,7 +46,7 @@
 }
 
 [data-theme="light"] .mh-asset-badge {
-  background: rgba(16, 15, 15, 0.1);
+  background: rgba(10, 10, 10, 0.1);
 }
 
 /* font-mono text-[10px] tracking-[0.1em] uppercase text-white */
@@ -107,13 +107,13 @@
   background: var(--signal); color: var(--on-signal); }
 
 [data-theme="light"] .mh-cadence {
-  color: rgba(16, 15, 15, 0.5);
+  color: rgba(10, 10, 10, 0.5);
 }
 [data-theme="light"] .mh-cadence:hover:not(:disabled) {
-  color: rgba(16, 15, 15, 0.8);
+  color: rgba(10, 10, 10, 0.8);
 }
 [data-theme="light"] .mh-cadence:disabled {
-  color: rgba(16, 15, 15, 0.4);
+  color: rgba(10, 10, 10, 0.4);
 }
 /* Same precedence as the dark rules above: the pinned lane keeps its highlight
    even while it is between rounds. */
@@ -130,7 +130,7 @@
   font-size: 1.6rem;
   line-height: 1.05;
   letter-spacing: -0.025em;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 @media (min-width: 640px) {
   .mh-question {
     font-size: 2.25rem;
@@ -244,13 +244,13 @@
 }
 
 [data-theme="light"] .mh-room {
-  color: rgba(16, 15, 15, 0.62);
+  color: rgba(10, 10, 10, 0.62);
 }
 [data-theme="light"] .mh-room:hover:not(:disabled) {
-  color: #100F0F;
+  color: #0A0A0A;
 }
 [data-theme="light"] .mh-room-meta {
-  color: rgba(16, 15, 15, 0.4);
+  color: rgba(10, 10, 10, 0.4);
 }
 
 /* ── the canvas ──

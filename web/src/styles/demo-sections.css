@@ -57,7 +57,7 @@
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 800;
-  line-height: 1.05; font-stretch: 125%; }
+  line-height: 1.05; font-stretch: 100%; }
 
 /* mt-4 text-gray-400 leading-relaxed max-w-[46ch] (max-w-[52ch] on the proof section) */
 .demo-body {
@@ -204,7 +204,7 @@
   margin-top: 16px;
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 700; font-stretch: 125%; }
+  font-weight: 700; font-stretch: 100%; }
 
 /* mt-2 text-[13.5px] text-gray-400 leading-relaxed */
 .demo-card-body {
@@ -252,7 +252,7 @@
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
-  line-height: 1.02; font-stretch: 125%; }
+  line-height: 1.02; font-stretch: 100%; }
 
 /* mt-8 flex flex-wrap gap-3 justify-center; the buttons here are px-6 py-3.5 without text-sm */
 .demo-close-ctas {

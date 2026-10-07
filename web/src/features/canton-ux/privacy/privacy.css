@@ -36,7 +36,7 @@
 .cx-positions { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; border: 1px solid var(--market-card-border); border-radius: var(--market-card-radius); background: var(--market-card-surface); }
 .cx-position { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "market side" "stake stake" "cid seen"; align-items: center; gap: 6px 12px; padding: 12px 14px; }
 .cx-position + .cx-position { border-top: 1px solid var(--color-hairline); }
-.cx-position-market { grid-area: market; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 125%; }
+.cx-position-market { grid-area: market; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 100%; }
 .cx-position-side { grid-area: side; justify-self: end; padding: 2px 8px; border: 1px solid; border-radius: var(--radius-sm); font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
 .cx-position-side[data-side="up"] { border-color: var(--button-up-border); background: var(--button-up-fill); color: var(--button-up-ink); }
 .cx-position-side[data-side="down"] { border-color: var(--button-down-border); background: var(--button-down-fill); color: var(--button-down-ink); }

@@ -36,7 +36,7 @@ const FOOTER_Y = 846;
 const ADVICE_Y = 882;
 
 /** Every colour the cards draw comes from share-card.css; these are the no-stylesheet fallbacks, as rgb() so no hex lives in code. */
-const FALLBACK_SIGNAL = "rgb(228 226 78)";
+const FALLBACK_SIGNAL = "rgb(250 0 255)";
 const DISPLAY_FALLBACK = "'Mona Sans', system-ui, sans-serif";
 const MONO_FALLBACK = "'Mona Sans', ui-monospace, monospace";
 
@@ -126,7 +126,7 @@ export function resolvePalette(): CardPalette {
     ash: cssVar("--share-ash", "rgb(143 141 130)"),
     ashDim: cssVar("--share-ash-dim", "rgba(143,141,130,0.55)"),
     paper: cssVar("--share-paper", "rgb(249 248 243)"),
-    qrInk: cssVar("--share-qr-ink", "rgb(16 15 15)"),
+    qrInk: cssVar("--share-qr-ink", "rgb(10 10 10)"),
   };
 }
 

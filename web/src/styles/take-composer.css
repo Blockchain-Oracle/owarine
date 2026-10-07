@@ -77,7 +77,7 @@
 .take-sheet-title {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 800; font-stretch: 125%; }
+  font-weight: 800; font-stretch: 100%; }
 
 /* rounded-full p-1.5 text-white/40 hover:bg-white/[0.06] hover:text-white */
 .take-sheet-close {
@@ -187,7 +187,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  color: rgb(var(--room-ink-rgb) / 0.4); font-stretch: 125%; }
+  color: rgb(var(--room-ink-rgb) / 0.4); font-stretch: 100%; }
 
 /* font-display text-xl font-bold text-white tabular-nums — the reference's strike
    input; here the line is the opening print and is read, not typed */
@@ -195,7 +195,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums; font-stretch: 125%; }
+  font-variant-numeric: tabular-nums; font-stretch: 100%; }
 
 /* placeholder:text-white/25 — while the print is pending */
 .take-line-figure[data-pending="true"] {
@@ -259,7 +259,7 @@
   font-size: 15px;
   line-height: 1.375;
   color: rgb(var(--room-ink-rgb));
-  outline: none; font-stretch: 125%; }
+  outline: none; font-stretch: 100%; }
 
 .take-words textarea::placeholder {
   color: rgb(var(--room-ink-rgb) / 0.25);
@@ -372,7 +372,7 @@
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 600;
-  text-wrap: balance; font-stretch: 125%; }
+  text-wrap: balance; font-stretch: 100%; }
 
 .take-state-body {
   font-family: var(--font-mono);

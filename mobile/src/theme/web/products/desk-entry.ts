@@ -9,12 +9,12 @@ import type { ThemeName } from "../../index";
 const DARK = {
   /** .st-chip border and ink, off and on (yosuku part-03's light rule overrides border and ink in both states). */
   chipBorder: "rgba(255, 255, 255, 0.1)",
-  chipInk: "#A19F96",
+  chipInk: "#A3A3A3",
   chipInkOn: "#FFFFFF",
   /** .st-icon-tile[data-level="loose"]: color-mix(warning 14%, transparent). */
   looseWash: "rgba(242, 153, 74, 0.14)",
   /** .st-created-badge ring: color-mix(profit 8%, transparent). */
-  createdRing: "rgba(61, 214, 140, 0.08)",
+  createdRing: "rgba(61, 220, 90, 0.08)",
   /** .st-stream[data-state="done"] border: color-mix(profit 40%, hairline). */
   streamDone: "rgba(78, 217, 166, 0.46)",
   /** transparent: a gradient's fading stop and the weight rows' resting border. */
@@ -22,11 +22,11 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
-  chipBorder: "rgba(16, 15, 15, 0.16)",
+  chipBorder: "rgba(10, 10, 10, 0.16)",
   chipInk: "#141313",
   chipInkOn: "#141313",
   looseWash: "rgba(242, 153, 74, 0.14)",
-  createdRing: "rgba(14, 138, 87, 0.08)",
+  createdRing: "rgba(7, 138, 46, 0.08)",
   streamDone: "rgba(42, 93, 69, 0.47)",
   clear: "transparent",
 };

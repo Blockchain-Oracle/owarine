@@ -20,7 +20,7 @@
   font-size: 20px;
   font-weight: 700;
   line-height: 1.3;
-  color: var(--reel-ink); font-stretch: 125%; }
+  color: var(--reel-ink); font-stretch: 100%; }
 
 /* Owarine: the closed line is longer than the reference's holding copy, and the take pill
    (below) is fixed to the viewport's right rail at mid-height, where this centred title
@@ -58,7 +58,7 @@
 
 /* fixed right-4 top-1/2 z-40 inline-flex -translate-y-1/2 flex-col items-center
    gap-1.5 rounded-2xl bg-signal px-5 py-4 text-white
-   shadow-[0_12px_32px_-10px_rgba(228,226,78,0.55)]
+   shadow-[0_12px_32px_-10px_rgba(250,0,255,0.55)]
    Anchored mid-card on the right rail so it never covers a card's action row. */
 .reel-take {
   position: fixed;
@@ -75,14 +75,14 @@
   padding: 16px 20px;
   /* On signal in both themes, so its ink does not flip with the card's. */
   color: var(--on-signal);
-  box-shadow: 0 12px 32px -10px rgba(228, 226, 78, 0.55);
+  box-shadow: 0 12px 32px -10px rgba(250, 0, 255, 0.55);
 }
 
 .reel-take span {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 700;
-  line-height: 1; font-stretch: 125%; }
+  line-height: 1; font-stretch: 100%; }
 
 /* Stage 3 stands the take board up; the control is honest about that until then. */
 .reel-take:disabled {
@@ -132,7 +132,7 @@
 }
 
 /* rounded-full bg-signal px-3.5 py-1.5 font-display text-[12px] font-bold
-   leading-none text-white shadow-[0_8px_24px_-8px_rgba(228,226,78,0.7)] */
+   leading-none text-white shadow-[0_8px_24px_-8px_rgba(250,0,255,0.7)] */
 .reel-hint-pill {
   border-radius: 9999px;
   background: var(--signal);
@@ -143,7 +143,7 @@
   line-height: 1;
   /* On signal in both themes. */
   color: var(--on-signal);
-  box-shadow: 0 8px 24px -8px rgba(228, 226, 78, 0.7); font-stretch: 125%; }
+  box-shadow: 0 8px 24px -8px rgba(250, 0, 255, 0.7); font-stretch: 100%; }
 
 @media (prefers-reduced-motion: reduce) {
   .reel-dots span,

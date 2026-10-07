@@ -33,9 +33,9 @@ const opentype = require("opentype.js") as { loadSync(file: string): OutlineFont
 // Keep licensed fonts with the actor so the production Docker copy includes them.
 const sora = opentype.loadSync(fileURLToPath(new URL("./reply-card-assets/Sora-SemiBold.ttf", import.meta.url)));
 const inter = opentype.loadSync(fileURLToPath(new URL("./reply-card-assets/Inter-Regular.ttf", import.meta.url)));
-const INK = "#FAF9F4";
+const INK = "#FAFAFA";
 const MUTED = "#B4B3AB";
-const ORANGE = "#E4E24E";
+const ORANGE = "#FA00FF";
 
 const states: Record<XReceiptStatus, { title: string; footer: string }> = {
   filled: { title: "Order filled", footer: "The market result comes later." },
@@ -107,7 +107,7 @@ function receiptArt(status: XReceiptStatus): string {
   };
   return `<g aria-hidden="true" transform="rotate(7 970 307)">
 <path d="M1093 407C1151 414 1151 465 1114 477H1006V439Z" fill="#AEACA3"/>
-<path d="M817 145L828 152L839 145L850 152L861 145L872 152L883 145L894 152L905 145L916 152L927 145L938 152L949 145L960 152L971 145L982 152L993 145L1004 152L1015 145L1026 152L1037 145L1048 152L1059 145L1070 152L1081 145V430Q1081 469 1114 477L839 477Q817 477 817 449Z" fill="#F5F4EF" stroke="#CDCCC7" stroke-width="1.5"/>
+<path d="M817 145L828 152L839 145L850 152L861 145L872 152L883 145L894 152L905 145L916 152L927 145L938 152L949 145L960 152L971 145L982 152L993 145L1004 152L1015 145L1026 152L1037 145L1048 152L1059 145L1070 152L1081 145V430Q1081 469 1114 477L839 477Q817 477 817 449Z" fill="#F2F2F2" stroke="#CDCCC7" stroke-width="1.5"/>
 ${mark(909, 174, 49, "#1E1B1B")}
 <path d="M842 245H1054M842 396H1054M842 418H978" stroke="#BCBAB3" stroke-width="1.5"/>
 <circle cx="931" cy="320" r="62" stroke="${ORANGE}" stroke-width="4" fill="none"/>
@@ -136,7 +136,7 @@ export function renderReplyCardSvg(input: ReplyCardInput, options: ReplyCardOpti
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="1200" height="600" role="img" aria-labelledby="reply-title reply-description" data-status="${status}">
 <title id="reply-title">${escapeXml(title)} — Owarine</title>
 <desc id="reply-description">${escapeXml(description)}</desc>
-<rect width="1200" height="600" fill="#100F0F"/>
+<rect width="1200" height="600" fill="#0A0A0A"/>
 ${mark(963, 32, 42, INK)}
 ${text("Owarine", 1008, 61, 20, INK, sora)}
 ${sender ? text(`FOR ${sender}`, 64, 104, 19, INK) : ""}

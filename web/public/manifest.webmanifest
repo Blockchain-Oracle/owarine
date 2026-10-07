@@ -1,16 +1,36 @@
 {
-  "name": "Owarine — Stock Prediction Windows",
+  "name": "Owarine — call the close",
   "short_name": "Owarine",
-  "description": "Up or down on US stocks, settled on a signed price on Canton, with demo credits on a test network. Open after the bell, with a settlement receipt you can click.",
-  "start_url": "/markets",
+  "description": "Call where the price closes: tap UP or DOWN on BTC, ETH and stocks, watch your PnL move, close in one tap. Every position is private on Canton.",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#100F0F",
-  "theme_color": "#E4E24E",
+  "background_color": "#F2F2F2",
+  "theme_color": "#F2F2F2",
   "icons": [
-    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

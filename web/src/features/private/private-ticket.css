@@ -36,8 +36,8 @@
   font-size: 9px;
   color: rgba(255, 255, 255, 0.35); font-variant-numeric: tabular-nums; }
 [data-theme="light"] .tk-priv-box-text {
-  color: rgba(16, 15, 15, 0.7);
+  color: rgba(10, 10, 10, 0.7);
 }
 [data-theme="light"] .tk-priv-line {
-  color: rgba(16, 15, 15, 0.55);
+  color: rgba(10, 10, 10, 0.55);
 }

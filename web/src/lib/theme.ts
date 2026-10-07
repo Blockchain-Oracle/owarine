@@ -1,7 +1,6 @@
-// Theme: dark (default) + the cream light mode drawn from the brand films
-// (#F5F4EF paper / #100F0F ink / #E4E24E signal / #0E8A57 matcha).
-// Persisted per-browser; first visit with no stored choice follows the OS.
-// Ported from reference/yosuku/lib/theme.ts @ 3c56ef5 — only the storage key is Owarine's.
+// Theme: light (default, K-403) — UGLYCASH's ice canvas #F2F2F2, white cards, black ink, Power Pink #FA00FF as the
+// one action fill — and dark as a toggle the user chooses. Persisted per-browser; with no stored choice the page is
+// light whatever the OS says (Abu, 7 Oct: light everywhere, dark is a toggle).
 const STORAGE_KEY = "owarine_theme";
 
 export type Theme = "dark" | "light";
@@ -16,17 +15,9 @@ export function getStoredTheme(): Theme | null {
   }
 }
 
-function osPrefersLight(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-color-scheme: light)").matches
-  );
-}
-
-/** Stored choice wins; else follow the OS; else dark. */
+/** Stored choice wins; else light. */
 export function resolveTheme(): Theme {
-  return getStoredTheme() ?? (osPrefersLight() ? "light" : "dark");
+  return getStoredTheme() ?? "light";
 }
 
 function apply(theme: Theme): void {
@@ -58,5 +49,5 @@ export function initTheme(): Theme {
 }
 
 // Blocking snippet injected before the app renders so the correct theme paints on the
-// FIRST frame — no flash of dark. Kept tiny and dependency-free; mirrors resolveTheme().
-export const THEME_INIT_SCRIPT = `(()=>{try{var t=localStorage.getItem('${STORAGE_KEY}');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
+// FIRST frame — no flash. Kept tiny and dependency-free; mirrors resolveTheme().
+export const THEME_INIT_SCRIPT = `(()=>{var t='light';try{var s=localStorage.getItem('${STORAGE_KEY}');if(s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();`;

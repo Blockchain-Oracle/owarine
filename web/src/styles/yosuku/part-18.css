@@ -1,10 +1,10 @@
-[data-theme="light"] .appband { background: #100F0F; color: var(--cream, #F5F4EF); }
-[data-theme="light"] .appband-mark { color: var(--cream, #F5F4EF); }
-[data-theme="light"] .appband-rule { background: var(--cream, #F5F4EF); opacity: 0.3; }
+[data-theme="light"] .appband { background: #0A0A0A; color: var(--cream, #F2F2F2); }
+[data-theme="light"] .appband-mark { color: var(--cream, #F2F2F2); }
+[data-theme="light"] .appband-rule { background: var(--cream, #F2F2F2); opacity: 0.3; }
 [data-theme="light"] .appband-cell em { color: #EEEC8D; } /* signal lifts on ink, the -d shade muddies */
 [data-theme="light"] .appband:hover .appband-cell em { color: #F2F1AA; }
-[data-theme="light"] .appband::before { background: linear-gradient(90deg, #100F0F, transparent); }
-[data-theme="light"] .appband::after  { background: linear-gradient(270deg, #100F0F, transparent); }
+[data-theme="light"] .appband::before { background: linear-gradient(90deg, #0A0A0A, transparent); }
+[data-theme="light"] .appband::after  { background: linear-gradient(270deg, #0A0A0A, transparent); }
 
 
 @media (prefers-reduced-motion: reduce) {
@@ -25,9 +25,9 @@
 .dl-title {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(2.6rem, 7vw, 5.1rem); line-height: 0.94; letter-spacing: -0.035em;
-  margin: 14px 0 0; color: var(--white); font-stretch: 125%; }
+  margin: 14px 0 0; color: var(--white); font-stretch: 100%; }
 .dl-title em { font-family: var(--font-serif, var(--font-display)); font-style: italic; font-weight: 500; color: var(--signal-ink); }
-.dl-line { margin: 22px 0 0; max-width: 46ch; color: var(--gray-400, #A19F96); font-size: clamp(0.98rem, 1.5vw, 1.12rem); line-height: 1.65; }
+.dl-line { margin: 22px 0 0; max-width: 46ch; color: var(--gray-400, #A3A3A3); font-size: clamp(0.98rem, 1.5vw, 1.12rem); line-height: 1.65; }
 
 .dl-cta {
   display: inline-flex; align-items: center; gap: 12px; margin-top: 34px;
@@ -35,8 +35,8 @@
   background: var(--signal); color: var(--on-signal);
   font-family: var(--font-display); font-weight: 700; font-size: 1rem; letter-spacing: -0.01em;
   text-decoration: none; border: 1px solid transparent;
-  transition: transform 220ms cubic-bezier(0.2,0.7,0.3,1), background 220ms ease, box-shadow 220ms ease; font-stretch: 125%; }
-.dl-cta:hover { background: var(--signal-d); transform: translateY(-2px); box-shadow: 0 14px 34px rgba(228,226,78,0.28); }
+  transition: transform 220ms cubic-bezier(0.2,0.7,0.3,1), background 220ms ease, box-shadow 220ms ease; font-stretch: 100%; }
+.dl-cta:hover { background: var(--signal-d); transform: translateY(-2px); box-shadow: 0 14px 34px rgba(250,0,255,0.28); }
 /* The glyph is an arrow descending into a tray: 'get', not 'share'. No rotation. */
 .dl-cta-arrow { width: 18px; height: 18px; }
 
@@ -66,7 +66,7 @@
   /* Titanium: a bright edge catching light at the top left, falling to near-black at the bottom
      right, over a dark body. A flat grey gradient was the other reason this looked like a card. */
   background:
-    linear-gradient(145deg, #74736D 0%, #2E2D2A 18%, #161414 46%, #3B3A37 78%, #0E0C0C 100%);
+    linear-gradient(145deg, #74736D 0%, #2E2D2A 18%, #161414 46%, #3A3A3A 78%, #0E0C0C 100%);
   box-shadow:
     0 30px 70px -20px rgba(0,0,0,0.8),
     0 0 0 1px rgba(255,255,255,0.10) inset,
@@ -74,7 +74,7 @@
 }
 .dl-phone-screen {
   position: relative;
-  border-radius: 45px; overflow: hidden; background: #100F0F; display: block;
+  border-radius: 45px; overflow: hidden; background: #0A0A0A; display: block;
   /* The black gap between rim and glass. Without it the image runs straight into the metal and
      the whole thing flattens into one shape. */
   box-shadow: 0 0 0 1px #000, 0 0 0 2px rgba(0,0,0,0.9);
@@ -104,8 +104,8 @@
 .dl-t-mono { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
 .dl-t-lbl  { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; font-variant-numeric: tabular-nums; }
 .dl-t-num  { font-family: var(--font-mono); font-size: 21px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.dl-t-h    { font-family: var(--font-display); font-size: 25px; font-weight: 800; fill: #FAF9F4; letter-spacing: -0.02em; font-stretch: 125%; }
-.dl-t-btn  { font-family: var(--font-display); font-size: 15px; font-weight: 700; font-stretch: 125%; }
+.dl-t-h    { font-family: var(--font-display); font-size: 25px; font-weight: 800; fill: #FAFAFA; letter-spacing: -0.02em; font-stretch: 100%; }
+.dl-t-btn  { font-family: var(--font-display); font-size: 15px; font-weight: 700; font-stretch: 100%; }
 
 .dl-points {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -114,7 +114,7 @@
   padding-top: clamp(30px, 4vw, 50px);
   border-top: 1px solid rgba(255,255,255,0.08);
 }
-.dl-points h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.08rem; color: var(--white); margin: 16px 0 8px; letter-spacing: -0.01em; font-stretch: 125%; }
+.dl-points h3 { font-family: var(--font-display); font-weight: 700; font-size: 1.08rem; color: var(--white); margin: 16px 0 8px; letter-spacing: -0.01em; font-stretch: 100%; }
 .dl-points p { color: var(--gray-500, #8E8C86); font-size: 0.92rem; line-height: 1.6; margin: 0; max-width: 34ch; }
 .dl-pt-mark { display: inline-flex; width: 22px; color: var(--signal-ink); }
 .dl-pt-mark svg { width: 100%; height: auto; display: block; }
@@ -142,8 +142,8 @@
 [data-theme="light"] .live-desk .text-white\/45,
 [data-theme="light"] .live-desk .text-white\/40,
 [data-theme="light"] .live-desk .text-white\/35 { color: rgba(24,21,21,0.5) !important; }
-[data-theme="light"] .live-desk [class*="bg-white/["] { background: rgba(16,15,15,0.035) !important; }
-[data-theme="light"] .live-desk [class*="border-white/["] { border-color: rgba(16,15,15,0.12) !important; }
+[data-theme="light"] .live-desk [class*="bg-white/["] { background: rgba(10,10,10,0.035) !important; }
+[data-theme="light"] .live-desk [class*="border-white/["] { border-color: rgba(10,10,10,0.12) !important; }
 
 /* ── copy desk: money controls ──────────────────────────────────────────────
    These carried hardcoded dark values (bg-black/30, text-white, text-gray-300)
@@ -158,10 +158,10 @@
 .desk-chip { border-color: rgba(255, 255, 255, 0.15); color: #d1d5db; }
 .desk-chip:hover { color: #fff; }
 
-[data-theme="light"] .desk-amount { border-color: rgba(16, 15, 15, 0.14); background: #FDFCFA; }
+[data-theme="light"] .desk-amount { border-color: rgba(10, 10, 10, 0.14); background: #FDFCFA; }
 [data-theme="light"] .desk-amount-input { color: #171515; }
 [data-theme="light"] .desk-amount-input::placeholder { color: rgba(23, 21, 21, 0.30); }
 [data-theme="light"] .desk-amount-unit { color: #656359; }
 [data-theme="light"] .desk-amount-hint { color: #656359; }
-[data-theme="light"] .desk-chip { border-color: rgba(16, 15, 15, 0.20); color: #46453E; }
+[data-theme="light"] .desk-chip { border-color: rgba(10, 10, 10, 0.20); color: #46453E; }
 [data-theme="light"] .desk-chip:hover { color: #171515; }

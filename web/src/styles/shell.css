@@ -6,10 +6,10 @@
    flex items-center gap-1.5 font-mono text-[12px] px-2.5 sm:px-3 py-1.5 rounded-full border border-white/10
    hover:border-white/25 hover:bg-white/[0.03] text-gray-300 hover:text-white */
 /* Scrolled headings must not compete with the fixed navigation labels. */
-.header { background: rgba(16, 15, 15, 0.96); }
-[data-theme="light"] .header { background: rgba(245, 244, 239, 0.96); }
-[data-theme="light"] .wallet-pill { border-color: rgba(16, 15, 15, 0.14); }
-[data-theme="light"] .wallet-pill:hover { border-color: rgba(16, 15, 15, 0.3); }
+.header { background: rgba(10, 10, 10, 0.96); }
+[data-theme="light"] .header { background: rgba(242, 242, 242, 0.96); }
+[data-theme="light"] .wallet-pill { border-color: rgba(10, 10, 10, 0.14); }
+[data-theme="light"] .wallet-pill:hover { border-color: rgba(10, 10, 10, 0.3); }
 
 .header .logo { flex-shrink: 0; }
 .logo-copy { display: inline-flex; align-items: baseline; gap: 8px; white-space: nowrap; }
@@ -84,10 +84,10 @@
 .dusdc-pill .dusdc-unit { color: var(--gray-500); }
 /* text-signal font-bold ml-0.5 text-[15px] leading-none */
 .dusdc-pill .dusdc-plus { color: var(--signal-ink); font-weight: 700; margin-left: 2px; font-size: 15px; line-height: 1; }
-[data-theme="light"] .dusdc-pill { border-color: rgba(16, 15, 15, 0.14); color: rgba(16, 15, 15, 0.75); }
-[data-theme="light"] .dusdc-pill:hover { border-color: rgba(16, 15, 15, 0.3); background: rgba(16, 15, 15, 0.03); color: #100F0F; }
-[data-theme="light"] .dusdc-pill .dusdc-total { color: #100F0F; }
-[data-theme="light"] .dusdc-pill .dusdc-total--dim { color: rgba(16, 15, 15, 0.55); }
+[data-theme="light"] .dusdc-pill { border-color: rgba(10, 10, 10, 0.14); color: rgba(10, 10, 10, 0.75); }
+[data-theme="light"] .dusdc-pill:hover { border-color: rgba(10, 10, 10, 0.3); background: rgba(10, 10, 10, 0.03); color: #0A0A0A; }
+[data-theme="light"] .dusdc-pill .dusdc-total { color: #0A0A0A; }
+[data-theme="light"] .dusdc-pill .dusdc-total--dim { color: rgba(10, 10, 10, 0.55); }
 
 .header-account-menu {
   position: absolute;
@@ -104,7 +104,7 @@
 }
 
 [data-theme="light"] .header-account-menu {
-  border-color: rgba(16, 15, 15, 0.12);
+  border-color: rgba(10, 10, 10, 0.12);
 }
 
 .header-account-pools {
@@ -113,7 +113,7 @@
 }
 
 [data-theme="light"] .header-account-pools {
-  border-bottom-color: rgba(16, 15, 15, 0.08);
+  border-bottom-color: rgba(10, 10, 10, 0.08);
 }
 
 /* Each pool is named. Economically different money is never summed into one number. */
@@ -139,7 +139,7 @@
   color: rgba(255, 255, 255, 0.8);
 }
 [data-theme="light"] .header-account-row .val--soft {
-  color: rgba(16, 15, 15, 0.8);
+  color: rgba(10, 10, 10, 0.8);
 }
 
 .header-account-link {
@@ -156,7 +156,7 @@
 }
 
 [data-theme="light"] .header-account-link:hover {
-  background: rgba(16, 15, 15, 0.05);
+  background: rgba(10, 10, 10, 0.05);
 }
 /* Disconnect: block w-full text-left · text-signal/70 hover:text-signal (Header.tsx L356–362) */
 .header-account-link--danger {
@@ -224,7 +224,7 @@ body:has(.reel-page) .page-shell {
   font-size: 28px;
   line-height: 1.15;
   letter-spacing: -0.02em;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 
 .capability-pending .cp-body {
   margin-top: 12px;
@@ -242,7 +242,7 @@ body:has(.reel-page) .page-shell {
   color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 [data-theme="light"] .capability-pending .cp-meta {
-  border-top-color: rgba(16, 15, 15, 0.12);
+  border-top-color: rgba(10, 10, 10, 0.12);
 }
 
 /* The way out of a pending surface (D-083): the meta's mono voice, in the accent, with a visible focus ring. */

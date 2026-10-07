@@ -8,7 +8,7 @@ export const OG_CONTENT_TYPE = "image/png";
 
 export const OG = {
   /** `--bg` */
-  ground: "rgb(16, 15, 15)",
+  ground: "rgb(10, 10, 10)",
   /** `--white` */
   ink: "rgb(255, 255, 255)",
   /** `--gray-400` */
@@ -22,11 +22,11 @@ export const OG = {
   /** `.mark-ring` (icons.css): Apple's near-black disc on the dark ground. */
   ring: "rgba(255, 255, 255, 0.22)",
   /** `--signal` */
-  signal: "rgb(228, 226, 78)",
+  signal: "rgb(250, 0, 255)",
   /** `--color-profit` (dark) */
-  up: "rgb(61, 214, 140)",
+  up: "rgb(61, 220, 90)",
   /** `--color-loss` (dark) */
-  down: "rgb(255, 92, 97)",
+  down: "rgb(255, 90, 82)",
 } as const;
 
 /** The canvas inset every image shares. */

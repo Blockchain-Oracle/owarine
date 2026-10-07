@@ -36,6 +36,8 @@ Agari's pixel-grid artwork (ported from Masayume) is defined in [`PixelArt.tsx`]
 | Sora and Inter web fonts | The same font families are loaded through `next/font/google`; their respective font licenses apply. | [`web/src/lib/fonts.ts`](web/src/lib/fonts.ts) |
 | JetBrains Mono web font | Copyright 2020 The JetBrains Mono Project Authors. [SIL Open Font License 1.1](https://github.com/google/fonts/blob/main/ofl/jetbrainsmono/OFL.txt). | Loaded through [`web/src/lib/fonts.ts`](web/src/lib/fonts.ts) |
 | Noto Serif JP web font | Copyright 2012 Google Inc. [SIL Open Font License 1.1](https://github.com/google/fonts/blob/main/ofl/notoserifjp/OFL.txt). | Loaded through [`web/src/lib/fonts.ts`](web/src/lib/fonts.ts) |
+| Archivo app fonts (ExtraCondensed Black and ExtraBold, Condensed Bold) | Copyright 2020 The Archivo Project Authors (https://github.com/Omnibus-Type/Archivo). SIL Open Font License 1.1. Static instances (`wdth` 62 at `wght` 900 and 800; `wdth` 75 at `wght` 700) cut with fontTools `varLib.instancer` from `ofl/archivo/Archivo[wdth,wght].ttf` in [google/fonts](https://github.com/google/fonts) at commit `7085eb89a950e85db5b166b7a58d414544b4140c`; the two ExtraCondensed name tables were renamed so each face has a unique PostScript name. | `mobile/assets/fonts/Archivo-*.ttf`, with [`Archivo-OFL.txt`](mobile/assets/fonts/Archivo-OFL.txt) beside them |
+| Inter app fonts (400–800) | Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter). SIL Open Font License 1.1. Static instances (`opsz` 14) cut from `ofl/inter/Inter[opsz,wght].ttf` in google/fonts at the same commit. | `mobile/assets/fonts/Inter-{400,500,600,700,800}.ttf`, with [`Inter-OFL.txt`](mobile/assets/fonts/Inter-OFL.txt) beside them |
 
 Keep the font copyright and license notices with redistributed font software. Font licenses do not become the license of the application or its generated receipt images.
 
@@ -48,6 +50,21 @@ The ten MP3 effects in [`web/public/sounds`](web/public/sounds) originate from *
 - [Music Jingles](https://kenney.nl/assets/music-jingles): `duel-win`, `duel-lose`.
 
 The original filenames and encoding information are recorded in [`web/public/sounds/SOURCES.md`](web/public/sounds/SOURCES.md). These original-author terms are separate from the license status of the Flicky repository in which identical copies also appear.
+
+The trading set ([`web/public/sounds/trade`](web/public/sounds/trade), 13 files) and the games set ([`web/public/sounds/games`](web/public/sounds/games), 12 files), with identical copies under `mobile/assets/sounds/{trade,games}`, are also **Kenney CC0 1.0**, from these packs:
+
+- [Interface Sounds](https://kenney.nl/assets/interface-sounds), [UI Audio](https://kenney.nl/assets/ui-audio), [Digital Audio](https://kenney.nl/assets/digital-audio) and [Music Jingles](https://kenney.nl/assets/music-jingles).
+- [Casino Audio](https://kenney.nl/assets/casino-audio), [Impact Sounds](https://kenney.nl/assets/impact-sounds), [Sci-fi Sounds](https://kenney.nl/assets/sci-fi-sounds) and [RPG Audio](https://kenney.nl/assets/rpg-audio).
+
+Per-file originals are in [`web/public/sounds/SOURCES.md`](web/public/sounds/SOURCES.md) and [`mobile/assets/sounds/SOURCES.md`](mobile/assets/sounds/SOURCES.md).
+
+## Art
+
+The 3D object illustrations in [`web/public/art/fluent`](web/public/art/fluent) (WebP) and [`mobile/assets/art/fluent`](mobile/assets/art/fluent) (PNG), 52 objects, are **Fluent Emoji** 3D assets.
+
+- Source: [microsoft/fluentui-emoji](https://github.com/microsoft/fluentui-emoji), `assets/<Name>/3D/*_3d.png`, at commit `1ffb34c752ecf5d402f04cfb4b392c77f57c54bc`. Copyright (c) Microsoft Corporation; MIT License.
+- Licence: MIT, copied beside the files ([`web/public/art/fluent/LICENSE`](web/public/art/fluent/LICENSE), [`mobile/assets/art/fluent/LICENSE`](mobile/assets/art/fluent/LICENSE)). Per-file original paths are in [`web/public/art/fluent/SOURCES.md`](web/public/art/fluent/SOURCES.md); the typed manifests are `web/src/lib/art/fluent.ts` and `mobile/src/lib/art/fluent.ts`.
+- Web copies are re-encoded to WebP at source size; mobile copies are the source PNGs with metadata stripped. No artwork is redrawn.
 
 ## Wallet modals
 

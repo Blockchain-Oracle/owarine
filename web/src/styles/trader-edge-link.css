@@ -32,14 +32,14 @@
   transform: scaleY(0.45);
   transform-origin: center;
   transition: transform 240ms var(--ease-out); color: var(--on-signal); }
-.trader-edge-link:hover { border-color: rgba(228, 226, 78, 0.42); transform: translateY(-2px); }
+.trader-edge-link:hover { border-color: rgba(250, 0, 255, 0.42); transform: translateY(-2px); }
 .trader-edge-link:hover::before { transform: scaleY(1); }
 .trader-edge-link:active { transform: translateY(1px) scale(0.995); }
 
 .tel-eyebrow { color: var(--signal-ink); font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.tel-title { margin-top: 8px; color: var(--te-text); font-family: var(--font-display); font-size: clamp(20px, 2.4vw, 31px); font-weight: 750; letter-spacing: -0.05em; line-height: 1.05; font-stretch: 125%; }
+.tel-title { margin-top: 8px; color: var(--te-text); font-family: var(--font-display); font-size: clamp(20px, 2.4vw, 31px); font-weight: 750; letter-spacing: -0.05em; line-height: 1.05; font-stretch: 100%; }
 .tel-copy { max-width: 58ch; margin-top: 8px; color: var(--te-muted); font-size: 11px; line-height: 1.6; }
-.tel-action { display: inline-flex; min-height: 42px; align-items: center; gap: 11px; border-radius: 999px; background: var(--signal); padding: 10px 18px; color: var(--on-signal); font-family: var(--font-display); font-size: 11px; font-weight: 700; white-space: nowrap; font-stretch: 125%; }
+.tel-action { display: inline-flex; min-height: 42px; align-items: center; gap: 11px; border-radius: 999px; background: var(--signal); padding: 10px 18px; color: var(--on-signal); font-family: var(--font-display); font-size: 11px; font-weight: 700; white-space: nowrap; font-stretch: 100%; }
 .tel-arrow { font-family: var(--font-mono); font-size: 14px; transition: transform 180ms var(--ease); font-variant-numeric: tabular-nums; }
 .trader-edge-link:hover .tel-arrow { transform: translateX(3px); }
 

@@ -7,7 +7,7 @@ import type { ThemeName } from "../index";
  */
 const ISLAND = {
   // `.ar-screen` triplets: rgb(var(--ar-ink-rgb) / a) and the overlay's ground at 90 %
-  overlay: "rgba(16, 15, 15, 0.9)",
+  overlay: "rgba(10, 10, 10, 0.9)",
   ink40: "rgba(255, 255, 255, 0.4)", ink55: "rgba(255, 255, 255, 0.55)", ink60: "rgba(255, 255, 255, 0.6)",
   ink70: "rgba(255, 255, 255, 0.7)", ink85: "rgba(255, 255, 255, 0.85)",
   screw: "rgba(255, 255, 255, 0.18)",
@@ -26,8 +26,8 @@ const DARK = {
 
 const LIGHT: typeof DARK = {
   ...ISLAND,
-  vignetteNear: "rgba(16, 15, 15, 0.25)", vignetteFar: "rgba(16, 15, 15, 0.12)",
-  rowRule: "rgba(16, 15, 15, 0.08)", tagBorder: "rgba(16, 15, 15, 0.14)",
+  vignetteNear: "rgba(10, 10, 10, 0.25)", vignetteFar: "rgba(10, 10, 10, 0.12)",
+  rowRule: "rgba(10, 10, 10, 0.08)", tagBorder: "rgba(10, 10, 10, 0.14)",
   boxBorder: "#7A7872", boxFill: "#FFFFFF", boxTick: "#FFFFFF",
 };
 

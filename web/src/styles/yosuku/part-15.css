@@ -87,8 +87,8 @@
 }
 .mobile-more-menu a.active {
   color: var(--white);
-  border-color: rgba(228,226,78,0.28);
-  background: rgba(228,226,78,0.08);
+  border-color: rgba(250,0,255,0.28);
+  background: rgba(250,0,255,0.08);
 }
 .mobile-more-menu a.active svg { color: var(--signal-ink); }
 

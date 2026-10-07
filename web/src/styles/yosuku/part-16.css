@@ -78,18 +78,18 @@
 /* HIGHER = soft green wash + green edge + green text — clearly a button, stays quiet */
 .hero-bet-btn.up {
   color: var(--profit);
-  background: rgba(61,214,140,0.08);
-  border-color: rgba(61,214,140,0.32);
+  background: rgba(61,220,90,0.08);
+  border-color: rgba(61,220,90,0.32);
 }
-.hero-bet-btn.up:hover { background: rgba(61,214,140,0.15); border-color: var(--profit); }
+.hero-bet-btn.up:hover { background: rgba(61,220,90,0.15); border-color: var(--profit); }
 
 /* LOWER = soft pink/red wash */
 .hero-bet-btn.down {
   color: var(--loss);
-  background: rgba(255,92,97,0.08);
-  border-color: rgba(255,92,97,0.32);
+  background: rgba(255,90,82,0.08);
+  border-color: rgba(255,90,82,0.32);
 }
-.hero-bet-btn.down:hover { background: rgba(255,92,97,0.15); border-color: var(--loss); }
+.hero-bet-btn.down:hover { background: rgba(255,90,82,0.15); border-color: var(--loss); }
 
 /* keep the foot helper label quiet next to the buttons */
 .hero-chart-foot > span:first-child {
@@ -124,7 +124,7 @@
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.1);
-  background: rgba(16,15,15,0.7); backdrop-filter: blur(6px);
+  background: rgba(10,10,10,0.7); backdrop-filter: blur(6px);
   color: var(--gray-300);
   opacity: 0; transition: opacity 0.18s var(--ease), background 0.18s var(--ease), border-color 0.18s var(--ease), color 0.18s var(--ease);
 }
@@ -144,7 +144,7 @@
 .market-modal {
   width: 100%; max-width: 1080px; max-height: 90vh;
   display: flex; flex-direction: column;
-  background: #100f0f;
+  background: #;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px;
   box-shadow: 0 40px 120px -40px rgba(0,0,0,0.9);
@@ -161,7 +161,7 @@
   border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-family: var(--font-mono); font-size: 12px; color: var(--white); font-variant-numeric: tabular-nums; }
-.mm-q { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--white); line-height: 1.1; font-stretch: 125%; }
+.mm-q { font-family: var(--font-display); font-size: 19px; font-weight: 700; color: var(--white); line-height: 1.1; font-stretch: 100%; }
 .mm-head-right { display: flex; align-items: center; gap: 16px; }
 .mm-price { text-align: right; }
 .mm-price .price { font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--white); font-variant-numeric: tabular-nums; }
@@ -216,7 +216,7 @@
 .scroll-cue-dot {
   position: absolute; left: -1.5px; top: 0;
   width: 4px; height: 9px; border-radius: 2px; background: var(--signal);
-  box-shadow: 0 0 8px rgba(228,226,78,0.6);
+  box-shadow: 0 0 8px rgba(250,0,255,0.6);
   animation: scrollCueDot 1.9s var(--ease) infinite; color: var(--on-signal); }
 @keyframes scrollCueDot {
   0%   { transform: translateY(-12px); opacity: 0; }
@@ -262,7 +262,7 @@
 .words-title {
   font-family: var(--font-display); font-weight: 800;
   font-size: clamp(2.4rem, 5.4vw, 4.4rem); line-height: 0.98; letter-spacing: -0.04em;
-  color: var(--white); margin: 16px 0 18px; font-stretch: 125%; }
+  color: var(--white); margin: 16px 0 18px; font-stretch: 100%; }
 .words-title .accent { color: var(--signal-ink); font-style: italic; font-family: 'Noto Sans JP', Georgia, serif; font-weight: 700; }
 .words-sub { color: var(--gray-400); font-size: 16px; max-width: 60ch; line-height: 1.6; }
 .words-spot {
@@ -276,7 +276,7 @@
   border-bottom: 1px solid rgba(255,255,255,0.08); position: relative;
 }
 .words-sechead::after { content: ''; position: absolute; left: 0; bottom: -1px; width: 40px; height: 2px; background: var(--signal); color: var(--on-signal); }
-.words-sec-label { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--white); font-stretch: 125%; }
+.words-sec-label { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; color: var(--white); font-stretch: 100%; }
 .words-sec-count { font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 
 .words-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
@@ -297,20 +297,20 @@
   background: radial-gradient(circle at 34% 28%, #ffbe5c, #F7931A 72%);
   box-shadow: 0 3px 9px rgba(247,147,26,0.4), inset 0 0 0 1px rgba(255,255,255,0.18);
 }
-.wq-btc span { color: #fff; font-family: var(--font-display); font-weight: 800; font-size: 16px; line-height: 1; transform: rotate(13deg); font-stretch: 125%; }
+.wq-btc span { color: #fff; font-family: var(--font-display); font-weight: 800; font-size: 16px; line-height: 1; transform: rotate(13deg); font-stretch: 100%; }
 .wq-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .wq-clock { margin-left: auto; font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--white); font-variant-numeric: tabular-nums; }
 .wq-clock.urgent { color: var(--signal-ink); }
 .wq-q {
   font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.22;
-  letter-spacing: -0.025em; color: var(--white); margin: 18px 0 14px; min-height: 2.3em; text-wrap: balance; font-stretch: 125%; }
+  letter-spacing: -0.025em; color: var(--white); margin: 18px 0 14px; min-height: 2.3em; text-wrap: balance; font-stretch: 100%; }
 /* the question headline dominates the narrow mobile card — scale it down there */
 @media (max-width: 720px) {
   .wq-q { font-size: 16px; line-height: 1.3; margin: 14px 0 12px; }
 }
 /* Polymarket-style odds bar — green (yes) fill on a rose (no) track */
-.wq-oddsbar { position: relative; height: 6px; border-radius: 4px; margin: 0 0 10px; background: rgba(255,92,97,0.22); overflow: hidden; }
-.wq-oddsfill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 4px; background: linear-gradient(90deg, #2ec27e, #3DD68C); box-shadow: 0 0 10px rgba(61,214,140,0.4); }
+.wq-oddsbar { position: relative; height: 6px; border-radius: 4px; margin: 0 0 10px; background: rgba(255,90,82,0.22); overflow: hidden; }
+.wq-oddsfill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 4px; background: linear-gradient(90deg, #2ec27e, #3DDC5A); box-shadow: 0 0 10px rgba(61,220,90,0.4); }
 .wq-oddsrow { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .wq-close { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-600); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .wq-yeslead { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); font-variant-numeric: tabular-nums; }

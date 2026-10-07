@@ -68,7 +68,7 @@
 .nav-menu-intro > span {
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 700; font-stretch: 125%; }
+  font-weight: 700; font-stretch: 100%; }
 
 .nav-menu-intro p {
   color: var(--gray-500);
@@ -189,7 +189,7 @@
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 750;
-  letter-spacing: -0.02em; font-stretch: 125%; }
+  letter-spacing: -0.02em; font-stretch: 100%; }
 
 .mobile-nav-header [data-slot="sheet-description"] { margin-top: 0.3rem; max-width: 34ch; color: var(--gray-500); font-size: 0.75rem; line-height: 1.45; }
 

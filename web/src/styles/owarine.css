@@ -1,31 +1,186 @@
-/* Owarine brand layer (K-402), loaded last.
+/* Owarine brand layer (K-403, the UGLYCASH × Tradash revamp), loaded last.
  *
- * Reference lock: Empower's night canvas, one electric signal used as a FILL (primary action, the live state, the
- * call that came in), pill buttons, 24px cards; Turf's call pills and scoreboard numerals; Fey's slate secondary
- * text and tabular figures. One family, Mona Sans, carries every role through its width axis (expanded headings and
- * labels, normal body and figures, condensed scoreboard numerals). The palette itself lives in yosuku/part-01.css
- * (dark) and part-13.css (light); this file only adds what the old system had no slot for. */
+ * Reference lock: UGLYCASH's look — ice canvas, white cards, pure black ink, Power Pink as the ONE action fill (white
+ * bold label on it), sky and lime only on stickers, no shadows, radii 16 / 46 / pill, ultra-condensed black uppercase
+ * headlines — over Tradash's loop (the chart is the workspace, UP/DOWN, live PnL that flips green/red at once).
+ *
+ * The `--ow-*` tokens below are the system the new kit (`components/kit`) is built on; Tailwind sees them as
+ * `bg-ow-canvas`, `text-ow-muted`, `rounded-ow-feature` … The legacy Yosuku palette in yosuku/part-01 (dark) and
+ * part-13 (light) carries the same values for the surfaces not yet rebuilt. Light is the default; dark is a toggle. */
 
 :root {
-  --radius-card: 24px;
+  --ow-canvas: #F2F2F2;
+  --ow-card: #FFFFFF;
+  --ow-recessed: #E8E8E8;
+  --ow-hairline: #DCDCDC;
+  --ow-ink: #000000;
+  --ow-muted: #5E5E5E;   /* 5.8:1 on the canvas */
+  --ow-helper: #888888;
+  --ow-inverse: #FFFFFF; /* ink on a black fill */
+
+  --ow-pink: #FA00FF;
+  --ow-pink-pressed: #D600DB;
+  --ow-pink-ink: #B000B5; /* pink as text, 5.3:1 */
+  --ow-on-pink: #FFFFFF;
+
+  --ow-up: #078A2E;      /* text */
+  --ow-up-line: #19C23E; /* lines, fills */
+  --ow-down: #D21F1F;
+  --ow-down-line: #FF3B30;
+
+  --ow-sky: #02BBFF;
+  --ow-sky-deep: #0090E0;
+  --ow-lime: #ADFF02;
+  --ow-cream: #E7E3BF;
+  --ow-scrim: rgb(0 0 0 / 0.42);
+
+  /* Fixed black and white: the legacy palette repurposes Tailwind's own black/white per theme. */
+  --ow-black: #000000;
+  --ow-white: #FFFFFF;
+
+  --ow-chain: #B9B9B9;          /* the share charm's ring */
+  --ow-win: #078A2E;            /* result ink on a cream charm, both themes */
+  --ow-lose: #D21F1F;
+  --ow-up-on-black: #3DDC5A;    /* PnL on a black pill, both themes */
+  --ow-down-on-black: #FF6B63;
+  --ow-sky-gradient: linear-gradient(180deg, #02A6F0 0%, #02BBFF 38%, #7FD9FF 78%, #D9F3FF 100%);
+
+  --ow-sheet-w: 420px;
+  --ow-sheet-w-lg: min(720px, calc(100vw - 48px));
+  --ow-sheet-max-h: min(860px, calc(100dvh - 48px));
+
+  --ow-r-card: 16px;
+  --ow-r-feature: 46px;
+  --ow-r-pill: 999px;
+
+  --ow-spring: cubic-bezier(0.32, 0.72, 0, 1); /* sheets, morphs */
+  --ow-flip: 120ms;                            /* the green/red flip */
+
+  /* Legacy radii the older surfaces read. */
+  --radius-card: 16px;
   --radius-module: 16px;
   --radius-pill: 999px;
 }
 
-/* Faces by role. `font-stretch` drives Mona Sans's width axis. */
+/* Faces resolve on body, where next/font sets --font-archivo and friends (on :root they would resolve empty). */
+body {
+  --ow-font-display: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --ow-font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --ow-font-axis: var(--font-code), ui-monospace, monospace;
+  --ow-font-jp: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
+}
+
+[data-theme="dark"] {
+  --ow-canvas: #0A0A0A;
+  --ow-card: #161616;
+  --ow-recessed: #222222;
+  --ow-hairline: #2C2C2C;
+  --ow-ink: #FFFFFF;
+  --ow-muted: #A3A3A3;
+  --ow-helper: #7A7A7A;
+  --ow-inverse: #000000;
+  --ow-pink-ink: #FF6BFF;
+  --ow-up: #3DDC5A;
+  --ow-up-line: #3DDC5A;
+  --ow-down: #FF5A52;
+  --ow-down-line: #FF5A52;
+  --ow-scrim: rgb(0 0 0 / 0.6);
+}
+
+@theme inline {
+  --color-ow-canvas: var(--ow-canvas);
+  --color-ow-card: var(--ow-card);
+  --color-ow-recessed: var(--ow-recessed);
+  --color-ow-hairline: var(--ow-hairline);
+  --color-ow-ink: var(--ow-ink);
+  --color-ow-muted: var(--ow-muted);
+  --color-ow-helper: var(--ow-helper);
+  --color-ow-inverse: var(--ow-inverse);
+  --color-ow-pink: var(--ow-pink);
+  --color-ow-pink-pressed: var(--ow-pink-pressed);
+  --color-ow-pink-ink: var(--ow-pink-ink);
+  --color-ow-on-pink: var(--ow-on-pink);
+  --color-ow-up: var(--ow-up);
+  --color-ow-up-line: var(--ow-up-line);
+  --color-ow-down: var(--ow-down);
+  --color-ow-down-line: var(--ow-down-line);
+  --color-ow-sky: var(--ow-sky);
+  --color-ow-lime: var(--ow-lime);
+  --color-ow-cream: var(--ow-cream);
+  --color-ow-scrim: var(--ow-scrim);
+  --color-ow-black: var(--ow-black);
+  --color-ow-win: var(--ow-win);
+  --color-ow-lose: var(--ow-lose);
+  --color-ow-white: var(--ow-white);
+
+  --radius-ow-card: var(--ow-r-card);
+  --radius-ow-sticker: 14px;
+  --radius-ow-sheet: 32px;
+  --radius-ow-feature: var(--ow-r-feature);
+
+  --font-ow-display: var(--ow-font-display);
+  --font-ow-body: var(--ow-font-body);
+  --font-ow-axis: var(--ow-font-axis);
+  --font-ow-jp: var(--ow-font-jp);
+
+  --ease-ow-spring: var(--ow-spring);
+
+  /* The kit's type scale by role (UGLYCASH: 12 / 14 / 18 / 20 / 24 / 64 / 85 / 164, plus Inter's reading sizes). */
+  --text-ow-micro: 12px;
+  --text-ow-caption: 13px;
+  --text-ow-label: 14px;
+  --text-ow-body: 15px;
+  --text-ow-lead: 16px;
+  --text-ow-cta: 18px;
+  --text-ow-title: 20px;
+  --text-ow-sticker: 22px;
+  --text-ow-heading: 24px;
+  --text-ow-key: 28px;
+  --text-ow-display: 32px;
+  --text-ow-figure: 40px;
+  --text-ow-mask: 44px;
+  --text-ow-hero: 56px;
+  --text-ow-charm: 76px;
+}
+
+/* Type. Display is Archivo at its narrowest width and heaviest weight, uppercase, tight — UGLYCASH's Helvetica Now
+ * Display Condensed Bold. The scale is UGLYCASH's: 12 / 14 / 18 / 20 / 24 / 64 / 85 / 164. */
+@layer components {
+  .ow-display {
+    font-family: var(--ow-font-display);
+    font-stretch: 62%;
+    font-weight: 900;
+    letter-spacing: -0.033em;
+    line-height: 0.86;
+    text-transform: uppercase;
+  }
+  .ow-display-sm { font-size: 24px; }
+  .ow-display-md { font-size: clamp(40px, 7vw, 64px); }
+  .ow-display-lg { font-size: clamp(56px, 10vw, 85px); }
+  .ow-display-xl { font-size: clamp(72px, 15vw, 164px); }
+
+  .ow-body { font-family: var(--ow-font-body); letter-spacing: -0.02em; }
+  .ow-num { font-family: var(--ow-font-body); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+  .ow-axis { font-family: var(--ow-font-axis); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .ow-jp { font-family: var(--ow-font-jp); font-weight: 900; letter-spacing: 0; }
+}
+
+/* Legacy faces by role. */
 body { font-optical-sizing: auto; }
-.font-display, .type-display, .type-headline { font-stretch: 125%; }
 .font-mono, .numbers, .tabular { font-variant-numeric: tabular-nums; }
 code, kbd, pre, samp, .font-code { font-family: var(--font-code), ui-monospace, monospace; font-stretch: normal; }
 
-/* The signal is a fill. On paper, text that asks for it reads in ink with a highlighter stroke behind it: the
- * closing number marked, which is what the name means. */
+/* Pink is a fill. As text on the canvas it reads as the darker pink-ink. */
 [data-theme="light"] [class*="text-signal"] { color: var(--signal-ink); }
-[data-theme="light"] :is(span, strong, b, em, a, mark, small)[class*="text-signal"] {
-  background-image: linear-gradient(transparent 56%, color-mix(in srgb, var(--signal) 88%, transparent) 56%, color-mix(in srgb, var(--signal) 88%, transparent) 94%, transparent 94%);
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
-}
 
-::selection { background: var(--signal); color: var(--on-signal); }
-:where(a, button, input, textarea, select, [tabindex]):focus-visible { outline-color: var(--signal-ink); }
+::selection { background: var(--ow-pink); color: var(--ow-on-pink); }
+:where(a, button, input, textarea, select, [tabindex]):focus-visible { outline-color: var(--ow-pink-ink); }
+
+/* Direction flips everything at once (Tradash): a container sets data-dir and its children read --ow-dir. */
+[data-dir="up"] { --ow-dir: var(--ow-up); --ow-dir-line: var(--ow-up-line); }
+[data-dir="down"] { --ow-dir: var(--ow-down); --ow-dir-line: var(--ow-down-line); }
+[data-dir] { transition: color var(--ow-flip) linear, background-color var(--ow-flip) linear, border-color var(--ow-flip) linear; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-dir] { transition: none; }
+}

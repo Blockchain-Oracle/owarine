@@ -17,7 +17,7 @@
   --share-ash-dim: rgba(143, 141, 130, 0.55);
   /* the QR tile on the stub: Yosuku's light-card paper (part-01.css .creator-studio) and its remapped --white ink */
   --share-paper: #f9f8f3;
-  --share-qr-ink: #100F0F;
+  --share-qr-ink: #0A0A0A;
 }
 
 .call-card {
@@ -108,7 +108,7 @@
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.2em;
-  color: rgb(var(--call-ink-rgb) / 0.9); font-stretch: 125%; }
+  color: rgb(var(--call-ink-rgb) / 0.9); font-stretch: 100%; }
 
 /* font-mono text-[9px] tracking-[0.18em] text-white/40 */
 .call-folio {
@@ -147,7 +147,7 @@
   font-size: 1.9rem;
   font-weight: 850;
   line-height: 1.06;
-  text-wrap: balance; font-stretch: 125%; }
+  text-wrap: balance; font-stretch: 100%; }
 
 /* mt-1.5 font-mono text-[10px] leading-relaxed text-white/40 */
 .call-wins-if,
@@ -184,7 +184,7 @@
   font-size: 1.35rem;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums; font-stretch: 125%; }
+  font-variant-numeric: tabular-nums; font-stretch: 100%; }
 
 /* the return carries the signal — text-signal */
 .call-figure.heat { color: var(--signal-ink); }
@@ -258,7 +258,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
-  font-variant-numeric: tabular-nums; font-stretch: 125%; }
+  font-variant-numeric: tabular-nums; font-stretch: 100%; }
 
 /* mt-2.5 h-1 overflow-hidden rounded-full bg-white/[0.08] */
 .call-drain {

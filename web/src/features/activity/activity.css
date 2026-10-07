@@ -11,9 +11,9 @@
 }
 
 [data-theme="light"] .act-list {
-  --news-hairline: rgba(16, 15, 15, 0.12);
-  --news-rule: rgba(16, 15, 15, 0.08);
-  --news-hover: rgba(16, 15, 15, 0.03);
+  --news-hairline: rgba(10, 10, 10, 0.12);
+  --news-rule: rgba(10, 10, 10, 0.08);
+  --news-hover: rgba(10, 10, 10, 0.03);
 }
 
 /* The wallet on a ticker row, in the meta line; its hue avatar sits in the row's mark slot. */
@@ -54,7 +54,7 @@
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 
 .act-connect-body {
   max-width: 36rem;

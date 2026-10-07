@@ -15,19 +15,19 @@
  * 950 = lightest paper), so "one step more raised" is gray-800 in dark but gray-950 in
  * light. These resolve per theme using the reference ramp's own values. */
 :root {
-  --ms-surface-1: #171616; /* gray-900 — card */
-  --ms-surface-2: #262525; /* gray-800 — raised */
-  --ms-surface-3: #3B3A37; /* gray-700 — overlay/popover */
+  --ms-surface-1: #171717; /* gray-900 — card */
+  --ms-surface-2: #262626; /* gray-800 — raised */
+  --ms-surface-3: #3A3A3A; /* gray-700 — overlay/popover */
   --ms-hairline: rgb(255 255 255 / 0.1);
   --ms-border-strong: rgb(255 255 255 / 0.22);
 }
 
 [data-theme="light"] {
   --ms-surface-1: #FFFFFF; /* gray-900 (light) — card surface */
-  --ms-surface-2: #ECEBE5; /* gray-800 (light) — recessed/border surface */
+  --ms-surface-2: #E8E8E8; /* gray-800 (light) — recessed/border surface */
   --ms-surface-3: #FFFFFF; /* gray-950 (light) — raised, just above paper */
-  --ms-hairline: rgb(16 15 15 / 0.12);
-  --ms-border-strong: rgb(16 15 15 / 0.22);
+  --ms-hairline: rgb(10 10 10 / 0.12);
+  --ms-border-strong: rgb(10 10 10 / 0.22);
 }
 
 /* `inline` so utilities emit var() references and follow [data-theme] at runtime
@@ -58,10 +58,10 @@
   --color-profit-wash: color-mix(in srgb, var(--profit) 14%, transparent);
   --color-loss-wash: color-mix(in srgb, var(--loss) 14%, transparent);
 
-  --font-body: var(--font-mona), "Mona Sans", system-ui, sans-serif;
-  --font-data: var(--font-mona), "Mona Sans", ui-monospace, monospace;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-data: var(--font-inter), "Inter", ui-monospace, monospace;
   --font-stamp: var(--font-noto-sans-jp), "Noto Sans JP", sans-serif;
-  --font-heading: var(--font-mona), "Mona Sans", system-ui, sans-serif;
+  --font-heading: var(--font-inter), "Inter", system-ui, sans-serif;
 }
 
 @theme {
@@ -69,9 +69,9 @@
    * paper/ink pair, so it stays literal rather than following the ground. */
   /* The receipt is a ticket stub in Empower's muted yellow (its role: an accent surface for one specific card),
    * the same in both themes. */
-  --color-cream: #FAF9B6;
-  --color-cream-ink: #100F0F;
-  --color-cream-hairline: #E2E09A;
+  --color-cream: #E7E3BF;
+  --color-cream-ink: #0A0A0A;
+  --color-cream-hairline: #D6D1A8;
   --color-scrim: #030303b8;
 
   --color-warning: #F2994A;

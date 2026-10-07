@@ -140,7 +140,7 @@
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-ink-secondary); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-/* font-mono text-sm, #171515; #E4E24E when the cell is "in play" */
+/* font-mono text-sm, #171515; #FA00FF when the cell is "in play" */
 .vault-cell-value { font-family: var(--font-mono); font-size: 14px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
 .vault-cell-value-live { color: var(--color-accent); }
 
@@ -173,7 +173,7 @@ details[open] > .vault-row-summary .vault-row-chevron { transform: rotate(90deg)
 /* A-2a (Q-005): what idle collateral earns, and where. Sits under the snapshot cells as a quiet block, not a
  * promotion: the numbers in it are share prices that have already moved, never a rate. */
 .vault-idle { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.07); display: flex; flex-direction: column; gap: 8px; }
-[data-theme="light"] .vault-idle { border-top-color: rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .vault-idle { border-top-color: rgba(10, 10, 10, 0.08); }
 .vault-idle-head { font-size: 13px; line-height: 1.5; color: var(--gray-300); }
 .vault-idle-body { font-size: 12px; line-height: 1.5; color: var(--gray-500); }
 .vault-idle-rows { display: flex; flex-direction: column; gap: 4px; margin: 2px 0 2px; }
@@ -182,10 +182,10 @@ details[open] > .vault-row-summary .vault-row-chevron { transform: rotate(90deg)
 .vault-idle-rows dd { margin: 0; font-size: 12px; color: var(--gray-300); }
 .vault-idle-link { align-self: flex-start; margin-top: 4px; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--signal-ink); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .vault-idle-link:hover { color: var(--white); }
-[data-theme="light"] .vault-idle-head { color: rgba(16, 15, 15, 0.78); }
-[data-theme="light"] .vault-idle-body, [data-theme="light"] .vault-idle-rows dt { color: rgba(16, 15, 15, 0.6); }
-[data-theme="light"] .vault-idle-rows dd { color: rgba(16, 15, 15, 0.8); }
-[data-theme="light"] .vault-idle-link:hover { color: rgba(16, 15, 15, 0.95); }
+[data-theme="light"] .vault-idle-head { color: rgba(10, 10, 10, 0.78); }
+[data-theme="light"] .vault-idle-body, [data-theme="light"] .vault-idle-rows dt { color: rgba(10, 10, 10, 0.6); }
+[data-theme="light"] .vault-idle-rows dd { color: rgba(10, 10, 10, 0.8); }
+[data-theme="light"] .vault-idle-link:hover { color: rgba(10, 10, 10, 0.95); }
 @media (min-width: 640px) {
   .vault-amount-row .vault-input { width: 176px; }
   .vault-controls:has(.vault-amount) { align-items: flex-start; }

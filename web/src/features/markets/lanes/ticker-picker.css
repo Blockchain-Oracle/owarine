@@ -29,6 +29,6 @@
 
 /* part-06 paints the pending slot with white alphas only; on cream they vanish (part-14 re-inks .market-card). */
 [data-theme="light"] .market-card.market-card-pending {
-  border-color: rgba(16, 15, 15, 0.16);
-  background: rgba(16, 15, 15, 0.015);
+  border-color: rgba(10, 10, 10, 0.16);
+  background: rgba(10, 10, 10, 0.015);
 }

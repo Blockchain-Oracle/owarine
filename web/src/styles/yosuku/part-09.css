@@ -68,7 +68,7 @@
   position: relative;
   isolation: isolate;
 }
-.banzuke-row.tier-1 .bz-portrait { width: 56px; height: 56px; font-size: 22px; border-color: rgba(228,226,78,0.4); }
+.banzuke-row.tier-1 .bz-portrait { width: 56px; height: 56px; font-size: 22px; border-color: rgba(250,0,255,0.4); }
 .banzuke-row.tier-2 .bz-portrait { width: 44px; height: 44px; font-size: 18px; }
 .banzuke-row.tier-3 .bz-portrait { width: 36px; height: 36px; font-size: 14px; }
 .banzuke-row.tier-4 .bz-portrait { width: 28px; height: 28px; font-size: 12px; }
@@ -82,7 +82,7 @@
   font-family: var(--font-display); font-weight: 700;
   font-size: 16px; letter-spacing: -0.01em; color: var(--white);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  max-width: 220px; font-stretch: 125%; }
+  max-width: 220px; font-stretch: 100%; }
 .banzuke-row.tier-1 .bz-name { font-size: 26px; }
 .banzuke-row.tier-2 .bz-name { font-size: 20px; }
 .banzuke-row.tier-3 .bz-name { font-size: 16px; }
@@ -135,7 +135,7 @@
   background: var(--signal);
   color: var(--on-signal);
   border-radius: 4px;
-  box-shadow: 0 18px 60px rgba(228,226,78,0.4), 0 0 0 1px rgba(0,0,0,0.4);
+  box-shadow: 0 18px 60px rgba(250,0,255,0.4), 0 0 0 1px rgba(0,0,0,0.4);
   display: grid;
   grid-template-columns: auto 1fr auto auto;
   gap: 24px;
@@ -149,7 +149,7 @@
 .you-bar .you-rank .val {
   font-family: var(--font-display); font-weight: 800;
   font-size: 28px; line-height: 1; letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums; font-stretch: 125%; }
+  font-variant-numeric: tabular-nums; font-stretch: 100%; }
 .you-bar .you-rank .of { font-size: 14px; color: rgba(255,255,255,0.7); margin-left: 6px; }
 
 .you-bar .you-portrait {
@@ -158,10 +158,10 @@
   background: rgba(0,0,0,0.3);
   border: 2px solid rgba(255,255,255,0.6);
   display: flex; align-items: center; justify-content: center;
-  font-family: var(--font-display); font-weight: 700; letter-spacing: 0.02em; font-size: 17px; color: rgba(255,255,255,0.68); font-stretch: 125%; }
+  font-family: var(--font-display); font-weight: 700; letter-spacing: 0.02em; font-size: 17px; color: rgba(255,255,255,0.68); font-stretch: 100%; }
 .you-bar .you-info { display: flex; align-items: center; gap: 16px; }
 .you-bar .you-text { display: flex; flex-direction: column; gap: 2px; }
-.you-bar .you-text .name { font-family: var(--font-display); font-weight: 700; font-size: 15px; font-stretch: 125%; }
+.you-bar .you-text .name { font-family: var(--font-display); font-weight: 700; font-size: 15px; font-stretch: 100%; }
 .you-bar .you-text .meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; opacity: 0.8; font-variant-numeric: tabular-nums; }
 
 .you-bar .you-stats {
@@ -173,7 +173,7 @@
   display: block; margin-bottom: 2px;
 }
 .you-bar .you-stats .item .v {
-  font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; font-stretch: 125%; }
+  font-family: var(--font-display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; font-stretch: 100%; }
 
 .you-bar .you-cta {
   background: var(--white); color: var(--signal-ink);
@@ -216,16 +216,16 @@
   color: var(--signal-ink); border: 1px solid var(--signal-ink);
   padding: 3px 8px; border-radius: 999px;
   letter-spacing: 0.1em; text-transform: uppercase;
-  background: rgba(228,226,78,0.06); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+  background: rgba(250,0,255,0.06); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .record .num {
   font-family: var(--font-display); font-weight: 800;
   font-size: 56px; line-height: 1; letter-spacing: -0.05em;
   color: var(--signal-ink);
   margin: 18px 0 12px;
   font-variant-numeric: tabular-nums;
-  position: relative; z-index: 2; font-stretch: 125%; }
+  position: relative; z-index: 2; font-stretch: 100%; }
 .record .num .unit { font-family: var(--font-mono); font-size: 14px; color: var(--gray-500); margin-left: 8px; vertical-align: 0.5em; letter-spacing: 0.04em; font-weight: 400; font-variant-numeric: tabular-nums; }
-.record .desc { font-family: var(--font-display); font-weight: 600; font-size: 16px; line-height: 1.35; letter-spacing: -0.01em; color: var(--white); position: relative; z-index: 2; text-wrap: balance; font-stretch: 125%; }
+.record .desc { font-family: var(--font-display); font-weight: 600; font-size: 16px; line-height: 1.35; letter-spacing: -0.01em; color: var(--white); position: relative; z-index: 2; text-wrap: balance; font-stretch: 100%; }
 .record .by {
   margin-top: 14px;
   display: flex; align-items: center; gap: 10px;
@@ -255,7 +255,7 @@
   transition: border-color 280ms var(--ease);
 }
 .position:hover { border-color: rgba(255,255,255,0.18); }
-.position.itm { border-color: rgba(228,226,78,0.2); }
+.position.itm { border-color: rgba(250,0,255,0.2); }
 .pos-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px;
@@ -290,7 +290,7 @@
   background: rgba(255,255,255,0.12);
   border-radius: 3px;
 }
-.distance.itm .filled { background: rgba(228,226,78,0.2); }
+.distance.itm .filled { background: rgba(250,0,255,0.2); }
 .distance .strike-line {
   position: absolute; top: -3px; bottom: -3px;
   width: 1px; background: var(--signal); color: var(--on-signal); }

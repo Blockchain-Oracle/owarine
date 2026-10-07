@@ -25,8 +25,8 @@
 .reel-card {
   --reel-ink: rgb(var(--reel-ink-rgb));
 
-  /* The card sits slightly ABOVE the page in both themes — lighter than #100F0F on
-     dark, lighter than the cream #F5F4EF on light — so it reads as raised either way. */
+  /* The card sits slightly ABOVE the page in both themes — lighter than #0A0A0A on
+     dark, lighter than the cream #F2F2F2 on light — so it reads as raised either way. */
   --reel-surface: radial-gradient(130% 80% at 50% -8%, #121111 0%, #0a0a0a 44%, #070606 100%);
   --reel-surface-flat: #090808;
   --reel-shadow: 0 30px 120px -30px rgba(0, 0, 0, 0.9);

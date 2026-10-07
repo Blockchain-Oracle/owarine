@@ -1,7 +1,7 @@
 @media (max-width: 767px) {
   .creator-studio {
     background:
-      radial-gradient(circle at 90% 2%, rgba(228,226,78,0.08), transparent 17rem),
+      radial-gradient(circle at 90% 2%, rgba(250,0,255,0.08), transparent 17rem),
       var(--cs-bg);
   }
   .cs-gate { min-height: 360px; }
@@ -23,8 +23,8 @@
   font-family: var(--font-mono);
   font-size: 0.86em;
   color: var(--signal-ink);
-  background: rgba(228,226,78,0.08);
-  border: 1px solid rgba(228,226,78,0.16);
+  background: rgba(250,0,255,0.08);
+  border: 1px solid rgba(250,0,255,0.16);
   border-radius: 5px;
   padding: 1px 6px;
   white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -36,7 +36,7 @@ body.urgent::before {
   content: '';
   position: fixed; inset: 0;
   pointer-events: none; z-index: 8500;
-  background: radial-gradient(ellipse at top right, rgba(228,226,78,0.06), transparent 60%);
+  background: radial-gradient(ellipse at top right, rgba(250,0,255,0.06), transparent 60%);
   animation: floorPulse 2.4s ease-in-out infinite;
 }
 @keyframes floorPulse { 0%,100%{opacity:.5} 50%{opacity:1} }
@@ -77,7 +77,7 @@ body.urgent::before {
   height: var(--appstrip); z-index: 900;   /* above ticker (850) and header (800) */
   display: flex; align-items: center; justify-content: center;
   background: var(--black);
-  border-bottom: 1px solid rgba(228,226,78,0.30);
+  border-bottom: 1px solid rgba(250,0,255,0.30);
   /* Arrives rather than snapping in, and never animates layout: only opacity. */
   opacity: 0; transition: opacity 420ms var(--ease, cubic-bezier(0.2,0.7,0.3,1));
 }
@@ -89,7 +89,7 @@ body.urgent::before {
 
 .appstrip-msg {
   display: inline-flex; align-items: center; gap: 10px;
-  text-decoration: none; color: var(--gray-400, #A19F96);
+  text-decoration: none; color: var(--gray-400, #A3A3A3);
   font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em;
   padding: 0 12px; max-width: 100%; font-variant-numeric: tabular-nums; }
 /* Three chevrons, lit in sequence.
@@ -120,7 +120,7 @@ body.urgent::before {
 .appstrip-go {
   display: inline-flex; align-items: center; gap: 3px; flex: none;
   color: var(--signal-ink); font-family: var(--font-display); font-weight: 700;
-  font-size: 11px; letter-spacing: 0.01em; font-stretch: 125%; }
+  font-size: 11px; letter-spacing: 0.01em; font-stretch: 100%; }
 .appstrip-go svg { width: 12px; height: 12px; transition: transform 200ms var(--ease, ease); }
 .appstrip-msg:hover .appstrip-go svg { transform: translateX(3px); }
 .appstrip-msg:hover .appstrip-line { color: var(--white); }
@@ -165,11 +165,11 @@ body.urgent::before {
   height: 64px; z-index: 800;
   display: flex; align-items: center; justify-content: space-between;
   padding: 0 32px;
-  background: rgba(16,15,15,0.7);
+  background: rgba(10,10,10,0.7);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255,255,255,0.06);
 }
-.logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 15px; letter-spacing: 0.18em; color: var(--white); font-stretch: 125%; }
+.logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 800; font-size: 15px; letter-spacing: 0.18em; color: var(--white); font-stretch: 100%; }
 .logo-mark {
   width: 20px; height: 20px;
   position: relative;
@@ -210,10 +210,10 @@ body.urgent::before {
   position: relative; display: inline-flex; align-items: center; gap: 0;
   padding: 7px; border: 0; cursor: pointer; border-radius: 999px;
   background: rgba(20,19,19,0.93); backdrop-filter: blur(10px);
-  box-shadow: 0 16px 40px -16px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(228,226,78,0.22);
+  box-shadow: 0 16px 40px -16px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(250,0,255,0.22);
   transition: gap 300ms var(--ease), padding 300ms var(--ease), transform 260ms cubic-bezier(.34,1.56,.64,1), box-shadow 220ms var(--ease), opacity 220ms var(--ease);
 }
-[data-theme="light"] .sensei-dock { background: rgba(255,255,255,0.95); box-shadow: 0 16px 40px -16px rgba(78,77,12,0.26), inset 0 0 0 1px rgba(228,226,78,0.22); }
+[data-theme="light"] .sensei-dock { background: rgba(255,255,255,0.95); box-shadow: 0 16px 40px -16px rgba(78,77,12,0.26), inset 0 0 0 1px rgba(250,0,255,0.22); }
 .sensei-dock:hover { transform: translateY(-3px); gap: 11px; padding: 7px 7px 7px 18px; }
 .sensei-dock:focus-visible { gap: 11px; padding: 7px 7px 7px 18px; outline: none; }
 .sensei-dock:active { transform: translateY(0) scale(0.97); }
@@ -222,8 +222,8 @@ body.urgent::before {
 .sensei-dock-avatar { position: relative; width: 46px; height: 46px; flex: none; display: grid; place-items: center; }
 .sensei-dock-ring { position: absolute; inset: 0; width: 46px; height: 46px; transform: rotate(-90deg); }
 .sensei-dock-ring .sd-track { fill: none; stroke: rgba(255,255,255,0.12); stroke-width: 4; }
-[data-theme="light"] .sensei-dock-ring .sd-track { stroke: rgba(16,15,15,0.12); }
-.sensei-dock-ring .sd-fill { fill: none; stroke: var(--signal-ink); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 900ms linear; filter: drop-shadow(0 0 4px rgba(228,226,78,0.55)); }
+[data-theme="light"] .sensei-dock-ring .sd-track { stroke: rgba(10,10,10,0.12); }
+.sensei-dock-ring .sd-fill { fill: none; stroke: var(--signal-ink); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 900ms linear; filter: drop-shadow(0 0 4px rgba(250,0,255,0.55)); }
 /* the Yosuku mark, sized to sit inside the draining ring. `color` drives the
    figure (currentColor); the heart dot keeps its own signal. */
 .sd-avatar-glyph { position: relative; z-index: 1; width: 24px; height: auto; display: block; color: var(--white); }
@@ -237,7 +237,7 @@ body.urgent::before {
 /* label collapsed by default, revealed to the LEFT of the mark on hover/focus */
 .sensei-dock-copy { max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0; display: flex; align-items: center; transition: max-width 320ms var(--ease), opacity 240ms var(--ease); }
 .sensei-dock:hover .sensei-dock-copy, .sensei-dock:focus-visible .sensei-dock-copy { max-width: 108px; opacity: 1; }
-.sensei-dock-copy .sd-name { font-family: var(--font-display); font-weight: 800; font-size: 14px; letter-spacing: -0.01em; color: var(--white); font-stretch: 125%; }
+.sensei-dock-copy .sd-name { font-family: var(--font-display); font-weight: 800; font-size: 14px; letter-spacing: -0.01em; color: var(--white); font-stretch: 100%; }
 .sensei-dock-copy .sd-name b { color: var(--signal-ink); font-weight: 800; }
 [data-theme="light"] .sensei-dock-copy .sd-name { color: #181515; }
 
@@ -247,9 +247,9 @@ body.urgent::before {
   border-radius: 15px 15px 4px 15px; padding: 9px 14px;
   font-family: var(--font-display); font-weight: 600; font-size: 13px; white-space: nowrap;
   color: var(--on-signal); background: var(--signal);
-  box-shadow: 0 12px 28px -10px rgba(228,226,78,0.7);
+  box-shadow: 0 12px 28px -10px rgba(250,0,255,0.7);
   transform-origin: bottom right;
-  animation: senseiTeaserPop 440ms cubic-bezier(.34,1.56,.64,1) both; font-stretch: 125%; }
+  animation: senseiTeaserPop 440ms cubic-bezier(.34,1.56,.64,1) both; font-stretch: 100%; }
 .sensei-teaser::after { content: ''; position: absolute; right: 15px; bottom: -4px; width: 9px; height: 9px; background: var(--signal); border-radius: 0 0 3px 0; transform: rotate(45deg); color: var(--on-signal); }
 @keyframes senseiTeaserPop {
   0% { opacity: 0; transform: scale(0.55) translateY(8px); }
@@ -276,14 +276,14 @@ body.urgent::before {
   border-left: 1px solid rgba(255,255,255,0.08); box-shadow: -30px 0 70px -30px rgba(0,0,0,0.7);
   transform: translateX(104%); transition: transform 420ms cubic-bezier(.22,1,.36,1);
 }
-[data-theme="light"] .sensei-drawer { background: #f3f2ea; border-left-color: rgba(16,15,15,0.1); }
+[data-theme="light"] .sensei-drawer { background: #f3f2ea; border-left-color: rgba(10,10,10,0.1); }
 .sensei-drawer.open { transform: translateX(0); }
 .sensei-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); }
-[data-theme="light"] .sensei-drawer-head { border-bottom-color: rgba(16,15,15,0.08); }
+[data-theme="light"] .sensei-drawer-head { border-bottom-color: rgba(10,10,10,0.08); }
 .sensei-drawer-head .sd-eyebrow { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal-ink); margin-bottom: 4px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.sensei-drawer-head .sd-title { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--white); display: flex; align-items: center; gap: 8px; font-stretch: 125%; }
+.sensei-drawer-head .sd-title { font-family: var(--font-display); font-weight: 800; font-size: 22px; color: var(--white); display: flex; align-items: center; gap: 8px; font-stretch: 100%; }
 [data-theme="light"] .sensei-drawer-head .sd-title { color: #181515; }
-.sd-beta { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal-ink); border: 1px solid rgba(228,226,78,0.4); border-radius: 999px; padding: 1px 6px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
+.sd-beta { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal-ink); border: 1px solid rgba(250,0,255,0.4); border-radius: 999px; padding: 1px 6px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .sd-head-right { display: flex; align-items: center; gap: 10px; }
 .sd-nextclose { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sd-nextclose.urgent { color: var(--signal-ink); }
@@ -291,7 +291,7 @@ body.urgent::before {
 .sd-close:hover { color: var(--white); }
 /* ── live market read (the meter): a pinned hairline strip under the header ── */
 .sensei-meter { --dir: var(--gray-500); padding: 9px 20px 8px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; flex-direction: column; gap: 7px; }
-[data-theme="light"] .sensei-meter { border-bottom-color: rgba(16,15,15,0.08); }
+[data-theme="light"] .sensei-meter { border-bottom-color: rgba(10,10,10,0.08); }
 .sensei-meter.sd-dir-up { --dir: var(--profit); }
 .sensei-meter.sd-dir-down { --dir: var(--loss); }
 .sm-read { display: flex; align-items: baseline; gap: 7px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; line-height: 1; }
@@ -316,8 +316,8 @@ body.urgent::before {
 /* /sensei — the standalone page was written dark-only, so on cream its bubbles, borders and
    body text all landed as white-on-white. Scoped to the page (the .feed-card idiom) so the
    shared utility classes keep their meaning everywhere else. */
-[data-theme="light"] .sensei-page .bg-white\/\[0\.04\] { background-color: rgba(16,15,15,0.04); }
-[data-theme="light"] .sensei-page .bg-white\/\[0\.03\] { background-color: rgba(16,15,15,0.035); }
-[data-theme="light"] .sensei-page .bg-white\/\[0\.02\] { background-color: rgba(16,15,15,0.03); }
+[data-theme="light"] .sensei-page .bg-white\/\[0\.04\] { background-color: rgba(10,10,10,0.04); }
+[data-theme="light"] .sensei-page .bg-white\/\[0\.03\] { background-color: rgba(10,10,10,0.035); }
+[data-theme="light"] .sensei-page .bg-white\/\[0\.02\] { background-color: rgba(10,10,10,0.03); }
 [data-theme="light"] .sensei-page .border-white\/\[0\.08\],
 [data-theme="light"] .sensei-page .border-white\/\[0\.1\],

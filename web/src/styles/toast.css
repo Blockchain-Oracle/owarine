@@ -7,8 +7,8 @@
  * (only the card's own onClick dismisses) — so the Base UI primitive stays and
  * takes the reference's presentation, rather than the reverse.
  *
- * Its colours are already ours: `text-emerald-400` is `--profit` (#3DD68C) and
- * `text-rose-400` is `--loss` (#FF5C61), to the byte. The card surface uses the
+ * Its colours are already ours: `text-emerald-400` is `--profit` (#3DDC5A) and
+ * `text-rose-400` is `--loss` (#FF5A52), to the byte. The card surface uses the
  * reference's own `bg-neutral-900/90` utility so yosuku/part-14.css remaps it on
  * cream exactly as it does everywhere else. Only the px-bearing values are here,
  * because `design-literals` bans them in TSX. */

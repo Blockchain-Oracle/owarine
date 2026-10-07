@@ -8,22 +8,22 @@ import type { ThemeName } from "../index";
  * computed value is kept: that is what a phone shows.
  */
 const DARK = {
-  ink: "#FFFFFF", inkSecondary: "#A19F96", inkMuted: "#76746C", gray600: "#55544E", gray200: "#E2E1DA", signal: "#E4E24E",
-  profit: "#3DD68C", loss: "#FF5C61",
+  ink: "#FFFFFF", inkSecondary: "#A3A3A3", inkMuted: "#7A7A7A", gray600: "#575757", gray200: "#E6E4E4", signal: "#FA00FF",
+  profit: "#3DDC5A", loss: "#FF5A52",
   // .market-card / .mc-head / .mc-foot hairlines
   cardBg: "rgba(255, 255, 255, 0.012)", cardBorder: "rgba(255, 255, 255, 0.06)", cardRule: "rgba(255, 255, 255, 0.05)",
   // .market-card-pending
   pendingBg: "rgba(255, 255, 255, 0.008)", pendingBorder: "rgba(255, 255, 255, 0.06)",
-  pendingRing: "rgba(228, 226, 78, 0.45)", pendingRingOut: "rgba(228, 226, 78, 0)",
+  pendingRing: "rgba(250, 0, 255, 0.45)", pendingRingOut: "rgba(250, 0, 255, 0)",
   // .mc-kind
-  kindBorder: "rgba(228, 226, 78, 0.45)",
+  kindBorder: "rgba(250, 0, 255, 0.45)",
   // .mc-spark
-  sparkWash: "rgba(255, 255, 255, 0.02)", sparkWashEnd: "rgba(0, 0, 0, 0)", strikeFill: "rgba(228, 226, 78, 0.4)", strikeTickBg: "rgba(16, 15, 15, 0.7)",
+  sparkWash: "rgba(255, 255, 255, 0.02)", sparkWashEnd: "rgba(0, 0, 0, 0)", strikeFill: "rgba(250, 0, 255, 0.4)", strikeTickBg: "rgba(10, 10, 10, 0.7)",
   // .mc-strip and its ramp
-  stripBg: "rgba(0, 0, 0, 0)", stripRule: "rgba(255, 255, 255, 0.05)", stripInk: "#55544E",
-  rampBar: "rgba(255, 255, 255, 0.08)", rampFrom: "#E4E24E", rampTo: "#FFFFFF",
+  stripBg: "rgba(0, 0, 0, 0)", stripRule: "rgba(255, 255, 255, 0.05)", stripInk: "#575757",
+  rampBar: "rgba(255, 255, 255, 0.08)", rampFrom: "#FA00FF", rampTo: "#FFFFFF",
   // .mc-side
-  upBg: "rgba(61, 214, 140, 0.08)", upBorder: "rgba(61, 214, 140, 0.32)", downBg: "rgba(255, 92, 97, 0.08)", downBorder: "rgba(255, 92, 97, 0.32)",
+  upBg: "rgba(61, 220, 90, 0.08)", upBorder: "rgba(61, 220, 90, 0.32)", downBg: "rgba(255, 90, 82, 0.08)", downBorder: "rgba(255, 90, 82, 0.32)",
   // .mc-room
   roomBg: "rgba(255, 255, 255, 0.015)", roomBorder: "rgba(255, 255, 255, 0.06)", roomInk: "rgba(255, 255, 255, 0.55)",
   // .pager
@@ -31,18 +31,18 @@ const DARK = {
 };
 
 const LIGHT: typeof DARK = {
-  ink: "#100F0F", inkSecondary: "#5C5B55", inkMuted: "#76746C", gray600: "#9C9A91", gray200: "#2B2A27", signal: "#E4E24E",
-  profit: "#0E8A57", loss: "#D2343C",
+  ink: "#0A0A0A", inkSecondary: "#5E5E5E", inkMuted: "#7A7A7A", gray600: "#888888", gray200: "#262626", signal: "#FA00FF",
+  profit: "#078A2E", loss: "#D21F1F",
   cardBg: "#FFFFFF", cardBorder: "rgba(255, 255, 255, 0.06)", cardRule: "rgba(255, 255, 255, 0.05)",
-  pendingBg: "rgba(16, 15, 15, 0.015)", pendingBorder: "rgba(16, 15, 15, 0.16)",
-  pendingRing: "rgba(228, 226, 78, 0.45)", pendingRingOut: "rgba(228, 226, 78, 0)",
-  kindBorder: "rgba(228, 226, 78, 0.45)",
-  sparkWash: "rgba(255, 255, 255, 0.02)", sparkWashEnd: "rgba(0, 0, 0, 0)", strikeFill: "rgba(228, 226, 78, 0.4)", strikeTickBg: "rgba(255, 255, 255, 0.85)",
-  stripBg: "rgba(16, 15, 15, 0.035)", stripRule: "rgba(16, 15, 15, 0.08)", stripInk: "#9C9A91",
-  rampBar: "rgba(16, 15, 15, 0.1)", rampFrom: "#E4E24E", rampTo: "#EEEDAD",
-  upBg: "rgba(61, 214, 140, 0.08)", upBorder: "rgba(61, 214, 140, 0.32)", downBg: "rgba(255, 92, 97, 0.08)", downBorder: "rgba(255, 92, 97, 0.32)",
-  roomBg: "rgba(16, 15, 15, 0.035)", roomBorder: "rgba(16, 15, 15, 0.08)", roomInk: "rgba(16, 15, 15, 0.62)",
-  pagerRule: "rgba(16, 15, 15, 0.12)",
+  pendingBg: "rgba(10, 10, 10, 0.015)", pendingBorder: "rgba(10, 10, 10, 0.16)",
+  pendingRing: "rgba(250, 0, 255, 0.45)", pendingRingOut: "rgba(250, 0, 255, 0)",
+  kindBorder: "rgba(250, 0, 255, 0.45)",
+  sparkWash: "rgba(255, 255, 255, 0.02)", sparkWashEnd: "rgba(0, 0, 0, 0)", strikeFill: "rgba(250, 0, 255, 0.4)", strikeTickBg: "rgba(255, 255, 255, 0.85)",
+  stripBg: "rgba(10, 10, 10, 0.035)", stripRule: "rgba(10, 10, 10, 0.08)", stripInk: "#888888",
+  rampBar: "rgba(10, 10, 10, 0.1)", rampFrom: "#FA00FF", rampTo: "#EEEDAD",
+  upBg: "rgba(61, 220, 90, 0.08)", upBorder: "rgba(61, 220, 90, 0.32)", downBg: "rgba(255, 90, 82, 0.08)", downBorder: "rgba(255, 90, 82, 0.32)",
+  roomBg: "rgba(10, 10, 10, 0.035)", roomBorder: "rgba(10, 10, 10, 0.08)", roomInk: "rgba(10, 10, 10, 0.62)",
+  pagerRule: "rgba(10, 10, 10, 0.12)",
 };
 
 export type LanesTokens = typeof DARK;

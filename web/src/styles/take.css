@@ -167,7 +167,7 @@
   letter-spacing: -0.02em;
   color: var(--reel-ink);
   text-wrap: balance;
-  overflow-wrap: anywhere; font-stretch: 125%; }
+  overflow-wrap: anywhere; font-stretch: 100%; }
 
 /* font-display text-[24px] font-medium italic leading-snug text-white/45 */
 .take-caption.quiet {
@@ -223,7 +223,7 @@
   font-size: 15px;
   font-weight: 700;
   color: rgb(var(--reel-ink-rgb) / 0.85);
-  transition: border-color 200ms var(--ease), color 200ms var(--ease); font-stretch: 125%; }
+  transition: border-color 200ms var(--ease), color 200ms var(--ease); font-stretch: 100%; }
 
 .take-cta:hover {
   border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent);

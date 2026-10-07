@@ -56,7 +56,7 @@
   line-height: 1;
   letter-spacing: -0.02em;
   text-transform: none;
-  color: var(--white); font-stretch: 125%; }
+  color: var(--white); font-stretch: 100%; }
 
 .prf-stat .big a:hover {
   color: var(--signal-ink);

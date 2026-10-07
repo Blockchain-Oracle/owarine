@@ -9,7 +9,7 @@
 .header-account-menu.cx-seat-menu { min-width: 280px; max-width: calc(100vw - 32px); }
 .cx-seat-head { display: flex; flex-direction: column; gap: 6px; }
 .cx-seat-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-.cx-seat-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 125%; }
+.cx-seat-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 100%; }
 .cx-seat-party { display: inline-flex; align-items: center; gap: 4px; }
 .cx-seat-copy { display: grid; flex: none; place-items: center; width: 24px; height: 24px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-ink-muted); }
 .cx-seat-copy:hover { background: var(--color-surface-2); color: var(--color-ink); }
@@ -33,7 +33,7 @@
 .cx-link-head { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
 .cx-link-mark { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 8px; border: 1px solid var(--color-accent-dim); border-radius: var(--radius-lg); background: var(--color-accent-wash); color: var(--color-accent); }
 .cx-link-mark svg { width: 24px; height: 24px; }
-.cx-link-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--color-ink); font-stretch: 125%; }
+.cx-link-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--color-ink); font-stretch: 100%; }
 .cx-link-sub { max-width: 34ch; font-size: 13px; line-height: 1.5; color: var(--color-ink-secondary); }
 
 .cx-link-show { display: flex; align-items: flex-start; gap: 16px; }
@@ -70,11 +70,11 @@
 .cx-link-done[data-tone="ask"] .cx-link-done-mark { border: 1px solid var(--color-accent-dim); background: var(--color-accent-wash); color: var(--color-accent); }
 .cx-link-done-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; background: var(--color-profit); color: var(--color-cream-ink); }
 .cx-link-done-mark svg { width: 18px; height: 18px; }
-.cx-link-done-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--color-ink); font-stretch: 125%; }
+.cx-link-done-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--color-ink); font-stretch: 100%; }
 .cx-link-done-body { max-width: 34ch; font-size: 13px; line-height: 1.5; color: var(--color-ink-secondary); }
 
 .cx-link-join { display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px dashed var(--color-hairline); }
-.cx-link-join-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 125%; }
+.cx-link-join-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 100%; }
 .cx-link-join-body { margin-top: -6px; font-size: 12.5px; line-height: 1.5; color: var(--color-ink-secondary); }
 .cx-link-otp { align-self: center; }
 /* While it waits, the button's label is a whole sentence ("Waiting for the other device to allow this one…"); it wraps inside the card

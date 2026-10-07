@@ -16,7 +16,7 @@
 }
 
 [data-theme="light"] .mc-asset .glyph.generic {
-  background: rgba(16, 15, 15, 0.1);
+  background: rgba(10, 10, 10, 0.1);
 }
 
 /* The sparkline is SVG rather than the reference's `<canvas>` (see CardSpark.tsx
@@ -47,7 +47,7 @@
   stroke: var(--loss);
 }
 
-/* `.mc-spark .strike-tick` is a chip of the page ground (`rgba(16,15,15,0.7)`) so the
+/* `.mc-spark .strike-tick` is a chip of the page ground (`rgba(10,10,10,0.7)`) so the
    dashed rule reads through behind it. part-14/15 do not remap it, so on a cream
    card it lands as a near-black blob — the same fall-through class as the Tutorial's
    `bg-white/20`. Mirrored onto the light ground at the same job: sit over the rule,
@@ -71,9 +71,9 @@
 }
 
 [data-theme="light"] .mc-room:disabled:hover {
-  background: rgba(16, 15, 15, 0.015);
-  border-color: rgba(16, 15, 15, 0.08);
-  color: rgba(16, 15, 15, 0.6);
+  background: rgba(10, 10, 10, 0.015);
+  border-color: rgba(10, 10, 10, 0.08);
+  color: rgba(10, 10, 10, 0.6);
 }
 
 /* One card per Window rather than the reference's fixed three cadences, so the

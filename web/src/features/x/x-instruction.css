@@ -1,7 +1,7 @@
 /* Direct choices and the cream receipt preview use the X island's existing palette. */
 .xi { --xi-ink: var(--xt-ink); --xi-mute: #a8a69d; --xi-line: rgba(255,255,255,.13); --xi-up: #6ee7b7; --xi-down: #f99b8b; color: var(--xi-ink); min-width: 0; }
 .xi-heading { margin-bottom: 1.5rem; }
-.xi-heading h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 750; letter-spacing: -.04em; line-height: 1.15; font-stretch: 125%; }
+.xi-heading h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 750; letter-spacing: -.04em; line-height: 1.15; font-stretch: 100%; }
 .xi-heading p { margin-top: .4rem; font-size: .8125rem; color: var(--xi-mute); }
 .xi-field { min-width: 0; border: 0; padding: 0; margin: 0; }
 .xi-field legend { display: flex; justify-content: space-between; align-items: baseline; gap: .75rem; width: 100%; padding: 0; margin-bottom: .65rem; font-size: .8125rem; font-weight: 600; }

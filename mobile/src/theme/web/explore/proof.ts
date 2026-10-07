@@ -6,18 +6,18 @@ import type { ThemeName } from "../../index";
  */
 const DARK = {
   /** --gray-700: the void pill's border and the source link's dotted underline. */
-  gray700: "#3B3A37",
+  gray700: "#3A3A3A",
   /** text-cream-ink/70 and /80 on the paper (the paper is cream in both themes). */
-  creamInk70: "rgba(16, 15, 15, 0.7)",
-  creamInk80: "rgba(16, 15, 15, 0.8)",
+  creamInk70: "rgba(10, 10, 10, 0.7)",
+  creamInk80: "rgba(10, 10, 10, 0.8)",
   /** --receipt-shadow's heavier layer (0 18px 40px -18px rgb(0 0 0 / 0.6)). */
   receiptShadow: "#000000",
 };
 
 const LIGHT: typeof DARK = {
-  gray700: "#D6D4CB",
-  creamInk70: "rgba(16, 15, 15, 0.7)",
-  creamInk80: "rgba(16, 15, 15, 0.8)",
+  gray700: "#DCDCDC",
+  creamInk70: "rgba(10, 10, 10, 0.7)",
+  creamInk80: "rgba(10, 10, 10, 0.8)",
   receiptShadow: "#000000",
 };
 

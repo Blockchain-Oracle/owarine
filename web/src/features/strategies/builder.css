@@ -50,8 +50,8 @@
 .strat-picker-meta { display: block; margin-top: 2px; font-family: var(--font-mono); font-size: .65rem; color: var(--gray-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
 @keyframes strat-picker-drop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .strat-picker-menu { animation: none; } }
-[data-theme="light"] .strat-picker-btn { background: rgba(16, 15, 15, 0.03); border-color: rgba(16, 15, 15, 0.11); }
-[data-theme="light"] .strat-picker-btn:hover, [data-theme="light"] .strat-picker-btn[aria-expanded="true"] { border-color: rgba(16, 15, 15, 0.22); }
-[data-theme="light"] .strat-picker-menu { border-color: rgba(16, 15, 15, 0.11); background: #FFFFFF; }
-[data-theme="light"] .strat-picker-item:hover { background: rgba(16, 15, 15, 0.05); }
-[data-theme="light"] .strat-picker-item--on { background: rgba(16, 15, 15, 0.08); }
+[data-theme="light"] .strat-picker-btn { background: rgba(10, 10, 10, 0.03); border-color: rgba(10, 10, 10, 0.11); }
+[data-theme="light"] .strat-picker-btn:hover, [data-theme="light"] .strat-picker-btn[aria-expanded="true"] { border-color: rgba(10, 10, 10, 0.22); }
+[data-theme="light"] .strat-picker-menu { border-color: rgba(10, 10, 10, 0.11); background: #FFFFFF; }
+[data-theme="light"] .strat-picker-item:hover { background: rgba(10, 10, 10, 0.05); }
+[data-theme="light"] .strat-picker-item--on { background: rgba(10, 10, 10, 0.08); }

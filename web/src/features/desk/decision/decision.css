@@ -17,13 +17,13 @@
 .dc-verdict { font-family: var(--font-data); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dc-tone); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .dc-hero[data-tone="quiet"] .dc-verdict { color: var(--color-ink-secondary); }
 .dc-hero-subject { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-.dc-hero-title { font-family: var(--font-display); font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--color-ink); font-stretch: 125%; }
+.dc-hero-title { font-family: var(--font-display); font-size: clamp(24px, 3.4vw, 34px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; color: var(--color-ink); font-stretch: 100%; }
 .dc-hero-side { color: var(--color-ink-secondary); font-weight: 700; }
 .dc-hero-summary { max-width: 62ch; font-size: 15px; line-height: 1.55; color: var(--color-ink-secondary); }
 .dc-hero-meta { display: flex; flex-wrap: wrap; gap: 8px; font-family: var(--font-data); font-size: 12px; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; }
 .dc-hero-side-col { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .dc-gauge-text { display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
-.dc-gauge-text b { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--color-ink); font-stretch: 125%; }
+.dc-gauge-text b { font-family: var(--font-display); font-size: 20px; font-weight: 800; color: var(--color-ink); font-stretch: 100%; }
 .dc-gauge-text small { font-family: var(--font-data); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 
 /* Stepper */
@@ -33,7 +33,7 @@
 .dc-step-icon { position: relative; z-index: 1; display: grid; place-items: center; width: 40px; height: 40px; margin-top: 8px; border-radius: 12px; border: 1px solid var(--color-hairline); background: var(--color-surface-2, var(--color-surface-1)); color: var(--color-ink-secondary); }
 .dc-step-icon svg { width: 18px; height: 18px; }
 .dc-step-card { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 18px 20px; border: 1px solid var(--market-card-border, var(--color-hairline)); border-radius: var(--market-card-radius, 14px); background: var(--market-card-surface, var(--color-surface-1)); }
-.dc-step-title { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--color-ink); font-stretch: 125%; }
+.dc-step-title { display: flex; align-items: baseline; gap: 10px; font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -0.01em; color: var(--color-ink); font-stretch: 100%; }
 .dc-step-n { font-family: var(--font-data); font-size: 11px; font-weight: 500; letter-spacing: 0.1em; color: var(--color-accent); font-variant-numeric: tabular-nums; }
 .dc-subhead { font-family: var(--font-data); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
 .dc-lead { font-size: 16px; line-height: 1.5; color: var(--color-ink); }
@@ -82,7 +82,7 @@
 .dc-option:not([data-chosen]) { opacity: 0.86; }
 .dc-option[data-chosen] { border-color: var(--color-accent); background: linear-gradient(180deg, var(--color-accent-wash), transparent 80%); box-shadow: 0 10px 30px -18px var(--color-accent), 0 0 0 1px var(--color-accent); }
 .dc-option-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
-.dc-option-name { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--color-ink); font-stretch: 125%; }
+.dc-option-name { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--color-ink); font-stretch: 100%; }
 .dc-option-headline { font-size: 15.5px; line-height: 1.5; color: var(--color-ink); }
 .dc-reasons { display: flex; flex-direction: column; gap: 6px; margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--color-ink-secondary); }
 .dc-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 9999px; border: 1px solid var(--color-hairline); font-family: var(--font-data); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
@@ -111,11 +111,11 @@
 .dc-leg-mark { flex: none; }
 .dc-leg-disc, .dc-ledger-disc { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 9999px; overflow: hidden; font-size: 36px; }
 .dc-ledger-disc { width: 24px; height: 24px; font-size: 24px; }
-.dc-leg-usdc { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 9999px; background: #2775CA; font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; font-stretch: 125%; }
+.dc-leg-usdc { display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 9999px; background: #2775CA; font-family: var(--font-display); font-size: 17px; font-weight: 800; color: #fff; font-stretch: 100%; }
 .dc-ledger .dc-leg-usdc { width: 24px; height: 24px; font-size: 12px; }
 .dc-leg-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .dc-leg-label { font-family: var(--font-data); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.dc-leg-text b { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--color-ink); overflow-wrap: anywhere; font-stretch: 125%; }
+.dc-leg-text b { font-family: var(--font-display); font-size: 16px; font-weight: 800; color: var(--color-ink); overflow-wrap: anywhere; font-stretch: 100%; }
 .dc-ledger { display: flex; flex-direction: column; gap: 4px; padding: 14px; border: 1px dashed var(--color-hairline); border-radius: 14px; }
 .dc-ledger-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 6px 0; font-size: 13.5px; color: var(--color-ink-secondary); }
 .dc-ledger-row b { font-family: var(--font-data); font-weight: 600; color: var(--color-ink); font-variant-numeric: tabular-nums; }

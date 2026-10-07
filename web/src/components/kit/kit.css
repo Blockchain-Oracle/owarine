@@ -1,0 +1,27 @@
+/* The kit's keyframes (K-403). Everything else is Tailwind on the --ow-* tokens in styles/owarine.css. */
+
+/* Objects drift in the sky. */
+@keyframes ow-float {
+  0%, 100% { translate: -50% -50%; }
+  50% { translate: -50% calc(-50% - 10px); }
+}
+.ow-float { animation: ow-float 5.2s ease-in-out infinite; }
+
+/* The seal lands like a stamp: pressed down, a small overshoot, settled. */
+@keyframes ow-seal-stamp {
+  0% { scale: 1.6; opacity: 0; }
+  55% { scale: 0.92; opacity: 1; }
+  100% { scale: 1; opacity: 1; }
+}
+.ow-seal-stamp { animation: ow-seal-stamp 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Success: coins fall past the sticker on the sky. */
+@keyframes ow-fall {
+  from { translate: 0 -40vh; rotate: 0deg; }
+  to { translate: 0 110vh; rotate: 260deg; }
+}
+.ow-fall { animation: ow-fall 2.4s cubic-bezier(0.45, 0, 0.7, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ow-float, .ow-seal-stamp, .ow-fall { animation: none; }
+}

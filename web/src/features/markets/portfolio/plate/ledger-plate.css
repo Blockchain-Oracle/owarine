@@ -8,8 +8,8 @@
 
 /* font-mono text-[9px] uppercase tracking-[0.16em] text-[var(--lp-mute)] */
 .lp-eyebrow { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--lp-mute); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-/* font-display font-[800] tabular-nums leading-none text-[32px] sm:text-5xl text-[#E4E24E] */
-.lp-figure { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; font-size: 32px; color: var(--signal-ink); font-stretch: 125%; }
+/* font-display font-[800] tabular-nums leading-none text-[32px] sm:text-5xl text-[#FA00FF] */
+.lp-figure { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; font-size: 32px; color: var(--signal-ink); font-stretch: 100%; }
 @media (min-width: 640px) { .lp-figure { font-size: 48px; } }
 .lp-figure--pending { opacity: 0.55; }
 /* font-mono text-[12px] sm:text-[18px] text-[var(--lp-mute)] */
@@ -20,16 +20,16 @@
 .lp-elsewhere-ink { font-variant-numeric: tabular-nums; color: var(--lp-ink); }
 /* flex h-1.5 overflow-hidden rounded-full bg-[#BCBAB3]/25 */
 .lp-bar { display: flex; height: 6px; overflow: hidden; border-radius: 999px; background: var(--lp-line); }
-/* bg-[#E4E24E] · bg-[#E4E24E]/35 */
-.lp-bar-wallet { background: #E4E24E; color: var(--on-signal); }
-.lp-bar-account { background: rgba(228, 226, 78, 0.35); }
+/* bg-[#FA00FF] · bg-[#FA00FF]/35 */
+.lp-bar-wallet { background: #FA00FF; color: var(--on-signal); }
+.lp-bar-account { background: rgba(250, 0, 255, 0.35); }
 /* C7a: open positions at the mid, between credits and what is waiting to be collected */
-.lp-bar-positions { background: rgba(228, 226, 78, 0.65); }
+.lp-bar-positions { background: rgba(250, 0, 255, 0.65); }
 /* h-2 w-2 shrink-0 rounded-full; text-[12px] text-[var(--lp-mute)]; font-mono text-[13px] tabular-nums text-[var(--lp-ink)] */
 .lp-leg-dot { height: 8px; width: 8px; flex-shrink: 0; border-radius: 999px; }
-.lp-leg-dot--wallet { background: #E4E24E; color: var(--on-signal); }
-.lp-leg-dot--account { background: rgba(228, 226, 78, 0.35); }
-.lp-leg-dot--positions { background: rgba(228, 226, 78, 0.65); }
+.lp-leg-dot--wallet { background: #FA00FF; color: var(--on-signal); }
+.lp-leg-dot--account { background: rgba(250, 0, 255, 0.35); }
+.lp-leg-dot--positions { background: rgba(250, 0, 255, 0.65); }
 .lp-leg-label { font-size: 12px; color: var(--lp-mute); }
 .lp-leg-value { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--lp-ink); }
 /* ml-auto flex items-baseline gap-2 font-mono text-[12px] text-[var(--lp-mute)]; text-[#BCBAB3] separator */
@@ -45,7 +45,7 @@
 /* py-2.5 */
 .pool-body { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; column-gap: 16px; row-gap: 4px; padding: 10px 0; }
 /* font-display text-[14px] font-[700] text-[var(--lp-ink)] */
-.pool-label { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--lp-ink); font-stretch: 125%; }
+.pool-label { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--lp-ink); font-stretch: 100%; }
 /* text-[11px] text-[var(--lp-mute)] */
 .pool-blocked { font-size: 11px; color: var(--lp-mute); }
 /* mt-0.5 text-[11px] leading-snug text-[var(--lp-mute)] */
@@ -53,9 +53,9 @@
 /* shrink-0 font-mono text-[18px] tabular-nums text-[var(--lp-ink)]; ml-1 text-[10px] text-[var(--lp-mute)] */
 .pool-amount { flex-shrink: 0; font-family: var(--font-mono); font-size: 18px; font-variant-numeric: tabular-nums; color: var(--lp-ink); }
 .pool-unit { margin-left: 4px; font-size: 10px; color: var(--lp-mute); }
-/* mb-3 inline-block rounded-md border border-[#E4E24E]/45 px-2.5 py-1 text-[11px] font-bold text-[#E4E24E] hover:bg-[#E4E24E]/[0.07] */
-.pool-action { margin-bottom: 12px; display: inline-block; border-radius: 6px; border: 1px solid rgba(228, 226, 78, 0.45); padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--signal-ink); transition: background-color 180ms var(--ease); }
-.pool-action:hover { background: rgba(228, 226, 78, 0.07); }
+/* mb-3 inline-block rounded-md border border-[#FA00FF]/45 px-2.5 py-1 text-[11px] font-bold text-[#FA00FF] hover:bg-[#FA00FF]/[0.07] */
+.pool-action { margin-bottom: 12px; display: inline-block; border-radius: 6px; border: 1px solid rgba(250, 0, 255, 0.45); padding: 4px 10px; font-size: 11px; font-weight: 700; color: var(--signal-ink); transition: background-color 180ms var(--ease); }
+.pool-action:hover { background: rgba(250, 0, 255, 0.07); }
 /* summary: flex cursor-pointer list-none items-center gap-3; chevron text-[var(--lp-mute)] group-open:rotate-90 */
 .pool-summary { display: flex; cursor: pointer; list-style: none; align-items: center; gap: 12px; }
 .pool-summary::-webkit-details-marker { display: none; }
@@ -68,13 +68,13 @@ details[open] > .pool-summary .pool-chevron { transform: rotate(90deg); }
 /* The plate's own disclosure row (reference: "Creator earnings and recovery"): plate-rows mt-2 border-t border-[#BCBAB3]/40;
    summary py-3.5 font-display text-[14px] font-[700] text-[var(--lp-ink)] */
 .lp-disclosure { margin-top: 8px; border-top: 1px solid var(--lp-line); }
-.lp-disclosure-summary { display: flex; cursor: pointer; list-style: none; align-items: center; justify-content: space-between; padding: 14px 0; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--lp-ink); font-stretch: 125%; }
+.lp-disclosure-summary { display: flex; cursor: pointer; list-style: none; align-items: center; justify-content: space-between; padding: 14px 0; font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--lp-ink); font-stretch: 100%; }
 .lp-disclosure-summary::-webkit-details-marker { display: none; }
 
 /* The disconnected card (reference page L277–292): border border-white/[0.08] rounded bg-bg p-10 text-center;
    icon ring w-16 h-16 border border-white/10 rounded-full; text-gray-500 icon; text-[11px] text-gray-600 link */
 .connect-card { width: 100%; border: 1px solid var(--ms-hairline); border-radius: 4px; background: var(--bg); padding: 40px; text-align: center; }
 .connect-card-ring { width: 64px; height: 64px; margin: 0 auto 24px; border: 1px solid var(--ms-hairline); border-radius: 999px; display: flex; align-items: center; justify-content: center; color: var(--gray-500); }
-.connect-card-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--white); margin-bottom: 24px; font-stretch: 125%; }
+.connect-card-title { font-family: var(--font-display); font-weight: 700; font-size: 20px; color: var(--white); margin-bottom: 24px; font-stretch: 100%; }
 .connect-card-link { font-size: 11px; color: var(--gray-600); transition: color 180ms var(--ease); }
 .connect-card-link:hover { color: var(--white); }
