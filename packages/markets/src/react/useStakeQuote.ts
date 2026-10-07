@@ -11,6 +11,8 @@ import { keys } from "./keys";
 import { useReadingQuery } from "./useReadingQuery";
 import { useTick } from "./useTick";
 
+const PARAMS_RETRY_MS = 3_000;
+
 export interface StakeQuoteInput {
   target: QuoteTarget | null;
   side: Side;
@@ -37,9 +39,12 @@ export function useStakeQuote({ target, side, stakeBase, enabled = true }: Stake
   const view = useSyncExternalStore(subscribe, () => bookStateSnapshot(marketId), () => null);
   const depth = useSyncExternalStore(subscribe, () => bookSnapshot(marketId), () => null);
   // Shares `useBookParams`' entry: a Book that isn't there is the honest error rather than a quote of nothing.
+  // A Window's params never change once read; but a read made before the venue published its ladder fails, and a
+  // failure must not stick (the trading screen moves to each new Window the moment it opens): retry until it lands.
   const params = useReadingQuery(keys.bookParams(poolAddress), () => getBookParams(poolAddress!), {
     enabled: active,
     staleTimeMs: Number.POSITIVE_INFINITY,
+    pollMs: (reading) => (reading && isOk(reading) ? false : PARAMS_RETRY_MS),
   });
   const tick = useTick(REQUOTE_MS);
 

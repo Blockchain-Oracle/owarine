@@ -116,7 +116,12 @@ export function useTerminalTrade(ctx: TradeContext) {
         }
         const id = `open-${sym}`;
         toast({ id, kind: "loading", title: add ? `Adding to ${sym}…` : `Opening ${sideWord(side)} ${sym}…` });
-        const outcome = await submitter.submitOrder({ market, side, stakeBase: quote.stakeBase, displayedQuote: quote, wallet: address });
+        let outcome = await submitter.submitOrder({ market, side, stakeBase: quote.stakeBase, displayedQuote: quote, wallet: address });
+        // One tap means one tap: a fresh price inside the tolerance (better, or at most `slippageBps` worse) is taken
+        // once, as Tradash's market order with its price cap would; anything worse is said, never silently paid.
+        if (outcome.status === "requote" && withinTolerance(quote, outcome.quote, c.current.slippageBps)) {
+          outcome = await submitter.submitOrder({ market, side, stakeBase: outcome.quote.stakeBase, displayedQuote: outcome.quote, wallet: address });
+        }
         if (outcome.status === "confirmed") {
           if (!add) rememberEntry(market.marketId, side, spot ?? 0);
           await invalidateAfterWrite(queryClient, { wallet: address, marketId: market.marketId });
@@ -203,6 +208,11 @@ export function useTerminalTrade(ctx: TradeContext) {
   }, []);
 
   return { busy, open, close, toggleTrail };
+}
+
+/** A fresh buy price no worse than the shown one by more than `bps` (per contract, fee included). */
+export function withinTolerance(shown: Quote, fresh: Quote, bps: number): boolean {
+  return fresh.avgPriceBps <= shown.avgPriceBps * (1 + bps / 10_000);
 }
 
 /** Writes a trail stop where the position lives (paper state, or the seat's entry record). */
