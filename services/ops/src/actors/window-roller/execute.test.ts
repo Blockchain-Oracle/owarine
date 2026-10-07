@@ -3,7 +3,7 @@ import type { ActiveContract, Command, LedgerClient } from "@owarine/ledger";
 import { LedgerError } from "@owarine/ledger";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { VenueDeps } from "../../runtime/deps";
-import { planSeriesOf, refusalState, rollerPass, type RollerState } from "./execute";
+import { isCoreLane, planSeriesOf, refusalState, rollerPass, type RollerState } from "./execute";
 
 const utc = (iso: string) => Date.parse(iso) / 1000;
 const isoZ = (sec: number) => new Date(sec * 1000).toISOString().replace(".000Z", "Z");
@@ -125,5 +125,40 @@ describe("window-roller on a Gap Series (engine 0.4.0 span open)", () => {
     expect(planSeriesOf({ ...base, lastExpirySec: null }).lastExpirySec).toBe(utc("2026-09-29T00:20:00Z"));
     expect(planSeriesOf({ ...base, lastExpirySec: utc("2026-09-29T01:00:00Z") }).lastExpirySec).toBe(utc("2026-09-29T01:00:00Z"));
     expect(isoZ(utc("2026-09-29T00:20:00Z"))).toBe("2026-09-29T00:20:00Z");
+  });
+});
+
+describe("window-roller traffic governor", () => {
+  beforeEach(() => vi.useFakeTimers());
+  afterEach(() => vi.useRealTimers());
+  const trafficRefusal = () =>
+    new LedgerError({ kind: "rejected", path: "/v2/commands/submit-and-wait-for-transaction", status: 400, message: "SEQUENCER_NOT_ENOUGH_TRAFFIC_CREDIT(9,0): AboveTrafficLimit(member = PAR::x, trafficCost = 4220)" } as ConstructorParameters<typeof LedgerError>[0]);
+
+  it("a traffic refusal stands the optional lanes down for ten minutes", async () => {
+    vi.setSystemTime(new Date("2026-09-17T20:00:00Z"));
+    const client = fakeClient(gapSeries(), () => {
+      throw trafficRefusal();
+    });
+    const s = state(client);
+    await rollerPass(s, deps(calendarAt(utc("2026-09-17T20:00:00Z"))));
+    expect(s.trafficTightUntilMs).toBe(Date.parse("2026-09-17T20:10:00Z"));
+  });
+
+  it("while it stands down, an optional lane sends nothing and says why", async () => {
+    vi.setSystemTime(new Date("2026-09-17T20:00:00Z"));
+    const sent: Command[][] = [];
+    const client = fakeClient(gapSeries(), (commands) => (sent.push(commands), { transaction: { events: [] }, recovered: false }));
+    const s = { ...state(client), trafficTightUntilMs: Date.parse("2026-09-17T20:05:00Z") };
+    const out = await rollerPass(s, deps(calendarAt(utc("2026-09-17T20:00:00Z"))));
+    expect(sent).toEqual([]);
+    expect((out.detail as { lanes: Record<string, string> }).lanes["TSLA-gap"]).toBe("paused: traffic (core lanes only)");
+    expect(out.why).toContain("traffic governor: core lanes only until 20:05Z");
+  });
+
+  it("keeps BTC and ETH Windows of five minutes or less as the core", () => {
+    expect(isCoreLane({ symbol: "BTC", cadenceSec: 120 })).toBe(true);
+    expect(isCoreLane({ symbol: "ETH", cadenceSec: 300 })).toBe(true);
+    expect(isCoreLane({ symbol: "BTC", cadenceSec: 900 })).toBe(false);
+    expect(isCoreLane({ symbol: "TSLA", cadenceSec: 300 })).toBe(false);
   });
 });

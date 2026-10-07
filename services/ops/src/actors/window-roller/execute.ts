@@ -12,7 +12,7 @@
  * book" can never block a lane. Idempotence is the ledger's: `open:<series>:<index>` and `skip:<series>:<index>` are
  * deduplicated, and a retry against the new Series fails `abu-pm/bad-window-index`, which reads as "already opened".
  */
-import { isTokenOnlyKind, parseLaneKey, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { CRYPTO_SYMBOLS, isTokenOnlyKind, parseLaneKey, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import type { LaneBasis } from "@owarine/core/types";
 import { TEMPLATE_IDS } from "@owarine/daml";
 import {
@@ -46,7 +46,19 @@ export interface RollerState {
   counters: { opened: number; skipped: number; failed: number };
   /** What was last opened per lane, for the heartbeat. */
   last: Map<string, string>;
+  /**
+   * The traffic governor: until this time (ms) only core lanes open. Every ledger command spends the participant's
+   * synchronizer traffic credit; when a submit is refused for lack of it, the optional lanes stand down so the credit
+   * that refills goes to settlement, users' trades and the core lanes (7 Oct 2026: all 77 Series at once exhausted it).
+   */
+  trafficTightUntilMs?: number;
 }
+
+/** How long the optional lanes stand down after a traffic refusal. */
+export const TRAFFIC_BACKOFF_MS = 10 * 60_000;
+/** The lanes kept open whatever the traffic: BTC and ETH Windows of five minutes or less. */
+export const isCoreLane = (s: Pick<SeriesC, "symbol" | "cadenceSec">): boolean => (CRYPTO_SYMBOLS as readonly string[]).includes(s.symbol) && s.cadenceSec <= 300;
+const isTrafficRefusal = (error: unknown) => /NOT_ENOUGH_TRAFFIC_CREDIT|AboveTrafficLimit/.test(failureText(error));
 
 /** `PrintPolicy.source` 4: an attested print (`versions.ts` SOURCE_NAME). */
 const SOURCE_ATTESTED = 4;
@@ -154,6 +166,7 @@ async function openSpan(state: RollerState, series: Active<SeriesC>, plan: Extra
       return refused;
     }
     state.counters.failed++;
+    if (isTrafficRefusal(error)) state.trafficTightUntilMs = Date.now() + TRAFFIC_BACKOFF_MS;
     notes.push(`open ${s.seriesKey} #${index} failed: ${failureText(error)}`);
     return `open failed: ${failureText(error).split("\n")[0]}`;
   }
@@ -198,6 +211,7 @@ async function open(state: RollerState, series: Active<SeriesC>, plan: Extract<S
     const refused = refusalState(refusalId(error), spanOf(plan.window));
     if (refused) return refused;
     state.counters.failed++;
+    if (isTrafficRefusal(error)) state.trafficTightUntilMs = Date.now() + TRAFFIC_BACKOFF_MS;
     notes.push(`open ${s.seriesKey} #${index} failed: ${failureText(error)}`);
     return `open failed: ${failureText(error).split("\n")[0]}`;
   }
@@ -226,18 +240,24 @@ export async function rollerPass(state: RollerState, deps: VenueDeps): Promise<P
   // still resolve and settle; only new ones wait.
   const modeWhy = venueModeRefusalNow("open-window");
   const mode = venueMode();
-  for (const s of series) {
+  if ((state.trafficTightUntilMs ?? 0) > Date.now()) notes.push(`traffic governor: core lanes only until ${new Date(state.trafficTightUntilMs!).toISOString().slice(11, 16)}Z`);
+  // Core lanes first, so a pass that runs into the traffic limit has already opened what matters most.
+  const ordered = [...series].sort((a, b) => Number(isCoreLane(b.data)) - Number(isCoreLane(a.data)));
+  for (const s of ordered) {
     const basis = basisOf(s.data);
     if (!basis) {
       lanes[s.data.seriesKey] = "not a registry ticker";
       continue;
     }
     const plan = planByBasis(basis, planSeriesOf(s.data), clock);
-    if (plan.kind === "open" && modeWhy) lanes[s.data.seriesKey] = venueModePausedState(mode.mode, mode.reason);
+    // Re-read each time: a refusal earlier in this same pass stands the rest of the optional lanes down at once.
+    const governed = plan.kind === "open" && (state.trafficTightUntilMs ?? 0) > Date.now() && !isCoreLane(s.data);
+    if (governed) lanes[s.data.seriesKey] = "paused: traffic (core lanes only)";
+    else if (plan.kind === "open" && modeWhy) lanes[s.data.seriesKey] = venueModePausedState(mode.mode, mode.reason);
     else if (plan.kind === "open") lanes[s.data.seriesKey] = await open(state, s, plan, notes);
     else lanes[s.data.seriesKey] = plan.kind === "wait" && state.last.get(s.data.seriesKey) ? state.last.get(s.data.seriesKey)! : plan.state;
     if ((plan.kind === "wait" || plan.kind === "paused") && plan.wakeSec < wakeSec) wakeSec = plan.wakeSec;
-    if (plan.kind === "open" && !modeWhy) wakeSec = nowSec;
+    if (plan.kind === "open" && !modeWhy && !governed) wakeSec = nowSec;
   }
   const counts = Object.values(lanes).reduce<Record<string, number>>((acc, v) => ((acc[v.split(/[: #]/)[0]!] = (acc[v.split(/[: #]/)[0]!] ?? 0) + 1), acc), {});
   const summary = Object.entries(counts).map(([k, n]) => `${n} ${k}`).join(", ");
