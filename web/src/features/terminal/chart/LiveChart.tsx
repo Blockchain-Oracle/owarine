@@ -2,6 +2,7 @@
 
 import { liveSpot, peekClient, subscribeSpot } from "@owarine/markets/runtime";
 import { useEffect, useRef, type RefObject } from "react";
+import { whenSplashDone } from "@/lib/splash";
 import { cn } from "@/lib/utils";
 import { haptic } from "@/lib/haptics";
 import { CandleView } from "./candle-view";
@@ -80,7 +81,8 @@ export function LiveChart({ symbol, overlay, onFrame, view = "line", interval = 
       raf = requestAnimationFrame(loop);
     };
     resize();
-    raf = requestAnimationFrame(loop);
+    // Tradash starts the loop once the splash has gone (SPEC-chart §1); the price keeps arriving meanwhile.
+    const cancelStart = whenSplashDone(() => (raf = requestAnimationFrame(loop)));
     const ro = new ResizeObserver(resize);
     ro.observe(box);
     const mo = new MutationObserver(() => {
@@ -90,6 +92,7 @@ export function LiveChart({ symbol, overlay, onFrame, view = "line", interval = 
     });
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme", "class"] });
     return () => {
+      cancelStart();
       cancelAnimationFrame(raf);
       ro.disconnect();
       mo.disconnect();

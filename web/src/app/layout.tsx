@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { webEnv } from "@/lib/env";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import { AppProviders } from "@/providers";
+import { Splash } from "@/components/shell/Splash";
 import "@/styles/index.css";
 
 const DESCRIPTION = `${BRAND.name} — ${BRAND.tagline}. Live price windows, one-tap calls, and settlement receipts you can click.`;
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Paint the resolved theme on the FIRST frame (no flash of dark). Runs
             synchronously before the app renders; mirrors lib/theme resolveTheme. */}
         <Script id="owarine-theme-init" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <Splash />
         <AppStrip />
         <AppProviders>
           <TooltipProvider>
