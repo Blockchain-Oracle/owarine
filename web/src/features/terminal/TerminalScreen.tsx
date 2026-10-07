@@ -8,12 +8,13 @@ import { ladderSpotSymbol, useBalanceSheet, useOpeningPrice, usePositions, useSt
 import { ladderSnapshot } from "@owarine/markets/runtime";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { haptic, installHaptics, setHapticsEnabled } from "@/lib/haptics";
-import { installTradeSounds, playAdverseStep, playCloseOutcome, playComboStep, playSlump, playSurge, setTradeMuted } from "@/lib/sound/trade";
+import { installHaptics, setHapticsEnabled } from "@/lib/haptics";
+import { installTradeSounds, playCloseOutcome, setTradeMuted } from "@/lib/sound/trade";
 import { useWalletSession } from "@/lib/wallet-session";
-import { LiveChart, type ChartLevel, type ChartOverlay, type FrameInfo } from "./chart/LiveChart";
+import { LiveChart, type ChartHandle } from "./chart/LiveChart";
+import { useChartFeedback } from "./useChartFeedback";
+import { ChartControls } from "./ui/ChartControls";
 import { entryOf, useEntries } from "./entries";
-import { ReactionEngine } from "./feedback/reactions";
 import { money, multipleOf } from "./format";
 import { breakEvenSpot, useCommittedSpot, useLiveBook } from "./live";
 import { settlePaper, useModeState, type TradeMode } from "./mode";
@@ -21,7 +22,7 @@ import { stakeFor, useTradeSettings, useTradeSettingsState } from "./settings";
 import { TradeToasts, toast } from "./toasts";
 import { AssetChip, EquityPill, SettingsStack, ViewPositionPill, WindowChip } from "./ui/Chrome";
 import { PositionsList, totalsOf, UnrealizedCard } from "./ui/PositionsPanel";
-import { ReactionOverlay, type ReactionOverlayHandle } from "./ui/ReactionOverlay";
+import { ReactionOverlay } from "./ui/ReactionOverlay";
 import { TerminalNav } from "./ui/TerminalNav";
 import { TerminalSheets, type SheetName } from "./ui/TerminalSheets";
 import { TradeButtons } from "./ui/TradeButtons";
@@ -213,50 +214,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, nowSec % 5 === 0]);
 
-  // The chart overlay: written to a ref, read every frame.
-  const overlay = useRef<ChartOverlay | null>(null);
-  overlay.current = active
-    ? {
-        pnl: activeLive && activeLive.fillableLots > 0n ? toCredits(activeLive.pnlBase) : 0,
-        pnlText: activeLive && activeLive.fillableLots > 0n ? money(activeLive.pnlBase, active.decimals, true) : "locked",
-        entry: active.entrySpot,
-        levels: [
-          ...(active.entrySpot ? [{ kind: "entry", price: active.entrySpot, label: "Entry" } satisfies ChartLevel] : []),
-          ...(linePrice !== null ? [{ kind: "line", price: linePrice, label: "Line" } satisfies ChartLevel] : []),
-          ...(breakEven !== null ? [{ kind: "breakeven", price: breakEven, label: "B/E" } satisfies ChartLevel] : []),
-          ...(active.trailStop !== null ? [{ kind: "trail", price: active.trailStop, label: "Trail" } satisfies ChartLevel] : []),
-        ],
-      }
-    : null;
-
-  // Reactions at the commit rate, for the position on screen.
-  const reactions = useRef(new ReactionEngine());
-  const overlayHandle = useRef<ReactionOverlayHandle>(null);
-  const onFrame = useRef<((info: FrameInfo | null) => void) | null>(null);
-  onFrame.current = (info) => overlayHandle.current?.frame(info);
-  useEffect(() => reactions.current.reset(), [spotSymbol]);
-  useEffect(() => {
-    if (spot === null) return;
-    const out = reactions.current.feed({
-      t: performance.now(), price: spot,
-      position: active && activeLive ? { key: active.id, side: active.side === "up" ? 1 : -1, pnl: toCredits(activeLive.pnlBase), margin: toCredits(active.costBasisBase), entry: active.entrySpot ?? spot, line: linePrice } : null,
-    });
-    for (const r of out) {
-      if (r.kind === "step") {
-        if (r.favorable) (playComboStep(r.count), haptic("move"));
-        else if (r.count >= 2) playAdverseStep();
-      } else if (r.kind === "surge") {
-        if (r.favorable) (playSurge(r.mega), haptic(r.mega ? "mega" : "surge"));
-        else (playSlump(), haptic("slump"));
-        if (settings.reactionsEnabled) overlayHandle.current?.flash(r.favorable, r.mega);
-      } else {
-        if (r.tone === "warn") haptic("warn");
-        if (settings.reactionsEnabled) overlayHandle.current?.callout(r.tone, r.emoji, r.text);
-      }
-    }
-    // Fed once per committed price.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spot]);
+  const { overlay, overlayHandle, onFrame } = useChartFeedback({ active, activeLive, spot, spotSymbol, linePrice, breakEven, reactionsEnabled: settings.reactionsEnabled });
 
   const closeAll = useCallback(async () => {
     setClosingAll(true);
@@ -299,9 +257,11 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
     />
   );
 
+  const chartHandle = useRef<ChartHandle | null>(null);
+  const controls = <ChartControls handle={chartHandle} />;
   const chart = (
     <>
-      <LiveChart symbol={spotSymbol} overlay={overlay} onFrame={onFrame} label={`${name} live price`} />
+      <LiveChart symbol={spotSymbol} overlay={overlay} onFrame={onFrame} view={settings.chartView} interval={settings.chartInterval} handle={chartHandle} label={`${name} live price`} />
       <ReactionOverlay handle={overlayHandle} />
     </>
   );
@@ -353,6 +313,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
             {windowChip}
           </div>
           <div className="absolute top-1/2 left-0 z-30 -translate-y-1/2">{stack}</div>
+          <div className="absolute bottom-4 left-4 z-30">{controls}</div>
         </section>
         <aside className="flex min-h-0 flex-col gap-3 border-l border-ow-hairline p-4">
           <div className="flex justify-end">
@@ -381,6 +342,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       </header>
       <div className="flex-1" />
       <footer className="relative z-20 flex flex-col gap-3 px-4 pb-[calc(env(safe-area-inset-bottom,0rem)+1rem)]">
+        {controls}
         {positions.length > 0 ? <ViewPositionPill count={positions.length} roiPct={totals.cost > 0 ? (totals.pnl / totals.cost) * 100 : 0} onOpen={() => openSheet("positions")} /> : null}
         {buttons}
       </footer>

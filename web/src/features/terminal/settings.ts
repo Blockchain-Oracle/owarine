@@ -2,6 +2,7 @@
 
 import { DEFAULT_SLIPPAGE_BPS } from "@owarine/markets/react";
 import { useSyncExternalStore } from "react";
+import { CANDLE_INTERVALS, type CandleInterval } from "./chart/candles";
 
 /**
  * The trading screen's settings, to Tradash's (`settings` slice; TRADASH-FIDELITY.md §Sheets): one object, persisted per
@@ -23,6 +24,9 @@ export interface TradeSettings {
   musicTrack: MusicTrack;
   tutorialSeen: boolean;
   favourites: string[];
+  /** Tradash's chart view and candle interval (picking an interval switches to candles). */
+  chartView: "line" | "candles";
+  chartInterval: CandleInterval;
 }
 
 export type MusicTrack = "arcade" | "rush" | "night";
@@ -37,7 +41,7 @@ export const DEFAULT_SIZE_SHARE = 0.05;
 const KEY = "owarine.trade.settings.v1";
 const DEFAULTS: TradeSettings = {
   sizeCredits: null, trailPct: 0.001, slippageBps: DEFAULT_SLIPPAGE_BPS, soundEnabled: true, hapticsEnabled: true, reactionsEnabled: true,
-  musicEnabled: false, musicTrack: "arcade", tutorialSeen: false, favourites: [],
+  musicEnabled: false, musicTrack: "arcade", tutorialSeen: false, favourites: [], chartView: "line", chartInterval: "1m",
 };
 
 const listeners = new Set<() => void>();
@@ -62,6 +66,8 @@ function read(): TradeSettings {
       musicTrack: MUSIC_TRACKS.includes(p.musicTrack as MusicTrack) ? (p.musicTrack as MusicTrack) : "arcade",
       tutorialSeen: p.tutorialSeen === true,
       favourites: Array.isArray(p.favourites) ? p.favourites.filter((s): s is string => typeof s === "string").slice(0, 100) : [],
+      chartView: p.chartView === "candles" ? "candles" : "line",
+      chartInterval: CANDLE_INTERVALS.includes(p.chartInterval as CandleInterval) ? (p.chartInterval as CandleInterval) : "1m",
     };
   } catch {
     return DEFAULTS;

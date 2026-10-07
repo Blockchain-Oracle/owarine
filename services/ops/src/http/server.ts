@@ -20,6 +20,7 @@ import { pythIndexLatestBody } from "./pyth-index-latest";
 import { latestBody, streamSpot } from "./spot-sse";
 import { createRecentRing, type RecentRing } from "../prices/recent-ring";
 import { createDayStats } from "../prices/day-stats";
+import { createChartCandles } from "../prices/chart-candles";
 import type { LadderBoard } from "../actors/market-maker/seat/ladder-board";
 import { handleInternal, type InternalRoutes } from "./internal";
 import { ladderLatestBody, streamLadders } from "./ladder-sse";
@@ -56,6 +57,7 @@ export function startOpsHttp(input: {
 }): Promise<OpsHttp> {
   const recent = input.recent ?? (input.spot ? createRecentRing(input.spot) : null);
   const dayStats = createDayStats();
+  const chartCandles = createChartCandles();
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? "/", "http://ops").pathname;
     const json = (status: number, body: unknown) => {
@@ -79,6 +81,13 @@ export function startOpsHttp(input: {
       if (!recent) return json(503, { error: "no spot feed in this process" });
       if (!/^[A-Za-z0-9.]{1,16}$/.test(symbol)) return json(400, { error: "symbol must be a ticker" });
       return json(200, { symbol, points: recent.points(symbol) });
+    }
+    if (path === "/prices/candles") {
+      const q = new URL(req.url ?? "/", "http://ops").searchParams;
+      return void chartCandles({ symbol: q.get("symbol") ?? "", interval: q.get("interval") ?? "", count: Number(q.get("count") ?? 300), endMs: Number(q.get("end") ?? 0) || undefined }).then(
+        (r) => json(r.status, r.body),
+        () => json(503, { error: "candles unavailable" }),
+      );
     }
     if (path === "/prices/day") return void dayStats().then((body) => json(200, body), () => json(503, { error: "day stats unavailable" }));
     if (path === "/prices/stream") return input.spot ? void streamSpot(req, res, input.spot, CORS) : json(503, { error: "no spot feed in this process" });

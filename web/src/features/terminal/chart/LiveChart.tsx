@@ -1,12 +1,22 @@
 "use client";
 
-import { liveSpot, subscribeSpot } from "@owarine/markets/runtime";
+import { liveSpot, peekClient, subscribeSpot } from "@owarine/markets/runtime";
 import { useEffect, useRef, type RefObject } from "react";
 import { cn } from "@/lib/utils";
+import { haptic } from "@/lib/haptics";
+import { CandleView } from "./candle-view";
+import type { CandleInterval } from "./candles";
 import { ChartEngine, type ChartOverlay, type ChartTheme, type FrameInfo } from "./chart-engine";
+import type { ChartView } from "./chart-style";
 import { DotGrid } from "./dot-grid";
 
 export type { ChartLevel, ChartOverlay, FrameInfo } from "./chart-engine";
+
+/** What the controls ask of the chart: whether the candle view is panned away, and to come back. */
+export interface ChartHandle {
+  offCentre(): boolean;
+  recentre(): void;
+}
 
 export interface LiveChartProps {
   /** The spot symbol the line follows (a Window's `ladderSpotSymbol`). */
@@ -15,6 +25,10 @@ export interface LiveChartProps {
   overlay?: RefObject<ChartOverlay | null>;
   /** Every frame's head position and motion, for the reaction overlay. */
   onFrame?: RefObject<((info: FrameInfo | null) => void) | null>;
+  /** Line (Tradash's default) or candles at `interval`. */
+  view?: ChartView;
+  interval?: CandleInterval;
+  handle?: RefObject<ChartHandle | null>;
   className?: string;
   label?: string;
 }
@@ -36,7 +50,7 @@ function readTheme(el: Element): { chart: ChartTheme; dots: string } {
  * Tradash's chart on Owarine's tokens: a parallax dot field and the live line, each its own canvas at ≤2× device
  * resolution, one continuous animation loop. Every streamed tick goes straight to the engine; nothing here re-renders.
  */
-export function LiveChart({ symbol, overlay, onFrame, className, label }: LiveChartProps) {
+export function LiveChart({ symbol, overlay, onFrame, view = "line", interval = "1m", handle, className, label }: LiveChartProps) {
   const boxRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLCanvasElement>(null);
   const lineRef = useRef<HTMLCanvasElement>(null);
@@ -97,10 +111,32 @@ export function LiveChart({ symbol, overlay, onFrame, className, label }: LiveCh
     return off;
   }, [symbol]);
 
+  // The candle view: built per symbol and interval, gestures on the line canvas; line view drops it.
+  useEffect(() => {
+    const engine = engineRef.current;
+    const canvas = lineRef.current;
+    if (!engine || !canvas) return;
+    if (view === "line") {
+      engine.setView("line", null);
+      if (handle) handle.current = { offCentre: () => false, recentre: () => undefined };
+      return;
+    }
+    const base = peekClient()?.priceFeedUrl?.replace(/\/$/, "") ?? null;
+    const candles = new CandleView(symbol, interval, base, () => haptic("tick"));
+    const stop = candles.start();
+    const detach = candles.attach(canvas, () => engine.geometry());
+    engine.setView("candles", candles);
+    if (handle) handle.current = { offCentre: () => candles.offCentre, recentre: () => candles.recentre() };
+    return () => {
+      stop();
+      detach();
+    };
+  }, [view, interval, symbol, handle]);
+
   return (
     <div ref={boxRef} role="img" aria-label={label ?? `${symbol} live price`} className={cn("relative h-full w-full overflow-hidden", className)}>
       <canvas ref={dotsRef} className="absolute inset-0 block h-full w-full" aria-hidden />
-      <canvas ref={lineRef} className="absolute inset-0 block h-full w-full" aria-hidden />
+      <canvas ref={lineRef} className={cn("absolute inset-0 block h-full w-full", view === "candles" && "touch-none")} aria-hidden />
     </div>
   );
 }
