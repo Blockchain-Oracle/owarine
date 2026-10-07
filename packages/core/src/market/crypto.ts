@@ -29,8 +29,23 @@ export const CRYPTO_PHASES_SEC: Readonly<Record<number, readonly number[]>> = { 
 /** A Canton adaptation: 24/7 variance accrues every second of a 365-day year, not over 252 × 6.5 exchange hours. */
 export const CALENDAR_YEAR_SEC = 365 * 86_400;
 
+/**
+ * Canton Coin, the network's own asset (revamp 2b). Coinbase does not list it and Kraken's API does not answer from the
+ * venue's host, so it cannot settle on the three exchanges' candles: its Windows settle on RedStone's `CC` feed
+ * (`attested:redstone:CC`, the stock lanes' path), which tracked Bybit's CC/USDT × Coinbase's USDT-USD within ~3 bps
+ * when measured (7 Oct 2026). Its live spot, candles and day figures come from Bybit, the deepest CC book
+ * (`services/ops/src/prices/bybit.ts`). It is a crypto ticker (24/7, the crypto shelf) outside `CRYPTO_SYMBOLS`, which
+ * keeps meaning "settles on the exchange candles".
+ */
+export const CANTON_COIN = "CC" as const;
+export type CantonCoinSymbol = typeof CANTON_COIN;
+
+/** Every crypto asset the venue lists: the exchange-candle pair and Canton Coin. */
+export const CRYPTO_ASSET_SYMBOLS = [...CRYPTO_SYMBOLS, CANTON_COIN] as const;
+export type CryptoAssetSymbol = (typeof CRYPTO_ASSET_SYMBOLS)[number];
+
 /** The crypto rows of the registry, in listing order (every one is 24/7, token lane only). */
-export const CRYPTO_TICKERS: readonly CryptoSymbol[] = CRYPTO_SYMBOLS;
+export const CRYPTO_TICKERS: readonly CryptoAssetSymbol[] = CRYPTO_ASSET_SYMBOLS;
 
 /**
  * Pyth `Crypto.<T>/USD` price feed ids, kept as a named cross-check source for the attested print (a receipt may name
@@ -41,8 +56,8 @@ export const CRYPTO_PYTH_FEEDS: Readonly<Record<CryptoSymbol, Hash32>> = {
   ETH: "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
 };
 
-/** Series ids 940–941; the brand is the asset's own mark colour (`icons.css` gains the matching `--brand-*` in the UI lane). */
-export const CRYPTO_ROWS: Readonly<Record<CryptoSymbol, Ticker>> = {
+/** Series ids 940–942; the brand is the asset's own mark colour (`icons.css` gains the matching `--brand-*` in the UI lane). */
+export const CRYPTO_ROWS: Readonly<Record<CryptoAssetSymbol, Ticker>> = {
   BTC: {
     symbol: "BTC", seriesId: 940, name: "Bitcoin", kind: "crypto", alpacaSymbol: null,
     pythFeedId: null, redstoneFeedId: null, launch: false,
@@ -54,5 +69,12 @@ export const CRYPTO_ROWS: Readonly<Record<CryptoSymbol, Ticker>> = {
     pythFeedId: null, redstoneFeedId: null, launch: false,
     xstock: null, ondo: null, preIpo: null, basket: null, pythIndexFeedId: null, valuationOf: null,
     monogram: "E", brand: { slug: "ethereum", hex: "#627EEA" },
+  },
+  // RedStone carries `CC` (its settlement feed); the Canton brand kit's black under a typed monogram (no glyph vendored).
+  CC: {
+    symbol: "CC", seriesId: 942, name: "Canton Coin", kind: "crypto", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: "CC", launch: false,
+    xstock: null, ondo: null, preIpo: null, basket: null, pythIndexFeedId: null, valuationOf: null,
+    monogram: "C", brand: { slug: "canton", hex: "#030206" },
   },
 };

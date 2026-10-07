@@ -38,3 +38,20 @@ describe("bootstrap and halt-watch read the same lane sources", () => {
     expect(new Set(uncovered)).toEqual(new Set(["BTC", "ETH", "OPENAIV", "ANTHROPICV"]));
   });
 });
+
+describe("Canton Coin lanes (revamp 2b)", () => {
+  const cc = lanesFor(new Set(["cc"]), NOW_SEC);
+
+  it("lists CC on every crypto cadence and stagger, settled on RedStone's CC feed with the crypto lanes' 60 s admission", () => {
+    expect(cc.map((l) => l.seriesKey)).toEqual(["CC-2m", "CC-2m_1", "CC-5m", "CC-5m_3", "CC-15m", "CC-60m", "CC-240m", "CC-1440m"]);
+    for (const lane of cc) {
+      expect(lane.symbol).toBe("CC");
+      expect(lane.versions).toHaveLength(1);
+      expect(lane.versions[0]).toMatchObject({ printSource: "attested:redstone:CC", minDelaySec: 5, barLenSec: 1, openAdmissionSec: 60, closeAdmissionSec: 60, validUntilSec: null });
+    }
+  });
+
+  it("is its own family: the crypto family stays BTC and ETH on the exchange candles", () => {
+    expect(lanesFor(new Set(["crypto"]), NOW_SEC).every((l) => l.symbol !== "CC" && parsePrintSource(l.versions[0]!.printSource)?.source === "exchanges")).toBe(true);
+  });
+});

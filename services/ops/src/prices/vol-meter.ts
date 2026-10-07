@@ -3,19 +3,22 @@
  * Every `everyMin` minutes it pulls the last `windowMin` minutes of 1-minute closes from each oracle exchange, measures
  * the annualised σ of each (core `realisedVol`, 24/7 calendar year) and keeps the median across the exchanges. The
  * pricer reads `sigmaBps(symbol)`: until a crypto symbol has a measurement it is not priced at all, so no crypto fair
- * value ever runs on the old 60 % placeholder. `MM_SIGMA_BPS` still overrides per symbol.
+ * value ever runs on the old 60 % placeholder. `MM_SIGMA_BPS` still overrides per symbol. Canton Coin, which none of
+ * the oracle exchanges serves here, is measured on Bybit's CC/USDT closes alone (`bybit.ts`; a ratio of prices, so the
+ * USDT quote does not move σ).
  */
-import { CALENDAR_YEAR_SEC, CRYPTO_SYMBOLS, medianSigmaBps, realisedVol, type CryptoSymbol } from "@owarine/core/market";
+import { CALENDAR_YEAR_SEC, CRYPTO_ASSET_SYMBOLS, medianSigmaBps, realisedVol, type CryptoAssetSymbol } from "@owarine/core/market";
+import { bybitCloseHistory, isBybitSymbol } from "./bybit";
 import { EXCHANGES, type Exchange, type Fetch } from "./candles";
 import { fetchCloseHistory } from "./candle-history";
 import { runActor } from "../runtime/actor";
 import { errorText } from "../runtime/env";
 
 export interface VolReading {
-  symbol: CryptoSymbol;
+  symbol: CryptoAssetSymbol;
   /** Median across the exchanges that measured, annualised bps. */
   sigmaBps: number;
-  perExchange: Partial<Record<Exchange, { sigmaBps: number; returns: number } | { error: string }>>;
+  perExchange: Partial<Record<Exchange | "bybit", { sigmaBps: number; returns: number } | { error: string }>>;
   windowMin: number;
   measuredAtSec: number;
 }
@@ -27,7 +30,7 @@ export interface VolBoard {
 }
 
 export interface VolMeterSettings {
-  symbols: readonly CryptoSymbol[];
+  symbols: readonly CryptoAssetSymbol[];
   windowMin: number;
   everyMin: number;
   fetchImpl?: Fetch;
@@ -35,18 +38,20 @@ export interface VolMeterSettings {
 
 export function readVolMeterSettings(env: NodeJS.ProcessEnv = process.env): VolMeterSettings {
   const n = (raw: string | undefined, fallback: number, min: number) => (Number.isInteger(Number(raw)) && Number(raw) >= min ? Number(raw) : fallback);
-  return { symbols: CRYPTO_SYMBOLS, windowMin: n(env.VOL_WINDOW_MIN, 1_440, 180), everyMin: n(env.VOL_EVERY_MIN, 30, 1) };
+  return { symbols: CRYPTO_ASSET_SYMBOLS, windowMin: n(env.VOL_WINDOW_MIN, 1_440, 180), everyMin: n(env.VOL_EVERY_MIN, 30, 1) };
 }
 
 /** One measurement of one symbol across the exchanges. */
-export async function measureSymbol(symbol: CryptoSymbol, windowMin: number, nowSec: number, fetchImpl?: Fetch): Promise<VolReading | { symbol: CryptoSymbol; error: string }> {
+export async function measureSymbol(symbol: CryptoAssetSymbol, windowMin: number, nowSec: number, fetchImpl?: Fetch): Promise<VolReading | { symbol: CryptoAssetSymbol; error: string }> {
   const toSec = Math.floor(nowSec / 60) * 60;
   const fromSec = toSec - windowMin * 60;
   const perExchange: VolReading["perExchange"] = {};
+  const sources: ReadonlyArray<Exchange | "bybit"> = isBybitSymbol(symbol) ? ["bybit"] : EXCHANGES;
   const sigmas = await Promise.all(
-    EXCHANGES.map(async (ex) => {
+    sources.map(async (ex) => {
       try {
-        const v = realisedVol(await fetchCloseHistory(ex, symbol, fromSec, toSec, fetchImpl), 60, CALENDAR_YEAR_SEC);
+        const closes = ex === "bybit" ? await bybitCloseHistory(symbol, fromSec, toSec, fetchImpl) : await fetchCloseHistory(ex, symbol, fromSec, toSec, fetchImpl);
+        const v = realisedVol(closes, 60, CALENDAR_YEAR_SEC);
         perExchange[ex] = v ? { sigmaBps: v.sigmaBps, returns: v.returns } : { error: "too few bars" };
         return v?.sigmaBps ?? null;
       } catch (error) {

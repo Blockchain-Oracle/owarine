@@ -9,7 +9,8 @@
  */
 import { loadRelaySources } from "../actors/price-relay/sources";
 import { alpacaKeys } from "../actors/price-relay";
-import { createCryptoSpotFeed, joinCryptoSpot } from "./crypto-spot";
+import { createCryptoAssetSpotFeed } from "./bybit";
+import { joinCryptoSpot } from "./crypto-spot";
 import { createPreStocksSpotFeed, joinPreStocksSpot, type PreStocksSpotHandle } from "./prestocks-spot";
 import type { SpotFeed } from "./spot";
 import { createSpotFeed } from "./spot-feed";
@@ -28,7 +29,7 @@ export interface LocalSpotMakers {
 }
 
 const REAL: LocalSpotMakers = {
-  crypto: (log) => createCryptoSpotFeed({ log }),
+  crypto: (log) => createCryptoAssetSpotFeed(log),
   equity: (alpaca, log) => createSpotFeed({ sources: loadRelaySources(), pythKey: process.env.PYTH_API_KEY || undefined, alpaca, log }),
   prestocks: (log) => createPreStocksSpotFeed({ log }),
 };

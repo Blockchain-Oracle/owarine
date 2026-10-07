@@ -7,7 +7,8 @@
  * lanes' feeders in C6 (plan "Prices and lanes").
  */
 import { createSpotFeed } from "../../prices/spot-feed";
-import { createCryptoSpotFeed, joinCryptoSpot } from "../../prices/crypto-spot";
+import { joinCryptoSpot } from "../../prices/crypto-spot";
+import { createCryptoAssetSpotFeed } from "../../prices/bybit";
 import type { SpotFeed } from "../../prices/spot";
 import { runActor } from "../../runtime/actor";
 import type { VenueDeps } from "../../runtime/deps";
@@ -56,7 +57,7 @@ export async function startPriceRelay(deps: VenueDeps, venue: VenueContext = cre
   const cache = new BoundaryCache(sources, pythKey, deps.pythIndex);
   const equity = createSpotFeed({ sources, pythKey, alpaca: alpacaKeys(), log: (why) => log(`[spot] ${why}`) });
   equity.start();
-  const crypto = createCryptoSpotFeed({ log: (why) => log(`[crypto-spot] ${why}`) });
+  const crypto = createCryptoAssetSpotFeed((why) => log(`[crypto-spot] ${why}`));
   crypto.start();
   const stops: Array<() => void> = [equity.stop, crypto.stop];
 
@@ -66,6 +67,6 @@ export async function startPriceRelay(deps: VenueDeps, venue: VenueContext = cre
   stops.push(startOracleFeeders(venue, (actor) => (why) => log(`[${actor}] ${why}`)).stop);
   // C6: the same oracle parties print the stock, xStock, PreStocks and basket lanes from their original sources.
   stops.push(startLaneFeeders(venue, laneReaderDeps(deps, sources), (actor) => (why) => log(`[${actor}] ${why}`)).stop);
-  log(`relay: RedStone ${sources.redstoneFeeds.length} feeds via ${sources.gateways.join(", ")}; Pyth ${pythKey ? `${sources.pythFeeds.length} trial feeds` : "off (no PYTH_API_KEY)"}; crypto spot from Coinbase; ${venue.summary}`);
+  log(`relay: RedStone ${sources.redstoneFeeds.length} feeds via ${sources.gateways.join(", ")}; Pyth ${pythKey ? `${sources.pythFeeds.length} trial feeds` : "off (no PYTH_API_KEY)"}; crypto spot from Coinbase (BTC, ETH) and Bybit (CC); ${venue.summary}`);
   return { spot: joinCryptoSpot(equity, crypto), stop: () => stops.forEach((stop) => stop()) };
 }

@@ -1,6 +1,6 @@
 /**
  * Chart candles for the trading screen's candle view (revamp step 3; Tradash's `fetchCandles`: 1m…1d, 300 a read):
- * Coinbase Exchange `/products/<S>-USD/candles` for the crypto symbols. Coinbase serves 1m/5m/15m/1h/6h/1d; 3m, 30m, 2h,
+ * Coinbase Exchange `/products/<S>-USD/candles` for BTC and ETH, Bybit's CC/USDT klines in USD for Canton Coin (`bybit.ts`). Coinbase serves 1m/5m/15m/1h/6h/1d; 3m, 30m, 2h,
  * 4h and 12h are aggregated from the next finer one. Stocks and ETFs read Alpaca's bars (`alpaca-bars.ts`) when ops holds
  * Alpaca keys. Display only, cached 10 s per (symbol, interval, end). Anything else answers `unavailable` so the screen
  * says so rather than drawing nothing.
@@ -9,6 +9,7 @@
  */
 import { CRYPTO_SYMBOLS } from "@owarine/core/market";
 import { alpacaCandles, alpacaSymbolOf, type AlpacaKeys } from "./alpaca-bars";
+import { bybitCandles, createUsdtRate, isBybitSymbol, type UsdtRate } from "./bybit";
 import type { Fetch } from "./candles";
 
 export const CANDLE_INTERVALS = ["1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "12h", "1d"] as const;
@@ -48,7 +49,7 @@ export function aggregate(rows: readonly Candle[], sec: number): Candle[] {
   return out;
 }
 
-export function createChartCandles(fetchImpl: Fetch = fetch as Fetch, alpaca: AlpacaKeys | null = null) {
+export function createChartCandles(fetchImpl: Fetch = fetch as Fetch, alpaca: AlpacaKeys | null = null, rate: UsdtRate = createUsdtRate(fetchImpl)) {
   const cache = new Map<string, { atMs: number; body: Promise<Candle[]> }>();
 
   const read = async (symbol: string, interval: CandleInterval, count: number, endMs: number): Promise<Candle[]> => {
@@ -75,14 +76,22 @@ export function createChartCandles(fetchImpl: Fetch = fetch as Fetch, alpaca: Al
     const interval = input.interval as CandleInterval;
     if (!(CANDLE_INTERVALS as readonly string[]).includes(interval)) return { status: 400, body: { error: `interval must be one of ${CANDLE_INTERVALS.join(", ")}` } };
     const crypto = (CRYPTO_SYMBOLS as readonly string[]).includes(input.symbol);
-    const stock = !crypto && alpaca !== null && alpacaSymbolOf(input.symbol) !== null;
-    if (!crypto && !stock) return { status: 404, body: { error: "unavailable", reason: `Candles for ${input.symbol} are not available yet` } };
+    const bybit = isBybitSymbol(input.symbol);
+    const stock = !crypto && !bybit && alpaca !== null && alpacaSymbolOf(input.symbol) !== null;
+    if (!crypto && !bybit && !stock) return { status: 404, body: { error: "unavailable", reason: `Candles for ${input.symbol} are not available yet` } };
     const count = Math.max(1, Math.min(MAX_COUNT, Math.floor(input.count ?? MAX_COUNT)));
     const endMs = input.endMs && Number.isFinite(input.endMs) ? input.endMs : Date.now();
     const key = `${input.symbol}:${interval}:${count}:${Math.floor(endMs / CACHE_MS)}`;
     let hit = cache.get(key);
     if (!hit || Date.now() - hit.atMs > CACHE_MS) {
-      hit = { atMs: Date.now(), body: stock ? alpacaCandles(fetchImpl, alpaca!, input.symbol, interval, INTERVAL_SEC[interval], count, endMs) : read(input.symbol, interval, count, endMs) };
+      hit = {
+        atMs: Date.now(),
+        body: stock
+          ? alpacaCandles(fetchImpl, alpaca!, input.symbol, interval, INTERVAL_SEC[interval], count, endMs)
+          : bybit
+            ? bybitCandles(fetchImpl, rate, input.symbol, INTERVAL_SEC[interval], count, endMs).then((rows) => rows.slice(-count))
+            : read(input.symbol, interval, count, endMs),
+      };
       cache.set(key, hit);
       if (cache.size > 200) cache.delete(cache.keys().next().value!);
     }

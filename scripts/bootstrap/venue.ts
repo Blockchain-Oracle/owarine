@@ -12,7 +12,7 @@
 import type { Command, CreatedEvent, LedgerClient } from "@owarine/ledger";
 import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
 import {
-  attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_PHASES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
+  attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CANTON_COIN, CRYPTO_CADENCES_SEC, CRYPTO_PHASES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
   SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS,
 } from "@owarine/core/market";
 import { GAP_CADENCE_SEC } from "@owarine/core/types";
@@ -113,6 +113,25 @@ function cryptoLanes(nowSec: number): LaneSpec[] {
   );
 }
 
+/**
+ * Canton Coin (revamp 2b) on the crypto cadences and staggers, settled on RedStone's `CC` feed: the three oracle parties
+ * each read it at T and post (`lane-feeder.ts`), as on the stock lanes. The timing is the crypto lanes' (print from
+ * T + 5, admitted for 60 s), not RedStone's 900 s admission: a 2-minute Window must not open on a print a quarter of an
+ * hour late, so a missed read voids it like a missed candle does.
+ */
+function ccLanes(nowSec: number): LaneSpec[] {
+  const printSource = attestedPrintSource("redstone", TICKERS[CANTON_COIN].redstoneFeedId!);
+  return CRYPTO_CADENCES_SEC.flatMap((cadenceSec) =>
+    (CRYPTO_PHASES_SEC[cadenceSec] ?? [0]).map((phaseSec): LaneSpec => ({
+      seriesKey: laneKey(CANTON_COIN, "token", cadenceSec, phaseSec), symbol: CANTON_COIN, cadenceSec, phaseSec, lockLeadSec: CRYPTO_LOCK_LEAD_SEC[cadenceSec]!,
+      versions: [{
+        effectiveFromSec: Math.floor(nowSec / cadenceSec) * cadenceSec - cadenceSec, validUntilSec: null, printSource, minDelaySec: 5, barLenSec: BAR_LEN_SEC.redstone,
+        openAdmissionSec: 60, closeAdmissionSec: 60,
+      }],
+    })),
+  );
+}
+
 /** The reference's price-source matrix (D-003) and the Canton-only versions (C6e, K-070): one table, `lane-versions.ts`, shared with halt-watch. */
 const SOURCES = loadPriceSources();
 
@@ -179,7 +198,7 @@ function equityLanes(families: ReadonlySet<string>): LaneSpec[] {
 
 /** Every lane the families name, keyed as the roller and the web key them. */
 export function lanesFor(families: ReadonlySet<string>, nowSec: number): LaneSpec[] {
-  return [...(families.has("crypto") ? cryptoLanes(nowSec) : []), ...equityLanes(families)];
+  return [...(families.has("crypto") ? cryptoLanes(nowSec) : []), ...(families.has("cc") ? ccLanes(nowSec) : []), ...equityLanes(families)];
 }
 
 export async function bootstrapVenue(o: VenueBootstrapOptions): Promise<void> {

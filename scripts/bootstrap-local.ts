@@ -87,7 +87,7 @@ async function upload(path: string): Promise<void> {
 async function main(): Promise<void> {
   // `--lanes crypto,regular,gap,token,preipo,basket` (the default); `valuation` registers only with an entitled Pyth key
   // (C8j.2): refused before anything is written, as the reference's init-valuation-series refuses.
-  const lanes = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
+  const lanes = new Set(arg("--lanes", "crypto,cc,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
   const gate = await valuationGate(lanes, { key: process.env.PYTH_API_KEY || undefined });
   if (gate.requested && !gate.entitled) throw new Error(valuationRefusal(gate));
   if (gate.requested) log(`valuation lanes: ${gate.lines.join(" · ")}`);

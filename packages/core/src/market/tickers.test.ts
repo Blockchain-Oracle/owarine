@@ -159,8 +159,10 @@ describe("valuation lanes (S20, D-125)", () => {
     }
   });
 
-  it("lists BTC and ETH as 24/7 crypto assets, only on the token lane", () => {
-    expect(CRYPTO_TICKERS).toEqual(["BTC", "ETH"]);
+  it("lists BTC, ETH and Canton Coin as 24/7 crypto assets, only on the token lane", () => {
+    expect(CRYPTO_TICKERS).toEqual(["BTC", "ETH", "CC"]);
+    // Only Canton Coin settles on RedStone (revamp 2b); BTC and ETH stay on the exchange candles, off the equity paths.
+    expect(CRYPTO_TICKERS.map((s) => TICKERS[s].redstoneFeedId)).toEqual([null, null, "CC"]);
     for (const symbol of CRYPTO_TICKERS) {
       const t = TICKERS[symbol];
       expect(isTokenOnlyKind(t.kind)).toBe(true);

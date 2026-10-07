@@ -5,7 +5,7 @@
  * fair value reads it (spot against the Window's recorded open print) and `/prices/stream` serves it. It never settles
  * anything: Windows settle on the oracle parties' attested candle closes.
  */
-import { CRYPTO_SYMBOLS, type CryptoSymbol } from "@owarine/core/market";
+import { CRYPTO_ASSET_SYMBOLS, CRYPTO_SYMBOLS, type CryptoSymbol } from "@owarine/core/market";
 import { errorText } from "../runtime/env";
 import { registerHeartbeat } from "../runtime/heartbeat";
 import { decimalToE8, type Fetch } from "./candles";
@@ -177,9 +177,9 @@ export function createCryptoSpotFeed(input: {
   };
 }
 
-/** The crypto feed first for its symbols, else `base` (the process's equity feed); null base serves crypto alone. */
+/** The crypto feed first for its symbols (Canton Coin too, `bybit.ts`), else `base` (the process's equity feed); null base serves crypto alone. */
 export function joinCryptoSpot(base: SpotFeed | null, crypto: SpotFeed): SpotFeed {
-  const isCrypto = (s: string) => (CRYPTO_SYMBOLS as readonly string[]).includes(s);
+  const isCrypto = (s: string) => (CRYPTO_ASSET_SYMBOLS as readonly string[]).includes(s);
   return {
     latest: (symbol, maxAgeSec) => (isCrypto(symbol) ? crypto.latest(symbol, maxAgeSec) : (base?.latest(symbol, maxAgeSec) ?? null)),
     subscribe(listener) {

@@ -78,7 +78,7 @@ export function priceSourceLine(market: Pick<EventMarket, "asset" | "lane" | "tr
     const basket = basketOf(market.asset);
     if (basket) return LANE_STATE.source.basket(basket.name, basket.members.map((m) => TICKERS[m.symbol].name).join(", "));
     if (ticker.kind === "valuation") return LANE_STATE.source.valuation(TICKERS[ticker.valuationOf!].name);
-    if (ticker.kind === "crypto") return LANE_STATE.source.crypto(market.asset);
+    if (ticker.kind === "crypto") return ticker.redstoneFeedId ? LANE_STATE.source.cantonCoin : LANE_STATE.source.crypto(market.asset);
     if (ticker.kind === "preIpo") return LANE_STATE.source.preIpo(ticker.name);
     return LANE_STATE.source.token(laneAssetLabel(market.asset, "token"));
   }

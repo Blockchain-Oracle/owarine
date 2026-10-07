@@ -18,7 +18,7 @@
  *   LEDGER_AUTH_MODE=password LEDGER_JSON_API_URL=… LEDGER_OIDC_TOKEN_URL=… LEDGER_OIDC_CLIENT_ID=… \
  *   LEDGER_OIDC_USERNAME=… LEDGER_OIDC_PASSWORD=… \
  *   pnpm --filter @owarine/scripts exec tsx bootstrap-devnet.ts [--parties file] [--out file] [--seats 8] [--dry-run]
- *     [--check-only] [--shards 16] [--lanes crypto,regular,gap,token,preipo,basket] [--reserve-seed 10000]
+ *     [--check-only] [--shards 16] [--lanes crypto,cc,regular,gap,token,preipo,basket] [--reserve-seed 10000]
  *     [--no-tickets] [--no-games] [--allow-local] [--run <id>]
  *
  * Every write's commandId ends in the run id (`devnet-<base36 time>`, printed at the start). A write that meets
@@ -114,7 +114,7 @@ async function main(): Promise<number> {
   const dars = repoDars().filter((d) => (flag("--no-tickets") ? d.name !== "abu-pm-tickets" : true) && (flag("--no-games") ? d.name !== "abu-pm-games" : true));
   rows.push(...(await verifyPackages(client, dars)));
   // C8j.2: `valuation` registers only while the venue's Pyth key reads every valuation index (D-125, no dead lane).
-  const lanes = new Set(arg("--lanes", "crypto,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
+  const lanes = new Set(arg("--lanes", "crypto,cc,regular,gap,token,preipo,basket").split(",").map((s) => s.trim()));
   const gate = await valuationGate(lanes, { key: process.env.PYTH_API_KEY || undefined });
   if (gate.requested) rows.push({ check: "valuation lanes entitled", outcome: gate.entitled ? "pass" : "fail", detail: gate.entitled ? gate.lines.join(" · ") : valuationRefusal(gate), evidence: "GET hermes /v2/updates/price/latest per index" });
   console.log(table(rows));

@@ -36,6 +36,7 @@
   --brand-anthropicv: #636158;
   --brand-bitcoin: #F7931A;
   --brand-ethereum: #627EEA;
+  --brand-canton: #030206;
 }
 .mark-tesla-disc { fill: var(--brand-tesla); }
 .mark-nvidia-disc { fill: var(--brand-nvidia); }
@@ -64,6 +65,7 @@
 .mark-anthropicv-disc { fill: var(--brand-anthropicv); }
 .mark-bitcoin-disc { fill: var(--brand-bitcoin); }
 .mark-ethereum-disc { fill: var(--brand-ethereum); }
+.mark-canton-disc { fill: var(--brand-canton); }
 /* The glyph and the typed monogram are white on the brand disc, as Bitcoin's ₿ is. */
 .mark-glyph { fill: #fff; }
 .mark-monogram { fill: #fff; font-family: var(--font-display); font-weight: 800; font-size: 17px; text-anchor: middle; dominant-baseline: central; font-stretch: 100%; }

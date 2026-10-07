@@ -37,6 +37,8 @@ export const LANE_STATE = {
     basket: (name: string, members: string) => `Settles on the ${name} index, in points: ${members} weighted equally from one PreStocks read ≤ 45 s after each boundary, attested by three oracle parties · single source`,
     /** C6: BTC and ETH, every cadence. */
     crypto: (asset: string) => `Settles on the median ${asset} 1-minute candle close of Coinbase, Kraken and Bitstamp, one per oracle party · chart follows Coinbase`,
+    /** Canton Coin (revamp 2b): Coinbase does not list it, so the oracle parties attest RedStone's feed, as on the stock lanes. */
+    cantonCoin: "Settles on RedStone's CC/USD at the open and the close, read and signed by each oracle party · chart follows Bybit's CC/USDT in dollars",
     /** C6: a committee-attested event (an Addition). */
     event: "Settles YES or NO on the committee's attestation, recorded by the resolver and the venue",
   },
