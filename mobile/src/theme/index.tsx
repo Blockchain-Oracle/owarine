@@ -1,15 +1,14 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { useColorScheme } from "react-native";
 import { useMMKVString } from "react-native-mmkv";
 import { storage } from "~/lib/storage";
 import { DARK, LIGHT, type Palette } from "./palette";
 
-export { FONT, RADIUS, SPACE, TYPE } from "./type";
+export { FONT, OW_TYPE, RADIUS, SPACE, TYPE } from "./type";
 export type { Palette } from "./palette";
 export { AVATAR_COLORS } from "./palette";
 
 export type ThemeName = "dark" | "light";
-/** Web's key (lib/theme.ts): a stored choice wins over the system setting. */
+/** Web's key (lib/theme.ts): a stored choice wins; otherwise light, whatever the system says (K-403). */
 const THEME_KEY = "owarine_theme";
 
 interface ThemeValue {
@@ -21,9 +20,8 @@ interface ThemeValue {
 const ThemeContext = createContext<ThemeValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const system = useColorScheme();
   const [stored, setStored] = useMMKVString(THEME_KEY, storage);
-  const name: ThemeName = stored === "light" || stored === "dark" ? stored : system === "light" ? "light" : "dark";
+  const name: ThemeName = stored === "dark" ? "dark" : "light";
   const value = useMemo<ThemeValue>(
     () => ({ name, color: name === "dark" ? DARK : LIGHT, setTheme: (next) => setStored(next ?? undefined) }),
     [name, setStored],

@@ -1,7 +1,7 @@
 /**
- * Yosuku's palette as web ships it (web/src/styles/yosuku/part-01.css dark, part-13.css light). The light ramp is
- * inverted there (50 = darkest ink), so every role below resolves per theme exactly as web/src/styles/bridge.css does.
- * React Native has no color-mix(): the washes are the same mixes, precomputed.
+ * The palette as web ships it (web/src/styles/yosuku/part-01.css dark, part-13.css light, and the K-403 kit tokens in
+ * web/src/styles/owarine.css): UGLYCASH's ice canvas, white cards, black ink and Power Pink as the one action fill.
+ * Every role below resolves per theme exactly as web does. React Native has no color-mix(): washes are precomputed.
  */
 function rgba(hex: string, alpha: number): string {
   const n = Number.parseInt(hex.slice(1), 16);
@@ -15,7 +15,7 @@ const DARK_RAMP = {
 };
 
 const LIGHT_RAMP = {
-  bg: "#F2F2F2", ink: "#0A0A0A",
+  bg: "#F2F2F2", ink: "#000000",
   g400: "#5E5E5E", g500: "#7A7A7A", g600: "#888888", g700: "#DCDCDC", g800: "#E8E8E8", g900: "#FFFFFF",
   signal: "#FA00FF", signalD: "#D600DB", profit: "#078A2E", loss: "#D21F1F",
 };
@@ -32,8 +32,8 @@ function roles(ramp: typeof DARK_RAMP, dark: boolean) {
     inkSecondary: ramp.g400,
     inkMuted: ramp.g500,
     inkDisabled: ramp.g600,
-    /** Signal as ink (text, lines, icons): the signal on the dark canvas, ink on paper (K-402). */
-    accent: dark ? ramp.signal : ramp.ink,
+    /** Pink as ink (text, lines, icons): lightened on the dark canvas, darkened on the ice one (K-403). */
+    accent: dark ? "#FF6BFF" : "#B000B5",
     /** Signal as a fill: the primary action, the live state, the call that came in. Text on it is `onAccent`. */
     accentFill: ramp.signal,
     /** The mark's signal tile, the same in both themes. */
@@ -41,7 +41,7 @@ function roles(ramp: typeof DARK_RAMP, dark: boolean) {
     accentPressed: ramp.signalD,
     accentDim: rgba(ramp.signal, 0.45),
     accentWash: rgba(ramp.signal, 0.12),
-    onAccent: "#0A0A0A",
+    onAccent: "#FFFFFF",
     profit: ramp.profit,
     loss: ramp.loss,
     profitWash: rgba(ramp.profit, 0.14),
@@ -61,6 +61,41 @@ function roles(ramp: typeof DARK_RAMP, dark: boolean) {
     markUsdc: "#2775CA",
     warning: "#F2994A",
     info: "#60A5FA",
+    /** The K-403 kit (web styles/owarine.css --ow-*), the same names on both surfaces. */
+    ow: {
+      canvas: ramp.bg,
+      card: dark ? "#161616" : "#FFFFFF",
+      recessed: dark ? "#222222" : "#E8E8E8",
+      hairline: dark ? "#2C2C2C" : "#DCDCDC",
+      ink: dark ? "#FFFFFF" : "#000000",
+      muted: dark ? "#A3A3A3" : "#5E5E5E",
+      helper: dark ? "#7A7A7A" : "#888888",
+      inverse: dark ? "#000000" : "#FFFFFF",
+      pink: "#FA00FF",
+      pinkPressed: "#D600DB",
+      pinkInk: dark ? "#FF6BFF" : "#B000B5",
+      pinkWash: rgba("#FA00FF", 0.15),
+      onPink: "#FFFFFF",
+      up: dark ? "#3DDC5A" : "#078A2E",
+      upLine: dark ? "#3DDC5A" : "#19C23E",
+      down: dark ? "#FF5A52" : "#D21F1F",
+      downLine: dark ? "#FF5A52" : "#FF3B30",
+      sky: "#02BBFF",
+      skyTop: "#02A6F0",
+      skyMid: "#7FD9FF",
+      skyHorizon: "#D9F3FF",
+      lime: "#ADFF02",
+      cream: "#E7E3BF",
+      black: "#000000",
+      white: "#FFFFFF",
+      win: "#078A2E",
+      lose: "#D21F1F",
+      upOnBlack: "#3DDC5A",
+      downOnBlack: "#FF6B63",
+      chain: "#B9B9B9",
+      scrim: dark ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.42)",
+      whiteDim: "rgba(255, 255, 255, 0.6)",
+    },
   };
 }
 

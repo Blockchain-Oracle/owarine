@@ -50,6 +50,8 @@ interface BottomDrawerProps {
   corner?: ReactNode;
   /** Receives the animated close, for the screen that renders the drawer itself (a result that lands later, say). */
   closeRef?: MutableRefObject<DrawerClose | null>;
+  /** The panel's top corner radius: 24, or the kit sheet's 32 (K-403). */
+  radius?: number;
 }
 
 export type DrawerClose = (after?: () => void) => void;
@@ -60,7 +62,7 @@ export type DrawerClose = (after?: () => void) => void;
  * handle, drag-down to dismiss (distance or velocity) that hands over to the content's own scroll, the safe area kept
  * under it, and the keyboard pushing it up so an amount field stays in view. Reduce Motion swaps the spring for a fade.
  */
-export function BottomDrawer({ onClose, children, background, border, contentStyle, closeLabel, maxHeight = 0.9, corner, closeRef }: BottomDrawerProps) {
+export function BottomDrawer({ onClose, children, background, border, contentStyle, closeLabel, maxHeight = 0.9, corner, closeRef, radius = 24 }: BottomDrawerProps) {
   const { name, color } = useTheme();
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -160,7 +162,7 @@ export function BottomDrawer({ onClose, children, background, border, contentSty
             accessibilityViewIsModal
             style={[
               styles.panel,
-              { maxHeight: windowHeight * maxHeight, backgroundColor: background ?? color.surface1 },
+              { maxHeight: windowHeight * maxHeight, backgroundColor: background ?? color.surface1, borderTopLeftRadius: radius, borderTopRightRadius: radius },
               border ? { borderColor: border, borderWidth: 1, borderBottomWidth: 0 } : null,
               panelStyle,
             ]}

@@ -2,22 +2,20 @@ import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from "@expo-google-
 import { useFonts } from "expo-font";
 
 /**
- * Owarine's faces (K-402), keyed by the names theme/type.ts uses. One family, Mona Sans (OFL, github/mona-sans via
- * google/fonts), at three widths, cut from its variable font into static files because React Native cannot set a
- * variable axis: Expanded (wdth 125) for headings and labels, Normal for body text and figures, Condensed (wdth 75)
- * for the scoreboard numerals. Noto Sans JP 900 ships as a subset of the 40 kana and kanji the app draws. JetBrains
- * Mono stays for code only: party ids, update ids, the literal ledger query.
+ * Owarine's faces (K-403), keyed by the names theme/type.ts uses. React Native cannot drive a variable axis, so Archivo
+ * and Inter are static cuts from their variable fonts (OFL, google/fonts; assets/fonts/*-OFL.txt): Archivo at wdth 62
+ * (ExtraCondensed) 900 and 800 and wdth 75 700 for the display, Inter at opsz 14 in five weights. Noto Sans JP 900
+ * ships as a subset of the kana and kanji the app draws. JetBrains Mono stays for code only.
  */
 const FACES = {
-  MonaSans_Expanded600: require("../../assets/fonts/MonaSans-Expanded-600.ttf"),
-  MonaSans_Expanded700: require("../../assets/fonts/MonaSans-Expanded-700.ttf"),
-  MonaSans_Expanded800: require("../../assets/fonts/MonaSans-Expanded-800.ttf"),
-  MonaSans_400: require("../../assets/fonts/MonaSans-Normal-400.ttf"),
-  MonaSans_500: require("../../assets/fonts/MonaSans-Normal-500.ttf"),
-  MonaSans_600: require("../../assets/fonts/MonaSans-Normal-600.ttf"),
-  MonaSans_700: require("../../assets/fonts/MonaSans-Normal-700.ttf"),
-  MonaSans_800: require("../../assets/fonts/MonaSans-Normal-800.ttf"),
-  MonaSans_Condensed800: require("../../assets/fonts/MonaSans-Condensed-800.ttf"),
+  Archivo_ExtraCondensed900: require("../../assets/fonts/Archivo-ExtraCondensed-900.ttf"),
+  Archivo_ExtraCondensed800: require("../../assets/fonts/Archivo-ExtraCondensed-800.ttf"),
+  Archivo_Condensed700: require("../../assets/fonts/Archivo-Condensed-700.ttf"),
+  Inter_400: require("../../assets/fonts/Inter-400.ttf"),
+  Inter_500: require("../../assets/fonts/Inter-500.ttf"),
+  Inter_600: require("../../assets/fonts/Inter-600.ttf"),
+  Inter_700: require("../../assets/fonts/Inter-700.ttf"),
+  Inter_800: require("../../assets/fonts/Inter-800.ttf"),
   NotoSansJP_900: require("../../assets/fonts/NotoSansJP-900-subset.ttf"),
   JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,

@@ -1,24 +1,50 @@
 import type { TextStyle } from "react-native";
 
-/** Loaded font family names (expo-font keys, theme/fonts.ts): Mona Sans Expanded for headings and labels, Mona Sans for body
- * and figures, Mona Sans Condensed for scoreboard numerals, Noto Sans JP for the stamp, JetBrains Mono for code only. */
+/** Loaded font family names (expo-font keys, theme/fonts.ts), K-403: Archivo cut at its narrowest width for the
+ * condensed black display (UGLYCASH's headline), Inter for body, labels and figures, Noto Sans JP for 終値 and the stamp,
+ * JetBrains Mono for code only. The legacy role names stay so the screens not yet rebuilt keep resolving. */
 export const FONT = {
-  headingRegular: "MonaSans_Expanded600",
-  headingSemi: "MonaSans_Expanded600",
-  heading: "MonaSans_Expanded700",
-  headingHeavy: "MonaSans_Expanded800",
-  body: "MonaSans_400",
-  bodyMedium: "MonaSans_500",
-  bodyStrong: "MonaSans_600",
-  bodyBold: "MonaSans_700",
-  bodyHeavy: "MonaSans_800",
-  dataRegular: "MonaSans_400",
-  data: "MonaSans_500",
-  dataStrong: "MonaSans_600",
-  scoreboard: "MonaSans_Condensed800",
-  label: "MonaSans_Expanded600",
+  display: "Archivo_ExtraCondensed900",
+  displayHeavy: "Archivo_ExtraCondensed800",
+  displayCondensed: "Archivo_Condensed700",
+  headingRegular: "Inter_600",
+  headingSemi: "Inter_600",
+  heading: "Inter_700",
+  headingHeavy: "Inter_800",
+  body: "Inter_400",
+  bodyMedium: "Inter_500",
+  bodyStrong: "Inter_600",
+  bodyBold: "Inter_700",
+  bodyHeavy: "Inter_800",
+  dataRegular: "Inter_400",
+  data: "Inter_500",
+  dataStrong: "Inter_600",
+  scoreboard: "Archivo_ExtraCondensed800",
+  label: "Inter_600",
   code: "JetBrainsMono_500Medium",
   stamp: "NotoSansJP_900",
+} as const;
+
+/**
+ * The kit's type scale (web styles/owarine.css --text-ow-*), letter-spacing em → points at each size. Display is
+ * uppercase condensed black at -0.033em; body is Inter at -0.02em. Every lineHeight is at least the size (iOS clips
+ * glyph tops otherwise; the app's tight-leading rule).
+ */
+export const OW_TYPE = {
+  display: (size: number): TextStyle => ({ fontFamily: FONT.display, fontSize: size, lineHeight: size, letterSpacing: -0.033 * size, textTransform: "uppercase" }),
+  body: (size: number, weight: "400" | "500" | "600" | "700" | "800" = "400"): TextStyle => ({
+    fontFamily: `Inter_${weight}`,
+    fontSize: size,
+    lineHeight: Math.round(size * 1.35),
+    letterSpacing: -0.02 * size,
+  }),
+  num: (size: number, weight: "400" | "500" | "600" | "700" | "800" = "700"): TextStyle => ({
+    fontFamily: `Inter_${weight}`,
+    fontSize: size,
+    lineHeight: Math.ceil(size * 1.1),
+    letterSpacing: -0.03 * size,
+    fontVariant: ["tabular-nums"],
+  }),
 } as const;
 
 /** bridge.css's type scale; letter-spacing em → points at each size. */

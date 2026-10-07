@@ -49,5 +49,5 @@ export type LanesTokens = typeof DARK;
 export const lanesTokens = (name: ThemeName): LanesTokens => (name === "dark" ? DARK : LIGHT);
 
 /** `.mc-cadence` is Noto Serif JP 500 (fonts.ts loads it under this key; theme/type.ts names only the 700 stamp). */
-/** The cadence tag's face: Mona Sans Expanded, upright (K-402; it was an italic serif word). */
-export const SERIF_MEDIUM = "MonaSans_Expanded700";
+/** The cadence tag's face: Inter Bold, upright (K-403; it was an italic serif word). */
+export const SERIF_MEDIUM = "Inter_700";

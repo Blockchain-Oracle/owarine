@@ -6,14 +6,14 @@ import { FONT, useTheme } from "~/theme";
 import { hiwTokens } from "~/theme/web/explore/how-it-works";
 
 /**
- * The faces how-it-works.css asks for, from the app's own set (theme/fonts.ts, K-402): Mona Sans 700 and Expanded 800
- * for the title, labels and numbers, and Mona Sans 700 / Condensed 800 for the chips and the figures.
+ * The faces how-it-works.css asks for, from the app's own set (theme/fonts.ts, K-403): Inter 700 and Archivo
+ * ExtraCondensed 900 for the title, labels and numbers, and Inter 700 / Archivo ExtraCondensed 800 for the chips and figures.
  */
 export const HIW_FONT = {
-  bold: "MonaSans_700",
-  black: "MonaSans_Expanded800",
-  monoBold: "MonaSans_700",
-  monoHeavy: "MonaSans_Condensed800",
+  bold: "Inter_700",
+  black: "Archivo_ExtraCondensed900",
+  monoBold: "Inter_700",
+  monoHeavy: "Archivo_ExtraCondensed800",
 } as const;
 
 export type HiwTone = "plain" | "mint" | "blue";
