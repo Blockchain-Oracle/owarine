@@ -84,7 +84,7 @@ export function TerminalSheets(props: {
         equity={props.equity}
         todayPnl={todayRealized + props.totalsPnl}
         onTour={() => onOpen("tutorial")}
-        onTakeSeat={props.onTakeSeat}
+        onTakeSeat={() => (onClose(), props.onTakeSeat())}
         onLeaderboard={() => onOpen("leaderboard")}
         onInstall={() => onOpen("install")}
         onReplay={(row, episode) => {

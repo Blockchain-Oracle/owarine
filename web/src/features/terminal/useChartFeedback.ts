@@ -30,10 +30,12 @@ export function useChartFeedback(input: {
   const { active, activeLive, spot, spotSymbol, linePrice, breakEven, reactionsEnabled } = input;
   const filled = activeLive !== null && activeLive.fillableLots > 0n;
 
+  // Locked (no exit to price it by): colour by what settlement would pay now — Up wins above the Line, Down below it.
+  const settlesWin = linePrice === null || spot === null ? null : active?.side === "up" ? spot > linePrice : spot < linePrice;
   const overlay = useRef<ChartOverlay | null>(null);
   overlay.current = active
     ? {
-        pnl: filled ? credits(activeLive.pnlBase) : 0,
+        pnl: filled ? credits(activeLive.pnlBase) : settlesWin === false ? -1 : 0,
         pnlText: filled ? money(activeLive.pnlBase, active.decimals, true) : "locked",
         entry: active.entrySpot,
         levels: [

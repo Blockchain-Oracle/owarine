@@ -163,7 +163,9 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const active = positions.find((p) => p.marketId === market?.marketId) ?? null;
   const activeLive = active ? (book.get(active.id) ?? null) : null;
   const totals = totalsOf(positions, book);
-  const equity = cashBase === null ? null : mode === "demo" ? toCredits(cashBase) + totals.pnl : toCredits(cashBase) + positions.reduce((s, p) => s + toCredits(book.get(p.id)?.exitBase ?? 0n), 0);
+  // A position with no exit to price it by (locked before the close) counts at cost in equity, as it does in PnL.
+  const exitOrCost = (p: TerminalPosition, v: LivePnlView | undefined) => (v && v.fillableLots > 0n ? v.exitBase : p.costBasisBase);
+  const equity = cashBase === null ? null : mode === "demo" ? toCredits(cashBase) + totals.pnl : toCredits(cashBase) + positions.reduce((s, p) => s + toCredits(exitOrCost(p, book.get(p.id))), 0);
 
   const trade = useTerminalTrade({
     mode, market, spot, stakeBase, availableBase: cashBase, quotes, slippageBps: settings.slippageBps, linePrice,

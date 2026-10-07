@@ -16,17 +16,22 @@ const num = (base: bigint, decimals: number) => Number(base) / 10 ** decimals;
 export interface PositionsTotals {
   pnl: number;
   cost: number;
+  /** Positions with no exit to price them by (locked before the close, or no bid yet): left out of `pnl`, never counted as 0. */
+  unpriced: number;
 }
 
 export function totalsOf(positions: readonly TerminalPosition[], book: ReadonlyMap<string, LivePnlView>): PositionsTotals {
   let pnl = 0;
   let cost = 0;
+  let unpriced = 0;
   for (const p of positions) {
     const v = book.get(p.id);
-    cost += num(p.costBasisBase, p.decimals);
-    if (v && v.fillableLots > 0n) pnl += num(v.pnlBase, p.decimals);
+    if (v && v.fillableLots > 0n) {
+      pnl += num(v.pnlBase, p.decimals);
+      cost += num(p.costBasisBase, p.decimals);
+    } else unpriced += 1;
   }
-  return { pnl, cost };
+  return { pnl, cost, unpriced };
 }
 
 /** "Unrealized PnL", the total's rolling digits (decimals by size) and its % of what was put in; Close all when > 1. */
@@ -43,8 +48,24 @@ export function UnrealizedCard({ totals, count, onCloseAll, closingAll }: { tota
           </button>
         ) : null}
       </div>
-      <Odometer kind="plain" signed tone zeroIsUp value={totals.pnl} decimals={moneyDecimals(totals.pnl)} className="mt-1 text-ow-title font-bold" />
-      {count > 0 ? <Odometer kind="pct" value={pct} decimals={2} className="block text-ow-caption font-semibold" /> : null}
+      {count > 0 && totals.unpriced === count ? (
+        <>
+          <p className="mt-1 text-ow-title font-bold text-ow-muted">—</p>
+          <p className="flex items-center gap-1 text-ow-caption text-ow-muted">
+            <Lock className="size-3.5" /> Locked · pays at the close
+          </p>
+        </>
+      ) : (
+        <>
+          <Odometer kind="plain" signed tone zeroIsUp value={totals.pnl} decimals={moneyDecimals(totals.pnl)} className="mt-1 text-ow-title font-bold" />
+          {count > 0 ? (
+            <span className="flex items-center gap-1.5">
+              <Odometer kind="pct" value={pct} decimals={2} className="block text-ow-caption font-semibold" />
+              {totals.unpriced > 0 ? <span className="text-ow-caption text-ow-muted">· {totals.unpriced} locked</span> : null}
+            </span>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }
@@ -80,7 +101,8 @@ export function PositionsList({
 function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: TerminalPosition; live: LivePnlView | null; nowSec: number; onShare: (p: TerminalPosition) => void; onAdd: (p: TerminalPosition) => void; onReduce: (p: TerminalPosition) => void }) {
   const [open, setOpen] = useState(false);
   const cost = num(p.costBasisBase, p.decimals);
-  const pnl = live && live.fillableLots > 0n ? num(live.pnlBase, p.decimals) : 0;
+  const priced = live !== null && live.fillableLots > 0n;
+  const pnl = priced ? num(live.pnlBase, p.decimals) : 0;
   const roi = cost > 0 ? (pnl / cost) * 100 : 0;
   const held = p.side === "up" ? p.balanceUpRaw : p.balanceDownRaw;
   // A right call pays the contracts' face value, so the average price is cost ÷ face, in ticks of 1000.
@@ -104,7 +126,7 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
         </span>
         <span className="flex flex-col items-end">
           {locked ? <Lock className="size-4 text-ow-muted" /> : <Odometer kind="pct" value={roi} decimals={1} className="text-ow-body font-bold" />}
-          <Odometer kind="plain" signed tone value={pnl} decimals={moneyDecimals(pnl)} className="text-ow-micro font-semibold" />
+          {priced ? <Odometer kind="plain" signed tone value={pnl} decimals={moneyDecimals(pnl)} className="text-ow-micro font-semibold" /> : <span className="text-ow-micro font-semibold text-ow-muted">—</span>}
         </span>
         <ChevronDown className={cn("size-4 text-ow-muted transition-transform", open && "rotate-180")} />
         <span
