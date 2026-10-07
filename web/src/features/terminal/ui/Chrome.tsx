@@ -41,7 +41,7 @@ export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowS
   closeSec: number | null;
   lockSec: number | null;
   nowSec: number;
-  state: "trading" | "locked" | "next" | "none";
+  state: "trading" | "pricing" | "locked" | "next" | "none";
 }) {
   return (
     <div className="ow-glass flex items-center gap-1 rounded-full p-1">
@@ -57,7 +57,7 @@ export function WindowChip({ lanes, intervalSec, onPick, closeSec, lockSec, nowS
         </button>
       ))}
       <span className="ow-num px-2 text-ow-caption text-ow-muted">
-        {state === "trading" && lockSec !== null ? `trades ${untilText(lockSec, nowSec)}` : state === "locked" && closeSec !== null ? `closes ${untilText(closeSec, nowSec)}` : state === "next" ? "next Window soon" : "no Window"}
+        {state === "trading" && lockSec !== null ? `trades ${untilText(lockSec, nowSec)}` : state === "locked" && closeSec !== null ? `closes ${untilText(closeSec, nowSec)}` : state === "next" ? "next Window soon" : state === "pricing" ? "pricing…" : "no Window"}
       </span>
     </div>
   );

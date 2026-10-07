@@ -120,7 +120,17 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const openPrint = useOpeningPrice(market?.marketId ?? null);
   const linePrice = ladder?.openPriceE8 ? Number(ladder.openPriceE8) / 1e8 : openPrint && isOk(openPrint) && openPrint.value !== null ? Number(openPrint.value) / 1e8 : null;
   const spot = useCommittedSpot(spotSymbol);
-  const windowState: "trading" | "locked" | "next" | "none" = !market ? "none" : nowSec < market.tradingStartSec ? "next" : nowSec < (ladder?.quotingUntilSec ?? market.lockAtSec) ? "trading" : "locked";
+  // "pricing": the Window has started but its opening print isn't on the ledger yet (the oracles post at T + 10 s and
+  // the venue quotes only once the print is recorded), so there is nothing to fill.
+  const windowState: "trading" | "pricing" | "locked" | "next" | "none" = !market
+    ? "none"
+    : nowSec < market.tradingStartSec
+      ? "next"
+      : nowSec >= (ladder?.quotingUntilSec ?? market.lockAtSec)
+        ? "locked"
+        : linePrice === null
+          ? "pricing"
+          : "trading";
 
   // Money.
   const sheetReading = useBalanceSheet(mode === "live" ? address : null);
