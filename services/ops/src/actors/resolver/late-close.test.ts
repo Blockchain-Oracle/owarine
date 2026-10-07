@@ -51,7 +51,7 @@ function world() {
   const session: RoleSession = { role: "resolver", party: terms.resolver, client, dryRun: false };
   const logs: string[] = [];
   const state = {
-    session, terms: new Map([[termsEvent.contractId, terms]]), finished: new Set<string>(),
+    session, terms: new Map([[termsEvent.contractId, terms]]), finished: new Set<string>(), awaiting: new Map(), quotes: new Map(), inFlight: new Set<string>(),
     counters: { recordedOpen: 0, resolved: 0, voided: 0, failed: 0, eventsResolved: 0, eventsVoided: 0 }, log: (l: string) => logs.push(l),
   };
   return { state: state as unknown as Parameters<typeof resolverPass>[0], submitted, logs };

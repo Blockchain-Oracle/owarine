@@ -23,12 +23,25 @@ export interface ActorSpec {
 const REPEAT_LOG_MS = 60_000;
 const MAX_BACKOFF_MS = 60_000;
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** Runs `spec.pass` until `stop()`. Never throws. */
-export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat } {
+/**
+ * Runs `spec.pass` until `stop()`. Never throws. `wake()` cuts the current rest short (an event the actor waits on has
+ * happened, e.g. a print landed); a wake during a pass makes the next rest zero, so it is never lost.
+ */
+export function runActor(spec: ActorSpec): { stop: () => void; wake: () => void; beat: Heartbeat } {
   const beat = registerHeartbeat(spec.name, spec.dryRun, spec.everyMs);
   let stopped = false;
+  let woken = false;
+  let cutRest: (() => void) | null = null;
+  const rest = (ms: number) =>
+    new Promise<void>((resolve) => {
+      if (woken || ms <= 0) return resolve();
+      const timer = setTimeout(() => ((cutRest = null), resolve()), ms);
+      cutRest = () => {
+        clearTimeout(timer);
+        cutRest = null;
+        resolve();
+      };
+    });
   let lastLogged = { why: "", atMs: 0 };
   const say = (why: string) => {
     const now = Date.now();
@@ -39,6 +52,7 @@ export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat }
   void (async () => {
     spec.log(spec.dryRun ? "start (DRY RUN: nothing is signed)" : "start");
     while (!stopped) {
+      woken = false;
       let delay = spec.everyMs;
       beat.passStartedMs = Date.now();
       try {
@@ -62,8 +76,12 @@ export function runActor(spec: ActorSpec): { stop: () => void; beat: Heartbeat }
       }
       beat.lastPassMs = Date.now();
       beat.passStartedMs = null;
-      await sleep(Math.max(0, delay));
+      await rest(Math.max(0, delay));
     }
   })();
-  return { stop: () => void (stopped = true), beat };
+  const wake = () => {
+    woken = true;
+    cutRest?.();
+  };
+  return { stop: () => ((stopped = true), wake()), wake, beat };
 }

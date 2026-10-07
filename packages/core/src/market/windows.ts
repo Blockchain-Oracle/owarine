@@ -124,10 +124,13 @@ export function isTokenCadence(cadenceSec: number): boolean {
 }
 
 /** Back-to-back 24/7 token-lane Windows starting at or after `fromSec` and expiring no later than `toSec`. */
-export function tokenWindows(fromSec: number, toSec: number, cadenceSec: number): ScheduledWindow[] {
+export function tokenWindows(fromSec: number, toSec: number, cadenceSec: number, phaseSec = 0): ScheduledWindow[] {
   if (!isTokenCadence(cadenceSec)) throw new Error(`a 24/7 cadence divides one hour or is whole hours dividing one day, got ${cadenceSec}`);
+  if (!Number.isInteger(phaseSec) || phaseSec < 0 || phaseSec >= cadenceSec || phaseSec % 60 !== 0) throw new Error(`a lane's phase is whole minutes inside its cadence, got ${phaseSec}`);
   const out: ScheduledWindow[] = [];
-  for (let start = alignUp(fromSec, cadenceSec); start + cadenceSec <= toSec; start += cadenceSec) {
+  // A staggered Series is anchored `phaseSec` after the cadence grid (its Windows start on whole minutes, so the
+  // 1-minute candles still print both boundaries).
+  for (let start = alignUp(fromSec - phaseSec, cadenceSec) + phaseSec; start + cadenceSec <= toSec; start += cadenceSec) {
     const end = start + cadenceSec;
     out.push({ tradingStartSec: start, lockAtSec: end, expirySec: end, openKind: "Intraday", closeKind: "Intraday" });
   }

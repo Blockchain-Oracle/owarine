@@ -26,10 +26,11 @@ describe("exchange candles", () => {
     expect(() => decimalToE8("-1")).toThrow();
   });
 
-  it("posts at T + 10 s: the boundary a pass works on", () => {
-    expect(boundaryFor(T + 9)).toBe(T - 60);
-    expect(boundaryFor(T + 10)).toBe(T);
-    expect(boundaryFor(T + 69)).toBe(T);
+  it("posts at T + 5 s (the policy's minDelaySec): the boundary a pass works on", () => {
+    expect(boundaryFor(T + 4)).toBe(T - 60);
+    expect(boundaryFor(T + 5)).toBe(T);
+    expect(boundaryFor(T + 64)).toBe(T);
+    expect(boundaryFor(T + 65)).toBe(T + 60);
   });
 });
 

@@ -34,7 +34,7 @@ describe("bootstrap and halt-watch read the same lane sources", () => {
   });
 
   it("leaves crypto (exchanges) and the valuation lanes out of the halt table", () => {
-    const uncovered = lanes.filter((lane) => !covered.includes(lane)).map((lane) => lane.seriesKey.replace(/-\d+m$/, ""));
+    const uncovered = lanes.filter((lane) => !covered.includes(lane)).map((lane) => lane.seriesKey.replace(/-\d+m(_\d+)?$/, ""));
     expect(new Set(uncovered)).toEqual(new Set(["BTC", "ETH", "OPENAIV", "ANTHROPICV"]));
   });
 });

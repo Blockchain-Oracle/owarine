@@ -90,6 +90,8 @@ export function planSeriesOf(s: SeriesC): PlanSeries {
   return {
     // The planners key halts, skips and the 24/7 asset by the registry ticker, never the print symbol (`TSLAx`).
     key: s.seriesKey, symbol: laneOf(s)?.symbol ?? s.symbol, cadenceSec: s.cadenceSec, maxLeadSec: MAX_LEAD_SEC, nextIndex: BigInt(s.nextIndex),
+    // The Series' own grid offset: a staggered Series (`BTC-2m_1`) is anchored off the cadence grid.
+    phaseSec: ((s.anchorSec % s.cadenceSec) + s.cadenceSec) % s.cadenceSec,
     // 0.4.0: the Series' own `lastExpiry` (a Gap span's Monday open), else the grid start of `nextIndex` (the engine's `openFloor`).
     lastExpirySec: seriesOpenFloorSec(s), versions: s.policyVersions.map(versionWindowOf), freeBooks: NO_BOOK,
   };

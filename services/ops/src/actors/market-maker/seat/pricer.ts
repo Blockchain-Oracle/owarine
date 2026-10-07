@@ -22,6 +22,7 @@ import {
 import { marketIdFromDaml, seriesIdFromDaml } from "@owarine/core/market";
 import type { SpotFeed } from "../../../prices/spot";
 import type { VolBoard } from "../../../prices/vol-meter";
+import { onVenueEvent } from "../../venue/events";
 import { runActor, type PassResult } from "../../../runtime/actor";
 import { readSeatMakerEnv, type SeatMakerEnv } from "./env";
 import { fairYesTicks, TRADING_YEAR_SEC } from "./fair";
@@ -257,6 +258,8 @@ export function startPricer(input: {
   const state: PricerState = { venue: input.venue, spot: input.spot, vol: input.vol ?? null, board: input.board, settings, terms: new Map(), halts: input.halts ?? (() => ({})), inputs: null };
   input.log(`pricer: ${settings.levels} levels × ${settings.lotsPerLevel} lots every ${settings.stepTicks} ticks, half-spread ${settings.maker.halfSpreadTicks}, cap ${settings.marketCapBase} base/side, fee ${settings.feeRateBps} bps${input.spot ? "" : " · NO SPOT FEED"}`);
   const actor = runActor({ name: "pricer", log: input.log, dryRun: false, everyMs: settings.everyMs, pass: () => pricerPass(state) });
+  // A Window becomes priceable the moment its open print is recorded: read the ledger then, not on the next tick.
+  const offRecorded = onVenueEvent((e) => e.kind === "open-recorded" && actor.wake());
   // Between ledger reads, a spot tick re-prices the Windows from the cached read, throttled to SPOT_REPRICE_MIN_MS.
   let lastRepriceMs = 0;
   let pendingReprice: ReturnType<typeof setTimeout> | null = null;
@@ -279,6 +282,7 @@ export function startPricer(input: {
   return {
     stop: () => {
       offSpot?.();
+      offRecorded();
       if (pendingReprice) clearTimeout(pendingReprice);
       actor.stop();
     },

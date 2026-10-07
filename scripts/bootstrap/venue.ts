@@ -12,7 +12,7 @@
 import type { Command, CreatedEvent, LedgerClient } from "@owarine/ledger";
 import { TEMPLATE_IDS, TICKET_TEMPLATE_IDS } from "@owarine/daml";
 import {
-  attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
+  attestedPrintSource, BAR_LEN_SEC, BASKET_TICKERS, CRYPTO_CADENCES_SEC, CRYPTO_PHASES_SEC, CRYPTO_SYMBOLS, EXCHANGE_PRINT_SOURCE, LAUNCH_TICKERS, laneKey, PRE_IPO_TICKERS,
   SOURCE_TIMING, TICKERS, TOKEN_LANE_TICKERS, VALUATION_TICKERS,
 } from "@owarine/core/market";
 import { GAP_CADENCE_SEC } from "@owarine/core/types";
@@ -78,6 +78,8 @@ interface LaneSpec {
   /** What the lane's prints price: the crypto asset, the stock, the xStock (`TSLAx`), the pre-IPO name or basket. */
   symbol: string;
   cadenceSec: number;
+  /** A staggered Series' anchor offset from the cadence grid (core `CRYPTO_PHASES_SEC`); 0 for most. */
+  phaseSec?: number;
   lockLeadSec: number;
   /** Policy versions, oldest first; each names its attested source (core `attestedPrintSource`). */
   versions: Array<{ effectiveFromSec: number; validUntilSec: number | null; printSource: string; minDelaySec: number; barLenSec: number; openAdmissionSec: number; closeAdmissionSec: number }>;
@@ -88,22 +90,26 @@ interface LaneSpec {
  * on Canton a quote must be valid until `lockAt` and settle behind the close print, so every lane keeps a lead that
  * grows with the cadence (1 m and 5 m as C3 set them).
  */
-const CRYPTO_LOCK_LEAD_SEC: Record<number, number> = { 60: 10, 300: 30, 900: 60, 3_600: 120, 14_400: 300, 86_400: 900 };
+const CRYPTO_LOCK_LEAD_SEC: Record<number, number> = { 60: 10, 120: 20, 300: 30, 900: 60, 3_600: 120, 14_400: 300, 86_400: 900 };
 
 /**
  * BTC and ETH on every crypto cadence (core `CRYPTO_CADENCES_SEC`): the 60 s demo lane (an Addition, C3), the
  * reference's 300/900/3,600 s and Masayume's 4 h and 1 d. Keys follow core `laneKey` (`BTC-5m`, `BTC-240m`, `BTC-1440m`).
- * The 1-minute lane admits its open print until lock (C3); every other lane admits a print for 60 s after its boundary.
+ * Every crypto lane admits a print for 60 s after its boundary (the 1-minute lane, which admitted its open print until
+ * lock, was replaced by the staggered 2-minute lane on 7 Oct 2026; its Series stay on the ledger, no longer rolled).
  */
 function cryptoLanes(nowSec: number): LaneSpec[] {
   return CRYPTO_SYMBOLS.flatMap((symbol) =>
-    CRYPTO_CADENCES_SEC.map((cadenceSec): LaneSpec => ({
-      seriesKey: laneKey(symbol, "token", cadenceSec), symbol, cadenceSec, lockLeadSec: CRYPTO_LOCK_LEAD_SEC[cadenceSec]!,
-      versions: [{
-        effectiveFromSec: Math.floor(nowSec / cadenceSec) * cadenceSec, validUntilSec: null, printSource: EXCHANGE_PRINT_SOURCE, minDelaySec: 5, barLenSec: 60,
-        openAdmissionSec: cadenceSec === 60 ? -1 : 60, closeAdmissionSec: cadenceSec === 60 ? 40 : 60,
-      }],
-    })),
+    CRYPTO_CADENCES_SEC.flatMap((cadenceSec) =>
+      (CRYPTO_PHASES_SEC[cadenceSec] ?? [0]).map((phaseSec): LaneSpec => ({
+        seriesKey: laneKey(symbol, "token", cadenceSec, phaseSec), symbol, cadenceSec, phaseSec, lockLeadSec: CRYPTO_LOCK_LEAD_SEC[cadenceSec]!,
+        versions: [{
+          // One cadence back, so the policy covers a staggered Series' first Window wherever its anchor falls.
+          effectiveFromSec: Math.floor(nowSec / cadenceSec) * cadenceSec - cadenceSec, validUntilSec: null, printSource: EXCHANGE_PRINT_SOURCE, minDelaySec: 5, barLenSec: 60,
+          openAdmissionSec: 60, closeAdmissionSec: 60,
+        }],
+      })),
+    ),
   );
 }
 
@@ -197,7 +203,8 @@ export async function bootstrapVenue(o: VenueBootstrapOptions): Promise<void> {
   const nowSec = Math.floor(Date.now() / 1000);
   for (const lane of lanesFor(o.lanes, nowSec)) {
     if (haveSeries.has(lane.seriesKey)) continue;
-    const anchorSec = Math.floor(nowSec / lane.cadenceSec) * lane.cadenceSec;
+    const phase = lane.phaseSec ?? 0;
+    const anchorSec = Math.floor((nowSec - phase) / lane.cadenceSec) * lane.cadenceSec + phase;
     const [first, ...later] = lane.versions.map((v, i) => ({ version: POLICY_VERSION + i, ...v }));
     await write("venue", venue, `bootstrap:series:${lane.seriesKey}:${run}`, [
       cmd.createSeries({

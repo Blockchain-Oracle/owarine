@@ -11,16 +11,22 @@ import { createHash } from "node:crypto";
 import { appendFileSync } from "node:fs";
 import { archivePrints, getDb, openDependentSpans, quoteIsCited, type DependentSpan } from "@owarine/db";
 import { TEMPLATE_IDS } from "@owarine/daml";
-import { cmd, decodePriceQuote, failureText, pick, printCommandId, readActive, retireCommandId, submit, type RoleSession } from "@owarine/markets/ops/canton";
+import { cmd, createdOf, decodePriceQuote, failureText, pick, printCommandId, readActive, retireCommandId, submit, type RoleSession } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
 import { ORACLE_ROLES, type OracleRole } from "../../runtime/keys";
 import { fetchCandle, type Candle, type Exchange, type Fetch } from "../../prices/candles";
 import { oracleName, type VenueContext } from "../venue/context";
 import { emitVenueEvent } from "../venue/events";
+import { emitFreshQuotes } from "./quote-bus";
 
-/** K-025: every exchange served the closed candle by T + 5 s at 59 of 60 boundaries; feeders post at T + 10 s. */
-export const POST_DELAY_SEC = 10;
+/**
+ * Feeders fetch and post at T + 5 s: the active crypto policy's `minDelaySec` (v1, on every live MarketTerms), the
+ * earliest `fetchedAt` the ledger admits as evidence (`Oracle.daml`). Measured 7 Oct 2026: Coinbase served the closed
+ * candle by T + 1.1 s, Kraken by T + 2.3 s, Bitstamp by T + 3.5 s, never changing after (K-025 had 59 of 60 by T + 5 s).
+ * A candle not final yet is retried every second and the batch waits to T + 20 s (`WAIT_ALL_SEC`), as before.
+ */
+export const POST_DELAY_SEC = 5;
 /** A symbol whose candle is not final yet is waited for until T + this, then the rest is posted without it. */
 export const WAIT_ALL_SEC = 20;
 /**
@@ -119,6 +125,7 @@ async function post(state: FeederState, boundarySec: number, candles: Candle[], 
   if (out.kind === "dry") return `${out.note}: ${prices}`;
   if (out.recovered) state.counters.recovered++;
   else state.counters.posted++;
+  emitFreshQuotes(createdOf(out.created, TEMPLATE_IDS.PriceQuote).map((e) => ({ cid: e.contractId, data: decodePriceQuote(e.createArgument) })));
   emitVenueEvent({ kind: "printed", oracle: state.exchange, boundarySec, symbols: candles.map((c) => c.symbol), atMs: Date.now() });
   return `posted @${new Date(boundarySec * 1000).toISOString().slice(11, 16)}Z T+${nowSec - boundarySec}s ${prices} (${out.ms} ms, ${archived})${out.recovered ? " · already posted" : ""}`;
 }

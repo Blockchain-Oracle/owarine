@@ -27,6 +27,8 @@ export interface PlanSeries {
   key: string;
   symbol: string;
   cadenceSec: number;
+  /** A staggered Series' offset from the cadence grid (`anchor mod cadence`), 0 for most. */
+  phaseSec?: number;
   /** `series.max_lead_sec`: how far ahead the chain lets this Series list (`check_window` step 8). */
   maxLeadSec: number;
   nextIndex: bigint;

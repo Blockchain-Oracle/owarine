@@ -21,7 +21,8 @@ import {
 import { runActor, type PassResult } from "../../runtime/actor";
 import { decideSettle } from "../settler/decide";
 import { createVenueContext, type VenueContext } from "../venue/context";
-import { emitVenueEvent } from "../venue/events";
+import { emitVenueEvent, onVenueEvent } from "../venue/events";
+import { onFreshQuotes } from "../price-relay/quote-bus";
 import { decideEvent, eventEvidence } from "./event";
 import { evidenceFor, lowerMedian, slotRule } from "./select";
 
@@ -29,13 +30,22 @@ import { evidenceFor, lowerMedian, slotRule } from "./select";
 const VOID_MARGIN_SEC = 2;
 /**
  * A quorum is enough, but every oracle is better evidence: with fewer than all of them counted, the resolver waits
- * until the boundary plus this (the feeders post at T + 10 s) before it records or resolves on the quorum alone.
+ * until the boundary plus this before it records or resolves on the quorum alone. The feeders post at T + 5 s and a
+ * post lands ~3.5 s later; the third oracle's print lands within ~0.5 s of the second at p50, so T + 12 s only bites
+ * when one oracle is genuinely late. Posts at T + 5 s land at ~T + 15 s on DevNet (its boundary traffic), so the cap sits
+ * just past that: three prints landing together record at once, a straggler doesn't hold the Window past T + 18 s.
  */
-const ALL_ORACLES_WAIT_SEC = 16;
+const ALL_ORACLES_WAIT_SEC = 18;
 const ready = (t: TermsC, boundarySec: number, counted: number, nowSec: number) => counted >= t.quorum && (counted >= t.oracles.length || nowSec >= boundarySec + ALL_ORACLES_WAIT_SEC);
 
 interface ResolverState {
   session: RoleSession;
+  /** Windows awaiting their open print as of the last full pass (state cid, terms), for the fast path. */
+  awaiting: Map<string, { stateCid: string; t: TermsC }>;
+  /** The last full pass's PriceQuotes plus every quote a feeder handed over since (`quote-bus`). */
+  quotes: Map<string, Active<PriceQuoteC>>;
+  /** Terms with a record, resolve or void in flight: never sent twice at once. */
+  inFlight: Set<string>;
   terms: Map<string, TermsC>;
   /** Terms whose resolve or void landed (or was found done), so they are never re-tried. */
   finished: Set<string>;
@@ -122,7 +132,33 @@ async function send(state: ResolverState, what: "open" | "resolve" | "void", ter
   }
 }
 
+/**
+ * The fast path: the moment a feeder's quotes land, record every Window whose open slot they complete, from the last
+ * full pass's WindowStates and the quotes in hand — no ledger read. The same command id as the full pass, so the ledger
+ * dedupes a double; `inFlight` keeps this process from sending one.
+ */
+export async function fastOpens(state: ResolverState): Promise<string[]> {
+  const nowSec = Math.floor(Date.now() / 1000);
+  const quotes = [...state.quotes.values()];
+  const jobs: Array<Promise<string>> = [];
+  for (const [termsCid, { stateCid, t }] of state.awaiting) {
+    if (state.finished.has(termsCid) || state.inFlight.has(termsCid)) continue;
+    const rule = slotRule(t, "open");
+    const ev = evidenceFor(rule, quotes);
+    if (!(ready(t, rule.boundarySec, ev.length, nowSec) && nowSec >= rule.earliestSec && nowSec <= t.openDeadlineSec)) continue;
+    state.awaiting.delete(termsCid);
+    jobs.push(guarded(state, termsCid, () => send(state, "open", termsCid, t, recordOpenCommandId(termsCid), cmd.recordOpen(termsCid, stateCid, ev.map((q) => q.cid)))));
+  }
+  return (await Promise.all(jobs)).map((n) => `${n} · fast path`);
+}
+
+function guarded(state: ResolverState, termsCid: string, run: () => Promise<string>): Promise<string> {
+  state.inFlight.add(termsCid);
+  return run().finally(() => state.inFlight.delete(termsCid));
+}
+
 export async function resolverPass(state: ResolverState): Promise<PassResult> {
+  const readStartMs = Date.now();
   const acs = await readActive(state.session, [
     TEMPLATE_IDS.WindowState, TEMPLATE_IDS.OpenPrint, TEMPLATE_IDS.PriceQuote, TEMPLATE_IDS.EventTerms, TEMPLATE_IDS.EventState, TEMPLATE_IDS.EventAttestation,
   ]);
@@ -133,33 +169,42 @@ export async function resolverPass(state: ResolverState): Promise<PassResult> {
   const opens = pick(acs, TEMPLATE_IDS.OpenPrint, decodeOpenPrint).filter((o) => !eventCids.has(o.data.termsCid));
   const quotes: Active<PriceQuoteC>[] = pick(acs, TEMPLATE_IDS.PriceQuote, decodePriceQuote);
   await knownTerms(state, [...states.map((s) => s.data.termsCid), ...opens.map((o) => o.data.termsCid)]);
+  const readMs = Date.now() - readStartMs;
   const nowSec = Math.floor(Date.now() / 1000);
+  // Quotes read now, plus any handed over while the read ran (a read is a snapshot from before they landed).
+  const fresh = [...state.quotes.values()].filter((q) => q.data.boundarySec >= nowSec - 120);
+  state.quotes = new Map([...quotes, ...fresh].map((q) => [q.cid, q]));
+  state.awaiting = new Map();
   const jobs: Array<Promise<string>> = [];
+  // Open records gate trading, resolves only payouts: resolves start once the records are in, so the participant
+  // isn't asked for both at once at a boundary.
+  const later: Array<() => Promise<string>> = [];
   let wakeSec = nowSec + 10;
 
   for (const st of states) {
     const termsCid = st.data.termsCid;
     const t = state.terms.get(termsCid);
-    if (!t || state.finished.has(termsCid)) continue;
+    if (!t || state.finished.has(termsCid) || state.inFlight.has(termsCid)) continue;
     const rule = slotRule(t, "open");
-    const ev = evidenceFor(rule, quotes);
+    const ev = evidenceFor(rule, [...state.quotes.values()]);
     if (ready(t, rule.boundarySec, ev.length, nowSec) && nowSec >= rule.earliestSec && nowSec <= t.openDeadlineSec) {
-      jobs.push(send(state, "open", termsCid, t, recordOpenCommandId(termsCid), cmd.recordOpen(termsCid, st.cid, ev.map((q) => q.cid))));
+      jobs.push(guarded(state, termsCid, () => send(state, "open", termsCid, t, recordOpenCommandId(termsCid), cmd.recordOpen(termsCid, st.cid, ev.map((q) => q.cid)))));
       continue;
     }
+    if (nowSec <= t.openDeadlineSec) state.awaiting.set(termsCid, { stateCid: st.cid, t });
     const action = decideSettle({
       nowSec: nowSec - VOID_MARGIN_SEC, state: 0, expirySec: t.expirySec, openDeadlineSec: t.openDeadlineSec, closeDeadlineSec: t.closeDeadlineSec,
       prints: { open: false, close: false, checkOpen: false, checkClose: false }, check: { configured: false, admissionSec: 0 },
       bookReleased: true, ledgerClosed: true, dependents: 0, resolvedSec: 0, retentionSec: 0, redeemGraceSec: 0, bookOrderCount: null, seats: null,
     });
-    if (action.kind === "void") jobs.push(send(state, "void", termsCid, t, resolveCommandId(termsCid), cmd.voidTerms(termsCid, { tag: "BeforeOpen", stateCid: st.cid }, ev.map((q) => q.cid))));
+    if (action.kind === "void") later.push(() => guarded(state, termsCid, () => send(state, "void", termsCid, t, resolveCommandId(termsCid), cmd.voidTerms(termsCid, { tag: "BeforeOpen", stateCid: st.cid }, ev.map((q) => q.cid)))));
     else wakeSec = Math.min(wakeSec, Math.max(nowSec + 1, rule.earliestSec + 5));
   }
 
   for (const op of opens) {
     const termsCid = op.data.termsCid;
     const t = state.terms.get(termsCid);
-    if (!t || state.finished.has(termsCid)) continue;
+    if (!t || state.finished.has(termsCid) || state.inFlight.has(termsCid)) continue;
     const rule = slotRule(t, "close");
     const ev = evidenceFor(rule, quotes);
     const action = decideSettle({
@@ -175,11 +220,11 @@ export async function resolverPass(state: ResolverState): Promise<PassResult> {
     if (action.kind === "settle" && !late) {
       const median = lowerMedian(ev.map((q) => q.data.priceE8));
       state.log(`${label(t)} close quorum ${ev.length}/${t.oracles.length}, median ${priceText(median)}: resolving`);
-      jobs.push(send(state, "resolve", termsCid, t, resolveCommandId(termsCid), cmd.resolve(termsCid, op.cid, ev.map((q) => q.cid))));
+      later.push(() => guarded(state, termsCid, () => send(state, "resolve", termsCid, t, resolveCommandId(termsCid), cmd.resolve(termsCid, op.cid, ev.map((q) => q.cid)))));
     } else if (late && nowSec <= t.closeDeadlineSec + VOID_MARGIN_SEC) {
       wakeSec = Math.min(wakeSec, t.closeDeadlineSec + VOID_MARGIN_SEC + 1);
     } else if (action.kind === "void" || late) {
-      jobs.push(send(state, "void", termsCid, t, resolveCommandId(termsCid), cmd.voidTerms(termsCid, { tag: "AfterOpen", openCid: op.cid }, ev.map((q) => q.cid))));
+      later.push(() => guarded(state, termsCid, () => send(state, "void", termsCid, t, resolveCommandId(termsCid), cmd.voidTerms(termsCid, { tag: "AfterOpen", openCid: op.cid }, ev.map((q) => q.cid)))));
     } else if (action.kind === "wait") wakeSec = Math.min(wakeSec, Math.max(nowSec + 1, action.untilSec));
   }
 
@@ -201,7 +246,8 @@ export async function resolverPass(state: ResolverState): Promise<PassResult> {
   }
 
   const notes = await Promise.all(jobs);
-  for (const n of notes) state.log(n);
+  notes.push(...(await Promise.all(later.map((run) => run()))));
+  for (const n of notes) state.log(`${n} · pass read ${readMs} ms`);
   const c = state.counters;
   return {
     why: `${states.length} awaiting open, ${opens.length} awaiting close, ${eventStates.length} event(s) open; recorded ${c.recordedOpen}, resolved ${c.resolved}, voided ${c.voided}, events ${c.eventsResolved} resolved / ${c.eventsVoided} void, failed ${c.failed}${state.session.dryRun ? " · DRY RUN" : ""}`,
@@ -216,7 +262,21 @@ export async function startResolver(log: (why: string) => void, venue: VenueCont
     log("RESOLVER_PARTY and the parties file are missing: nothing resolves");
     return runActor({ name: "resolver", log, dryRun: true, everyMs: 60_000, pass: async () => ({ why: "no resolver party: scanning and reporting only" }) });
   }
-  const state: ResolverState = { session, terms: new Map(), finished: new Set(), counters: { recordedOpen: 0, resolved: 0, voided: 0, failed: 0, eventsResolved: 0, eventsVoided: 0 }, log };
+  const state: ResolverState = { session, terms: new Map(), finished: new Set(), awaiting: new Map(), quotes: new Map(), inFlight: new Set(), counters: { recordedOpen: 0, resolved: 0, voided: 0, failed: 0, eventsResolved: 0, eventsVoided: 0 }, log };
   log(`resolver as ${session.party.split("::")[0]}`);
-  return runActor({ name: "resolver", log, dryRun: session.dryRun, everyMs: 2_000, pass: () => resolverPass(state) });
+  const actor = runActor({ name: "resolver", log, dryRun: session.dryRun, everyMs: 2_000, pass: () => resolverPass(state) });
+  // A print landing is what the resolver waits on: pass at once instead of on the next 2 s tick (the tick stays, for
+  // prints posted by another process and for deadlines). One more pass at the all-oracles cap catches a late third.
+  // The fast path: a feeder's fresh quotes may complete a Window's open slot; record it without waiting for a read.
+  const offQuotes = onFreshQuotes((qs) => {
+    for (const q of qs) state.quotes.set(q.cid, q);
+    void fastOpens(state).then((notes) => notes.forEach((n) => log(n)));
+  });
+  const offPrint = onVenueEvent((e) => {
+    if (e.kind !== "printed") return;
+    actor.wake();
+    const capMs = (e.boundarySec + ALL_ORACLES_WAIT_SEC) * 1000 - Date.now();
+    if (capMs > 0) setTimeout(actor.wake, capMs + 50);
+  });
+  return { stop: () => (offQuotes(), offPrint(), actor.stop()) };
 }

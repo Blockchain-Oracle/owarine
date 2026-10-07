@@ -24,7 +24,7 @@ export const tokenLeadSec = (cadenceSec: number, leadSec: number): number => ((L
 export function nextTokenCandidate(series: PlanSeries, clock: PlanClock): ScheduledWindow {
   const cadence = series.cadenceSec;
   const from = Math.max(series.lastExpirySec, clock.nowSec - cadence);
-  const windows = tokenWindows(from, Math.max(from, clock.nowSec) + tokenLeadSec(cadence, clock.leadSec) + 2 * cadence, cadence);
+  const windows = tokenWindows(from, Math.max(from, clock.nowSec) + tokenLeadSec(cadence, clock.leadSec) + 2 * cadence, cadence, series.phaseSec ?? 0);
   const ok = windows.find((w) => {
     if (w.tradingStartSec < series.lastExpirySec || w.lockAtSec - clock.nowSec < clock.minTradableSec) return false;
     const version = highestCoveringVersion(series.versions, w.tradingStartSec, w.expirySec, usableBy(clock));

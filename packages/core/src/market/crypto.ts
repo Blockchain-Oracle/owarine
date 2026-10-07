@@ -14,10 +14,17 @@ import type { Ticker } from "./tickers";
 export const CRYPTO_SYMBOLS = ["BTC", "ETH"] as const;
 export type CryptoSymbol = (typeof CRYPTO_SYMBOLS)[number];
 /**
- * The crypto lanes' cadences: the 1-minute demo lane (an Addition, C3), the reference's 5 m, 15 m and 1 h, and
- * Masayume's 4 h and 1 d (its DreamDEX BTC/ETH set was 1m/5m/15m/1h/4h/1d). All 24/7, on the UTC clock.
+ * The crypto lanes' cadences: the 2-minute short lane (it replaced the 1-minute demo lane, 7 Oct 2026), the
+ * reference's 5 m, 15 m and 1 h, and Masayume's 4 h and 1 d. All 24/7, on the UTC clock.
  */
-export const CRYPTO_CADENCES_SEC = [60, 300, 900, 3_600, 14_400, 86_400] as const;
+export const CRYPTO_CADENCES_SEC = [120, 300, 900, 3_600, 14_400, 86_400] as const;
+
+/**
+ * Staggered Series per cadence (anchor offsets, whole minutes): two Series on one lane, half a Window apart, keep a
+ * quoted Window open at every moment — a Window is priced from ~T+14 s to its cut-off, so one Series alone leaves a gap
+ * each Window (context/13-revamp/AVAILABILITY-LATENCY-2026-10-07.md). Unlisted cadences run one Series at phase 0.
+ */
+export const CRYPTO_PHASES_SEC: Readonly<Record<number, readonly number[]>> = { 120: [0, 60], 300: [0, 180] };
 
 /** A Canton adaptation: 24/7 variance accrues every second of a 365-day year, not over 252 × 6.5 exchange hours. */
 export const CALENDAR_YEAR_SEC = 365 * 86_400;
