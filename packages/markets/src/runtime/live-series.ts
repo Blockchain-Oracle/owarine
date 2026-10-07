@@ -8,8 +8,10 @@
 import { peekClient, subscribeExchange } from "./read-runtime";
 import { liveSpot, spotView, subscribeSpot } from "./spot-stream";
 
-/** About 30 min at 2 samples a second; older points fall off the front. */
+/** About an hour at a sample a second; older points fall off the front. */
 export const SERIES_CAP = 4_000;
+/** Ticks inside one bucket share a sample (the latest wins): CC trades several times a second, and the cap is time. */
+export const SAMPLE_BUCKET_MS = 1_000;
 
 export interface LiveSeries {
   t: number[];
@@ -33,13 +35,15 @@ const entries = new Map<string, Entry>();
 const retained = new Map<string, LiveSeries>();
 const E8 = 1e8;
 
-function append(series: LiveSeries, atMs: number, price: number): boolean {
+/** Adds a tick; one in the same second as the last sample replaces it (time and price), so the series is a sample a second. */
+export function append(series: LiveSeries, atMs: number, price: number): boolean {
   const n = series.t.length;
   if (n > 0) {
     const lastT = series.t[n - 1]!;
     if (atMs < lastT) return false;
-    if (atMs === lastT) {
-      if (series.p[n - 1] === price) return false;
+    if (Math.floor(atMs / SAMPLE_BUCKET_MS) === Math.floor(lastT / SAMPLE_BUCKET_MS)) {
+      if (series.p[n - 1] === price && lastT === atMs) return false;
+      series.t[n - 1] = atMs;
       series.p[n - 1] = price;
       series.version += 1;
       return true;

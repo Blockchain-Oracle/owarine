@@ -170,6 +170,15 @@ export const HERO = {
   noDepth: "no prices on the ladder",
   contracts: "contracts",
   chartLabel: (asset: string, opening: string, live: string) => `${asset} price: opening print ${opening}, live ${live}`,
+  /** The Window chart's own words: markers at the open and close, the pending print, the hover's move. */
+  chart: {
+    opens: "OPENS",
+    open: "OPEN",
+    closes: "CLOSES",
+    closed: "CLOSED",
+    pending: "Waiting for the opening print",
+    vs: (label: string) => `vs ${label}`,
+  },
   notFound: { why: "This window is gone.", nextAction: { label: "Pick a live window", href: "/markets" } },
   phase: {
     upcoming: "Opens soon",

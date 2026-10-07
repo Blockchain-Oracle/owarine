@@ -8,7 +8,6 @@ export { HeroChartFoot } from "./HeroChartFoot";
 export { HeroYesNo } from "./HeroYesNo";
 export { assetMark, AssetDisc } from "./asset-mark";
 export { useTopOfBook, type TopOfBook } from "./useTopOfBook";
-export { PriceChart } from "./PriceChart";
 export { ChartLegend } from "./ChartLegend";
 export { CountdownBlock } from "./CountdownBlock";
 export { DistanceReadout } from "./DistanceReadout";

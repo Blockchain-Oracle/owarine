@@ -3,7 +3,7 @@
 import type { EventMarket } from "@owarine/core/types";
 import { useOpeningPrice } from "@owarine/markets/react";
 import { ReadingBoundary } from "@/components/states";
-import { PriceChart } from "../hero/PriceChart";
+import { MarketWindowChart } from "../chart/MarketWindowChart";
 import { useChartSeries } from "../hero/useChartSeries";
 
 /**
@@ -21,7 +21,7 @@ export function TicketMiniChart({ market }: { market: EventMarket }) {
     <div className="tk-mini-chart">
       <div className="tk-mini-chart-canvas">
         <ReadingBoundary reading={series} shape="chart">
-          {(chart) => <PriceChart points={chart.points} openingRaw={openingRaw} className="h-full w-full" />}
+          {(chart) => <MarketWindowChart market={market} openingRaw={openingRaw} backfill={chart.points} variant="compact" />}
         </ReadingBoundary>
       </div>
     </div>

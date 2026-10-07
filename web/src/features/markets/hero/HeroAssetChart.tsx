@@ -13,7 +13,7 @@ import { historyDayChange, useAssetHistory, type AssetHistory } from "../asset-h
 import { TickerPicker } from "../lanes/TickerPicker";
 import { useMarketSession, type MarketSession } from "../session";
 import { HeroAssetHead } from "./HeroAssetHead";
-import { PriceChart } from "./PriceChart";
+import { WindowChart } from "../chart/WindowChart";
 import { ScheduleCallButton } from "./ScheduleCallButton";
 import { assetPriceLine } from "./units";
 import type { SourceLabel } from "../price-source/source-label";
@@ -81,12 +81,14 @@ export function HeroAssetChartView({ asset, tickers, onPickAsset, session, histo
           <ReadingBoundary reading={history} shape="chart" tick={false} isEmpty={(v) => v.points.length < 2} empty={{ why: SESSION_COPY.hero.noHistory(asset) }}>
             {(v) => (
               // Keyed by asset: a new asset starts a fresh chart, fitted to its own history.
-              <PriceChart
+              <WindowChart
                 key={asset}
-                points={v.points}
-                openingRaw={v.prevClose?.priceRaw ?? null}
-                lineLabel={v.lineIsOpen ? SESSION_COPY.hero.openLine : SESSION_COPY.hero.prevCloseLine}
-                className="h-full w-full"
+                asset={asset}
+                symbol={null}
+                times={null}
+                backfill={v.points}
+                referenceRaw={v.prevClose?.priceRaw ?? null}
+                referenceLabel={v.lineIsOpen ? SESSION_COPY.hero.openLine : SESSION_COPY.hero.prevCloseLine}
               />
             )}
           </ReadingBoundary>

@@ -21,6 +21,9 @@ export function feedRawToOracleRaw(raw: bigint, feedDecimals = FEED_DECIMALS_DEF
 /** Masayume drew every price on the oracle's cents scale (its ORACLE_SCALE was 2); prints here carry 10⁻⁸, and cents is still the display. */
 export const PRICE_DISPLAY_DP = 2;
 
+/** Under a dollar (Canton Coin near $0.12) cents say nothing: "$0.11" for a $0.11945 line, "$0.00" for its move. */
+export const SUB_DOLLAR_DP = 5;
+
 /**
  * Whole dollars only from $10,000 up. The reference drew whole dollars from $1,000, which suited BTC and ETH; here a
  * pre-IPO name trades above $1,000 (OPENAI near $1,130) and its Window settles to the cent, so "above $1,132" for a
@@ -35,7 +38,7 @@ export const WHOLE_DOLLARS_FROM = 10_000n;
  * "$251.37" is never followed by "+$0".
  */
 export function usdLine(raw: bigint, levelRaw: bigint = raw): string {
-  const dp = levelRaw >= WHOLE_DOLLARS_FROM * oneUnit(ORACLE_SCALE) ? 0 : PRICE_DISPLAY_DP;
+  const dp = levelRaw >= WHOLE_DOLLARS_FROM * oneUnit(ORACLE_SCALE) ? 0 : levelRaw < oneUnit(ORACLE_SCALE) ? SUB_DOLLAR_DP : PRICE_DISPLAY_DP;
   return `$${formatOracleRaw(raw, ORACLE_SCALE, dp)}`;
 }
 

@@ -12,7 +12,7 @@ import { DepthStrip } from "./DepthStrip";
 import { DistanceReadout } from "./DistanceReadout";
 import { HeroHeader } from "./HeroHeader";
 import { oraclePriceText } from "./OraclePrice";
-import { PriceChart } from "./PriceChart";
+import { MarketWindowChart } from "../chart/MarketWindowChart";
 import { PriceSourceNote } from "./PriceSourceNote";
 import { useChartSeries } from "./useChartSeries";
 
@@ -43,7 +43,7 @@ function HeroBody({ market, side }: { market: EventMarket; side?: Side }) {
       <HeroHeader market={market} phase={currentPhase} />
       <ChartLegend openingRaw={openingRaw} latestRaw={latestRaw} asset={market.asset} />
       <ReadingBoundary reading={series} shape="chart">
-        {(chart) => <PriceChart points={chart.points} openingRaw={openingRaw} />}
+        {(chart) => <MarketWindowChart market={market} openingRaw={openingRaw} backfill={chart.points} className="h-56" />}
       </ReadingBoundary>
       <div className="flex items-center gap-6">
         <CountdownBlock expirySec={market.expirySec} intervalSec={market.intervalSec} nowMs={nowMs} />

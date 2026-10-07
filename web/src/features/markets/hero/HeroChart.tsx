@@ -7,7 +7,7 @@ import { ReadingBoundary } from "@/components/states";
 import { HeroChartFoot } from "./HeroChartFoot";
 import { HeroChartHead } from "./HeroChartHead";
 import { HeroYesNo } from "./HeroYesNo";
-import { PriceChart } from "./PriceChart";
+import { MarketWindowChart } from "../chart/MarketWindowChart";
 import { useChartSeries } from "./useChartSeries";
 import { useTopOfBook } from "./useTopOfBook";
 
@@ -60,8 +60,9 @@ export function HeroChart({
       />
       <div className="hero-chart-canvas">
         <div className="mh-chart-fill">
-          <ReadingBoundary reading={series} shape="chart">
-            {(chart) => <PriceChart points={chart.points} openingRaw={openingRaw} className="h-full w-full" />}
+          {/* `tick={false}`: the chart's own pulsing head says whether the price is live; the badge sat on the foot. */}
+          <ReadingBoundary reading={series} shape="chart" tick={false}>
+            {(chart) => <MarketWindowChart market={market} openingRaw={openingRaw} backfill={chart.points} />}
           </ReadingBoundary>
         </div>
       </div>

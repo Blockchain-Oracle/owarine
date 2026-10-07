@@ -2,7 +2,7 @@
 
 import type { EventMarket } from "@owarine/core/types";
 import { ReadingBoundary } from "@/components/states";
-import { PriceChart } from "../hero/PriceChart";
+import { MarketWindowChart } from "../chart/MarketWindowChart";
 import { useChartSeries } from "../hero/useChartSeries";
 
 interface ReelChartProps {
@@ -21,7 +21,7 @@ export function ReelChart({ market, openingRaw }: ReelChartProps) {
   const series = useChartSeries(market);
   return (
     <ReadingBoundary reading={series} shape="chart">
-      {(chart) => <PriceChart points={chart.points} openingRaw={openingRaw} className="h-full w-full" />}
+      {(chart) => <MarketWindowChart market={market} openingRaw={openingRaw} backfill={chart.points} />}
     </ReadingBoundary>
   );
 }

@@ -254,17 +254,12 @@
 }
 
 /* ── the canvas ──
- * Yosuku draws into a single raw <canvas>, which part-04.css pins with
- * `.hero-chart-canvas canvas { position: absolute; inset: 0 }`. lightweight-charts
- * builds its own nested canvases and sizes them itself, so the chart gets a
- * filling box of its own and that rule is scoped away from its internals. */
+ * The Window chart (features/markets/chart) is one canvas filling its box, which part-04.css already pins with
+ * `.hero-chart-canvas canvas { position: absolute; inset: 0 }`; the fill box gives the loading and empty states the
+ * same frame. */
 .mh-chart-fill {
   position: absolute;
   inset: 0;
-}
-.mh-chart-fill canvas {
-  position: relative;
-  inset: auto;
 }
 
 /* The ramp's cent figure — signal, matching the fill it labels. */

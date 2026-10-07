@@ -31,7 +31,7 @@
   --reel-surface-flat: #090808;
   --reel-shadow: 0 30px 120px -30px rgba(0, 0, 0, 0.9);
 
-  /* PriceChart reads its colours off its own container, so the chart follows the card. */
+  /* The card's legacy ink tokens; the Window chart itself reads the `--ow-*` tokens, which follow the theme as the card does. */
   --color-ink: rgb(var(--reel-ink-rgb));
   --color-ink-secondary: rgb(var(--reel-ink-rgb) / 0.7);
   --color-ink-muted: rgb(var(--reel-ink-rgb) / 0.45);
