@@ -1,4 +1,4 @@
-import { Archivo, Inter, JetBrains_Mono, Noto_Sans_JP } from "next/font/google";
+import { Archivo, Inter, JetBrains_Mono, Noto_Sans_JP, Nunito } from "next/font/google";
 
 /**
  * Owarine's faces (K-403, the UGLYCASH / Tradash revamp).
@@ -8,6 +8,7 @@ import { Archivo, Inter, JetBrains_Mono, Noto_Sans_JP } from "next/font/google";
  *   Inter     body, labels and figures (tabular numerals for prices and PnL), tracked -0.02em.
  *   JetBrains Mono  the chart's price axis and the ledger's ids, like Tradash's axis column.
  *   Noto Sans JP    終値 and the seal stamp.
+ *   Nunito    the landing's rounded display (8 Oct, the "Rainbow" direction): the free stand-in for SF Pro Rounded, 600–900.
  */
 
 export const archivo = Archivo({
@@ -37,4 +38,11 @@ export const jetbrainsMono = JetBrains_Mono({
   weight: ["400", "500", "700"],
 });
 
-export const fontVariables = [archivo.variable, inter.variable, notoSansJp.variable, jetbrainsMono.variable].join(" ");
+export const nunito = Nunito({
+  variable: "--font-rounded",
+  subsets: ["latin"],
+  display: "swap",
+  weight: ["600", "700", "800", "900"],
+});
+
+export const fontVariables = [archivo.variable, inter.variable, notoSansJp.variable, jetbrainsMono.variable, nunito.variable].join(" ");

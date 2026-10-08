@@ -12,7 +12,11 @@ export const WORDS = {
     assets: ["BTC", "ETH", "TSLA", "NVDA", "OPENAI", "SPACEX", "CC"],
     start: "Start trading",
     demo: "Try it with demo credits",
-    stickers: { private: "Private", oracles: "3 oracles sign it" },
+    marketsCount: "and more",
+    toasts: {
+      private: { title: "Only you and the venue", body: "see your position" },
+      oracles: { title: "3 oracles sign", body: "every closing print" },
+    },
   },
   phone: {
     demo: "DEMO",
@@ -27,7 +31,7 @@ export const WORDS = {
   tape: { label: "Live now", next: "next Window" },
   loop: {
     kicker: "How it works",
-    title: "Tap. Watch. Bank it.",
+    title: ["Tap. Watch.", "Bank it."],
     steps: [
       {
         n: "01",
@@ -48,7 +52,7 @@ export const WORDS = {
   },
   private: {
     kicker: "Private by the ledger",
-    title: "Your bet is between you and the venue.",
+    title: ["Your bet is between", "you and the venue."],
     body: "On public prediction markets, whale trackers and copy-traders read every position. On Canton yours is a contract between you and the venue. No one else's node ever gets it.",
     who: ["You", "The venue", "Everyone else"],
     rows: [
@@ -63,14 +67,14 @@ export const WORDS = {
   },
   markets: {
     kicker: "Everything on one screen",
-    title: "Crypto, stocks, pre-IPO. Same two buttons.",
+    title: ["Crypto, stocks, pre-IPO.", "Same two buttons."],
     cards: {
       crypto: { title: "Crypto", body: "24/7, every two and five minutes." },
       stocks: { title: "Stocks", body: "Fifteen-minute Windows through the NYSE session." },
       preipo: { title: "Pre-IPO", body: "Private companies and baskets, hourly, 24/7." },
       parlay: { title: "Parlays", body: "Two or three markets on one ticket. The odds multiply." },
       cover: { title: "Cover what you hold", body: "A Down call pays if what you hold falls." },
-      cc: { title: "Fund with Canton Coin", body: "Bring CC to your seat and take it back out." },
+      cc: { title: "Canton Coin", body: "Call CC itself, or bring CC to your seat and take it back out." },
     },
     open: (n: number) => `${n} Window${n === 1 ? "" : "s"} open`,
   },
@@ -84,7 +88,7 @@ export const WORDS = {
   },
   proof: {
     kicker: "Settled in public, held in private",
-    title: "Every close is signed.",
+    title: ["Every close", "is signed."],
     body: "Three oracle parties sign every closing print. Positions stay private; prints and results are public.",
     sources: "Where the prints come from",
     settled: "Just settled",

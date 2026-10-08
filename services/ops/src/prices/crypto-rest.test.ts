@@ -11,10 +11,10 @@ function venues(down: readonly string[] = []): Fetch {
     const host = new URL(url).host;
     if (down.some((d) => host.includes(d))) throw new Error(`connect ETIMEDOUT ${host}`);
     if (host.includes("coinbase")) return ok({ price: url.includes("BTC") ? "62010.10" : "2501.00", time: "2026-10-08T11:59:59.500Z" });
-    if (host.includes("bitstamp")) return ok({ last: url.includes("btc") ? "62000" : "2500.50", timestamp: String(NOW / 1000 - 2) });
+    if (host.includes("bitstamp")) return ok({ last: url.includes("btc") ? "62000" : "2500.50", "timestamp": String(NOW / 1000 - 2) });
     if (host.includes("bitfinex")) return ok([["tBTCUSD", 1, 1, 1, 1, 0, 0, 62005, 1, 1, 1], ["tETHUSD", 1, 1, 1, 1, 0, 0, 2499.9, 1, 1, 1]]);
     if (host.includes("kraken")) return ok({ error: [], result: { XXBTZUSD: { c: ["62020.0", "0.1"] }, XETHZUSD: { c: ["2502.0", "1"] } } });
-    if (host.includes("gemini")) return ok({ last: url.includes("btc") ? "61990" : "2500", volume: { timestamp: NOW - 1_000 } });
+    if (host.includes("gemini")) return ok({ last: url.includes("btc") ? "61990" : "2500", volume: { "timestamp": NOW - 1_000 } });
     throw new Error(`unexpected ${url}`);
   }) as unknown as Fetch;
 }

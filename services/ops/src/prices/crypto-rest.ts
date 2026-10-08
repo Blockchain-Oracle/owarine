@@ -64,8 +64,10 @@ export async function readVenue(venue: CryptoVenue, symbols: readonly CryptoSymb
       break;
     case "bitstamp":
       await Promise.all(listed.map(async (s) => {
-        const b = (await getJson(fetchImpl, `https://www.bitstamp.net/api/v2/ticker/${PAIRS.bitstamp[s]}/`)) as { last?: unknown; timestamp?: string };
-        put(s, b.last, b.timestamp ? Number(b.timestamp) * 1000 : nowMs);
+        // Bitstamp's own field names: `last`, and the trade time in whole seconds.
+        const b = (await getJson(fetchImpl, `https://www.bitstamp.net/api/v2/ticker/${PAIRS.bitstamp[s]}/`)) as Record<string, unknown>;
+        const tradeSec = Number(b["timestamp"]);
+        put(s, b.last, Number.isFinite(tradeSec) && tradeSec > 0 ? tradeSec * 1000 : nowMs);
       }));
       break;
     case "bitfinex": {
@@ -87,8 +89,10 @@ export async function readVenue(venue: CryptoVenue, symbols: readonly CryptoSymb
     }
     case "gemini":
       await Promise.all(listed.map(async (s) => {
-        const b = (await getJson(fetchImpl, `https://api.gemini.com/v1/pubticker/${PAIRS.gemini[s]}`)) as { last?: unknown; volume?: { timestamp?: number } };
-        put(s, b.last, typeof b.volume?.timestamp === "number" ? b.volume.timestamp : nowMs);
+        // Gemini's own field names: `last`, and the trade time in milliseconds under `volume`.
+        const b = (await getJson(fetchImpl, `https://api.gemini.com/v1/pubticker/${PAIRS.gemini[s]}`)) as Record<string, unknown>;
+        const tradeMs = Number((b.volume as Record<string, unknown> | undefined)?.["timestamp"]);
+        put(s, b.last, Number.isFinite(tradeMs) && tradeMs > 0 ? tradeMs : nowMs);
       }));
       break;
   }
