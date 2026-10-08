@@ -5,7 +5,5 @@
     "The rule fails on an entry that no longer matches anything, so the list cannot rot."
   ],
   "entries": [
-    { "file": "web/src/features/pitch/copy.ts", "match": "Built from Masayume's source", "why": "the pitch credits the reference it was ported from" },
-    { "file": "web/src/features/pitch/copy.ts", "match": "source-led port of Masayume", "why": "the pitch credits the reference it was ported from" }
   ]
 }

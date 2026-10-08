@@ -33,7 +33,7 @@ export function readText(abs) {
   return readFileSync(abs, "utf8");
 }
 
-const COMMENT_LINE = /^\s*(\/\/|\*|\/\*)/;
+const COMMENT_LINE = /^\s*(\/\/|\*|\/\*|\{\/\*)/; // `{/*` opens a JSX comment
 
 /** Yields `[lineNumber, line]` for non-comment lines so prose in comments never trips a code rule. */
 export function* codeLines(text) {

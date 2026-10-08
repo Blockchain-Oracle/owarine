@@ -89,7 +89,7 @@ export const PRIVATE = {
     paidPrivate: "in private balance",
     paidPrivateTitle: "The venue paid this call straight back into your private balance; the ledger's receipt names the bucket",
     foot: "The venue settles each call at its Window's close and pays it straight back into your private balance; a call settled before that change shows Cash out, which brings it home once. Never published, never on a leaderboard.",
-    fileName: (date: string) => `agari-private-claims-${date}.json`,
+    fileName: (date: string) => `owarine-private-claims-${date}.json`,
     just: "just now",
     minutes: (m: number) => `${m}m ago`,
     hours: (h: number) => `${h}h ago`,

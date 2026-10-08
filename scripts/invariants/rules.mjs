@@ -126,6 +126,14 @@ export const rules = [
     pattern: /[\x00-\x08\x0B\x0C\x0E-\x1F]/,
   },
   {
+    // 8 Oct 2026: the rename left "Built from Masayume's source" on the pitch and Agari's name on an export file.
+    id: "no-legacy-brand-in-copy",
+    description: "no earlier product's name (Agari, Masayume, Yosuku, Sotto, Flicky) in anything a user reads; lowercase hash domains and pinned ids are not copy",
+    scopes: ["web/src", "mobile/src", "docs-site/content", "docs-site/app", "docs-site/components"],
+    exts: [...TS, ".mdx", ".md"],
+    pattern: /\b(Agari|AGARI|Masayume|MASAYUME|Yosuku|YOSUKU|Sotto|Flicky)\b/,
+  },
+  {
     id: "design-literals",
     description: "no raw hex colors or px literals in component code — use theme.css / tokens.css (AD-12)",
     scopes: ["web/src/app", "web/src/components", "web/src/features", "web/src/providers"],

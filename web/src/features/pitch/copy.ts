@@ -51,11 +51,11 @@ export const PITCH = {
 
   engine: {
     section: "THE ENGINE",
-    kicker: "Built from Masayume's source",
-    h1a: "We ported the product.",
-    h1b: "We wrote the ",
+    kicker: "Written for Canton",
+    h1a: "One tap on the screen.",
+    h1b: "Daml is the ",
     emph: "engine",
-    lead: "Owarine is a source-led port of Masayume, this builder's crypto prediction market on another chain: its shell, its ticket, its type and spacing, its words. Owarine itself first shipped on another chain, as Agari: prior work, disclosed at the tag hackcanton-s3-start. What is underneath is new and was written in the delivery window: five Daml packages for the quotes, the legs, the signed prints, resolution and settlement, a JSON Ledger API client, and the venue's operations. The Daml is the only thing that decides an outcome.",
+    lead: "Underneath every tap: five Daml packages for the quotes, the legs, the signed prints, resolution and settlement, a JSON Ledger API client, and the venue's operations. The Daml is the only thing that decides an outcome. Prior work is disclosed at the tag hackcanton-s3-start.",
     panelTitle: "ABU-PM-MAIN · THE ENGINE",
     panelBadge: "ON A CANTON SANDBOX",
     rows: [
@@ -135,7 +135,7 @@ export const PITCH = {
     kicker: "Users live in apps",
     h1a: "Where the users",
     emph: "are",
-    lead: "People spend their time in apps, so the web app installs as one: the reel is phone-first, the bottom pill nav is the reference's, and it runs full-screen from the home screen. The native iPhone app is ported to Canton too: it typechecks and builds, and it goes to TestFlight once its App Store Connect record exists. The download page says which.",
+    lead: "People spend their time in apps, so the web app installs as one: the reel is phone-first, and it runs full-screen from the home screen. The native iPhone app is ported to Canton too: it typechecks and builds, and it goes to TestFlight once its App Store Connect record exists. The download page says which.",
     pills: ["Installable PWA", "iPhone app ported", "TestFlight: next"],
   },
 
@@ -232,7 +232,7 @@ export const PITCH = {
     emph: "ships",
     name: "Abubakr Jimoh",
     role: "Founder & full-stack builder",
-    body: "The whole Canton port: a Daml package written for this venue, three oracle parties and a resolver, seats that lease a party, the venue's quotes and settlement, a projector over the ledger — and the product itself. Shipped to here.",
+    body: "The whole venue on Canton: a Daml package written for this venue, three oracle parties and a resolver, seats that lease a party, the venue's quotes and settlement, a projector over the ledger — and the product itself. Shipped to here.",
   },
 
   roadmap: {
