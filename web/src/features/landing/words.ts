@@ -78,7 +78,7 @@ export const WORDS = {
     cards: {
       games: { title: "Games", body: "Duels, Lucky, Line Rider. Same prices, same settlement.", href: "/games" },
       automate: { title: "Automate", body: "A desk trades a basket inside limits you set, and explains every move.", href: "/agents" },
-      earn: { title: "Earn", body: "Back the reserves and share what they make.", href: "/earn" },
+      x: { title: "Trade from X", body: "Reply to @owarine_app with your call. A bounded agent places it.", href: "/trade-from-x" },
     },
   },
   proof: {

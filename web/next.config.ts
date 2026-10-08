@@ -27,7 +27,9 @@ const nextConfig: NextConfig = {
     { source: "/markets-live", destination: "/markets", permanent: true },
     { source: "/bell", destination: "/markets", permanent: true },
     { source: "/beta", destination: "/markets", permanent: true },
-    { source: "/pool", destination: "/earn", permanent: true },
+    { source: "/pool", destination: "/portfolio", permanent: true },
+    // Earn is out of the product (Abu, 8 Oct: its reserves are not on DevNet); old links land on the money.
+    { source: "/earn", destination: "/portfolio", permanent: false },
     // Developer surfaces taken off the product (8 Oct): the plain-words privacy answer lives on How it works.
     { source: "/demo", destination: "/how-it-works", permanent: true },
     { source: "/who-sees-what", destination: "/how-it-works", permanent: true },

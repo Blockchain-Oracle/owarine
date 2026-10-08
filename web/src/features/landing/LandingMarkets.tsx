@@ -85,7 +85,7 @@ export function LandingMarkets() {
       <div className="mt-4 grid gap-4 md:grid-cols-3">
         <Card href={WORDS.more.cards.games.href} title={WORDS.more.cards.games.title} body={WORDS.more.cards.games.body} art="joystick" />
         <Card href={WORDS.more.cards.automate.href} title={WORDS.more.cards.automate.title} body={WORDS.more.cards.automate.body} art="ninja" />
-        <Card href={WORDS.more.cards.earn.href} title={WORDS.more.cards.earn.title} body={WORDS.more.cards.earn.body} art="gemStone" />
+        <Card href={WORDS.more.cards.x.href} title={WORDS.more.cards.x.title} body={WORDS.more.cards.x.body} art="megaphone" />
       </div>
     </section>
   );
