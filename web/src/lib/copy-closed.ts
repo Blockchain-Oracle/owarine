@@ -6,6 +6,10 @@ export const CLOSED = {
   /** The strip above a board while the stock market is shut: "US stocks · Pre-market · opens 14:30 (09:30 ET), in 4h 04m". */
   strip: (phrase: string) => `US stocks · ${phrase}`,
   stripTail: "Pre-IPO names and baskets trade around the clock.",
+  /** The stocks row while the market is shut: each stock's mark and last price, and that nothing trades until the open. */
+  stocksTitle: "US stocks",
+  stocksLine: (opens: string) => `${opens}. No trading until the open.`,
+  noPrice: "—",
   /** The listed group's heading: "Schedule a call · opens Wed 09:30 ET". */
   listed: (opens: string) => `Schedule a call · opens ${opens}`,
   /** A 24/7 card's kind chip. */

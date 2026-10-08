@@ -8,6 +8,7 @@ import { MarketRoom } from "@/features/room";
 import { HERO_HEAD, SECTIONS } from "@/lib/copy";
 import { assetPriceLine } from "./hero/units";
 import { CadenceLanes, useLanesState } from "./lanes";
+import { ClosedStocks } from "./lanes/ClosedStocks";
 import { MarketsHero } from "./MarketsHero";
 import { MarketSessionChip } from "./session";
 import { useChainNowMs } from "./useChainNow";
@@ -72,6 +73,7 @@ export function MarketsScreen({ renderTicket, renderVerdict, renderLedgerView }:
               onSelect={setSelection}
               onOpenRoom={setRoomMarket}
             />
+            <ClosedStocks laneSet={lanes.laneSet} nowMs={nowMs} />
           </section>
 
           {/* §02, where the reference puts it: the same live Windows, said in plain language. */}
