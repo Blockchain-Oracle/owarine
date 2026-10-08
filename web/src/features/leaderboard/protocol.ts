@@ -3,11 +3,8 @@ import type { Address } from "@owarine/core/types";
 import { z } from "zod";
 import { tractionSchema } from "@/features/stats/protocol";
 
-/**
- * "This session" first: a stock venue's day is its session; "24h" is Masayume's rolling board; "7d", "30d" and "all"
- * are Tradash's Weekly, Monthly and All time.
- */
-export const BOARD_PERIODS = ["session", "24h", "7d", "30d", "all"] as const;
+/** Rolling periods include the venue's 24/7 assets; the NYSE session is an explicit stock-hours filter. */
+export const BOARD_PERIODS = ["24h", "7d", "30d", "all", "session"] as const;
 export type BoardPeriod = (typeof BOARD_PERIODS)[number];
 /** Rolling periods by length; `all` reaches back to the venue's first Window. */
 export const ROLLING_MS: Partial<Record<BoardPeriod, number>> = { "24h": 86_400_000, "7d": 7 * 86_400_000, "30d": 30 * 86_400_000 };

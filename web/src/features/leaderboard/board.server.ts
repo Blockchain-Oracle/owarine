@@ -135,7 +135,7 @@ export const BOARD_CACHE_TAG = "owarine-venue-board";
 /** Key by the deployment's data source and the period, never by a per-request timestamp. */
 export function readBoard(period: BoardPeriod): Promise<BoardCache> {
   const { cluster, venueId, indexerUrl } = webEnv.markets;
-  return unstable_cache(() => computeBoard(period), ["owarine-venue-board-v7", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 180, tags: [BOARD_CACHE_TAG] })();
+  return unstable_cache(() => computeBoard(period), ["owarine-venue-board-v8", cluster, venueId ?? "no-venue", indexerUrl ?? "no-indexer", period], { revalidate: 60, tags: [BOARD_CACHE_TAG] })();
 }
 
 type WireRanking = LeaderboardPayload["rankings"][number];

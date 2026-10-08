@@ -20,7 +20,9 @@ describe("/api/activity inbox", () => {
 
   it("the seat itself reads its own rows under its current lease", async () => {
     caller.mockResolvedValue(ALICE);
-    const body = await (await get()).json();
+    const response = await get();
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    const body = await response.json();
     expect(body.items).toEqual([{ kind: "own" }]);
     expect(own).toHaveBeenCalledWith(ALICE, { party: LEASE.party, fromOffset: LEASE.startOffset }, 5);
     expect(published).not.toHaveBeenCalled();
@@ -38,5 +40,12 @@ describe("/api/activity inbox", () => {
     caller.mockResolvedValue(ALICE);
     byAddress.mockResolvedValueOnce(null);
     expect((await (await get()).json()).items).toEqual([{ kind: "published" }]);
+  });
+
+  it("reports a lease-store outage instead of silently showing an empty published feed as personal history", async () => {
+    caller.mockResolvedValue(ALICE);
+    byAddress.mockRejectedValueOnce(new Error("database offline"));
+    expect((await get()).status).toBe(503);
+    expect(published).not.toHaveBeenCalled();
   });
 });

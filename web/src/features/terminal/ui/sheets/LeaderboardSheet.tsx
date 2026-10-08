@@ -6,9 +6,10 @@ import { partyLead, shortHex } from "@owarine/core/units";
 import { usePublishedHistory, useWalletHistory } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowDownRight, ArrowUpRight, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { Sheet } from "@/components/kit";
-import { glyphFromAddress, LEADERBOARD_KEY, useLeaderboard, type BoardPeriod, type BoardRanking, type RankBy } from "@/features/leaderboard";
+import { glyphFromAddress, LEADERBOARD, LEADERBOARD_KEY, useLeaderboard, type BoardPeriod, type BoardRanking, type RankBy } from "@/features/leaderboard";
 import { haptic } from "@/lib/haptics";
 import { playTrade } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
@@ -138,7 +139,7 @@ function Profile({ ranking, rank, decimals, own }: { ranking: BoardRanking; rank
         ) : !isOk(history) ? (
           <p className="py-6 text-center text-ow-caption text-ow-muted">Couldn&rsquo;t load this profile.</p>
         ) : rounds.length === 0 ? (
-          <p className="py-6 text-center text-ow-caption text-ow-muted">No published trades.</p>
+          <p className="py-6 text-center text-ow-caption text-ow-muted">{own ? "No settled trades yet." : "No published trades."}</p>
         ) : (
           <ul className="flex flex-col gap-1.5">
             {shown.map((r) => {
@@ -211,6 +212,7 @@ export function LeaderboardSheet({ open, onClose }: { open: boolean; onClose: ()
           </div>
           <Chips items={PERIODS} value={period} onPick={setPeriod} label="Period" />
         </div>
+        <p className="text-ow-caption text-ow-muted">Rankings use settled calls you choose to share. <Link href="/activity" onClick={close} className="underline">Your activity</Link> includes unpublished trades.</p>
         {reading === null ? (
           <p className="py-10 text-center text-ow-caption text-ow-muted">Loading…</p>
         ) : !data ? (
@@ -221,7 +223,7 @@ export function LeaderboardSheet({ open, onClose }: { open: boolean; onClose: ()
             </button>
           </div>
         ) : rankings.length === 0 ? (
-          <p className="py-10 text-center text-ow-caption text-ow-muted">{period === "all" ? "No ranked traders yet. Publish a call from your open positions, and it counts here once it settles." : "No published trades in this period."}</p>
+          <p className="py-10 text-center text-ow-caption text-ow-muted">{LEADERBOARD.empty.headline} {LEADERBOARD.empty.body}</p>
         ) : (
           <>
             <Podium top={rankings.slice(0, 3)} decimals={decimals} rankBy={rankBy} you={address} onPick={(i) => pick(rankings[i]!)} />

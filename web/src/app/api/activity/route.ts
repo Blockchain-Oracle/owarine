@@ -22,7 +22,7 @@ const NO_STORE = { "cache-control": "private, no-store" };
 async function leaseOf(address: string): Promise<{ party: string; fromOffset: number } | null> {
   const tier = seatServer();
   if (!tier.ok) return null;
-  const lease = await tier.server.store.byAddress(address).catch(() => null);
+  const lease = await tier.server.store.byAddress(address);
   return lease ? { party: lease.party, fromOffset: lease.startOffset } : null;
 }
 

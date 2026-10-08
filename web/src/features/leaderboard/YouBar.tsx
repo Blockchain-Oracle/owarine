@@ -17,7 +17,7 @@ export function YouBar({ address, data, span }: YouBarProps) {
   const index = data.rankings.findIndex((r) => r.owner === address);
   const you: { rank: number; trader: BoardRanking } | null = index === -1 ? null : { rank: index + 1, trader: data.rankings[index] as BoardRanking };
   const ranked = data.meta.rankedTraders;
-  const rankedText = ranked > 0 ? ranked.toLocaleString() : LEADERBOARD.dash;
+  const rankedText = ranked.toLocaleString();
   const pnl = (value: bigint) => `${value >= 0n ? "+" : ""}${formatBaseUnits(value, data.meta.decimals)}`;
 
   return (

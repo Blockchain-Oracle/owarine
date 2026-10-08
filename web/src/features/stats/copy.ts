@@ -33,7 +33,7 @@ export const STATS = {
       : "Every call here is a published Publication contract: an accepted venue quote its owner chose to show. Nothing is self-reported, and a call nobody published is never counted.",
   floor: "A paging cap cut this read short, so every figure is a floor, not a total.",
   activity: {
-    empty: "no activity indexed yet",
+    empty: "No published calls or cash-outs in the last 24 hours. Your own trades appear in Activity without publishing.",
     updated: (ago: string) => `updated ${ago}`,
     kind: { call: "call", "cash-out": "cash-out" },
   },

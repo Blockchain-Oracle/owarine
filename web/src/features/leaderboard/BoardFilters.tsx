@@ -1,6 +1,6 @@
 "use client";
 
-import { TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
+import { CRYPTO_TICKERS, TICKER_SYMBOLS, TICKERS, type TickerSymbol } from "@owarine/core/market";
 import { TickerPicker } from "@/features/markets/lanes/TickerPicker";
 import { cn } from "@/lib/utils";
 import { LEADERBOARD } from "./copy";
@@ -17,8 +17,8 @@ interface BoardFiltersProps {
 
 // 6d keys paused tickers by reason; the board never pauses a ticker.
 const NO_PAUSES: ReadonlyMap<TickerSymbol, string> = new Map();
-/** The Regular lane's tickers, registry order (SPY waits for a signed source). */
-const BOARD_TICKERS = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].launch);
+/** The launch stocks and 24/7 crypto assets, in registry order. */
+const BOARD_TICKERS = TICKER_SYMBOLS.filter((symbol) => TICKERS[symbol].launch || (CRYPTO_TICKERS as readonly string[]).includes(symbol));
 
 /**
  * Masayume's filter bar (`LeaderboardBoard.tsx`: "All assets" and "Last 24 hours" as static `.asset-tab` spans), made

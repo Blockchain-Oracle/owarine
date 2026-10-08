@@ -13,7 +13,7 @@ import type { TractionData } from "@/features/stats";
 import { BoardActivity } from "./BoardActivity";
 import { BoardFilters } from "./BoardFilters";
 import { LEADERBOARD, type BoardSpan } from "./copy";
-import type { BoardQuery } from "./leaderboard-client";
+import { DEFAULT_BOARD, type BoardQuery } from "./leaderboard-client";
 import { Podium, podiumOrder } from "./Podium";
 import type { BoardData } from "./protocol";
 import { YouBar } from "./YouBar";
@@ -34,7 +34,6 @@ export interface LeaderboardBoardProps {
 }
 
 const SETTLE_TAIL_MS = 900_000;
-const VENUE_DAY: BoardQuery = { period: "24h", ticker: null };
 const ignore = () => undefined;
 
 /** The span the shown board covers; before the first answer, the selected period with no session yet. */
@@ -83,12 +82,12 @@ function Hero({ data, nextExpirySec, nowMs, board, onBoard, span }: HeroProps) {
           <div className="lb-meta-col">
             <div>
               <div>{words.traders(board.period)}</div>
-              <div className="big">{meta && meta.rankedTraders > 0 ? meta.rankedTraders.toLocaleString() : dash}</div>
+              <div className="big">{meta ? meta.rankedTraders.toLocaleString() : dash}</div>
             </div>
             <div>
               <div>{words.staked}</div>
               <div className="big">
-                {meta && meta.totalVolumeBase > 0n ? (
+                {meta ? (
                   <>
                     {formatBaseUnits(meta.totalVolumeBase, meta.decimals, { maxDp: 0, minDp: 0 })} <span className="lb-symbol">{meta.symbol}</span>
                   </>
@@ -114,7 +113,7 @@ function Hero({ data, nextExpirySec, nowMs, board, onBoard, span }: HeroProps) {
 }
 
 /** The board's every state, ported from the reference page: reading, failed, empty, podium, the field, live activity, and you. */
-export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board = VENUE_DAY, onBoard = ignore, activity, retry }: LeaderboardBoardProps) {
+export function LeaderboardBoard({ reading, address, nextExpirySec, nowMs, board = DEFAULT_BOARD, onBoard = ignore, activity, retry }: LeaderboardBoardProps) {
   const data = reading && isOk(reading) ? reading.value : null;
   const span = spanOf(data, board, nowMs);
   const podium = useMemo(() => (data ? podiumOrder(data.rankings) : []), [data]);

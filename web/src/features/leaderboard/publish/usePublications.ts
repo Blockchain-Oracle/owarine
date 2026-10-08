@@ -3,6 +3,7 @@
 import { ledgerRequest } from "@owarine/markets";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { TRACTION_KEY } from "@/features/stats/useTraction";
 
 /**
  * The seat's own publications (GET/POST/DELETE `/api/ledger/publications`), keyed by the seat address so a new lease
@@ -43,6 +44,9 @@ export function usePublishCall(address: string | null) {
   const settle = () => {
     void client.invalidateQueries({ queryKey: publicationsKey(address) });
     void client.invalidateQueries({ queryKey: ["owarine", "leaderboard"] });
+    void client.invalidateQueries({ queryKey: TRACTION_KEY });
+    void client.invalidateQueries({ queryKey: ["owarine", "social"] });
+    void client.invalidateQueries({ queryKey: ["owarine", "markets", "published"] });
   };
   const publish = useMutation({
     mutationFn: async (o: { marketId: string; source: PublishSource; receiptId?: string }) => {

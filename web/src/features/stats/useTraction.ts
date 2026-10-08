@@ -4,7 +4,7 @@ import { diagnosis, err, ok, type Reading } from "@owarine/core";
 import { useReadingQuery } from "@owarine/markets/react";
 import { toTractionData, tractionPayloadSchema, type TractionData } from "./protocol";
 
-/** The reference polls every 30 s; the route serves from the board's three-minute cache, so this is cheap. */
+/** Shares the board's one-minute server cache; visible readers poll without adding a scan per visitor. */
 const POLL_MS = 30_000;
 export const TRACTION_KEY = ["owarine", "traction"] as const;
 

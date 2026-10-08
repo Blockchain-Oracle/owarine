@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { Reading } from "@owarine/core/schemas";
 import { SectionHeader } from "@/components/chrome";
 import { ActivityList } from "@/features/stats/StatsSections";
@@ -24,6 +25,7 @@ export function BoardActivity({ reading, nowMs }: BoardActivityProps) {
   return (
     <section className="lb-activity">
       <SectionHeader index={words.number} title={words.title} desc={words.desc} eyebrow={updated} className="lb-section-head" />
+      <p className="lb-freshness"><Link href="/activity">{LEADERBOARD.you.activity}</Link></p>
       {traction && nowMs > 0 ? (
         <ActivityList events={traction.recent} decimals={traction.meta.decimals} symbol={traction.meta.symbol} nowMs={nowMs} />
       ) : (
