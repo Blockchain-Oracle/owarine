@@ -38,8 +38,8 @@ const PROSE = [".md", ".mdx", ".webmanifest"];
 const DOCS = "docs-site";
 const DOCS_CODE = [...CODE, ".mjs"];
 const DOCS_PROSE = [...PROSE, ".svg", ".vtt", ".json"];
-/** Not copy: the sponsors' and brand marks (path data), font preparation, and package manifests. */
-const DOCS_EXCLUDE = ["docs-site/public/brand", "docs-site/scripts/assets"];
+/** Not published copy: local review evidence, brand marks (path data), and font preparation. */
+const DOCS_EXCLUDE = ["docs-site/public/brand", "docs-site/scripts/assets", "docs-site/evidence"];
 const DOCS_SKIP = /^docs-site\/(package|tsconfig|vercel)\.json$|\.(?:d\.ts)$/;
 const SKIP_FILE = /\.test\.tsx?$|\/__tests__\//;
 /**

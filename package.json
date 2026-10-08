@@ -10,7 +10,7 @@
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
     "typecheck": "pnpm -r typecheck",
-    "test": "vitest run",
+    "test": "node --test scripts/lib/evidence-ref.test.mjs && vitest run",
     "invariants": "node scripts/invariants/run.mjs",
     "ci": "pnpm typecheck && pnpm invariants && pnpm test",
     "env:check": "node scripts/env-check.mjs",

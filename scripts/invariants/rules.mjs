@@ -231,6 +231,6 @@ export const rules = [
   { id: "venue-identity", description: "no reference asset, brand or chain (BTC, ETH, Masayume, Somnia…) in live code or copy; comments and tests may name them", check: venueIdentity },
   { id: "no-solana-copy", description: "the product never claims Solana: no Solana, SOL, lamport, Phantom, Solflare, Backpack, Helius, Solscan, Jupiter (except as the named price source), tUSDC, on chain, block explorer or gas in user-visible strings (apps, packages core and markets, manifest, and the whole docs site: pages, site strings, diagrams, captions); lineage and protocol lines allowlisted with a reason", check: noSolanaCopy },
   { id: "no-ledger-in-client", description: "no module reachable from a web \"use client\" entry imports @owarine/ledger's root at runtime: it pulls the HTTP client and node:crypto into the browser bundle (96caadf); use @owarine/ledger/pure", check: noLedgerInClient },
-  { id: "capabilities-evidence", description: "docs/plan/capabilities.json never claims more than its evidence: `local` and `live` need existing evidence paths, `live` also an acceptance row (honest state)", check: capabilitiesEvidence },
+  { id: "capabilities-evidence", description: ".github/verification/capabilities.json never claims more than its evidence: `local` and `live` need existing evidence, `live` also an acceptance row", check: capabilitiesEvidence },
   { id: "pnpm-only", description: "pnpm is the only package manager (root pin, no foreign lockfiles, Anchor uses pnpm)", check: pnpmOnly },
 ];

@@ -66,7 +66,7 @@ export const LEGAL = {
       title: "Prices and news",
       gist: "Where the numbers come from.",
       points: [
-        "Prints and prices: RedStone, Pyth, Coinbase, Kraken, Bitstamp, Bybit, Alpaca, Jupiter and PreStocks.",
+        "Prints and prices: RedStone, Pyth, Coinbase, Kraken, Bitstamp, Bybit, Alpaca, Jupiter Price v3 and PreStocks.",
         "Headlines: Finnhub.",
         "A feed can be late or wrong; a Window it cannot settle voids.",
       ],

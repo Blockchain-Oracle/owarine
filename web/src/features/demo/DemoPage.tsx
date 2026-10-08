@@ -74,7 +74,7 @@ export function DemoPage({ film }: { film: Film | null }) {
         <span className="text-ow-label font-bold text-ow-muted">{DEMO.builtOn}</span>
         {SPONSORS.map((sponsor) => (
           <a key={sponsor.id} href={sponsor.href} rel="noopener" className="opacity-90 hover:opacity-100">
-            <SponsorMark sponsor={sponsor} className={sponsor.id === "noders" ? "[--mark-height:34px]" : "[--mark-height:26px]"} />
+            <SponsorMark sponsor={sponsor} className={sponsor.id === "noders" ? "[--mark-height:var(--demo-noders-height)]" : "[--mark-height:var(--demo-sponsor-height)]"} />
           </a>
         ))}
       </section>
@@ -120,7 +120,7 @@ function Number({ label, value, sub, href }: { label: string; value: string; sub
   return (
     <Link href={href} className="flex flex-col gap-1 rounded-ow-card bg-ow-card p-5 ring-1 ring-ow-hairline hover:ring-ow-pink">
       <dt className="text-ow-label text-ow-muted">{label}</dt>
-      <dd className="ow-num text-[28px] font-bold leading-tight text-ow-ink">{value}</dd>
+      <dd className="ow-num text-[length:var(--demo-number-font)] font-bold leading-tight text-ow-ink">{value}</dd>
       {sub ? <dd className="text-ow-caption text-ow-muted">{sub}</dd> : null}
     </Link>
   );

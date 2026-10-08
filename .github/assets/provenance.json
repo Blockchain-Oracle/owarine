@@ -1,0 +1,25 @@
+{
+  "created": "2026-10-08",
+  "method": "Image generation from the current Owarine seal and dated product screen, with Agari, Shijima, Akashi and Masayume README assets studied as editorial references.",
+  "editorialOnly": true,
+  "notEvidenceOf": "An executed trade, a recording, an independently signed ledger submission, or a published video. The screenshot is reinterpreted in the generated composition; use original captures and ledger records for verification.",
+  "productScreen": {
+    "sourceWorkspace": "canton-season3/context/13-revamp/tradash/owarine-captures-2026-10-07/candles-desktop.png",
+    "date": "2026-10-07",
+    "state": "Owarine desktop BTC chart in DEMO mode, no open positions.",
+    "publicOriginal": ".github/assets/trading-screen-2026-10-07.png"
+  },
+  "brandSource": "brand/owarine-app-icon-1024.png",
+  "assets": [
+    {
+      "path": ".github/assets/banner.png",
+      "use": "README hero",
+      "sha256": "37304def96d5ad2b7c5fe8efa7ba5b9473adca7a2da6e01c6aaa7fcd41d04985"
+    },
+    {
+      "path": "web/public/demo/cover.png",
+      "use": "Demo cover with play button",
+      "sha256": "03f0b4a5672db4ea2954243447b7a4ca0e9fb90440b8e72b1c547d5ba8820c82"
+    }
+  ]
+}

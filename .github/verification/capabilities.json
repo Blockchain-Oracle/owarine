@@ -1,0 +1,2916 @@
+{
+  "$comment": "Dated capability inventory, preserved without changing any state on 2026-10-08. live means a recorded DevNet acceptance run, not present service availability. git:<revision>:<path> references are checked against immutable Git objects; clone with full history. Internal planning files remain local.",
+  "updated": "2026-10-07",
+  "capabilities": [
+    {
+      "id": "L-01",
+      "capability": "Root layout, providers, pre-paint theme, fonts, PWA manifest",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-01",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-02",
+      "capability": "Desktop header, grouped nav, balance pill, account menu",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "L-02",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md#L62",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L23",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L62"
+      ]
+    },
+    {
+      "id": "L-03",
+      "capability": "Mobile pill nav + \"Everything\" drawer",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-03",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-04",
+      "capability": "AppStrip, Marquee ticker, footer, grain, cursor, theme toggle",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C5"
+      ],
+      "parityRow": "L-04",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-05",
+      "capability": "Design system (Yosuku port)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C0"
+      ],
+      "parityRow": "L-05",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-06",
+      "capability": "Toast / transaction feedback",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-06",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-07",
+      "capability": "Error boundaries",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-07",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-08",
+      "capability": "Write-journal recovery on session start",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-08",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-09",
+      "capability": "First-run Tutorial",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-09",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L14",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L75",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L122",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4f"
+      ],
+      "note": "Web Tutorial over the live markets; the phone's /welcome (C-N02) was not driven"
+    },
+    {
+      "id": "L-10",
+      "capability": "Wrong-network banner",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-10",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-11",
+      "capability": "/ editorial landing",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-11",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-12",
+      "capability": "How it works",
+      "state": "local",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-12",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L15",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L42",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c10f"
+      ],
+      "note": "Static page, checked with no ledger or ops (C10f); the phone's port (C-N34) only typechecked and exported"
+    },
+    {
+      "id": "L-13",
+      "capability": "Demo",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-13",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-14",
+      "capability": "Pitch folio",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-14",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-15",
+      "capability": "Stats / traction",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-15",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c5",
+        "commit:9321ae3"
+      ]
+    },
+    {
+      "id": "L-16",
+      "capability": "Status",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-16",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c5",
+        "commit:9321ae3",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L101",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L45"
+      ]
+    },
+    {
+      "id": "L-17",
+      "capability": "News wire",
+      "state": "local",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-17",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L100",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L101",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L102",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-18",
+      "capability": "Download / PWA install",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10",
+        "gate:C11"
+      ],
+      "parityRow": "L-18",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-19",
+      "capability": "Native app + /native-auth",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11",
+        "gate:C13"
+      ],
+      "parityRow": "L-19",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-20",
+      "capability": "Documentation site",
+      "state": "local",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-20",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L17",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L40",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L74",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L75"
+      ],
+      "note": "Built and served on this Mac (C10f) and from its image (C4e); not yet on Coolify"
+    },
+    {
+      "id": "L-21",
+      "capability": "Legacy redirects",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-21",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-22",
+      "capability": "Share cards (The Call, Earned Heat)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-22",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-23",
+      "capability": "Social OG images",
+      "state": "local",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "L-23",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L16",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c10f/og-site.png"
+      ],
+      "note": "Brand constants only, checked with no ledger or ops (C10f)"
+    },
+    {
+      "id": "L-24",
+      "capability": "Wallet connect / disconnect / account switch",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "L-24",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L511",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9c-games-ux.md#L49",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L24",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L32",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L34"
+      ],
+      "note": "Web guest seat; the phone's Keychain seat key runs on the iOS Simulator (C11b), not yet on a device"
+    },
+    {
+      "id": "L-25",
+      "capability": "Get test funds",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-25",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L511",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9c-games-ux.md#L49"
+      ]
+    },
+    {
+      "id": "L-26",
+      "capability": "Add-money modal + CreditWelcome",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-26",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
+    },
+    {
+      "id": "L-27",
+      "capability": "Tap-trading (session key + SESSION grant + sponsor)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-27",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-28",
+      "capability": "Trading Balance vault",
+      "state": "local",
+      "dependsOn": [
+        "gate:C7a"
+      ],
+      "parityRow": "L-28",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7a-exit-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L513"
+      ]
+    },
+    {
+      "id": "L-29",
+      "capability": "/markets hero-as-ticket",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-29",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-30",
+      "capability": "§01 live-now rail cards",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-30",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-31",
+      "capability": "§02 \"Just ask\" word board",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-31",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-32",
+      "capability": "Call ticket (one-tap)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-32",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6e-stocks-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L512",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md#L134",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L22"
+      ]
+    },
+    {
+      "id": "L-33",
+      "capability": "Verdict + inline claim",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-33",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L28",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L36",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L37",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L38",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L40",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L33",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ],
+      "note": "The venue's settle paid every leg without a signature; the owner's own Leg_Claim was not driven in C9e or C4f"
+    },
+    {
+      "id": "L-34",
+      "capability": "Claim-all plate",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-34",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-35",
+      "capability": "Plain-position cash-out",
+      "state": "local",
+      "dependsOn": [
+        "gate:C7a"
+      ],
+      "parityRow": "L-35",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7a-exit-2026-09-29.md"
+      ]
+    },
+    {
+      "id": "L-36",
+      "capability": "Range (ticket mode + /games/range)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-36",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6d-gap-events.md"
+      ]
+    },
+    {
+      "id": "L-37",
+      "capability": "Boost 2×/3× (LeverageReserve)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-37",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L55",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L57"
+      ],
+      "note": "Knock-out triggered on the sandbox at a quorum print past the barrier (C8d)"
+    },
+    {
+      "id": "L-38",
+      "capability": "Parlay",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-38",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md"
+      ]
+    },
+    {
+      "id": "L-39",
+      "capability": "Private mode",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-39",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L75",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L76",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L77",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L79",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L80",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L82",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L78",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L79",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L80",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L83",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L84",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ]
+    },
+    {
+      "id": "L-40",
+      "capability": "Market Surface",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "L-40",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-41",
+      "capability": "Sensei AI dock",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-41",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-42",
+      "capability": "The Room",
+      "state": "local",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-42",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md"
+      ]
+    },
+    {
+      "id": "L-43",
+      "capability": "Price alerts",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-43",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-44",
+      "capability": "Reels",
+      "state": "local",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-44",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L118",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-45",
+      "capability": "Takes",
+      "state": "local",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-45",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L103",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L104",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L105",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-46",
+      "capability": "Portfolio",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4",
+        "gate:C7a"
+      ],
+      "parityRow": "L-46",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7a-exit-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6d-gap-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L51",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L30",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L31",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L32"
+      ]
+    },
+    {
+      "id": "L-47",
+      "capability": "Trader Edge",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-47",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L46",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L47",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L48",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L49",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L50",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L124",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-48",
+      "capability": "Leaderboard",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-48",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c5",
+        "commit:9321ae3",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L124"
+      ]
+    },
+    {
+      "id": "L-49",
+      "capability": "Reputation, badges, CSV",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "L-49",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L51",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L124",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ],
+      "note": "The seat's own tier and badges from the projection; the CSV export and another trader's figures from publications were not captured"
+    },
+    {
+      "id": "L-50",
+      "capability": "Earn (maker vault)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-50",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L24",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L69",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c2d",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L86"
+      ],
+      "note": "Every reserve supplied, and range shares withdrawn at the live NAV, through the Earn route (C8d)"
+    },
+    {
+      "id": "L-51",
+      "capability": "Strategies desk",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-51",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8f-agents.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L24",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L23",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L63",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L67"
+      ]
+    },
+    {
+      "id": "L-52",
+      "capability": "Launch an agent (4-step builder)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-52",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L24",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L19"
+      ]
+    },
+    {
+      "id": "L-53",
+      "capability": "Copy a strategy",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-53",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L26",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L20"
+      ]
+    },
+    {
+      "id": "L-54",
+      "capability": "Agents board",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-54",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L67",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ]
+    },
+    {
+      "id": "L-55",
+      "capability": "Strategy runner + self-host",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-55",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8f-agents.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L26",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L59"
+      ],
+      "note": "Runner placed through its grant on the sandbox; self-host not run"
+    },
+    {
+      "id": "L-56",
+      "capability": "Paid Memory Market",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "L-56",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-57",
+      "capability": "Reversion preset",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-57",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L63",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L65"
+      ]
+    },
+    {
+      "id": "L-58",
+      "capability": "Trade from X",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-58",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-59",
+      "capability": "X recovery / claim",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-59",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-60",
+      "capability": "X relay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "L-60",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-61",
+      "capability": "Games hub",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-61",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L84",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L128",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L129",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-62",
+      "capability": "Practice",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-62",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L85",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L86",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L87",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L88",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-63",
+      "capability": "Duel (Free/Ranked) + match link",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-63",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9b-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9c-games-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L69",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L73"
+      ]
+    },
+    {
+      "id": "L-64",
+      "capability": "Games history",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-64",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-65",
+      "capability": "Rank + seasons",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-65",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9c-games-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L75",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L76",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L77",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L81"
+      ]
+    },
+    {
+      "id": "L-66",
+      "capability": "Lucky Draw",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-66",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-67",
+      "capability": "Moonshot",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "L-67",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md"
+      ]
+    },
+    {
+      "id": "L-68",
+      "capability": "Line Rider",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-68",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L89",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-69",
+      "capability": "Candle Hop",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-69",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L89",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "L-70",
+      "capability": "Game audio, motion, art, settings",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-70",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-71",
+      "capability": "Game profile, achievements, friends",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "L-71",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-72",
+      "capability": "/dev/* fixtures",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "L-72",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "L-73",
+      "capability": "Ops host and health",
+      "state": "local",
+      "dependsOn": [
+        "gate:C0",
+        "gate:C4"
+      ],
+      "parityRow": "L-73",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L71",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L72",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L73",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L96",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L101"
+      ],
+      "note": "The three images rehearsed on this Mac behind a Coolify-configured Traefik against a local sandbox (C4e); not yet on the Coolify server"
+    },
+    {
+      "id": "L-74",
+      "capability": "API surface",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3",
+        "gate:C4"
+      ],
+      "parityRow": "L-74",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7a-exit-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L515"
+      ]
+    },
+    {
+      "id": "Y-01",
+      "capability": "Founder waitlist + referral rank (/waitlist)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-01",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-02",
+      "capability": "Creators guide, creator card studio, creator recovery (/creators, /creator/studio, /creator/recover)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-02",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-03",
+      "capability": "Founder Line Studio (/studio)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-03",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-04",
+      "capability": "Internal social content board (/social)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-04",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-05",
+      "capability": "/fund card on-ramp + cross-chain deposit (CCTP)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-05",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-06",
+      "capability": "In-app editorial /docs page",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "Y-06",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-07",
+      "capability": "Agent/MCP tx-builder (/api/bet/build), npm SDK, MCP server",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-07",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-08",
+      "capability": "Polymarket discovery rail; multi-coin ticker + Fear & Greed",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-08",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-09",
+      "capability": "Sensei persistent memory (MemWal)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-09",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-10",
+      "capability": "TEE-attested agent / attested X bind",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-10",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-11",
+      "capability": "Name-service handle claim (.yosuku.sui)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-11",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-12",
+      "capability": "Encrypted rooms (Seal)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-12",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-13",
+      "capability": "TheBell floating draggable countdown widget",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-13",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-14",
+      "capability": "Site-wide + per-market OG images",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "Y-14",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-15",
+      "capability": "/agent attested showcase",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-15",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-16",
+      "capability": "Standalone Trading Balance deposit/withdraw modal",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7a"
+      ],
+      "parityRow": "Y-16",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-17",
+      "capability": "Native iOS/Android app",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "Y-17",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "Y-18",
+      "capability": "Creator earnings pool row (builder codes)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "Y-18",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "A-1a",
+      "capability": "Bearish exposure via existing primitives",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7a",
+        "gate:C8"
+      ],
+      "parityRow": "A-1a",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "A-1b",
+      "capability": "Inverse position (linear short, not binary)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-1b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8e-tickets-ux.md"
+      ]
+    },
+    {
+      "id": "A-1c",
+      "capability": "Fade a trader/agent",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-1c",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L30",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L31"
+      ]
+    },
+    {
+      "id": "A-2a",
+      "capability": "Yield on idle Trading Balance",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-2a",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "A-2b",
+      "capability": "Supplier (\"be the house\") UI for every reserve",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-2b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L86",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ]
+    },
+    {
+      "id": "A-2c",
+      "capability": "Yield reporting",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-2c",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L55",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L69",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L70",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c2d"
+      ]
+    },
+    {
+      "id": "A-3a",
+      "capability": "Trader profiles, follows, social leaderboards",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5",
+        "gate:C13"
+      ],
+      "parityRow": "A-3a",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L51",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L124",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ],
+      "note": "Own profile and the leaderboard; another trader's profile was not captured; follows stay removed (K-005)"
+    },
+    {
+      "id": "A-3b",
+      "capability": "Copy human traders",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "A-3b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L63",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L64",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L66",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L69"
+      ]
+    },
+    {
+      "id": "A-3c",
+      "capability": "Ticker rooms, cashtag takes, activity feed, notifications",
+      "state": "local",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "A-3c",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L103",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L104",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L105",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L117",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ],
+      "note": "Ticker rooms, cashtag takes and the seat's activity; notifications not shown (push is C-PUSH, still not-live)"
+    },
+    {
+      "id": "A-3d",
+      "capability": "Trade-from-X for stocks",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "A-3d",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "A-3e",
+      "capability": "Blinks: every Window as a signed share link, where the reference had a Solana Action (/actions.json, /api/actions/w/<marketId>, /api/actions/t/<symbol>/<cadence>)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "A-3e",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-S19a",
+      "capability": "Baskets /baskets, basket hub, measured in points (D-124)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-S19a",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L21",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L22",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L23",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ]
+    },
+    {
+      "id": "C-S19b",
+      "capability": "\"Your baskets\" cover card and basket cover (pickBasketHedges)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b"
+      ],
+      "parityRow": "C-S19b",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-S20a",
+      "capability": "Valuation lanes (OPENAIV/ANTHROPICV), hub \"Token vs Pyth\" (D-125)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-S20a",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-S20b",
+      "capability": "Pyth entitlement gate: a lane lists only while the probe says the index is readable",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-S20b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L30",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L118"
+      ],
+      "note": "Proven on the denied branch: the probe answered 403 (pyth-indices) on 6 Oct and no valuation lane listed; the entitled branch is shown only in /dev/pyth-index"
+    },
+    {
+      "id": "C-S21a",
+      "capability": "Desk pages /desk, /desk/new, /desk/[id], /desk/[id]/record, /desk/[id]/decision/[seq], desk OG image (D-126)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21a",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L42",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L45",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L33",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8g"
+      ]
+    },
+    {
+      "id": "C-S21b",
+      "capability": "Desk API: /api/desk/[owner] + actions, approvals, check-now, feed, mandate, mode, opened, records, records/[seq], share; /api/desk/marks",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L43",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L46",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L50"
+      ]
+    },
+    {
+      "id": "C-S21c",
+      "capability": "Desk program: attested reference, premium ceiling, hash-chained operator_checkpoint, shadow/pause mode, token allowlist",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21c",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L45",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L46",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L48",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L44"
+      ]
+    },
+    {
+      "id": "C-S21d",
+      "capability": "DeskWatcher toasts; judges' shared read-only desk",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S21d",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L90",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L92",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L93",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ]
+    },
+    {
+      "id": "C-S22",
+      "capability": "Desk UX kit from 21st components (D-127), web and native",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-S22",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-S23a",
+      "capability": "Closed market: word board and ticket out of hours, 24/7 chips, \"No quotes yet\", games tell the truth out of hours",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-S23a",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-S23b",
+      "capability": "Pre-open resting call (\"Schedule a call\")",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-S23b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7c-resting-call.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/probes/c7c-resting-it-run2.log",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c7c",
+        "daml/pm-tests/daml/Test/Resting.daml"
+      ]
+    },
+    {
+      "id": "C-S24a",
+      "capability": "Dark-mode balance controls; compact /short",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6",
+        "gate:C8"
+      ],
+      "parityRow": "C-S24a",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L97",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ]
+    },
+    {
+      "id": "C-S24b",
+      "capability": "Strategy runner rests while no Window trades; isStalledOpening drops a Window whose opening print is over 2 min late",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6",
+        "gate:C8"
+      ],
+      "parityRow": "C-S24b",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L98"
+      ],
+      "note": "The runner's rest driven on the sandbox; isStalledOpening is unit-tested only (phase.test.ts), not provoked on the sandbox"
+    },
+    {
+      "id": "C-S25",
+      "capability": "Sponsor visibility: \"Built on\" band, per-price source line (S25b), docs sponsor page, footer credit",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "C-S25",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-PUSH",
+      "capability": "Push notifications: api/push/register, api/push/drain, ops push-clock, Expo; fills, results, payouts",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-PUSH",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-DOC-01",
+      "capability": "Docs site: 42 pages, llms.txt, llms-full.txt, /raw, /api/search, OG, sitemap, captures",
+      "state": "local",
+      "dependsOn": [
+        "gate:C0",
+        "gate:C10"
+      ],
+      "parityRow": "C-DOC-01",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L17",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L40",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L74",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L75",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L96"
+      ],
+      "note": "Built and served on this Mac (C10f) and from its image behind the Coolify-configured Traefik (C4e); not yet on Coolify"
+    },
+    {
+      "id": "C-PROOF",
+      "capability": "/proof feed and /proof/[market] with ReverifyButton",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5",
+        "gate:C10"
+      ],
+      "parityRow": "C-PROOF",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c5",
+        "commit:9321ae3",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L122"
+      ]
+    },
+    {
+      "id": "C-MKT-01",
+      "capability": "Ticker hub /tickers/[symbol] + OG (basket and valuation modes)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4",
+        "gate:C8d"
+      ],
+      "parityRow": "C-MKT-01",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L31",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L32",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L103",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L106",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c8d"
+      ],
+      "note": "Basket and crypto hubs, ticker rooms and live-print previews on the sandbox; the valuation mode shows only its gated state (no Pyth key entitled to pyth-indices)"
+    },
+    {
+      "id": "C-MKT-02",
+      "capability": "Lanes: Regular, Gap (Monday), 24/7 xStock token, PreStocks pre-IPO; session, halt and gap states",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-02",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-lanes-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6d-gap-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6e-stocks-events.md"
+      ],
+      "note": "Valuation lanes need an entitled Pyth key; Switchboard Surge down (xStocks settle on the Jupiter median)"
+    },
+    {
+      "id": "C-MKT-03",
+      "capability": "Cadences 300/900/3600 s plus Gap; Masayume 4 h and 1 d; Masayume's BTC/ETH cadence lanes",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-03",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-lanes-2026-09-29.md"
+      ]
+    },
+    {
+      "id": "C-MKT-04",
+      "capability": "Price sources (PrintSource: Pyth, RedStone, Switchboard, attested)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-04",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-lanes-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6e-stocks-events.md"
+      ]
+    },
+    {
+      "id": "C-MKT-05",
+      "capability": "Oracle quorum and cross-check-and-void (maxDeviationBps, VoidReason specific reasons)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-MKT-05",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6d-gap-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6e-stocks-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L524"
+      ]
+    },
+    {
+      "id": "C-MKT-06",
+      "capability": "BTC/ETH realised-vol re-measure before fair values go live",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-MKT-06",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-realised-vol-2026-09-29.md"
+      ]
+    },
+    {
+      "id": "C-MKT-07",
+      "capability": "D-123 demo-cash and ladder depth at the reference's scale (100,000 credits a day)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C0"
+      ],
+      "parityRow": "C-MKT-07",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-MKT-08",
+      "capability": "Region hold (D-095, HTTP 451, RegionNote)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-MKT-08",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-MKT-09",
+      "capability": "/api/sentiment crowd flow",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-MKT-09",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-MKT-10",
+      "capability": "/api/proof/pyth",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-MKT-10",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L122",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c9e"
+      ]
+    },
+    {
+      "id": "C-MKT-11",
+      "capability": "/api/dev/verify-message",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-MKT-11",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-MKT-12",
+      "capability": "Holdings-dependent UX: cover and hedge cards, \"Your stocks\", drop bell, landing Cover",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b"
+      ],
+      "parityRow": "C-MKT-12",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-MKT-13",
+      "capability": "X grammar <btc|eth>",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-MKT-13",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-DAML-01",
+      "capability": "Engine abu-pm-main: Series, MarketTerms, WindowState, PriceQuote, OpenPrint, Resolution, VenueCash, Quote, BuyQuote, Leg, NettedResidual and the money gate",
+      "state": "local",
+      "dependsOn": [
+        "gate:C2"
+      ],
+      "parityRow": "C-DAML-01",
+      "acceptanceRow": "C2b",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/plan/acceptance.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6d-gap-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L510",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L71",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L80"
+      ]
+    },
+    {
+      "id": "C-DAML-02",
+      "capability": "Venue mode (admin_set_mode: pause, reduce-only)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-DAML-02",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L38",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L39",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L40",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L41",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L42",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L43"
+      ],
+      "note": "Issuer policy in ops with the venue_mode_log record (K-264); the optional venue-signed VenueMode contract waits for a later DAR"
+    },
+    {
+      "id": "C-DAML-03",
+      "capability": "Product dependents (product_add_dependent / release_dependent)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-DAML-03",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L51",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L52",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L54"
+      ],
+      "note": "Dependents counted in the projection (idx_dependents, K-263); a ledger-side counter waits for a later DAR"
+    },
+    {
+      "id": "C-DAML-04",
+      "capability": "Strategy creator_seal (sealed spec), set_runner, deactivate",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-DAML-04",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8f-agents.md"
+      ]
+    },
+    {
+      "id": "C-DAML-05",
+      "capability": "Season prize pool and arena tiers",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-DAML-05",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9b-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L75",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L77"
+      ]
+    },
+    {
+      "id": "C-DAML-06",
+      "capability": "Canton Coin rail (CIP-56 transfer instructions, seats on our participant)",
+      "state": "live",
+      "dependsOn": [
+        "gate:C7b"
+      ],
+      "parityRow": "C-DAML-06",
+      "acceptanceRow": "C7b DevNet: Canton Coin round trip",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7b-canton-coin.md#devnet-run-2026-10-07",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/plan/runbooks/cc-rail.md"
+      ]
+    },
+    {
+      "id": "C-OPS-01",
+      "capability": "Supervisor, heartbeats, /health, calendar, earnings, halt-watch, SSE, print_archive",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-01",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L483",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L73",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L101"
+      ]
+    },
+    {
+      "id": "C-OPS-02",
+      "capability": "Window roller",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-02",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-lanes-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L483"
+      ]
+    },
+    {
+      "id": "C-OPS-03",
+      "capability": "Oracle feeders (Coinbase, Kraken, Bitstamp 1-minute closes), replacing price-relay",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-03",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9c-games-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L520"
+      ]
+    },
+    {
+      "id": "C-OPS-04",
+      "capability": "Pricer and quote issuer over K venue cash shards; venue price ladder over SSE",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-04",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-realised-vol-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L512",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L102",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4e-deploy.md#L104"
+      ]
+    },
+    {
+      "id": "C-OPS-05",
+      "capability": "Settler (SettleBatch), resolver proposer, netting, rebalancer, expiry sweeper, reserve reporter",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-05",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c7a-exit-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L30",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L522",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L80",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L83"
+      ]
+    },
+    {
+      "id": "C-OPS-06",
+      "capability": "Projector (/v2/updates → Postgres), replacing the indexer",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-06",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6e-stocks-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md#L135",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2e-private-payout.md#L93"
+      ]
+    },
+    {
+      "id": "C-OPS-07",
+      "capability": "Seat funding and close-out",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3",
+        "gate:C4"
+      ],
+      "parityRow": "C-OPS-07",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md#L63",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L483"
+      ]
+    },
+    {
+      "id": "C-OPS-08",
+      "capability": "strategy-runner + self-host runner-main.ts",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-08",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8f-agents.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L26",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L59",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L65",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L66"
+      ],
+      "note": "Drive through server code on the sandbox; the web routes were not clicked through a browser"
+    },
+    {
+      "id": "C-OPS-09",
+      "capability": "leverage-keeper",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-09",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L53",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L55",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8d-markets.md#L57"
+      ],
+      "note": "The keeper watches and reports the Boost book; the knock-out is posted by the ticket desk's keeper (K-262)"
+    },
+    {
+      "id": "C-OPS-10",
+      "capability": "game-room, matchmaker, duel-projector, duel-settler",
+      "state": "local",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-OPS-10",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9b-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9c-games-ux.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L69",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9e-c13b-sweep.md#L73"
+      ]
+    },
+    {
+      "id": "C-OPS-11",
+      "capability": "x-relay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-OPS-11",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-OPS-12",
+      "capability": "desk-runner (opt-in)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-12",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L31",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8i-agents-gaps.md#L41",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c8g-agents-ux.md#L48"
+      ]
+    },
+    {
+      "id": "C-OPS-13",
+      "capability": "market-maker vault mode (MAKER_MODE=vault)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-OPS-13",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L13",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2d-maker-vault.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c2d"
+      ]
+    },
+    {
+      "id": "C-OPS-14",
+      "capability": "Actor set split VENUE / LEGACY / OPT-IN",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-OPS-14",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md"
+      ]
+    },
+    {
+      "id": "C-N00",
+      "capability": "Native shell: NativeTabs, header, floating pill dock, BottomDrawer, More side panel, haptics, pull-to-refresh",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N00",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N01",
+      "capability": "Native route / (index, first-run redirect)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N01",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L23",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N02",
+      "capability": "Native route /welcome",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N02",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N03",
+      "capability": "Native route /onboarding",
+      "state": "local",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N03",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L23",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L24",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N04",
+      "capability": "Native route /connect (seat drawer)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N04",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N05",
+      "capability": "Native route /account",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N05",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L33",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L34",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L35",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N06",
+      "capability": "Native route /funds (demo-credits grant)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N06",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N07",
+      "capability": "Native route /ticket (sheet)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N07",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L26",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L41",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L42",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L43",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L44",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N08",
+      "capability": "Native route /markets (tab)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N08",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N09",
+      "capability": "Native route /markets/[id]",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N09",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L63",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "Reached by tapping the settle push, which named a settled Window and handed over to its successor. On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N10",
+      "capability": "Native route /portfolio (tab)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N10",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L29",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L46",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N11",
+      "capability": "Native route /portfolio/edge",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-N11",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N12",
+      "capability": "Native route /reels (tab)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N12",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N13",
+      "capability": "Native route /games (tab)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N13",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N14",
+      "capability": "Native route /games/practice",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N14",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N15",
+      "capability": "Native route /games/duel",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N15",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N16",
+      "capability": "Native route /games/duel/[matchId]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N16",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N17",
+      "capability": "Native route /games/lucky",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N17",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N18",
+      "capability": "Native route /games/range",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N18",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N19",
+      "capability": "Native route /games/moonshot",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N19",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N20",
+      "capability": "Native route /games/line-rider",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N20",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N21",
+      "capability": "Native route /games/candle-hop",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N21",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N22",
+      "capability": "Native route /games/history",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N22",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N23",
+      "capability": "Native route /games/rank",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C9"
+      ],
+      "parityRow": "C-N23",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N24",
+      "capability": "Native route /activity",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N24",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N25",
+      "capability": "Native route /agents",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N25",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N26",
+      "capability": "Native route /baskets",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8d"
+      ],
+      "parityRow": "C-N26",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N27",
+      "capability": "Native route /claim (X recovery)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N27",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N28",
+      "capability": "Native route /desk",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N28",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N29",
+      "capability": "Native route /desk/new",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N29",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N30",
+      "capability": "Native route /desk/[id]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N30",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N31",
+      "capability": "Native route /desk/[id]/record",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N31",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N32",
+      "capability": "Native route /desk/[id]/decision/[seq]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N32",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N33",
+      "capability": "Native route /earn",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N33",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N34",
+      "capability": "Native route /how-it-works",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C10"
+      ],
+      "parityRow": "C-N34",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N35",
+      "capability": "Native route /leaderboard",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-N35",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N36",
+      "capability": "Native route /notifications (push settings; its nav entry was removed 25 Sep, the screen stays)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N36",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N37",
+      "capability": "Native route /parlay",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N37",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N38",
+      "capability": "Native route /pool (redirect)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N38",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N39",
+      "capability": "Native route /sensei",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N39",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N40",
+      "capability": "Native route /short",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N40",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N41",
+      "capability": "Native route /status",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N41",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N42",
+      "capability": "Native route /strategies",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C8"
+      ],
+      "parityRow": "C-N42",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N43",
+      "capability": "Native route /strategies/[id] (redirect)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N43",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N44",
+      "capability": "Native route /tickers/[symbol]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-N44",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N45",
+      "capability": "Native route /trade-from-x",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C13"
+      ],
+      "parityRow": "C-N45",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N46",
+      "capability": "Native route /u/[address]",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-N46",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N47",
+      "capability": "+native-intent deep-link handling",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N47",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L34",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N48",
+      "capability": "Home-screen widget and Live Activity",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N48",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N49",
+      "capability": "Onboarding with sound",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N49",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N50",
+      "capability": "Android ongoing notification and Android APK (FCM credentials added)",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-N50",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-N51",
+      "capability": "Live spot stream and venue ladder on the phone (react-native-sse)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-N51",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L25",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-N52",
+      "capability": "DropBellWatcher, DeskWatcher on the phone",
+      "state": "not-live",
+      "dependsOn": [
+        "gate:C7b",
+        "gate:C8"
+      ],
+      "parityRow": "C-N52",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-ADD-01",
+      "capability": "\"Who can see this\" chip (web and phone)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-ADD-01",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L26",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L30"
+      ]
+    },
+    {
+      "id": "C-ADD-02",
+      "capability": "Per-party view switcher with the literal query on screen (web and phone)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "C-ADD-02",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L515",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L627",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L30",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L59"
+      ]
+    },
+    {
+      "id": "C-ADD-03",
+      "capability": "Seat link between devices (QR + 6-character code)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1"
+      ],
+      "parityRow": "C-ADD-03",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L32",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L34",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L35",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L14",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c4f-display.md#L61",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "Phone to web and web to phone (C11b), and a headless browser joining a seat held through the web routes (C4f); the phone on the iOS Simulator, not yet on a device"
+    },
+    {
+      "id": "C-ADD-04",
+      "capability": "iOS first-run demo-credits gate",
+      "state": "local",
+      "dependsOn": [
+        "gate:C11"
+      ],
+      "parityRow": "C-ADD-04",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L23",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c11b-ios-sim.md#L24",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c11b"
+      ],
+      "note": "On the iOS Simulator against a local stack (C11b); not yet on a device"
+    },
+    {
+      "id": "C-ADD-05",
+      "capability": "1-minute demo lane resolved by the three oracle parties",
+      "state": "local",
+      "dependsOn": [
+        "gate:C3"
+      ],
+      "parityRow": "C-ADD-05",
+      "acceptanceRow": "C3 gate",
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c3-gate-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c2z-r1-rehearsal.md#L520"
+      ]
+    },
+    {
+      "id": "C-ADD-06",
+      "capability": "Institutional event markets resolved by committee attestation",
+      "state": "local",
+      "dependsOn": [
+        "gate:C6"
+      ],
+      "parityRow": "C-ADD-06",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6-lanes-2026-09-29.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6d-gap-events.md",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c6e-stocks-events.md"
+      ]
+    },
+    {
+      "id": "C-ADD-08",
+      "capability": "Ticket write-progress steps (desk-kit StepProgress) and firm-quote ring (20 s)",
+      "state": "local",
+      "dependsOn": [
+        "gate:C1",
+        "gate:C4"
+      ],
+      "parityRow": "C-ADD-08",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332"
+      ]
+    },
+    {
+      "id": "C-ADD-09",
+      "capability": "Resolution timeline on /proof/<market> beside ReverifyButton",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5"
+      ],
+      "parityRow": "C-ADD-09",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c5"
+      ]
+    },
+    {
+      "id": "C-ADD-10",
+      "capability": "Seat pool-full, draining and waitlist plates",
+      "state": "local",
+      "dependsOn": [
+        "gate:C4"
+      ],
+      "parityRow": "C-ADD-10",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c4b",
+        "commit:526b332",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c9d-seats-games.md"
+      ]
+    },
+    {
+      "id": "C-ADD-11",
+      "capability": "Privacy matrix page with a runnable command; trust-boundary statement on /proof",
+      "state": "local",
+      "dependsOn": [
+        "gate:C5",
+        "gate:C10"
+      ],
+      "parityRow": "C-ADD-11",
+      "acceptanceRow": null,
+      "evidence": [
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L14",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L42",
+        "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c10f"
+      ],
+      "note": "Static page, checked with no ledger or ops (C10f); its commands are shown, not run there"
+    },
+    {
+      "id": "C-X01",
+      "capability": "\"Strategies on X\" strip on /agents (removed in the reference, d4a693e5)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "C-X01",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-X02",
+      "capability": "Mobile removals of 25 Sep: install strip, News, Pitch, Demo, Print proof, Stats, Market Surface, Download, the /more and /notifications nav entries",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "C-X02",
+      "acceptanceRow": null,
+      "evidence": []
+    },
+    {
+      "id": "C-X03",
+      "capability": "Friends and follows (removed in the reference, fb782348)",
+      "state": "not-live",
+      "dependsOn": [],
+      "parityRow": "C-X03",
+      "acceptanceRow": null,
+      "evidence": []
+    }
+  ],
+  "sourceRevision": "012c990d106770804f66a2119870b6ca3e6b671e"
+}

@@ -44,7 +44,8 @@ coverage/
 /_bmad-output/
 /skills/
 /context/
-# docs/plan/ is tracked (K-006): judges read the plan as evidence.
+# Internal plans, research, drafts and raw review captures stay local.
+/docs/
 /web/.21st/
 /docs-site/evidence/
 /docs/submission/description.md
@@ -65,6 +66,25 @@ design.md
 DESIGN.md
 *.pom.md
 *.memlog.md
+
+# Public Markdown is an explicit allowlist. Product guides in docs-site/content use MDX.
+*.[mM][dD]
+!/README.md
+!/THIRD_PARTY_NOTICES.md
+!/brand/README.md
+!/daml/released/MANIFEST.md
+!/daml/vendor/splice/README.md
+!/docs-site/README.md
+!/docs-site/CONTRIBUTING.md
+!/mobile/README.md
+!/mobile/assets/brand/README.md
+!/mobile/assets/sounds/SOURCES.md
+!/services/ops/src/actors/x-relay/reply-card-assets/README.md
+!/web/README.md
+!/web/public/art/fluent/SOURCES.md
+!/web/public/fonts/SOURCES.md
+!/web/public/sounds/SOURCES.md
+!/.github/verification/acceptance.md
 
 # UI review screenshots (local)
 .review/

@@ -9,10 +9,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { finding } from "./report.mjs";
+import { evidenceExists } from "../../lib/evidence-ref.mjs";
 
 const STATES = new Set(["not-live", "local", "live"]);
-const REGISTRY = "docs/plan/capabilities.json";
-const ACCEPTANCE = "docs/plan/acceptance.md";
+const REGISTRY = ".github/verification/capabilities.json";
+const ACCEPTANCE = ".github/verification/acceptance.md";
 
 export function capabilitiesEvidence(rule, ctx) {
   const abs = join(ctx.root, REGISTRY);
@@ -20,6 +21,7 @@ export function capabilitiesEvidence(rule, ctx) {
   const { capabilities } = JSON.parse(readFileSync(abs, "utf8"));
   const acceptance = existsSync(join(ctx.root, ACCEPTANCE)) ? readFileSync(join(ctx.root, ACCEPTANCE), "utf8") : "";
   const findings = [];
+  const checked = new Map();
   const seen = new Set();
   for (const c of capabilities) {
     const at = `${REGISTRY} ${c.id}`;
@@ -34,10 +36,11 @@ export function capabilitiesEvidence(rule, ctx) {
     if (evidence.length === 0) findings.push(finding(rule, `\`${c.state}\` without evidence`, at));
     for (const entry of evidence) {
       if (/^commit:[0-9a-f]{7,40}$/.test(entry)) continue;
-      if (!existsSync(join(ctx.root, entry.split("#")[0]))) findings.push(finding(rule, `evidence \`${entry}\` does not exist`, at));
+      if (!checked.has(entry)) checked.set(entry, evidenceExists(ctx.root, entry));
+      if (!checked.get(entry)) findings.push(finding(rule, `evidence \`${entry}\` does not exist (historical evidence needs full Git history)`, at));
     }
     if (c.state === "live" && !(c.acceptanceRow && acceptance.includes(c.acceptanceRow))) {
-      findings.push(finding(rule, "`live` without an acceptance row in docs/plan/acceptance.md", at));
+      findings.push(finding(rule, `\`live\` without an acceptance row in ${ACCEPTANCE}`, at));
     }
   }
   return findings;

@@ -5,7 +5,7 @@
  *
  *   1. authenticates as the platform user (password grant per process, single-flight, re-granted at 80% of
  *      `expires_in`, no refresh token stored: `@owarine/ledger`, K-035 option A),
- *   2. reads the parties Abu filled (`--parties`, JSON in the shape of `docs/plan/runbooks/devnet-parties.example.json`,
+ *   2. reads the parties Abu filled (`--parties`, JSON in the shape of `scripts/bootstrap/devnet-parties.example.json`,
  *      or the Console's party list pasted as text) and checks each one by id: hosted here, and our user can act as it.
  *      Nothing on the shared node is enumerated (no unfiltered `/v2/parties`, no `/v2/users`),
  *   3. checks that the main package of each DAR in `daml/released/` (else `.daml/dist/`) is on the participant,
@@ -78,7 +78,7 @@ async function main(): Promise<number> {
   if (insideRepo(input) || insideRepo(out)) throw new Error("the parties file lives outside the repo (party ids never go into Git): use ~/.config/owarine/canton/");
   // C2z: a rehearsal's sandbox ids must never land in the file ops and the web read on DevNet.
   if (local && out === DEFAULT_FILE) throw new Error(`a local rehearsal never writes ${DEFAULT_FILE}: pass --out <file outside the repo>`);
-  if (!existsSync(input)) throw new Error(`${input} does not exist: copy docs/plan/runbooks/devnet-parties.example.json there and fill it`);
+  if (!existsSync(input)) throw new Error(`${input} does not exist: copy scripts/bootstrap/devnet-parties.example.json there and fill it`);
   const summary = ledgerConfigSummary(env);
   log(`ledger ${summary.url} (auth ${summary.mode})${dryRun ? ", DRY RUN: prepare only" : ""}, run ${run}`);
 

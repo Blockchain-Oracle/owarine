@@ -19,7 +19,18 @@ anchor/.anchor
 docs-site
 # Evidence screenshots, native build output, Daml build output and the fetched geo table (the web build fetches its
 # own) are not read by either service.
-docs/evidence
+docs
+.claude
+.codex
+.agents
+.agent
+.cursor
+.windsurf
+.mcp.json
+**/AGENTS.md
+**/CLAUDE.md
+**/agent.md
+**/claude.md
 mobile/ios
 mobile/android
 daml/**/.daml

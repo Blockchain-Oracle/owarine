@@ -1,5 +1,10 @@
 /* Component-tier tokens — one section per DESIGN.md `components:` key. Values reference theme.css; nothing is re-typed here. */
 :root {
+  /* demo */
+  --demo-sponsor-height: 26px;
+  --demo-noders-height: 34px;
+  --demo-number-font: 28px;
+
   /* ticket */
   --ticket-surface: var(--color-surface-1);
   --ticket-border: var(--color-hairline);

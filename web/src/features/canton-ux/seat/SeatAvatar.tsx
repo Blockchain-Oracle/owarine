@@ -3,7 +3,7 @@
 import { useId } from "react";
 
 /** The brand's own inks; every seat's marble is three of them. */
-const PALETTE = ["#FA00FF", "#02BBFF", "#ADFF02", "#E7E3BF", "#0090E0"] as const;
+const PALETTE = ["var(--ow-pink)", "var(--ow-sky)", "var(--ow-lime)", "var(--ow-cream)", "var(--ow-sky-deep)"] as const;
 const SIZE = 80;
 
 /** A stable 31-bit hash of the seat's address, so one seat always wears the same marble on every device. */
@@ -39,7 +39,7 @@ export function SeatAvatar({ seed, size = 36, className }: { seed: string; size?
   return (
     <svg aria-hidden viewBox={`0 0 ${SIZE} ${SIZE}`} width={size} height={size} className={className} fill="none">
       <mask id={`${id}m`} maskUnits="userSpaceOnUse" x={0} y={0} width={SIZE} height={SIZE}>
-        <rect width={SIZE} height={SIZE} rx={SIZE * 2} fill="#FFFFFF" />
+        <rect width={SIZE} height={SIZE} rx={SIZE * 2} fill="white" />
       </mask>
       <g mask={`url(#${id}m)`}>
         <rect width={SIZE} height={SIZE} fill={base.fill} />

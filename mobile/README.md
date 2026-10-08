@@ -1,6 +1,6 @@
 # The phone app (Expo)
 
-The iOS and Android app of the Canton prediction market. It is the web's phone layout ported to React Native, and it reuses the web's hooks and copy (`@/` resolves to `web/src`, with a few browser-bound files swapped for `src/web-shims`, listed in `web-shims.map.cjs`). [TAKEOVER_STATUS.md](./TAKEOVER_STATUS.md) is the reference app's route inventory; `docs/evidence/c11a-ios.md` is this app's Canton state.
+The iOS and Android app of the Canton prediction market. It is the web's phone layout ported to React Native, and it reuses the web's hooks and copy (`@/` resolves to `web/src`, with a few browser-bound files swapped for `src/web-shims`, listed in `web-shims.map.cjs`). The [root README](../README.md) describes the current Canton evidence and limitations; the [capability inventory](../.github/verification/capabilities.json) links the dated Simulator runs.
 
 ## Identity
 
@@ -8,7 +8,7 @@ Every identifier the stores, EAS, deep links and on-device storage see (display 
 
 ## Run locally
 
-From the repository root, with Node 25.9.0 (`nvm use 25.9.0`):
+From the repository root, with Node 22+ and pnpm 11.24.0:
 
 ```sh
 pnpm install
@@ -19,7 +19,7 @@ pnpm --filter @owarine/mobile android
 
 This is a development build; Expo Go does not include the app's native modules.
 
-Against a local stack on the iOS Simulator (C11b, `docs/evidence/c11b-ios-sim.md`): `expo prebuild --platform ios`, `pod install` in `ios/`, then an `xcodebuild … -configuration Debug -destination id=<simulator>` build (about 27 minutes cold). Start Metro with `EXPO_PUBLIC_SITE_URL=http://localhost:<web port>`, `EXPO_PUBLIC_OPS_URL=http://localhost:<ops port>` and `EXPO_PUBLIC_CANTON_NETWORK=localnet` (the seat's signed texts name the network, so it must match the web's), and without `--localhost` (that binds `[::1]` only). Then open the dev client at `owarine://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<metro port>`. The simulator shares the Mac's `localhost`. Point the app at a web deploy with `EXPO_PUBLIC_SITE_URL` (default `http://localhost:3000`). The price and ladder streams come from ops: `EXPO_PUBLIC_OPS_URL`, or by default `https://ops.<domain>` for an https site and port 8787 on the same host for a local one. The app holds no ledger credential and no party id: it reaches the ledger only through the web's routes.
+Against a local stack on the iOS Simulator (C11b, the historical C11b evidence linked in the capability inventory): `expo prebuild --platform ios`, `pod install` in `ios/`, then an `xcodebuild … -configuration Debug -destination id=<simulator>` build (about 27 minutes cold). Start Metro with `EXPO_PUBLIC_SITE_URL=http://localhost:<web port>`, `EXPO_PUBLIC_OPS_URL=http://localhost:<ops port>` and `EXPO_PUBLIC_CANTON_NETWORK=localnet` (the seat's signed texts name the network, so it must match the web's), and without `--localhost` (that binds `[::1]` only). Then open the dev client at `owarine://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<metro port>`. The simulator shares the Mac's `localhost`. Point the app at a web deploy with `EXPO_PUBLIC_SITE_URL` (default `http://localhost:3000`). The price and ladder streams come from ops: `EXPO_PUBLIC_OPS_URL`, or by default `https://ops.<domain>` for an https site and port 8787 on the same host for a local one. The app holds no ledger credential and no party id: it reaches the ledger only through the web's routes.
 
 ## The seat
 
