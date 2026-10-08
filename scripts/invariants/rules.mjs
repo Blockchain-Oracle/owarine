@@ -117,6 +117,15 @@ export const rules = [
     pattern: /\b(body|query|searchParams|params|data|json)\b[\w.?!\[\]"'()]*\b(party|parties|actAs|readAs)\b/,
   },
   {
+    // 8 Oct 2026: the rename (c2db0028) wrote NUL bytes into five hash seeds; the build failed and ids changed silently.
+    id: "no-nul-in-source",
+    description: "no NUL (or other C0 control) byte in source text: it breaks builds and silently changes hashed ids",
+    scopes: ["packages", "web/src", "services", "scripts", "mobile/src"],
+    exts: TS,
+    exclude: ["packages/core/src/games/protocol.test.ts"],
+    pattern: /[\x00-\x08\x0B\x0C\x0E-\x1F]/,
+  },
+  {
     id: "design-literals",
     description: "no raw hex colors or px literals in component code — use theme.css / tokens.css (AD-12)",
     scopes: ["web/src/app", "web/src/components", "web/src/features", "web/src/providers"],
