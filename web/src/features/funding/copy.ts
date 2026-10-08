@@ -49,6 +49,10 @@ export const FUNDING = {
     title: "Canton Coin",
     notLive: "Not live",
     ready: "Live",
+    checking: "Checking",
+    checkingHeadline: "Checking Canton Coin availability…",
+    unavailable: "Unavailable",
+    unavailableHeadline: "Canton Coin availability could not be checked. Trying again shortly.",
     notLiveHeadline: "Canton Coin deposits are not live on this network yet.",
     notLiveBody:
       "The venue is built to hold real Canton Coin against your credits: you send it through the Canton token standard, the venue credits your seat at a fixed, stated rate, and you can take back what you put in. That path has been proved in tests, not on a network with a real wallet, so it stays off until it has.",

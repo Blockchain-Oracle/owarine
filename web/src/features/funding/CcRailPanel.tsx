@@ -25,7 +25,7 @@ export function CcRailPanel() {
   const out = listing ? withdrawUnits(credits, panel, listing.unitsPerCoin) : null;
   const live = panel.tone === "ready" || panel.tone === "closed";
   return (
-    <section className="flex flex-col gap-3 rounded-ow-card bg-ow-recessed/60 p-4" aria-label={C.title} data-capability={panel.tone === "not-live" ? "not-live" : "live"}>
+    <section className="flex flex-col gap-3 rounded-ow-card bg-ow-recessed/60 p-4" aria-label={C.title} aria-busy={cc.loading} data-capability={panel.tone === "not-live" ? "not-live" : "live"}>
       <header className="flex items-center gap-3">
         <AssetDisc asset="CC" className="ow-disc-24" />
         <span className="flex min-w-0 flex-1 flex-col">

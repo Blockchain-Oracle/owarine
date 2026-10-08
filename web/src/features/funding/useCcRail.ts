@@ -83,7 +83,7 @@ export function useCcRail(): CcRailState {
     }
   }, [queryClient, party]);
   return {
-    panel: ccPanel({ capability: CC_RAIL_CAPABILITY, view }),
+    panel: ccPanel({ capability: CC_RAIL_CAPABILITY, view, readFailed: reading !== null && !reading.ok }),
     view,
     loading: live && reading === null,
     readError: live && reading && !reading.ok ? diagnosisCopy(reading.error.kind).headline : null,

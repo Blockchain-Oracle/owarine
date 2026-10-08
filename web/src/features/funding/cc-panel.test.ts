@@ -50,6 +50,13 @@ describe("the Canton Coin panel (C7b)", () => {
     const closed = ccPanel({ capability: "live", view: view({ listing: { ...listing, depositsOpen: false }, allowanceUnits: "10", cashUnits: "10" }) });
     expect(closed).toMatchObject({ tone: "closed", canDeposit: false, canWithdraw: true });
   });
+
+  it("does not infer an absent listing while the first read is pending or failed", () => {
+    expect(ccPanel({ capability: "live", view: null })).toMatchObject({ tone: "checking", badge: "Checking", canDeposit: false, canWithdraw: false });
+    expect(ccPanel({ capability: "live", view: null, readFailed: true })).toMatchObject({ tone: "unavailable", badge: "Unavailable", canDeposit: false, canWithdraw: false });
+    expect(ccPanel({ capability: "live", view: view({ listing: null }) }).tone).toBe("unlisted");
+    expect(ccPanel({ capability: "live", view: view() }).tone).toBe("ready");
+  });
 });
 
 describe("what a typed amount sends", () => {

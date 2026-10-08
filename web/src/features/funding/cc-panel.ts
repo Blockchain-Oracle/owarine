@@ -17,7 +17,7 @@ export const CASH_DECIMALS = 6;
 const UNIT = "credits";
 const CC_DECIMALS = 10;
 
-export type CcPanelTone = "not-live" | "unlisted" | "closed" | "ready";
+export type CcPanelTone = "not-live" | "checking" | "unavailable" | "unlisted" | "closed" | "ready";
 
 export interface CcPanel {
   tone: CcPanelTone;
@@ -43,13 +43,16 @@ export interface CcPanel {
 
 const trimCc = (atomic: bigint): string => formatBaseUnits(atomic, CC_DECIMALS, { maxDp: CC_DECIMALS, minDp: 0, group: false });
 
-export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply | null }): CcPanel {
+export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply | null; readFailed?: boolean }): CcPanel {
   const { capability, view } = input;
   if (capability !== "live") {
     return { tone: "not-live", badge: C.notLive, headline: C.notLiveHeadline, lines: [C.notLiveBody, C.waitingOn(CC_RAIL_WAITING_ON)], rate: null, canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
   }
-  const listing = view?.listing ?? null;
-  if (!view || !listing) {
+  if (!view) {
+    return { tone: input.readFailed ? "unavailable" : "checking", badge: input.readFailed ? C.unavailable : C.checking, headline: input.readFailed ? C.unavailableHeadline : C.checkingHeadline, lines: [], rate: null, canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
+  }
+  const listing = view.listing;
+  if (!listing) {
     return { tone: "unlisted", badge: C.ready, headline: C.unlisted, lines: [], rate: null, canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
   }
   const rate = BigInt(listing.unitsPerCoin);
