@@ -18,7 +18,7 @@
     "archive:pyth": "node --env-file-if-exists=.env.local scripts/archive/pyth-trial.mjs --follow",
     "archive:redstone": "node --env-file-if-exists=.env.local scripts/archive/redstone.mjs --follow",
     "archive:start": "bash scripts/archive/start.sh",
-    "ops:start": "pnpm --filter @owarine/ops exec tsx --env-file-if-exists=../../.env.local src/main.ts",
+    "ops:start": "pnpm --filter @owarine/ops start",
     "devnet:preflight": "pnpm --filter @owarine/scripts exec tsx --env-file-if-exists=$HOME/.config/owarine/canton/devnet.env devnet-preflight.ts",
     "devnet:bootstrap": "pnpm --filter @owarine/scripts exec tsx --env-file-if-exists=$HOME/.config/owarine/canton/devnet.env bootstrap-devnet.ts"
   },

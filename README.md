@@ -127,7 +127,9 @@ No MainNet trading, independent security audit, completed user study or producti
 
 ## Run it locally
 
-Use **Node.js 22+**, **pnpm 11.24.0**, **Daml package manager (`dpm`) / Canton 3.5**, and **Postgres**. Clone with full Git history: evidence checks resolve immutable historical objects after internal notes leave the public tree.
+Use **Node.js 22+**, **pnpm 11.24.0**, **JDK 21**, **Daml package manager (`dpm`) / Canton 3.5**, and **Postgres**. Set `JAVA_HOME` to your JDK and ensure `java` and `dpm` are on `PATH` (the default dpm location is `$HOME/.dpm/bin`). The Daml packages pin SDK **3.5.2**. See the [dpm installation guide](https://archived.docs.digitalasset.com/build/3.5/dpm/dpm.html) for tool installation. Clone with full Git history: evidence checks resolve immutable historical objects after internal notes leave the public tree.
+
+Run commands from the repository root. Create an empty local Postgres database and keep its connection URL ready.
 
 ```sh
 pnpm install --frozen-lockfile
@@ -138,20 +140,53 @@ cp web/.env.example web/.env.local
 # Build packages; tests are a separate command.
 (cd daml && dpm build --all)
 (cd daml/pm-tests && dpm test)
+```
 
-# Keep the local Canton sandbox running in another terminal.
+In a second terminal, keep the local Canton sandbox running:
+
+```sh
 dpm sandbox --json-api-port 7575
+```
 
-# Allocate parties and seed a local venue with six guest seats.
+Back in the first terminal, allocate parties and seed the venue with six guest seats:
+
+```sh
 LEDGER_JSON_API_URL=http://127.0.0.1:7575 LEDGER_AUTH_MODE=none \
   pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts --seats 6
 ```
 
-Fill the copied environment files using their comments. Both web and ops need the **same** `DATABASE_URL`, `OPS_INTERNAL_SECRET` and bootstrap parties file. Set `LEDGER_JSON_API_URL=http://127.0.0.1:7575`, `LEDGER_AUTH_MODE=none` and `OWARINE_PARTIES_FILE` to the generated `~/.config/owarine/canton/parties.json`. Web also needs `OPS_INTERNAL_URL=http://127.0.0.1:8080` and a random `OWARINE_SEAT_COOKIE_SECRET` of at least 32 characters. Set ops `DRY_RUN=0` for the local actors to submit. Use fresh random secrets, not the names shown here. Schema setup is handled by the database package.
+Fill the copied environment files before starting the services:
+
+| Variable | Where | Local value |
+| --- | --- | --- |
+| `DATABASE_URL` | `web/.env.local` and `services/ops/.env.local` | The same local Postgres connection URL |
+| `LEDGER_JSON_API_URL` | Both files | `http://127.0.0.1:7575` |
+| `LEDGER_AUTH_MODE` | Both files | `none` |
+| `OWARINE_PARTIES_FILE` | Both files | The absolute path to the generated `~/.config/owarine/canton/parties.json`; expand `~` to your home directory |
+| `OPS_INTERNAL_SECRET` | Both files | The same random secret of at least 32 characters |
+| `OWARINE_SEAT_COOKIE_SECRET` | `web/.env.local` | A separate random secret of at least 32 characters |
+| `OPS_INTERNAL_URL` | `web/.env.local` | `http://127.0.0.1:8080` |
+| `OPS_HTTP_PORT` | `services/ops/.env.local` | `8080` (the command otherwise defaults to `8787`) |
+| `DRY_RUN` | `services/ops/.env.local` | `0` |
+| `NEXT_PUBLIC_CANTON_NETWORK` | `web/.env.local` | `localnet` |
+| `NEXT_PUBLIC_APP_ORIGIN` | Both files | `http://localhost:3000` |
+| `NEXT_PUBLIC_SITE_URL` | `web/.env.local` | `http://localhost:3000` |
+| `NEXT_PUBLIC_DOCS_URL` | `web/.env.local` | `http://localhost:3153` |
+| `NEXT_PUBLIC_PRICE_FEED_URL` | `web/.env.local` | `http://localhost:8080` |
+| `NEXT_PUBLIC_LADDER_URL` | `web/.env.local` | `http://localhost:8080` |
+
+Generate each secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. The database package applies its schema automatically. Ops loads its own environment file before the root file; shell variables take precedence. Optional integrations use the remaining entries in the examples.
+
+In a third terminal, start venue operations and the projector:
 
 ```sh
-pnpm ops:start   # another terminal: venue operations and projector
-pnpm dev         # web: http://localhost:3000
+pnpm ops:start
+```
+
+In a fourth terminal, start the web app and open [localhost:3000](http://localhost:3000):
+
+```sh
+pnpm dev
 ```
 
 Alpaca credentials enable stock lanes; crypto feeders read exchange candles. Optional integrations stay unavailable without their own prerequisites. See the [environment examples](web/.env.example), [ops configuration](services/ops/.env.example) and [builder setup](docs-site/content/docs/builders/local-setup.mdx).
@@ -164,8 +199,10 @@ pnpm build
 
 # The docs app has its own install and content/build checks.
 pnpm -C docs-site install --frozen-lockfile
-pnpm -C docs-site dev       # http://localhost:3153
 pnpm -C docs-site check
+
+# Keep this running in a separate terminal to view http://localhost:3153.
+pnpm -C docs-site dev
 ```
 
 [Native app setup](mobile/README.md) · [DevNet party-file template](scripts/bootstrap/devnet-parties.example.json) · [DevNet bootstrap](scripts/bootstrap-devnet.ts)

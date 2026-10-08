@@ -3,34 +3,65 @@ title: "Run Owarine locally"
 description: "Build the Daml packages, start a local Canton sandbox, bootstrap the venue, then run ops and the web app."
 ---
 
-Run these commands from the repository root, **not** from `docs-site/`. You need Node 22+, pnpm, dpm (Canton 3.5) and a Postgres database. Clone with full Git history so the capability and screenshot provenance checks can resolve historical evidence after internal notes leave the public tree.
+Run these commands from the repository root, **not** from `docs-site/`. You need Node 22+, pnpm 11.24.0, JDK 21, dpm (Canton 3.5; the packages pin SDK 3.5.2) and an empty local Postgres database. Set `JAVA_HOME` to your JDK and put `java` and `dpm` on `PATH`; dpm normally installs in `$HOME/.dpm/bin`. Clone with full Git history so the capability and screenshot provenance checks can resolve historical evidence after internal notes leave the public tree.
 
 ```sh
-pnpm install
-
-# 1. Build the Daml packages, and optionally run the Daml tests
-(cd daml && dpm build --all)
-(cd daml/pm-tests && dpm test)
-
-# 2. A local Canton sandbox with the JSON Ledger API on :7575 (leave it running)
-dpm sandbox --json-api-port 7575
-
-# 3. Bootstrap it once: upload the DARs, allocate the venue parties, create the Series,
-#    cash shards, ticket reserves, arena and a guest-seat pool
-LEDGER_JSON_API_URL=http://127.0.0.1:7575 LEDGER_AUTH_MODE=none \
-  pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts --seats 6
-
-# 4. Environment: copy the examples and fill them in
+pnpm install --frozen-lockfile
 cp .env.example .env.local
 cp services/ops/.env.example services/ops/.env.local
 cp web/.env.example web/.env.local
 
-# 5. The venue's operations, then the web app on http://localhost:3000
-pnpm ops:start
-pnpm dev
+# 1. Build the Daml packages, and optionally run the Daml tests
+(cd daml && dpm build --all)
+(cd daml/pm-tests && dpm test)
 ```
 
-The bootstrap refuses anything but an unauthenticated local sandbox, and writes the parties file (`~/.config/owarine/canton/parties.json`) that ops and the web read. The environment needs `DATABASE_URL`, `OPS_INTERNAL_SECRET`, `OWARINE_SEAT_COOKIE_SECRET`, `OWARINE_PARTIES_FILE`, `LEDGER_JSON_API_URL=http://127.0.0.1:7575` and `LEDGER_AUTH_MODE=none`; set web `OPS_INTERNAL_URL=http://127.0.0.1:8080`, use matching `OPS_INTERNAL_SECRET` values in web and ops, and set ops `DRY_RUN=0` to submit locally. Use random secrets of at least 32 characters; the `.env.example` files list the rest. Keep keys on the server.
+In a second terminal, leave the sandbox running:
+
+```sh
+dpm sandbox --json-api-port 7575
+```
+
+Back in the first terminal, upload the DARs, allocate the venue parties and create the Series, cash shards, reserves, arena and guest-seat pool:
+
+```sh
+LEDGER_JSON_API_URL=http://127.0.0.1:7575 LEDGER_AUTH_MODE=none \
+  pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts --seats 6
+```
+
+The bootstrap writes `~/.config/owarine/canton/parties.json`. Fill the copied environment files before starting either service:
+
+| Variable | Where | Local value |
+| --- | --- | --- |
+| `DATABASE_URL` | Web and ops | The same local Postgres connection URL |
+| `LEDGER_JSON_API_URL` | Web and ops | `http://127.0.0.1:7575` |
+| `LEDGER_AUTH_MODE` | Web and ops | `none` |
+| `OWARINE_PARTIES_FILE` | Web and ops | Absolute path to the generated parties file; expand `~` to your home directory |
+| `OPS_INTERNAL_SECRET` | Web and ops | The same random secret of at least 32 characters |
+| `OWARINE_SEAT_COOKIE_SECRET` | Web | A separate random secret of at least 32 characters |
+| `OPS_INTERNAL_URL` | Web | `http://127.0.0.1:8080` |
+| `OPS_HTTP_PORT` | Ops | `8080`; without this, the command defaults to `8787` |
+| `DRY_RUN` | Ops | `0` |
+| `NEXT_PUBLIC_CANTON_NETWORK` | Web | `localnet` |
+| `NEXT_PUBLIC_APP_ORIGIN` | Web and ops | `http://localhost:3000` |
+| `NEXT_PUBLIC_SITE_URL` | Web | `http://localhost:3000` |
+| `NEXT_PUBLIC_DOCS_URL` | Web | `http://localhost:3153` |
+| `NEXT_PUBLIC_PRICE_FEED_URL` | Web | `http://localhost:8080` |
+| `NEXT_PUBLIC_LADDER_URL` | Web | `http://localhost:8080` |
+
+Web values go in `web/.env.local`; ops values go in `services/ops/.env.local`. Generate each secret with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. The database package applies its schema automatically. Ops reads its own file before the root file, and explicitly exported shell variables take precedence.
+
+In a third terminal, start operations:
+
+```sh
+pnpm ops:start
+```
+
+In a fourth terminal, start the web app:
+
+```sh
+pnpm dev
+```
 
 Then open `/markets`, take a guest seat and make a call. The crypto lanes (Coinbase, Kraken and Bitstamp candles) run around the clock. Stock lanes quote only while US markets trade, and need the Alpaca keys in `services/ops/.env.local`. A local run uses its own parties and its own database, and touches no shared network.
 

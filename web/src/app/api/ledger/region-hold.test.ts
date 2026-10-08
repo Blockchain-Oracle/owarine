@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 /**
  * C5d (C-MKT-08, D-095): every Canton entry a seat makes answers 451 from a held region before it reads the seat, and
@@ -45,6 +45,12 @@ const EXITS: Array<[string, () => Promise<unknown>, Record<string, string>]> = [
 afterEach(() => seatLookups.mockClear());
 
 describe("region hold on the Canton write routes", () => {
+  // A fresh checkout must transform the route dependency graph. Keep that setup out of the
+  // request assertions' five-second budget; the handler checks retain their normal timeout.
+  beforeAll(async () => {
+    await Promise.all([...ENTRIES, ...EXITS].map(([, load]) => load()));
+  }, 60_000);
+
   it.each(ENTRIES)("%s answers 451 from a held region, before it reads the seat", async (path, mod, params) => {
     const res = await call(mod(), path, params, "restricted");
     expect(res.status).toBe(451);
