@@ -69,7 +69,6 @@ export const WORDS = {
       stocks: { title: "Stocks", body: "Fifteen-minute Windows through the NYSE session." },
       preipo: { title: "Pre-IPO", body: "Private companies and baskets, hourly, 24/7." },
       parlay: { title: "Parlays", body: "Two or three markets on one ticket. The odds multiply." },
-      cover: { title: "Cover what you hold", body: "A Down call pays if what you hold falls." },
       cc: { title: "Fund with Canton Coin", body: "Bring CC to your seat and take it back out." },
     },
     open: (n: number) => `${n} Window${n === 1 ? "" : "s"} open`,

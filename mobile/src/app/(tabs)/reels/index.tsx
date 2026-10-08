@@ -7,7 +7,7 @@ import type { ReelItem } from "@/features/takes/weave";
 import { REELS } from "@/lib/copy";
 import { haptic } from "~/components/kit";
 import { TabScreen } from "~/components/shell/TabScreen";
-import { DeskReelCard, HoldingReelCard } from "~/features/markets/reels/FeedCards";
+import { DeskReelCard } from "~/features/markets/reels/FeedCards";
 import { ReelCard } from "~/features/markets/reels/ReelCard";
 import { SwipeHint, TakeButton } from "~/features/markets/reels/ReelChrome";
 import { ReelHolding, ReelSlot } from "~/features/markets/reels/ReelFrame";
@@ -28,7 +28,7 @@ type Row = { kind: "closed"; line: string } | { kind: "empty"; line: string } | 
 
 /**
  * web's `/reels` (`ReelsScreen`): a full-height vertical snap feed between the header and the viewport's foot — live
- * Windows woven with community takes, "you hold this" cards and your desk's latest decision; off-hours the closed card
+ * Windows woven with community takes and your desk's latest decision; off-hours the closed card
  * leads it. The floating Take slab opens the composer; the swipe hint stays until the reel has moved. Only the card on
  * screen and its neighbours read live.
  */
@@ -89,7 +89,7 @@ export default function ReelsScreen() {
           ) : item.kind === "take" ? (
             <TakeReelCard take={item.take} nowMs={minuteMs} />
           ) : item.kind === "holding" ? (
-            <HoldingReelCard pick={item.pick} />
+            null
           ) : (
             <DeskReelCard decision={item.decision} nowSec={Math.floor(minuteMs / 1000)} />
           )}

@@ -2,9 +2,6 @@ import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@owarine/core/desk";
 import { marketsProvider } from "@owarine/markets";
 import { useMemo } from "react";
 import { useDeskView } from "@/features/desk/useDesk";
-import { calmSet, holdsPreIpo } from "@/features/hedge/calm";
-import { pickAllHedges } from "@/features/hedge/hedge-target";
-import { useHoldings } from "@/features/hedge/useHoldings";
 import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useReelRounds } from "@/features/markets/reels/useReelRounds";
 import { useMarketSession } from "@/features/markets/session/useMarketSession";
@@ -12,7 +9,6 @@ import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { useTakes } from "@/features/takes/useTakes";
 import { weaveReel } from "@/features/takes/weave";
-import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { SESSION_COPY } from "@/lib/copy-session";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useSessionPhrase } from "@/lib/when";
@@ -37,19 +33,13 @@ export function useReelFeed() {
   const waiting = lanes.reading === null || nowMs === 0;
   const feed = useTakes(!waiting);
   const { address } = useWalletSession();
-  const holdings = useHoldings(address);
-  const facts = usePreIpoFactsAll(holdings?.ok === true && holdsPreIpo(holdings.value));
-  const holdingPicks = useMemo(
-    () => (holdings?.ok ? pickAllHedges(holdings.value, lanes.laneSet, nowMs, calmSet(facts?.ok ? facts.value : null)) : []),
-    [holdings, lanes.laneSet, nowMs, facts],
-  );
   const desk = useDeskView(address, address, address !== null);
   const deskDecision = useMemo<DeskReelDecision | null>(() => {
     if (!desk?.ok || !desk.value.desk) return null;
     const notable = desk.value.recent.find((r) => NOTABLE.has(r.outcome));
     return notable ? { deskId: desk.value.desk.id, record: notable, isLive: desk.value.desk.address !== null } : null;
   }, [desk]);
-  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks, deskDecision), [rounds, feed, holdingPicks, deskDecision]);
+  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], [], deskDecision), [rounds, feed, deskDecision]);
   const closedLine =
     session && !session.open ? SESSION_COPY.sessionClosedLine(phrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
 

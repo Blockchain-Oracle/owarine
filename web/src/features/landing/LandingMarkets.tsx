@@ -75,8 +75,7 @@ export function LandingMarkets() {
             {count("preipo")}
           </div>
         </Card>
-        <Card href="/trade" onClick={() => setParlayOn(true)} title={m.cards.parlay.title} body={m.cards.parlay.body} art="admissionTickets" tone="pink" />
-        <Card href="/markets" title={m.cards.cover.title} body={m.cards.cover.body} art="shield" tone="cream" />
+        <Card href="/trade" onClick={() => setParlayOn(true)} title={m.cards.parlay.title} body={m.cards.parlay.body} art="admissionTickets" tone="pink" className="lg:col-span-2" />
         <Card href="/portfolio" title={m.cards.cc.title} body={m.cards.cc.body} art="moneyBag" className="md:col-span-2 lg:col-span-3 lg:min-h-[12rem]" />
       </div>
 

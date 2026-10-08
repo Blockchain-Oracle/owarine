@@ -5,7 +5,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { AlertsWatcher } from "@/features/alerts";
 import { DeskWatcher } from "@/features/desk/DeskWatcher";
-import { DropBellWatcher } from "@/features/hedge";
 import { LifecycleWatcher } from "@/features/activity/LifecycleWatcher";
 import { PerfProbe } from "@/features/perf";
 import { WriteRecovery } from "@/features/recovery";
@@ -35,7 +34,6 @@ export function AppProviders({ children }: { children: ReactNode }) {
                 <AlertsWatcher />
                 <LifecycleWatcher />
                 {/* The opt-in "tell me if it drops" bell: one price watch per stock it is switched on for. */}
-                <DropBellWatcher />
                 {/* The desk speaks only when it matters (plan §5.8): acted, asked, blocked, stopped, failed, money; never a quiet check. */}
                 <DeskWatcher />
                 {/* Writes the journal still holds open are asked about once per session; nothing is re-sent. */}

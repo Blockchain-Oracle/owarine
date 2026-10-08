@@ -11,7 +11,6 @@ import { collateralOrNull } from "@owarine/markets";
 import { leasedOf } from "@/providers/wallet/seat-lease-context";
 import { usePullRefresh } from "~/components/kit";
 import { SectionHeader } from "~/features/explore/SectionHeader";
-import { LiveHedgeCard } from "~/features/hedge/LiveHedgeCard";
 import { LiveViewSwitcher } from "~/features/privacy/ViewSwitcher";
 import { useSeat } from "~/wallet/SeatProvider";
 import { MarketRoomSheet } from "~/features/room/MarketRoomSheet";
@@ -77,7 +76,6 @@ export function MarketsScreen() {
       >
         <MarketsHero selection={selection} lanes={lanes} onSelect={selectWindow} onOpenRoom={() => setRoomMarket(selection.market)} />
         <View style={styles.container}>
-          <LiveHedgeCard laneSet={lanes.laneSet} nowMs={nowMs} onSelect={selectWindow} />
           {selection.marketId ? <LiveVerdict marketId={selection.marketId} /> : null}
           <View style={styles.section} accessibilityLabel={SECTIONS.lanes.title}>
             <SectionHeader index={SECTIONS.lanes.index} title={SECTIONS.lanes.title} aside={<SessionChip />} />

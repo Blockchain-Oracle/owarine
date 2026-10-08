@@ -21,7 +21,6 @@ import { LifecycleWatcher } from "~/features/activity/LifecycleWatcher";
 import { Toaster } from "~/components/toast/Toaster";
 import { AlertsHost } from "~/features/alerts/AlertsHost";
 import { DeskWatcher } from "~/features/desk/DeskWatcher";
-import { DropBellWatcher } from "~/features/hedge/DropBell";
 import { WriteRecovery } from "~/features/recovery/WriteRecovery";
 import { SeatProvider } from "~/wallet/SeatProvider";
 import { trackPath } from "~/web-shims/url-state";
@@ -97,7 +96,6 @@ function RootStack() {
       {/* web mounts its price-alert watcher app-wide (AppProviders), so an armed alert fires on any screen. */}
       <AlertsWatcher />
       {/* web mounts the drop alert's watcher app-wide (AppProviders), so an armed bell fires on any screen. */}
-      <DropBellWatcher />
       <WriteRecovery />
       {/* S26.4: notification taps, the Live Activity (Android: ongoing notification) and the widget feed. */}
       <AlertsHost />

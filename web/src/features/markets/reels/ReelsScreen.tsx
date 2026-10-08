@@ -5,8 +5,6 @@ import { useMemo, useRef, useState } from "react";
 import { NOTIFIED_OUTCOMES, OUTCOME_COLUMN } from "@owarine/core/desk";
 import { DeskReelCard, type DeskReelDecision } from "@/features/desk/DeskReelCard";
 import { useDeskView } from "@/features/desk/useDesk";
-import { calmSet, holdsPreIpo, HoldingReelCard, pickAllHedges, useHoldings } from "@/features/hedge";
-import { usePreIpoFactsAll } from "@/features/ticker-hub/usePreIpoFacts";
 import { TakeComposer, TakeReelCard, useTakes, weaveReel } from "@/features/takes";
 import { marketsProvider } from "@owarine/markets";
 import { REELS } from "@/lib/copy";
@@ -59,14 +57,8 @@ export function ReelsScreen() {
 
   const waiting = lanes.reading === null || nowMs === 0;
   const feed = useTakes(!waiting);
-  // Plan Step 7: the wallet's stock tokens, read-only, as "you hold this" cards once every few items (same query the /markets card uses).
+  // The "you hold this, cover it?" cards are gone (8 Oct, Abu): the reel is rounds, takes and your desk.
   const { address } = useWalletSession();
-  const holdings = useHoldings(address);
-  const facts = usePreIpoFactsAll(holdings?.ok === true && holdsPreIpo(holdings.value));
-  const holdingPicks = useMemo(
-    () => (holdings?.ok ? pickAllHedges(holdings.value, lanes.laneSet, nowMs, calmSet(facts?.ok ? facts.value : null)) : []),
-    [holdings, lanes.laneSet, nowMs, facts],
-  );
   // S21 (plan §5.2): your own desk's latest notable decision, occasionally, from its record.
   const desk = useDeskView(address, address, address !== null);
   const deskDecision = useMemo<DeskReelDecision | null>(() => {
@@ -74,7 +66,7 @@ export function ReelsScreen() {
     const notable = desk.value.recent.find((r) => NOTABLE.has(r.outcome));
     return notable ? { deskId: desk.value.desk.id, record: notable, isLive: desk.value.desk.address !== null } : null;
   }, [desk]);
-  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], holdingPicks, deskDecision), [rounds, feed, holdingPicks, deskDecision]);
+  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], [], deskDecision), [rounds, feed, deskDecision]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.
   const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(phrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
@@ -114,11 +106,7 @@ export function ReelsScreen() {
                 <section key={`take-${item.take.id}`} ref={register(index)} className="feed-card reel-slot">
                   <TakeReelCard take={item.take} nowMs={minuteMs} />
                 </section>
-              ) : item.kind === "holding" ? (
-                <section key={`hold-${item.pick.underlying}-${index}`} ref={register(index)} className="feed-card reel-slot">
-                  <HoldingReelCard pick={item.pick} />
-                </section>
-              ) : (
+              ) : item.kind === "holding" ? null : (
                 <section key={`desk-${item.decision.record.seq}`} ref={register(index)} className="feed-card reel-slot">
                   <DeskReelCard decision={item.decision} nowSec={Math.floor(minuteMs / 1000)} />
                 </section>
