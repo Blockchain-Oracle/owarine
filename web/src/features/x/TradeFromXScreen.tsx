@@ -50,7 +50,7 @@ export function TradeFromXScreen() {
   const error = grant.error || link.error;
 
   return (
-    <div className="xt xt-page" data-theme="dark">
+    <div className="xt xt-page">
       <div className="xt-grain" />
       <section className="xt-hero">
         <div className="xt-hero-grid">

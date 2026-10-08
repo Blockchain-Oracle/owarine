@@ -1,5 +1,5 @@
 /* Direct choices and the cream receipt preview use the X island's existing palette. */
-.xi { --xi-ink: var(--xt-ink); --xi-mute: #a8a69d; --xi-line: rgba(255,255,255,.13); --xi-up: #6ee7b7; --xi-down: #f99b8b; color: var(--xi-ink); min-width: 0; }
+.xi { --xi-ink: var(--xt-ink); --xi-mute: var(--ow-muted); --xi-line: var(--ow-hairline); --xi-up: var(--ow-up); --xi-down: var(--ow-down); color: var(--xi-ink); min-width: 0; }
 .xi-heading { margin-bottom: 1.5rem; }
 .xi-heading h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 750; letter-spacing: -.04em; line-height: 1.15; font-stretch: 100%; }
 .xi-heading p { margin-top: .4rem; font-size: .8125rem; color: var(--xi-mute); }
@@ -13,7 +13,7 @@
 .xi button:focus-visible, .xi input:focus-visible { outline: 2px solid var(--xt-v); outline-offset: 4px; }
 .xi button:disabled { cursor: not-allowed; }
 .xi-asset { position: relative; display: flex; align-items: center; gap: .625rem; min-height: 3.5rem; padding: .65rem .85rem; border: 1px solid var(--xi-line); border-radius: .75rem; text-align: left; background: transparent; color: var(--xi-ink); }
-.xi-asset:hover { background: rgba(255,255,255,.06); }
+.xi-asset:hover { background: color-mix(in srgb, var(--ow-ink) 6%, transparent); }
 .xi-asset[aria-pressed="true"] { background: #edebdf; border-color: #edebdf; color: #171515; }
 .xi-asset-mark { width: 1.75rem; height: 1.75rem; flex-shrink: 0; }
 .xi-asset strong, .xi-asset small { display: block; }
@@ -33,19 +33,19 @@
 .xi-cadence small { display: flex; gap: .3rem; align-items: center; font-size: .625rem; color: var(--xi-mute); }
 .xi-cadence i { width: .25rem; height: .25rem; border-radius: 50%; background: currentColor; }
 .xi-cadence[data-open="true"] small { color: var(--xi-up); }
-.xi-cadence:not(:disabled):hover { background: rgba(255,255,255,.06); }
+.xi-cadence:not(:disabled):hover { background: color-mix(in srgb, var(--ow-ink) 6%, transparent); }
 .xi-cadence[aria-pressed="true"] { border-color: var(--xt-v); background: color-mix(in srgb, var(--xt-v) 10%, transparent); box-shadow: inset 0 0 0 1px var(--xt-v); }
 .xi-cadence:disabled { color: var(--xi-mute); border-style: dashed; }
 .xi-window-status { margin-top: .7rem; font-size: .6875rem; line-height: 1.5; color: var(--xi-mute); }
 .xi-window-status[data-open="true"] { color: var(--xi-up); }
 .xi-amount-row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
-.xi-amount { display: flex; flex: 1 1 12rem; min-width: 0; gap: .5rem; align-items: baseline; padding: .5rem .85rem; border: 1px solid var(--xi-line); border-radius: .75rem; background: rgba(255,255,255,.025); }
+.xi-amount { display: flex; flex: 1 1 12rem; min-width: 0; gap: .5rem; align-items: baseline; padding: .5rem .85rem; border: 1px solid var(--xi-line); border-radius: .75rem; background: color-mix(in srgb, var(--ow-ink) 2%, transparent); }
 .xi-amount:focus-within { border-color: var(--xt-v); }
 .xi-amount input { min-width: 0; width: 100%; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 1.75rem; letter-spacing: -.06em; color: var(--xi-ink); background: transparent; border: 0; }
 .xi-amount span { font-family: var(--font-mono); font-size: .6875rem; color: var(--xi-mute); font-variant-numeric: tabular-nums; }
 .xi-quick { display: flex; flex: 1 1 10rem; gap: .375rem; }
 .xi-quick button { flex: 1; min-height: 2.75rem; padding: .5rem; border: 1px solid var(--xi-line); border-radius: .5rem; font-family: var(--font-mono); font-size: .75rem; color: var(--xi-mute); background: transparent; font-variant-numeric: tabular-nums; }
-.xi-quick button:hover:not(:disabled), .xi-quick button[aria-pressed="true"] { background: rgba(255,255,255,.08); color: var(--xi-ink); border-color: var(--xi-mute); }
+.xi-quick button:hover:not(:disabled), .xi-quick button[aria-pressed="true"] { background: color-mix(in srgb, var(--ow-ink) 8%, transparent); color: var(--xi-ink); border-color: var(--xi-mute); }
 .xi-quick button:disabled { opacity: .45; }
 .xi-error { margin-top: .65rem; font-size: .75rem; line-height: 1.5; color: var(--xi-down); }
 .xi-post { margin-top: 1.5rem; padding: 1rem 1.125rem 1.125rem; border-radius: .875rem; background: #f2f0e6; color: #171515; }

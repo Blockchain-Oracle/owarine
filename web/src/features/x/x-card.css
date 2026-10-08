@@ -5,7 +5,7 @@
 
 /* ---- XWalletCard: the plate's ink ------------------------------------------------------- */
 /* Outside a ledger plate (Portfolio places the card after it) the fallbacks are the theme's own, as the plate's dark values are. */
-.xw { --xw-ink: var(--lp-ink, var(--white)); --xw-mute: var(--lp-mute, var(--gray-400)); --xw-line: var(--lp-line, var(--ms-hairline)); --xw-paper: var(--lp-paper-raised, var(--ms-surface-2)); --xw-v: #; --xw-loss: #b53d30; --xw-mint: #; }
+.xw { --xw-ink: var(--lp-ink, var(--white)); --xw-mute: var(--lp-mute, var(--gray-400)); --xw-line: var(--lp-line, var(--ms-hairline)); --xw-paper: var(--lp-paper-raised, var(--ms-surface-2)); --xw-v: var(--ow-pink); --xw-loss: var(--ow-down); --xw-mint: var(--ow-up); }
 /* mb-3 flex items-center gap-2 */
 .xw-head { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .xw-head-icon { width: 16px; height: 16px; color: var(--xw-v); }
@@ -27,7 +27,7 @@
 .xw-source-options strong { font-size: 12px; line-height: 1.4; }
 .xw-source-options span { margin-top: 4px; font-size: 10px; line-height: 1.4; color: var(--xw-mute); }
 @media (prefers-reduced-motion: reduce) { .xw-source-options button { transition: none; } }
-.xt .xw { --xw-ink: var(--xt-ink); --xw-mute: var(--xt-muted); --xw-line: rgba(255,255,255,.14); --xw-paper: var(--xt-paper); }
+.xt .xw { --xw-ink: var(--xt-ink); --xw-mute: var(--xt-muted); --xw-line: var(--ow-hairline); --xw-paper: var(--xt-paper); }
 /* mb-4 rounded-lg border border-[#FA00FF]/30 bg-[#FA00FF]/[0.07] px-3.5 py-3 (hard stop: /40 and /[0.09]) */
 .xw-slab { margin-bottom: 16px; border-radius: 8px; border: 1px solid rgba(250, 0, 255, 0.3); background: rgba(250, 0, 255, 0.07); padding: 12px 14px; }
 .xw-slab--hard { border-color: rgba(250, 0, 255, 0.4); background: rgba(250, 0, 255, 0.09); }
@@ -97,7 +97,7 @@
 .xw-amount-unit { font-family: var(--font-mono); font-size: 10px; color: var(--xw-mute); font-variant-numeric: tabular-nums; }
 /* mt-2 text-[12px] text-[#FA00FF] / text-emerald-400 */
 .xw-err { margin-top: 8px; font-size: 12px; color: var(--xw-v); }
-.xw-ok { margin-top: 8px; font-size: 12px; color: #; }
+.xw-ok { margin-top: 8px; font-size: 12px; color: var(--ow-up); }
 /* mt-3 border-t border-white/[0.06] pt-3 text-[12px] text-[#656359] */
 .xw-foot { margin-top: 12px; border-top: 1px solid var(--xw-line); padding-top: 12px; font-size: 12px; color: var(--xw-mute); }
 
@@ -163,7 +163,7 @@
 .xc-foot { margin-top: 48px; font-size: 13px; color: var(--gray-400); line-height: 1.6; max-width: 440px; }
 
 /* the reward ticket — always cream, so it reads as an object in both themes */
-.xr { --xr-paper: #f8f7f2; --xr-ink: #0A0A0A; --xr-mute: #66645b; --xr-green: #; --xr-faint: #918f84; --xr-v: #; position: relative; width: 100%; max-width: 420px; margin: 0 auto; background: var(--xr-paper); color: var(--xr-ink); border-radius: 22px; box-shadow: 0 2px 4px rgba(30, 28, 28, 0.06), 0 34px 80px -30px rgba(30, 28, 28, 0.55); overflow: hidden; font-family: var(--font-inter), ui-sans-serif, system-ui; }
+.xr { --xr-paper: #f8f7f2; --xr-ink: #0A0A0A; --xr-mute: #66645b; --xr-green: #0e8a57; --xr-faint: #918f84; --xr-v: #fa00ff; position: relative; width: 100%; max-width: 420px; margin: 0 auto; background: var(--xr-paper); color: var(--xr-ink); border-radius: 22px; box-shadow: 0 2px 4px rgba(30, 28, 28, 0.06), 0 34px 80px -30px rgba(30, 28, 28, 0.55); overflow: hidden; font-family: var(--font-inter), ui-sans-serif, system-ui; }
 .xr-top { position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--xr-v); }
 .xr-body { padding: 30px 30px 24px; }
 .xr-head { display: flex; align-items: center; justify-content: space-between; }
