@@ -31,6 +31,15 @@ describe("createUsdtRate", () => {
 });
 
 describe("createUsdtRate when Coinbase cannot be reached", () => {
+  it("takes Bitstamp's USDT/USD first", async () => {
+    const fetchImpl = (async (url: string) => {
+      if (url.includes("coinbase")) throw new Error("connect ETIMEDOUT");
+      if (url.includes("bitstamp")) return reply({ last: "0.99950" });
+      throw new Error("Bybit should not be asked");
+    }) as unknown as Fetch;
+    expect(await createUsdtRate(fetchImpl).get()).toBe(0.9995);
+  });
+
   it("reads Bybit's USDC/USDT instead, as 1 ÷ its last price", async () => {
     const urls: string[] = [];
     const fetchImpl = (async (url: string) => {
@@ -40,7 +49,8 @@ describe("createUsdtRate when Coinbase cannot be reached", () => {
     }) as unknown as Fetch;
     const rate = await createUsdtRate(fetchImpl).get();
     expect(rate).toBeCloseTo(1 / 1.0004, 8);
-    expect(urls).toHaveLength(2);
+    // Coinbase, then Bitstamp (no rate in this reply), then Bybit
+    expect(urls).toHaveLength(3);
   });
 
   it("keeps nothing from a bad stand-in read", async () => {

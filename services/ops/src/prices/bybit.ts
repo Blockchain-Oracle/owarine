@@ -42,8 +42,8 @@ export function convertE8(price: string, rate: number): bigint {
 
 /**
  * USDT → USD, cached for 30 s; null before the first good read. Coinbase's USDT-USD trade first; when Coinbase cannot be
- * reached (its Cloudflare edge refuses some networks for hours, 7–8 Oct 2026), Bybit's USDC/USDT book stands in, read
- * as 1 ÷ USDC/USDT with USDC taken at a dollar. Either read outside the band is a bad read and the last good rate stays.
+ * reached (its Cloudflare edge refuses some networks for hours, 7–8 Oct 2026), Bitstamp's USDT/USD stands in, then
+ * Bybit's USDC/USDT book, read as 1 ÷ USDC/USDT with USDC taken at a dollar. Either read outside the band is a bad read and the last good rate stays.
  */
 export function createUsdtRate(fetchImpl: Fetch = fetch as Fetch, nowMs: () => number = Date.now) {
   let rate: { value: number; atMs: number } | null = null;
@@ -61,13 +61,28 @@ export function createUsdtRate(fetchImpl: Fetch = fetch as Fetch, nowMs: () => n
       // Keep the last good rate.
     }
   };
+  // Bitstamp's own USDT/USD book answered through both outages (8 Oct audit); Bybit's USDC/USDT is the last resort.
+  const viaBitstamp = async (): Promise<boolean> => {
+    try {
+      const r = await fetchImpl("https://www.bitstamp.net/api/v2/ticker/usdtusd/", { headers: UA, signal: AbortSignal.timeout(5_000) });
+      if (!r.ok) return false;
+      const before = rate;
+      keep(Number((JSON.parse(await r.text()) as { last?: string }).last));
+      return rate !== before;
+    } catch {
+      return false;
+    }
+  };
+  const fallback = async () => {
+    if (!(await viaBitstamp())) await viaBybit();
+  };
   const read = async (): Promise<number | null> => {
     try {
       const r = await fetchImpl("https://api.exchange.coinbase.com/products/USDT-USD/ticker", { headers: UA, signal: AbortSignal.timeout(5_000) });
-      if (!r.ok) await viaBybit();
+      if (!r.ok) await fallback();
       else keep(Number((JSON.parse(await r.text()) as { price?: string }).price));
     } catch {
-      await viaBybit();
+      await fallback();
     }
     return rate?.value ?? null;
   };
