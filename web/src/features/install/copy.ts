@@ -36,9 +36,9 @@ export const INSTALL = {
   shot: {
     src: "/download/owarine-phone.jpg",
     width: 390,
-    height: 592,
-    alt: "Owarine's Canton build at phone width: an ETH one-minute Window, its opening print, the time left and the Up and Down prices.",
-    caption: "The Canton build on a local sandbox, 29 Sep 2026",
+    height: 844,
+    alt: "Owarine's trading screen at phone width: OpenAI's live price on the chart, its hourly Window, the order settings and the Up and Down buttons.",
+    caption: "The trading screen on the Canton test network, 8 Oct 2026",
   },
   android: {
     eyebrow: "Android",

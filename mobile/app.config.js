@@ -33,7 +33,7 @@ module.exports = () => ({
     package: id.androidPackage,
     versionCode: 1,
     adaptiveIcon: {
-      backgroundColor: "#171414",
+      backgroundColor: "#FA00FF",
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
@@ -42,7 +42,7 @@ module.exports = () => ({
   },
   plugins: [
     "expo-router",
-    ["expo-splash-screen", { backgroundColor: "#171414", image: "./assets/images/splash-icon.png", imageWidth: 72 }],
+    ["expo-splash-screen", { backgroundColor: "#FA00FF", image: "./assets/images/splash-icon.png", imageWidth: 72 }],
     "expo-secure-store",
     ["expo-build-properties", { android: { buildArchs: ["arm64-v8a"], useLegacyPackaging: true } }],
     "react-native-quick-crypto",

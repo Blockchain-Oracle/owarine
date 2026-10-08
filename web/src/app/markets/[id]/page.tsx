@@ -49,7 +49,7 @@ export default async function MarketRoute({ params, searchParams }: RouteProps) 
   return (
     <Suspense fallback={<LoadingState shape="plate" className="px-gutter py-6" />}>
       {share && <SharedStakePreset marketId={share.marketId} stakeBase={share.stakeBase.toString()} />}
-      <MarketsPage ledgerView />
+      <MarketsPage />
     </Suspense>
   );
 }

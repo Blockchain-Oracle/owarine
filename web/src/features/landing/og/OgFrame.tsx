@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { BRAND } from "@/lib/copy";
 import { OG_COPY } from "./copy";
 import { OG, OG_PAD } from "./theme";
-import { OWARINE_MARK_FIGURE, OWARINE_MARK_OUTCOME } from "@/components/shell/OwarineMark";
 
 const CROP = 28;
 const CROP_INSET = 32;
@@ -26,16 +25,14 @@ function Crop({ at }: { at: "tl" | "tr" | "bl" | "br" }) {
   );
 }
 
-/**
- * The Owarine mark at preview size uses the same paths as the app component.
- */
+/** The 終値 seal at preview size (the app's mark), beside the name. */
 function Wordmark() {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-      <svg width={43} height={43} viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
-        <path d={OWARINE_MARK_FIGURE} fill={OG.ink} />
-        <path d={OWARINE_MARK_OUTCOME} fill={OG.signal} />
-      </svg>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: 46, height: 46, borderRadius: 10, borderWidth: 4, borderStyle: "solid", borderColor: OG.signal, color: OG.signal, fontFamily: "NotoJP", fontSize: 17, lineHeight: 1, transform: "rotate(-6deg)" }}>
+        <span>終</span>
+        <span>値</span>
+      </div>
       <div style={{ display: "flex", fontSize: 30, letterSpacing: "0.22em", color: OG.ink }}>{BRAND.name.toUpperCase()}</div>
     </div>
   );

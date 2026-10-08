@@ -108,11 +108,11 @@ export const DEMO = {
     footer: "Owarine · stock prediction Windows on Canton, open after the bell.",
   },
   frame: {
-    caption: (date: string) => `captured from the Canton build on a local sandbox · ${date}`,
-    markets: "Owarine's market board on Canton: an ETH one-minute Window, its opening print, the time left and the Up and Down prices",
-    reel: "The same board at phone width, where the reel and the bottom dock live",
-    sensei: "Who can see this, as an outsider: the ledger query names the outsider party and returns no contracts",
+    caption: (date: string) => `captured from the Canton test network · ${date}`,
+    markets: "Owarine's trading screen on Canton: OpenAI's live price, its hourly Window, the order settings and the Up and Down buttons",
+    reel: "The same trading screen at phone width",
+    sensei: "Your bet is between you and the venue: who sees your position, and privacy mode hiding a balance in one tap",
   },
-  /** Every screenshot under /public/demo is a crop of a Canton capture in docs/evidence/ux, taken on this day. */
-  capturedOn: "2026-09-29",
+  /** Every screenshot under /public/demo is a capture of the Canton test-network build, taken on this day. */
+  capturedOn: "2026-10-08",
 } as const;

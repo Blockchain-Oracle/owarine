@@ -18,19 +18,23 @@ const ARCHIVO_XCOND_900 = join(process.cwd(), "src/features/landing/og/fonts/Arc
 const NOTO_JP_900 = join(process.cwd(), "src/features/landing/og/fonts/NotoSansJP-900-subset.ttf");
 
 let sora: Promise<Buffer> | null = null;
-let display: Promise<[Buffer, Buffer]> | null = null;
+let display: Promise<Buffer> | null = null;
 
+let jpOnly: Promise<Buffer> | null = null;
+
+/** Sora for the words, and the Noto Sans JP subset so every card can draw the 終値 seal in its wordmark. */
 export async function ogFonts() {
   sora ??= readFile(SORA_SEMIBOLD);
-  const data = await sora;
-  return [{ name: "Sora", data, style: "normal" as const, weight: 600 as const }];
+  jpOnly ??= readFile(NOTO_JP_900);
+  const [data, jp] = await Promise.all([sora, jpOnly]);
+  return [{ name: "Sora", data, style: "normal" as const, weight: 600 as const }, { name: "NotoJP", data: jp, style: "normal" as const, weight: 900 as const }];
 }
 
-/** Sora for small words, Archivo for the headline, Noto Sans JP for the seal. */
+/** Sora for small words and Archivo for the headline (the seal's Noto Sans JP comes with `ogFonts`). */
 export async function ogDisplayFonts() {
-  display ??= Promise.all([readFile(ARCHIVO_XCOND_900), readFile(NOTO_JP_900)]);
-  const [archivo, jp] = await display;
-  return [...(await ogFonts()), { name: "Archivo", data: archivo, style: "normal" as const, weight: 900 as const }, { name: "NotoJP", data: jp, style: "normal" as const, weight: 900 as const }];
+  display ??= readFile(ARCHIVO_XCOND_900);
+  const archivo = await display;
+  return [...(await ogFonts()), { name: "Archivo", data: archivo, style: "normal" as const, weight: 900 as const }];
 }
 
 /** A Fluent Emoji 3D object (MIT, `og/art/LICENSE`) as a data URI for an `<img>` on a card. */

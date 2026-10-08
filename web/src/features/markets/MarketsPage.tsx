@@ -1,8 +1,5 @@
 "use client";
 
-import { collateralOrNull } from "@owarine/markets";
-import { LiveViewSwitcher } from "@/features/canton-ux/privacy";
-import { leasedOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 import { MarketsScreen } from "./MarketsScreen";
 import { TicketDock } from "./ticket";
 import type { MarketsSelection } from "./useMarketsSelection";
@@ -26,24 +23,14 @@ function renderVerdict(selection: MarketsSelection) {
   return <LiveVerdict marketId={selection.marketId} />;
 }
 
-/** §04 on `/markets/<id>` (§03 is the events board, C6e): the same ledger query as Alice, Bob, an outsider and (once leased) your own seat. */
-function LedgerViewSection({ selection }: { selection: MarketsSelection }) {
-  const lease = useSeatLeaseState();
-  return <LiveViewSwitcher index="04" marketId={selection.marketId} symbol={collateralOrNull()?.symbol ?? "credits"} withSeat={leasedOf(lease.view) !== null} />;
-}
-
-const renderLedgerView = (selection: MarketsSelection) => <LedgerViewSection selection={selection} />;
-
 /**
  * Client composition of the /markets island: the screen plus the surfaces that plug into its slots.
  *
  * The walkthrough mounts here, as the reference mounts it (markets/page.tsx L905):
  * `/markets` is the landing route, so first run happens where the product is.
  */
-export function MarketsPage({ ledgerView = false }: { ledgerView?: boolean }) {
-  return (
-    <>
-      <MarketsScreen renderTicket={renderTicket} renderVerdict={renderVerdict} renderLedgerView={ledgerView ? renderLedgerView : undefined} />
-    </>
-  );
+export function MarketsPage() {
+  // The per-party ledger panel (Alice, Bob, an outsider, the raw query JSON) was evidence for judges, not a trader's
+  // screen; it is gone from the market page (8 Oct). The privacy story stays in plain words on the landing.
+  return <MarketsScreen renderTicket={renderTicket} renderVerdict={renderVerdict} />;
 }

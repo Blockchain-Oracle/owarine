@@ -1,13 +1,13 @@
 # Owarine identity
 
-**Window Cut** is Owarine's mark: a square market window, opened at the upper right by a separate vermilion outcome. The symbol is original to Owarine. It is built from two paths on a 220 × 220 viewBox.
+The **終値 seal** is Owarine's mark: the two kanji of *owarine* ("closing price") stacked in a rounded square, stamped at a slight tilt like a hanko. The kanji are outlines from Noto Sans JP Black (OFL), so the files need no font.
 
 | Use | Asset |
 | --- | --- |
-| On light surfaces | [`owarine-mark.svg`](owarine-mark.svg) |
-| On dark surfaces | [`owarine-mark-inverse.svg`](owarine-mark-inverse.svg) |
+| On light surfaces | [`owarine-mark.svg`](owarine-mark.svg), [`owarine-mark-1024.png`](owarine-mark-1024.png) |
+| On dark surfaces | [`owarine-mark-inverse.svg`](owarine-mark-inverse.svg), [`owarine-mark-inverse-1024.png`](owarine-mark-inverse-1024.png) |
 | App icon / social avatar | [`owarine-app-icon.svg`](owarine-app-icon.svg), [`owarine-app-icon-1024.png`](owarine-app-icon-1024.png) |
 
-Keep the window and orange corner together, preserve their square proportions, and give the unframed mark clear space. Product components use the same paths with `currentColor` for the window so theme changes work. The icon has its own dark tile and extra padding for small sizes and maskable app icons.
+The seal is one colour: Power Pink `#FA00FF` on light surfaces, white on dark ones and on the pink app tile. In product code it is drawn by the kit's `Seal` (web `web/src/components/kit/Seal.tsx`, app `mobile/src/components/kit/ow/Seal.tsx`), with `currentColor` where a theme should decide.
 
-The README banner and video cover carry the current identity. Dated product captures and videos remain records of the interface when they were made; update those by recording the current app, not by changing historical frames.
+Until 8 Oct 2026 this folder held Agari's "Window Cut" mark, carried over by the rename; it is retired everywhere.
