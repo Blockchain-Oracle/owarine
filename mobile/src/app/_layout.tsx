@@ -61,13 +61,13 @@ function RootStack() {
   const { name, color } = useTheme();
   const pathname = usePathname();
   useEffect(() => trackPath(pathname), [pathname]);
-  // web's ShellChrome: every route gets the strip, marquee and header, and the floating dock; /trade-from-x is web's
+  // web's ShellChrome: every route gets the header, and the floating dock; /trade-from-x is web's
   // one island (its own top edge, the dock kept). Dialogs (welcome, connect, funds, account) are transparent modals
   // over it, each drawing web's own scrim and card or sheet.
   const island = pathname.startsWith("/trade-from-x");
   // The first run owns the whole screen: no chrome, no dock.
   const onboarding = pathname.startsWith("/onboarding");
-  // An arcade run in play takes the whole phone: the chrome and the dock step out (and the marquee stops scrolling).
+  // An arcade run in play takes the whole phone: the chrome and the dock step out.
   const immersive = useImmersive();
   const { welcome } = useGlobalSearchParams<{ welcome?: string }>();
   useEffect(() => {

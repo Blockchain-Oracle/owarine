@@ -2,7 +2,7 @@ import { X } from "lucide-react-native";
 import { useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { Keyframe, useReducedMotion } from "react-native-reanimated";
-import { TUTORIAL_STEPS, TUTORIAL_UI } from "@/features/onboarding/steps";
+import { TUTORIAL_STEPS, TUTORIAL_UI } from "./steps";
 import { useWalletSession } from "@/lib/wallet-session";
 import { WebButton } from "~/components/portfolio/web";
 import { FONT, useTheme } from "~/theme";

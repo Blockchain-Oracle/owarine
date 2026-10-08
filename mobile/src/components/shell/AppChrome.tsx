@@ -5,21 +5,19 @@ import { FONT, useTheme } from "~/theme";
 import { OwarineMark } from "./OwarineMark";
 import { CHROME, chromeTokens } from "~/theme/chrome";
 import { HeaderAccount } from "./HeaderAccount";
-import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 
 /**
- * web's fixed top on a phone: the Marquee (20) and the Header (46) — the Window Cut mark, OWARINE and 終値 on the left;
- * the theme ring and the account on the right. web's AppStrip above them ("install the app") is left out: this is the
- * app. The status bar area takes the marquee's ground so the chrome reads as one piece.
+ * The phone's fixed top: the Header (46) — the 終値 seal, OWARINE and 終値 on the left; the theme ring and the account
+ * on the right. The marquee went with web's (K-405). The status bar area takes the header's ground so the chrome reads
+ * as one piece.
  */
 export function AppChrome() {
   const insets = useSafeAreaInsets();
   const { name } = useTheme();
   const t = chromeTokens(name);
   return (
-    <View style={{ paddingTop: insets.top, backgroundColor: t.marqueeBg }}>
-      <Marquee />
+    <View style={{ paddingTop: insets.top, backgroundColor: t.headerBg }}>
       <View style={[styles.header, { backgroundColor: t.headerBg, borderBottomColor: t.headerBorder }]}>
         <Pressable style={styles.logo} onPress={() => router.navigate("/markets")} accessibilityRole="link" accessibilityLabel="Owarine 終値 home">
           <OwarineMark />

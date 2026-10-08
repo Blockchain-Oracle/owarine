@@ -22,9 +22,3 @@ export const DIAGNOSES: readonly Diagnosis[] = [
 export const LIVE_BALANCE: Reading<bigint> = ok(1_204_500_000n, FIXED_NOW_MS);
 export const STALE_BALANCE: Reading<bigint> = stale(ok(1_204_500_000n, FIXED_NOW_MS - 90_000), "refresh-failed");
 export const FAILED_BALANCE: Reading<bigint> = err(DIAGNOSES[2]!);
-
-export const TICKER_ENTRIES = [
-  { asset: "TSLA", priceText: "365.48", direction: "up" },
-  { asset: "NVDA", priceText: "178.22", direction: "down", staleAsOfMs: FIXED_NOW_MS - 20_000 },
-  { asset: "QQQ", priceText: "714.90", direction: "flat" },
-] as const;

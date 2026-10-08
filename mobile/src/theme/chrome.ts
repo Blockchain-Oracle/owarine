@@ -37,5 +37,5 @@ const LIGHT: typeof DARK = {
 export type ChromeTokens = typeof DARK;
 export const chromeTokens = (name: ThemeName): ChromeTokens => (name === "dark" ? DARK : LIGHT);
 
-/** Heights of the fixed chrome (px = pt): marquee 20, header 46 (web's strip is not drawn in the app). */
-export const CHROME = { marquee: 20, header: 46, dockClearance: 112 } as const;
+/** Heights of the fixed chrome (px = pt): header 46 (web's strip is not drawn in the app). */
+export const CHROME = { header: 46, dockClearance: 112 } as const;

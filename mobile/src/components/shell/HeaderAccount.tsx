@@ -79,7 +79,7 @@ function MoneyPill({ t }: { t: ChromeTokens }) {
 function AccountMenu({ open, onClose, t }: { open: boolean; onClose: () => void; t: ChromeTokens }) {
   const insets = useSafeAreaInsets();
   const { sheet, fmt } = useSheetAmounts();
-  const top = insets.top + CHROME.marquee + CHROME.header + 8;
+  const top = insets.top + CHROME.header + 8;
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Close menu" />

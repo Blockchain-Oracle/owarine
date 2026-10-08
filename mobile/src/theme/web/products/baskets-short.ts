@@ -9,7 +9,6 @@ const DARK = {
   /** .dkit-status[data-tone="live"]: the profit ink at 40%. */
   liveChipBorder: "rgba(61, 220, 90, 0.4)",
   /** .bk-action[data-kind="cover"]: loss 55% into the hairline. */
-  coverBorder: "rgba(251, 124, 142, 0.6)",
   /** .sh-eyebrow: signal at 80%. */
   eyebrow: "rgba(250, 0, 255, 0.8)",
   /** .section-head's rule (both themes compute the dark value). */
@@ -58,7 +57,6 @@ const DARK = {
 
 const LIGHT: typeof DARK = {
   liveChipBorder: "rgba(7, 138, 46, 0.4)",
-  coverBorder: "rgba(178, 53, 30, 0.6)",
   eyebrow: "rgba(250, 0, 255, 0.8)",
   sectionRule: "rgba(255, 255, 255, 0.08)",
   panelBg: "rgba(10, 10, 10, 0.016)",

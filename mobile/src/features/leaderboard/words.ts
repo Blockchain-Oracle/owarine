@@ -1,10 +1,11 @@
 import type { BoardSpan } from "@/features/leaderboard/copy";
+import type { BoardPeriod } from "@/features/leaderboard/protocol";
 
 /** The phone board's own words (the owner's mobile-first pass); web's LEADERBOARD copy covers the rest. */
 export const BOARD_PHONE = {
   eyebrow: "Everyone trading on Owarine",
   stats: { traders: "Traders", staked: "Staked · top 50", close: "Next close" },
-  periods: { session: "Session", "24h": "24h" },
+  periods: { session: "Session", "24h": "24h", "7d": "7d", "30d": "30d", all: "All" } satisfies Record<BoardPeriod, string>,
   allTickers: "All",
   field: { title: "The field", desc: "Ranks four onward, by profit, over calls their owners chose to publish. Tap a name for their record." },
   record: (wins: number, losses: number, winRate: number) => `${wins}–${losses} · ${winRate}% wins`,
