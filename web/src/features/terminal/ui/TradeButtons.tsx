@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpRight, LoaderCircle, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpRight, Info, LoaderCircle, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +20,8 @@ export type TradeButtonsProps =
       downSub?: string;
       /** Parlay mode: the side this Window already has in the slip shows solid. */
       picked?: "up" | "down" | null;
+      /** While the buttons are off: why, in one plain sentence (`why.ts`). */
+      why?: string | null;
       className?: string;
     }
   | {
@@ -48,6 +50,12 @@ export function TradeButtons(props: TradeButtonsProps) {
       <AnimatePresence mode="wait" initial={false}>
         {props.mode === "flat" ? (
           <motion.div key="flat" className="grid grid-cols-2 gap-3" {...fade}>
+            {props.disabled && props.why ? (
+              <p role="status" className="col-span-2 flex items-start gap-2 rounded-ow-card bg-ow-recessed px-3 py-2.5 text-ow-caption text-ow-ink">
+                <Info aria-hidden className="mt-0.5 size-4 shrink-0 text-ow-muted" />
+                <span>{props.why}</span>
+              </p>
+            ) : null}
             <button type="button" onClick={props.onUp} disabled={props.disabled || props.busy !== null} aria-pressed={props.picked === undefined ? undefined : props.picked === "up"} className={cn(SLOT, props.picked === "up" ? "ow-up-solid" : "ow-up-soft", "disabled:opacity-40")}>
               {props.busy === "up" ? spin : <ArrowUp className="size-5" strokeWidth={3} />}
               <span className="flex flex-col items-start leading-none">

@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Sheet } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { useMarketSession } from "@/features/markets/session";
+import { shortWhy } from "../../why";
 import { haptic } from "@/lib/haptics";
 import { playTrade } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
@@ -114,13 +115,6 @@ export function MarketsSheet({ open, onClose, markets, current, onPick }: { open
       if (!(symbol in TICKERS) || listed.has(symbol)) continue;
       states.set(symbol, [...(states.get(symbol) ?? []), state]);
     }
-    const why = (symbol: string, lanes: string[]): string => {
-      if (kindOf(symbol) === "stocks" && !session.open) return `Closed · ${session.label}`;
-      if (lanes.some((l) => l.includes("halted"))) return "Halted";
-      if (lanes.some((l) => l.startsWith("waiting"))) return "Next Window soon";
-      if (lanes.some((l) => l.startsWith("paused"))) return "Paused for now";
-      return "No Window right now";
-    };
     return [...states.entries()]
       .filter(([symbol]) => {
         const name = TICKERS[symbol as keyof typeof TICKERS]?.name ?? symbol;
@@ -129,7 +123,7 @@ export function MarketsSheet({ open, onClose, markets, current, onPick }: { open
         if (category === "favourites") return settings.favourites.includes(symbol);
         return category !== "hot" && kindOf(symbol) === category;
       })
-      .map(([symbol, lanes]) => ({ symbol, why: why(symbol, lanes) }))
+      .map(([symbol]) => ({ symbol, why: shortWhy(symbol, session) }))
       .sort((a, b) => a.symbol.localeCompare(b.symbol));
   }, [session, markets, query, category, settings.favourites]);
 

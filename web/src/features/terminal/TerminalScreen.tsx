@@ -30,6 +30,8 @@ import { TradeButtons } from "./ui/TradeButtons";
 import { trailEligible, useTerminalTrade, type TerminalPosition } from "./useTerminalTrade";
 import { useTabTrail, useTerminalPositions } from "./terminal-positions";
 import { lanesFor, useTerminalWindow } from "./useTerminalWindow";
+import { whyNotTrading } from "./why";
+import { useMarketSession } from "@/features/markets/session";
 import "./terminal.css";
 
 // Tradash's one breakpoint, 1024 CSS px.
@@ -107,6 +109,8 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
     return [...symbols].sort((a, b) => (a === "BTC" ? -1 : b === "BTC" ? 1 : a === "ETH" ? -1 : b === "ETH" ? 1 : a.localeCompare(b))).map((s) => ({ symbol: s, lanes: lanesFor(win.set, s) }));
   }, [win.set]);
   const market = win.market;
+  // What the venue reports for this market (the US session, its lanes), so a disabled ticket can say why.
+  const marketSession = useMarketSession(symbol);
   const ladder = useWatchedLadder(market ? { marketId: market.marketId, poolAddress: market.poolAddress, decimals: market.decimals } : null)?.ladder ?? null;
   const spotSymbol = ladder ? (ladderSpotSymbol(ladder) ?? symbol) : symbol;
   const openPrint = useOpeningPrice(market?.marketId ?? null);
@@ -234,6 +238,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       onDown={() => void trade.open("down")}
       busy={trade.busy === "up" || trade.busy === "down" ? trade.busy : null}
       disabled={windowState !== "trading"}
+      why={whyNotTrading(windowState, symbol, marketSession)}
       upSub={upTicks ? `pays ${multipleOf(upTicks)}` : undefined}
       downSub={downTicks ? `pays ${multipleOf(downTicks)}` : undefined}
     />
