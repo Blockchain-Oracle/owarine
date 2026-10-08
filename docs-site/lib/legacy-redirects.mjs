@@ -1,5 +1,6 @@
 /** Old Masayume-shaped docs URLs, kept only when they have a current Owarine guide. */
 export const legacyRedirects = [
+  ['/trading/earn', '/trading/specialist-tickets'],
   ['/games/practice', '/games/practice-and-arcade'],
   ['/games/duel', '/games/duel-and-lucky'],
   ['/games/lucky-draw', '/games/duel-and-lucky'],
@@ -22,7 +23,7 @@ export const legacyRedirects = [
   ['/architecture/realtime', '/architecture/ops-and-indexer'],
   ['/architecture/agents', '/agents/overview'],
   ['/architecture/games', '/games/overview'],
-  ['/architecture/earn', '/trading/earn'],
+  ['/architecture/earn', '/trading/specialist-tickets'],
   ['/architecture/leverage', '/trading/boost-parlay-private'],
   ['/architecture/private', '/trading/boost-parlay-private'],
   ['/architecture/range', '/trading/range-and-moonshot'],

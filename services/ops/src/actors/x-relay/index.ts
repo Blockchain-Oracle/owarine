@@ -49,11 +49,13 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
   ensureMarkets(marketsEnv);
   await loadCollateral();
   await syncClock();
-  const venueId = await resolveVenue(marketsEnv.venueId);
-  if (!venueId) {
-    log("no live venue — nothing to execute against");
-    setInterval(() => log("no live venue"), HEARTBEAT_MS);
-    return;
+  // The venue's facts come from the web (`/api/venue/facts`); on a fresh deploy ops can boot before the web answers, so
+  // the relay waits for it instead of idling until the next restart (8 Oct cutover).
+  let venueId = await resolveVenue(marketsEnv.venueId).catch(() => null);
+  while (!venueId) {
+    log("no live venue yet — retrying in one minute");
+    await new Promise(resolve => setTimeout(resolve, HEARTBEAT_MS));
+    venueId = await resolveVenue(marketsEnv.venueId).catch(() => null);
   }
   const execution = createXExecutionJournal();
   // C8f: the executor is an agent party acting through each bound seat's EXECUTOR grant (`Grant_AcceptQuote`).

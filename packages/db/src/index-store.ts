@@ -3,7 +3,7 @@ export { applyFacts } from "./idx/apply";
 export { marketIdOfKey, seriesIdOfKey } from "./idx/ids";
 export { indexReader, type IdxFillQuery, type IdxSeatLease, type IdxMarketQuery, type IdxRow, type IndexReader } from "./idx/read";
 export type { IdxAttestationEvidence, IdxCursor, IdxEvidence, IdxFact, IdxPolicyVersion, IdxRawEvent, IdxReceiptDetail, IdxUpdate } from "./idx/types";
-export { indexWriter, offsetOf, type ApplyResult, type IndexWriter } from "./idx/write";
+export { indexWriter, offsetOf, readIdxCursor, type ApplyResult, type IndexWriter } from "./idx/write";
 export { resolutionsByMarket, type ProjectedResolution } from "./idx/read-resolutions";
 export { projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type VerifiedTemplate } from "./idx/read-verify";
 export { tapeActions, tapeFills, tapeMarkets, tapeTickets, type TapeMarketsQuery, type TapeRangeQuery } from "./idx/read-tape";

@@ -3,12 +3,13 @@
    ticket's surfaces. */
 
 /* ── seat control ── */
-/* The shell rail's seat row (Stage B): a round seat-number avatar, the seat and its address, in the rail's ink; the
+/* The shell rail's seat row (Stage B): the seat's marble avatar (SeatAvatar), the seat and its address, in the rail's ink; the
    avatar alone below xl and in the phone's top bar. Its menu opens beside the rail, portalled. */
 .cx-seat-rail { display: flex; width: 100%; align-items: center; gap: 10px; padding: 4px; border-radius: 999px; color: var(--ow-rail-ink); text-align: left; transition: background-color 160ms var(--ease); }
 .cx-seat-rail:hover, .cx-seat-rail[data-popup-open] { background: color-mix(in oklab, var(--ow-rail-active) 45%, transparent); }
 .cx-seat-rail:focus-visible { outline: 2px solid var(--ow-rail-ink); outline-offset: 2px; }
-.cx-seat-rail-avatar { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--ow-lime); color: var(--ow-black); font-family: var(--ow-font-body); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cx-seat-rail-avatar { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 999px; outline: 1px solid rgb(0 0 0 / 0.12); outline-offset: -1px; }
+.cx-seat-rail-avatar svg { display: block; }
 .cx-seat-rail-copy { display: flex; min-width: 0; flex-direction: column; line-height: 1.2; }
 .cx-seat-rail-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cx-seat-rail-addr { font-family: var(--font-code), ui-monospace, monospace; font-size: 11px; color: var(--ow-rail-muted); font-variant-numeric: tabular-nums; }

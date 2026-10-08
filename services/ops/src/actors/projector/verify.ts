@@ -4,7 +4,7 @@
  * template, the contract ids the ledger says are live against the ones the projection's rows say are live. It also runs
  * the projection's own consistency checks (counters against the rows they count, duplicate keys).
  */
-import { indexWriter, projectedLiveSets, projectionInvariants, VERIFIED_TEMPLATES, type Db, type VerifiedTemplate } from "@owarine/db";
+import { projectedLiveSets, projectionInvariants, readIdxCursor, VERIFIED_TEMPLATES, type Db, type VerifiedTemplate } from "@owarine/db";
 import type { LedgerClient } from "@owarine/ledger";
 import { PM_PACKAGE_NAME, templateName } from "./decode";
 
@@ -19,7 +19,13 @@ export interface VerifyReport {
 const sample = (ids: string[]) => ids.slice(0, 3).map((id) => `${id.slice(0, 12)}…`).join(", ");
 
 export async function verifyProjection(o: { db: Db; ledger: LedgerClient; party: string; stream?: string }): Promise<VerifyReport> {
-  const cursor = await indexWriter(o.db).cursor(o.stream ?? "venue");
+  // The cursor, the live rows and the invariants from one snapshot: the projector keeps writing while the ledger is
+  // paged, and rows read after it moved on would show its newest contracts as mismatches (8 Oct, hosted recount).
+  const { cursor, projected, invariants } = await o.db.begin("isolation level repeatable read read only", async (tx) => ({
+    cursor: await readIdxCursor(tx, o.stream ?? "venue"),
+    projected: await projectedLiveSets(tx),
+    invariants: await projectionInvariants(tx),
+  }));
   if (!cursor) return { ok: false, offset: null, ledger: {}, projection: {}, mismatches: ["no cursor: the projection is empty"] };
   if (cursor.party !== o.party) return { ok: false, offset: cursor.offset, ledger: {}, projection: {}, mismatches: [`projection holds ${cursor.party}, not ${o.party}`] };
 
@@ -30,7 +36,6 @@ export async function verifyProjection(o: { db: Db; ledger: LedgerClient; party:
       onLedger.get(templateName(c.createdEvent.templateId) as VerifiedTemplate)?.add(c.createdEvent.contractId);
     }
   }
-  const projected = await projectedLiveSets(o.db);
 
   const mismatches: string[] = [];
   const ledger: Record<string, number> = {};
@@ -46,6 +51,6 @@ export async function verifyProjection(o: { db: Db; ledger: LedgerClient; party:
     if (missing.length) mismatches.push(`${t}: ${missing.length} live on the ledger, not in the projection (${sample(missing)})`);
     if (extra.length) mismatches.push(`${t}: ${extra.length} live in the projection, not on the ledger (${sample(extra)})`);
   }
-  mismatches.push(...(await projectionInvariants(o.db)));
+  mismatches.push(...invariants);
   return { ok: mismatches.length === 0, offset: cursor.offset, ledger, projection, mismatches };
 }

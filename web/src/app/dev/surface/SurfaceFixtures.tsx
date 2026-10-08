@@ -1,7 +1,6 @@
 "use client";
 
 import { bookStructure } from "@owarine/core/surface";
-import Link from "next/link";
 import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";
 import { BookReadout, DepthChart, SlippageLadder, SURFACE, TermStructure } from "@/features/surface";
@@ -16,7 +15,7 @@ export function SurfaceFixtures() {
     <div className="container sf-page">
       <SectionHeader index="00" eyebrow="Fixtures" title={SURFACE.devTitle} />
       <p className="type-caption text-ink-muted">
-        Canned books only. The live page is <Link href="/surface">/surface</Link>.
+        Canned books only. The live page is retired (8 Oct).
       </p>
       <FixtureGrid>
         <Fixture label="§01 — two-sided book, print in, UP winning">

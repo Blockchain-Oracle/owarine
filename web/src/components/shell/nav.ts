@@ -1,7 +1,7 @@
 import {
   Activity, BadgeCheck, BarChart3, BookOpen, Bot, Boxes, Briefcase, CandlestickChart, ChartCandlestick, ChartLine,
   ChartNoAxesCombined, CircleHelp, CirclePlus, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox,
-  KeyRound, Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, Scale, ScanSearch, Sparkles, TrendingDown, Trophy,
+  KeyRound, Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, Scale, Sparkles, TrendingDown, Trophy,
   WalletCards, X as XLogo, type LucideIcon,
 } from "lucide-react";
 import { DOCS_URL } from "../../lib/docs-url";
@@ -218,13 +218,6 @@ export const NAV_ITEMS = {
     icon: ChartCandlestick,
   },
   stats: { id: "stats", name: "Stats", href: "/stats", description: "Protocol and market activity.", icon: BarChart3 },
-  surface: {
-    id: "surface",
-    name: "Market Surface",
-    href: "/surface",
-    description: "Read the market structure at a glance.",
-    icon: ScanSearch,
-  },
 
   news: { id: "news", name: "News", href: "/news", description: "The stories moving markets.", icon: Newspaper },
   reels: { id: "reels", name: "Reels", href: "/reels", description: "Scan market stories quickly.", icon: GalleryVerticalEnd },
@@ -271,7 +264,7 @@ export const MORE: readonly NavSection[] = [
   { id: "learn", name: "Learn", items: [NAV_ITEMS.news, NAV_ITEMS.howItWorks, NAV_ITEMS.download, NAV_ITEMS.reels, NAV_ITEMS.docs, NAV_ITEMS.pitch] },
   { id: "games", name: "Games", items: [NAV_ITEMS.practice, NAV_ITEMS.duel, NAV_ITEMS.lucky, NAV_ITEMS.range, NAV_ITEMS.moonshot, NAV_ITEMS.lineRider, NAV_ITEMS.candleHop] },
   { id: "automate", name: "Automate", items: [NAV_ITEMS.agents, NAV_ITEMS.desk, NAV_ITEMS.newDesk] },
-  { id: "records", name: "Records and proof", items: [NAV_ITEMS.proof, NAV_ITEMS.activity, NAV_ITEMS.edge, NAV_ITEMS.stats, NAV_ITEMS.surface] },
+  { id: "records", name: "Records and proof", items: [NAV_ITEMS.proof, NAV_ITEMS.activity, NAV_ITEMS.edge, NAV_ITEMS.stats] },
   { id: "about", name: "About", items: [NAV_ITEMS.status, NAV_ITEMS.legal, NAV_ITEMS.xRecovery] },
 ];
 
@@ -283,7 +276,7 @@ export const NAVIGABLE_ROUTE_PATHS = [
   "/download", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard", "/legal",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/proof", "/reels", "/short", "/stats",
-  "/status", "/strategies", "/surface", "/trade/BTC", "/trade-from-x",
+  "/status", "/strategies", "/trade/BTC", "/trade-from-x",
 ] as const;
 
 export function isActiveNavItem(pathname: string | null, item: NavItem): boolean {

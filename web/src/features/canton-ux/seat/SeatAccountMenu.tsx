@@ -2,13 +2,14 @@
 
 import { Popover } from "@base-ui/react/popover";
 import { partyLead, shortHex } from "@owarine/core/units";
-import { Check, Copy, KeyRound, Smartphone, UserRound, WalletCards } from "lucide-react";
+import { Check, Copy, KeyRound, Smartphone, WalletCards } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { Countdown } from "@/components/data/Countdown";
 import { Hash } from "@/components/data/Hash";
 import { cn } from "@/lib/utils";
 import { SEAT } from "./copy";
+import { SeatAvatar } from "./SeatAvatar";
 import "./seat.css";
 
 const M = SEAT.menu;
@@ -39,7 +40,7 @@ export interface SeatMenuProps {
   unleasedReason?: string | null;
   onOpenMenu?: () => void;
   /**
-   * `rail`: the shell rail's row (the seat-number avatar, the seat, the address); the menu opens upward over the rail.
+   * `rail`: the shell rail's row (the seat's marble avatar, the seat, the address); the menu opens upward over the rail.
    * `avatar`: the avatar alone, for the phone's top bar.
    */
   variant?: "pill" | "rail" | "avatar";
@@ -80,7 +81,11 @@ export function SeatAccountMenu({
 
   const draining = state === "draining";
   const unleased = state === "unleased";
-  const avatar = <span className="cx-seat-rail-avatar">{seatNumber ?? <UserRound className="size-4.5" strokeWidth={2.5} />}</span>;
+  const avatar = (
+    <span className="cx-seat-rail-avatar">
+      <SeatAvatar seed={address} />
+    </span>
+  );
   return (
     <Popover.Root
       open={open}

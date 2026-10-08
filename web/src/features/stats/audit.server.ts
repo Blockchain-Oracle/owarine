@@ -25,7 +25,7 @@ export async function readAudit(nowMs = Date.now()): Promise<AuditPayload> {
   const sql = getDb();
   const [venue, reserve, recount] = await Promise.all([
     sql
-      ? venueStats(sql, Math.floor(nowMs / 1000) - DAY_SEC)
+      ? venueStats(sql, Math.floor(nowMs / 1000) - DAY_SEC, Math.floor(nowMs / 1000))
           .then((v) => ({
             windows: v.windows, resolved: v.resolved, voided: v.voided, publicWindows: v.public_windows, withheldWindows: v.withheld_windows,
             trades: v.trades, volumeBase: v.volume_base, feesBase: v.fees_base, payoutsBase: v.payouts_base, floor: K_ANON_FLOOR,

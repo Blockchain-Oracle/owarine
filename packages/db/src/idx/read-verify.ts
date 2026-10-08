@@ -5,7 +5,7 @@
  */
 import type postgres from "postgres";
 
-type Sql = postgres.Sql;
+type Sql = postgres.Sql | postgres.TransactionSql;
 
 /** Templates the projector tracks the life of, by `Module:Entity`. */
 export const VERIFIED_TEMPLATES = [

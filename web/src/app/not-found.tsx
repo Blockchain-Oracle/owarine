@@ -1,7 +1,9 @@
-import { redirect } from "next/navigation";
-import { marketsWithNote, NOTE_KIND } from "@/lib/routes";
+import type { Metadata } from "next";
+import { NotFoundScreen } from "@/features/not-found/NotFoundScreen";
 
-/** Routing law: retired or moved routes redirect with a one-line note; nothing 404s (UX-DR21). */
+export const metadata: Metadata = { title: "Not found" };
+
+/** An unknown path answers 404 with its own page (Abu, 8 Oct); retired routes still redirect, from next.config. */
 export default function NotFound() {
-  redirect(marketsWithNote(NOTE_KIND.moved));
+  return <NotFoundScreen />;
 }

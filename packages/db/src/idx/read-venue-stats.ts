@@ -24,7 +24,8 @@ export interface VenueStatsRow {
   payouts_base: string;
 }
 
-export async function venueStats(sql: Sql, sinceSec: number): Promise<VenueStatsRow> {
+/** Windows whose close fell in `[sinceSec, untilSec]`: one voided early (a missed opening print) counts once its close has passed. */
+export async function venueStats(sql: Sql, sinceSec: number, untilSec: number): Promise<VenueStatsRow> {
   const k = K_ANON_FLOOR;
   const [row] = await sql<VenueStatsRow[]>`
     SELECT count(*)::int AS windows,
@@ -37,6 +38,6 @@ export async function venueStats(sql: Sql, sinceSec: number): Promise<VenueStats
       COALESCE(sum(volume_ticklots * cash_unit) FILTER (WHERE participants >= ${k}), 0)::text AS volume_base,
       COALESCE(sum(fees_recognized_base) FILTER (WHERE participants >= ${k}), 0)::text AS fees_base,
       COALESCE(sum(payouts_base) FILTER (WHERE participants >= ${k}), 0)::text AS payouts_base
-    FROM idx_markets WHERE expiry_sec >= ${sinceSec}`;
+    FROM idx_markets WHERE expiry_sec >= ${sinceSec} AND expiry_sec <= ${untilSec}`;
   return row!;
 }

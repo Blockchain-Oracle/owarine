@@ -51,13 +51,16 @@ async function advance(tx: Tx, stream: string, party: string, offset: number, up
 
 export type ApplyResult = "applied" | "skipped";
 
+/** One stream's cursor; takes a transaction too, so a reader can pair it with rows from the same snapshot. */
+export async function readIdxCursor(sql: Sql | Tx, stream: string): Promise<IdxCursor | null> {
+  const [row] = await sql<CursorRow[]>`
+    SELECT party, ledger_offset::text, update_id, bootstrap, history_from_offset::text FROM idx_cursor WHERE stream = ${stream}`;
+  return row ? cursorOf(stream, row) : null;
+}
+
 export function indexWriter(sql: Sql) {
   return {
-    async cursor(stream: string): Promise<IdxCursor | null> {
-      const [row] = await sql<CursorRow[]>`
-        SELECT party, ledger_offset::text, update_id, bootstrap, history_from_offset::text FROM idx_cursor WHERE stream = ${stream}`;
-      return row ? cursorOf(stream, row) : null;
-    },
+    cursor: (stream: string): Promise<IdxCursor | null> => readIdxCursor(sql, stream),
 
     /** Writes one update's events and rows and advances the cursor, all or nothing. */
     async applyUpdate(stream: string, party: string, u: IdxUpdate): Promise<ApplyResult> {

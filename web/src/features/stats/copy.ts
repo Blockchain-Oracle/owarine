@@ -18,7 +18,7 @@ export const STATS = {
     activity: { index: "03", title: "Live activity", tag: "published calls only · click any row → its ledger update" },
   },
   curve: {
-    empty: "your growth curve starts with the first call. Drive one and watch it climb.",
+    empty: "The curve starts with the first published call.",
     axis: "CUMULATIVE SEATS THAT MADE A CALL · BY HOUR",
   },
   stats: {
@@ -61,7 +61,7 @@ export const STATS = {
     headroom: (v: string, symbol: string, asOf: string) => `Headroom ${v} ${symbol}: held minus the most owed, as of ${asOf}. Never negative on a solvent venue.`,
     reserveDown: (why: string) => `Reserve snapshot unavailable: ${why}.`,
     recountTitle: "Independent recount",
-    recountNone: "No recount recorded yet. Run scripts/drive/recount.ts to add one.",
+    recountNone: "No independent recount has run on this deployment yet.",
     recountHead: (ok: boolean, offset: string, at: string) => `${ok ? "Agrees" : "Differs"} at ledger offset ${offset} · ${at}`,
     recountTemplate: (t: string, ledger: number, projection: number) => `${t}: ledger ${ledger} · projection ${projection}`,
     recountReserve: (matches: boolean) => (matches ? "Reserve recomputed from the ledger matches the projection's legs and quotes." : "Reserve recomputed from the ledger differs from the projection."),

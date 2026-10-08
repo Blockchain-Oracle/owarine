@@ -1,4 +1,4 @@
-# The docs site — Next.js 16 + Fumadocs, served by `next start` on 3000 behind Coolify at docs.owarine.com.
+# The docs site — Next.js 16 + Fumadocs, served by `next start` on 3000 behind Coolify at docs.owarine.xyz.
 #
 #   docker build .
 #

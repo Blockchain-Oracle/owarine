@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
     { source: "/pool", destination: "/portfolio", permanent: true },
     // Earn is out of the product (Abu, 8 Oct: its reserves are not on DevNet); old links land on the money.
     { source: "/earn", destination: "/portfolio", permanent: false },
+    // So is the Market Surface (Abu, 8 Oct); its pieces stay on /dev/surface.
+    { source: "/surface", destination: "/markets", permanent: false },
     // Developer surfaces taken off the product (8 Oct): the plain-words privacy answer lives on How it works.
     { source: "/demo", destination: "/how-it-works", permanent: true },
     { source: "/who-sees-what", destination: "/how-it-works", permanent: true },
