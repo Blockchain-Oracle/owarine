@@ -42,7 +42,7 @@ function useHistoryRows(mode: TradeMode): { rows: HistoryRow[]; loading: boolean
       loading: false,
       rows: modeState.history
         .filter((t) => t.kind !== "add")
-        .map((t) => ({ id: t.id, asset: t.asset, side: t.side, intervalSec: t.intervalSec, pnl: Number(t.pnlBase) / 1e6, cost: Number(t.costBase) / 1e6, openedAtMs: t.openedAtMs, closedAtMs: t.closedAtMs, tag: t.kind === "reduce" ? "REDUCE" : t.kind === "trail" ? "TRAIL" : t.kind === "settle" ? "SETTLED" : null })),
+        .map((t) => ({ id: t.id, asset: t.asset, side: t.side, intervalSec: t.intervalSec, pnl: Number(t.pnlBase) / 1e6, cost: Number(t.costBase) / 1e6, openedAtMs: t.openedAtMs, closedAtMs: t.closedAtMs, tag: t.kind === "reduce" ? "REDUCE" : t.kind === "trail" ? "TRAIL" : t.kind === "settle" ? "SETTLED" : t.kind === "parlay" ? "PARLAY" : null })),
     };
   }
   if (!seat || !seat.ok) return { rows: [], loading: seat === null };

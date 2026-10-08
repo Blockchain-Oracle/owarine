@@ -13,11 +13,13 @@ import { ReplaySheet } from "./sheets/ReplaySheet";
 import { LeaderboardSheet } from "./sheets/LeaderboardSheet";
 import { InstallSheet } from "./sheets/InstallSheet";
 import type { Episode } from "../replay";
+import type { ParlayMark } from "../parlay/ParlayRow";
+import type { ScreenParlay } from "../parlay/useParlays";
 import { useState } from "react";
 import { SettingsSheet } from "./sheets/SettingsSheet";
 import { Tutorial } from "./sheets/Tutorial";
 
-export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "leaderboard" | "install" | "tutorial";
+export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "leaderboard" | "install" | "tutorial" | "parlay";
 
 const DAY_MS = 86_400_000;
 
@@ -50,6 +52,8 @@ export function TerminalSheets(props: {
   onAdd: (p: TerminalPosition, add: { stakeBase: bigint; quote: Quote | null }) => void;
   onReduce: (p: TerminalPosition, contractsRaw: bigint) => void;
   onTakeSeat: () => void;
+  parlays?: readonly ScreenParlay[];
+  marks?: ReadonlyMap<string, ParlayMark>;
 }) {
   const { open, onClose, onOpen, target, mode } = props;
   const modeState = useModeState();
@@ -116,6 +120,8 @@ export function TerminalSheets(props: {
         onReduce={(p) => onOpen("reduce", p)}
         onCloseAll={props.onCloseAll}
         closingAll={props.closingAll}
+        parlays={props.parlays}
+        marks={props.marks}
       />
       <AdjustSheet
         open={open === "add" || open === "reduce"}

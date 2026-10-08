@@ -7,6 +7,7 @@ import { marketsProvider } from "@owarine/markets";
 import { ladderSpotSymbol, useBalanceSheet, useOpeningPrice, usePositions, useStakeQuote, type LivePnlView } from "@owarine/markets/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { Sheet } from "@/components/kit";
 import { installHaptics, setHapticsEnabled } from "@/lib/haptics";
 import { installTradeSounds, playCloseOutcome, setTradeMuted } from "@/lib/sound/trade";
 import { useWalletSession } from "@/lib/wallet-session";
@@ -21,6 +22,7 @@ import { stakeFor, useTradeSettings, useTradeSettingsState } from "./settings";
 import { TradeToasts, toast } from "./toasts";
 import { AssetChip, EquityPill, SettingsStack, ViewPositionPill, WindowChip, type WindowState } from "./ui/Chrome";
 import { PositionsList, positionValueBase, totalsOf, UnrealizedCard } from "./ui/PositionsPanel";
+import { useTerminalParlay } from "./parlay/useTerminalParlay";
 import { useReplayRecorder } from "./replay";
 import { useAppUpdate } from "./useAppUpdate";
 import { ReactionOverlay } from "./ui/ReactionOverlay";
@@ -177,7 +179,13 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const active = positions.find((p) => p.marketId === market?.marketId) ?? null;
   const activeLive = active ? (book.get(active.id) ?? null) : null;
   const totals = totalsOf(positions, book);
-  const equity = cashBase === null ? null : mode === "demo" ? toCredits(cashBase) + totals.pnl : toCredits(cashBase) + positions.reduce((s, p) => s + toCredits(positionValueBase(p, book.get(p.id))), 0);
+
+  // Parlays (plan 2c): the slip, the open tickets at fair value, Parlay mode's buttons.
+  const parlay = useTerminalParlay({ mode, address, nowSec, set: win.set, market, canAdd: windowState === "trading", cashBase, slippageBps: settings.slippageBps, onNeedSeat: () => session.connect(), onAddMarket: () => openSheet("markets"), onPlaced: () => setSheet((s) => (s === "parlay" ? null : s)) });
+  // The Unrealized card counts a parlay at fair value (it can't be closed, so Close all leaves it).
+  const shownTotals = { pnl: totals.pnl + parlay.pnl, cost: totals.cost + parlay.staked, unpriced: totals.unpriced };
+
+  const equity = cashBase === null ? null : mode === "demo" ? toCredits(cashBase) + totals.pnl + parlay.pnl : toCredits(cashBase) + positions.reduce((s, p) => s + toCredits(positionValueBase(p, book.get(p.id))), 0) + parlay.value;
 
   const trade = useTerminalTrade({
     mode, market, spot, stakeBase, availableBase: cashBase, quotes, slippageBps: settings.slippageBps, linePrice,
@@ -252,7 +260,9 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const feesCredits = mode === "demo" ? null : quotes.up ? (stakeCredits * quotes.up.feeBps) / 10_000 : null;
   const lockedText = active && (activeLive?.locked || windowState === "locked") ? `Locked — pays at ${new Date((active.expirySec) * 1000).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}` : null;
 
-  const buttons = active ? (
+  const buttons = parlay.buttons ? (
+    parlay.buttons
+  ) : active ? (
     <TradeButtons
       mode="open"
       trailActive={active.trailStop !== null}
@@ -318,6 +328,8 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       onAdd={(p, add) => void trade.open(p.side, add)}
       onReduce={(p, contracts) => void trade.close(p, book.get(p.id) ?? null, "close", contracts)}
       onTakeSeat={() => session.connect()}
+      parlays={parlay.parlays}
+      marks={parlay.marks}
     />
   );
 
@@ -338,8 +350,14 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
           <div className="flex justify-end">
             <EquityPill equity={mode === "live" && !address ? null : equity} demo={mode === "demo"} onOpen={() => openSheet("account")} />
           </div>
-          <UnrealizedCard totals={totals} count={positions.length} onCloseAll={() => void closeAll()} closingAll={closingAll} />
-          <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={(p) => openSheet("share", p)} onAdd={(p) => openSheet("add", p)} onReduce={(p) => openSheet("reduce", p)} />
+          <UnrealizedCard totals={shownTotals} count={positions.length + parlay.parlays.length} closable={positions.length} onCloseAll={() => void closeAll()} closingAll={closingAll} />
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+            {parlay.on && positions.length + parlay.parlays.length === 0 ? null : (
+              <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={(p) => openSheet("share", p)} onAdd={(p) => openSheet("add", p)} onReduce={(p) => openSheet("reduce", p)} parlays={parlay.parlays} marks={parlay.marks} />
+            )}
+            {parlay.on ? <div className="shrink-0">{parlay.slip}</div> : null}
+          </div>
+          {parlay.tabs}
           {buttons}
         </aside>
         <TradeToasts />
@@ -362,11 +380,16 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       <div className="flex-1" />
       <footer className="relative z-20 flex flex-col gap-3 px-4 pb-[calc(env(safe-area-inset-bottom,0rem)+1rem)]">
         {controls}
-        {positions.length > 0 ? <ViewPositionPill count={positions.length} roiPct={totals.cost > 0 ? (totals.pnl / totals.cost) * 100 : 0} onOpen={() => openSheet("positions")} /> : null}
+        {positions.length + parlay.parlays.length > 0 ? <ViewPositionPill count={positions.length + parlay.parlays.length} roiPct={shownTotals.cost > 0 ? (shownTotals.pnl / shownTotals.cost) * 100 : 0} onOpen={() => openSheet("positions")} /> : null}
+        {parlay.on ? parlay.pill(() => openSheet("parlay")) : null}
+        {parlay.tabs}
         {buttons}
       </footer>
       <TradeToasts />
       {sheets}
+      <Sheet open={sheet === "parlay"} onOpenChange={(o) => !o && setSheet(null)} title="Parlay">
+        {parlay.slip}
+      </Sheet>
     </main>
   );
 }

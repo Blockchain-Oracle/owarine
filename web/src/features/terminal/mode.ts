@@ -29,9 +29,30 @@ export interface PaperPosition {
   trail: { stop: number } | null;
 }
 
+/** One leg of a paper parlay: a Window and a side, the price it was bought at, and how it settled. */
+export interface PaperParlayLeg {
+  marketId: string;
+  asset: string;
+  intervalSec: number;
+  side: "up" | "down";
+  expirySec: number;
+  /** The leg's priced chance at open, per whole unit (1e6), as the reserve records `priceRaw`. */
+  priceRaw: string;
+  status: "pending" | "won" | "lost" | "void";
+}
+
+/** A paper parlay (plan 2c): priced by the reserve's own kernel on the live ladders, settled leg by leg on the real resolutions. */
+export interface PaperParlay {
+  id: string;
+  legs: PaperParlayLeg[];
+  stakeBase: string;
+  maxPayoutBase: string;
+  openedAtMs: number;
+}
+
 export interface PaperTrade {
   id: string;
-  kind: "close" | "trail" | "settle" | "reduce" | "add";
+  kind: "close" | "trail" | "settle" | "reduce" | "add" | "parlay";
   asset: string;
   side: "up" | "down";
   intervalSec: number;
@@ -48,13 +69,14 @@ interface ModeState {
   mode: TradeMode | null;
   demoBalanceBase: string;
   positions: PaperPosition[];
+  parlays: PaperParlay[];
   history: PaperTrade[];
 }
 
 export const DEMO_START_BASE = 10_000_000_000n;
 const KEY = "owarine.trade.mode.v1";
 const HISTORY_CAP = 500;
-const INITIAL: ModeState = { mode: null, demoBalanceBase: DEMO_START_BASE.toString(), positions: [], history: [] };
+const INITIAL: ModeState = { mode: null, demoBalanceBase: DEMO_START_BASE.toString(), positions: [], parlays: [], history: [] };
 
 const listeners = new Set<() => void>();
 let state: ModeState = INITIAL;
@@ -71,6 +93,7 @@ function hydrate(): void {
       mode: p.mode === "demo" || p.mode === "live" ? p.mode : null,
       demoBalanceBase: typeof p.demoBalanceBase === "string" && /^-?\d+$/.test(p.demoBalanceBase) ? p.demoBalanceBase : INITIAL.demoBalanceBase,
       positions: Array.isArray(p.positions) ? p.positions.filter(isPaperPosition) : [],
+      parlays: Array.isArray(p.parlays) ? p.parlays.filter(isPaperParlay) : [],
       history: Array.isArray(p.history) ? p.history.filter((t): t is PaperTrade => typeof t?.id === "string").slice(0, HISTORY_CAP) : [],
     };
   } catch {
@@ -81,6 +104,11 @@ function hydrate(): void {
 function isPaperPosition(p: unknown): p is PaperPosition {
   const x = p as PaperPosition;
   return typeof x?.id === "string" && typeof x.marketId === "string" && (x.side === "up" || x.side === "down") && /^\d+$/.test(x.contractsRaw ?? "") && /^\d+$/.test(x.costBase ?? "");
+}
+
+function isPaperParlay(p: unknown): p is PaperParlay {
+  const x = p as PaperParlay;
+  return typeof x?.id === "string" && Array.isArray(x.legs) && x.legs.length >= 2 && /^\d+$/.test(x.stakeBase ?? "") && /^\d+$/.test(x.maxPayoutBase ?? "");
 }
 
 function commit(next: ModeState): void {
@@ -117,7 +145,7 @@ export function setMode(mode: TradeMode): void {
 /** "Reset demo balance": 10,000 again, every paper position gone. */
 export function resetDemo(): void {
   hydrate();
-  commit({ ...state, demoBalanceBase: DEMO_START_BASE.toString(), positions: [] });
+  commit({ ...state, demoBalanceBase: DEMO_START_BASE.toString(), positions: [], parlays: [] });
 }
 
 /** Opens a paper position, or adds to the one already open on that Window side (entry spot weighted by stake). */
@@ -157,4 +185,22 @@ export function settlePaper(id: string, trade: Omit<PaperTrade, "id">, keep?: { 
 export function recordPaper(trade: Omit<PaperTrade, "id">): void {
   hydrate();
   commit({ ...state, history: [{ ...trade, id: `t:${trade.closedAtMs}:${state.history.length}` }, ...state.history].slice(0, HISTORY_CAP) });
+}
+
+/** Opens a paper parlay. As with a paper position, nothing leaves the balance until it settles. */
+export function openPaperParlay(p: PaperParlay): void {
+  hydrate();
+  commit({ ...state, parlays: [...state.parlays, p] });
+}
+
+export function updatePaperParlay(id: string, legs: PaperParlayLeg[]): void {
+  hydrate();
+  commit({ ...state, parlays: state.parlays.map((p) => (p.id === id ? { ...p, legs } : p)) });
+}
+
+/** Settles a paper parlay: the balance moves by its realized PnL and the ticket goes to history. */
+export function settlePaperParlay(id: string, trade: Omit<PaperTrade, "id">): void {
+  hydrate();
+  const balance = BigInt(state.demoBalanceBase) + BigInt(trade.pnlBase);
+  commit({ ...state, demoBalanceBase: balance.toString(), parlays: state.parlays.filter((p) => p.id !== id), history: [{ ...trade, id: `${id}:${trade.closedAtMs}` }, ...state.history].slice(0, HISTORY_CAP) });
 }

@@ -10,6 +10,9 @@ import { parlayOpenLane } from "./writes";
 
 export { getParlay, getParlayReserveState, getParlaySharesOf, listParlaysOf, PARLAY_NOT_LIVE } from "./reads";
 export { quoteParlayOnchain } from "./quote";
+/** The reserve's own pricer and parameters (pure): the trading screen prices a ticket off its live ladders with them. */
+export { asksOf, priceParlay, type ParlayPriced, type TicketWindow } from "../tickets/pricing";
+export { parlayParams, TICKET_DECIMALS, TICKET_ONE } from "../tickets/params";
 export { parlayOpenLane, parlayTxLane, submitParlayOpenWrite, submitParlayTx } from "./writes";
 export type { ParlayOpenOutcome, ParlayTxContext } from "./types";
 

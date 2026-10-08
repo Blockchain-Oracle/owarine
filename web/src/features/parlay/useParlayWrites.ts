@@ -38,7 +38,8 @@ export function useParlayWrites() {
         return await submitter.submitParlayOpen({ kind: "parlay-open", legs, maxPayoutBase, maxStakeBase });
       } finally {
         setBusy(null);
-        await settle();
+        // The outcome is the ledger's; the refetch that follows it (seconds on DevNet) must not hold the answer back.
+        void settle();
       }
     },
     [submitter, address, settle],

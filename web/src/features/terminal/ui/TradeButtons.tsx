@@ -10,7 +10,18 @@ import { cn } from "@/lib/utils";
  * while armed) and CLOSE. Cross-fades y 12 → 0 in 0.18 s on `[0.22, 1, 0.36, 1]`.
  */
 export type TradeButtonsProps =
-  | { mode: "flat"; onUp: () => void; onDown: () => void; busy: "up" | "down" | null; disabled?: boolean; upSub?: string; downSub?: string; className?: string }
+  | {
+      mode: "flat";
+      onUp: () => void;
+      onDown: () => void;
+      busy: "up" | "down" | null;
+      disabled?: boolean;
+      upSub?: string;
+      downSub?: string;
+      /** Parlay mode: the side this Window already has in the slip shows solid. */
+      picked?: "up" | "down" | null;
+      className?: string;
+    }
   | {
       mode: "open";
       trailActive: boolean;
@@ -35,14 +46,14 @@ export function TradeButtons(props: TradeButtonsProps) {
       <AnimatePresence mode="wait" initial={false}>
         {props.mode === "flat" ? (
           <motion.div key="flat" className="grid grid-cols-2 gap-3" {...fade}>
-            <button type="button" onClick={props.onUp} disabled={props.disabled || props.busy !== null} className={cn(SLOT, "ow-up-soft disabled:opacity-40")}>
+            <button type="button" onClick={props.onUp} disabled={props.disabled || props.busy !== null} aria-pressed={props.picked === undefined ? undefined : props.picked === "up"} className={cn(SLOT, props.picked === "up" ? "ow-up-solid" : "ow-up-soft", "disabled:opacity-40")}>
               {props.busy === "up" ? spin : <ArrowUp className="size-5" strokeWidth={3} />}
               <span className="flex flex-col items-start leading-none">
                 <span>UP</span>
                 {props.upSub ? <span className="mt-1 text-ow-micro font-semibold tracking-normal opacity-80">{props.upSub}</span> : null}
               </span>
             </button>
-            <button type="button" onClick={props.onDown} disabled={props.disabled || props.busy !== null} className={cn(SLOT, "ow-down-soft disabled:opacity-40")}>
+            <button type="button" onClick={props.onDown} disabled={props.disabled || props.busy !== null} aria-pressed={props.picked === undefined ? undefined : props.picked === "down"} className={cn(SLOT, props.picked === "down" ? "ow-down-solid" : "ow-down-soft", "disabled:opacity-40")}>
               {props.busy === "down" ? spin : <ArrowDown className="size-5" strokeWidth={3} />}
               <span className="flex flex-col items-start leading-none">
                 <span>DOWN</span>

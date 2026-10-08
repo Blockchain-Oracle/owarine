@@ -2,6 +2,7 @@
 .ow-up-soft { background: color-mix(in oklab, var(--ow-up-line) 16%, var(--ow-card)); color: var(--ow-up); }
 .ow-down-soft { background: color-mix(in oklab, var(--ow-down-line) 14%, var(--ow-card)); color: var(--ow-down); }
 .ow-up-solid { background: var(--ow-up-line); color: var(--ow-black); }
+.ow-down-solid { background: var(--ow-down-line); color: var(--ow-white); }
 .ow-glass {
   background: color-mix(in oklab, var(--ow-card) 78%, transparent);
   backdrop-filter: blur(14px) saturate(140%);

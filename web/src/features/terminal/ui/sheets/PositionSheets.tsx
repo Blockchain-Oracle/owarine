@@ -11,14 +11,22 @@ import { formatPrice } from "../../chart/engine";
 import { fixedText, multipleOf } from "../../format";
 import { renderCharmPng, saveCharm } from "../../share-png";
 import type { TerminalPosition } from "../../useTerminalTrade";
+import type { ParlayMark } from "../../parlay/ParlayRow";
+import type { ScreenParlay } from "../../parlay/useParlays";
 import { PositionsList, totalsOf, UnrealizedCard } from "../PositionsPanel";
 
 const tap = () => (playTrade("tap"), haptic("tap"));
 const MIN_ADJUST = 1;
 const num = (base: bigint, decimals: number) => Number(base) / 10 ** decimals;
 
+const withParlays = (t: ReturnType<typeof totalsOf>, parlays: readonly ScreenParlay[] = [], marks?: ReadonlyMap<string, ParlayMark>) => ({
+  pnl: t.pnl + parlays.reduce((s, p) => s + (marks?.get(p.id)?.pnl ?? 0), 0),
+  cost: t.cost + parlays.reduce((s, p) => s + Number(p.stakeBase) / 1e6, 0),
+  unpriced: t.unpriced,
+});
+
 /** Phone: "Open positions", the rail's panel in a sheet (Tradash `sO`). */
-export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare, onAdd, onReduce, onCloseAll, closingAll }: {
+export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare, onAdd, onReduce, onCloseAll, closingAll, parlays, marks }: {
   open: boolean;
   onClose: () => void;
   positions: readonly TerminalPosition[];
@@ -29,12 +37,14 @@ export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare
   onReduce: (p: TerminalPosition) => void;
   onCloseAll: () => void;
   closingAll: boolean;
+  parlays?: readonly ScreenParlay[];
+  marks?: ReadonlyMap<string, ParlayMark>;
 }) {
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Open positions">
       <div className="flex flex-col gap-3">
-        <UnrealizedCard totals={totalsOf(positions, book)} count={positions.length} onCloseAll={onCloseAll} closingAll={closingAll} />
-        <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} />
+        <UnrealizedCard totals={withParlays(totalsOf(positions, book), parlays, marks)} count={positions.length + (parlays?.length ?? 0)} closable={positions.length} onCloseAll={onCloseAll} closingAll={closingAll} />
+        <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} parlays={parlays} marks={marks} />
       </div>
     </Sheet>
   );

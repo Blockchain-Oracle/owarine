@@ -8,6 +8,8 @@ import { Odometer } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "../chart/engine";
+import { ParlayRow, type ParlayMark } from "../parlay/ParlayRow";
+import type { ScreenParlay } from "../parlay/useParlays";
 import { PublishToggle } from "./PublishToggle";
 import { clockText, moneyDecimals, multipleOf } from "../format";
 import type { TerminalPosition } from "../useTerminalTrade";
@@ -37,16 +39,16 @@ export function totalsOf(positions: readonly TerminalPosition[], book: ReadonlyM
 }
 
 /** "Unrealized PnL", the total's rolling digits (decimals by size) and its % of what was put in; Close all when > 1. */
-export function UnrealizedCard({ totals, count, onCloseAll, closingAll }: { totals: PositionsTotals; count: number; onCloseAll: () => void; closingAll: boolean }) {
+export function UnrealizedCard({ totals, count, closable = count, onCloseAll, closingAll }: { totals: PositionsTotals; count: number; closable?: number; onCloseAll: () => void; closingAll: boolean }) {
   const pct = totals.cost > 0 ? (totals.pnl / totals.cost) * 100 : 0;
   return (
     <div className="rounded-ow-card bg-ow-card p-4">
       <div className="flex items-start justify-between gap-2">
         <span className="text-ow-caption text-ow-muted">Unrealized PnL</span>
-        {count > 1 ? (
+        {closable > 1 ? (
           <button type="button" onClick={onCloseAll} disabled={closingAll} className="ow-down-soft flex items-center gap-1.5 rounded-full px-3 py-1 text-ow-micro font-bold">
             {closingAll ? <LoaderCircle className="size-3.5 animate-spin" /> : null}
-            {closingAll ? "Closing…" : `Close all (${count})`}
+            {closingAll ? "Closing…" : `Close all (${closable})`}
           </button>
         ) : null}
       </div>
@@ -73,7 +75,7 @@ export function UnrealizedCard({ totals, count, onCloseAll, closingAll }: { tota
 }
 
 export function PositionsList({
-  positions, book, nowSec, onShare, onAdd, onReduce,
+  positions, book, nowSec, onShare, onAdd, onReduce, parlays = [], marks,
 }: {
   positions: readonly TerminalPosition[];
   book: ReadonlyMap<string, LivePnlView>;
@@ -81,8 +83,11 @@ export function PositionsList({
   onShare: (p: TerminalPosition) => void;
   onAdd: (p: TerminalPosition) => void;
   onReduce: (p: TerminalPosition) => void;
+  /** Open parlays (plan 2c), each with its mark at fair value. */
+  parlays?: readonly ScreenParlay[];
+  marks?: ReadonlyMap<string, ParlayMark>;
 }) {
-  if (positions.length === 0) {
+  if (positions.length === 0 && parlays.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-ow-card bg-ow-card p-6 text-ow-muted">
         <CandlestickChart className="size-10" strokeWidth={1.5} />
@@ -93,6 +98,10 @@ export function PositionsList({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto">
       <span className="px-1 text-ow-micro font-bold tracking-[0.12em] text-ow-muted">POSITIONS</span>
+      {parlays.map((p) => {
+        const mark = marks?.get(p.id);
+        return mark ? <ParlayRow key={p.id} p={p} mark={mark} nowSec={nowSec} /> : null;
+      })}
       {positions.map((p) => (
         <PositionRow key={p.id} p={p} live={book.get(p.id) ?? null} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} />
       ))}
