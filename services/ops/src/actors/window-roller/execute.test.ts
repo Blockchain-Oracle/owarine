@@ -155,9 +155,11 @@ describe("window-roller traffic governor", () => {
     expect(out.why).toContain("traffic governor: core lanes only until 20:05Z");
   });
 
-  it("keeps BTC and ETH Windows of five minutes or less as the core", () => {
+  it("keeps BTC, ETH and CC Windows of five minutes or less as the core", () => {
     expect(isCoreLane({ symbol: "BTC", cadenceSec: 120 })).toBe(true);
     expect(isCoreLane({ symbol: "ETH", cadenceSec: 300 })).toBe(true);
+    expect(isCoreLane({ symbol: "CC", cadenceSec: 120 })).toBe(true);
+    expect(isCoreLane({ symbol: "CC", cadenceSec: 900 })).toBe(false);
     expect(isCoreLane({ symbol: "BTC", cadenceSec: 900 })).toBe(false);
     expect(isCoreLane({ symbol: "TSLA", cadenceSec: 300 })).toBe(false);
   });
