@@ -155,15 +155,15 @@ export function SettingsStack({ asset, size, pays, fees, trailPct, onOpen }: { a
 }
 
 /** Phone only: "View position" / "View N positions" with the total ROI, above the trade buttons. */
-export function ViewPositionPill({ count, roiPct, onOpen }: { count: number; roiPct: number; onOpen: () => void }) {
-  const Dir = roiPct >= 0 ? ArrowUpRight : ArrowDownRight;
+export function ViewPositionPill({ count, roiPct, onOpen }: { count: number; roiPct: number | null; onOpen: () => void }) {
+  const Dir = roiPct === null ? Clock : roiPct >= 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <button type="button" onClick={() => (tap(), onOpen())} className="ow-glass flex h-12 w-full items-center gap-3 rounded-full pr-3 pl-1.5">
-      <span className={cn("grid size-9 place-items-center rounded-full", roiPct >= 0 ? "ow-up-soft" : "ow-down-soft")}>
+      <span className={cn("grid size-9 place-items-center rounded-full", roiPct === null ? "bg-ow-recessed text-ow-muted" : roiPct >= 0 ? "ow-up-soft" : "ow-down-soft")}>
         <Dir className="size-4" strokeWidth={2.75} />
       </span>
       <span className="flex-1 text-left text-ow-body font-semibold">{count === 1 ? "View position" : `View ${count} positions`}</span>
-      <Odometer kind="pct" value={roiPct} decimals={1} className="text-ow-body font-bold" />
+      {roiPct === null ? <span className="text-ow-body text-ow-muted">—</span> : <Odometer kind="pct" value={roiPct} decimals={1} className="text-ow-body font-bold" />}
       <ChevronRight className="size-4 text-ow-muted" />
     </button>
   );

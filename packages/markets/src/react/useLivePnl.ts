@@ -65,7 +65,7 @@ export function liveExitQuote(marketId: string, side: "up" | "down", contractsRa
 }
 
 const same = (a: LivePnlView | null, b: LivePnlView | null) =>
-  a === b || (a !== null && b !== null && a.exitBase === b.exitBase && a.pnlBase === b.pnlBase && a.locked === b.locked && a.live === b.live && a.fairTicks === b.fairTicks && a.fillableLots === b.fillableLots);
+  a === b || (a !== null && b !== null && a.exitBase === b.exitBase && a.pnlBase === b.pnlBase && a.locked === b.locked && a.live === b.live && a.fairTicks === b.fairTicks && a.fillableLots === b.fillableLots && a.heldLots === b.heldLots && a.upPriceTicks === b.upPriceTicks && a.downPriceTicks === b.downPriceTicks);
 
 /**
  * Tradash's breathing PnL for one open position: what Close pays now minus the cost basis, on the venue's own ladder

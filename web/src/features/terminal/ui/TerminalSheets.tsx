@@ -16,6 +16,7 @@ import type { Episode } from "../replay";
 import type { ParlayMark } from "../parlay/ParlayRow";
 import type { ScreenParlay } from "../parlay/useParlays";
 import { useState } from "react";
+import { Sheet } from "@/components/kit";
 import { SettingsSheet } from "./sheets/SettingsSheet";
 import { ExitSheet } from "./sheets/ExitSheet";
 import { Tutorial } from "./sheets/Tutorial";
@@ -76,6 +77,7 @@ export function TerminalSheets(props: {
   const shareSubject = fresh ? subjectOfPosition(fresh, props.book.get(fresh.id) ?? null, props.spot) : tradeShare;
   return (
     <>
+      {open === "share" && fresh && !shareSubject ? <Sheet open onOpenChange={(o) => !o && onClose()} title="Share position"><p className="py-4 text-ow-body text-ow-muted">Live return unavailable. You can share the result once this position has a quote or settles.</p></Sheet> : null}
       {was("markets") ? (
         <MarketsSheet open={open === "markets"} onClose={onClose} markets={props.markets} current={props.symbol} onPick={props.onPickSymbol} />
       ) : null}

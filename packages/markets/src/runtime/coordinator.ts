@@ -53,6 +53,7 @@ let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let tickTimer: ReturnType<typeof setInterval> | null = null;
 let lingerTimer: ReturnType<typeof setTimeout> | null = null;
 let decimals: number | null = null;
+let latestPending = false;
 
 const nowSec = () => Math.floor(Date.now() / 1000);
 
@@ -89,6 +90,7 @@ function deriveAll(): void {
 function take(raw: unknown): void {
   const ladder = parseLadder(raw);
   if (!ladder) return;
+  if ((ladders.get(ladder.marketId)?.asOfMs ?? -1) > ladder.asOfMs) return;
   ladders.set(ladder.marketId, ladder);
   generation += 1;
   const entry = entries.get(ladder.marketId);
@@ -96,8 +98,10 @@ function take(raw: unknown): void {
 }
 
 async function fillFromLatest(base: string): Promise<void> {
+  if (latestPending) return;
+  latestPending = true;
   try {
-    const res = await fetch(`${base}/ladders/latest`, { cache: "no-store", headers: { accept: "application/json" } } as RequestInit);
+    const res = await fetch(`${base}/ladders/latest`, { cache: "no-store", headers: { accept: "application/json" }, signal: AbortSignal.timeout(8_000) } as RequestInit);
     if (!res.ok) return;
     const parsed = ladderLatestWire.safeParse(await res.json());
     if (!parsed.success) return;
@@ -106,6 +110,8 @@ async function fillFromLatest(base: string): Promise<void> {
     deriveAll();
   } catch {
     // The stream's own snapshot fills it when it opens.
+  } finally {
+    latestPending = false;
   }
 }
 
@@ -177,9 +183,11 @@ let hiddenTimer: ReturnType<typeof setTimeout> | null = null;
 let visibilityBound = false;
 
 function startTick(): void {
-  const base = ladderBase(peekClient());
   tickTimer ??= setInterval(() => {
-    if (!source && base) void fillFromLatest(base);
+    const base = ladderBase(peekClient());
+    // EventSource stays allocated while reconnecting. Keep reading fresh prices during that gap,
+    // including when a position was opened after the last event the tab received.
+    if ((!source || !live) && base) void fillFromLatest(base);
     deriveAll();
   }, TICK_MS);
 }

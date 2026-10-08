@@ -94,7 +94,7 @@ export function useLiveBook(positions: readonly ValuedPosition[]): ReadonlyMap<s
         if (prev.size !== next.size) changed = true;
         else for (const [id, v] of next) {
           const o = prev.get(id);
-          if (!o || o.exitBase !== v.exitBase || o.pnlBase !== v.pnlBase || o.locked !== v.locked || o.live !== v.live) {
+          if (!o || o.exitBase !== v.exitBase || o.pnlBase !== v.pnlBase || o.locked !== v.locked || o.live !== v.live || o.fillableLots !== v.fillableLots || o.heldLots !== v.heldLots || o.upPriceTicks !== v.upPriceTicks || o.downPriceTicks !== v.downPriceTicks || o.fairTicks !== v.fairTicks) {
             changed = true;
             break;
           }

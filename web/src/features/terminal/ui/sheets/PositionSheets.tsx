@@ -7,6 +7,7 @@ import { ShareCharm, Sheet } from "@/components/kit";
 import { haptic } from "@/lib/haptics";
 import { playTrade } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
+import { positionReturn } from "../../position-return";
 import { formatPrice } from "../../chart/engine";
 import { fixedText, multipleOf } from "../../format";
 import { renderCharmPng, saveCharm } from "../../share-png";
@@ -44,7 +45,7 @@ export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Open positions">
       <div className="flex flex-col gap-3">
-        <UnrealizedCard totals={withParlays(totalsOf(positions, book), parlays, marks)} count={positions.length + (parlays?.length ?? 0)} closable={positions.length} onCloseAll={onCloseAll} closingAll={closingAll} />
+        <UnrealizedCard totals={withParlays(totalsOf(positions, book, nowSec), parlays, marks)} count={positions.length + (parlays?.length ?? 0)} closable={positions.length} onCloseAll={onCloseAll} closingAll={closingAll} />
         <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} onExits={onExits} parlays={parlays} marks={marks} />
       </div>
     </Sheet>
@@ -177,9 +178,11 @@ export interface ShareSubject {
 }
 
 /** The share subject for an open position, valued by the live book. */
-export function subjectOfPosition(p: TerminalPosition, live: LivePnlView | null, spot: number | null): ShareSubject {
+export function subjectOfPosition(p: TerminalPosition, live: LivePnlView | null, spot: number | null): ShareSubject | null {
+  const { pnl, status } = positionReturn(p, live, Math.floor(Date.now() / 1000));
+  if (pnl === null || status !== "priced") return null;
   return {
-    asset: p.asset, side: p.side, intervalSec: p.intervalSec, cost: num(p.costBasisBase, p.decimals), pnl: live && live.fillableLots > 0n ? num(live.pnlBase, p.decimals) : 0,
+    asset: p.asset, side: p.side, intervalSec: p.intervalSec, cost: num(p.costBasisBase, p.decimals), pnl,
     entry: p.entrySpot, exit: spot, closed: false,
   };
 }

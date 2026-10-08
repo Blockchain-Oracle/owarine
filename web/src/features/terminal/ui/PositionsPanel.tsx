@@ -1,6 +1,8 @@
 "use client";
 
-import type { LivePnlView } from "@owarine/markets/react";
+import { useOpeningPrice, type LivePnlView } from "@owarine/markets/react";
+import { isOk } from "@owarine/core/schemas";
+import type { MarketId } from "@owarine/core/types";
 import { ArrowDownRight, ArrowUpRight, CandlestickChart, ChevronDown, LoaderCircle, Lock, Minus, Plus, Share2 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -8,6 +10,7 @@ import { Odometer } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "../chart/engine";
+import { positionReturn, returnStatusText } from "../position-return";
 import { ParlayRow, type ParlayMark } from "../parlay/ParlayRow";
 import type { ScreenParlay } from "../parlay/useParlays";
 import { PublishToggle } from "./PublishToggle";
@@ -24,13 +27,13 @@ export interface PositionsTotals {
   unpriced: number;
 }
 
-export function totalsOf(positions: readonly TerminalPosition[], book: ReadonlyMap<string, LivePnlView>): PositionsTotals {
+export function totalsOf(positions: readonly TerminalPosition[], book: ReadonlyMap<string, LivePnlView>, nowSec = Math.floor(Date.now() / 1000)): PositionsTotals {
   let pnl = 0;
   let cost = 0;
   let unpriced = 0;
   for (const p of positions) {
     const v = book.get(p.id);
-    if (v && v.fillableLots > 0n) {
+    if (positionReturn(p, v, nowSec).status === "priced" && v) {
       pnl += num(v.pnlBase, p.decimals);
       cost += num(p.costBasisBase, p.decimals);
     } else unpriced += 1;
@@ -56,7 +59,7 @@ export function UnrealizedCard({ totals, count, closable = count, onCloseAll, cl
         <>
           <p className="mt-1 text-ow-title font-bold text-ow-muted">—</p>
           <p className="flex items-center gap-1 text-ow-caption text-ow-muted">
-            <Lock className="size-3.5" /> Locked · pays at the close
+            Live return unavailable · awaiting price or settlement
           </p>
         </>
       ) : (
@@ -65,7 +68,7 @@ export function UnrealizedCard({ totals, count, closable = count, onCloseAll, cl
           {count > 0 ? (
             <span className="flex items-center gap-1.5">
               <Odometer kind="pct" value={pct} decimals={2} className="block text-ow-caption font-semibold" />
-              {totals.unpriced > 0 ? <span className="text-ow-caption text-ow-muted">· {totals.unpriced} locked</span> : null}
+              {totals.unpriced > 0 ? <span className="text-ow-caption text-ow-muted">· {totals.unpriced} unpriced</span> : null}
             </span>
           ) : null}
         </>
@@ -114,17 +117,18 @@ export function PositionsList({
 function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce, onExits }: { p: TerminalPosition; live: LivePnlView | null; nowSec: number; onShare: (p: TerminalPosition) => void; onAdd: (p: TerminalPosition) => void; onReduce: (p: TerminalPosition) => void; onExits?: (p: TerminalPosition) => void }) {
   const [open, setOpen] = useState(false);
   const cost = num(p.costBasisBase, p.decimals);
-  const priced = live !== null && live.fillableLots > 0n;
-  const pnl = priced ? num(live.pnlBase, p.decimals) : 0;
-  const roi = cost > 0 ? (pnl / cost) * 100 : 0;
+  const { status, pnl, roi, canTrade } = positionReturn(p, live, nowSec);
+  const priced = pnl !== null;
+  const opening = useOpeningPrice(p.linePrice === null ? p.marketId as MarketId : null);
+  const linePrice = p.linePrice ?? (opening && isOk(opening) && opening.value !== null ? Number(opening.value) / 1e8 : null);
   const held = p.side === "up" ? p.balanceUpRaw : p.balanceDownRaw;
   // A right call pays the contracts' face value, so the average price is cost ÷ face, in ticks of 1000.
   const avgTicks = held > 0n ? (1000 * Number(p.costBasisBase)) / Number(held) : 0;
   const nowTicks = p.side === "up" ? live?.upPriceTicks : live?.downPriceTicks;
-  const locked = live?.locked ?? false;
+  const locked = status === "locked" || status === "settling";
   // A thin board takes only part of it: PnL covers that part, the rest stays at cost until it can sell or settles.
-  const partial = priced && live.fillableLots < live.heldLots;
-  const sellablePct = priced && live.heldLots > 0n ? Number((live.fillableLots * 100n) / live.heldLots) : 0;
+  const partial = priced && live !== null && live.fillableLots < live.heldLots;
+  const sellablePct = priced && live !== null && live.heldLots > 0n ? Number((live.fillableLots * 100n) / live.heldLots) : 0;
   const Dir = p.side === "up" ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="rounded-ow-card bg-ow-card">
@@ -140,10 +144,11 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce, onExits }: { p
             {cadence(p.intervalSec)} · {locked ? `settles ${clockText(p.expirySec)}` : `pays ${multipleOf(avgTicks)}`}
             {partial ? ` · ${sellablePct}% sellable now` : ""}
           </span>
+          {status !== "priced" ? <span className="block text-ow-micro text-ow-muted">{returnStatusText[status]}</span> : null}
         </span>
         <span className="flex flex-col items-end">
-          {locked ? <Lock className="size-4 text-ow-muted" /> : <Odometer kind="pct" value={roi} decimals={1} className="text-ow-body font-bold" />}
-          {priced ? <Odometer kind="plain" signed tone value={pnl} decimals={moneyDecimals(pnl)} className="text-ow-micro font-semibold" /> : <span className="text-ow-micro font-semibold text-ow-muted">—</span>}
+          {roi !== null ? <Odometer kind="pct" value={roi} decimals={1} className="text-ow-body font-bold" /> : locked ? <Lock aria-label={returnStatusText[status]} className="size-4 text-ow-muted" /> : <span className="text-ow-body font-bold text-ow-muted">—</span>}
+          {pnl !== null ? <Odometer kind="plain" signed tone value={pnl} decimals={moneyDecimals(pnl)} className="text-ow-micro font-semibold" /> : <span className="text-ow-micro font-semibold text-ow-muted">—</span>}
         </span>
         <ChevronDown className={cn("size-4 text-ow-muted transition-transform", open && "rotate-180")} />
         <span
@@ -160,26 +165,27 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce, onExits }: { p
       <AnimatePresence initial={false}>
         {open ? (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+            {status !== "priced" ? <p role="status" className="px-3 pb-2 text-ow-caption text-ow-muted">{returnStatusText[status]}</p> : null}
             <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 px-3 pb-2 text-ow-caption">
               <Row k="Direction" v={<span className={p.side === "up" ? "text-ow-up" : "text-ow-down"}>{p.side === "up" ? "Up" : "Down"} / {cadence(p.intervalSec)}</span>} />
-              <Row k="ROI" v={<Odometer kind="pct" value={roi} decimals={2} />} />
+              <Row k="ROI" v={roi === null ? "—" : <Odometer kind="pct" value={roi} decimals={2} />} />
               <Row k="Avg in" v={`${(avgTicks / 10).toFixed(1)}¢`} />
-              <Row k="Now" v={nowTicks ? `${(nowTicks / 10).toFixed(1)}¢` : "—"} />
+              <Row k="Now" v={nowTicks != null && priced ? `${(nowTicks / 10).toFixed(1)}¢` : "—"} />
               <Row k="Entry" v={p.entrySpot ? `$${formatPrice(p.entrySpot)}` : "—"} />
-              <Row k="Line" v={<span className="text-ow-down">{p.linePrice ? `$${formatPrice(p.linePrice)}` : "—"}</span>} />
+              <Row k="Line" v={<span className="text-ow-down">{linePrice !== null ? `$${formatPrice(linePrice)}` : "—"}</span>} />
               <Row k="Staked" v={cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} />
               <Row k="Settles" v={`${clockText(p.expirySec)}${p.expirySec > nowSec ? "" : " · settling"}`} />
               {p.exit ? <Row k="Exit" v={exitWords(p)} /> : null}
             </dl>
             <div className="grid grid-cols-2 gap-2 px-3 pb-3">
-              <button type="button" disabled={locked} onClick={() => onAdd(p)} className="ow-up-soft flex h-9 items-center justify-center gap-1 rounded-full text-ow-caption font-bold disabled:opacity-40">
+              <button type="button" disabled={!canTrade} onClick={() => onAdd(p)} className="ow-up-soft flex h-9 items-center justify-center gap-1 rounded-full text-ow-caption font-bold disabled:opacity-40">
                 <Plus className="size-4" /> Add
               </button>
-              <button type="button" disabled={locked} onClick={() => onReduce(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
+              <button type="button" disabled={!canTrade} onClick={() => onReduce(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
                 <Minus className="size-4" /> Reduce
               </button>
               {onExits && p.mode === "live" ? (
-                <button type="button" disabled={locked} onClick={() => onExits(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
+                <button type="button" disabled={!canTrade} onClick={() => onExits(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
                   {p.exit && (p.exit.takeProfitTicks !== null || (p.exit.stop && p.exit.stop.trailBps === null)) ? "Edit TP / SL" : "TP / SL"}
                 </button>
               ) : null}

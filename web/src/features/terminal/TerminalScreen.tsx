@@ -150,7 +150,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   useAppUpdate();
   const active = positions.find((p) => p.marketId === market?.marketId) ?? null;
   const activeLive = active ? (book.get(active.id) ?? null) : null;
-  const totals = totalsOf(positions, book);
+  const totals = totalsOf(positions, book, nowSec);
 
   // Parlays (plan 2c): the slip, the open tickets at fair value, Parlay mode's buttons.
   const parlay = useTerminalParlay({ mode, address, nowSec, set: win.set, market, canAdd: windowState === "trading", cashBase, slippageBps: settings.slippageBps, onNeedSeat: () => session.connect(), onAddMarket: () => openSheet("markets"), onPlaced: () => setSheet((s) => (s === "parlay" ? null : s)) });
@@ -341,7 +341,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       <div className="flex-1" />
       <footer className="relative z-20 flex flex-col gap-3 px-4 pb-3 md:pb-4">
         {controls}
-        {positions.length + parlay.parlays.length > 0 ? <ViewPositionPill count={positions.length + parlay.parlays.length} roiPct={shownTotals.cost > 0 ? (shownTotals.pnl / shownTotals.cost) * 100 : 0} onOpen={() => openSheet("positions")} /> : null}
+        {positions.length + parlay.parlays.length > 0 ? <ViewPositionPill count={positions.length + parlay.parlays.length} roiPct={shownTotals.cost > 0 ? (shownTotals.pnl / shownTotals.cost) * 100 : null} onOpen={() => openSheet("positions")} /> : null}
         {parlay.on ? parlay.pill(() => openSheet("parlay")) : null}
         {parlay.tabs}
         {buttons}
