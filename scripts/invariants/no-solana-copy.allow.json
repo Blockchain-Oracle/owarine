@@ -14,6 +14,11 @@
       "file": "packages/core/src/market/crypto.ts",
       "match": "symbol: \"SOL\", seriesId: 943, name: \"Solana\"",
       "why": "The registry identifies the traded price asset, not a Solana wallet or execution network."
+    },
+    {
+      "file": "docs-site/content/docs/architecture/price-sources.mdx",
+      "match": "| BTC, ETH and SOL |",
+      "why": "Documents the listed SOL price asset and its exchange candle source; execution remains on Canton."
     }
   ]
 }
