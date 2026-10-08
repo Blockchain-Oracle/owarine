@@ -53,11 +53,20 @@
   --ow-sheet-w-lg: min(720px, calc(100vw - 48px));
   --ow-sheet-max-h: min(860px, calc(100dvh - 48px));
 
-  /* The shell (Stage B, Slush/roy-chain anatomy): a black floating rail, a white stage on the ice canvas. Slush at
-   * 1440: rail 248 wide (88 as icons), rows 48 on a 60 pitch, panel radius 32; the inset is tighter than Slush's 32. */
+  /* The shell (Stage B, Slush/roy-chain anatomy): a floating rail and one stage on the canvas. Slush at 1440: rail 248
+   * wide (88 as icons), rows 48 on a 60 pitch, panel radius 32; the inset is tighter than Slush's 32. The environment
+   * colours are neutral here (the landing) and take the account context's hue below. */
   --ow-rail: #000000;
   --ow-rail-ink: #FFFFFF;
+  --ow-rail-muted: rgb(255 255 255 / 0.7);
+  --ow-rail-active: #FFFFFF;
+  --ow-rail-active-ink: #000000;
   --ow-stage: #FFFFFF;
+  --ow-stage-edge: #000000;
+  --ow-mode-pill: var(--ow-sky);
+  --ow-mode-pill-ink: #000000;
+  --dur-flood: 520ms;
+  --ease-flood: cubic-bezier(0.65, 0, 0.35, 1);
   --rail-inset: 0.75rem;
   --rail-w: 15.5rem;
   --rail-w-collapsed: 5.5rem;
@@ -111,7 +120,71 @@ body {
   --ow-down-line: #FF5A52;
   --ow-scrim: rgb(0 0 0 / 0.6);
   --ow-rail: #1C1C1C;
+  --ow-rail-muted: rgb(255 255 255 / 0.7);
+  --ow-rail-active: #141414;
+  --ow-rail-active-ink: #FFFFFF;
   --ow-stage: #141414;
+  --ow-stage-edge: #050505;
+}
+
+
+/* The environment says which account you are in (roy-chain D100, in Owarine's colours; Abu, 8 Oct). `data-mode` on
+ * <html> comes from the connection alone: `demo` with no seat (the guest demo, sky), `devnet` with a seat (Canton
+ * DevNet test funds, pink). The canvas and the rail take the hue, the stage stays white in light and near-black in dark,
+ * and the mode pill is the hue at full strength. A change floods out from the seat control (shell.css). */
+[data-mode="demo"] {
+  --ow-canvas: oklch(0.948 0.026 232);
+  --ow-rail: oklch(0.865 0.072 232);
+  --ow-rail-ink: oklch(0.2 0.02 240);
+  --ow-rail-muted: oklch(0.38 0.05 236);
+  --ow-rail-active: oklch(0.995 0.004 232);
+  --ow-rail-active-ink: oklch(0.2 0.02 240);
+  --ow-stage: #FFFFFF;
+  --ow-stage-edge: oklch(0.2 0.02 240);
+  --ow-mode-pill: oklch(0.74 0.15 232);
+  --ow-mode-pill-ink: oklch(0.18 0.03 240);
+}
+[data-mode="devnet"] {
+  --ow-canvas: oklch(0.95 0.03 330);
+  --ow-rail: oklch(0.862 0.09 330);
+  --ow-rail-ink: oklch(0.21 0.03 330);
+  --ow-rail-muted: oklch(0.39 0.07 330);
+  --ow-rail-active: oklch(0.995 0.005 330);
+  --ow-rail-active-ink: oklch(0.21 0.03 330);
+  --ow-stage: #FFFFFF;
+  --ow-stage-edge: oklch(0.21 0.03 330);
+  --ow-mode-pill: #FA00FF;
+  --ow-mode-pill-ink: #FFFFFF;
+}
+[data-theme="dark"][data-mode="demo"] {
+  --ow-canvas: oklch(0.235 0.045 236);
+  --ow-rail: oklch(0.375 0.085 236);
+  --ow-rail-ink: oklch(0.975 0.006 236);
+  --ow-rail-muted: oklch(0.83 0.035 236);
+  --ow-rail-active: oklch(0.16 0.025 236);
+  --ow-rail-active-ink: oklch(0.975 0.006 236);
+  --ow-stage: oklch(0.16 0.025 236);
+  --ow-stage-edge: oklch(0.1 0.015 236);
+  --ow-card: oklch(0.205 0.03 236);
+  --ow-recessed: oklch(0.255 0.035 236);
+  --ow-hairline: oklch(0.3 0.035 236);
+  --ow-mode-pill: oklch(0.8 0.13 232);
+  --ow-mode-pill-ink: oklch(0.2 0.04 240);
+}
+[data-theme="dark"][data-mode="devnet"] {
+  --ow-canvas: oklch(0.235 0.06 330);
+  --ow-rail: oklch(0.375 0.115 330);
+  --ow-rail-ink: oklch(0.975 0.008 330);
+  --ow-rail-muted: oklch(0.83 0.045 330);
+  --ow-rail-active: oklch(0.16 0.03 330);
+  --ow-rail-active-ink: oklch(0.975 0.008 330);
+  --ow-stage: oklch(0.16 0.03 330);
+  --ow-stage-edge: oklch(0.1 0.02 330);
+  --ow-card: oklch(0.205 0.035 330);
+  --ow-recessed: oklch(0.255 0.045 330);
+  --ow-hairline: oklch(0.3 0.045 330);
+  --ow-mode-pill: #FA00FF;
+  --ow-mode-pill-ink: #FFFFFF;
 }
 
 @theme inline {
@@ -144,7 +217,13 @@ body {
   --color-ow-white: var(--ow-white);
   --color-ow-rail: var(--ow-rail);
   --color-ow-rail-ink: var(--ow-rail-ink);
+  --color-ow-rail-muted: var(--ow-rail-muted);
+  --color-ow-rail-active: var(--ow-rail-active);
+  --color-ow-rail-active-ink: var(--ow-rail-active-ink);
   --color-ow-stage: var(--ow-stage);
+  --color-ow-stage-edge: var(--ow-stage-edge);
+  --color-ow-mode-pill: var(--ow-mode-pill);
+  --color-ow-mode-pill-ink: var(--ow-mode-pill-ink);
   --color-ow-breakeven: var(--ow-breakeven);
 
   --radius-ow-card: var(--ow-r-card);
@@ -208,7 +287,7 @@ code, kbd, pre, samp, .font-code { font-family: var(--font-code), ui-monospace, 
 [data-theme="light"] [class*="text-signal"] { color: var(--signal-ink); }
 
 ::selection { background: var(--ow-pink); color: var(--ow-on-pink); }
-:where(a, button, input, textarea, select, [tabindex]):focus-visible { outline-color: var(--ow-pink-ink); }
+@layer base { :where(a, button, input, textarea, select, [tabindex]):focus-visible { outline-color: var(--ow-pink-ink); } }
 
 /* Direction flips everything at once (Tradash): a container sets data-dir and its children read --ow-dir. */
 [data-dir="up"] { --ow-dir: var(--ow-up); --ow-dir-line: var(--ow-up-line); }

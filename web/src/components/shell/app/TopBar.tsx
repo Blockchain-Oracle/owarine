@@ -20,7 +20,7 @@ export function TopBar({ className }: { className?: string }) {
       <Link href="/" aria-label="Owarine home" className="grid size-10 shrink-0 place-items-center rounded-full bg-ow-pink md:hidden">
         <Seal size={26} tone="white" />
       </Link>
-      <ModeChip side="bottom" className="md:hidden" />
+      <ModeChip className="md:hidden" />
       <HealthChip className="max-md:hidden" />
       <div className="ml-auto flex min-w-0 items-center gap-2">
         <CommandPalette className="max-md:hidden" />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useWalletSession } from "@/lib/wallet-session";
 import { persistSoon } from "./persist";
 
 /**
@@ -66,8 +67,6 @@ export interface PaperTrade {
 }
 
 interface ModeState {
-  /** Null until the visitor picks (the tutorial's last step, or the account sheet). */
-  mode: TradeMode | null;
   demoBalanceBase: string;
   positions: PaperPosition[];
   parlays: PaperParlay[];
@@ -77,7 +76,7 @@ interface ModeState {
 export const DEMO_START_BASE = 10_000_000_000n;
 const KEY = "owarine.trade.mode.v1";
 const HISTORY_CAP = 500;
-const INITIAL: ModeState = { mode: null, demoBalanceBase: DEMO_START_BASE.toString(), positions: [], parlays: [], history: [] };
+const INITIAL: ModeState = { demoBalanceBase: DEMO_START_BASE.toString(), positions: [], parlays: [], history: [] };
 
 const listeners = new Set<() => void>();
 let state: ModeState = INITIAL;
@@ -91,7 +90,6 @@ function hydrate(): void {
     if (!raw) return;
     const p = JSON.parse(raw) as Partial<ModeState>;
     state = {
-      mode: p.mode === "demo" || p.mode === "live" ? p.mode : null,
       demoBalanceBase: typeof p.demoBalanceBase === "string" && /^-?\d+$/.test(p.demoBalanceBase) ? p.demoBalanceBase : INITIAL.demoBalanceBase,
       positions: Array.isArray(p.positions) ? p.positions.filter(isPaperPosition) : [],
       parlays: Array.isArray(p.parlays) ? p.parlays.filter(isPaperParlay) : [],
@@ -135,9 +133,14 @@ export function useModeState(): ModeState {
   );
 }
 
-export function setMode(mode: TradeMode): void {
-  hydrate();
-  commit({ ...state, mode });
+/**
+ * The account context, from the connection alone (Abu, 8 Oct: no Paper / Demo / Live picker). No seat: the guest demo
+ * on paper credits. A seat: the same screens on its Canton party, with DevNet test funds. A stored pick from before
+ * this rule is ignored.
+ */
+export function useTradeMode(): TradeMode {
+  const { address } = useWalletSession();
+  return address ? "live" : "demo";
 }
 
 /** "Reset demo balance": 10,000 again, every paper position gone. */

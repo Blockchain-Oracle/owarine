@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PillButton, Seal, SkyCollage, Sticker, type CollageObject } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
-import { setMode } from "@/features/terminal/mode";
 import { DOCS_URL } from "@/lib/docs-url";
 import { HeroPhone } from "./hero/HeroPhone";
 import { WORDS } from "./words";
@@ -54,7 +53,6 @@ export function LandingHero() {
   const { hero } = WORDS;
   const router = useRouter();
   const demo = () => {
-    setMode("demo");
     router.push("/trade");
   };
   return (

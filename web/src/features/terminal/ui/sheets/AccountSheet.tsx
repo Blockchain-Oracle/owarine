@@ -11,7 +11,7 @@ import { playTrade, setTradeMuted } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
 import { useWalletSession } from "@/lib/wallet-session";
 import { moneyDecimals } from "../../format";
-import { resetDemo, setMode, useModeState, type TradeMode } from "../../mode";
+import { resetDemo, useModeState, type TradeMode } from "../../mode";
 import { MUSIC_TRACKS, setTradeSettings, SLIPPAGE_CHOICES_BPS, useTradeSettings } from "../../settings";
 import { episodeFor, replayable, useEpisodes, type Episode } from "../../replay";
 import { toast } from "../../toasts";
@@ -169,7 +169,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
                 [
                   [ArrowDownToLine, "Add funds", () => (mode === "demo" ? toast({ kind: "info", title: "Demo uses a simulated balance", description: "Reset it anytime from this sheet." }) : setFunds(true))],
                   [ArrowUpFromLine, "Withdraw", () => toast({ kind: "info", title: "Withdrawals come with the Canton Coin rail", description: "Seats hold demo credits on DevNet today." })],
-                  [ArrowLeftRight, incoming > 0 ? `Transfer · ${incoming}` : "Transfer", () => (mode === "demo" ? toast({ kind: "info", title: "Sending credits needs a live seat", description: "Switch Demo mode off in Settings." }) : setView("send"))],
+                  [ArrowLeftRight, incoming > 0 ? `Transfer · ${incoming}` : "Transfer", () => (mode === "demo" ? toast({ kind: "info", title: "Sending needs a seat", description: "Take a seat to trade and send on Canton DevNet." }) : setView("send"))],
                   [History, "History", () => setView("history")],
                 ] as const
               ).map(([Icon, label, act]) => (
@@ -204,9 +204,6 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
           <SendPanel />
         ) : view === "settings" ? (
           <div className="flex flex-col gap-4">
-            <Group title="MODE">
-              <Toggle label="Demo mode" sub={mode === "demo" ? "Practising with simulated credits" : "Trading live on Canton"} on={mode === "demo"} onChange={(v) => setMode(v ? "demo" : "live")} />
-            </Group>
             <Group title="FEEDBACK">
               <Toggle label="Sound effects" on={settings.soundEnabled} onChange={(v) => (setTradeSettings({ soundEnabled: v }), setTradeMuted(!v))} />
               <Toggle label="Haptics" on={settings.hapticsEnabled} onChange={(v) => setTradeSettings({ hapticsEnabled: v })} />

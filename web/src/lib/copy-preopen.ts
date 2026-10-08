@@ -27,10 +27,9 @@ export const PREOPEN = {
     cta: (side: string) => `Schedule ${side} for`,
     ctaPlain: "Schedule a call",
     untilLock: "Keep it resting until the Window locks",
-    untilLockNote: "Off, an unfilled call expires 90 s after the bell and the stake comes back. On, it rests through the Window and may be taken whenever the venue's price reaches yours.",
-    /** The promise, D-088 r2: every clause is true of the contract as deployed. A Canton seat posts no bond. */
-    footnote:
-      "Your seat signs. Your stake is held from now until it fills, you cancel, or it expires, and then comes back as venue credit. No fill is promised: the venue takes a resting call at your price only when its own price reaches it, and nothing fills before the open. An unfilled call loses nothing if the Window voids.",
+    untilLockNote: "Off: unfilled calls expire 90 s after the bell. On: it rests until the Window locks.",
+    /** The promise, D-088 r2, in one line (Abu, 8 Oct: less text): every clause is true of the contract as deployed. */
+    footnote: "Your stake is held until it fills, expires or you cancel. No fill is promised, nothing fills before the open, and a void returns it.",
     /** The outcome line after a rest lands. */
     resting: (contractsText: string, side: string, cents: number) => `Resting ${contractsText} ${side} at ${cents}¢`,
     restingToast: (contractsText: string, side: string, cents: number) => `Scheduled ${contractsText} ${side} at ${cents}¢ — resting for the open`,

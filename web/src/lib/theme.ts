@@ -50,4 +50,6 @@ export function initTheme(): Theme {
 
 // Blocking snippet injected before the app renders so the correct theme paints on the
 // FIRST frame — no flash. Kept tiny and dependency-free; mirrors resolveTheme().
-export const THEME_INIT_SCRIPT = `(()=>{var t='light';try{var s=localStorage.getItem('${STORAGE_KEY}');if(s==='dark')t=s;}catch(e){}document.documentElement.setAttribute('data-theme',t);})();`;
+// The account context's colours paint on the first frame too (every route but the landing): a stored seat means the
+// DevNet environment, none the guest demo's. The shell corrects it once the session has hydrated.
+export const THEME_INIT_SCRIPT = `(()=>{var t='light';try{var s=localStorage.getItem('${STORAGE_KEY}');if(s==='dark')t=s;}catch(e){}var d=document.documentElement;d.setAttribute('data-theme',t);try{if(location.pathname!=='/')d.setAttribute('data-mode',localStorage.getItem('owarine.seat')?'devnet':'demo');}catch(e){}})();`;

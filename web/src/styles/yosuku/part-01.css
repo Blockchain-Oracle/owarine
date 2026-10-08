@@ -102,10 +102,13 @@ html, body {
 }
 ::selection { background: var(--signal); color: var(--on-signal); }
 @layer base { a { color: inherit; text-decoration: none; } } /* layered so a utility colour on a link (a Link-rendered PillButton) wins */
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--signal) 72%, transparent);
-  outline-offset: 3px;
-  border-radius: 6px;
+/* Layered, so a component's own focus style (a ring, `outline-none` on a field inside a styled pill) wins: unlayered,
+   this default beat every utility and drew a second box inside them (the ⌘K field, the rail rows). */
+@layer base {
+  :where(a, button, input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--signal) 72%, transparent);
+    outline-offset: 3px;
+  }
 }
 
 /* Creator Studio

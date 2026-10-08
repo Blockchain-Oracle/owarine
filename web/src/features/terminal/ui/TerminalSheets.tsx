@@ -2,7 +2,7 @@
 
 import type { Quote } from "@owarine/core/types";
 import type { LivePnlView } from "@owarine/markets/react";
-import { setMode, useModeState, type TradeMode } from "../mode";
+import { useModeState, type TradeMode } from "../mode";
 import { setTradeSettings } from "../settings";
 import type { TerminalPosition } from "../useTerminalTrade";
 import type { TerminalLane } from "../useTerminalWindow";
@@ -172,11 +172,8 @@ export function TerminalSheets(props: {
           open={open === "tutorial"}
           onDone={(choice) => {
             setTradeSettings({ tutorialSeen: true });
-            if (choice === "demo") setMode("demo");
-            if (choice === "live") {
-              setMode("live");
-              props.onTakeSeat();
-            }
+            // Taking a seat is the only switch: a seat trades on Canton, no seat is the guest demo.
+            if (choice === "live") props.onTakeSeat();
             onClose();
           }}
         />

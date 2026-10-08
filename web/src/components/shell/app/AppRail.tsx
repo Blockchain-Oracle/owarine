@@ -18,7 +18,7 @@ const SPRING = { type: "spring", stiffness: 500, damping: 40 } as const;
 
 const ROW = cn(
   "group relative flex h-(--nav-h) items-center gap-3 rounded-full px-3 outline-none",
-  "justify-center xl:justify-start focus-visible:ring-2 focus-visible:ring-ow-white/80",
+  "justify-center xl:justify-start focus-visible:ring-2 focus-visible:ring-ow-rail-ink/70",
 );
 
 /**
@@ -36,12 +36,12 @@ export function AppRail({ onMore, moreOpen }: { onMore: () => void; moreOpen: bo
       aria-label="Owarine"
       className={cn(
         "ow-rail fixed top-(--rail-inset) bottom-(--rail-inset) left-(--rail-inset) z-40 hidden w-(--rail-w-collapsed) flex-col gap-6 overflow-y-auto overscroll-contain",
-        "rounded-ow-sheet bg-ow-rail px-3 py-6 text-ow-rail-ink [scrollbar-width:none] md:flex xl:w-(--rail-w) xl:px-5",
+        "rounded-ow-sheet bg-ow-rail px-3 py-6 text-ow-rail-ink transition-colors duration-(--dur-flood) [scrollbar-width:none] md:flex xl:w-(--rail-w) xl:px-5",
         "[@media(max-height:53.75rem)]:gap-4 [@media(max-height:53.75rem)]:py-4",
       )}
     >
       <div className="flex flex-col items-center gap-3 xl:flex-row xl:justify-between">
-        <Link href="/" aria-label="Owarine home" className="flex items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ow-white/80">
+        <Link href="/" aria-label="Owarine home" className="flex items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ow-rail-ink/70">
           <span className="grid size-10 shrink-0 place-items-center rounded-full bg-ow-pink">
             <Seal size={26} tone="white" />
           </span>
@@ -59,16 +59,16 @@ export function AppRail({ onMore, moreOpen }: { onMore: () => void; moreOpen: bo
               href={item.href}
               aria-current={active ? "page" : undefined}
               title={`${item.name} — ${item.description} (${item.digit})`}
-              className={cn(ROW, active ? "text-ow-black" : "text-ow-white/70 hover:text-ow-white")}
+              className={cn(ROW, active ? "text-ow-rail-active-ink" : "text-ow-rail-muted hover:text-ow-rail-ink")}
             >
               {active ? (
-                <motion.span layoutId="ow-rail-active" aria-hidden className="absolute inset-0 rounded-full bg-ow-white" transition={reduce ? { duration: 0 } : SPRING} />
+                <motion.span layoutId="ow-rail-active" aria-hidden className="absolute inset-0 rounded-full bg-ow-rail-active" transition={reduce ? { duration: 0 } : SPRING} />
               ) : (
-                <span aria-hidden className="absolute inset-0 rounded-full transition-colors duration-150 group-hover:bg-ow-white/10" />
+                <span aria-hidden className="absolute inset-0 rounded-full transition-colors duration-150 group-hover:bg-ow-rail-active/45" />
               )}
               <item.icon className="relative size-5.5 shrink-0" strokeWidth={active ? 2.5 : 2} aria-hidden />
               <span className="relative hidden text-ow-lead font-semibold tracking-[-0.01em] xl:inline">{item.name}</span>
-              <kbd aria-hidden className={cn("relative ml-auto hidden font-sans text-ow-micro opacity-0 transition-opacity group-hover:opacity-100 xl:inline", active ? "text-ow-black/50" : "text-ow-white/50")}>
+              <kbd aria-hidden className={cn("relative ml-auto hidden font-sans text-ow-micro opacity-0 transition-opacity group-hover:opacity-100 xl:inline", active ? "text-ow-rail-active-ink/50" : "text-ow-rail-muted")}>
                 {item.digit}
               </kbd>
             </Link>
@@ -80,9 +80,9 @@ export function AppRail({ onMore, moreOpen }: { onMore: () => void; moreOpen: bo
           aria-haspopup="dialog"
           aria-expanded={moreOpen}
           title="More — every other page"
-          className={cn(ROW, here || !pathname ? "text-ow-white/70 hover:text-ow-white" : "bg-ow-white/15 text-ow-white")}
+          className={cn(ROW, here || !pathname ? "text-ow-rail-muted hover:text-ow-rail-ink" : "bg-ow-rail-active/45 text-ow-rail-ink")}
         >
-          <span aria-hidden className="absolute inset-0 rounded-full transition-colors duration-150 group-hover:bg-ow-white/10" />
+          <span aria-hidden className="absolute inset-0 rounded-full transition-colors duration-150 group-hover:bg-ow-rail-active/45" />
           <LayoutGrid className="relative size-5.5 shrink-0" aria-hidden />
           <span className="relative hidden text-ow-lead font-semibold tracking-[-0.01em] xl:inline">More</span>
         </button>
@@ -95,11 +95,11 @@ export function AppRail({ onMore, moreOpen }: { onMore: () => void; moreOpen: bo
         <HeaderAccount variant="rail" />
         <div className="flex flex-col items-center gap-2 xl:flex-row xl:justify-between">
           <ThemeToggle className="ow-rail-theme" />
-          <span className="hidden items-center gap-3 text-ow-caption text-ow-white/55 xl:flex">
-            <a href={DOCS_URL} className="hover:text-ow-white">
+          <span className="hidden items-center gap-3 text-ow-caption text-ow-rail-muted xl:flex">
+            <a href={DOCS_URL} className="hover:text-ow-rail-ink">
               Docs
             </a>
-            <Link href="/legal" className="hover:text-ow-white">
+            <Link href="/legal" className="hover:text-ow-rail-ink">
               Legal
             </Link>
           </span>

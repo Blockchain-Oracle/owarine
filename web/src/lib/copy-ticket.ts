@@ -5,8 +5,8 @@ export const TICKET = {
   sideLabel: "Side",
   /** A-1a: the bearish mode. It reorders the sides and opens tickets on DOWN; it is not a short. */
   betAgainst: "Betting against",
-  betAgainstOn: "Down comes first, and a tap on a Window opens this ticket on Down. It is the same Window at the same venue price — only the side.",
-  betAgainstOff: "Turn this on when you think a stock falls: Down comes first, and every Window you tap opens on Down.",
+  betAgainstOn: "Down comes first on every Window you tap.",
+  betAgainstOff: "Think it falls? Put Down first everywhere.",
   stakeLabel: "Stake",
   stakePlaceholder: "0.00",
   minStake: (floorText: string) => `Minimum stake ${floorText}`,

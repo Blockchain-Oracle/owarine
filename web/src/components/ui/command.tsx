@@ -46,11 +46,11 @@ export function CommandDialog({
 
 export function CommandInput({ className, ...props }: ComponentProps<typeof CommandPrimitive.Input>) {
   return (
-    <div data-slot="command-input-wrapper" className="flex h-12 items-center gap-2.5 rounded-full bg-ow-recessed px-4 ring-ow-pink-ink has-focus-visible:ring-2">
+    <div data-slot="command-input-wrapper" className="flex h-12 items-center gap-2.5 rounded-full bg-ow-recessed px-4">
       <Search aria-hidden className="size-4.5 shrink-0 text-ow-muted" strokeWidth={2.5} />
       <CommandPrimitive.Input
         data-slot="command-input"
-        className={cn("ow-body h-full w-full bg-transparent text-ow-lead outline-none placeholder:text-ow-muted focus-visible:outline-none", className)}
+        className={cn("ow-body h-full w-full bg-transparent text-ow-lead outline-none placeholder:text-ow-muted focus:outline-none", className)}
         {...props}
       />
     </div>

@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { resolveTheme, toggleTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,12 @@ export default function ThemeToggle({ className }: { className?: string }) {
       type="button"
       className={cn("theme-toggle", className)}
       data-cursor="hover"
-      onClick={() => setTheme(toggleTheme(theme))}
+      // The flip crossfades the whole page through a view transition (roy-chain's toggle); instant with reduced motion.
+      onClick={() => {
+        const flip = () => setTheme(toggleTheme(theme));
+        if (typeof document.startViewTransition === "function" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) document.startViewTransition(() => flushSync(flip));
+        else flip();
+      }}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Light mode" : "Dark mode"}
     >

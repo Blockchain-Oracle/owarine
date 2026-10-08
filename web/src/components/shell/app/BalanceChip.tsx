@@ -30,24 +30,25 @@ export function BalanceChip({ variant }: { variant: "rail" | "bar" }) {
     <span className={cn("ow-num font-bold", rail ? "text-ow-title" : "text-ow-label", balance.text === null && "opacity-55")}>{balance.text ?? "—"}</span>
   );
   const unit = demo ? "credits" : balance.symbol;
-  const label = demo ? "Demo balance" : "Balance";
+  // Never "Live" or real money: a seat holds Canton DevNet test funds (Abu, 8 Oct).
+  const label = demo ? "Demo credits" : "Test funds · DevNet";
 
   if (rail) {
     return (
-      <div className="flex flex-col gap-1 rounded-[1.25rem] bg-ow-white/8 p-3.5">
+      <div className="flex flex-col gap-1 rounded-[1.25rem] bg-ow-rail-active/40 p-3.5">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-ow-caption font-medium text-ow-white/60">{label}</span>
-          <PrivacyToggle className="size-7 bg-ow-white/10 text-ow-white hover:bg-ow-white/20 [&_svg]:size-3.5" />
+          <span className="text-ow-caption font-medium text-ow-rail-muted">{label}</span>
+          <PrivacyToggle className="size-7 bg-ow-rail-active/60 text-ow-rail-ink hover:bg-ow-rail-active [&_svg]:size-3.5" />
         </div>
         <div className="flex min-w-0 items-center gap-2">
-          <PrivacyMask size="sm" className="min-w-0 flex-1 text-ow-white">
+          <PrivacyMask size="sm" className="min-w-0 flex-1 text-ow-rail-ink">
             <span className="flex min-w-0 flex-1 items-baseline gap-1.5 truncate">
               {amount}
-              <span className="text-ow-caption text-ow-white/60">{unit}</span>
+              <span className="text-ow-caption text-ow-rail-muted">{unit}</span>
             </span>
           </PrivacyMask>
           {demo ? null : (
-            <button type="button" onClick={openFunds} aria-label="Add money" className="grid size-8 shrink-0 place-items-center rounded-full bg-ow-pink text-ow-on-pink outline-none focus-visible:ring-2 focus-visible:ring-ow-white">
+            <button type="button" onClick={openFunds} aria-label="Add money" className="grid size-8 shrink-0 place-items-center rounded-full bg-ow-pink text-ow-on-pink outline-none focus-visible:ring-2 focus-visible:ring-ow-rail-ink">
               <Plus className="size-4" strokeWidth={3} />
             </button>
           )}

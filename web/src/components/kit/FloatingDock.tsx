@@ -29,10 +29,10 @@ export function FloatingDock({ left, right, centreHref = "/", className }: { lef
   const cell = (item: DockItem) => <DockCell key={item.key} item={item} pillId={pillId} reduce={reduce === true} />;
   return (
     <nav aria-label="Main" className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0rem))]", className)}>
-      <ul className="pointer-events-auto flex items-center gap-0.5 rounded-full bg-ow-rail p-1.5 text-ow-rail-ink">
+      <ul className="pointer-events-auto flex items-center gap-0.5 rounded-full bg-ow-rail p-1.5 text-ow-rail-ink shadow-[0_12px_32px_-12px_var(--ow-scrim)] transition-colors duration-(--dur-flood)">
         {left.map(cell)}
         <li>
-          <Link href={centreHref} aria-label="Owarine home" className="mx-1 grid size-12 place-items-center rounded-full bg-ow-pink outline-none focus-visible:ring-2 focus-visible:ring-ow-white">
+          <Link href={centreHref} aria-label="Owarine home" className="mx-1 grid size-12 place-items-center rounded-full bg-ow-pink outline-none focus-visible:ring-2 focus-visible:ring-ow-rail-ink">
             <Seal size={30} tone="white" />
           </Link>
         </li>
@@ -44,12 +44,12 @@ export function FloatingDock({ left, right, centreHref = "/", className }: { lef
 
 function DockCell({ item, pillId, reduce }: { item: DockItem; pillId: string; reduce: boolean }) {
   const className = cn(
-    "relative flex h-13 min-w-15 flex-col items-center justify-center gap-0.5 rounded-full px-2 text-ow-micro font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ow-white/80 [&_svg]:size-5",
-    item.active ? "text-ow-black" : "text-ow-white/65 hover:text-ow-white",
+    "relative flex h-13 min-w-15 flex-col items-center justify-center gap-0.5 rounded-full px-2 text-ow-micro font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ow-rail-ink/70 [&_svg]:size-5",
+    item.active ? "text-ow-rail-active-ink" : "text-ow-rail-muted hover:text-ow-rail-ink",
   );
   const body = (
     <>
-      {item.active ? <motion.span layoutId={pillId} aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ow-white" transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 40 }} /> : null}
+      {item.active ? <motion.span layoutId={pillId} aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ow-rail-active" transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 40 }} /> : null}
       {item.icon}
       <span className="leading-none">{item.label}</span>
     </>

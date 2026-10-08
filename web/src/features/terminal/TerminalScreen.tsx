@@ -16,7 +16,7 @@ import { useChartFeedback } from "./useChartFeedback";
 import { ChartControls } from "./ui/ChartControls";
 import { money, multipleOf } from "./format";
 import { breakEvenSpot, useCommittedSpot, useLiveBook, useWatchedLadder } from "./live";
-import { settlePaper, useModeState, type TradeMode } from "./mode";
+import { settlePaper, useModeState, useTradeMode, type TradeMode } from "./mode";
 import { stakeFor, useTradeSettings, useTradeSettingsState } from "./settings";
 import { TradeToasts, toast } from "./toasts";
 import { AssetChip, EquityPill, SettingsStack, SheetRow, ViewPositionPill, WindowChip, type WindowState } from "./ui/Chrome";
@@ -74,7 +74,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const modeState = useModeState();
   const session = useWalletSession();
   const address = session.address;
-  const mode: TradeMode = modeState.mode ?? (address ? "live" : "demo");
+  const mode: TradeMode = useTradeMode();
   const [lane, setLane] = useState<number | null>(null);
   const [sheet, setSheet] = useState<SheetName | null>(null);
   const [sheetTarget, setSheetTarget] = useState<TerminalPosition | null>(null);

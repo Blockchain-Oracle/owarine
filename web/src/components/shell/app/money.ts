@@ -3,19 +3,11 @@
 import { isOk } from "@owarine/core/schemas";
 import { formatBaseUnits } from "@owarine/core/units";
 import { useBalancePlate } from "@/features/markets/balance";
-import { useModeState, type TradeMode } from "@/features/terminal/mode";
-import { useWalletSession } from "@/lib/wallet-session";
+import { useModeState, useTradeMode } from "@/features/terminal/mode";
 
 const AMOUNT_DP = 2;
 /** Paper credits carry the ledger's six decimals (`DEMO_START_BASE`). */
 const DEMO_DECIMALS = 6;
-
-/** The mode the trading screen runs in: the visitor's pick, else live with a seat and demo without one. */
-export function useShellMode(): TradeMode {
-  const { mode } = useModeState();
-  const { address } = useWalletSession();
-  return mode ?? (address ? "live" : "demo");
-}
 
 export type ShellBalance =
   | { kind: "demo"; text: string }
@@ -29,7 +21,7 @@ export type ShellBalance =
  * header pill showed). Never a half-loaded sum: an unread sheet is null, drawn as a dash.
  */
 export function useShellBalance(): ShellBalance {
-  const mode = useShellMode();
+  const mode = useTradeMode();
   const { demoBalanceBase } = useModeState();
   const plate = useBalancePlate();
   if (mode === "demo") {

@@ -1,41 +1,25 @@
-/* Guest-seat surfaces in the reference tokens. The account menu extends shell.css's `header-account-*` rules (the
-   reference dropdown) and only adds what a seat needs; the plates are the desk kit's EmptyState; the seat link is
-   21st #29246's layout (card, QR with corner marks, manual code, code entry) redrawn in the ticket's surfaces. */
+/* Guest-seat surfaces. The seat menu is Tailwind on the kit tokens (SeatAccountMenu); the plates are the desk kit's
+   EmptyState; the seat link is 21st #29246's layout (card, QR with corner marks, manual code, code entry) redrawn in the
+   ticket's surfaces. */
 
-/* ── account menu ── */
-.cx-seat-anchor { display: inline-block; }
-/* Two classes: `.header-account-menu` (shell.css) also sets min-width, and one class each lost to it, so the menu stayed at 210px and wrapped
-   "Party id", "Demo cash" and the party hash. */
-.header-account-menu.cx-seat-menu { min-width: 280px; max-width: calc(100vw - 32px); }
-.cx-seat-head { display: flex; flex-direction: column; gap: 6px; }
-.cx-seat-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-.cx-seat-name { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--color-ink); font-stretch: 100%; }
-.cx-seat-party { display: inline-flex; align-items: center; gap: 4px; }
-.cx-seat-copy { display: grid; flex: none; place-items: center; width: 24px; height: 24px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-ink-muted); }
-.cx-seat-copy:hover { background: var(--color-surface-2); color: var(--color-ink); }
-.cx-seat-copy svg { width: 12px; height: 12px; }
-.cx-seat-note { margin-top: 6px; font-size: 11.5px; line-height: 1.45; color: var(--color-ink-muted); }
-.cx-seat-item { width: 100%; text-align: left; }
-
-/* The shell rail's seat row (Stage B): on the black rail, a round seat-number avatar, the seat and its address; icons
-   only below xl. Its menu opens upward from the rail's foot. */
-.cx-seat-anchor:has(> .cx-seat-rail) { display: block; }
+/* ── seat control ── */
+/* The shell rail's seat row (Stage B): a round seat-number avatar, the seat and its address, in the rail's ink; the
+   avatar alone below xl and in the phone's top bar. Its menu opens beside the rail, portalled. */
 .cx-seat-rail { display: flex; width: 100%; align-items: center; gap: 10px; padding: 4px; border-radius: 999px; color: var(--ow-rail-ink); text-align: left; transition: background-color 160ms var(--ease); }
-.cx-seat-rail:hover, .cx-seat-rail[aria-expanded="true"] { background: rgb(255 255 255 / 0.1); }
-.cx-seat-rail:focus-visible { outline: 2px solid var(--ow-white); outline-offset: 2px; }
+.cx-seat-rail:hover, .cx-seat-rail[data-popup-open] { background: color-mix(in oklab, var(--ow-rail-active) 45%, transparent); }
+.cx-seat-rail:focus-visible { outline: 2px solid var(--ow-rail-ink); outline-offset: 2px; }
 .cx-seat-rail-avatar { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--ow-lime); color: var(--ow-black); font-family: var(--ow-font-body); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .cx-seat-rail-copy { display: flex; min-width: 0; flex-direction: column; line-height: 1.2; }
 .cx-seat-rail-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cx-seat-rail-addr { font-family: var(--font-code), ui-monospace, monospace; font-size: 11px; color: rgb(255 255 255 / 0.6); font-variant-numeric: tabular-nums; }
+.cx-seat-rail-addr { font-family: var(--font-code), ui-monospace, monospace; font-size: 11px; color: var(--ow-rail-muted); font-variant-numeric: tabular-nums; }
 @media (max-width: 79.99rem) {
   .cx-seat-rail { justify-content: center; }
   .cx-seat-rail-copy { display: none; }
 }
 .cx-seat-rail--avatar { width: auto; padding: 2px; }
 .cx-seat-rail--avatar .cx-seat-rail-copy { display: none; }
-.cx-seat-rail--avatar:hover, .cx-seat-rail--avatar[aria-expanded="true"] { background: var(--ow-recessed); }
+.cx-seat-rail--avatar:hover, .cx-seat-rail--avatar[data-popup-open] { background: var(--ow-recessed); }
 .cx-seat-rail--avatar:focus-visible { outline-color: var(--ow-pink-ink); }
-.header-account-menu.cx-seat-menu--above { top: auto; right: auto; bottom: 100%; left: 0; margin: 0 0 10px; }
 
 /* ── pool full and draining plates ── */
 .cx-plate { max-width: 440px; }
@@ -46,7 +30,7 @@
 .cx-plate-meta { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 8px; }
 .cx-plate-clock { font-family: var(--font-mono); font-size: 13px; color: var(--color-ink-secondary); font-variant-numeric: tabular-nums; }
 .cx-plate-clock [role="timer"] { color: var(--color-ink); font-weight: 600; }
-.cx-plate-meta .dkit-status[data-tone="warn"], .cx-seat-title .dkit-status[data-tone="warn"] { color: var(--color-warning-ink); }
+.cx-plate-meta .dkit-status[data-tone="warn"] { color: var(--color-warning-ink); }
 
 /* ── seat link (21st #29246 layout) ── */
 .cx-link { display: flex; width: 100%; max-width: 440px; flex-direction: column; gap: 20px; padding: 24px; border: 1px solid var(--ticket-border); border-radius: var(--radius-xl); background: var(--ticket-surface); }

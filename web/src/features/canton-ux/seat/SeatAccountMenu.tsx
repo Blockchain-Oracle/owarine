@@ -1,13 +1,13 @@
 "use client";
 
+import { Popover } from "@base-ui/react/popover";
 import { partyLead, shortHex } from "@owarine/core/units";
-import { Check, Copy, UserRound } from "lucide-react";
+import { Check, Copy, KeyRound, Smartphone, UserRound, WalletCards } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Countdown } from "@/components/data/Countdown";
 import { Hash } from "@/components/data/Hash";
-import { useFloatingMenus } from "@/components/shell/header/useFloatingMenus";
-import { StatusDot } from "@/components/ui/desk-kit";
+import { cn } from "@/lib/utils";
 import { SEAT } from "./copy";
 import "./seat.css";
 
@@ -46,10 +46,10 @@ export interface SeatMenuProps {
 }
 
 /**
- * The connected account (L-02): the reference's address pill and `addr-dot` avatar opening the reference's
- * `header-account-menu`, extended for a guest seat with the seat, its party id (`Hash`, with copy), the lease time left
- * (the reference `Countdown`), and "Reset seat" where the wallet's Disconnect was. Draining, the lease row gives way to
- * a desk-kit `StatusDot` and the one sentence that says nothing is lost.
+ * The connected seat (L-02), as one popover: the seat and its state, its Canton party (with copy), the lease time left,
+ * its DevNet test funds, then Portfolio, "Use on another device" and Reset seat. Portalled, so it opens beside the rail
+ * (or under the phone's avatar) instead of being clipped inside it (Abu, 8 Oct). Draining and unleased seats say so in
+ * one line and offer what fixes them.
  */
 export function SeatAccountMenu({
   seatNumber,
@@ -70,10 +70,7 @@ export function SeatAccountMenu({
 }: SeatMenuProps) {
   const [open, setOpen] = useState(defaultOpen);
   const [copied, setCopied] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const refs = useRef<ReadonlyArray<RefObject<HTMLElement | null>>>([menuRef]);
-  const close = useCallback(() => setOpen(false), []);
-  useFloatingMenus(refs.current, close);
+  const close = () => setOpen(false);
 
   useEffect(() => {
     if (!copied) return;
@@ -83,24 +80,25 @@ export function SeatAccountMenu({
 
   const draining = state === "draining";
   const unleased = state === "unleased";
+  const avatar = <span className="cx-seat-rail-avatar">{seatNumber ?? <UserRound className="size-4.5" strokeWidth={2.5} />}</span>;
   return (
-    <div className="relative cx-seat-anchor" ref={menuRef}>
-      <button
-        type="button"
-        className={variant === "rail" ? "cx-seat-rail" : variant === "avatar" ? "cx-seat-rail cx-seat-rail--avatar" : "wallet-pill"}
+    <Popover.Root
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) onOpenMenu?.();
+      }}
+    >
+      <Popover.Trigger
+        data-flood-origin
         aria-label={M.open}
-        aria-haspopup="menu"
-        aria-expanded={open}
         title={variant === "pill" ? undefined : `${M.seat(seatNumber)} · ${address}`}
-        onClick={() => {
-          setOpen((v) => !v);
-          onOpenMenu?.();
-        }}
+        className={variant === "rail" ? "cx-seat-rail" : variant === "avatar" ? "cx-seat-rail cx-seat-rail--avatar" : "wallet-pill"}
       >
         {variant !== "pill" ? (
           <>
-            <span className="cx-seat-rail-avatar" aria-hidden>
-              {seatNumber ?? <UserRound className="size-4.5" strokeWidth={2.5} />}
+            <span aria-hidden className="contents">
+              {avatar}
             </span>
             <span className="cx-seat-rail-copy">
               <span className="cx-seat-rail-name">{M.seat(seatNumber)}</span>
@@ -113,73 +111,94 @@ export function SeatAccountMenu({
             <span title={address}>{shortHex(address, 4, 4)}</span>
           </>
         )}
-      </button>
-      {open && (
-        <div className={`header-account-menu cx-seat-menu${variant === "rail" ? " cx-seat-menu--above" : ""}`} role="menu" aria-label={M.seat(seatNumber)}>
-          <div className="header-account-pools cx-seat-head">
-            <div className="cx-seat-title">
-              <span className="cx-seat-name">{M.seat(seatNumber)}</span>
-              <StatusDot tone={draining || unleased ? "warn" : "live"}>{draining ? M.draining : unleased ? M.unleased : M.leased}</StatusDot>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner side={variant === "rail" ? "right" : "bottom"} align="end" sideOffset={variant === "rail" ? 28 : 10} collisionPadding={12} className="z-[9300]">
+          <Popover.Popup className="w-[min(21rem,calc(100vw-1.5rem))] origin-[var(--transform-origin)] rounded-[1.5rem] bg-ow-card p-2 text-ow-ink ring-1 ring-ow-hairline transition-[scale,opacity] duration-150 data-ending-style:scale-95 data-ending-style:opacity-0 data-starting-style:scale-95 data-starting-style:opacity-0">
+            <div className="flex items-center gap-3 px-3 pt-2 pb-3">
+              <span aria-hidden>{avatar}</span>
+              <Popover.Title className="min-w-0 flex-1 truncate text-ow-lead font-bold">{M.seat(seatNumber)}</Popover.Title>
+              <span className={cn("inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-ow-micro font-bold", draining || unleased ? "bg-ow-breakeven/15 text-ow-ink" : "bg-ow-up-line/15 text-ow-up")}>
+                <span aria-hidden className={cn("size-1.5 rounded-full", draining || unleased ? "bg-ow-breakeven" : "bg-ow-up-line")} />
+                {draining ? M.draining : unleased ? M.unleased : M.leased}
+              </span>
             </div>
-            {party !== null && (
-              <div className="header-account-row">
-                <span>{M.party}</span>
-                <span className="cx-seat-party">
-                  <Hash value={party} lead={partyLead(party)} tail={4} className="val" />
-                  <button
-                    type="button"
-                    className="cx-seat-copy"
-                    aria-label={copied ? M.copied : M.copyParty}
-                    onClick={() =>
-                      void navigator.clipboard?.writeText(party).then(
-                        () => setCopied(true),
-                        () => undefined,
-                      )
-                    }
-                  >
-                    {copied ? <Check aria-hidden /> : <Copy aria-hidden />}
-                  </button>
-                </span>
-              </div>
-            )}
-            {state === "leased" && leaseExpirySec !== null && (
-              <div className="header-account-row">
-                <span>{M.leaseLeft}</span>
-                <Countdown expirySec={leaseExpirySec} intervalSec={leaseSpanSec} className="val" />
-              </div>
-            )}
-            <div className="header-account-row">
-              <span>{M.tradingAccount}</span>
-              <span className="val">{cashText}</span>
+            <dl className="flex flex-col gap-2 rounded-ow-card bg-ow-recessed/60 px-3 py-3 text-ow-label">
+              {party !== null && (
+                <Row label={M.party}>
+                  <span className="flex min-w-0 items-center gap-1">
+                    <Hash value={party} lead={partyLead(party)} tail={4} className="ow-axis truncate" />
+                    <button
+                      type="button"
+                      className="grid size-6 shrink-0 place-items-center rounded-full text-ow-muted hover:bg-ow-hairline hover:text-ow-ink"
+                      aria-label={copied ? M.copied : M.copyParty}
+                      onClick={() =>
+                        void navigator.clipboard?.writeText(party).then(
+                          () => setCopied(true),
+                          () => undefined,
+                        )
+                      }
+                    >
+                      {copied ? <Check aria-hidden className="size-3.5" /> : <Copy aria-hidden className="size-3.5" />}
+                    </button>
+                  </span>
+                </Row>
+              )}
+              {state === "leased" && leaseExpirySec !== null && (
+                <Row label={M.leaseLeft}>
+                  <Countdown expirySec={leaseExpirySec} intervalSec={leaseSpanSec} className="ow-axis" />
+                </Row>
+              )}
+              <Row label={M.tradingAccount}>
+                <span className="ow-num font-bold">{cashText}</span>
+              </Row>
+            </dl>
+            <p className="px-3 pt-2.5 pb-1 text-ow-caption text-ow-muted">{draining ? M.drainingNote : unleased ? (unleasedReason ?? M.unleasedNote) : M.leaseNote}</p>
+            <div className="mt-1 flex flex-col border-t border-ow-hairline pt-1.5">
+              {unleased && onLease && (
+                <Item icon={<KeyRound />} onClick={onLease} disabled={leasing}>
+                  {leasing ? M.leasing : M.lease}
+                </Item>
+              )}
+              <Link href="/portfolio" onClick={close} className={ITEM}>
+                <WalletCards aria-hidden className="size-4.5 text-ow-muted" />
+                {M.portfolio}
+              </Link>
+              {state === "leased" && onLink && (
+                <Item icon={<Smartphone />} onClick={() => (close(), onLink())}>
+                  {M.link}
+                </Item>
+              )}
+              <button type="button" onClick={() => (close(), onReset())} className={cn(ITEM, "text-ow-down")}>
+                <span aria-hidden className="size-4.5" />
+                {M.reset}
+              </button>
             </div>
-            <p className="cx-seat-note">{draining ? M.drainingNote : unleased ? (unleasedReason ?? M.unleasedNote) : M.leaseNote}</p>
-          </div>
-          {unleased && onLease && (
-            <button type="button" className="header-account-link cx-seat-item" role="menuitem" disabled={leasing} aria-busy={leasing} onClick={onLease}>
-              {leasing ? M.leasing : M.lease}
-            </button>
-          )}
-          <Link href="/portfolio" className="header-account-link" role="menuitem" onClick={close}>
-            {M.portfolio}
-          </Link>
-          {state === "leased" && onLink && (
-            <button type="button" className="header-account-link cx-seat-item" role="menuitem" onClick={onLink}>
-              {M.link}
-            </button>
-          )}
-          <button
-            type="button"
-            className="header-account-link header-account-link--danger"
-            role="menuitem"
-            onClick={() => {
-              close();
-              onReset();
-            }}
-          >
-            {M.reset}
-          </button>
-        </div>
-      )}
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
+
+const ITEM = "flex h-11 w-full items-center gap-3 rounded-[0.875rem] px-3 text-left text-ow-body font-medium outline-none hover:bg-ow-recessed focus-visible:bg-ow-recessed disabled:opacity-50";
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 items-center justify-between gap-4">
+      <dt className="shrink-0 text-ow-muted">{label}</dt>
+      <dd className="min-w-0 text-right">{children}</dd>
     </div>
+  );
+}
+
+function Item({ icon, onClick, disabled, children }: { icon: ReactNode; onClick: () => void; disabled?: boolean; children: ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} aria-busy={disabled} className={ITEM}>
+      <span aria-hidden className="text-ow-muted [&_svg]:size-4.5">
+        {icon}
+      </span>
+      {children}
+    </button>
   );
 }

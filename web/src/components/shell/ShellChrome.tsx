@@ -2,10 +2,14 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { useTradeMode } from "@/features/terminal/mode";
 import { cn } from "@/lib/utils";
+import { useWalletSession } from "@/lib/wallet-session";
+import { hasSeatMarker } from "@/providers/wallet/seat-client";
 import { BootNotice } from "@/providers/MarketsBoot";
 import CustomCursor from "./CustomCursor";
 import { AppRail } from "./app/AppRail";
+import { environmentOf, useEnvironment } from "./app/environment";
 import { useNavKeys } from "./app/keys";
 import { MoreSheet } from "./app/MoreSheet";
 import { PhoneDock } from "./app/PhoneDock";
@@ -28,8 +32,11 @@ function AppShell({ trade, children }: { trade: boolean; children: ReactNode }) 
   const pathname = usePathname();
   const [more, setMore] = useState(false);
   useEffect(() => setMore(false), [pathname]);
+  const session = useWalletSession();
   useNavKeys();
   useShellMark(trade);
+  // The account context is the connection (no picker): a seat floods the shell pink for DevNet, none keeps the demo sky.
+  useEnvironment(environmentOf(useTradeMode()), session.isConnecting || (!session.isConnected && hasSeatMarker()));
   return (
     <>
       <AppRail onMore={() => setMore(true)} moreOpen={more} />
@@ -45,8 +52,8 @@ function AppShell({ trade, children }: { trade: boolean; children: ReactNode }) 
           id="main"
           tabIndex={-1}
           className={cn(
-            "page-shell ow-stage relative min-w-0 flex-1 bg-ow-stage text-ow-ink outline-none",
-            trade ? "flex min-h-0 flex-col overflow-hidden md:rounded-ow-sheet" : "overflow-clip rounded-ow-sheet",
+            "page-shell ow-stage relative min-w-0 flex-1 bg-ow-stage text-ow-ink outline-none transition-colors duration-(--dur-flood)",
+            trade ? "flex min-h-0 flex-col overflow-hidden md:rounded-ow-sheet md:border-2 md:border-ow-stage-edge" : "overflow-clip rounded-ow-sheet border-2 border-ow-stage-edge",
           )}
         >
           <BootNotice />

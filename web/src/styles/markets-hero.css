@@ -285,6 +285,12 @@
   .markets-hero .hero-grid.hero-grid-mini {
     align-items: start;
   }
+  /* …but the chart fills the row (Abu, 8 Oct): beside a tall ticket it grew no taller than its 460 px floor and left a
+     dead block under it. Its canvas is the flexible part (part-04 `.hero-chart-canvas { flex: 1 }`), so the extra
+     height goes to the chart itself. */
+  .markets-hero .hero-grid.hero-grid-mini > .hero-chart {
+    align-self: stretch;
+  }
 }
 
 /* The reference's sections only carry top padding (.markets-section); the step
