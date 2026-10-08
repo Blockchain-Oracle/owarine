@@ -15,8 +15,11 @@ const b64url = (b: Buffer) => b.toString("base64url");
 export const X_SESSION_TTL_MS = 30 * 24 * 60 * 60_000;
 export const X_SESSION_COOKIE = "x_sess";
 
-/** The OAuth 1.0a request token and its secret live in httpOnly cookies between the start and the callback. */
-export const X_OAUTH_COOKIES = { token: "x_rt", secret: "x_rs", ret: "x_ret" } as const;
+/**
+ * Between the start and the callback, in httpOnly cookies: OAuth 1.0a's request token and its secret, or OAuth 2.0's
+ * `state` and PKCE verifier; and where to land after.
+ */
+export const X_OAUTH_COOKIES = { token: "x_rt", secret: "x_rs", state: "x_st", verifier: "x_cv", ret: "x_ret" } as const;
 export const X_OAUTH_TTL_SEC = 600;
 
 export interface XSession {

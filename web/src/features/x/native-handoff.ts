@@ -25,7 +25,7 @@ const VERIFIER = /^[A-Za-z0-9._~-]{43,128}$/;
 export const isHandoffVerifier = (s: string | null | undefined): s is string => typeof s === "string" && VERIFIER.test(s);
 
 /** Why the X sign-in did not finish, as the callback names it (`x_reason`), kept to known words. */
-const REASONS = new Set(["config", "denied", "state", "token", "server"]);
+const REASONS = new Set(["config", "denied", "state", "token", "profile", "server"]);
 
 export type NativeHandoffStep =
   /** Not from the app (no nonce or no challenge): the page explains, it never redirects into an app scheme. */

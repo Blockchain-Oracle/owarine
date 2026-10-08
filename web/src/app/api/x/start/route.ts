@@ -3,14 +3,16 @@ import { publicOrigin } from "@/lib/client-ip.server";
 import { regionRestricted, regionRestrictedResponse } from "@/lib/region.server";
 import { readXConfig } from "@/features/x/config.server";
 import { authenticateUrl, requestToken } from "@/features/x/oauth.server";
+import { authorizeUrl, oauth2State, pkcePair } from "@/features/x/oauth2.server";
 import { X_DEFAULT_RETURN, X_REASON_PARAM, X_RETURN_PARAM } from "@/features/x/protocol";
 import { X_OAUTH_COOKIES, X_OAUTH_TTL_SEC } from "@/features/x/session.server";
 
 export const dynamic = "force-dynamic";
 
 /**
- * "Sign in with X": OAuth 1.0a. A request token bound to our callback goes into short-lived httpOnly
- * cookies, then a redirect to X's authenticate page. `?return=/path` says where the callback lands
+ * "Sign in with X", on whichever pair the app holds (config.server.ts). OAuth 1.0a: a request token bound to our
+ * callback goes into short-lived httpOnly cookies, then a redirect to X's authenticate page. OAuth 2.0: a `state` and a
+ * PKCE verifier go into those cookies instead, then a redirect to X's authorize page. `?return=/path` says where the callback lands
  * (default `/trade-from-x`). The reference's origin guard is kept: the cookies must be written on the
  * origin that receives the callback, or X appears to succeed and the page asks again.
  *
@@ -36,7 +38,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(canonical);
   }
 
-  const token = await requestToken({ consumerKey: config.consumerKey, consumerSecret: config.consumerSecret }, config.redirectUri);
+  const opts = { httpOnly: true, secure: callback.protocol === "https:", sameSite: "lax" as const, path: "/", maxAge: X_OAUTH_TTL_SEC };
+  const { credentials } = config;
+  if (credentials.kind === "oauth2") {
+    const state = oauth2State();
+    const { verifier, challenge } = pkcePair();
+    const res = NextResponse.redirect(authorizeUrl(credentials, config.redirectUri, state, challenge));
+    res.cookies.set(X_OAUTH_COOKIES.state, state, opts);
+    res.cookies.set(X_OAUTH_COOKIES.verifier, verifier, opts);
+    if (safeRet) res.cookies.set(X_OAUTH_COOKIES.ret, safeRet, opts);
+    return res;
+  }
+
+  const token = await requestToken(credentials, config.redirectUri);
   if ("error" in token) {
     console.error("X request token failed", { status: token.status, error: token.error });
     // C9e: this route is reached by a plain link, so a failure goes home with the reason the page already words
@@ -48,7 +62,6 @@ export async function GET(req: NextRequest) {
   }
 
   const res = NextResponse.redirect(authenticateUrl(token.oauthToken));
-  const opts = { httpOnly: true, secure: callback.protocol === "https:", sameSite: "lax" as const, path: "/", maxAge: X_OAUTH_TTL_SEC };
   res.cookies.set(X_OAUTH_COOKIES.token, token.oauthToken, opts);
   res.cookies.set(X_OAUTH_COOKIES.secret, token.oauthTokenSecret, opts);
   if (safeRet) res.cookies.set(X_OAUTH_COOKIES.ret, safeRet, opts);

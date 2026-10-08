@@ -62,6 +62,8 @@ export async function accessToken(consumer: OAuth1Consumer, token: RequestToken,
     },
     body: new URLSearchParams({ oauth_verifier: verifier }),
     cache: "no-store",
+    // The same deadline as the first step: a stalled X never leaves the return from X hanging (review, 8 Oct).
+    signal: AbortSignal.timeout(X_TIMEOUT_MS),
   });
   const text = await response.text();
   if (!response.ok) return { error: text.slice(0, 120), status: response.status };
