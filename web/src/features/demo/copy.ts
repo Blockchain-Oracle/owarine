@@ -5,7 +5,7 @@ export const DEMO = {
   sticker: "CANTON DEVNET",
   heading: "Watch it work",
   lede: "Short price calls on Canton. Private by default, settled on signed prints.",
-  actions: { open: "Open the app", docs: "Read the docs", stats: "Live stats", pitch: "The pitch" },
+  actions: { open: "Open the app", docs: "Read the docs" },
   claimsTitle: "What to check",
   claims: [
     { id: "quote", title: "A firm quote", line: "The venue prices your size before you tap.", href: "/markets", cta: "Try a market" },

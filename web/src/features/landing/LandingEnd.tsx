@@ -99,8 +99,8 @@ export function LandingRoadmap() {
           </li>
         ))}
       </ol>
-      <Link href="/pitch" className="mt-6 inline-flex items-center gap-1.5 text-ow-label font-bold text-ow-pink-ink hover:underline">
-        {r.pitch} <ArrowRight className="size-4" />
+      <Link href="/demo" className="mt-6 inline-flex items-center gap-1.5 text-ow-label font-bold text-ow-pink-ink hover:underline">
+        {r.demo} <ArrowRight className="size-4" />
       </Link>
     </section>
   );

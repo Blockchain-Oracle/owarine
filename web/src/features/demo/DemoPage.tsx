@@ -40,9 +40,6 @@ export function DemoPage({ film }: { film: Film | null }) {
             <PillButton tone="ghost" render={<a href={DOCS_URL} />}>
               {DEMO.actions.docs}
             </PillButton>
-            <PillButton tone="ghost" render={<Link href="/pitch" />}>
-              {DEMO.actions.pitch}
-            </PillButton>
           </div>
         </div>
         <DemoFilm film={film} />

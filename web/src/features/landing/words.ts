@@ -97,10 +97,10 @@ export const WORDS = {
     kicker: "Where it is",
     phases: [
       { tag: "Live now", title: "Canton DevNet", body: "Five Daml packages on a Noders node: quotes, oracles, seats, parlays and the Canton Coin rail." },
-      { tag: "Next", title: "A hosted address and the phone app", body: "A public address anyone can open, and the phone apps." },
+      { tag: "Next", title: "The phone app", body: "The iPhone app on TestFlight first, then Android." },
       { tag: "After", title: "MainNet", body: "Our own validator, real collateral in Canton Coin, then a licensed operator." },
     ],
-    pitch: "Read the pitch",
+    demo: "Watch the demo",
   },
   final: { title: ["Call", "the close."], start: "Start trading", install: "Or add it to your home screen: no store, one tap away." },
   foot: {
@@ -109,7 +109,7 @@ export const WORDS = {
       { label: "Markets", href: "/markets" },
       { label: "How it works", href: "/how-it-works" },
       { label: "Proof", href: "/proof" },
-      { label: "Pitch", href: "/pitch" },
+      { label: "Demo", href: "/demo" },
       { label: "Get the app", href: "/download" },
     ],
     built: "Built on",
