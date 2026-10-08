@@ -21,6 +21,21 @@ export const STATUS = {
   expected: (sessionLabel: string | null) => (sessionLabel ? `closed (expected) · ${sessionLabel}` : "closed (expected)"),
   lastChecked: (clock: string) => `Last checked: ${clock} · Auto-refreshes every 30s`,
 
+  /** The board (8 Oct revamp): one verdict, a tally, what needs attention, then every check by the system it watches. */
+  board: {
+    eyebrow: "Venue status",
+    verdict: { healthy: "All systems live", degraded: "Running degraded", unreachable: "Venue unreachable" },
+    worst: (pipeline: string, lag: string) => `Slowest: ${pipeline} · ${lag}`,
+    allFresh: "Every check answered fresh.",
+    offset: "Ledger offset",
+    tally: { good: "healthy", warn: "slow", bad: "failing", off: "off-hours or not set up" },
+    attention: "Needs attention",
+    allChecks: (count: number) => `Every check · ${count}`,
+    tone: { good: "Healthy", warn: "Slow", bad: "Failing", off: "Off" },
+    checked: (clock: string) => `Checked ${clock}`,
+    refresh: "refreshes every 30 s",
+  },
+
   pipelines: {
     rpc: "Canton ledger · ledger end",
     slotLag: "Projector · offsets behind ledger end",

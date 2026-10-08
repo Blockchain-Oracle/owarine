@@ -1,47 +1,50 @@
 "use client";
 
 import { AlertTriangleIcon, RefreshCwIcon } from "lucide-react";
-import { SectionHeader } from "@/components/chrome";
+import { CountdownRing } from "@/components/kit";
 import { STATUS } from "./copy";
 import { StatusBanner, StatusTable } from "./StatusRows";
 import { useStatus } from "./useStatus";
 
+/** `/api/status` is re-read every 30 s (useStatus). */
+const POLL_MS = 30_000;
+
 /**
- * `/status` — ported from `reference/yosuku/app/status/page.tsx`.
- *
- * The reference asks its predict server for pipeline lags; there is no such server here, so
- * `/api/status` makes the reads itself, at request time, and the page shows exactly what came
- * back: the chain head, the indexer's live windows, how old each price print is, and whether
- * the optional capabilities (the social store, Sensei) are connected on this deployment.
+ * `/status`: the venue's board (8 Oct revamp). `/api/status` makes every read itself at request time and the page shows
+ * exactly what came back — the verdict as the hero, what needs attention, then every check by the system it watches.
  * Three states, as the reference has them: loading, unreachable, and the report.
  */
 export function StatusScreen() {
   const reading = useStatus();
 
   return (
-    <div className="container status-page">
-      <SectionHeader index={STATUS.section.index} title={STATUS.section.title} />
-
+    <div className="container flex flex-col gap-8 py-8">
       {reading === null && (
-        <div className="status-holding" role="status" aria-busy="true">
-          <RefreshCwIcon className="status-holding-icon animate-spin" aria-hidden />
-          <p className="status-holding-text">{STATUS.loading}</p>
+        <div className="flex min-h-[40dvh] flex-col items-center justify-center gap-3 text-ow-muted" role="status" aria-busy="true">
+          <RefreshCwIcon className="size-6 animate-spin" aria-hidden />
+          <p className="text-ow-lead">{STATUS.loading}</p>
         </div>
       )}
 
       {reading !== null && !reading.ok && (
-        <div className="status-holding" role="alert">
-          <AlertTriangleIcon className="status-holding-icon warn" aria-hidden />
-          <p className="status-holding-text">{STATUS.unreachable}</p>
+        <div className="flex min-h-[40dvh] flex-col items-center justify-center gap-3 rounded-ow-feature bg-ow-down-line/10 p-8 text-center ring-1 ring-ow-down-line/30" role="alert">
+          <AlertTriangleIcon className="size-8 text-ow-down" aria-hidden />
+          <p className="ow-display ow-display-sm">{STATUS.board.verdict.unreachable}</p>
+          <p className="text-ow-lead text-ow-muted">{STATUS.unreachable}</p>
         </div>
       )}
 
       {reading?.ok && (
-        <div className="status-report">
+        <>
           <StatusBanner payload={reading.value} />
           <StatusTable pipelines={reading.value.pipelines} sessionLabel={reading.value.session?.label ?? null} />
-          <p className="status-checked">{STATUS.lastChecked(new Date(reading.value.checkedAtMs).toLocaleTimeString())}</p>
-        </div>
+          <footer className="flex items-center justify-center gap-3 text-ow-label text-ow-muted">
+            <CountdownRing key={reading.value.checkedAtMs} startMs={reading.value.checkedAtMs} endMs={reading.value.checkedAtMs + POLL_MS} size={28} />
+            <span>
+              {STATUS.board.checked(new Date(reading.value.checkedAtMs).toLocaleTimeString())} · {STATUS.board.refresh}
+            </span>
+          </footer>
+        </>
       )}
     </div>
   );
