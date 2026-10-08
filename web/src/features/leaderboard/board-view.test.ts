@@ -34,6 +34,7 @@ describe("leaderboard scope and empty state", () => {
     expect(rendered).toMatch(/aria-pressed="true"[^>]*>Last 24 hours/);
     expect(rendered).toMatch(/aria-pressed="false"[^>]*>NYSE session/);
     for (const symbol of ["BTC", "ETH", "CC", "TSLA"]) expect(rendered).toContain(`>${symbol}</button>`);
+    expect(rendered.indexOf(">BTC</button>")).toBeLessThan(rendered.indexOf(">TSLA</button>"));
   });
   it("distinguishes a confirmed zero from loading, and explains published-only eligibility", () => {
     const rendered = html();
