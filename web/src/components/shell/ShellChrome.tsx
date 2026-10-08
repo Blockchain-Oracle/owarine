@@ -1,70 +1,73 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 import { BootNotice } from "@/providers/MarketsBoot";
 import CustomCursor from "./CustomCursor";
-import Footer from "./Footer";
 import { AppRail } from "./app/AppRail";
-import { PhoneChrome } from "./app/PhoneChrome";
+import { useNavKeys } from "./app/keys";
+import { MoreSheet } from "./app/MoreSheet";
+import { PhoneDock } from "./app/PhoneDock";
 import { ShellOverlays } from "./app/ShellOverlays";
-import { MobileBottomNav } from "./header/MobileBottomNav";
+import { TopBar } from "./app/TopBar";
+import { isTradeRoute } from "./nav";
 
 /**
- * Routes the reference renders WITHOUT the app's ticker, header and footer — each of those pages
- * mounts its own chrome (`app/trade-from-x/page.tsx` imports no `Header`/`Marquee`; its sticky
- * strip carries the primary nav instead). Every other route gets the shared shell.
+ * The app shell (Stage B, Slush by way of roy-chain's `app-shell.tsx`): the floating rail on the left, the slim top bar,
+ * and ONE rounded stage that holds the page; on phones the top bar carries the seal, mode, money and seat, and the dock
+ * sits at the bottom. Every route has it except the landing, which paints its own sky, nav and footer edge to edge.
  */
-export const ISLAND_ROUTES: readonly string[] = ["/trade-from-x", "/trade"];
-
-export function isIslandRoute(pathname: string | null): boolean {
-  if (!pathname) return false;
-  return ISLAND_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
-}
-
-/** The shell, or none of it: islands paint their own edges, so the shell must not paint over them. */
 export function ShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  // The trading screen draws its own nav, rail and dock (TRADASH-FIDELITY.md): no shell at all.
-  if (pathname === "/trade" || pathname?.startsWith("/trade/")) return <>{children}</>;
-  // The landing paints its own sky, nav and footer edge to edge (revamp step 3).
   if (pathname === "/") return <>{children}</>;
-  if (isIslandRoute(pathname)) {
-    return (
-      <>
-        <CustomCursor />
-        <main className="page-island">
+  return <AppShell trade={isTradeRoute(pathname)}>{children}</AppShell>;
+}
+
+function AppShell({ trade, children }: { trade: boolean; children: ReactNode }) {
+  const pathname = usePathname();
+  const [more, setMore] = useState(false);
+  useEffect(() => setMore(false), [pathname]);
+  useNavKeys();
+  useShellMark(trade);
+  return (
+    <>
+      <AppRail onMore={() => setMore(true)} moreOpen={more} />
+      <div
+        className={cn(
+          "flex min-h-dvh min-w-0 flex-col md:pr-(--rail-inset) md:pb-(--rail-inset) md:pl-[calc(var(--rail-w-collapsed)+var(--rail-inset)*2)] xl:pl-[calc(var(--rail-w)+var(--rail-inset)*2)]",
+          // Phones: the trading screen runs edge to edge above the dock; every other page sits in a gutter.
+          trade ? "h-dvh pb-[calc(var(--dock-h)+env(safe-area-inset-bottom,0rem))] md:h-dvh" : "px-3 pb-[calc(var(--dock-h)+env(safe-area-inset-bottom,0rem)+0.75rem)]",
+        )}
+      >
+        <TopBar className={cn(trade ? "max-md:hidden" : "max-md:sticky max-md:top-0 max-md:z-30 max-md:-mx-3 max-md:bg-ow-canvas/90 max-md:px-3 max-md:backdrop-blur-md")} />
+        <main
+          id="main"
+          tabIndex={-1}
+          className={cn(
+            "page-shell ow-stage relative min-w-0 flex-1 bg-ow-stage text-ow-ink outline-none",
+            trade ? "flex min-h-0 flex-col overflow-hidden md:rounded-ow-sheet" : "overflow-clip rounded-ow-sheet",
+          )}
+        >
           <BootNotice />
           {children}
         </main>
-        <MobileBottomNav />
-      </>
-    );
-  }
-  return (
-    <>
-      <ShellMark />
-      <AppRail />
-      <PhoneChrome />
+      </div>
+      <PhoneDock onMore={() => setMore(true)} moreOpen={more} />
+      <MoreSheet open={more} onClose={() => setMore(false)} />
       <ShellOverlays />
       <CustomCursor />
-      <main className="page-shell">
-        <BootNotice />
-        {children}
-      </main>
-      <Footer />
     </>
   );
 }
 
-/** Marks the document while the revamp shell is mounted (shell.css swaps the old header offsets for the rail's). */
-function ShellMark() {
+/** Marks the document while the shell is mounted, and whether the trading screen owns the viewport (shell.css). */
+function useShellMark(trade: boolean): void {
   useEffect(() => {
     const root = document.documentElement;
-    root.dataset.shell = "app";
+    root.dataset.shell = trade ? "trade" : "app";
     return () => {
       delete root.dataset.shell;
     };
-  }, []);
-  return null;
+  }, [trade]);
 }

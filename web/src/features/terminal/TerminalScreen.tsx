@@ -19,13 +19,12 @@ import { breakEvenSpot, useCommittedSpot, useLiveBook, useWatchedLadder } from "
 import { settlePaper, useModeState, type TradeMode } from "./mode";
 import { stakeFor, useTradeSettings, useTradeSettingsState } from "./settings";
 import { TradeToasts, toast } from "./toasts";
-import { AssetChip, EquityPill, SettingsStack, ViewPositionPill, WindowChip, type WindowState } from "./ui/Chrome";
+import { AssetChip, EquityPill, SettingsStack, SheetRow, ViewPositionPill, WindowChip, type WindowState } from "./ui/Chrome";
 import { PositionsList, positionValueBase, totalsOf, UnrealizedCard } from "./ui/PositionsPanel";
 import { useTerminalParlay } from "./parlay/useTerminalParlay";
 import { useReplayRecorder } from "./replay";
 import { useAppUpdate } from "./useAppUpdate";
 import { ReactionOverlay } from "./ui/ReactionOverlay";
-import { TerminalNav } from "./ui/TerminalNav";
 import { TerminalSheets, type SheetName } from "./ui/TerminalSheets";
 import { TradeButtons } from "./ui/TradeButtons";
 import { trailEligible, useTerminalTrade, type TerminalPosition } from "./useTerminalTrade";
@@ -99,14 +98,6 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   useEffect(() => {
     document.title = `${name} (${symbol}) | Owarine`;
   }, [name, symbol]);
-  // The screen owns the viewport while it is mounted (terminal.css drops the legacy shell's padding and page scroll).
-  useEffect(() => {
-    const root = document.documentElement;
-    root.dataset.surface = "terminal";
-    return () => {
-      delete root.dataset.surface;
-    };
-  }, []);
 
   // The Window, and every symbol with one (the market picker).
   const win = useTerminalWindow(symbol, lane, nowSec);
@@ -300,8 +291,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
 
   if (desktop) {
     return (
-      <div className="grid h-dvh grid-cols-[13.75rem_minmax(0,1fr)_20rem] overflow-hidden bg-ow-canvas text-ow-ink">
-        <TerminalNav onMarkets={() => openSheet("markets")} onHistory={() => openSheet("history")} onAccountSettings={() => openSheet("account-settings")} />
+      <div className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_20rem] overflow-hidden text-ow-ink">
         <section className="relative min-w-0 overflow-hidden">
           {chart}
           <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-2">
@@ -312,6 +302,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
           <div className="absolute bottom-4 left-4 z-30">{controls}</div>
         </section>
         <aside className="flex min-h-0 flex-col gap-3 border-l border-ow-hairline p-4">
+          <SheetRow onMarkets={() => openSheet("markets")} onHistory={() => openSheet("history")} onSettings={() => openSheet("account-settings")} />
           <div className="flex justify-end">
             <EquityPill equity={mode === "live" && !address ? null : equity} demo={mode === "demo"} onOpen={() => openSheet("account")} />
           </div>
@@ -332,10 +323,10 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   }
 
   return (
-    <main className="relative flex h-dvh w-full flex-col overflow-hidden bg-ow-canvas text-ow-ink">
+    <div className="relative flex h-full min-h-0 w-full flex-col overflow-hidden text-ow-ink">
       <div className="absolute inset-0 z-10">{chart}</div>
       <div className="absolute top-1/2 left-0 z-30 -translate-y-1/2">{stack}</div>
-      <header className="relative z-20 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top,0rem)+1rem)]">
+      <header className="relative z-20 flex flex-col gap-2 px-3 pt-[calc(env(safe-area-inset-top,0rem)+1rem)] md:pt-4">
         <div className="flex items-center justify-between gap-2">
           <AssetChip asset={symbol} name={name} price={spot} onOpen={() => openSheet("markets")} />
           <EquityPill equity={mode === "live" && !address ? null : equity} demo={mode === "demo"} onOpen={() => openSheet("account")} />
@@ -343,7 +334,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
         {windowChip}
       </header>
       <div className="flex-1" />
-      <footer className="relative z-20 flex flex-col gap-3 px-4 pb-[calc(env(safe-area-inset-bottom,0rem)+1rem)]">
+      <footer className="relative z-20 flex flex-col gap-3 px-4 pb-3 md:pb-4">
         {controls}
         {positions.length + parlay.parlays.length > 0 ? <ViewPositionPill count={positions.length + parlay.parlays.length} roiPct={shownTotals.cost > 0 ? (shownTotals.pnl / shownTotals.cost) * 100 : 0} onOpen={() => openSheet("positions")} /> : null}
         {parlay.on ? parlay.pill(() => openSheet("parlay")) : null}
@@ -355,7 +346,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       <Sheet open={sheet === "parlay"} onOpenChange={(o) => !o && setSheet(null)} title="Parlay">
         {parlay.slip}
       </Sheet>
-    </main>
+    </div>
   );
 }
 

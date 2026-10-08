@@ -17,6 +17,26 @@
 .cx-seat-note { margin-top: 6px; font-size: 11.5px; line-height: 1.45; color: var(--color-ink-muted); }
 .cx-seat-item { width: 100%; text-align: left; }
 
+/* The shell rail's seat row (Stage B): on the black rail, a round seat-number avatar, the seat and its address; icons
+   only below xl. Its menu opens upward from the rail's foot. */
+.cx-seat-anchor:has(> .cx-seat-rail) { display: block; }
+.cx-seat-rail { display: flex; width: 100%; align-items: center; gap: 10px; padding: 4px; border-radius: 999px; color: var(--ow-rail-ink); text-align: left; transition: background-color 160ms var(--ease); }
+.cx-seat-rail:hover, .cx-seat-rail[aria-expanded="true"] { background: rgb(255 255 255 / 0.1); }
+.cx-seat-rail:focus-visible { outline: 2px solid var(--ow-white); outline-offset: 2px; }
+.cx-seat-rail-avatar { display: grid; flex: none; place-items: center; width: 36px; height: 36px; border-radius: 999px; background: var(--ow-lime); color: var(--ow-black); font-family: var(--ow-font-body); font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cx-seat-rail-copy { display: flex; min-width: 0; flex-direction: column; line-height: 1.2; }
+.cx-seat-rail-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cx-seat-rail-addr { font-family: var(--font-code), ui-monospace, monospace; font-size: 11px; color: rgb(255 255 255 / 0.6); font-variant-numeric: tabular-nums; }
+@media (max-width: 79.99rem) {
+  .cx-seat-rail { justify-content: center; }
+  .cx-seat-rail-copy { display: none; }
+}
+.cx-seat-rail--avatar { width: auto; padding: 2px; }
+.cx-seat-rail--avatar .cx-seat-rail-copy { display: none; }
+.cx-seat-rail--avatar:hover, .cx-seat-rail--avatar[aria-expanded="true"] { background: var(--ow-recessed); }
+.cx-seat-rail--avatar:focus-visible { outline-color: var(--ow-pink-ink); }
+.header-account-menu.cx-seat-menu--above { top: auto; right: auto; bottom: 100%; left: 0; margin: 0 0 10px; }
+
 /* ── pool full and draining plates ── */
 .cx-plate { max-width: 440px; }
 .cx-plate .dkit-empty { background: var(--market-card-surface); }

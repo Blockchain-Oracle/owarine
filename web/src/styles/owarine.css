@@ -53,6 +53,18 @@
   --ow-sheet-w-lg: min(720px, calc(100vw - 48px));
   --ow-sheet-max-h: min(860px, calc(100dvh - 48px));
 
+  /* The shell (Stage B, Slush/roy-chain anatomy): a black floating rail, a white stage on the ice canvas. Slush at
+   * 1440: rail 248 wide (88 as icons), rows 48 on a 60 pitch, panel radius 32; the inset is tighter than Slush's 32. */
+  --ow-rail: #000000;
+  --ow-rail-ink: #FFFFFF;
+  --ow-stage: #FFFFFF;
+  --rail-inset: 0.75rem;
+  --rail-w: 15.5rem;
+  --rail-w-collapsed: 5.5rem;
+  --nav-h: 3rem;
+  --topbar-h: 4rem;
+  --dock-h: 5.5rem;
+
   --ow-r-card: 16px;
   --ow-r-feature: 46px;
   --ow-r-pill: 999px;
@@ -98,6 +110,8 @@ body {
   --ow-down: #FF5A52;
   --ow-down-line: #FF5A52;
   --ow-scrim: rgb(0 0 0 / 0.6);
+  --ow-rail: #1C1C1C;
+  --ow-stage: #141414;
 }
 
 @theme inline {
@@ -128,6 +142,10 @@ body {
   --color-ow-win: var(--ow-win);
   --color-ow-lose: var(--ow-lose);
   --color-ow-white: var(--ow-white);
+  --color-ow-rail: var(--ow-rail);
+  --color-ow-rail-ink: var(--ow-rail-ink);
+  --color-ow-stage: var(--ow-stage);
+  --color-ow-breakeven: var(--ow-breakeven);
 
   --radius-ow-card: var(--ow-r-card);
   --radius-ow-sticker: 14px;

@@ -53,8 +53,6 @@ export const xOauthRejected = (code: string) => `X rejected the connection (${co
 
 export const TRADE_FROM_X = {
   title: "Trade from X",
-  crumb: "/ X-trade",
-  openApp: "open the app",
   eyebrow: "X-trade",
   headline: "Trade by tweeting.",
   payoff: "Un⁠-⁠drainably.",

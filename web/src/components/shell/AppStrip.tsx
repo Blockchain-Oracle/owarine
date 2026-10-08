@@ -13,7 +13,6 @@
 import { usePathname } from "next/navigation";
 import { BRAND } from "@/lib/copy";
 import Link from "next/link";
-import { isIslandRoute } from "./ShellChrome";
 import { useEffect, useState } from "react";
 
 const KEY = "owarine.appstrip.dismissed";
@@ -48,9 +47,8 @@ export default function AppStrip() {
     return () => clearInterval(id);
   }, [gone]);
 
-  // A strip inviting you to the page you are already reading is noise.
-  // The trading screen is one full-screen surface (Tradash); nothing sits above it.
-  const hidden = gone || !!pathname?.startsWith("/download") || pathname === "/trade" || !!pathname?.startsWith("/trade/");
+  // The landing only: inside the app the floating rail and stage own the top edge, and Download lives in More and ⌘K.
+  const hidden = gone || pathname !== "/";
 
   // Tell the stylesheet whether the strip is actually there. Every fixed offset on the site is
   // computed off --appstrip, so when the strip is absent that height has to collapse or the
@@ -64,9 +62,6 @@ export default function AppStrip() {
   }, [hidden]);
 
   if (hidden) return null;
-
-  // Islands paint their own top edge; the strip would sit over it.
-  if (isIslandRoute(pathname)) return null;
 
   return (
     <div className={`appstrip ${shown ? "is-in" : ""}`} role="region" aria-label={`Install ${BRAND.name}`}>

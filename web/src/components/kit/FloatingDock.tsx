@@ -1,51 +1,75 @@
 "use client";
 
-import Link from "next/link";
 import { Search } from "lucide-react";
-import type { ComponentProps, ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
+import { useId, type ComponentProps, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Seal } from "./Seal";
 
 /**
- * UGLYCASH's phone navigation: a black floating dock with two destinations either side of the brand mark, and a
- * "Search for anything" pill beside it. Fixed to the bottom on phones; the desktop shell uses the left rail instead.
+ * The phone's navigation (Stage B6): UGLYCASH's black floating dock with the seal in the middle, and roy-chain's
+ * `mobile-dock.client.tsx` behaviour — a white pill under the place you are on that springs to the next (21st.dev Dock
+ * #15742). An item is a link, or a button when it opens something (More).
  */
 export interface DockItem {
-  href: string;
+  key: string;
   label: string;
   icon: ReactNode;
+  href?: string;
+  onClick?: () => void;
   active?: boolean;
+  /** For a button that opens a sheet. */
+  expanded?: boolean;
 }
 
-export function FloatingDock({ left, right, centreHref = "/", onSearch, searchLabel, className }: { left: DockItem; right: DockItem; centreHref?: string; onSearch?: () => void; searchLabel?: string; className?: string }) {
+export function FloatingDock({ left, right, centreHref = "/", className }: { left: readonly DockItem[]; right: readonly DockItem[]; centreHref?: string; className?: string }) {
+  const pillId = useId();
+  const reduce = useReducedMotion();
+  const cell = (item: DockItem) => <DockCell key={item.key} item={item} pillId={pillId} reduce={reduce === true} />;
   return (
-    <nav aria-label="Main" className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-40 flex items-center justify-center gap-2 px-4 pb-[calc(env(safe-area-inset-bottom,0rem)+0.875rem)]", className)}>
-      <div className="pointer-events-auto flex h-16 items-center gap-1 rounded-full bg-ow-black px-2 text-ow-white">
-        <DockLink item={left} />
-        <Link href={centreHref} aria-label="Home" className="grid size-12 place-items-center rounded-full bg-ow-pink">
-          <Seal size={30} tone="white" />
-        </Link>
-        <DockLink item={right} />
-      </div>
-      {onSearch ? <SearchPill onClick={onSearch} {...(searchLabel ? { label: searchLabel } : {})} className="pointer-events-auto h-16" /> : null}
+    <nav aria-label="Main" className={cn("pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0rem))]", className)}>
+      <ul className="pointer-events-auto flex items-center gap-0.5 rounded-full bg-ow-rail p-1.5 text-ow-rail-ink">
+        {left.map(cell)}
+        <li>
+          <Link href={centreHref} aria-label="Owarine home" className="mx-1 grid size-12 place-items-center rounded-full bg-ow-pink outline-none focus-visible:ring-2 focus-visible:ring-ow-white">
+            <Seal size={30} tone="white" />
+          </Link>
+        </li>
+        {right.map(cell)}
+      </ul>
     </nav>
   );
 }
 
-function DockLink({ item }: { item: DockItem }) {
-  return (
-    <Link
-      href={item.href}
-      aria-current={item.active ? "page" : undefined}
-      className={cn("flex h-12 min-w-16 flex-col items-center justify-center gap-0.5 rounded-full px-3 text-ow-micro font-semibold text-ow-white/60 transition-colors hover:text-ow-white aria-[current=page]:text-ow-white [&_svg]:size-5")}
-    >
+function DockCell({ item, pillId, reduce }: { item: DockItem; pillId: string; reduce: boolean }) {
+  const className = cn(
+    "relative flex h-13 min-w-15 flex-col items-center justify-center gap-0.5 rounded-full px-2 text-ow-micro font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ow-white/80 [&_svg]:size-5",
+    item.active ? "text-ow-black" : "text-ow-white/65 hover:text-ow-white",
+  );
+  const body = (
+    <>
+      {item.active ? <motion.span layoutId={pillId} aria-hidden className="absolute inset-0 -z-10 rounded-full bg-ow-white" transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 40 }} /> : null}
       {item.icon}
-      <span>{item.label}</span>
-    </Link>
+      <span className="leading-none">{item.label}</span>
+    </>
+  );
+  return (
+    <li className="relative isolate">
+      {item.href ? (
+        <Link href={item.href} aria-current={item.active ? "page" : undefined} className={className}>
+          {body}
+        </Link>
+      ) : (
+        <button type="button" onClick={item.onClick} aria-haspopup="dialog" aria-expanded={item.expanded} className={className}>
+          {body}
+        </button>
+      )}
+    </li>
   );
 }
 
-/** The search entry point: a pill that opens the search sheet (assets, Windows, events, people, clubs). */
+/** The search entry point: a pill that opens search. */
 export function SearchPill({ className, label = "Search for anything", ...props }: ComponentProps<"button"> & { label?: string }) {
   return (
     <button

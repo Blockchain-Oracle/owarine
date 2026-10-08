@@ -15,6 +15,9 @@ function buildId(): string {
 const BUILD_ID = buildId();
 
 const nextConfig: NextConfig = {
+  // A verification build can go beside the one `next start` is serving (`NEXT_DIST_DIR=.next-verify next build`), so
+  // checking a change never pulls chunks out from under the running DevNet web.
+  ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   env: { NEXT_PUBLIC_BUILD_ID: BUILD_ID },
   generateBuildId: () => BUILD_ID,
   redirects: () => [

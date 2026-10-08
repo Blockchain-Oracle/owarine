@@ -3,11 +3,12 @@
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { resolveTheme, toggleTheme, type Theme } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 // ☀ / ☾ — flips the cream light / ink dark theme. The init script has already set
 // data-theme before paint; this mirrors it into state on mount so the icon matches,
 // then toggles + persists on click.
-export default function ThemeToggle() {
+export default function ThemeToggle({ className }: { className?: string }) {
   const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
@@ -18,14 +19,14 @@ export default function ThemeToggle() {
 
   // Stable placeholder until mounted so SSR/CSR markup matches.
   if (!mounted) {
-    return <button className="theme-toggle" aria-hidden="true" tabIndex={-1} />;
+    return <button className={cn("theme-toggle", className)} aria-hidden="true" tabIndex={-1} />;
   }
 
   const isDark = theme === "dark";
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className={cn("theme-toggle", className)}
       data-cursor="hover"
       onClick={() => setTheme(toggleTheme(theme))}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

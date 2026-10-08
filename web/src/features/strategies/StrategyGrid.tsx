@@ -52,7 +52,7 @@ export function StrategyGrid({ strategies, subscriptionOf, decimals, symbol, ass
       </div>
 
       {show && (
-        <div className="sticky top-16 z-20 mt-5 -mx-4 mb-7 border-b border-hairline bg-bg/85 px-4 py-3 backdrop-blur-md">
+        <div className="sticky top-(--stage-sticky-top) z-20 mt-5 -mx-4 mb-7 border-b border-hairline bg-bg/85 px-4 py-3 backdrop-blur-md">
           <div className="no-scrollbar flex items-center gap-5 overflow-x-auto">
             {TABS.filter((k) => k === "all" || count(k) > 0).map((k) => (
               <button key={k} type="button" onClick={() => setTab(k)} className={cn("strat-tab", tab === k && "strat-tab--on")}>

@@ -274,7 +274,7 @@
 /* ───────── Sticky filter bar ───────── */
 .filter-bar {
   position: sticky;
-  top: calc(var(--appstrip) + 92px);
+  top: var(--stage-sticky-top);
   z-index: 600;
   background: rgba(10,10,10,0.85);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);

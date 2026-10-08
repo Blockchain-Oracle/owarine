@@ -2,17 +2,13 @@
 
 import { isOk } from "@owarine/core/schemas";
 import { formatBaseUnits } from "@owarine/core/units";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { ConnectButton } from "@/features/markets/wallet";
 import { useVenue } from "@/features/markets/useVenue";
 import { RegionNote } from "@/features/region/RegionNote";
 import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
-import { MARKETS_PATH } from "@/lib/routes";
 import { docsUrl } from "@/lib/docs-url";
-import { PLACES } from "@/components/shell/nav";
 import { CapabilityReceipt } from "./CapabilityReceipt";
 import { TRADE_FROM_X, X_HANDLE } from "./copy";
 import { CustodyRail } from "./CustodyRail";
@@ -55,24 +51,6 @@ export function TradeFromXScreen() {
   return (
     <div className="xt xt-page" data-theme="dark">
       <div className="xt-grain" />
-      <div className="xt-strip">
-        <div className="xt-strip-inner">
-          <Link href={MARKETS_PATH} className="xt-brand">
-            OWARINE <span className="xt-brand-crumb">{TRADE_FROM_X.crumb}</span>
-          </Link>
-          <nav className="xt-nav" aria-label="Primary">
-            {PLACES.map((item) => (
-              <Link key={item.href} href={item.href} className="xt-nav-link">
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-          <Link href={MARKETS_PATH} className="xt-open">
-            {TRADE_FROM_X.openApp} <ArrowRight className="xw-icon--s" />
-          </Link>
-        </div>
-      </div>
-
       <section className="xt-hero">
         <div className="xt-hero-grid">
           <div className="relative z-10">

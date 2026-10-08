@@ -1,51 +1,110 @@
 "use client";
 
 import { LayoutGrid } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { Seal } from "@/components/kit";
-import { OPEN_FUNDS_EVENT } from "@/features/funding";
+import { DOCS_URL } from "@/lib/docs-url";
 import { cn } from "@/lib/utils";
 import { HeaderAccount } from "../header/HeaderAccount";
-import { HeaderMoneyPill } from "../header/HeaderMoneyPill";
+import { PLACES, placeOf } from "../nav";
 import ThemeToggle from "../ThemeToggle";
-import { isActiveNavItem, PLACES } from "../nav";
-import { MoreSheet } from "./MoreSheet";
+import { BalanceChip } from "./BalanceChip";
+import { ModeChip } from "./ModeChip";
 
-const ITEM = "flex h-10 items-center gap-3 rounded-ow-card px-3 text-ow-body text-ow-muted transition-colors hover:bg-ow-recessed hover:text-ow-ink aria-[current=page]:bg-ow-recessed aria-[current=page]:font-semibold aria-[current=page]:text-ow-ink";
+/** The active pill's spring (roy-chain's rail, from 21st.dev #21517 "Animated Sidebar"). */
+const SPRING = { type: "spring", stiffness: 500, damping: 40 } as const;
+
+const ROW = cn(
+  "group relative flex h-(--nav-h) items-center gap-3 rounded-full px-3 outline-none",
+  "justify-center xl:justify-start focus-visible:ring-2 focus-visible:ring-ow-white/80",
+);
 
 /**
- * The desktop rail for every page that is not the trading screen (which draws Tradash's own nav in the same style):
- * the mark, Owarine's places, More (every page, in a sheet), and the account at the foot.
+ * The floating rail (Stage B2): Slush's anatomy by way of roy-chain's `rail.client.tsx` — fixed and inset so the canvas
+ * shows around it, radius 32, 48 px rows on a 60 px pitch, a white pill under the place you are on that springs to the
+ * next one. Black in Owarine's colours. Icons only below xl; hidden on phones, where the top bar and the dock take over.
+ * Its foot carries the money, the seat and the theme.
  */
-export function AppRail() {
+export function AppRail({ onMore, moreOpen }: { onMore: () => void; moreOpen: boolean }) {
   const pathname = usePathname();
-  const [more, setMore] = useState(false);
+  const here = placeOf(pathname);
+  const reduce = useReducedMotion();
   return (
-    <aside className="ow-app-rail fixed inset-y-0 left-0 z-40 hidden w-[13.75rem] flex-col gap-1 border-r border-ow-hairline bg-ow-canvas p-4 lg:flex">
-      <Link href="/" className="mb-4 flex items-center gap-2 px-1" aria-label="Owarine home">
-        <span className="grid size-8 place-items-center rounded-full bg-ow-pink">
-          <Seal size={20} tone="white" />
-        </span>
-        <span className="ow-display text-ow-lead">OWARINE</span>
-      </Link>
-      {PLACES.map((item) => (
-        <Link key={item.href} href={item.href} aria-current={isActiveNavItem(pathname, item) ? "page" : undefined} className={ITEM}>
-          <item.icon className="size-4.5" /> {item.name}
+    <aside
+      aria-label="Owarine"
+      className={cn(
+        "ow-rail fixed top-(--rail-inset) bottom-(--rail-inset) left-(--rail-inset) z-40 hidden w-(--rail-w-collapsed) flex-col gap-6 overflow-y-auto overscroll-contain",
+        "rounded-ow-sheet bg-ow-rail px-3 py-6 text-ow-rail-ink [scrollbar-width:none] md:flex xl:w-(--rail-w) xl:px-5",
+        "[@media(max-height:53.75rem)]:gap-4 [@media(max-height:53.75rem)]:py-4",
+      )}
+    >
+      <div className="flex flex-col items-center gap-3 xl:flex-row xl:justify-between">
+        <Link href="/" aria-label="Owarine home" className="flex items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ow-white/80">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-ow-pink">
+            <Seal size={26} tone="white" />
+          </span>
+          <span className="ow-display hidden text-ow-title xl:inline">OWARINE</span>
         </Link>
-      ))}
-      <button type="button" className={cn(ITEM, "text-left")} onClick={() => setMore(true)}>
-        <LayoutGrid className="size-4.5" /> More
-      </button>
-      <div className="mt-auto flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <HeaderMoneyPill onOpen={() => window.dispatchEvent(new Event(OPEN_FUNDS_EVENT))} />
-        </div>
-        <HeaderAccount />
+        <ModeChip />
       </div>
-      <MoreSheet open={more} onClose={() => setMore(false)} />
+
+      <nav aria-label="Main" className="flex flex-col gap-3 [@media(max-height:53.75rem)]:gap-1">
+        {PLACES.map((item) => {
+          const active = here?.id === item.id;
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              title={`${item.name} — ${item.description} (${item.digit})`}
+              className={cn(ROW, active ? "text-ow-black" : "text-ow-white/70 hover:text-ow-white")}
+            >
+              {active ? (
+                <motion.span layoutId="ow-rail-active" aria-hidden className="absolute inset-0 rounded-full bg-ow-white" transition={reduce ? { duration: 0 } : SPRING} />
+              ) : (
+                <span aria-hidden className="absolute inset-0 rounded-full transition-colors duration-150 group-hover:bg-ow-white/10" />
+              )}
+              <item.icon className="relative size-5.5 shrink-0" strokeWidth={active ? 2.5 : 2} aria-hidden />
+              <span className="relative hidden text-ow-lead font-semibold tracking-[-0.01em] xl:inline">{item.name}</span>
+              <kbd aria-hidden className={cn("relative ml-auto hidden font-sans text-ow-micro opacity-0 transition-opacity group-hover:opacity-100 xl:inline", active ? "text-ow-black/50" : "text-ow-white/50")}>
+                {item.digit}
+              </kbd>
+            </Link>
+          );
+        })}
+        <button
+          type="button"
+          onClick={onMore}
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          title="More — every other page"
+          className={cn(ROW, here || !pathname ? "text-ow-white/70 hover:text-ow-white" : "bg-ow-white/15 text-ow-white")}
+        >
+          <span aria-hidden className="absolute inset-0 rounded-full transition-colors duration-150 group-hover:bg-ow-white/10" />
+          <LayoutGrid className="relative size-5.5 shrink-0" aria-hidden />
+          <span className="relative hidden text-ow-lead font-semibold tracking-[-0.01em] xl:inline">More</span>
+        </button>
+      </nav>
+
+      <div className="mt-auto flex flex-col gap-3">
+        <div className="hidden xl:block">
+          <BalanceChip variant="rail" />
+        </div>
+        <HeaderAccount variant="rail" />
+        <div className="flex flex-col items-center gap-2 xl:flex-row xl:justify-between">
+          <ThemeToggle className="ow-rail-theme" />
+          <span className="hidden items-center gap-3 text-ow-caption text-ow-white/55 xl:flex">
+            <a href={DOCS_URL} className="hover:text-ow-white">
+              Docs
+            </a>
+            <Link href="/legal" className="hover:text-ow-white">
+              Legal
+            </Link>
+          </span>
+        </div>
+      </div>
     </aside>
   );
 }

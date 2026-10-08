@@ -21,12 +21,6 @@
   min-height: 0;
 }
 
-/* The reference renders no Footer on /feed; the fixed reel would cover it anyway,
- * and leaving it in the tree hands a keyboard a link nobody can see. */
-body:has(.reel-page) .footer {
-  display: none;
-}
-
 /* flex items-center justify-center px-3 pt-2 pb-[92px] */
 .reel-slot {
   display: flex;

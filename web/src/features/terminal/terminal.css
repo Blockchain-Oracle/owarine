@@ -25,5 +25,3 @@
 .asset-disc-32 .asset-mark, .asset-disc-36 .asset-mark { width: 100%; height: 100%; }
 .asset-disc-32.generic, .asset-disc-36.generic { background: var(--ow-recessed); color: var(--ow-ink); font-size: 0.75rem; font-weight: 800; }
 
-/* The trading screen is the whole viewport: no legacy bottom-nav padding, no page scroll behind the sheets. */
-html[data-surface="terminal"], html[data-surface="terminal"] body { padding: 0 !important; overflow: hidden; overscroll-behavior: none; }

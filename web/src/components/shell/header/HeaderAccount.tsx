@@ -3,6 +3,7 @@
 import { isOk } from "@owarine/core/schemas";
 import { formatBaseUnits } from "@owarine/core/units";
 import { diagnosisCopy } from "@owarine/core/copy";
+import { UserPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { SeatAccountMenu } from "@/features/canton-ux/seat";
 import { useBalancePlate } from "@/features/markets/balance";
@@ -21,7 +22,7 @@ const LEASE_SPAN_SEC = 900;
  * left (`Countdown`), the demo cash, Portfolio, "Use on another device" (`/seat/link`) and Reset seat. A seat with no party (a lapsed or refused lease) says
  * so and offers to lease one; a balance that has not been read yet shows an em dash.
  */
-export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
+export function HeaderAccount({ onOpenMenu, variant = "pill" }: { onOpenMenu?: () => void; variant?: "pill" | "rail" | "avatar" }) {
   const session = useWalletSession();
   const balance = useBalancePlate();
   const lease = useSeatLeaseState();
@@ -37,8 +38,21 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
   // (the modal shows that progress).
   if (!session.isConnected || !session.address) {
     return (
-      <button type="button" className="btn btn-primary" onClick={session.connect} data-cursor="hover">
-        {CONNECT.connect}
+      <button
+        type="button"
+        className={variant === "rail" ? "ow-seat-cta" : variant === "avatar" ? "ow-seat-cta ow-seat-cta--bar" : "btn btn-primary"}
+        onClick={session.connect}
+        aria-label={variant === "pill" ? undefined : CONNECT.connect}
+        data-cursor="hover"
+      >
+        {variant !== "pill" ? (
+          <>
+            <UserPlus aria-hidden className="ow-seat-cta-icon" />
+            <span className="ow-seat-cta-label">{CONNECT.connect}</span>
+          </>
+        ) : (
+          CONNECT.connect
+        )}
       </button>
     );
   }
@@ -63,6 +77,7 @@ export function HeaderAccount({ onOpenMenu }: { onOpenMenu?: () => void }) {
         leasing={lease.leasing}
         unleasedReason={reason}
         onOpenMenu={onOpenMenu}
+        variant={variant}
       />
     </div>
   );

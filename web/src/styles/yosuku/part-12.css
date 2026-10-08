@@ -242,7 +242,7 @@
   display: grid; grid-template-columns: 4fr 8fr;
   gap: 80px; position: relative; z-index: 1;
 }
-.faq-aside { position: sticky; top: 120px; align-self: start; }
+.faq-aside { position: sticky; top: calc(var(--stage-sticky-top) + 1.5rem); align-self: start; }
 .faq-aside .rule { width: 36px; height: 1px; background: var(--white); margin-bottom: 24px; }
 .faq-aside h2 {
   font-family: var(--font-display); font-weight: 500;

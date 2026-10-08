@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDownRight, ArrowUpRight, BadgePercent, ChevronDown, ChevronRight, Coins, Gauge, TrendingDown } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, BadgePercent, ChevronDown, ChevronRight, Clock, Coins, Gauge, LineChart, Settings, TrendingDown } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useRef } from "react";
 import { Odometer, Seal } from "@/components/kit";
@@ -14,6 +14,33 @@ import type { TerminalLane } from "../useTerminalWindow";
 import { trailWords } from "./TradeButtons";
 
 const tap = () => (playTrade("tap"), haptic("tap"));
+
+/**
+ * The trading screen's own sheets, in a row at the head of its right rail (they were Tradash's left nav before the shell's
+ * rail took that edge): the market picker, the trade history and the settings.
+ */
+export function SheetRow({ onMarkets, onHistory, onSettings }: { onMarkets: () => void; onHistory: () => void; onSettings: () => void }) {
+  const items = [
+    { label: "Markets", icon: LineChart, onClick: onMarkets },
+    { label: "History", icon: Clock, onClick: onHistory },
+    { label: "Settings", icon: Settings, onClick: onSettings },
+  ];
+  return (
+    <div role="toolbar" aria-label="Trading screen" className="grid shrink-0 grid-cols-3 gap-1 rounded-full bg-ow-recessed p-1">
+      {items.map((item) => (
+        <button
+          key={item.label}
+          type="button"
+          onClick={() => (tap(), item.onClick())}
+          className="flex h-9 items-center justify-center gap-1.5 rounded-full text-ow-caption font-semibold text-ow-muted transition-colors hover:bg-ow-card hover:text-ow-ink focus-visible:bg-ow-card focus-visible:text-ow-ink focus-visible:outline-none"
+        >
+          <item.icon className="size-4" aria-hidden />
+          {item.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 /** Tradash's asset chip `a2`: logo, the live price in rolling digits ("—" before the first tick), "BTC · Bitcoin", chevron. */
 export function AssetChip({ asset, name, price, onOpen }: { asset: string; name: string; price: number | null; onOpen: () => void }) {

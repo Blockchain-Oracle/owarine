@@ -294,6 +294,11 @@ export function isActiveNavItem(pathname: string | null, item: NavItem): boolean
   return match.paths.some((path) => pathname === path || (!match.exact && pathname.startsWith(`${path}/`)));
 }
 
+/** The trading screen fills the stage edge to edge and never scrolls the page (Tradash's one screen). */
+export function isTradeRoute(pathname: string | null): boolean {
+  return pathname === "/trade" || !!pathname?.startsWith("/trade/");
+}
+
 /** The place the page belongs to, for the rail's active pill; null on a More page. */
 export function placeOf(pathname: string | null): NavItem | null {
   return PLACES.find((item) => isActiveNavItem(pathname, item)) ?? null;

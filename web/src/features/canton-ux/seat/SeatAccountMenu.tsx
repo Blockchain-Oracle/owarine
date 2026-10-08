@@ -1,7 +1,7 @@
 "use client";
 
 import { partyLead, shortHex } from "@owarine/core/units";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { Countdown } from "@/components/data/Countdown";
@@ -38,6 +38,11 @@ export interface SeatMenuProps {
   /** Why the last lease did not land, in words (unleased only). */
   unleasedReason?: string | null;
   onOpenMenu?: () => void;
+  /**
+   * `rail`: the shell rail's row (the seat-number avatar, the seat, the address); the menu opens upward over the rail.
+   * `avatar`: the avatar alone, for the phone's top bar.
+   */
+  variant?: "pill" | "rail" | "avatar";
 }
 
 /**
@@ -61,6 +66,7 @@ export function SeatAccountMenu({
   leasing = false,
   unleasedReason,
   onOpenMenu,
+  variant = "pill",
 }: SeatMenuProps) {
   const [open, setOpen] = useState(defaultOpen);
   const [copied, setCopied] = useState(false);
@@ -81,20 +87,35 @@ export function SeatAccountMenu({
     <div className="relative cx-seat-anchor" ref={menuRef}>
       <button
         type="button"
-        className="wallet-pill"
+        className={variant === "rail" ? "cx-seat-rail" : variant === "avatar" ? "cx-seat-rail cx-seat-rail--avatar" : "wallet-pill"}
         aria-label={M.open}
         aria-haspopup="menu"
         aria-expanded={open}
+        title={variant === "pill" ? undefined : `${M.seat(seatNumber)} · ${address}`}
         onClick={() => {
           setOpen((v) => !v);
           onOpenMenu?.();
         }}
       >
-        <span className="addr-dot" />
-        <span title={address}>{shortHex(address, 4, 4)}</span>
+        {variant !== "pill" ? (
+          <>
+            <span className="cx-seat-rail-avatar" aria-hidden>
+              {seatNumber ?? <UserRound className="size-4.5" strokeWidth={2.5} />}
+            </span>
+            <span className="cx-seat-rail-copy">
+              <span className="cx-seat-rail-name">{M.seat(seatNumber)}</span>
+              <span className="cx-seat-rail-addr">{shortHex(address, 4, 4)}</span>
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="addr-dot" />
+            <span title={address}>{shortHex(address, 4, 4)}</span>
+          </>
+        )}
       </button>
       {open && (
-        <div className="header-account-menu cx-seat-menu" role="menu" aria-label={M.seat(seatNumber)}>
+        <div className={`header-account-menu cx-seat-menu${variant === "rail" ? " cx-seat-menu--above" : ""}`} role="menu" aria-label={M.seat(seatNumber)}>
           <div className="header-account-pools cx-seat-head">
             <div className="cx-seat-title">
               <span className="cx-seat-name">{M.seat(seatNumber)}</span>

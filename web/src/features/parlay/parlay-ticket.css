@@ -1,7 +1,7 @@
 /* The combined ticket — reference/yosuku/components/ParlayBuilder.tsx, the sticky right column. */
 
 /* lg:sticky lg:top-[120px] */
-@media (min-width: 1024px) { .pl-ticket-col { position: sticky; top: 120px; } }
+@media (min-width: 1024px) { .pl-ticket-col { position: sticky; top: calc(var(--stage-sticky-top) + 1.5rem); } }
 
 /* rounded-2xl border border-white/[0.08] bg-neutral-900/60 overflow-hidden */
 .pl-ticket { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(23, 22, 22, 0.6); overflow: hidden; }
