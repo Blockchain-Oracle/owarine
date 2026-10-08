@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Seal } from "@/components/kit";
@@ -39,7 +39,6 @@ export function Splash() {
   const pathname = usePathname();
   const skip = pathname === "/";
   const [shown, setShown] = useState(!skip);
-  const reduce = useReducedMotion();
 
   useEffect(() => {
     if (skip) {
@@ -71,11 +70,12 @@ export function Splash() {
     <AnimatePresence onExitComplete={markSplashDone}>
       {shown ? (
         <motion.div key="splash" className="fixed inset-0 z-[9900] flex flex-col items-center justify-center bg-ow-canvas" initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, ease: "easeInOut" }}>
-          <motion.div initial={reduce ? false : { scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center gap-3">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }} className="flex flex-col items-center gap-3 motion-reduce:!opacity-100 motion-reduce:!transform-none">
             <Seal size={96} />
             <span className="font-ow-display text-ow-title font-black tracking-[0.08em]">OWARINE</span>
           </motion.div>
-          <div className="mt-7">{reduce ? null : <Sparkline />}</div>
+          {/* CSS applies the preference before hydration while keeping the server and client tree identical. */}
+          <div className="mt-7 motion-reduce:hidden"><Sparkline /></div>
         </motion.div>
       ) : null}
     </AnimatePresence>
