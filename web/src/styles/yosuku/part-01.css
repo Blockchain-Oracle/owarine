@@ -101,7 +101,7 @@ html, body {
   overflow-x: clip;
 }
 ::selection { background: var(--signal); color: var(--on-signal); }
-a { color: inherit; text-decoration: none; }
+@layer base { a { color: inherit; text-decoration: none; } } /* layered so a utility colour on a link (a Link-rendered PillButton) wins */
 :where(a, button, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid color-mix(in srgb, var(--signal) 72%, transparent);
   outline-offset: 3px;

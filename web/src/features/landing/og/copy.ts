@@ -5,9 +5,9 @@
  */
 export const OG_COPY = {
   site: {
-    alt: "Owarine: private prediction markets on Canton. Call the move at the venue's firm quote; only you and the venue see the position, and three oracle parties sign the close.",
+    alt: "Owarine: call the close, nobody sees your bets. Private prediction markets on Canton: only you and the venue see your position, and three oracle parties sign the close.",
     eyebrow: "Private calls on Canton",
-    line: "Only you and the venue see your position.",
+    line: "Private prediction markets on Canton · test network · demo credits",
   },
   /** Every card's foot: the network by its name (C10f, Canton brand constant) and the honesty line, in text, no mark. */
   honesty: "Built on Canton Network · test network · demo credits",

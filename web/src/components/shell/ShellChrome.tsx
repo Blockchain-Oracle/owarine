@@ -27,6 +27,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   // The trading screen draws its own nav, rail and dock (TRADASH-FIDELITY.md): no shell at all.
   if (pathname === "/trade" || pathname?.startsWith("/trade/")) return <>{children}</>;
+  // The landing paints its own sky, nav and footer edge to edge (revamp step 3).
+  if (pathname === "/") return <>{children}</>;
   if (isIslandRoute(pathname)) {
     return (
       <>
