@@ -1,7 +1,11 @@
 /**
- * RedStone gateway fetches (no key). One historical request at T carries every feed (≈ 1.9 MB), so the relay fetches
- * a boundary once and cuts each feed's array out of the response text: the archive keeps those exact bytes, and values
- * are parsed from source text, never through a float.
+ * RedStone gateway fetches. RedStone is switching its public gateways off (403 `public_gateway_rejected`, for good from
+ * 29 Oct 2026); an authenticated gateway (`REDSTONE_GATEWAY_URLS`) takes its key as an `x-api-key` header on every
+ * request (`REDSTONE_API_KEY`, RedStone pull-model docs). Without a key the public gateways are tried as before.
+ *
+ * One historical request at T carries every feed (≈ 1.9 MB), so the relay fetches a boundary once and cuts each feed's
+ * array out of the response text: the archive keeps those exact bytes, and values are parsed from source text, never
+ * through a float.
  */
 import { decimalToE8, packagesAt, parseGatewayJson, redstoneHistoricalUrl, redstoneMedianE8, type RedStonePackage } from "@owarine/markets/ops/prints";
 
@@ -17,7 +21,8 @@ async function getFirst(urls: string[]): Promise<GatewayResponse> {
   let last = "no gateway configured";
   for (const url of urls) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+      const key = process.env.REDSTONE_API_KEY?.trim();
+      const res = await fetch(url, { signal: AbortSignal.timeout(20_000), ...(key ? { headers: { "x-api-key": key } } : {}) });
       const text = await res.text();
       if (res.ok && text.startsWith("{")) return { text, fetchedAtMs: Date.now(), gateway: new URL(url).origin };
       last = `HTTP ${res.status} from ${new URL(url).origin}`;
