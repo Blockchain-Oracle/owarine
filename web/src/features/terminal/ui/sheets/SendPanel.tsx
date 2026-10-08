@@ -134,7 +134,8 @@ export function SendPanel() {
   );
 }
 
-/** How many transfers wait for this seat to accept (the Transfer button's badge). */
-export function useIncomingCount(): number {
-  return useSeatPkg().transfers.filter((t) => t.direction === "in").length;
+/** How many transfers wait for this seat to accept (the Transfer button's badge). Reads the terminal's cached view; it
+ * polls nothing of its own (the terminal already does on a live seat). */
+export function useIncomingCount(live: boolean): number {
+  return useSeatPkg(live).transfers.filter((t) => t.direction === "in").length;
 }

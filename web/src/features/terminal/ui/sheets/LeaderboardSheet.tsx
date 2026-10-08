@@ -181,7 +181,8 @@ export function LeaderboardSheet({ open, onClose }: { open: boolean; onClose: ()
   const [rankBy, setRankBy] = useState<RankBy>("roi");
   const [picked, setPicked] = useState<BoardRanking | null>(null);
   const { address } = useWalletSession();
-  const reading = useLeaderboard({ period, ticker: null, rankBy });
+  // A closed sheet polls nothing (it used to refetch every 10 s while the board was empty).
+  const reading = useLeaderboard({ period, ticker: null, rankBy }, open);
   const queryClient = useQueryClient();
   const data = reading && isOk(reading) ? reading.value : null;
   const decimals = data?.meta.decimals ?? 6;

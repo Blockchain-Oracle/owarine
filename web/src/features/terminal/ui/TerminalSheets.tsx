@@ -68,92 +68,119 @@ export function TerminalSheets(props: {
   const fresh = target ? (props.positions.find((p) => p.id === target.id) ?? null) : null;
   const [replay, setReplay] = useState<{ episode: Episode; finalPnl: number; subject: ShareSubject } | null>(null);
   const [tradeShare, setTradeShare] = useState<ShareSubject | null>(null);
+  // A sheet mounts the first time it opens and stays mounted (so it can animate closed): the terminal re-renders on
+  // every price tick, and twelve closed sheets running their hooks each time was most of that cost.
+  const [seen, setSeen] = useState<ReadonlySet<SheetName>>(() => new Set(open ? [open] : []));
+  if (open && !seen.has(open)) setSeen(new Set([...seen, open]));
+  const was = (...names: SheetName[]) => names.some((n) => seen.has(n));
   const shareSubject = fresh ? subjectOfPosition(fresh, props.book.get(fresh.id) ?? null, props.spot) : tradeShare;
   return (
     <>
-      <MarketsSheet open={open === "markets"} onClose={onClose} markets={props.markets} current={props.symbol} onPick={props.onPickSymbol} />
-      <SettingsSheet
-        open={open === "settings"}
-        onClose={onClose}
-        symbol={props.symbol}
-        availableCredits={availableCredits}
-        stakeCredits={props.stakeCredits}
-        minCredits={props.minCredits}
-        quotes={props.quotes}
-        linePrice={props.linePrice}
-        closeSec={props.closeSec}
-        demo={mode === "demo"}
-      />
-      <AccountSheet
-        open={open === "account" || open === "history" || open === "account-settings"}
-        onClose={onClose}
-        initialView={accountView}
-        mode={mode}
-        equity={props.equity}
-        todayPnl={todayRealized + props.totalsPnl}
-        onTour={() => onOpen("tutorial")}
-        onTakeSeat={() => (onClose(), props.onTakeSeat())}
-        onLeaderboard={() => onOpen("leaderboard")}
-        onInstall={() => onOpen("install")}
-        onReplay={(row, episode) => {
-          const exit = episode.samples.at(-1)?.[1] ?? null;
-          setReplay({ episode, finalPnl: row.pnl, subject: { asset: row.asset, side: row.side, intervalSec: row.intervalSec, pnl: row.pnl, cost: row.cost, entry: episode.entrySpot, exit, closed: true } });
-          onOpen("replay");
-        }}
-      />
-      <LeaderboardSheet open={open === "leaderboard"} onClose={onClose} />
-      <InstallSheet open={open === "install"} onClose={onClose} />
-      <ReplaySheet
-        open={open === "replay"}
-        onClose={onClose}
-        episode={replay?.episode ?? null}
-        finalPnl={replay?.finalPnl ?? null}
-        onShare={() => {
-          setTradeShare(replay?.subject ?? null);
-          onOpen("share", null);
-        }}
-      />
-      <PositionsSheet
-        open={open === "positions"}
-        onClose={onClose}
-        positions={props.positions}
-        book={props.book}
-        nowSec={props.nowSec}
-        onShare={(p) => onOpen("share", p)}
-        onAdd={(p) => onOpen("add", p)}
-        onReduce={(p) => onOpen("reduce", p)}
-        onExits={props.ledgerExits && mode === "live" ? (p) => onOpen("exits", p) : undefined}
-        onCloseAll={props.onCloseAll}
-        closingAll={props.closingAll}
-        parlays={props.parlays}
-        marks={props.marks}
-      />
-      <AdjustSheet
-        open={open === "add" || open === "reduce"}
-        onClose={onClose}
-        kind={open === "reduce" ? "reduce" : "add"}
-        position={fresh}
-        live={fresh ? (props.book.get(fresh.id) ?? null) : null}
-        availableCredits={availableCredits}
-        demo={mode === "demo"}
-        poolAddress={fresh && fresh.marketId === props.activeMarketId ? props.poolAddress : null}
-        onAdd={props.onAdd}
-        onReduce={props.onReduce}
-      />
-      <ExitSheet open={open === "exits"} onClose={onClose} position={fresh} spot={props.spot} onChanged={props.onExitsChanged} />
-      <ShareSheet open={open === "share"} onClose={onClose} subject={shareSubject} />
-      <Tutorial
-        open={open === "tutorial"}
-        onDone={(choice) => {
-          setTradeSettings({ tutorialSeen: true });
-          if (choice === "demo") setMode("demo");
-          if (choice === "live") {
-            setMode("live");
-            props.onTakeSeat();
-          }
-          onClose();
-        }}
-      />
+      {was("markets") ? (
+        <MarketsSheet open={open === "markets"} onClose={onClose} markets={props.markets} current={props.symbol} onPick={props.onPickSymbol} />
+      ) : null}
+      {was("settings") ? (
+        <SettingsSheet
+          open={open === "settings"}
+          onClose={onClose}
+          symbol={props.symbol}
+          availableCredits={availableCredits}
+          stakeCredits={props.stakeCredits}
+          minCredits={props.minCredits}
+          quotes={props.quotes}
+          linePrice={props.linePrice}
+          closeSec={props.closeSec}
+          demo={mode === "demo"}
+        />
+      ) : null}
+      {was("account", "history", "account-settings") ? (
+        <AccountSheet
+          open={open === "account" || open === "history" || open === "account-settings"}
+          onClose={onClose}
+          initialView={accountView}
+          mode={mode}
+          equity={props.equity}
+          todayPnl={todayRealized + props.totalsPnl}
+          onTour={() => onOpen("tutorial")}
+          onTakeSeat={() => (onClose(), props.onTakeSeat())}
+          onLeaderboard={() => onOpen("leaderboard")}
+          onInstall={() => onOpen("install")}
+          onReplay={(row, episode) => {
+            const exit = episode.samples.at(-1)?.[1] ?? null;
+            setReplay({ episode, finalPnl: row.pnl, subject: { asset: row.asset, side: row.side, intervalSec: row.intervalSec, pnl: row.pnl, cost: row.cost, entry: episode.entrySpot, exit, closed: true } });
+            onOpen("replay");
+          }}
+        />
+      ) : null}
+      {was("leaderboard") ? (
+        <LeaderboardSheet open={open === "leaderboard"} onClose={onClose} />
+      ) : null}
+      {was("install") ? (
+        <InstallSheet open={open === "install"} onClose={onClose} />
+      ) : null}
+      {was("replay") ? (
+        <ReplaySheet
+          open={open === "replay"}
+          onClose={onClose}
+          episode={replay?.episode ?? null}
+          finalPnl={replay?.finalPnl ?? null}
+          onShare={() => {
+            setTradeShare(replay?.subject ?? null);
+            onOpen("share", null);
+          }}
+        />
+      ) : null}
+      {was("positions") ? (
+        <PositionsSheet
+          open={open === "positions"}
+          onClose={onClose}
+          positions={props.positions}
+          book={props.book}
+          nowSec={props.nowSec}
+          onShare={(p) => onOpen("share", p)}
+          onAdd={(p) => onOpen("add", p)}
+          onReduce={(p) => onOpen("reduce", p)}
+          onExits={props.ledgerExits && mode === "live" ? (p) => onOpen("exits", p) : undefined}
+          onCloseAll={props.onCloseAll}
+          closingAll={props.closingAll}
+          parlays={props.parlays}
+          marks={props.marks}
+        />
+      ) : null}
+      {was("add", "reduce") ? (
+        <AdjustSheet
+          open={open === "add" || open === "reduce"}
+          onClose={onClose}
+          kind={open === "reduce" ? "reduce" : "add"}
+          position={fresh}
+          live={fresh ? (props.book.get(fresh.id) ?? null) : null}
+          availableCredits={availableCredits}
+          demo={mode === "demo"}
+          poolAddress={fresh && fresh.marketId === props.activeMarketId ? props.poolAddress : null}
+          onAdd={props.onAdd}
+          onReduce={props.onReduce}
+        />
+      ) : null}
+      {was("exits") ? (
+        <ExitSheet open={open === "exits"} onClose={onClose} position={fresh} spot={props.spot} onChanged={props.onExitsChanged} />
+      ) : null}
+      {was("share") ? (
+        <ShareSheet open={open === "share"} onClose={onClose} subject={shareSubject} />
+      ) : null}
+      {was("tutorial") ? (
+        <Tutorial
+          open={open === "tutorial"}
+          onDone={(choice) => {
+            setTradeSettings({ tutorialSeen: true });
+            if (choice === "demo") setMode("demo");
+            if (choice === "live") {
+              setMode("live");
+              props.onTakeSeat();
+            }
+            onClose();
+          }}
+        />
+      ) : null}
     </>
   );
 }

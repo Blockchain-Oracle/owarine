@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { persistSoon } from "./persist";
 
 /**
  * Demo and live (Tradash's `tradingMode` + demo state; TRADASH-FIDELITY.md §Demo mode). Live is the seat: real legs on
@@ -113,11 +114,8 @@ function isPaperParlay(p: unknown): p is PaperParlay {
 
 function commit(next: ModeState): void {
   state = next;
-  try {
-    globalThis.localStorage?.setItem(KEY, JSON.stringify(state));
-  } catch {
-    // Storage blocked: demo lasts for this tab.
-  }
+  // Saved within a second and on page hide (a trail moves the paper position on each favourable tick).
+  persistSoon(KEY, () => state);
   listeners.forEach((l) => l());
 }
 

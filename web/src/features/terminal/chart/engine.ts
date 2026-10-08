@@ -53,8 +53,17 @@ export function labelDecimals(price: number, step: number): number {
   return Math.max(priceDecimals(price), Math.max(0, -Math.floor(Math.log10(step) + 1e-9)));
 }
 
+/** One formatter per decimal count: `toLocaleString` with options builds a new one per call (~15 µs), and the chart
+ * formats 16–20 labels a frame. A cached `Intl.NumberFormat` is ~0.4 µs. */
+const formatters = new Map<number, Intl.NumberFormat>();
+const formatterFor = (decimals: number): Intl.NumberFormat => {
+  let f = formatters.get(decimals);
+  if (!f) formatters.set(decimals, (f = new Intl.NumberFormat("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })));
+  return f;
+};
+
 export function formatPrice(price: number, decimals = priceDecimals(price)): string {
-  return price.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+  return formatterFor(decimals).format(price);
 }
 
 export const formatUsd = (price: number, decimals?: number): string => `$${formatPrice(price, decimals)}`;
@@ -62,7 +71,7 @@ export const formatUsd = (price: number, decimals?: number): string => `$${forma
 /** Signed money with a true minus: "+$1,234.56" / "−$3.20". */
 export function formatSigned(value: number, decimals = 2): string {
   const sign = value < 0 ? "−" : "+";
-  return `${sign}$${Math.abs(value).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}`;
+  return `${sign}$${formatterFor(decimals).format(Math.abs(value))}`;
 }
 
 /** A ring of the last `capacity` samples, oldest first when read. */

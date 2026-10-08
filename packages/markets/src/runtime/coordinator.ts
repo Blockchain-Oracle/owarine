@@ -17,6 +17,7 @@ import { openStream, type StreamSource } from "./event-source";
 import { ladderBase, ladderBookState, ladderLatestWire, parseLadder, type Ladder } from "./ladder";
 import { BOOK_LEVELS, EMPTY_BOOK_DEPTH, toBookDepth } from "./mappers";
 import { peekClient, subscribeExchange } from "./read-runtime";
+import { pageDocument } from "./page";
 
 /** How many levels each side a coordinated ladder carries; callers slice what they display. */
 export const CANONICAL_BOOK_DEPTH = BOOK_LEVELS;
@@ -170,8 +171,44 @@ function close(): void {
   live = false;
 }
 
+/** A tab hidden this long lets the ladder stream go (as the price stream does); it reopens with a fresh snapshot. */
+const HIDDEN_CLOSE_MS = 60_000;
+let hiddenTimer: ReturnType<typeof setTimeout> | null = null;
+let visibilityBound = false;
+
+function startTick(): void {
+  const base = ladderBase(peekClient());
+  tickTimer ??= setInterval(() => {
+    if (!source && base) void fillFromLatest(base);
+    deriveAll();
+  }, TICK_MS);
+}
+
+function bindVisibility(): void {
+  const doc = pageDocument();
+  if (visibilityBound || !doc) return;
+  visibilityBound = true;
+  doc.addEventListener("visibilitychange", () => {
+    if (doc.visibilityState === "hidden") {
+      hiddenTimer ??= setTimeout(() => {
+        hiddenTimer = null;
+        // Every Window keeps its subscribers; only the stream and the tick stop while nobody can see them.
+        if (entries.size > 0) close();
+      }, HIDDEN_CLOSE_MS);
+      return;
+    }
+    if (hiddenTimer) clearTimeout(hiddenTimer);
+    hiddenTimer = null;
+    if (entries.size === 0) return;
+    snapshotSeen = false;
+    open();
+    startTick();
+  });
+}
+
 /** Subscribes to one Window's ladder; the first subscriber opens the stream, the last one closes it after a linger. */
 export function subscribeBook(target: BookTarget, listener: () => void): () => void {
+  bindVisibility();
   let entry = entries.get(target.marketId);
   if (!entry) {
     entry = { target, listeners: new Set(), reading: null, view: null };
@@ -181,11 +218,7 @@ export function subscribeBook(target: BookTarget, listener: () => void): () => v
   if (lingerTimer) clearTimeout(lingerTimer);
   lingerTimer = null;
   open();
-  const base = ladderBase(peekClient());
-  tickTimer ??= setInterval(() => {
-    if (!source && base) void fillFromLatest(base);
-    deriveAll();
-  }, TICK_MS);
+  startTick();
   derive(entry);
   const mine = entry;
   return () => {

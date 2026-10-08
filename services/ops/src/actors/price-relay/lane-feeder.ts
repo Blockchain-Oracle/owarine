@@ -16,13 +16,14 @@ import { assertCommandId } from "@owarine/ledger";
 import { archivePrints } from "@owarine/db";
 import { TEMPLATE_IDS } from "@owarine/daml";
 import { parsePrintSource, type PrintSourceParts } from "@owarine/core/market";
-import { cmd, decodeOpenPrint, decodePriceQuote, decodeWindowState, failureText, learnTerms, pick, readActive, submit, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
+import { cmd, createdOf, decodeOpenPrint, decodePriceQuote, decodeWindowState, digest, failureText, learnTerms, pick, readActive, submit, type RoleSession, type TermsC } from "@owarine/markets/ops/canton";
 import { runActor, type PassResult } from "../../runtime/actor";
 import { errorText } from "../../runtime/env";
 import { ORACLE_ROLES, type OracleRole } from "../../runtime/keys";
 import { createAttestedReader, type AttestedReader, type AttestedReaderDeps, type ReadSlot } from "../../prices/attested-read";
 import { oracleName, type VenueContext } from "../venue/context";
 import { emitVenueEvent } from "../venue/events";
+import { emitFreshQuotes } from "./quote-bus";
 
 export interface LaneSlot extends ReadSlot {
   symbol: string;
@@ -71,14 +72,18 @@ export function laneSlots(waiting: ReadonlyArray<{ terms: TermsC; slot: "open" |
 export const lanePrintCommandId = (oracle: string, symbol: string, boundarySec: number, policyVersion: number) =>
   assertCommandId(`lprint:${oracle}:${symbol}:${boundarySec}:v${policyVersion}`);
 
-interface OracleFeed {
+/** One oracle's prints for one boundary, in one transaction: the slot keys are sorted, so a retry of the same set lands once. */
+export const lanePrintsCommandId = (oracle: string, boundarySec: number, slotKeys: readonly string[]) =>
+  assertCommandId(`lprints:${oracle}:${boundarySec}:${digest(...[...slotKeys].sort())}`);
+
+export interface OracleFeed {
   role: OracleRole;
   session: RoleSession;
   reader: AttestedReader;
   log: (why: string) => void;
 }
 
-interface LaneFeederState {
+export interface LaneFeederState {
   venue: RoleSession;
   resolver: string;
   feeds: OracleFeed[];
@@ -102,7 +107,12 @@ async function archive(feed: string, boundarySec: number, payload: string, signe
   if (file) appendFileSync(file, `${JSON.stringify(row)}\n`);
 }
 
-async function feedOne(state: LaneFeederState, feed: OracleFeed, slot: LaneSlot, nowSec: number): Promise<{ line: string | null; retrySec: number | null }> {
+type SlotRead =
+  | { kind: "ready"; slot: LaneSlot; key: string; label: string; priceE8: bigint; payload: string; signers: number; note: string; fetchedAtSec: number }
+  | { kind: "skip"; line: string | null; retrySec: number | null };
+
+/** Reads one slot's print for one oracle: ready to post, waiting, or missed (given up, the Windows void). */
+async function readOne(state: LaneFeederState, feed: OracleFeed, slot: LaneSlot, nowSec: number): Promise<SlotRead> {
   const name = oracleName(feed.role);
   const key = `${feed.session.party}|${slotKey(slot.symbol, slot.boundarySec, slot.barLenSec, slot.policyVersion)}`;
   const label = `${slot.symbol} @${new Date(slot.boundarySec * 1000).toISOString().slice(11, 16)}Z (${slot.parts.source})`;
@@ -110,35 +120,66 @@ async function feedOne(state: LaneFeederState, feed: OracleFeed, slot: LaneSlot,
   try {
     outcome = await feed.reader.read(slot.parts, slot, nowSec);
   } catch (error) {
-    return { line: `${name} ${label}: read failed, retrying: ${errorText(error)}`, retrySec: nowSec + 5 };
+    return { kind: "skip", line: `${name} ${label}: read failed, retrying: ${errorText(error)}`, retrySec: nowSec + 5 };
   }
-  if (outcome.kind === "wait") return { line: null, retrySec: outcome.retrySec };
+  if (outcome.kind === "wait") return { kind: "skip", line: null, retrySec: outcome.retrySec };
   if (outcome.kind === "missed") {
     state.done.add(key);
     state.counters.missed++;
-    return { line: `${name} ${label}: no print, ${outcome.why}; ${slot.markets.join(", ")} will void on a missing print`, retrySec: null };
+    return { kind: "skip", line: `${name} ${label}: no print, ${outcome.why}; ${slot.markets.join(", ")} will void on a missing print`, retrySec: null };
   }
   const r = outcome.read;
   const fetchedAtSec = Math.max(r.fetchedAtSec, slot.boundarySec);
+  await archive(`${name}:${slot.parts.source}:${slot.symbol}`, slot.boundarySec, r.payload, r.signers, r.priceE8, fetchedAtSec);
+  return { kind: "ready", slot, key, label, priceE8: r.priceE8, payload: r.payload, signers: r.signers, note: r.note, fetchedAtSec };
+}
+
+const quoteOf = (state: LaneFeederState, feed: OracleFeed, x: Extract<SlotRead, { kind: "ready" }>) =>
+  cmd.createPriceQuote({
+    oracle: feed.session.party, venue: state.venue.party, resolver: state.resolver, symbol: x.slot.symbol, boundarySec: x.slot.boundarySec, priceE8: x.priceE8,
+    barLenSec: x.slot.barLenSec, fetchedAtSec: x.fetchedAtSec, payloadHash: hash(x.payload), policyVersion: x.slot.policyVersion,
+  });
+
+/**
+ * Posts one oracle's ready prints for one boundary in ONE transaction (13 lane symbols were 39 transactions a boundary,
+ * landing T+15 to T+65 s on DevNet), as the crypto feeder already does. A refused batch falls back to one print per
+ * transaction under each print's own command id, so one bad print never holds the others back.
+ */
+export async function postBoundary(state: LaneFeederState, feed: OracleFeed, ready: Extract<SlotRead, { kind: "ready" }>[], nowSec: number): Promise<{ lines: string[]; retrySec: number | null }> {
+  const name = oracleName(feed.role);
+  const boundarySec = ready[0]!.slot.boundarySec;
+  const landed = (out: Awaited<ReturnType<typeof submit>>, xs: typeof ready): string[] => {
+    if (out.kind === "dry") return xs.map((x) => `${out.note}: ${name} ${x.label} ${x.priceE8}`);
+    for (const x of xs) state.done.add(x.key);
+    if (out.recovered) state.counters.recovered += xs.length;
+    else state.counters.posted += xs.length;
+    // The resolver's fast path: it records the boundary the moment the quotes exist, not on its next poll.
+    emitFreshQuotes(createdOf(out.created, TEMPLATE_IDS.PriceQuote).map((e) => ({ cid: e.contractId, data: decodePriceQuote(e.createArgument) })));
+    emitVenueEvent({ kind: "printed", oracle: name, boundarySec, symbols: xs.map((x) => x.slot.symbol), atMs: Date.now() });
+    return [`${name} posted ${xs.length} lane print(s) @${new Date(boundarySec * 1000).toISOString().slice(11, 16)}Z in one transaction (${xs.map((x) => `${x.slot.symbol} T+${x.fetchedAtSec - boundarySec}s`).join(", ")}; ${out.ms} ms)`];
+  };
   try {
-    await archive(`${name}:${slot.parts.source}:${slot.symbol}`, slot.boundarySec, r.payload, r.signers, r.priceE8, fetchedAtSec);
-    const out = await submit(feed.session, {
-      commandId: lanePrintCommandId(name, slot.symbol, slot.boundarySec, slot.policyVersion),
-      commands: [cmd.createPriceQuote({
-        oracle: feed.session.party, venue: state.venue.party, resolver: state.resolver, symbol: slot.symbol, boundarySec: slot.boundarySec, priceE8: r.priceE8,
-        barLenSec: slot.barLenSec, fetchedAtSec, payloadHash: hash(r.payload), policyVersion: slot.policyVersion,
-      })],
-    });
-    if (out.kind === "dry") return { line: `${out.note}: ${name} ${label} ${r.priceE8}`, retrySec: null };
-    state.done.add(key);
-    if (out.recovered) state.counters.recovered++;
-    else state.counters.posted++;
-    emitVenueEvent({ kind: "printed", oracle: name, boundarySec: slot.boundarySec, symbols: [slot.symbol], atMs: Date.now() });
-    return { line: `${name} posted ${label} ${r.priceE8} e-8 at T+${fetchedAtSec - slot.boundarySec}s (${r.note}, ${out.ms} ms)`, retrySec: null };
+    const out = await submit(feed.session, { commandId: lanePrintsCommandId(name, boundarySec, ready.map((x) => x.key)), commands: ready.map((x) => quoteOf(state, feed, x)) });
+    return { lines: landed(out, ready), retrySec: null };
   } catch (error) {
-    state.counters.failed++;
-    return { line: `${name} ${label}: post failed (retrying under the same command id): ${failureText(error)}`, retrySec: nowSec + 3 };
+    if (ready.length === 1) {
+      state.counters.failed++;
+      return { lines: [`${name} ${ready[0]!.label}: post failed (retrying): ${failureText(error)}`], retrySec: nowSec + 3 };
+    }
   }
+  const lines: string[] = [];
+  let retrySec: number | null = null;
+  for (const x of ready) {
+    try {
+      const out = await submit(feed.session, { commandId: lanePrintCommandId(name, x.slot.symbol, x.slot.boundarySec, x.slot.policyVersion), commands: [quoteOf(state, feed, x)] });
+      lines.push(...landed(out, [x]));
+    } catch (error) {
+      state.counters.failed++;
+      lines.push(`${name} ${x.label}: post failed (retrying under the same command id): ${failureText(error)}`);
+      retrySec = nowSec + 3;
+    }
+  }
+  return { lines, retrySec };
 }
 
 export async function laneFeederPass(state: LaneFeederState): Promise<PassResult> {
@@ -162,18 +203,30 @@ export async function laneFeederPass(state: LaneFeederState): Promise<PassResult
   const postable = due.some((s) => nowSec >= s.earliestSec);
   const quotes = postable ? pick(await readActive(state.venue, [TEMPLATE_IDS.PriceQuote]), TEMPLATE_IDS.PriceQuote, decodePriceQuote) : [];
   const have = new Set(quotes.map((q) => `${q.data.oracle}|${slotKey(q.data.symbol, q.data.boundarySec, q.data.barLenSec, q.data.policyVersion)}`));
+  const note = (feed: OracleFeed, line: string | null, retrySec: number | null) => {
+    if (line) {
+      lines.push(line);
+      feed.log(line);
+    }
+    if (retrySec !== null) wakeSec = Math.min(wakeSec, retrySec);
+  };
   await Promise.all(
     state.feeds.map(async (feed) => {
-      for (const slot of due) {
-        if (nowSec < slot.earliestSec || !slot.oracles.has(feed.session.party)) continue;
+      const mine = due.filter((slot) => {
+        if (nowSec < slot.earliestSec || !slot.oracles.has(feed.session.party)) return false;
         const key = `${feed.session.party}|${slotKey(slot.symbol, slot.boundarySec, slot.barLenSec, slot.policyVersion)}`;
-        if (have.has(key) || state.done.has(key)) continue;
-        const r = await feedOne(state, feed, slot, nowSec);
-        if (r.line) {
-          lines.push(r.line);
-          feed.log(r.line);
-        }
-        if (r.retrySec !== null) wakeSec = Math.min(wakeSec, r.retrySec);
+        return !have.has(key) && !state.done.has(key);
+      });
+      const reads = await Promise.all(mine.map((slot) => readOne(state, feed, slot, nowSec)));
+      const byBoundary = new Map<number, Extract<SlotRead, { kind: "ready" }>[]>();
+      for (const r of reads) {
+        if (r.kind === "skip") note(feed, r.line, r.retrySec);
+        else byBoundary.set(r.slot.boundarySec, [...(byBoundary.get(r.slot.boundarySec) ?? []), r]);
+      }
+      for (const ready of byBoundary.values()) {
+        const posted = await postBoundary(state, feed, ready, nowSec);
+        for (const l of posted.lines) note(feed, l, null);
+        if (posted.retrySec !== null) wakeSec = Math.min(wakeSec, posted.retrySec);
       }
     }),
   );

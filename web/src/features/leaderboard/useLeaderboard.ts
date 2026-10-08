@@ -12,8 +12,9 @@ export const LEADERBOARD_KEY = ["owarine", "leaderboard"] as const;
  * Keep the last snapshot during refresh failures; an empty board retries without a page reload. A tab switch keeps
  * the board on screen until the new slice arrives (the route answers it from the same cached scan).
  */
-export function useLeaderboard(board: BoardQuery): Reading<BoardData> | null {
+export function useLeaderboard(board: BoardQuery, enabled = true): Reading<BoardData> | null {
   const query = useQuery({
+    enabled,
     queryKey: [...LEADERBOARD_KEY, board.period, board.ticker, board.rankBy ?? "pnl"],
     queryFn: ({ signal }) => readLeaderboard(signal, board),
     staleTime: POLL_MS,

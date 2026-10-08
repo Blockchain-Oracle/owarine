@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@owarine/core/market";
 import type { TermsC } from "@owarine/markets/ops/canton";
 import { createAttestedReader, surgeValueOf } from "../../prices/attested-read";
-import { laneSlots, lanePrintCommandId } from "./lane-feeder";
+import { laneSlots, lanePrintCommandId, postBoundary } from "./lane-feeder";
 
 const T = 1_790_690_400; // 2026-09-29T14:00:00Z, a Regular boundary
 const terms = (over: Partial<TermsC>): TermsC => ({
@@ -97,5 +97,43 @@ describe("attested reads (C6)", () => {
     const late = createAttestedReader(deps({ prestocks: () => ({ history: () => [], snapshots: () => [] }) }));
     expect(await late.read(parts, s, T + 30)).toMatchObject({ kind: "wait" });
     expect(await late.read(parts, s, T + 46)).toMatchObject({ kind: "missed" });
+  });
+});
+
+describe("lane prints are one transaction per oracle and boundary (8 Oct audit)", () => {
+  const session = (submit: (req: { commandId: string; commands: unknown[] }) => Promise<unknown>) => ({
+    role: "oracle-coinbase" as const, party: "o1", dryRun: false,
+    client: { submitAndWaitForTransaction: vi.fn(submit) },
+  });
+  const ready = (symbol: string) => ({
+    kind: "ready" as const, key: `o1|${symbol}|${T}|1|2`, label: symbol, priceE8: 100n, payload: "{}", signers: 3, note: "redstone", fetchedAtSec: T + 6,
+    slot: { symbol, boundarySec: T, earliestSec: T + 5, deadlineSec: T + 900, barLenSec: 1, policyVersion: 2, parts: { source: "redstone", feed: symbol } as never, printSource: "x", oracles: new Set(["o1"]), markets: [`${symbol}-5m:7`] },
+  });
+  const state = () => ({ venue: { party: "venue::1" }, resolver: "resolver::1", feeds: [], terms: new Map(), done: new Set<string>(), counters: { posted: 0, recovered: 0, missed: 0, failed: 0 }, log: () => undefined }) as never;
+  const landed = { transaction: { updateId: "u", events: [] }, recovered: false };
+
+  it("posts every ready symbol of one boundary in a single submit", async () => {
+    const s = session(async () => landed);
+    const st = state();
+    const out = await postBoundary(st, { role: "oracle-coinbase", session: s, reader: null as never, log: () => undefined } as never, [ready("TSLA"), ready("AAPL"), ready("NVDA")], T + 6);
+    expect(s.client.submitAndWaitForTransaction).toHaveBeenCalledTimes(1);
+    expect((s.client.submitAndWaitForTransaction.mock.calls[0]![0] as { commands: unknown[] }).commands).toHaveLength(3);
+    expect((st as unknown as { counters: { posted: number } }).counters.posted).toBe(3);
+    expect(out.retrySec).toBeNull();
+  });
+
+  it("falls back to one print per transaction when the batch is refused, so one bad print holds nothing back", async () => {
+    const s = session(async (req) => {
+      if (req.commands.length > 1) throw new Error("batch refused");
+      if (req.commandId.includes("AAPL")) throw new Error("this one refused");
+      return landed;
+    });
+    const st = state();
+    const out = await postBoundary(st, { role: "oracle-coinbase", session: s, reader: null as never, log: () => undefined } as never, [ready("TSLA"), ready("AAPL")], T + 6);
+    expect(s.client.submitAndWaitForTransaction).toHaveBeenCalledTimes(3);
+    const c = (st as unknown as { counters: { posted: number; failed: number } }).counters;
+    expect(c.posted).toBe(1);
+    expect(c.failed).toBe(1);
+    expect(out.retrySec).toBe(T + 9);
   });
 });

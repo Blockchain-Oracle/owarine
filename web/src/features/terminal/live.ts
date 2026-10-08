@@ -117,9 +117,21 @@ export function useLiveBook(positions: readonly ValuedPosition[]): ReadonlyMap<s
  * ladder: PnL rises with spot for Up and falls for Down. Null when the ladder carries no price model, Close cannot fill,
  * or no spot within ±10 % breaks even.
  */
+/** The last break-even, keyed by what it depends on: the position, the ladder it is valued on and the second. */
+let beCache: { key: string; value: number | null } | null = null;
+
 export function breakEvenSpot(p: ValuedPosition, side: "up" | "down", spot: number, nowSec: number): number | null {
   const snap = ladderSnapshot(p.marketId);
   if (!snap || typeof snap.ladder.sigmaBps !== "number" || !(spot > 0)) return null;
+  // The screen renders on every tick; the answer only changes with the ladder, the clock or the position.
+  const key = `${p.marketId}|${side}|${p.costBasisBase}|${p.balanceUpRaw}|${p.balanceDownRaw}|${snap.ladder.asOfMs}|${nowSec}`;
+  if (beCache?.key === key) return beCache.value;
+  const value = solveBreakEven(p, side, spot, nowSec, snap);
+  beCache = { key, value };
+  return value;
+}
+
+function solveBreakEven(p: ValuedPosition, side: "up" | "down", spot: number, nowSec: number, snap: NonNullable<ReturnType<typeof ladderSnapshot>>): number | null {
   const pnlAt = (s: number) =>
     livePnl({ ladder: snap.ladder, spotE8: BigInt(Math.round(s * 1e8)), nowSec, upContractsRaw: p.balanceUpRaw, downContractsRaw: p.balanceDownRaw, costBasisBase: p.costBasisBase });
   let lo = spot * 0.9;
@@ -132,7 +144,8 @@ export function breakEvenSpot(p: ValuedPosition, side: "up" | "down", spot: numb
   const fLo = f(lo);
   const fHi = f(hi);
   if (fLo === null || fHi === null || fLo > 0 || fHi < 0) return null;
-  for (let i = 0; i < 40; i++) {
+  // 26 halvings of a ±10 % bracket: under a millionth of the price, far below a cent.
+  for (let i = 0; i < 26; i++) {
     const mid = (lo + hi) / 2;
     const v = f(mid);
     if (v === null) return null;

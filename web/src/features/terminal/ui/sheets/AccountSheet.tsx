@@ -34,10 +34,11 @@ export interface HistoryRow {
   tag: string | null;
 }
 
-function useHistoryRows(mode: TradeMode): { rows: HistoryRow[]; loading: boolean } {
+function useHistoryRows(mode: TradeMode, open: boolean): { rows: HistoryRow[]; loading: boolean } {
   const modeState = useModeState();
   const { address } = useWalletSession();
-  const seat = useWalletHistory(mode === "live" ? address : null);
+  // A closed sheet polls nothing.
+  const seat = useWalletHistory(mode === "live" ? address : null, open);
   if (mode === "demo") {
     return {
       loading: false,
@@ -127,8 +128,8 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
   const [funds, setFunds] = useState(false);
   const session = useWalletSession();
   const settings = useTradeSettings();
-  const history = useHistoryRows(mode);
-  const incoming = useIncomingCount();
+  const history = useHistoryRows(mode, open);
+  const incoming = useIncomingCount(mode === "live");
   const title = view === "settings" ? "Settings" : view === "history" ? "Trade history" : view === "send" ? "Send credits" : "Account";
 
   return (

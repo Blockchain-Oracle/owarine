@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { persistSoon } from "./persist";
 
 /**
  * What the ledger does not hold about a seat position but the screen needs: the spot when it was opened (the chart's
@@ -35,11 +36,7 @@ function hydrate(): void {
 }
 
 function commit(): void {
-  try {
-    globalThis.localStorage?.setItem(KEY, JSON.stringify(entries));
-  } catch {
-    // Storage blocked: the record lasts for this tab.
-  }
+  persistSoon(KEY, () => entries);
   listeners.forEach((l) => l());
 }
 

@@ -7,8 +7,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { leasedOf, useSeatLeaseState } from "@/providers/wallet/seat-lease-context";
 
-/** Exits fill and transfers arrive without the seat doing anything: a few seconds' poll keeps the screen honest. */
-const POLL_MS = 4_000;
+/** Exits fill and transfers arrive without the seat doing anything. An armed exit can fill any second, so it is read
+ * every 5 s while one is armed; otherwise every 15 s (the positions poll's own pace), and the seat's own writes refresh it. */
+const POLL_ARMED_MS = 5_000;
+const POLL_IDLE_MS = 15_000;
 export const seatPkgKey = (party: string | null) => ["owarine", "seat-pkg", party] as const;
 
 export interface SeatPkgState {
@@ -36,7 +38,7 @@ export function useSeatPkg(enabled = true): SeatPkgState {
       const r = await readSeatPkg();
       return r.ok ? ok(r.value, Date.now()) : err(r.diagnosis);
     },
-    { pollMs: POLL_MS, enabled: enabled && party !== null, needs: [] },
+    { pollMs: (r) => (r && r.ok && r.value.exits.length > 0 ? POLL_ARMED_MS : POLL_IDLE_MS), enabled: enabled && party !== null, needs: [] },
   );
   const view = reading && reading.ok ? reading.value : null;
   const refresh = useCallback(() => queryClient.invalidateQueries({ queryKey: seatPkgKey(party) }), [queryClient, party]);

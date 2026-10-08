@@ -51,6 +51,14 @@ export async function listParlayTickets(wallet: Address): Promise<Reading<Parlay
 /** A leg settles the moment its Window does; fifteen seconds (the lanes\' poll) left a won ticket reading "open" for most of a minute. */
 const PARLAY_SLIP_POLL_MS = 8_000;
 
+/** With no leg left to settle there is nothing to wait for: a minute, and the seat's own writes refresh it at once. */
+const PARLAY_IDLE_POLL_MS = 60_000;
+
+const waiting = (r: Reading<ParlayTicketView[]> | null) => Boolean(r && r.ok && r.value.some((t) => t.legs.some((l) => !l.settledOnchain)));
+
 export function useParlayTickets(wallet: Address | null): Reading<ParlayTicketView[]> | null {
-  return useReadingQuery(parlayTicketsKey(wallet), () => listParlayTickets(wallet as Address), { pollMs: PARLAY_SLIP_POLL_MS, enabled: wallet !== null });
+  return useReadingQuery(parlayTicketsKey(wallet), () => listParlayTickets(wallet as Address), {
+    pollMs: (r) => (waiting(r) ? PARLAY_SLIP_POLL_MS : PARLAY_IDLE_POLL_MS),
+    enabled: wallet !== null,
+  });
 }
