@@ -40,6 +40,11 @@ export const PLATE = {
       manage: "Manage",
     },
   },
+  /** The 8 Oct redesign: the hero's actions and the pockets row. */
+  trade: "Trade",
+  pocketsTitle: "Pockets",
+  manage: "Manage",
+  vault: { label: "Trading Balance", note: "Part of your credits. Move money in and out here." },
   connect: {
     title: "Take a Seat",
     newHere: "New here? Test credits are free →",

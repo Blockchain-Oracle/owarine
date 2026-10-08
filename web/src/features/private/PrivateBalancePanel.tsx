@@ -120,8 +120,14 @@ export function PrivateBalancePanel({ inline, className }: { inline?: boolean; c
         <Cell label={PRIVATE.panel.cells.inCalls}>{positions?.ok ? <Money value={positions.value.positions.filter((p) => p.status === "open").reduce((s, p) => s + BigInt(p.costBase), 0n)} decimals={decimals} /> : "—"}</Cell>
         <Cell label={PRIVATE.panel.cells.cap}>{`${formatBaseUnits(desk.params.maxStakeBase, decimals, { minDp: 0 })} ${symbol}`}</Cell>
       </div>
-      <p className="vault-loading">{PRIVATE.panel.trust}</p>
-      <p className="vault-loading">{PRIVATE.panel.correlation}</p>
+      {/* What the two sides sign and what the venue still sees: said, but folded (Abu, 8 Oct: less text up front). */}
+      <details className="group mt-3 text-ow-label text-ow-muted">
+        <summary className="cursor-pointer list-none font-semibold text-ow-ink [&::-webkit-details-marker]:hidden">
+          {PRIVATE.panel.more} <span aria-hidden className="inline-block transition-transform group-open:rotate-90">›</span>
+        </summary>
+        <p className="mt-2">{PRIVATE.panel.trust}</p>
+        <p className="mt-2">{PRIVATE.panel.correlation}</p>
+      </details>
 
       <div className="vault-grants">
         <PrivateClaims positions={positions?.ok ? positions.value.positions : null} decimals={decimals} symbol={symbol} onCashOut={(p) => void cashout.cashOut(p)} busySlot={cashout.busySlot} />

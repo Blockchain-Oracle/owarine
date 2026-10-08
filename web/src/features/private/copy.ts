@@ -97,7 +97,7 @@ export const PRIVATE = {
   },
   panel: {
     eyebrow: "Private balance",
-    note: "Private calls spend from this, and only private calls do. Only you can move it back to your seat.",
+    note: "Private calls spend from this. Only you can move it back.",
     amountLabel: "Private balance amount",
     deposit: "Deposit",
     depositing: "Depositing",
@@ -108,7 +108,8 @@ export const PRIVATE = {
     revokeNote: "stops private bets; the balance stays yours",
     cells: { balance: "Balance", allowance: "Desk may spend", spendable: "Spendable", inCalls: "In open calls", desk: "Desk key", cap: "Per call, at most" },
     approvalNote: "Two signatures this first time: approve credits, then the deposit.",
-    allowanceNote: "A deposit moves demo credits from your seat's balance; Withdraw moves them all back.",
+    allowanceNote: "Deposit moves credits in from your seat; Withdraw moves it all back.",
+    more: "How private works",
     trust: "Moving credits in or out is one transaction your seat and the venue sign together, so nothing moves unless both halves do. A private call is your seat's own leg, paid only from this balance.",
     correlation: "What stays visible: the venue sees every call, private or not, as the counterparty. Private keeps a call off your public record, not off the venue's books.",
   },

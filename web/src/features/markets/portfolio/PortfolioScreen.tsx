@@ -17,29 +17,17 @@ import { RecordSection, TraderEdgeLink, useHistoryReading } from "../history";
 import { useVenue } from "../useVenue";
 import { BetsPanel } from "./BetsPanel";
 import { ConnectCard } from "./ConnectCard";
-import { LedgerPlate, PLATE, PlateDisclosure, PoolRows, useMoney } from "./plate";
+import { MoneyHero, Pockets, useMoney } from "./plate";
 import { usePortfolioTiers } from "./useTiers";
 
 /**
- * Portfolio — the money, the open bets, and what is waiting to be collected.
+ * Portfolio — the money, the open bets, and what is waiting to be collected (8 Oct redesign).
  *
- * Ported from `reference/yosuku/app/portfolio/page.tsx`. Its structural claim is
- * that the page has no headline: "the nav already says where you are, and the
- * thing people open this page for is the number", so the balance plate opens the
- * page and everything else sits under it.
- *
- * The plate itself is the one already live on `/markets` rather than the
- * reference's `.ledger-plate`. That frame is a fixed cream slab with its own ink,
- * and the panel inside it is theme-aware — nesting them would have produced, in
- * reverse, exactly the "one card, two backgrounds" defect the reference's own
- * `.plate-rows` remap exists to fix.
- *
- * The settled history, the equity curve, reputation and badges read the fill
- * projection (`useWalletHistory`), and the Trader Edge link opens the report built
- * from the same reading. The Trading Balance is the vault's pool row inside the plate,
- * with its controls folded into the row the way the reference folds the X wallet's
- * (`PoolRows` panels). What still needs a capability we have not built — creator
- * earnings, the X wallet — keeps a named dependency state instead of a plausible-looking panel.
+ * The page has no headline: the rail says where you are, and the thing people open this page for is the number. So it
+ * reads top-down at full width: the black balance card (the figure, the two actions, its split), the pockets that are
+ * yours but not in the figure (Trading Balance, Private, X replies — each opens its controls in a wide sheet), then the
+ * bets, what is waiting to be collected and the record, and the Trader Edge report last. No narrow side column: its
+ * Deposit / Withdraw ran off the edge, and a two-column split made the money and the activity compete.
  */
 export function PortfolioScreen() {
   const { address } = useWalletSession();
@@ -81,37 +69,23 @@ export function PortfolioScreen() {
     );
   }
 
-  // The page fills the stage like every other (Abu, 8 Oct): the money on the left, the activity on the right; one column
-  // below lg, in the same order. Not sticky: the plate's open disclosures can be taller than the screen.
   return (
-    <div className="container grid gap-8 py-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
-      <div className="flex min-w-0 flex-col gap-8">
-        {/* ONE number first (reference L295–329): the plate answers "how much can I bet right now" once; every
-            pool that is not spendable here is a row inside the same plate, never merged into the figure. The
-            reference's primary button routes to /markets; ours opens the Add-money modal in place — the owner's
-            ruling (2026-09-04, asked twice): a button that says "Add money" must add money, not change page. */}
-        <LedgerPlate money={money} symbol={symbol} openBets={openBets} settled={settled} onPrimary={openFunds}>
-          <PoolRows pools={money.pools} decimals={money.decimals} symbol={symbol} panels={{ x: <XWalletCard compact />, private: <PrivateBalancePanel inline /> }} />
-          {/* The reference's disclosure row carries creator earnings; ours carries the Trading Balance's own controls. */}
-          <PlateDisclosure title={PLATE.vaultDisclosure}>
-            <TradingBalancePanel inline />
-          </PlateDisclosure>
-        </LedgerPlate>
+    <div className="container flex flex-col gap-10 py-8">
+      <MoneyHero money={money} symbol={symbol} openBets={openBets} settled={settled} onPrimary={openFunds} />
 
-        <TraderEdgeLink />
-      </div>
+      <Pockets money={money} symbol={symbol} panels={{ vault: <TradingBalancePanel inline />, private: <PrivateBalancePanel inline />, x: <XWalletCard /> }} />
 
-      <div className="flex min-w-0 flex-col gap-8">
-        <BetsPanel symbol={symbol} index="01" history={history} />
+      <BetsPanel symbol={symbol} index="01" history={history} />
 
-        <section className="flex flex-col gap-4" aria-label={PORTFOLIO.collectTitle}>
-          <SectionHeader index="02" title={PORTFOLIO.collectTitle} />
-          <p className="type-body text-ink-secondary">{CLAIM.pageIntro}</p>
-          <LiveClaimPlate />
-        </section>
+      <section className="flex flex-col gap-4" aria-label={PORTFOLIO.collectTitle}>
+        <SectionHeader index="02" title={PORTFOLIO.collectTitle} />
+        <p className="type-body text-ink-secondary">{CLAIM.pageIntro}</p>
+        <LiveClaimPlate />
+      </section>
 
-        <RecordSection history={history} symbol={symbol} index="03" />
-      </div>
+      <RecordSection history={history} symbol={symbol} index="03" />
+
+      <TraderEdgeLink />
     </div>
   );
 }

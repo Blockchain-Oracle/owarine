@@ -11,31 +11,9 @@
 /* font-display font-[800] tabular-nums leading-none text-[32px] sm:text-5xl text-[#FA00FF] */
 .lp-figure { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; font-size: 32px; color: var(--signal-ink); font-stretch: 100%; }
 @media (min-width: 640px) { .lp-figure { font-size: 48px; } }
-.lp-figure--pending { opacity: 0.55; }
-/* font-mono text-[12px] sm:text-[18px] text-[var(--lp-mute)] */
-.lp-unit { font-family: var(--font-mono); font-size: 12px; color: var(--lp-mute); font-variant-numeric: tabular-nums; }
-@media (min-width: 640px) { .lp-unit { font-size: 18px; } }
-/* mt-1 font-mono text-[11px] text-[var(--lp-mute)]; tabular-nums text-[var(--lp-ink)] */
-.lp-elsewhere { margin-top: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--lp-mute); font-variant-numeric: tabular-nums; }
-.lp-elsewhere-ink { font-variant-numeric: tabular-nums; color: var(--lp-ink); }
-/* flex h-1.5 overflow-hidden rounded-full bg-[#BCBAB3]/25 */
-.lp-bar { display: flex; height: 6px; overflow: hidden; border-radius: 999px; background: var(--lp-line); }
-/* bg-[#FA00FF] · bg-[#FA00FF]/35 */
-.lp-bar-wallet { background: #FA00FF; color: var(--on-signal); }
-.lp-bar-account { background: rgba(250, 0, 255, 0.35); }
+
 /* C7a: open positions at the mid, between credits and what is waiting to be collected */
 .lp-bar-positions { background: rgba(250, 0, 255, 0.65); }
-/* h-2 w-2 shrink-0 rounded-full; text-[12px] text-[var(--lp-mute)]; font-mono text-[13px] tabular-nums text-[var(--lp-ink)] */
-.lp-leg-dot { height: 8px; width: 8px; flex-shrink: 0; border-radius: 999px; }
-.lp-leg-dot--wallet { background: #FA00FF; color: var(--on-signal); }
-.lp-leg-dot--account { background: rgba(250, 0, 255, 0.35); }
-.lp-leg-dot--positions { background: rgba(250, 0, 255, 0.65); }
-.lp-leg-label { font-size: 12px; color: var(--lp-mute); }
-.lp-leg-value { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; color: var(--lp-ink); }
-/* ml-auto flex items-baseline gap-2 font-mono text-[12px] text-[var(--lp-mute)]; text-[#BCBAB3] separator */
-.lp-counts { margin-left: auto; display: flex; align-items: baseline; gap: 8px; font-family: var(--font-mono); font-size: 12px; color: var(--lp-mute); font-variant-numeric: tabular-nums; }
-.lp-counts-ink { font-variant-numeric: tabular-nums; color: var(--lp-ink); }
-.lp-counts-sep { color: var(--lp-line); }
 
 /* PoolRows: mt-6 border-t border-[#BCBAB3]/40 pt-4 */
 .pool-rows { margin-top: 24px; border-top: 1px solid var(--lp-line); padding-top: 16px; }
