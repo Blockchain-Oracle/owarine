@@ -203,6 +203,14 @@
   }
 }
 
+/* A phone inside the shell's stage is ~320 px of card: the head's left column must be allowed to wrap, or it pushes
+   the countdown off the card's right edge (Abu, 8 Oct). */
+.markets-hero .hero-chart-head > :first-child { min-width: 0; }
+@media (max-width: 480px) {
+  .markets-hero .hero-chart-head { gap: 12px; padding: 18px 16px 14px; }
+  .mh-settles-value { font-size: 20px; }
+}
+
 /* under a minute to settle → the whole block flips signal (text-signal/70
    on the label, text-signal on the clock) */
 .mh-settles.urgent .mh-settles-label {

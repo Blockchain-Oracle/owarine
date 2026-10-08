@@ -23,8 +23,10 @@ export interface CcPanel {
   tone: CcPanelTone;
   badge: string;
   headline: string;
-  /** Plain lines under the headline, in order. */
+  /** Plain lines under the headline, in order (the rules: behind a disclosure in the sheet). */
   lines: string[];
+  /** The listing's fixed rate in one short phrase ("1 CC = 0.125 credits"); null without a listing. */
+  rate: string | null;
   /** Offered only when live, listed and open. */
   canDeposit: boolean;
   /** Offered only when live and the seat has coin owed to it and no ask waiting. */
@@ -44,16 +46,17 @@ const trimCc = (atomic: bigint): string => formatBaseUnits(atomic, CC_DECIMALS, 
 export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply | null }): CcPanel {
   const { capability, view } = input;
   if (capability !== "live") {
-    return { tone: "not-live", badge: C.notLive, headline: C.notLiveHeadline, lines: [C.notLiveBody, C.waitingOn(CC_RAIL_WAITING_ON)], canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
+    return { tone: "not-live", badge: C.notLive, headline: C.notLiveHeadline, lines: [C.notLiveBody, C.waitingOn(CC_RAIL_WAITING_ON)], rate: null, canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
   }
   const listing = view?.listing ?? null;
   if (!view || !listing) {
-    return { tone: "unlisted", badge: C.ready, headline: C.unlisted, lines: [], canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
+    return { tone: "unlisted", badge: C.ready, headline: C.unlisted, lines: [], rate: null, canDeposit: false, canWithdraw: false, maxWithdrawUnits: 0n, step: null, tapCoin: null, receiveCoin: null };
   }
   const rate = BigInt(listing.unitsPerCoin);
   const step = trimCc(atomicPerCashUnit(rate));
+  const perCoin = formatBaseUnits(rate, CASH_DECIMALS, { maxDp: CASH_DECIMALS, minDp: 2 });
   const lines = [
-    C.rate(formatBaseUnits(rate, CASH_DECIMALS, { maxDp: CASH_DECIMALS, minDp: 2 }), UNIT),
+    C.rate(perCoin, UNIT),
     C.step(step),
     C.bounds(minAmount(BigInt(listing.minDepositUnits), rate), minAmount(BigInt(listing.maxDepositUnits), rate)),
     C.onlyDeposited,
@@ -78,6 +81,7 @@ export function ccPanel(input: { capability: CcRailCapability; view: CcRailReply
     badge: C.ready,
     headline: listing.depositsOpen ? C.title : C.closed,
     lines,
+    rate: C.rateShort(perCoin, UNIT),
     canDeposit: listing.depositsOpen,
     canWithdraw: maxWithdrawUnits > 0n,
     maxWithdrawUnits,

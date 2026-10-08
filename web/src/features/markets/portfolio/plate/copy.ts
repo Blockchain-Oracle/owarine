@@ -5,7 +5,7 @@ export const PLATE = {
   balanceEyebrow: "Your balance",
   readyToBet: "ready to bet",
   legs: {
-    credits: "Demo credits",
+    credits: "Test credits",
     positions: "Open positions · at the venue mid",
     collect: "To collect",
   },
@@ -14,8 +14,8 @@ export const PLATE = {
   yours: "yours",
   elsewhere: "elsewhere",
   addMoney: "Add money",
-  /** "Get test DUSDC" — the collateral is tUSDC here. */
-  getTest: "Get demo credits",
+  /** A seat trades Canton DevNet test funds (Abu, 8 Oct: never "demo" once connected, never "live" money). */
+  getTest: "Get test credits",
   inWallet: "In your seat",
   /** The reference's betting account is the Trading Balance here, and every other surface calls it that. */
   inAccount: "In your Trading Balance",
@@ -42,7 +42,6 @@ export const PLATE = {
   },
   connect: {
     title: "Take a Seat",
-    /** "New to Sui? Test funds are free →" */
-    newHere: "New here? Demo credits are free →",
+    newHere: "New here? Test credits are free →",
   },
 } as const;

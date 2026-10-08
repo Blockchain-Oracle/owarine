@@ -11,7 +11,7 @@ import { HeaderAccount } from "../header/HeaderAccount";
 import { PLACES, placeOf } from "../nav";
 import ThemeToggle from "../ThemeToggle";
 import { BalanceChip } from "./BalanceChip";
-import { ModeChip } from "./ModeChip";
+import { NetworkPlate, NetworkStamp } from "./ModeChip";
 
 /** The active pill's spring (roy-chain's rail, from 21st.dev #21517 "Animated Sidebar"). */
 const SPRING = { type: "spring", stiffness: 500, damping: 40 } as const;
@@ -40,14 +40,16 @@ export function AppRail({ onMore, moreOpen }: { onMore: () => void; moreOpen: bo
         "[@media(max-height:53.75rem)]:gap-4 [@media(max-height:53.75rem)]:py-4",
       )}
     >
-      <div className="flex flex-col items-center gap-3 xl:flex-row xl:justify-between">
-        <Link href="/" aria-label="Owarine home" className="flex items-center gap-2.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ow-rail-ink/70">
+      <div className="flex flex-col items-center gap-4 xl:items-stretch">
+        <Link href="/" aria-label="Owarine home" className="flex items-center gap-2.5 self-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ow-rail-ink/70 xl:self-start">
           <span className="grid size-10 shrink-0 place-items-center rounded-full bg-ow-pink">
             <Seal size={26} tone="white" />
           </span>
-          <span className="ow-display hidden text-ow-title xl:inline">OWARINE</span>
+          <span className="ow-display hidden text-ow-heading xl:inline">OWARINE</span>
         </Link>
-        <ModeChip />
+        {/* The account's world, on its own line: a pass at full width, its stamp alone in the icon rail. */}
+        <NetworkPlate className="hidden xl:flex" />
+        <NetworkStamp className="xl:hidden" />
       </div>
 
       <nav aria-label="Main" className="flex flex-col gap-3 [@media(max-height:53.75rem)]:gap-1">

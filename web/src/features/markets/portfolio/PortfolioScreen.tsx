@@ -64,7 +64,7 @@ export function PortfolioScreen() {
   if (!address) {
     // Kept in the reference's order: the connect card first, the X wallet card below it (page L277–294).
     return (
-      <div className="mx-auto flex w-full max-w-(--content-reading) flex-col gap-4 px-gutter py-8">
+      <div className="container grid gap-4 py-8 lg:grid-cols-2 lg:items-start">
         <ConnectCard />
         <XWalletCard />
       </div>
@@ -75,37 +75,43 @@ export function PortfolioScreen() {
   // of competing "Try again" buttons describes the same outage five times and fixes none of them.
   if (tiers.outage) {
     return (
-      <div className="mx-auto flex w-full max-w-(--content-reading) flex-col gap-4 px-gutter py-8">
+      <div className="container flex flex-col gap-4 py-8">
         <ErrorState diagnosis={tiers.outage} retry={tiers.retry} />
       </div>
     );
   }
 
+  // The page fills the stage like every other (Abu, 8 Oct): the money on the left, the activity on the right; one column
+  // below lg, in the same order. Not sticky: the plate's open disclosures can be taller than the screen.
   return (
-    <div className="mx-auto flex w-full max-w-(--content-reading) flex-col gap-8 px-gutter py-8">
-      {/* ONE number first (reference L295–329): the plate answers "how much can I bet right now" once; every
-          pool that is not spendable here is a row inside the same plate, never merged into the figure. The
-          reference's primary button routes to /markets; ours opens the Add-money modal in place — the owner's
-          ruling (2026-09-04, asked twice): a button that says "Add money" must add money, not change page. */}
-      <LedgerPlate money={money} symbol={symbol} openBets={openBets} settled={settled} onPrimary={openFunds}>
-        <PoolRows pools={money.pools} decimals={money.decimals} symbol={symbol} panels={{ x: <XWalletCard compact />, private: <PrivateBalancePanel inline /> }} />
-        {/* The reference's disclosure row carries creator earnings; ours carries the Trading Balance's own controls. */}
-        <PlateDisclosure title={PLATE.vaultDisclosure}>
-          <TradingBalancePanel inline />
-        </PlateDisclosure>
-      </LedgerPlate>
+    <div className="container grid gap-8 py-8 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
+      <div className="flex min-w-0 flex-col gap-8">
+        {/* ONE number first (reference L295–329): the plate answers "how much can I bet right now" once; every
+            pool that is not spendable here is a row inside the same plate, never merged into the figure. The
+            reference's primary button routes to /markets; ours opens the Add-money modal in place — the owner's
+            ruling (2026-09-04, asked twice): a button that says "Add money" must add money, not change page. */}
+        <LedgerPlate money={money} symbol={symbol} openBets={openBets} settled={settled} onPrimary={openFunds}>
+          <PoolRows pools={money.pools} decimals={money.decimals} symbol={symbol} panels={{ x: <XWalletCard compact />, private: <PrivateBalancePanel inline /> }} />
+          {/* The reference's disclosure row carries creator earnings; ours carries the Trading Balance's own controls. */}
+          <PlateDisclosure title={PLATE.vaultDisclosure}>
+            <TradingBalancePanel inline />
+          </PlateDisclosure>
+        </LedgerPlate>
 
-      <TraderEdgeLink />
+        <TraderEdgeLink />
+      </div>
 
-      <BetsPanel symbol={symbol} index="01" history={history} />
+      <div className="flex min-w-0 flex-col gap-8">
+        <BetsPanel symbol={symbol} index="01" history={history} />
 
-      <section className="flex flex-col gap-4" aria-label={PORTFOLIO.collectTitle}>
-        <SectionHeader index="02" title={PORTFOLIO.collectTitle} />
-        <p className="type-body text-ink-secondary">{CLAIM.pageIntro}</p>
-        <LiveClaimPlate />
-      </section>
+        <section className="flex flex-col gap-4" aria-label={PORTFOLIO.collectTitle}>
+          <SectionHeader index="02" title={PORTFOLIO.collectTitle} />
+          <p className="type-body text-ink-secondary">{CLAIM.pageIntro}</p>
+          <LiveClaimPlate />
+        </section>
 
-      <RecordSection history={history} symbol={symbol} index="03" />
+        <RecordSection history={history} symbol={symbol} index="03" />
+      </div>
     </div>
   );
 }

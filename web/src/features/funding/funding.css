@@ -2,62 +2,21 @@
  * writes these as Tailwind arbitrary values; the `design-literals` invariant keeps hex and px out of TSX, so
  * the values live here with the source utility named above each rule. */
 
-/* Above the sticky shell and ticket (9999), including when opened from a ticket's insufficient-funds prompt. */
-.fund-modal-root { position: fixed; inset: 0; z-index: 10010; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.fund-modal-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-/* relative w-full max-w-md border border-white/10 rounded-2xl bg-[#0f0e0e] p-7 shadow-2xl */
-.fund-modal {
-  position: relative; width: 100%; max-width: 448px; max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: #0f0e0e;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-}
-[data-theme="light"] .fund-modal { background: var(--bg); border-color: rgba(10, 10, 10, 0.12); }
-/* absolute right-4 top-4 rounded-full p-2 text-gray-600 hover:bg-white/[0.05] hover:text-white */
-.fund-modal-close { position: absolute; right: 16px; top: 16px; border-radius: 999px; padding: 8px; color: var(--gray-600); transition: background 200ms var(--ease), color 200ms var(--ease); }
-.fund-modal-close:hover { background: rgba(255, 255, 255, 0.05); color: var(--white); }
-.fund-eyebrow-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-/* w-1.5 h-1.5 rounded-full bg-signal, glow 0 0 12px */
-.fund-eyebrow-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--signal); box-shadow: 0 0 12px var(--signal); color: var(--on-signal); }
-/* font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 */
-.fund-eyebrow { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-/* font-display text-2xl font-extrabold tracking-tight mb-1 */
-.fund-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; color: var(--white); margin-bottom: 4px; font-stretch: 100%; }
-/* text-gray-400 text-sm leading-relaxed mb-6 */
-.fund-body { font-size: 14px; line-height: 1.625; color: var(--gray-400); margin-bottom: 24px; }
-/* font-mono text-xs text-gray-500 text-center py-6 */
-.fund-connect-first { display: flex; flex-direction: column; align-items: center; gap: 16px; font-family: var(--font-mono); font-size: 12px; color: var(--gray-500); text-align: center; padding-block: 24px; font-variant-numeric: tabular-nums; }
-/* flex items-center justify-between border border-white/[0.06] rounded-xl px-4 py-3 mb-4 */
-.fund-account { display: flex; align-items: center; justify-content: space-between; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 12px; padding: 12px 16px; margin-bottom: 16px; }
-.fund-account-label { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
-.fund-account-addr { font-family: var(--font-mono); font-size: 12px; color: var(--gray-300); transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; }
-.fund-account-addr:hover { color: var(--white); }
-.fund-rows { display: flex; flex-direction: column; gap: 10px; }
-/* w-full bg-white text-black font-semibold rounded-full py-3 hover:scale-[1.02] active:scale-[0.97] */
-.fund-cta-white { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; background: var(--white); color: #000; font-weight: 600; padding-block: 12px; transition: transform 150ms var(--ease); }
-.fund-cta-white:hover:not(:disabled) { transform: scale(1.02); }
-.fund-cta-white:active:not(:disabled) { transform: scale(0.97); }
-.fund-cta-white:disabled { opacity: 0.6; cursor: not-allowed; }
+/* The Add funds sheet itself is Tailwind on the kit tokens (AddFunds, CcRailPanel); what is left here is the funding
+ * progress cells, the signal button, messages and foot lines other surfaces still use, and the credit welcome. */
 .fund-progress { display: flex; flex-direction: column; gap: 10px; margin: 16px 0; overflow-wrap: anywhere; }
 .fund-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
 .fund-balances div { min-width: 0; padding: 10px; border: 1px solid color-mix(in srgb, var(--white) 12%, transparent); border-radius: 8px; }
 .fund-balances dt { font-size: 11px; color: var(--gray-500); }
 .fund-balances dd { margin: 5px 0 0; font-size: 13px; color: var(--white); }
-[data-theme="light"] .fund-cta-white { background: #0A0A0A; color: var(--bg); }
 /* block w-full text-center bg-signal text-white font-semibold rounded-full py-3 hover:bg-signal-d */
 .fund-cta-signal { display: block; width: 100%; text-align: center; border-radius: 999px; background: var(--signal); color: var(--on-signal); font-weight: 600; padding-block: 12px; transition: background 200ms var(--ease); }
 .fund-cta-signal:hover:not(:disabled) { background: var(--signal-d); }
 .fund-cta-signal:disabled { opacity: 0.5; cursor: not-allowed; }
-/* flex w-full items-center justify-center gap-2 rounded-full border border-white/15 py-3 font-semibold hover:border-signal/50 */
-.fund-row { display: flex; width: 100%; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.15); padding-block: 12px; font-weight: 600; color: var(--white); transition: border-color 200ms var(--ease); }
-.fund-row:hover:not(:disabled) { border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent); }
-.fund-row:disabled { opacity: 0.4; cursor: not-allowed; }
-[data-theme="light"] .fund-row { border-color: rgba(10, 10, 10, 0.15); color: #0A0A0A; }
 /* text-[12px] mt-3 text-center · error rose · ok emerald */
 .fund-msg { font-size: 12px; margin-top: 12px; text-align: center; }
-.fund-msg--ok { color: var(--profit); }
 .fund-msg--err { color: var(--loss); }
 /* mt-5 pt-4 border-t border-white/[0.06] text-center · font-mono text-[11px] text-gray-500 hover:text-signal */
-.fund-foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.06); text-align: center; display: flex; flex-direction: column; gap: 6px; }
 .fund-foot-line { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
 .fund-foot-link { font-family: var(--font-mono); font-size: 11px; color: var(--gray-500); transition: color 200ms var(--ease); font-variant-numeric: tabular-nums; }
 .fund-foot-link:hover { color: var(--signal-ink); }
@@ -87,63 +46,3 @@
 .credit-title { font-family: var(--font-display); font-size: 24px; font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; color: var(--white); margin-top: 6px; font-stretch: 100%; }
 /* text-gray-400 text-[13px] leading-relaxed mt-2 mb-5 */
 .credit-body { font-size: 13px; line-height: 1.625; color: var(--gray-400); margin: 8px 0 20px; }
-
-/* ── /fund: app/fund/page.tsx ── max-w-xl mx-auto px-5 sm:px-8 pt-28 sm:pt-32 pb-28 */
-.fund-page { position: relative; max-width: 576px; margin: 0 auto; padding: 112px 20px; }
-@media (min-width: 640px) { .fund-page { padding: 128px 32px 112px; } }
-/* font-mono text-[11px] tracking-[0.28em] uppercase text-signal mb-4 */
-.fund-page-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal-ink); margin-bottom: 16px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-/* font-display font-[800] tracking-[-0.03em] leading-[0.98] text-[clamp(2.3rem,7vw,3.4rem)] */
-.fund-page-title { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; line-height: 0.98; font-size: clamp(2.3rem, 7vw, 3.4rem); color: var(--white); font-stretch: 100%; }
-/* mt-4 text-gray-400 leading-relaxed max-w-[42ch] */
-.fund-page-body { margin-top: 16px; color: var(--gray-400); line-height: 1.625; max-width: 42ch; }
-/* mt-9 rounded-3xl border border-white/[0.08] bg-white/[0.02] p-6 sm:p-7 */
-.fund-card { margin-top: 36px; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.02); padding: 24px; box-shadow: 0 40px 90px -60px rgba(0, 0, 0, 0.9); }
-@media (min-width: 640px) { .fund-card { padding: 28px; } }
-/* rounded-2xl border border-white/[0.08] bg-black/20 px-5 py-4 focus-within:border-signal/50 */
-.fund-amt { border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2); padding: 16px 20px; transition: border-color 200ms var(--ease); }
-.fund-amt:focus-within { border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent); }
-.fund-amt-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray-500); margin-bottom: 6px; font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.fund-amt-field { display: flex; align-items: center; gap: 12px; }
-/* flex-1 min-w-0 bg-transparent font-display text-4xl font-bold text-white outline-none tabular-nums — here focus-visible:outline-none with `.fund-amt:focus-within`'s signal border as the ring */
-.fund-amt-input { flex: 1; min-width: 0; background: transparent; font-family: var(--font-display); font-size: 36px; font-weight: 700; color: var(--white); font-variant-numeric: tabular-nums; font-stretch: 100%; }
-.fund-amt-input:focus-visible { outline: none; }
-.fund-amt-unit { font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--gray-300); flex-shrink: 0; font-variant-numeric: tabular-nums; }
-.fund-presets { margin-top: 12px; display: flex; gap: 8px; }
-/* rounded-lg border border-white/12 px-3 py-1.5 font-mono text-[12px] text-gray-400 hover:border-signal/50 hover:text-white */
-.fund-preset { border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px 12px; font-family: var(--font-mono); font-size: 12px; color: var(--gray-400); transition: border-color 200ms var(--ease), color 200ms var(--ease); font-variant-numeric: tabular-nums; }
-.fund-preset:hover { border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent); color: var(--white); }
-/* mt-5 flex items-baseline justify-between */
-.fund-pay { margin-top: 20px; display: flex; align-items: baseline; justify-content: space-between; }
-.fund-pay-label { font-family: var(--font-mono); font-size: 14px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
-.fund-pay-value { font-family: var(--font-display); font-weight: 700; font-size: 24px; color: var(--white); font-variant-numeric: tabular-nums; font-stretch: 100%; }
-.fund-cap { margin-top: 4px; text-align: right; font-family: var(--font-mono); font-size: 11px; color: color-mix(in srgb, var(--signal-ink) 80%, transparent); font-variant-numeric: tabular-nums; }
-.fund-gate { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
-.fund-gate-connect { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
-.fund-gate-line { font-size: 13px; color: var(--gray-400); }
-/* w-full rounded-full bg-signal font-display font-bold py-4 text-[15px] shadow-[0_18px_40px_-16px_var(--signal)] */
-.fund-cta-signal--big { font-family: var(--font-display); font-weight: 700; font-size: 15px; padding-block: 16px; box-shadow: 0 18px 40px -16px var(--signal); font-stretch: 100%; }
-.fund-blocked { font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: var(--gray-500); text-align: center; max-width: 42ch; font-variant-numeric: tabular-nums; }
-.fund-free { font-family: var(--font-mono); font-size: 12px; color: var(--signal-ink); text-decoration: underline; text-underline-offset: 4px; font-variant-numeric: tabular-nums; }
-/* mt-6 text-center font-mono text-[10.5px] leading-relaxed text-gray-600 max-w-[46ch] mx-auto */
-.fund-page-foot { margin: 24px auto 0; text-align: center; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.625; color: var(--gray-600); max-width: 46ch; font-variant-numeric: tabular-nums; }
-
-/* The seat's facts under the account row (Canton grant): party, demo credits, cash value. */
-.fund-facts { display: flex; flex-direction: column; gap: 8px; margin: 0 0 16px; padding: 12px 16px; border: 1px solid var(--color-hairline); border-radius: var(--radius-lg); }
-.fund-facts div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.fund-facts dt { font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; }
-.fund-facts dd { margin: 0; font-family: var(--font-mono); font-size: 12px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
-
-/* The Canton Coin path (C7b): a card under the demo credits. Quiet while not live, so it never reads as an offer. */
-.fund-cc { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; padding: 14px 16px; border: 1px solid var(--color-hairline); border-radius: 12px; }
-.fund-cc--not-live { opacity: 0.85; }
-.fund-cc-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.fund-cc-title { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.fund-cc-badge { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--color-hairline); color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.fund-cc--ready .fund-cc-badge { color: var(--profit); border-color: color-mix(in srgb, var(--profit) 40%, transparent); }
-.fund-cc-headline { margin: 0; font-size: 14px; line-height: 1.5; color: var(--color-ink); }
-.fund-cc-line { margin: 0; font-size: 12px; line-height: 1.55; color: var(--color-ink-muted); }
-.fund-cc-form { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
-.fund-cc-label { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-ink-muted); font-variant-numeric: tabular-nums; font-stretch: 112.5%; }
-.fund-cc-input { border: 1px solid var(--color-hairline); border-radius: 10px; padding: 10px 12px; background: transparent; font-family: var(--font-mono); font-size: 14px; color: var(--color-ink); font-variant-numeric: tabular-nums; }
-.fund-cc-input:focus-visible { outline: none; border-color: color-mix(in srgb, var(--signal-ink) 50%, transparent); }
