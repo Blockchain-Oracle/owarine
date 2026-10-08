@@ -1,7 +1,7 @@
 /**
  * The one config point for what the public pages link to but this repository cannot build by itself (C10f): the iPhone
  * TestFlight invitation, the Android APK with its SHA-256, and the demo film. Each is a runtime environment variable
- * read on the server per request, so a deployment flips `/download` and `/demo` from their honest waiting state to the
+ * read on the server per request, so a deployment flips `/download` from their honest waiting state to the
  * real thing by setting a value and restarting, with no code change and no rebuild. None of them is a secret, and
  * none is `NEXT_PUBLIC_*`: the pages read them on the server and render the result.
  *

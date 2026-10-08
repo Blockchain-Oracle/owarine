@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Fixture, FixtureGrid } from "@/app/dev/states/_sections/Fixture";
 import { SectionHeader } from "@/components/chrome";
-import { DemoFilm } from "@/features/demo/DemoFilm";
+import { DemoFilm } from "@/features/install/DemoFilm";
 import { NativeDownloads } from "@/features/install/NativeDownloads";
 import { readPublicRelease } from "@/lib/release";
 

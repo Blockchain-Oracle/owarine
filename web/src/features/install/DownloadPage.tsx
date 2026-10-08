@@ -1,5 +1,5 @@
 import { OwarineMark } from "@/components/shell";
-import { DemoFilm } from "@/features/demo/DemoFilm";
+import { DemoFilm } from "@/features/install/DemoFilm";
 import type { PublicRelease } from "@/lib/release";
 import { INSTALL } from "./copy";
 import { NativeDownloads } from "./NativeDownloads";

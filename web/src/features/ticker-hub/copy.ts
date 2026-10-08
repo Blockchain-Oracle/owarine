@@ -94,17 +94,8 @@ export const TICKER_HUB = {
     moved: (window: string) => `Moved ${window}`,
     movedLine: (rangePct: string, change: string) => `${rangePct} high to low · ${change} first to last`,
     quiet: "not enough reads yet",
-    table: { title: "Members", member: "Company", weight: "Weight", price: "Token price", sinceBase: "Since base", held: "You hold", yes: "yes", no: "—" },
+    table: { title: "Members", member: "Company", weight: "Weight", price: "Token price", sinceBase: "Since base" },
     window: { title: "Live Window", none: "No basket Window is trading right now. One opens every hour on the 24/7 lane once the Series is listed." },
-    hold: {
-      connect: "Take a seat to see which members you hold.",
-      none: (total: number) => `You hold none of the ${total} members.`,
-      some: (held: number, total: number, value: string | null) => `You hold ${held} of ${total} members${value ? ` ≈ ${value}` : ""}.`,
-      coverNeeds: "Cover needs two or more members held; one member is covered on its own name.",
-      cover: "Cover the basket with Down",
-      add: "Add with Up",
-      noWindow: "Cover and Add open when a basket Window is trading.",
-    },
     /** After the basket's source line ("Index of 2 PreStocks prices"). */
     source: "computed from one read of every member and attested by three oracle parties · single source, no cross-check",
   },

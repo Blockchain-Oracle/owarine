@@ -62,15 +62,6 @@ export const senseiRecordSchema = z.object({
  * mainnet, read-only, never test funds. Nothing here names the wallet or the mint. `valueCents` is null when the only
  * known price is stale.
  */
-export const senseiHoldingSchema = z.object({
-  name: z.string().max(24),
-  symbol: z.string().max(16),
-  issuer: z.enum(["xstocks", "ondo", "prestocks"]),
-  /** "4.2" · "12.5": the token amount as text, at most four decimals. */
-  tokens: z.string().max(24),
-  valueCents: z.number().int().min(0).max(1e12).nullable(),
-});
-
 /**
  * The reader's desk (S21, plan §5.2): its mode, worth, last decision and anything waiting, so Sensei can answer
  * "why did my desk wait?" from the record. It still cannot act; every change is a card the owner confirms on /desk.
@@ -103,8 +94,6 @@ export const senseiRequestSchema = z.object({
   /** Read only while the drawer is open and a wallet is connected. */
   positions: z.array(senseiPositionSchema).max(8).optional(),
   record: senseiRecordSchema.optional(),
-  /** The wallet's stock tokens, read only while the drawer is open and a wallet is connected; absent means unknown. */
-  holdings: z.array(senseiHoldingSchema).max(4).optional(),
   /** The wallet's desk, read only while the drawer is open; absent means unknown or none. */
   desk: senseiDeskSchema.optional(),
 });
@@ -114,7 +103,6 @@ export type SenseiSnapshot = z.infer<typeof senseiSnapshotSchema>;
 export type SenseiSession = z.infer<typeof senseiSessionSchema>;
 export type SenseiPosition = z.infer<typeof senseiPositionSchema>;
 export type SenseiRecord = z.infer<typeof senseiRecordSchema>;
-export type SenseiHolding = z.infer<typeof senseiHoldingSchema>;
 export type SenseiDesk = z.infer<typeof senseiDeskSchema>;
 export type SenseiRequest = z.infer<typeof senseiRequestSchema>;
 

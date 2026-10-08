@@ -6,16 +6,16 @@ import { marketDeepLink } from "@owarine/core/urls";
 import Link from "next/link";
 import { Countdown } from "@/components/data";
 import { LogoStack, Sparkline } from "@/components/ui/desk-kit";
-import { bpsPct, windowText } from "@/features/hedge/calm";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { pointsLine } from "@/features/markets/hero/units";
 import { laneTabLabel } from "@/features/markets/lanes/lane-view";
 import { tickerHref } from "@/features/takes/cashtags";
 import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
 import { BASKETS_COPY } from "./copy";
+import { bpsPct, windowText } from "./format";
 import "./baskets.css";
 
-/** Hold opens the studio on this basket (plan §5.2): `/desk/new?basket=<SYM>`. */
+/** Automate opens the studio on this basket (plan §5.2): `/desk/new?basket=<SYM>`. */
 const deskHref = (symbol: string) => `/desk/new?basket=${symbol}`;
 
 export interface BasketCardProps {
@@ -27,9 +27,6 @@ export interface BasketCardProps {
   /** Top of the Window's book; null while it hydrates or when no Window trades. */
   book: { upCents: number | null; downCents: number | null } | null;
   nowMs: number;
-  /** Members this wallet holds; null with no wallet connected. */
-  heldCount: number | null;
-  coverable: boolean;
   /** The basket's hourly index over the last week, oldest first (S23); empty before the marks load. */
   line?: readonly number[];
 }
@@ -37,13 +34,12 @@ export interface BasketCardProps {
 /**
  * One basket on `/baskets` (S19 §5.2, rebuilt S23 on the desk kit): every row keeps its height whatever arrives, so a
  * read landing or a Window rolling never moves the card — the header, the members' marks, the index with its week,
- * the Window row, the three actions. Presentational: `/dev/basket` feeds it canned.
+ * the Window row, the two actions. Presentational: `/dev/basket` feeds it canned.
  */
-export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCount, coverable, line = [] }: BasketCardProps) {
+export function BasketCard({ basket, indexRaw, move, window, book, nowMs, line = [] }: BasketCardProps) {
   const C = BASKETS_COPY.card;
   const memberSymbols = basket.members.map((m) => m.symbol);
   const names = basket.members.map((m) => TICKERS[m.symbol].name);
-  const coverWhy = heldCount === null ? C.coverWhy.connect : !window ? C.coverWhy.noWindow : !coverable ? C.coverWhy.needsTwo(heldCount) : C.coverWhy.ready(heldCount, basket.members.length);
   const quoted = book !== null && (book.upCents !== null || book.downCents !== null);
   const weekMove = line.length >= 2 && line[0] ? Math.round((((line.at(-1) ?? 0) - line[0]) / line[0]) * 10_000) : null;
   return (
@@ -112,20 +108,11 @@ export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCo
         <Link href={window ? marketDeepLink({ marketId: window.marketId }) : tickerHref(basket.symbol)} className="bk-action" data-kind="predict" data-cursor="hover">
           {C.predict}
         </Link>
-        {window && coverable ? (
-          <Link href={marketDeepLink({ marketId: window.marketId, dir: "down" })} className="bk-action" data-kind="cover" data-cursor="hover" title={coverWhy}>
-            {C.cover}
-          </Link>
-        ) : (
-          <span className="bk-action" data-kind="cover" data-off="" title={coverWhy} aria-disabled="true">
-            {C.cover}
-          </span>
-        )}
-        <Link href={deskHref(basket.symbol)} className="bk-action" data-kind="hold" data-cursor="hover" title={C.holdWhy}>
-          {C.hold}
+        <Link href={deskHref(basket.symbol)} className="bk-action" data-kind="hold" data-cursor="hover" title={C.automateWhy}>
+          {C.automate}
         </Link>
       </div>
-      <p className="bk-why">{coverWhy}</p>
+      <p className="bk-why">{C.automateWhy}</p>
     </article>
   );
 }

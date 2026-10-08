@@ -1,7 +1,7 @@
 /**
  * `/baskets` (S19, D-124): five baskets, each a small group of PreStocks companies bet on together. Plain words
- * throughout: "cover", never "hedge"; "points", never dollars, for an index. A surface Masayume never had, so its
- * frame is the hub's and its words are its own (D-081).
+ * throughout: "points", never dollars, for an index. Predict, or let a desk trade it (Automate); since 8 Oct there is no
+ * "cover what you hold": a seat holds no stocks.
  */
 export const BASKETS_COPY = {
   title: "Baskets",
@@ -26,28 +26,20 @@ export const BASKETS_COPY = {
     down: "Down",
     unquoted: "—",
     predict: "Predict",
-    cover: "Cover",
-    hold: "Hold",
-    coverWhy: {
-      connect: "Take a seat to cover the members you hold",
-      needsTwo: (held: number) => (held === 0 ? "Cover needs two or more members held" : "You hold one member; cover it on its own name"),
-      noWindow: "Cover opens when a Window is trading",
-      ready: (held: number, total: number) => `You hold ${held} of ${total} members`,
-    },
-    holdWhy: "A desk holds the basket for you with real money, inside your limits",
+    automate: "Automate",
+    automateWhy: "A desk trades this basket for you, inside your limits",
     aria: (name: string) => `${name} basket`,
   },
-  foot: "Predict and Cover use demo credits on the Canton test network. Hold is a practice desk; the live desk is planned. A seat holds no stocks yet, so Cover has nothing to read. Not investment advice.",
+  foot: "Predict uses demo credits on the Canton test network. Automate runs a practice desk; the live desk is planned. Not investment advice.",
   dev: {
     title: "Baskets",
-    intro: "The composed mark at three sizes, a basket Window card trading and paused, the hero question in points, the source note for a basket and a pre-IPO name, the hub holding none and two members, and the /baskets card with and without a Window.",
-    marks: "Composed mark — 16, 48 and 56 px discs (news, hub, cover card)",
+    intro: "The composed mark at three sizes, a basket Window card trading and paused, the hero question in points, the source note for a basket and a pre-IPO name, the hub, and the /baskets card with and without a Window.",
+    marks: "Composed mark — 16, 48 and 56 px discs (news, hub, card)",
     trading: "Basket Window — trading, quoted 54 / 48",
     paused: "Basket Window — paused, no signed source",
     hero: "Hero question — the line and the distance in points",
     source: "Source notes — a basket, then OPENAI-60m (no longer the Switchboard line)",
-    hubNone: "Hub — a seat holding no member",
-    hubTwo: "Hub — a seat holding both members, so the basket can be covered",
+    hub: "Hub — the basket's Window and its members",
     indexCard: "/baskets card — a Window trading",
     indexCardNone: "/baskets card — no Window, no seat",
   },

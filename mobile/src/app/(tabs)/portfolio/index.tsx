@@ -27,7 +27,6 @@ import { TradingBalancePanel } from "~/features/portfolio/TradingBalancePanel";
 import { TraderEdgeLink } from "~/features/portfolio/TraderEdgeLink";
 import { usePlateInk } from "~/features/portfolio/usePlateInk";
 import { XWalletCard } from "~/features/portfolio/x/XWalletCard";
-import { YourStocks } from "~/features/portfolio/YourStocks";
 import { FONT, useTheme } from "~/theme";
 import { WEB_PAGE, WEB_TYPE } from "~/theme/web/portfolio";
 import { usePullRefresh } from "~/components/kit/PullRefresh";
@@ -95,16 +94,15 @@ export default function PortfolioScreen() {
         </LedgerPlate>
 
         <TraderEdgeLink />
-        <YourStocks index="01" />
-        <BetsPanel symbol={symbol} index="02" history={history} />
+        <BetsPanel symbol={symbol} index="01" history={history} />
 
         <View style={styles.section}>
-          <SectionHeader index="03" title={PORTFOLIO.collectTitle} />
+          <SectionHeader index="02" title={PORTFOLIO.collectTitle} />
           <Text style={[WEB_TYPE.body, { color: color.inkSecondary }]}>{CLAIM.pageIntro}</Text>
           <LiveClaimPlate />
         </View>
 
-        <RecordSection history={history} symbol={symbol} index="04" />
+        <RecordSection history={history} symbol={symbol} index="03" />
       </View>
     );
   }

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { WORDS } from "./words";
 
 /**
- * "Nobody sees your bets": the case in one paragraph, who can read what (the same answer `/who-sees-what` proves contract
+ * "Nobody sees your bets": the case in one paragraph, who can read what (the same answer How it works gives contract
  * by contract), and privacy mode itself — the real toggle, so a visitor can try the sticker on a balance.
  */
 export function LandingPrivate() {
@@ -50,7 +50,7 @@ export function LandingPrivate() {
             </table>
           </div>
           <p className="text-ow-caption text-ow-white/60">{p.proved}</p>
-          <Link href="/who-sees-what" className="inline-flex items-center gap-1.5 self-start text-ow-label font-bold text-ow-lime hover:underline">
+          <Link href="/how-it-works" className="inline-flex items-center gap-1.5 self-start text-ow-label font-bold text-ow-lime hover:underline">
             {p.matrix} <ArrowRight className="size-4" />
           </Link>
         </div>

@@ -1,5 +1,5 @@
 import type { DemoFilm as Film } from "@/lib/release";
-import { DEMO } from "./copy";
+import { FILM } from "./film-copy";
 import "./demo-film.css";
 
 /**
@@ -10,7 +10,7 @@ import "./demo-film.css";
  * before the port is shown here.
  */
 export function DemoFilm({ film, className }: { film: Film | null; className?: string }) {
-  const f = DEMO.film;
+  const f = FILM.film;
   if (film === null) {
     return (
       <figure className={className ? `demo-video-figure ${className}` : "demo-video-figure"}>
@@ -28,7 +28,7 @@ export function DemoFilm({ film, className }: { film: Film | null; className?: s
         <iframe
           className="demo-video"
           src={`https://www.youtube-nocookie.com/embed/${film.id}?rel=0&modestbranding=1`}
-          title={DEMO.video.title}
+          title={FILM.video.title}
           width={1280}
           height={720}
           loading="lazy"
@@ -41,10 +41,10 @@ export function DemoFilm({ film, className }: { film: Film | null; className?: s
         <video className="demo-video" src={film.src} controls playsInline preload="metadata" aria-describedby="demo-video-caption" />
       )}
       <figcaption id="demo-video-caption" className="demo-video-caption">
-        <span>{DEMO.video.caption}</span>
+        <span>{FILM.video.caption}</span>
         {film.kind === "youtube" && (
           <a href={film.watchUrl} target="_blank" rel="noopener noreferrer">
-            {DEMO.video.watch}
+            {FILM.video.watch}
           </a>
         )}
       </figcaption>

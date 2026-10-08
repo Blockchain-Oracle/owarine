@@ -17,7 +17,6 @@ export const LEG = {
   ] as const,
   whoTitle: "Who sees it",
   whoLead: "Each line is the ledger's answer to that party, not a setting in this app.",
-  matrixLink: "Every contract, party by party →",
 } as const;
 
 export const BUILT_ON_LEAD =

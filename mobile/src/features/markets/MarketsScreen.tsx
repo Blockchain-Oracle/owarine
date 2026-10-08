@@ -7,12 +7,8 @@ import { useLanesState } from "@/features/markets/lanes/useLanes";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { SECTIONS } from "@/lib/copy";
-import { collateralOrNull } from "@owarine/markets";
-import { leasedOf } from "@/providers/wallet/seat-lease-context";
 import { usePullRefresh } from "~/components/kit";
 import { SectionHeader } from "~/features/explore/SectionHeader";
-import { LiveViewSwitcher } from "~/features/privacy/ViewSwitcher";
-import { useSeat } from "~/wallet/SeatProvider";
 import { MarketRoomSheet } from "~/features/room/MarketRoomSheet";
 import { useTheme } from "~/theme";
 import { CHROME } from "~/theme/chrome";
@@ -65,7 +61,6 @@ export function MarketsScreen() {
   const [roomMarket, setRoomMarket] = useState<EventMarket | null>(null);
   const refreshControl = usePullRefresh();
   const failure = lanes.reading && !lanes.reading.ok ? lanes.reading.error : venue.venueFailure;
-  const seat = useSeat();
 
   return (
     <View style={[styles.fill, { backgroundColor: color.ground }]}>
@@ -90,10 +85,6 @@ export function MarketsScreen() {
             <SectionHeader index={SECTIONS.events.index} title={SECTIONS.events.title} desc={SECTIONS.events.desc} />
             <EventBoard events={lanes.laneSet ? (lanes.laneSet.events ?? []) : null} failure={failure} nowMs={nowMs} />
           </View>
-          {/* §04 on `/markets/<id>` (web's LedgerViewSection): the same ledger query as Alice, Bob, an outsider and this seat. */}
-          {selection.marketId ? (
-            <LiveViewSwitcher index="04" marketId={selection.marketId} symbol={collateralOrNull()?.symbol ?? "credits"} withSeat={leasedOf(seat.lease.view) !== null} />
-          ) : null}
         </View>
       </ScrollView>
       <SenseiDock laneSet={lanes.laneSet} nowMs={nowMs} />

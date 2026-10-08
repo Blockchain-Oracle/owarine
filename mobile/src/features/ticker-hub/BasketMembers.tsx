@@ -17,7 +17,6 @@ interface BasketMembersProps {
   /** The members' prices and moves from the feed's row; null before it answers (weights still show). */
   members: readonly BasketMemberView[] | null;
   /** Members this wallet holds; null with no wallet connected (the column then reads "—"). */
-  held: ReadonlySet<string> | null;
 }
 
 /**
@@ -26,7 +25,7 @@ interface BasketMembersProps {
  * since base and whether the wallet holds it. Production resolves none of the table's ink variables, so every cell
  * reads in the page ink with no row rules, as it does there.
  */
-export function BasketMembers({ basket, members, held }: BasketMembersProps) {
+export function BasketMembers({ basket, members }: BasketMembersProps) {
   const { color } = useTheme();
   const T = TICKER_HUB.basket.table;
   const ink = { color: color.ink };
@@ -36,8 +35,8 @@ export function BasketMembers({ basket, members, held }: BasketMembersProps) {
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View>
           <View style={styles.headRow}>
-            {[T.member, T.weight, T.price, T.sinceBase, T.held].map((label, i) => (
-              <Text key={label} style={[...cell(i, i === 4), styles.th, ink]}>
+            {[T.member, T.weight, T.price, T.sinceBase].map((label, i) => (
+              <Text key={label} style={[...cell(i, i === 3), styles.th, ink]}>
                 {label}
               </Text>
             ))}
@@ -45,7 +44,6 @@ export function BasketMembers({ basket, members, held }: BasketMembersProps) {
           {basket.members.map((m) => {
             const row = members?.find((r) => r.symbol === m.symbol) ?? null;
             const move = row?.moveBps ?? null;
-            const holds = held?.has(m.symbol) ?? null;
             return (
               <View key={m.symbol} style={styles.row}>
                 <View style={[styles.cell, styles.first, styles.member, { width: COLS[0] }]}>
@@ -63,8 +61,7 @@ export function BasketMembers({ basket, members, held }: BasketMembersProps) {
                 </View>
                 <Text style={[...cell(1), styles.td, ink]}>{`${(m.weightBps / 100).toFixed(m.weightBps % 100 === 0 ? 0 : 1)}%`}</Text>
                 <Text style={[...cell(2), styles.td, ink]}>{row ? usdLine(row.tokenPriceE8) : TICKER_HUB.dash}</Text>
-                <Text style={[...cell(3), styles.td, ink]}>{move === null ? TICKER_HUB.dash : signedPct(move)}</Text>
-                <Text style={[...cell(4, true), styles.td, ink]}>{holds === null ? TICKER_HUB.dash : holds ? T.yes : T.no}</Text>
+                <Text style={[...cell(3, true), styles.td, ink]}>{move === null ? TICKER_HUB.dash : signedPct(move)}</Text>
               </View>
             );
           })}

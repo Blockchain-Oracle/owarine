@@ -14,7 +14,7 @@ Owarine is built on two platforms. Each row below says what that platform does f
 
 ## Why Canton
 
-A prediction market's positions are the information a competitor wants. On a public chain, owner, side and size are readable in the block that records them. On Canton a contract goes only to its stakeholders' nodes: a `Leg` has two signatories, the owner and the venue, and an outsider's ledger query comes back empty. The app runs that query live in "Who can see this", with the request body on screen, and `Test.Privacy.testOutsiderSeesNothing` proves it in Daml. <AppLink href="/who-sees-what">Who sees what</AppLink> lists every contract and the parties that receive it.
+A prediction market's positions are the information a competitor wants. On a public chain, owner, side and size are readable in the block that records them. On Canton a contract goes only to its stakeholders' nodes: a `Leg` has two signatories, the owner and the venue, and an outsider's ledger query comes back empty. The app says so on every position with the **Who can see this** chip, and `Test.Privacy.testOutsiderSeesNothing` proves it in Daml.
 
 ## Marks and attribution
 

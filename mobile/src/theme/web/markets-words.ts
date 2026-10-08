@@ -2,7 +2,7 @@ import type { ThemeName } from "../index";
 
 /**
  * /markets §02 "Just ask", the cover banner and the verdict as the browser computes them at 402 px (useagari.xyz, per
- * theme): yosuku part-16/17 `.words-*` `.wq-*`, word-board.css, hedge.css `.hg-banner*`, claim-winnings.css `.cw-*`.
+ * theme): yosuku part-16/17 `.words-*` `.wq-*`, word-board.css, claim-winnings.css `.cw-*`.
  * color-mix() and color(srgb …) values are resolved here, as production computes them.
  */
 const DARK = {

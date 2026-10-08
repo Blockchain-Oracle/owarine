@@ -6,7 +6,7 @@ type Blend = NonNullable<ViewStyle["mixBlendMode"]>;
 
 /**
  * web's /reels as the browser computes it at 402 px, per theme (styles/reel.css, reel-theme.css, reel-chrome.css,
- * take.css, hedge.css `.hc-*`, take-cashtag.css). The card follows the theme through one ink triplet — white on
+ * take.css, take-cashtag.css). The card follows the theme through one ink triplet — white on
  * dark, #1e1b1b on cream — and every step on it is that ink at the reference's own alpha.
  */
 function ink(rgb: string) {

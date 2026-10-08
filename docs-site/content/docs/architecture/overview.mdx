@@ -19,7 +19,7 @@ Owarine is a prediction market on **Canton Network** for short price calls: will
 
 Canton shows a contract only to its stakeholders. Your position (a `Leg`) and your cash (`VenueCash`) each have two: **the venue and your seat's party**. Another visitor, an oracle and the resolver see nothing of yours.
 
-The app shows the rule rather than asserting it. The **Who can see this** chip sits on the held price and each position, and the view switcher on a market page runs the same live query as you, Alice, Bob and an outsider, printing the literal query it sent. In the local rehearsal the outsider got 0 rows while a seat held its position; the venue, as counterparty, saw both seats' legs.
+The app shows the rule rather than asserting it. The **Who can see this** chip sits on the held price and each position: only your seat and the venue. `Test.Privacy` proves it in Daml: a party outside the contract reads nothing, while the venue, as counterparty, sees each seat's legs.
 
 ## Seats instead of wallets
 
@@ -36,4 +36,4 @@ The Daml guarantees hold whoever submits: a Window resolves or voids exactly onc
 
 ## What runs today
 
-On the local sandbox, each with an evidence note in `docs/evidence/`: calls on crypto, stock, xStock, pre-IPO, basket, Monday Gap and event Windows; Range, Moonshot, Parlay, Boost and shorts; Earn and the maker vault; strategies; duels, rank and seasons. Not yet: a desk that has traded live, private mode, the Canton Coin rail on a running ledger (it is proved in Daml Script and unit tests) and holdings-based cover; the iPhone app is built for Canton but has not run on a device. Use <AppLink href="/status">Status</AppLink> to see what is running, and [Price sources](/architecture/price-sources) for how a price becomes a settlement.
+On the local sandbox, each with an evidence note in `docs/evidence/`: calls on crypto, stock, xStock, pre-IPO, basket, Monday Gap and event Windows; Range, Moonshot, Parlay, Boost and shorts; Earn and the maker vault; strategies; duels, rank and seasons. Not yet: a desk that has traded live, private mode, and the Canton Coin rail on a running ledger (it is proved in Daml Script and unit tests); the iPhone app is built for Canton but has not run on a device. Use <AppLink href="/status">Status</AppLink> to see what is running, and [Price sources](/architecture/price-sources) for how a price becomes a settlement.

@@ -3,7 +3,7 @@ import type { EventMarket } from "@owarine/core/types";
 import { router, type Href } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { BASKETS_COPY } from "@/features/baskets/copy";
-import { bpsPct, windowText } from "@/features/hedge/calm";
+import { bpsPct, windowText } from "@/features/baskets/format";
 import { pointsLine } from "@/features/markets/hero/units";
 import { laneTabLabel } from "@/features/markets/lanes/lane-view";
 import type { PreIpoMove } from "@/features/ticker-hub/usePreIpoFacts";
@@ -11,7 +11,6 @@ import { haptic } from "~/components/kit";
 import { AssetDisc } from "~/components/marks/AssetDisc";
 import { Clock } from "~/features/short/Clock";
 import { FONT, useTheme } from "~/theme";
-import { basketsShortTokens } from "~/theme/web/products/baskets-short";
 import { LogoStack, Shimmer, Sparkline } from "./DeskKit";
 
 const C = BASKETS_COPY.card;
@@ -28,9 +27,6 @@ export interface BasketCardProps {
   /** Top of the Window's book; null while it hydrates or when no Window trades. */
   book: { upCents: number | null; downCents: number | null } | null;
   nowMs: number;
-  /** Members this wallet holds; null with no wallet connected. */
-  heldCount: number | null;
-  coverable: boolean;
   /** The basket's hourly index over the last week, oldest first; empty before the marks load. */
   line: readonly number[];
 }
@@ -38,14 +34,12 @@ export interface BasketCardProps {
 /**
  * web's `features/baskets/BasketCard.tsx` + `baskets.css` at ≤ 480 px: the header with its cashtag (into the ticker
  * hub), the blurb held to two lines, the members' marks, the index with its week, the 44 px Window row, then
- * Predict · Cover · Hold and why Cover is or is not open. Every row keeps its height whatever arrives.
+ * Predict · Automate and what Automate does. Every row keeps its height whatever arrives.
  */
-export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCount, coverable, line }: BasketCardProps) {
+export function BasketCard({ basket, indexRaw, move, window, book, nowMs, line }: BasketCardProps) {
   const { color } = useTheme();
   const memberSymbols = basket.members.map((m) => m.symbol);
   const names = basket.members.map((m) => TICKERS[m.symbol].name);
-  const coverWhy =
-    heldCount === null ? C.coverWhy.connect : !window ? C.coverWhy.noWindow : !coverable ? C.coverWhy.needsTwo(heldCount) : C.coverWhy.ready(heldCount, basket.members.length);
   const first = line[0];
   const weekMove = line.length >= 2 && first ? Math.round((((line.at(-1) ?? 0) - first) / first) * 10_000) : null;
   const weekInk = weekMove === null || weekMove === 0 ? color.inkMuted : weekMove > 0 ? color.profit : color.loss;
@@ -102,11 +96,10 @@ export function BasketCard({ basket, indexRaw, move, window, book, nowMs, heldCo
 
       <View style={styles.actions}>
         <Action label={C.predict} kind="predict" onPress={() => (window ? router.push(`/markets/${window.marketId}`) : hub())} />
-        <Action label={C.cover} kind="cover" off={!(window && coverable)} hint={coverWhy} onPress={() => window && router.push(`/markets/${window.marketId}?dir=down`)} />
-        <Action label={C.hold} kind="hold" hint={C.holdWhy} onPress={() => router.push(route(`/desk/new?basket=${basket.symbol}`))} />
+        <Action label={C.automate} kind="automate" hint={C.automateWhy} onPress={() => router.push(route(`/desk/new?basket=${basket.symbol}`))} />
       </View>
       <Text style={[styles.why, { color: color.inkMuted }]} numberOfLines={1}>
-        {coverWhy}
+        {C.automateWhy}
       </Text>
     </View>
   );
@@ -150,11 +143,10 @@ function WindowRow({ window, book, nowMs }: { window: EventMarket | null; book: 
   );
 }
 
-/** `.bk-action`: a 42 px pill in Sora 13 — Predict filled signal, Cover ringed in the loss ink (45% while off), Hold ringed muted. */
-function Action({ label, kind, onPress, off, hint }: { label: string; kind: "predict" | "cover" | "hold"; onPress: () => void; off?: boolean; hint?: string }) {
-  const { color, name } = useTheme();
-  const t = basketsShortTokens(name);
-  const border = kind === "predict" ? color.accent : kind === "cover" ? t.coverBorder : color.inkMuted;
+/** `.bk-action`: a 42 px pill in Sora 13 — Predict filled signal, Automate ringed muted. */
+function Action({ label, kind, onPress, off, hint }: { label: string; kind: "predict" | "automate"; onPress: () => void; off?: boolean; hint?: string }) {
+  const { color } = useTheme();
+  const border = kind === "predict" ? color.accent : color.inkMuted;
   return (
     <Pressable
       onPress={() => {

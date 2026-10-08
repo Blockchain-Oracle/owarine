@@ -88,8 +88,6 @@ export default function ReelsScreen() {
             <ReelCard market={item.market} near={near} closing={isClosing(reelPhase(item.market, nowMs))} />
           ) : item.kind === "take" ? (
             <TakeReelCard take={item.take} nowMs={minuteMs} />
-          ) : item.kind === "holding" ? (
-            null
           ) : (
             <DeskReelCard decision={item.decision} nowSec={Math.floor(minuteMs / 1000)} />
           )}
@@ -140,7 +138,6 @@ export default function ReelsScreen() {
 function rowKey(row: Row, index: number): string {
   if (row.kind === "market") return row.market.marketId;
   if (row.kind === "take") return `take-${row.take.id}`;
-  if (row.kind === "holding") return `hold-${row.pick.underlying}-${index}`;
   if (row.kind === "desk") return `desk-${row.decision.record.seq}`;
   return row.kind;
 }

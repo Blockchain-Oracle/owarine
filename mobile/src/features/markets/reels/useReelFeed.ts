@@ -39,7 +39,7 @@ export function useReelFeed() {
     const notable = desk.value.recent.find((r) => NOTABLE.has(r.outcome));
     return notable ? { deskId: desk.value.desk.id, record: notable, isLive: desk.value.desk.address !== null } : null;
   }, [desk]);
-  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], [], deskDecision), [rounds, feed, deskDecision]);
+  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], deskDecision), [rounds, feed, deskDecision]);
   const closedLine =
     session && !session.open ? SESSION_COPY.sessionClosedLine(phrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
 

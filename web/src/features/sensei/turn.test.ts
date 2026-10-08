@@ -2,7 +2,7 @@ import { TICKER_SYMBOLS } from "@owarine/core/market";
 import { describe, expect, it } from "vitest";
 import { asksForAdvice, senseiTurnContext } from "./prompt";
 import type { SenseiRequest } from "./protocol";
-import { basketCoverLine, earningsLine, holdingsLine } from "./turn-lines";
+import { earningsLine } from "./turn-lines";
 import { baseToCents, centsText } from "./units";
 
 const user = (content: string) => ({ role: "user" as const, content });
@@ -17,22 +17,6 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
     expect(asksForAdvice([user("sell my shares?"), { role: "assistant", content: "I can't advise on that." }, user("ok, read TSLA 5m")])).toBe(false);
   });
 
-  it("states what the wallet holds as a fact with its one use, cover, and keeps the token behind the advice line", () => {
-    const line = holdingsLine([
-      { name: "OpenAI", symbol: "OPENAI", issuer: "prestocks", tokens: "4.2", valueCents: 473_400 },
-      { name: "Tesla", symbol: "TSLAx", issuer: "xstocks", tokens: "12.5", valueCents: null },
-    ]);
-    expect(line).toContain("4.2 OPENAI (OpenAI, PreStocks) about $4,734.00");
-    expect(line).toContain("12.5 TSLAx (Tesla, xStocks).");
-    expect(line).toContain("DOWN Window on that name is cover with demo credits");
-    expect(line).toContain("Never advise on the tokens themselves");
-    expect(holdingsLine([])).toBe("Their seat holds no stock tokens (a seat holds none until the Canton Coin rail).");
-    // The tripwire is unchanged by the summary: a question about the real tokens still trips on "shares/stocks", and a cover question does not.
-    expect(asksForAdvice([user("should I sell my OpenAI stock now?")])).toBe(true);
-    expect(asksForAdvice([user("can I cover my OpenAI with a Down Window?")])).toBe(false);
-    const context = senseiTurnContext({ messages: [], restless: false, snapshot: null, holdings: [{ name: "OpenAI", symbol: "OPENAI", issuer: "prestocks", tokens: "4.2", valueCents: 473_400 }] });
-    expect(context).toContain("Their seat holds");
-  });
 
   it("stakes travel as integer cents, rounded half up", () => {
     expect(baseToCents(12_504_999n, 6)).toBe(1_250);
@@ -60,7 +44,7 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
     expect(earningsLine({ events: null, symbols: ["TSLA"] })).toContain("could not be read");
   });
 
-  // Eight positions, four Windows and four holdings are the request's ceilings; stakes at a whole faucet claim ($10,000) each.
+  // Eight positions and four Windows are the request's ceilings; stakes at a whole faucet claim ($10,000) each.
   it("stays under 2.5 KB at the request's ceilings (D-104)", () => {
     const request: SenseiRequest = {
       messages: [user("should I sell my shares?")],
@@ -68,7 +52,6 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
       session: { state: "early-close", label: "Closes 13:00 ET today" },
       record: { settled: 9_999, wins: 4_999, losses: 4_999, streak: -12 },
       positions: Array.from({ length: 8 }, () => ({ asset: "GOOGL", cadence: "15m", side: "both" as const, stakeCents: 1_000_000, markCents: 1_000_000, minsToClose: 59 })),
-      holdings: Array.from({ length: 4 }, () => ({ name: "Polymarket", symbol: "POLYMARKET", issuer: "prestocks" as const, tokens: "1234.5678", valueCents: 1_000_000_000 })),
       snapshot: {
         priceUsd: { GOOGL: 999.99 },
         markets: Array.from({ length: 4 }, () => ({ asset: "GOOGL", cadence: "15m", minsToClose: 59, lineUsd: 999.99, upCents: 100, downCents: 100 })),
@@ -77,20 +60,5 @@ describe("Sensei per-turn context (S13 spec §1.1)", () => {
     const events = TICKER_SYMBOLS.map((symbol) => ({ symbol, dateEt: "2026-09-17", hour: "dmh" as const }));
     const context = senseiTurnContext(request, { adviceAsked: true, earnings: { events, symbols: [...TICKER_SYMBOLS] } });
     expect(new TextEncoder().encode(context).length).toBeLessThanOrEqual(2_560);
-  });
-});
-
-describe("basket cover line (S19)", () => {
-  it("names a basket only when two or more of its members are held, and says how many", () => {
-    const openai = { name: "OpenAI", symbol: "OPENAI", issuer: "prestocks", tokens: "4.2", valueCents: 473_400 } as const;
-    const anthropic = { name: "Anthropic", symbol: "ANTHROPIC", issuer: "prestocks", tokens: "2", valueCents: 206_200 } as const;
-    const tesla = { name: "Tesla", symbol: "TSLAx", issuer: "xstocks", tokens: "12.5", valueCents: null } as const;
-    expect(basketCoverLine([openai, tesla])).toBe("");
-    const line = basketCoverLine([openai, anthropic, tesla]);
-    expect(line).toContain("AILABS (AI Labs: they hold 2 of its 2 members)");
-    expect(line).toContain("FRONTIER (Frontier AI: they hold 2 of its 4 members)");
-    expect(line).toContain("PREALL");
-    expect(line).not.toContain("PREDMKTS");
-    expect(holdingsLine([openai, anthropic])).toContain("A DOWN Window on a basket covers the members they hold together");
   });
 });

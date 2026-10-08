@@ -2,7 +2,7 @@
  * Who sees what (C-ADD-11): every contract and the parties whose nodes receive it, read from the `signatory` and
  * `observer` lines in `daml/*\/daml/PM/**`, with the rows `daml/pm-tests/daml/Test/Privacy.daml` asserts marked. The
  * source of truth for the words is `docs/business/privacy-matrix.md`; this module is the same table as data, shared by
- * `/who-sees-what`, the How It Works summary and the phone (which resolves `@/` to `web/src`). Pure: no I/O.
+ * the How It Works summary and the phone (which resolves `@/` to `web/src`). Pure: no I/O.
  */
 
 /** ✓ a stakeholder, receives it · — never receives it · W sees it only as a witness of its own settle, or disclosed for one command · own: only its own. */

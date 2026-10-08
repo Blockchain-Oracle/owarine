@@ -1,13 +1,13 @@
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, ET_WEEKDAY_SHORT, isBasketCoverable, weekdayOfDate, type TickerSymbol } from "@owarine/core/market";
+import { ET_WEEKDAY_SHORT, weekdayOfDate, type TickerSymbol } from "@owarine/core/market";
 import type { EarningsEvent } from "@/lib/finnhub.server";
-import type { SenseiDesk, SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
+import type { SenseiDesk, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { centsText } from "./units";
 
 /**
  * The per-turn lines Sensei's server adds about the session, the reader's own book and earnings (S13 spec §1.1).
  *
  * Pure strings over the request, so the route stays a transport and the whole block can be measured: it has to stay
- * under 2.5 KB with eight positions, four Windows, four holdings and the full earnings list, because it rides on every
+ * under 2.5 KB with eight positions, four Windows and the full earnings list, because it rides on every
  * turn (2 KB before the holdings line; D-104).
  */
 
@@ -57,30 +57,6 @@ export function positionLines(positions: readonly SenseiPosition[]): string[] {
       (p) => `- ${p.asset} ${p.cadence} ${SIDE[p.side]}, staked ${centsText(p.stakeCents)}, worth ${centsText(p.markCents)} at last trade, closes in ${p.minsToClose} min`,
     ),
   ];
-}
-
-const ISSUER = { xstocks: "xStocks", ondo: "Ondo", prestocks: "PreStocks" } as const;
-
-/**
- * What the seat holds, stated as a fact with its one allowed use: a Window on the same name is cover, with demo
- * credits. The token itself stays behind the advice line in the system prompt; this line only reminds the model of it.
- */
-export function holdingsLine(holdings: readonly SenseiHolding[]): string {
-  if (holdings.length === 0) return "Their seat holds no stock tokens (a seat holds none until the Canton Coin rail).";
-  const rows = holdings.map((h) => `${h.tokens} ${h.symbol} (${h.name}, ${ISSUER[h.issuer]})${h.valueCents === null ? "" : ` about ${centsText(h.valueCents)}`}`);
-  return `Their seat holds, real tokens read-only, not demo credits: ${rows.join("; ")}. A DOWN Window on that name is cover with demo credits; UP adds to it.${basketCoverLine(holdings)} Never advise on the tokens themselves.`;
-}
-
-/**
- * S19: two or more held members of one basket can be covered together. A PreStocks holding's symbol is the member's
- * ticker itself, so the registry answers which baskets the seat could cover; nothing else is inferred.
- */
-export function basketCoverLine(holdings: readonly SenseiHolding[]): string {
-  const held = new Set(holdings.filter((h) => h.issuer === "prestocks").map((h) => h.symbol));
-  const coverable = BASKET_SYMBOLS.map((s) => BASKETS[s]).filter((b) => isBasketCoverable(b, held));
-  if (coverable.length === 0) return "";
-  const parts = coverable.map((b) => `${b.symbol} (${b.name}: they hold ${basketMembersHeld(b, held).length} of its ${b.members.length} members)`);
-  return ` A DOWN Window on a basket covers the members they hold together: ${parts.join("; ")}.`;
 }
 
 const DESK_MODE = { practice: "in practice, spending nothing", ask_first: "live, asking before every action", on_its_own: "live, acting inside its limits" } as const;

@@ -1,7 +1,5 @@
 import { EyeOffIcon, LayersIcon } from "lucide-react";
-import Link from "next/link";
 import { SUMMARY } from "@/features/privacy-matrix/matrix";
-import { WHO_SEES_WHAT_PATH } from "@/features/landing/story-copy";
 import { HOW_IT_WORKS } from "./copy";
 import { LEG } from "./leg";
 import { riseDelay } from "./rise";
@@ -50,9 +48,6 @@ export function WhoSeesIt() {
             </div>
           ))}
         </dl>
-        <Link href={WHO_SEES_WHAT_PATH} className="hiw-who-link" data-cursor="hover">
-          {LEG.matrixLink}
-        </Link>
       </article>
     </section>
   );

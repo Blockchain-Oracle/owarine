@@ -92,7 +92,7 @@
 .bk-action:not([data-off]):hover { border-color: var(--color-ink); transform: translateY(-1px); }
 .bk-action:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .bk-why { margin: 0; overflow: hidden; font-size: 12px; line-height: 1.5; white-space: nowrap; text-overflow: ellipsis; color: var(--color-ink-muted); }
-.bk-foot { margin-top: 24px; }
+.bk-foot { margin: 24px 0 0; font-size: 12px; line-height: 1.6; color: var(--color-ink-muted); }
 .bk-live-chip { margin-left: 4px; }
 
 @media (max-width: 480px) {

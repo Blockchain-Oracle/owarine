@@ -66,7 +66,7 @@ export function ReelsScreen() {
     const notable = desk.value.recent.find((r) => NOTABLE.has(r.outcome));
     return notable ? { deskId: desk.value.desk.id, record: notable, isLive: desk.value.desk.address !== null } : null;
   }, [desk]);
-  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], [], deskDecision), [rounds, feed, deskDecision]);
+  const reel = useMemo(() => weaveReel(rounds, feed?.takes ?? [], deskDecision), [rounds, feed, deskDecision]);
   // Off-hours the reel still carries the takes, so the closed card leads it rather than replacing it: the
   // viewer reads when the market opens, then swipes into what people called.
   const closedLine = session && !session.open ? SESSION_COPY.sessionClosedLine(phrase(session.status, Math.floor((nowMs > 0 ? nowMs : marketsProvider.nowMs()) / 1000))) : null;
@@ -106,7 +106,7 @@ export function ReelsScreen() {
                 <section key={`take-${item.take.id}`} ref={register(index)} className="feed-card reel-slot">
                   <TakeReelCard take={item.take} nowMs={minuteMs} />
                 </section>
-              ) : item.kind === "holding" ? null : (
+              ) : (
                 <section key={`desk-${item.decision.record.seq}`} ref={register(index)} className="feed-card reel-slot">
                   <DeskReelCard decision={item.decision} nowSec={Math.floor(minuteMs / 1000)} />
                 </section>

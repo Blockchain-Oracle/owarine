@@ -12,16 +12,13 @@ import { MarketCardView, PausedCard } from "@/features/markets/lanes";
 import { BasketHubView } from "@/features/ticker-hub/BasketHub";
 import { CLOCK } from "../session/market-session-fixtures";
 import { Fixture } from "../states/_sections/Fixture";
-import { AILABS, AILABS_CARD, AILABS_FACTS, AILABS_NOW, AILABS_OPEN, AILABS_WINDOW, ANTHROPIC_PRE, HELD_BOTH, HELD_NONE, OPENAI_PRE, OPENAI_WINDOW } from "./fixtures";
+import { AILABS, AILABS_CARD, AILABS_FACTS, AILABS_NOW, AILABS_OPEN, AILABS_WINDOW, OPENAI_WINDOW } from "./fixtures";
 import "@/features/profile/profile.css";
 import "@/features/ticker-hub/ticker-hub.css";
 import "@/styles/news-wire.css";
 
 const NOW_MS = CLOCK.weekendSat * 1000;
 const noop = () => {};
-const heldBoth = new Set(HELD_BOTH.map((h) => h.underlying));
-const heldNone = new Set(HELD_NONE.map((h) => h.underlying));
-const heldValue = HELD_BOTH.reduce((sum, h) => sum + (h.exposureUsdE6 ?? 0n), 0n);
 
 /** The basket Window's card from canned data, as the hub and the lanes would draw it. */
 function CannedCard({ onSelect }: { onSelect: (marketId: MarketId, side?: Side) => void }) {
@@ -69,31 +66,21 @@ export function BasketFixtures() {
           <PriceSourceNote market={AILABS_WINDOW} />
           <PriceSourceNote market={OPENAI_WINDOW} />
         </Fixture>
-        <Fixture label={D.hubNone}>
+        <Fixture label={D.hub}>
           <div className="news-page prf-page tkh-page">
             <div className="news-inner">
-              <BasketHubView basket={AILABS} indexRaw={AILABS_NOW} indexStale={false} facts={AILABS_FACTS} window={AILABS_WINDOW} windowCard={<CannedCard onSelect={open} />} held={heldNone} heldValueUsdE6={null} />
+              <BasketHubView basket={AILABS} indexRaw={AILABS_NOW} indexStale={false} facts={AILABS_FACTS} window={AILABS_WINDOW} windowCard={<CannedCard onSelect={open} />} />
             </div>
           </div>
-        </Fixture>
-        <Fixture label={D.hubTwo}>
-          <div className="news-page prf-page tkh-page">
-            <div className="news-inner">
-              <BasketHubView basket={AILABS} indexRaw={AILABS_NOW} indexStale={false} facts={AILABS_FACTS} window={AILABS_WINDOW} windowCard={<CannedCard onSelect={open} />} held={heldBoth} heldValueUsdE6={heldValue} />
-            </div>
-          </div>
-          <p className="type-caption text-ink-muted">
-            {OPENAI_PRE.symbol} + {ANTHROPIC_PRE.symbol} held → cover offered
-          </p>
         </Fixture>
         <Fixture label={D.indexCard}>
           <div className="bk-grid">
-            <BasketCard basket={AILABS} indexRaw={AILABS_NOW} move={AILABS_FACTS.move ?? null} window={AILABS_WINDOW} book={{ upCents: 54, downCents: 48 }} nowMs={NOW_MS} heldCount={2} coverable />
+            <BasketCard basket={AILABS} indexRaw={AILABS_NOW} move={AILABS_FACTS.move ?? null} window={AILABS_WINDOW} book={{ upCents: 54, downCents: 48 }} nowMs={NOW_MS} />
           </div>
         </Fixture>
         <Fixture label={D.indexCardNone}>
           <div className="bk-grid">
-            <BasketCard basket={AILABS} indexRaw={null} move={null} window={null} book={null} nowMs={NOW_MS} heldCount={null} coverable={false} />
+            <BasketCard basket={AILABS} indexRaw={null} move={null} window={null} book={null} nowMs={NOW_MS} />
           </div>
         </Fixture>
       </div>

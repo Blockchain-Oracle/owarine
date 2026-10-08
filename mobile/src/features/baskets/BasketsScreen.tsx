@@ -1,19 +1,17 @@
-import { BASKET_SYMBOLS, BASKETS, basketMembersHeld, isBasketCoverable, type BasketSymbol } from "@owarine/core/market";
+import { BASKET_SYMBOLS, BASKETS, type BasketSymbol } from "@owarine/core/market";
 import { isOk } from "@owarine/core/schemas";
 import type { LaneSet } from "@owarine/core/types";
 import { useAssetPrice, useLanes } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { StyleSheet, Text, View } from "react-native";
-import { heldSymbols, tradingBasketWindow } from "@/features/baskets/basket-window";
+import { tradingBasketWindow } from "@/features/baskets/basket-window";
 import { BASKETS_COPY } from "@/features/baskets/copy";
 import { basketLine, lineNumbers, useDeskMarks, type DeskMarks } from "@/features/desk/useDeskMarks";
-import { useHoldings } from "@/features/hedge/useHoldings";
 import { basisRaw, feedRawToOracleRaw } from "@/features/markets/hero/units";
 import { useTopOfBook } from "@/features/markets/hero/useTopOfBook";
 import { useChainNowMs } from "@/features/markets/useChainNow";
 import { useVenue } from "@/features/markets/useVenue";
 import { usePreIpoFactsAll, type PreIpoFactsView } from "@/features/ticker-hub/usePreIpoFacts";
-import { useWalletSession } from "@/lib/wallet-session";
 import { ExplorePage } from "~/features/explore/ExplorePage";
 import { SectionHeader } from "~/features/explore/SectionHeader";
 import { FONT, useTheme } from "~/theme";
@@ -25,12 +23,11 @@ interface LiveCardProps {
   laneSet: LaneSet | null;
   nowMs: number;
   facts: PreIpoFactsView | null;
-  held: ReadonlySet<string> | null;
   marks: DeskMarks | null;
 }
 
 /** web's `LiveBasketCard`: the index from the price stream (else the facts' index), its Window's book, its facts. */
-function LiveBasketCard({ symbol, laneSet, nowMs, facts, held, marks }: LiveCardProps) {
+function LiveBasketCard({ symbol, laneSet, nowMs, facts, marks }: LiveCardProps) {
   const basket = BASKETS[symbol];
   const price = useAssetPrice(symbol);
   const window = tradingBasketWindow(laneSet, symbol, nowMs);
@@ -44,8 +41,6 @@ function LiveBasketCard({ symbol, laneSet, nowMs, facts, held, marks }: LiveCard
       window={window}
       book={window && !hydrating ? { upCents, downCents } : null}
       nowMs={nowMs}
-      heldCount={held ? basketMembersHeld(basket, held).length : null}
-      coverable={held ? isBasketCoverable(basket, held) : false}
       line={lineNumbers(basketLine(marks, symbol))}
     />
   );
@@ -62,12 +57,9 @@ export function BasketsScreen() {
   const venue = useVenue();
   const lanes = useLanes(venue.venueId);
   const nowMs = useChainNowMs();
-  const { address } = useWalletSession();
-  const holdings = useHoldings(address);
   const facts = usePreIpoFactsAll(true);
   const marks = useDeskMarks();
   const laneSet = lanes && isOk(lanes) ? lanes.value : null;
-  const held = holdings?.ok ? heldSymbols(holdings.value) : null;
 
   return (
     <ExplorePage title={BASKETS_COPY.title} onRefresh={() => queryClient.invalidateQueries()}>
@@ -93,7 +85,7 @@ export function BasketsScreen() {
                 laneSet={laneSet}
                 nowMs={nowMs}
                 facts={facts?.ok ? (facts.value[symbol] ?? null) : null}
-                held={held}
+               
                 marks={marks}
               />
             ))}

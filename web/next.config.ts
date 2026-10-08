@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
     { source: "/bell", destination: "/markets", permanent: true },
     { source: "/beta", destination: "/markets", permanent: true },
     { source: "/pool", destination: "/earn", permanent: true },
+    // Developer surfaces taken off the product (8 Oct): the plain-words privacy answer lives on How it works.
+    { source: "/demo", destination: "/how-it-works", permanent: true },
+    { source: "/who-sees-what", destination: "/how-it-works", permanent: true },
   ],
   transpilePackages: ["@owarine/brain", "@owarine/core", "@owarine/daml", "@owarine/ledger", "@owarine/markets"],
   // Next 16 writes AGENTS.md and CLAUDE.md on `next dev`; this repository carries no AI-tool files.

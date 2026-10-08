@@ -30,7 +30,7 @@ import "./how-it-works-canton.css";
  * "How the Desk Decides" (S19, S21), follow the money rules in `BasketsAndDesk`.
  *
  * C10f adds two more for Canton: "The Leg and Who Sees It" (the two-sided leg and who receives it, linking the full
- * matrix at /who-sees-what) after the mechanics, and "Built On" (Canton Network, Noders) before the FAQ.
+ * summary) after the mechanics, and "Built On" (Canton Network, Noders) before the FAQ.
  *
  * The reference mounts its own Header and a `router.push` back button; the root
  * shell already carries the chrome, and the back control is a plain link.

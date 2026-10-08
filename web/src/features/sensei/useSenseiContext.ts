@@ -1,27 +1,21 @@
 "use client";
 
-import { formatCadence, TICKERS } from "@owarine/core/market";
+import { formatCadence } from "@owarine/core/market";
 import { roundSettledAtMs, type SettledRound } from "@owarine/core/projection";
 import type { OpenPosition } from "@owarine/core/types";
-import { formatBaseUnits } from "@owarine/core/units";
 import { usePositions, useWalletHistory } from "@owarine/markets/react";
 import { useMemo } from "react";
 import { useWalletSession } from "@/lib/wallet-session";
 import { useDeskView } from "@/features/desk/useDesk";
 import { deskView } from "@/features/desk/view";
-import { useHoldings, type HoldingView } from "@/features/hedge";
 import { useMarketSession } from "../markets/session/useMarketSession";
-import type { SenseiDesk, SenseiHolding, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
+import type { SenseiDesk, SenseiPosition, SenseiRecord, SenseiSession } from "./protocol";
 import { baseToCents } from "./units";
 
 /** The request's ceiling (`protocol.ts`); the soonest to close are the ones a read is about. */
 const MAX_POSITIONS = 8;
-/** Four names is the holdings ceiling (`protocol.ts`): the per-turn block has a byte budget (D-104). */
-const MAX_HOLDINGS = 4;
 /** Minutes to close are what the positions carry, so they are rebuilt once a minute, like the snapshot's figures. */
 const TICK_MS = 60_000;
-const SHARES_DP = 8;
-const SHARES_SHOWN_DP = 4;
 /** USD e6 → cents, rounded half up, integer only. */
 const USD_E6_PER_CENT = 10_000n;
 
@@ -30,7 +24,6 @@ export interface SenseiContext {
   session: SenseiSession | null;
   positions?: SenseiPosition[];
   record?: SenseiRecord;
-  holdings?: SenseiHolding[];
   desk?: SenseiDesk;
 }
 
@@ -54,20 +47,6 @@ function toPositions(positions: readonly OpenPosition[], nowMs: number): SenseiP
     }));
 }
 
-/** The wallet's stock tokens for Sensei, largest value first, at the request's ceiling; nothing names the wallet or a mint. */
-export function toHoldings(holdings: readonly HoldingView[]): SenseiHolding[] {
-  const value = (h: HoldingView) => h.exposureUsdE6 ?? -1n;
-  return [...holdings]
-    .sort((a, b) => (value(b) > value(a) ? 1 : value(b) < value(a) ? -1 : 0))
-    .slice(0, MAX_HOLDINGS)
-    .map((h) => ({
-      name: TICKERS[h.underlying].name,
-      symbol: h.symbol,
-      issuer: h.issuer,
-      tokens: formatBaseUnits(h.sharesE8, SHARES_DP, { maxDp: SHARES_SHOWN_DP, minDp: 0 }),
-      valueCents: h.exposureUsdE6 === null ? null : Number((h.exposureUsdE6 + USD_E6_PER_CENT / 2n) / USD_E6_PER_CENT),
-    }));
-}
 
 /** The wallet's desk for Sensei (S21): mode, worth, the last decision's line and its age, anything waiting. Nothing names the wallet. */
 export function toDesk(view: ReturnType<typeof deskView>, nowMs: number): SenseiDesk {
@@ -108,8 +87,6 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
   const market = useMarketSession();
   const positions = usePositions(open ? address : null);
   const history = useWalletHistory(address, open);
-  // The same query the cover card and "Your stocks" read (one TanStack key), so an open drawer adds no request of its own.
-  const holdings = useHoldings(open ? address : null);
   // The desk's own page read (one TanStack key), only while the drawer is open with a wallet connected.
   const desk = useDeskView(open ? address : null, address, open && address !== null);
   const tick = Math.floor(nowMs / TICK_MS);
@@ -120,7 +97,6 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
 
   const positionRows = open && address !== null && positions?.ok ? positions.value : null;
   const rounds = open && address !== null && history?.ok ? history.value.rounds : null;
-  const holdingRows = open && address !== null && holdings?.ok ? holdings.value : null;
   const deskWire = open && address !== null && desk?.ok && desk.value.desk !== null ? desk.value : null;
 
   return useMemo<SenseiContext>(
@@ -128,9 +104,8 @@ export function useSenseiContext(open: boolean, nowMs: number): SenseiContext {
       session,
       ...(positionRows ? { positions: toPositions(positionRows, tick * TICK_MS) } : {}),
       ...(rounds ? { record: toRecord(rounds) } : {}),
-      ...(holdingRows ? { holdings: toHoldings(holdingRows) } : {}),
       ...(deskWire ? { desk: toDesk(deskView(deskWire), tick * TICK_MS) } : {}),
     }),
-    [session, positionRows, rounds, holdingRows, deskWire, tick],
+    [session, positionRows, rounds, deskWire, tick],
   );
 }

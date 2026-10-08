@@ -74,7 +74,7 @@ export function TakeCta({ label, onPress, edge, style }: { label: string; onPres
   );
 }
 
-/** hedge.css `.hc-foot`: the reel ink's small print under a holding or desk card. */
+/** The reel ink's small print under a desk card. */
 export function TakeFootNote({ children }: { children: string }) {
   const t = useReelTokens();
   return <Text style={[styles.footNote, { color: t.ink45 }]}>{children}</Text>;

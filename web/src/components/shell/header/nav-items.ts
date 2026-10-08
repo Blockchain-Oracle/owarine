@@ -240,7 +240,6 @@ export const NAV_ITEMS = {
     description: "Install Owarine as a web app.",
     icon: Download,
   },
-  demo: { id: "demo", name: "Demo", href: "/demo", description: "Walk through the complete product story.", icon: Clapperboard },
   pitch: { id: "pitch", name: "Pitch", href: "/pitch", description: "Read the concise Owarine thesis.", icon: Presentation },
   xRecovery: {
     id: "x-recovery",
@@ -314,7 +313,7 @@ export const EXPLORE_GROUP: NavGroup = {
       id: "learn",
       name: "Learn",
       description: "Guidance and context",
-      items: [NAV_ITEMS.news, NAV_ITEMS.howItWorks, NAV_ITEMS.docs, NAV_ITEMS.status, NAV_ITEMS.download, NAV_ITEMS.demo, NAV_ITEMS.pitch],
+      items: [NAV_ITEMS.news, NAV_ITEMS.howItWorks, NAV_ITEMS.docs, NAV_ITEMS.status, NAV_ITEMS.download, NAV_ITEMS.pitch],
     },
   ],
 };
@@ -348,7 +347,7 @@ export const MOBILE_OVERFLOW: readonly NavItem[] = MOBILE_DRAWER_SECTIONS.flatMa
 
 /** Every real, user-facing page that must retain an explicit navigation home. */
 export const NAVIGABLE_ROUTE_PATHS = [
-  "/activity", "/agents", "/baskets", "/claim", "/demo", "/desk", "/desk/new",
+  "/activity", "/agents", "/baskets", "/claim", "/desk", "/desk/new",
   "/download", "/earn", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/proof", "/reels", "/short", "/stats",

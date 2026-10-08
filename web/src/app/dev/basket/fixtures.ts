@@ -1,10 +1,9 @@
 /**
- * Canned readings for `/dev/basket` (S19): the AI Labs basket's Window trading and paused, its feed row, and the two
- * holding states the hub shows (no member held; both held, so the basket can be covered).
+ * Canned readings for `/dev/basket` (S19): the AI Labs basket's Window trading and paused, its feed row, and the
+ * hub.
  */
-import { BASKET_INDEX_BASE_E8, BASKETS, type PreIpoSymbol } from "@owarine/core/market";
+import { BASKET_INDEX_BASE_E8, BASKETS } from "@owarine/core/market";
 import type { EventMarket, LaneSet } from "@owarine/core/types";
-import type { HoldingView } from "@/features/hedge/useHoldings";
 import type { MarketCardData } from "@/features/markets/lanes/MarketCardView";
 import type { PreIpoFactsView } from "@/features/ticker-hub/usePreIpoFacts";
 import { fixtureAddress, fixtureMarketId } from "../fixture-ids";
@@ -12,7 +11,6 @@ import { fixtureWindow } from "../fixture-window";
 import { CLOCK } from "../session/market-session-fixtures";
 
 const VENUE = fixtureAddress("0x7e");
-const E8 = 100_000_000n;
 export const AILABS = BASKETS.AILABS;
 
 /** The 24/7 AI Labs Window (Series 920, 60 m): opened at 1,000.00 pts; the index sits 0.42 % above it. */
@@ -67,18 +65,3 @@ export const AILABS_FACTS: PreIpoFactsView = {
   week: null,
 };
 
-const holding = (symbol: PreIpoSymbol, sharesE8: bigint, priceE8: bigint): HoldingView => ({
-  mint: `fixture-${symbol}`,
-  symbol,
-  issuer: "prestocks",
-  underlying: symbol,
-  sharesE8,
-  exposureUsdE6: (sharesE8 * priceE8) / 10n ** 10n,
-  priceAgeSec: 0,
-});
-
-/** 4.2 OPENAI at $1,176.28 and 2 ANTHROPIC at $1,031.20: both members of AI Labs, ≈ $7,003 together. */
-export const OPENAI_PRE = holding("OPENAI", 420_000_000n, 117_628_000_000n);
-export const ANTHROPIC_PRE = holding("ANTHROPIC", 2n * E8, 103_120_000_000n);
-export const HELD_BOTH: HoldingView[] = [OPENAI_PRE, ANTHROPIC_PRE];
-export const HELD_NONE: HoldingView[] = [];

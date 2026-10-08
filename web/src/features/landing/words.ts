@@ -58,7 +58,7 @@ export const WORDS = {
       { what: "The closing print", sees: [true, true, true] },
     ],
     proved: "An outsider's ledger query comes back empty. The app runs it live.",
-    matrix: "Who sees what, contract by contract",
+    matrix: "How privacy works",
     mask: { title: "Privacy mode", body: "One tap swaps every balance for a sticker.", tap: "Tap to hide" },
   },
   markets: {
@@ -108,7 +108,6 @@ export const WORDS = {
       { label: "Trade", href: "/trade" },
       { label: "Markets", href: "/markets" },
       { label: "How it works", href: "/how-it-works" },
-      { label: "Who sees what", href: "/who-sees-what" },
       { label: "Proof", href: "/proof" },
       { label: "Pitch", href: "/pitch" },
       { label: "Get the app", href: "/download" },
