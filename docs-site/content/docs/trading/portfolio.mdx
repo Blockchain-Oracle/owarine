@@ -1,24 +1,44 @@
 ---
 title: "Portfolio"
-description: "Read your open and settled positions, sell one back before the close, and see what you were paid."
+description: "Read your test funds, inspect pockets, manage open positions and follow settlement receipts."
 ---
 
-Portfolio is where a position's life ends up: a call you accepted, or a ticket such as Range, Parlay or Boost. It reads the ledger as your seat's party, from the start of your lease, so it shows exactly what Canton lets your seat see and never a previous visitor's positions.
+<Walkthrough name="portfolio-tour" />
 
-<GuideCapture name="portfolioBalance" caption="The balance card with one open position: demo credits, the open position valued at the venue\'s mid, and nothing waiting to collect." />
+Open <AppLink href="/portfolio">Portfolio</AppLink> with your guest seat connected. It shows that lease's ledger-backed positions and funds. Guest paper positions belong to the Trade screen's browser state and are separate from this DevNet record.
 
-## Open positions
+<GuideCapture name="portfolioBalance" />
 
-An open position sits on a live Window. A quote you have not accepted yet is not a position; it expires on its own after about 20 seconds. Before the close, **Cash out** or **Sell half** sells a position back to the venue at a firm exit price, and the proceeds land in your cash.
+## Read from top to bottom
 
-## Settled positions
+| Section | What to check |
+| --- | --- |
+| Your balance | Test credits, open positions valued at the venue mid, and amounts to collect. **Get test credits** opens Add funds; **Trade** opens the trading screen. |
+| Pockets | Trading Balance, Private and X replies, with their own balances and controls. |
+| Open positions | Accepted positions and resting calls, including any available exit or cancellation action. |
+| To collect | Positions for which an owner action is available. |
+| Record | Settled history and its receipts. |
+| Trader Edge | A report derived from your trading record. |
 
-Once a Window resolves (or voids), the venue's settler pays its positions in batches, without you signing. A winning position pays its full amount; a losing position pays nothing; a voided Window returns your stake and your fee. You do not need to claim. History shows each result with its receipt, an event reads as its question, and each receipt opens its Window's proof page.
+A current mark is not a guaranteed sale price. A quote you have not accepted is not an open position. Some sections load after the balance; wait for their read or use their retry state.
 
-<GuideCapture name="portfolioHistory" caption="History after six settled rounds, each read from its settlement receipt: a Parlay, a Moonshot and a Range ticket, and three boosted positions, one of them cashed out early." />
+## Sell a position back
 
-If the venue has not settled by the Window's refund time, Portfolio offers to take your stake back yourself.
+1. Open an ordinary position before its close.
+2. Choose **Cash out** or **Sell half**, where offered. The Trade screen uses **Close** and reduction controls for its positions.
+3. Review the venue's firm exit quote and confirm.
+4. Wait for the receipt and the updated position size or cash balance.
 
-## If a result looks stuck
+The venue must be quoting an exit at your size. A missing or expired quote cannot close the position. Specialist tickets have their own close rules; see [Short](/trading/shorts) and [other tickets](/trading/specialist-tickets).
 
-Right after a Window closes, the resolver and the settler need a moment. <AppLink href="/status">Status</AppLink> shows whether the oracle feeders, the resolver and the settler are running. A Window whose prints never arrive voids rather than hanging forever.
+**Hosted check — 8 October 2026:** three sell-back requests did not reach a confirmed Closed state. The last message was **Price moved** / **Close now pays 0.15. Tap again to take it.** The held five-minute position later resolved normally. That settlement was not a sell-back; no successful exit is established by this check.
+
+## After the Window closes
+
+A winning ordinary leg pays its contract amount; a losing leg pays zero; a void refunds its stake and fee. The settler normally sends these payments without another seat signature. History links the result to its receipt and Window proof.
+
+In the hosted check on 8 October 2026, the BTC 2-minute Up call showed **WON**, 3.00 credits paid and +2.15 net, with the payout already reflected in the rail balance. A **TO COLLECT · COLLECT →** label remained beside that paid result. Check the settlement receipt and current balance before attempting collection; that label alone does not mean a second payment is owed.
+
+<GuideCapture name="portfolioHistory" />
+
+If settlement is delayed, inspect [Status](/help/status) for resolver and settler backlogs. Use a claim or refund only when the position offers it. An uncertain result calls for a fresh position read before another submission.

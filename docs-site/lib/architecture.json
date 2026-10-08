@@ -2,7 +2,7 @@
   "venue": {
     "title": "A Window on Canton, from seat to payout",
     "subtitle": "Your seat accepts a firm quote; ops keeps the clock and prints moving; the Daml contracts decide and pay.",
-    "note": "This path runs end to end on a local Canton sandbox with demo credits; nothing is on DevNet or a hosted URL yet. Each Window's price source is named on its Series policy and on every receipt.",
+    "note": "First-call DevNet execution is recorded on 6 October 2026; broader paths have separate local evidence. The prototype uses demo credits. Each Window names its price policy; shared-participant operator and server trust still apply.",
     "sources": ["web/src/features/markets", "web/src/app/api/ledger", "web/src/lib/seat-lease.server.ts", "packages/markets/src", "packages/ledger/src", "daml/abu-pm-main/daml/PM", "services/ops/src/actors/venue", "services/ops/src/actors/projector", "web/src/features/proof"],
     "rows": [
       { "label": "01 · Your seat", "nodes": [
@@ -19,10 +19,10 @@
       ], "arrows": ["open Window", "signed prints", "Resolution"] },
       { "label": "03 · Read and prove", "nodes": [
         { "title": "Venue's updates", "subtitle": "/v2/updates as the venue", "detail": "The ledger's transactions as the venue sees them, each with its update id.", "authority": "The venue sees its own contracts and the legs it is counterparty to, nothing else." },
-        { "title": "Projector", "subtitle": "Updates into Postgres", "detail": "Follows the stream and writes Windows, prints, quotes, fills and resolutions into tables. verify-projection compares them with the ledger, and a rebuild from offset 0 must equal the live tables.", "authority": "Read-only on the ledger. It cannot change a result." },
-        { "title": "Seat reads", "subtitle": "Your party, your lease", "detail": "Your cash, legs and receipts are read as your leased party, from the offset your lease began, so a recycled party never shows a previous visitor's history.", "authority": "Bound to the current lease, never to the party alone." },
+        { "title": "Projector", "subtitle": "Updates into Postgres", "detail": "Follows the venue update stream into Postgres. A replay can start from offset 0, or bootstrap from active contracts after history is pruned; the cursor records the available history boundary.", "authority": "Read-only on the ledger. It cannot change a result." },
+        { "title": "Web read routes", "subtitle": "Projection and leased-party reads", "detail": "Routes read projected venue data from Postgres. Separately, cash, legs and receipts are read from the ledger as your leased party, with history scoped from the lease's start offset.", "authority": "Seat ledger reads bind to the current lease, never to the party alone." },
         { "title": "Portfolio and Proof", "subtitle": "Receipts, update ids", "detail": "Portfolio shows positions and receipts. /proof shows each Window's prints, oracles and resolution timeline, and Re-verify re-hashes the archived payloads and re-reads the exchange candles.", "authority": "A page is a view of ledger evidence; the update id is the receipt." }
-      ], "arrows": ["venue view", "served read", "display"] }
+      ], "arrows": ["venue view", "projected data", "display"] }
     ]
   },
   "desk": {
@@ -54,12 +54,12 @@
   "prints": {
     "title": "Where a Canton print comes from",
     "subtitle": "Three oracle parties read the named source; the resolver needs two that agree.",
-    "note": "Every lane settles on the same PriceQuote path. Crypto reads three exchanges; stocks read RedStone (QQQ and VOO: Alpaca's last IEX trade); xStocks read Jupiter Price v3, the median of three samples; pre-IPO names and baskets read the PreStocks catalogue. Pyth is not used: there is no entitled key.",
+    "note": "Each Window freezes its source policy. Crypto uses three exchanges; attested lanes use their named provider. These source paths do not establish present provider availability or acceptance of every lane on hosted DevNet.",
     "sources": ["services/ops/src/actors/price-relay/oracle-feeder.ts", "services/ops/src/actors/price-relay/lane-feeder.ts", "services/ops/src/prices/attested-read.ts", "packages/core/src/market/print-source.ts", "daml/abu-pm-main/daml/PM/Oracle.daml", "daml/abu-pm-main/daml/PM/Market.daml", "web/src/features/proof"],
     "rows": [
       { "label": "01 · Crypto lanes", "nodes": [
         { "title": "Three exchanges", "subtitle": "Coinbase, Kraken, Bitstamp", "detail": "Each oracle party reads its own exchange's 1-minute candle; the close of the candle ending at the boundary is its price.", "authority": "One exchange per oracle party; a candle that is not final in time is not posted." },
-        { "title": "Oracle feeders", "subtitle": "Post at T + 10 s", "detail": "At each minute boundary each feeder posts a PriceQuote for every symbol, command id print:<oracle>:<T>. The raw response is archived byte for byte.", "authority": "Each feeder signs as its own oracle party only." },
+        { "title": "Oracle feeders", "subtitle": "Kraken/Bitstamp +5 s, Coinbase +10 s", "detail": "For boundary T, Kraken and Bitstamp feeders start at T + 5 seconds; Coinbase starts at T + 10. Each posts PriceQuotes with stable command ids. Ops attempts to archive each exact source response; proof reports missing archive evidence.", "authority": "Each feeder signs as its own oracle party only." },
         { "title": "PriceQuote", "subtitle": "Signed by one oracle", "detail": "Symbol, bar, price and the sha-256 of the raw payload, seen by the venue and the resolver.", "authority": "A quote alone decides nothing." },
         { "title": "Quorum check", "subtitle": "2 of 3, spread within 1%", "detail": "The resolver counts distinct valid quotes admitted for the boundary and takes their median. A spread over 1% of the median voids the Window as a source disagreement.", "authority": "Fewer than two quotes cannot resolve; the Window voids instead." }
       ], "arrows": ["candle close", "signed quote", "evidence"] },
@@ -73,7 +73,7 @@
         { "title": "Opening print", "subtitle": "Terms_RecordOpen", "detail": "The resolver records the median of the admitted open quotes as the OpenPrint, consuming the Window's state.", "authority": "Signed by the resolver and the venue." },
         { "title": "Closing print", "subtitle": "Admitted until its deadline", "detail": "Close quotes count only inside the source's admission window after expiry. A slot with no quorum by its deadline voids.", "authority": "A late quote does not count." },
         { "title": "Resolution", "subtitle": "Up, Down or Void, once", "detail": "Terms_Resolve or Terms_Void consumes the OpenPrint, so a Window resolves or voids exactly once. A close equal to the open pays Up.", "authority": "Signed by the resolver and the venue; the venue alone cannot create it." },
-        { "title": "Proof page", "subtitle": "Prints, hashes, re-verify", "detail": "/proof/<market> shows each oracle's quote, the median, the archive hash and the resolution timeline; Re-verify re-hashes the archive and re-reads the exchange candles.", "authority": "A readable trail; the Resolution's update id is the receipt." }
+        { "title": "Proof page", "subtitle": "Prints, hashes, re-verify", "detail": "/proof/<market> shows each oracle's quote, the median, the archive hash and the resolution timeline; Re-verify re-hashes the archive and re-reads the exchange candles.", "authority": "The proof page reads ledger evidence and update ids; the position settlement creates its separate SettlementReceipt." }
       ], "arrows": ["open recorded", "close admitted", "public read"] }
     ]
   }

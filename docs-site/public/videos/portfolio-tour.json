@@ -1,0 +1,166 @@
+{
+  "origin": "https://owarine.xyz/portfolio",
+  "capturedAt": "2026-10-08T17:12:25.884Z",
+  "sourceFrameCount": 103,
+  "sourceDurationSeconds": 27.577,
+  "outputDurationSeconds": 27.583333,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Full recording at normal speed, resampled by source timestamps to constant 60fps. No waits removed.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [],
+  "segments": [
+    {
+      "start": 0,
+      "end": 27.577,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Read your balance",
+      "text": "Read the available test credits, open-position mark and the Trading Balance, Private and X pockets."
+    },
+    {
+      "time": 9.301,
+      "title": "Inspect your bets",
+      "text": "The Open and History tabs separate held positions from recorded results."
+    },
+    {
+      "time": 13.949,
+      "title": "Follow settled receipts",
+      "text": "History now shows the prior BTC call as paid automatically, with a receipt link."
+    },
+    {
+      "time": 18.787,
+      "title": "Read your record",
+      "text": "Read the net result, decided-window count, win rate and tier progress."
+    },
+    {
+      "time": 24.297,
+      "title": "Find trader analytics",
+      "text": "The Trader Analytics section links to the edge report. This tour stays in Portfolio."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "4b63550ce2d29d7cdf50897e11b43b0b0d450ab82a11094627221cd6c9f8cc36",
+    "actionsSha256": "50f9694297e5db82e6a3525b6974bc008c38aa31f5d291cdb80a2dd835f15d20"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 325.875,
+        "y": 126,
+        "width": 401.984375,
+        "height": 22.390625
+      },
+      "visible": true,
+      "sourceStart": 1.949,
+      "sourceEnd": 7.845,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 2,
+      "sourceTime": 9.301,
+      "targetBox": {
+        "x": 331.984375,
+        "y": 222.1875,
+        "width": 78.890625,
+        "height": 23.390625
+      },
+      "visible": true,
+      "sourceEnd": 14.049,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 3,
+      "sourceTime": 13.949,
+      "targetBox": {
+        "x": 1463.109375,
+        "y": 219.1875,
+        "width": 83.765625,
+        "height": 24
+      },
+      "visible": true,
+      "sourceEnd": 17.224,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "action": 5,
+      "sourceTime": 18.787,
+      "targetBox": {
+        "x": 331.984375,
+        "y": 200.78125,
+        "width": 97.09375,
+        "height": 23.390625
+      },
+      "visible": true,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 6,
+      "sourceTime": 24.296999999999997,
+      "targetBox": {
+        "x": 324.875,
+        "y": 849.734375,
+        "width": 1009.140625,
+        "height": 32.546875
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "1655"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "01aa5d5d39dbaef38b77f7bee17b7e4e3c559814f1185405d8ab31168bec7b17",
+    "poster": "70a19bcb080bbddd0b1ea3e486b82cb2a17a5a4c70b72b0465753e4e134fef0d",
+    "captions": "2b67d763586d2009c58bd91b977770e451483a0eadbed54df76666e31b93061b"
+  }
+}

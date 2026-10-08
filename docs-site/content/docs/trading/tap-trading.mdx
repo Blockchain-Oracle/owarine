@@ -1,18 +1,10 @@
 ---
 title: "Tap-trading"
-description: "A seat already trades in one tap, so there is no session key to arm, no deposit and no fee to sponsor."
+description: "Your seat signs a reviewed order directly; automation needs its own funded permission."
 ---
 
-On the earlier version of Owarine, tap-trading was an opt-in: a separate session key, a deposit and a fee sponsor, so that each order did not need its own approval popup. On Canton none of that is needed.
+Your browser's seat key signs trading requests without an extension popup. There is no separate tap-trading session key to arm. Read the stake, quote and account before confirming; one tap can still spend DevNet test credits.
 
-## Why a seat is already one tap
+A signature authorizes a request. A fill is established by the accepted position and its receipt. If the result is uncertain, read [Portfolio](/trading/portfolio) before repeating it. **Reset seat** removes this browser's signing key; it does not convert or transfer the old lease's balance.
 
-Your seat's signing key lives in this browser (or in the iPhone's Keychain) and signs each call directly, with no popup and no extension. Canton charges no network fee, so there is no fee payer, no sponsor, no second key and no budget to top up. On the web and on the phone, the ticket's chip reads **one tap** and cannot be pressed, because there is nothing to arm.
-
-## What stays the same
-
-- Each call is still a firm quote you accept, with the exact cost shown first.
-- Your positions are yours: each one has two stakeholders, your seat's party and the venue, and the venue cannot accept a quote for you.
-- **Reset seat** deletes the key; nothing else can sign for your seat.
-
-**Agent grants are a different thing.** Letting a published strategy place calls for you moves a budget into an `AgentGrant` with caps you set, and the strategy's runner places inside them; the ledger checks the caps, not the runner. That works on a local Canton sandbox today. See [Copy a strategy](/agents/copy-strategies).
+[Copy grants](/agents/copy-strategies), [desk mandates](/agents/desk) and [X trading permissions](/explore/trade-from-x) are separate authorizations. They allocate a balance or bounds to a named runner. Creating a strategy or taking a seat alone does not authorize automated trades.

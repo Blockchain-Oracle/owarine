@@ -1,0 +1,181 @@
+{
+  "origin": "https://owarine.xyz/portfolio",
+  "capturedAt": "2026-10-08T16:58:07.617Z",
+  "sourceFrameCount": 606,
+  "sourceDurationSeconds": 118.07,
+  "outputDurationSeconds": 38.583333,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Source timestamps resampled to constant 60fps. Only declared waits run at a visible ×4; all other time is preserved.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [
+    {
+      "start": 5,
+      "end": 16,
+      "speed": 4
+    },
+    {
+      "start": 18,
+      "end": 78,
+      "speed": 4
+    },
+    {
+      "start": 80,
+      "end": 115,
+      "speed": 4
+    }
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "end": 118.07,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Open Add funds",
+      "text": "Open Add funds from the rail. These funds have no cash value."
+    },
+    {
+      "time": 4,
+      "title": "Get test Canton Coin",
+      "text": "Request 200 test Canton Coin. The pause and mint wait play at ×4."
+    },
+    {
+      "time": 14.25,
+      "title": "Deposit 20 CC",
+      "text": "Enter 20 Canton Coin. At the displayed fixed rate, this deposit adds 2.50 test credits. The pause plays at ×4."
+    },
+    {
+      "time": 24.75,
+      "title": "Send the deposit",
+      "text": "Send the 20 CC deposit. The venue processes it asynchronously; the wait plays at ×4."
+    },
+    {
+      "time": 35.5,
+      "title": "Check the increase",
+      "text": "The displayed test-credit balance increased from 2,007.50 to 2,010.00."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "164b1c9f031b0006d066ddf7a9c0f8ef4c0e2db082c74d510ac9767566e8ae95",
+    "actionsSha256": "dfa7e4705a1bd5fb97fe0df77616147c626a800fa9f4c0f40106e7dcb8948497"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 177.75,
+        "y": 814.75,
+        "width": 32,
+        "height": 32
+      },
+      "visible": true,
+      "sourceEnd": 3.7,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 1,
+      "sourceTime": 4,
+      "targetBox": {
+        "x": 626,
+        "y": 711.421875,
+        "width": 348,
+        "height": 44
+      },
+      "visible": true,
+      "sourceEnd": 17.2,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 2,
+      "sourceTime": 36,
+      "targetBox": {
+        "x": 642,
+        "y": 769.8125,
+        "width": 239.359375,
+        "height": 24
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "action": 3,
+      "sourceTime": 78,
+      "targetBox": {
+        "x": 863.796875,
+        "y": 763.8125,
+        "width": 106.203125,
+        "height": 36
+      },
+      "visible": true,
+      "sourceEnd": 79.5,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 4,
+      "sourceTime": 115,
+      "targetBox": {
+        "x": 644.96875,
+        "y": 519.453125,
+        "width": 310.046875,
+        "height": 40
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "2315"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "afc8bf7317735fa72b594c21882dcc8602dfc823c2972a5f570051ebbb287d94",
+    "poster": "df049d6a41e4fa44fe91bb30f874389edd3991fc40b8872c8ded8efa1a7674d8",
+    "captions": "53c5399a4e2809ae9a4d526967e784f3047518cc2839cd000601a5a677b7107c"
+  }
+}

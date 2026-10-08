@@ -5,12 +5,12 @@ description: "What each platform does for Owarine today: the Canton ledger, and 
 
 <SponsorLogos />
 
-Owarine is built on two platforms. Each row below says what that platform does for the product **today**, and where the evidence is.
+Owarine is built on two platforms. Each row below says what that platform does for the product and where the recorded evidence is.
 
 | Platform | What it does for Owarine | State |
 | --- | --- | --- |
-| **Canton Network** | The ledger. Every position is a `Leg` contract signed by its owner and the venue, so no other party's node receives it. The money rules, quotes, prints, resolution and settlement are five Daml packages written for this venue ([The Daml packages](/architecture/programs)). | Uploaded and vetted on the Noders DevNet node |
-| **Noders** | Noders organises HackCanton Season 3 on its AppsFactory platform and runs the shared DevNet node (Canton 3.5.19). Parties on that node are created in the Noders Console, and every upload is made there. | The five packages are vetted there and the first call settled on 6 Oct |
+| **Canton Network** | The ledger. Every position is a `Leg` contract signed by its owner and the venue, so an unrelated seat party cannot query it. Owarine hosts its parties on one shared participant. The money rules, quotes, prints, resolution and settlement are six Daml packages written for this venue ([The Daml packages](/architecture/programs)). | Uploaded and vetted on the Noders DevNet node |
+| **Noders** | Noders organises HackCanton Season 3 on its AppsFactory platform and runs the shared DevNet node (Canton 3.5.19). Parties on that node are created in the Noders Console, and the deployment records describe uploads and vetting there. | The first call settled on 6 Oct; the Canton Coin round trip is recorded on 7 Oct. The sixth package adds seat exits and transfers. |
 
 ## Why Canton
 

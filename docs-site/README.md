@@ -1,9 +1,10 @@
 # Owarine Docs
 
-Step-by-step guides for Owarine on **Canton Network**: taking a seat, demo-credit Up/Down calls, tickets, Earn, strategies, the desk and games, and the architecture behind each path. It explains the product with screens of the Canton build, the Daml packages, the price paths and dated evidence.
+Step-by-step guides for Owarine on **Canton Network**: taking a seat, demo-credit Up/Down calls, tickets, strategies, the desk and games, and the architecture behind each path. It explains the product with screens of the Canton build, the Daml packages, the price paths and dated evidence.
 
-**Source reviewed:** the Canton build at app commit `a4d2e2d` on 30 September 2026. The site lives in the app's own repository at `docs-site/`. Everything the guides describe runs on a **local Canton sandbox**; nothing is on Canton DevNet or a hosted URL yet, and the guides say so where it matters. The screens come from the local-sandbox evidence in `docs/evidence/ux/`.
+**Evidence updated:** 8 October 2026. Fresh hosted captures and walkthroughs show the current shell, guest leasing, test CC mint/deposit, a BTC call through payout, proof and navigation. The broader review pin in `lib/site.ts` is retained; this pass does not claim that every intervening app change or hosted journey was accepted. See [Availability](content/docs/help/availability.mdx) for dated results and limits. The app is at `https://owarine.xyz`; docs deployment is a separate step.
 
+The public [capability inventory](../.github/verification/capabilities.json) and [acceptance records](../.github/verification/acceptance.md) replace links into local planning folders. Hosted capture provenance records original PNG hashes, routes, capture times and pixel density. Historical acceptance references resolve immutable Git objects, so clone with full history.
 ## Start with the right guide
 
 | Goal | Guide |
@@ -20,9 +21,9 @@ Step-by-step guides for Owarine on **Canton Network**: taking a seat, demo-credi
 | See how attested prints are made | [PreStocks and Pyth in Owarine](content/docs/architecture/prestocks-and-pyth.mdx) |
 | Check prerequisites and open limitations | [Availability](content/docs/help/availability.mdx) |
 
-The guides' screenshots are cropped from the lanes' own local-sandbox screenshots; the [Canton capture manifest](public/captures/provenance-canton-2026-09-30.json) names each file's source, route and crop.
+Screenshots and recordings must come from the hosted DevNet product. The capture registry records their route, state and provenance; failed actions belong in the local evidence report, not in an invented success scene.
 
-The three diagrams are rendered from [Owarine architecture data](lib/architecture.json) with `node scripts/export-architecture.mjs`; the live diagrams also expose each stage's authority boundary.
+Seven theme-aware Mermaid diagrams cover system context, a trade, a seat, boundary resolution, visibility, X execution and deployment. Their pages name source files and distinguish implemented paths from hosted acceptance. Three downloadable SVG diagrams are generated from [architecture data](lib/architecture.json) with `node scripts/export-architecture.mjs`.
 
 ## Run locally
 
@@ -34,7 +35,7 @@ cp .env.example .env.local
 pnpm dev
 ```
 
-Open [localhost:3153](http://localhost:3153). The docs render without a running app, seat, database or provider key. `NEXT_PUBLIC_APP_URL` sets where app links go; the default is the local web app at `http://localhost:3000` (run it from the repository root, see [Run Owarine locally](content/docs/builders/local-setup.mdx)).
+Open [localhost:3153](http://localhost:3153). The docs render without a running app, seat, database or provider key. `NEXT_PUBLIC_APP_URL` sets where app links go; the default is `https://owarine.xyz`. `NEXT_PUBLIC_DOCS_URL` defaults to `https://docs.owarine.xyz`. Override them explicitly for a local app preview (see [Run Owarine locally](content/docs/builders/local-setup.mdx)).
 
 ```sh
 pnpm check
@@ -44,4 +45,4 @@ pnpm check
 
 ## Evidence and limits
 
-Calls, tickets and games use **demo credits** with no cash value; Canton charges no network fee. Each state a guide gives comes from `docs/plan/capabilities.json` and the evidence notes in `docs/evidence/`: `local` means proven end to end on a local Canton sandbox with the real venue operations, and no capability is `live` yet. A practice desk moves no money, and a live desk has been opened but has not traded. Pyth is not used: there is no entitled key, so the valuation lanes are not listed. Current feed and service health belongs to the app's Status page, not to this dated snapshot.
+Calls, tickets and games use **demo credits** with no cash value. The recorded guest flow shows no separate user network fee. Recorded states come from `.github/verification/capabilities.json` and its immutable historical evidence references. `local` means a dated local-sandbox run; `live` means a recorded DevNet run, not present service availability. The first-call and Canton Coin DevNet records are in `.github/verification/acceptance.md`. A practice desk moves no money. This pass does not establish a funded desk trade. Pyth valuation indices require an entitled key; the hosted status reported entitlement failures for OPENAI and ANTHROPIC during this review. Current feed and service health belongs to the app's Status page, not to this dated snapshot.

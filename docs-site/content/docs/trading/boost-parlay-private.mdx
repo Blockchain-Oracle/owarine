@@ -1,20 +1,35 @@
 ---
 title: "Boost, Parlay and Private"
-description: "Two ticket paths with their own settlement rules, and why Private is not on Canton."
+description: "Review reserve-backed tickets and calls funded from a private pocket."
 ---
 
-> **Boost and Parlay run on a local Canton sandbox so far:** each was placed from its screen and settled there. Private is not on Canton. None of the three is on a hosted test network yet.
+<Walkthrough name="parlay" />
+
+These paths use DevNet test credits and require their own available contracts, balances and quotes. Read the route's current state before funding or placing a ticket.
 
 ## Boost
 
-In the <AppLink href="/markets">Markets ticket</AppLink>, choose 2× or 3× Boost when it is offered. The Boost reserve fronts the rest of the position and takes a premium; your loss is capped at your stake and you never owe anything. The quote pins a knock-out line on the underlying price. The venue's keeper can knock a position out only when the Window's own oracle quorum has printed at or beyond that line, never on its own say, and a 1× position has no line. Review exposure, line, premium and quote before accepting. Existing Boosts appear in <AppLink href="/portfolio">Portfolio</AppLink>: **Cash out** takes the venue's firm buy-back price, and a settled Boost pays straight into your cash. The knock-out and the stale refund are proven by the Daml tests; neither has been triggered in a local run yet.
+In an ordinary Markets ticket, choose an offered Boost multiple. The reserve fronts part of the position and charges a premium. Review the cost, exposure, premium and knock-out line. Your stake caps your loss.
+
+An open Boost can be sold back when the venue offers an exit quote. Its knock-out requires the Window's oracle quorum at the pinned line. Settlement follows the Window's Resolution, with the reserve repaid before you. [Short](/trading/shorts) uses the same reserve for Down positions.
 
 ## Parlay
 
-At <AppLink href="/parlay">Parlay</AppLink>, combine two or three Window legs into one ticket. Every leg must win for the combined payout; one miss kills the ticket, and a voided Window voids it and returns your stake. Legs are decided in the order their Windows close. The quote accounts for legs that share a closing print, and the reserve locks the maximum payout at open, so a win is always paid in full. Read all legs, the final quote and reserve availability before accepting; the ticket stays on the same route through settlement, and a receipt keeps its result after it ends.
+At <AppLink href="/parlay">Parlay</AppLink>:
+
+1. Add two or three eligible Window legs and choose each side.
+2. Enter a stake and review every leg, the final quote and maximum payout.
+3. Confirm only while the quote is usable and reserve capacity is available.
+4. Follow **Your tickets** as each Window resolves.
+
+Every leg must win. One loss loses the ticket. A voided leg voids the ticket and returns the stake. The reserve locks the maximum payout when a DevNet ticket opens. The Trade screen's parlay controls also support guest paper tickets; those do not create a Canton ticket.
+
+**Hosted check — 8 October 2026:** the builder quoted a two-leg AAPL Up / MSFT Down 15-minute ticket for a one-credit stake, with a 2.89 payout and correlation note. **Place** was not clicked. The walkthrough shows a quote preview; it does not establish placement or settlement.
 
 ## Private
 
-Private was a separate **1×** route with its own balance and claim flow. It is not on Canton: every position here is already a contract that only your seat and the venue can see, so there is no second balance to fund. If the ticket still shows a Private option, it answers that Private mode is not available.
+Private mode is an ordinary **1×** call paid from your seat's private balance. Open **Private** in Portfolio's pockets to inspect its balance and move test credits in or out. When the ticket reports Private as available, select it and review the amount before confirming.
 
-For the ordinary call and its opening and closing prints, see [Place a trade](/trading/first-trade).
+The current contracts tag the seat's leg as private and return settlement or refund money to its private bucket. Private calls stay off the public record and leaderboard. **The venue still sees the call as counterparty.** This is not anonymity from the operator, and a private balance is separate from the basket [desk](/agents/desk).
+
+If Private reports a missing capability, wait for that capability rather than treating a visible control as a successful private trade. See [Balances](/trading/balances) and [availability](/help/availability).

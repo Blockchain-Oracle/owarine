@@ -1,0 +1,21 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.000
+Open Add funds from the rail. These funds have no cash value.
+
+2
+00:00:04.000 --> 00:00:14.250
+Request 200 test Canton Coin. The pause and mint wait play at ×4.
+
+3
+00:00:14.250 --> 00:00:24.750
+Enter 20 Canton Coin. At the displayed fixed rate, this deposit adds 2.50 test credits. The pause plays at ×4.
+
+4
+00:00:24.750 --> 00:00:35.500
+Send the 20 CC deposit. The venue processes it asynchronously; the wait plays at ×4.
+
+5
+00:00:35.500 --> 00:00:38.570
+The displayed test-credit balance increased from 2,007.50 to 2,010.00.

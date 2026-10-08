@@ -1,0 +1,46 @@
+---
+title: "A seat's life"
+description: "A guest party lease, its funding, device links and safe release."
+sources:
+  - web/src/app/api/seat/route.ts
+  - web/src/lib/seat-store.server.ts
+  - web/src/lib/seat-link-store.server.ts
+  - services/ops/src/actors/seat-funding/index.ts
+  - services/ops/src/actors/seat-funding/drain.ts
+  - packages/db/src/seat-recycle.ts
+---
+
+A seat is a **lease on a Canton party**. Taking one creates a device key and asks the server for an available party. Funding is a separate ledger operation, so a leased seat can still be waiting for its credits.
+
+<Mermaid title="Seat activity and lease release" chart={String.raw`
+stateDiagram-v2
+  [*] --> Leased: Take a seat
+  Leased --> Funded: Seat funding confirms
+  Funded --> Trading: Accept a quote
+  Trading --> Idle: No open work remains
+  Idle --> Trading: Place another call
+  Idle --> Draining: Idle lease expires
+  Leased --> Draining: Holder resets
+  Funded --> Draining: Holder resets
+  Trading --> Draining: Holder resets
+  Draining --> Released: Drain and two empty reads
+  Released --> Leased: A new lease
+  Funded --> Funded: Another device joins with holder approval
+  Trading --> Trading: Joined device resets only its own link
+`} />
+
+**Funded**, **Trading** and **Idle** describe activity within a lease; they are not extra database states. The pool stores `free`, `leased`, `draining` and `retired`. **Released** above means the drain has made the party free for reuse.
+
+| Transition | What the source does |
+| --- | --- |
+| Take a seat | `POST /api/seat` verifies a device-signed request, assigns a lease and sets an HttpOnly cookie. The native client uses its signed header. |
+| Fund | The venue invites the party to a `VenueAccount`, accepts the invitation as that party, then credits its `VenueCash`. Stable command ids prevent a retry from crediting the lease twice. Default funding is 1,000 demo credits; ops can configure it. |
+| Keep using it | Lease heartbeats record activity and outstanding work. Busy work can delay idle expiry. |
+| Use on another device | A one-time code claims a link; the holder must approve the joining device. Both device keys then refer to the same lease and balance. |
+| Reset on the holder | `DELETE /api/seat` ends the lease and puts the party into draining. |
+| Reset on a joined device | Removes that device's link. It does not release the holder's lease. |
+| Drain | Withdraws quotes, closes remaining legs at cost and clears cash and other obligations. The recycler waits for two empty reads before reuse. |
+
+Lease ids are not reused. Linked devices stop resolving when the lease ends. Reads start at the current lease's ledger offset, so the next holder does not inherit the previous holder's history.
+
+For the controls, see [Your seat](/start/wallet). Local web/Simulator device-link evidence exists; it does not establish a physical-device journey on the hosted app.

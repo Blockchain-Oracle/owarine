@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:06.500
+Read the real Running degraded status. This capture shows eight failing checks, two slow, twenty-three healthy and three marked off-hours or not set up; it does not establish a healthy venue.
+
+2
+00:00:06.500 --> 00:00:12.000
+Open the Projector disclosure and inspect that component’s reported check. A healthy component does not make the entire venue healthy.
+
+3
+00:00:12.000 --> 00:00:15.254
+Open the Ops disclosure and inspect its individual checks.
+
+4
+00:00:15.254 --> 00:00:18.912
+Navigate directly to the public Stats URL and wait for the actual page load.
+
+5
+00:00:18.912 --> 00:00:20.580
+The public Proof of demand counter shows zero published calls. That public count is not a count of all private trades.
+
+6
+00:00:20.580 --> 00:00:24.193
+Read the venue totals with their qualified-Window scope: five or more traders. Zero qualified totals do not mean no private trading activity.
+
+7
+00:00:24.193 --> 00:00:28.452
+The Auditor view begins below venue totals; its details extend below this clip’s viewport. The separately inspected recount was timestamped 16:41:43 UTC at offset 2,458,892, older than this session near 18:00 UTC, so it does not verify every current contract.

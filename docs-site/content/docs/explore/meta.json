@@ -1,4 +1,10 @@
 {
   "title": "Social and discovery",
-  "pages": ["sensei", "profile-news", "reels", "rooms-alerts"]
+  "pages": [
+    "sensei",
+    "profile-news",
+    "reels",
+    "rooms-alerts",
+    "trade-from-x"
+  ]
 }

@@ -1,12 +1,19 @@
 ---
 title: "Games"
-description: "Practice and the arcade play without a stake; Duel, Lucky, Range and Moonshot wrap Owarine's Windows with their own scoring and money rules."
+description: "Choose a no-stake score run or a game that opens DevNet positions."
 ---
 
-<AppLink href="/games">Games</AppLink> has seven modes: Practice, Duel, Lucky, Range, Moonshot, Line Rider and Candle Hop. They share Owarine's Windows, but have different scoring and money rules. A particular round still needs its own current game state, quotes or participants.
+<AppLink href="/games">Games</AppLink> is one of the rail's six places. Open a mode to read its current availability, cost and result rule.
 
-Start with [Practice and arcade](/games/practice-and-arcade) to play without a stake. [Duel and Lucky](/games/duel-and-lucky) place real calls from your seat. [Range and Moonshot](/trading/range-and-moonshot) use a separate prefunded reserve. Read the entry cost and result rule in each mode before placing anything; money-backed games use **demo credits**, pay straight into your seat's cash, and are separate from the [desk](/agents/desk). The Duel, its rank and season pool, Range and Moonshot have been played end to end on a local Canton sandbox; nothing in Games is on a hosted test network yet.
+| Mode | What you do | Money and proof |
+| --- | --- | --- |
+| [Practice](/games/practice-and-arcade) | Call Up or Down on a dealt deck, then watch a short price interval | No stake; score is not Window settlement |
+| [Duel](/games/duel-and-lucky) | Play another seat on a committed deck | Picks spend test credits; Ranked can add a side-pot |
+| [Lucky](/games/duel-and-lucky) | Spin to find a possible call, then review it | Spin alone spends nothing; an accepted call uses test credits |
+| [Range](/trading/range-and-moonshot) | Pick inside or outside a band | Reserve-backed DevNet round |
+| [Moonshot](/trading/range-and-moonshot) | Aim at a price level | Reserve-backed DevNet round |
+| [Line Rider and Candle Hop](/games/practice-and-arcade) | Play a seeded arcade course | No stake; server-checked score, off ledger |
 
-While the stock market is closed, every mode that plays a Window is marked **24/7 only** with the session (for example "Market closed · Opens Wed 09:30 ET · pre-IPO and baskets only"): it runs on the round-the-clock Windows alone. The arcade runs never touch a Window and are unaffected.
+Window games need eligible markets and quotes. Duel also needs the room service, matchmaker and another player. A closed stock session can leave only eligible 24/7 Windows; a 24/7 label does not guarantee a current quote. Arcade courses do not depend on a Window's settlement.
 
-The [ordinary call guide](/trading/first-trade) explains the Window beneath the games. Use <AppLink href="/status">Status</AppLink> if a round is not listing or settling.
+[Status](/help/status) helps separate an unavailable source or service from a round that is still waiting for its result.

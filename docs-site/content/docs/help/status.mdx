@@ -1,8 +1,31 @@
 ---
-title: "Status"
-description: "How to read the app's own service-health page."
+title: "Status and stats"
+description: "Read service checks, diagnose a waiting flow and understand what the public activity totals count."
 ---
 
-<AppLink href="/status">Status</AppLink> reports the Canton ledger end, the projector's lag behind it, each oracle party's newest close, the resolver's and settler's backlogs, the heartbeat of every ops actor, and the guest-seat pool (free, leased, draining and waiting). Other rows cover the price sources behind the stock, xStock and pre-IPO lanes, and the Pyth valuation-index row, which shows whether the venue's key may read OpenAI and Anthropic's indices. While that entitlement is refused, the valuation lanes stay unlisted.
+Open <AppLink href="/status">Status</AppLink> from **More → About**. Its headline is **All systems live**, **Running degraded** or **Venue unreachable**. A degraded headline does not identify the failed feature by itself; open the affected system's group and read its checks, details and last-checked time.
 
-If a page you're following shows a stale reading, "signed price stale," or a seat that isn't being funded, check Status first. If everything there looks healthy and the problem persists, it's more likely something in the guide is out of date than the app itself.
+<Walkthrough name="status-and-stats" />
+
+## Find the relevant check
+
+| What you see | Where to look |
+| --- | --- |
+| No party or credits after taking a seat | Guest-seat pool and seat-related ops checks |
+| No Window or quote | Roller, pricer, venue mode, paused lanes and the asset's source |
+| Closed Window without a result | Oracle freshness and resolver backlog |
+| Result without a payout | Settler backlog and projector lag |
+| Old balance or history | Ledger end, projection cursor and database |
+| Assistant unavailable | Sensei's model check |
+
+**Hosted check — 8 October 2026, 18:00 UTC:** the final recording showed **Running degraded**, with failing oracle freshness and a resolver backlog. Print-source checks reported missing-print voids, RedStone was late, and Pyth's OpenAI and Anthropic valuation requests reported 403 / not entitled. Ops, projector, settler and guest-seat checks displayed healthy. Those individual checks did not establish overall health; the resolver had been healthy in an earlier read and later fell behind. Expand the current group for its latest result.
+
+The page refreshes every 30 seconds. It distinguishes a configured service failing to answer from an optional service not set up here. A stock source closed for its session can be expected; it is not automatically an outage. A healthy read is a point-in-time check, not proof that your submission succeeded. Check the position or transaction receipt too.
+
+## Read Stats
+
+Open <AppLink href="/stats">Stats</AppLink> from **More → Records and proof**. Adoption and live activity count calls their owners chose to publish. Private trading is not included. Activity rows link to ledger updates.
+
+Venue totals use a privacy threshold: Windows with fewer than five traders have their trading figures withheld. A paging-limited read labels its figures as floors. Those totals are not a complete count of every private trader or call. In the final 8 October hosted check, Stats showed zero published calls and zero trades in qualifying Windows with at least five traders, despite confirmed seat fills. Those filtered zeroes did not mean no trading occurred.
+
+The auditor section separates a reserve snapshot from an independent recount. Read its timestamp and result; **no recount yet** is different from agreement. In the 18:00 UTC recording, the displayed independent recount was from 16:41:43 UTC. It was a comparison at that older offset, not a fresh attestation of every current value. These are test-network credit figures, not external cash or evidence of public adoption beyond the calls counted.

@@ -1,43 +1,56 @@
 ---
 title: "Find your way around"
-description: "Where to trade, read prices, check proof and see what's available."
+description: "The six rail destinations, More, search and the seat controls."
+sources:
+  - web/src/components/shell/nav.ts
 ---
 
-The rail leads to **Trade**, **Markets**, **Portfolio**, **Games**, **Automate** and **Leaderboard**; everything else (Baskets, Short, Parlay, X-trade, News, Stats, Status) sits under **More**, and ⌘K searches every page. These docs also explain the seat, the price sources and the privacy rules behind those screens.
+<Walkthrough name="find-your-way" />
 
-<GuideCapture name="phone" caption="On a phone the same Window, its opening print and the Up and Down prices fit one screen, and the bottom pill nav replaces the desktop destinations. This capture has no seat; the nav bar is below the crop." />
+The desktop rail has **six places**, in this order. The phone dock opens Trade, Markets and Portfolio directly, with the remaining destinations in More.
 
-| I want to… | Read the guide |
+| Key | Place | What you do there |
+| --- | --- | --- |
+| 1 | <AppLink href="/trade/BTC">Trade</AppLink> | Choose Up or Down on a live price Window. |
+| 2 | <AppLink href="/markets">Markets</AppLink> | Browse listed Windows, stocks and events. |
+| 3 | <AppLink href="/portfolio">Portfolio</AppLink> | Read your balance, positions and record. |
+| 4 | <AppLink href="/games">Games</AppLink> | Open Practice, market games and arcade runs. |
+| 5 | <AppLink href="/strategies">Automate</AppLink> | Find strategies, agents and desks. |
+| 6 | <AppLink href="/leaderboard">Leaderboard</AppLink> | Compare published records. |
+
+Number keys navigate when you are not typing into a field. **⌘K** on Mac, or **Ctrl+K** elsewhere, opens page search. Open **More** for the full directory.
+
+## More
+
+| Group | Destinations |
 | --- | --- |
-| Use Owarine on a phone, or read about the iPhone app | [Get the app](/start/mobile-app) |
-| Make an Up or Down call | [First trade](/trading/first-trade) |
-| Understand my positions and receipts | [Portfolio](/trading/portfolio) |
-| Explore a PreStocks group | [Baskets](/trading/baskets) |
-| Draft a practice desk | [Build a desk](/agents/desk) |
-| Understand demo credits and my seat | [Balances](/trading/balances) |
-| Use my seat on another device | [Your seat](/start/wallet) |
-| Know when the next Window lists | [Sessions and lanes](/trading/sessions-and-lanes) |
-| Trade before the market opens | [Pre-open calls](/trading/pre-open-calls) |
-| Short a stock, PreStocks name or basket | [Short a fall](/trading/shorts) |
-| Understand a halt or a void | [Halts and voids](/trading/halts-and-voids) |
-| See how the contracts and services fit together | [Architecture](/architecture/overview) |
-| See the Daml packages and what they enforce | [The Daml packages](/architecture/programs) |
-| See where prices come from | [Price sources](/architecture/price-sources) |
-| See how stock, xStock and pre-IPO prints are attested | [Attested prints](/architecture/prestocks-and-pyth) |
-| Ask about a live Window | [Sensei](/explore/sensei) |
-| Read market headlines | [News](/explore/profile-news) |
-| Read and post community calls | [Reels and takes](/explore/reels) |
-| Check a Window's Room and price alerts | [Rooms and alerts](/explore/rooms-alerts) |
-| Check what needs a seat, a key or a running service | [Availability](/help/availability) |
-| Check service health | [Status](/help/status) |
-| Look up a term | [Glossary](/help/glossary) |
+| More ways to trade | Baskets, Short, Parlay, Sensei, X-trade |
+| Learn | Demo, News, How it works, Download, Reels, Docs |
+| Games | Practice, Duel, Lucky, Range, Moonshot, Line Rider, Candle Hop |
+| Automate | Agents, Desk, Create a desk |
+| Records and proof | Print proof, Activity, Trader Edge, Stats |
+| About | Status, Legal, X recovery |
 
-The [five baskets](/trading/baskets) each offer Predict and Automate. Automate opens the [desk studio](/agents/desk), where anyone can draft without a seat. For the current state of each lane and what it needs, see [availability](/help/availability).
+A navigation link means a page exists. It does not establish that its price source, runner or provider is available. Check [Availability](/help/availability) when a page cannot quote or act.
 
-## Choose light or dark
+<GuideCapture name="phone" />
 
-Use the sun/moon control in the header. Your choice is saved on this device; the app follows your system preference until you choose one.
+## Your seat and theme
 
-## Share the right page
+Choose **Take a seat**, then **Guest Seat**, to start. Once leased, open the seat avatar for the party id, copy control, **Use on another device** and reset. The rail's **+** opens Add funds. [Your seat](/start/wallet) explains linking; [Balances](/trading/balances) explains test funds.
 
-Use the app's own share controls for a specific market, and <AppLink href="/proof">Proof</AppLink> to share a settled Window with its evidence. The public How it works, Demo and Pitch pages explain the product. These docs give the task-by-task instructions. Use <AppLink href="/status">Status</AppLink> if a feature looks unavailable.
+Use the sun/moon control to change the theme. Read the environment label beside your seat: **Test funds · DevNet** describes this hosted venue. The sky Guest demo has paper credits; the pink DevNet mode has a leased seat and test funds. The guest-seat avatar uses lime. Light/dark changes the theme within that environment. Neither balance has cash value.
+
+## Find the next guide
+
+| Task | Guide |
+| --- | --- |
+| Place a call | [First trade](/trading/first-trade) |
+| Check a position or sell back | [Portfolio](/trading/portfolio) |
+| Inspect signed boundary prices | [Proof](/trading/proof) |
+| Understand sessions or a paused lane | [Sessions and lanes](/trading/sessions-and-lanes) |
+| Make a paper desk | [Build a desk](/agents/desk) |
+| Understand the contracts | [Architecture](/architecture/overview) |
+| Check source and service health | [Status](/help/status) |
+
+Share a specific Window with its own share control. For a settled result, open <AppLink href="/proof">Print proof</AppLink> and use the Window's evidence page.

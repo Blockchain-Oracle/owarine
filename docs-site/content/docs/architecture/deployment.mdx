@@ -1,0 +1,47 @@
+---
+title: "Hosted deployment"
+description: "The documented Coolify topology and the rule that only one ops process writes to DevNet."
+sources:
+  - web/Dockerfile
+  - services/ops/Dockerfile
+  - docs-site/Dockerfile
+  - services/ops/src/main.ts
+  - services/ops/src/actor-select.ts
+---
+
+The deployment runbook places four services on **one Coolify VPS**. Traefik handles the public HTTPS routes with Let's Encrypt. Postgres stays on the private network. The participant is the external Noders DevNet service.
+
+<Mermaid title="Documented Coolify deployment topology" chart={String.raw`
+flowchart TD
+  visitors[Browser and phone] --> tls[Traefik HTTPS / Let's Encrypt]
+  subgraph vps[One Coolify VPS]
+    tls --> web[pm-web / Next.js]
+    tls --> docs[pm-docs / Fumadocs]
+    tls -->|Price streams and room| ops[pm-ops / single writer]
+    web -->|Private internal requests| ops
+    web --> db[(pm-db / Postgres)]
+    ops --> db
+  end
+  web -->|Seat reads and commands| participant[Noders DevNet participant]
+  ops -->|Venue actors and projector| participant
+  sources[Price sources] --> ops
+`} />
+
+| Service | Source configuration |
+| --- | --- |
+| `pm-web` | `web/Dockerfile`; Next.js on port 3000. Uses the ledger, Postgres and signed internal ops routes. |
+| `pm-ops` | `services/ops/Dockerfile`; ops HTTP on 8080, game-room WebSocket on 8787. |
+| `pm-db` | Runbook specifies Coolify-managed Postgres, reachable privately by web and ops. |
+| `pm-docs` | `docs-site/Dockerfile`; Next.js on port 3000 behind the docs hostname. |
+
+The topology is documented configuration, not a live container inventory. This review did not inspect the VPS, active Coolify settings, proxy labels, TLS issuer or database exposure. The runbook is preserved in repository history at `docs/plan/runbooks/coolify-deploy.md`; the checked-in Dockerfiles describe each application image.
+
+## One writer to DevNet
+
+Run **one** `pm-ops` container. Stop the old process before starting its replacement. Do not overlap replicas or run a second local ops process against the same DevNet parties.
+
+Actors share ledger sessions and cash shards inside that process. Stable command ids support retry and recovery; they do not make two independent venue processes a supported deployment.
+
+`OPS_ACTORS` selects the actors. The default starts relay, venue, projector, HTTP, halts, earnings, push-clock and game-room. Strategy and X runners need explicit selection or `all`. Desk runner and Canton Coin rail require explicit opt-in even with `all`.
+
+See [Ops and the projector](/architecture/ops-and-indexer) for the responsibilities and <AppLink href="/status">Status</AppLink> for current service readings.

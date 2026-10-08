@@ -1,31 +1,24 @@
 ---
 title: "Baskets"
-description: "Five PreStocks groups, one-hour Up/Down Windows settled on a signed index, and three different actions."
+description: "Read a pre-IPO index, place a Window call or draft a basket desk."
 ---
 
-<AppLink href="/baskets">Baskets</AppLink> groups the eight supported PreStocks names into five choices. Each basket is an **equal-weight price-return index**: it started at 1,000 points at a frozen set of base prices read from the PreStocks catalogue on 22 September 2026. Each oracle party computes it from all members in one catalogue read; a missing member means no index print, never a partial one. The points are an index level, **not a dollar price or a token you buy**.
+Open <AppLink href="/baskets">Baskets</AppLink> under **More → More ways to trade**. The registry defines five equal-weight groups:
 
 | Basket | Members |
 | --- | --- |
-| AI Labs (`AILABS`) | OpenAI, Anthropic |
-| Frontier AI (`FRONTIER`) | OpenAI, Anthropic, Figure AI, Neuralink |
-| Prediction Markets (`PREDMKTS`) | Kalshi, Polymarket |
-| Defense & Space (`DEFSPACE`) | Anduril, SpaceX |
-| All PreStocks (`PREALL`) | All eight names |
+| AI Labs | OpenAI, Anthropic |
+| Frontier AI | OpenAI, Anthropic, Figure AI, Neuralink |
+| Prediction Markets | Kalshi, Polymarket |
+| Defense & Space | Anduril, SpaceX |
+| All PreStocks | All eight names |
 
-Each card keeps the same rows whatever loads or rolls: the members as a stack of logos with their count ("2 companies · equal weight"), the index in points with its recent range and its move this week, and the live Window with its countdown and Up and Down prices in cents. A Window nobody is quoting says **No quotes yet**. Basket Windows trade 24/7, so a card never shows the stock market's session.
+The displayed basket level is an index in **points**, not a dollar price or an equity token. It starts from 1,000 at frozen member base prices captured on 22 September 2026. Each index read uses all its members from one PreStocks catalogue response; a missing member makes the read incomplete.
 
-## Pick the action you mean
+## Predict or automate
 
-| Action on the card | Where it goes | Money and network |
-| --- | --- | --- |
-| **Predict** | The basket's one-hour Up/Down Window, or its ticker page if none is trading | Demo credits; basket Windows have opened and resolved on a local Canton sandbox |
-| **Automate** | The [desk studio](/agents/desk) with that basket preselected | A practice desk on paper first; see [Build a desk](/agents/desk) for going live |
+**Predict** opens a basket's available Up/Down Window. Review the signed index line, side, stake and quote before accepting. The Window resolves on its opening and closing index prints. No Window or **No quotes yet** means you cannot place an immediate basket call.
 
-The basket Window settles on the change in **points** between two boundary prints. At each boundary the three oracle parties each read the PreStocks catalogue once, compute the index, and post it; a quorum of two within 1% of each other resolves the Window, and the receipt names "the PreStocks basket index" as the source. That is a venue-attested PreStocks value, not an independent check; see [PreStocks and Pyth](/architecture/prestocks-and-pyth). When PreStocks refuses the venue's reads (it rate-limits some hosts), the basket lanes pause rather than print. The [source map](/builders/source-map) points to the index code.
+**Automate** opens the [desk studio](/agents/desk) with that basket selected. It creates a paper practice desk first; drafting does not buy a basket or enable trades.
 
-If the card says **No Window trading right now**, you can still inspect its members and draft a desk. A Predict order needs a live Window and a quote.
-
-## Place a basket call
-
-**Predict** opens the basket's live Window in the ordinary ticket. Choose Up or Down and enter a stake; before you accept, the venue's firm quote shows the cost, the return if it lands and the most you can lose in demo credits, against a line in index points. Accepting creates a position only your seat and the venue can see, and the Window settles like any other.
+Baskets have a 24/7 schedule, but still need their configured Series, fresh PreStocks reads and venue quotes. The source is a venue-attested PreStocks index. It is not an independent company valuation. See [PreStocks and Pyth](/architecture/prestocks-and-pyth) and [Print proof](/trading/proof).

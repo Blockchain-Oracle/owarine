@@ -1,16 +1,18 @@
 ---
 title: "Rooms and price alerts"
-description: "Who can speak in a Window's Room, and how a price alert actually watches."
+description: "Join a bettor-gated Room or watch a price while the browser stays open."
 ---
 
-## The Room
+## Rooms
 
-Each Window (and each ticker) has a Room, but only seats that have bet in it can speak. The server checks two things before a seat may read or post: the seat signs once to prove the key is its own, and its party has a fill on this Window (or, for a ticker's Room, on any of that ticker's Windows) made while this seat held the lease. A recycled party therefore never lets a later visitor into an earlier one's Room, and a device linked to your seat joins your lease's Rooms and no other. A seat with no position sees the Room as locked, not hidden: it can see that a Room exists, just not post into it.
+A Window's Room is for seats that traded it. A ticker Room admits seats that traded one of that ticker's Windows. Take a seat, open the Room, then choose **Join the room** when eligible. Your seat signs a message; the server checks the signature and the trading record before admitting you.
 
-On a local Canton sandbox, a seat placed a call from the ticket, joined that Window's Room and posted a message. Nothing is on a shared Canton network yet, and where the social store isn't configured the Room says it isn't connected.
+Selling out or settlement does not by itself remove a bettor's eligibility. A missing position leaves the Room locked. A failed gate read asks you to retry rather than pretending no position exists. Rooms also need the social store; **The Room isn't connected yet** means commenting is unavailable on that deployment.
 
 ## Price alerts
 
-An alert watches a ticker's live price while your browser tab is open — it's a client-side watcher, not a server-side push. It fires only on a fresh tick (published within the last minute) inside today's regular session, so a stale or after-hours print never triggers a rule. When it fires, you get an in-app toast, and — if you've granted the browser's notification permission — a system notification too.
+Create an alert for a ticker and keep the browser tab open. The watcher evaluates fresh ticks. Regular stock alerts wait for the regular session; crypto, pre-IPO and other supported 24/7 names use their round-the-clock price basis.
 
-Because the watch runs in your browser, an alert doesn't fire while the tab is closed. If you need to know a stale reading exists at all, <AppLink href="/status">Status</AppLink> and the market's own "last close · as of …" label are the honest always-on signal; alerts are a convenience on top of an open tab, not a background service.
+A trigger shows an in-app toast. With browser notification permission it can also show a system notification. **Closing the tab stops the watcher.** These alerts are not a server push service and do not place trades.
+
+An old or unreadable tick does not trigger a fresh-price alert. Read the asset's as-of time and [Status](/help/status) if its source appears stuck.

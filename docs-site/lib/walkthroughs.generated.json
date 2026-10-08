@@ -1,0 +1,570 @@
+{
+  "take-a-seat": {
+    "title": "Take a guest seat",
+    "description": "Move from the paper preview to a Canton DevNet guest seat and inspect its party.",
+    "duration": 31.766667,
+    "capturedAt": "2026-10-08T16:55:19.574Z",
+    "origin": "https://owarine.xyz/markets",
+    "poster": "/captures/take-a-seat-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Take a seat",
+        "text": "Choose Take a seat from the rail on the hosted product."
+      },
+      {
+        "time": 4,
+        "title": "Choose Guest Seat",
+        "text": "Choose Guest Seat. The pause before the selection is shown at ×4."
+      },
+      {
+        "time": 12.75,
+        "title": "Wait for the lease",
+        "text": "Wait for the guest lease. This request and pause play at ×4; no result is simulated."
+      },
+      {
+        "time": 19,
+        "title": "Read the seat",
+        "text": "The rail changes to Test funds · DevNet. The remaining pause plays at ×4."
+      },
+      {
+        "time": 27.75,
+        "title": "Inspect the party",
+        "text": "Open the seat menu to read its party, test funds and lease time. The copy button sits beside Party id."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/take-a-seat.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/take-a-seat.vtt",
+    "metadata": "/videos/take-a-seat.json"
+  },
+  "add-funds": {
+    "title": "Add DevNet test funds",
+    "description": "Mint test Canton Coin, deposit 20 CC and verify the 2.50 credit increase.",
+    "duration": 38.583333,
+    "capturedAt": "2026-10-08T16:58:07.617Z",
+    "origin": "https://owarine.xyz/portfolio",
+    "poster": "/captures/add-funds-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Open Add funds",
+        "text": "Open Add funds from the rail. These funds have no cash value."
+      },
+      {
+        "time": 4,
+        "title": "Get test Canton Coin",
+        "text": "Request 200 test Canton Coin. The pause and mint wait play at ×4."
+      },
+      {
+        "time": 14.25,
+        "title": "Deposit 20 CC",
+        "text": "Enter 20 Canton Coin. At the displayed fixed rate, this deposit adds 2.50 test credits. The pause plays at ×4."
+      },
+      {
+        "time": 24.75,
+        "title": "Send the deposit",
+        "text": "Send the 20 CC deposit. The venue processes it asynchronously; the wait plays at ×4."
+      },
+      {
+        "time": 35.5,
+        "title": "Check the increase",
+        "text": "The displayed test-credit balance increased from 2,007.50 to 2,010.00."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/add-funds.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/add-funds.vtt",
+    "metadata": "/videos/add-funds.json"
+  },
+  "first-trade": {
+    "title": "Place an Up call and read its result",
+    "description": "Edited excerpt of an Up call with a one-credit budget on hosted Canton DevNet. The filled cost, including fee, is 0.85 credits. Countdown and settlement waits play at ×4; source cuts are listed in the recording provenance.",
+    "duration": 55.483008,
+    "capturedAt": "2026-10-08T17:01:17.374Z",
+    "origin": "https://owarine.xyz/trade/BTC",
+    "poster": "/captures/first-trade-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Choose two minutes",
+        "text": "Choose BTC and its two-minute Window."
+      },
+      {
+        "time": 3.2,
+        "title": "Set a small stake",
+        "text": "Open BTC order settings and set the stake to one test credit."
+      },
+      {
+        "time": 8,
+        "title": "Accept the quote",
+        "text": "Accept the refreshed Up quote with a one-credit budget. The filled cost, including fee, is 0.85 credits; the request wait plays at ×4."
+      },
+      {
+        "time": 9.2,
+        "title": "Wait for the request",
+        "text": "Keep the real request wait until the product confirms the position. This interval runs at ×4."
+      },
+      {
+        "time": 16.45,
+        "title": "Wait for the close",
+        "text": "The filled cost, including fee, was 0.85 credits. Wait for the recorded Window close. This countdown plays at ×4."
+      },
+      {
+        "time": 39.7,
+        "title": "Check Portfolio",
+        "text": "Open Portfolio after the Window close. The venue still needs time to finish settlement."
+      },
+      {
+        "time": 44.7,
+        "title": "Wait for payout",
+        "text": "The settlement wait plays at ×4. The balance later updates to 2,012.15 credits."
+      },
+      {
+        "time": 50.95,
+        "title": "Open History",
+        "text": "Open History to read the completed BTC Up result: WON, paid 3.00 credits and net +2.15. The rail balance is 2,012.15."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/first-trade.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/first-trade.vtt",
+    "metadata": "/videos/first-trade.json"
+  },
+  "proof": {
+    "title": "Follow signed prints to the ledger update",
+    "description": "Open a settled BTC Window, inspect its oracle prints and follow its resolution update.",
+    "duration": 22.766667,
+    "capturedAt": "2026-10-08T17:09:05.737Z",
+    "origin": "https://owarine.xyz/proof",
+    "poster": "/captures/proof-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Open a settled Window",
+        "text": "Open a settled BTC two-minute Window from Proof."
+      },
+      {
+        "time": 6.745,
+        "title": "Read the signed prints",
+        "text": "Read the Coinbase, Kraken and Bitstamp prints, their medians, quorum and spread."
+      },
+      {
+        "time": 11.558,
+        "title": "Follow the update",
+        "text": "Follow the Ledger update link from the resolution receipt."
+      },
+      {
+        "time": 18.529,
+        "title": "Inspect the projection",
+        "text": "The new tab shows the update id, offset, UTC time and number of witnessed events from the venue projection."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/proof.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/proof.vtt",
+    "metadata": "/videos/proof.json"
+  },
+  "portfolio-tour": {
+    "title": "Read your balance, bets and record",
+    "description": "Tour the hosted Portfolio after a paid BTC call, with another Window still open.",
+    "duration": 27.583333,
+    "capturedAt": "2026-10-08T17:12:25.884Z",
+    "origin": "https://owarine.xyz/portfolio",
+    "poster": "/captures/portfolio-tour-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Read your balance",
+        "text": "Read the available test credits, open-position mark and the Trading Balance, Private and X pockets."
+      },
+      {
+        "time": 9.301,
+        "title": "Inspect your bets",
+        "text": "The Open and History tabs separate held positions from recorded results."
+      },
+      {
+        "time": 13.949,
+        "title": "Follow settled receipts",
+        "text": "History now shows the prior BTC call as paid automatically, with a receipt link."
+      },
+      {
+        "time": 18.787,
+        "title": "Read your record",
+        "text": "Read the net result, decided-window count, win rate and tier progress."
+      },
+      {
+        "time": 24.297,
+        "title": "Find trader analytics",
+        "text": "The Trader Analytics section links to the edge report. This tour stays in Portfolio."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/portfolio-tour.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/portfolio-tour.vtt",
+    "metadata": "/videos/portfolio-tour.json"
+  },
+  "parlay": {
+    "title": "Build a two-leg Parlay quote",
+    "description": "Build a hosted Canton DevNet Parlay preview with AAPL Up and MSFT Down, enter a one-credit stake and review the changing quote. The Place button is hovered only; no ticket is submitted in this recording.",
+    "duration": 31.966667,
+    "capturedAt": "2026-10-08T17:34:20.518Z",
+    "origin": "https://owarine.xyz/parlay",
+    "poster": "/captures/parlay-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Add the first leg",
+        "text": "Open Parlay and add the first leg. The page loads before the control becomes available."
+      },
+      {
+        "time": 2.307,
+        "title": "Choose AAPL",
+        "text": "Open the first leg’s Window picker and choose AAPL 15m. Keep its Up side."
+      },
+      {
+        "time": 6.138,
+        "title": "Add another leg",
+        "text": "Add another market to the Parlay preview."
+      },
+      {
+        "time": 8,
+        "title": "Choose MSFT",
+        "text": "Open the second leg’s Window picker and choose MSFT 15m."
+      },
+      {
+        "time": 12.7,
+        "title": "Choose Down",
+        "text": "Set the MSFT leg to Down while leaving AAPL Up. Both legs must land for the ticket to pay."
+      },
+      {
+        "time": 14.4,
+        "title": "Set the stake",
+        "text": "Enter a stake of one test credit and review the quote, including the displayed maximum payout and correlation adjustment."
+      },
+      {
+        "time": 28.1,
+        "title": "Review without placing",
+        "text": "Review the current quote and each leg. The displayed multiplier is about 2.9 times, and the exact payout updates with pricing. Hover Place without clicking it; this walkthrough submits no ticket."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/parlay.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/parlay.vtt",
+    "metadata": "/videos/parlay.json"
+  },
+  "another-device": {
+    "title": "Show the one-use QR and code",
+    "description": "Open the seat menu and show the one-use device-link QR, eight-character code and expiry. Menu and link-page waits play at ×4. Copy is hovered only; no second device joins in this recording.",
+    "duration": 24.533333,
+    "capturedAt": "2026-10-08T17:43:25.241Z",
+    "origin": "https://owarine.xyz/short",
+    "poster": "/captures/another-device-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Open the seat menu",
+        "text": "Open the current seat’s avatar in the rail."
+      },
+      {
+        "time": 1.6,
+        "title": "Use another device",
+        "text": "Choose Use on another device in the seat menu. The menu inspection wait plays at ×4 before the recorded click."
+      },
+      {
+        "time": 6.8,
+        "title": "Wait for the link page",
+        "text": "Wait for the real device-link page and its code request. This navigation wait plays at ×4."
+      },
+      {
+        "time": 8.27,
+        "title": "Show the one-use QR",
+        "text": "The page shows a QR, an eight-character code and its expiry countdown. This review plays at ×4 until the final cursor inspection. The code lasts 60 seconds and links one device once; no other device joins in this recording."
+      },
+      {
+        "time": 20.05,
+        "title": "Find Copy code",
+        "text": "Find the Copy code button next to the eight-character code. It is hovered only, without a copy click, join request or approval. A displayed code alone does not mean another device joined."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/another-device.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/another-device.vtt",
+    "metadata": "/videos/another-device.json"
+  },
+  "find-your-way": {
+    "title": "Find the rail, More, search and theme",
+    "description": "Tour the six main rail destinations, open More, search for proof and switch between light and dark DevNet themes. The destinations are hovered only, and no search result or trade is opened. The recorded degraded and missing-print state remains visible.",
+    "duration": 38.05,
+    "capturedAt": "2026-10-08T17:45:45.779Z",
+    "origin": "https://owarine.xyz/markets",
+    "poster": "/captures/find-your-way-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Trade",
+        "text": "Find Trade, the first place in the rail. This tour hovers the destinations without navigating away."
+      },
+      {
+        "time": 1.8,
+        "title": "Markets",
+        "text": "Find Markets, the second rail destination and the page shown behind this tour."
+      },
+      {
+        "time": 3.6,
+        "title": "Portfolio",
+        "text": "Find Portfolio for your balance, positions and record."
+      },
+      {
+        "time": 5.4,
+        "title": "Games",
+        "text": "Find Games, the fourth destination in the rail."
+      },
+      {
+        "time": 7.25,
+        "title": "Automate",
+        "text": "Find Automate, the fifth rail destination."
+      },
+      {
+        "time": 9.15,
+        "title": "Leaderboard",
+        "text": "Find Leaderboard, the sixth main rail destination."
+      },
+      {
+        "time": 11.2,
+        "title": "Open More",
+        "text": "Open More to see the grouped directory of product pages."
+      },
+      {
+        "time": 14.85,
+        "title": "Open page search",
+        "text": "Close More with Escape, then use Command K to open page search."
+      },
+      {
+        "time": 21.5,
+        "title": "Search for proof",
+        "text": "Type proof into page search. The matching list includes Print proof. This tour does not open a search result."
+      },
+      {
+        "time": 25.5,
+        "title": "Switch to dark",
+        "text": "Close search with Escape and use the sun or moon control to switch to dark mode."
+      },
+      {
+        "time": 29,
+        "title": "Read the environment",
+        "text": "Read the pink DevNet environment chip and the test-funds label. Light and dark change the theme within the same environment."
+      },
+      {
+        "time": 32,
+        "title": "Return to light",
+        "text": "Switch back to light mode. The DevNet seat and its test-funds environment stay the same."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/find-your-way.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/find-your-way.vtt",
+    "metadata": "/videos/find-your-way.json"
+  },
+  "practice-and-arcade": {
+    "title": "Play Practice and a Candle Hop run",
+    "description": "Edited excerpt of a one-card ETH Practice round and one Candle Hop run. The real feed-watch interval plays at ×4; inspection pauses are listed in provenance. Practice finishes 1–1, and Candle Hop records zero points on an initially empty board. Both are off ledger, without a stake or payout.",
+    "duration": 41.783333,
+    "capturedAt": "2026-10-08T17:47:03.992Z",
+    "origin": "https://owarine.xyz/games/practice",
+    "poster": "/captures/practice-and-arcade-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Read Practice scoring",
+        "text": "Read how Practice is scored. This recorded deck has one ETH card, with no stake, position or ledger transaction."
+      },
+      {
+        "time": 4.5,
+        "title": "Choose Up",
+        "text": "Choose Up for the single ETH card. This is a Practice prediction, not an on-ledger position."
+      },
+      {
+        "time": 9.136,
+        "title": "Watch the feed",
+        "text": "Wait through Practice’s 30-second live-feed watch. The recorded wait plays at ×4. Practice scores this feed interval rather than the Window’s eventual settlement."
+      },
+      {
+        "time": 16.849,
+        "title": "Read the Practice result",
+        "text": "Read the Practice result: You 1 and Practice bot 1, labelled Level. ETH moved +0.004%, so both Up picks won. This has no financial payout."
+      },
+      {
+        "time": 23.874,
+        "title": "Open Candle Hop",
+        "text": "Navigate to the hosted Candle Hop page. Wait for its real loading transition; arcade scores are off ledger."
+      },
+      {
+        "time": 27.914,
+        "title": "Start the run",
+        "text": "Click Play to start one Candle Hop run. No credits are staked."
+      },
+      {
+        "time": 29.087,
+        "title": "Watch the actual run",
+        "text": "The actual recorded run lasts 1.3 seconds and finishes with zero points. The later Space keypresses do not change that completed result."
+      },
+      {
+        "time": 37.452,
+        "title": "Read the posted score",
+        "text": "Read Your best: zero points. The initially empty board now contains this zero score; its number-one label does not demonstrate a competitive win. The page labels the score server checked and off ledger."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/practice-and-arcade.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/practice-and-arcade.vtt",
+    "metadata": "/videos/practice-and-arcade.json"
+  },
+  "practice-desk": {
+    "title": "Create a practice desk",
+    "description": "Edited excerpt: review a basket, choose Careful limits, explicitly skip the optional test read, create a practice desk and inspect its waiting cockpit. Inspection pauses are omitted; no completed check, price, payout or live deployment is shown.",
+    "duration": 36.366667,
+    "capturedAt": "2026-10-08T17:53:07.098Z",
+    "origin": "https://owarine.xyz/desk/new",
+    "poster": "/captures/practice-desk-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Review the basket",
+        "text": "Review the existing basket and its weights, then continue. This is a practice setup with a $1,000 simulated balance."
+      },
+      {
+        "time": 4.999,
+        "title": "Choose Careful",
+        "text": "Choose the Careful preset and review the visible guardrails before continuing."
+      },
+      {
+        "time": 8.182,
+        "title": "Skip the optional read",
+        "text": "The optional test read is explicitly skipped by choosing Continue without a test read. No check result is claimed."
+      },
+      {
+        "time": 14.446,
+        "title": "Create in practice",
+        "text": "Review the creation summary and sign to start in practice. This creates a practice desk, without moving real money."
+      },
+      {
+        "time": 16.8,
+        "title": "Wait for creation",
+        "text": "Wait through the real creation transition before the success screen appears."
+      },
+      {
+        "time": 17.97,
+        "title": "Your desk exists",
+        "text": "The Your desk exists screen confirms creation. Open your desk to inspect its cockpit."
+      },
+      {
+        "time": 26,
+        "title": "Open your desk",
+        "text": "Open your desk using the recorded link and keep the real navigation transition."
+      },
+      {
+        "time": 26.879,
+        "title": "Waiting for a first check",
+        "text": "The practice cockpit is waiting for its first check, with zero of six checks and no valuation yet. No completed read, price, payout or Go Live action is shown."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/practice-desk.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/practice-desk.vtt",
+    "metadata": "/videos/practice-desk.json"
+  },
+  "status-and-stats": {
+    "title": "Read venue status and public statistics",
+    "description": "Inspect the actual degraded Status page, its Projector and Ops checks, then navigate directly to Stats. Public-call and qualified-Window counters have a defined scope. The independently inspected recount was older than the live session.",
+    "duration": 28.466667,
+    "capturedAt": "2026-10-08T18:00:16.614Z",
+    "origin": "https://owarine.xyz/status",
+    "poster": "/captures/status-and-stats-poster.jpg",
+    "chapters": [
+      {
+        "time": 0,
+        "title": "Read the degraded status",
+        "text": "Read the real Running degraded status. This capture shows eight failing checks, two slow, twenty-three healthy and three marked off-hours or not set up; it does not establish a healthy venue."
+      },
+      {
+        "time": 6.5,
+        "title": "Inspect the Projector",
+        "text": "Open the Projector disclosure and inspect that component’s reported check. A healthy component does not make the entire venue healthy."
+      },
+      {
+        "time": 12,
+        "title": "Inspect Ops",
+        "text": "Open the Ops disclosure and inspect its individual checks."
+      },
+      {
+        "time": 15.254,
+        "title": "Open public Stats",
+        "text": "Navigate directly to the public Stats URL and wait for the actual page load."
+      },
+      {
+        "time": 18.912,
+        "title": "Read proof of demand",
+        "text": "The public Proof of demand counter shows zero published calls. That public count is not a count of all private trades."
+      },
+      {
+        "time": 20.58,
+        "title": "Read venue totals",
+        "text": "Read the venue totals with their qualified-Window scope: five or more traders. Zero qualified totals do not mean no private trading activity."
+      },
+      {
+        "time": 24.193,
+        "title": "Find the auditor view",
+        "text": "The Auditor view begins below venue totals; its details extend below this clip’s viewport. The separately inspected recount was timestamped 16:41:43 UTC at offset 2,458,892, older than this session near 18:00 UTC, so it does not verify every current contract."
+      }
+    ],
+    "sources": [
+      {
+        "src": "/videos/status-and-stats.mp4",
+        "type": "video/mp4"
+      }
+    ],
+    "captions": "/videos/status-and-stats.vtt",
+    "metadata": "/videos/status-and-stats.json"
+  }
+}

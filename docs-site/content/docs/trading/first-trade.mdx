@@ -1,27 +1,30 @@
 ---
 title: "Place an Up or Down trade"
-description: "Firm quotes from the venue's price ladder, what a call creates on the ledger, and how a Window settles or voids."
+description: "Choose a live Window, review a quote, and follow a DevNet position through settlement."
 ---
 
-A Window is the unit of trading: one ticker, one cadence, one opening print and one closing print. Every call resolves to Up or Down against those two prints — nothing else decides the outcome.
+<Walkthrough name="first-trade" />
 
-## A firm quote
+A **Window** has one asset, an opening time, a closing time and a result. On a price Window, Up wins when the signed close is at or above the signed open. Down wins when it is below. A display-price tick does not decide settlement.
 
-The venue publishes a price ladder for each live Window; there is no order book, and the venue is the house. When you choose a side and a stake, it issues you a **firm quote**: one side, one price, held for about 20 seconds and only for your seat, with a ring counting it down. The ticket shows the exact cost — stake plus fee — before you accept. If the quote runs out first, it fills nothing; ask for a fresh one.
+## Place a call
 
-Accepting the quote creates a pair of positions on the ledger: yours, and the venue's opposite one. Your stake and your fee are held in your position, and the receipt names the ledger update it landed in. Each contract has two stakeholders, your seat's party and the venue, so only the two of you can see it; the **Who can see this** chip says so.
+1. Open <AppLink href="/trade/BTC">Trade</AppLink>. Without a seat, orders use guest paper credits. [Take a seat](/start/wallet) to use DevNet test funds.
+2. Choose an available Window length and check that the Window is trading. The options depend on what the venue currently lists.
+3. Open the order settings and set your stake. Read the side's displayed price and return, then tap **Up** or **Down** to submit. The Trade screen does not add a separate confirmation modal.
+4. If it says **Price moved**, read the new price and tap again only if you accept it. Check the actual filled cost in the result; whole-contract sizing and fees can make it differ from the amount requested.
+5. Wait for the fill message and open position. Check the open-position list and <AppLink href="/portfolio">Portfolio</AppLink> before repeating an uncertain submission.
 
-If your stake is more than the venue will quote right now, the ticket offers the largest size it can fill; if the price moved, it requotes. A Window the venue is not quoting reads **No quotes yet**.
+<AppLink href="/markets">Markets</AppLink> also opens an ordinary ticket from a Window. Its firm quote fixes a side, size and price for your seat for a short period. An expired quote fills nothing. A moved price or a size above current capacity can require a fresh confirmation or a smaller amount.
 
-## How a Window settles
+The hosted check on 8 October 2026 accepted a BTC 2-minute Up call after a **Price moved** requote. It showed **Up BTC opened** and **Your Up call was filled**, with an actual filled cost of 0.85 credits, fee included, from a 1-credit request. Portfolio later showed **WON**, 3.00 paid and +2.15 net; the rail balance reached 2,012.15. Portfolio listed the stake before fee as 0.84. Read cost, stake before fee and payout as separate amounts.
 
-Once the Window's close time arrives, the resolver needs oracle prints for both the open and the close:
+A successful DevNet acceptance creates your `Leg` and the venue's opposite leg on Canton. A paper order creates browser state instead. A displayed quote, signed request or pending message alone is not a filled ledger position.
 
-- **Settles Up or Down** once at least 2 of the 3 oracle parties have posted each boundary and their prices agree within the Series' limit (1%). Up wins if the close is at or above the open; Down wins otherwise.
-- **Voids** if too few oracle prints arrived in time (**Missing print** or **Quorum not met**), if the resolver did not record them in time, or if the oracles disagreed past the limit (**Source disagreement**). A void returns your stake and your fee.
+## Wait for the result
 
-The resolver and the venue both sign the Resolution, and a Window resolves or voids exactly once. See [Halts and voids](/trading/halts-and-voids) for the labels the app uses, and the proof page for each Window's evidence.
+For the usual price Series, the resolver needs at least two of its three oracle parties at both boundaries, with agreement within the Series' configured spread limit. It records one Resolution, signed by the resolver and venue. Missing prints, insufficient quorum, source disagreement or an absent resolver can void a Window. A void returns the ordinary call's stake and fee.
 
-## Getting paid
+The venue's settler normally pays resolved positions in batches without another action from you. Portfolio shows the receipt once it has been read. A Window may have a Resolution while its payout is still pending. If a position reaches its refund deadline without settlement, its owner has a stale-refund path; use the action Portfolio offers for that position.
 
-You do not need to claim or sign. The venue's settler pays each resolved Window's positions to their owners in batches, and <AppLink href="/portfolio">Portfolio</AppLink> shows the result and its receipt. Before the close you can sell back to the venue at a firm exit price (**Cash out** or **Sell half**). If the venue has still not settled by the Window's refund time, you take your stake and fee back yourself from Portfolio, even with the venue's operator down. This all runs on a local Canton sandbox today.
+Before the close, an available **Close**, **Cash out** or **Sell half** action asks for the venue's exit price. The exit may be unavailable when the venue has no quote. See [Portfolio](/trading/portfolio), [Print proof](/trading/proof) and [Halts and voids](/trading/halts-and-voids).

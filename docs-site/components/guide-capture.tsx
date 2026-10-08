@@ -12,38 +12,46 @@ export function GuideCapture({ name, caption }: { name: CaptureName; caption?: s
   const id = useId();
   const arrowId = `guide-arrow-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
   const src = `/captures/${capture.file}`;
-  const image = <div className="guide-capture">
+  const image = (expanded = false) => <div className="guide-capture" style={capture.width < 600 ? { maxWidth: 390, marginInline: 'auto' } : undefined}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={src} alt={capture.alt} loading="lazy" />
-    {annotations.length > 0 && <svg className="guide-annotations" viewBox="0 0 1130 798" aria-hidden="true">
-      <defs><marker id={arrowId} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 10 5 0 10Z" fill="#dfdc2b" /></marker></defs>
+    <img src={src} alt={capture.alt} loading="lazy" width={capture.width * 2} height={capture.height * 2} />
+    {annotations.length > 0 && <svg className="guide-annotations" viewBox={`0 0 ${capture.width} ${capture.height}`} aria-hidden="true">
+      <defs><marker id={`${arrowId}-${expanded ? 'dialog' : 'inline'}`} viewBox="0 0 20 20" refX="20" refY="10" markerWidth="24" markerHeight="24" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 0 20 10 0 20Z" fill="#FA00FF" stroke="#FFFFFF" strokeWidth="2" /></marker></defs>
       {annotations.map((item, index) => {
-        const x = item.x * 11.3, y = item.y * 7.98, toX = item.toX * 11.3, toY = item.toY * 7.98;
-        const path = `M${x} ${y} Q${(x + toX) / 2} ${y} ${toX} ${toY}`;
+        const { x, y, width, height } = item.box;
+        const tail = item.tail;
+        // End on the closest real control edge, never on its label or a guessed coordinate.
+        const cx = x + width / 2, cy = y + height / 2;
+        const dx = tail.x - cx, dy = tail.y - cy;
+        const scale = Math.min(width / (2 * Math.abs(dx || .001)), height / (2 * Math.abs(dy || .001)));
+        const toX = cx + dx * scale, toY = cy + dy * scale;
+        const path = `M${tail.x} ${tail.y} Q${tail.x} ${toY} ${toX} ${toY}`;
         return <g key={`${index}-${item.label}`}>
-          <path d={path} fill="none" stroke="#fafaf7" strokeWidth="8" />
-          <path d={path} fill="none" stroke="#dfdc2b" strokeWidth="3.5" markerEnd={`url(#${arrowId})`} />
-          <circle cx={x} cy={y} r="19" fill="#dfdc2b" stroke="#fafaf7" strokeWidth="3" />
-          <text x={x} y={y + 7} textAnchor="middle" fill="white" fontSize="21" fontFamily="sans-serif" fontWeight="700">{index + 1}</text>
+          <rect x={x} y={y} width={width} height={height} rx="8" fill="none" stroke="#FFFFFF" strokeWidth="8" />
+          <rect x={x} y={y} width={width} height={height} rx="8" fill="none" stroke="#FA00FF" strokeWidth="4" />
+          <path d={path} fill="none" stroke="#FFFFFF" strokeWidth="18" />
+          <path d={path} fill="none" stroke="#FA00FF" strokeWidth="10" markerEnd={`url(#${arrowId}-${expanded ? 'dialog' : 'inline'})`} />
+          <circle cx={tail.x} cy={tail.y} r="22" fill="#FA00FF" stroke="#FFFFFF" strokeWidth="4" />
+          <text x={tail.x} y={tail.y + 8} textAnchor="middle" fill="#000000" fontSize="24" fontFamily="sans-serif" fontWeight="700">{index + 1}</text>
         </g>;
       })}
     </svg>}
   </div>;
   const notes = <div className="guide-capture-meta">
     <p className="guide-capture-state"><strong>Capture state:</strong> {capture.state}</p>
-    <p className="guide-capture-date">Captured {capture.date} on a local Canton sandbox.</p>
+    <p className="guide-capture-date">Captured {capture.date} on the hosted Canton DevNet product.</p>
   </div>;
 
   return <figure className="guide-shot not-prose">
     <div className="guide-top"><span>{capture.title}</span><Brand small /></div>
     <button type="button" className="guide-expand" onClick={() => dialog.current?.showModal()} aria-label={`Expand screenshot: ${capture.title}`} aria-haspopup="dialog">
-      {image}<span className="guide-zoom-hint"><Maximize2 size={15} aria-hidden="true" /> Click to expand</span>
+      {image()}<span className="guide-zoom-hint"><Maximize2 size={15} aria-hidden="true" /> Click to expand</span>
     </button>
     <figcaption>{caption && <p>{caption}</p>}{notes}{annotations.length > 0 && <ol className="annotation-legend">{annotations.map((item, index) => <li key={item.label}><span>{index + 1}</span>{item.label}</li>)}</ol>}</figcaption>
     <dialog className="capture-dialog" ref={dialog} aria-labelledby={id} onClick={event => { if (event.target === dialog.current) dialog.current.close(); }}>
       <div className="dialog-inner">
         <div className="dialog-heading"><h2 id={id}>{capture.title}</h2><Brand small /><button type="button" autoFocus onClick={() => dialog.current?.close()} aria-label="Close screenshot"><X size={22} aria-hidden="true" /></button></div>
-        {image}<div className="dialog-capture-notes">{notes}</div>
+        {image(true)}<div className="dialog-capture-notes">{notes}</div>
         {annotations.length > 0 && <ol className="annotation-legend" style={{ padding: '10px 20px' }}>{annotations.map((item, index) => <li key={item.label}><span>{index + 1}</span>{item.label}</li>)}</ol>}
         <a className="raw-capture-link" href={src} target="_blank" rel="noreferrer">Open original capture <ArrowUpRight size={14} aria-hidden="true" /></a>
       </div>

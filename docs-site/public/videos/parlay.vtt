@@ -1,0 +1,29 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:02.307
+Open Parlay and add the first leg. The page loads before the control becomes available.
+
+2
+00:00:02.307 --> 00:00:06.138
+Open the first leg’s Window picker and choose AAPL 15m. Keep its Up side.
+
+3
+00:00:06.138 --> 00:00:08.000
+Add another market to the Parlay preview.
+
+4
+00:00:08.000 --> 00:00:12.700
+Open the second leg’s Window picker and choose MSFT 15m.
+
+5
+00:00:12.700 --> 00:00:14.400
+Set the MSFT leg to Down while leaving AAPL Up. Both legs must land for the ticket to pay.
+
+6
+00:00:14.400 --> 00:00:28.100
+Enter a stake of one test credit and review the quote, including the displayed maximum payout and correlation adjustment.
+
+7
+00:00:28.100 --> 00:00:31.953
+Review the current quote and each leg. The displayed multiplier is about 2.9 times, and the exact payout updates with pricing. Hover Place without clicking it; this walkthrough submits no ticket.

@@ -1,0 +1,211 @@
+{
+  "origin": "https://owarine.xyz/status",
+  "capturedAt": "2026-10-08T18:00:16.614Z",
+  "sourceFrameCount": 74,
+  "sourceDurationSeconds": 28.452,
+  "outputDurationSeconds": 28.466667,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Full recording at normal speed, resampled by source timestamps to constant 60fps. No waits removed.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [],
+  "segments": [
+    {
+      "start": 0,
+      "end": 28.452,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Read the degraded status",
+      "text": "Read the real Running degraded status. This capture shows eight failing checks, two slow, twenty-three healthy and three marked off-hours or not set up; it does not establish a healthy venue."
+    },
+    {
+      "time": 6.5,
+      "title": "Inspect the Projector",
+      "text": "Open the Projector disclosure and inspect that component’s reported check. A healthy component does not make the entire venue healthy."
+    },
+    {
+      "time": 12,
+      "title": "Inspect Ops",
+      "text": "Open the Ops disclosure and inspect its individual checks."
+    },
+    {
+      "time": 15.254,
+      "title": "Open public Stats",
+      "text": "Navigate directly to the public Stats URL and wait for the actual page load."
+    },
+    {
+      "time": 18.912,
+      "title": "Read proof of demand",
+      "text": "The public Proof of demand counter shows zero published calls. That public count is not a count of all private trades."
+    },
+    {
+      "time": 20.58,
+      "title": "Read venue totals",
+      "text": "Read the venue totals with their qualified-Window scope: five or more traders. Zero qualified totals do not mean no private trading activity."
+    },
+    {
+      "time": 24.193,
+      "title": "Find the auditor view",
+      "text": "The Auditor view begins below venue totals; its details extend below this clip’s viewport. The separately inspected recount was timestamped 16:41:43 UTC at offset 2,458,892, older than this session near 18:00 UTC, so it does not verify every current contract."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "8567d04102b5c7cd40a08439549506b396609f7e73a373a3db2fac9371df8f8d",
+    "actionsSha256": "772d670f4036a4898d978e4d7797ed9e16aed057aab1efc23f9546a2e46edb0a"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 325.875,
+        "y": 126,
+        "width": 447.171875,
+        "height": 22.390625
+      },
+      "visible": true,
+      "sourceEnd": 6.5,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 1,
+      "sourceTime": 6.5,
+      "targetBox": {
+        "x": 927.875,
+        "y": 462.34375,
+        "width": 622,
+        "height": 74.390625
+      },
+      "visible": true,
+      "sourceStart": 7.397,
+      "sourceEnd": 12,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 2,
+      "sourceTime": 12,
+      "targetBox": {
+        "x": 293.875,
+        "y": 647.28125,
+        "width": 622,
+        "height": 74.390625
+      },
+      "visible": true,
+      "sourceStart": 12.569,
+      "sourceEnd": 15.254,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "sourceTime": 15.254,
+      "targetBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1600,
+        "height": 1000
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 3,
+      "sourceTime": 18.912,
+      "targetBox": {
+        "x": 293.875,
+        "y": 250.59375,
+        "width": 600,
+        "height": 180.46875
+      },
+      "visible": true,
+      "sourceEnd": 19.989,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 6,
+      "action": 5,
+      "sourceTime": 20.58,
+      "targetBox": {
+        "x": 468.109375,
+        "y": 943.796875,
+        "width": 106.375,
+        "height": 28.796875
+      },
+      "visible": true,
+      "sourceEnd": 24.193,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 7,
+      "action": 7,
+      "sourceTime": 24.193,
+      "targetBox": {
+        "x": 468.109375,
+        "y": 921.65625,
+        "width": 106.109375,
+        "height": 28.796875
+      },
+      "visible": true,
+      "sourceStart": 25.924,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "1708"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "b9467a210cf18b7d8ff72aa7fa2ba38f935ff6190136797719e6d4bcf88a3763",
+    "poster": "b80dea1f28a360ca37b9e6f683985044f764b59963a05518dbb933001504bdc4",
+    "captions": "4c6b20ad3b474a5da8a5376b886fa581685e148002af8065712d7b099ccd7439"
+  }
+}

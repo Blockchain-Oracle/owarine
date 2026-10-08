@@ -3,7 +3,7 @@ title: "The Daml packages"
 description: "The Daml packages behind Owarine, who signs each contract, and what the ledger enforces."
 ---
 
-Owarine's rules are five Daml packages released together as R1 (Daml SDK 3.5), all tested by the `pm-tests` Daml Script suite (every script passes, the Canton Coin rail's included). Every contract names the parties that sign it and the parties that may see it; the ledger enforces both. The release files, with package ids and hashes, are in `daml/released/`, and `dpm upgrade-check` passes from the previous versions.
+Owarine has six Daml packages (Daml SDK 3.5): five released as R1 and the seat package added as R2. The `pm-tests` Daml Script suite covers the contracts; dated test results and live execution are different kinds of evidence. Every contract names the parties that sign it and the parties that may see it; the ledger enforces both. The release files, with package ids and hashes, are in `daml/released/`. Recorded checks are dated evidence; this docs review did not rerun Daml tests or upgrade checks.
 
 | Package | Version | What it holds |
 | --- | --- | --- |
@@ -11,7 +11,8 @@ Owarine's rules are five Daml packages released together as R1 (Daml SDK 3.5), a
 | `abu-pm-tickets` | 0.1.4 | Range and Moonshot, Parlay, Boost (a short is Boost on Down) and Earn. |
 | `abu-pm-agents` | 0.2.2 | Strategies, subscriptions, creator fees, grant top-ups and the desk mandate. |
 | `abu-pm-games` | 0.1.2 | Duels, their results and the season prize pool. |
-| `abu-pm-cc` | 0.1.1 | The Canton Coin rail on the CIP-56 token standard: a deposit credits exactly the coin received, a withdrawal is a token-standard transfer back, and an auditor sees the coin held against the coin owed. Proved in Daml Script and unit tests; not run on a network yet, and off in code until DevNet proves it. |
+| `abu-pm-cc` | 0.1.1 | The Canton Coin rail on the CIP-56 token standard: a deposit credits the coin received at the venue's listing rate, a withdrawal is a token-standard transfer back, and an auditor sees the coin held against the coin owed. A faucet/deposit/withdrawal/reserve round trip is recorded on Noders DevNet on 7 October 2026. This uses test coin, not MainNet money. |
+| `abu-pm-seat` | 0.1.0 | Standing exits and send/accept demo-credit transfers. Local drive evidence exists; the R2 DevNet user journey was not re-verified in the documentation pass. |
 
 ## The core contracts
 
@@ -30,17 +31,46 @@ Owarine's rules are five Daml packages released together as R1 (Daml SDK 3.5), a
 
 ## How a call works
 
-1. The roller opens a Window with `Series_OpenWindow` (a Monday Gap with `Series_OpenWindowSpan`, an event with `Series_OpenEvent`).
-2. Your seat asks for a quote; the venue issues a `Quote` with `Desk_IssueQuote` at a price on its published ladder, locking its own side.
-3. You accept it with `Quote_Accept`. Your cash must cover the stake plus the fee. Two `Leg`s are created; only you and the venue can see yours.
-4. The resolver records the open (`Terms_RecordOpen`), then resolves (`Terms_Resolve`) from the oracle quotes, or voids (`Terms_Void`) if the quorum is missing or the quotes disagree.
-5. The settler pays the Window's legs in batches with `Desk_SettleBatch`; you sign nothing. A won leg pays its full quantity; a void returns stake plus fee.
-6. If the venue never settles, you can claim against the resolution yourself (`Leg_Claim`), or from the refund time take back stake and fee with `Leg_RefundStale`, which needs no operator.
+The opening print must exist before the issuer offers a normal quote. Each `PriceQuote` is signed by its oracle; `OpenPrint` and `Resolution` require the resolver and venue signatures.
+
+<Mermaid title="A trade from opening print to receipt" chart={String.raw`
+sequenceDiagram
+  participant Seat
+  participant Web as Web seat routes
+  participant Ops as Venue issuer / settler
+  participant Oracles as Three oracle parties
+  participant Ledger as Daml on DevNet
+  participant Resolver
+  Oracles->>Ledger: Opening PriceQuotes
+  Resolver->>Ledger: Terms_RecordOpen
+  Seat->>Web: Ask for a firm quote
+  Web->>Ops: /internal/quotes
+  Ops->>Ledger: Desk_IssueQuote
+  Ledger-->>Ops: Quote created for this seat
+  Ops-->>Web: Firm quote
+  Web-->>Seat: Review quote
+  Seat->>Web: Accept quote
+  Web->>Ledger: Quote_Accept as leased party
+  Ledger-->>Web: Owner Leg and venue opposite Leg
+  Oracles->>Ledger: Closing PriceQuotes
+  alt Admitted quorum agrees
+    Resolver->>Ledger: Terms_Resolve
+  else Missing, late or disagreeing prints
+    Resolver->>Ledger: Terms_Void or disagreement result
+  end
+  Ops->>Ledger: Desk_SettleBatch
+  Ledger-->>Web: Cash and SettlementReceipt
+  Web-->>Seat: Portfolio result and proof link
+`} />
+
+`Series_OpenWindow` creates the terms and single-use `WindowState`. `Terms_RecordOpen` consumes that state; resolution consumes `OpenPrint`. These markers prevent two outcomes for one Window. A disagreement during the opening check can void it before a normal quote exists.
+
+`Quote_Accept` checks price, expiry and cash. A win pays the leg's full quantity; a void returns stake plus fee. If the venue does not settle, the owner can use `Leg_Claim` against the resolution. From `refundAfter`, `Leg_RefundStale` returns stake and fee without an ops actor.
 
 A call rested before the bell is different: the venue makes an offer (`RestDesk_Offer`), you place it with your own cash (`RestOffer_Place`), and after the bell the venue fills it at exactly your price (`Rest_Fill`), in whole or in part, with the same two `Leg`s. You can cancel it any time (`Rest_Cancel`), and the venue returns an unfilled one at its expiry (`Rest_Expire`).
 
 Selling early is a `BuyQuote` you accept (`BuyQuote_Accept`). Draining a released seat closes its legs at cost with `Leg_CloseOut`, which needs both the venue and the seat.
 
-## What the tests prove
+## What the tests cover
 
 `pm-tests` checks, among others: money is conserved after every step of seeded random sequences; the venue cannot resolve a Window, confiscate a position or accept a quote for you; the resolver cannot resolve without the oracle quorum; a Window resolves or voids exactly once, and settle and stale refund never both run; an outsider sees nothing; tickets, grants, the desk, duels and the maker vault each keep their conservation rules. No external audit is claimed.

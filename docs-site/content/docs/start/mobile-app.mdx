@@ -1,17 +1,17 @@
 ---
 title: "Get the app"
-description: "Owarine on your phone: the web app in a phone browser, and the iPhone app built for Canton that is not on TestFlight yet."
+description: "The phone web app, the native Canton client and the limits of recorded distribution evidence."
 ---
 
-The web app works on a phone: open it in Safari or Chrome and add it to your Home Screen. It is the same product as on a desktop, on the same venue, with the same seat and demo credits. Today it runs against a local Canton sandbox; there is no hosted URL to open yet.
+The web app works on a phone: open it in Safari or Chrome and add it to your Home Screen. It is the same product as on a desktop, on the same venue, with the same seat and demo credits. The public web app is at `https://owarine.xyz`; read its current network and service state before trading.
 
-## The iPhone app (built, not on TestFlight yet)
+## The native iPhone app
 
-A native iPhone app is built for Canton: it has its own identity, typechecks with every change and its iOS build exports cleanly. It is **not on TestFlight yet**. Its App Store Connect record does not exist yet, and the app has not yet been run on a phone or simulator against a Canton venue. There is no Android APK. Earlier builds of the app do not work with this venue. When the TestFlight invitation exists, the app's <AppLink href="/download">Download</AppLink> page shows it with a QR code, and an Android APK appears there the same way, with its SHA-256 to check it; until then each card says what it waits on.
+The native client targets Canton and has its own device identity. Earlier local-stack iOS Simulator journeys are recorded: first run, seats, calls, settlement, privacy views and linking. Physical-device acceptance, a public TestFlight invitation, Android distribution and real push delivery were not verified in this 8 October documentation pass. Use the app's <AppLink href="/download">Download</AppLink> page for current distribution links and their stated conditions. A past build or simulator run does not establish a public invitation.
 
 ## Your seat on a phone
 
-There is no wallet app to open. **Take a seat** works as on the web: the phone makes an ed25519 signing key and keeps it in the iPhone Keychain, for this device only (never synced or restored onto another phone), and the venue leases a Canton party for it. The first-run pages end with the demo-credits terms, and accepting them takes the seat. To use a seat you already hold on the web, choose **Have a seat on the web? Link this phone** and enter or scan the code from **Use on another device**. [Your seat](/start/wallet) explains both. There is no network fee.
+There is no wallet app to open. **Take a seat** works as on the web: the phone makes an ed25519 signing key and keeps it in the iPhone Keychain, for this device only (never synced or restored onto another phone), and the venue leases a Canton party for it. The first-run pages end with the demo-credits terms, and accepting them takes the seat. To use a seat you already hold on the web, choose **Have a seat on the web? Link this phone** and enter or scan the code from **Use on another device**. [Your seat](/start/wallet) explains both.
 
 ## What the native app does differently
 

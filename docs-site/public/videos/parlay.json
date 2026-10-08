@@ -1,0 +1,213 @@
+{
+  "origin": "https://owarine.xyz/parlay",
+  "capturedAt": "2026-10-08T17:34:20.518Z",
+  "sourceFrameCount": 79,
+  "sourceDurationSeconds": 31.953,
+  "outputDurationSeconds": 31.966667,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Full recording at normal speed, resampled by source timestamps to constant 60fps. No waits removed.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [],
+  "segments": [
+    {
+      "start": 0,
+      "end": 31.953,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Add the first leg",
+      "text": "Open Parlay and add the first leg. The page loads before the control becomes available."
+    },
+    {
+      "time": 2.307,
+      "title": "Choose AAPL",
+      "text": "Open the first leg’s Window picker and choose AAPL 15m. Keep its Up side."
+    },
+    {
+      "time": 6.138,
+      "title": "Add another leg",
+      "text": "Add another market to the Parlay preview."
+    },
+    {
+      "time": 8,
+      "title": "Choose MSFT",
+      "text": "Open the second leg’s Window picker and choose MSFT 15m."
+    },
+    {
+      "time": 12.7,
+      "title": "Choose Down",
+      "text": "Set the MSFT leg to Down while leaving AAPL Up. Both legs must land for the ticket to pay."
+    },
+    {
+      "time": 14.4,
+      "title": "Set the stake",
+      "text": "Enter a stake of one test credit and review the quote, including the displayed maximum payout and correlation adjustment."
+    },
+    {
+      "time": 28.1,
+      "title": "Review without placing",
+      "text": "Review the current quote and each leg. The displayed multiplier is about 2.9 times, and the exact payout updates with pricing. Hover Place without clicking it; this walkthrough submits no ticket."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "b11e213bf1e0cec80177785c27a4a47779bd6c35864090c62ee6209d290f9a2e",
+    "actionsSha256": "75a24a42fae5684b524aa1e395337bf21d1aabe28700ef863925b8cec7de934c"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 623.84375,
+        "y": 595.21875,
+        "width": 172.0625,
+        "height": 38.390625
+      },
+      "visible": true,
+      "sourceStart": 1.306,
+      "sourceEnd": 2.307,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 2,
+      "sourceTime": 2.307,
+      "targetBox": {
+        "x": 368.875,
+        "y": 540.703125,
+        "width": 688,
+        "height": 35.1875
+      },
+      "visible": true,
+      "sourceStart": 4.806,
+      "sourceEnd": 5.973,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 3,
+      "sourceTime": 6.138,
+      "targetBox": {
+        "x": 314.875,
+        "y": 568.703125,
+        "width": 790,
+        "height": 41.1875
+      },
+      "visible": true,
+      "sourceEnd": 7.638,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "action": 5,
+      "sourceTime": 8,
+      "targetBox": {
+        "x": 368.875,
+        "y": 690.265625,
+        "width": 688,
+        "height": 35.1875
+      },
+      "visible": true,
+      "sourceStart": 9.5,
+      "sourceEnd": 12.474,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 6,
+      "sourceTime": 12.7,
+      "targetBox": {
+        "x": 419.875,
+        "y": 626.6875,
+        "width": 66.75,
+        "height": 29.59375
+      },
+      "visible": true,
+      "sourceEnd": 14.4,
+      "zoom": 1.2,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 6,
+      "action": 7,
+      "sourceTime": 14.4,
+      "targetBox": {
+        "x": 1183.875,
+        "y": 710.359375,
+        "width": 332,
+        "height": 50.796875
+      },
+      "visible": true,
+      "sourceStart": 15.1,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 7,
+      "action": 8,
+      "sourceTime": 28.1,
+      "targetBox": {
+        "x": 1170.875,
+        "y": 938.53125,
+        "width": 358,
+        "height": 54.390625
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "1918"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "4c57413264f1b58c406458806deb4ecb108f4788c1a0f2be0da00368f5bb1717",
+    "poster": "bd8365ea5bbe35391c7199816e0b843f9ae728aae68ac957ca49f68fa978aeed",
+    "captions": "298c4eb589f2be47fa1c69fd20e619df8ac181c4f776cc5e18803a4f56493de4"
+  }
+}

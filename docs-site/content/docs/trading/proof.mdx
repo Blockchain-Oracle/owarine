@@ -1,18 +1,28 @@
 ---
 title: "Read a Window's proof"
-description: "Trace its opening and closing prints, the oracle parties that posted them, and the evidence behind each."
+description: "Trace a Resolution to its signed boundary prints, source evidence and ledger updates."
 ---
 
-<AppLink href="/proof">Proof</AppLink> lists settled Windows. Open a row to see that Window's **proof page**: each oracle party's quote at the open and at the close, the median and spread the ledger took, the outcome or the void reason, and the source each quote was read from (for example "RedStone"). The resolver settles from these recorded quotes, not from the latest display price. Each step carries its ledger update id, and `/proof?update=<id>` opens any one of them.
+<Walkthrough name="proof" />
 
-## The resolution timeline
+Open <AppLink href="/proof">Print proof</AppLink> from **More → Records and proof**. Choose a decided Window, then inspect its opening and closing evidence, median, spread, outcome or void reason. The result uses those recorded boundary prints, not the latest price on the chart.
 
-Each proof page walks through how the Window was decided: open print, each oracle's closing quote, median, then resolved or voided. The receipt names who signed the result: the resolver and the venue, both required. Below it, the **trust boundary** says plainly that the ledger returns each party only its own contracts, but one operator holds the ledger credential for every demo party, so the app's own code decides which party a seat acts as.
+## Follow the timeline
 
-<GuideCapture name="proofTimeline" caption="A BTC 5-minute Window\'s timeline: the open print, each oracle party\'s closing quote with its ledger update id, the median 0.01% apart against the 1% limit, and the resolution." />
+1. Check the asset, cadence and Window times.
+2. Read each oracle party's open and close print and its named source.
+3. Compare the median and spread with the Series' quorum and agreement limit.
+4. Read the Resolution and the parties that signed it.
+5. Open the ledger update link for the step you want to inspect.
 
-## Check the evidence
+<GuideCapture name="proofTimeline" />
 
-Each oracle quote carries the sha-256 hash of the raw source response it was read from, and that response is archived byte for byte. **Re-verify** recomputes the medians, spreads and outcome with the ledger's integer rule, checks each archived response against its hash, and, for a crypto Window, fetches each exchange's candle again; on a local sandbox a resolved Window passed all 23 checks. An absent archived payload is unavailable evidence, even if the quote itself is on the ledger.
+A Resolution establishes the Window's result. Your payout has its own settlement receipt in [Portfolio](/trading/portfolio).
 
-Use the [price-source page](/architecture/price-sources) for the quorum and agreement rules.
+**Hosted check — 8 October 2026:** a settled BTC Window showed its signed exchange prints. Its update link opened a page with the ledger offset, UTC time and witnessed events. That page is Owarine's hosted projection of the update, not an independent block explorer.
+
+## Re-verify
+
+**Re-verify** asks the server to recompute the medians, spreads and outcome, compare archived source bytes with their hashes, and re-fetch supported exchange candles. Read every check: **Pass**, **Fail** and **Unavailable** have different meanings. A missing archived payload cannot be checked merely because its hash is on the ledger.
+
+The proof page also states the trust boundary. Canton limits contract visibility by stakeholder, while this demo's operator holds ledger access for the demo parties. Three oracle parties are not automatically three independent operators. See [price sources](/architecture/price-sources) for what each source proves.

@@ -1,61 +1,40 @@
 ---
 title: "Build a desk"
-description: "Choose a pre-IPO basket and limits, run a paper practice desk, then open a live desk as a Daml mandate."
+description: "Choose a pre-IPO basket, set limits and create a paper practice desk before considering a DevNet mandate."
 ---
 
-The desk studio is the **Automate** path from [Baskets](/trading/baskets). You choose which of the eight pre-IPO companies it may hold and how much cash to keep. The desk decides *when* to act, within your limits. A desk is different from a single Up/Down call: it keeps a target mix and rebalances it over time.
+A desk maintains a target basket over time. It is separate from an Up/Down strategy and from the Trading Balance pocket. Open **More → Automate → Create a desk**, or <AppLink href="/desk/new">New desk</AppLink>. A basket card's **Automate** action preselects its members.
 
-<AppLink href="/desk">Desk</AppLink> without a desk of your own shows what a desk does in three steps, a card of a desk its owner shares on this deployment (its basket, total value and latest check), **Start a practice desk** and **See a shared desk**. No seat is needed until the last step of the studio.
+<Walkthrough name="practice-desk" />
 
-<Steps>
-<Step>
-### Choose the basket
+## Create a practice desk
 
-Open <AppLink href="/desk/new">New desk</AppLink>, or choose **Automate** on a basket card. **The basket** step shows the five baskets as cards with their members and a seven-day line, plus **Build your own** from any of the eight PreStocks companies. Adjust each weight and the cash share with sliders; **Even split** and **Reset to basket** undo your edits, and the weights and cash must add up to 100%. Anyone can draft without a seat. The draft stays in this browser.
+1. **The basket:** choose a preset or build your own from the supported pre-IPO companies. Adjust company weights and cash so they total 100%. Drafting needs no seat and stays in this browser.
+2. **How strict:** choose a preset, then review drift, concentration, loss stop, premium ceiling, action and daily spend caps, and the amount that needs your approval. Each limit names whether the desk code or ledger enforces it.
+3. **Test read:** take a seat if prompted, then request one check. This signs a mandate message and records a decision; it does not fund a Canton trade. Missing prices or model access can produce a refusal or **Could not decide**. You can continue without a successful test.
+4. **Create:** review the basket, limits and starting paper cash, choose Practice, then create the desk with your seat's signed message. Wait for its receipt before opening the desk.
 
-</Step>
-<Step>
-### Set limits
+<GuideCapture name="deskPractice" />
 
-**How strict** starts from **Careful**, **Balanced** or **Loose** (or **Custom**) and puts every limit on a slider: allowed drift, the largest share one company may take, the loss stop, the premium ceiling above a company's mark, the per-action and daily spend caps, and the size above which it asks first. Each limit says who enforces it: on a live desk the per-action and daily caps, the premium ceiling and the allowed companies are **Enforced on the ledger** by the mandate; drift, the largest share and the loss stop are **Enforced by the desk**'s own code. The defaults are Balanced: 5% drift, 50% largest share, a 15% loss stop, a 10% premium ceiling, 50 per action, 150 a day and ask first above 100 (paper dollars in practice, demo credits on a live desk).
+**Hosted check — 8 October 2026:** an AI Labs desk with 40% OpenAI, 40% Anthropic and 20% cash was created in Practice with Careful limits. The flow explicitly continued without a test read and returned **Your desk exists.** Its cockpit showed zero checks. No seat funds moved, and no hourly decision or live trade was established by creation.
 
-</Step>
-<Step>
-### Ask for a test read
+Practice uses paper cash and no Canton trade write. With its runner active, practice checks run hourly. **Check now** requests an extra check, at most once every ten minutes. Go live requires six of your own hourly practice checks and a visit to the record; a test read or repeated manual request does not bypass that gate.
 
-**Test read** runs one real check and shows it as it happens: sign the mandate, read PreStocks prices for every company, price each trade at your size, ask the one timing question, then write the decision down and fingerprint it. This asks your seat to sign a message; it does **not** move money. A bad or stale price leads to a recorded refusal, not a trade. The timing question needs a model key on the server; without one the check records **Could not decide** and names the missing setting. You can also continue without a test read.
+## Read the desk
 
-</Step>
-<Step>
-### Create the practice desk
-
-**Create** shows a receipt of the split, the limits and where the desk starts before you sign. One signed message from your seat creates a paper desk. Practice runs the same decision pipeline on real prices every hour, on the hour, with a paper cash ledger and **no ledger write**. **Check now** asks for an extra check, at most once every ten minutes. Go live unlocks after six hourly practice checks of your own and a visit to the whole record.
-
-</Step>
-</Steps>
-
-## Read your desk
-
-Your desk's page opens on its value: a chart of the desk's worth at every check (**1D**, **1W**, **All**), the next check and how many practice checks are done. Four tabs sit under it:
-
-<GuideCapture name="deskPractice" caption="An AI Labs practice desk: paper money, the next hourly check, and 1 of 6 practice checks done before Go live." />
-
-| Tab | What it shows |
+| Tab | What to inspect |
 | --- | --- |
-| **Overview** | The latest decision, the allocation now against the target, and the limits in use (spent today, highest premium, distance from the loss stop). |
-| **Holdings** | Each company's holding (paper tokens in practice; Up lots on its hourly Window on a live desk), its target share and its recent prices, then the cash. |
-| **Activity** | Every check as a timeline, newest first, with day headings, quiet runs folded together and filters: **All**, **Acted**, **Decided not to**, **Asked you**, **Quiet**, **Problems**. |
-| **Rules** | The basket and each limit, marked **Enforced on the ledger** or **Enforced by the desk**, with **Edit** to sign a new mandate version. |
+| Overview | Latest decision, allocation against target and current limit use |
+| Holdings | Each company, its target weight and price, plus cash |
+| Activity | Checks and decisions, including holds, approval requests and problems |
+| Rules | The mandate and who enforces each limit |
 
-Open any check to read its decision page: the verdict, the companies, how sure the timing call was, the price strip (token price, PreStocks mark, 30-minute average and your premium ceiling), the trade it chose or turned down, and each check it passed or refused. **Check it** recomputes the record's fingerprint. A desk its owner has not shared reads as private to anyone else; **Share** turns on a read-only link that shows holdings and the record, never your notes.
+Open a check to read its input prices, proposed or refused action, reasons and fingerprint. **Check it** recomputes the record fingerprint. A fingerprint verifies the record's integrity, not the truth of an external price or the quality of a decision.
 
+**Share** creates a read-only view of a desk's holdings and record. A private desk requires its owner's seat proof. A public shared link is not permission to change the desk.
 
-## Go live
+## Go live on DevNet
 
-**Go live** opens a `DeskMandate` on Canton from your seat: you allow the companies, link the record and add money from your seat's demo credits. The mandate trades this venue's own markets with that cash: holding a company means holding Up lots on its hourly pre-IPO Window, bought at the venue's firm price and sold back through the venue's buy-back quote (never below 92% of the attested value). Every buy passes the mandate's embedded grant caps and a premium ceiling over marks the oracle parties post, and every action, a quiet checkpoint included, extends a hash chain of `DeskDecision` records on the ledger. You or the runner may **Pause** it; only you can **Resume**, change the limits, withdraw or close it.
+Once eligible, **Go live** opens a separate funded Canton mandate. Read the allowed companies, runner, limits, mode and deposit before authorizing it. A live desk uses this venue's pre-IPO Window positions rather than purchasing company equity on an external exchange. The ledger enforces its grant caps and allowed actions; the desk's own code enforces the limits labelled as such.
 
-On a local Canton sandbox, opening a live desk, adding money, pausing and resuming, a sealed checkpoint and the shared read-only desk all ran through the screens. The live desk has not traded there yet: no model key was set, so every check ended **Could not decide**, and its buy and sell steps are covered by the Daml tests instead. A live desk's value line still mixes in its practice record, a known gap. Nothing is on a shared Canton network yet, and there is no external exchange route. Do not treat a paper balance as a real one.
-
-<GuideCapture name="deskPaused" caption="A live desk funded with 50 demo credits and paused by its owner, offering Resume. Its value line still carries the practice record, the known gap named above." />
-
-The desk's [architecture and trust boundary](/architecture/desk) explains what the mandate checks and what the oracle parties attest.
+You or the runner can pause it. Only the owner can resume it, change limits, withdraw or close it. A created practice desk does not prove a successful live buy, sell or payout. Follow the actual live mandate, decision and receipt; never read the practice value line as a DevNet cash balance. See [the desk trust boundary](/architecture/desk).

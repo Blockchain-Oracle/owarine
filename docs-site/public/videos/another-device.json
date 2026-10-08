@@ -1,0 +1,174 @@
+{
+  "origin": "https://owarine.xyz/short",
+  "capturedAt": "2026-10-08T17:43:25.241Z",
+  "sourceFrameCount": 199,
+  "sourceDurationSeconds": 58.273,
+  "outputDurationSeconds": 24.533333,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Source timestamps resampled to constant 60fps. Only declared waits run at a visible ×4; all other time is preserved.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [
+    {
+      "start": 2,
+      "end": 14,
+      "speed": 4
+    },
+    {
+      "start": 16,
+      "end": 49,
+      "speed": 4
+    }
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "end": 58.273,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Open the seat menu",
+      "text": "Open the current seat’s avatar in the rail."
+    },
+    {
+      "time": 1.6,
+      "title": "Use another device",
+      "text": "Choose Use on another device in the seat menu. The menu inspection wait plays at ×4 before the recorded click."
+    },
+    {
+      "time": 6.8,
+      "title": "Wait for the link page",
+      "text": "Wait for the real device-link page and its code request. This navigation wait plays at ×4."
+    },
+    {
+      "time": 8.27,
+      "title": "Show the one-use QR",
+      "text": "The page shows a QR, an eight-character code and its expiry countdown. This review plays at ×4 until the final cursor inspection. The code lasts 60 seconds and links one device once; no other device joins in this recording."
+    },
+    {
+      "time": 20.05,
+      "title": "Find Copy code",
+      "text": "Find the Copy code button next to the eight-character code. It is hovered only, without a copy click, join request or approval. A displayed code alone does not mean another device joined."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "1bde6ca5cbdb2abef424c7c4bca530be6dfcc882441e81a98703ffcd3c3b3366",
+    "actionsSha256": "fd98b54d3d16c4107751929ab0f73deb7e8e1b7363b740fd92b417b785a8dd66"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 31.25,
+        "y": 872.75,
+        "width": 192.5,
+        "height": 44
+      },
+      "visible": true,
+      "sourceEnd": 1.6,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 1,
+      "sourceTime": 1.6,
+      "targetBox": {
+        "x": 260,
+        "y": 820.578125,
+        "width": 299,
+        "height": 44
+      },
+      "visible": true,
+      "sourceEnd": 15.8,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "sourceTime": 15.8,
+      "targetBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1600,
+        "height": 1000
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "action": 2,
+      "sourceTime": 21.08,
+      "targetBox": {
+        "x": 730.875,
+        "y": 282.796875,
+        "width": 128,
+        "height": 128
+      },
+      "visible": true,
+      "zoom": 1.25,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 3,
+      "sourceTime": 53.8,
+      "targetBox": {
+        "x": 1077.875,
+        "y": 310.984375,
+        "width": 32,
+        "height": 32
+      },
+      "visible": true,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "1472"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "273921e763ca891adf1e0732c85ee2c59ed053176c73f1c3a4d6fefe5ae37538",
+    "poster": "c7fc3cf9a5a10361c26508bd4ce2bbbf22120682d9569744b993f12b7e4afaf1",
+    "captions": "287cc7e9b27c96374163c25ebde2e34e4427c6a1fdb40a84c46a201bfa256354"
+  }
+}

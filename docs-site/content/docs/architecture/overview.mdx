@@ -1,39 +1,56 @@
 ---
 title: "How Owarine fits together"
-description: "A prediction market on Canton Network: four Daml packages hold the money rules, parties hold the privacy, and demo credits are the only money."
+description: "The hosted DevNet app, its venue operations, ledger contracts and read models."
+sources:
+  - README.md
+  - web/src/components/shell/nav.ts
+  - services/ops/src/main.ts
+  - packages/ledger/src/client.ts
+  - packages/db/src/schema-index.ts
 ---
 
-Owarine is a prediction market on **Canton Network** for short price calls: will a price close its Window up or down. The money rules live in **Daml packages**, not in the web app. The venue quotes a firm price for each side; you accept from your seat; three oracle parties sign the prices; a resolver party resolves each Window exactly once; the venue's settler pays. It all runs end to end on a **local Canton sandbox** with **demo credits**; nothing is on DevNet or a hosted URL yet.
+Owarine runs at <AppLink href="/markets">owarine.xyz</AppLink> on **Canton DevNet**. Its test funds have no cash value. The browser requests a firm quote, your seat accepts it, and Daml records the position. Oracle parties sign boundary prices. The resolver records the result and the settler pays it.
 
-<Architecture name="venue" />
+## System context
 
-| Layer | Responsibility |
+The browser and native app share the venue's server routes. The phone app exists in source; public distribution and physical-device acceptance are separate, unverified claims.
+
+<Mermaid title="Owarine system context" chart={String.raw`
+flowchart TD
+  browser[Browser] --> web[Next.js web and API]
+  phone[Expo phone app] --> web
+  web -->|Quotes and venue reads| ops[Ops actors]
+  web -->|Seat reads and commands| ledger[Noders DevNet participant]
+  ops -->|Venue commands and updates| ledger
+  sources[Price sources] --> ops
+  x[X mentions and replies] <-->|Optional x-relay| ops
+  ops -->|Projector| db[(Postgres)]
+  web -->|Projection and seat leases| db
+`} />
+
+| Piece | Responsibility |
 | --- | --- |
-| Web app and iPhone app | Show markets, the ticket, positions, receipts and proof. Your seat's signing key lives in the browser (or the iPhone Keychain) and cannot be exported. |
-| `packages/core` | Pure market, registry and money rules; integer arithmetic. |
-| `packages/markets`, `packages/ledger` | The only code that talks to the ledger: it builds Daml commands and reads contracts through the JSON Ledger API v2. |
-| Daml packages | `abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents` and `abu-pm-games`. See [The Daml packages](/architecture/programs). |
-| Ops and the projector | Open Windows, post prints, quote, resolve, settle and fund seats; the projector writes the venue's view into Postgres for the app. See [Ops and the projector](/architecture/ops-and-indexer). |
+| `web` | Trade ticket, seat authentication, Portfolio, proof and server routes. |
+| `mobile` | Expo client using the same seat and trading APIs. See [Phone app](/start/mobile-app). |
+| `packages/core` | Market policies, registry and integer money arithmetic. |
+| `packages/markets` | Builds venue, seat and agent operations. |
+| `packages/ledger` | JSON Ledger API v2 client: reads, submissions, deduplication and updates. |
+| Six Daml packages | Contracts for cash, quotes, positions, settlement, tickets, agents, games, Canton Coin and seat transfers. |
+| `services/ops` | Roller, oracle feeders, resolver, pricer, issuer, settler and other venue actors. |
+| `packages/db` | Ledger projection, seat leases and service journals. A database row cannot change a ledger outcome. |
 
-## Who can see what
+Follow [a trade](/architecture/programs), [a seat](/architecture/seats), [the prints](/architecture/price-sources), [contract visibility](/architecture/privacy) or [deployment](/architecture/deployment).
 
-Canton shows a contract only to its stakeholders. Your position (a `Leg`) and your cash (`VenueCash`) each have two: **the venue and your seat's party**. Another visitor, an oracle and the resolver see nothing of yours.
+## The shared participant boundary
 
-The app shows the rule rather than asserting it. The **Who can see this** chip sits on the held price and each position: only your seat and the venue. `Test.Privacy` proves it in Daml: a party outside the contract reads nothing, while the venue, as counterparty, sees each seat's legs.
+The venue, resolver, oracle and seat parties use one shared participant. Its configured ledger user can act as those parties. The browser's signing key authenticates a request to Owarine; the server submits the Daml command for the party attached to that lease.
 
-## Seats instead of wallets
+The server must enforce that mapping. Seat routes derive the party from the current lease and scope history to the lease's start offset. The `no-party-from-request` invariant checks that routes do not take a party supplied by the caller. This is an operator and server trust boundary alongside Daml's contract rules.
 
-There is no wallet app to install. **Take a seat** makes a signing key in your browser that cannot leave it, and the venue leases you a Canton party of your own, funded with 1,000 demo credits. An idle seat with nothing open is released; before reuse its positions close at cost and its cash is swept, so the next visitor starts empty. There is no network fee. [Your seat](/start/wallet) has the details.
+A `Leg` has two stakeholders: its owner and the venue. Other seat parties cannot query it. The venue is the counterparty and can see it. See [Who sees what](/architecture/privacy).
 
-## The trust boundary
+## Evidence and availability
 
-Every party Owarine uses (venue, resolver, oracles, seats) is hosted on one shared participant, where one ledger user can act as all of them. So **our code decides which party a seat acts as**:
+The repository records a first-call DevNet journey on **6 October 2026**, including payout, void and stale refunds. A test Canton Coin deposit/withdrawal round trip is recorded on **7 October**. These dated runs do not prove every displayed lane, game or integration works today.
 
-- A seat route takes the party from the seat's current lease, never from the request; the `no-party-from-request` invariant fails the build otherwise.
-- Everything a seat reads or acts on is bound to its current lease's start offset, so a recycled party never exposes a previous visitor's positions.
-
-The Daml guarantees hold whoever submits: a Window resolves or voids exactly once, resolution needs the resolver and an oracle quorum, the venue cannot confiscate a position or accept a quote for you, and the `pm-tests` scripts check that money is conserved after every step.
-
-## What runs today
-
-On the local sandbox, each with an evidence note in `docs/evidence/`: calls on crypto, stock, xStock, pre-IPO, basket, Monday Gap and event Windows; Range, Moonshot, Parlay, Boost and shorts; Earn and the maker vault; strategies; duels, rank and seasons. Not yet: a desk that has traded live, private mode, and the Canton Coin rail on a running ledger (it is proved in Daml Script and unit tests); the iPhone app is built for Canton but has not run on a device. Use <AppLink href="/status">Status</AppLink> to see what is running, and [Price sources](/architecture/price-sources) for how a price becomes a settlement.
+Use [Availability](/help/availability) for the boundaries and <AppLink href="/status">Status</AppLink> for current service readings. Earn has left the public product; its historical contracts remain in source.

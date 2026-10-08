@@ -15,7 +15,7 @@ The desk spans the browser, an off-ledger runner and, when live, a Daml mandate 
 
 ## Practice desks
 
-A practice desk is a **paper ledger**: the same decision pipeline on real PreStocks prices, with paper cash and no ledger transaction. **Check it** recomputes a record's fingerprint and compares it with the stored one. Going live needs six hourly practice checks.
+A practice desk uses **paper cash** and an off-ledger decision record. Its price references and runner must be available for a check to complete. **Check it** recomputes a record's fingerprint and compares it with the stored one. The source gate for going live requires six hourly practice checks. The hosted desk created on 8 October was still waiting for its first check; no valuation or completed decision was observed.
 
 ## The live desk
 
@@ -27,4 +27,4 @@ A live desk is a `DeskMandate` the owner opens with their own demo credits, sign
 
 A bought lot is an ordinary position of the owner's party, and a settled Window pays the owner's seat. There is no external exchange route and no real money: the desk trades **this venue's own markets** with demo credits.
 
-On a local Canton sandbox a live desk has been opened, funded, paused, resumed, checkpointed and shared through the real screens. It has not traded yet: the timing question needs a model key, and without one each check records that it could not decide. See [Build a desk](/agents/desk) for the studio and [Source map](/builders/source-map) for where the code lives.
+Earlier local-sandbox evidence records a funded mandate being opened, paused, resumed, checkpointed and shared. That check did not record a trade: the runner could not obtain a model decision. This documentation pass did not establish a hosted funded desk trade. See [Build a desk](/agents/desk) for the studio and [Source map](/builders/source-map) for where the code lives.

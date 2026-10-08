@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:04.500
+Read how Practice is scored. This recorded deck has one ETH card, with no stake, position or ledger transaction.
+
+2
+00:00:04.500 --> 00:00:09.136
+Choose Up for the single ETH card. This is a Practice prediction, not an on-ledger position.
+
+3
+00:00:09.136 --> 00:00:16.849
+Wait through Practice’s 30-second live-feed watch. The recorded wait plays at ×4. Practice scores this feed interval rather than the Window’s eventual settlement.
+
+4
+00:00:16.849 --> 00:00:23.874
+Read the Practice result: You 1 and Practice bot 1, labelled Level. ETH moved +0.004%, so both Up picks won. This has no financial payout.
+
+5
+00:00:23.874 --> 00:00:27.914
+Navigate to the hosted Candle Hop page. Wait for its real loading transition; arcade scores are off ledger.
+
+6
+00:00:27.914 --> 00:00:29.087
+Click Play to start one Candle Hop run. No credits are staked.
+
+7
+00:00:29.087 --> 00:00:37.452
+The actual recorded run lasts 1.3 seconds and finishes with zero points. The later Space keypresses do not change that completed result.
+
+8
+00:00:37.452 --> 00:00:41.767
+Read Your best: zero points. The initially empty board now contains this zero score; its number-one label does not demonstrate a competitive win. The page labels the score server checked and off ledger.

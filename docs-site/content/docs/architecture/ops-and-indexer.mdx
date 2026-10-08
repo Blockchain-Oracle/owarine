@@ -1,38 +1,45 @@
 ---
 title: "Ops and the projector"
-description: "The venue's own actors that run the clock, prices and settlement, and the Postgres projector the app reads from."
+description: "The single venue process, its actors and the read model used by the web app."
+sources:
+  - services/ops/src/main.ts
+  - services/ops/src/actor-select.ts
+  - services/ops/src/actors/venue/index.ts
+  - services/ops/src/actors/projector/index.ts
+  - packages/db/src/schema-index.ts
 ---
 
-Nothing in `services/ops` holds a visitor's key. Its actors act as the venue's own parties (venue, resolver, three oracles, agent runner), each a single writer, from one process. Every command carries a fixed id (`open:<series>:<index>`, `print:<oracle>:<T>`, `resolve:<terms>`), so a retry or restart never does the same thing twice. In the local gate run ops was killed mid-Window and restarted; every actor resumed from the ledger and every due Window resolved.
+`services/ops/src/main.ts` starts the venue's long-running actors. They share ledger sessions, feeds and cash shards in **one process**. Each logical action uses a stable command id so retries can recover the same outcome.
 
-| Actor | What it does |
+| Actor | Responsibility |
 | --- | --- |
-| Roller | Opens each Window on its Series' cadence with `Series_OpenWindow`: crypto from 1 minute to 1 day, stocks and xStocks at 5, 15 and 60 minutes, pre-IPO names and baskets hourly. A Monday Gap lists 48 hours ahead; stock Windows follow the market calendar, which needs the Alpaca keys. |
-| Oracle feeders | Three oracle parties, one per exchange (Coinbase, Kraken, Bitstamp). At each minute boundary each posts the close of its exchange's 1-minute candle as a `PriceQuote`. The raw response is archived byte for byte, and its hash goes on the quote. |
-| Lane feeders | The same oracle parties, for every other lane: each reads the named source itself and posts its own quote. See [Price sources](/architecture/price-sources). |
-| Resolver | Records the opening print and, after the close, resolves or voids from the oracle quotes (a quorum of 2 of 3; a spread over 1% of the median voids). It also resolves committee events from their members' attestations. |
-| Pricer | Publishes the venue's price ladder for each Window over a stream. It writes nothing to the ledger. |
-| Issuer | Turns a seat's request into a firm `Quote` (or a buy-back `BuyQuote`) at a ladder price, from a venue or maker-vault cash shard. |
-| Sweeper, rebalancer, netting | Expire quotes nobody accepted, keep the cash shards the right size, and merge the venue's opposite legs. |
-| Settler | Settles each resolved Window's legs in batches with `Desk_SettleBatch`; the owners sign nothing. |
-| Seat funding and drain | Fund a new seat with 1,000 demo credits. For each released seat: withdraw its quotes, close its legs at cost, redeem Earn shares, sweep its cash, and free it after two empty reads. |
-| Tickets, agents, games | Issue and settle tickets and Earn, enrol grants and pay creator fees, reveal and score duels and pay seasons. |
-| Reserve reporter | Publishes what the venue and the maker vault hold against what they owe. |
+| Window roller | Opens Windows from their Series and session policy. |
+| Oracle and lane feeders | Fetch boundary prices, archive payloads and post `PriceQuote` contracts as oracle parties. |
+| Resolver | Records opens, then resolves or voids with the frozen terms. |
+| Pricer | Publishes the venue ladder. It does not write to the ledger. |
+| Quote issuer | Creates firm `Quote` and `BuyQuote` contracts through signed internal routes. |
+| Sweeper, rebalancer, netting | Expire offers, manage cash shards and merge compatible venue legs. |
+| Settler | Pays resolved legs with `Desk_SettleBatch`. |
+| Seat funding and drain | Credit new leases, clean released parties and wait until reuse is safe. |
+| Ticket desk | Issue and settle Range, Moonshot, Parlay and Boost contracts. |
+| Agents venue | Enrol bounded grants and handle strategy contracts and creator payouts. |
+| Arena and game-room | Deal, match, score and settle duel play. |
+| Reserve reporter | Reports held funds against obligations. Historical maker/Earn machinery remains in source; Earn is absent from public navigation. |
 
-With `OPS_ACTORS=all`, the strategy runner and X relay also run, placing calls through owners' grants as the agent-runner party. The desk runner starts only by name.
+The default actor set also includes HTTP, halt-watch, earnings and push-clock. Strategy and X runners require explicit selection or `all`. Desk runner and Canton Coin rail require explicit opt-in. An actor's presence in source is not evidence that the hosted process selected or successfully ran it.
 
 ## The projector
 
-The app does not read the ledger row by row. The **projector** follows the venue's ledger updates (`/v2/updates`) and writes Windows, prints, quotes, fills, positions, resolutions, receipts and duels into Postgres, which the web app's `/api/index` routes read. It takes the place of the reference's indexer and never submits.
+The projector follows **the venue party's** ledger updates at `/v2/updates`. It writes derived Windows, prices, quotes, legs, resolutions, receipts and games into Postgres. Web index routes read that projection. The projector does not submit ledger commands.
 
-Two checks keep it honest. `verify-projection` compares each template's contracts on the ledger with the tables, and a rebuild replays the ledger from offset 0 into a fresh database and must equal the live one. Both came back with zero differences on the local gate run.
+The projection stores its cursor with the rows it covers. It can replay from offset 0, or bootstrap from active contracts when earlier participant history has been pruned. In the second case it records `history_from_offset`; a rebuild cannot recover history the participant no longer serves.
 
-Your own cash, positions and receipts are read **as your seat's party, from your lease's start**: exactly what Canton lets your party see, and nothing a previous holder did. Leaderboards and profiles read only published calls.
+Per-seat reads and receipts are scoped to the current lease and its start offset. Public profiles and leaderboards use opt-in publications. Projection tables contain the venue's counterparty view, so web access control remains necessary.
 
-## Always on, even when the market is closed
+## Failure and recovery
 
-`/markets` never goes blank: crypto, xStock, pre-IPO and basket Windows trade around the clock, and a last known reading is shown with its age rather than hidden. [Sessions and lanes](/trading/sessions-and-lanes) describes the board.
+An actor that fails to start exits the process with code 78. A watchdog exits if a pass stays stuck; the deployment supervisor is expected to restart it. Actors then reconcile against ledger state.
 
-## What this buys you, and what it doesn't
+When ops is unavailable, new Windows, quotes, resolution and settlement can stop. Existing ledger contracts still apply. From a leg's refund time its owner can use `Leg_RefundStale` without an ops actor; the web and participant must remain reachable to submit it.
 
-An ops actor can open a Window, post a print or settle; it cannot spend your credits, accept a quote for you or resolve a Window alone, because resolution needs the resolver's choice and an oracle quorum, and the tests prove the venue cannot confiscate a position. If ops is down, no new Windows open and nothing resolves or settles. From a Window's refund time you can take your stake and fee back yourself with `Leg_RefundStale`, which needs no operator at all. [Status](/help/status) shows the running actors.
+Use <AppLink href="/status">Status</AppLink> for current service readings. See [Deployment](/architecture/deployment) for the one-writer rule, and [signed prints](/architecture/price-sources) for voids and delays.

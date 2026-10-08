@@ -1,0 +1,21 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:01.600
+Open the current seat’s avatar in the rail.
+
+2
+00:00:01.600 --> 00:00:06.800
+Choose Use on another device in the seat menu. The menu inspection wait plays at ×4 before the recorded click.
+
+3
+00:00:06.800 --> 00:00:08.270
+Wait for the real device-link page and its code request. This navigation wait plays at ×4.
+
+4
+00:00:08.270 --> 00:00:20.050
+The page shows a QR, an eight-character code and its expiry countdown. This review plays at ×4 until the final cursor inspection. The code lasts 60 seconds and links one device once; no other device joins in this recording.
+
+5
+00:00:20.050 --> 00:00:24.523
+Find the Copy code button next to the eight-character code. It is hovered only, without a copy click, join request or approval. A displayed code alone does not mean another device joined.

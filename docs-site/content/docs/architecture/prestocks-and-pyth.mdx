@@ -1,33 +1,37 @@
 ---
-title: "PreStocks and Pyth in Owarine"
-description: "How PreStocks prices reach Canton Windows as attested prints, and why Pyth is not used on Canton today."
+title: "PreStocks and Pyth"
+description: "Catalogue attestations, basket indices and entitlement-gated valuation lanes."
+sources:
+  - packages/core/src/market/print-source.ts
+  - packages/core/src/market/baskets.ts
+  - services/ops/src/prices/prestocks-spot.ts
+  - services/ops/src/actors/price-relay/lane-feeder.ts
+  - services/ops/src/actors/pyth-entitlement/index.ts
 ---
 
-On Canton, every Window settles from prints signed by the venue's **oracle parties** ([Price sources](/architecture/price-sources)). For the pre-IPO names and the baskets, each oracle party reads **PreStocks** itself and posts what it read as a signed quote, with PreStocks named on every receipt. This runs on a local Canton sandbox. **Pyth** is not used on Canton today. Dates are UTC.
+Pre-IPO and basket Windows use **attested reads**. Owarine's oracle parties read the named provider and sign `PriceQuote` contracts on Canton. The provider does not sign a Canton contract itself.
 
 ## PreStocks
 
-[PreStocks](https://prestocks.com) publishes tokenized pre-IPO stocks and a public catalogue, [`prestocks.com/api/prestocks`](https://prestocks.com/api/prestocks), with each name's token price and the SPV's mark price. The catalogue is unsigned, so a PreStocks print on Canton is the venue's oracle parties attesting what they read from PreStocks: an honest, re-derivable read of PreStocks data, archived byte for byte with its hash on the quote, not an independent oracle.
+The PreStocks catalogue supplies token prices and mark prices. The code registers eight names: OpenAI, Anthropic, SpaceX, Neuralink, Anduril, Kalshi, Polymarket and Figure AI.
 
-The eight names are OpenAI, Anthropic, SpaceX, Neuralink, Anduril, Kalshi, Polymarket and Figure AI. PreStocks states that its tokens are not affiliated with, endorsed by or issued by the companies they reference, and are not available in the U.S.
-
-| Where | What PreStocks supplies |
+| Use | What the source does |
 | --- | --- |
-| Eight 24/7 pre-IPO lanes | A one-hour Up/Down Window on each name's token price, every hour of every day. Each oracle party reads the catalogue between 10 and 45 seconds after the boundary. |
-| Five baskets | Equal-weight indices in points (base 1,000 at frozen base prices) over PreStocks names, each computed from one catalogue read of every member; a partial read produces no print. See [Baskets](/trading/baskets). |
-| The desk | The desk runner reads the token price and the PreStocks mark to decide timing. A live desk's premium ceiling is measured against the Window's fair price, posted as oracle marks. See [How the desk decides](/architecture/desk). |
-| Pre-IPO pages | Each name's page shows the token price, the PreStocks mark and the premium or discount between them. These read the catalogue and settle nothing. |
+| Pre-IPO Window | Each oracle reads the named token price near the boundary and posts its quote with the source payload hash. |
+| Basket Window | Computes an equal-weight index in points from frozen member base prices. A valid read of every member is required. |
+| Price page | Shows the token price and mark, where available. This display does not settle a Window. |
+| Desk | Supplies price reads for the runner; a funded mandate also uses oracle marks for its ledger checks. |
 
-On the local sandbox, the hourly pre-IPO and basket Windows opened, printed from three of three oracle reads, and resolved: for example OpenAI 1431.467 → 1431.874 (Up) and AI Labs 1133.699 → 1137.325 points (Up) on 29 September. PreStocks rate-limits the development host (HTTP 429), and while it does those lanes read **paused** rather than trading on a stale price. The feed waits PreStocks' `Retry-After`, or backs off with jitter up to 5 minutes, and resumes by itself.
+The feeder's PreStocks read window is **T + 10 to T + 45 seconds**. The Window's terms determine admission and resolution deadlines. Ops backs off on provider rate limits and respects `Retry-After` when available. A provider problem can pause quoting or prevent required prints.
 
-Open in the app: <AppLink href="/baskets">Baskets</AppLink>, <AppLink href="/tickers/OPENAI">OpenAI</AppLink>, <AppLink href="/desk">Desk</AppLink>.
+Local-sandbox pre-IPO and basket resolution evidence exists. It does not establish current provider access or hosted acceptance of every lane. Check <AppLink href="/status">Status</AppLink> and each Window's frozen source policy.
 
-## Pyth (not used on Canton)
+## Pyth entitlement
 
-Pyth publishes equity prices (for example [TSLA/USD](https://app.pyth.com/explore/Equity.US.TSLA%2FUSD), [QQQ/USD](https://app.pyth.com/explore/Equity.US.QQQ%2FUSD), [VOO/USD](https://app.pyth.com/explore/Equity.US.VOO%2FUSD)) and pre-IPO valuation indices for [OpenAI](https://app.pyth.com/explore/Equity.Index.OPENAI%2FUSD) and [Anthropic](https://app.pyth.com/explore/Equity.Index.ANTHROPIC%2FUSD). There is no Pyth contract on Canton, and none would be needed: an oracle feeder could fetch the update for the exact boundary second, archive it and post it through the same quorum as every other print. The code path exists; the key does not.
+The Pyth adapters can fetch price or valuation-index data and attest it through the same Canton `PriceQuote` path. Valuation indices need an **entitled provider key**. The entitlement actor probes that access; the roller uses the result when deciding whether to list a valuation lane.
 
-The reference's Pyth trial ended on 25 September, and no key entitled to these feeds is available. So QQQ and VOO, whose only source was Pyth, now settle on Alpaca's last IEX trade (the other stocks read RedStone), and the valuation lanes (`OPENAIV`, `ANTHROPICV`) are not registered. They are listed only once a key reads the indices, and the index rows are left off the pages rather than shown dead. The index measures company valuation while a token Window settles on the token price, so Owarine never uses one as a cross-check for the other.
+A company valuation index and a token price are different measurements. The presence of an index adapter does not make it the settlement source for a token Window. QQQ and VOO have an Alpaca last-IEX-trade path; read the actual Series policy for the source a Window uses.
 
-## Where to check the current state
+This review did not inspect server credentials or establish current Pyth entitlement. A source adapter in the repository is not evidence that a provider is connected.
 
-<AppLink href="/status">Status</AppLink> shows the price pipelines, each source's health and the Pyth entitlement probe as they are now. <AppLink href="/proof">Proof</AppLink> lists every settled Window with its prints, the oracle that signed each one and the source it read.
+Open <AppLink href="/baskets">Baskets</AppLink> for the indices, [Price sources](/architecture/price-sources) for quorum rules, or [How the desk decides](/architecture/desk) for mandate checks.

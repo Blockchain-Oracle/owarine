@@ -2,11 +2,15 @@
   "title": "How it works",
   "pages": [
     "overview",
-    "built-on",
     "programs",
+    "seats",
+    "privacy",
     "ops-and-indexer",
     "price-sources",
     "prestocks-and-pyth",
-    "desk"
+    "desk",
+    "trade-from-x",
+    "deployment",
+    "built-on"
   ]
 }

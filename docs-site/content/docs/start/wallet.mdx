@@ -1,37 +1,47 @@
 ---
-title: "Your seat and demo credits"
-description: "Take a seat, get demo credits, use it on another device, and what happens when a seat is released or reset."
+title: "Your seat and test funds"
+description: "Take a guest seat on DevNet, read its balance, and use it on another device."
 ---
 
-Owarine has no wallet to connect. Choose **Take a seat** in the header and you are ready to call: there is no extension to install, no network to switch and no fee to pay.
+<Walkthrough name="take-a-seat" />
 
-## What a seat is
+Open <AppLink href="/markets">Markets</AppLink>, choose **Take a seat**, then **Guest Seat**. The browser creates a signing key and asks the venue to lease a Canton party. No extension, seed phrase or account is needed.
 
-Taking a seat does two things:
+A successful lease puts your seat's avatar in the rail. Open it to see the party id, **Copy party id**, the lease countdown and **Test funds · DevNet**. A key without a leased party cannot trade; the menu offers **Lease a party** in that state.
 
-- **This browser makes an ed25519 signing key** that cannot be exported; the page itself cannot read its private half. On the iPhone app the key lives in the Keychain, for that phone only. Every call you place is signed with it.
-- **The venue leases you a Canton party of your own.** Your cash and your positions are contracts with two stakeholders, your seat's party and the venue, so only the two of you can see them. Another visitor cannot, and neither can the oracles or an outsider. The **Who can see this** chip on each position says so.
+<GuideCapture name="seatMenu" />
 
-The seat menu shows your party id, the time left on the lease and your demo cash. The seat is leased only when you click; browsing <AppLink href="/markets">Markets</AppLink> and <AppLink href="/proof">Proof</AppLink> needs no seat.
+## Guest demo and a DevNet seat
 
-<GuideCapture name="seatMenu" caption="The seat menu right after a guest seat was leased: its party id, the time left on the lease, 1,000.00 demo cash and Reset seat." />
+| State | What you use | Where positions live |
+| --- | --- | --- |
+| Browsing Trade without a seat | 10,000 paper credits | This browser; no Canton position |
+| A leased guest seat | DevNet test credits | Contracts on Canton DevNet |
+| A practice desk | Its own paper balance | The desk's practice record |
 
-## Demo credits
+The Trade screen uses your seat after you connect. Paper credits do not turn into DevNet credits. Every balance here is for testing and has no cash value. See [Balances](/trading/balances) for funding and pockets.
 
-The venue credits a new lease with **1,000 demo credits**, once per lease. They size every call and ticket, have no cash value, and cannot be moved off the venue. Canton charges no network fee, so there is nothing else to top up.
+## What the browser signs
 
-## Use it on another device
+The browser keeps a non-exportable ed25519 key in its local storage database. It signs requests that prove which seat is asking; the server submits the corresponding Canton commands. Your cash and ordinary positions name your party and the venue as stakeholders. The venue is still the counterparty and operates the demo parties' ledger access. Read [the trust boundary](/architecture/overview) before treating this as independent wallet custody.
 
-**Use on another device** in the seat menu shows a QR code and an eight-character code (such as `K7M2 QF4H`). A code lasts 60 seconds and works once. On the other device, scan it (the iPhone camera opens the app) or type it at <AppLink href="/seat/link">Seat link</AppLink>; that device signs the code with its own key. Your first device then asks **Allow this device?** with the new key's short form; choose **Allow**, or **Not mine** if it is not yours. Both devices then see the same positions. A code that collects 25 wrong guesses stops working. This link is built and tested; it has not yet been run end to end between two devices.
+## Use on another device
 
-## When a seat is released
+<Walkthrough name="another-device" />
 
-Seats come from a small shared pool. The idle clock is 15 minutes and counts only while the seat holds no open position and no live quote. A lease lasts about 4 hours, or until its last position settles if that is later; a seat left silent for a day whose next position settles more than a day out is closed too. Before a seat is reused, the venue withdraws its open quotes, closes any position on an unresolved Window at what it cost, redeems any Earn shares and sweeps its cash. It frees the seat only after two empty reads of the ledger, and the next visitor's history starts after that sweep, so they never see yours. If every seat is taken, the page shows your place in line and when the next seat frees, and takes it for you.
+1. Open the seat menu and choose **Use on another device**.
+2. Scan the QR code or enter the eight-character code at <AppLink href="/seat/link">Seat link</AppLink> on your other device.
+3. On the first device, check the key shown under **Allow this device?**, then choose **Allow**. Choose **Not mine** for a request you did not start.
+4. Wait for **Linked** before using the second device.
 
-## Resetting a seat
+Codes expire after 60 seconds and work once. Showing a QR is only the first step; it does not mean the second device has joined.
 
-**Reset seat** in the seat menu lets the lease go and deletes this browser's key. The key cannot be recovered, and a new seat starts from fresh demo credits. On a device that joined through a code, Reset seat removes only that device.
+**Hosted check — 8 October 2026:** the seat menu opened the QR, manual code, expiry and Copy control. No second device joined or was approved in this check.
 
-## If a call does not go through
+## Lease and reset
 
-A signed call is not a filled one. If the ticket does not show a result, check <AppLink href="/portfolio">Portfolio</AppLink> before trying again, and <AppLink href="/status">Status</AppLink> for the venue's health. Each settled call's evidence opens on the proof page.
+Seats come from a shared pool. The menu's countdown shows your current lease, which renews while you use it. If the pool is full, the page shows your place in line and waits for a free seat.
+
+**Reset seat** deletes this browser's key. A holder reset releases the lease for cleanup; a joined device reset removes that device. Cleanup closes calls on still-trading Windows at their cost, including the fee, lets decided calls settle, and sweeps the remaining test credits before the party returns to the pool. The next visitor's history starts with their own lease.
+
+Check <AppLink href="/portfolio">Portfolio</AppLink> after an uncertain trade result before trying again. [Status](/help/status) shows whether the venue and seat pool are answering.

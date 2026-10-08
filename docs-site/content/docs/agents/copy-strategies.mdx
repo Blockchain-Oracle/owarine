@@ -1,18 +1,31 @@
 ---
 title: "Copy a strategy"
-description: "Review a creator, fund a ledger-enforced grant, and release it when you stop."
+description: "Fund a bounded permission, follow its actual decisions, and release its remaining budget."
 ---
 
-<AppLink href="/strategies">Strategies</AppLink> are published by creators; <AppLink href="/agents">Agents</AppLink> ranks the runners by the capital entrusted to them and the copy-trades they executed. A published strategy is not a promise of a fill or return. Check its runner, history, fee, playbook and hard caps before copying.
+Open <AppLink href="/strategies">Strategies</AppLink> from **Automate**. Review the strategy's runner, history, fee, playbook and hard caps. Copy takes its chosen side; fade takes the opposite side on the same Window. Your own order can land at a different price or be refused.
 
-<GuideCapture name="strategyPublished" caption="A strategy just published from a seat. Publishing registers it and links its ledger transaction; it deposits nothing and enables no trade." />
+## Enable a copy
 
-To start, open the copy drawer and enter a **Total budget** and the **Most per trade** (no more than the strategy's own per-trade limit). The drawer then states the whole permission: per trade, per day, open positions and any entry-price ceiling, within the strategy's published caps, for 30 days. A strip shows your seat's credits and what this setup takes from them, fee included. **Max** fills the budget and the per-trade amount. Each field says in red what is wrong with it (for example "Above this strategy's … per trade" or "More than your total budget"), and the confirm button names the one rule holding it. **Fund permission and copy** then takes two separate steps from your seat: it moves the budget out of your cash into an `AgentGrant` that names the runner, and it subscribes you, paying the strategy's fee. If one step is uncertain, the app reconciles it before continuing; do not blindly repeat a grant. The runner may place calls only inside the grant: the ledger choice that places them (`Grant_AcceptQuote`) checks the price, per-trade, daily, budget and open-position caps itself. The runner never sees your cash, and each position is yours.
+1. Take a funded DevNet seat and open the strategy's copy drawer.
+2. Choose **Copy** or **Fade**.
+3. Enter **Total budget** and **Most per trade**. The per-trade amount must fit both your budget and the creator's cap.
+4. Read the full permission, including daily spend, open positions, price ceiling, expiry and subscription fee. Check the strip showing what the setup takes from your seat.
+5. Choose **Fund permission and copy**. Wait for both the budget grant and subscription to complete.
 
-You can **copy** the creator's side or **fade** it by taking the opposite side of the same Window. A seat holds one strategy permission at a time: copying another strategy replaces this one's permission. **Add budget without changing limits** tops the grant up and keeps what it has already spent today. **Pause future copies** revokes the grant and ends the subscription: the whole unspent budget returns to your cash, and existing positions settle normally, with any payout landing in your seat's cash. If the strategy's runner changes, the grant still names the old one, so you authorize again; the budget has not moved. [The Daml engine](/architecture/programs) describes `AgentGrant`.
+**Hosted check — 8 October 2026:** after the creator's publication attempt timed out, Copy showed **No strategies published yet** and **No confirmed copy-trades yet**. There was no item to select. No copy grant or funding was performed.
 
-Strategies trade **every Window that is trading now**, on every lane: stocks in session and the 24/7 crypto, xStock, pre-IPO and basket Windows around the clock. The runner rests only when no Window trades at all: it checks every five minutes, makes no model call, and the strategy page reports **Resting**.
+Setup moves a budget into an `AgentGrant` naming the runner, then subscribes you and charges the displayed fee. If a step is uncertain, let the app reconcile it. Check the receipt and current permission before starting another setup.
 
-This is a **demo-credit** feature. Publish, copy, fade, top-up, a runner fill, settlement and revoke all ran through these screens on a local Canton sandbox; it is not on a shared Canton network yet. The creator's fee collects into a payout contract, and the creator claims it into its seat from its own strategy card (**Claim to your seat**), which ran on the local sandbox; on the phone the same card is typechecked, not run. A listing can be visible while its runner is unavailable; the app reports those states rather than inventing recent trades.
+The ledger's grant choice checks budget, per-trade spend, daily spend, open-position count and any entry-price limit. The runner can spend the allocated budget on positions for its owner; it cannot withdraw that budget to itself. A funded grant is an authorization, not evidence that a trade has occurred.
 
-<GuideCapture name="strategyCopy" caption="A second seat copying with a funded grant: Copying enabled describes the permission, and Awaiting settlement says why the runner is not opening another position yet. They are separate states." />
+## Follow and stop
+
+The strategy can consider eligible Windows across the live lanes. Closed sessions, unavailable prices, a missing model, insufficient depth or an exhausted cap can produce a hold instead of a fill. Read the decision and its transaction separately.
+
+- **Add budget without changing limits** tops up the existing grant while retaining its spend accounting.
+- **Pause future copies** revokes the grant and ends the subscription. Unspent budget returns; existing positions keep their settlement rules.
+- A seat holds one strategy permission at a time. Copying another strategy replaces it.
+- A different runner needs a new authorization. A listing changing its runner does not silently transfer the old grant.
+
+Review fees again on a resume or limits change: a subscription can charge again. Creator fees, when available, have a separate **Claim to your seat** action on the creator's strategy card. A missing runner or empty recent-trades list is not a successful copy trade. See [Status](/help/status) for current service checks.

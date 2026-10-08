@@ -1,33 +1,58 @@
 ---
 title: "What is available"
-description: "What runs today, what each path needs, and what is planned."
+description: "The hosted DevNet product, optional services and the limits of recorded acceptance."
+sources:
+  - README.md
+  - .github/verification/acceptance.md
+  - .github/verification/capabilities.json
+  - web/src/components/shell/nav.ts
+  - services/ops/src/actor-select.ts
 ---
 
-This page is a snapshot of the source and its evidence notes, not a promise that a particular Window, game or quote is live every minute. **Local** below means proven end to end on a local Canton sandbox with the real venue operations; nothing is on Canton DevNet or a hosted URL yet. Read <AppLink href="/status">Status</AppLink> and the screen's current state before placing a call.
+Owarine is hosted at <AppLink href="/markets">owarine.xyz</AppLink> on **Canton DevNet**. Before taking a seat, the sky-coloured **Guest demo** uses paper credits. A leased seat switches the shell to pink **DevNet / Test funds**. Neither balance has cash value.
 
-| Path | Network and prerequisites | State |
+The live site was inspected on **8 October 2026**. Guest leasing, test coin mint and deposit, a BTC Up call and its winning settlement, proof inspection, Practice, a Candle Hop score run, and practice-desk creation completed. Other flows reached only a preview or failed as described below. The status board read **Running degraded**; that headline did not mean every service failed.
+
+The final Status and Stats inspection was recorded at **18:00 UTC on 8 October 2026**, after practice-desk creation and the failed X sign-in attempt. They establish those steps only, not uninterrupted service or every contract path.
+## What each path needs
+
+| Path | Prerequisite | Evidence and boundary |
 | --- | --- | --- |
-| Browse markets and proof | No seat; the venue's projection | **Local.** Proof re-verifies each print against its archive. |
-| Take a seat, demo credits, Reset seat | A free seat in the pool | **Local.** 1,000 demo credits per lease. |
-| Use a seat on another device | A code from the device that holds the seat | Built and tested; not yet run end to end between two devices. |
-| Predict: BTC and ETH, 1 minute to 1 day | Three oracle parties reading Coinbase, Kraken and Bitstamp | **Local.** |
-| Stock Windows (TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL, QQQ, VOO) and the Monday Gap | US market hours and a session calendar (Alpaca keys on the venue's ops) | **Local**, on RedStone prints and Alpaca's last IEX trade for QQQ and VOO. Without the keys these lanes read closed. |
-| xStock Windows (TSLAx, NVDAx, SPYx, QQQx) | Jupiter Price v3, median of three samples | **Local.** Switchboard Surge, their first source, is down upstream. |
-| Pre-IPO names and baskets | The PreStocks catalogue | **Local.** They pause while PreStocks rate-limits the venue's host. |
-| Event markets | A committee of the three oracle parties, quorum 2 | **Local.** |
-| Pyth valuation lanes (OpenAI, Anthropic) | A Pyth key entitled to the valuation indices | Not listed: no entitled key. |
-| Sell back part or all of a position | A firm exit quote from the venue | **Local.** |
-| Range, Moonshot, Parlay, Boost and Short | The venue's ticket reserves | **Local.** A Boost knock-out is covered by the Daml tests, not yet seen in a run. |
-| Pre-open calls (Schedule a call) | A resting call contract and the venue's ladder | **Local.** Placed, filled in part and in full at the call's price, swept and cancelled, each with its refund. |
-| Private mode | A private balance apart from your seat's cash | **Planned.** |
-| Strategies: publish, copy, fade, top up, revoke | The venue's strategy runner | **Local.** A creator's fee waits on the ledger; there is no claim button yet. |
-| Practice desk | Paper cash, real price reads | **Local.** Paper only; moves no money. |
-| Live desk | A desk mandate funded from your seat, and a model key for the timing call | Opened, paused, resumed and checkpointed locally; it has not traded, because no model key was set. |
-| Duel, rank, season pool and the Room | Windows the venue is quoting, to deal a deck | **Local.** |
-| Lucky | A quoting stock, pre-IPO or basket Window of 15 minutes or longer | Built; a spin placed from its screen is still owed. |
-| Practice and arcade games | No stake | Built; no Canton run recorded yet. |
-| X trading | X API keys on the server | Not configured; the screen says so. |
-| Sensei | A model key on the server | Built; not yet run with a key. |
-| iPhone app | An App Store Connect record | Built for Canton; not on TestFlight yet. No Android APK. |
+| Markets and navigation | Hosted web and readable projection | Six rail destinations, More, command search and theme changes observed on 8 October. Stats navigation was delayed but arrived; it was not established as broken. |
+| Take a seat | Available guest party, browser key and server | Guest lease and menu completed on 8 October. Read that seat's actual test-credit balance. |
+| Add funds | Listed DevNet coin and deposit route | On 8 October, minted 200 test CC, then deposited 20 CC at 0.125 credits/CC; credits rose by 2.50. Withdrawal was not retested. All assets in this check had no cash value. |
+| Up/Down trading | Funded seat and firm quote | BTC 2-minute Up accepted after a requote on 8 October. Actual cost 0.85 including fee; Portfolio stake 0.84. It won, paid 3.00, and showed +2.15 net. |
+| Portfolio | Current seat's ledger reads | Balance, held positions, history and record inspected on 8 October. A stale collection label remained beside an already-credited result. Read the receipt and balance. |
+| Sell back | Owned position and firm `BuyQuote` | Three 8 October close requests did not confirm Closed. Last message: “Price moved” / “Close now pays 0.15. Tap again to take it.” Later natural settlement was not a sell-back. |
+| Print proof | Recorded Resolution and source evidence | On 8 October, a settled BTC Window's exchange prints and update link were inspected. The update page is the hosted projection, not an independent explorer. Re-verification was not established by this inspection. |
+| Another device | Code, second-device key and holder approval | QR, manual code, 60-second expiry and Copy displayed on 8 October. No device joined or was approved in this pass. |
+| Stocks and Short | Session calendar, fresh source, reserve and quote | An AAPL 15-minute short opened on 8 October. Its quote and Close control changed between available and unavailable. No confirmed short close was recorded. Follow the displayed session times. |
+| xStocks, pre-IPO and baskets | Registered Series and named source access | Source routing exists. Provider failures, entitlement and rate limits can pause a lane; this pass did not establish each lane's hosted lifecycle. |
+| Parlay | Eligible legs, reserve and quote | On 8 October, built an AAPL Up / MSFT Down 15-minute two-leg quote for one credit. Place was not clicked. Preview only; no ticket placement or settlement established. |
+| Range and Moonshot | Eligible Window, ticket reserve and accepted command | One-credit AAPL 15-minute attempts both failed on 8 October with “The contract refused” and a sequencer submission failure (409). No rounds or balance changes followed. |
+| Boost | Enabled reserve and firm quote | Contracts and prior local evidence exist. A completed hosted Boost lifecycle was not tested in this pass. |
+| Pre-open calls | Resting-call offer and usable venue ladder | The 30 September local check recorded placement, partial/full fills, cancellation and refunds. No fresh hosted pre-open lifecycle was recorded in this pass. |
+| Private balances | Private bucket and applicable contract path | Current source supports private balances and private payout buckets. Prior local win/void evidence does not establish a fresh hosted private trade here. |
+| Strategy creation | Registry, selected runner and publication service | The 8 October test read found no Window with a print on the selected cadences. Continuing without it was allowed, but publication timed out during enrolment. No published result was confirmed. |
+| Copy trading | Published strategy and funded owner grant | After that failed publication, the 8 October Copy tab had no published strategies and no confirmed copy-trades. No grant or copy funding was performed. |
+| Practice desk | Seat-signed setup and desk store | AI Labs Practice desk created on 8 October without a test read. Cockpit showed zero checks. No accepted hourly decision, seat funding or live trade was inferred. |
+| Funded desk | Eligible practice record, runner, mandate and provider | Source and prior local mandate evidence exist. Go live, funded trading and autonomous decisions were not tested in this pass. |
+| Practice | Eligible deck and fresh short-watch prices | One-card ETH 5-minute deck and 30-second watch completed on 8 October. The displayed score was not a Window settlement or payout. |
+| Arcade | Browser; seat and score services to post | Candle Hop run completed and its zero score posted on 8 October. Off-ledger score only. Line Rider was not retested. |
+| Duel and Lucky | Eligible quotes; room and opponent for Duel | Source and prior local runs exist. No complete hosted journey was recorded in this pass. |
+| X-trade | X session, linked seat, relay and funded executor permission | On 8 October, Sign in with X redirected to “Access to x.com was denied” / “HTTP ERROR 403”. No consent, authorization, login or account link was reached; no credentials entered. Mention → trade → reply remains unverified. See [Trade from X](/explore/trade-from-x). |
+| Sensei | Configured model and responding provider | Adapter and UI exist. A successful hosted model reply was not established by these recorded flows. |
+| Status and Stats | Request-time probes and projection | At 18:00 UTC on 8 October: Running degraded, with oracle-freshness failures and a resolver backlog; ops/projector/settler/guest-seat checks displayed healthy. Stats showed zero published calls and qualifying trades, which excluded private trading. The independent recount was older (16:41:43 UTC). |
+| Pyth valuation indices | Entitled provider key | OpenAI and Anthropic returned 403 / not entitled in the 8 October status inspection. Adapter availability did not make those lanes usable. |
+| Standing exits and credit transfers | Seat package and enabled operations | Prior local evidence exists; fresh hosted R2 journeys were not tested here. |
+| Native phone app | Installable distribution and reachable backend | Local-stack iOS Simulator evidence exists. Public distribution, physical-device acceptance and push delivery remain unverified here. |
 
-If a price source is unavailable, a Window whose required prints do not arrive voids, and its stakes and fees return. A paused lane is not a confirmed loss. A signed call is not itself proof that it filled; check Portfolio before retrying.
+Earn is retired from public navigation as of **8 October**. Its historical contracts remain in source. MainNet trading and production-money readiness are not claimed.
+
+## When something cannot act
+
+Open <AppLink href="/status">Status</AppLink> and expand the affected service. A chart's latest price does not establish that the venue can offer a firm quote. A submitted request does not establish a fill; check Portfolio before retrying.
+
+Missing or disagreeing boundary evidence can lead to a void. A recorded void refunds stake plus fee on settlement. If ops stays absent, the contract's stale-refund time matters; see [Halts and voids](/trading/halts-and-voids).
+
+Dated acceptance records and the capability inventory live under `.github/verification/` in the repository. Their `live` state means recorded DevNet execution, not uninterrupted availability.

@@ -1,35 +1,29 @@
 ---
 title: "Halts and voids"
-description: "What it means when a Window can't settle cleanly, and what you get back."
+description: "Read an entry pause separately from a Window's final void reason."
 ---
 
-Most Windows settle cleanly: at least 2 of the 3 oracle parties post both the opening and the closing print, and their prices agree within 1%. When that doesn't happen, Owarine voids the Window rather than guessing — a void returns every stake and every fee, so nobody is worse off for a price problem that wasn't theirs.
+A pause stops new entry. A **void** is a recorded Window result. Ordinary voided calls return their stake and fee rather than choosing an unsupported Up or Down outcome.
 
-## The void reasons
+## Void reasons
 
-- **Missing print** — no oracle posted a valid price for a boundary before its deadline. A source that had nothing to read at the boundary ends here; a point that was never read is never attested.
-- **Quorum not met** — some oracles posted, but fewer than the quorum of 2.
-- **Resolver absent** — a quorum existed, but the resolver did not record it before the deadline.
-- **Source disagreement** — the oracle prices were further apart than the Series allows (more than 1% of their median on the price lanes), so the Window voided rather than picking one. An event whose committee answers both YES and NO voids the same way.
+| Reason | What happened |
+| --- | --- |
+| Missing print | No valid print arrived for the required boundary by its deadline. |
+| Quorum not met | Some prints arrived, but fewer than the required oracle quorum. |
+| Resolver absent | A quorum existed but was not resolved before the deadline. |
+| Source disagreement | The submitted prices exceeded the Series' agreement limit, or event attestations conflicted. |
 
-The ledger lets each Window resolve or void exactly once, and the proof page names the specific reason.
+A Window records one Resolution. Open [Print proof](/trading/proof) for its specific reason and evidence. The usual price Series needs two of three oracle parties within its configured spread limit; the Window's registered terms remain authoritative.
 
-## "Trading halted" vs. "Signed price stale"
+## Trading halted or signed price stale
 
-The app only shows **"Trading halted"** for a real halt signal: a tokenized stock's issuer flagging it halted. A stopped price source shows the more accurate **"Signed price stale"** instead. The venue's halt watcher never signs anything: while an asset is halted, no new Window lists for it, the market maker pulls its prices and the ticket takes no new calls. A Window that is already open is left alone and settles or voids on its own prints. A lane no source can sign at all reads **paused: no signed source**, with the reason.
+**Trading halted** identifies an issuer's halt signal. **Signed price stale** identifies a source that is no longer fresh enough. The watcher uses each lane's own registered source; it does not substitute an unrelated chart price.
 
-No licensed halt feed exists, so a lane is halted when the signed price it settles on stops being printable. The watcher judges each lane on **its own source**, the one named on its receipts, and on nothing else:
+The roller can stop listing new Windows and the pricer can pull quotes while a lane is paused. An existing Window still resolves or voids under its own print deadlines. A closed regular stock session is expected and is separate from either condition.
 
-| Lane | Watched on | Halted when |
-| --- | --- | --- |
-| TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL | RedStone | The newest data package is more than 60 seconds old. |
-| QQQ, VOO | Alpaca (last IEX trade) | The newest trade is more than 120 seconds old. |
-| TSLAx, NVDAx, SPYx, QQQx | Jupiter Price v3, and the issuer's own flag | Three price reads in a row fail, or the issuer marks the token halted (**Trading halted**). |
-| Eight pre-IPO names, five baskets | PreStocks | The newest catalogue read is more than 60 seconds old. |
-| BTC, ETH | None | Never halted: they settle on three exchanges' 1-minute closes, and a missing or disagreeing print voids the Window instead. |
+## Follow the refund
 
-Every reason except the issuer's flag reads **Signed price stale**. The stock lanes are watched while the exchange is open, 09:30 to 16:00 ET, and the xStock, pre-IPO and basket lanes at every hour. A change needs two checks in a row, five seconds apart, so one late price never flips a lane; the issuer's flag counts at once. Alpaca gets the longest limit on purpose: IEX is a single venue, and a quiet minute in VOO is normal. A print may use a trade up to 5 minutes old, and the limit leaves room for that: a Window listed just inside it still finds a trade to print from. No lane settles on Pyth on Canton, so the watcher makes no Pyth request.
+The settler normally pays an ordinary void refund into your seat's cash. Private calls return to their private bucket. Specialist tickets have their own refund receipts; read [Range and Moonshot](/trading/range-and-moonshot) or [Boost and Parlay](/trading/boost-parlay-private).
 
-## What you get back from a void
-
-Your stake and your fee, in full — a void is a wash, not a loss. The venue's settler pays it back to your seat the same way it pays a settled Window; see <AppLink href="/portfolio">Portfolio</AppLink>. A voided Boost or short also returns your stake.
+If the result or payment is late, inspect the resolver, settler and projection checks on [Status](/help/status). Use the claim or stale-refund action offered for the position rather than assuming a missing display means the funds were lost.

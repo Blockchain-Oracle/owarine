@@ -1,18 +1,14 @@
 ---
 title: "Reels and takes"
-description: "Short, seat-signed calls on a live Window, woven into a feed."
+description: "Read public seat-signed takes and understand what the backed badge proves."
 ---
 
-A **take** is a short, public call on a live Window — a side and an optional line of why, signed with your seat's key (an ed25519 message signature, not a ledger transaction) and verified on the server before it's shown. Reels is the feed those takes flow into, woven between the live Windows, with your desk's latest decision when you have one.
+Open <AppLink href="/reels">Reels</AppLink> under **More → Learn**. The feed mixes live Windows with public takes and, when available, your desk's decision.
 
-## Why a signature, not just a post
+A **take** names a Window and side, with an optional short explanation. Posting signs a message with your seat's key. The server verifies it before saving the take. It is not a Canton trade and spends no test credits.
 
-The signature ties a take to the seat that made it, the same way a call is tied to the seat that placed it. It costs nothing — it's a message signature, not a ledger transaction — but it means a take can't be spoofed as coming from an address that never signed it. Its **backed** badge needs a published call on that Window, so a private position is never revealed.
+A **backed** badge requires a call on that Window that its owner chose to publish. The server checks the public record; a client cannot assert the badge, and an unpublished position is not exposed to earn one. The badge proves that link, not that the call will win.
 
-## Cashtags
+Ticker chips open the relevant ticker hub. Read the author, Window and age before opening a ticket; a take itself accepts no quote for you.
 
-A take carries the same asset-mark chip and `$TICKER` cashtag grammar as the news feed, so a call about TSLA shows TSLA's mark right on the card, and choosing the cashtag opens that ticker's hub.
-
-Where Owarine's social store isn't configured, the composer says "Takes aren't connected yet" and the reel still carries every live Window. Takes have not yet been run end to end on a Canton sandbox.
-
-Not investment advice: a take is one person's public call, not a recommendation, and Owarine doesn't rank or promote any take as more credible than another.
+Takes need the social store. If the composer says **Takes aren't connected yet**, the feed can still show Windows, but no post was saved. A visible draft or signature alone is not a posted take.

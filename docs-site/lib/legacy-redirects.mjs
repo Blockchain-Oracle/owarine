@@ -27,11 +27,10 @@ export const legacyRedirects = [
   ['/architecture/leverage', '/trading/boost-parlay-private'],
   ['/architecture/private', '/trading/boost-parlay-private'],
   ['/architecture/range', '/trading/range-and-moonshot'],
-  ['/architecture/x', '/explore/sensei'],
+  ['/architecture/x', '/architecture/trade-from-x'],
   ['/trading/leverage', '/trading/boost-parlay-private'],
   ['/trading/parlay', '/trading/boost-parlay-private'],
   ['/trading/private', '/trading/boost-parlay-private'],
   ['/trading/range', '/trading/range-and-moonshot'],
   ['/explore/install', '/start/quickstart'],
-  ['/explore/trade-from-x', '/help/availability'],
 ];

@@ -1,16 +1,17 @@
 ---
 title: "Other ways to trade"
-description: "Range, Moonshot, Boost, Short and Parlay each have their own Daml contracts beside Owarine's venue; Private is not on Canton."
+description: "Compare Range, Moonshot, Boost, Short, Parlay and Private before opening their ticket."
 ---
 
-These are separate products in the Owarine app, built on the same Windows as an ordinary call. They use demo credits and have their own contracts ([the Daml packages](/architecture/programs)). **So far they run on a local Canton sandbox:** each was placed through its own screen and settled there; none is on a hosted test network yet. Read a route's live state before placing anything.
+Each path changes the ordinary Window ticket. All funded positions here use test credits with no cash value. A route needs its own enabled contracts, current quote and, where applicable, reserve capacity.
 
-| Route | What changes from an ordinary call |
-| --- | --- |
-| <AppLink href="/games/range">Range</AppLink> | Call whether a close lands inside or outside a stated price band; the reserve locks the whole payout when you accept. |
-| Boost in the <AppLink href="/markets">Markets ticket</AppLink> | A 2× or 3× position the Boost reserve part-funds, with a knock-out line; you can never lose more than your stake. |
-| <AppLink href="/short">Short</AppLink> | A Down position on the same Boost contracts, with a firm exit price at any time and a knock-out line. See [Short a fall](/trading/shorts). |
-| <AppLink href="/parlay">Parlay</AppLink> | Two or three Window legs become one ticket; every leg must win, and the reserve locks the full payout at open. |
-| Private in the <AppLink href="/markets">Markets ticket</AppLink> | Not on Canton. Every position is already visible only to your seat and the venue, so the ticket answers that Private mode is not available. |
+| Path | What you choose | What decides the result |
+| --- | --- | --- |
+| [Range](/trading/range-and-moonshot) | Inside or outside a stated band | The Window's closing print relative to the band |
+| [Moonshot](/trading/range-and-moonshot) | Long or short and a strike | The close reaching the quoted level |
+| [Boost](/trading/boost-parlay-private) | A side and offered multiple | The Window result, or an oracle-backed knock-out |
+| [Short](/trading/shorts) | A reserve-backed Down position | The exit quote, knock-out or Window result |
+| [Parlay](/trading/boost-parlay-private) | Two or three Window legs | All legs winning; a void refunds the ticket |
+| [Private](/trading/boost-parlay-private) | An ordinary 1× call from a private pocket | The same Window result, paid into the private balance |
 
-The venue's keeper settles every ticket against its Window's own resolution, the payout lands in your cash, and a receipt keeps the result. These routes do not use the [desk](/agents/desk). For a first transaction, use the [ordinary call guide](/trading/first-trade), then read the actual ticket's review screen and receipt. If a route is paused or unavailable, [Status](/help/status) and [availability](/help/availability) explain the current prerequisites.
+Read the actual quote for cost, payout and limits. A reserved payout does not mean a guaranteed win. A route showing **not deployed**, no quote or a paused reserve cannot accept a new ticket. [Status](/help/status) and [availability](/help/availability) explain the checks.

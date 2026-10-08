@@ -1,22 +1,43 @@
 ---
-title: "Demo credits and your balance"
-description: "What your test money is, where it sits, and what happens to it when a seat is released."
+title: "Test credits and your balance"
+description: "Separate guest paper credits, your DevNet seat's test funds and the balances held in pockets."
 ---
 
-## Demo credits are test money
+<Walkthrough name="add-funds" />
 
-Every stake and ticket on Owarine is sized in **demo credits**: the venue's test money on Canton. They have no cash value and cannot be moved off the venue. The venue credits a seat once per lease, 1,000 demo credits by default, when you take it; see [Your seat and demo credits](/start/wallet).
+A guest browsing the Trade screen starts with **10,000 paper credits**. Taking a seat switches that screen to your Canton party's **DevNet test funds**. These are different balances. Neither has cash value.
 
-<GuideCapture name="demoCredits" caption="The demo-credits card from the header balance: the seat, its party, its demo credits and a cash value of None. Credits are granted once per lease." />
+## Get test credits
 
-## Where your credits sit
+1. [Take a seat](/start/wallet) and wait for its party to be leased.
+2. Open the rail's **+** or **Get test credits** in <AppLink href="/portfolio">Portfolio</AppLink>.
+3. In **Add funds**, check the seat and party. If it is not funded, choose **Get test credits**. If it has no party, choose **Lease a party** first.
+4. Wait for the balance read to update. A funded seat offers **Trade**.
 
-Your credits are cash contracts signed by both the venue and your seat's party, so neither can create or seize them alone, and only the two of you can see them. Accepting a quote spends from them: the stake and the fee move into your position, and any change comes back as a new cash contract. When a Window settles, the venue pays the result back into your cash. On Canton your seat's cash **is** your Trading Balance: there is nothing to deposit, and no network fee to keep a balance for. The one thing that sets cash aside is a grant: [copying a strategy](/agents/copy-strategies) moves a budget into a grant its runner may spend inside your caps, and revoking returns the rest.
+The venue funds a lease once. Reopening Add funds does not grant a fresh balance each time, and the grant amount is deployment configuration. Read the amount shown in your seat rather than assuming a fixed 1,000-credit grant.
 
-Nothing about where the money sits changes how a position settles: Up if the close is at or above the open, and a void returns your stake and your fee.
+<GuideCapture name="demoCredits" />
 
-## When a seat is released
+## Where the balance sits
 
-Before a released seat is reused, its open positions close at what they cost and its cash is swept back to the venue, so the next visitor starts empty. Your balance does not follow you to a new seat; a new seat starts from fresh demo credits.
+Seat credits are `VenueCash` contracts. An ordinary accepted quote moves its cost into a position and returns change. Settlement pays the result back; a void returns the stake and fee. The balance card separates **Test credits**, **Open positions · at the venue mid**, and **To collect**. A mark is a current valuation, not an exit quote.
 
-**Not on Canton yet:** a Private balance and a real-money rail on Canton Coin. See [Portfolio](/trading/portfolio) for where a settled position shows up.
+Portfolio also has **Pockets**. Open a pocket to inspect its controls and balance:
+
+| Pocket | Purpose |
+| --- | --- |
+| Trading Balance | Allocate credits for supported trading permissions; Deposit and Withdraw move credits between it and your seat. |
+| Private | Fund calls kept off the public record. The venue still sees them. |
+| X replies | Allocate the balance an X trading permission may spend. |
+
+A funded [copy grant](/agents/copy-strategies) also reserves a budget for its named runner. Revoking it returns its unspent balance. Credits allocated elsewhere are not all immediately spendable by the ordinary seat ticket.
+
+## Canton Coin
+
+Add funds includes a separate Canton Coin card. On hosted DevNet, **Get test Canton Coin** mints test coin to your party. Read the listing's rate and deposit limits, enter an amount, then choose **Deposit**. **Sent** means the request is waiting for the venue; wait for your coin and credit balances to update before treating the deposit as complete.
+
+The hosted walkthrough on 8 October 2026 minted 200 test Canton Coin, then deposited 20 at the displayed rate of 0.125 credits per coin. The seat's credits increased by 2.50. These are DevNet test assets with no cash value. This deposit does not establish a tested withdrawal: use the card's current allowance and transfer state for that separate flow.
+
+A **Not live** capability message means the rail cannot accept a deposit here. Test-credit winnings are not redeemable cash; the coin listing controls which deposited amounts can be taken back.
+
+Resetting or losing a lease does not move its balance to a new seat. See [Your seat](/start/wallet).

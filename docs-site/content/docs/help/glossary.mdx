@@ -7,10 +7,10 @@ description: "A plain explanation of the words Owarine uses."
 | --- | --- |
 | **Canton** | Canton Network, the ledger Owarine runs on. A contract there is visible only to its stakeholders. |
 | **Party** | An identity on Canton. The venue, the resolver and each oracle are parties; so is each seat. |
-| **Stakeholder** | A party on a contract. Your cash and positions have two: your seat's party and the venue. Nobody else sees them. |
+| **Stakeholder** | A party entitled to see a contract. Ordinary seat cash and positions name the seat and venue; the demo operator manages those parties' ledger access. See [the trust boundary](/architecture/overview). |
 | **Seat** | Your place at the venue: an ed25519 signing key in your browser (or the iPhone Keychain) that cannot leave it, and a Canton party the venue leases to you. See [your seat](/start/wallet). |
 | **Lease** | The time a seat's party is yours. It renews while you use it; when it ends, the venue closes out and sweeps the party before the next visitor gets it. |
-| **Demo credits** | The venue's test money: 1,000 per lease, no cash value, never leaves the venue. There is no network fee. |
+| **Test credits** | The venue's test funds for a leased DevNet seat. Funding is configured by the venue; read the confirmed balance. They have no cash value. Guest Trade paper credits are a separate browser balance. |
 | **Window** | One tradeable period on one ticker: an opening print, a closing print, one cadence. |
 | **Series** | A ticker + cadence pair (for example BTC-5m). Holds the oracle list, the quorum and the price policy its Windows use. |
 | **Price ladder** | The prices the venue publishes for each live Window. The venue is the house; there is no order book. |
@@ -22,12 +22,12 @@ description: "A plain explanation of the words Owarine uses."
 | **Resolver** | The party that records the open and resolves or voids each Window from the oracle prints. |
 | **Resolution** | The contract that records a Window's result, signed by the resolver and the venue. There is exactly one per Window. |
 | **Policy version** | A Series' price-source rule for a date range. Appended in advance; never edited once written. |
-| **Void** | A Window that settles no winner: a missing print, a quorum not met, or prints more than 1% apart. Your stake and your fee return. |
+| **Void** | A Window result with no winning side, caused by missing prints, insufficient quorum, source disagreement or an absent resolver. An ordinary call returns its stake and fee. See [Halts and voids](/trading/halts-and-voids). |
 | **Update id** | The ledger's id for the update a write landed in (it starts `1220…`). Receipts and proof pages name it. |
 | **Proof page** | `/proof`: every settled Window with its prints, the oracle that posted each, and a re-verify that checks them against the archived responses. |
 | **Projector** | The service that follows the venue's ledger updates and writes the tables the public pages read. |
-| **Daml package** | The contract code on the ledger: `abu-pm-main`, `abu-pm-tickets`, `abu-pm-agents` and `abu-pm-games`. See [the Daml packages](/architecture/programs). |
-| **24/7 lane** | Windows that trade around the clock: crypto, xStocks, pre-IPO names and baskets. |
-| **Schedule a call** | A call rested at your own price on a Window before it opens; the venue fills it after the bell if its price reaches yours, or the stake comes back. See [pre-open calls](/trading/pre-open-calls). **Local** on Canton so far. |
-| **Short** | A Down position with an exit at any time and a knock-out line; see [Short a fall](/trading/shorts). |
+| **Daml package** | A bundle of contract templates and their choices. See [the Daml packages](/architecture/programs) for Owarine's current packages. |
+| **24/7 lane** | Windows scheduled around the clock, such as crypto, xStocks, pre-IPO names and baskets. Entry still needs the enabled lane, fresh source and current quote. |
+| **Schedule a call** | A call rested at your own price on a Window before it opens; the venue fills it after the bell if its price reaches yours, or the stake comes back. See [pre-open calls](/trading/pre-open-calls). A local lifecycle check was recorded on 30 September 2026; fresh hosted acceptance is separate. |
+| **Short** | A reserve-backed Down position with a knock-out line and an exit when the venue offers a usable quote; see [Short a fall](/trading/shorts). |
 | **Halt** | A wide or issuer-level trading halt signal. Shown as "Trading halted." A merely stale price print is shown as "Signed price stale" instead — a different, more common state. |

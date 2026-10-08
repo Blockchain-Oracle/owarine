@@ -3,7 +3,7 @@ title: "Run Owarine locally"
 description: "Build the Daml packages, start a local Canton sandbox, bootstrap the venue, then run ops and the web app."
 ---
 
-Run these commands from the repository root, **not** from `docs-site/`. You need Node 22+, pnpm, dpm (Canton 3.5) and a Postgres database. These are the same steps the runs in `docs/evidence/` used.
+Run these commands from the repository root, **not** from `docs-site/`. You need Node 22+, pnpm, dpm (Canton 3.5) and a Postgres database. Clone with full Git history so the capability and screenshot provenance checks can resolve historical evidence after internal notes leave the public tree.
 
 ```sh
 pnpm install
@@ -30,7 +30,7 @@ pnpm ops:start
 pnpm dev
 ```
 
-The bootstrap refuses anything but an unauthenticated local sandbox, and writes the parties file (`~/.config/owarine/canton/parties.json`) that ops and the web read. The environment needs `DATABASE_URL`, `OPS_INTERNAL_SECRET`, `OWARINE_SEAT_COOKIE_SECRET`, `OWARINE_PARTIES_FILE`, `LEDGER_JSON_API_URL=http://127.0.0.1:7575` and `LEDGER_AUTH_MODE=none`; the `.env.example` files list the rest. Keep keys on the server.
+The bootstrap refuses anything but an unauthenticated local sandbox, and writes the parties file (`~/.config/owarine/canton/parties.json`) that ops and the web read. The environment needs `DATABASE_URL`, `OPS_INTERNAL_SECRET`, `OWARINE_SEAT_COOKIE_SECRET`, `OWARINE_PARTIES_FILE`, `LEDGER_JSON_API_URL=http://127.0.0.1:7575` and `LEDGER_AUTH_MODE=none`; set web `OPS_INTERNAL_URL=http://127.0.0.1:8080`, use matching `OPS_INTERNAL_SECRET` values in web and ops, and set ops `DRY_RUN=0` to submit locally. Use random secrets of at least 32 characters; the `.env.example` files list the rest. Keep keys on the server.
 
 Then open `/markets`, take a guest seat and make a call. The crypto lanes (Coinbase, Kraken and Bitstamp candles) run around the clock. Stock lanes quote only while US markets trade, and need the Alpaca keys in `services/ops/.env.local`. A local run uses its own parties and its own database, and touches no shared network.
 

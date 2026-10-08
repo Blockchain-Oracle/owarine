@@ -1,32 +1,25 @@
 ---
 title: "Short a fall"
-description: "A Down position the Boost reserve holds for you, marked at the venue's bid, with an exit before the close and a knock-out line."
+description: "Open a reserve-backed Down position and review its premium, exit quote and knock-out line."
 ---
 
-> **Where this runs.** Shorts have opened, closed and settled through this screen on a local Canton sandbox (Daml package `abu-pm-tickets`). They are not on a shared test network yet, and a knock-out has so far been exercised only by the package's Daml tests.
+<AppLink href="/short">Short</AppLink>, under **More → More ways to trade**, uses a Down position held by the Boost reserve. It uses DevNet test credits. Your loss is capped at the stake, but the reserve is repaid before you receive any remainder.
 
-<AppLink href="/short">Short</AppLink> opens a **Down position the reserve holds for you**. It is marked at the price the venue would pay for it right now, you can close it before the bell without waiting for the result, and the most you can lose is your stake. It uses the same reserve as [Boost](/trading/boost-parlay-private), with **demo credits**.
+## Open a short
 
-## Pick what to short
+1. Take a funded seat. Choose an asset, Window length and trading Window.
+2. Enter a stake and select an offered multiple.
+3. Read the premium, position size, possible return and knock-out line.
+4. Confirm the venue's quote, then check **Your shorts** for the accepted position.
 
-The picker shows every stock, pre-IPO name and basket that has a Window you can enter, as small logo cards (a row of chips on a phone). Each card shows its kind (**Stock**, **Pre-IPO · 24/7** or **Basket · 24/7**), its price and week, and whether it trades now. Filter with **All**, **Stocks** or **24/7**.
+Stocks follow the venue's session calendar. Use the app's displayed open and close times, including holidays and early closes, rather than a fixed UTC interval. Eligible 24/7 assets can appear separately. A Window listed for later cannot open a short yet; **Schedule a Down call** opens a plain [pre-open call](/trading/pre-open-calls) instead.
 
-While the stock market is closed, the names trading now come first; the stocks follow under the session line with the time their Windows open. Choose a name, then a Window length, then a Window. A live Window shows what a dollar of Down costs right now.
+## Close or wait
 
-<GuideCapture name="shortOpen" caption="The picker with crypto, pre-IPO and basket names, a 4h Window and its Down price, the 2× or 3× multiple, one open short that has no bid to mark against yet, and a closed short that won." />
+**Close** requests a firm buy-back quote. The reserve takes back what it fronted and returns the remainder to your seat. No venue quote means no honest current mark and no exit.
 
-## Size and open
+The knock-out line is fixed at issue. A knock-out needs the Window's oracle quorum at the line; the venue cannot trigger it from an unsupported display price. At the end, settlement follows the Window's Resolution. A void returns the stake. Follow any claim or refund action shown for that position.
 
-Enter a stake and choose a multiple. Multiples start at **2×**: the reserve fronts the rest of the position and charges a premium on what it fronts, and that premium is inside your stake. The venue prices the short from its ladder and gives you one firm quote before you accept; the venue takes the Up side of the pair itself, as it does for any call. If the ladder can take less than your stake, the ticket says how much it takes and offers **Use** that amount. If it could not take the position back whole, the reserve refuses to open it.
+This route needs the deployed Boost contracts, reserve capacity and a live quote. A capability message or paused reserve means a new short cannot be opened.
 
-A Window that has not opened yet cannot hold a short. Its card says when it opens and offers **Schedule a Down call**, a plain [pre-open call](/trading/pre-open-calls): it rests at your price and fills after the bell if the venue's price reaches it.
-
-## Your shorts
-
-Each open short shows its stake, what it is worth now, its entry and current price, its size, and how far it is from its **knock-out line**. The line is pinned when the short opens. The venue can knock a position out only while the Window trades and only with an oracle quorum whose median print has reached the line; it cannot do so on its own word. At a knock-out the reserve is repaid what it fronted first, and you keep the rest. When the venue has no bid to mark it against, the card says there is no honest mark and no exit rather than showing a number.
-
-- **Close** asks the venue for a firm buy-back price, repays the reserve first, and returns the rest to your seat.
-- After the Window ends, the venue settles the short against its Resolution without you signing, and the result stays on the card from its receipt. If it has not settled by the refund time, you can take it back yourself.
-- A void returns your stake in full; the reserve takes back only what it fronted.
-
-When the reserve is paused, no new shorts open; live ones still settle, close and knock out. The premium and the knock-out line are the reserve's parameters, so the page reads them from the reserve rather than from this guide.
+**Hosted check — 8 October 2026:** an AAPL 15-minute short opened with **Short open: 3 contracts of AAPL Down.** Its card showed 0.81 staked. The mark and exit were initially unavailable; a quote and **Close** later appeared, then became unavailable again. No confirmed close was recorded. The successful opening does not establish a completed open-and-close journey or a knock-out.

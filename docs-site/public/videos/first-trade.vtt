@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:00.000 --> 00:00:03.200
+Choose BTC and its two-minute Window.
+
+2
+00:00:03.200 --> 00:00:08.000
+Open BTC order settings and set the stake to one test credit.
+
+3
+00:00:08.000 --> 00:00:09.200
+Accept the refreshed Up quote with a one-credit budget. The filled cost, including fee, is 0.85 credits; the request wait plays at ×4.
+
+4
+00:00:09.200 --> 00:00:16.450
+Keep the real request wait until the product confirms the position. This interval runs at ×4.
+
+5
+00:00:16.450 --> 00:00:39.700
+The filled cost, including fee, was 0.85 credits. Wait for the recorded Window close. This countdown plays at ×4.
+
+6
+00:00:39.700 --> 00:00:44.700
+Open Portfolio after the Window close. The venue still needs time to finish settlement.
+
+7
+00:00:44.700 --> 00:00:50.950
+The settlement wait plays at ×4. The balance later updates to 2,012.15 credits.
+
+8
+00:00:50.950 --> 00:00:55.477
+Open History to read the completed BTC Up result: WON, paid 3.00 credits and net +2.15. The rail balance is 2,012.15.

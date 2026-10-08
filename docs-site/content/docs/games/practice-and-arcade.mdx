@@ -1,10 +1,24 @@
 ---
 title: "Practice and arcade"
-description: "Play real-price prompts or seeded score runs without placing a position."
+description: "Learn the call loop or play a seeded score run without staking test funds."
 ---
 
-<AppLink href="/games/practice">Practice</AppLink> deals the venue's live Windows as swipe cards. Swipe up or down, use arrow keys, or tap a button. After the final swipe it watches the live price feed for a short fixed interval and scores every card at the same moment. The opponent is a labelled coin flip. **The score is not the Window's eventual settlement.** There is no stake, position, payout, ledger transaction or rating, and nothing is signed. If the live Window list or price feed is unavailable, no round can be scored. Out of stock hours Practice deals only from the Windows that trade around the clock, and says so when none has enough time left for a round.
+<Walkthrough name="practice-and-arcade" />
 
-<AppLink href="/games/line-rider">Line Rider</AppLink> and <AppLink href="/games/candle-hop">Candle Hop</AppLink> are arcade runs. Line Rider asks you to keep a dot on a scrolling line; Candle Hop asks you to pass through candle gaps. A visible seed generates the course. Inputs are recorded and the server replays a completed run before posting its score. Posting to a board needs your seat's proof, so only the seat a score names can post it; a deployment without the games store keeps the score only on your screen.
+## Practice
 
-Arcade scores are **server checked, not on the ledger**, and no money rides on them. Practice and the arcade are read-only or off-ledger by design, and neither has been part of a recorded run against the local Canton sandbox yet. [Duel](/games/duel-and-lucky) is the money-backed game.
+Open <AppLink href="/games/practice">Practice</AppLink> from Games. Start a deck, then swipe Up or Down, use the arrow keys, or tap the buttons. After the final pick, wait through the short watch interval and read the score.
+
+The opponent is a labelled coin flip. The round scores the live price at the end of its watch, **not the Window's eventual Resolution**. It places no position and pays no credits. A missing Window list or unreadable price can leave a card unscored. Out of stock hours it uses eligible 24/7 Windows if available. Deck size follows eligibility; a round need not contain four cards.
+
+**Hosted check — 8 October 2026:** a one-card ETH 5-minute deck completed its 30-second watch and displayed the player and Practice bot scores. This was a Practice score, not a ledger payout.
+
+## Candle Hop and Line Rider
+
+At <AppLink href="/games/candle-hop">Candle Hop</AppLink>, start a run and use the displayed controls to pass through candle gaps. At <AppLink href="/games/line-rider">Line Rider</AppLink>, keep the dot on the scrolling line. Each course has a visible seed.
+
+At game over, read the score and posting status separately. The server replays a completed run's recorded inputs before accepting a board score. Posting requires a seat and the supporting room and score-store services. Without them you can still play, but the score stays on this screen.
+
+Arcade scores are **server checked and off ledger**. Neither arcade mode spends test funds or creates a settlement receipt. **Play again** starts another run.
+
+A hosted Candle Hop run also completed on 8 October 2026 and posted its zero score to the board. A rank on an empty board does not establish a profitable trade or a game win.

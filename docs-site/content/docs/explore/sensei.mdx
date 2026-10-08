@@ -1,20 +1,15 @@
 ---
 title: "Ask Sensei for a read"
-description: "A stock-, session- and position-aware assistant that never gives investment advice."
+description: "Ask about the current ticker and review a suggested card yourself."
 ---
 
-Sensei is a dock that knows the ticker you're looking at, the NYSE session state, earnings context, your open positions and your desk. It keeps a **Brake** — it does not tell you what to trade, and it explicitly refuses to give investment advice. It can hand a trade card to the ticket for you to review and place yourself; it never places an order on its own. It reads only Windows that are trading now, so it does not suggest a call on a stock Window that has not reached its bell.
+Open **More → More ways to trade → Sensei**. The dock uses the ticker, session and available position context to answer questions. It can hand a trade card to the ticket; it does not place that trade for you.
 
-Your positions reach it from the ledger as your seat's party, and your history only from your current lease, so it never sees a previous visitor's calls on a recycled seat. Your desk's card is read only with your seat's proof.
+1. Open a ticker or position and then Sensei.
+2. Ask a question about the available context.
+3. Read the response and any limits it names.
+4. If you open a trade card, review the current Window, amount and quote yourself before confirming.
 
-## What it needs
+Sensei has a brake against investment advice and promised outcomes. Its response is not a price oracle or settlement evidence. Only the Window's signed prints decide its result.
 
-Sensei is model-agnostic through the Vercel AI SDK: an `AI_MODEL` setting (by default `anthropic/claude-opus-5`) plus one matching provider credential, all server-side only. Without any AI credential configured, the dock still renders — the ring, the teaser, the drawer, the meter, the tape and trade cards all work — but a reply says it's unavailable and names exactly what's missing rather than failing silently. The local Canton sandbox runs so far had no model key, so Sensei's replies have not been shown on Canton yet.
-
-## What it won't do
-
-- It won't tell you to buy or sell.
-- It won't promise an outcome.
-- It won't act on your behalf — every trade card still needs your own review and your own acceptance from your seat.
-
-See [what's available](/help/availability) for whether Sensei's model credential is configured in the environment you're using.
+A model provider and server credential must be configured. The dock can render while the model is unavailable; read its actual reply or failure state, and the Sensei model check on [Status](/help/status). A displayed dock alone does not establish a successful model response.

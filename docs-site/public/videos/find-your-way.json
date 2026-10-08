@@ -1,0 +1,310 @@
+{
+  "origin": "https://owarine.xyz/markets",
+  "capturedAt": "2026-10-08T17:45:45.779Z",
+  "sourceFrameCount": 109,
+  "sourceDurationSeconds": 38.047,
+  "outputDurationSeconds": 38.05,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Full recording at normal speed, resampled by source timestamps to constant 60fps. No waits removed.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [],
+  "segments": [
+    {
+      "start": 0,
+      "end": 38.047,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Trade",
+      "text": "Find Trade, the first place in the rail. This tour hovers the destinations without navigating away."
+    },
+    {
+      "time": 1.8,
+      "title": "Markets",
+      "text": "Find Markets, the second rail destination and the page shown behind this tour."
+    },
+    {
+      "time": 3.6,
+      "title": "Portfolio",
+      "text": "Find Portfolio for your balance, positions and record."
+    },
+    {
+      "time": 5.4,
+      "title": "Games",
+      "text": "Find Games, the fourth destination in the rail."
+    },
+    {
+      "time": 7.25,
+      "title": "Automate",
+      "text": "Find Automate, the fifth rail destination."
+    },
+    {
+      "time": 9.15,
+      "title": "Leaderboard",
+      "text": "Find Leaderboard, the sixth main rail destination."
+    },
+    {
+      "time": 11.2,
+      "title": "Open More",
+      "text": "Open More to see the grouped directory of product pages."
+    },
+    {
+      "time": 14.85,
+      "title": "Open page search",
+      "text": "Close More with Escape, then use Command K to open page search."
+    },
+    {
+      "time": 21.5,
+      "title": "Search for proof",
+      "text": "Type proof into page search. The matching list includes Print proof. This tour does not open a search result."
+    },
+    {
+      "time": 25.5,
+      "title": "Switch to dark",
+      "text": "Close search with Escape and use the sun or moon control to switch to dark mode."
+    },
+    {
+      "time": 29,
+      "title": "Read the environment",
+      "text": "Read the pink DevNet environment chip and the test-funds label. Light and dark change the theme within the same environment."
+    },
+    {
+      "time": 32,
+      "title": "Return to light",
+      "text": "Switch back to light mode. The DevNet seat and its test-funds environment stay the same."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "db0f0dec575a12f7d1b2e0f4e75ff2262910ecd234ff34b52effe5ea113676fd",
+    "actionsSha256": "55eb2f39e35b82338b2d842d4fde0c75863c2698d740f591873256e492919387"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 31.25,
+        "y": 173.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 1,
+      "sourceTime": 1.8,
+      "targetBox": {
+        "x": 31.25,
+        "y": 230.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 2,
+      "sourceTime": 3.6,
+      "targetBox": {
+        "x": 31.25,
+        "y": 287.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "action": 3,
+      "sourceTime": 5.4,
+      "targetBox": {
+        "x": 31.25,
+        "y": 344.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 4,
+      "sourceTime": 7.25,
+      "targetBox": {
+        "x": 31.25,
+        "y": 401.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 6,
+      "action": 5,
+      "sourceTime": 9.15,
+      "targetBox": {
+        "x": 31.25,
+        "y": 458.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 7,
+      "action": 6,
+      "sourceTime": 11.2,
+      "targetBox": {
+        "x": 31.25,
+        "y": 515.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "sourceEnd": 12.006,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 8,
+      "sourceTime": 14.85,
+      "targetBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1600,
+        "height": 1000
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 9,
+      "action": 9,
+      "sourceTime": 21.5,
+      "targetBox": {
+        "x": 582,
+        "y": 143,
+        "width": 464,
+        "height": 48
+      },
+      "visible": true,
+      "sourceEnd": 25.392,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 10,
+      "action": 11,
+      "sourceTime": 25.5,
+      "targetBox": {
+        "x": 31.25,
+        "y": 928.75,
+        "width": 36,
+        "height": 36
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 11,
+      "action": 12,
+      "sourceTime": 29,
+      "targetBox": {
+        "x": 31.25,
+        "y": 91.25,
+        "width": 192.5,
+        "height": 58.375
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 12,
+      "action": 13,
+      "sourceTime": 32,
+      "targetBox": {
+        "x": 31.25,
+        "y": 928.75,
+        "width": 36,
+        "height": 36
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "2283"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "e41430f2f6c10557eb36ac4482a521950066dcf65f69a8b55118828523c04f3f",
+    "poster": "b3abb48a2d84d555e37da4d350542567a6770c52711452934517bc9386dd7477",
+    "captions": "827c975523f76737169dfeb8f165adbb61f598016d9c94c33d0da849fa2ba85f"
+  }
+}

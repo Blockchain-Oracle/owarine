@@ -1,0 +1,266 @@
+{
+  "origin": "https://owarine.xyz/trade/BTC",
+  "capturedAt": "2026-10-08T17:01:17.374Z",
+  "sourceFrameCount": 549,
+  "sourceDurationSeconds": 211.527,
+  "outputDurationSeconds": 55.483008,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Edited excerpt; only the listed source segments are retained in chronological order, with hard cuts. Source timestamps resampled to constant 60fps. Only declared waits run at a visible ×4; all other time is preserved.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [
+    {
+      "start": 38,
+      "end": 59,
+      "speed": 4
+    },
+    {
+      "start": 60,
+      "end": 149,
+      "speed": 4
+    },
+    {
+      "start": 155,
+      "end": 180,
+      "speed": 4
+    }
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "end": 8,
+      "reason": "Prepare the two-minute Window and stake."
+    },
+    {
+      "start": 35.8,
+      "end": 180,
+      "reason": "Omit the preceding unfilled quote attempt; retain the accepted refreshed quote through the recorded Window close and payout."
+    },
+    {
+      "start": 207,
+      "end": 211.527,
+      "reason": "Open History after settlement; omit the review pause after the credited payout."
+    }
+  ],
+  "omittedIntervals": [
+    {
+      "start": 8,
+      "end": 35.8,
+      "reason": "Omit the preceding unfilled quote attempt; retain the accepted refreshed quote through the recorded Window close and payout."
+    },
+    {
+      "start": 180,
+      "end": 207,
+      "reason": "Open History after settlement; omit the review pause after the credited payout."
+    }
+  ],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Choose two minutes",
+      "text": "Choose BTC and its two-minute Window."
+    },
+    {
+      "time": 3.2,
+      "title": "Set a small stake",
+      "text": "Open BTC order settings and set the stake to one test credit."
+    },
+    {
+      "time": 8,
+      "title": "Accept the quote",
+      "text": "Accept the refreshed Up quote with a one-credit budget. The filled cost, including fee, is 0.85 credits; the request wait plays at ×4."
+    },
+    {
+      "time": 9.2,
+      "title": "Wait for the request",
+      "text": "Keep the real request wait until the product confirms the position. This interval runs at ×4."
+    },
+    {
+      "time": 16.45,
+      "title": "Wait for the close",
+      "text": "The filled cost, including fee, was 0.85 credits. Wait for the recorded Window close. This countdown plays at ×4."
+    },
+    {
+      "time": 39.7,
+      "title": "Check Portfolio",
+      "text": "Open Portfolio after the Window close. The venue still needs time to finish settlement."
+    },
+    {
+      "time": 44.7,
+      "title": "Wait for payout",
+      "text": "The settlement wait plays at ×4. The balance later updates to 2,012.15 credits."
+    },
+    {
+      "time": 50.95,
+      "title": "Open History",
+      "text": "Open History to read the completed BTC Up result: WON, paid 3.00 credits and net +2.15. The rail balance is 2,012.15."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "0d7f07cfec7e240566d1293107338230b7def5dbddbf49e2cb945a9fe9c81b41",
+    "actionsSha256": "76ec9e4029c0d34ed36cfbf45476282bda6d7d8517c7ba110e931083d600f205"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 278,
+        "y": 144,
+        "width": 44.046875,
+        "height": 32
+      },
+      "visible": true,
+      "sourceEnd": 3.1,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 2,
+      "sourceTime": 3.2,
+      "targetBox": {
+        "x": 626,
+        "y": 380.453125,
+        "width": 252.90625,
+        "height": 32
+      },
+      "visible": true,
+      "sourceStart": 4.7,
+      "sourceEnd": 7.1,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 5,
+      "sourceTime": 35.8,
+      "targetBox": {
+        "x": 1303.75,
+        "y": 906.75,
+        "width": 127.5,
+        "height": 64
+      },
+      "visible": true,
+      "sourceEnd": 37,
+      "zoom": 1.35,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "sourceTime": 37,
+      "targetBox": {
+        "x": 0,
+        "y": 0,
+        "width": 1600,
+        "height": 1000
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 6,
+      "sourceTime": 60,
+      "targetBox": {
+        "x": 1303.75,
+        "y": 311.59375,
+        "width": 267,
+        "height": 19.1875
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 6,
+      "action": 7,
+      "sourceTime": 150,
+      "targetBox": {
+        "x": 31.25,
+        "y": 287.625,
+        "width": 192.5,
+        "height": 45
+      },
+      "visible": true,
+      "sourceEnd": 152.6,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 7,
+      "action": 8,
+      "sourceTime": 155,
+      "targetBox": {
+        "x": 1463.109375,
+        "y": 759.1875,
+        "width": 83.765625,
+        "height": 24
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 8,
+      "action": 8,
+      "sourceTime": 207,
+      "targetBox": {
+        "x": 1463.109375,
+        "y": 759.1875,
+        "width": 83.765625,
+        "height": 24
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "3329"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "be74561480aae6c73b2a5fa7882847f3b5b0bbc702b0f8e12701f613c51327c9",
+    "poster": "8b1a07a8d7fe90841298b04bc51081338a4872ec2770cbb2fea1cd12edc058b5",
+    "captions": "e30e62f41d159905400c3851d4fef2f3c08de52f4fb7a9bdb895ed3e5b472048"
+  }
+}

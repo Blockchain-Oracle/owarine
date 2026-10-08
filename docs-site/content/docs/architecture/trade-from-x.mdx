@@ -1,0 +1,31 @@
+---
+title: "The X execution path"
+description: "Mentions, bounded executor grants, ledger outcomes and separate reply delivery."
+sources:
+  - services/ops/src/actors/x-relay/index.ts
+  - services/ops/src/actors/x-relay/execute.ts
+  - services/ops/src/actors/x-relay/reply-delivery.ts
+  - daml/abu-pm-main/daml/PM/Grant.daml
+  - packages/db/src/x.ts
+---
+
+The X relay is an **optional ops actor**. It reads mentions, resolves a linked seat and trades through that seat's bounded executor grant. Reading mentions, executing trades and posting replies have separate health states.
+
+<Mermaid title="Trade from X: execution and reply" chart={String.raw`
+flowchart TD
+  mention[X mention] --> poll[x-relay mention polling]
+  poll --> journal[Claim mention and execution journal]
+  journal --> seat[Resolve bound seat and EXECUTOR grant]
+  seat --> quote[Venue firm quote]
+  quote --> accept[Grant_AcceptQuote]
+  accept --> ledger[Canton position and confirmed outcome]
+  ledger --> receipt[Store X receipt]
+  receipt --> delivery[Separate reply-delivery worker]
+  delivery -->|Posting enabled| reply[Reply on X]
+`} />
+
+`Grant_AcceptQuote` checks the grant's authority and caps on the ledger. The relay does not receive unlimited access to a seat. It journals execution by mention, recovers uncertain outcomes from ledger truth, and holds further execution while an earlier broadcast remains unresolved.
+
+Reply delivery cannot schedule a new trade. A reply failure does not establish that a trade failed; the stored execution receipt is the place to check. Posting also needs `X_POSTING_ENABLED` and a working account session. Without configuration the relay reports **Disabled**.
+
+This diagram describes implemented code. A complete hosted mention → trade → reply journey was not verified in this documentation review. Use <AppLink href="/trade-from-x">X-trade</AppLink> for the current connection and service state. Any walkthrough that reaches X consent stops there; consent alone does not prove execution.

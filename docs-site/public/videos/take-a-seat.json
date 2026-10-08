@@ -1,0 +1,176 @@
+{
+  "origin": "https://owarine.xyz/markets",
+  "capturedAt": "2026-10-08T16:55:19.574Z",
+  "sourceFrameCount": 321,
+  "sourceDurationSeconds": 82.01,
+  "outputDurationSeconds": 31.766667,
+  "viewport": {
+    "width": 1600,
+    "height": 1000,
+    "deviceScaleFactor": 2
+  },
+  "sourcePixels": {
+    "width": 3200,
+    "height": 2000,
+    "format": "lossless PNG",
+    "modified": false
+  },
+  "timing": "Source timestamps resampled to constant 60fps. Only declared waits run at a visible ×4; all other time is preserved.",
+  "edits": "Separate Owarine frame, captions, measured target arrows and spotlight, recorded cursor and click ripples; eased detail zoom returns to full view. Original source frames unchanged. Annotations stop when a control disappears; waiting chapters may omit the target rather than point at empty pixels.",
+  "speedups": [
+    {
+      "start": 5,
+      "end": 20,
+      "speed": 4
+    },
+    {
+      "start": 26,
+      "end": 78,
+      "speed": 4
+    }
+  ],
+  "segments": [
+    {
+      "start": 0,
+      "end": 82.01,
+      "reason": "Full recording."
+    }
+  ],
+  "omittedIntervals": [],
+  "chapters": [
+    {
+      "time": 0,
+      "title": "Take a seat",
+      "text": "Choose Take a seat from the rail on the hosted product."
+    },
+    {
+      "time": 4,
+      "title": "Choose Guest Seat",
+      "text": "Choose Guest Seat. The pause before the selection is shown at ×4."
+    },
+    {
+      "time": 12.75,
+      "title": "Wait for the lease",
+      "text": "Wait for the guest lease. This request and pause play at ×4; no result is simulated."
+    },
+    {
+      "time": 19,
+      "title": "Read the seat",
+      "text": "The rail changes to Test funds · DevNet. The remaining pause plays at ×4."
+    },
+    {
+      "time": 27.75,
+      "title": "Inspect the party",
+      "text": "Open the seat menu to read its party, test funds and lease time. The copy button sits beside Party id."
+    }
+  ],
+  "sourceManifests": {
+    "framesSha256": "7d01368eae2dccb61d8d043b01aa593344a0a156e5eb5a178c0787abc4de9809",
+    "actionsSha256": "6200e26ac5868b2c87565a59dffebf37c2456af0075a4f8ded4b1090c74a44d3"
+  },
+  "annotations": [
+    {
+      "chapter": 1,
+      "action": 0,
+      "sourceTime": 0,
+      "targetBox": {
+        "x": 31.25,
+        "y": 872.75,
+        "width": 192.5,
+        "height": 44
+      },
+      "visible": true,
+      "sourceEnd": 3.7,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 2,
+      "action": 1,
+      "sourceTime": 4,
+      "targetBox": {
+        "x": 634,
+        "y": 488,
+        "width": 332,
+        "height": 40
+      },
+      "visible": true,
+      "sourceEnd": 23.2,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 3,
+      "action": 1,
+      "sourceTime": 24,
+      "targetBox": {
+        "x": 634,
+        "y": 488,
+        "width": 332,
+        "height": 40
+      },
+      "visible": false,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 4,
+      "action": 2,
+      "sourceTime": 43,
+      "targetBox": {
+        "x": 31.25,
+        "y": 872.75,
+        "width": 192.5,
+        "height": 44
+      },
+      "visible": true,
+      "sourceStart": 44.958,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    },
+    {
+      "chapter": 5,
+      "action": 2,
+      "sourceTime": 78,
+      "targetBox": {
+        "x": 31.25,
+        "y": 872.75,
+        "width": 192.5,
+        "height": 44
+      },
+      "visible": true,
+      "zoom": 1,
+      "arrowDrawSeconds": 0.25,
+      "arrowStrokePixels": 10,
+      "haloPixels": 4
+    }
+  ],
+  "video": {
+    "codec_name": "h264",
+    "profile": "High",
+    "width": 2560,
+    "height": 1440,
+    "pix_fmt": "yuv420p",
+    "r_frame_rate": "60/1",
+    "avg_frame_rate": "60/1",
+    "nb_frames": "1906"
+  },
+  "encoding": {
+    "crf": 16,
+    "preset": "slow",
+    "faststart": true
+  },
+  "sha256": {
+    "video": "ec657626218164e0697f44254cda838686d46a217647e175ed13e2a76193df67",
+    "poster": "f70e3c932debbe24678f6c8893220bcf7170f113d2c3e7f2da8e9c4deb023150",
+    "captions": "1d2055441b675b6011f912195f2087c23a4412a2c1d6af4038046a909d59dbff"
+  }
+}

@@ -1,0 +1,62 @@
+---
+title: "Who sees what"
+description: "Core contract stakeholders and the shared participant's server trust boundary."
+sources:
+  - daml/abu-pm-main/daml/PM/Series.daml
+  - daml/abu-pm-main/daml/PM/Market.daml
+  - daml/abu-pm-main/daml/PM/Oracle.daml
+  - daml/abu-pm-main/daml/PM/Quote.daml
+  - daml/abu-pm-main/daml/PM/Money.daml
+  - daml/abu-pm-main/daml/PM/Leg.daml
+  - daml/abu-pm-main/daml/PM/Publication.daml
+  - daml/abu-pm-main/daml/PM/Grant.daml
+  - packages/core/src/private/canton.ts
+  - packages/markets/src/server/reads.ts
+  - web/src/features/vault/TradingBalanceView.tsx
+---
+
+Canton contract visibility follows **stakeholders**: signatories and observers. A seat's position and cash belong to a different visibility group from the oracle prices and resolution.
+
+<Mermaid title="Core contract visibility groups" chart={String.raw`
+flowchart TD
+  contracts[Core Daml contracts] --> private[Seat and venue]
+  contracts --> evidence[Price and outcome]
+  contracts --> series[Series]
+  private --> legs[Leg, VenueCash, VenueAccount]
+  private --> quotes[Quote and BuyQuote]
+  private --> records[Publication and SettlementReceipt]
+  evidence --> prices[PriceQuote: its oracle, venue, resolver]
+  evidence --> outcome[OpenPrint and Resolution: resolver, venue]
+  series --> readers[Venue, resolver, auditor]
+`} />
+
+| Contract | Signatories | Observers |
+| --- | --- | --- |
+| `Series` | Venue | Resolver, auditor |
+| `MarketTerms`, `WindowState` | Venue | Resolver |
+| `PriceQuote` | The oracle that posted it | Venue, resolver |
+| `OpenPrint`, `Resolution` | Resolver, venue | None |
+| `Quote`, `BuyQuote` | Venue | Quoted seat |
+| `VenueAccount`, `VenueCash`, `Leg` | Venue, owner | None |
+| `Publication`, `SettlementReceipt` | Venue, owner | None |
+| `AgentGrant` | Owner, venue | Named agent |
+
+This table covers the core market path. Ticket, desk and game templates have their own stakeholder declarations in the corresponding [Daml packages](/architecture/programs).
+
+## Disclosure and public pages
+
+A seat is not a stakeholder on `Resolution`. Settlement exposes the relevant result inside the transaction, and `Leg_Claim` can receive it as a disclosed contract. That does not make every other seat's position visible.
+
+A `Publication` is still bilateral on the ledger. Its owner's choice to publish permits the app to use the projected record in public profiles and leaderboards. Public website access and ledger stakeholder access are separate checks.
+
+The venue sees positions as counterparty. Owarine's shared participant and server credentials are an additional trust boundary: server routes must bind requests to the current lease. [System context](/architecture/overview) explains that boundary.
+
+## Private balance and ordinary cash
+
+Private mode is implemented using the same bilateral `VenueCash` contract with `bucket = "private"`. A private call is an ordinary bilateral `Leg` tagged `beneficiaryRef = "private"`. Its stakeholders remain the **owner and venue**; moving into a private bucket does not hide it from the venue.
+
+The server separates private cash and legs from ordinary spendable cash and the public portfolio. Private calls stay in the private list and are excluded from ordinary exits and publication routes. Moving funds into or out of the bucket uses an atomic seat-and-venue transaction.
+
+In `abu-pm-main` **0.5.2**, settlement, owner claim and stale refund route any private-call proceeds directly back to the private bucket. A settlement receipt records `paidInto = "private"`; a loss has zero owner payout. The older Cash out compatibility path applies to receipts paid by the 0.5.1 engine into ordinary cash.
+
+Cash and Trading Balance are app views, not additional Daml stakeholder groups. The Trading Balance component supports available, private, in-trade and grant figures; the ledger contracts and server read split determine what those figures represent. A displayed balance or an implemented private route does not by itself establish a completed hosted private-call journey.

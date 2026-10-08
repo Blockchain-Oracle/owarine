@@ -1,38 +1,67 @@
 ---
 title: "Price sources and signed prints"
-description: "Three oracle parties post each boundary price; a quorum resolves the Window, the original source is named on every receipt, and every print can be checked."
+description: "Boundary evidence, quorum checks, one resolution and the reasons a Window voids."
+sources:
+  - services/ops/src/actors/price-relay/oracle-feeder.ts
+  - services/ops/src/actors/price-relay/lane-feeder.ts
+  - services/ops/src/prices/attested-read.ts
+  - packages/core/src/market/print-source.ts
+  - daml/abu-pm-main/daml/PM/Oracle.daml
+  - daml/abu-pm-main/daml/PM/Market.daml
 ---
 
-A Window settles from its opening and closing **boundary prints**. The web app never picks a winner from a latest-price tile: the resolver party resolves the Window on the ledger, from the oracle parties' signed quotes, under the price policy the Window opened with.
+A Window settles from **opening and closing boundary prints**. A latest-price tile does not decide its result. The resolver uses the price policy frozen into that Window's `MarketTerms`.
+
+<Mermaid title="Prints, resolution and refunds" chart={String.raw`
+flowchart TD
+  sources[Named price sources] --> oracles[Three oracle parties]
+  oracles --> quotes[Signed PriceQuotes and payload hashes]
+  quotes --> check[Resolver checks each boundary]
+  check -->|Admitted quorum agrees| outcome[OpenPrint then Up or Down Resolution]
+  check -->|No admitted quotes| missing[MissingPrint]
+  check -->|Fewer than quorum| quorum[QuorumNotMet]
+  check -->|Quorum arrived but slot was not recorded in time| absent[ResolverAbsent]
+  check -->|Spread exceeds policy| disagreement[SourceDisagreement]
+  missing --> void[Void Resolution]
+  quorum --> void
+  absent --> void
+  disagreement --> void
+  void --> refund[Stake and fee returned on settlement]
+`} />
+
+The usual policy needs **2 of 3** distinct oracle parties, with a spread within **1% of the median**. The contracts enforce the values copied into each Window's terms. A tie pays Up when `tieUp` is set, as in the listed price-call policy.
+
+## What a void reason means
+
+| Reason | Meaning in `Market.daml` |
+| --- | --- |
+| `MissingPrint` | No valid evidence was supplied for that boundary after its deadline. |
+| `QuorumNotMet` | Some valid evidence exists, but fewer distinct oracles than the required quorum. |
+| `ResolverAbsent` | Enough valid evidence exists, but the slot was not recorded before its deadline. |
+| `SourceDisagreement` | The valid quotes exceed the terms' maximum deviation. This can void during the opening or closing check. |
+
+A missed deadline does not create a refund automatically. The resolver must record a void, then settlement returns stake and fee. If ops stays down, the owner can take a stale refund from `refundAfter` without an ops actor. [Halts and voids](/trading/halts-and-voids) explains the user path.
+
+## The named source
+
+Each Series' policy names its source. Oracle parties sign what they read; an external provider is not itself a Canton party.
+
+| Lane | Implemented source path | Dependency |
+| --- | --- | --- |
+| BTC and ETH | Coinbase, Kraken and Bitstamp 1-minute candle closes, one exchange per oracle party | Exchange access and final candle data |
+| Stocks | RedStone; QQQ and VOO use Alpaca's last IEX trade | Source access and stock session calendar |
+| xStocks | Jupiter Price v3, median of three samples; a Switchboard adapter also exists | Read the Window's frozen policy for its actual source |
+| Pre-IPO names | PreStocks catalogue | Catalogue access and rate limits |
+| Baskets | Index in points derived from the PreStocks members | A valid read of every member |
+| Valuation indices | Pyth index adapter | Entitled provider key; implementation alone does not make a lane live |
+| Events | Committee attestations from oracle parties | Event terms and committee quorum |
+
+Current listings and source health are shown in <AppLink href="/markets">Markets</AppLink> and <AppLink href="/status">Status</AppLink>. This table describes source routing, not acceptance of every lane on hosted DevNet.
+
+## Timing and evidence
+
+The crypto feeder starts Kraken and Bitstamp at **T + 5 seconds**, Coinbase at **T + 10 seconds**. These are fetch schedules, not a guaranteed result latency. Ledger confirmation, resolver work and projection add time. Admission limits and close deadlines come from the Window's policy.
+
+Each quote carries the SHA-256 of its source payload. Ops attempts to archive the exact response. A quote on the ledger does not prove its archived payload is available: [Proof](/trading/proof) reports missing evidence and re-verifies what it can read.
 
 <Architecture name="prints" />
-
-| Step | What happens |
-| --- | --- |
-| Oracle quotes | Three oracle parties each read the Window's named source themselves and post a `PriceQuote` per boundary. |
-| Evidence | The raw response is archived byte for byte and its sha-256 is on the quote, so the price can be re-derived. |
-| Quorum | At least 2 of the 3 oracles need a valid quote inside the boundary's admission window. Fewer, and it voids. |
-| Agreement | A spread over 1% of the quotes' median voids the Window instead of paying anyone. |
-| Once | A Window resolves or voids exactly once. A void returns every stake plus its fee. |
-| Tie | A close equal to the open pays Up. |
-
-## The named sources
-
-Each Series' policy text names its source, and every receipt and proof page repeats it.
-
-| Lane | Source | State on the local sandbox |
-| --- | --- | --- |
-| BTC, ETH | Coinbase, Kraken and Bitstamp 1-minute candle closes | Resolved from 1-minute to 1-hour Windows; 4-hour and 1-day Windows listed. |
-| TSLA, NVDA, AAPL, MSFT, META, AMZN, GOOGL | RedStone, admitted up to 15 minutes after the boundary | Resolved in session, with the Alpaca calendar keys set. |
-| QQQ, VOO | Alpaca (last IEX trade) in the 5 minutes before the boundary | Resolved in session. |
-| TSLAx, NVDAx, SPYx, QQQx | Jupiter Price v3 (median of three samples in the last 40 s) | Resolved; Switchboard Surge is down upstream. |
-| Eight pre-IPO names, five baskets | PreStocks catalogue; a basket is an index in points from one read of every member | Resolved hourly; paused while PreStocks rate-limits the host. |
-| Events | A committee of the three oracle parties, quorum 2 | Resolved YES, and voided on a split. |
-
-Policy versions are append-only on the Series, and a Window keeps the version it opened under: QQQ and VOO moved to Alpaca, and the xStocks to Jupiter Price v3, as new versions. Pyth is not used, because there is no entitled key.
-
-A lane's [halt](/trading/halts-and-voids) is judged on the source in this table and on no other: RedStone package age for the seven stocks, the last IEX trade for QQQ and VOO, the issuer's flag and Jupiter Price v3 read failures for the xStocks, the PreStocks read for the pre-IPO names and baskets. The halt watcher takes each lane's source from the same table the venue registers its Series from, so the two cannot disagree, and it makes no Pyth request while no lane settles on Pyth.
-
-These are feeders the venue runs itself: three independent exchanges for crypto, one named source attested three times for the rest. Neither is an independent oracle network, and the pages say so.
-
-The [proof walkthrough](/trading/proof) shows each print, its oracle and its evidence in the app; <AppLink href="/status">Status</AppLink> shows whether the feeders are posting now. [Halts and voids](/trading/halts-and-voids) explains missing or disagreeing prints, and [PreStocks and Pyth in Owarine](/architecture/prestocks-and-pyth) covers those two sources.

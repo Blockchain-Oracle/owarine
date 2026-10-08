@@ -7,6 +7,8 @@ import { AppLink, JourneyList, ProductMap, WelcomeActions } from './welcome';
 import { GuideCapture } from './guide-capture';
 import { Architecture } from './architecture';
 import { SponsorLogos } from './sponsors';
-export function getMDXComponents(components?:MDXComponents) {return {...defaultComponents,Callout,Step,Steps,Tab,Tabs,AppLink,JourneyList,ProductMap,WelcomeActions,GuideCapture,Architecture,SponsorLogos,...components} satisfies MDXComponents;}
+import { Mermaid } from './mermaid';
+import { Walkthrough } from './walkthrough';
+export function getMDXComponents(components?:MDXComponents) {return {...defaultComponents,Callout,Step,Steps,Tab,Tabs,AppLink,JourneyList,ProductMap,WelcomeActions,GuideCapture,Architecture,SponsorLogos,Mermaid,Walkthrough,...components} satisfies MDXComponents;}
 export const useMDXComponents=getMDXComponents;
 declare global {type MDXProvidedComponents=ReturnType<typeof getMDXComponents>}
