@@ -1,4 +1,4 @@
-/* The demo film on /download: a 16:9 card on Owarine's tokens; while no film is configured the same frame says what it
+/* The demo film on /demo and /download: a 16:9 card on Owarine's tokens; while no film is configured the same frame says what it
    waits on (the D-015 honest state). */
 .demo-video-figure { margin: 0; min-width: 0; }
 .demo-video {
@@ -10,9 +10,12 @@
 .demo-video-caption a { min-height: 2.75rem; display: inline-flex; align-items: center; color: var(--ow-ink); text-decoration: underline; text-underline-offset: 3px; }
 .demo-video-caption span { align-self: center; }
 .demo-video.demo-film-pending {
+  position: relative; isolation: isolate;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem;
-  padding: clamp(1.25rem, 5vw, 3.5rem); background: var(--ow-recessed); text-align: center;
+  padding: clamp(1.25rem, 5vw, 3.5rem); background: var(--ow-black); text-align: center;
 }
-.demo-film-eyebrow { margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ow-pink-ink); }
-.demo-film-line { margin: 0; max-width: 52ch; font-size: clamp(0.875rem, 1.6vw, 1.0625rem); line-height: 1.6; color: var(--ow-ink); }
-.demo-film-meta { margin: 0; font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--ow-muted); font-variant-numeric: tabular-nums; }
+/* The cover sits behind the note, dimmed: it says what the film is without a play button that does nothing. */
+.demo-film-cover { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: 0.32; filter: saturate(0.85); }
+.demo-film-eyebrow { margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ow-pink); }
+.demo-film-line { margin: 0; max-width: 52ch; font-size: clamp(0.9375rem, 1.8vw, 1.25rem); font-weight: 700; line-height: 1.5; color: var(--ow-white); }
+.demo-film-meta { margin: 0; font-size: 0.6875rem; letter-spacing: 0.06em; color: rgb(255 255 255 / 0.7); font-variant-numeric: tabular-nums; }

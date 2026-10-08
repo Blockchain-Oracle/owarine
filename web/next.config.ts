@@ -32,8 +32,7 @@ const nextConfig: NextConfig = {
     { source: "/earn", destination: "/portfolio", permanent: false },
     // So is the Market Surface (Abu, 8 Oct); its pieces stay on /dev/surface.
     { source: "/surface", destination: "/markets", permanent: false },
-    // Developer surfaces taken off the product (8 Oct): the plain-words privacy answer lives on How it works.
-    { source: "/demo", destination: "/how-it-works", permanent: true },
+    // A developer surface taken off the product (8 Oct): the plain-words privacy answer lives on How it works.
     { source: "/who-sees-what", destination: "/how-it-works", permanent: true },
   ],
   transpilePackages: ["@owarine/brain", "@owarine/core", "@owarine/daml", "@owarine/ledger", "@owarine/markets"],

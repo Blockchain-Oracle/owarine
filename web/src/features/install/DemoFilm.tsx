@@ -7,7 +7,8 @@ import "./demo-film.css";
  * through `youtube-nocookie`, which sets no tracking cookie until the viewer presses play, with a caption link for
  * anyone whose browser blocks frames; a direct file plays in a `<video>`. With nothing configured the same 16:9 frame
  * says what it waits on (the D-015 honest state): the film is re-shot on the Canton build, and no footage recorded
- * before the port is shown here.
+ * before the port is shown here. The waiting frame shows the film's cover, dimmed, so its play button is not mistaken
+ * for a film that is not there yet.
  */
 export function DemoFilm({ film, className }: { film: Film | null; className?: string }) {
   const f = FILM.film;
@@ -15,6 +16,8 @@ export function DemoFilm({ film, className }: { film: Film | null; className?: s
     return (
       <figure className={className ? `demo-video-figure ${className}` : "demo-video-figure"}>
         <div className="demo-video demo-film-pending" role="note" aria-label={f.pendingLabel}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a static cover behind the waiting note */}
+          <img className="demo-film-cover" src="/demo/cover.png" alt="" aria-hidden />
           <p className="demo-film-eyebrow">{f.pendingEyebrow}</p>
           <p className="demo-film-line">{f.pendingLine}</p>
           <p className="demo-film-meta">{f.pendingMeta}</p>
@@ -38,7 +41,7 @@ export function DemoFilm({ film, className }: { film: Film | null; className?: s
           aria-describedby="demo-video-caption"
         />
       ) : (
-        <video className="demo-video" src={film.src} controls playsInline preload="metadata" aria-describedby="demo-video-caption" />
+        <video className="demo-video" src={film.src} poster="/demo/cover.png" controls playsInline preload="metadata" aria-describedby="demo-video-caption" />
       )}
       <figcaption id="demo-video-caption" className="demo-video-caption">
         <span>{FILM.video.caption}</span>

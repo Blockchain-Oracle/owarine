@@ -1,0 +1,30 @@
+/** `/demo` (rebuilt 8 Oct): the film, the way in, and the claims a judge can check, one line each. */
+export const DEMO = {
+  title: "Demo",
+  description: "Owarine in one film: a firm quote, a private position, signed prints and a settlement anyone can check, on Canton DevNet.",
+  sticker: "CANTON DEVNET",
+  heading: "Watch it work",
+  lede: "Short price calls on Canton. Private by default, settled on signed prints.",
+  actions: { open: "Open the app", docs: "Read the docs", stats: "Live stats", pitch: "The pitch" },
+  claimsTitle: "What to check",
+  claims: [
+    { id: "quote", title: "A firm quote", line: "The venue prices your size before you tap.", href: "/markets", cta: "Try a market" },
+    { id: "private", title: "A private position", line: "Only your seat and the venue can see it on the ledger.", href: "/how-it-works", cta: "Who sees what" },
+    { id: "prints", title: "Signed prints", line: "Oracle parties sign the open and the close; a quorum decides.", href: "/proof", cta: "Open the proof" },
+    { id: "audit", title: "A recount anyone can read", line: "Every contract the pages use, checked against the ledger.", href: "/stats", cta: "See the recount" },
+  ],
+  liveTitle: "Live on DevNet",
+  live: {
+    settled: "Windows settled · 24h",
+    settledSub: (closed: number) => `of ${closed.toLocaleString()} closed`,
+    recount: "Independent recount",
+    recountOk: "Agrees",
+    recountDiffers: "Differs",
+    recountNone: "Not run yet",
+    recountSub: (offset: string) => `ledger offset ${offset}`,
+    reserve: "Venue headroom",
+    reserveSub: "held minus the most it can owe",
+    reading: "reading…",
+  },
+  builtOn: "Built on",
+} as const;

@@ -1,5 +1,5 @@
 import {
-  Activity, BadgeCheck, BarChart3, BookOpen, Bot, Boxes, Briefcase, CandlestickChart, ChartCandlestick, ChartLine,
+  Activity, BadgeCheck, BarChart3, Clapperboard, BookOpen, Bot, Boxes, Briefcase, CandlestickChart, ChartCandlestick, ChartLine,
   ChartNoAxesCombined, CircleHelp, CirclePlus, Dices, Download, GalleryVerticalEnd, Gamepad2, Goal, Handshake, Inbox,
   KeyRound, Layers3, MessageSquare, Mountain, Newspaper, Presentation, Rocket, Scale, Sparkles, TrendingDown, Trophy,
   WalletCards, X as XLogo, type LucideIcon,
@@ -219,6 +219,7 @@ export const NAV_ITEMS = {
   },
   stats: { id: "stats", name: "Stats", href: "/stats", description: "Protocol and market activity.", icon: BarChart3 },
 
+  demo: { id: "demo", name: "Demo", href: "/demo", description: "The film, and what to check on the ledger.", icon: Clapperboard },
   news: { id: "news", name: "News", href: "/news", description: "The stories moving markets.", icon: Newspaper },
   reels: { id: "reels", name: "Reels", href: "/reels", description: "Scan market stories quickly.", icon: GalleryVerticalEnd },
   howItWorks: {
@@ -261,7 +262,7 @@ export const DOCK: { left: readonly NavItem[]; right: readonly NavItem[] } = {
 /** Everything that is not a place, grouped. The first section is what most people open More for. */
 export const MORE: readonly NavSection[] = [
   { id: "trade", name: "More ways to trade", items: [NAV_ITEMS.baskets, NAV_ITEMS.short, NAV_ITEMS.parlay, NAV_ITEMS.sensei, NAV_ITEMS.xTrade] },
-  { id: "learn", name: "Learn", items: [NAV_ITEMS.news, NAV_ITEMS.howItWorks, NAV_ITEMS.download, NAV_ITEMS.reels, NAV_ITEMS.docs, NAV_ITEMS.pitch] },
+  { id: "learn", name: "Learn", items: [NAV_ITEMS.demo, NAV_ITEMS.news, NAV_ITEMS.howItWorks, NAV_ITEMS.download, NAV_ITEMS.reels, NAV_ITEMS.docs, NAV_ITEMS.pitch] },
   { id: "games", name: "Games", items: [NAV_ITEMS.practice, NAV_ITEMS.duel, NAV_ITEMS.lucky, NAV_ITEMS.range, NAV_ITEMS.moonshot, NAV_ITEMS.lineRider, NAV_ITEMS.candleHop] },
   { id: "automate", name: "Automate", items: [NAV_ITEMS.agents, NAV_ITEMS.desk, NAV_ITEMS.newDesk] },
   { id: "records", name: "Records and proof", items: [NAV_ITEMS.proof, NAV_ITEMS.activity, NAV_ITEMS.edge, NAV_ITEMS.stats] },
@@ -272,7 +273,7 @@ export const MORE_ITEMS: readonly NavItem[] = MORE.flatMap((section) => section.
 
 /** Every real, user-facing page; each must have a home in PLACES or MORE (the nav test holds this). */
 export const NAVIGABLE_ROUTE_PATHS = [
-  "/activity", "/agents", "/baskets", "/claim", "/desk", "/desk/new",
+  "/activity", "/agents", "/baskets", "/claim", "/demo", "/desk", "/desk/new",
   "/download", "/games", "/games/candle-hop", "/games/duel", "/games/line-rider",
   "/games/lucky", "/games/moonshot", "/games/practice", "/games/range", "/how-it-works", "/leaderboard", "/legal",
   "/markets", "/news", "/parlay", "/pitch", "/portfolio", "/portfolio/edge", "/proof", "/reels", "/short", "/stats",
