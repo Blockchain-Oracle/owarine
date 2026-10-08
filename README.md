@@ -84,15 +84,9 @@ The source data is **attested by the venue's oracle parties**. Three signers do 
 
 ## Architecture and privacy
 
-```mermaid
-flowchart LR
-  Device["Web / native app\nSeat authentication key"] --> Web["Web server\nLease → party authorization"]
-  Web --> Ledger["Canton participant\nDaml contracts"]
-  Feeds["Market data sources"] --> Ops["Venue operations\nOracles · quotes · resolver · settler"]
-  Ops --> Ledger
-  Ledger --> Projector["Projector → Postgres\nApp reads and receipts"]
-  Projector --> Web
-```
+[![Owarine architecture: the app authenticates through the web server; the server and venue operations use Canton contracts; the projector supplies app reads through Postgres.](.github/assets/architecture.png)](.github/assets/architecture.png)
+
+<sub>[Diagram source](.github/assets/architecture.mmd) · Regenerate from `docs-site` with `node scripts/export-readme-architecture.mjs`.</sub>
 
 **The privacy boundary matters.** An ordinary position and cash contract name the seat and venue as stakeholders; another party's ledger query does not receive them. The venue sees its counterparties. In this prototype, Noders hosts the parties on one participant and one server ledger user can act for them, so **the participant operator and the application server remain trusted**. The device key authenticates a seat request; it is not evidence of independently hosted, externally signed parties. Public posts and opted-in records reveal what the user chooses to publish; a duel has both players as stakeholders.
 

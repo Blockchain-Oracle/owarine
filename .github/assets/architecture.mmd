@@ -1,0 +1,7 @@
+flowchart LR
+  Device["Web / native app<br/>Seat authentication key"] --> Web["Web server<br/>Lease → party authorization"]
+  Web --> Ledger["Canton participant<br/>Daml contracts"]
+  Feeds["Market data sources"] --> Ops["Venue operations<br/>Oracles · quotes<br/>resolver · settler"]
+  Ops --> Ledger
+  Ledger --> Projector["Projector → Postgres<br/>App reads and receipts"]
+  Projector --> Web
