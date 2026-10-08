@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 const CID_RE = /^[0-9a-f]{40,400}$/;
 
 export async function POST(request: NextRequest, context: { params: Promise<{ cid: string }> }) {
+  const started = performance.now();
   const held = regionHold(request);
   if (held) return held;
   const { cid } = await context.params;
@@ -23,11 +24,15 @@ export async function POST(request: NextRequest, context: { params: Promise<{ ci
   const body = writeRequestWire.safeParse(await jsonBody(request));
   if (!body.success) return refusal("unknown", "expected {commandId: <journal uuid>}", 400);
   const { server, lease } = auth.seat;
+  const ready = performance.now();
   const result = await server.ledger.writer.accept({ party: lease.party, leaseId: lease.leaseId }, { journalId: body.data.commandId, quoteCid: cid });
+  const accepted = performance.now();
   if (result.kind === "confirmed") {
     // The new leg pauses the seat's idle clock until its refund deadline: a seat with an open leg is never drained.
     const after = await server.ledger.balance(lease.party).catch(() => null);
     if (after) await recordBusy(auth.seat, after);
   }
-  return replyWith(result);
+  const response = replyWith(result);
+  response.headers.set("Server-Timing", `seat;dur=${(ready - started).toFixed(1)},accept;dur=${(accepted - ready).toFixed(1)},balance;dur=${(performance.now() - accepted).toFixed(1)}`);
+  return response;
 }
