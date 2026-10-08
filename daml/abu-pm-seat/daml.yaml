@@ -1,0 +1,11 @@
+sdk-version: 3.5.2
+name: abu-pm-seat
+source: daml
+version: 0.1.0
+dependencies:
+  - daml-prim
+  - daml-stdlib
+data-dependencies:
+  - ../abu-pm-main/.daml/dist/abu-pm-main-0.5.2.dar
+build-options:
+  - --ghc-option=-Wunused-imports

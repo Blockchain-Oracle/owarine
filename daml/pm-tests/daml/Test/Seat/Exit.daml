@@ -1,0 +1,257 @@
+-- | The resting exit (abu-pm-seat 0.1.0, R2): a seat's standing order to
+-- sell its side of a Window, filled later by the venue alone. Trailing stop,
+-- fixed stop and take-profit; the floor holds on every fill; a fill sells
+-- like an accepted buy-back (pair backing conserved, fees recognised, the
+-- last leg split); only the owner's legs of that Window and side; the trail
+-- moves only in the owner's favour; every way an exit ends ends it once.
+module Test.Seat.Exit where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.Optional (fromSome, isNone)
+import PM.Leg
+import PM.Money
+import PM.Quote
+import PM.Seat.Exit
+import PM.Types
+import Test.Setup
+
+px : Int
+px = 6500000000000
+
+-- | An exit on `win` for `owner`'s `side`, expiring at the Window's lock.
+exitOf : World -> Win -> Party -> Side -> Int -> Int -> Optional Int -> Optional Stop -> RestingExit
+exitOf w win owner side lots floorTicks tp stop = RestingExit with
+  owner; venue = w.venue; exitRef = "x1"; termsCid = win.terms; marketId = win.t.marketId
+  outcome = side; lots; cashUnit = win.t.cashUnit; floorTicks; takeProfitTicks = tp; stop
+  expiresAt = win.t.lockAt
+
+trail : Int -> Int -> Optional Stop
+trail level bps = Some Stop with stopE8 = level; trailBps = Some bps
+
+arm : Party -> RestingExit -> Script (ContractId RestingExit)
+arm owner x = submit owner do createCmd x
+
+-- | Fill with a shard of exactly the proceeds for `lots` at `ticks`.
+fillWith : World -> ContractId RestingExit -> [ContractId Leg] -> Int -> Int -> Script (Either SubmitError ExitFill)
+fillWith w x legs ticks lots = do
+  sh <- shard w (max 1 (userStakeOf lots ticks 1))
+  trySubmit w.venue do exerciseCmd x RestExit_Fill with shardCid = sh; legCids = legs; fillLots = lots; priceTicks = ticks
+
+-- | Cash plus every leg's backing and fee: what was minted, whatever moved.
+moneyOf : World -> Script Int
+moneyOf w = do
+  cash <- query @VenueCash w.venue
+  legs <- query @Leg w.venue
+  pure (sum [c.amount | (_, c) <- cash] + sum [l.backingShare + l.feePaid | (_, l) <- legs])
+
+-- Two legs Up, a trailing stop over both: the venue ratchets it up, the stop
+-- hits, one fill sells both at the bid, the pair stays whole, fees recognised.
+testTrailFillsTheWholePosition = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u1, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  (u2, _) <- trade w win w.alice SideUp 640 50 20 "p2"
+  x <- arm w.alice (exitOf w win w.alice SideUp 150 600 None (trail (px - 100) 10))
+  x' <- submit w.venue do exerciseCmd x RestExit_Ratchet with newStopE8 = px + 50
+  Some r <- queryContractId w.alice x'
+  r.stop === trail (px + 50) 10
+  before <- moneyOf w
+  fill <- fillWith w x' [u1, u2] 650 150 >>= succeeded
+  length fill.venueLegs === 2
+  fill.kept === None
+  fill.remaining === None
+  Some paid <- queryContractId w.alice fill.paid
+  paid.amount === 150 * 650
+  paid.bucket === "sale"
+  Some fees <- queryContractId w.venue (fromSome fill.fees)
+  fees.amount === 60
+  mine <- query @Leg w.alice
+  [l | (_, l) <- mine, l.owner == w.alice] === []
+  gone <- queryContractId w.alice x'
+  assertMsg "the fill spends the exit" (isNone gone)
+  -- the only money added is the shard minted for the proceeds; nothing else was made or lost
+  after <- moneyOf w
+  after === before + 150 * 650
+  -- each pair is the venue's now and still sums to its quantity
+  vs <- query @Leg w.venue
+  forA_ ["p1", "p2"] \p -> do
+    let pair = [l | (_, l) <- vs, l.pairId == p]
+    sum [l.backingShare | l <- pair] === sum [quantityOf l.lots 1 | l <- pair, l.outcome == SideUp]
+  _ <- resolveAt w win op (px + 1)
+  pure ()
+
+-- A fill for fewer lots than held sells the legs in order and splits the
+-- last one; the owner's remainder settles like any leg; the rest of the
+-- exit keeps resting.
+testPartialExitSplitsTheLastLeg = script do
+  (w, win) <- mkWorldWin
+  op <- recordOpen w win px
+  (u1, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  (u2, _) <- trade w win w.alice SideUp 640 50 20 "p2"
+  x <- arm w.alice (exitOf w win w.alice SideUp 150 600 None (trail (px - 100) 10))
+  -- the venue's depth takes 120 now; 30 keep resting on the same terms
+  fill <- fillWith w x [u1, u2] 650 120 >>= succeeded
+  Some rest <- queryContractId w.alice (fromSome fill.remaining)
+  rest.lots === 30
+  rest.stop === trail (px - 100) 10
+  let kc = fromSome fill.kept
+  Some k <- queryContractId w.alice kc
+  k.lots === 30
+  k.pairId === "p2"
+  -- 20 of 50 sold: the venue's slice takes the ceiling of backing and fee
+  k.backingShare === 50 * 640 - 20 * 640
+  k.feePaid === 20 - 8
+  res <- resolveAt w win op (px + 1)
+  d <- disclosureOf w.venue res
+  (Some won, _) <- submit (actAs w.alice <> disclose d) do exerciseCmd kc Leg_Claim with resolutionCid = res
+  Some c <- queryContractId w.alice won
+  c.amount === 30 * 1000
+
+-- The floor holds whatever the trigger: below it the fill is refused.
+testFloorHolds = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail (px - 100) 10))
+  fillWith w x [u] 599 100 >>= refusedWith (refusal "below-floor")
+  _ <- fillWith w x [u] 600 100 >>= succeeded
+  pure ()
+
+-- A take-profit alone fills only at or above its price.
+testTakeProfitOnly = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 500 (Some 800) None)
+  fillWith w x [u] 799 100 >>= refusedWith (refusal "below-take-profit")
+  fill <- fillWith w x [u] 810 100 >>= succeeded
+  Some paid <- queryContractId w.alice fill.paid
+  paid.amount === 100 * 810
+
+-- A Down exit: the stop sits above the spot and ratchets down.
+testDownTrailRatchetsDown = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideDown 400 100 30 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideDown 100 380 None (trail (px + 100) 10))
+  submitMustFail w.venue do exerciseCmd x RestExit_Ratchet with newStopE8 = px + 200
+  x' <- submit w.venue do exerciseCmd x RestExit_Ratchet with newStopE8 = px + 40
+  _ <- fillWith w x' [u] 450 100 >>= succeeded
+  pure ()
+
+-- The trail moves only in the owner's favour, a fixed stop never, and only
+-- the venue moves it.
+testRatchetRules = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  _ <- trade w win w.alice SideUp 620 100 40 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail px 10))
+  trySubmit w.venue (exerciseCmd x RestExit_Ratchet with newStopE8 = px - 1) >>= refusedWith (refusal "not-in-favour")
+  trySubmit w.venue (exerciseCmd x RestExit_Ratchet with newStopE8 = px) >>= refusedWith (refusal "not-in-favour")
+  trySubmit w.alice (exerciseCmd x RestExit_Ratchet with newStopE8 = px + 1) >>= fails
+  fixed <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (Some Stop with stopE8 = px; trailBps = None))
+  trySubmit w.venue (exerciseCmd fixed RestExit_Ratchet with newStopE8 = px + 1) >>= refusedWith (refusal "not-trailing")
+
+-- An exit sells only its owner's legs of its own Window and side.
+testOnlyTheOwnersLegsOfThisWindowAndSide = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (ua, _) <- trade w win w.alice SideUp 620 100 40 "pa"
+  (ub, _) <- trade w win w.bob SideUp 620 100 40 "pb"
+  (ud, _) <- trade w win w.alice SideDown 380 100 40 "pd"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail (px - 100) 10))
+  fillWith w x [ub] 650 100 >>= refusedWith (refusal "leg-mismatch")
+  fillWith w x [ud] 650 100 >>= refusedWith (refusal "leg-mismatch")
+  fillWith w x [ua, ua] 650 100 >>= refusedWith (refusal "duplicate-leg")
+  fillWith w x [] 650 100 >>= refusedWith (refusal "no-legs")
+  fillWith w x [ua] 650 0 >>= refusedWith (refusal "bad-fill")
+  fillWith w x [ua] 650 101 >>= refusedWith (refusal "bad-fill")
+  _ <- fillWith w x [ua] 650 100 >>= succeeded
+  pure ()
+
+-- A private call is never sold through an exit.
+testPrivateLegsAreNotSold = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  now <- getTime
+  q <- issue w win w.alice SideUp 620 100 40 (plus now 20) "pp"
+  c <- submit (actAs [w.venue, w.alice]) do
+    createCmd VenueCash with venue = w.venue; owner = w.alice; amount = 100 * 620 + 40; bucket = "private"
+  (u, _, _) <- submit w.alice do exerciseCmd q Quote_Accept with cash = [c]; beneficiaryRef = Some "private"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail (px - 100) 10))
+  fillWith w x [u] 650 100 >>= refusedWith (refusal "private-leg")
+
+-- The owner arms alone, cancels alone; the venue cannot cancel or arm for
+-- them, and the owner cannot fill their own exit.
+testWhoMayDoWhat = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  trySubmit w.venue (createCmd (exitOf w win w.alice SideUp 100 600 None (trail px 10))) >>= unauthorized
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail px 10))
+  trySubmit w.venue (exerciseCmd x RestExit_Cancel) >>= fails
+  sh <- shard w (100 * 650)
+  trySubmit w.alice (exerciseCmd x RestExit_Fill with shardCid = sh; legCids = [u]; fillLots = 100; priceTicks = 650) >>= fails
+  trySubmit w.alice (exerciseCmd x (RestExit_Withdraw with reason = "mine")) >>= fails
+  submit w.alice do exerciseCmd x RestExit_Cancel
+  fillWith w x [u] 650 100 >>= fails
+
+-- An exit's own rules: a trigger, a floor on the grid, a take-profit at or
+-- above the floor, a sane trail.
+testExitShapes = script do
+  (w, win) <- mkWorldWin
+  let base = exitOf w win w.alice SideUp 100 600
+  trySubmit w.alice (createCmd (base None None)) >>= fails
+  trySubmit w.alice (createCmd (base (Some 599) None)) >>= fails
+  trySubmit w.alice (createCmd (base None (trail px 0))) >>= fails
+  trySubmit w.alice (createCmd (base None (trail px 5001))) >>= fails
+  trySubmit w.alice (createCmd (base None (trail 0 10))) >>= fails
+  trySubmit w.alice (createCmd ((base None (trail px 10)) with floorTicks = 1000)) >>= fails
+  trySubmit w.alice (createCmd ((base None (trail px 10)) with exitRef = "")) >>= fails
+  _ <- arm w.alice (base (Some 600) (trail px 5000))
+  pure ()
+
+-- Past `expiresAt` nothing fills or moves; only then does the venue sweep it.
+-- Any time, the venue may withdraw an exit it cannot fill, naming why.
+testExpiryAndWithdraw = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail px 10))
+  trySubmit w.venue (exerciseCmd x RestExit_Expire) >>= refusedWith deadlineNotExceeded
+  at (plus win.t.lockAt 1)
+  fillWith w x [u] 650 100 >>= refusedWith deadlineExceeded
+  trySubmit w.venue (exerciseCmd x RestExit_Ratchet with newStopE8 = px + 1) >>= refusedWith deadlineExceeded
+  submit w.venue do exerciseCmd x RestExit_Expire
+  y <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail px 10))
+  trySubmit w.venue (exerciseCmd y RestExit_Withdraw with reason = "") >>= refusedWith (refusal "no-reason")
+  submit w.venue do exerciseCmd y RestExit_Withdraw with reason = "window locked"
+
+-- A leg sold some other way first: the fill finds it gone, the venue
+-- withdraws the exit, and the owner's sale stands.
+testLegSoldElsewhereFirst = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  (u, _) <- trade w win w.alice SideUp 620 100 40 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail px 10))
+  sh <- shard w (100 * 640)
+  now <- getTime
+  (bq, _) <- submit w.venue do
+    exerciseCmd w.desk Desk_IssueBuyQuote with shardCid = sh; legCid = u; priceTicks = 640; validUntil = plus now 20; sellLots = None
+  _ <- submit w.alice do exerciseCmd bq BuyQuote_Accept
+  fillWith w x [u] 650 100 >>= fails
+  submit w.venue do exerciseCmd x RestExit_Withdraw with reason = "legs gone"
+
+-- Only the owner and the venue see an exit.
+testExitIsPrivate = script do
+  (w, win) <- mkWorldWin
+  _ <- recordOpen w win px
+  _ <- trade w win w.alice SideUp 620 100 40 "p1"
+  x <- arm w.alice (exitOf w win w.alice SideUp 100 600 None (trail px 10))
+  forA_ [w.bob, w.outsider, w.resolver, w.auditor, w.o1] \p -> do
+    seen <- queryContractId p x
+    assertMsg "a third party sees no exit" (isNone seen)
+  Some _ <- queryContractId w.venue x
+  pure ()

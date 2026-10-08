@@ -15,8 +15,9 @@ import { resetDemo, setMode, useModeState, type TradeMode } from "../../mode";
 import { MUSIC_TRACKS, setTradeSettings, SLIPPAGE_CHOICES_BPS, useTradeSettings } from "../../settings";
 import { episodeFor, replayable, useEpisodes, type Episode } from "../../replay";
 import { toast } from "../../toasts";
+import { SendPanel, useIncomingCount } from "./SendPanel";
 
-export type AccountView = "menu" | "settings" | "history";
+export type AccountView = "menu" | "settings" | "history" | "send";
 const tap = () => (playTrade("tap"), haptic("tap"));
 
 export interface HistoryRow {
@@ -127,7 +128,8 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
   const session = useWalletSession();
   const settings = useTradeSettings();
   const history = useHistoryRows(mode);
-  const title = view === "settings" ? "Settings" : view === "history" ? "Trade history" : "Account";
+  const incoming = useIncomingCount();
+  const title = view === "settings" ? "Settings" : view === "history" ? "Trade history" : view === "send" ? "Send credits" : "Account";
 
   return (
     <>
@@ -166,7 +168,7 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
                 [
                   [ArrowDownToLine, "Add funds", () => (mode === "demo" ? toast({ kind: "info", title: "Demo uses a simulated balance", description: "Reset it anytime from this sheet." }) : setFunds(true))],
                   [ArrowUpFromLine, "Withdraw", () => toast({ kind: "info", title: "Withdrawals come with the Canton Coin rail", description: "Seats hold demo credits on DevNet today." })],
-                  [ArrowLeftRight, "Transfer", () => (window.location.href = "/portfolio")],
+                  [ArrowLeftRight, incoming > 0 ? `Transfer · ${incoming}` : "Transfer", () => (mode === "demo" ? toast({ kind: "info", title: "Sending credits needs a live seat", description: "Switch Demo mode off in Settings." }) : setView("send"))],
                   [History, "History", () => setView("history")],
                 ] as const
               ).map(([Icon, label, act]) => (
@@ -197,6 +199,8 @@ export function AccountSheet({ open, onClose, initialView, mode, equity, todayPn
               </button>
             ) : null}
           </div>
+        ) : view === "send" ? (
+          <SendPanel />
         ) : view === "settings" ? (
           <div className="flex flex-col gap-4">
             <Group title="MODE">

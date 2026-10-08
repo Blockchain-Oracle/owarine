@@ -2,9 +2,9 @@
 
 import { TICKERS } from "@owarine/core/market";
 import { isOk } from "@owarine/core/schemas";
-import type { MarketId, OpenPosition, Side } from "@owarine/core/types";
+import type { MarketId } from "@owarine/core/types";
 import { marketsProvider } from "@owarine/markets";
-import { ladderSpotSymbol, useBalanceSheet, useOpeningPrice, usePositions, useStakeQuote, type LivePnlView } from "@owarine/markets/react";
+import { ladderSpotSymbol, useBalanceSheet, useOpeningPrice, useStakeQuote, type LivePnlView } from "@owarine/markets/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Sheet } from "@/components/kit";
@@ -14,7 +14,6 @@ import { useWalletSession } from "@/lib/wallet-session";
 import { LiveChart, type ChartHandle } from "./chart/LiveChart";
 import { useChartFeedback } from "./useChartFeedback";
 import { ChartControls } from "./ui/ChartControls";
-import { entryOf, useEntries } from "./entries";
 import { money, multipleOf } from "./format";
 import { breakEvenSpot, useCommittedSpot, useLiveBook, useWatchedLadder } from "./live";
 import { settlePaper, useModeState, type TradeMode } from "./mode";
@@ -29,7 +28,8 @@ import { ReactionOverlay } from "./ui/ReactionOverlay";
 import { TerminalNav } from "./ui/TerminalNav";
 import { TerminalSheets, type SheetName } from "./ui/TerminalSheets";
 import { TradeButtons } from "./ui/TradeButtons";
-import { ratchet, setTrail, trailEligible, trailHit, useTerminalTrade, type TerminalPosition } from "./useTerminalTrade";
+import { trailEligible, useTerminalTrade, type TerminalPosition } from "./useTerminalTrade";
+import { useTabTrail, useTerminalPositions } from "./terminal-positions";
 import { lanesFor, useTerminalWindow } from "./useTerminalWindow";
 import "./terminal.css";
 
@@ -148,31 +148,8 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const downQuote = useStakeQuote({ target, side: "down", stakeBase, enabled: windowState === "trading" });
   const quotes = { up: upQuote && isOk(upQuote) ? upQuote.value : null, down: downQuote && isOk(downQuote) ? downQuote.value : null };
 
-  // Positions: paper in demo, the seat's legs in live; both valued by the same live exit math.
-  const seatPositions = usePositions(mode === "live" ? address : null);
-  const entries = useEntries();
-  const positions: TerminalPosition[] = useMemo(() => {
-    if (mode === "demo") {
-      return modeState.positions.map((p) => ({
-        id: p.id, mode: "demo" as const, marketId: p.marketId, asset: p.asset, spotSymbol: p.spotSymbol, intervalSec: p.intervalSec, side: p.side,
-        balanceUpRaw: p.side === "up" ? BigInt(p.contractsRaw) : 0n, balanceDownRaw: p.side === "down" ? BigInt(p.contractsRaw) : 0n, costBasisBase: BigInt(p.costBase),
-        decimals: CREDIT_DECIMALS, entrySpot: p.entrySpot || null, linePrice: p.linePrice, openedAtMs: p.openedAtMs, expirySec: p.expirySec, trailStop: p.trail?.stop ?? null, paper: p,
-      }));
-    }
-    const rows: OpenPosition[] = seatPositions && isOk(seatPositions) ? seatPositions.value : [];
-    return rows
-      .filter((r) => r.balanceUpRaw > 0n || r.balanceDownRaw > 0n)
-      .map((r) => {
-        const side: Side = r.balanceUpRaw >= r.balanceDownRaw ? "up" : "down";
-        const e = entryOf(entries, r.marketId, side);
-        const isActive = r.marketId === market?.marketId;
-        return {
-          id: `s:${r.marketId}`, mode: "live" as const, marketId: r.marketId, asset: r.asset, spotSymbol: r.asset, intervalSec: r.intervalSec, side, balanceUpRaw: r.balanceUpRaw,
-          balanceDownRaw: r.balanceDownRaw, costBasisBase: r.costBasisBase, decimals: r.decimals, entrySpot: e?.spot || null, linePrice: isActive ? linePrice : null,
-          openedAtMs: e?.atMs ?? 0, expirySec: r.expirySec, trailStop: e?.trailStop ?? null, paper: null,
-        };
-      });
-  }, [mode, modeState.positions, seatPositions, entries, market?.marketId, linePrice]);
+  // Positions: paper in demo, the seat's legs in live (with their resting exits, R2); both valued by the same live exit math.
+  const { positions, seatPkg } = useTerminalPositions({ mode, paper: modeState.positions, address, activeMarketId: market?.marketId ?? null, linePrice });
   const book = useLiveBook(positions);
   useReplayRecorder(positions, book);
   useAppUpdate();
@@ -189,7 +166,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
 
   const trade = useTerminalTrade({
     mode, market, spot, stakeBase, availableBase: cashBase, quotes, slippageBps: settings.slippageBps, linePrice,
-    onNeedSeat: () => session.connect(),
+    onNeedSeat: () => session.connect(), ledgerExits: seatPkg.deployed, onExitsChanged: () => void seatPkg.refresh(),
   });
 
   // Break-even (Trail's reference and the B/E line) for the position on screen.
@@ -197,23 +174,8 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   const trailRef = breakEven ?? active?.entrySpot ?? null;
   const canTrail = active ? trailEligible(active.side, spot, trailRef, settings.trailPct) : false;
 
-  // Trail: ratchet on every committed price, close when hit.
-  const closeRef = useRef(trade.close);
-  closeRef.current = trade.close;
-  useEffect(() => {
-    if (spot === null) return;
-    for (const p of positions) {
-      if (p.trailStop === null || p.spotSymbol !== spotSymbol) continue;
-      if (trailHit(p.side, p.trailStop, spot)) {
-        void closeRef.current(p, book.get(p.id) ?? null, "trail");
-        continue;
-      }
-      const next = ratchet(p.side, p.trailStop, spot, settings.trailPct);
-      if (next !== p.trailStop) setTrail(p, next);
-    }
-    // Runs on committed prices only (5 Hz), as the reference's trail effect does.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spot]);
+  // Trail: ratchet on every committed price, close when hit (a ledger trail only follows; the venue sells it).
+  useTabTrail({ positions, spot, spotSymbol, trailPct: settings.trailPct, close: trade.close, book });
 
   // Demo positions still open at their Window's close settle on the real resolution.
   useEffect(() => {
@@ -265,10 +227,11 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
   ) : active ? (
     <TradeButtons
       mode="open"
-      trailActive={active.trailStop !== null}
+      trailActive={active.mode === "live" && seatPkg.deployed ? active.exit?.stop?.trailBps != null : active.trailStop !== null}
       trailEligible={canTrail}
       trailPct={settings.trailPct}
       onTrail={() => trade.toggleTrail(active, trailRef, settings.trailPct)}
+      trailOnLedger={active.mode === "live" && seatPkg.deployed}
       onClose={() => void trade.close(active, activeLive)}
       busy={trade.busy === "close" || trade.busy === "trail" ? trade.busy : null}
       lockedText={lockedText}
@@ -325,9 +288,11 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
       closingAll={closingAll}
       onCloseAll={() => void closeAll()}
       onPickSymbol={(s) => router.push(`/trade/${s}`)}
-      onAdd={(p, add) => void trade.open(p.side, add)}
+      onAdd={(p, add) => void trade.open(p.side, { ...add, exit: p.exit })}
       onReduce={(p, contracts) => void trade.close(p, book.get(p.id) ?? null, "close", contracts)}
       onTakeSeat={() => session.connect()}
+      ledgerExits={seatPkg.deployed}
+      onExitsChanged={() => void seatPkg.refresh()}
       parlays={parlay.parlays}
       marks={parlay.marks}
     />
@@ -353,7 +318,7 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
           <UnrealizedCard totals={shownTotals} count={positions.length + parlay.parlays.length} closable={positions.length} onCloseAll={() => void closeAll()} closingAll={closingAll} />
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
             {parlay.on && positions.length + parlay.parlays.length === 0 ? null : (
-              <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={(p) => openSheet("share", p)} onAdd={(p) => openSheet("add", p)} onReduce={(p) => openSheet("reduce", p)} parlays={parlay.parlays} marks={parlay.marks} />
+              <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={(p) => openSheet("share", p)} onAdd={(p) => openSheet("add", p)} onReduce={(p) => openSheet("reduce", p)} onExits={mode === "live" && seatPkg.deployed ? (p) => openSheet("exits", p) : undefined} parlays={parlay.parlays} marks={parlay.marks} />
             )}
             {parlay.on ? <div className="shrink-0">{parlay.slip}</div> : null}
           </div>
@@ -397,3 +362,4 @@ export function TerminalScreen({ symbol }: { symbol: string }) {
 const cadenceWord = (sec: number) => (sec % 3600 === 0 ? `${sec / 3600}h` : `${Math.round(sec / 60)}m`);
 
 export type { LivePnlView };
+

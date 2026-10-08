@@ -79,9 +79,10 @@ export interface RepoDar {
 
 /**
  * The DevNet release set, in upload order (`devnet-r1.md` step 5). Only these go to Noders.
- * `abu-pm-cc` (the Canton Coin rail) rides with R1 so one Console session uploads everything (K-249).
+ * `abu-pm-cc` (the Canton Coin rail) rides with R1 so one Console session uploads everything (K-249). `abu-pm-seat` is R2
+ * (revamp step 4: the resting exit and credit transfers), uploaded after them.
  */
-export const RELEASE_PACKAGES = ["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games", "abu-pm-cc"] as const;
+export const RELEASE_PACKAGES = ["abu-pm-main", "abu-pm-tickets", "abu-pm-agents", "abu-pm-games", "abu-pm-cc", "abu-pm-seat"] as const;
 
 /**
  * The release set's packages at the versions their `daml.yaml` names, main first. The DAR is looked up in

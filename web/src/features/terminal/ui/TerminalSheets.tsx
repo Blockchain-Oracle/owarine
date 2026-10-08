@@ -17,9 +17,10 @@ import type { ParlayMark } from "../parlay/ParlayRow";
 import type { ScreenParlay } from "../parlay/useParlays";
 import { useState } from "react";
 import { SettingsSheet } from "./sheets/SettingsSheet";
+import { ExitSheet } from "./sheets/ExitSheet";
 import { Tutorial } from "./sheets/Tutorial";
 
-export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "leaderboard" | "install" | "tutorial" | "parlay";
+export type SheetName = "markets" | "settings" | "account" | "history" | "account-settings" | "positions" | "add" | "reduce" | "share" | "replay" | "leaderboard" | "install" | "tutorial" | "parlay" | "exits";
 
 const DAY_MS = 86_400_000;
 
@@ -52,6 +53,9 @@ export function TerminalSheets(props: {
   onAdd: (p: TerminalPosition, add: { stakeBase: bigint; quote: Quote | null }) => void;
   onReduce: (p: TerminalPosition, contractsRaw: bigint) => void;
   onTakeSeat: () => void;
+  /** R2: the seat's resting exits are on the ledger (TP / SL offered on a live position). */
+  ledgerExits: boolean;
+  onExitsChanged: () => void;
   parlays?: readonly ScreenParlay[];
   marks?: ReadonlyMap<string, ParlayMark>;
 }) {
@@ -118,6 +122,7 @@ export function TerminalSheets(props: {
         onShare={(p) => onOpen("share", p)}
         onAdd={(p) => onOpen("add", p)}
         onReduce={(p) => onOpen("reduce", p)}
+        onExits={props.ledgerExits && mode === "live" ? (p) => onOpen("exits", p) : undefined}
         onCloseAll={props.onCloseAll}
         closingAll={props.closingAll}
         parlays={props.parlays}
@@ -135,6 +140,7 @@ export function TerminalSheets(props: {
         onAdd={props.onAdd}
         onReduce={props.onReduce}
       />
+      <ExitSheet open={open === "exits"} onClose={onClose} position={fresh} spot={props.spot} onChanged={props.onExitsChanged} />
       <ShareSheet open={open === "share"} onClose={onClose} subject={shareSubject} />
       <Tutorial
         open={open === "tutorial"}

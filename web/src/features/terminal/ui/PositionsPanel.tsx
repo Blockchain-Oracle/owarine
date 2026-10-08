@@ -75,7 +75,7 @@ export function UnrealizedCard({ totals, count, closable = count, onCloseAll, cl
 }
 
 export function PositionsList({
-  positions, book, nowSec, onShare, onAdd, onReduce, parlays = [], marks,
+  positions, book, nowSec, onShare, onAdd, onReduce, onExits, parlays = [], marks,
 }: {
   positions: readonly TerminalPosition[];
   book: ReadonlyMap<string, LivePnlView>;
@@ -83,6 +83,8 @@ export function PositionsList({
   onShare: (p: TerminalPosition) => void;
   onAdd: (p: TerminalPosition) => void;
   onReduce: (p: TerminalPosition) => void;
+  /** R2: the position's TP / SL sheet (a live seat once the seat package is on the ledger). */
+  onExits?: (p: TerminalPosition) => void;
   /** Open parlays (plan 2c), each with its mark at fair value. */
   parlays?: readonly ScreenParlay[];
   marks?: ReadonlyMap<string, ParlayMark>;
@@ -103,13 +105,13 @@ export function PositionsList({
         return mark ? <ParlayRow key={p.id} p={p} mark={mark} nowSec={nowSec} /> : null;
       })}
       {positions.map((p) => (
-        <PositionRow key={p.id} p={p} live={book.get(p.id) ?? null} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} />
+        <PositionRow key={p.id} p={p} live={book.get(p.id) ?? null} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} onExits={onExits} />
       ))}
     </div>
   );
 }
 
-function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: TerminalPosition; live: LivePnlView | null; nowSec: number; onShare: (p: TerminalPosition) => void; onAdd: (p: TerminalPosition) => void; onReduce: (p: TerminalPosition) => void }) {
+function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce, onExits }: { p: TerminalPosition; live: LivePnlView | null; nowSec: number; onShare: (p: TerminalPosition) => void; onAdd: (p: TerminalPosition) => void; onReduce: (p: TerminalPosition) => void; onExits?: (p: TerminalPosition) => void }) {
   const [open, setOpen] = useState(false);
   const cost = num(p.costBasisBase, p.decimals);
   const priced = live !== null && live.fillableLots > 0n;
@@ -167,6 +169,7 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
               <Row k="Line" v={<span className="text-ow-down">{p.linePrice ? `$${formatPrice(p.linePrice)}` : "—"}</span>} />
               <Row k="Staked" v={cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} />
               <Row k="Settles" v={`${clockText(p.expirySec)}${p.expirySec > nowSec ? "" : " · settling"}`} />
+              {p.exit ? <Row k="Exit" v={exitWords(p)} /> : null}
             </dl>
             <div className="grid grid-cols-2 gap-2 px-3 pb-3">
               <button type="button" disabled={locked} onClick={() => onAdd(p)} className="ow-up-soft flex h-9 items-center justify-center gap-1 rounded-full text-ow-caption font-bold disabled:opacity-40">
@@ -175,6 +178,11 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
               <button type="button" disabled={locked} onClick={() => onReduce(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
                 <Minus className="size-4" /> Reduce
               </button>
+              {onExits && p.mode === "live" ? (
+                <button type="button" disabled={locked} onClick={() => onExits(p)} className="flex h-9 items-center justify-center gap-1 rounded-full bg-ow-recessed text-ow-caption font-bold disabled:opacity-40">
+                  {p.exit && (p.exit.takeProfitTicks !== null || (p.exit.stop && p.exit.stop.trailBps === null)) ? "Edit TP / SL" : "TP / SL"}
+                </button>
+              ) : null}
               {p.mode === "live" ? <PublishToggle marketId={p.marketId} /> : null}
             </div>
           </motion.div>
@@ -182,6 +190,15 @@ function PositionRow({ p, live, nowSec, onShare, onAdd, onReduce }: { p: Termina
       </AnimatePresence>
     </div>
   );
+}
+
+/** What the position's resting exit will do, in a few words. */
+function exitWords(p: TerminalPosition): string {
+  const x = p.exit!;
+  const parts: string[] = [];
+  if (x.stop) parts.push(`${x.stop.trailBps !== null ? "trail" : "stop"} $${formatPrice(Number(x.stop.stopE8) / 1e8)}`);
+  if (x.takeProfitTicks !== null) parts.push(`take ${(x.takeProfitTicks / 10).toFixed(1)}¢`);
+  return parts.join(" · ");
 }
 
 function Row({ k, v }: { k: string; v: React.ReactNode }) {

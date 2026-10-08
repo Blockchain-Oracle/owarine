@@ -16,6 +16,7 @@ export * from "./writes";
 export { exactCash, type ExactCashDeps } from "./exact-cash";
 export { seatReceiptFor, type SeatReceiptRef } from "./private-seat";
 export * from "./rest-writes";
+export * from "./seat-pkg";
 export * from "./publish";
 export * from "../provider/ticket-wire";
 export * from "./tickets";

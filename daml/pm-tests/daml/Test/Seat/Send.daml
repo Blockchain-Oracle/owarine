@@ -1,0 +1,121 @@
+-- | Sending credits between seats (abu-pm-seat 0.1.0, R2): the sender's own
+-- cash goes into an offer through the venue's disclosed desk; the receiver
+-- accepts or rejects alone; the sender withdraws alone; credits move and none
+-- are made; only the two seats and the venue see it.
+module Test.Seat.Send where
+
+import Daml.Script
+import DA.Assert ((===))
+import DA.Foldable (forA_)
+import DA.Optional (isNone)
+import qualified DA.Text as T
+import PM.Money
+import PM.Seat.Send
+import Test.Setup
+
+mkDesk : World -> Script (ContractId TransferDesk, Disclosure)
+mkDesk w = do
+  d <- submit w.venue do createCmd TransferDesk with venue = w.venue
+  b <- disclosureOf w.venue d
+  pure (d, b)
+
+sendFrom : World -> (ContractId TransferDesk, Disclosure) -> Party -> Party -> [ContractId VenueCash] -> Int -> Text
+  -> Script (Either SubmitError (ContractId CashTransferOffer, Optional (ContractId VenueCash)))
+sendFrom w (d, b) sender receiver cash amount memo =
+  trySubmit (actAs sender <> disclose b) do
+    exerciseCmd d TransferDesk_Offer with sender; receiver; cash; amount; memo
+
+totalCash : World -> Script Int
+totalCash w = do
+  cs <- query @VenueCash w.venue
+  offers <- query @CashTransferOffer w.venue
+  pure (sum [c.amount | (_, c) <- cs] + sum [o.amount | (_, o) <- offers])
+
+testSendAndAccept = script do
+  w <- mkWorld
+  desk <- mkDesk w
+  c <- fund w w.alice 1000
+  before <- totalCash w
+  (offer, change) <- sendFrom w desk w.alice w.bob [c] 300 "pizza" >>= succeeded
+  cashOf w.alice >>= (=== 700)
+  cashOf w.bob >>= (=== 0)
+  Some o <- queryContractId w.bob offer
+  o.memo === "pizza"
+  o.sender === w.alice
+  totalCash w >>= (=== before)
+  got <- submit w.bob do exerciseCmd offer Offer_Accept
+  Some g <- queryContractId w.bob got
+  g.amount === 300
+  g.bucket === "transfer"
+  cashOf w.bob >>= (=== 300)
+  -- the received credits spend like any other: bob sends some on
+  (back, _) <- sendFrom w desk w.bob w.alice [got] 100 "" >>= succeeded
+  _ <- submit w.alice do exerciseCmd back Offer_Accept
+  cashOf w.alice >>= (=== 800)
+  totalCash w >>= (=== before)
+  assertMsg "change came back" (change /= None)
+
+testRejectAndWithdrawGiveItBack = script do
+  w <- mkWorld
+  desk <- mkDesk w
+  c <- fund w w.alice 500
+  (o1, _) <- sendFrom w desk w.alice w.bob [c] 500 "" >>= succeeded
+  cashOf w.alice >>= (=== 0)
+  r <- submit w.bob do exerciseCmd o1 Offer_Reject
+  Some rc <- queryContractId w.alice r
+  rc.bucket === "transfer-back"
+  cashOf w.alice >>= (=== 500)
+  (o2, _) <- sendFrom w desk w.alice w.bob [r] 200 "" >>= succeeded
+  _ <- submit w.alice do exerciseCmd o2 Offer_Withdraw
+  cashOf w.alice >>= (=== 500)
+  cashOf w.bob >>= (=== 0)
+
+testSendRules = script do
+  w <- mkWorld
+  desk <- mkDesk w
+  c <- fund w w.alice 100
+  sendFrom w desk w.alice w.alice [c] 10 "" >>= refusedWith (refusal "bad-receiver")
+  sendFrom w desk w.alice w.venue [c] 10 "" >>= refusedWith (refusal "bad-receiver")
+  sendFrom w desk w.alice w.bob [c] 0 "" >>= refusedWith (refusal "bad-amount")
+  sendFrom w desk w.alice w.bob [c] 101 "" >>= refusedWith (refusal "insufficient-cash")
+  sendFrom w desk w.alice w.bob [c] 10 (T.implode (replicate 141 "x")) >>= refusedWith (refusal "memo-too-long")
+  sendFrom w desk w.alice w.bob [c, c] 10 "" >>= refusedWith (refusal "duplicate-cash")
+  -- someone else's cash, even with the desk disclosed
+  b <- fund w w.bob 100
+  sendFrom w desk w.alice w.outsider [b] 10 "" >>= fails
+  -- private credits stay put
+  p <- submit (actAs [w.venue, w.alice]) do
+    createCmd VenueCash with venue = w.venue; owner = w.alice; amount = 50; bucket = "private"
+  sendFrom w desk w.alice w.bob [p] 10 "" >>= refusedWith (refusal "private-cash")
+  -- without the desk disclosed the sender cannot reach it
+  let (d, _) = desk
+  trySubmit w.alice (exerciseCmd d TransferDesk_Offer with sender = w.alice; receiver = w.bob; cash = [c]; amount = 10; memo = "") >>= fails
+  -- nor send as someone else
+  trySubmit (actAs w.alice <> disclose (snd desk)) (exerciseCmd d TransferDesk_Offer with sender = w.bob; receiver = w.alice; cash = [b]; amount = 10; memo = "") >>= unauthorized
+  _ <- sendFrom w desk w.alice w.bob [c] 100 (T.implode (replicate 140 "x")) >>= succeeded
+  pure ()
+
+testWhoMayEndAnOffer = script do
+  w <- mkWorld
+  desk <- mkDesk w
+  c <- fund w w.alice 100
+  (o, _) <- sendFrom w desk w.alice w.bob [c] 100 "" >>= succeeded
+  trySubmit w.alice (exerciseCmd o Offer_Accept) >>= fails
+  trySubmit w.alice (exerciseCmd o Offer_Reject) >>= fails
+  trySubmit w.bob (exerciseCmd o Offer_Withdraw) >>= fails
+  trySubmit w.outsider (exerciseCmd o Offer_Accept) >>= fails
+  trySubmit w.venue (exerciseCmd o Offer_Accept) >>= fails
+  _ <- submit w.bob do exerciseCmd o Offer_Accept
+  trySubmit w.alice (exerciseCmd o Offer_Withdraw) >>= fails
+
+testOfferIsPrivate = script do
+  w <- mkWorld
+  desk <- mkDesk w
+  c <- fund w w.alice 100
+  (o, _) <- sendFrom w desk w.alice w.bob [c] 100 "" >>= succeeded
+  forA_ [w.outsider, w.resolver, w.auditor, w.o1] \p -> do
+    seen <- queryContractId p o
+    assertMsg "a third party sees no offer" (isNone seen)
+  Some _ <- queryContractId w.venue o
+  Some _ <- queryContractId w.bob o
+  pure ()

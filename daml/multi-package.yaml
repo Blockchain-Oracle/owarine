@@ -6,3 +6,4 @@ packages:
 - ./abu-pm-games
 - ./abu-pm-agents
 - ./abu-pm-cc
+- ./abu-pm-seat

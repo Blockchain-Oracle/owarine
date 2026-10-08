@@ -8,6 +8,7 @@ import type { TermsView } from "./contracts";
 import { balanceSheet, busyUntilMs, claimables, claimPlans, openPositions, openQuotes, type OpenQuoteRow } from "./map";
 import { createMarketReader, createSeatReader, type MarketReader, type SeatReader, type SeatSnapshot } from "./reads";
 import { createRestWriter, type RestWriter } from "./rest-writes";
+import { createSeatPkgReader, createSeatPkgWriter, type SeatPkgReader, type SeatPkgWriter } from "./seat-pkg";
 import { createSeatWriter, seatCommandKit, type CommandJournal, type SeatWriter } from "./writes";
 
 export interface SeatLedgerConfig {
@@ -35,6 +36,9 @@ export interface SeatLedger {
   readonly seats: SeatReader;
   readonly markets: MarketReader;
   readonly writer: SeatWriter & RestWriter;
+  /** R2 (abu-pm-seat): the seat's resting exits and credit transfers; reads answer `deployed: false` before the upload. */
+  readonly seatPkg: SeatPkgReader;
+  readonly seatPkgWriter: SeatPkgWriter;
   readonly client: LedgerClient;
   balance(party: Party): Promise<SeatRead<BalanceSheet>>;
   positions(party: Party): Promise<SeatRead<OpenPosition[]>>;
@@ -52,6 +56,8 @@ export function createSeatLedger(cfg: SeatLedgerConfig): SeatLedger {
   const kit = seatCommandKit(writerDeps);
   // The seat's commands: the order, exit and claim writers, and (C7c) the resting call's place and cancel.
   const writer = { ...createSeatWriter(writerDeps, kit), ...createRestWriter(writerDeps, kit) };
+  const seatPkg = createSeatPkgReader(cfg.client, cfg.venueParty, { now });
+  const seatPkgWriter = createSeatPkgWriter({ seats, markets, pkg: seatPkg, journal: cfg.journal, venueParty: cfg.venueParty, now }, kit);
 
   const wrap = <T>(snap: SeatSnapshot, value: T): SeatRead<T> => ({
     value,
@@ -74,6 +80,8 @@ export function createSeatLedger(cfg: SeatLedgerConfig): SeatLedger {
     seats,
     markets,
     writer,
+    seatPkg,
+    seatPkgWriter,
     client: cfg.client,
     termsFor,
     async balance(party) {

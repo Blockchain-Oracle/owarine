@@ -10,7 +10,7 @@ import { LedgerError } from "@owarine/ledger";
 import { ReadingError } from "../errors/reading-error";
 
 /** Which seat action failed: a submit's outcome can be unknown, a read's never is. */
-export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote" | "rest" | "rest-cancel" | "ccdeposit" | "ccwithdraw" | "cctap" | "ccreceive";
+export type SeatStep = "accept" | "sell" | "claim" | "refund" | "read" | "quote" | "rest" | "rest-cancel" | "ccdeposit" | "ccwithdraw" | "cctap" | "ccreceive" | "exit" | "exit-cancel" | "send" | "send-end";
 
 export interface RejectionContext {
   step: SeatStep;
@@ -127,6 +127,17 @@ const BY_ERROR_ID: Record<string, DiagnosisKind> = {
   "abu-pm/already-scored": "already-claimed",
   "abu-pm/cards-outstanding": "not-settled",
   "abu-pm/no-pick": "not-settled",
+  // R2 (abu-pm-seat): the resting exit and credit transfers. A seat's own writes meet only the transfer's checks; the
+  // exit's fill-side ids reach a seat through the Close route's answer.
+  "abu-pm/below-take-profit": "outside-band",
+  "abu-pm/no-legs": "contract-revert",
+  "abu-pm/private-leg": "contract-revert",
+  "abu-pm/not-in-favour": "contract-revert",
+  "abu-pm/not-trailing": "contract-revert",
+  "abu-pm/no-reason": "contract-revert",
+  "abu-pm/bad-receiver": "contract-revert",
+  "abu-pm/memo-too-long": "invalid-price",
+  "abu-pm/private-cash": "contract-revert",
 };
 
 const NOT_DEPLOYED_CODES = new Set(["PACKAGE_NAMES_NOT_FOUND", "PACKAGE_NOT_FOUND", "TEMPLATES_OR_INTERFACES_NOT_FOUND", "NO_TEMPLATES_OR_INTERFACES_FOR_PACKAGE_NAME"]);
@@ -141,7 +152,8 @@ export function missingContractId(error: LedgerError): string | null {
   return inactive ?? null;
 }
 
-const isSubmit = (step: SeatStep) => step === "accept" || step === "sell" || step === "claim" || step === "refund" || step === "rest" || step === "rest-cancel";
+const isSubmit = (step: SeatStep) =>
+  step === "accept" || step === "sell" || step === "claim" || step === "refund" || step === "rest" || step === "rest-cancel" || step === "exit" || step === "exit-cancel" || step === "send" || step === "send-end";
 
 /**
  * What a client is told about a ledger failure (C4d M4): the error's name, a short error reference and the participant's
@@ -172,6 +184,9 @@ function contractGone(error: LedgerError, ctx: RejectionContext): DiagnosisKind 
     return cid === null || cid === ctx.offerCid ? "order-expired" : "contract-revert";
   }
   if (ctx.step === "rest-cancel") return cid === null || ctx.callCids?.includes(cid) ? "order-expired" : "contract-revert";
+  // R2: cash spent by another tab between the read and the send; an exit or offer gone first ended some other way.
+  if (ctx.step === "send") return cid !== null && ctx.cashCids?.includes(cid) ? "insufficient-collateral" : "contract-revert";
+  if (ctx.step === "exit" || ctx.step === "exit-cancel" || ctx.step === "send-end") return "order-expired";
   if (ctx.step === "sell") {
     // The buy-back is gone (swept, superseded) or no id was named: the held price lapsed. A leg gone first was settled or claimed.
     if (cid === null || ctx.buyQuoteCids?.includes(cid)) return "order-expired";

@@ -12,6 +12,7 @@ data-dependencies:
   - ../abu-pm-games/.daml/dist/abu-pm-games-0.1.2.dar
   - ../abu-pm-agents/.daml/dist/abu-pm-agents-0.2.2.dar
   - ../abu-pm-cc/.daml/dist/abu-pm-cc-0.1.1.dar
+  - ../abu-pm-seat/.daml/dist/abu-pm-seat-0.1.0.dar
   # The token standard's own mock registry (Token, TokenRules) and the CIP-0056
   # V1 interfaces it carries, byte for byte (daml/vendor/splice/README.md).
   - ../vendor/splice/splice-api-token-metadata-v1-1.0.0.dar

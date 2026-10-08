@@ -34,12 +34,23 @@ export const OPS_SEAT_FUND_PATH = "/internal/seats/fund";
 export const OPS_EXIT_QUOTES_PATH = "/internal/exit-quotes";
 /** C7c: the venue's offer to hold a pre-open resting call (`RestDesk_Offer`), checked post-only against the Window. */
 export const OPS_RESTING_OFFERS_PATH = "/internal/resting-offers";
+/** R2: the seat's Close on a position whose resting exit is armed: the venue fills that exit now (`RestExit_Fill`). */
+export const OPS_EXIT_CLOSE_PATH = "/internal/exits/close";
 /** C8f: create a seat's missing standing offers for agents (grant desk, subscriber invitation, creator licence, desk offer). */
 export const OPS_AGENTS_ENROL_PATH = "/internal/agents/enrol";
 /** The ticket desk (C8c): `range`, `parlay`, `boost`, `earn` and `state` under this prefix. */
 export const OPS_TICKETS_PREFIX = "/internal/tickets/";
 /** The arena desk (C9b): `state`, `match`, `season`, `open`, and the admin's `season/distribute` and `season/withdraw`, under this prefix. */
 export const OPS_GAMES_PREFIX = "/internal/games/";
+
+/** What ops answers a seat's Close on an armed exit. */
+export const exitCloseReplyWire = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("closed"), lots: z.string(), priceTicks: z.number(), proceedsBase: z.string(), updateId: z.string() }),
+  z.object({ kind: z.literal("requote"), why: z.string() }),
+  z.object({ kind: z.literal("refused"), why: z.string() }),
+  z.object({ kind: z.literal("gone"), why: z.string() }),
+]);
+export type ExitCloseReply = z.infer<typeof exitCloseReplyWire>;
 
 const TICKET_REPLIES = { range: rangeTicketReplyWire, parlay: parlayTicketReplyWire, boost: boostTicketReplyWire, earn: earnReplyWire } as const;
 export type TicketDeskProduct = keyof typeof TICKET_REPLIES;
@@ -127,7 +138,7 @@ export function createOpsClient(cfg: OpsClientConfig) {
   const now = cfg.now ?? Date.now;
   const base = cfg.baseUrl.replace(/\/$/, "");
 
-  async function post(path: string, payload: unknown): Promise<{ ok: true; json: unknown } | { ok: false; diagnosis: Diagnosis }> {
+  async function post(path: string, payload: unknown, timeoutMs?: number): Promise<{ ok: true; json: unknown } | { ok: false; diagnosis: Diagnosis }> {
     const body = JSON.stringify(toWire(payload));
     const ts = now();
     const nonce = opsNonce();
@@ -137,7 +148,7 @@ export function createOpsClient(cfg: OpsClientConfig) {
         method: "POST",
         headers: { "content-type": "application/json", accept: "application/json", [OPS_TS_HEADER]: String(ts), [OPS_NONCE_HEADER]: nonce, [OPS_SIG_HEADER]: opsSignature(cfg.secret, ts, nonce, "POST", path, body) },
         body,
-        signal: AbortSignal.timeout(cfg.timeoutMs ?? 10_000),
+        signal: AbortSignal.timeout(timeoutMs ?? cfg.timeoutMs ?? 10_000),
         cache: "no-store",
       } as RequestInit);
     } catch (error) {
@@ -219,6 +230,16 @@ export function createOpsClient(cfg: OpsClientConfig) {
       return parsed.success ? parsed.data : { kind: "refused", diagnosis: rpcDown(`ops resting offer reply did not parse: ${parsed.error.message.slice(0, 200)}`) };
     },
     /** A firm buy-back of the seat's held side, a requote below the confirmed floor, or a refusal (C7a). */
+    /**
+     * R2: fill the seat's armed exit now, at the venue's bid and never below `minProceedsBase`. One venue command, so
+     * the wait is the ledger's (DevNet ≈ 4–9 s): the call allows 30 s before it answers `send-unknown`-style.
+     */
+    async exitClose(request: { party: string; exitCid: string; minProceedsBase: bigint }): Promise<ExitCloseReply> {
+      const r = await post(OPS_EXIT_CLOSE_PATH, request, 30_000);
+      if (!r.ok) return { kind: "refused", why: r.diagnosis.technical };
+      const parsed = exitCloseReplyWire.safeParse(r.json);
+      return parsed.success ? parsed.data : { kind: "refused", why: `ops exit close reply did not parse: ${parsed.error.message.slice(0, 200)}` };
+    },
     async exitQuote(request: OpsExitQuoteRequest): Promise<ExitQuoteReply> {
       const r = await post(OPS_EXIT_QUOTES_PATH, request);
       if (!r.ok) return { kind: "refused", diagnosis: r.diagnosis };

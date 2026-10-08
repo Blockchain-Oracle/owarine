@@ -305,6 +305,9 @@ importers:
       '@daml.js/abu-pm-main-0.5.2':
         specifier: link:./generated/abu-pm-main
         version: link:generated/abu-pm-main
+      '@daml.js/abu-pm-seat':
+        specifier: link:./generated/abu-pm-seat
+        version: link:generated/abu-pm-seat
       '@daml.js/abu-pm-tickets':
         specifier: link:./generated/abu-pm-tickets
         version: link:generated/abu-pm-tickets

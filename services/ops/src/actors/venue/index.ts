@@ -12,6 +12,8 @@
  *   sweeper    Quote_Expire, BuyQuote_Expire   expire:<quoteCid>, expirebuy:<cid>
  *   resting    RestDesk_Offer                 restoffer:<requestId>   POST /internal/resting-offers (C7c, K-235)
  *              Rest_Fill, Rest_Expire, RestOffer_Expire   restfill:<cid>:<lots>, restexp:<cid>, restoexp:<cid>
+ *   exits      RestExit_Fill, RestExit_Ratchet   exitfill:<cid>, exitratchet:<cid>:<level>   POST /internal/exits/close (R2)
+ *              RestExit_Expire / _Withdraw       exitsweep:<cid>;  TransferDesk (once)   xferdesk:<digest>
  *   rebalancer VenueCash_Merge / _Split    merge:<digest>, split:<cid>
  *   netting    Leg_Merge                   net:<digest>
  *   settler    Desk_SettleBatch            settle:<digest>, residual:<cid>
@@ -50,6 +52,7 @@ import { redeemSeatShares } from "../ticket-desk/earn";
 import { startMakerVault } from "../maker-vault";
 import { startArenaDesk } from "../arena-desk";
 import { startRestingDesk } from "../resting-desk";
+import { startExitKeeper } from "../exit-keeper";
 import { startWindowRoller } from "../window-roller";
 import { startAgentsVenue } from "../agents";
 import { startVolMeter } from "../../prices/vol-meter";
@@ -58,7 +61,7 @@ import { loadVenueMode } from "../../runtime/venue-mode";
 import { OPS_VENUE_MODE_PATH, venueModeRoute } from "./mode-route";
 import { OPS_PRIVATE_MOVE_PATH, privateMoveRoute } from "./private-route";
 
-export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents", "maker", "resting"] as const;
+export const CANTON_ACTORS = ["roller", "oracles", "resolver", "pricer", "issuer", "sweeper", "rebalancer", "netting", "settler", "funding", "drain", "reserve", "tickets", "games", "agents", "maker", "resting", "exits"] as const;
 export type CantonActor = (typeof CANTON_ACTORS)[number];
 
 export interface CantonVenue {
@@ -110,6 +113,9 @@ export async function startCantonVenue(input: {
   // C7c: pre-open resting calls take the issuer's shards and its ladder board, so they start after both.
   const resting = on("resting") ? await startRestingDesk({ venue, board, pool, maker: maker?.vault ?? null, draining, log: input.log("resting-desk") }) : null;
   if (resting) stops.push(resting.stop);
+  // R2: the seats' resting exits sell into the same ladder from the same shards.
+  const exits = on("exits") ? await startExitKeeper({ venue, board, pool, spot: input.spot, log: input.log("exit-keeper") }) : null;
+  if (exits) stops.push(exits.stop);
   if (on("sweeper") && session) stops.push(startExpirySweeper({ venue: session, pool, log: input.log("expiry-sweeper") }).stop);
   if (on("rebalancer") && session && pool) stops.push(startRebalancer({ venue: session, pool, log: input.log("rebalancer") }).stop);
   if (on("netting") && session) stops.push(startNetting({ venue: session, pool, log: input.log("netting") }).stop);
@@ -138,6 +144,7 @@ export async function startCantonVenue(input: {
   if (issuer) routes["/internal/quotes"] = issuer.handle;
   if (issuer) routes["/internal/exit-quotes"] = issuer.handleExit;
   if (resting) routes["/internal/resting-offers"] = resting.handle;
+  if (exits) routes["/internal/exits/close"] = exits.handleClose;
   if (funding) routes["/internal/seats/fund"] = (body) => funding.handle(body);
   routes[OPS_VENUE_MODE_PATH] = venueModeRoute(input.log("venue-mode"));
   // C8d (L-39): the seat's private bucket, moved by the seat and the venue together.

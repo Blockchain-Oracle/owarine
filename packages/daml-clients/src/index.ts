@@ -13,6 +13,7 @@ import * as Tickets from "@daml.js/abu-pm-tickets";
 import * as Agents from "@daml.js/abu-pm-agents";
 import * as Games from "@daml.js/abu-pm-games";
 import * as Cc from "@daml.js/abu-pm-cc";
+import * as Seat from "@daml.js/abu-pm-seat";
 
 export { PM, packageId };
 
@@ -178,3 +179,25 @@ export const CIP56_INTERFACE_IDS = {
   TransferFactory: "#splice-api-token-transfer-instruction-v1:Splice.Api.Token.TransferInstructionV1:TransferFactory",
   TransferInstruction: "#splice-api-token-transfer-instruction-v1:Splice.Api.Token.TransferInstructionV1:TransferInstruction",
 } as const;
+
+/**
+ * The abu-pm-seat package (R2, revamp step 4): the seat's resting exit (trailing stop, stop, take-profit, and the
+ * one-command Close) and sending credits between seats. A sixth namespace, modules under `PM.Seat.*`.
+ *
+ *   import { Seat, SEAT_TEMPLATE_IDS } from "@owarine/daml";
+ *   Seat.PM.Seat.Exit.RestingExit.templateId  // "#abu-pm-seat:PM.Seat.Exit:RestingExit"
+ */
+export { Seat };
+
+export const SEAT_PACKAGE_NAME = "abu-pm-seat";
+
+const S = Seat.PM.Seat;
+
+/** Package-name template ids of abu-pm-seat. */
+export const SEAT_TEMPLATE_IDS = {
+  RestingExit: S.Exit.RestingExit.templateId,
+  TransferDesk: S.Send.TransferDesk.templateId,
+  CashTransferOffer: S.Send.CashTransferOffer.templateId,
+} as const;
+
+export type SeatTemplateName = keyof typeof SEAT_TEMPLATE_IDS;

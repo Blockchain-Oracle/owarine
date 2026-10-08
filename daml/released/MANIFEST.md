@@ -1,4 +1,4 @@
-# Released DARs: R1
+# Released DARs: R1 and R2
 
 These five files are what Abu uploads in the Noders Console for release R1 (`docs/plan/runbooks/devnet-r1.md`, step 5), in the order of the table. `scripts/bootstrap/dar.ts` reads the main package id out of each file here and `bootstrap-devnet.ts` checks that exact id on the participant. The files are tracked in Git (K-202), so the uploaded build and the checked build are the same bytes.
 
@@ -68,3 +68,16 @@ The 0.5.1 set itself passed against main 0.4.0, tickets 0.1.2, agents 0.2.0 and 
 3. Run `dpm upgrade-check --both` with the DARs in this folder as the old side. Once R1 is on Noders, these are also the versions on the participant.
 4. Copy the new DARs here. Keep the old files: the Console cannot delete a DAR, so each released file stays as the record of what went up.
 5. Add a section to this file.
+
+## R2: abu-pm-seat 0.1.0 (revamp step 4, 8 Oct 2026)
+
+One new package, uploaded **after** the five R1 files (it carries `abu-pm-main-0.5.2-f29dde00….dalf` as a data-dependency, the same main package as R1's file 1, so nothing of R1 changes). It adds the seat's resting exit (`PM.Seat.Exit`: `RestingExit` with `RestExit_Fill`, `_Ratchet`, `_Cancel`, `_Expire`, `_Withdraw`) and credits between seats (`PM.Seat.Send`: `TransferDesk`, `CashTransferOffer` with `Offer_Accept`, `_Reject`, `_Withdraw`).
+
+| Upload order | File | Package | Version | Main package id | sha256 | Bytes |
+|---|---|---|---|---|---|---|
+| 6 | `abu-pm-seat-0.1.0.dar` | abu-pm-seat | 0.1.0 | `9f73ecb7e400a6e765089b22559075387de3706d509cf03668d5c82aa472d08f` | `1b6b33a9dba5faa27f9762b5a490d861c58883869125ced00d0ee1c60ad04d3a` | 745,011 |
+
+- **Built with:** `dpm build --all` in `daml/` (SDK 3.5.2, dpm 3.5.10), 8 Oct 2026. Reproduced from a clean copy of `daml/` (no `.daml/`): the same bytes, and the five R1 files built byte for byte as in the R1 table above.
+- **Upgrade check:** none to run. abu-pm-seat is a new package name (nothing on the participant to upgrade from), and no R1 package changed.
+- **Tests:** `dpm test` in `daml/pm-tests`: 275 scripts ok, 0 failed, including `Test.Seat.Exit` (13) and `Test.Seat.Send` (5).
+- **After the upload:** restart ops; its exit keeper creates the venue's `TransferDesk` on start (`xferdesk:<digest>`). Until the file is on the participant, the web reads `deployed: false` (Trail stays in the tab, TP/SL and Send are hidden) and the keeper idles.

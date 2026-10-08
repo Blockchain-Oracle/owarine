@@ -1,0 +1,208 @@
+-- | R2 (revamp step 4): the resting exit. A seat leaves a standing order to
+-- sell its side of one Window back to the venue, and the venue fills it later
+-- without asking again: a trailing stop, a fixed stop, a take-profit, or a
+-- Close the venue fills the moment it sees it.
+--
+--   (seat creates) RestingExit --RestExit_Fill-----> sale cash to the owner, the sold
+--   owner signs,     |  |  |  |                      lots to the venue; the rest rests
+--   venue observes   |  |  |  +--RestExit_Ratchet--> the same exit, the stop moved
+--                    |  |  |                         in the owner's favour (trail)
+--                    |  |  +-----RestExit_Cancel---> gone (owner, any time)
+--                    |  +--------RestExit_Expire---> gone (venue, from expiresAt)
+--                    +-----------RestExit_Withdraw-> gone (venue, with a reason:
+--                                                    the legs are gone, the Window locked)
+--
+-- Why only the owner signs: the exit holds no money. It is the owner's
+-- standing consent to sell, and the venue's fill brings the venue's own
+-- authority as the controller, so the fill's body has both signatures a Leg
+-- needs to change hands. The seat therefore arms an exit with one `create`
+-- and nothing shared, and the venue fills it with one exercise: Close and the
+-- stops are one ledger command after the arm, never a quote and an accept.
+--
+-- What the ledger enforces and what it cannot. Every fill pays at least
+-- `floorTicks` per lot of the owner's side (and at least `takeProfitTicks`
+-- when that is the only trigger), sells only the owner's legs of this Window
+-- and side, at most the `lots` still resting, before `expiresAt`, and pays from one of
+-- the venue's own shards. WHEN the venue fills (the stop's spot level was
+-- crossed) is the venue's word: the ledger has no spot. The stop level itself
+-- is on the ledger, so a fill can be checked afterwards against public prints,
+-- and the venue can only move it in the owner's favour.
+--
+-- A fill sells like an accepted `BuyQuote` (PM.Quote): each sold slice passes
+-- to the venue with its pro-rata backing (ceiling), its escrowed fee is
+-- recognised, and a partly sold leg comes back to the owner with the rest.
+module PM.Seat.Exit where
+
+import DA.Assert (assertDeadlineExceeded, assertWithinDeadline)
+import DA.List (unique)
+import DA.Optional (isSome)
+import qualified DA.Text as T
+import PM.Leg
+import PM.Market
+import PM.Money
+import PM.Quote (ceilDiv, lockFromShard, shardBook)
+import PM.Types
+
+-- | A spot level that triggers the exit when the price crosses it against
+-- the position: below it for an Up leg, above it for a Down leg.
+-- `trailBps = Some d` makes it a trailing stop: the venue keeps it `d` basis
+-- points behind the best spot since it was armed (`RestExit_Ratchet`).
+data Stop = Stop
+  with
+    stopE8 : Int
+      -- ^ the level, price * 10^8, as the Window's prints are written
+    trailBps : Optional Int
+  deriving (Eq, Show)
+
+-- | The widest trail an exit may carry: 50 %.
+maxTrailBps : Int
+maxTrailBps = 5000
+
+stopOk : Stop -> Bool
+stopOk s = s.stopE8 > 0 && optional True (\d -> d >= 1 && d <= maxTrailBps) s.trailBps
+
+-- | Whether `next` is in the owner's favour from `prev`: higher for an Up
+-- leg (it locks more of a rise), lower for a Down leg.
+favours : Side -> Int -> Int -> Bool
+favours SideUp prev next = next > prev
+favours SideDown prev next = next < prev
+
+-- | What one fill did: the sale cash paid to the owner, the slices now the
+-- venue's (one per sold leg, in order), the owner's remainder of a partly sold
+-- leg, the escrowed fees now recognised, the venue shard's change, and the
+-- exit for the lots still resting (None when the fill took them all).
+data ExitFill = ExitFill
+  with
+    paid : ContractId VenueCash
+    venueLegs : [ContractId Leg]
+    kept : Optional (ContractId Leg)
+    fees : Optional (ContractId VenueCash)
+    shardChange : Optional (ContractId VenueCash)
+    remaining : Optional (ContractId RestingExit)
+  deriving (Eq, Show)
+
+template RestingExit
+  with
+    owner : Party
+    venue : Party
+    exitRef : Text
+      -- ^ the seat's own name for this exit, stable across ratchets
+    termsCid : ContractId MarketTerms
+    marketId : Text
+    outcome : Side
+      -- ^ the side the owner holds and sells
+    lots : Int
+      -- ^ still resting: the most lots the fills may sell
+    cashUnit : Int
+    floorTicks : Int
+      -- ^ the least a fill pays per lot of `outcome`, in ticks of 1000
+    takeProfitTicks : Optional Int
+      -- ^ fill once the venue's bid for `outcome` reaches this
+    stop : Optional Stop
+    expiresAt : Time
+  where
+    signatory owner
+    observer venue
+    ensure owner /= venue && exitRef /= "" && T.length exitRef <= 64
+      && gridOk lots cashUnit && ticksOk floorTicks
+      && optional True (\tp -> ticksOk tp && tp >= floorTicks) takeProfitTicks
+      && optional True stopOk stop
+      && (isSome takeProfitTicks || isSome stop)
+
+    -- The venue sells `fillLots` of the owner's legs of this Window and side,
+    -- in the order given (the last one split), at `priceTicks` per lot, paid
+    -- from `shardCid`. A fill for fewer lots than rest (the venue's depth at
+    -- that price ran out) leaves the rest resting, on the same terms.
+    choice RestExit_Fill : ExitFill
+      with
+        shardCid : ContractId VenueCash
+        legCids : [ContractId Leg]
+        fillLots : Int
+        priceTicks : Int
+      controller venue
+      do
+        assertWithinDeadline "exit-expires-at" expiresAt
+        require "below-floor" "a fill pays at least the exit's floor"
+          (ticksOk priceTicks && priceTicks >= floorTicks)
+        -- With no stop, the take-profit is the only trigger the owner gave.
+        require "below-take-profit" "a take-profit fills at or above its price"
+          (isSome stop || optional True (priceTicks >=) takeProfitTicks)
+        require "no-legs" "a fill sells at least one leg" (not (null legCids))
+        require "duplicate-leg" "the same leg was passed twice" (unique legCids)
+        legs <- forA legCids \c -> do
+          l <- fetch c
+          require "leg-mismatch" "a fill sells only the owner's legs of this Window and side"
+            (l.owner == owner && l.venue == venue && l.termsCid == termsCid
+              && l.outcome == outcome && l.cashUnit == cashUnit)
+          require "private-leg" "a private call is not sold through an exit" (not (legPrivate l))
+          pure (c, l)
+        let held = sum [l.lots | (_, l) <- legs]
+            proceeds = userStakeOf fillLots priceTicks cashUnit
+        require "bad-fill" "a fill sells 1..the lots resting, out of the legs given"
+          (fillLots > 0 && fillLots <= lots && fillLots <= held)
+        book <- shardBook shardCid
+        shardChange <- lockFromShard venue shardCid proceeds
+        (venueLegs, kept, fee) <- sellLegs book priceTicks fillLots legs
+        paid <- create VenueCash with venue; owner; amount = proceeds; bucket = "sale"
+        fees <- payIfPositive venue venue fee "fee"
+        remaining <- if fillLots < lots
+          then Some <$> create this with lots = lots - fillLots
+          else pure None
+        pure ExitFill with paid; venueLegs; kept; fees; shardChange; remaining
+
+    -- A trailing stop follows the best spot: the venue moves the level in the
+    -- owner's favour only, and never on a fixed stop.
+    choice RestExit_Ratchet : ContractId RestingExit
+      with
+        newStopE8 : Int
+      controller venue
+      do
+        assertWithinDeadline "exit-expires-at" expiresAt
+        case stop of
+          Some s | isSome s.trailBps -> do
+            require "not-in-favour" "a trail only moves in the owner's favour" (newStopE8 > 0 && favours outcome s.stopE8 newStopE8)
+            create this with stop = Some s with stopE8 = newStopE8
+          _ -> refuse "not-trailing" "only a trailing stop moves"
+
+    -- The owner's exit from the exit, any time before it fills.
+    choice RestExit_Cancel : ()
+      controller owner
+      do pure ()
+
+    -- Unfilled by `expiresAt` (the Window locked): the venue sweeps it.
+    choice RestExit_Expire : ()
+      controller venue
+      do assertDeadlineExceeded "exit-expires-at" expiresAt
+
+    -- The venue stops holding an exit it can no longer fill (its legs were
+    -- sold or claimed, the Window closed early), naming why.
+    choice RestExit_Withdraw : ()
+      with
+        reason : Text
+      controller venue
+      do require "no-reason" "a withdrawal names its reason" (reason /= "")
+
+-- | Sell `toSell` lots out of `legs` in order at `priceTicks`: each sold
+-- slice becomes the venue's (a book's slice records what the book paid), a
+-- partly sold leg comes back to its owner with the rest, and the sold slices'
+-- escrowed fees are summed for the venue. Returns (venue slices, the owner's
+-- remainder, fees). Splits exactly as `BuyQuote_Accept` does.
+sellLegs : Optional Text -> Int -> Int -> [(ContractId Leg, Leg)] -> Update ([ContractId Leg], Optional (ContractId Leg), Int)
+sellLegs _ _ _ [] = pure ([], None, 0)
+sellLegs book priceTicks toSell ((cid, leg) :: rest)
+  | toSell <= 0 = pure ([], None, 0)
+  | otherwise = do
+      let sold = min toSell leg.lots
+          soldBacking = ceilDiv (leg.backingShare * sold) leg.lots
+          soldFee = ceilDiv (leg.feePaid * sold) leg.lots
+          keptLots = leg.lots - sold
+      archive cid
+      slice <- create leg with
+        owner = leg.venue; lots = sold; backingShare = soldBacking; feePaid = 0; beneficiaryRef = book
+        bookCost = fmap (const (userStakeOf sold priceTicks leg.cashUnit)) book
+      kept <- if keptLots > 0
+        then Some <$> create leg with lots = keptLots; backingShare = leg.backingShare - soldBacking; feePaid = leg.feePaid - soldFee
+        else pure None
+      -- A partly sold leg is the last one touched: nothing is left to sell after it.
+      (slices, laterKept, fees) <- sellLegs book priceTicks (toSell - sold) rest
+      pure (slice :: slices, if isSome kept then kept else laterKept, soldFee + fees)

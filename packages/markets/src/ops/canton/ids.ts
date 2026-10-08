@@ -89,3 +89,15 @@ export const restExpireCommandId = (callCid: string) => assertCommandId(`restexp
 
 /** `restoexp:<offerCid>`: the sweeper's `RestOffer_Expire`. */
 export const restOfferExpireCommandId = (offerCid: string) => assertCommandId(`restoexp:${safe(offerCid, "offerCid")}`);
+
+/** abu-pm-seat (R2): the venue's transfer desk, made once. */
+export const transferDeskCommandId = (venue: string) => assertCommandId(`xferdesk:${digest(venue)}`);
+
+/** One fill of one exit: an exit is spent by its fill, so the exit's own id makes a retry land once. */
+export const exitFillCommandId = (exitCid: string) => assertCommandId(`exitfill:${safe(exitCid, "exitCid")}`);
+
+/** One ratchet of one exit to one level. */
+export const exitRatchetCommandId = (exitCid: string, stopE8: bigint) => assertCommandId(`exitratchet:${safe(exitCid, "exitCid")}:${stopE8}`);
+
+/** The sweep (expire or withdraw) of one exit. */
+export const exitSweepCommandId = (exitCid: string) => assertCommandId(`exitsweep:${safe(exitCid, "exitCid")}`);

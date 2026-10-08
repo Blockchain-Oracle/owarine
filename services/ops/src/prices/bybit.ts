@@ -40,18 +40,34 @@ export function convertE8(price: string, rate: number): bigint {
   return (decimalToE8(price) * rateE8 + 50_000_000n) / 100_000_000n;
 }
 
-/** USDT → USD, cached for 30 s; null before the first good read. */
+/**
+ * USDT → USD, cached for 30 s; null before the first good read. Coinbase's USDT-USD trade first; when Coinbase cannot be
+ * reached (its Cloudflare edge refuses some networks for hours, 7–8 Oct 2026), Bybit's USDC/USDT book stands in, read
+ * as 1 ÷ USDC/USDT with USDC taken at a dollar. Either read outside the band is a bad read and the last good rate stays.
+ */
 export function createUsdtRate(fetchImpl: Fetch = fetch as Fetch, nowMs: () => number = Date.now) {
   let rate: { value: number; atMs: number } | null = null;
   let inflight: Promise<number | null> | null = null;
+  const keep = (v: number) => {
+    if (Number.isFinite(v) && v >= RATE_BAND[0] && v <= RATE_BAND[1]) rate = { value: v, atMs: nowMs() };
+  };
+  const viaBybit = async () => {
+    try {
+      const r = await fetchImpl("https://api.bybit.com/v5/market/tickers?category=spot&symbol=USDCUSDT", { headers: UA, signal: AbortSignal.timeout(5_000) });
+      if (!r.ok) return;
+      const last = Number((JSON.parse(await r.text()) as { result?: { list?: Array<{ lastPrice?: string }> } }).result?.list?.[0]?.lastPrice);
+      if (last > 0) keep(1 / last);
+    } catch {
+      // Keep the last good rate.
+    }
+  };
   const read = async (): Promise<number | null> => {
     try {
       const r = await fetchImpl("https://api.exchange.coinbase.com/products/USDT-USD/ticker", { headers: UA, signal: AbortSignal.timeout(5_000) });
-      if (!r.ok) return rate?.value ?? null;
-      const v = Number((JSON.parse(await r.text()) as { price?: string }).price);
-      if (Number.isFinite(v) && v >= RATE_BAND[0] && v <= RATE_BAND[1]) rate = { value: v, atMs: nowMs() };
+      if (!r.ok) await viaBybit();
+      else keep(Number((JSON.parse(await r.text()) as { price?: string }).price));
     } catch {
-      // Keep the last good rate.
+      await viaBybit();
     }
     return rate?.value ?? null;
   };

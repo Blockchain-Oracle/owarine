@@ -27,6 +27,8 @@ export type TradeButtonsProps =
       trailActive: boolean;
       trailEligible: boolean;
       trailPct: number;
+      /** R2: the trail is a resting exit on the ledger, filled by the venue even with this tab closed. */
+      trailOnLedger?: boolean;
       onTrail: () => void;
       onClose: () => void;
       busy: "close" | "trail" | null;
@@ -75,7 +77,7 @@ export function TradeButtons(props: TradeButtonsProps) {
                 {props.trailActive ? "TRAILING" : "TRAIL"}
               </button>
               <span className="text-ow-micro text-ow-muted">
-                {props.lockedText ? "" : props.trailActive ? "Only while this tab is open" : props.trailEligible ? "" : `Need +${trailWords(props.trailPct)}% past break-even`}
+                {props.lockedText ? "" : props.trailActive ? (props.trailOnLedger ? "On the ledger · fills with this tab closed" : "Only while this tab is open") : props.trailEligible ? "" : `Need +${trailWords(props.trailPct)}% past break-even`}
               </span>
             </div>
             <div className="flex flex-col items-center gap-1.5 self-start">

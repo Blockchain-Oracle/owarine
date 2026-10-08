@@ -30,6 +30,25 @@ describe("createUsdtRate", () => {
   });
 });
 
+describe("createUsdtRate when Coinbase cannot be reached", () => {
+  it("reads Bybit's USDC/USDT instead, as 1 ÷ its last price", async () => {
+    const urls: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      urls.push(url);
+      if (url.includes("coinbase")) throw new Error("connect ETIMEDOUT");
+      return reply({ result: { list: [{ lastPrice: "1.0004" }] } });
+    }) as unknown as Fetch;
+    const rate = await createUsdtRate(fetchImpl).get();
+    expect(rate).toBeCloseTo(1 / 1.0004, 8);
+    expect(urls).toHaveLength(2);
+  });
+
+  it("keeps nothing from a bad stand-in read", async () => {
+    const fetchImpl = (async (url: string) => (url.includes("coinbase") ? new Response("", { status: 503 }) : reply({ result: { list: [{ lastPrice: "2" }] } }))) as unknown as Fetch;
+    expect(await createUsdtRate(fetchImpl).get()).toBeNull();
+  });
+});
+
 describe("parseBybitTrade", () => {
   it("takes the newest trade of a publicTrade batch", () => {
     const msg = { topic: "publicTrade.CCUSDT", data: [{ T: 2, s: "CCUSDT", p: "0.12014" }, { T: 1, s: "CCUSDT", p: "0.12000" }] };

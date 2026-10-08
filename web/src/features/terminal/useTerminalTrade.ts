@@ -1,6 +1,7 @@
 "use client";
 
 import type { EventMarket, Quote, Side } from "@owarine/core/types";
+import { postArmExit, postDisarmExit, postExitClose, type ArmExitInput, type ExitWire } from "@owarine/markets";
 import { invalidateAfterWrite, liveExitQuote, useSigner, useSubmitter, type LivePnlView } from "@owarine/markets/react";
 import { ladderSnapshot, repriceLadder, walkStake } from "@owarine/markets/runtime";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,8 @@ import { diagnosisCopy } from "@/lib/copy";
 import { haptic } from "@/lib/haptics";
 import { playCloseOutcome, playTrade } from "@/lib/sound/trade";
 import { rememberEntry, forgetEntry } from "./entries";
+import { stopE8Of, trailBpsOf, trailFloorTicks } from "./exits/plan";
+import { markOwnExitWrite } from "./exits/useExitFills";
 import { money, multipleOf, sideWord } from "./format";
 import { openPaper, settlePaper, updatePaper, type PaperPosition, type TradeMode } from "./mode";
 import { toast } from "./toasts";
@@ -35,6 +38,8 @@ export interface TerminalPosition {
   expirySec: number;
   trailStop: number | null;
   paper: PaperPosition | null;
+  /** R2: the seat's resting exit on this position (trail, stop, take-profit), as the ledger has it; null in demo. */
+  exit: ExitWire | null;
 }
 
 export type Busy = "up" | "down" | "close" | "trail" | null;
@@ -50,6 +55,10 @@ interface TradeContext {
   /** The Window's open print, as a price. */
   linePrice: number | null;
   onNeedSeat: () => void;
+  /** R2: whether the seat's resting exits are on the participant; until then Trail runs in this tab. */
+  ledgerExits: boolean;
+  /** After an exit write: read the seat's exits again now. */
+  onExitsChanged: () => void;
 }
 
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -79,9 +88,9 @@ export function useTerminalTrade(ctx: TradeContext) {
     }
   };
 
-  /** One tap: UP or DOWN at the stake. `add` is the Add sheet: its own stake and the quote it showed. */
+  /** One tap: UP or DOWN at the stake. `add` is the Add sheet: its own stake, the quote it showed, the position's exit. */
   const open = useCallback(
-    (side: Side, add?: { stakeBase: bigint; quote: Quote | null }) =>
+    (side: Side, add?: { stakeBase: bigint; quote: Quote | null; exit?: ExitWire | null }) =>
       guard(side, async () => {
         const { mode, market, spot, availableBase, linePrice } = c.current;
         const stakeBase = add?.stakeBase ?? c.current.stakeBase;
@@ -124,6 +133,11 @@ export function useTerminalTrade(ctx: TradeContext) {
         }
         if (outcome.status === "confirmed") {
           if (!add) rememberEntry(market.marketId, side, spot ?? 0);
+          // An armed exit names the lots it may sell: after an Add it is armed again over the whole position.
+          if (add?.exit) {
+            markOwnExitWrite(market.marketId, side);
+            void rearm(add.exit).then(() => c.current.onExitsChanged());
+          }
           await invalidateAfterWrite(queryClient, { wallet: address, marketId: market.marketId });
           recordBet(market.marketId, address, outcome.booked.txHash, "wallet");
           playTrade("open");
@@ -177,6 +191,19 @@ export function useTerminalTrade(ctx: TradeContext) {
         if (!exit) return void toast({ kind: "info", title: "Locked", description: `This Window pays at its close (${clock(p.expirySec)}).` });
         const id = `close-${sym}`;
         toast({ id, kind: "loading", title: partial ? `Reducing ${sym}…` : `Closing ${sym}…` });
+        // R2: an armed exit over the whole position closes in one venue command, at the bid, never below what was shown.
+        if (!partial && p.exit && p.exit.lots * 1000n * p.exit.cashUnit >= held) {
+          markOwnExitWrite(p.marketId, p.side);
+          const r = await postExitClose(p.exit.cid, exit.minProceedsBase);
+          if (r.ok && r.value.kind === "closed") {
+            await invalidateAfterWrite(queryClient, { wallet: address, marketId: p.marketId as EventMarket["marketId"] });
+            c.current.onExitsChanged();
+            forgetEntry(p.marketId, p.side);
+            return finish(r.value.proceedsBase - costShare, id);
+          }
+          if (r.ok && r.value.kind === "requote") return void toast({ id, kind: "error", title: "Price moved", description: `Close pays less than ${money(exit.minProceedsBase, p.decimals)} now. Tap again to take the new price.` });
+          // The exit is gone or the venue would not fill it: close the ordinary way below.
+        }
         const target = market.marketId === p.marketId ? market : { ...market, marketId: p.marketId as EventMarket["marketId"], intervalSec: p.intervalSec };
         const outcome = await submitter.submitCashOut({ market: target, side: p.side, contractsRaw: exit.contractsRaw, displayedExit: exit, wallet: address });
         if (outcome.status === "confirmed") {
@@ -192,22 +219,69 @@ export function useTerminalTrade(ctx: TradeContext) {
     [address, queryClient, submitter],
   );
 
-  /** Arms or removes the trail; arming needs a favourable move past break-even larger than the trail distance. */
+  /**
+   * Arms or removes the trail; arming needs a favourable move past break-even larger than the trail distance. A live
+   * seat's trail is a resting exit on the ledger (R2): the venue follows the price and sells even with this tab closed,
+   * never below break-even less the slippage tolerance. Before R2, and in demo, it runs in this tab.
+   */
   const toggleTrail = useCallback((p: TerminalPosition, ref: number | null, trailPct: number) => {
-    const spot = c.current.spot;
+    const { spot, slippageBps, ledgerExits } = c.current;
     playTrade("tap");
     haptic("tap");
-    if (p.trailStop !== null) {
-      setTrail(p, null);
-      return void toast({ kind: "info", title: `Trailing stop off · ${p.asset}` });
+    const onLedger = p.mode === "live" && p.paper === null && ledgerExits;
+    const trailing = onLedger ? p.exit?.stop?.trailBps != null : p.trailStop !== null;
+    if (!onLedger) {
+      if (trailing) {
+        setTrail(p, null);
+        return void toast({ kind: "info", title: `Trailing stop off · ${p.asset}` });
+      }
+      if (spot === null || ref === null) return;
+      const stop = p.side === "up" ? Math.max(spot * (1 - trailPct), ref) : Math.min(spot * (1 + trailPct), ref);
+      setTrail(p, stop);
+      return void toast({ kind: "success", title: `Trailing stop armed · ${p.asset}`, description: `Locks profit if price reverses ${(trailPct * 100).toFixed(1)}%` });
     }
-    if (spot === null || ref === null) return;
-    const stop = p.side === "up" ? Math.max(spot * (1 - trailPct), ref) : Math.min(spot * (1 + trailPct), ref);
-    setTrail(p, stop);
-    toast({ kind: "success", title: `Trailing stop armed · ${p.asset}`, description: `Locks profit if price reverses ${(trailPct * 100).toFixed(1)}%` });
+    return guard("trail", async () => {
+      const id = `trail-${p.asset}`;
+      markOwnExitWrite(p.marketId, p.side);
+      if (trailing && p.exit) {
+        // Off: a take-profit on the same exit stays; with none, the exit goes.
+        const tp = p.exit.takeProfitTicks;
+        const r = tp !== null
+          ? await postArmExit({ marketId: p.marketId as EventMarket["marketId"], side: p.side, floorTicks: Math.min(p.exit.floorTicks, tp), takeProfitTicks: tp, stop: null })
+          : await postDisarmExit({ marketId: p.marketId as EventMarket["marketId"], side: p.side });
+        c.current.onExitsChanged();
+        setTrail(p, null);
+        if (!r.ok || r.value.kind === "refused" || r.value.kind === "unknown") return void toast({ id, kind: "error", title: "Trailing stop still on", description: r.ok && "diagnosis" in r.value ? diagnosisCopy(r.value.diagnosis.kind).headline : "Try again." });
+        return void toast({ id, kind: "info", title: `Trailing stop off · ${p.asset}` });
+      }
+      if (spot === null || ref === null) return;
+      const level = p.side === "up" ? Math.max(spot * (1 - trailPct), ref) : Math.min(spot * (1 + trailPct), ref);
+      const held = p.side === "up" ? p.balanceUpRaw : p.balanceDownRaw;
+      const floorTicks = trailFloorTicks(p.costBasisBase, held, slippageBps);
+      const tp = p.exit?.takeProfitTicks ?? null;
+      toast({ id, kind: "loading", title: `Arming trailing stop · ${p.asset}…` });
+      const r = await postArmExit({
+        marketId: p.marketId as EventMarket["marketId"], side: p.side, floorTicks, takeProfitTicks: tp !== null && tp >= floorTicks ? tp : null,
+        stop: { stopE8: stopE8Of(p.side, level), trailBps: trailBpsOf(trailPct) },
+      });
+      c.current.onExitsChanged();
+      if (r.ok && r.value.kind === "confirmed") {
+        setTrail(p, level);
+        return void toast({ id, kind: "success", title: `Trailing stop on the ledger · ${p.asset}`, description: `Sells if price reverses ${(trailPct * 100).toFixed(1)}% — even with this tab closed` });
+      }
+      const why = r.ok && "diagnosis" in r.value ? diagnosisCopy(r.value.diagnosis.kind).headline : r.ok ? "" : diagnosisCopy(r.diagnosis.kind).headline;
+      toast({ id, kind: r.ok && r.value.kind === "unknown" ? "info" : "error", title: r.ok && r.value.kind === "unknown" ? "Waiting for the ledger" : "Trailing stop not armed", description: why || "Try again." });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return { busy, open, close, toggleTrail };
+}
+
+/** Arms `exit` again over everything now held on its side, same floor, take-profit and stop (after an Add). */
+async function rearm(exit: ExitWire): Promise<void> {
+  const x: ArmExitInput = { marketId: exit.marketId, side: exit.side, floorTicks: exit.floorTicks, takeProfitTicks: exit.takeProfitTicks, stop: exit.stop };
+  await postArmExit(x).catch(() => undefined);
 }
 
 /** A fresh buy price no worse than the shown one by more than `bps` (per contract, fee included). */

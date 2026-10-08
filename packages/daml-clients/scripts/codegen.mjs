@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * `pnpm codegen:daml`: rebuild the Daml workspace and regenerate the TypeScript bindings for abu-pm-main,
- * abu-pm-tickets (C8c), abu-pm-games (C9b), abu-pm-agents (C8f) and abu-pm-cc (C7b) into packages/daml-clients/generated/. The output
+ * abu-pm-tickets (C8c), abu-pm-games (C9b), abu-pm-agents (C8f), abu-pm-cc (C7b) and abu-pm-seat (R2) into packages/daml-clients/generated/. The output
  * is committed; CI-style check:
  *
  *   pnpm codegen:daml && git diff --exit-code packages/daml-clients
@@ -30,8 +30,9 @@ const TICKETS = "abu-pm-tickets";
 const GAMES = "abu-pm-games";
 const AGENTS = "abu-pm-agents";
 const CC = "abu-pm-cc";
+const SEAT = "abu-pm-seat";
 /** The packages whose bindings the app imports; each carries abu-pm-main as a data-dependency (same package id). */
-const ROOTS = [TICKETS, GAMES, AGENTS, CC];
+const ROOTS = [TICKETS, GAMES, AGENTS, CC, SEAT];
 const RENAMED = [MAIN, ...ROOTS];
 
 const env = { ...process.env, PATH: `${join(homedir(), ".dpm/bin")}:${process.env.PATH ?? ""}` };

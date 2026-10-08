@@ -1,0 +1,83 @@
+-- | R2 (revamp step 4): sending credits from one seat to another.
+--
+--   TransferDesk --TransferDesk_Offer--> CashTransferOffer --Offer_Accept---> cash to the receiver
+--   (venue signs,  (the sender, with the  (venue + sender     +-Offer_Reject---> cash back to the sender
+--    disclosed to   desk disclosed: its    sign, receiver     +-Offer_Withdraw-> cash back to the sender
+--    each sender)   own cash goes in)      observes)
+--
+-- The credits are `VenueCash`, which only the venue and its owner together can
+-- create or spend. The venue's consent to every transfer is given once, by the
+-- desk: its offer choice's controller is the sender named in the call, so any
+-- seat the desk is disclosed to can move ITS OWN cash into an offer, and
+-- nothing else (`sumOwnedCash` checks the owner). The offer holds the amount,
+-- signed by the venue and the sender, so the receiver's accept alone makes it
+-- the receiver's, and a reject or withdrawal alone gives it back. Credits move,
+-- none are made: the venue's books stay balanced through every path.
+--
+-- Only the two seats and the venue see an offer. Spendable credits only: a
+-- seat's `private` bucket (K-266) is never sent.
+module PM.Seat.Send where
+
+import DA.Foldable (forA_)
+import qualified DA.Text as T
+import PM.Leg (privateBucket)
+import PM.Money
+import PM.Types
+
+-- | A memo's longest length, in characters.
+maxMemoLength : Int
+maxMemoLength = 140
+
+template TransferDesk
+  with
+    venue : Party
+  where
+    signatory venue
+
+    -- The sender's own cash goes into an offer of `amount` to `receiver`, the
+    -- change back. Nonconsuming: offers from many seats never contend here.
+    nonconsuming choice TransferDesk_Offer : (ContractId CashTransferOffer, Optional (ContractId VenueCash))
+      with
+        sender : Party
+        receiver : Party
+        cash : [ContractId VenueCash]
+        amount : Int
+        memo : Text
+      controller sender
+      do
+        require "bad-receiver" "a transfer goes to another seat" (receiver /= sender && receiver /= venue && sender /= venue)
+        require "bad-amount" "a transfer moves a positive amount" (amount > 0)
+        require "memo-too-long" "a memo is at most 140 characters" (T.length memo <= maxMemoLength)
+        forA_ cash \c -> do
+          x <- fetch c
+          require "private-cash" "private credits are not sent" (x.bucket /= privateBucket)
+        total <- sumOwnedCash venue sender cash
+        require "insufficient-cash" "cash does not cover the transfer" (total >= amount)
+        change <- payIfPositive venue sender (total - amount) "change"
+        offer <- create CashTransferOffer with venue; sender; receiver; amount; memo
+        pure (offer, change)
+
+template CashTransferOffer
+  with
+    venue : Party
+    sender : Party
+    receiver : Party
+    amount : Int
+    memo : Text
+  where
+    signatory venue, sender
+    observer receiver
+    ensure amount > 0 && receiver /= sender && receiver /= venue && sender /= venue
+      && T.length memo <= maxMemoLength
+
+    choice Offer_Accept : ContractId VenueCash
+      controller receiver
+      do create VenueCash with venue; owner = receiver; amount; bucket = "transfer"
+
+    choice Offer_Reject : ContractId VenueCash
+      controller receiver
+      do create VenueCash with venue; owner = sender; amount; bucket = "transfer-back"
+
+    choice Offer_Withdraw : ContractId VenueCash
+      controller sender
+      do create VenueCash with venue; owner = sender; amount; bucket = "transfer-back"

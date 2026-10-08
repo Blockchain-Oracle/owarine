@@ -4,7 +4,7 @@
  * their constructor name, variants as `{ tag, value }`. Templates are named by package name (`#abu-pm-main:…`), so a
  * compatible upgrade of the package never changes an actor.
  */
-import { TEMPLATE_IDS, type PM } from "@owarine/daml";
+import { SEAT_TEMPLATE_IDS, TEMPLATE_IDS, type PM, type Seat } from "@owarine/daml";
 import { toDamlInt, type Command, type ContractId, type Party } from "@owarine/ledger/pure";
 import { isoOfSec, type Side } from "./decode";
 
@@ -296,3 +296,64 @@ export const placeRest = (offerCid: ContractId, cash: readonly ContractId[]): Co
 
 /** An offer nobody placed, swept once its window and slack are over. */
 export const expireRestOffer = (offerCid: ContractId): Command => exercise(TEMPLATE_IDS.RestingOffer, offerCid, "RestOffer_Expire", {});
+
+// ---- abu-pm-seat (R2): the seat's resting exit and credit transfers --------------------------------------------
+
+type SeatPM = typeof Seat.PM.Seat;
+type ExitFillArg = Wire<ReturnType<SeatPM["Exit"]["RestExit_Fill"]["decoder"]["runWithException"]>>;
+
+export interface ArmExitInput {
+  owner: Party;
+  venue: Party;
+  exitRef: string;
+  termsCid: ContractId;
+  marketId: string;
+  outcome: Side;
+  lots: bigint;
+  cashUnit: bigint;
+  floorTicks: number;
+  takeProfitTicks: number | null;
+  stop: { stopE8: bigint; trailBps: number | null } | null;
+  expiresAtSec: number;
+}
+
+/** The seat's own arm: a plain create, signed by the owner alone (the venue observes). Built for the web's server half. */
+export const armExit = (x: ArmExitInput): Command =>
+  create(SEAT_TEMPLATE_IDS.RestingExit, {
+    owner: x.owner, venue: x.venue, exitRef: x.exitRef, termsCid: x.termsCid, marketId: x.marketId, outcome: x.outcome,
+    lots: int(x.lots), cashUnit: int(x.cashUnit), floorTicks: int(x.floorTicks),
+    takeProfitTicks: x.takeProfitTicks === null ? null : int(x.takeProfitTicks),
+    stop: x.stop === null ? null : { stopE8: int(x.stop.stopE8), trailBps: x.stop.trailBps === null ? null : int(x.stop.trailBps) },
+    expiresAt: isoOfSec(x.expiresAtSec),
+  });
+
+/** The seat's own cancel. Built for the web's server half; ops never submits it. */
+export const cancelExit = (exitCid: ContractId): Command => exercise(SEAT_TEMPLATE_IDS.RestingExit, exitCid, "RestExit_Cancel", {});
+
+/** The venue sells `fillLots` of the owner's legs (in order, the last one split) at `priceTicks` own-side, paid from `shardCid`; the rest keeps resting. */
+export const fillExit = (exitCid: ContractId, f: { shardCid: ContractId; legCids: readonly ContractId[]; fillLots: bigint; priceTicks: number }): Command =>
+  exercise(SEAT_TEMPLATE_IDS.RestingExit, exitCid, "RestExit_Fill", {
+    shardCid: f.shardCid, legCids: [...f.legCids], fillLots: int(f.fillLots), priceTicks: int(f.priceTicks),
+  } satisfies ExitFillArg);
+
+/** A trailing stop's level moved in the owner's favour. */
+export const ratchetExit = (exitCid: ContractId, newStopE8: bigint): Command =>
+  exercise(SEAT_TEMPLATE_IDS.RestingExit, exitCid, "RestExit_Ratchet", { newStopE8: int(newStopE8) });
+
+/** An unfilled exit swept once its `expiresAt` has passed. */
+export const expireExit = (exitCid: ContractId): Command => exercise(SEAT_TEMPLATE_IDS.RestingExit, exitCid, "RestExit_Expire", {});
+
+/** The venue stops holding an exit it can no longer fill, naming why. */
+export const withdrawExit = (exitCid: ContractId, reason: string): Command =>
+  exercise(SEAT_TEMPLATE_IDS.RestingExit, exitCid, "RestExit_Withdraw", { reason });
+
+/** The venue's transfer desk: created once, venue-only, disclosed to each sender. */
+export const createTransferDesk = (venue: Party): Command => create(SEAT_TEMPLATE_IDS.TransferDesk, { venue });
+
+/** The sender's own offer (the desk disclosed): its cash in, the change back. Built for the web's server half. */
+export const offerTransfer = (deskCid: ContractId, o: { sender: Party; receiver: Party; cash: readonly ContractId[]; amount: bigint; memo: string }): Command =>
+  exercise(SEAT_TEMPLATE_IDS.TransferDesk, deskCid, "TransferDesk_Offer", { sender: o.sender, receiver: o.receiver, cash: [...o.cash], amount: int(o.amount), memo: o.memo });
+
+/** `Offer_Accept` (receiver), `Offer_Reject` (receiver) or `Offer_Withdraw` (sender). Built for the web's server half. */
+export const endTransfer = (offerCid: ContractId, choice: "Offer_Accept" | "Offer_Reject" | "Offer_Withdraw"): Command =>
+  exercise(SEAT_TEMPLATE_IDS.CashTransferOffer, offerCid, choice, {});

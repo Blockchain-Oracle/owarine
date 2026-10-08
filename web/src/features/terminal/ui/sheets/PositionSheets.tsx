@@ -26,7 +26,7 @@ const withParlays = (t: ReturnType<typeof totalsOf>, parlays: readonly ScreenPar
 });
 
 /** Phone: "Open positions", the rail's panel in a sheet (Tradash `sO`). */
-export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare, onAdd, onReduce, onCloseAll, closingAll, parlays, marks }: {
+export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare, onAdd, onReduce, onExits, onCloseAll, closingAll, parlays, marks }: {
   open: boolean;
   onClose: () => void;
   positions: readonly TerminalPosition[];
@@ -35,6 +35,7 @@ export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare
   onShare: (p: TerminalPosition) => void;
   onAdd: (p: TerminalPosition) => void;
   onReduce: (p: TerminalPosition) => void;
+  onExits?: (p: TerminalPosition) => void;
   onCloseAll: () => void;
   closingAll: boolean;
   parlays?: readonly ScreenParlay[];
@@ -44,7 +45,7 @@ export function PositionsSheet({ open, onClose, positions, book, nowSec, onShare
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Open positions">
       <div className="flex flex-col gap-3">
         <UnrealizedCard totals={withParlays(totalsOf(positions, book), parlays, marks)} count={positions.length + (parlays?.length ?? 0)} closable={positions.length} onCloseAll={onCloseAll} closingAll={closingAll} />
-        <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} parlays={parlays} marks={marks} />
+        <PositionsList positions={positions} book={book} nowSec={nowSec} onShare={onShare} onAdd={onAdd} onReduce={onReduce} onExits={onExits} parlays={parlays} marks={marks} />
       </div>
     </Sheet>
   );

@@ -16,13 +16,15 @@
  *      season prize pool (`bootstrap-games.ts`; `--no-games` skips it),
  *   6. (C8f) uploads abu-pm-agents (grants' desk, the strategy registry, the agent desk); the venue's per-seat offers
  *      are created on demand by ops (`/internal/agents/enrol`), so nothing else is bootstrapped for it,
+ *   6b. (R2) uploads abu-pm-seat (the seat's resting exit and credit transfers); ops' exit keeper creates the venue's
+ *      `TransferDesk` on its first start, so nothing else is bootstrapped for it (`--no-seat` skips it),
  *   7. writes the parties file ops reads (`OWARINE_PARTIES_FILE`, default ~/.config/owarine/canton/parties.json).
  *
  * Re-running against the same sandbox reuses the parties in the file and creates only what is missing. The contracts
  * (steps 3–5) are made by `bootstrap/venue.ts`, the same code the DevNet bootstrap runs (`bootstrap-devnet.ts`, C2y).
  *
  *   pnpm --filter @owarine/scripts exec tsx bootstrap-local.ts [--dar path] [--tickets-dar path] [--shards 16] [--users alice,bob,outsider] [--seats 8]
- *     [--reserve-seed 10000] [--no-tickets] [--maker-seed 10000] [--no-maker] [--no-games] [--agents-dar path] [--no-agents] [--fresh]
+ *     [--reserve-seed 10000] [--no-tickets] [--maker-seed 10000] [--no-maker] [--no-games] [--agents-dar path] [--no-agents] [--seat-dar path] [--no-seat] [--fresh]
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -39,6 +41,7 @@ const client = createLedgerClient({ baseUrl: env.LEDGER_JSON_API_URL, auth: noAu
 
 const DAR = resolve(import.meta.dirname, "..", arg("--dar", "daml/abu-pm-main/.daml/dist/abu-pm-main-0.5.2.dar"));
 const AGENTS_DAR = resolve(import.meta.dirname, "..", arg("--agents-dar", "daml/abu-pm-agents/.daml/dist/abu-pm-agents-0.2.2.dar"));
+const SEAT_DAR = resolve(import.meta.dirname, "..", arg("--seat-dar", "daml/abu-pm-seat/.daml/dist/abu-pm-seat-0.1.0.dar"));
 const TICKETS_DAR = resolve(import.meta.dirname, "..", arg("--tickets-dar", "daml/abu-pm-tickets/.daml/dist/abu-pm-tickets-0.1.4.dar"));
 /** Credits each ticket reserve starts with, supplied by the LP party in four equal supplies (four reserve shards). */
 const RESERVE_SEED_BASE = BigInt(arg("--reserve-seed", "10000")) * 1_000_000n;
@@ -121,6 +124,7 @@ async function main(): Promise<void> {
   if (tickets) await upload(TICKETS_DAR);
   if (!flag("--no-agents")) await upload(AGENTS_DAR);
   if (games) await upload(GAMES_DAR);
+  if (!flag("--no-seat")) await upload(SEAT_DAR);
 
   await bootstrapVenue({
     client, parties: parties as Record<CantonRole, string>, dryRun: false, run, shards: SHARDS, shardBase: SHARD_BASE, lanes,

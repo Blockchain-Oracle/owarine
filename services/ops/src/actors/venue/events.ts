@@ -12,7 +12,8 @@ export type VenueEvent =
   | { kind: "settled"; marketId: string; legs: number; batches: number; ms: number; atMs: number }
   | { kind: "expired"; marketId: string; quoteCid: string; atMs: number }
   | { kind: "rest-filled"; marketId: string; callCid: string; side: string; lots: string; priceTicks: number; atMs: number }
-  | { kind: "rest-expired"; marketId: string; callCid: string; atMs: number };
+  | { kind: "rest-expired"; marketId: string; callCid: string; atMs: number }
+  | { kind: "exit-filled"; marketId: string; exitCid: string; side: string; lots: string; priceTicks: number; trigger: string; atMs: number };
 
 type Listener = (e: VenueEvent) => void;
 const listeners = new Set<Listener>();

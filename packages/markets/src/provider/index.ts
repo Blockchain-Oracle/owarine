@@ -71,6 +71,8 @@ export {
 export * from "./proof";
 export { ledgerBase, ledgerRequest, registerSeatSigner, registeredSeatAddress, seatAuthHeaders, SEAT_CSRF_HEADER, seatReadHeaderValue, seatWriteHeaderValue, type LedgerCallResult, type LedgerRequestOptions } from "./ledger-api";
 export * from "./ledger-wire";
+export * from "./seat-wire";
+export { postArmExit, postDisarmExit, postExitClose, postSend, postTransferEnd, readSeatPkg, type ArmExitInput } from "./seat-client";
 export * from "./ticket-wire";
 export * from "./agents-wire";
 export * from "./cc-wire";
