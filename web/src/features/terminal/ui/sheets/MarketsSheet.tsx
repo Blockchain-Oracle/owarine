@@ -7,6 +7,7 @@ import { Search, Star, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Sheet } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
+import { useMarketSession } from "@/features/markets/session";
 import { haptic } from "@/lib/haptics";
 import { playTrade } from "@/lib/sound/trade";
 import { cn } from "@/lib/utils";
@@ -100,12 +101,30 @@ export function MarketsSheet({ open, onClose, markets, current, onPick }: { open
     });
   }, [markets, query, category, settings.favourites, stats]);
 
+  // The stocks the venue runs that have no Window to pick right now (the market is shut, or a lane is paused): still
+  // listed, with their price and why they cannot be traded, never left out (Abu, 8 Oct).
+  const session = useMarketSession();
+  const unavailable = useMemo(() => {
+    if (!session) return [];
+    const listed = new Set(markets.map((m) => m.symbol));
+    const q = query.trim().toLowerCase();
+    return [...new Set(Object.keys(session.lanes).map((key) => key.split("-")[0] ?? ""))]
+      .filter((symbol) => kindOf(symbol) === "stocks" && !listed.has(symbol))
+      .filter((symbol) => {
+        const name = TICKERS[symbol as keyof typeof TICKERS]?.name ?? symbol;
+        if (q && !symbol.toLowerCase().includes(q) && !name.toLowerCase().includes(q)) return false;
+        return category === "all" || category === "stocks" || (category === "favourites" && settings.favourites.includes(symbol));
+      })
+      .sort();
+  }, [session, markets, query, category, settings.favourites]);
+  const why = session?.open ? "No Window right now" : `Closed · ${session?.label ?? ""}`;
+
   const empty =
     category === "favourites" && settings.favourites.length === 0
       ? "No favourites yet. Tap a star to add one."
       : category === "hot" && Object.keys(stats).length === 0
         ? "Loading movers…"
-        : rows.length === 0
+        : rows.length === 0 && unavailable.length === 0
           ? query
             ? "No markets match that search."
             : "Nothing listed here right now."
@@ -152,6 +171,17 @@ export function MarketsSheet({ open, onClose, markets, current, onPick }: { open
               change={changeOf}
             />
           ))}
+          {category === "hot"
+            ? null
+            : unavailable.map((symbol) => (
+                <UnavailableRow
+                  key={symbol}
+                  symbol={symbol}
+                  why={why}
+                  starred={settings.favourites.includes(symbol)}
+                  onStar={() => setTradeSettings({ favourites: settings.favourites.includes(symbol) ? settings.favourites.filter((s) => s !== symbol) : [...settings.favourites, symbol] })}
+                />
+              ))}
         </ul>
       </div>
     </Sheet>
@@ -191,6 +221,31 @@ function PickerRow({ market, active, starred, onStar, onPick, change }: { market
           {pct === null ? <span className="text-ow-micro text-ow-muted">—</span> : <span className={cn("ow-num text-ow-micro font-semibold", pct > 0 ? "text-ow-up" : pct < 0 ? "text-ow-down" : "text-ow-muted")}>{`${pct > 0 ? "+" : pct < 0 ? "−" : ""}${Math.abs(pct).toFixed(2)}%`}</span>}
         </span>
       </button>
+    </li>
+  );
+}
+
+/** A stock with nothing to trade right now: its mark, name and live price, and why, in one muted line. Not pickable. */
+function UnavailableRow({ symbol, why, starred, onStar }: { symbol: string; why: string; starred: boolean; onStar: () => void }) {
+  const reading = useAssetPrice(symbol as Parameters<typeof useAssetPrice>[0]);
+  const price = reading && reading.ok && reading.value ? Number(reading.value.priceRaw) / 10 ** reading.value.decimals : null;
+  const name = TICKERS[symbol as keyof typeof TICKERS]?.name ?? symbol;
+  return (
+    <li className="flex items-center gap-3 rounded-ow-card px-2 py-2" aria-disabled>
+      <button type="button" aria-label={starred ? `Unstar ${symbol}` : `Star ${symbol}`} aria-pressed={starred} onClick={onStar} className="grid size-7 place-items-center">
+        <Star className={cn("size-4", starred ? "fill-ow-breakeven text-ow-breakeven" : "text-ow-muted")} />
+      </button>
+      <span className="flex min-w-0 flex-1 items-center gap-3 opacity-70">
+        <AssetDisc asset={symbol} className="asset-disc-32" />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-ow-body font-semibold">{name}</span>
+          <span className="flex items-center gap-1.5 text-ow-micro text-ow-muted">
+            {symbol}
+            <span className="truncate rounded-full bg-ow-recessed px-1.5 font-bold">{why}</span>
+          </span>
+        </span>
+        <span className="ow-num text-ow-body font-semibold">{price === null ? "—" : formatUsd(price, 2)}</span>
+      </span>
     </li>
   );
 }
