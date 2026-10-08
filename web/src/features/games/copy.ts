@@ -26,7 +26,7 @@ export const GAMES = {
      * (Coinbase, Kraken and Bitstamp closes) and the pre-IPO names and baskets (PreStocks), `docs/evidence/c6-lanes-*`.
      */
     afterHoursBadge: "24/7 only",
-    afterHours: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · BTC, ETH, pre-IPO and baskets only`,
+    afterHours: (label: string) => `US stocks closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`} · BTC, ETH, pre-IPO and baskets only`,
     unavailableBadge: "Unavailable",
     waitingOn: (dependency: string) => `Waiting on ${dependency}`,
     paused: "Paused by the operator",

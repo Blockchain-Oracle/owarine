@@ -99,7 +99,7 @@ export const DUEL = {
     deckUnknown: "Checking what the venue can deal…",
     deckNone: "No deck to deal within the hour. The queue stays open; a Window opening changes this.",
     /** S23: out of hours a deck comes only from the 24/7 lanes, and only from Books quoting both sides. */
-    deckClosed: (label: string) => `Market closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`}. Duels deal from pre-IPO and basket Windows with live quotes, and none has one right now.`,
+    deckClosed: (label: string) => `US stocks closed${/^(closed)?$/i.test(label) ? "" : ` · ${label}`}. Duels deal from pre-IPO and basket Windows with live quotes, and none has one right now.`,
     deckIn: (sec: number) => (sec === 0 ? "A deck is dealable now" : `Next deck dealable in ${sec}s`),
     deckWhy: "A duel needs live Windows with enough time left for both players to play every card.",
     deckWhyClosed: "While the stock market is shut, only the 24/7 pre-IPO and basket Windows can be dealt.",

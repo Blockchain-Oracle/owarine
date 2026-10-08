@@ -121,7 +121,7 @@ export const MARKETS = {
   estimated: "estimated",
   volume: "vol",
   noBook: "no price",
-  live: (n: number) => `${n} live`,
+  live: (n: number) => `${n} Windows`,
   trades: (n: number) => `${n} ${n === 1 ? "trade" : "trades"}`,
   fixedStrikeHidden: (n: number) => `${n} fixed-strike ${n === 1 ? "Window" : "Windows"} hidden — v1 lists up/down Windows only.`,
   noLiveWindows: { why: "No live Windows on this venue right now — Windows roll continuously, so this fills in as the next one opens." },
