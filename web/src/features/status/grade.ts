@@ -144,9 +144,9 @@ export function laneKind(state: string): string {
   return state;
 }
 
-/** In session: no signed source is an honest pause; a lane waiting on a Book or failing to open warns; no calendar is bad. */
+/** Unavailable price sources and traffic refusals block trading; a reported pause is not a healthy market. */
 export function gradeLanes(states: readonly string[]): Verdict {
   const kinds = states.map(laneKind);
-  if (kinds.length === 0 || kinds.some((k) => k === "closed: no calendar")) return "bad";
-  return kinds.some((k) => k.startsWith("waiting:") || k === "open failed" || k.startsWith("closed")) ? "warn" : "good";
+  if (kinds.length === 0 || kinds.some((k) => k === "closed: no calendar" || k === "open failed" || /paused: (?:no signed source|traffic)|prestocks-stale/.test(k))) return "bad";
+  return kinds.some((k) => (k.startsWith("waiting:") && !k.startsWith("waiting: next")) || k.startsWith("closed") || (k.startsWith("paused") && !k.startsWith("paused: corporate action"))) ? "warn" : "good";
 }

@@ -98,9 +98,14 @@ export function createTicketSeat(cfg: TicketSeatConfig) {
 
   async function mine(party: Party, fromOffset = 0): Promise<{ value: TicketsMine; offset: number; busyUntilMs: number }> {
     const noLadders = new Map<string, { up: readonly BookLevel[]; down: readonly BookLevel[] }>();
-    const [snap, f, fair, ladders] = await Promise.all([
-      read(party, fromOffset), windowFacts(), cfg.fairTicks ? cfg.fairTicks().catch(() => new Map<string, number>()) : Promise.resolve(new Map<string, number>()),
-      cfg.ladders ? cfg.ladders().catch(() => noLadders) : Promise.resolve(noLadders),
+    const snap = await read(party, fromOffset);
+    // A plain Up/Down seat has no ticket products. Reading every historical Resolution for that empty view can
+    // take seconds and used to hold up ordinary trade confirmation and closing through cache invalidation.
+    const needsFacts = snap.rounds.length + snap.tickets.length + snap.positions.length + snap.receipts.length > 0;
+    const [f, fair, ladders] = await Promise.all([
+      needsFacts ? windowFacts() : Promise.resolve({ resolutions: new Map<string, WindowFacts>(), byMarket: new Map<string, MarketFacts>(), opens: new Map<string, bigint>() }),
+      snap.positions.length && cfg.fairTicks ? cfg.fairTicks().catch(() => new Map<string, number>()) : Promise.resolve(new Map<string, number>()),
+      snap.positions.length && cfg.ladders ? cfg.ladders().catch(() => noLadders) : Promise.resolve(noLadders),
     ]);
     const rounds = snap.rounds.map(({ cid, data: r }) => {
       const res = f.resolutions.get(r.termsCid);

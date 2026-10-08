@@ -1,6 +1,7 @@
 "use client";
 
 import { formatCadence } from "@owarine/core/copy";
+import { noEntryCutoffSec } from "@owarine/core/lifecycle";
 import type { EventMarket, LaneSet } from "@owarine/core/types";
 import { ladderSpotSymbol, useLanes } from "@owarine/markets/react";
 import { ladderSnapshot, liveSpot } from "@owarine/markets/runtime";
@@ -34,12 +35,16 @@ export interface TerminalWindow {
  */
 export function pickWindow(markets: readonly EventMarket[], nowSec: number, isQuoting: (marketId: string) => boolean = () => false, hasSpot: (marketId: string) => boolean = () => true): EventMarket | null {
   const live = markets.filter((m) => m.kind !== "event" && !m.voided && m.expirySec > nowSec);
-  const trading = live.filter((m) => m.tradingStartSec <= nowSec && nowSec < m.lockAtSec).sort((a, b) => a.expirySec - b.expirySec);
+  const trading = live.filter((m) => m.tradingStartSec <= nowSec && nowSec < noEntryCutoffSec(m)).sort((a, b) => a.expirySec - b.expirySec);
   // A Window the screen can't draw (no live spot for what it settles on, e.g. an xStock while its price source is down)
   // only wins when nothing else is quoted: TSLA's stock Window beats its TSLAx token Window then.
   const quoting = trading.filter((m) => isQuoting(m.marketId)).sort((a, b) => Number(hasSpot(a.marketId)) - Number(hasSpot(b.marketId)) || a.expirySec - b.expirySec);
   if (quoting.length) return quoting.at(-1)!;
   if (trading[0]) return trading[0];
+  // Keep the just-closed entry period visible until this round expires. Otherwise the terminal jumps to a future
+  // round and says "opening soon" even though the round the user was watching is still counting down.
+  const closing = live.filter((m) => m.tradingStartSec <= nowSec).sort((a, b) => a.expirySec - b.expirySec);
+  if (closing[0]) return closing[0];
   return live.filter((m) => m.tradingStartSec > nowSec).sort((a, b) => a.tradingStartSec - b.tradingStartSec)[0] ?? null;
 }
 

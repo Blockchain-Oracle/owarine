@@ -2,7 +2,7 @@ import type { EventMarket } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
 import { pickWindow } from "./useTerminalWindow";
 
-const w = (id: string, start: number, len = 120): EventMarket => ({ marketId: id, kind: "price", voided: false, tradingStartSec: start, lockAtSec: start + len - 20, expirySec: start + len }) as unknown as EventMarket;
+const w = (id: string, start: number, len = 120): EventMarket => ({ marketId: id, kind: "price", voided: false, intervalSec: len, tradingStartSec: start, lockAtSec: start + len - 20, expirySec: start + len }) as unknown as EventMarket;
 
 describe("pickWindow on a staggered lane", () => {
   const older = w("BTC-2m:10", 1_000);
@@ -15,6 +15,14 @@ describe("pickWindow on a staggered lane", () => {
   });
   it("with nothing quoted, the trading Window that closes first", () => {
     expect(pickWindow([older, newer], 1_065)?.marketId).toBe(older.marketId);
+  });
+  it("leaves an older quoted round once its real entry cutoff has passed", () => {
+    expect(pickWindow([older, newer], 1_075, (id) => id === older.marketId)?.marketId).toBe(newer.marketId);
+  });
+  it("keeps the closing round visible instead of claiming the future round is opening", () => {
+    const future = w("BTC-2m:11", 1_120);
+    expect(pickWindow([older, future], 1_105)?.marketId).toBe(older.marketId);
+    expect(pickWindow([older, future], 1_120)?.marketId).toBe(future.marketId);
   });
 });
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { sessionStateWord } from "@owarine/core/copy";
-import { haltLabel, isTickerSymbol } from "@owarine/core/market";
+import { haltLabel, isTickerSymbol, isTokenOnlyKind, TICKERS } from "@owarine/core/market";
 import { marketsProvider } from "@owarine/markets";
 import { useTick } from "@owarine/markets/react";
 import { MARKETS } from "@/lib/copy";
@@ -25,7 +25,7 @@ interface MarketSessionChipProps {
  */
 function haltShown(session: MarketSession, asset: string | undefined): boolean {
   if (!session.halt) return false;
-  return session.status.state === "halted" || (asset !== undefined && !isTickerSymbol(asset));
+  return session.status.state === "halted" || (asset !== undefined && (!isTickerSymbol(asset) || isTokenOnlyKind(TICKERS[asset].kind)));
 }
 
 /**
@@ -47,6 +47,13 @@ export function MarketSessionChipView({ session, asset, className, nowSec }: Mar
         </span>
       </span>
     );
+  }
+  // US stock hours do not describe BTC, pre-IPO tokens, baskets or xStocks. Keep the hours on the global stock strip.
+  if (asset && (!isTickerSymbol(asset) || isTokenOnlyKind(TICKERS[asset].kind))) {
+    return <span className={cn("mks-chip", className)} role="status" aria-label={`${asset} · trades around the clock`}>
+      <span className="mks-chip-dot" aria-hidden />
+      <span className="mks-chip-state">24/7 market</span>
+    </span>;
   }
   const now = nowSec ?? Math.floor(marketsProvider.nowMs() / 1000);
   const word = sessionStateWord(session.status);

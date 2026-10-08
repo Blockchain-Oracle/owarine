@@ -14,7 +14,7 @@ describe("whyNotTrading", () => {
   });
 
   it("blames the network when rounds wait on a price while DevNet refuses traffic", () => {
-    const s = session(false, { "BTC-2m": "open #838 21:10–21:12Z v1 attested", "AAPL-15m": "paused: traffic (core lanes only)" });
+    const s = session(false, { "BTC-2m": "open #83 21:10–21:12Z v1 attested", "AAPL-15m": "paused: traffic (core lanes only)" });
     expect(whyNotTrading("pricing", "BTC", s)).toBe(WHY.networkBusy);
   });
 

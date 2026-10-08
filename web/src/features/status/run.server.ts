@@ -39,10 +39,10 @@ function priceAssets(session: OpsRead<OpsSession>): TickerSymbol[] {
   return TICKER_SYMBOLS.filter((symbol) => pick.has(symbol)).slice(0, PRICE_ASSETS_CAP);
 }
 
-function overallOf(pipelines: StatusPipeline[], maxLagSec: number | null): StatusPayload["overall"] {
+export function overallOf(pipelines: StatusPipeline[], maxLagSec: number | null): StatusPayload["overall"] {
   const required = pipelines.filter(countsTowardOverall);
   if (!required.some((pipeline) => pipeline.ok)) return "unreachable";
-  const allOk = required.every((pipeline) => pipeline.ok);
+  const allOk = required.every((pipeline) => pipeline.ok && pipeline.grade !== "warn");
   return allOk && (maxLagSec ?? 0) < HEALTHY_LAG_SEC ? "healthy" : "degraded";
 }
 

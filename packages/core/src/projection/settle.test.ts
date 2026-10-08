@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { settleRound, toVerdict } from "./settle";
+import { roundSettledAtMs, settleRound, toVerdict } from "./settle";
 import type { MarketLedger, RoundMarket } from "./types";
 import { testMarketId, testSignature } from "../testing/ids";
 
@@ -57,6 +57,9 @@ describe("settleRound", () => {
     expect(closed.legs).toEqual([]);
     expect(closed.pnlBase).toBe(1n * ONE);
     expect(closed.claim).toBe("none");
+    expect(closed.closedAtMs).toBe(1_000);
+    expect(closed.closedAtMs).not.toBe(closed.settledAtMs);
+    expect(roundSettledAtMs(closed)).toBe(1_000);
     expect(toVerdict(closed).outcome).toBe("win");
     expect(toVerdict(closed).costBasisBase).toBe(-1n * ONE);
   });

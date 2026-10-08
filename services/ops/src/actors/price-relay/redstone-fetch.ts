@@ -17,12 +17,17 @@ export interface GatewayResponse {
 
 const LATEST_PATH = "/data-packages/latest/redstone-primary-prod";
 
+/** The source-health probe must authenticate the same way as the price relay it gates. */
+export function redstoneHeaders(): Record<string, string> | undefined {
+  const key = process.env.REDSTONE_API_KEY?.trim();
+  return key ? { "x-api-key": key } : undefined;
+}
+
 async function getFirst(urls: string[]): Promise<GatewayResponse> {
   let last = "no gateway configured";
   for (const url of urls) {
     try {
-      const key = process.env.REDSTONE_API_KEY?.trim();
-      const res = await fetch(url, { signal: AbortSignal.timeout(20_000), ...(key ? { headers: { "x-api-key": key } } : {}) });
+      const res = await fetch(url, { signal: AbortSignal.timeout(20_000), headers: redstoneHeaders() });
       const text = await res.text();
       if (res.ok && text.startsWith("{")) return { text, fetchedAtMs: Date.now(), gateway: new URL(url).origin };
       last = `HTTP ${res.status} from ${new URL(url).origin}`;

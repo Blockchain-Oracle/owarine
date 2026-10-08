@@ -115,6 +115,8 @@ export interface SettledRound {
   /** Whose seat the round was traded from; vault rounds link no single transaction. */
   source: LedgerSource;
   settledAtMs: number | null;
+  /** Last fill that flattened the position, when it closed on the book rather than at expiry. */
+  closedAtMs?: number;
   openedAtMs: number;
   entryTxHash: Signature;
   fillCount: number;

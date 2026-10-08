@@ -86,6 +86,7 @@ export function settleRound({ ledger, market, feeBps, liveHoldings, source }: Se
     claim: claimStateOf(legs, liveHoldings),
     source: source ?? ledger.source ?? "wallet",
     settledAtMs: market.resolvedAtMs,
+    ...(legs.length === 0 ? { closedAtMs: ledger.lastAtMs } : {}),
     openedAtMs: ledger.firstAtMs,
     entryTxHash: ledger.entryTxHash,
     fillCount: ledger.fillCount,
@@ -93,9 +94,9 @@ export function settleRound({ ledger, market, feeBps, liveHoldings, source }: Se
   };
 }
 
-/** The moment a round's result is fixed — the chain's resolution when indexed, else the expiry it settles against. */
-export function roundSettledAtMs(round: Pick<SettledRound, "settledAtMs" | "expirySec">): number {
-  return round.settledAtMs ?? round.expirySec * 1000;
+/** The result is fixed by the closing fill, or the chain's resolution (expiry until that resolution is indexed). */
+export function roundSettledAtMs(round: Pick<SettledRound, "closedAtMs" | "settledAtMs" | "expirySec">): number {
+  return round.closedAtMs ?? round.settledAtMs ?? round.expirySec * 1000;
 }
 
 /** The receipt reads a round as a Verdict: cost basis is what stayed in, net of anything sold back before expiry. */

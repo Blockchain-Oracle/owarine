@@ -46,7 +46,10 @@ describe("status thresholds (proof-analytics.md §2.5)", () => {
     expect(gradeFaucet(true, true, 3_000_000_000n)).toBe("good");
     expect(gradeFaucet(true, true, 2_999_999_999n)).toBe("warn");
     expect(gradeFaucet(true, false, 9_000_000_000n)).toBe("bad");
-    expect(gradeLanes(["open #3 13:30–13:35 v1", "paused: no signed source"])).toBe("good");
+    expect(gradeLanes(["open #3 13:30–13:35 v1", "paused: no signed source"])).toBe("bad");
+    expect(gradeLanes(["open #3 13:30–13:35 v1", "paused: traffic (core lanes only)"])).toBe("bad");
+    expect(gradeLanes(["paused: halted (prestocks-stale)"])).toBe("bad");
+    expect(gradeLanes(["waiting: next 21:30–21:35Z"])).toBe("good");
     expect(gradeLanes(["open #3 13:30–13:35 v1", "waiting: no free book"])).toBe("warn");
     expect(gradeLanes(["closed: no calendar"])).toBe("bad");
   });

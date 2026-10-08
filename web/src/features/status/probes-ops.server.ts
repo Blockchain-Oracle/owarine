@@ -1,4 +1,4 @@
-import { etDateOf, formatEtClock } from "@owarine/core/market";
+import { etDateOf, formatEtClock, parseLaneKey, TICKERS } from "@owarine/core/market";
 import { STATUS } from "./copy";
 import { gradeHeartbeat, gradeIndexer, gradeLanes, gradeTrial, laneKind, trialSessionsLeft } from "./grade";
 import { detailNumber, detailString, heartbeatOf, type OpsHealth, type OpsPythIndexEntitlement, type OpsRead, type OpsSession } from "./ops.server";
@@ -60,7 +60,15 @@ export function lanesRow({ session, inSession }: OpsRows): StatusPipeline {
   const states = Object.values(session.value.lanes);
   if (states.length === 0) return pipelineRow("paused", label, { verdict: "bad", detail: STATUS.detail.noLanes });
   const detail = STATUS.detail.lanes(states.length, laneGroups(session.value.lanes));
-  return pipelineRow("paused", label, { verdict: inSession ? gradeLanes(states) : "good", detail, latencyMs: session.latencyMs, offHours: !inSession });
+  // Only ordinary stock/ETF lanes close with the US session. Crypto, xStocks, pre-IPO names and baskets still
+  // count after hours; otherwise a closed stock exchange hides failures across the venue's 24/7 markets.
+  const relevant = Object.entries(session.value.lanes).filter(([key]) => {
+    if (inSession) return true;
+    const lane = parseLaneKey(key);
+    const kind = lane ? TICKERS[lane.symbol].kind : null;
+    return !(lane?.basis === "regular" && (kind === "stock" || kind === "etf"));
+  }).map(([, state]) => state);
+  return pipelineRow("paused", label, { verdict: relevant.length ? gradeLanes(relevant) : "good", detail, latencyMs: session.latencyMs, offHours: relevant.length === 0 });
 }
 
 /** Not session-bound: the trial runs out by the calendar whether or not the market is open now. */

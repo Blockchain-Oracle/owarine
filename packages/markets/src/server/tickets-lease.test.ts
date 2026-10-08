@@ -24,12 +24,40 @@ const events = [
 ];
 
 describe("a recycled seat's ticket reads and actions stay inside its lease (C4d H3)", () => {
+  it("an empty ticket view does not download the venue's complete settlement history", async () => {
+    const activeContracts = vi.fn(async ({ parties }: { parties: string[] }) => {
+      if (parties[0] === VENUE) throw new Error("unrelated venue history must not block a plain seat");
+      return { activeAtOffset: 700, contracts: [] };
+    });
+    const fairTicks = vi.fn();
+    const ladders = vi.fn();
+    const seat = createTicketSeat({ client: { activeContracts } as unknown as LedgerClient, venueParty: VENUE, journal: {} as never, fairTicks, ladders });
+    await expect(seat.mine(P, LEASE_START)).resolves.toEqual({ value: { rounds: [], parlays: [], positions: [], shares: [], receipts: [] }, offset: 700, busyUntilMs: 0 });
+    expect(activeContracts).toHaveBeenCalledTimes(1);
+    expect(fairTicks).not.toHaveBeenCalled();
+    expect(ladders).not.toHaveBeenCalled();
+  });
+
   it("the snapshot leaves out every ticket contract created before the lease, and keeps cash", () => {
     const s = toTicketSnapshot(P, events as never, 700, LEASE_START);
     expect(s.receipts.map((r) => r.cid)).toEqual(["00bb"]);
     expect(s.cash.map((c) => c.cid)).toEqual(["00cc"]);
     // Without a lease bound (offset 0) both receipts are the party's: the leak this closes.
     expect(toTicketSnapshot(P, events as never, 700).receipts.map((r) => r.cid)).toEqual(["00aa", "00bb"]);
+  });
+
+  it("still reads opening-price facts for an owned range ticket", async () => {
+    const activeContracts = vi.fn(async ({ parties }: { parties: string[] }) => ({
+      activeAtOffset: 700,
+      contracts: [{ createdEvent: parties[0] === VENUE
+        ? ev(TEMPLATE_IDS.OpenPrint, { termsCid: "t1", marketId: round.marketId, openPriceE8: "123", evidence: [], signers: "0" }, 600, "00ee")
+        : ev(TICKET_TEMPLATE_IDS.RangeRound, round, 600, "00dd") }],
+    }));
+    const seat = createTicketSeat({ client: { activeContracts } as unknown as LedgerClient, venueParty: VENUE, journal: {} as never });
+    const result = await seat.mine(P, LEASE_START);
+    expect(result.value.rounds).toHaveLength(1);
+    expect(result.value.rounds[0]?.openingPrint).toBe(123n);
+    expect(activeContracts).toHaveBeenCalledTimes(2);
   });
 
   it("an exit on an earlier visitor's ticket is refused as not the seat's, before anything is sent", async () => {

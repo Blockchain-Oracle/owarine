@@ -26,6 +26,7 @@ import { SWITCHBOARD_CROSSBAR, surgeValueOf } from "../../prices/attested-read";
 import { HERMES } from "../price-relay/hermes-fetch";
 const REDSTONE_LATEST_PATH = "/data-packages/latest/redstone-primary-prod";
 import type { RelaySources } from "../price-relay/sources";
+import { redstoneHeaders } from "../price-relay/redstone-fetch";
 
 export const PROBE_EVERY_MS = 5 * 60_000;
 /** A source found down is asked again after a minute, so a lane resumes soon after its source does. */
@@ -54,7 +55,7 @@ async function check(source: AttestedSource, ctx: ProbeContext): Promise<{ ok: b
       const failures: string[] = [];
       for (const gateway of ctx.sources.gateways) {
         try {
-          const res = await fetchImpl(`${gateway}${REDSTONE_LATEST_PATH}`, { signal: AbortSignal.timeout(20_000) });
+          const res = await fetchImpl(`${gateway}${REDSTONE_LATEST_PATH}`, { signal: AbortSignal.timeout(20_000), headers: redstoneHeaders() });
           if (res.ok && (await res.text()).startsWith("{")) return { ok: true, reason: null };
           failures.push(`HTTP ${res.status} from ${new URL(gateway).origin}`);
         } catch (error) {

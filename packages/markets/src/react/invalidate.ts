@@ -7,15 +7,18 @@ export interface WriteScope {
   marketId?: MarketId;
 }
 
-/** After a confirmed write every read it can change is refetched; the live book is push-fed and needs nothing. */
+/** Refresh spendable balances and ordinary positions before another write; refresh other views in the background.
+ * A slow ticket/history/reserve read must not hold an already-confirmed ordinary trade's receipt or controls. */
 export async function invalidateAfterWrite(queryClient: QueryClient, { wallet, marketId }: WriteScope): Promise<void> {
   // Dropping the trailing venue id turns the key into a prefix that matches every venue for this wallet.
   const claimablesForWallet = keys.claimables(wallet, null).slice(0, -1);
-  const families = [
+  const money = [
     keys.balanceSheet(wallet),
     keys.walletCollateral(wallet),
     keys.vault(wallet),
     keys.positions(wallet),
+  ];
+  const families = [
     keys.history(wallet),
     keys.parlays(wallet),
     keys.parlayReserve(),
@@ -33,5 +36,6 @@ export async function invalidateAfterWrite(queryClient: QueryClient, { wallet, m
     claimablesForWallet,
     ...(marketId ? [keys.onchain(marketId), keys.market(marketId)] : []),
   ];
-  await Promise.all(families.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+  for (const queryKey of families) void queryClient.invalidateQueries({ queryKey }).catch(() => undefined);
+  await Promise.all(money.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
 }

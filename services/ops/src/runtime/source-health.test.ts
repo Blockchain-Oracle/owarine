@@ -1,9 +1,21 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { attestedPrintSource, EXCHANGE_PRINT_SOURCE } from "@owarine/core/market";
 import { probeAll } from "../actors/source-probe";
 import { createSourceHealthStore } from "./source-health";
 
 describe("source health (C6)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+  it("authenticates the health probe before deciding whether RedStone lanes can open", async () => {
+    vi.stubEnv("REDSTONE_API_KEY", " test-key ");
+    const store = createSourceHealthStore();
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("gw.invalid.test")) return new Response("{}", { status: new Headers(init?.headers).get("x-api-key") === "test-key" ? 200 : 403 });
+      return new Response("{}", { status: 200 });
+    }) as unknown as typeof fetch;
+    await probeAll(store, { sources: { gateways: ["https://gw.invalid.test"], pythFeeds: [] }, pythIndex: { hasKey: false, feeds: () => [] }, switchboardFeeds: new Map(), fetchImpl, nowSec: () => 100 });
+    expect(store.get("redstone")).toEqual({ ok: true, reason: null, checkedAtSec: 100 });
+  });
+
   it("nothing lists on an unprobed source; exchanges and committees need no probe", () => {
     const store = createSourceHealthStore();
     expect(store.unavailable(EXCHANGE_PRINT_SOURCE)).toBeNull();

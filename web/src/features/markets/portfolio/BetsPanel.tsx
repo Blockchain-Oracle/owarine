@@ -1,7 +1,6 @@
 "use client";
 
 import { ok, isOk } from "@owarine/core/schemas";
-import { marketsProvider } from "@owarine/markets";
 import { keys, usePositions } from "@owarine/markets/react";
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -11,16 +10,13 @@ import { ReadingBoundary } from "@/components/states";
 import { LEVERAGE, useLeverageBetItems } from "@/features/leverage";
 import { useVaultBetItems } from "@/features/vault";
 import { PORTFOLIO } from "@/lib/copy";
-import { SESSION_COPY } from "@/lib/copy-session";
 import { type ListItem, usePager } from "@/lib/use-pager";
 import { cn } from "@/lib/utils";
 import { useWalletSession } from "@/lib/wallet-session";
 import { HistoryRows, type HistoryReading } from "../history";
-import { useMarketSession } from "../session";
 import { useChainNowMs } from "../useChainNow";
 import { BetRow } from "./BetRow";
 import { useRestingItems } from "./RestingRows";
-import { useSessionPhrase } from "@/lib/when";
 import { PublishCall } from "@/features/leaderboard/publish";
 import { WhoCanSee } from "@/features/canton-ux/privacy";
 
@@ -70,23 +66,18 @@ export function BetsPanel({ symbol, index, history: allHistory }: BetsPanelProps
   const history = useMemo(() => withoutBoostRounds(allHistory), [allHistory]);
   const { address } = useWalletSession();
   const nowMs = useChainNowMs();
-  const phrase = useSessionPhrase();
   const reading = usePositions(address);
   const vault = useVaultBetItems(symbol);
   const boosts = useLeverageBetItems(symbol);
   // Scheduled calls lead the Open tab (D-088): what rests for the open sits above what is already held.
   const resting = useRestingItems(symbol);
   const queryClient = useQueryClient();
-  const session = useMarketSession();
   const [tab, setTab] = useState<Tab>("open");
   const settledCount = history.reading?.ok ? history.reading.value.rounds.length + boosts.done.length : null;
-  // An empty Open tab never dead-ends (D-086): in session, make a call; closed, see what lists next and when. A wallet
+  // An empty Open tab never dead-ends. Stock hours cannot describe a portfolio that also trades 24/7 assets. A wallet
   // whose History holds settled Windows has bet before, so its prompt is the next call, never the first (the user, 09-22).
   const nothing = (settledCount ?? 0) > 0 ? PORTFOLIO.nothingOpen : PORTFOLIO.noBets;
-  const empty =
-    session && !session.open
-      ? { why: `${nothing} ${SESSION_COPY.portfolio.closed(phrase(session.status, Math.floor(marketsProvider.nowMs() / 1000)))}`, nextAction: { label: SESSION_COPY.portfolio.seeNext, href: "/markets" } }
-      : { why: nothing, nextAction: { label: (settledCount ?? 0) > 0 ? PORTFOLIO.nextCall : PORTFOLIO.firstCall, href: "/markets" } };
+  const empty = { why: nothing, nextAction: { label: (settledCount ?? 0) > 0 ? PORTFOLIO.nextCall : PORTFOLIO.firstCall, href: "/markets" } };
   const retry = () => {
     if (address) void queryClient.invalidateQueries({ queryKey: keys.positions(address) });
   };

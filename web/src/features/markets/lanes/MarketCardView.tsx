@@ -1,7 +1,7 @@
 "use client";
 
 import { phase, type MarketPhase } from "@owarine/core/lifecycle";
-import { isTickerSymbol, LONG_CADENCES_SEC, TICKERS } from "@owarine/core/market";
+import { isTickerSymbol, TICKERS } from "@owarine/core/market";
 import type { EventMarket, MarketId, Side } from "@owarine/core/types";
 import { Countdown } from "@/components/data";
 import { HERO_HEAD, LANE_CARD, LANE_STATE, MARKETS } from "@/lib/copy";
@@ -44,7 +44,7 @@ const price = (value: number | null, hydrating: boolean): string =>
 
 /** The strip when the Window no longer takes calls: Masayume's closing line, or the Gap's own locked and settled words. */
 function closedStrip(market: EventMarket, current: MarketPhase, when: When): string {
-  if (market.lane !== "gap") return LANE_CARD.closing;
+  if (market.lane !== "gap") return current === "pendingOpeningPrint" ? "WAITING FOR THE STARTING PRICE" : LANE_CARD.closing;
   // A Gap's Friday print may post until the lock (ADMIT_UNTIL_LOCK), so this wait can be long enough to name.
   if (current === "pendingOpeningPrint") return LANE_STATE.gap.pendingOpen;
   if (current === "voided") return LANE_STATE.gap.settled.void;
@@ -87,9 +87,8 @@ export function MarketCardView({ market, nowMs, selected, onSelect, onOpenRoom, 
   const when = useWhen();
   const betAgainst = useBetAgainst();
   const current = nowMs > 0 ? phase(market, nowMs) : null;
-  if (current === "upcoming" && market.lane !== "token") return <ListedCard market={market} selected={selected} onSelect={onSelect} />;
-  // C6: a 4 h or 1 d 24/7 Window lists a whole cadence ahead; before its open it says when it opens, with nothing to schedule.
-  if (current === "upcoming" && (LONG_CADENCES_SEC as readonly number[]).includes(market.intervalSec)) return <ListedCard market={market} selected={selected} onSelect={onSelect} schedulable={false} />;
+  // Every future round names its opening time. A short 24/7 round is not closing before it has even started.
+  if (current === "upcoming") return <ListedCard market={market} selected={selected} onSelect={onSelect} schedulable={market.lane !== "token"} />;
 
   const openingRaw = market.openingPriceRaw;
   // A 24/7 Window says what it is (S23): pre-IPO, basket or xStock, not a stock that happens to trade at night.

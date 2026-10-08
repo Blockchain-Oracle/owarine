@@ -8,6 +8,7 @@ import { Money } from "@/components/data";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { VerdictCard } from "../verdict";
 import { HISTORY } from "./copy";
+import { EarlyCloseReceipt } from "./EarlyCloseReceipt";
 
 interface HistoryReceiptProps {
   round: SettledRound | null;
@@ -85,7 +86,7 @@ function ReceiptSheetBody({ round, symbol }: { round: SettledRound; symbol: stri
   return (
     <>
       {round.question && <p className="type-body-strong text-ink mb-3">{round.question}</p>}
-      <ReceiptBody round={round} symbol={symbol} />
+      {round.outcome === "closed" ? <EarlyCloseReceipt round={round} symbol={symbol} /> : <ReceiptBody round={round} symbol={symbol} />}
       {round.receipt && <LedgerReceipt receipt={round.receipt} decimals={round.decimals} symbol={symbol} />}
     </>
   );
@@ -101,7 +102,7 @@ export function HistoryReceipt({ round, symbol, onClose }: HistoryReceiptProps) 
     <Sheet open={round !== null} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="history-receipt-sheet">
         <SheetHeader className="sr-only">
-          <SheetTitle>{HISTORY.receiptTitle}</SheetTitle>
+          <SheetTitle>{round?.outcome === "closed" ? "Cash-out receipt" : HISTORY.receiptTitle}</SheetTitle>
           <SheetDescription>{round ? `${round.question ?? round.asset} · ${HISTORY.outcome[round.outcome]}` : ""}</SheetDescription>
         </SheetHeader>
         <div className="history-receipt-scroll">{round && <ReceiptSheetBody key={`${round.marketId}:${round.receipt?.receiptIds[0] ?? ""}`} round={round} symbol={symbol} />}</div>
