@@ -45,7 +45,8 @@ export function TradeFromXScreen() {
   const permission = grant.permission(link.status?.executor ?? null);
   const funded = permission === "ready";
   const linked = Boolean(link.status?.binding) && !link.needsLink && !link.walletMismatch;
-  const step = !address ? 1 : !funded ? 2 : !linked ? 3 : 4;
+  // Seat → X → fund (Abu, 8 Oct): linking needs only the seat and an X sign-in, so it is never held behind funding.
+  const step = !address ? 1 : !linked ? 2 : !funded ? 3 : 4;
   const error = grant.error || link.error;
 
   return (
@@ -83,7 +84,10 @@ export function TradeFromXScreen() {
           <Step n="1" title={TRADE_FROM_X.steps.connect} state={step > 1 ? "done" : "active"} spine={{ from: 1, cur: step }}>
             {address ? <IdentityChip addr={address} /> : <ConnectButton />}
           </Step>
-          <Step n="2" title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 2 ? "active" : "idle"} spine={{ from: 2, cur: step }}>
+          <Step n="2" title={TRADE_FROM_X.steps.link} state={linked ? "done" : step === 2 ? "active" : "idle"} spine={{ from: 2, cur: step }}>
+            <LinkStep link={link} returnTo={RETURN_TO} enabled={!regionHeld && Boolean(address)} />
+          </Step>
+          <Step n="3" title={TRADE_FROM_X.steps.fund} state={funded ? "done" : step === 3 ? "active" : "idle"} spine={{ from: 3, cur: step }} isLast>
             {regionHeld && <RegionNote className="xt-step-lede" />}
             {!address && <p className="xt-step-lede">Take a seat to check your X balance and permission.</p>}
             {address && (grant.grant || grant.pendingUpdate || !["ready", "unfunded"].includes(permission)) && <div className="xw">
@@ -106,9 +110,7 @@ export function TradeFromXScreen() {
               />
             ) : null}
           </Step>
-          <Step n="3" title={TRADE_FROM_X.steps.link} state={linked ? "done" : step === 3 ? "active" : "idle"} spine={{ from: 3, cur: step }} isLast>
-            <LinkStep link={link} returnTo={RETURN_TO} enabled={!regionHeld && Boolean(address) && funded} />
-          </Step>
+
         </ol>
 
         {error && (
