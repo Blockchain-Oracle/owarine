@@ -1,11 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 import type { LedgerClient } from "@owarine/ledger";
 import { candleUrl, closeFromPayload, decimalToE8, type Fetch } from "../../prices/candles";
-import { boundaryFor, feederPass, GIVE_UP_SEC, payloadHash, POST_DELAY_SEC_BY_EXCHANGE, WIDEST_ADMISSION_SEC } from "./oracle-feeder";
+import { boundaryFor, feederPass, readFeederSettings, GIVE_UP_SEC, payloadHash, POST_DELAY_SEC_BY_EXCHANGE, WIDEST_ADMISSION_SEC } from "./oracle-feeder";
 
 const T = 1_790_000_040 - (1_790_000_040 % 60);
 
 describe("exchange candles", () => {
+  it("feeds SOL by default and preserves explicit operator overrides", () => {
+    expect(readFeederSettings({}).symbols).toEqual(["BTC", "ETH", "SOL"]);
+    expect(readFeederSettings({ ORACLE_SYMBOLS: " sol, btc " }).symbols).toEqual(["SOL", "BTC"]);
+    expect(candleUrl("coinbase", "SOL", T)).toContain("/SOL-USD/candles");
+    expect(candleUrl("kraken", "SOL", T)).toContain("pair=SOLUSD");
+    expect(candleUrl("bitstamp", "SOL", T)).toContain("/solusd/");
+  });
+
   it("reads the close of the candle starting at T − 60 on each exchange, and nothing still forming", () => {
     const coinbase = JSON.stringify([[T, 1, 2, 1.5, 112345.67, 3], [T - 60, 1, 2, 1.5, 112000.1, 3]]);
     expect(closeFromPayload("coinbase", coinbase, T + 60)).toBe("112345.67");

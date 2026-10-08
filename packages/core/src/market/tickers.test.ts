@@ -159,10 +159,10 @@ describe("valuation lanes (S20, D-125)", () => {
     }
   });
 
-  it("lists BTC, ETH and Canton Coin as 24/7 crypto assets, only on the token lane", () => {
-    expect(CRYPTO_TICKERS).toEqual(["BTC", "ETH", "CC"]);
-    // Only Canton Coin settles on RedStone (revamp 2b); BTC and ETH stay on the exchange candles, off the equity paths.
-    expect(CRYPTO_TICKERS.map((s) => TICKERS[s].redstoneFeedId)).toEqual([null, null, "CC"]);
+  it("lists BTC, ETH, SOL and Canton Coin as 24/7 crypto assets, only on the token lane", () => {
+    expect(CRYPTO_TICKERS).toEqual(["BTC", "ETH", "SOL", "CC"]);
+    // Only Canton Coin settles on RedStone (revamp 2b); exchange assets stay on the exchange candles, off the equity paths.
+    expect(CRYPTO_TICKERS.map((s) => TICKERS[s].redstoneFeedId)).toEqual([null, null, null, "CC"]);
     for (const symbol of CRYPTO_TICKERS) {
       const t = TICKERS[symbol];
       expect(isTokenOnlyKind(t.kind)).toBe(true);
@@ -171,6 +171,8 @@ describe("valuation lanes (S20, D-125)", () => {
       expect(tokenLaneAsset(symbol)).toBe(symbol);
       expect(spotSymbolOf(symbol, "token")).toBe(symbol);
     }
+    expect(TICKERS.SOL).toMatchObject({ name: "Solana", seriesId: 943, brand: { slug: "solana" } });
+    expect(parseLaneKey("SOL-2m_1")).toEqual({ symbol: "SOL", basis: "token", cadenceSec: 120, phaseSec: 60 });
     expect(laneKey("BTC", "token", 300)).toBe("BTC-5m");
     expect(parseLaneKey("ETH-60m")).toEqual({ symbol: "ETH", basis: "token", cadenceSec: 3600 });
     expect(parseLaneKey("BTC-gap")).toBeNull();

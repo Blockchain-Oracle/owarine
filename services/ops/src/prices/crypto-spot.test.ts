@@ -54,6 +54,18 @@ describe("createCryptoSpotFeed over the socket", () => {
     feed.stop();
   });
 
+  it("includes SOL in the default subscription and publishes its trades", () => {
+    vi.useFakeTimers({ now: Date.parse("2026-10-07T12:00:00Z") });
+    const ws = new FakeSocket();
+    const feed = createCryptoSpotFeed({ log: () => undefined, socket: () => ws, fetchImpl: vi.fn(async () => new Response("{}")) });
+    feed.start();
+    ws.onopen?.();
+    expect(JSON.parse(ws.sent[0]!).product_ids).toEqual(["BTC-USD", "ETH-USD", "SOL-USD"]);
+    ws.onmessage?.({ data: TICKER("110.25", new Date().toISOString(), "SOL-USD") });
+    expect(feed.latest("SOL")?.priceE8).toBe(11_025_000_000n);
+    feed.stop();
+  });
+
   it("falls back to REST once the socket has been quiet and reconnects after a close", async () => {
     vi.useFakeTimers({ now: Date.parse("2026-10-07T12:00:00Z") });
     const sockets: FakeSocket[] = [];

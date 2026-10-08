@@ -6,6 +6,7 @@
  * from the loop: there is no program to post to. Their source fetchers stay in this folder, dormant, for the equity
  * lanes' feeders in C6 (plan "Prices and lanes").
  */
+import { CRYPTO_SYMBOLS } from "@owarine/core/market";
 import { createSpotFeed } from "../../prices/spot-feed";
 import { joinCryptoSpot } from "../../prices/crypto-spot";
 import { createCryptoAssetSpotFeed } from "../../prices/bybit";
@@ -67,6 +68,6 @@ export async function startPriceRelay(deps: VenueDeps, venue: VenueContext = cre
   stops.push(startOracleFeeders(venue, (actor) => (why) => log(`[${actor}] ${why}`)).stop);
   // C6: the same oracle parties print the stock, xStock, PreStocks and basket lanes from their original sources.
   stops.push(startLaneFeeders(venue, laneReaderDeps(deps, sources), (actor) => (why) => log(`[${actor}] ${why}`)).stop);
-  log(`relay: RedStone ${sources.redstoneFeeds.length} feeds via ${sources.gateways.join(", ")}; Pyth ${pythKey ? `${sources.pythFeeds.length} trial feeds` : "off (no PYTH_API_KEY)"}; crypto spot from Coinbase (BTC, ETH) and Bybit (CC); ${venue.summary}`);
+  log(`relay: RedStone ${sources.redstoneFeeds.length} feeds via ${sources.gateways.join(", ")}; Pyth ${pythKey ? `${sources.pythFeeds.length} trial feeds` : "off (no PYTH_API_KEY)"}; crypto spot from Coinbase (${CRYPTO_SYMBOLS.join(", ")}) and Bybit (CC); ${venue.summary}`);
   return { spot: joinCryptoSpot(equity, crypto), stop: () => stops.forEach((stop) => stop()) };
 }

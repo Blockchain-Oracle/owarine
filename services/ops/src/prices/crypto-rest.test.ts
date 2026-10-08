@@ -10,11 +10,11 @@ function venues(down: readonly string[] = []): Fetch {
   return (async (url: string) => {
     const host = new URL(url).host;
     if (down.some((d) => host.includes(d))) throw new Error(`connect ETIMEDOUT ${host}`);
-    if (host.includes("coinbase")) return ok({ price: url.includes("BTC") ? "62010.10" : "2501.00", time: "2026-10-08T11:59:59.500Z" });
-    if (host.includes("bitstamp")) return ok({ last: url.includes("btc") ? "62000" : "2500.50", "timestamp": String(NOW / 1000 - 2) });
-    if (host.includes("bitfinex")) return ok([["tBTCUSD", 1, 1, 1, 1, 0, 0, 62005, 1, 1, 1], ["tETHUSD", 1, 1, 1, 1, 0, 0, 2499.9, 1, 1, 1]]);
-    if (host.includes("kraken")) return ok({ error: [], result: { XXBTZUSD: { c: ["62020.0", "0.1"] }, XETHZUSD: { c: ["2502.0", "1"] } } });
-    if (host.includes("gemini")) return ok({ last: url.includes("btc") ? "61990" : "2500", volume: { "timestamp": NOW - 1_000 } });
+    if (host.includes("coinbase")) return ok({ price: url.includes("BTC") ? "62010.10" : url.includes("SOL") ? "110.25" : "2501.00", time: "2026-10-08T11:59:59.500Z" });
+    if (host.includes("bitstamp")) return ok({ last: url.includes("btc") ? "62000" : url.includes("sol") ? "110.24" : "2500.50", "timestamp": String(NOW / 1000 - 2) });
+    if (host.includes("bitfinex")) return ok([["tBTCUSD", 1, 1, 1, 1, 0, 0, 62005, 1, 1, 1], ["tETHUSD", 1, 1, 1, 1, 0, 0, 2499.9, 1, 1, 1], ["tSOLUSD", 1, 1, 1, 1, 0, 0, 110.37, 1, 1, 1]]);
+    if (host.includes("kraken")) return ok({ error: [], result: { XXBTZUSD: { c: ["62020.0", "0.1"] }, XETHZUSD: { c: ["2502.0", "1"] }, SOLUSD: { c: ["110.26", "1"] } } });
+    if (host.includes("gemini")) return ok({ last: url.includes("btc") ? "61990" : url.includes("sol") ? "110.196" : "2500", volume: { "timestamp": NOW - 1_000 } });
     throw new Error(`unexpected ${url}`);
   }) as unknown as Fetch;
 }
@@ -25,6 +25,14 @@ describe("crypto spot REST fallback across five venues", () => {
     expect((await readVenue("bitfinex", ["BTC", "ETH"], f, NOW)).get("ETH")?.priceE8).toBe(249_990_000_000n);
     expect((await readVenue("kraken", ["BTC"], f, NOW)).get("BTC")?.priceE8).toBe(6_202_000_000_000n);
     expect((await readVenue("gemini", ["BTC"], f, NOW)).get("BTC")?.timeMs).toBe(NOW - 1_000);
+  });
+
+  it("reads SOL across every venue and keeps it live if Coinbase and Kraken fail", async () => {
+    for (const venue of ["coinbase", "bitstamp", "bitfinex", "kraken", "gemini"] as const) {
+      expect((await readVenue(venue, ["SOL"], venues(), NOW)).get("SOL")?.priceE8).toBeGreaterThan(0n);
+    }
+    const r = await readCryptoMedian(["SOL"], venues(["coinbase", "kraken"]), NOW);
+    expect(r.bySymbol.get("SOL")).toEqual({ trade: expect.objectContaining({ priceE8: 11_024_000_000n }), venues: 3 });
   });
 
   it("publishes the median, so one venue's odd print moves nothing", async () => {

@@ -56,9 +56,9 @@ export interface RollerState {
 
 /** How long the optional lanes stand down after a traffic refusal. */
 export const TRAFFIC_BACKOFF_MS = 10 * 60_000;
-/** Canton Coin, the network's own token, stays on the board with BTC and ETH (Abu, 8 Oct). */
+/** Listed exchange-candle assets and Canton Coin stay on the board. */
 const CORE_SYMBOLS: readonly string[] = [...CRYPTO_SYMBOLS, "CC"];
-/** The lanes kept open whatever the traffic: BTC, ETH and CC Windows of five minutes or less. */
+/** The lanes kept open whatever the traffic: listed crypto Windows of five minutes or less. */
 export const isCoreLane = (s: Pick<SeriesC, "symbol" | "cadenceSec">): boolean => CORE_SYMBOLS.includes(s.symbol) && s.cadenceSec <= 300;
 const isTrafficRefusal = (error: unknown) => /NOT_ENOUGH_TRAFFIC_CREDIT|AboveTrafficLimit/.test(failureText(error));
 

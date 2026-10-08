@@ -78,7 +78,7 @@ The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-0
 
 | Mark | Source | Terms |
 | --- | --- | --- |
-| Tesla, NVIDIA, Apple, Meta, Google, Anthropic, SpaceX | [simple-icons](https://github.com/simple-icons/simple-icons) **16.31.0** (`icons/<slug>.svg`) | CC0 1.0 Universal |
+| Tesla, NVIDIA, Apple, Meta, Google, Anthropic, SpaceX, Solana | [simple-icons](https://github.com/simple-icons/simple-icons) **16.31.0** (`icons/<slug>.svg`) | CC0 1.0 Universal |
 | OpenAI | simple-icons **15.22.0**, the last release to carry `openai.svg` | CC0 1.0 at publication. Removed in 16.0.0 ([#13944](https://github.com/simple-icons/simple-icons/issues/13944)) because no contributor obtained usage permission, not on a request from OpenAI — the same footing as Amazon below. |
 | Polymarket | The standalone symbol from [`Polymarket.svg`](https://commons.wikimedia.org/wiki/File:Polymarket.svg) on Wikimedia Commons, which the uploader marked as below the threshold of originality (public domain). Only the pennant is vendored; the wordmark beside it in that file is not, and the path was refitted to the 24-box by a uniform scale. | Public domain (trademark still the owner's). |
 | Amazon | simple-icons **14.15.0**, the last release to carry `amazon.svg` | CC0 1.0 at publication. The maintainers removed the Amazon and AWS icons in 15.0.0 ([PR #13056](https://github.com/simple-icons/simple-icons/pull/13056)) pending permission, not on a request from Amazon. |

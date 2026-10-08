@@ -26,13 +26,13 @@ const UA = { "user-agent": "owarine-crypto-spot" };
 
 /** Each venue's pair names (Kraken answers BTC as XXBTZUSD). */
 const PAIRS: Record<CryptoVenue, Partial<Record<CryptoSymbol, string>>> = {
-  coinbase: { BTC: "BTC-USD", ETH: "ETH-USD" },
-  bitstamp: { BTC: "btcusd", ETH: "ethusd" },
-  bitfinex: { BTC: "tBTCUSD", ETH: "tETHUSD" },
-  kraken: { BTC: "XBTUSD", ETH: "ETHUSD" },
-  gemini: { BTC: "btcusd", ETH: "ethusd" },
+  coinbase: { BTC: "BTC-USD", ETH: "ETH-USD", SOL: "SOL-USD" },
+  bitstamp: { BTC: "btcusd", ETH: "ethusd", SOL: "solusd" },
+  bitfinex: { BTC: "tBTCUSD", ETH: "tETHUSD", SOL: "tSOLUSD" },
+  kraken: { BTC: "XBTUSD", ETH: "ETHUSD", SOL: "SOLUSD" },
+  gemini: { BTC: "btcusd", ETH: "ethusd", SOL: "solusd" },
 };
-const KRAKEN_KEYS: Partial<Record<CryptoSymbol, readonly string[]>> = { BTC: ["XXBTZUSD", "XBTUSD"], ETH: ["XETHZUSD", "ETHUSD"] };
+const KRAKEN_KEYS: Partial<Record<CryptoSymbol, readonly string[]>> = { BTC: ["XXBTZUSD", "XBTUSD"], ETH: ["XETHZUSD", "ETHUSD"], SOL: ["SOLUSD"] };
 
 const DECIMAL = /^\d+(\.\d+)?$/;
 const toDecimal = (v: unknown): string | null => {

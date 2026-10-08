@@ -4,5 +4,16 @@
     "lineage, credited honestly. `match` is a substring of that line; `why` says why it stays.",
     "The rule fails on an entry that no longer matches anything, so the list cannot rot."
   ],
-  "entries": []
+  "entries": [
+    {
+      "file": "packages/core/src/market/crypto.ts",
+      "match": "export const CRYPTO_SYMBOLS = [\"BTC\", \"ETH\", \"SOL\"]",
+      "why": "SOL names the listed Solana price asset; trading and settlement remain on Canton."
+    },
+    {
+      "file": "packages/core/src/market/crypto.ts",
+      "match": "symbol: \"SOL\", seriesId: 943, name: \"Solana\"",
+      "why": "The registry identifies the traded price asset, not a Solana wallet or execution network."
+    }
+  ]
 }

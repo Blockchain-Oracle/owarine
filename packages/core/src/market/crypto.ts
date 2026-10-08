@@ -2,7 +2,7 @@ import type { Hash32 } from "../types/primitives";
 import type { Ticker } from "./tickers";
 
 /**
- * Crypto assets: Masayume's BTC/ETH cadence lanes, carried onto Canton. They trade around the clock, so like a pre-IPO
+ * Crypto assets listed on Canton's cadence lanes. They trade around the clock, so like a pre-IPO
  * name they have no exchange session and list only on the 24/7 lane (`basis: "token"`, `isTokenOnlyKind`). The Canton
  * lane settles on the oracle parties' attested one-minute exchange candles (`printSource: "attested"`), so the row's
  * `pythFeedId` and `redstoneFeedId` stay null: ops' Pyth trial list, spot stream and halt watch key on those fields,
@@ -11,7 +11,7 @@ import type { Ticker } from "./tickers";
  * This module never imports `tickers.ts` at runtime (`tickers.ts` imports it); only types cross the other way.
  */
 
-export const CRYPTO_SYMBOLS = ["BTC", "ETH"] as const;
+export const CRYPTO_SYMBOLS = ["BTC", "ETH", "SOL"] as const;
 export type CryptoSymbol = (typeof CRYPTO_SYMBOLS)[number];
 /**
  * The crypto lanes' cadences: the 2-minute short lane (it replaced the 1-minute demo lane, 7 Oct 2026), the
@@ -40,7 +40,7 @@ export const CALENDAR_YEAR_SEC = 365 * 86_400;
 export const CANTON_COIN = "CC" as const;
 export type CantonCoinSymbol = typeof CANTON_COIN;
 
-/** Every crypto asset the venue lists: the exchange-candle pair and Canton Coin. */
+/** Every crypto asset the venue lists: the exchange-candle assets and Canton Coin. */
 export const CRYPTO_ASSET_SYMBOLS = [...CRYPTO_SYMBOLS, CANTON_COIN] as const;
 export type CryptoAssetSymbol = (typeof CRYPTO_ASSET_SYMBOLS)[number];
 
@@ -54,9 +54,10 @@ export const CRYPTO_TICKERS: readonly CryptoAssetSymbol[] = CRYPTO_ASSET_SYMBOLS
 export const CRYPTO_PYTH_FEEDS: Readonly<Record<CryptoSymbol, Hash32>> = {
   BTC: "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
   ETH: "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+  SOL: "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
 };
 
-/** Series ids 940–942; the brand is the asset's own mark colour (`icons.css` gains the matching `--brand-*` in the UI lane). */
+/** Series ids 940–943; the brand is the asset's own mark colour (`icons.css` gains the matching `--brand-*` in the UI lane). */
 export const CRYPTO_ROWS: Readonly<Record<CryptoAssetSymbol, Ticker>> = {
   BTC: {
     symbol: "BTC", seriesId: 940, name: "Bitcoin", kind: "crypto", alpacaSymbol: null,
@@ -69,6 +70,12 @@ export const CRYPTO_ROWS: Readonly<Record<CryptoAssetSymbol, Ticker>> = {
     pythFeedId: null, redstoneFeedId: null, launch: false,
     xstock: null, ondo: null, preIpo: null, basket: null, pythIndexFeedId: null, valuationOf: null,
     monogram: "E", brand: { slug: "ethereum", hex: "#627EEA" },
+  },
+  SOL: {
+    symbol: "SOL", seriesId: 943, name: "Solana", kind: "crypto", alpacaSymbol: null,
+    pythFeedId: null, redstoneFeedId: null, launch: false,
+    xstock: null, ondo: null, preIpo: null, basket: null, pythIndexFeedId: null, valuationOf: null,
+    monogram: "S", brand: { slug: "solana", hex: "#9945FF" },
   },
   // RedStone carries `CC` (its settlement feed); the Canton brand kit's black under a typed monogram (no glyph vendored).
   CC: {

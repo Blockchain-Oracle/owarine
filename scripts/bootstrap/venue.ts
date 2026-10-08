@@ -93,10 +93,8 @@ interface LaneSpec {
 const CRYPTO_LOCK_LEAD_SEC: Record<number, number> = { 60: 10, 120: 20, 300: 30, 900: 60, 3_600: 120, 14_400: 300, 86_400: 900 };
 
 /**
- * BTC and ETH on every crypto cadence (core `CRYPTO_CADENCES_SEC`): the 60 s demo lane (an Addition, C3), the
- * reference's 300/900/3,600 s and Masayume's 4 h and 1 d. Keys follow core `laneKey` (`BTC-5m`, `BTC-240m`, `BTC-1440m`).
- * Every crypto lane admits a print for 60 s after its boundary (the 1-minute lane, which admitted its open print until
- * lock, was replaced by the staggered 2-minute lane on 7 Oct 2026; its Series stay on the ledger, no longer rolled).
+ * Exchange-candle crypto assets on every `CRYPTO_CADENCES_SEC` cadence, around the clock. The two-minute
+ * and five-minute lanes each have a staggered Series; longer cadences run one Series on the UTC grid.
  */
 function cryptoLanes(nowSec: number): LaneSpec[] {
   return CRYPTO_SYMBOLS.flatMap((symbol) =>

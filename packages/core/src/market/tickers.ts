@@ -63,7 +63,7 @@ export const BRAND_SLUGS = [
   // Baskets (S19, D-124): composed marks over the member discs; the colour is the basket's own.
   "ailabs", "frontier", "predmkts", "defspace", "preall",
   // Valuation lanes (S20, D-125): the company's second brand colour under a typed "V", so the two lanes never share a disc.
-  "openaiv", "anthropicv", "bitcoin", "ethereum", "canton", // …then crypto (`crypto.ts`), the asset's own mark colour.
+  "openaiv", "anthropicv", "bitcoin", "ethereum", "solana", "canton", // …then crypto (`crypto.ts`), the asset's own mark colour.
 ] as const;
 export type BrandSlug = (typeof BRAND_SLUGS)[number];
 

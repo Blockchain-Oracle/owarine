@@ -7,6 +7,7 @@
  * sha-256 is the quote's `payloadHash`, so the proof page can re-verify a print from the archive or the exchange.
  * This is a new sourcing decision, not a port: the reference relay fetched Pyth, RedStone, Switchboard and Jupiter.
  */
+import { CRYPTO_SYMBOLS } from "@owarine/core/market";
 import { createHash } from "node:crypto";
 import { appendFileSync } from "node:fs";
 import { archivePrints, getDb, openDependentSpans, quoteIsCited, type DependentSpan } from "@owarine/db";
@@ -58,7 +59,7 @@ export interface FeederSettings {
 }
 
 export function readFeederSettings(env: NodeJS.ProcessEnv = process.env): FeederSettings {
-  const symbols = (env.ORACLE_SYMBOLS ?? "BTC,ETH").split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
+  const symbols = (env.ORACLE_SYMBOLS ?? CRYPTO_SYMBOLS.join(",")).split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
   const retain = Number(env.ORACLE_RETAIN_SEC);
   return { symbols, retainSec: Number.isInteger(retain) && retain >= 600 ? retain : 2 * 3_600 };
 }

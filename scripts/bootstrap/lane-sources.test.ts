@@ -35,7 +35,7 @@ describe("bootstrap and halt-watch read the same lane sources", () => {
 
   it("leaves crypto (exchanges) and the valuation lanes out of the halt table", () => {
     const uncovered = lanes.filter((lane) => !covered.includes(lane)).map((lane) => lane.seriesKey.replace(/-\d+m(_\d+)?$/, ""));
-    expect(new Set(uncovered)).toEqual(new Set(["BTC", "ETH", "OPENAIV", "ANTHROPICV"]));
+    expect(new Set(uncovered)).toEqual(new Set(["BTC", "ETH", "SOL", "OPENAIV", "ANTHROPICV"]));
   });
 });
 
@@ -51,7 +51,17 @@ describe("Canton Coin lanes (revamp 2b)", () => {
     }
   });
 
-  it("is its own family: the crypto family stays BTC and ETH on the exchange candles", () => {
+  it("is its own family: the crypto family stays BTC, ETH and SOL on the exchange candles", () => {
     expect(lanesFor(new Set(["crypto"]), NOW_SEC).every((l) => l.symbol !== "CC" && parsePrintSource(l.versions[0]!.printSource)?.source === "exchanges")).toBe(true);
+  });
+});
+
+describe("Solana lanes", () => {
+  it("creates all eight SOL cadence and stagger Series with exchange settlement", () => {
+    const sol = lanesFor(new Set(["crypto"]), NOW_SEC).filter((l) => l.symbol === "SOL");
+    expect(sol.map((l) => l.seriesKey)).toEqual(["SOL-2m", "SOL-2m_1", "SOL-5m", "SOL-5m_3", "SOL-15m", "SOL-60m", "SOL-240m", "SOL-1440m"]);
+    for (const lane of sol) {
+      expect(lane.versions[0]).toMatchObject({ printSource: "attested:coinbase,kraken,bitstamp 1m candle close", minDelaySec: 5, barLenSec: 60, openAdmissionSec: 60, closeAdmissionSec: 60 });
+    }
   });
 });
