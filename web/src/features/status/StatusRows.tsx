@@ -1,7 +1,8 @@
 import {
-  Activity, AlertTriangle, Armchair, Bot, Boxes, CheckCircle2, CircleDashed, Cpu, Database, Droplets, Gavel, GitCompare, HandCoins,
+  Activity, AlertTriangle, Armchair, Bot, Boxes, CheckCircle2, ChevronDown, CircleDashed, Cpu, Database, Droplets, Gavel, GitCompare, HandCoins,
   LineChart, PauseCircle, Printer, Radar, Radio, Satellite, ToggleRight, Wallet, XCircle, type LucideIcon,
 } from "lucide-react";
+import { Accordion } from "@base-ui/react/accordion";
 import { cn } from "@/lib/utils";
 import { STATUS } from "./copy";
 import { lagTone, type LagTone, type StatusPayload, type StatusPipeline } from "./protocol";
@@ -100,34 +101,114 @@ export function StatusBanner({ payload }: { payload: StatusPayload }) {
   );
 }
 
-function Row({ pipeline, sessionLabel, metricOnly }: { pipeline: StatusPipeline; sessionLabel: string | null; metricOnly: boolean }) {
-  const tone = lagTone(pipeline);
-  const { metric } = split(pipeline.label);
+/** The chips a check carries: optional and not set up, or closed for the session. */
+function Chips({ pipeline, sessionLabel }: { pipeline: StatusPipeline; sessionLabel: string | null }) {
   const notConfigured = pipeline.optional && !pipeline.configured;
+  if (!notConfigured && !pipeline.expected) return null;
   return (
-    <li className="flex gap-3 py-3.5">
+    <div className="flex flex-wrap gap-1.5">
+      {notConfigured && <span className="rounded-full bg-ow-recessed px-2.5 py-0.5 text-ow-micro font-semibold text-ow-muted">{STATUS.optional}</span>}
+      {pipeline.expected && <span className="rounded-full bg-ow-breakeven/12 px-2.5 py-0.5 text-ow-micro font-semibold text-ow-ink">{STATUS.expected(sessionLabel)}</span>}
+    </div>
+  );
+}
+
+/** A check that needs attention, said in full: its name, its value, what was measured, its chips. */
+function AttentionCard({ pipeline, sessionLabel }: { pipeline: StatusPipeline; sessionLabel: string | null }) {
+  const tone = lagTone(pipeline);
+  return (
+    <li className={cn("flex gap-3 rounded-ow-card px-5 py-4 ring-1", TONE[tone].wash)}>
       <span aria-hidden className={cn("mt-2 size-2.5 shrink-0 rounded-full", TONE[tone].dot)} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-ow-lead font-semibold">{metricOnly ? metric : pipeline.label}</span>
+          <span className="text-ow-lead font-semibold">{pipeline.label}</span>
           <span className={cn("ow-num shrink-0 text-ow-title font-bold", TONE[tone].ink)}>{valueOf(pipeline)}</span>
         </div>
         <p className="text-ow-label text-ow-muted">{pipeline.detail}</p>
-        {notConfigured || pipeline.expected ? (
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
-            {notConfigured && <span className="rounded-full bg-ow-recessed px-2.5 py-0.5 text-ow-micro font-semibold text-ow-muted">{STATUS.optional}</span>}
-            {pipeline.expected && <span className="rounded-full bg-ow-breakeven/12 px-2.5 py-0.5 text-ow-micro font-semibold text-ow-ink">{STATUS.expected(sessionLabel)}</span>}
-          </div>
-        ) : null}
+        <Chips pipeline={pipeline} sessionLabel={sessionLabel} />
       </div>
     </li>
   );
 }
 
+const CHEVRON = "size-4.5 shrink-0 text-ow-muted transition-transform duration-200 group-data-panel-open:rotate-180 motion-reduce:transition-none";
+const PANEL = "h-(--accordion-panel-height) overflow-hidden transition-[height] duration-200 ease-ow-spring data-ending-style:h-0 data-starting-style:h-0 motion-reduce:transition-none";
+
+/** One check as a dropdown: the dot, what is measured and its value on one line; the detail and chips open under it. */
+function CheckRow({ pipeline, sessionLabel }: { pipeline: StatusPipeline; sessionLabel: string | null }) {
+  const tone = lagTone(pipeline);
+  return (
+    <Accordion.Item value={pipeline.id} className="border-t border-ow-hairline first:border-t-0">
+      <Accordion.Header>
+        <Accordion.Trigger className="group flex w-full items-center gap-3 py-3 text-left outline-none focus-visible:rounded-[0.75rem] focus-visible:ring-2 focus-visible:ring-ow-pink-ink">
+          <span aria-hidden className={cn("size-2.5 shrink-0 rounded-full", TONE[tone].dot)} />
+          <span className="min-w-0 flex-1 truncate text-ow-body font-semibold">{split(pipeline.label).metric}</span>
+          {pipeline.expected ? <span className="shrink-0 rounded-full bg-ow-breakeven/12 px-2 py-0.5 text-ow-micro font-semibold">{B.closed}</span> : null}
+          <span className={cn("ow-num shrink-0 text-ow-lead font-bold", TONE[tone].ink)}>{valueOf(pipeline)}</span>
+          <ChevronDown aria-hidden className={CHEVRON} />
+        </Accordion.Trigger>
+      </Accordion.Header>
+      <Accordion.Panel hiddenUntilFound className={PANEL}>
+        <div className="flex flex-col gap-2 pb-3.5 pl-5.5">
+          <p className="text-ow-label text-ow-muted">{pipeline.detail}</p>
+          <Chips pipeline={pipeline} sessionLabel={sessionLabel} />
+        </div>
+      </Accordion.Panel>
+    </Accordion.Item>
+  );
+}
+
+/** A system's one-line answer when it is closed: what is wrong, or that nothing is. */
+function summaryOf(list: StatusPipeline[]): { text: string; tone: LagTone } {
+  const tones = list.map(lagTone);
+  const n = (t: LagTone) => tones.filter((x) => x === t).length;
+  if (n("bad")) return { text: B.summary.bad(n("bad")), tone: "bad" };
+  if (n("warn")) return { text: B.summary.warn(n("warn")), tone: "warn" };
+  if (n("off") === list.length) return { text: list.every((p) => p.expected) ? B.summary.closed : B.summary.notSetUp, tone: "off" };
+  if (n("off")) return { text: B.summary.mixed(n("good"), n("off")), tone: "good" };
+  return { text: B.summary.good(list.length), tone: "good" };
+}
+
+/** One system as a dropdown: glyph, name, a dot per check and its one-line answer; its checks open as rows. */
+function SystemItem({ name, list, sessionLabel }: { name: string; list: StatusPipeline[]; sessionLabel: string | null }) {
+  const Glyph = iconOf(name);
+  const summary = summaryOf(list);
+  return (
+    <Accordion.Item value={name} className="rounded-ow-card bg-ow-card ring-1 ring-ow-hairline">
+      <Accordion.Header>
+        <Accordion.Trigger className="group flex w-full items-center gap-3 px-4 py-3.5 text-left outline-none focus-visible:rounded-ow-card focus-visible:ring-2 focus-visible:ring-ow-pink-ink">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ow-recessed">
+            <Glyph aria-hidden className="size-4.5" />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate text-ow-lead font-bold">{name}</span>
+            <span className={cn("truncate text-ow-caption", summary.tone === "bad" || summary.tone === "warn" ? TONE[summary.tone].ink : "text-ow-muted")}>{summary.text}</span>
+          </span>
+          <span className="hidden gap-1 sm:flex" aria-hidden>
+            {list.map((p) => (
+              <span key={p.id} className={cn("size-2 rounded-full", TONE[lagTone(p)].dot)} />
+            ))}
+          </span>
+          <ChevronDown aria-hidden className={CHEVRON} />
+        </Accordion.Trigger>
+      </Accordion.Header>
+      <Accordion.Panel hiddenUntilFound className={PANEL}>
+        <Accordion.Root multiple className="mx-4 border-t border-ow-hairline">
+          {list.map((p) => (
+            <CheckRow key={p.id} pipeline={p} sessionLabel={sessionLabel} />
+          ))}
+        </Accordion.Root>
+      </Accordion.Panel>
+    </Accordion.Item>
+  );
+}
+
 /**
- * Every check, said large enough to read: what needs attention first (failing, then slow) as cards of their own, then
- * each system as a card — its glyph, its name, a dot per check — with its checks as rows whose detail wraps instead of
- * being cut off. Systems with a problem come first; inside one, the worst check leads.
+ * Every check, as dropdowns (Abu, 8 Oct: "make this a dropdown so it doesn't look like slop"): what needs attention
+ * first, in full; then each system as one line — glyph, name, its answer, a dot per check — that opens to its checks,
+ * and each check opens to its detail. A system with a problem starts open; the rest start closed. Two independent
+ * stacks on wide screens, so opening one never shifts the other. Panels are `hidden="until-found"`, so the browser's
+ * own find still reaches every detail.
  */
 export function StatusTable({ pipelines, sessionLabel = null }: { pipelines: StatusPipeline[]; sessionLabel?: string | null }) {
   const attention = pipelines.filter((p) => RANK[lagTone(p)] <= 1).sort((a, b) => RANK[lagTone(a)] - RANK[lagTone(b)]);
@@ -137,7 +218,11 @@ export function StatusTable({ pipelines, sessionLabel = null }: { pipelines: Sta
     groups.set(group, [...(groups.get(group) ?? []), p]);
   }
   const worst = (list: StatusPipeline[]) => Math.min(...list.map((p) => RANK[lagTone(p)]));
-  const ordered = [...groups.entries()].map(([name, list], i) => ({ name, i, list: [...list].sort((a, b) => RANK[lagTone(a)] - RANK[lagTone(b)]) })).sort((a, b) => worst(a.list) - worst(b.list) || a.i - b.i);
+  const ordered = [...groups.entries()]
+    .map(([name, list], i) => ({ name, i, list: [...list].sort((a, b) => RANK[lagTone(a)] - RANK[lagTone(b)]) }))
+    .sort((a, b) => worst(a.list) - worst(b.list) || a.i - b.i);
+  const open = ordered.filter((g) => worst(g.list) <= 1).map((g) => g.name);
+  const stacks = [ordered.filter((_, i) => i % 2 === 0), ordered.filter((_, i) => i % 2 === 1)];
 
   return (
     <div className="flex flex-col gap-8">
@@ -148,11 +233,7 @@ export function StatusTable({ pipelines, sessionLabel = null }: { pipelines: Sta
           </h2>
           <ul className="grid gap-3 lg:grid-cols-2">
             {attention.map((p) => (
-              <li key={p.id} className={cn("rounded-ow-card px-5 ring-1", TONE[lagTone(p)].wash)}>
-                <ul>
-                  <Row pipeline={p} sessionLabel={sessionLabel} metricOnly={false} />
-                </ul>
-              </li>
+              <AttentionCard key={p.id} pipeline={p} sessionLabel={sessionLabel} />
             ))}
           </ul>
         </section>
@@ -162,30 +243,14 @@ export function StatusTable({ pipelines, sessionLabel = null }: { pipelines: Sta
         <h2 id="status-all" className="ow-display ow-display-sm">
           {B.allChecks(pipelines.length)}
         </h2>
-        <div className="columns-1 gap-4 lg:columns-2">
-          {ordered.map(({ name, list }) => {
-            const Glyph = iconOf(name);
-            return (
-              <section key={name} className="mb-4 break-inside-avoid rounded-ow-card bg-ow-card px-5 pt-4 pb-1 ring-1 ring-ow-hairline" aria-label={name}>
-                <header className="flex items-center gap-3 border-b border-ow-hairline pb-3">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-ow-recessed">
-                    <Glyph aria-hidden className="size-4.5" />
-                  </span>
-                  <h3 className="min-w-0 flex-1 truncate text-ow-title font-bold">{name}</h3>
-                  <span className="flex gap-1" aria-hidden>
-                    {list.map((p) => (
-                      <span key={p.id} className={cn("size-2 rounded-full", TONE[lagTone(p)].dot)} />
-                    ))}
-                  </span>
-                </header>
-                <ul className="divide-y divide-ow-hairline">
-                  {list.map((p) => (
-                    <Row key={p.id} pipeline={p} sessionLabel={sessionLabel} metricOnly={list.length > 1 || split(p.label).metric !== p.label} />
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
+        <div className="grid items-start gap-3 lg:grid-cols-2">
+          {stacks.map((stack, i) => (
+            <Accordion.Root key={i} multiple defaultValue={open} className="flex flex-col gap-3">
+              {stack.map(({ name, list }) => (
+                <SystemItem key={name} name={name} list={list} sessionLabel={sessionLabel} />
+              ))}
+            </Accordion.Root>
+          ))}
         </div>
       </section>
     </div>
