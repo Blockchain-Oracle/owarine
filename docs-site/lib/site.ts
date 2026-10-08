@@ -8,8 +8,9 @@ export const site = {
   name: 'Owarine',
   docs: origin(process.env.NEXT_PUBLIC_DOCS_URL, 'https://docs.owarine.xyz'),
   app: origin(process.env.NEXT_PUBLIC_APP_URL, 'https://owarine.xyz'),
-  // The one repository for the app and these docs: the sidebar's GitHub link, llms.txt's README entry and per-page
-  // source notes, all pinned to `revision`. Null until the Canton repository is public: pages then name paths alone.
+  repository: 'https://github.com/Blockchain-Oracle/owarine',
+  // Public, revision-pinned source notes and llms.txt's README entry.
+  // Null until the repository is public; the sidebar repository link is independent.
   source: null as string | null,
   revision: 'ecf948f',
   reviewed: '2026-10-06',
