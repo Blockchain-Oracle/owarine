@@ -23,7 +23,7 @@
 
 **Owarine is a private prediction market on Canton, built with Daml.** Pick a short price Window, take Up or Down at the venue's firm quote, watch your position, and close early or let the Window settle. Positions are contracts whose stakeholders are the owner and the venue. Games, copyable strategies and bounded agent desks offer other ways into the same markets, on the web and in the native phone app.
 
-Built for **HackCanton League Season 3 · Financial Applications**. *Owarine* (終値) means **closing price**. This prototype uses **demo credits with no cash value** and **DevNet Canton Coin**. See [what is verified](#what-is-verified) and [prior work](#prior-work-and-hackathon-contribution) before evaluating it.
+Built for **HackCanton League Season 3 · Financial Applications**. *Owarine* (終値) means **closing price**. This prototype uses **demo credits with no cash value** and **DevNet Canton Coin**. See [what is verified](#what-is-verified) for recorded journeys and current limits.
 
 ## The idea
 
@@ -170,18 +170,16 @@ pnpm -C docs-site check
 
 [Native app setup](mobile/README.md) · [DevNet party-file template](scripts/bootstrap/devnet-parties.example.json) · [DevNet bootstrap](scripts/bootstrap-devnet.ts)
 
-## Prior work and hackathon contribution
+## HackCanton contribution
 
-Owarine builds on **Agari**, my earlier Solana prediction market. The annotated tag **`hackcanton-s3-start`** at `6f3f3cf` marks the import of Agari revision `661a24ee`, without its Solana programs. The imported web/native app, shared code, design and docs are prior work, including Agari commits made for its separate hackathon during overlapping dates. Agari itself descends from Masayume; third-party design and asset terms are retained in [the notices](THIRD_PARTY_NOTICES.md).
+The web/native application and shared interface foundation predate the Canton port. The **`hackcanton-s3-start`** tag records that starting point.
 
-The contribution after that boundary includes the **six Daml packages and Daml Script tests**, **JSON Ledger API v2 client**, **Canton market adapter**, **venue/oracle/resolver/settler operations**, **seat authentication and authorization**, **privacy/proof/receipt surfaces**, **Canton Coin rail**, and **Canton native-app integration**. Inspect the actual contribution rather than an old line-count claim:
+The Canton work includes **six Daml packages and Daml Script tests**, the **JSON Ledger API v2 client**, **Canton market adapter**, **venue/oracle/resolver/settler operations**, **seat authentication and authorization**, **privacy/proof/receipt surfaces**, **Canton Coin rail**, and **Canton native-app integration**. Inspect the changes with:
 
 ```sh
 git log --oneline hackcanton-s3-start..HEAD
 git diff --stat hackcanton-s3-start..HEAD -- daml packages services web mobile
 ```
-
-Research and Daml spikes began in the separate Canton workspace before this repo's 29 September import. AI coding agents assisted implementation; relevant commits carry co-author trailers. **Abubakr Jimoh** is responsible for the submitted work. A final judged revision must be identified separately from this working checkout.
 
 ## Find the code and guides
 

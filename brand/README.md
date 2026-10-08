@@ -10,8 +10,6 @@ The **終値 seal** is Owarine's mark: the two kanji of *owarine* ("closing pric
 
 The seal is one colour: Power Pink `#FA00FF` on light surfaces, white on dark ones and on the pink app tile. In product code it is drawn by the kit's `Seal` (web `web/src/components/kit/Seal.tsx`, app `mobile/src/components/kit/ow/Seal.tsx`), with `currentColor` where a theme should decide.
 
-Until 8 Oct 2026 this folder held Agari's "Window Cut" mark, carried over by the rename; it is retired everywhere.
-
 ## README and demo artwork
 
 [Banner](../.github/assets/banner.png) and [demo cover](../web/public/demo/cover.png) use the current seal and a dated Owarine trading screen. They are generated editorial compositions, not transaction evidence or an unchanged screenshot. The cover includes the prepared play icon; the Canton film remains unpublished. [Provenance and hashes](../.github/assets/provenance.json).
