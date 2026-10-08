@@ -48,7 +48,7 @@ export function AuditSection({ reading, decimals, symbol }: { reading: Reading<A
       {venue ? (
         <>
           <div className="stats-grid">
-            <Stat label={V.windows.label} value={fmtCount(venue.windows)} sub={V.windows.sub(venue.resolved, venue.voided)} />
+            <Stat label={V.windows.label} value={fmtCount(venue.windows)} sub={V.windows.sub(venue.resolved, venue.voided, Math.max(0, venue.windows - venue.resolved - venue.voided))} />
             <Stat label={V.trades.label} value={fmtCount(Number(venue.trades))} sub={V.trades.sub(venue.publicWindows)} />
             <Stat label={V.volume.label} value={money(venue.volumeBase)} sub={V.volume.sub(symbol)} />
             <Stat label={V.fees.label} value={money(venue.feesBase)} sub={V.fees.sub} />

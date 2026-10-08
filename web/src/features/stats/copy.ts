@@ -42,7 +42,11 @@ export const STATS = {
   /** C5: the venue's own totals (k-floored) and the auditor's view: what the venue holds against what it owes. */
   venue: {
     section: { index: "04", title: "Venue totals", tag: "the venue's view · Windows with 5+ traders only" },
-    windows: { label: "Windows closed · 24h", sub: (resolved: number, voided: number) => `${resolved} resolved · ${voided} void` },
+    windows: {
+      label: "Windows closed · 24h",
+      // The rest closed but are not resolved yet, so the three parts always add up to the total.
+      sub: (resolved: number, voided: number, awaiting: number) => `${resolved} resolved · ${voided} void${awaiting > 0 ? ` · ${awaiting} awaiting a result` : ""}`,
+    },
     trades: { label: "Trades", sub: (n: number) => `on ${n} Window${n === 1 ? "" : "s"} with 5+ traders` },
     volume: { label: "Staked", sub: (symbol: string) => `${symbol} by traders on those Windows` },
     fees: { label: "Fees earned", sub: "recognised at settlement, never on a void" },
