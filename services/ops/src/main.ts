@@ -26,6 +26,7 @@ import { startPriceRelay } from "./actors/price-relay";
 import { startPythEntitlement } from "./actors/pyth-entitlement";
 import { startStrategyRunner } from "./actors/strategy-runner";
 import { startXRelay } from "./actors/x-relay";
+import { OPT_IN_ACTORS, selectedActors } from "./actor-select";
 import { startEarnings } from "./calendar/earnings";
 import { createSessionService } from "./calendar/session-service";
 import { startOpsHttp } from "./http/server";
@@ -43,31 +44,12 @@ import { alpacaKeys } from "./actors/price-relay";
 const HEARTBEAT_MS = 30_000;
 /** A pass running longer than this is stuck (no send outlives its 120 s timeout): exit and let the supervisor restart. */
 const STUCK_PASS_MS = Number(process.env.OPS_STUCK_PASS_MS) || 10 * 60_000;
-/** Canton (C3): "venue" runs the roller, resolver, pricer, issuer, sweeper, rebalancer, netting, settler, seat funding and
- * drain, and the reserve reporter; "relay" runs the three oracle feeders; "projector" replaces the Solana indexer. */
-/** C9b: the duel room (with its matchmaker) is a venue actor; the duel settler runs inside "venue" (the arena desk) and
- * the duel projection inside "projector". The room idles, saying why, without `ROOM_TOKEN_SECRET`. */
-const VENUE_ACTORS = ["relay", "venue", "projector", "http", "halts", "earnings", "push-clock", "game-room"] as const;
-const LEGACY_ACTORS = ["strategy-runner", "x-relay", "leverage-keeper"] as const;
-/** Opt-in actors that never ride on `all`: the desk trades real PreStocks on mainnet and is named on purpose (S21, D-126);
- * the Canton Coin rail (C7b) moves real value through the token standard and stays off until DevNet proves it (`not-live`). */
-const OPT_IN_ACTORS = ["desk-runner", "cc-rail"] as const;
-
 function whyString(actor: string, why: string): string {
   return JSON.stringify({ tsMs: Date.now(), actor, why: redact(why) });
 }
 
 const log = (actor: string) => (why: string) => console.log(whyString(actor, why));
 
-function selectedActors(raw: string | undefined): Set<string> {
-  const names = (raw ?? "").split(",").map((s) => s.trim()).filter(Boolean);
-  if (names.length === 0) return new Set(VENUE_ACTORS);
-  // "all" is the venue and the legacy actors; an opt-in actor named beside it ("all,desk-runner") joins rather than being dropped.
-  if (names.includes("all")) return new Set([...VENUE_ACTORS, ...LEGACY_ACTORS, ...names.filter((n) => n !== "all" && (OPT_IN_ACTORS as readonly string[]).includes(n))]);
-  // "default" is the set an empty OPS_ACTORS runs, with any opt-in actor named beside it ("default,cc-rail").
-  if (names.includes("default")) return new Set([...VENUE_ACTORS, ...names.filter((n) => n !== "default" && (OPT_IN_ACTORS as readonly string[]).includes(n))]);
-  return new Set(names);
-}
 
 /** The exit code for an actor that failed to start (D-098); the watchdog's stuck-pass exit is 70. */
 const EXIT_START_FAILED = 78;
