@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { Sheet } from "@/components/kit";
-import { MOBILE_DRAWER_SECTIONS } from "../header/nav-items";
+import { MORE } from "../nav";
 
 /** Every place in Owarine, grouped as the old drawer grouped them, in the kit's bottom sheet. */
 export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()} title="Everything">
       <div className="flex flex-col gap-5">
-        {MOBILE_DRAWER_SECTIONS.map((section) => (
+        {MORE.map((section) => (
           <section key={section.id} className="flex flex-col gap-1.5">
             <p className="px-1 text-ow-micro font-bold tracking-[0.1em] text-ow-muted">{section.name.toUpperCase()}</p>
             <div className="overflow-hidden rounded-ow-card bg-ow-recessed/60">

@@ -1,5 +1,5 @@
 import { gameDescriptor, gamesInGroup, type GameDescriptor, type GameGroup, type GameId } from "@owarine/core/games";
-import { NAV_ITEMS, type NavItem } from "@/components/shell/header/nav-items";
+import { NAV_ITEMS, type NavItem } from "@/components/shell/nav";
 
 /**
  * What a mode is to a player standing in the hub.

@@ -4,7 +4,7 @@ import {
 import type { BrandLogo } from "~/components/logos/brand-logos";
 
 /**
- * Web's phone drawer (web/src/components/shell/header/nav-items.ts MOBILE_DRAWER_SECTIONS): the same sections, names,
+ * Web's phone drawer (web/src/components/shell/nav.ts MORE): the same sections, names,
  * lines, routes and lucide icons, less what an installed app has no use for (the owner, 09-25): the judge and
  * marketing pages (Print proof, Stats, Market Surface, News, Demo, Pitch) and Download.
  */

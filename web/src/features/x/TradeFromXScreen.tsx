@@ -12,7 +12,7 @@ import { useRegionRestricted } from "@/lib/region";
 import { useWalletSession } from "@/lib/wallet-session";
 import { MARKETS_PATH } from "@/lib/routes";
 import { docsUrl } from "@/lib/docs-url";
-import { ISLAND_NAV } from "@/components/shell/header/nav-items";
+import { PLACES } from "@/components/shell/nav";
 import { CapabilityReceipt } from "./CapabilityReceipt";
 import { TRADE_FROM_X, X_HANDLE } from "./copy";
 import { CustodyRail } from "./CustodyRail";
@@ -61,7 +61,7 @@ export function TradeFromXScreen() {
             OWARINE <span className="xt-brand-crumb">{TRADE_FROM_X.crumb}</span>
           </Link>
           <nav className="xt-nav" aria-label="Primary">
-            {ISLAND_NAV.map((item) => (
+            {PLACES.map((item) => (
               <Link key={item.href} href={item.href} className="xt-nav-link">
                 {item.name}
               </Link>

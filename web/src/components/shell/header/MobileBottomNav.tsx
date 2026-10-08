@@ -5,14 +5,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { isActiveNavItem, MOBILE_DRAWER_SECTIONS, MOBILE_NAV, MOBILE_OVERFLOW } from "./nav-items";
+import { DOCK, isActiveNavItem, MORE, MORE_ITEMS } from "../nav";
+
+const MOBILE_NAV = [...DOCK.left, ...DOCK.right];
 
 /** Four fast destinations plus one complete, accessible navigation drawer. */
 export function MobileBottomNav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const fastPathActive = MOBILE_NAV.some((item) => isActiveNavItem(pathname, item));
-  const moreActive = !fastPathActive && MOBILE_OVERFLOW.some((item) => isActiveNavItem(pathname, item));
+  const moreActive = !fastPathActive && MORE_ITEMS.some((item) => isActiveNavItem(pathname, item));
 
   useEffect(() => setOpen(false), [pathname]);
 
@@ -45,11 +47,11 @@ export function MobileBottomNav() {
           <SheetDescription>Build, trade, verify, or learn—every destination has one home.</SheetDescription>
         </SheetHeader>
         <nav className="mobile-nav-groups" aria-label="All Owarine destinations">
-          {MOBILE_DRAWER_SECTIONS.map((section) => (
+          {MORE.map((section) => (
             <section className="mobile-nav-group" key={section.id} aria-labelledby={`mobile-nav-${section.id}`}>
               <div className="mobile-nav-group-title">
                 <h2 id={`mobile-nav-${section.id}`}>{section.name}</h2>
-                <span>{section.description}</span>
+                
               </div>
               <div className="mobile-nav-links">
                 {section.items.map((item) => {

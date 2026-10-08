@@ -1,6 +1,6 @@
 "use client";
 
-import { CandlestickChart, Gamepad2, LayoutGrid, LineChart, Sparkles, Trophy, Wallet } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -10,16 +10,8 @@ import { cn } from "@/lib/utils";
 import { HeaderAccount } from "../header/HeaderAccount";
 import { HeaderMoneyPill } from "../header/HeaderMoneyPill";
 import ThemeToggle from "../ThemeToggle";
+import { isActiveNavItem, PLACES } from "../nav";
 import { MoreSheet } from "./MoreSheet";
-
-export const RAIL_ITEMS = [
-  { href: "/trade/BTC", match: "/trade", label: "Trade", icon: CandlestickChart },
-  { href: "/markets", match: "/markets", label: "Markets", icon: LineChart },
-  { href: "/portfolio", match: "/portfolio", label: "Portfolio", icon: Wallet },
-  { href: "/games", match: "/games", label: "Games", icon: Gamepad2 },
-  { href: "/strategies", match: "/strategies", label: "Automate", icon: Sparkles },
-  { href: "/leaderboard", match: "/leaderboard", label: "Leaderboard", icon: Trophy },
-] as const;
 
 const ITEM = "flex h-10 items-center gap-3 rounded-ow-card px-3 text-ow-body text-ow-muted transition-colors hover:bg-ow-recessed hover:text-ow-ink aria-[current=page]:bg-ow-recessed aria-[current=page]:font-semibold aria-[current=page]:text-ow-ink";
 
@@ -38,9 +30,9 @@ export function AppRail() {
         </span>
         <span className="ow-display text-ow-lead">OWARINE</span>
       </Link>
-      {RAIL_ITEMS.map((item) => (
-        <Link key={item.href} href={item.href} aria-current={pathname?.startsWith(item.match) ? "page" : undefined} className={ITEM}>
-          <item.icon className="size-4.5" /> {item.label}
+      {PLACES.map((item) => (
+        <Link key={item.href} href={item.href} aria-current={isActiveNavItem(pathname, item) ? "page" : undefined} className={ITEM}>
+          <item.icon className="size-4.5" /> {item.name}
         </Link>
       ))}
       <button type="button" className={cn(ITEM, "text-left")} onClick={() => setMore(true)}>
