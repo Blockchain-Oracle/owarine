@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Lock } from "lucide-react";
 import Link from "next/link";
-import { FluentArt, Odometer } from "@/components/kit";
+import { FluentArt, InfiniteSlider, Odometer } from "@/components/kit";
 import { AssetDisc } from "@/features/markets/hero/asset-mark";
 import { formatPrice } from "@/features/terminal/chart/engine";
 import { multipleOf } from "@/features/terminal/format";
@@ -28,13 +28,10 @@ export function LandingTape() {
     </Link>
   ));
   return (
-    <section aria-label={WORDS.tape.label} className="group relative overflow-hidden bg-ow-black py-3.5">
-      <div className="lp-tape flex w-max group-hover:[animation-play-state:paused]" style={{ animationDuration: `${Math.max(30, rows.length * 4)}s` }}>
-        <div className="flex">{items}</div>
-        <div className="flex" aria-hidden inert>
-          {items}
-        </div>
-      </div>
+    <section aria-label={WORDS.tape.label} className="bg-ow-black py-3.5">
+      <InfiniteSlider gapRem={0} duration={Math.max(30, rows.length * 4)} durationOnHover={Math.max(90, rows.length * 12)} className="mask-[linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        {items}
+      </InfiniteSlider>
     </section>
   );
 }

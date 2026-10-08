@@ -17,13 +17,16 @@ import { useHeroEngine } from "./engine";
 const cadence = (sec: number) => (sec % 3600 === 0 ? `${sec / 3600}h` : `${Math.round(sec / 60)}m`);
 const clock = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, s) % 60).padStart(2, "0")}`;
 
-/** A phone, drawn in CSS: a black body, a rounded screen and the island. Children fill the screen. */
+/** An iPhone 15 Pro, drawn in CSS from the 21st.dev mockup's geometry (landing.css `.lp-phone`). Children fill the screen. */
 export function PhoneFrame({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("relative rounded-[3.25rem] bg-ow-black p-[0.6rem]", className)}>
-      <div className="relative aspect-[9/19.2] overflow-hidden rounded-[2.7rem] bg-ow-canvas">
-        <span aria-hidden className="absolute top-[0.6rem] left-1/2 z-40 h-[1.6rem] w-[5.6rem] -translate-x-1/2 rounded-full bg-ow-black" />
-        {children}
+    <div className="lp-phone-wrap">
+      <div className={cn("lp-phone", className)}>
+        <div className="lp-phone-screen">
+          <span aria-hidden className="lp-phone-island" />
+          {children}
+          <span aria-hidden className="lp-phone-home" />
+        </div>
       </div>
     </div>
   );
@@ -101,7 +104,7 @@ export function HeroPhone({ className }: { className?: string }) {
           {ghost.phase === "idle" ? <span className="text-center text-ow-micro text-ow-muted">{WORDS.phone.waiting}</span> : null}
         </div>
       </PhoneFrame>
-      <Link href={`/trade/${symbol}`} aria-label={`${WORDS.phone.open}: ${name}`} className="absolute inset-0 z-50 rounded-[3.25rem] outline-offset-4" />
+      <Link href={`/trade/${symbol}`} aria-label={`${WORDS.phone.open}: ${name}`} className="absolute inset-0 z-50 rounded-[16%/7.5%] outline-offset-4" />
     </div>
   );
 }

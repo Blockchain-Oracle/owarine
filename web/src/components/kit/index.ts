@@ -20,3 +20,4 @@ export { DirectionPill, type DirectionPillProps } from "./DirectionPill";
 export { PositionCard, type PositionCardProps } from "./PositionCard";
 export { ShareCharm, type ShareCharmProps } from "./ShareCharm";
 export { CountdownRing, formatLeft } from "./CountdownRing";
+export { InfiniteSlider } from "./InfiniteSlider";
