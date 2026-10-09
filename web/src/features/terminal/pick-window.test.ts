@@ -44,6 +44,11 @@ describe("defaultInterval", () => {
     expect(defaultInterval([short, long], lanes, 1_020, (id) => id === long.marketId)).toBe(300);
   });
 
+  it("uses the 5m opening print before a fresh tab receives any ladder snapshot", () => {
+    const printed = { ...long, openingPriceRaw: 2_500_00000000n };
+    expect(defaultInterval([short, printed], lanes, 1_020, () => false)).toBe(300);
+  });
+
   it("returns to the shorter cadence once its quote is live", () => {
     expect(defaultInterval([short, long], lanes, 1_020, () => true)).toBe(120);
   });

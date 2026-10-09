@@ -60,11 +60,16 @@ export function lanesFor(set: LaneSet | null, asset: string, nowSec = Math.floor
 
 /** On first visit, use the shortest cadence that can take a call now; a longer quoted crypto round bridges a new short round's opening print. */
 export function defaultInterval(markets: readonly EventMarket[], lanes: readonly TerminalLane[], nowSec: number, isQuoting: (marketId: string) => boolean): number | null {
+  let printed: number | null = null;
   for (const lane of lanes) {
     const selected = pickWindow(markets.filter((m) => m.intervalSec === lane.intervalSec), nowSec, isQuoting);
     if (selected && isQuoting(selected.marketId)) return lane.intervalSec;
+    // The index can name a recorded opening print before the ladder snapshot reaches a fresh tab. Prefer that live
+    // round to a shorter one whose start price is still pending; the quote gate below still checks the venue ladder.
+    if (printed === null && selected?.openingPriceRaw !== null && selected?.openingPriceRaw !== undefined &&
+      selected.tradingStartSec <= nowSec && nowSec < noEntryCutoffSec(selected)) printed = lane.intervalSec;
   }
-  return lanes[0]?.intervalSec ?? null;
+  return printed ?? lanes[0]?.intervalSec ?? null;
 }
 
 export function useTerminalWindow(asset: string, wantIntervalSec: number | null, nowSec: number): TerminalWindow {
