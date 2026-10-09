@@ -1,0 +1,33 @@
+{
+  "created": "2026-10-09",
+  "kind": "AI-generated editorial header artwork using Owarine brand and product assets",
+  "assets": {
+    "audience-header.png": {
+      "topic": "ICP / Audience",
+      "sources": [
+        ".github/assets/banner.png",
+        "web/public/icons/icon-512.png",
+        ".github/assets/trading-screen-2026-10-07.png"
+      ],
+      "note": "Editorial audience illustration with party-scoped contract visibility."
+    },
+    "validation-header.png": {
+      "topic": "Metrics / Validation",
+      "sources": [
+        ".github/assets/banner.png",
+        "web/public/icons/icon-512.png",
+        "web/public/pitch/proof-timeline-devnet-2026-10-08.png"
+      ],
+      "note": "Editorial proof composition. The source screenshot and dated acceptance records, rather than this generated cover, support transaction claims."
+    },
+    "gtm-header.png": {
+      "topic": "Go-to-Market",
+      "sources": [
+        ".github/assets/banner.png",
+        "web/public/icons/icon-512.png",
+        ".github/assets/trading-screen-2026-10-07.png"
+      ],
+      "note": "Editorial roadmap. The mobile silhouette represents work in development and TestNet is a planned milestone."
+    }
+  }
+}

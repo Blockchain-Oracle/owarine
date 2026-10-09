@@ -85,6 +85,11 @@ DESIGN.md
 !/web/public/fonts/SOURCES.md
 !/web/public/sounds/SOURCES.md
 !/.github/verification/acceptance.md
+!/.github/submission/README.md
+!/.github/submission/value-problem.md
+!/.github/submission/audience.md
+!/.github/submission/validation.md
+!/.github/submission/gtm.md
 
 # UI review screenshots (local)
 .review/
