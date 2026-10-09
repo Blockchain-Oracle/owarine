@@ -84,7 +84,7 @@ export async function deliverReplies(ctx: ReplyDeliveryContext, limit = 5): Prom
 }
 
 /** Independent of the financial poll: slow media and delivery errors cannot hold its busy gate. */
-export function startReplyDelivery(ctx: ReplyDeliveryContext, intervalMs = 15_000): () => void {
+export function startReplyDelivery(ctx: ReplyDeliveryContext, intervalMs = 5_000): () => void {
   let busy = false;
   const cycle = async () => {
     if (busy) return;
