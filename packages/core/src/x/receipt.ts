@@ -28,6 +28,7 @@ export interface XReceiptDetails {
   nextWindowAtSec?: number | null;
   /** Durable execution context, captured before the order lane can broadcast. */
   executionActor?: string | null;
+  executionOwnerParty?: string | null;
   poolAddress?: string | null;
   collateralDecimals?: number | null;
   intentRecordedAtMs?: number | null;

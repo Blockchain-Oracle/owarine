@@ -1,6 +1,7 @@
 import { ensureMarkets, getCollateral, loadCollateral, syncClock } from "@owarine/markets";
 import type { OpsRoute } from "@owarine/markets/ops/agents";
 import { agentSessionFrom } from "../agents/from-env";
+import { ownerPartyOf } from "../agents/session";
 import type { VenueContext } from "../venue/context";
 import { xAcquireReplyDelivery, xBeginReplyPost, xClaimMention, xFinishReplyPost, xMarkInterruptedReplyPosts, xReceiptByMention, xRelayStateGet, xRelayStateSet, xStopReplyDelivery, xRecoveryCandidates, xStoreRecoveredReceipt, xSetStageHealth, xHasUnresolvedBroadcast, xIsRelayReply, xSuppressRelayReplyDeliveries } from "@owarine/db";
 import type { Hash32 } from "@owarine/core/types";
@@ -131,7 +132,7 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
           await xReceiptUpsert(receipt);
           await xSetStageHealth("execution", receipt.status === "unknown" ? "error" : "ok");
         },
-        execute: mention => execution.forMention(mention.id, () => executeMention({ session, venueId, log, checkpoint: xReceiptUpsert }, mention)),
+        execute: mention => execution.forMention(mention.id, () => executeMention({ session, venueId, log, checkpoint: xReceiptUpsert, ownerPartyOf }, mention)),
       });
       if (!processed) log("mention scan completed; no new execution");
     } catch (error) {

@@ -1,7 +1,10 @@
 import { getDb } from "./client";
 import { ensureSchema } from "./migrate";
 import { z } from "zod";
-import { BASE58_ADDRESS_RE, BASE58_SIGNATURE_RE, storageKey } from "./keys";
+import { isSignature } from "@owarine/core/types";
+import { BASE58_ADDRESS_RE, storageKey } from "./keys";
+
+const PARTY_ID_RE = /^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/;
 
 export interface XLinkRecord {
   authorId: string;
@@ -32,8 +35,11 @@ const receiptDetailsSchema = z.object({
   parseRefusal: z.enum(["empty", "no-side", "two-sides", "no-asset", "unknown-asset", "two-assets", "no-stake", "bad-stake", "two-stakes", "no-cadence", "cadence-not-listed", "two-cadences", "unknown-token"]).nullish(),
   entryClosesAtSec: z.number().int().nonnegative().nullish(),
   nextWindowAtSec: z.number().int().nonnegative().nullish(),
-  executionActor: z.string().regex(BASE58_ADDRESS_RE).nullish(),
-  poolAddress: z.string().regex(BASE58_ADDRESS_RE).nullish(),
+  // Canton agents are ledger parties; historical Solana receipts used base58 addresses.
+  executionActor: z.string().refine(value => PARTY_ID_RE.test(value) || BASE58_ADDRESS_RE.test(value)).nullish(),
+  executionOwnerParty: z.string().regex(PARTY_ID_RE).nullish(),
+  // A Canton Window's book is a contract id; the old Solana pool was base58.
+  poolAddress: z.string().min(1).max(512).nullish(),
   collateralDecimals: z.number().int().min(0).max(18).nullish(),
   intentRecordedAtMs: z.number().int().nonnegative().nullish(),
   journalState: z.enum(["recorded", "sent", "confirmed", "failed", "unknown"]).nullish(),
@@ -180,7 +186,8 @@ export async function xReceiptUpsert(receipt: XReceiptRecord): Promise<void> {
   if (!db) return;
   await ensureSchema();
   // postgres.js serializes json parameters itself; stringifying first stores a JSON string.
-  const details = readReceiptDetails(receipt);
+  // A send's recovery evidence must never be silently stripped by a stale identifier validator.
+  const details = receiptDetailsSchema.parse(receipt);
   await db`
     INSERT INTO x_receipts (mention_id, author_id, handle, wallet, grant_id, market_id, side, stake_base, details, status, reason, tx_hash, instruction, at_ms)
     VALUES (
@@ -202,7 +209,7 @@ export async function xRecordExecutionJournal(mentionId: string, patch: XReceipt
   const db = getDb();
   if (!db) throw new Error("X execution requires a database");
   await ensureSchema();
-  if (txHash !== undefined && !BASE58_SIGNATURE_RE.test(txHash)) throw new Error("Invalid transaction signature");
+  if (txHash !== undefined && !isSignature(txHash)) throw new Error("Invalid transaction identifier");
   const rows = await db`
     UPDATE x_receipts SET
       details = (CASE WHEN jsonb_typeof(details) = 'object' THEN details ELSE '{}'::jsonb END) || ${db.json(receiptDetailsSchema.parse(patch))}::jsonb,
@@ -235,7 +242,7 @@ export async function xStoreRecoveredReceipt(before: XReceiptRecord, after: XRec
   await ensureSchema();
   const rows = await db`
     UPDATE x_receipts SET status = ${after.status}, reason = ${after.reason}, tx_hash = COALESCE(${after.txHash}, tx_hash),
-      details = (CASE WHEN jsonb_typeof(details) = 'object' THEN details ELSE '{}'::jsonb END) || ${db.json(readReceiptDetails(after))}::jsonb,
+      details = (CASE WHEN jsonb_typeof(details) = 'object' THEN details ELSE '{}'::jsonb END) || ${db.json(receiptDetailsSchema.parse(after))}::jsonb,
       updated_at = now()
     WHERE mention_id = ${before.mentionId} AND status = ${before.status}
       AND tx_hash IS NOT DISTINCT FROM ${before.txHash}

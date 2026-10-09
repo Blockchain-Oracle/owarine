@@ -5,7 +5,7 @@
  * new leg on that Window is the fill. A process with ledger access installs the resolver; without one the answer is
  * `unknown`, and absence never authorizes a replay (AD-3).
  */
-import type { Address, MarketId, Side, Signature } from "@owarine/core/types";
+import type { MarketId, Side, Signature } from "@owarine/core/types";
 
 export type RecoveredVaultExecution =
   | { status: "unknown" }
@@ -14,8 +14,8 @@ export type RecoveredVaultExecution =
 
 /** What an actor captured before sending a grant-scoped vault order, to find it again after a lost reply. */
 export interface VaultExecutionEvidence {
-  owner: Address;
-  actor: Address;
+  owner: string;
+  actor: string;
   marketId: MarketId;
   grantId: bigint;
   side: Side;

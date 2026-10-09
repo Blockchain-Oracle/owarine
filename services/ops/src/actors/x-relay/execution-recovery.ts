@@ -2,15 +2,21 @@ import type { XReceipt } from "@owarine/core/x";
 import { priceRawToBps, oneUnit } from "@owarine/core/units";
 import { isAddress, isMarketId, isSignature, toMarketId } from "@owarine/core/types";
 import { recoverVaultExecution, type RecoveredVaultExecution } from "@owarine/markets/vault";
+import { ownerPartyOf } from "../agents/session";
+
+const PARTY_ID_RE = /^[A-Za-z0-9_\-:.]{1,255}::[0-9a-f]{8,}$/;
 
 /** Only complete durable execution context can be reconciled against the shared vault verifier. */
 export async function resolveXExecution(receipt: XReceipt): Promise<RecoveredVaultExecution> {
-  if (!receipt.wallet || !isAddress(receipt.wallet) || !receipt.executionActor || !isAddress(receipt.executionActor)
+  if (!receipt.wallet || !isAddress(receipt.wallet) || !receipt.executionActor || !PARTY_ID_RE.test(receipt.executionActor)
     || !receipt.marketId || !isMarketId(receipt.marketId) || !receipt.grantId || !/^\d{1,78}$/.test(receipt.grantId)
     || (receipt.side !== "up" && receipt.side !== "down")) return { status: "unknown" };
   if (!receipt.txHash && !receipt.intentRecordedAtMs) return { status: "unknown" };
   if (receipt.txHash && !isSignature(receipt.txHash)) return { status: "unknown" };
-  return recoverVaultExecution({ owner: receipt.wallet, actor: receipt.executionActor,
+  const owner = receipt.executionOwnerParty && PARTY_ID_RE.test(receipt.executionOwnerParty)
+    ? receipt.executionOwnerParty : await ownerPartyOf(receipt.wallet);
+  if (!owner) return { status: "unknown" };
+  return recoverVaultExecution({ owner, actor: receipt.executionActor,
     marketId: toMarketId(receipt.marketId), grantId: BigInt(receipt.grantId), side: receipt.side,
     fromSlot: receipt.recoveryFromBlock && /^\d{1,78}$/.test(receipt.recoveryFromBlock) ? BigInt(receipt.recoveryFromBlock) : 0n,
     txHash: receipt.txHash && isSignature(receipt.txHash) ? receipt.txHash : null });

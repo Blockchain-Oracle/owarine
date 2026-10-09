@@ -20,7 +20,7 @@ import {
 const containerName = `owarine-x-delivery-test-${randomUUID().slice(0, 12)}`;
 const password = randomUUID();
 const docker = (...args: string[]) => execFileSync("docker", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
-const HASH = `0x${"11".repeat(32)}`;
+const HASH = `1220${"11".repeat(32)}`;
 let containerId: string | undefined;
 let db: ReturnType<typeof getDb> = null;
 let passed = 0;
@@ -225,11 +225,12 @@ async function main() {
   });
 
   await check("durable journal retains sender, target, nonce and hash across uncertain final persistence", async () => {
-    const actor = `0x${"22".repeat(20)}`;
+    const actor = `agent_runner::${"22".repeat(32)}`;
+    const ownerParty = `seat_owner::${"33".repeat(32)}`;
     const owner = `0x${"33".repeat(20)}`;
     await xClaimMention({ ...receipt("1060", "submitted"), handle: "original" }, true);
     await xReceiptUpsert({ ...receipt("1060", "submitted"), handle: "renamed", wallet: owner, marketId: HASH, grantId: "7", side: "up",
-      executionActor: actor, collateralDecimals: 6, recoveryFromBlock: "1234", expectedNonce: 9 });
+      executionActor: actor, executionOwnerParty: ownerParty, collateralDecimals: 6, recoveryFromBlock: "1234", expectedNonce: 9 });
     await xRecordExecutionJournal("1060", { journalState: "recorded", intentRecordedAtMs: 1800000000000 });
     assert.equal(await xHasUnresolvedBroadcast(actor), true);
     await xRecordExecutionJournal("1060", { journalState: "sent" }, HASH);
@@ -240,7 +241,8 @@ async function main() {
     assert.equal(saved?.handle, "original");
     assert.equal(saved?.expectedNonce, 9);
     assert.equal(saved?.executionActor, actor);
-    await assert.rejects(xRecordExecutionJournal("1060", { journalState: "sent" }, `0x${"55".repeat(32)}`), /not stored/);
+    assert.equal(saved?.executionOwnerParty, ownerParty);
+    await assert.rejects(xRecordExecutionJournal("1060", { journalState: "sent" }, `1220${"55".repeat(32)}`), /not stored/);
   });
 
   await check("recovery restores known outcomes and a late worker cannot downgrade them", async () => {

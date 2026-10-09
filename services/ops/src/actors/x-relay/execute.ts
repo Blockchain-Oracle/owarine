@@ -16,6 +16,7 @@ export interface ExecutorContext {
   log: (why: string) => void;
   /** Required in production: preserve wallet/target before entering the signing lane. */
   checkpoint?: (receipt: XReceiptRecord) => Promise<void>;
+  ownerPartyOf?: (wallet: string) => Promise<string | null>;
 }
 
 /** Every mention ends as one row: the instruction, what it resolved to, and what became of it. */
@@ -74,6 +75,9 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
   if (!isBalanceOnlyXGrant(grant)) return receiptFor(mention, { ...base, grantId: grant.grantId.toString(), refusalCode: "grant-update-required", reason: X_REFUSAL_DETAILS["grant-update-required"] });
   if (instruction.stakeBase > grant.budgetBase) return receiptFor(mention, { ...base, grantId: grant.grantId.toString(), refusalCode: "insufficient-funds", reason: X_REFUSAL_DETAILS["insufficient-funds"] });
 
+  const executionOwnerParty = ctx.ownerPartyOf ? await ctx.ownerPartyOf(link.wallet) : undefined;
+  if (ctx.ownerPartyOf && !executionOwnerParty) return receiptFor(mention, { ...base, grantId: grant.grantId.toString(), refusalCode: "execution-unavailable", reason: X_REFUSAL_DETAILS["execution-unavailable"] });
+
   const selected = await liveWindow(ctx.venueId, instruction);
   if (!selected.ok) {
     const window = "market" in selected ? selected.market : undefined;
@@ -96,7 +100,7 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
     const cursor = ctx.session.recoveryCursor ? await ctx.session.recoveryCursor() : await readRecoveryCursor();
     if (!cursor.ok) return receiptFor(mention, { ...withMarket, refusalCode: "execution-unavailable", reason: X_REFUSAL_DETAILS["execution-unavailable"] });
     await ctx.checkpoint(receiptFor(mention, { ...withMarket, status: "submitted", executionActor: ctx.session.address,
-      poolAddress: market.poolAddress, collateralDecimals: market.decimals, recoveryFromBlock: cursor.value.fromSlot.toString(), expectedNonce: null }));
+      executionOwnerParty, poolAddress: market.poolAddress, collateralDecimals: market.decimals, recoveryFromBlock: cursor.value.fromSlot.toString(), expectedNonce: null }));
     fromOffset = cursor.value.fromSlot;
   }
 
