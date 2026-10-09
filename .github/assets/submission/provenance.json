@@ -2,6 +2,15 @@
   "created": "2026-10-09",
   "kind": "AI-generated editorial header artwork using Owarine brand and product assets",
   "assets": {
+    "value-problem-header.png": {
+      "topic": "Problem / Value",
+      "sources": [
+        ".github/assets/submission/audience-header.png",
+        ".github/assets/banner.png",
+        ".github/assets/trading-screen-2026-10-07.png"
+      ],
+      "note": "Editorial comparison of public position visibility, private hosted rules and Owarine's contract-scoped price calls. Product captures and dated records provide the technical evidence."
+    },
     "audience-header.png": {
       "topic": "ICP / Audience",
       "sources": [

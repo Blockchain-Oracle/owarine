@@ -25,9 +25,23 @@
 
 Built for **HackCanton League Season 3 · Financial Applications**. *Owarine* (終値) means **closing price**. This prototype uses **demo credits with no cash value** and **DevNet Canton Coin**. See [what is verified](#what-is-verified) for recorded journeys and current limits.
 
-## The idea
+## Problem and value
 
-A prediction should not require publishing your entire trading history. Owarine lets someone express a view on the next close while keeping the position between that seat and the venue. Canton supplies contract visibility; Daml supplies the authorization, payout and refund rules.
+<p align="center">
+  <a href=".github/submission/value-problem.md">
+    <img src="https://raw.githubusercontent.com/Blockchain-Oracle/owarine/main/.github/assets/submission/value-problem-header.png" width="960" alt="Owarine problem and value: Call the move. Keep it private. Firm quotes and clear rules for private Up/Down price calls." />
+  </a>
+</p>
+
+### Problem
+
+Active traders who want to call the next price move face a trade-off: **public-chain positions expose their activity**, while **hosted venues require them to trust private settlement rules**.
+
+### Value
+
+Owarine offers **short Up/Down markets**, **firm quotes**, and **position contracts shared with the owner and the venue**. Canton scopes contract visibility; Daml enforces acceptance, oracle-based outcomes, payouts and refunds. Traders can inspect the rules behind their call while keeping the position private.
+
+[Problem, value and current status](.github/submission/value-problem.md)
 
 **One call.** Choose Bitcoin and a five-minute Window. The opening print sets the line. Up wins if the closing print is at or above it; Down wins if it is below. Before accepting, read the quote for your size, the cost, fee and possible payout. A winning lot pays one demo credit; a losing lot pays zero. A void returns the stake and fee. A displayed spot price is not itself a settlement print.
 
