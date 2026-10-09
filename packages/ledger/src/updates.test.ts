@@ -55,6 +55,25 @@ function tokenSource(token: string): TokenSource & { regrant(t: string): void } 
 }
 
 describe("streamUpdates", () => {
+  it("reconnects from the same cursor when the WebSocket handshake hangs", async () => {
+    FakeWs.all = [];
+    const errors: string[] = [];
+    const s = streamUpdates({
+      baseUrl: "https://node", auth: noAuth(), parties: ["v"], beginExclusive: 7,
+      onTransaction: () => {}, WebSocket: FakeWs, connectTimeoutMs: 10,
+      backoffBaseMs: 1, backoffMaxMs: 2, onError: (error) => errors.push(error.kind),
+    });
+    await until(() => FakeWs.all.length >= 2);
+    expect(FakeWs.all[0]!.readyState).toBe(3);
+    const resumed = FakeWs.all[1]!;
+    resumed.open();
+    expect(resumed.sent[0]).toMatchObject({ beginExclusive: 7 });
+    resumed.push(tx(8));
+    await until(() => s.cursor === 8);
+    expect(errors).toContain("timeout");
+    await s.close();
+  });
+
   it("sends daml.ws.auth even without a token, and the resume request on open", async () => {
     FakeWs.all = [];
     const s = streamUpdates({ baseUrl: "http://l:7575", auth: noAuth(), parties: ["v"], beginExclusive: 7, onTransaction: () => {}, WebSocket: FakeWs });

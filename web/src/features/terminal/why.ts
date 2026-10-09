@@ -16,12 +16,14 @@ export const WHY = {
   waiting: "The venue isn't quoting this round yet.",
   next: "The next round opens in a moment.",
   locked: "This round has stopped taking trades. The next one opens shortly.",
+  indexDelayed: "The venue has opened a round, but its live market data has not reached the app yet.",
   none: "No round is open for this market right now.",
   short: {
     networkBusy: "Paused · network busy",
     noSource: "Paused · price provider down",
     stale: "Paused · price feed stale",
     next: "Next round soon",
+    indexDelayed: "Round data delayed",
     none: "No round right now",
   },
 } as const;
@@ -58,6 +60,7 @@ export function whyNotTrading(state: WindowState, symbol: string, session: Marke
   if (reason === "stockClosed") return WHY.stockClosed(session!.label);
   if (reason) return WHY[reason];
   if ((state === "pricing" || state === "waiting") && networkBusy(session)) return WHY.networkBusy;
+  if (state === "none" && laneStatesOf(session, symbol).some((s) => s.startsWith("open #"))) return WHY.indexDelayed;
   return WHY[state];
 }
 
@@ -66,5 +69,6 @@ export function shortWhy(symbol: string, session: MarketSession | null): string 
   const reason = reasonOf(session, symbol);
   if (reason === "stockClosed") return `Closed · ${session!.label}`;
   if (reason) return WHY.short[reason];
+  if (laneStatesOf(session, symbol).some((s) => s.startsWith("open #"))) return WHY.short.indexDelayed;
   return laneStatesOf(session, symbol).some((s) => s.startsWith("waiting")) ? WHY.short.next : WHY.short.none;
 }

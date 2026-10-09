@@ -24,6 +24,12 @@ describe("whyNotTrading", () => {
     expect(shortWhy("CC", s)).toBe(WHY.short.noSource);
   });
 
+  it("identifies delayed market data when ops has opened a round that the app cannot read", () => {
+    const s = session(false, { "BTC-2m": "open #1142 07:18–07:20Z v1 attested" });
+    expect(whyNotTrading("none", "BTC", s)).toBe(WHY.indexDelayed);
+    expect(shortWhy("BTC", s)).toBe(WHY.short.indexDelayed);
+  });
+
   it("falls back to the round's own state", () => {
     expect(whyNotTrading("next", "ETH", session(true, { "ETH-2m": "open #1" }))).toBe(WHY.next);
   });

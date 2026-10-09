@@ -50,6 +50,8 @@ export interface UpdateStreamOptions {
   onError?: (err: LedgerError, fatal: boolean) => void;
   backoffBaseMs?: number;
   backoffMaxMs?: number;
+  /** Reconnect when a WebSocket handshake never opens. */
+  connectTimeoutMs?: number;
   WebSocket?: WebSocketCtor;
   random?: () => number;
 }
@@ -73,6 +75,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   const random = o.random ?? Math.random;
   const baseMs = o.backoffBaseMs ?? 500;
   const maxMs = o.backoffMaxMs ?? 30_000;
+  const connectTimeoutMs = o.connectTimeoutMs ?? 15_000;
   const request = (begin: Offset) => ({
     beginExclusive: begin,
     updateFormat: {
@@ -95,6 +98,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   let failures = 0;
   let chain: Promise<void> = Promise.resolve();
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let connectTimer: ReturnType<typeof setTimeout> | null = null;
   let refreshTimer: ReturnType<typeof setTimeout> | null = null;
   let reconnecting = false;
   let resolveDone!: () => void;
@@ -105,6 +109,8 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   });
 
   function detach(): void {
+    if (connectTimer) clearTimeout(connectTimer);
+    connectTimer = null;
     gen++;
     const old = ws;
     ws = null;
@@ -198,10 +204,23 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
     scheduleRefresh();
     const myGen = ++gen;
     const protocols = token === undefined ? ["daml.ws.auth"] : [`jwt.token.${token}`, "daml.ws.auth"];
-    const sock = new Ctor(url, protocols);
+    let sock: WebSocketLike;
+    try {
+      sock = new Ctor(url, protocols);
+    } catch (e) {
+      fail(new LedgerError({ kind: "network", path: "/v2/updates", message: `WebSocket connection failed: ${String(e)}`, cause: e }), false);
+      return;
+    }
     ws = sock;
+    connectTimer = setTimeout(() => {
+      if (myGen !== gen || stopped) return;
+      fail(new LedgerError({ kind: "timeout", path: "/v2/updates", message: `WebSocket did not open within ${connectTimeoutMs} ms` }), false);
+    }, connectTimeoutMs);
+    connectTimer.unref?.();
     sock.onopen = () => {
       if (myGen !== gen) return;
+      if (connectTimer) clearTimeout(connectTimer);
+      connectTimer = null;
       o.onState?.("open");
       sock.send(JSON.stringify(request(cursor)));
     };
@@ -226,7 +245,8 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
       void handle(myGen, msg as JsUpdateEnvelope);
     };
     sock.onerror = () => {
-      /* followed by onclose */
+      if (myGen !== gen || stopped) return;
+      void reconnect("socket error");
     };
     sock.onclose = (ev) => {
       if (myGen !== gen || stopped) return;
