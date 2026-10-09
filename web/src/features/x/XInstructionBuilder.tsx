@@ -11,7 +11,7 @@ import { useLanes, useTick } from "@owarine/markets/react";
 import { ArrowDownRight, ArrowUpRight, Check, Copy } from "lucide-react";
 import { useState } from "react";
 import { useVenue } from "@/features/markets/useVenue";
-import { X_HANDLE } from "./copy";
+import { X_HANDLE, xInstructionText } from "./copy";
 import "./x-instruction.css";
 
 /** The launch tickers and BTC/ETH, each on its registry monogram (no company logos are drawn). */
@@ -50,7 +50,7 @@ export function XInstructionBuilderView({ enabled, balanceBase, decimals, symbol
   const stake = parseDecimalToBaseUnits(amount, decimals);
   const amountError = !stake || stake <= 0n ? "Enter a positive amount." : balanceBase !== null && stake > balanceBase
     ? `Your X balance is ${formatBaseUnits(balanceBase, decimals)} ${symbol}. Use a smaller amount or add funds.` : "";
-  const instruction = `${X_HANDLE} ${asset} ${side.toUpperCase()} ${amount} ${cadence}`;
+  const instruction = xInstructionText(asset, side, amount, cadence);
   const canCopy = enabled && selection?.ok && !amountError;
   const amountInvalid = !stake || stake <= 0n;
   const maxAmount = balanceBase === null ? null : formatBaseUnits(balanceBase, decimals, { maxDp: decimals, minDp: 0, group: false });

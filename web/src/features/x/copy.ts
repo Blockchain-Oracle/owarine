@@ -8,6 +8,10 @@ import { SHARE } from "@/features/share/copy";
 
 export const X_HANDLE = SHARE.handle;
 
+/** The exact post sent to the clipboard by the X instruction builder. */
+export const xInstructionText = (asset: string, side: string, amount: string, cadence: string) =>
+  `${X_HANDLE} ${asset} ${side.toUpperCase()} ${amount} ${cadence}`;
+
 export const X_LINK_STATUS = {
   checking: "Checking your X connection…",
   unavailable: "X sign-in is not available on this deployment yet.",

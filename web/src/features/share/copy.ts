@@ -13,16 +13,17 @@ const VOID_WORD: Readonly<Record<VoidReason, string>> = VOID_SHARE_WORD;
  */
 /** This deployment's own origin (`NEXT_PUBLIC_SITE_URL`, else `NEXT_PUBLIC_APP_ORIGIN`, else the local default): never another product's domain. */
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL?.trim() || process.env.NEXT_PUBLIC_APP_ORIGIN?.trim() || "http://localhost:3000";
+const configuredXHandle = process.env.NEXT_PUBLIC_X_HANDLE?.trim();
 
 const BRAND = {
   brand: "OWARINE",
   site: SITE_URL.replace(/^https?:\/\//, ""),
   siteUrl: SITE_URL,
   /** The venue's X account, only when the deployment names one: the reference's account is not this product's. */
-  handle: process.env.NEXT_PUBLIC_X_HANDLE?.trim() || "the venue's X account",
+  handle: configuredXHandle ? `@${configuredXHandle.replace(/^@+/, "")}` : "the venue's X account",
 } as const;
 
-const signOff = process.env.NEXT_PUBLIC_X_HANDLE?.trim() ? `${BRAND.site} via ${BRAND.handle}` : BRAND.site;
+const signOff = configuredXHandle ? `${BRAND.site} via ${BRAND.handle}` : BRAND.site;
 
 export const SHARE = {
   ...BRAND,
