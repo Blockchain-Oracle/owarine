@@ -48,7 +48,7 @@ A prediction on a tokenized-stock price does **not** buy the underlying share. P
   </a>
 </p>
 
-**[Watch the recorded demo](https://youtu.be/qekjLNQQJCo)** on YouTube, or [open it on Owarine](https://owarine.xyz/demo). The cover is an editorial composition based on a dated Owarine app screen; the artwork itself is not a recording or a transaction receipt.
+**[Watch the recorded demo](https://youtu.be/YlijOtBl5Zw)** on YouTube, or [open it on Owarine](https://owarine.xyz/demo). The cover is an editorial composition based on a dated Owarine app screen; the artwork itself is not a recording or a transaction receipt.
 
 For an evidence walkthrough now, read the [recorded DevNet acceptance](.github/verification/acceptance.md): firm quote → acceptance → owner and outsider reads → oracle prints → resolution → settlement. It also includes the void refund, stale refund with operations stopped, and Canton Coin deposit/withdrawal records. Failed attempts are retained alongside the successful runs.
 
