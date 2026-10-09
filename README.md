@@ -40,6 +40,18 @@ A prediction should not require publishing your entire trading history. Owarine 
 
 A prediction on a tokenized-stock price does **not** buy the underlying share. Pooled guest seats are a demo identity, not a durable account for real-money custody.
 
+## Who we're building for
+
+<p align="center">
+  <a href=".github/submission/audience.md">
+    <img src="https://raw.githubusercontent.com/Blockchain-Oracle/owarine/main/.github/assets/submission/audience-header.png" width="960" alt="Owarine audience: Private calls. Clear execution. Active traders, Canton builders and early testers." />
+  </a>
+</p>
+
+We are starting with **active crypto traders who make short price calls and care about keeping their positions private**. Canton builders and early testers can explore the DevNet flow, inspect its rules, and help improve quote clarity and onboarding. Paying customers, pricing and repeat-use demand are still being validated.
+
+[Audience and first-use goals](.github/submission/audience.md)
+
 ## Demo video
 
 <p align="center">
@@ -110,6 +122,14 @@ The six package versions are in the checked-in source and release files. Deploym
 
 ## What is verified
 
+<p align="center">
+  <a href=".github/submission/validation.md">
+    <img src="https://raw.githubusercontent.com/Blockchain-Oracle/owarine/main/.github/assets/submission/validation-header.png" width="960" alt="Owarine validation: Prove the whole flow. Quote, accept, resolve and settle on Canton DevNet." />
+  </a>
+</p>
+
+<sub>[Validation summary](.github/submission/validation.md) · This editorial cover illustrates the flow; the dated records below support the technical claims.</sub>
+
 Evidence snapshot: **8 October 2026**. The [complete capability inventory](.github/verification/capabilities.json) preserves 219 entries and their original states. Its `live` label means a recorded DevNet run, not uninterrupted availability; it is conservative and some entries still describe older local acceptance.
 
 | Area | Evidence and limit |
@@ -124,6 +144,24 @@ Evidence snapshot: **8 October 2026**. The [complete capability inventory](.gith
 | **Docs and demo** | Source-backed guides, seven Mermaid diagrams and eleven captioned hosted-app walkthroughs are included in the docs app. The README play-button cover opens the website's `/demo` page; the cover itself does not prove a completed film or ledger journey. |
 
 No MainNet trading, independent security audit, completed user study or production-money readiness is claimed.
+
+## Beyond the hackathon
+
+<p align="center">
+  <a href=".github/submission/gtm.md">
+    <img src="https://raw.githubusercontent.com/Blockchain-Oracle/owarine/main/.github/assets/submission/gtm-header.png" width="960" alt="Owarine plans: DevNet today. TestNet next. The mobile app is in development and TestNet is planned." />
+  </a>
+</p>
+
+| Milestone | Status |
+| --- | --- |
+| **Canton DevNet web prototype** | Available with demo credits and test funds. |
+| **Native mobile app** | In development. |
+| **TestNet launch** | Planned after user testing and improvements to wallet access and reliability. |
+
+Our first distribution plan is hands-on Canton community demos, direct trader trials and walkthroughs shared through [@owarine_app](https://x.com/owarine_app). We will measure first-trade completion, repeat use and feedback to guide the next release.
+
+[Go-to-market plan](.github/submission/gtm.md) · [Five-slide pitch](https://owarine.xyz/pitch) · [Header artwork provenance](.github/assets/submission/provenance.json)
 
 ## Run it locally
 
