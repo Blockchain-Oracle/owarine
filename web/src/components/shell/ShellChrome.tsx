@@ -24,7 +24,7 @@ import { isTradeRoute } from "./nav";
  */
 export function ShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  if (pathname === "/") return <>{children}</>;
+  if (pathname === "/" || pathname === "/pitch") return <>{children}</>;
   return <AppShell trade={isTradeRoute(pathname)}>{children}</AppShell>;
 }
 

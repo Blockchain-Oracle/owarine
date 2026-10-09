@@ -32,8 +32,6 @@ const nextConfig: NextConfig = {
     { source: "/earn", destination: "/portfolio", permanent: false },
     // So is the Market Surface (Abu, 8 Oct); its pieces stay on /dev/surface.
     { source: "/surface", destination: "/markets", permanent: false },
-    // And the pitch deck (Abu, 8 Oct): /demo is the page a visitor or judge opens.
-    { source: "/pitch", destination: "/demo", permanent: false },
     // A developer surface taken off the product (8 Oct): the plain-words privacy answer lives on How it works.
     { source: "/who-sees-what", destination: "/how-it-works", permanent: true },
   ],
