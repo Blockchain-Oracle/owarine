@@ -58,14 +58,28 @@ export function lanesFor(set: LaneSet | null, asset: string, nowSec = Math.floor
   return [...seen.values()].sort((a, b) => a.intervalSec - b.intervalSec);
 }
 
+/** On first visit, use the shortest cadence that can take a call now; a longer quoted crypto round bridges a new short round's opening print. */
+export function defaultInterval(markets: readonly EventMarket[], lanes: readonly TerminalLane[], nowSec: number, isQuoting: (marketId: string) => boolean): number | null {
+  for (const lane of lanes) {
+    const selected = pickWindow(markets.filter((m) => m.intervalSec === lane.intervalSec), nowSec, isQuoting);
+    if (selected && isQuoting(selected.marketId)) return lane.intervalSec;
+  }
+  return lanes[0]?.intervalSec ?? null;
+}
+
 export function useTerminalWindow(asset: string, wantIntervalSec: number | null, nowSec: number): TerminalWindow {
   const venue = useVenue();
   const reading = useLanes(venue.venueId);
   const set = reading && reading.ok ? reading.value : null;
   return useMemo(() => {
     const lanes = lanesFor(set, asset, nowSec);
-    const intervalSec = lanes.some((l) => l.intervalSec === wantIntervalSec) ? wantIntervalSec : (lanes[0]?.intervalSec ?? null);
-    const markets = (set?.lanes ?? []).filter((l) => l.intervalSec === intervalSec).flatMap((l) => l.markets.filter((m) => m.asset === asset));
+    const assetMarkets = (set?.lanes ?? []).flatMap((l) => l.markets.filter((m) => m.asset === asset));
+    const isQuoting = (id: string) => {
+      const ladder = ladderSnapshot(id)?.ladder;
+      return ladder !== undefined && ladder.state === "quoting" && nowSec <= ladder.quotingUntilSec;
+    };
+    const intervalSec = lanes.some((l) => l.intervalSec === wantIntervalSec) ? wantIntervalSec : defaultInterval(assetMarkets, lanes, nowSec, isQuoting);
+    const markets = assetMarkets.filter((m) => m.intervalSec === intervalSec);
     return {
       set,
       lanes,
@@ -73,10 +87,7 @@ export function useTerminalWindow(asset: string, wantIntervalSec: number | null,
       market: intervalSec === null ? null : pickWindow(
         markets,
         nowSec,
-        (id) => {
-          const l = ladderSnapshot(id)?.ladder;
-          return l !== undefined && l.state === "quoting" && nowSec <= l.quotingUntilSec;
-        },
+        isQuoting,
         (id) => {
           const l = ladderSnapshot(id)?.ladder;
           const sym = l ? ladderSpotSymbol(l) : null;

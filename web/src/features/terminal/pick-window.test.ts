@@ -1,6 +1,6 @@
 import type { EventMarket } from "@owarine/core/types";
 import { describe, expect, it } from "vitest";
-import { pickWindow } from "./useTerminalWindow";
+import { defaultInterval, pickWindow } from "./useTerminalWindow";
 
 const w = (id: string, start: number, len = 120): EventMarket => ({ marketId: id, kind: "price", voided: false, intervalSec: len, tradingStartSec: start, lockAtSec: start + len - 20, expirySec: start + len }) as unknown as EventMarket;
 
@@ -32,5 +32,23 @@ describe("pickWindow with a Window it can't draw", () => {
   it("prefers the quoted Window with a live spot", () => {
     expect(pickWindow([stock, token], 1_100, () => true, (id) => id === stock.marketId)?.marketId).toBe(stock.marketId);
     expect(pickWindow([token, stock], 1_100, () => true, (id) => id === stock.marketId)?.marketId).toBe(stock.marketId);
+  });
+});
+
+describe("defaultInterval", () => {
+  const short = w("ETH-2m:12", 1_000);
+  const long = w("ETH-5m:12", 950, 300);
+  const lanes = [{ intervalSec: 120, label: "2m" }, { intervalSec: 300, label: "5m" }];
+
+  it("shows a quoted 5m round while the new 2m round is still pricing", () => {
+    expect(defaultInterval([short, long], lanes, 1_020, (id) => id === long.marketId)).toBe(300);
+  });
+
+  it("returns to the shorter cadence once its quote is live", () => {
+    expect(defaultInterval([short, long], lanes, 1_020, () => true)).toBe(120);
+  });
+
+  it("keeps the shortest lane when none is quoted", () => {
+    expect(defaultInterval([short, long], lanes, 1_020, () => false)).toBe(120);
   });
 });
