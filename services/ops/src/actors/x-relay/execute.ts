@@ -108,7 +108,11 @@ export async function executeMention(ctx: ExecutorContext, mention: Mention): Pr
     market,
     side: instruction.side,
     stakeBase: instruction.stakeBase,
-    displayedQuote: quote.value,
+    // An X instruction names a spending budget, not a limit order. The preview's padded
+    // escrow can be lower than that budget even on an unchanged ladder, while the Canton
+    // issuer sizes its firm quote against the full budget. Use the amount the author
+    // authorized as the cost ceiling; the grant and ledger still enforce the actual cost.
+    displayedQuote: { ...quote.value, maxCostBase: instruction.stakeBase },
     wallet: ctx.session.address,
     route: { kind: "vault-grant", grantId: grant.grantId },
     ...(fromOffset !== undefined ? { fromOffset } : {}),

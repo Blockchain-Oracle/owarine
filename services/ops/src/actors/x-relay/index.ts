@@ -107,12 +107,16 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
       const processed = await pollMentionCycle({
         getCursor: () => xRelayStateGet(CURSOR_KEY), setCursor: id => xRelayStateSet(CURSOR_KEY, id),
         fetch: async since => {
+          const started = Date.now();
           try {
             const mentions = await transport.fetchMentions(since);
             await xSetStageHealth("polling", "ok");
+            const elapsed = Date.now() - started;
+            if (mentions.length || elapsed > 5_000) log(`mention search found ${mentions.length} in ${elapsed} ms`);
             return mentions;
           } catch (error) {
             await xSetStageHealth("polling", "error");
+            log(`mention search failed after ${Date.now() - started} ms`);
             throw error;
           }
         },
@@ -132,7 +136,12 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
           await xReceiptUpsert(receipt);
           await xSetStageHealth("execution", receipt.status === "unknown" ? "error" : "ok");
         },
-        execute: mention => execution.forMention(mention.id, () => executeMention({ session, venueId, log, checkpoint: xReceiptUpsert, ownerPartyOf }, mention)),
+        execute: mention => execution.forMention(mention.id, async () => {
+          const started = Date.now();
+          const receipt = await executeMention({ session, venueId, log, checkpoint: xReceiptUpsert, ownerPartyOf }, mention);
+          log(`mention ${mention.id}: handled in ${Date.now() - started} ms`);
+          return receipt;
+        }),
       });
       if (!processed) log("mention scan completed; no new execution");
     } catch (error) {

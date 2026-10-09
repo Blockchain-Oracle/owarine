@@ -35,6 +35,12 @@ beforeEach(() => {
 });
 
 describe("mention execution receipt integration", () => {
+  it("uses the author's stake as the firm cost ceiling when preview escrow rounds below it", async () => {
+    dependencies.quote.mockResolvedValue({ ok: true, value: { maxCostBase: 4_800_000n, expectedCostBase: 3_000_000n } });
+    await executeMention(context, { ...mention, text: "TSLA UP 5 5m" });
+    expect(dependencies.submit).toHaveBeenCalledWith(expect.objectContaining({ stakeBase: 5_000_000n,
+      displayedQuote: expect.objectContaining({ maxCostBase: 5_000_000n, expectedCostBase: 3_000_000n }) }));
+  });
   it("reports failed market reads as unavailable, never as a nonexistent Window", async () => {
     dependencies.lanes.mockResolvedValue({ ok: false, error: { technical: "private provider error" } });
     expect(await executeMention(context, mention)).toMatchObject({ refusalCode: "market-data-unavailable", asset: "TSLA", intervalSec: 300 });

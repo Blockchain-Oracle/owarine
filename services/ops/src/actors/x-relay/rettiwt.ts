@@ -11,7 +11,9 @@ const MAX_PAGES = 50;
  */
 export function rettiwtTransport(apiKey: string, handle: string): XTransport {
   const user = handle.replace(/^@/, "");
-  const client = new Rettiwt({ apiKey, timeout: 30_000, maxRetries: 2 });
+  // Search occasionally hangs or returns a transient 404. Keep each failed scan short;
+  // the durable cursor lets the next poll catch up without replaying an instruction.
+  const client = new Rettiwt({ apiKey, timeout: 10_000, maxRetries: 1 });
   // A network retry after an accepted POST can create a duplicate public reply.
   const writer = new Rettiwt({ apiKey, timeout: 30_000, maxRetries: 0 });
   return {

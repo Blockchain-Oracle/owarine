@@ -57,7 +57,8 @@ describe("X media transport", () => {
     await expect(transport.reply!("123", "Order filled\nSpent 3 credits.", media)).resolves.toBe("789");
     expect(mocks.upload.mock.calls[0]![0]).toBeInstanceOf(ArrayBuffer);
     expect(mocks.post).toHaveBeenCalledWith({ text: "Order filled\nSpent 3 credits.", replyTo: "123", media: [{ id: "456" }] });
-    expect(mocks.configs.map(c => c.maxRetries)).toEqual([2, 0]);
+    expect(mocks.configs.map(c => c.maxRetries)).toEqual([1, 0]);
+    expect(mocks.configs.map(c => c.timeout)).toEqual([10_000, 30_000]);
   });
 
   it("keeps text-only replies free of media fields", async () => {
