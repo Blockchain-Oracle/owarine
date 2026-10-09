@@ -22,4 +22,12 @@ describe("healthBody (K-027)", () => {
     bad.failures = 3;
     expect(healthBody(undefined, now).ok).toBe(false);
   });
+
+  it("fails health when the projector is behind a moving ledger head without progress", () => {
+    const now = Date.now();
+    const projector = registerHeartbeat("projector", false, 10_000);
+    projector.lastOkMs = now;
+    projector.detail = { subscription: "open", behindOffsets: 100, projectionStalled: true };
+    expect(healthBody(undefined, now).ok).toBe(false);
+  });
 });

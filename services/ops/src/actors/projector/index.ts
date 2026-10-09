@@ -73,6 +73,9 @@ export async function startProjector(
       const s = projector.stats;
       const cursor = (status.cursor ?? null) as { offset: string; bootstrap: string; history_from_offset: string } | null;
       const cursorOffset = cursor ? Number(cursor.offset) : null;
+      const progressAgeSec = Math.round((Date.now() - s.lastProgressMs) / 1_000);
+      const projectionStalled = end !== null && end > (cursorOffset ?? 0) && progressAgeSec >= 120;
+      if (end !== null && projectionStalled) await projector.restartIfStalled(end);
       const lastEffective = Number(status.last_block_time_sec ?? 0);
       const detail = {
         stream,
@@ -80,6 +83,8 @@ export async function startProjector(
         cursorOffset,
         ledgerEnd: end,
         behindOffsets: end !== null && cursorOffset !== null ? Math.max(0, end - cursorOffset) : null,
+        progressAgeSec,
+        projectionStalled,
         lastLagSec: s.lastLagSec,
         maxLagSec: s.maxLagSec,
         headAgeSec: lastEffective ? Math.round(Date.now() / 1000 - lastEffective) : null,

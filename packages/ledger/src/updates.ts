@@ -52,6 +52,8 @@ export interface UpdateStreamOptions {
   backoffMaxMs?: number;
   /** Reconnect when a WebSocket handshake never opens. */
   connectTimeoutMs?: number;
+  /** Reconnect an open socket that stops delivering updates or checkpoints (Canton checkpoints at most every 75 s). */
+  idleTimeoutMs?: number;
   WebSocket?: WebSocketCtor;
   random?: () => number;
 }
@@ -76,6 +78,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   const baseMs = o.backoffBaseMs ?? 500;
   const maxMs = o.backoffMaxMs ?? 30_000;
   const connectTimeoutMs = o.connectTimeoutMs ?? 15_000;
+  const idleTimeoutMs = o.idleTimeoutMs ?? 90_000;
   const request = (begin: Offset) => ({
     beginExclusive: begin,
     updateFormat: {
@@ -99,6 +102,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   let chain: Promise<void> = Promise.resolve();
   let timer: ReturnType<typeof setTimeout> | null = null;
   let connectTimer: ReturnType<typeof setTimeout> | null = null;
+  let idleTimer: ReturnType<typeof setTimeout> | null = null;
   let refreshTimer: ReturnType<typeof setTimeout> | null = null;
   let reconnecting = false;
   let resolveDone!: () => void;
@@ -111,6 +115,8 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   function detach(): void {
     if (connectTimer) clearTimeout(connectTimer);
     connectTimer = null;
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = null;
     gen++;
     const old = ws;
     ws = null;
@@ -164,6 +170,15 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
     const at = o.auth.refreshAt();
     if (at === undefined) return;
     refreshTimer = setTimeout(() => void o.auth.token().catch(() => {}), Math.max(1_000, at - Date.now() + 50));
+  }
+
+  function watchForSilence(myGen: number): void {
+    if (idleTimer) clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      if (myGen !== gen || stopped) return;
+      fail(new LedgerError({ kind: "timeout", path: "/v2/updates", message: `WebSocket delivered no update or checkpoint for ${idleTimeoutMs} ms` }), false);
+    }, idleTimeoutMs);
+    idleTimer.unref?.();
   }
 
   function handle(myGen: number, env: JsUpdateEnvelope): Promise<void> {
@@ -222,7 +237,13 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
       if (connectTimer) clearTimeout(connectTimer);
       connectTimer = null;
       o.onState?.("open");
-      sock.send(JSON.stringify(request(cursor)));
+      try {
+        sock.send(JSON.stringify(request(cursor)));
+      } catch (e) {
+        fail(new LedgerError({ kind: "network", path: "/v2/updates", message: `WebSocket subscribe failed: ${String(e)}`, cause: e }), false);
+        return;
+      }
+      watchForSilence(myGen);
     };
     sock.onmessage = (ev) => {
       if (myGen !== gen) return;
@@ -242,6 +263,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
         } else fail(err, FATAL.has(kind));
         return;
       }
+      if (typeof msg === "object" && msg !== null && "update" in msg) watchForSilence(myGen);
       void handle(myGen, msg as JsUpdateEnvelope);
     };
     sock.onerror = () => {

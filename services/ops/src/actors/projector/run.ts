@@ -47,6 +47,8 @@ export interface ProjectorStats {
   lastLagSec: number | null;
   maxLagSec: number;
   lastAppliedMs: number | null;
+  /** Last cursor advance, including an idle offset checkpoint. */
+  lastProgressMs: number;
   cursor: number | null;
 }
 
@@ -54,6 +56,8 @@ export interface Projector {
   stats: ProjectorStats;
   /** Resolves once the cursor is at or past `offset` (a checkpoint counts). */
   waitFor(offset: number, timeoutMs?: number): Promise<void>;
+  /** Reopen the subscription if the ledger head is ahead and this cursor has not moved. */
+  restartIfStalled(head: number, staleMs?: number): Promise<boolean>;
   stop(): Promise<void>;
 }
 
@@ -64,10 +68,11 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
   const writer = indexWriter(cfg.db);
   const stats: ProjectorStats = {
     state: "connecting", applied: 0, skipped: 0, checkpoints: 0, reconnects: 0, errors: 0, lastError: null, lastLagSec: null, maxLagSec: 0,
-    lastAppliedMs: null, cursor: null,
+    lastAppliedMs: null, lastProgressMs: Date.now(), cursor: null,
   };
   let stopped = false;
   let current: { close(): Promise<void>; done: Promise<void> } | null = null;
+  let lastRestartMs = 0;
   const waiters = new Set<{ offset: number; resolve: () => void }>();
   const notify = () => {
     for (const w of waiters) if (stats.cursor !== null && stats.cursor >= w.offset) (waiters.delete(w), w.resolve());
@@ -85,6 +90,7 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
     }
     stats.lastAppliedMs = Date.now();
     stats.cursor = u.offset;
+    stats.lastProgressMs = Date.now();
     notify();
   }
 
@@ -145,6 +151,7 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
           await writer.applyCheckpoint(stream, cfg.party, cp.offset, cp.synchronizerTimes?.[0] ? Date.parse(cp.synchronizerTimes[0].recordTime) : null);
           stats.checkpoints += 1;
           stats.cursor = cp.offset;
+          stats.lastProgressMs = Date.now();
           notify();
         },
         onState: (state, detail) => {
@@ -190,6 +197,14 @@ export function startProjectorLoop(cfg: ProjectorConfig): Projector {
           if (waiters.delete(w)) reject(new Error(`projector did not reach offset ${offset} within ${timeoutMs} ms (cursor ${stats.cursor})`));
         }, timeoutMs).unref?.();
       });
+    },
+    async restartIfStalled(head, staleMs = 120_000) {
+      const now = Date.now();
+      if (stopped || !current || stats.cursor === null || head <= stats.cursor || now - stats.lastProgressMs < staleMs || now - lastRestartMs < staleMs) return false;
+      lastRestartMs = now;
+      cfg.log(`projector cursor ${stats.cursor} stalled ${Math.round((now - stats.lastProgressMs) / 1_000)} s behind ledger end ${head}; reopening subscription`);
+      await current.close();
+      return true;
     },
     async stop() {
       stopped = true;

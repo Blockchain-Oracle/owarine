@@ -55,6 +55,56 @@ function tokenSource(token: string): TokenSource & { regrant(t: string): void } 
 }
 
 describe("streamUpdates", () => {
+  it("reconnects when an opened socket refuses the subscription request", async () => {
+    FakeWs.all = [];
+    class RefusingWs extends FakeWs {
+      static refuse = true;
+      override send(d: string) {
+        if (RefusingWs.refuse) {
+          RefusingWs.refuse = false;
+          throw new Error("socket closed during send");
+        }
+        super.send(d);
+      }
+    }
+    const s = streamUpdates({
+      baseUrl: "https://node", auth: noAuth(), parties: ["v"], beginExclusive: 7,
+      onTransaction: () => {}, WebSocket: RefusingWs, backoffBaseMs: 1, backoffMaxMs: 2,
+    });
+    await until(() => FakeWs.all.length === 1);
+    FakeWs.all[0]!.open();
+    await until(() => FakeWs.all.length >= 2);
+    FakeWs.all[1]!.open();
+    expect(FakeWs.all[1]!.sent[0]).toMatchObject({ beginExclusive: 7 });
+    await s.close();
+  });
+
+  it("resumes after an open WebSocket goes silent, preserving the last handled cursor", async () => {
+    FakeWs.all = [];
+    const errors: string[] = [];
+    const s = streamUpdates({
+      baseUrl: "https://node", auth: noAuth(), parties: ["v"], beginExclusive: 7,
+      onTransaction: () => {}, WebSocket: FakeWs, idleTimeoutMs: 25,
+      backoffBaseMs: 1, backoffMaxMs: 2, onError: (error) => errors.push(error.kind),
+    });
+    await until(() => FakeWs.all.length === 1);
+    const first = FakeWs.all[0]!;
+    first.open();
+    first.push(tx(8));
+    await until(() => s.cursor === 8);
+    first.push(cp(9));
+    await until(() => s.cursor === 9);
+    await until(() => FakeWs.all.length >= 2);
+    expect(first.readyState).toBe(3);
+    const resumed = FakeWs.all[1]!;
+    resumed.open();
+    expect(resumed.sent[0]).toMatchObject({ beginExclusive: 9 });
+    resumed.push(tx(10));
+    await until(() => s.cursor === 10);
+    expect(errors).toContain("timeout");
+    await s.close();
+  });
+
   it("reconnects from the same cursor when the WebSocket handshake hangs", async () => {
     FakeWs.all = [];
     const errors: string[] = [];
