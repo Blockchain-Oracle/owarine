@@ -14,7 +14,7 @@ import { xReceiptByMention, xReceiptsByWallet, xReceiptUpsert, xRecordExecutionJ
 import { xGetRelayHealth, xSetStageHealth } from "../src/x-health";
 import {
   xAcquireReplyDelivery, xBeginReplyPost, xClaimMention, xFinishReplyPost,
-  xMarkInterruptedReplyPosts, xStopReplyDelivery, xIsRelayReply, xSuppressRelayReplyDeliveries,
+  xMarkInterruptedReplyPosts, xStopReplyDelivery, xIsRelayReply, xSuppressRelayReplyDeliveries, xRetryReplyAsText,
 } from "../src/x-reply-delivery";
 
 const containerName = `owarine-x-delivery-test-${randomUUID().slice(0, 12)}`;
@@ -222,6 +222,19 @@ async function main() {
     await sql`UPDATE x_reply_delivery SET updated_at = now() - interval '1 day'`;
     assert.equal(await xAcquireReplyDelivery(), null);
     assert.equal(await xMarkInterruptedReplyPosts(), 0);
+  });
+
+  await check("an image reply X refused drops its image once, only for the current posting lease", async () => {
+    const job = await jobFor("1030");
+    assert.equal(await xRetryReplyAsText(job, "324"), false);
+    assert.equal(await xBeginReplyPost(job, "SAME TEXT", "904"), true);
+    assert.equal(await xRetryReplyAsText({ ...job, lease: randomUUID() }, "324"), false);
+    assert.equal(await xRetryReplyAsText(job, "324"), true);
+    assert.equal(await xRetryReplyAsText(job, "324"), false);
+    const [row] = await sql`SELECT state, reply_text, media_id, error_code FROM x_reply_delivery`;
+    assert.deepEqual(row, { state: "posting", reply_text: "SAME TEXT", media_id: null, error_code: "x-refused-324" });
+    await xStopReplyDelivery(job, "failed", "x-refused-226");
+    assert.equal(await xAcquireReplyDelivery(), null);
   });
 
   await check("durable journal retains sender, target, nonce and hash across uncertain final persistence", async () => {

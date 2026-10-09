@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ configs: [] as { maxRetries: number }[], post: vi.fn(), upload: vi.fn(), search: vi.fn(), details: vi.fn() }));
+type Config = { maxRetries: number; timeout: number; responseMiddleware?: (response: unknown) => void };
+const mocks = vi.hoisted(() => ({ configs: [] as Config[], post: vi.fn(), upload: vi.fn(), search: vi.fn(), details: vi.fn() }));
 vi.mock("rettiwt-api", () => ({
   Rettiwt: class {
     tweet = { post: mocks.post, upload: mocks.upload, search: mocks.search };
     user = { details: mocks.details };
-    constructor(options: { maxRetries: number }) { mocks.configs.push(options); }
+    constructor(options: Config) { mocks.configs.push(options); }
   },
 }));
 import { rettiwtTransport } from "./rettiwt";
+import { XRateLimitedError, XRefusedError } from "./transport";
 
 describe("X media transport", () => {
   beforeEach(() => { mocks.configs.length = 0; vi.clearAllMocks(); });
@@ -76,5 +78,33 @@ describe("X media transport", () => {
     mocks.upload.mockResolvedValue("");
     await expect(rettiwtTransport("fixture-key", "masayume_app").uploadImage!(new Uint8Array([1]))).rejects.toThrow("media id");
     expect(mocks.post).not.toHaveBeenCalled();
+  });
+
+  it("paces the search from X's own budget headers and holds after a rate refusal", async () => {
+    const transport = rettiwtTransport("fixture", "bot");
+    const reader = mocks.configs[0]!;
+    const resetSec = Math.floor(Date.now() / 1000) + 900;
+    reader.responseMiddleware!({ config: { url: "https://x.com/i/api/graphql/abc/UserByScreenName" }, headers: { "x-rate-limit-remaining": "0", "x-rate-limit-reset": String(resetSec) } });
+    expect(transport.searchReadyAtMs!()).toBe(0);
+    reader.responseMiddleware!({ config: { url: "https://x.com/i/api/graphql/abc/SearchTimeline" }, headers: { "x-rate-limit-remaining": "0", "x-rate-limit-reset": String(resetSec) } });
+    expect(transport.searchReadyAtMs!()).toBe(resetSec * 1000 + 1_000);
+    mocks.search.mockRejectedValue(Object.assign(new Error("Request failed with status code 429"), { name: "TWITTER_ERROR", status: 429 }));
+    const failure = await transport.fetchMentions("0").catch(e => e);
+    expect(failure).toBeInstanceOf(XRateLimitedError);
+    expect(failure.retryAtMs).toBe(resetSec * 1000 + 1_000);
+  });
+
+  it("names an explicit X refusal of a reply and leaves ambiguous failures ambiguous", async () => {
+    const transport = rettiwtTransport("fixture-key", "masayume_app");
+    mocks.post.mockRejectedValueOnce(Object.assign(new Error("This request looks like it might be automated."), { name: "TWITTER_ERROR", status: 200, details: [{ code: 226 }] }));
+    const refused = await transport.reply!("123", "Order filled").catch(e => e);
+    expect(refused).toBeInstanceOf(XRefusedError);
+    expect(refused.code).toBe("226");
+    mocks.post.mockRejectedValueOnce(Object.assign(new Error("Request failed with status code 403"), { name: "TWITTER_ERROR", status: 403 }));
+    await expect(transport.reply!("123", "Order filled")).rejects.toMatchObject({ name: "XRefusedError", code: "403" });
+    for (const status of [500, 408]) {
+      mocks.post.mockRejectedValueOnce(Object.assign(new Error("timeout of 30000ms exceeded"), { name: "TWITTER_ERROR", status }));
+      await expect(transport.reply!("123", "Order filled")).rejects.not.toBeInstanceOf(XRefusedError);
+    }
   });
 });

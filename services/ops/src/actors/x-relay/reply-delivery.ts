@@ -1,7 +1,7 @@
 import type { XReceipt } from "@owarine/core/x";
 import type { XReplyJob } from "@owarine/db";
 import { createReplyPresentation, replyText, type ReplyPresentation } from "./reply-format";
-import type { XTransport } from "./transport";
+import { XRefusedError, type XTransport } from "./transport";
 
 const OPERATION_DEADLINE_MS = 45_000;
 
@@ -22,6 +22,8 @@ export interface ReplyDeliveryStore {
   acquire(): Promise<XReplyJob | null>;
   receipt(mentionId: string): Promise<XReceipt | null>;
   beginPost(job: XReplyJob, text: string, mediaId: string | null): Promise<boolean>;
+  /** Drop the image after X refused the post; true at most once per job. */
+  retryAsText(job: XReplyJob, code: string): Promise<boolean>;
   sent(job: XReplyJob, replyId: string): Promise<void>;
   stop(job: XReplyJob, state: "unknown" | "failed", code: string): Promise<void>;
   markInterrupted(): Promise<number>;
@@ -69,16 +71,31 @@ export async function deliverReplies(ctx: ReplyDeliveryContext, limit = 5): Prom
       // The database gate happens after media preparation. A stale render worker cannot post.
       if (!await ctx.store.beginPost(job, text, mediaId)) continue;
       startedPost = true;
-      const replyId = await withDeadline(ctx.transport.reply(job.mentionId, text, mediaId ?? undefined));
+      let replyId: string | null;
+      try {
+        replyId = await withDeadline(ctx.transport.reply(job.mentionId, text, mediaId ?? undefined));
+      } catch (error) {
+        // X said no and published nothing: the same receipt goes once more without its image.
+        if (!(error instanceof XRefusedError) || !mediaId || !await ctx.store.retryAsText(job, error.code)) throw error;
+        ctx.log(`reply ${job.mentionId}: ${error.message}; retrying once as text`);
+        replyId = await withDeadline(ctx.transport.reply(job.mentionId, text));
+      }
       if (!replyId || !/^\d+$/.test(replyId)) throw new Error("X did not acknowledge the reply id");
       await ctx.store.sent(job, replyId);
       await ctx.health?.("ok");
       ctx.log(`reply ${job.mentionId}: published ${replyId}${mediaId ? " with image" : " as text"}`);
-    } catch {
+    } catch (error) {
+      const why = error instanceof Error ? error.message.slice(0, 200) : "unknown error";
+      await ctx.health?.("error");
+      if (error instanceof XRefusedError) {
+        // X answered with a refusal: nothing is public, so this is a failure to inspect, not an ambiguous send.
+        await ctx.store.stop(job, "failed", `x-refused-${error.code}`);
+        ctx.log(`reply ${job.mentionId}: ${why}`);
+        continue;
+      }
       // Even an acknowledgement-storage error is ambiguous: the public reply may already exist.
       await ctx.store.stop(job, startedPost ? "unknown" : "failed", startedPost ? "post-not-acknowledged" : "preparation-failed");
-      await ctx.health?.("error");
-      ctx.log(`reply ${job.mentionId}: ${startedPost ? "delivery needs inspection; no automatic repost" : "preparation failed"}`);
+      ctx.log(`reply ${job.mentionId}: ${startedPost ? "delivery needs inspection; no automatic repost" : "preparation failed"} (${why})`);
     }
   }
 }

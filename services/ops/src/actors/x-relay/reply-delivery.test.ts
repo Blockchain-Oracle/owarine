@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { encodeBase58 } from "@owarine/core/types";
 import type { XReceipt } from "@owarine/core/x";
 import { deliverReplies, startReplyDelivery, type ReplyDeliveryContext } from "./reply-delivery";
+import { XRefusedError } from "./transport";
 
 const receipt: XReceipt = {
   mentionId: "123", authorId: "456", handle: "caller", wallet: null, grantId: null,
@@ -30,6 +31,7 @@ function fixture() {
       }),
       receipt: vi.fn(async () => receipt),
       beginPost: vi.fn(async () => { state.order.push("persist-post"); state.value = "posting"; return true; }),
+      retryAsText: vi.fn(async () => { state.order.push("persist-text"); return true; }),
       sent: vi.fn(async () => { state.value = "sent"; }),
       stop: vi.fn(async (_job, value) => { state.value = value; }),
     },
@@ -71,6 +73,33 @@ describe("reply delivery without financial execution", () => {
     expect(state.value).toBe("unknown");
     expect(ctx.transport.reply).toHaveBeenCalledTimes(1);
     expect(ctx.store.stop).toHaveBeenCalledWith(job, "unknown", "post-not-acknowledged");
+  });
+
+  it("retries an image reply X refused once as the same text", async () => {
+    const { ctx, state, job } = fixture();
+    ctx.transport.reply = vi.fn(async (_id: string, _text: string, media?: string) => {
+      state.order.push("post");
+      if (media) throw new XRefusedError("324", "media id invalid");
+      return "999";
+    });
+    await deliverReplies(ctx);
+    expect(state.order).toEqual(["upload", "persist-post", "post", "persist-text", "post"]);
+    expect(ctx.store.retryAsText).toHaveBeenCalledWith(job, "324");
+    expect(ctx.transport.reply).toHaveBeenLastCalledWith("123", expect.stringContaining("Spent 3 credits"));
+    expect(ctx.store.sent).toHaveBeenCalledWith(job, "999");
+    expect(state.value).toBe("sent");
+  });
+
+  it.each([["text", false], ["image then text", true]])("holds a reply X refused (%s) as failed with X's code, not unknown", async (_label, images) => {
+    const { ctx, state, job } = fixture();
+    ctx.imagesEnabled = images;
+    ctx.transport.reply = vi.fn(async () => { throw new XRefusedError("226", "This request looks like it might be automated."); });
+    await deliverReplies(ctx);
+    await deliverReplies(ctx);
+    expect(state.value).toBe("failed");
+    expect(ctx.store.stop).toHaveBeenCalledWith(job, "failed", "x-refused-226");
+    expect(ctx.transport.reply).toHaveBeenCalledTimes(images ? 2 : 1);
+    expect(ctx.log).toHaveBeenCalledWith(expect.stringContaining("automated"));
   });
 
   it("does not let an expired preparation lease post", async () => {

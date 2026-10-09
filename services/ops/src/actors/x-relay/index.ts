@@ -3,11 +3,12 @@ import type { OpsRoute } from "@owarine/markets/ops/agents";
 import { agentSessionFrom } from "../agents/from-env";
 import { ownerPartyOf } from "../agents/session";
 import type { VenueContext } from "../venue/context";
-import { xAcquireReplyDelivery, xBeginReplyPost, xClaimMention, xFinishReplyPost, xMarkInterruptedReplyPosts, xReceiptByMention, xRelayStateGet, xRelayStateSet, xStopReplyDelivery, xRecoveryCandidates, xStoreRecoveredReceipt, xSetStageHealth, xHasUnresolvedBroadcast, xIsRelayReply, xSuppressRelayReplyDeliveries } from "@owarine/db";
+import { xAcquireReplyDelivery, xBeginReplyPost, xRetryReplyAsText, xClaimMention, xFinishReplyPost, xMarkInterruptedReplyPosts, xReceiptByMention, xRelayStateGet, xRelayStateSet, xStopReplyDelivery, xRecoveryCandidates, xStoreRecoveredReceipt, xSetStageHealth, xHasUnresolvedBroadcast, xIsRelayReply, xSuppressRelayReplyDeliveries } from "@owarine/db";
 import type { Hash32 } from "@owarine/core/types";
 import { readRelayEnv, RELAY_ENV } from "./env";
 import { executeMention, resolveVenue, xReceiptUpsert } from "./execute";
 import { rettiwtTransport } from "./rettiwt";
+import { XRateLimitedError } from "./transport";
 import { startReplyDelivery } from "./reply-delivery";
 import { renderReplyCardPng } from "./reply-card";
 import { createXExecutionJournal } from "./execution-journal";
@@ -85,7 +86,7 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
   }
   if (!relay.postingEnabled) transport.reply = null;
   const delivery = {
-    store: { acquire: xAcquireReplyDelivery, receipt: xReceiptByMention, beginPost: xBeginReplyPost, sent: xFinishReplyPost, stop: xStopReplyDelivery, markInterrupted: xMarkInterruptedReplyPosts },
+    store: { acquire: xAcquireReplyDelivery, receipt: xReceiptByMention, beginPost: xBeginReplyPost, retryAsText: xRetryReplyAsText, sent: xFinishReplyPost, stop: xStopReplyDelivery, markInterrupted: xMarkInterruptedReplyPosts },
     transport, decimals: getCollateral().decimals, symbol: getCollateral().symbol,
     imagesEnabled: relay.replyImagesEnabled, render: renderReplyCardPng, log,
     health: (state: "ok" | "idle" | "error" | "disabled") => xSetStageHealth("delivery", state, relay.replyImagesEnabled),
@@ -104,6 +105,8 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
       if (session.contracts.deployment) await recoverXExecutions({
         candidates: xRecoveryCandidates, save: xStoreRecoveredReceipt, resolve: resolveXExecution, log,
       });
+      // X's search budget (search-pacer.ts): an early read only spends the window and locks the search for minutes.
+      if (Date.now() < (transport.searchReadyAtMs?.() ?? 0)) return;
       const processed = await pollMentionCycle({
         getCursor: () => xRelayStateGet(CURSOR_KEY), setCursor: id => xRelayStateSet(CURSOR_KEY, id),
         fetch: async since => {
@@ -116,7 +119,7 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
             return mentions;
           } catch (error) {
             await xSetStageHealth("polling", "error");
-            log(`mention search failed after ${Date.now() - started} ms`);
+            log(error instanceof XRateLimitedError ? error.message : `mention search failed after ${Date.now() - started} ms`);
             throw error;
           }
         },
@@ -145,7 +148,7 @@ export async function startXRelay(log: (why: string) => void, o: { venue?: Venue
       });
       if (!processed) log("mention scan completed; no new execution");
     } catch (error) {
-      log(`cycle failed: ${error instanceof Error ? error.message : String(error)}`);
+      if (!(error instanceof XRateLimitedError)) log(`cycle failed: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       busy = false;
     }

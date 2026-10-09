@@ -87,6 +87,20 @@ export async function xFinishReplyPost(job: XReplyJob, replyId: string): Promise
   if (rows.length !== 1) throw new Error("Reply delivery acknowledgement was not stored");
 }
 
+/**
+ * X refused the image reply outright, so nothing was published: drop the image before the one text-only attempt.
+ * `media_id IS NOT NULL` makes this a single retry; the stored payload stays exactly what is sent.
+ */
+export async function xRetryReplyAsText(job: XReplyJob, code: string): Promise<boolean> {
+  const db = await requiredDb();
+  const rows = await db`
+    UPDATE x_reply_delivery SET media_id = NULL, error_code = ${`x-refused-${code}`}, updated_at = now()
+    WHERE mention_id = ${job.mentionId} AND lease = ${job.lease} AND state = 'posting' AND media_id IS NOT NULL
+    RETURNING mention_id
+  `;
+  return rows.length > 0;
+}
+
 export async function xStopReplyDelivery(job: XReplyJob, state: "unknown" | "failed", code: string): Promise<void> {
   const db = await requiredDb();
   await db`
