@@ -81,7 +81,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   const maxMs = o.backoffMaxMs ?? 30_000;
   const connectTimeoutMs = o.connectTimeoutMs ?? 15_000;
   const idleTimeoutMs = o.idleTimeoutMs ?? 90_000;
-  const maxPendingUpdates = o.maxPendingUpdates ?? 256;
+  const maxPendingUpdates = o.maxPendingUpdates ?? 2_048;
   if (!Number.isSafeInteger(maxPendingUpdates) || maxPendingUpdates < 1) throw new Error("maxPendingUpdates must be a positive integer");
   const request = (begin: Offset) => ({
     beginExclusive: begin,
