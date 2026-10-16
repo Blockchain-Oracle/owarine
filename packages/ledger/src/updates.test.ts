@@ -55,6 +55,73 @@ function tokenSource(token: string): TokenSource & { regrant(t: string): void } 
 }
 
 describe("streamUpdates", () => {
+  it("bounds a fast replay, drains accepted updates, then resumes from the handled cursor", async () => {
+    FakeWs.all = [];
+    const handled: number[] = [];
+    let releaseFirst!: () => void;
+    const first = new Promise<void>((resolve) => { releaseFirst = resolve; });
+    const s = streamUpdates({
+      baseUrl: "https://node", auth: noAuth(), parties: ["v"], beginExclusive: 0,
+      WebSocket: FakeWs, maxPendingUpdates: 3,
+      onTransaction: async (t) => {
+        if (t.offset === 1) await first;
+        handled.push(t.offset);
+      },
+    });
+    await until(() => FakeWs.all.length === 1);
+    const a = FakeWs.all[0]!;
+    a.open();
+    a.push(tx(1));
+    a.push(tx(2));
+    a.push(tx(3));
+    expect(a.readyState).toBe(3);
+    a.push(tx(4)); // ignored after the queue reaches its bound
+    expect(FakeWs.all).toHaveLength(1);
+    releaseFirst();
+    await until(() => FakeWs.all.length === 2);
+    expect(handled).toEqual([1, 2, 3]);
+    const b = FakeWs.all[1]!;
+    b.open();
+    expect(b.sent[0]).toMatchObject({ beginExclusive: 3 });
+    b.push(tx(4));
+    await until(() => s.cursor === 4);
+    expect(handled).toEqual([1, 2, 3, 4]);
+    await s.close();
+  });
+
+  it("replays a failed update when a bounded batch is draining", async () => {
+    FakeWs.all = [];
+    const handled: number[] = [];
+    let failOnce = true;
+    const s = streamUpdates({
+      baseUrl: "https://node", auth: noAuth(), parties: ["v"], beginExclusive: 0,
+      WebSocket: FakeWs, maxPendingUpdates: 3,
+      onTransaction: async (t) => {
+        if (t.offset === 2 && failOnce) {
+          failOnce = false;
+          throw new Error("temporary database failure");
+        }
+        handled.push(t.offset);
+      },
+    });
+    await until(() => FakeWs.all.length === 1);
+    const a = FakeWs.all[0]!;
+    a.open();
+    a.push(tx(1));
+    a.push(tx(2));
+    a.push(tx(3));
+    await until(() => FakeWs.all.length === 2);
+    expect(handled).toEqual([1]);
+    const b = FakeWs.all[1]!;
+    b.open();
+    expect(b.sent[0]).toMatchObject({ beginExclusive: 1 });
+    b.push(tx(2));
+    b.push(tx(3));
+    await until(() => s.cursor === 3);
+    expect(handled).toEqual([1, 2, 3]);
+    await s.close();
+  });
+
   it("reconnects when an opened socket refuses the subscription request", async () => {
     FakeWs.all = [];
     class RefusingWs extends FakeWs {

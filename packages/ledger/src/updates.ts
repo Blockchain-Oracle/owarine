@@ -54,6 +54,8 @@ export interface UpdateStreamOptions {
   connectTimeoutMs?: number;
   /** Reconnect an open socket that stops delivering updates or checkpoints (Canton checkpoints at most every 75 s). */
   idleTimeoutMs?: number;
+  /** Bound decoded updates waiting for a slow handler; resume from the handled cursor after draining. */
+  maxPendingUpdates?: number;
   WebSocket?: WebSocketCtor;
   random?: () => number;
 }
@@ -79,6 +81,8 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   const maxMs = o.backoffMaxMs ?? 30_000;
   const connectTimeoutMs = o.connectTimeoutMs ?? 15_000;
   const idleTimeoutMs = o.idleTimeoutMs ?? 90_000;
+  const maxPendingUpdates = o.maxPendingUpdates ?? 256;
+  if (!Number.isSafeInteger(maxPendingUpdates) || maxPendingUpdates < 1) throw new Error("maxPendingUpdates must be a positive integer");
   const request = (begin: Offset) => ({
     beginExclusive: begin,
     updateFormat: {
@@ -105,6 +109,8 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
   let refreshTimer: ReturnType<typeof setTimeout> | null = null;
   let reconnecting = false;
+  let drainingForBackpressure = false;
+  let pendingUpdates = 0;
   let resolveDone!: () => void;
   const done = new Promise<void>((r) => (resolveDone = r));
 
@@ -112,12 +118,11 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
     if (!stopped && t !== tokenInUse) void reconnect("token re-granted", 0);
   });
 
-  function detach(): void {
+  function disconnect(): void {
     if (connectTimer) clearTimeout(connectTimer);
     connectTimer = null;
     if (idleTimer) clearTimeout(idleTimer);
     idleTimer = null;
-    gen++;
     const old = ws;
     ws = null;
     if (!old) return;
@@ -127,6 +132,11 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
     } catch {
       /* already closing */
     }
+  }
+
+  function detach(): void {
+    gen++;
+    disconnect();
   }
 
   function stop(): void {
@@ -159,9 +169,24 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
     if (!stopped) await connect();
   }
 
+  async function drainAndReconnect(): Promise<void> {
+    if (stopped || reconnecting) return;
+    reconnecting = true;
+    drainingForBackpressure = true;
+    // Stop accepting messages without invalidating the bounded work already queued. The next
+    // subscription starts after the last successfully handled offset, so nothing is skipped.
+    disconnect();
+    o.onState?.("reconnecting", `backpressure (${maxPendingUpdates} pending updates)`);
+    await chain.catch(() => {});
+    drainingForBackpressure = false;
+    reconnecting = false;
+    if (!stopped) await connect();
+  }
+
   function fail(err: LedgerError, fatal: boolean): void {
     o.onError?.(err, fatal);
     if (fatal) stop();
+    else if (drainingForBackpressure) gen++; // Skip the rest of this batch; replay from the last good cursor.
     else void reconnect(err.message);
   }
 
@@ -184,6 +209,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
   function handle(myGen: number, env: JsUpdateEnvelope): Promise<void> {
     const u = env.update;
     if (!u) return Promise.resolve();
+    pendingUpdates++;
     return (chain = chain.then(async () => {
       if (myGen !== gen || stopped) return;
       if ("Transaction" in u) {
@@ -202,7 +228,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
       if (myGen !== gen) return;
       const err = e instanceof LedgerError ? e : new LedgerError({ kind: "unknown", path: "/v2/updates", message: `handler failed: ${String(e)}`, cause: e });
       fail(err, false);
-    }));
+    }).finally(() => { pendingUpdates--; }));
   }
 
   async function connect(): Promise<void> {
@@ -265,6 +291,7 @@ export function streamUpdates(o: UpdateStreamOptions): UpdateStream {
       }
       if (typeof msg === "object" && msg !== null && "update" in msg) watchForSilence(myGen);
       void handle(myGen, msg as JsUpdateEnvelope);
+      if (pendingUpdates >= maxPendingUpdates) void drainAndReconnect();
     };
     sock.onerror = () => {
       if (myGen !== gen || stopped) return;
