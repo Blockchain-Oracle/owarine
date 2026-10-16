@@ -72,7 +72,6 @@ EXPOSE 8080 8787
 # Liveness only: any HTTP answer from /health counts. Its body can read not-ok for a third-party feed (K-027), and a
 # restart would not fix that; a process that stopped answering is what Coolify should restart.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 CMD curl -s -o /dev/null http://127.0.0.1:8080/health || exit 1
-# The heap is set under the container's memory limit (Node sizes it from the container otherwise, and ops needs ~2 GB
-# once the venue has loaded: a 1 GB heap ran out during start-up on 16 Oct). Coolify: 2.5 GB limit, NODE_OPTIONS also
-# --max-old-space-size=2048. Growth past it restarts ops instead of swapping the whole 8 GB host.
-CMD ["node", "--max-old-space-size=2048", "dist/bundle/main.mjs"]
+# The full DevNet projector exceeded a 2 GB V8 heap during recovery on 16 Oct. Coolify gives this single-writer
+# container 4 GB, leaving headroom outside the 3 GB heap for native memory and the room server.
+CMD ["node", "--max-old-space-size=3072", "dist/bundle/main.mjs"]
