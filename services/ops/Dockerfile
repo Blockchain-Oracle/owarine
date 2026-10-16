@@ -47,7 +47,8 @@ COPY packages/markets ./packages/markets
 COPY services/ops ./services/ops
 
 RUN pnpm --filter @owarine/ops build \
-    && pnpm --filter @owarine/ops deploy --prod --legacy --config.node-linker=hoisted /out
+    && pnpm --filter @owarine/ops deploy --prod --legacy --config.node-linker=hoisted /out \
+    && node services/ops/scripts/build.mjs --check /out
 
 FROM node:22-slim
 ENV NODE_ENV=production
