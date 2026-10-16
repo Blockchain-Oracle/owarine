@@ -47,6 +47,18 @@ export interface DeskSnapshot {
   resolutions: Map<string, Active<ResolutionC>>;
 }
 
+/** The keeper reads a Resolution only while it can still settle a live ticket. */
+export function needsTicketResolutions(
+  nowSec: number,
+  rounds: readonly { data: { refundAfterSec: number } }[],
+  tickets: readonly { data: { voidAfterSec: number } }[],
+  positions: readonly { data: { refundAfterSec: number } }[],
+): boolean {
+  return rounds.some((r) => nowSec < r.data.refundAfterSec)
+    || tickets.some((t) => nowSec < t.data.voidAfterSec)
+    || positions.some((p) => nowSec < p.data.refundAfterSec);
+}
+
 export async function readDesk(venue: RoleSession, onBad?: (cid: string, error: unknown) => void): Promise<DeskSnapshot> {
   const acs = await readActive(venue, DESK_TEMPLATES);
   const me = venue.party;
@@ -70,9 +82,10 @@ export async function readDesk(venue: RoleSession, onBad?: (cid: string, error: 
   const rounds = mine(pick(acs, T.RangeRound, decodeRangeRound, onBad));
   const tickets = mine(pick(acs, T.ParlayTicket, decodeParlayTicket, onBad));
   const positions = mine(pick(acs, T.BoostPosition, decodeBoostPosition, onBad));
-  // The keeper settles, resolves legs of and knocks out only these three: with none live, no Resolution is needed.
+  // Expired contracts may stay active on the ledger; the keeper cannot settle them after their refund/void deadline.
+  // Avoid scanning every historical Resolution for one such leftover contract.
   const resolutions = new Map<string, Active<ResolutionC>>();
-  if (rounds.length + tickets.length + positions.length > 0) {
+  if (needsTicketResolutions(Math.floor(Date.now() / 1000), rounds, tickets, positions)) {
     for (const r of mine(pick(await readActive(venue, [TEMPLATE_IDS.Resolution]), TEMPLATE_IDS.Resolution, decodeResolution, onBad))) resolutions.set(r.data.termsCid, r);
   }
   const earn = acs.find((c) => c.createdEvent.templateId.endsWith(":PM.Tickets.Earn:EarnDesk") && (c.createdEvent.createArgument as { venue?: string }).venue === me);
