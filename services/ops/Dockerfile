@@ -71,6 +71,7 @@ EXPOSE 8080 8787
 # Liveness only: any HTTP answer from /health counts. Its body can read not-ok for a third-party feed (K-027), and a
 # restart would not fix that; a process that stopped answering is what Coolify should restart.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 CMD curl -s -o /dev/null http://127.0.0.1:8080/health || exit 1
-# The heap is capped under the container's memory limit (Node does not read it): a leak restarts ops instead of
-# swapping the whole server (16 Oct: ~2 GB and growing on the 8 GB host).
-CMD ["node", "--max-old-space-size=1024", "dist/bundle/main.mjs"]
+# The heap is set under the container's memory limit (Node sizes it from the container otherwise, and ops needs ~2 GB
+# once the venue has loaded: a 1 GB heap ran out during start-up on 16 Oct). Coolify: 2.5 GB limit, NODE_OPTIONS also
+# --max-old-space-size=2048. Growth past it restarts ops instead of swapping the whole 8 GB host.
+CMD ["node", "--max-old-space-size=2048", "dist/bundle/main.mjs"]
