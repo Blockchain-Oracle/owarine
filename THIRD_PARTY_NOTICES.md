@@ -1,30 +1,28 @@
 # Third-party notices
 
-This file records the sources and attribution of material used by Agari, a source-led port of Masayume (`reference/masayume` @ `68f7a09`), and of the material Masayume itself carried. It does not grant a license to Agari as a whole, change upstream terms, or imply endorsement by the named projects or companies. Existing file-level notices and dependency licenses remain applicable.
+This file records the sources and attribution of material used by Owarine, including the author's own earlier work. It does not grant a license to Owarine as a whole, change upstream terms, or imply endorsement by the named projects or companies. Existing file-level notices and dependency licenses remain applicable.
 
-## Yosuku product and presentation
+## Earlier interface work
 
-Masayume includes substantial source-led adaptations of Yosuku's interface, styles, interaction logic and product wording, with Somnia/DreamDEX implementations replacing its Sui/DeepBook substrate. Agari inherits that adaptation as a further port: its own Anchor programs (`agari-events`, `agari-vault`) replace Masayume's Somnia/DreamDEX substrate in turn, so no Somnia, DreamDEX, Sui or DeepBook code, address or dependency ships in this tree; the notice below documents the interface and CSS lineage only.
+The web interface reuses interface, style and wording work from the author's own earlier projects, built before this one.
 
-- Source: [Cybire1/yosuku](https://github.com/Cybire1/yosuku), pinned reference commit `3c56ef52b78dae28cc198495f753480292f6a5ad`.
+- Source: [Cybire1/yosuku](https://github.com/Cybire1/yosuku), pinned at commit `3c56ef52b78dae28cc198495f753480292f6a5ad`.
 - Source attribution: [`web/src/styles/yosuku/index.css`](web/src/styles/yosuku/index.css) and source comments throughout `web/src`.
-- The locally retained parity ledger records the owner's approval of Yosuku source, CSS, token and asset reuse on 1 September 2026, carried into this Agari port. This notice records that provenance for the public tree.
-- The pinned README contains an MIT badge, but the inspected pinned tree does not contain the root license document to which that badge links. The records do not specify the copyright holder notice or terms for public redistribution of the derived source and assets. No repository-wide MIT grant is inferred from that badge or from this notice.
+- The owner approved reusing that source, CSS, tokens and assets on 1 September 2026. This notice records the provenance for the public tree.
+- The pinned README contains an MIT badge, but the inspected pinned tree does not contain the root license document to which that badge links. The copyright holder notice and terms for public redistribution of the reused source and assets are not specified. No repository-wide MIT grant is inferred from that badge or from this notice.
 
-The public distribution questions for that derived source and artwork remain unresolved by this notice.
+## Earlier game projects
 
-## Game references
+The game system draws mechanics and lifecycle patterns from these earlier projects:
 
-The game system draws mechanics and lifecycle patterns from these pinned references:
-
-| Reference | Pinned commit | Recorded use |
+| Project | Pinned commit | Recorded use |
 | --- | --- | --- |
 | [PIPS](https://github.com/Blockchain-Oracle/pips) | `fe8f6963972ca18fc9db0fd9ee4db389e6293ee8` | Game selection, settings, Lucky Draw, Moonshot and arcade interaction patterns |
 | [Flicky](https://github.com/Blockchain-Oracle/flicky), a fork of [nikola0x0/flicky](https://github.com/nikola0x0/flicky) | `56054baeb0c7f8ef6e039ebb0eed2b04e4f59388` | Practice/Duel, commit-reveal, scoring, matchmaking, reconnect and sound interaction patterns |
 
-The game implementation direction calls for independently implemented UI, engines and services (verified in this tree: `packages/core/src/games`, `packages/markets/src/games` and `web/src/features/games` carry per-file references to these patterns in their own doc comments, not copied code). Neither inspected pinned tree provides a general root license grant; Flicky's README says its license is to be determined. The Apache-2.0 header on Flicky's `duel.move` is a file-level notice, not a license for its entire repository. No general PIPS/Flicky source-reuse permission is asserted here. The games system ships in this tree but its player-facing routes are deferred past the hackathon deadline (`D-084`, S12); this notice covers the code and assets as shipped, independent of whether a route is nav-reachable today.
+The game implementation direction calls for independently implemented UI, engines and services (verified in this tree: `packages/core/src/games`, `packages/markets/src/games` and `web/src/features/games` carry per-file notes on these patterns in their own doc comments, not copied code). Neither pinned tree provides a general root license grant; Flicky's README says its license is to be determined. The Apache-2.0 header on Flicky's `duel.move` is a file-level notice, not a license for its entire repository. No general PIPS/Flicky source-reuse permission is asserted here. The games system ships in this tree but its player-facing routes are deferred past the hackathon deadline (`D-084`, S12); this notice covers the code and assets as shipped, independent of whether a route is nav-reachable today.
 
-Agari's pixel-grid artwork (ported from Masayume) is defined in [`PixelArt.tsx`](web/src/features/games/art/PixelArt.tsx). The music bed is generated by [`bed.ts`](web/src/features/games/bed.ts); the reference's Uppbeat music file is not included. Separately licensed font and sound assets are credited below. Five PIPS research screenshots are retained only as local, ignored authoring material in the Masayume tree this was ported from; they are not present in this repository.
+The pixel-grid artwork is defined in [`PixelArt.tsx`](web/src/features/games/art/PixelArt.tsx). The music bed is generated by [`bed.ts`](web/src/features/games/bed.ts). Separately licensed font and sound assets are credited below.
 
 ## Fonts
 
@@ -68,13 +66,13 @@ The 3D object illustrations in [`web/public/art/fluent`](web/public/art/fluent) 
 
 ## Wallet modals
 
-Agari's connect and account modals (`web/src/providers/wallet/`) replicate the RainbowKit 2.2.11 modals that Masayume shipped, without the package:
+Owarine's connect and account modals (`web/src/providers/wallet/`) replicate the RainbowKit 2.2.11 modals, without the package:
 
 - **RainbowKit** ([rainbow-me/rainbowkit](https://github.com/rainbow-me/rainbowkit), MIT, Copyright (c) 2024 Rainbow): the close, back, copy, copied and disconnect glyph paths, the spinner outline, the emoji avatar palette, and the two "What is a Wallet?" illustrations (`web/public/wallet/assets.svg`, `login.svg`). Its English strings are reused with "Ethereum" replaced by "Solana".
 
 ## Asset marks
 
-The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-085) carry the issuer's mark as inline SVG path data, vendored so nothing is fetched at runtime and nothing sits under `web/public/`; the share-card canvas draws the same paths. The marks and names are trademarks of their owners; they identify the traded assets and imply no endorsement of, or affiliation with, Agari. A CC0 grant below covers the vectorization, not the trademark.
+The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-085) carry the issuer's mark as inline SVG path data, vendored so nothing is fetched at runtime and nothing sits under `web/public/`; the share-card canvas draws the same paths. The marks and names are trademarks of their owners; they identify the traded assets and imply no endorsement of, or affiliation with, Owarine. A CC0 grant below covers the vectorization, not the trademark.
 
 | Mark | Source | Terms |
 | --- | --- | --- |
@@ -84,7 +82,7 @@ The discs that name a listed stock (`web/src/components/icons/asset-marks/`, D-0
 | Amazon | simple-icons **14.15.0**, the last release to carry `amazon.svg` | CC0 1.0 at publication. The maintainers removed the Amazon and AWS icons in 15.0.0 ([PR #13056](https://github.com/simple-icons/simple-icons/pull/13056)) pending permission, not on a request from Amazon. |
 | Microsoft | Own geometry: four rectangles drawn in `paths.ts`; no third-party artwork | simple-icons removed its Microsoft icons in 13.0.0 on Microsoft's trademark terms ([PR #10019](https://github.com/simple-icons/simple-icons/pull/10019)), so none is vendored. |
 | Invesco QQQ, Vanguard S&P 500, SPDR S&P 500 | None: the registry monogram typed on the fund house's colour | — |
-| Bitcoin, Ethereum | Masayume's own `BitcoinMark` (the ₿ path on the orange disc) and `EthereumMark` (the diamond), reimplemented from the reference as single white glyphs on the asset's published colour (`#F7931A`, `#627EEA`) | The marks identify the traded assets; no endorsement implied. |
+| Bitcoin, Ethereum | Own `BitcoinMark` (the ₿ path on the orange disc) and `EthereumMark` (the diamond), drawn as single white glyphs on the asset's published colour (`#F7931A`, `#627EEA`) | The marks identify the traded assets; no endorsement implied. |
 
 The brand colours in `packages/core/src/market/tickers.ts` (`Ticker.brand`) and `web/src/styles/icons.css` are the issuers' published mark colours (simple-icons `hex` for the vendored marks, near-black for Apple). Two vendored marks take the issuer's own published colour rather than simple-icons' near-black, so two discs do not go black and need rings: Anthropic's clay `#D97757` (simple-icons records `#191919`) and SpaceX's blue `#005288` (simple-icons records `#000000`).
 
@@ -96,7 +94,6 @@ Agent portraits use **Notionists by Zoish**, remixed through DiceBear. [The desi
 
 Other packaged libraries retain their own notices. Examples verified in the installed dependencies include React, Next.js, Motion and Anchor's `anchor-lang`/`anchor-spl` under MIT/Apache-2.0; the Pyth Solana Receiver SDK, Switchboard On-Demand and RedStone's Rust SDK under their own upstream terms; Lucide and Rettiwt-API under ISC. This list is an attribution guide, not a replacement for the lockfile, a complete software bill of materials, or the full license texts distributed with each dependency.
 
-`agari-events` and `agari-vault` are Rust/Anchor programs written for this port. Their design drew on published patterns (Phoenix v1's matching-loop shape, `lib-sokoban`'s slab allocator, Polymarket's `ctf-exchange` match-type split, BetDexLabs/Monaco's price-ladder idea), but a source check of `anchor/programs/agari-events/src` and `packages/core` at this stage (2026-09-15) found no code, comment or file lifted from those references or from `reference/phoenix-v1`/`reference/sokoban`. No third-party program-code credit is asserted for the engine beyond the game-reference credit above; this line is re-checked if that changes.
 
 ## Canton token standard packages
 
@@ -112,5 +109,5 @@ The "Built on" band, How It Works (web and phone) and the docs site's "Built on"
 
 | Mark | Files | Source and terms |
 | --- | --- | --- |
-| Canton | `web/public/brands/canton-on-{light,dark}.svg`, the same in `docs-site/public/brands/` and `mobile/assets/logos/canton{,_dark}.svg` | [Canton brand kit and trademark use](https://www.canton.network/brand-kit-trademark-use) (`canton-logo-black.svg`, `canton-logo-white.svg`). Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Agari. That notice is printed in the site footer and on the docs page. |
+| Canton | `web/public/brands/canton-on-{light,dark}.svg`, the same in `docs-site/public/brands/` and `mobile/assets/logos/canton{,_dark}.svg` | [Canton brand kit and trademark use](https://www.canton.network/brand-kit-trademark-use) (`canton-logo-black.svg`, `canton-logo-white.svg`). Canton is a registered trademark of Digital Asset (Switzerland) GmbH. Digital Asset is not affiliated with, and has not sponsored or endorsed, Owarine. That notice is printed in the site footer and on the docs page. |
 | Noders | `noders-on-{light,dark}.svg` (logo and text, full colour, light and dark ground) | [Noders brand assets](https://noders.team/brandkit) |

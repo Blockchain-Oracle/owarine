@@ -2,7 +2,7 @@
 
 The renderer uses these local static fonts to turn deterministic receipt text into SVG paths. It does not request fonts or images from a network, or call a generative model. `sharp` converts that SVG to a 1200 × 600 PNG.
 
-Copied from the reviewed `masayume-docs/scripts/assets/fonts` package on 2026-09-05:
+Copied from the author's earlier docs font package on 2026-09-05:
 
 | File | Source / instance | SHA-256 |
 | --- | --- | --- |

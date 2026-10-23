@@ -4,7 +4,7 @@ These are dated execution records, not a claim that every route is live now. The
 
 The source ledger, including the earlier attempts and failures, remains available in [Git history](https://github.com/Blockchain-Oracle/owarine/blob/012c990d106770804f66a2119870b6ca3e6b671e/docs/plan/acceptance.md). The [capability inventory](capabilities.json) retains all 219 entries and their original states; historical evidence references are validated with `git cat-file` rather than relying on ignored local files.
 
-| UTC | Stage | Scenario | Parity rows | Commit | Ledger evidence (update id / trace id / artifact) | Result |
+| UTC | Stage | Scenario | Capability rows | Commit | Ledger evidence (update id / trace id / artifact) | Result |
 |---|---|---|---|---|---|---|
 | 2026-10-06T12:40:40Z | C4g | DevNet read: ledger end and pruning offset before ops starts (`GET /v2/state/ledger-end`, `GET /v2/state/latest-pruned-offsets`) | — | `b69f9d2f` | ledger end 2,223,588; `participantPrunedUpToInclusive` 175,012 | pass: the participant is pruned; our parties' history (from 6 Oct ~10:45) is all above the pruning offset |
 | 2026-10-06T12:42:37Z | C4g | DevNet ops `DRY_RUN=1`, `ROLLER_SERIES=BTC-1m,ETH-1m,BTC-5m` (`scripts/drive/ops-local.ts`), first boot | — | `b69f9d2f` | scratch log `ops-dry.log` | fail: every fetch from this Mac timed out (exchanges, Alpaca, the ledger); at 12:43:55 a token grant during boot failed `fetch failed: other side closed` and the process exited (a boot-time failure, D-098; no supervisor yet). A restart loop standing in for Coolify's was added to the launcher |

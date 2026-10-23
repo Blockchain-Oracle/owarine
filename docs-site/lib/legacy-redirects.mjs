@@ -1,4 +1,4 @@
-/** Old Masayume-shaped docs URLs, kept only when they have a current Owarine guide. */
+/** Old docs URLs, kept only when they have a current Owarine guide. */
 export const legacyRedirects = [
   ['/trading/earn', '/trading/specialist-tickets'],
   ['/games/practice', '/games/practice-and-arcade'],

@@ -56,7 +56,7 @@
     },
     {
       "id": "L-05",
-      "capability": "Design system (Yosuku port)",
+      "capability": "Design system",
       "state": "not-live",
       "dependsOn": [
         "gate:C0"
@@ -151,7 +151,7 @@
         "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/c10f-public.md#L42",
         "git:012c990d106770804f66a2119870b6ca3e6b671e:docs/evidence/ux/c10f"
       ],
-      "note": "Static page, checked with no ledger or ops (C10f); the phone's port (C-N34) only typechecked and exported"
+      "note": "Static page, checked with no ledger or ops (C10f); the phone app (C-N34) only typechecked and exported"
     },
     {
       "id": "L-13",
@@ -265,7 +265,7 @@
     },
     {
       "id": "L-21",
-      "capability": "Legacy redirects",
+      "capability": "Old-URL redirects",
       "state": "not-live",
       "dependsOn": [
         "gate:C1"

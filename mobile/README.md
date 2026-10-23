@@ -1,6 +1,6 @@
 # The phone app (Expo)
 
-The iOS and Android app of the Canton prediction market. It is the web's phone layout ported to React Native, and it reuses the web's hooks and copy (`@/` resolves to `web/src`, with a few browser-bound files swapped for `src/web-shims`, listed in `web-shims.map.cjs`). The [root README](../README.md) describes the current Canton evidence and limitations; the [capability inventory](../.github/verification/capabilities.json) links the dated Simulator runs.
+The iOS and Android app of the Canton prediction market. It is the web's phone layout built in React Native, and it reuses the web's hooks and copy (`@/` resolves to `web/src`, with a few browser-bound files swapped for `src/web-shims`, listed in `web-shims.map.cjs`). The [root README](../README.md) describes the current Canton evidence and limitations; the [capability inventory](../.github/verification/capabilities.json) links the dated Simulator runs.
 
 ## Identity
 

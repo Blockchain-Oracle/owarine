@@ -4,7 +4,7 @@
   "editorialOnly": true,
   "notEvidenceOf": "An executed trade, a recording, an independently signed ledger submission, or a published video. The screenshot is reinterpreted in the generated composition; use original captures and ledger records for verification.",
   "productScreen": {
-    "sourceWorkspace": "canton-season3/context/13-revamp/tradash/owarine-captures-2026-10-07/candles-desktop.png",
+    "sourceWorkspace": "owarine-captures-2026-10-07/candles-desktop.png",
     "date": "2026-10-07",
     "state": "Owarine desktop BTC chart in DEMO mode, no open positions.",
     "publicOriginal": ".github/assets/trading-screen-2026-10-07.png"

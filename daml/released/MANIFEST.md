@@ -69,7 +69,7 @@ The 0.5.1 set itself passed against main 0.4.0, tickets 0.1.2, agents 0.2.0 and 
 4. Copy the new DARs here. Keep the old files: the Console cannot delete a DAR, so each released file stays as the record of what went up.
 5. Add a section to this file.
 
-## R2: abu-pm-seat 0.1.0 (revamp step 4, 8 Oct 2026)
+## R2: abu-pm-seat 0.1.0 (step 4, 8 Oct 2026)
 
 One new package, uploaded **after** the five R1 files (it carries `abu-pm-main-0.5.2-f29dde00….dalf` as a data-dependency, the same main package as R1's file 1, so nothing of R1 changes). It adds the seat's resting exit (`PM.Seat.Exit`: `RestingExit` with `RestExit_Fill`, `_Ratchet`, `_Cancel`, `_Expire`, `_Withdraw`) and credits between seats (`PM.Seat.Send`: `TransferDesk`, `CashTransferOffer` with `Offer_Accept`, `_Reject`, `_Withdraw`).
 
